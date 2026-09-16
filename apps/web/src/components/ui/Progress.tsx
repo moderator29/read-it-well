@@ -105,7 +105,7 @@ export function Progress({
          * The translate flips from -100% to 0 near the ends so the label never
          * overhangs the track it belongs to.
          */
-        <div className="relative mb-1 h-4 w-full" aria-hidden="true">
+        <div className="relative mb-2xs h-4 w-full" aria-hidden="true">
           <span
             className="nf-numeric absolute whitespace-nowrap text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-secondary)] transition-[left] motion-reduce:transition-none"
             style={{
@@ -204,7 +204,7 @@ export function SegmentedProgress({
       aria-valuemax={total}
       aria-valuenow={at}
       aria-valuetext={label}
-      className={["flex w-full items-center gap-1.5", className ?? ""].filter(Boolean).join(" ")}
+      className={["flex w-full items-center gap-inline-tight", className ?? ""].filter(Boolean).join(" ")}
     >
       {Array.from({ length: total }, (_, i) => {
         const done = i < at;

@@ -144,7 +144,7 @@ export function Switch({
 
   return (
     <div
-      className={["flex items-center justify-between gap-4", className ?? ""]
+      className={["flex items-center justify-between gap-group", className ?? ""]
         .filter(Boolean)
         .join(" ")}
     >
@@ -158,7 +158,7 @@ export function Switch({
         {description ? (
           <p
             id={descriptionId}
-            className="mt-0.5 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]"
+            className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]"
           >
             {description}
           </p>

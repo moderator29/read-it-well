@@ -104,11 +104,13 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
 
       <div className="nf-card mt-5 p-5">
         <h2 className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
-          {unconfigured ? "Accounts switch on shortly" : "Your trips live in your account"}
+          {unconfigured
+            ? "We cannot reach your account right now"
+            : "Your stays live in your account"}
         </h2>
         <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {unconfigured
-            ? "Everything you set here is kept on this device until the platform keys land. Nothing is lost in the meantime."
+            ? "This is on our side, not yours. Everything you set here is kept on this device and nothing has been lost. Try again in a few minutes."
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
         </p>
         {!unconfigured && (

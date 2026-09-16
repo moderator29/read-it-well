@@ -82,7 +82,17 @@ export default async function NotificationsPage() {
           action={
             <EmptyActions
               primary={{ label: "Sign in", href: "/sign-in" }}
-              secondary={{ label: "Keep exploring", href: "/search" }}
+              /* "Keep exploring" pointed at /search, which is the product
+                 changing the subject when it cannot answer the question, and it
+                 is the same non sequitur "Explore places" was on the wallet.
+                 The quiet action belongs to the screen it is on: the one thing
+                 somebody can genuinely do here without an account is decide
+                 what they want to be told about, and the on-device
+                 notifications card does that signed out. */
+              secondary={{
+                label: "Notification settings",
+                href: "/settings#settings-notifications",
+              }}
             />
           }
         />

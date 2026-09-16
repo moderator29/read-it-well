@@ -121,18 +121,18 @@
    * near-white on this ground under the dark default.
    */
   .nf-onboarding {
-    color: rgb(18 21 26);
+    color: var(--nf-content-on-paper);
     opacity: 1;
     transition: opacity 260ms var(--nf-ease-standard);
   }
   .nf-onboarding .nf-overline {
-    color: rgb(18 21 26 / 0.6);
+    color: var(--nf-content-on-paper-muted);
   }
   .nf-onboarding--leaving {
     opacity: 0;
   }
   .nf-onboarding-frame {
-    filter: drop-shadow(0 24px 48px rgb(18 21 26 / 0.18));
+    filter: drop-shadow(0 24px 48px var(--nf-shadow-on-paper));
   }
   .nf-onboarding-skip {
     /* 58 by 38 before this line. The first control a new visitor ever meets. */
@@ -141,17 +141,17 @@
     min-height: 44px;
     padding: var(--nf-gap-inline) var(--nf-space-sm);
     border-radius: var(--nf-radius-control);
-    border: 1.5px solid rgb(18 21 26 / 0.14);
-    background: rgb(255 255 255 / 0.72);
+    border: 1.5px solid var(--nf-border-on-paper);
+    background: var(--nf-surface-on-paper);
     backdrop-filter: blur(6px);
-    color: rgb(18 21 26 / 0.82);
+    color: var(--nf-content-on-paper-secondary);
     font-size: 0.8125rem;
     font-weight: 600;
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   @media (hover: hover) {
     .nf-onboarding-skip:hover {
-      background: rgb(255 255 255 / 0.94);
+      background: var(--nf-surface-on-paper-hover);
     }
   }
   /* The camera move: a slow pull back from a close crop of the world mark to
@@ -237,8 +237,8 @@
   .nf-page-scene {
     opacity: 0.16;
     filter: saturate(1.1);
-    -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
-    mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
+    -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, var(--nf-mask-opaque) 30%, transparent 76%);
+    mask-image: radial-gradient(62% 62% at 55% 45%, var(--nf-mask-opaque) 30%, transparent 76%);
     /*
      * Still. This is a watermark at 16 per cent behind a page's opening lines,
      * and it was the SECOND ambient loop on any viewport that had one, next to
@@ -497,8 +497,8 @@
   .nf-story-stage--night {
     background:
       radial-gradient(70% 50% at 50% 100%, var(--nf-glow-2) 0%, transparent 70%),
-      linear-gradient(180deg, #05060F 0%, #01010A 100%);
-    border-bottom: 1px solid rgb(92 124 255 / 0.28);
+      var(--nf-story-stage);
+    border-bottom: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 28%, transparent);
   }
   /*
    * THE FEATHER MASK IS GONE. It existed to dissolve the clay artwork's opaque
@@ -512,11 +512,11 @@
      square block sitting on the card. */
   .nf-scene-chip {
     border-radius: var(--nf-radius-lg);
-    border: 1px solid rgb(18 21 26 / 0.07);
+    border: 1px solid var(--nf-wash-2);
     overflow: hidden;
   }
   :root:not([data-theme="light"]) .nf-scene-chip {
-    border-color: rgb(92 124 255 / 0.28);
+    border-color: color-mix(in oklab, var(--nf-brand-secondary) 28%, transparent);
   }
 
   /* Anchored headings clear the sticky header instead of hiding under it. */

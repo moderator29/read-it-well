@@ -116,7 +116,7 @@ export function Field({
 
   return (
     <div className={["w-full", className ?? ""].filter(Boolean).join(" ")}>
-      <label htmlFor={id} className={hideLabel ? "sr-only" : "nf-label flex items-center gap-1.5"}>
+      <label htmlFor={id} className={hideLabel ? "sr-only" : "nf-label flex items-center gap-inline-tight"}>
         <span>{label}</span>
         {required ? (
           /* A glyph, not a word, so it needs no translation. The real
@@ -138,7 +138,7 @@ export function Field({
       })}
 
       {hint ? (
-        <p id={hintId} className="mt-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           {hint}
         </p>
       ) : null}
@@ -159,7 +159,7 @@ export function Field({
         <p
           id={errorId}
           role="alert"
-          className="nf-arrive mt-1.5 text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-xs text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -222,8 +222,12 @@ function controlClass({
     HEIGHT[size],
     FIELD_TYPE,
     "py-0",
-    leading ? "pl-11" : "pl-4",
-    trailing ? "pr-11" : "pr-4",
+    /* `affordance` is a padding ROLE, not a rung: it is the inset a field
+       needs when an icon or a clear button is sitting inside it, and it has to
+       clear a 44px tap target rather than land on the content ladder. See the
+       note beside --nf-pad-field-affordance. */
+    leading ? "pl-affordance" : "pl-md",
+    trailing ? "pr-affordance" : "pr-md",
     className ?? "",
   ]
     .filter(Boolean)
@@ -483,7 +487,7 @@ export function TextArea({
           /* The same material as the single-line fields, with the height rung
              replaced by `rows` - a textarea that does not match the inputs
              above it is the tell that a form was assembled rather than designed. */
-          className={["nf-field block resize-y px-4 py-3", FIELD_TYPE, textAreaClassName ?? ""]
+          className={["nf-field block resize-y px-md py-sm", FIELD_TYPE, textAreaClassName ?? ""]
             .filter(Boolean)
             .join(" ")}
           style={error ? INVALID_STYLE : undefined}

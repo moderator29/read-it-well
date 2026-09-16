@@ -4,7 +4,6 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
-import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { BalanceCard } from "@/components/app/wallet/BalanceCard";
@@ -158,22 +157,27 @@ export default async function WalletPage({
             title="Your balance could not be loaded"
             body="Something on our side stopped part way through, so we are not showing a figure rather than showing you one we cannot stand behind. Every movement in and out of your wallet is recorded permanently, so nothing is lost while this is unreadable. Try again in a moment, and tell support if it keeps happening."
             action={
-              <ButtonLink href="/wallet" variant="primary">
-                Try again
-              </ButtonLink>
-            }
-            secondary={
-              /* /settings, not an invented /settings/support: the support chat
-                 is rendered there, and a dead link on the screen that tells
-                 somebody to ask for help is the worst place to put one.
+              /* ONE ACTION TREATMENT, INCLUDING ON THIS BRANCH.
+                 The signed-out state two branches up already went through
+                 `EmptyActions`; this one was still a pair of intrinsic-width
+                 buttons split across `action` and `secondary`, which is a third
+                 arrangement on the same screen. Both are stacked and full width
+                 now, primary then quiet, like every other empty state.
+
+                 /settings#settings-help, not an invented /settings/support: the
+                 support chat is rendered on the settings screen, and a dead link
+                 on the screen that tells somebody to ask for help is the worst
+                 place in the product to put one. The fragment lands on the chat
+                 rather than at the top of a four-thousand-pixel page.
 
                  The three stacked paragraphs this used to carry are two
                  sentences in the body above, with nothing dropped. Three
                  paragraphs of reassurance is more reading than somebody staring
                  at a missing balance is going to do. */
-              <ButtonLink href="/settings" variant="ghost">
-                Contact support
-              </ButtonLink>
+              <EmptyActions
+                primary={{ label: "Try again", href: "/wallet" }}
+                secondary={{ label: "Contact support", href: "/settings#settings-help" }}
+              />
             }
           />
         </Reveal>

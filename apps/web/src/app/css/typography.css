@@ -136,7 +136,7 @@
   .nf-overline {
     font-size: var(--nf-text-overline);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: var(--nf-tracking-overline);
     font-weight: 650;
     color: var(--nf-content-subtle);
   }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { failureConsequence } from "./payment-copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
@@ -435,9 +436,16 @@ export function PayPanel({ view }: { view: CheckoutView }) {
         verdict="Payment not completed"
         fact={fact}
         locale={view.locale}
-        consequence={`${
-          phase.kind === "error" && phase.message ? `${phase.message} ` : ""
-        }Nothing has been taken from your card or your wallet.`}
+        /* THE SERVER'S STRING NO LONGER REACHES THE READER UNFILTERED. Every
+           refusal in the action, and in the session, flag, idempotency and
+           rate-limit helpers it calls, could put any sentence in front of
+           somebody who has just tried to pay rent. `payment-copy` rewrites the
+           two that carry infrastructure jargon, drops anything that is not
+           prose a person wrote, and always leaves the money sentence standing. */
+        consequence={failureConsequence(
+          phase.kind === "error" ? phase.message : null,
+          "Nothing has been taken from your card or your wallet.",
+        )}
         actions={[
           { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
           { label: "Get help", href: "/help", tone: "quiet" },

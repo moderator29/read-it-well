@@ -116,11 +116,11 @@ export function Segmented<T extends string>({
     itemRefs.current[next]?.focus();
   };
 
-  const pad = size === "sm" ? "p-[3px]" : "p-1";
+  const pad = size === "sm" ? "p-3xs" : "p-2xs";
   const seg =
     size === "sm"
-      ? "h-9 px-3 text-[var(--nf-text-caption)]"
-      : "h-11 px-4 text-[var(--nf-text-body-sm)]";
+      ? "h-9 px-sm text-[var(--nf-text-caption)]"
+      : "h-11 px-md text-[var(--nf-text-body-sm)]";
 
   return (
     <div
@@ -166,7 +166,7 @@ export function Segmented<T extends string>({
             tabIndex={semantics === "tabs" ? (selected ? 0 : -1) : 0}
             onClick={() => onChange(o.value)}
             className={[
-              "nf-segmented__item relative z-1 inline-flex items-center justify-center gap-1.5 rounded-[var(--nf-radius-control)] font-semibold transition-colors",
+              "nf-segmented__item relative z-1 inline-flex items-center justify-center gap-inline rounded-[var(--nf-radius-control)] font-semibold transition-colors",
               seg,
               full ? "flex-1" : "",
               selected

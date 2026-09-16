@@ -59,13 +59,13 @@ const TableContext = createContext<TableContextValue>({
 const HeadContext = createContext(false);
 
 const TH_PAD: Record<TableDensity, string> = {
-  comfortable: "px-3 py-2.5",
-  compact: "px-3 py-1.5",
+  comfortable: "px-sm py-xs",
+  compact: "px-sm py-2xs",
 };
 
 const TD_PAD: Record<TableDensity, string> = {
-  comfortable: "px-3 py-3",
-  compact: "px-3 py-2",
+  comfortable: "px-sm py-sm",
+  compact: "px-sm py-xs",
 };
 
 const HAIRLINE = "border-b border-[var(--nf-border-subtle)]";
@@ -118,7 +118,7 @@ export function Table({
           <caption
             className={
               captionVisible
-                ? "px-3 pb-2 text-left text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]"
+                ? "px-sm pb-xs text-left text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]"
                 : "sr-only"
             }
           >
@@ -162,7 +162,7 @@ export function TBody({ children, className }: { children: ReactNode; className?
           */}
           <td
             colSpan={1000}
-            className="px-3 py-10 text-center text-[var(--nf-content-muted)]"
+            className="px-sm py-2xl text-center text-[var(--nf-content-muted)]"
           >
             {empty}
           </td>
@@ -310,7 +310,7 @@ export function TH({
           type="button"
           onClick={onSortChange}
           className={[
-            "inline-flex items-center gap-1 uppercase tracking-[inherit] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none",
+            "inline-flex items-center gap-inline-tight uppercase tracking-[inherit] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none",
             align === "end" ? "flex-row-reverse" : "",
           ]
             .filter(Boolean)
@@ -321,7 +321,7 @@ export function TH({
       ) : (
         <span
           className={[
-            "inline-flex items-center gap-1",
+            "inline-flex items-center gap-inline-tight",
             align === "end" ? "flex-row-reverse" : "",
           ]
             .filter(Boolean)

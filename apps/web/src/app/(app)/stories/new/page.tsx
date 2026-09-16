@@ -28,8 +28,8 @@ export default async function NewStoryPage() {
         <PageHeader title="Write a story" fallback="/around" />
         <ProfileNotice
           icon="camera"
-          title="Stories switch on shortly"
-          body="The platform keys are not in place yet, so nothing can be published from here. Everything else in the app works as normal."
+          title="We cannot reach stories right now"
+          body="This is on our side, not yours. Nothing can be published from here at the moment. Nothing you have written has been lost, and the rest of the app works as normal."
           primary={{ href: "/home", label: "Back to home" }}
         />
       </div>

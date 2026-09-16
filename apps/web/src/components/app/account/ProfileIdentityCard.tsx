@@ -191,7 +191,7 @@ export function ProfileIdentityCard() {
         </form>
       )}
 
-      {/* Where the activity strip was. Trips, saves and reviews are real
+      {/* Where the activity strip was. Stays, saves and reviews are real
           counts of real rows, so they arrive with an account and not before;
           `AccountProfile` renders them the moment there is one. */}
       {/* NO SECOND BORDER. This was a bordered box inside a card, which is the
@@ -199,7 +199,11 @@ export function ProfileIdentityCard() {
           prompt that the card's own bottom edge already separates. The rule
           above it is enough, and it is the same hairline a row list uses. */}
       <div className="nf-hairline mt-block pt-block text-center">
-        <p className="nf-body font-semibold">Your trips live in your account</p>
+        {/* "Trips" is a banned synonym for Stay in `PRODUCT.md` section 7. The
+            vocabulary table exists so the product sounds like one product, and
+            this card sits two taps from a Bookings row that already says
+            stays. */}
+        <p className="nf-body font-semibold">Your stays live in your account</p>
         <p className="mx-auto mt-row max-w-sm nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
           Sign in and this card shows what you have actually booked, saved and
           reviewed, on every device you use.

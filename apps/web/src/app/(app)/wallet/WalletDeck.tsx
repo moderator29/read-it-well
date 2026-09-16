@@ -21,7 +21,7 @@ import {
 } from "@/lib/wallet/actions";
 import { WALLET_BANKS } from "@/lib/wallet/banks";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { TextField, SelectField } from "@/components/ui/Field";
 import { Chip, ChipRow } from "@/components/ui/Chip";
@@ -468,9 +468,7 @@ function WithdrawForm({
           updates on its own.
         </p>
         <Reference value={state.data.reference} />
-        <Button type="button" variant="primary" full className="mt-block" onClick={onDone}>
-          Done
-        </Button>
+        <ReceiptActions onDone={onDone} />
       </div>
     );
   }
@@ -592,9 +590,7 @@ function TransferForm({
           Their wallet has it already, and both sides of the movement are in your history.
         </p>
         <Reference value={state.data.reference} />
-        <Button type="button" variant="primary" full className="mt-block" onClick={onDone}>
-          Done
-        </Button>
+        <ReceiptActions onDone={onDone} />
       </div>
     );
   }
@@ -729,6 +725,49 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
         <Odometer value={wholeNaira} locale={locale} suffix={amount.kobo} />
       </span>
     </p>
+  );
+}
+
+/**
+ * The way out of a receipt, and it is two doors rather than one.
+ *
+ * ---------------------------------------------------------------------------
+ * BOTH MONEY PATHS USED TO SUCCEED INTO A DEAD END.
+ *
+ * Withdraw and transfer each replaced the form with a receipt and offered no
+ * action at all: the only way out was the X in the drawer's corner. A single
+ * "Done" was added, which closed the drawer and was better than nothing, and it
+ * still left the reader with no route to the record. On the largest single
+ * movement most people will make on this platform, "it happened" is half the
+ * answer and "here is where it is written down" is the other half.
+ *
+ * THE PRIMARY IS THE RECORD, NOT THE DISMISSAL. A person reading a receipt is
+ * deciding whether to trust what just happened, and the useful next step is the
+ * statement the movement now sits at the top of. Dismissal is the quiet one
+ * because it is the thing they can always do anyway, including with the X.
+ *
+ * WHY THE HISTORY AND NOT THE RECEIPT PAGE. `/wallet/transactions/[id]` exists
+ * and would be the better target, but it is keyed on the ledger entry's id and
+ * both actions return a REFERENCE, which is a different string. Linking a
+ * reference into an id-shaped route would produce "No such receipt" on the
+ * happy path, which is worse than one hop through the statement. Making the
+ * actions return the id belongs to `lib/wallet/actions.ts`, which is another
+ * owner's file; it is written up rather than reached into.
+ *
+ * Stacked and both full width, which is the one empty-state and result action
+ * treatment the rest of the product uses. Side by side at 390px puts two
+ * targets under one thumb.
+ */
+function ReceiptActions({ onDone }: { onDone: () => void }) {
+  return (
+    <div className="mt-block flex flex-col items-stretch gap-inline">
+      <ButtonLink href="/wallet/transactions" variant="primary" full>
+        See it in your history
+      </ButtonLink>
+      <Button type="button" variant="ghost" full onClick={onDone}>
+        Done
+      </Button>
+    </div>
   );
 }
 

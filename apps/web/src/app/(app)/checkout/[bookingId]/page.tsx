@@ -270,22 +270,42 @@ export default async function CheckoutPage({
       ) : (
         <>
           <Reveal delay={80} className="mt-4">
-            {view.status === "CONFIRMED" ? (
-              /* Confirmed and still unpaid means the host accepted a request to
+            {/*
+              ONE BRANCH PER LIFECYCLE VALUE, AND THERE ARE FIVE OF THEM NOW.
+
+              `booking_status` gained COMPLETED and NO_SHOW. This was a single
+              ternary on CONFIRMED with everything else falling through to the
+              hold clock, so a stay the agent had already recorded as finished
+              would have rendered a countdown towards a hold that expired days
+              ago. CANCELLED is answered further up, which leaves four here and
+              all four are named rather than defaulted: the next value added to
+              the enum should be a visible gap, not a silently wrong screen.
+            */}
+            {view.status === "PENDING" ? (
+              <HoldCountdown expiresAt={view.holdExpiresAt} locale={locale} />
+            ) : view.status === "CONFIRMED" ? (
+              /* Confirmed and still unpaid means the agent accepted a request to
                  book. There is no hold running out, so counting one down would
                  be a fiction. What this guest needs to know is that the stay is
                  theirs and the money is what is outstanding. */
-              <p className="nf-card flex items-start gap-3 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                <span className="mt-0.5 block h-5 w-5 shrink-0">
-                  <BrandIcon name="calendar-check" fill tile={false} />
-                </span>
-                <span>
-                  The host has accepted these dates, so the stay is yours. All that is left is
-                  paying for it, and your dates are not counting down while you do.
-                </span>
-              </p>
+              <HoldNote>
+                The agent has accepted these dates, so the stay is yours. All that is left is
+                paying for it, and your dates are not counting down while you do.
+              </HoldNote>
+            ) : view.status === "COMPLETED" ? (
+              <HoldNote>
+                These dates have already passed and the stay is recorded as taken. Nothing is
+                counting down. The total below is what is still outstanding on it.
+              </HoldNote>
             ) : (
-              <HoldCountdown expiresAt={view.holdExpiresAt} />
+              /* NO_SHOW. Said without accusing the reader of anything: the
+                 record is the agent's and the guest may well disagree with it,
+                 so the route to a person comes before the route to a payment. */
+              <HoldNote>
+                The agent recorded that this stay was not taken up, so nothing is counting down. If
+                this total is still owed, paying settles it. If that does not match what happened,
+                get help before you pay.
+              </HoldNote>
             )}
           </Reveal>
 
@@ -347,6 +367,24 @@ export default async function CheckoutPage({
         </p>
       </Reveal>
     </Shell>
+  );
+}
+
+/**
+ * A standing fact about the dates, where a countdown would be a fiction.
+ *
+ * One component rather than three copies of the same card, because the three
+ * that use it differ only in their sentence and three hand-written copies is
+ * how one of them ends up a different size from the other two.
+ */
+function HoldNote({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="nf-card flex items-start gap-3 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <span className="mt-0.5 block h-5 w-5 shrink-0">
+        <BrandIcon name="calendar-check" fill tile={false} />
+      </span>
+      <span>{children}</span>
+    </p>
   );
 }
 

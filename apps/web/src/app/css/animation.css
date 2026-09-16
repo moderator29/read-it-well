@@ -183,8 +183,8 @@
   .nf-hero-scene {
     opacity: 0.9;
     filter: saturate(1.08);
-    -webkit-mask-image: radial-gradient(80% 78% at 60% 42%, rgb(0 0 0) 40%, transparent 75%);
-    mask-image: radial-gradient(80% 78% at 60% 42%, rgb(0 0 0) 40%, transparent 75%);
+    -webkit-mask-image: radial-gradient(80% 78% at 60% 42%, var(--nf-mask-opaque) 40%, transparent 75%);
+    mask-image: radial-gradient(80% 78% at 60% 42%, var(--nf-mask-opaque) 40%, transparent 75%);
   }
 
   /* A second, slower float on an offset phase, for scattered accent objects. */

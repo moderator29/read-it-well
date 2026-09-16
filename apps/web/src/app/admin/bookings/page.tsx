@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getBookingBoard, type AdminBookingRow } from "@/lib/admin/bookings-queries";
+import {
+  BOOKING_STATUSES,
+  getBookingBoard,
+  type AdminBookingRow,
+} from "@/lib/admin/bookings-queries";
 import { fill, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
 import {
@@ -12,12 +16,21 @@ import {
   type QueueStatusOption,
 } from "../_components/QueueFilters";
 
-/** `public.booking_status`, verified against the live catalogue. Three values. */
-const BOOKING_STATUS_FILTERS: readonly QueueStatusOption[] = [
-  { value: "PENDING", label: "Pending" },
-  { value: "CONFIRMED", label: "Confirmed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
+/**
+ * The chips, built from the enum rather than beside it.
+ *
+ * This was three hand-written literals under a comment asserting that
+ * `booking_status` had three values. It has five: COMPLETED and NO_SHOW were
+ * added when the booking loop finally got an end, and a hand-written list is
+ * precisely the thing that does not notice. `BOOKING_STATUSES` is typed against
+ * the generated enum and ordered by the life of a stay, and the words come from
+ * `t.admin.common.status`, which is where every other status word on this
+ * platform comes from, so the chip and the row it filters cannot disagree and a
+ * Hausa operator gets Hausa.
+ */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return BOOKING_STATUSES.map((value) => ({ value, label: ui.statusLabel(value) }));
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -153,30 +166,25 @@ export default async function AdminBookingsPage({
    * `_components/QueueFilters` now, so the next queue to grow a filter inherits
    * the same URL contract rather than inventing a second one.
    *
-   * THE NARROWING IS APPLIED OVER THE ROWS THE QUERY RETURNED, and that is an
-   * interim rather than the destination. `getBookingBoard` takes a search term
-   * and nothing else, and pushing a status and a date range into it is a query
-   * change rather than a frontend one. Today `bookings` holds zero rows and the
-   * read is capped well under a page, so the two are indistinguishable; the day
-   * this queue has a thousand rows the predicate has to move into the query,
-   * and the URL contract above is already the shape it will take.
+   * THE NARROWING IS IN THE QUERY, WHICH IT WAS NOT.
+   *
+   * The status chip and the date range used to be a `rows.filter(...)` over
+   * whatever the unfiltered read had already returned, capped at 120 rows. At
+   * zero rows that is indistinguishable from filtering properly, and at a
+   * thousand it quietly answers "show me every cancelled stay in August" with
+   * some of them. Both predicates are `.eq()` and `.gte()`/`.lte()` inside
+   * `getBookingBoard` now, so the cap applies to the rows that matched rather
+   * than to the rows that happened to be read first.
    */
   const params = await searchParams;
   const query = readQueueQuery(params);
 
-  const board = await getBookingBoard(query.q ?? "");
-  const inRange = (iso: string | null): boolean => {
-    if (!query.from && !query.to) return true;
-    if (!iso) return false;
-    const at = iso.slice(0, 10);
-    if (query.from && at < query.from) return false;
-    if (query.to && at > query.to) return false;
-    return true;
-  };
-  const narrow = (rows: AdminBookingRow[]): AdminBookingRow[] =>
-    rows.filter(
-      (row) => (!query.status || row.status === query.status) && inRange(row.createdAt),
-    );
+  const board = await getBookingBoard({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+  });
 
   return (
     <div className="nf-console">
@@ -185,22 +193,19 @@ export default async function AdminBookingsPage({
       <QueueFilters
         base="/admin/bookings"
         query={query}
-        /* The real enum, and only the real enum. `booking_status` is
-           PENDING, CONFIRMED, CANCELLED and nothing else, so a chip here can
-           never offer a value the column would refuse. It has no COMPLETED,
-           which is why the board has no terminal good state and why an agent
-           cannot record that a stay happened; that is a schema gap and it is
-           not this filter's to invent a value for. */
-        statuses={BOOKING_STATUS_FILTERS}
+        /* The real enum, and only the real enum, so a chip here can never offer
+           a value the column would refuse. All five of them: the board has a
+           terminal good state now that an agent can record a stay as taken. */
+        statuses={statusFilters(ui)}
         searchLabel={copy.searchLabel}
         searchPlaceholder={copy.searchPlaceholder}
       />
 
       {board.state !== "ok" ? (
         <ui.QueueUnavailable />
-      ) : narrow(board.data.live).length === 0 &&
-        narrow(board.data.past).length === 0 &&
-        narrow(board.data.cancelled).length === 0 ? (
+      ) : board.data.live.length === 0 &&
+        board.data.past.length === 0 &&
+        board.data.cancelled.length === 0 ? (
         <ui.QueueEmpty
           title={
             board.data.searched || queueNarrowed(query) ? copy.noMatchTitle : copy.emptyTitle
@@ -215,21 +220,21 @@ export default async function AdminBookingsPage({
         <>
           <Group
             title={copy.groups.live}
-            stays={narrow(board.data.live)}
+            stays={board.data.live}
             copy={copy}
             ui={ui}
             locale={locale}
           />
           <Group
             title={copy.groups.past}
-            stays={narrow(board.data.past)}
+            stays={board.data.past}
             copy={copy}
             ui={ui}
             locale={locale}
           />
           <Group
             title={copy.groups.cancelled}
-            stays={narrow(board.data.cancelled)}
+            stays={board.data.cancelled}
             copy={copy}
             ui={ui}
             locale={locale}

@@ -73,6 +73,11 @@
   --spacing-card-lg: var(--nf-pad-card-lg);
   --spacing-card-sm: var(--nf-pad-card-sm);
   --spacing-cell: var(--nf-pad-cell);
+  /* `pl-affordance` / `pr-affordance`: the inset a field needs when a control
+     is sitting inside it. Checked against the max-w list at the bottom of this
+     file, as the note there instructs: there is no container called
+     `affordance`, so no width utility moves. */
+  --spacing-affordance: var(--nf-pad-field-affordance);
 
   /*
    * ------------------------------------------------- CONTAINER WIDTHS

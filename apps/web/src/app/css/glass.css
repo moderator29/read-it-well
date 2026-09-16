@@ -142,10 +142,31 @@
   }
 
   /* Depth modifiers. Blur, fill and shadow move together or the illusion breaks. */
+  /*
+   * --thin USED TO MODIFY TWO THIRDS OF THE DEPTH.
+   *
+   * It changed the fill and it changed the blur and it said nothing about the
+   * shadow, so it inherited `--nf-glass-shadow` from the base rule: the
+   * lightest material on the platform sat under the drop of the panel above
+   * it, which is a sheet of tissue casting a plank's shadow. The comment one
+   * line up has said "blur, fill and shadow move together or the illusion
+   * breaks" the whole time; --strong obeyed it and --thin did not.
+   *
+   * The rim comes down with the rung. Leaving `--nf-glass-rim` here was the
+   * other half of the same mistake: a thinner fill under the same 22 per cent
+   * top highlight reads as a bright line drawn on nothing, because there is no
+   * longer enough material below it for the light to be coming off. The floor
+   * stays, at the base value, since it is the contact edge and a thin surface
+   * still touches what it sits on.
+   */
   .nf-glass--thin {
     background: var(--nf-glass-fill-thin);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-thin);
   }
   .nf-glass--strong {
     background: var(--nf-glass-fill-strong);
@@ -753,11 +774,11 @@
     inset: 0;
     z-index: 60;
     pointer-events: none;
-    background: rgb(1 1 24 / 0.3);
+    background: color-mix(in oklab, var(--nf-canvas-base) 30%, transparent);
     animation: nf-confirm-dim 900ms var(--nf-ease-standard) both;
   }
   :root[data-theme="light"] .nf-confirm-dim {
-    background: rgb(18 21 26 / 0.14);
+    background: var(--nf-wash-5);
   }
   @keyframes nf-confirm-dim {
     0% { opacity: 0; }
@@ -773,10 +794,11 @@
     position: absolute;
     inset: -40% -60%;
     pointer-events: none;
+    /* Same light as the press sweep in buttons.css and as everything else. */
     background: linear-gradient(
-      115deg,
+      var(--nf-light-angle),
       transparent 42%,
-      rgb(255 255 255 / 0.32) 50%,
+      var(--nf-wash-7) 50%,
       transparent 58%
     );
     transform: translateX(-130%);

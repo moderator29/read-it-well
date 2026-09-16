@@ -284,7 +284,15 @@ export function EmptyState({
       <span className="block h-20 w-20">
         <BrandIcon name={icon} fill />
       </span>
-      <p className={`mt-block ${TYPE.sectionTitle}`}>{title}</p>
+      {/* `text-wrap: balance`, which is the CSS half of the orphan fix.
+          At 390px the shared headline pattern on the wallet, on bookings and on
+          notifications all broke as "...your sign / in", leaving a two-letter
+          orphan under a centred heading with a large gap above it. The copy was
+          rewritten to lead with the verb, which is the better half of the fix;
+          this is what stops the next headline doing it again. `balance` and not
+          `pretty`: these are two or three short lines, which is exactly the
+          shape the balancer is for and well inside its line budget. */}
+      <p className={`mt-block ${TYPE.sectionTitle} [text-wrap:balance]`}>{title}</p>
       <p className={`mt-inline max-w-[42ch] ${TYPE.body}`}>{body}</p>
       {action && <div className="mt-block">{action}</div>}
       {secondary && <div className="mt-group">{secondary}</div>}

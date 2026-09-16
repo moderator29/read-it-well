@@ -79,8 +79,8 @@ export default async function AreaPage({
       <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
         <PageHeader title="Around" fallback="/around" />
         <p className="nf-card p-5 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
-          Places switch on the moment the platform keys land. Nothing here is a
-          mock up: there is simply nothing to read yet.
+          We cannot reach this place right now. This is on our side, not yours.
+          Nothing has been lost, and the rest of the app works as normal.
         </p>
       </div>
     );

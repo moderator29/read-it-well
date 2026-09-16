@@ -495,7 +495,35 @@ export function ThreadView({
                       : "text-[var(--nf-content-on-brand)] opacity-70"
                   }`}
                 >
-                  {m.state === "sending" ? "Sending" : m.timeLabel}
+                  {/*
+                    DELIVERED, AND DELIBERATELY NOT SEEN.
+
+                    There was no delivery state at all: the footer read
+                    "Sending" or a time, so a person who had messaged an agent
+                    about a flat had no idea whether the platform had the
+                    message or whether it had quietly failed on a bad
+                    connection. That is the gap between a chat and a form.
+
+                    SEEN IS NOT SHIPPED AND SHOULD NOT BE. Delivered is a fact
+                    about the system and costs nobody any privacy. Seen is a
+                    fact about a person, and on a platform where one agent may
+                    be holding twenty enquiries it manufactures an obligation to
+                    reply the moment they open anything, which makes agents
+                    slower to open messages rather than faster to answer them.
+                    Delivered, beside the existing "Sending" and "Not sent",
+                    answers the anxiety without the cost.
+
+                    It means what it says: the message is stored on the platform
+                    and is in the thread the agent reads. The optimistic bubble
+                    only drops its `sending` state when the server has adopted
+                    it, so the word is never shown for a message the platform
+                    does not hold.
+                  */}
+                  {m.state === "sending"
+                    ? "Sending"
+                    : m.state === "failed"
+                      ? m.timeLabel
+                      : `${m.timeLabel} · Delivered`}
                 </p>
               </div>
               {m.state === "failed" && (

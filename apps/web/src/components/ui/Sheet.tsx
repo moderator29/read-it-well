@@ -248,13 +248,13 @@ export function Sheet({
           className={
             hideTitle
               ? "sr-only"
-              : "shrink-0 px-5 pb-3 text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
+              : "shrink-0 px-gutter pb-sm text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
           }
         >
           {title}
         </h2>
-        <div className="nf-sheet__body px-5 pb-5">{children}</div>
-        {footer ? <div className="shrink-0 px-5 pb-4">{footer}</div> : null}
+        <div className="nf-sheet__body px-gutter pb-lg">{children}</div>
+        {footer ? <div className="shrink-0 px-gutter pb-md">{footer}</div> : null}
       </div>
     </>,
     document.body,

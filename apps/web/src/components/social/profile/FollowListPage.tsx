@@ -37,8 +37,8 @@ export async function FollowListPage({
         <PageHeader title={heading} fallback={`/u/${handle}`} />
         <ProfileNotice
           icon="user-check"
-          title="Profiles switch on shortly"
-          body="The platform keys are not in place yet, so nobody's followers can be read from here. Everything else in the app works as normal."
+          title="We cannot reach profiles right now"
+          body="This is on our side, not yours. Nobody's followers can be read at the moment. Nothing has been lost, and the rest of the app works as normal."
           primary={{ href: "/home", label: "Back to home" }}
         />
       </div>

@@ -42,8 +42,8 @@ export default async function EditSocialProfilePage({
       {editor.state === "unconfigured" && (
         <ProfileNotice
           icon="user-check"
-          title="Profiles switch on shortly"
-          body="The platform keys are not in place yet, so a handle cannot be claimed from here. Nothing you typed was lost. Everything else in the app works as normal."
+          title="We cannot reach profiles right now"
+          body="This is on our side, not yours. A handle cannot be claimed from here at the moment. Nothing you typed was lost, and the rest of the app works as normal."
           primary={{ href: "/home", label: "Back to home" }}
         />
       )}

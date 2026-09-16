@@ -188,8 +188,8 @@ export default async function SocialProfilePage({
       {view.state === "unconfigured" && (
         <ProfileNotice
           icon="user-check"
-          title="Profiles switch on shortly"
-          body="The platform keys are not in place yet, so nobody's page can be read from here. Everything else in the app works as normal."
+          title="We cannot reach profiles right now"
+          body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
           primary={{ href: "/home", label: "Back to home" }}
         />
       )}

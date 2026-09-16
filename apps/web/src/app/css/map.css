@@ -20,8 +20,8 @@
        wide short box draws an ellipse rather than a pill: this label is a price
        on a map and it was being given curved SIDES. */
     border-radius: var(--nf-radius-pill);
-    background: rgb(1 1 24 / 0.88);
-    border: 1px solid rgb(92 124 255 / 0.5);
+    background: var(--nf-surface-pin);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 50%, transparent);
     /* The ground here is deliberately dark in both themes, like the media
        overlays, so the ink is the on-media one rather than the on-brand one. */
     color: var(--nf-content-on-media);
@@ -30,7 +30,7 @@
     line-height: 1.25;
     white-space: nowrap;
     box-shadow:
-      0 6px 18px rgb(0 0 0 / 0.4),
+      0 6px 18px var(--nf-shade-3),
       0 0 14px var(--nf-glow-2);
     cursor: pointer;
   }
@@ -38,20 +38,20 @@
     font-style: normal;
     font-weight: 500;
     font-size: 0.625rem;
-    color: rgb(255 255 255 / 0.65);
+    color: var(--nf-content-on-media-muted);
   }
   .nf-map-pin--active {
     border-color: var(--nf-brand-secondary);
     box-shadow: 0 0 20px var(--nf-glow-4);
   }
   :root[data-theme="light"] .nf-map-pin {
-    background: #ffffff;
+    background: var(--nf-surface-primary);
     color: var(--nf-content-primary);
-    border-color: rgb(18 21 26 / 0.18);
-    box-shadow: 0 6px 18px rgb(18 21 26 / 0.18);
+    border-color: var(--nf-wash-5);
+    box-shadow: 0 6px 18px var(--nf-wash-5);
   }
   :root[data-theme="light"] .nf-map-pin i {
-    color: rgb(18 21 26 / 0.6);
+    color: var(--nf-content-muted);
   }
 
   /*

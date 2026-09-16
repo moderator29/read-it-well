@@ -45,7 +45,7 @@ export function ActionBar({
           : undefined
       }
     >
-      <div className="nf-shell flex items-center gap-3 px-4 py-3 sm:px-5">{children}</div>
+      <div className="nf-shell flex items-center gap-row px-gutter py-sm">{children}</div>
     </div>
   );
 }

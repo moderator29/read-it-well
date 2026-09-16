@@ -247,8 +247,11 @@
     inset: -40% -60%;
     pointer-events: none;
     z-index: -1;
+    /* The sweep crosses on the platform's light, not on its own angle. It was
+       cut at 115, and a press highlight travelling across a face lit from 152
+       is a second light source that only exists for 260ms. */
     background: linear-gradient(
-      115deg,
+      var(--nf-light-angle),
       transparent 42%,
       color-mix(in oklab, var(--nf-content-on-brand) 18%, transparent) 50%,
       transparent 58%

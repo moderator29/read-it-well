@@ -422,6 +422,134 @@
    * Vallo Material. Four surface families (Design prompt §5).
    * ------------------------------------------------------------------ */
 
+  /* ---------------------------------------------------------------------
+   * THE WASHES, THE SHADE, THE WELL, THE INVERSE AND THE PAPER STAGE.
+   *
+   * Five families that all exist for the same reason: `check-css-tokens`
+   * counted 205 raw colour literals still sitting in the stylesheets, 131 of
+   * them under `src/app/css`, and almost none of them were a DECISION. They
+   * were white at an alpha, ink at an alpha, or black at an alpha, typed again
+   * at each call site because there was no name to type instead. One ink
+   * appeared at fourteen different alphas across two files.
+   *
+   * The elevation ladder has already made this argument and won it: once
+   * `--nf-elev-2` existed, nobody typed a shadow again. These are the same
+   * move for the flat veils.
+   *
+   * 1. THE WASHES follow the theme. A wash is the surface lifting off what is
+   *    behind it, so at night it is white and on paper it is ink, and a rule
+   *    that says `var(--nf-wash-3)` is correct in both without a second rule.
+   *    That is the fault this closes: every white-at-an-alpha in the night
+   *    theme needed a hand written daylight twin and about half of them never
+   *    got one.
+   *
+   *    Seven rungs, and the values are the ones already in the tree rounded to
+   *    the nearest rung, not new numbers: the set in use ran 0.04, 0.05, 0.06,
+   *    0.07, 0.08, 0.11, 0.12, 0.14, 0.16, 0.2, 0.22, 0.28, 0.32, which is
+   *    thirteen answers to "how much lift". No pair of neighbours in that list
+   *    is distinguishable by eye.
+   *
+   * 2. THE SHADE is the same idea cast downward, and it does NOT follow the
+   *    theme: an inner shadow is an absence of light, which is dark on paper
+   *    too, only softer. Three rungs, because that is how many the inset
+   *    shadows in controls.css and chips.css actually used.
+   *
+   * 3. THE WELL is a trough cut into the surface. It was typed out in full,
+   *    the same two-stop gradient, at three call sites in two files, which is
+   *    the kind of duplication that survives a rename and then disagrees.
+   *
+   * 4. THE INVERSE is a surface running against the theme: the daylight dock
+   *    is a dark bar on a white page. It needs its own ink and its own wash,
+   *    because the page's ink would be invisible on it.
+   *
+   * 5. ON PAPER is the artwork stage, and it is theme-independent on purpose,
+   *    exactly like the `--nf-*-on-media` family above and for the same
+   *    reason: what is behind the onboarding text is a photograph of a paper
+   *    ground in both themes, so the ink on it is fixed. These were the
+   *    literals in motion.css, and the comment beside them already explained
+   *    why they could not read the theme; it just had nowhere to point.
+   * ------------------------------------------------------------------ */
+
+  /* Mask stops. A mask reads the ALPHA channel and throws the colour away, so
+     these are not colours at all: they are "keep all of it" and "keep half of
+     it", and writing them as black was always a spelling rather than a choice. */
+  --nf-mask-opaque: rgb(0 0 0);
+  --nf-mask-mid: rgb(0 0 0 / 0.5);
+
+  --nf-wash-1: rgb(255 255 255 / 0.04);
+  --nf-wash-2: rgb(255 255 255 / 0.06);
+  --nf-wash-3: rgb(255 255 255 / 0.08);
+  --nf-wash-4: rgb(255 255 255 / 0.12);
+  --nf-wash-5: rgb(255 255 255 / 0.16);
+  --nf-wash-6: rgb(255 255 255 / 0.22);
+  --nf-wash-7: rgb(255 255 255 / 0.32);
+
+  --nf-shade-1: rgb(0 0 0 / 0.28);
+  --nf-shade-2: rgb(0 0 0 / 0.34);
+  --nf-shade-3: rgb(0 0 0 / 0.55);
+
+  --nf-well-fill: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
+  --nf-well-fill-deep: linear-gradient(180deg, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.68));
+
+  /* The counterpart of --nf-content-inverse, which has existed in both themes
+     from the start with no surface to sit on. */
+  --nf-surface-inverse: rgb(244 245 247 / 0.92);
+  --nf-content-on-inverse: rgb(18 21 26 / 0.7);
+  --nf-wash-on-inverse: rgb(18 21 26 / 0.13);
+
+  --nf-content-on-paper: rgb(18 21 26);
+  --nf-content-on-paper-secondary: rgb(18 21 26 / 0.82);
+  --nf-content-on-paper-muted: rgb(18 21 26 / 0.6);
+  --nf-border-on-paper: rgb(18 21 26 / 0.14);
+  --nf-surface-on-paper: rgb(255 255 255 / 0.72);
+  --nf-surface-on-paper-hover: rgb(255 255 255 / 0.94);
+  --nf-shadow-on-paper: rgb(18 21 26 / 0.18);
+
+  /* The deep stop of the canvas bloom. It is not on the brand ramp and it is
+     not meant to be: it is the blue the bloom decays THROUGH on its way to the
+     canvas, so it sits between the brand's deep end and the navy ground. Named
+     rather than moved onto the ramp, because moving it changes a hue nobody
+     has looked at in a browser since. */
+  --nf-canvas-bloom-deep-ink: #1230B3;
+
+  /* The story stage: a near-black panel that is the same panel in both themes,
+     because a paper product carries its dark brand on it. */
+  --nf-story-stage: linear-gradient(180deg, #05060F 0%, #01010A 100%);
+
+  /* The map pin's ground, deliberately dark in both themes for the same reason
+     the media overlays are: what is under it is a map, not the page. */
+  --nf-surface-pin: rgb(1 1 24 / 0.88);
+
+  /* ---------------------------------------------------------------------
+   * THE LIGHT. ONE ANGLE, AND IT IS A TOKEN SO IT CANNOT DRIFT AGAIN.
+   *
+   * Every lit surface on this platform is lit from the upper left. That was
+   * already the intent and it was written down in three separate comments, and
+   * the three comments did not agree with each other or with the code beside
+   * them: `--nf-glass-specular` said 152, the control borders in controls.css
+   * were cut at 142, the live-card ring in ambient.css said in words that "142
+   * degrees is the platform's own light direction", the placeholder wash in
+   * data-saver.css shaded at 160 and the two travelling sweeps, the button
+   * press and the confirmation, crossed at 115. Six angles, five of them
+   * claiming to be the one.
+   *
+   * That is what the material-honesty point costs when it is a convention
+   * rather than a value: nothing is wrong at any single call site, and the
+   * screen as a whole is lit from everywhere, so nothing on it reads as solid.
+   *
+   * 152 wins because it is the angle the icon artwork was actually rendered
+   * with, and the artwork is the one thing here that cannot be re-angled by
+   * editing a number.
+   *
+   * Two literals survive on purpose and both are `@property` initial values,
+   * which have to be computationally independent and so may not read a var():
+   * `--nf-spin` in ambient.css and `--nf-stride-angle` in glass.css. Both carry
+   * a comment pointing here. A third, `--nf-gradient-brand` and its siblings at
+   * 135, is not light at all: it is the brand ink ramping between two blues,
+   * and giving it the key angle would be reading a colour as a shadow.
+   * ------------------------------------------------------------------ */
+  --nf-light-angle: 152deg;
+
   /*
    * Glass. Four ingredients, always all four:
    *   1. backdrop blur + saturation lift        (the material)
@@ -448,8 +576,11 @@
   /* Retained: existing call sites use the soft blur for light overlays. */
   --nf-glass-blur-soft: 12px;
 
-  /* Edges. The top rim is BRIGHTER than the border; that asymmetry is the tell. */
+  /* Edges. The top rim is BRIGHTER than the border; that asymmetry is the tell.
+     Three rims for three fills: the highlight is light coming off material, so
+     it has to fall as the material thins or it reads as a line drawn on air. */
   --nf-glass-border: rgb(255 255 255 / 0.11);
+  --nf-glass-rim-thin: rgb(255 255 255 / 0.14);
   --nf-glass-rim: rgb(255 255 255 / 0.22);
   --nf-glass-rim-strong: rgb(255 255 255 / 0.34);
   --nf-glass-floor: rgb(0 0 0 / 0.22);
@@ -468,12 +599,20 @@
    * the floating dock, the dock island and the strong glass panel actually are.
    * Both are named for what the surface IS, so a reader can now tell why a
    * shadow is the size it is. Daylight follows automatically, because the ladder
-   * already has a paper answer and these did not. */
+   * already has a paper answer and these did not.
+   *
+   * THREE NOW, NOT TWO, BECAUSE --thin HAD NO SHADOW OF ITS OWN. The depth
+   * modifiers are meant to move blur, fill and shadow together; `.nf-glass--
+   * thin` moved two of the three and inherited the base rung, so the lightest
+   * material on the platform carried the shadow of the panel above it. Rung 1
+   * is "card: resting content", which is exactly what a thin glass surface is:
+   * a quiet plate on the canvas rather than something floating over it. */
+  --nf-glass-shadow-thin: var(--nf-elev-1);
   --nf-glass-shadow: var(--nf-elev-2);
   --nf-glass-shadow-lifted: var(--nf-elev-4);
 
   --nf-glass-specular: linear-gradient(
-    152deg,
+    var(--nf-light-angle),
     rgb(255 255 255 / 0.14) 0%,
     rgb(255 255 255 / 0.04) 34%,
     transparent 62%
@@ -602,12 +741,32 @@
   --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 80%, transparent) 0%, transparent 62%);
 
   /* ---------------------------------------------------------------------
-   * Elevation, legacy names.
+   * Elevation, legacy names. THREE ALIASES, DOWN TO ELEVEN CALL SITES, AND
+   * THE EXACT LIST IS HERE SO THE NEXT PERSON CAN FINISH IT IN ONE PASS.
    *
-   * The real ladder is --nf-elev-0..5 above. These four remain only as
+   * The real ladder is --nf-elev-0..5 above. These three remain only as
    * aliases so the existing call sites keep working while they migrate; they
    * now resolve to ladder rungs rather than the flat single drops they used
    * to be. --nf-shadow-sm had zero uses and is gone. Do not add new uses.
+   *
+   * `app/css/light.css` HELD SIX AND HOLDS NONE. Every daylight rule now
+   * names the rung it wants, which matters more here than anywhere else: the
+   * paper theme redefines --nf-elev-1..5 for white, so a rule reading the
+   * alias was two indirections away from the number it painted, and the one
+   * that changed the light shadows had to trust that the alias still pointed
+   * at the rung it did in the dark. It does; that is now visible rather than
+   * assumed. `app/css/chips.css` has only the tombstone for --nf-shadow-sm.
+   *
+   * WHAT STILL BLOCKS DELETION, counted rather than estimated:
+   *   app/social-feed.css        1 card, 8 float
+   *   components/app/search/MapCanvas.tsx   LIFT and CARD_LIFT constants
+   *   components/app/search/MapDock.tsx     1 lifted
+   *   components/agent/AgentMobileNav.tsx   1 float
+   *   components/agent/ModeSwitcher.tsx     1 float
+   * All five are outside the design system's own files, so the last step is
+   * a rename in the surfaces, not a change here. Delete these three lines the
+   * day that list is empty, and not before: they are aliases, so nothing
+   * warns when one goes.
    * ------------------------------------------------------------------ */
   --nf-shadow-card: var(--nf-elev-1);
   --nf-shadow-lifted: var(--nf-elev-2);
@@ -953,6 +1112,23 @@
   --nf-pad-control-inline: var(--nf-space-md);
   --nf-pad-chip-block: var(--nf-space-xs);
   --nf-pad-chip-inline: var(--nf-space-sm);
+  /*
+   * THE ONE PADDING THAT IS NOT A RHYTHM DECISION, so it gets a role rather
+   * than being forced onto a rung.
+   *
+   * A field with an icon or a clear button inside it has to hold its text clear
+   * of that control, and the control is a 44px tap target. 44 is not on the
+   * content ladder and should not be: the ladder answers "how much air between
+   * two pieces of content", and this answers "how wide is the thing sitting in
+   * the way". Rounding it to the nearest rung is the failure mode, both
+   * directions: 32 puts the caret under the icon, 48 leaves a visible gutter
+   * inside the field that nothing occupies.
+   *
+   * It was written as pl-11 and pr-11 at four call sites in Field.tsx, which is
+   * the right number arrived at by eye with nothing saying so. Named here, the
+   * day the tap target moves there is one line to change.
+   */
+  --nf-pad-field-affordance: 2.75rem;  /* 44, the minimum tap target */
 
   /* ---------------------------------------------------------------------
    * Motion. Every duration here has a reduced motion answer below.
@@ -1131,7 +1307,22 @@
   --nf-tracking-display-sm: -0.02em;
   --nf-tracking-tight: -0.02em;
   --nf-tracking-normal: 0em;
-  --nf-tracking-overline: 0.14em;
+  /*
+   * 0.14em, AND THE CLASS THAT OWNS THIS HAD ALREADY MOVED TO 0.1.
+   *
+   * `.nf-overline` was cut from 11.5px at 0.14em in muted ink to 12px at 0.1em
+   * in subtle ink, which is the least readable text in the product being made
+   * readable. It did that by writing `letter-spacing: 0.1em` inline, so the
+   * token kept saying 0.14 and one call site outside the design system, the
+   * docs chapter heading in `app/(site)/docs/[slug]/page.tsx`, kept reading it.
+   * The product therefore had two overlines at two trackings, and the one that
+   * was still wrong was the one nobody could see from here.
+   *
+   * The number moves to the token and the class reads it. That fixes the docs
+   * heading without touching a file this workstream does not own, which is the
+   * argument for a token over a literal restated in one line.
+   */
+  --nf-tracking-overline: 0.1em;
 
   /* Layout */
   --nf-rail-width: 264px;
@@ -1255,6 +1446,60 @@
   --nf-media-silhouette: rgb(18 21 26 / 0.20);
   --nf-media-moon: rgb(255 255 255 / 0.55);
 
+  /*
+   * Daylight's answer to the washes and the rest. See the long note in the
+   * night block for what these are for.
+   *
+   * THE WASHES INVERT AND NOTHING ELSE DOES. A wash is the surface lifting off
+   * its ground, and on paper that is ink rather than white; the shade is an
+   * absence of light and stays dark, only softer, because paper scatters. The
+   * inverse flips both ways at once: a dark bar on a white page needs white
+   * ink and a white wash, which is the night theme's pair read here.
+   *
+   * `--nf-mask-*`, `--nf-content-on-paper-*`, `--nf-surface-on-paper*`,
+   * `--nf-border-on-paper`, `--nf-shadow-on-paper`, `--nf-story-stage`,
+   * `--nf-surface-pin` and `--nf-canvas-bloom-deep-ink` are deliberately absent
+   * from this block. A mask is alpha, and the other seven sit on a ground that
+   * does not change with the theme, so answering them here would be inventing
+   * a difference the product does not have.
+   */
+  --nf-wash-1: rgb(18 21 26 / 0.04);
+  --nf-wash-2: rgb(18 21 26 / 0.06);
+  --nf-wash-3: rgb(18 21 26 / 0.09);
+  --nf-wash-4: rgb(18 21 26 / 0.12);
+  --nf-wash-5: rgb(18 21 26 / 0.18);
+  --nf-wash-6: rgb(18 21 26 / 0.28);
+  --nf-wash-7: rgb(18 21 26 / 0.35);
+
+  --nf-shade-1: rgb(18 21 26 / 0.04);
+  --nf-shade-2: rgb(18 21 26 / 0.1);
+  --nf-shade-3: rgb(18 21 26 / 0.18);
+
+  /* The well on paper is an inset grey rather than a black trough: cutting a
+     near-black channel into a white card reads as a hole punched in it. */
+  --nf-well-fill: linear-gradient(180deg, rgb(18 21 26 / 0.07), rgb(18 21 26 / 0.03));
+  --nf-well-fill-deep: linear-gradient(180deg, rgb(18 21 26 / 0.1), rgb(18 21 26 / 0.05));
+
+  --nf-surface-inverse: rgb(18 21 26 / 0.92);
+  --nf-content-on-inverse: rgb(255 255 255 / 0.7);
+  --nf-wash-on-inverse: rgb(255 255 255 / 0.13);
+
+  /*
+   * The daylight canvas, as one value.
+   *
+   * A studio cloud: soft silver-white sweeps with gentle depth, like a product
+   * photography backdrop, never a flat grey and never a blue wash. It was four
+   * gradient layers and eight literals written inline in light.css, which is
+   * the single largest colour decision in the product living at a call site.
+   * The night theme's ground has been three named blooms plus a base for as
+   * long as it has existed; this is the same shape.
+   */
+  --nf-canvas-daylight:
+    radial-gradient(120% 90% at 78% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 55%),
+    radial-gradient(95% 75% at 8% 100%, #E9EBEF 0%, rgb(233 235 239 / 0) 62%),
+    radial-gradient(70% 60% at 94% 88%, #ECEEF2 0%, rgb(236 238 242 / 0) 55%),
+    linear-gradient(180deg, #F8F9FB 0%, #F2F3F6 100%);
+
   /* The same five parts of the drawn property, in daylight. The wall is now
      LIGHTER than the sky rather than a translucent white over it, because a
      white wash over a pale sky is invisible; the shade and the roof carry the
@@ -1322,13 +1567,14 @@
   --nf-glass-fill: rgb(255 255 255 / 0.86);
   --nf-glass-fill-strong: rgb(255 255 255 / 0.95);
   --nf-glass-border: rgb(18 21 26 / 0.10);
+  --nf-glass-rim-thin: rgb(255 255 255 / 0.7);
   --nf-glass-rim: rgb(255 255 255 / 0.9);
   --nf-glass-rim-strong: rgb(255 255 255 / 1);
   --nf-glass-floor: rgb(18 21 26 / 0.05);
-  /* The two glass shadows are aliases of the ladder now and the ladder has its
-     own daylight rungs below, so there is nothing to answer here. */
+  /* The three glass shadows are aliases of the ladder now and the ladder has
+     its own daylight rungs below, so there is nothing to answer here. */
   --nf-glass-specular: linear-gradient(
-    152deg,
+    var(--nf-light-angle),
     rgb(255 255 255 / 0.9) 0%,
     rgb(255 255 255 / 0.3) 30%,
     transparent 60%

@@ -31,8 +31,20 @@ export type AdminAccess =
       isSuperAdmin: boolean;
     };
 
+/*
+ * The same sentence `t.admin.access.unconfiguredBody` gives the screen, kept in
+ * English here because a server action can return this to a caller with no page
+ * and no locale around it.
+ *
+ * It used to read "The console switches on the moment the platform keys land",
+ * which is "coming soon" in other words and made our deployment detail the
+ * operator's problem. It is also not a pre-launch state: an operator reaches
+ * this branch in production the moment a key lapses. So the copy says whose
+ * fault it is, that nothing has been lost, and what to do, and it names no
+ * schedule, because we cannot keep one.
+ */
 export const ADMIN_UNCONFIGURED_MESSAGE =
-  "The console switches on the moment the platform keys land. Nothing is lost in the meantime.";
+  "We cannot reach the console right now. This is on our side, not yours. Nothing has been lost. Try again in a few minutes.";
 
 export const ADMIN_SIGNED_OUT_MESSAGE = "Sign in with your operations account to continue.";
 

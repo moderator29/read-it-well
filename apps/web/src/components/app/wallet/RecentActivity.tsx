@@ -5,7 +5,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { TYPE } from "@/components/app/Screen";
-import { KIND_ICON, KIND_LABEL } from "./kinds";
+import { KIND_ICON, walletWords } from "./kinds";
 import type { WalletEntry } from "@/lib/wallet/types";
 
 /**
@@ -39,6 +39,9 @@ export function RecentActivity({
   locale: Locale;
 }) {
   const recent = entries.slice(0, PREVIEW);
+  /* The kind names in the reader's own language, from the one place the three
+     wallet surfaces share. See `walletWords` in `./kinds`. */
+  const words = walletWords(locale);
 
   return (
     <section aria-labelledby="nf-wallet-recent">
@@ -72,10 +75,10 @@ export function RecentActivity({
                 </span>
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className={`block truncate ${TYPE.rowTitle}`}>
-                    {entry.note ?? KIND_LABEL[entry.kind]}
+                    {entry.note ?? words.kind[entry.kind]}
                   </span>
                   <span className={`mt-inline-tight block truncate ${TYPE.rowMeta}`}>
-                    {KIND_LABEL[entry.kind]}
+                    {words.kind[entry.kind]}
                   </span>
                 </span>
                 <span className="nf-numeric shrink-0 text-right leading-tight">

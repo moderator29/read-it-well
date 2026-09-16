@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Locale } from "@vallo/i18n";
 import { settleCardPayment } from "@/lib/bookings/checkout";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { failureConsequence } from "./payment-copy";
 
 /**
  * The return trip from Paystack.
@@ -197,9 +198,14 @@ export function PaymentReturn({
       verdict="Payment not confirmed"
       fact={fact}
       locale={locale}
-      consequence={`${
-        phase.message ? `${phase.message} ` : ""
-      }Your card has not been charged. If money did leave your account, it returns within 24 hours.`}
+      /* Filtered rather than interpolated. See `payment-copy`: the envelope
+         carries a free string and nothing constrains what goes in it, so the
+         boundary lives here and the sentence about the card is said whether or
+         not the server gave a reason worth showing. */
+      consequence={failureConsequence(
+        phase.message,
+        "Your card has not been charged. If money did leave your account, it returns within 24 hours.",
+      )}
       actions={[
         { label: "Try again", href: retryHref, tone: "primary" },
         { label: "Get help", href: "/help", tone: "quiet" },

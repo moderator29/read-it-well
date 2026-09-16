@@ -68,8 +68,8 @@
      * real, unmirrored waves still hold the foot of the page at full strength.
      */
     opacity: 0.3;
-    mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.55) 32%, transparent 62%);
-    -webkit-mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.55) 32%, transparent 62%);
+    mask-image: linear-gradient(to top, var(--nf-mask-opaque) 0%, var(--nf-mask-mid) 32%, transparent 62%);
+    -webkit-mask-image: linear-gradient(to top, var(--nf-mask-opaque) 0%, var(--nf-mask-mid) 32%, transparent 62%);
   }
   .nf-ambient > span:nth-child(2) {
     inset: auto;
@@ -106,7 +106,7 @@
     width: 68vmax;
     height: 68vmax;
     border-radius: 50%;
-    background: radial-gradient(circle, rgb(92 124 255 / 0.18) 0%, transparent 64%);
+    background: radial-gradient(circle, color-mix(in oklab, var(--nf-brand-secondary) 18%, transparent) 0%, transparent 64%);
     /* Still. The second bloom is depth, not movement: one light source moves
        and the rest of the ground is lit by it. `will-change` went with the
        animation, because a compositing hint on a 68vmax layer that never
@@ -159,9 +159,9 @@
   .nf-ambient::before {
     background:
       radial-gradient(ellipse 80% 60% at 20% 30%, var(--nf-glow-3) 0%, transparent 58%),
-      radial-gradient(ellipse 60% 80% at 80% 20%, rgb(92 124 255 / 0.12) 0%, transparent 55%),
-      radial-gradient(ellipse 100% 60% at 50% 80%, rgb(92 124 255 / 0.18) 0%, transparent 55%),
-      radial-gradient(ellipse 40% 40% at 70% 60%, rgb(18 48 179 / 0.16) 0%, transparent 55%);
+      radial-gradient(ellipse 60% 80% at 80% 20%, color-mix(in oklab, var(--nf-brand-secondary) 12%, transparent) 0%, transparent 55%),
+      radial-gradient(ellipse 100% 60% at 50% 80%, color-mix(in oklab, var(--nf-brand-secondary) 18%, transparent) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 70% 60%, color-mix(in oklab, var(--nf-canvas-bloom-deep-ink) 16%, transparent) 0%, transparent 55%);
     /*
      * THE PULSE IS GONE, AND IT WAS ALSO WHY THE GROUND WAS TOO BRIGHT.
      *
@@ -184,9 +184,9 @@
       transparent 0deg,
       var(--nf-glow-2) 60deg,
       transparent 120deg,
-      rgb(92 124 255 / 0.16) 180deg,
+      color-mix(in oklab, var(--nf-brand-secondary) 16%, transparent) 180deg,
       transparent 240deg,
-      rgb(18 48 179 / 0.24) 300deg,
+      color-mix(in oklab, var(--nf-canvas-bloom-deep-ink) 24%, transparent) 300deg,
       transparent 360deg);
     /*
      * 0.16, down from 0.45.
@@ -222,8 +222,8 @@
     /* The full-width artwork is only ~250px tall on a phone, so the fade has
        to finish inside that strip or its edge prints a hard seam. */
     .nf-ambient > span:nth-child(1) {
-      mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.5) 12%, transparent 24%);
-      -webkit-mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.5) 12%, transparent 24%);
+      mask-image: linear-gradient(to top, var(--nf-mask-opaque) 0%, var(--nf-mask-mid) 12%, transparent 24%);
+      -webkit-mask-image: linear-gradient(to top, var(--nf-mask-opaque) 0%, var(--nf-mask-mid) 12%, transparent 24%);
     }
   }
   /*
@@ -281,6 +281,14 @@
    * still reads as edge-lit. It is lit by a light that is in a place, rather
    * than by a light that is going round.
    *
+   * THAT DIRECTION IS 152, NOT 142. This comment claimed 142 was the platform
+   * angle while the glass specular was cut at 152, and one of the two had to be
+   * wrong; the artwork settles it. The literal stays a literal because an
+   * `@property` initial value has to be computationally independent and may not
+   * read `var(--nf-light-angle)`. Keep it in step by hand, and keep the
+   * keyframe exactly 360 degrees further on so a full turn lands back on the
+   * light rather than a tenth of a turn past it.
+   *
    * `@property` and the keyframe are kept: this is a treatment to reach for on
    * a genuine event, a card that has just gone live, rather than one to run
    * while somebody reads.
@@ -288,11 +296,11 @@
   @property --nf-spin {
     syntax: "<angle>";
     inherits: false;
-    initial-value: 142deg;
+    initial-value: 152deg;
   }
   @keyframes nf-spin {
     to {
-      --nf-spin: 502deg;
+      --nf-spin: 512deg;
     }
   }
   .nf-card--live {
@@ -302,9 +310,9 @@
           from var(--nf-spin),
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 0%,
           color-mix(in oklab, var(--nf-brand-accent) 60%, transparent) 22%,
-          rgb(255 255 255 / 0.05) 46%,
+          var(--nf-wash-1) 46%,
           color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 68%,
-          rgb(255 255 255 / 0.04) 84%,
+          var(--nf-wash-1) 84%,
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 100%
         )
         border-box;
@@ -429,8 +437,8 @@
     background:
       linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-brand-primary) 14%, transparent) 46%, transparent 60%),
       linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-brand-secondary) 9%, transparent) 55%, transparent 68%);
-    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
-    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 25%, transparent 80%);
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, var(--nf-mask-opaque) 25%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, var(--nf-mask-opaque) 25%, transparent 80%);
     opacity: 0.35;
   }
 }

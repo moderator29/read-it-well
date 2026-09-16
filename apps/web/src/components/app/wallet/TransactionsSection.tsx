@@ -7,7 +7,7 @@ import { formatDate } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import type { WalletEntry } from "@/lib/wallet/types";
-import { KIND_ICON, KIND_LABEL, STATUS_LABEL } from "./kinds";
+import { KIND_ICON, walletWords } from "./kinds";
 import { Amount } from "@/components/ui/Amount";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
@@ -191,6 +191,11 @@ function EntryRow({
 }) {
   const credit = entry.direction === "credit";
   const settled = entry.status === "COMPLETED";
+  /* The kind and the status in the reader's own language. Resolved per row
+     rather than threaded down as a prop, because `walletWords` is a merge of
+     two small records and a ledger that re-reads it per row costs less than a
+     prop every caller of this component would have to remember to pass. */
+  const words = walletWords(locale);
 
   return (
     <li
@@ -235,7 +240,7 @@ function EntryRow({
         {/* "Booking payment, Victoria Island suite" was rendering as
             "Booking payment, Vic". The note is the only thing on the row that
             says what the money was for, so it wraps. */}
-        <span className={`block ${TYPE.rowTitle}`}>{entry.note ?? KIND_LABEL[entry.kind]}</span>
+        <span className={`block ${TYPE.rowTitle}`}>{entry.note ?? words.kind[entry.kind]}</span>
 
         {/*
           THE PROPERTY, WHICH THIS LEDGER NEVER NAMED.
@@ -259,7 +264,7 @@ function EntryRow({
         {/* The reference is how a person reconciles this row against their bank
             statement, so it wraps rather than ending at "WD-GTB-00". */}
         <span className={`mt-inline-tight block ${TYPE.caption} [overflow-wrap:anywhere]`}>
-          {KIND_LABEL[entry.kind]} · {entry.reference}
+          {words.kind[entry.kind]} · {entry.reference}
         </span>
       </span>
       {/*
@@ -295,7 +300,7 @@ function EntryRow({
             region per row would announce the whole history on arrival. */}
         {!settled && (
           <StatusPill tone={toneForStatus(entry.status)} className="mt-inline-tight">
-            {STATUS_LABEL[entry.status]}
+            {words.status[entry.status]}
           </StatusPill>
         )}
       </span>

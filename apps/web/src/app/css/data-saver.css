@@ -83,7 +83,7 @@
    * that failed to load. Costs nothing, says nothing it should not.
    */
   background-image: linear-gradient(
-    160deg,
+    var(--nf-light-angle),
     var(--nf-surface-elevated) 0%,
     var(--nf-canvas-base) 62%
   ) !important;

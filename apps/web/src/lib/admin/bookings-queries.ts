@@ -46,6 +46,63 @@ async function adminClient(): Promise<Db | null> {
 
 export type BookingStatus = Database["public"]["Enums"]["booking_status"];
 
+/**
+ * `public.booking_status`, in lifecycle order, read from the generated enum.
+ *
+ * ---------------------------------------------------------------------------
+ * ONE LIST, AND IT IS ORDERED BY THE LIFE OF A STAY RATHER THAN ALPHABETICALLY.
+ *
+ * The console's filter chips used to be a hand-written array of three literals
+ * on the bookings page, with a comment asserting the enum had three values. The
+ * enum now has five, and a hand-written list is exactly the thing that does not
+ * find out. This is typed as `readonly BookingStatus[]`, so the day a sixth
+ * value is added the compiler has nothing to say, but the list cannot hold a
+ * value the column would refuse, which is the failure that actually reaches an
+ * operator: a chip that returns nothing whatever they click.
+ *
+ * The order is PENDING, CONFIRMED, COMPLETED, NO_SHOW, CANCELLED, which is the
+ * order the enum itself is declared in and the order a stay actually moves
+ * through. Sorting these alphabetically would put CANCELLED first and COMPLETED
+ * second, which reads as a ranking of outcomes rather than a sequence.
+ */
+export const BOOKING_STATUSES: readonly BookingStatus[] = [
+  "PENDING",
+  "CONFIRMED",
+  "COMPLETED",
+  "NO_SHOW",
+  "CANCELLED",
+];
+
+/**
+ * A status from a URL, or nothing.
+ *
+ * `?status=` is hand-editable, and the difference between an unrecognised value
+ * and no value matters: passing an unknown string through to `.eq()` returns an
+ * empty board, which an operator reads as "there are no stays" rather than as
+ * "you typed something that is not a status". Dropped here instead, so the
+ * queue answers with everything and the chip simply shows as unselected.
+ */
+export function asBookingStatus(value: string | undefined): BookingStatus | undefined {
+  return BOOKING_STATUSES.find((status) => status === value);
+}
+
+/**
+ * How a Lagos calendar day maps onto a `timestamptz`.
+ *
+ * `created_at` is an instant; the operator typed a date. A naive `.gte("2026-09-16")`
+ * is read by Postgres as UTC midnight, which is 01:00 in Lagos, so a stay booked
+ * at half past midnight Lagos time would silently fall out of the range the
+ * operator asked for. Everything else in this console is anchored to Lagos, and
+ * so is this.
+ */
+function lagosDayStart(day: string): string {
+  return `${day}T00:00:00+01:00`;
+}
+
+function lagosDayEnd(day: string): string {
+  return `${day}T23:59:59.999+01:00`;
+}
+
 /** One stay as the list shows it. */
 export type AdminBookingRow = {
   id: string;
@@ -209,19 +266,57 @@ async function decorate(db: Db, rows: BookingSelect[]): Promise<AdminBookingRow[
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Everything the console can narrow this board by. All of it optional. */
+export type BookingBoardFilter = {
+  /** A whole booking id, or part of a listing title. */
+  q?: string;
+  /** One value of `booking_status`. Anything else is ignored, not obeyed. */
+  status?: string;
+  /** Lagos calendar days, inclusive, against `created_at`. */
+  from?: string;
+  to?: string;
+};
+
 /**
- * The board, optionally narrowed by a search.
+ * The board, optionally narrowed.
  *
  * The search takes either a whole booking id, which is what a guest quotes in a
  * message, or part of a listing title. Anything else returns an empty board
  * rather than the unfiltered one, because a support desk that silently ignores
  * the thing you typed is worse than one that says it found nothing.
+ *
+ * ---------------------------------------------------------------------------
+ * THE NARROWING IS IN THE QUERY NOW, NOT OVER THE ROWS IT RETURNED.
+ *
+ * The status chip and the date range were applied on the page, with
+ * `rows.filter(...)`, over whatever the unfiltered read had already returned.
+ * At zero rows that is indistinguishable from filtering properly, which is why
+ * it survived. It is wrong in a way that gets worse exactly as the console gets
+ * busier: the read is capped at `BUCKET_LIMIT * 3`, so once there are more
+ * stays than the cap, filtering afterwards searches only the most recent 120
+ * and quietly reports that the older ones do not exist. An operator asked
+ * "show me every cancelled stay in August" would be shown some of them, with
+ * nothing on screen saying so.
+ *
+ * `.eq()` and `.gte()`/`.lte()` push all of it into Postgres, so the cap now
+ * applies to the rows that matched rather than to the rows that were read.
+ * The bucketing by date stays in TypeScript, because "live" and "past" are a
+ * comparison against today rather than a predicate on a column.
  */
-export async function getBookingBoard(query?: string): Promise<AdminRead<AdminBookingBoard>> {
+export async function getBookingBoard(
+  filter?: BookingBoardFilter,
+): Promise<AdminRead<AdminBookingBoard>> {
   const db = await adminClient();
   if (!db) return UNAVAILABLE;
 
-  const term = (query ?? "").trim();
+  const term = (filter?.q ?? "").trim();
+  const status = asBookingStatus(filter?.status);
+  const from = filter?.from;
+  const to = filter?.to;
+  /* `searched` drives the empty copy, and a date range or a status is just as
+     much a narrowing as a term is: an empty board under a chip means "nothing
+     matched", not "nothing has ever arrived". */
+  const narrowed = term.length > 0 || Boolean(status) || Boolean(from) || Boolean(to);
 
   try {
     let listingMatches: string[] | null = null;
@@ -241,6 +336,9 @@ export async function getBookingBoard(query?: string): Promise<AdminRead<AdminBo
     let select = db.from("bookings").select(BOOKING_COLUMNS);
     if (term.length > 0 && UUID_RE.test(term)) select = select.eq("id", term);
     if (listingMatches) select = select.in("listing_id", listingMatches);
+    if (status) select = select.eq("status", status);
+    if (from) select = select.gte("created_at", lagosDayStart(from));
+    if (to) select = select.lte("created_at", lagosDayEnd(to));
 
     const { data, error } = await select
       .order("check_in", { ascending: false })
@@ -261,7 +359,7 @@ export async function getBookingBoard(query?: string): Promise<AdminRead<AdminBo
       .filter((row) => row.status === "CANCELLED")
       .slice(0, BUCKET_LIMIT);
 
-    return { state: "ok", data: { live, past, cancelled, searched: term.length > 0 } };
+    return { state: "ok", data: { live, past, cancelled, searched: narrowed } };
   } catch {
     return UNAVAILABLE;
   }

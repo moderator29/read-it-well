@@ -209,7 +209,7 @@ export function Chip(props: ChipProps) {
     HEIGHT[size],
     // A photo needs the leading padding pulled in or the pill reads as a chip
     // with a gap in front of it rather than a chip containing a photo.
-    thumbnail ? "gap-2 pl-1 pr-3.5" : "px-3.5",
+    thumbnail ? "gap-inline pl-2xs pr-sm" : "px-sm",
     disabled ? "pointer-events-none opacity-45" : "",
     className ?? "",
   ]
@@ -399,7 +399,7 @@ export function ChipRow({
        * both engines (a `::-webkit-scrollbar` rule cannot be written inline),
        * and snap alignment on the children.
        */
-      className={["nf-scroll-x flex items-center gap-2", bleed ? "px-5" : "", className ?? ""]
+      className={["nf-scroll-x flex items-center gap-inline", bleed ? "px-gutter" : "", className ?? ""]
         .filter(Boolean)
         .join(" ")}
       style={{

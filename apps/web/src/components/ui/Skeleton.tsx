@@ -125,17 +125,17 @@ export function SkeletonCard({ className }: { className?: string }) {
       className={["nf-card overflow-hidden", className ?? ""].filter(Boolean).join(" ")}
     >
       <Skeleton radius="none" className="aspect-[4/3] w-full" />
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-4">
+      <div className="p-card-sm">
+        <div className="flex items-start justify-between gap-group">
           <Skeleton width="68%" height="0.9375rem" radius="sm" />
           <Skeleton width="2.5rem" height="0.8125rem" radius="sm" />
         </div>
-        <div className="mt-2.5 flex items-center gap-3.5">
+        <div className="mt-xs flex items-center gap-sm">
           <Skeleton width="3.25rem" height="0.75rem" radius="sm" />
           <Skeleton width="3.25rem" height="0.75rem" radius="sm" />
           <Skeleton width="4rem" height="0.75rem" radius="sm" />
         </div>
-        <Skeleton className="mt-3.5" width="45%" height="1.1875rem" radius="sm" />
+        <Skeleton className="mt-sm" width="45%" height="1.1875rem" radius="sm" />
       </div>
     </div>
   );

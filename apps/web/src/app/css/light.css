@@ -33,10 +33,10 @@
    */
   :root[data-theme="light"] .nf-card {
     background:
-      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
       conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
         border-box;
-    box-shadow: var(--nf-shadow-card);
+    box-shadow: var(--nf-elev-1);
   }
   /* Pointer only, in step with the base rule. A plain `:hover` sticks after a
      tap on a touch screen, so a card somebody tapped stayed lit until they
@@ -47,16 +47,16 @@
          only the lift changes. Replacing it with a flat soft edge here is what
          made the daylight hover read as the card losing its brand. */
       background:
-        linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+        linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
         conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
           border-box;
-      box-shadow: var(--nf-shadow-lifted);
+      box-shadow: var(--nf-elev-2);
     }
   }
   :root[data-theme="light"] .nf-chip,
   :root[data-theme="light"] .nf-icon-btn {
-    background: #FFFFFF;
-    border-color: rgb(18 21 26 / 0.12);
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
     color: var(--nf-content-primary);
     box-shadow: var(--nf-elev-1);
   }
@@ -73,14 +73,14 @@
   :root[data-theme="light"] .nf-chip--active {
     background: var(--nf-brand-primary);
     border-color: var(--nf-brand-primary);
-    color: #FFFFFF;
+    color: var(--nf-content-on-brand);
     box-shadow: 0 4px 12px var(--nf-glow-3);
   }
   /* The secondary button is opaque white on paper, so the blur behind it would
      be a composited layer sampling a backdrop nothing can see. */
   :root[data-theme="light"] .nf-btn--glass {
-    background: #FFFFFF;
-    border-color: rgb(18 21 26 / 0.14);
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
     color: var(--nf-content-primary);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -88,7 +88,7 @@
   }
   @media (hover: hover) {
     :root[data-theme="light"] .nf-btn--glass:hover:not(:disabled) {
-      background: #FFFFFF;
+      background: var(--nf-surface-primary);
       border-color: var(--nf-brand-edge);
     }
   }
@@ -107,21 +107,21 @@
   /* Inputs: flat white wells with neutral hairlines; blue only on focus. */
   :root[data-theme="light"] .nf-field {
     background:
-      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
-      linear-gradient(rgb(18 21 26 / 0.14), rgb(18 21 26 / 0.14)) border-box;
-    box-shadow: inset 0 1px 2px rgb(18 21 26 / 0.04);
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
+      linear-gradient(var(--nf-border-default), var(--nf-border-default)) border-box;
+    box-shadow: inset 0 1px 2px var(--nf-shade-1);
   }
   :root[data-theme="light"] .nf-field:focus {
     background:
-      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
       linear-gradient(var(--nf-brand-edge-strong), var(--nf-brand-edge-strong)) border-box;
     box-shadow:
-      inset 0 1px 2px rgb(18 21 26 / 0.04),
+      inset 0 1px 2px var(--nf-shade-1),
       0 0 0 3px var(--nf-glow-1);
   }
   /* The breathing live ring quiets down to a hairline on paper. */
   :root[data-theme="light"] .nf-card--live {
-    box-shadow: var(--nf-shadow-card);
+    box-shadow: var(--nf-elev-1);
   }
   /*
    * 3D icon tiles in daylight: the dark glass slab becomes a soft pastel
@@ -130,10 +130,10 @@
    * platform iconography. The object's own material is untouched.
    */
   :root[data-theme="light"] .nf-icon3d .nf-icon3d__tile {
-    fill: color-mix(in oklab, var(--i3d-core, #0C39EF) 10%, #FFFFFF);
+    fill: color-mix(in oklab, var(--i3d-core, var(--nf-brand-accent)) 10%, var(--nf-surface-primary));
   }
   :root[data-theme="light"] .nf-icon3d .nf-icon3d__ring {
-    stroke: color-mix(in oklab, var(--i3d-core, #0C39EF) 35%, #FFFFFF);
+    stroke: color-mix(in oklab, var(--i3d-core, var(--nf-brand-accent)) 35%, var(--nf-surface-primary));
     stroke-opacity: 0.9;
   }
   :root[data-theme="light"] .nf-icon3d .nf-icon3d__spec {
@@ -166,13 +166,15 @@
    * The daylight canvas is a studio cloud: soft silver-white gradients with
    * gentle depth, like a product photography sweep, never a flat grey and
    * never a blue wash. Matches the owner's brand renders.
+   *
+   * The four layers moved to `--nf-canvas-daylight` in the token file, beside
+   * the night theme's three named blooms, where the ground for a theme has
+   * always belonged. They were eight colour literals written at one call site,
+   * which is the largest single colour decision in the product and it was the
+   * one furthest from the palette.
    */
   :root[data-theme="light"] .nf-ambient {
-    background:
-      radial-gradient(120% 90% at 78% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 55%),
-      radial-gradient(95% 75% at 8% 100%, #E9EBEF 0%, rgb(233 235 239 / 0) 62%),
-      radial-gradient(70% 60% at 94% 88%, #ECEEF2 0%, rgb(236 238 242 / 0) 55%),
-      linear-gradient(180deg, #F8F9FB 0%, #F2F3F6 100%);
+    background: var(--nf-canvas-daylight);
   }
   :root[data-theme="light"] .nf-ambient > span:nth-child(1) {
     display: none;
@@ -222,8 +224,8 @@
    * bloom belong to the night theme only; hover warms the hairline to blue.
    */
   :root[data-theme="light"] .nf-auth-row {
-    background: #FFFFFF;
-    border-color: rgb(18 21 26 / 0.14);
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: var(--nf-elev-1);
@@ -239,7 +241,7 @@
   }
   :root[data-theme="light"] .nf-auth-row__mark {
     background: var(--nf-surface-inset);
-    box-shadow: inset 0 0 0 1px rgb(18 21 26 / 0.06);
+    box-shadow: inset 0 0 0 1px var(--nf-wash-2);
   }
   :root[data-theme="light"] .nf-auth-row__mark--email {
     background: var(--nf-gradient-brand);
@@ -250,11 +252,11 @@
   :root[data-theme="light"] .nf-skeleton {
     background:
       linear-gradient(
-        152deg,
-        rgb(18 21 26 / 0.04) 36%,
+        var(--nf-light-angle),
+        var(--nf-wash-1) 36%,
         var(--nf-glow-1) 48%,
-        rgb(18 21 26 / 0.09) 52%,
-        rgb(18 21 26 / 0.04) 64%
+        var(--nf-wash-3) 52%,
+        var(--nf-wash-1) 64%
       )
       var(--nf-surface-inset);
     background-size: 220% 100%;
@@ -266,7 +268,7 @@
   :root[data-theme="light"] .nf-dock-island {
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-strong),
-      0 16px 32px -14px rgb(18 21 26 / 0.28);
+      0 16px 32px -14px var(--nf-wash-6);
   }
   :root[data-theme="light"] .nf-dock-island[aria-current="page"] {
     box-shadow: 0 6px 18px -4px var(--nf-glow-3);
@@ -283,10 +285,16 @@
      daylight answer two blocks below, so there is nothing left to special
      case. */
 
-  /* Overlines hold AA on white: same neutral ink family, deeper step. */
-  :root[data-theme="light"] .nf-overline {
-    color: rgb(18 21 26 / 0.66);
-  }
+  /*
+   * THE DAYLIGHT OVERLINE OVERRIDE IS GONE, and this is what a themed token
+   * buys. It existed to patch the overline's ink on paper, back when the base
+   * class was on `--nf-content-muted` and muted measured 3.94:1 on white. The
+   * base class is on `--nf-content-subtle` now, which has its own daylight
+   * answer (6.95:1 on white, 11.47:1 on the night canvas), so this rule was
+   * setting the colour the cascade already produced. A rule that restates the
+   * value under it is worse than no rule: it is the one the next person edits
+   * when the base changes, and the base is where the decision lives.
+   */
 
   /* Gradient headlines drop the airy #5C7CFF stop, which washes out on
      paper, and run the deep electric ramp instead. */
@@ -295,12 +303,12 @@
      so hero frames stay premium without a neon border on paper. */
   :root[data-theme="light"] .nf-card--live {
     background:
-      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
       conic-gradient(
           from var(--nf-spin),
           var(--nf-brand-edge) 0%,
-          rgb(18 21 26 / 0.1) 18%,
-          rgb(18 21 26 / 0.1) 82%,
+          var(--nf-wash-3) 18%,
+          var(--nf-wash-3) 82%,
           var(--nf-brand-edge) 100%
         )
         border-box;
@@ -314,17 +322,17 @@
     /* Same ring. This selector outranks the card rule above, so a flat white
        fill here silently took the strides off every glass card in daylight. */
     background:
-      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
       conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
         border-box;
     border-color: transparent;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    box-shadow: var(--nf-shadow-card);
+    box-shadow: var(--nf-elev-1);
   }
   @media (hover: hover) {
     :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
-      box-shadow: var(--nf-shadow-lifted);
+      box-shadow: var(--nf-elev-2);
     }
   }
 
@@ -332,7 +340,7 @@
      visible well instead of white on white. */
   :root[data-theme="light"] .nf-card .nf-glass {
     background: var(--nf-surface-inset);
-    border-color: rgb(18 21 26 / 0.1);
+    border-color: var(--nf-border-subtle);
   }
 
   /* Ghost buttons get a real resting hover on paper. */
@@ -345,9 +353,9 @@
   /* The language switcher is a control, not a call to action: white pill,
      ink label, neutral hairline. Real CTAs keep the blue. */
   :root[data-theme="light"] select.nf-btn--primary {
-    background: #FFFFFF;
+    background: var(--nf-surface-primary);
     color: var(--nf-content-primary);
-    border-color: rgb(18 21 26 / 0.14);
+    border-color: var(--nf-border-default);
     box-shadow: var(--nf-elev-1);
   }
   @media (hover: hover) {
@@ -384,12 +392,12 @@
   :root[data-theme="light"] .nf-panel-sunken {
     background: var(--nf-surface-inset);
     box-shadow:
-      inset 0 2px 8px rgb(18 21 26 / 0.1),
+      inset 0 2px 8px var(--nf-shade-2),
       inset 0 0 0 1px var(--nf-border-subtle);
   }
   :root[data-theme="light"] .nf-action-circle__ring {
-    background: #FFFFFF;
-    border-color: rgb(18 21 26 / 0.12);
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
     box-shadow: var(--nf-elev-1);
   }
   @media (hover: hover) {
@@ -426,15 +434,15 @@
    paper shadow: still unmistakably active, never a glow smear. */
 :root[data-theme="light"] button.nf-card[aria-expanded="true"] {
   background:
-    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
     linear-gradient(var(--nf-brand-edge), var(--nf-brand-edge)) border-box;
-  box-shadow: var(--nf-shadow-card);
+  box-shadow: var(--nf-elev-1);
 }
 
 /* Hover feedback painted with the glass fill (rail links, list rows, nav
    items) is white on white in daylight; it becomes a quiet neutral wash. */
 :root[data-theme="light"] .hover\:bg-\[var\(--nf-glass-fill\)\]:hover {
-  background-color: rgb(18 21 26 / 0.05);
+  background-color: var(--nf-interactive-hover);
 }
 
 /* Text selection on paper: light brand tint under ink, not white on mid-blue. */
