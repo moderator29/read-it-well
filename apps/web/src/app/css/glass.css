@@ -768,6 +768,43 @@
    * ONE LAYER. A flat plate with a squircle radius: no border, no rim, no
    * shadow, no glow, no inner well, no parallax.
    *
+   * THE ACCEPTANCE TEST FOR DELETING THIS ENTIRELY. L-60 asked for the blend
+   * mode, this token and this class to go once the glass objects were wired.
+   * The blend mode is gone and the night plate is gone; the daylight plate is
+   * what is left, and a standing exception with no stated exit is just a
+   * decision nobody wrote down. There are two ways out of it and the first one
+   * is countable.
+   *
+   * ONE: THE TWIN COUNT REACHES ZERO. `--twinned` below already sets
+   * `background: none`, so a mark drops its chip the day its light twin lands
+   * and nothing here changes. 103 marks ship and 23 are twinned, so 80 are not;
+   * the live number is `103 - LIGHT_TWINS.size` in
+   * `design-system/icons/BrandIcon.tsx`. When it reaches 0 this rule's
+   * background has no consumer in either theme, and `--nf-icon-ground`,
+   * `.nf-brand-icon-ground` and `.nf-brand-icon-ground--twinned` come out
+   * together in one commit with nothing left to decide.
+   *
+   * TWO: THE CUTOUT TEST, if those 80 twins are never drawn. Set the daylight
+   * `--nf-icon-ground` to `transparent` and look at the untwinned marks on
+   * white at both ends of the range they ship at, 16px inside a list row and
+   * 160px on an empty state. This is the daylight half of the test recorded
+   * above, which is what retired the plate at night. A mark PASSES when its
+   * interior still reads as a surface; it FAILS when it reads as a watermark of
+   * itself, white showing through its own fill. That failure is not subtle and
+   * needs no measurement, which is why this is an eye and not a script: these
+   * objects are see-through on purpose, so the question is never "is it
+   * visible" but "does it read as an object or as a stain". If a mark fails,
+   * recut that mark. Keeping the plate for all 80 because one of them failed is
+   * what the night theme did for two years.
+   *
+   * AND ONE THING THAT IS NOT THE TEST. The chip has a second argument in
+   * daylight that has nothing to do with rescuing a cutout: a glass object
+   * needs something to be glass against, and a navy chip is the container
+   * answer rather than the recolour answer. If the 80 pass the cutout test on
+   * white and still read thin, the plate is worth keeping ON PURPOSE. Write
+   * that here if that is where it lands, because an exception that has been
+   * re-argued and kept is a different thing from one nobody went back to.
+   *
    * `aspect-ratio: 1` is what makes the percentage radius honest. A percentage
    * corner on a non-square box draws an ellipse, and a fixed radius cannot serve
    * a plate that is 16px behind a list row and 160px on an empty state, so the

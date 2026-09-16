@@ -102,7 +102,16 @@ export function RecentActivity({
                       tone={toneForStatus(entry.status)}
                       className="mt-inline-tight"
                     >
-                      {entry.status.toLowerCase()}
+                      {/* NOT `entry.status.toLowerCase()`, which is what stood
+                          here and what the docstring on `STATUS_LABEL_EN` in
+                          `./kinds` describes as the defect it was written to
+                          end. The statement screen was converted and this strip
+                          was not, so the same movement read "Going through" on
+                          `/wallet/transactions` and "pending" on the wallet
+                          home, one of them in English on a Hausa device. Three
+                          surfaces, one lookup, which is the whole argument for
+                          `walletWords` existing. */}
+                      {words.status[entry.status]}
                     </StatusPill>
                   )}
                 </span>

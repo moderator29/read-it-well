@@ -4,6 +4,45 @@
  *
  * A partial of globals.css. The imports there are ordered, and the order is
  * the cascade: do not move this one.
+ *
+ * EVERY BLOOM IN THIS FILE IS ON THE GLOW LADDER NOW, AND SEVEN WERE NOT.
+ *
+ * `--nf-glow-wash` and `--nf-glow-1..4` are a ladder of brand light with a
+ * stated job per rung: a wash, a hint, a soft halo, the working glow, the one
+ * object a screen is built around. The blooms here were written as inline
+ * `color-mix` percentages instead, at 9, 12, 14, 18, 18, 24 and 55 per cent,
+ * so this file carried a second, unnamed ladder of seven values beside the
+ * named one of five, and no two ambient layers in the product could be
+ * compared by reading them.
+ *
+ * They still cannot all read the rung TOKENS directly, and that is the reason
+ * the drift happened rather than an excuse for it: the ladder is mixed from
+ * `--nf-glow-ink`, and several of these want `--nf-brand-secondary` or
+ * `--nf-brand-accent`, which are different hues rather than different
+ * strengths. So what is shared is the ALPHA ladder: keep the ink the layer
+ * needs, take the strength from the rung.
+ *
+ *   9  -> 8    the grid veil's second beam            wash
+ *   12 -> 8    the quietest of the four ::before blooms   wash
+ *   14 -> 16   the grid veil's first beam             rung 1
+ *   18 -> 16   the third drifting bloom               rung 1
+ *   18 -> 16   the ::before floor bloom               rung 1
+ *   24 -> 30   the conic veil's deep-ink stop         rung 2
+ *   55 -> 50   the aurora's accent bloom              rung 3
+ *
+ * 12 SNAPPED DOWN AND NOT UP, and the four-point tie was broken by ORDER
+ * rather than by arithmetic. That stop is the quietest of the four blooms in
+ * `.nf-ambient::before` and its whole job is to be the quietest; taking it to
+ * 16 would have tied it with the two stops it is meant to sit under, and a
+ * composition of four lights where three are equal is three lights. When a
+ * value is equidistant between two rungs, the rung that preserves the
+ * relationship wins, because the relationship is the thing that was designed.
+ *
+ * WHAT TO EXPECT: five of the seven move by one or two points of alpha under a
+ * layer opacity of 0.3 to 0.35, which is well under the threshold of a visible
+ * change. Two are worth looking at: the conic stop gains six points and the
+ * aurora's accent bloom loses five on a 38rem circle, which is the largest
+ * single light on the landing page.
  */
 @layer components {
   /* ------------------------------------------------------- ambient effects */
@@ -106,7 +145,7 @@
     width: 68vmax;
     height: 68vmax;
     border-radius: var(--nf-radius-circle);
-    background: radial-gradient(circle, color-mix(in oklab, var(--nf-brand-secondary) 18%, transparent) 0%, transparent 64%);
+    background: radial-gradient(circle, color-mix(in oklab, var(--nf-brand-secondary) 16%, transparent) 0%, transparent 64%);
     /* Still. The second bloom is depth, not movement: one light source moves
        and the rest of the ground is lit by it. `will-change` went with the
        animation, because a compositing hint on a 68vmax layer that never
@@ -159,8 +198,8 @@
   .nf-ambient::before {
     background:
       radial-gradient(ellipse 80% 60% at 20% 30%, var(--nf-glow-3) 0%, transparent 58%),
-      radial-gradient(ellipse 60% 80% at 80% 20%, color-mix(in oklab, var(--nf-brand-secondary) 12%, transparent) 0%, transparent 55%),
-      radial-gradient(ellipse 100% 60% at 50% 80%, color-mix(in oklab, var(--nf-brand-secondary) 18%, transparent) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 80% at 80% 20%, color-mix(in oklab, var(--nf-brand-secondary) 8%, transparent) 0%, transparent 55%),
+      radial-gradient(ellipse 100% 60% at 50% 80%, color-mix(in oklab, var(--nf-brand-secondary) 16%, transparent) 0%, transparent 55%),
       radial-gradient(ellipse 40% 40% at 70% 60%, color-mix(in oklab, var(--nf-canvas-bloom-deep-ink) 16%, transparent) 0%, transparent 55%);
     /*
      * THE PULSE IS GONE, AND IT WAS ALSO WHY THE GROUND WAS TOO BRIGHT.
@@ -186,7 +225,7 @@
       transparent 120deg,
       color-mix(in oklab, var(--nf-brand-secondary) 16%, transparent) 180deg,
       transparent 240deg,
-      color-mix(in oklab, var(--nf-canvas-bloom-deep-ink) 24%, transparent) 300deg,
+      color-mix(in oklab, var(--nf-canvas-bloom-deep-ink) 30%, transparent) 300deg,
       transparent 360deg);
     /*
      * 0.16, down from 0.45.
@@ -359,17 +398,24 @@
   /*
    * THE OPACITY HERE IS A TRAP AND IT IS WHY THE HERO NO LONGER USES THIS.
    *
-   * `opacity` creates an isolated stacking group. A brand object carries
-   * `mix-blend-mode: multiply` so its white studio plate can be removed
-   * against the canvas; inside an opacity group the multiply happens against
-   * the group's own backdrop instead, and the whole thing then composites at
-   * half strength. What lands is a grey translucent SQUARE with a murky object
-   * in it, rather than an object floating on the canvas.
+   * `opacity` creates an isolated stacking group. The clay artwork carried
+   * `mix-blend-mode: multiply` so its white studio plate could be removed
+   * against the canvas; inside an opacity group the multiply happened against
+   * the group's own backdrop instead, and the whole thing then composited at
+   * half strength. What landed was a grey translucent SQUARE with a murky
+   * object in it, rather than an object floating on the canvas.
    *
-   * It was invisible while a large render filled the same area. If this class
-   * is used again, take the object to full opacity at a smaller size, or use
-   * the approach in `.nf-page-scene`, which turns multiply off on the night
-   * theme rather than wrapping it in a group.
+   * THE BLEND MODE IS GONE FROM THE PRODUCT, so the specific bug above cannot
+   * recur and the old advice here - "turn multiply off on the night theme" -
+   * named a mechanism that no longer exists. Past tense throughout for that
+   * reason.
+   *
+   * THE TRAP IS NOT GONE, which is why this note is not deleted with it. An
+   * `opacity` below 1 still creates an isolated group, and the glass objects
+   * still have a partial-alpha interior that composites against whatever is
+   * behind them. Halving that alpha again inside a group would thin them the
+   * same way, just without a square around it. If this class is used again,
+   * take the object to full opacity at a smaller size.
    */
   /*
    * No animation, and no call sites either - the comment above already records
@@ -468,7 +514,7 @@
     top: -6rem;
     right: -12rem;
     background:
-      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-brand-accent) 55%, transparent) 0%, transparent 55%),
+      radial-gradient(circle at 30% 70%, color-mix(in oklab, var(--nf-brand-accent) 50%, transparent) 0%, transparent 55%),
       radial-gradient(circle, var(--nf-brand-secondary) 0%, transparent 68%);
   }
 
@@ -479,8 +525,8 @@
     /* Soft crossing light beams in place of the old square grid: pure glow,
        no geometry, so the canvas reads as atmosphere rather than graph paper. */
     background:
-      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-brand-primary) 14%, transparent) 46%, transparent 60%),
-      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-brand-secondary) 9%, transparent) 55%, transparent 68%);
+      linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--nf-brand-primary) 16%, transparent) 46%, transparent 60%),
+      linear-gradient(65deg, transparent 42%, color-mix(in oklab, var(--nf-brand-secondary) 8%, transparent) 55%, transparent 68%);
     mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, var(--nf-mask-opaque) 25%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, var(--nf-mask-opaque) 25%, transparent 80%);
     opacity: 0.35;

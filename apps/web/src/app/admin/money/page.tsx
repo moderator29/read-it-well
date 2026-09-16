@@ -3,6 +3,7 @@ import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getMoneyConsole, type WalletEntryView } from "@/lib/admin/money-queries";
 import { adminUi } from "../_components/ui";
+import { QueueFilters, readQueueQuery } from "../_components/QueueFilters";
 
 export const metadata: Metadata = {
   title: "Money",
@@ -26,12 +27,42 @@ export const dynamic = "force-dynamic";
  * is money that has left a person's spendable balance and has not arrived
  * anywhere; every minute it sits there is a minute somebody is short.
  */
-export default async function AdminMoneyPage() {
+export default async function AdminMoneyPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const read = await getMoneyConsole();
+  /*
+   * ONE SUBJECT, ONE CONTROL, EVERY PANEL APPLIES IT.
+   *
+   * `MoneyFilter` in `lib/admin/money-queries.ts` carries the argument for the
+   * contract; this is the half of it the reader can see. Three panels and a row
+   * of tiles, all narrowed by the same term, because "where is this person's
+   * money" is one question and the console answers it in four places.
+   *
+   * `status` and `offset` are dropped rather than read. The shared queue frame
+   * carries both, and neither means anything here: status is a different enum
+   * per panel, and three panels have three orderings and cannot share one
+   * cursor. A hand-edited `?status=PENDING` on this URL therefore does nothing,
+   * and the important half of that is that it does not LOOK as though it did -
+   * no chip lights up, and `narrowed` below stays false, so nothing on the
+   * screen claims a narrowing that was not applied.
+   */
+  const params = await searchParams;
+  const asked = readQueueQuery(params);
+  const query = {
+    ...(asked.q ? { q: asked.q } : {}),
+    ...(asked.from ? { from: asked.from } : {}),
+    ...(asked.to ? { to: asked.to } : {}),
+  };
+  const narrowed = Boolean(query.q || query.from || query.to);
+
+  const read = await getMoneyConsole(query);
 
   if (read.state !== "ok") {
     return (
@@ -43,6 +74,7 @@ export default async function AdminMoneyPage() {
   }
 
   const { wallets, recent, stuck, totals } = read.data;
+  const shown = wallets.length + recent.length + stuck.length;
 
   function EntryRow({ entry }: { entry: WalletEntryView }) {
     const outgoing = entry.direction === "debit";
@@ -123,38 +155,71 @@ export default async function AdminMoneyPage() {
         </section>
       )}
 
-      <section className="mb-md grid gap-sm sm:grid-cols-3">
-        <div className="nf-card p-md">
-          <p className="text-[var(--nf-text-overline)] uppercase tracking-wide text-[var(--nf-content-muted)]">
-            Settled across all wallets
-          </p>
-          <p className="nf-numeric mt-2xs text-[var(--nf-text-h4)] font-bold">
-            {formatMoney(totals.balanceMinor, locale)}
-          </p>
-        </div>
-        <div className="nf-card p-md">
-          <p className="text-[var(--nf-text-overline)] uppercase tracking-wide text-[var(--nf-content-muted)]">
-            Held pending
-          </p>
-          <p className="nf-numeric mt-2xs text-[var(--nf-text-h4)] font-bold">
-            {formatMoney(totals.heldMinor, locale)}
-          </p>
-        </div>
-        <div className="nf-card p-md">
-          <p className="text-[var(--nf-text-overline)] uppercase tracking-wide text-[var(--nf-content-muted)]">
-            Wallets
-          </p>
-          <p className="nf-numeric mt-2xs text-[var(--nf-text-h4)] font-bold">{totals.walletCount}</p>
-        </div>
-      </section>
+      {/*
+        ABOVE THE TILES, WHICH IS THE OPPOSITE OF `/admin/escrow`, ON PURPOSE.
+
+        There the tiles answer "how much is the platform holding", which is true
+        of everything and does not move when an operator narrows, so the control
+        sits under them with the rows it changes. Here the tiles are summed from
+        the wallets the filter selected, so the filter belongs above them: a
+        control that changes a number must be readable before that number is.
+      */}
+      <QueueFilters
+        base="/admin/money"
+        query={query}
+        common={common}
+        searchLabel="Find a person, a wallet or a payment"
+        searchPlaceholder="Name, wallet id, or payment reference"
+      />
+
+      <ui.StatRow>
+        {/*
+          "Settled across all wallets" was the old label and it was never true.
+          This read has always been capped, and is now filtered as well, so the
+          tile is named for what it actually sums. A headline figure on a money
+          screen that overstates its own scope is the one number on the console
+          an operator would repeat to a customer.
+        */}
+        <ui.Stat
+          label="Settled"
+          value={formatMoney(totals.balanceMinor, locale)}
+          hint={
+            narrowed
+              ? "Across the wallets matching this filter"
+              : "Across the wallets listed below, newest first"
+          }
+        />
+        <ui.Stat
+          label="Held pending"
+          value={formatMoney(totals.heldMinor, locale)}
+          hint="Debits that have left a spendable balance and not settled"
+          tone={totals.heldMinor === 0 ? "neutral" : "warning"}
+        />
+        <ui.Stat
+          label="Wallets"
+          value={String(totals.walletCount)}
+          hint={narrowed ? "Matching this filter" : "Newest first, up to forty"}
+        />
+      </ui.StatRow>
+
+      {narrowed && shown === 0 && (
+        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
+      )}
 
       <section className="nf-card mb-md p-md sm:p-lg">
         <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">Wallets</h2>
+        {/* The panel's own empty line is a statement about the WHOLE platform,
+            and under a filter it stops being true: "Nobody has a wallet yet" is
+            a lie to somebody who searched a name that has none. Narrowed, the
+            panel says nothing and the one no-match card above answers for the
+            screen. Same arrangement as `/admin/escrow`. */}
         {wallets.length === 0 ? (
+          narrowed ? null : (
           <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             Nobody has a wallet yet. One is created the first time somebody is
             paid or funds an account.
           </p>
+          )
         ) : (
           <ul className="mt-xs">
             {wallets.map((wallet) => (
@@ -166,12 +231,16 @@ export default async function AdminMoneyPage() {
                   <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
                     {wallet.ownerName ?? "No display name"}
                   </span>
-                  {/* THE REFERENCE IS NEVER CLIPPED. It is the only string an operator
-              can trace a payment by with Paystack or Yellow Card, and it was
-              rendered at 11px monospace with an ellipsis, so the money screen
-              could not do the one thing it exists for. `user-select: all` means
-              one tap takes the whole string. */}
-          <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+                  {/* THE OWNER'S ID, AND IT IS NOT A REFERENCE. The comment
+                      that used to sit here was a copy of the ledger row's, and
+                      it said this string was what an operator traces a payment
+                      by with Paystack. It is not; it is the profile id, and the
+                      reason it is printed unclipped is that it is what an
+                      operator pastes into the search box above, or into a
+                      colleague's message, to get from a name to every other
+                      screen this person appears on. `user-select: all` means one
+                      tap takes the whole of it. */}
+                  <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
                     {wallet.userId}
                   </span>
                 </span>
@@ -196,9 +265,11 @@ export default async function AdminMoneyPage() {
           The ledger, newest first
         </h2>
         {recent.length === 0 ? (
+          narrowed ? null : (
           <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             No money has moved yet.
           </p>
+          )
         ) : (
           <ul className="mt-xs">
             {recent.map((entry) => (

@@ -128,15 +128,40 @@
    *
    * It was 1.25rem with a media query stepping it to 2rem at 768px, which is a
    * gutter that JUMPS by 12px at one width and holds still either side of it.
-   * `--nf-pad-shell` is a clamp, so the gutter grows continuously from 20px on
-   * a phone to 32px on a desktop and there is no breakpoint at which the page
+   * `--nf-pad-shell` is a clamp, so the gutter grows continuously from 24px on
+   * a phone to 40px on a desktop and there is no breakpoint at which the page
    * visibly reflows its margins. The media query is gone with it.
+   *
+   * Those two numbers were 20 and 32 until L-29. See the token for why they
+   * moved: a 20px gutter is narrower than the 22px corner radius of the cards
+   * standing in it.
    */
   .nf-shell {
     width: 100%;
     max-width: var(--nf-content-max);
     margin-inline: auto;
     padding-inline: var(--nf-pad-shell);
+  }
+  /*
+   * THE READING SHELL. L-27.
+   *
+   * Same gutter, same centring, a narrower cap: `--nf-content-read` is 1120px
+   * against the base class's 1440, so at a 1440px viewport a section of prose
+   * or of cards has a real 160px margin either side instead of running the full
+   * width of the display.
+   *
+   * A modifier rather than a second class, because the two widths differ in
+   * exactly one declaration and everything else about a shell - the gutter, the
+   * auto margins, the fact that it is the thing the page is measured from -
+   * must not be able to drift between them. Below 1200px this is identical to
+   * `.nf-shell` at every width, so adding it to a section is a desktop-only
+   * change by construction and cannot break a phone.
+   *
+   * Use it on anything made of sentences. Leave the base class on full-bleed
+   * media grids and horizontal rails, which are what the 1440 was chosen for.
+   */
+  .nf-shell--read {
+    max-width: var(--nf-content-read);
   }
 
   /*

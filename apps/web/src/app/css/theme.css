@@ -148,6 +148,23 @@
   --container-measure-lede: var(--nf-measure-lede);
   --container-measure-body: var(--nf-measure-body);
 
+  /*
+   * `max-w-content-read`, the reading-width cap. L-27.
+   *
+   * Container namespace, same as the measures and for the same reason: this is
+   * a WIDTH, and the spacing namespace wins `max-w-*`. Checked against the
+   * `max-w-*` list at the bottom of this file as the note there instructs, and
+   * against the spacing rungs above it: nothing is called `content-read` in
+   * either, so this adds a utility rather than moving one.
+   *
+   * `--nf-content-max` is deliberately NOT bridged. A full-bleed rail wants the
+   * class `.nf-shell`, which also carries the gutter, and a lone
+   * `max-w-content-max` with no gutter beside it is a page whose text touches
+   * the screen edge on a phone. One of these two widths is safe as a bare
+   * utility and the other is not.
+   */
+  --container-content-read: var(--nf-content-read);
+
   --font-sans: var(--nf-font-sans);
 }
 

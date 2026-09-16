@@ -97,22 +97,135 @@ function noteOf(metadata: unknown): string | null {
  * page is already loading beats a second round trip for a view that answers
  * half the question.
  */
-export async function getMoneyConsole(): Promise<AdminRead<MoneyConsole>> {
+/**
+ * What a multi-bucket console can be narrowed by.
+ *
+ * ---------------------------------------------------------------------------
+ * THE CONTRACT, AND WHY IT IS NOT THE QUEUE FRAME.
+ *
+ * Eleven console destinations are single-table queues and take
+ * `AdminQueueFilter`: a search, a status chip row from that table's enum, a
+ * date range and a cursor. The other nine are not queues. `/admin/money` is
+ * three panels over two tables plus a set of totals, and it is not three
+ * questions - it is ONE question, "what is happening with this person's money",
+ * asked of everything the console can see at once.
+ *
+ * So the contract is: ONE SUBJECT, ONE CONTROL, EVERY PANEL APPLIES IT.
+ *
+ * WHY NOT PER-PANEL NARROWING, which is the obvious alternative. N filter rows
+ * on one screen is N controls answering N questions, and the failure is silent:
+ * an operator who types a name into the wallet panel and not into the ledger
+ * panel gets a screen where half the answer is narrowed and half is not, and
+ * nothing on it says which half. They will read the unnarrowed half as
+ * complete. A filter that can lie about its own scope is worse than none.
+ *
+ * WHY NO STATUS CHIPS. Status means a different enum per panel here -
+ * `wallet_entry_status` on two of them and nothing at all on the wallets - and
+ * one chip row cannot be honest about that. Status belongs to a single-table
+ * queue, where there is one enum to be right about.
+ *
+ * WHY NO PAGER. Three panels, three orderings, one cursor. Same reason the
+ * two-bucket queues do not get one.
+ *
+ * THE ESCAPE HATCH, which this screen happens not to need. A panel whose table
+ * cannot express the term must SAY so beside its heading rather than quietly
+ * returning everything, because a panel showing all its rows under a filter is
+ * indistinguishable from a panel with nothing filtered out. All three panels
+ * here can express it, so nothing on this screen uses it; `/admin/standing` and
+ * `/admin/moderation` will.
+ *
+ * WHAT `q` MEANS HERE: a person, a wallet, or a payment. One term, matched
+ * against an owner's name, a wallet id and an entry reference, because those
+ * are the three strings anybody asking about money on this platform has in
+ * their hand.
+ */
+export type MoneyFilter = {
+  q?: string;
+  /** Lagos calendar days, inclusive, against `created_at` on both tables. */
+  from?: string;
+  to?: string;
+};
+
+/**
+ * How many matched wallets can ride in the ledger's `or` filter.
+ *
+ * The entries panels match "this reference OR any entry belonging to a wallet
+ * we matched", and that second half travels as a literal id list in the query
+ * string. Capped so a search for a common first name cannot build a URL long
+ * enough for the server to refuse, and stated rather than assumed away: past
+ * this many matching wallets the ledger shows the reference matches and the
+ * first fifty wallets' entries. The wallets panel itself is not capped.
+ */
+const LEDGER_WALLET_FANOUT = 50;
+
+/**
+ * A wallet id typed straight into the box.
+ *
+ * Kept local rather than imported from `bookings-queries.ts`, which has its own
+ * copy: that file is a single-table queue with a different guard around it, and
+ * a shared regex between two console modules is a shared dependency for four
+ * lines of pattern. If a third module needs it, it moves to `queue-filter.ts`
+ * with the rest of the filter vocabulary.
+ */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function getMoneyConsole(filter?: MoneyFilter): Promise<AdminRead<MoneyConsole>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return UNAVAILABLE;
 
+  /* Stripped of what PostgREST's `or` grammar reads as structure, for the same
+     reason the other queues strip it: a comma would split one condition into
+     two. */
+  const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
+  const looksLikeId = UUID_RE.test(term);
+
   try {
+    /* Which wallets the term points at, resolved before anything else so all
+       three panels agree about what "this person" means. */
+    let walletIds: string[] | null = null;
+    if (term.length > 0) {
+      const { data: people } = await access.supabase
+        .from("profiles")
+        .select("id")
+        .ilike("display_name", `%${term}%`)
+        .limit(60);
+      const ownerIds = (people ?? []).map((row) => row.id);
+      const found = new Set<string>();
+      if (looksLikeId) found.add(term);
+      if (ownerIds.length > 0) {
+        const { data: owned } = await access.supabase
+          .from("wallets")
+          .select("id")
+          .in("user_id", ownerIds)
+          .limit(WALLET_LIMIT);
+        for (const row of owned ?? []) found.add(row.id);
+      }
+      walletIds = [...found];
+    }
+
+    let walletSelect = access.supabase
+      .from("wallets")
+      .select("id, user_id, currency, created_at");
+    if (walletIds) walletSelect = walletSelect.in("id", walletIds);
+    if (filter?.from) walletSelect = walletSelect.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) walletSelect = walletSelect.lte("created_at", lagosDayEnd(filter.to));
+
+    let entrySelect = access.supabase
+      .from("wallet_entries")
+      .select("id, wallet_id, kind, direction, amount_minor, reference, status, metadata, created_at");
+    if (term.length > 0) {
+      /* The reference, or anything belonging to a wallet the term matched. */
+      const clauses = [`reference.ilike.%${term}%`];
+      const ids = (walletIds ?? []).slice(0, LEDGER_WALLET_FANOUT);
+      if (ids.length > 0) clauses.push(`wallet_id.in.(${ids.join(",")})`);
+      entrySelect = entrySelect.or(clauses.join(","));
+    }
+    if (filter?.from) entrySelect = entrySelect.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) entrySelect = entrySelect.lte("created_at", lagosDayEnd(filter.to));
+
     const [walletRes, entryRes] = await Promise.all([
-      access.supabase
-        .from("wallets")
-        .select("id, user_id, currency, created_at")
-        .order("created_at", { ascending: false })
-        .limit(WALLET_LIMIT),
-      access.supabase
-        .from("wallet_entries")
-        .select("id, wallet_id, kind, direction, amount_minor, reference, status, metadata, created_at")
-        .order("created_at", { ascending: false })
-        .limit(500),
+      walletSelect.order("created_at", { ascending: false }).limit(WALLET_LIMIT),
+      entrySelect.order("created_at", { ascending: false }).limit(500),
     ]);
     if (walletRes.error || entryRes.error) return UNAVAILABLE;
 

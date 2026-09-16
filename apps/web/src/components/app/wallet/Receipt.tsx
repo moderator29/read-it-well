@@ -43,7 +43,6 @@ import { ReceiptActions } from "./ReceiptActions";
 
 export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
   const credit = entry.direction === "credit";
-  const settled = entry.status === "COMPLETED";
   /* A receipt is the thing somebody forwards to a landlord, so it is the last
      surface that should be in a language they did not choose. See
      `walletWords` in `./kinds`. */
@@ -74,7 +73,23 @@ export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale 
           <p className={TYPE.rowMeta}>Vallo wallet receipt</p>
         </div>
         <StatusPill tone={toneForStatus(entry.status)} className="shrink-0">
-          {settled ? "Successful" : entry.status === "PENDING" ? "Pending" : entry.status}
+          {/*
+            THE SHARED WORD, NOT A THIRD PRIVATE ONE.
+
+            This read `settled ? "Successful" : status === "PENDING" ? "Pending"
+            : entry.status`, which is two English literals and then a fall
+            through to the RAW COLUMN VALUE: a failed or reversed movement
+            printed "FAILED" and "REVERSED" in shouting capitals, on the
+            document somebody forwards to a landlord as proof. The file already
+            computed `words` two lines into the component and used it for the
+            kind, so the fix was imported and not applied to the status.
+
+            It also means the receipt and the statement now say the same word
+            about the same movement, which is the fault `./kinds` was extracted
+            to stop: "exactly how a deposit ends up called one thing on the
+            ledger and another on its own receipt".
+          */}
+          {words.status[entry.status]}
         </StatusPill>
       </div>
 
@@ -105,7 +120,10 @@ export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale 
         <Row label="Date" value={when} />
         {entry.note && <Row label="Details" value={entry.note} />}
         {entry.property && <Row label="Property" value={entry.property} />}
-        <Row label="Status" value={settled ? "Successful" : entry.status} />
+        {/* Same word as the pill at the top of the same document, for the same
+            reason. A receipt that names the state twice and differently is a
+            receipt somebody has to decide between two readings of. */}
+        <Row label="Status" value={words.status[entry.status]} />
         {/*
           The reference, last and unabbreviated.
 

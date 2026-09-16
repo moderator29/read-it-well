@@ -204,9 +204,20 @@
    */
   /*
    * Daylight is paper-first: near-white canvas, no neon wash. The waves, the
-   * ribbon and the pointer bloom belong to the night theme; daylight keeps
-   * only the faintest sky blooms so the page still has depth without ever
-   * reading blue.
+   * ribbon and the pointer bloom belong to the night theme.
+   *
+   * THIS USED TO SAY DAYLIGHT "KEEPS ONLY THE FAINTEST SKY BLOOMS" AND IT KEEPS
+   * NONE. Every ambient layer is `display: none` below: all four drifting
+   * blooms, both `.nf-ambient` pseudo-elements, the aurora and the grid veil.
+   * The studio cloud in `--nf-canvas-daylight` is the entire daylight ground,
+   * and it is four silver-white gradients with no brand in them and no
+   * direction, so the page has depth and no light source.
+   *
+   * That is L-110 and it is open. The gap is narrower than the finding states,
+   * because the finding predates the studio cloud and calls the light hero a
+   * blank sheet; it is not blank, it is unlit. A proposal with three candidate
+   * strengths is with the coordinator rather than in this file, because the
+   * values are the whole decision and they want an eye, not a commit.
    */
   /*
    * The daylight canvas is a studio cloud: soft silver-white gradients with

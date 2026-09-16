@@ -357,9 +357,16 @@
    * On 15 September 2026 the RentMe artwork was deleted and two surfaces began
    * painting this token directly with a brand object on top of it: the
    * assistant panel on the landing page and all three first-run slides. The
-   * brand objects carry `mix-blend-mode: multiply`, so on a near-black ground
-   * they vanish. The paper theme gained a black rectangle on the first screen
-   * a stranger sees.
+   * brand objects carried `mix-blend-mode: multiply` at the time, so on a
+   * near-black ground they vanished. The paper theme gained a black rectangle
+   * on the first screen a stranger sees.
+   *
+   * THE BLEND MODE IS GONE NOW and this paragraph is history, kept because it
+   * is the account of how the value was chosen. Past tense on purpose: a
+   * comment that states a mechanism in the present is read as describing the
+   * code, and this one would be describing code that was deleted. The light
+   * value below is still right for its own reason, which is the next
+   * paragraph, and does not depend on the blend mode at all.
    *
    * The light value below is the paper equivalent of the same studio ground,
    * matching the sweep the story stage already uses, so an object composited
@@ -443,7 +450,26 @@
   --nf-media-ground-from: #1B2A52;
   --nf-media-ground-to: #0B1226;
   --nf-media-silhouette: rgb(0 0 0 / 0.34);
-  --nf-media-moon: rgb(255 246 224 / 0.5);
+  /*
+   * THE MOON IS COOL, AND IT WAS A CREAM.
+   *
+   * `rgb(255 246 224 / 0.5)` is hue 46 degrees: a warm off-white, the last warm
+   * value in the palette after the lit window went cool. It was defensible on
+   * brand grounds alone and indefensible on physical ones, which is the better
+   * argument and the one that decides it. Moonlight is reflected sunlight
+   * scattered through a night atmosphere and reads COOL to the eye; a warm moon
+   * is a stage light. The reason a moon reads as a moon is that it is the
+   * brightest thing in a night sky, not that it is cream.
+   *
+   * So it joins the window's blue-white family and stays a step lighter than
+   * it, because the light source has to out-read the thing it is lighting:
+   * `232 241 255` here against `214 229 255` at the window. Alpha is unchanged
+   * at 50 per cent. With this, `--nf-media-*` is cool throughout and there is
+   * no warm value left in the set to explain or to leak.
+   *
+   * Daylight needs nothing: its moon was already `rgb(255 255 255 / 0.55)`.
+   */
+  --nf-media-moon: rgb(232 241 255 / 0.5);
 
   /* The drawn property, for a listing with no photograph yet.
    *
@@ -1439,7 +1465,33 @@
    * padding, which is what lets a row's hover and press states reach the full
    * width of the surface rather than stopping short of it. See .nf-group.
    * ------------------------------------------------------------------ */
-  --nf-pad-shell: clamp(1.25rem, 0.75rem + 2vw, 2rem);  /* the page gutter, 20 -> 32 */
+  /*
+   * THE PAGE GUTTER, WIDENED. L-29.
+   *
+   * It was `clamp(1.25rem, 0.75rem + 2vw, 2rem)`, which measures exactly 20px
+   * at 390 because the floor wins there, and tops out at 32px from 1000px up.
+   * 20px is not wrong in isolation; it is wrong next to what sits inside it.
+   * `--nf-radius-xl` is 22px, so a card's corner curve is larger than the
+   * distance from that corner to the edge of the screen, and the eye reads the
+   * card as pressed against the side of the phone rather than placed on a page.
+   * A gutter has to be bigger than the radius of the thing standing in it or
+   * the corner has nowhere to breathe.
+   *
+   * 24 at 390 and 40 at 1440. The floor holds to 480px, the preferred term
+   * takes over from there, and the ceiling is reached at 1280. Four pixels
+   * wider on a phone and eight on a desktop, on every screen in the product at
+   * once, which is the founder's "widen every single layer" answered in one
+   * line rather than in forty.
+   *
+   * NOTHING ELSE MOVES WITH IT, and that is the point of it being a token. The
+   * consumers are `.nf-shell`, `.nf-rail`'s negative-margin bleed in
+   * `explore.css`, the scroll padding in `controls.css` and the `px-gutter`
+   * utility through `theme.css`. All four read the token, so the bleed still
+   * lands exactly on the screen edge and the rail still scrolls to the same
+   * optical margin. A gutter changed at one of four call sites would have
+   * silently broken the bleed.
+   */
+  --nf-pad-shell: clamp(1.5rem, 0.9rem + 2vw, 2.5rem);  /* the page gutter, 24 -> 40 */
   --nf-pad-card: var(--nf-space-lg);       /* 24, the ordinary card */
   --nf-pad-card-lg: clamp(2rem, 1rem + 4vw, 4rem);      /* the one card a page is built around */
   --nf-pad-card-sm: var(--nf-space-md);    /* 16, a card inside another surface */
@@ -1525,21 +1577,38 @@
   --nf-ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --nf-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
   /*
-   * `--nf-ease-exit` HAS NO CONSUMER, AND THAT IS THE FINDING RATHER THAN THE
-   * DEAD CODE.
+   * `--nf-ease-exit` HAD NO CONSUMER, AND THAT WAS THE FINDING RATHER THAN THE
+   * DEAD CODE. IT HAS THREE NOW.
    *
    * It is the accelerate-only curve, the textbook partner to `--nf-ease-entrance`
-   * and the conventional pair every motion system names. `entrance` is read 21
-   * times. `exit` is read nowhere, which means nothing in this product LEAVES on
-   * a designed curve: the sheet, the backdrop, the overlays and the drawers all
-   * go out on `--nf-ease-standard`, the same curve they came in on. Things do
-   * not leave the way they arrive - an entrance decelerates into place because
-   * it is settling, an exit accelerates away because it is going - and a
-   * product where they do reads as slightly reluctant to close anything.
+   * and the conventional pair every motion system names. `entrance` was read 21
+   * times and `exit` nowhere, which meant nothing in this product LEFT on a
+   * designed curve: the sheet, the backdrop and the overlays all went out on the
+   * same curve they came in on. Things do not leave the way they arrive. An
+   * entrance decelerates into place because it is settling, an exit accelerates
+   * away because it is going, and a product where those are the same curve reads
+   * as slightly reluctant to close anything.
    *
-   * Kept for that reason rather than deleted as an orphan. The honest close is
-   * to give the sheet and the backdrop their exit curve, which is a motion
-   * change on a primitive and wants an eye on it, not a token sweep.
+   * WHAT READS IT NOW, and it is every transition in the tree that has an exit:
+   *
+   *   .nf-sheet            overlays.css   the surface, on the closed rule
+   *   .nf-sheet-backdrop   overlays.css   the dim, on the closed rule
+   *   .nf-onboarding       motion.css     one-way, it only ever leaves
+   *
+   * The mechanism for the two-way pair is the state the transition is going TO:
+   * a transition uses the timing function declared on the element in its TARGET
+   * state, so a curve on the closed rule runs when the element closes and a curve
+   * on the `[data-open="true"]` rule runs when it opens. Two declarations, two
+   * directions, no JavaScript and no extra class. The long note on
+   * `.nf-sheet-backdrop` has the argument and the specificity trap that goes
+   * with it.
+   *
+   * WHAT STILL DOES NOT LEAVE ON A CURVE IS NOT A CSS PROBLEM. `.nf-drawer`
+   * arrives on a keyframe and then vanishes, because its component unmounts it
+   * the instant it closes and there is nothing left on screen to animate. No
+   * curve here can fix that; it needs the drawer to stay mounted for the
+   * duration of its own exit, which is a component change in another owner's
+   * file. The token is ready for it.
    */
   --nf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
   /*
@@ -1847,6 +1916,34 @@
    */
   --nf-header-height-sm: 60px;
   --nf-header-height: 72px;
+  /*
+   * TWO PAGE WIDTHS, BECAUSE ONE OF THEM IS NOT A WIDTH. L-27.
+   *
+   * `--nf-content-max` is 1440px and the gutter is 40px at that width, so on a
+   * 1440px display the shell IS the viewport and "max width" caps nothing. That
+   * is correct for the things it was chosen for: a full-bleed media grid or a
+   * horizontal rail wants every pixel, and stopping one short of the screen
+   * edge would look like a mistake.
+   *
+   * It is wrong for everything made of sentences. A line of text has a width
+   * beyond which the eye loses its place returning to the next line, and a
+   * section of cards has a point past which it stops reading as a composition
+   * and starts reading as a row that was stretched. At 1440 with no cap, a
+   * heading starts at the far left and 1,200 pixels of nothing sit to its
+   * right.
+   *
+   * 1120px, which leaves a real 160px margin either side at 1440 and is above
+   * every reading surface in the product at every width below 1200, so nothing
+   * narrower than a desktop changes at all. `--nf-measure-body` still caps the
+   * LINE at 68 characters inside it; this caps the COLUMN the lines live in,
+   * which is the thing a heading, a lede, a card grid and a paragraph all share
+   * and none of them could state before.
+   *
+   * Bridged in `app/css/theme.css` as `--container-content-read`, so a section
+   * can write `max-w-content-read`, and available as `.nf-shell--read` in
+   * `utilities.css` for the common case of a shell that is carrying prose.
+   */
+  --nf-content-read: 1120px;
   --nf-content-max: 1440px;
 
   /*
