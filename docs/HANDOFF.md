@@ -19,6 +19,9 @@ wherever they disagree.**
 - **`docs/HANDOFF_02_PLATFORM.md`** is the codebase and the full product
   transformation: digest, survey, rate, research, recommend, prioritise, build,
   test, sweep again
+- **`docs/HANDOFF_03_FRONTEND.md`** is the frontend revamp: the glass visual
+  direction, the icon system replacement, the landing page, the confirmation
+  system, and both themes. It supersedes the visual sections of the other two
 
 This file remains the working contract for day to day engineering: the ONE LAW,
 the owner rules, and the gotchas. **The product is now called Vallo.** The

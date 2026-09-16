@@ -12,6 +12,12 @@ honesty standard, the way the founder works. None of it is dropped here.
 Where the two disagree, HANDOFF 01 wins on anything legal, financial or
 reputational. This one wins on anything technical.
 
+**There is now a third: `docs/HANDOFF_03_FRONTEND.md`.** It is the frontend
+revamp: the glass visual direction derived from the logo, the icon system
+replacement, the landing page, the confirmation system, and both themes. It
+goes deeper than section 12 of this file and **supersedes it wherever they
+disagree on visual direction.**
+
 ---
 
 ## 0. The mission, in one line
