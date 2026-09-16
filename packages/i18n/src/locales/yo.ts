@@ -1438,9 +1438,9 @@ export const yo: Dictionary = {
     },
 
     access: {
-      unconfiguredTitle: "Console kò tíì ṣí",
+      unconfiguredTitle: "A kò lè dé ọ̀dọ̀ console báyìí",
       unconfiguredBody:
-        "Console máa ṣiṣẹ́ ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Kò sí ohun tí ó sọnù láàrin ìgbà náà.",
+        "Ọ̀dọ̀ wa ni ìṣòro yìí ti wá, kì í ṣe ọ̀dọ̀ rẹ. Kò sí ohun tí ó sọnù. Gbìyànjú lẹ́ẹ̀kan sí i láàrin ìṣẹ́jú díẹ̀.",
       signedOutTitle: "Ìwọlé àwọn òṣìṣẹ́",
       signedOutBody: "Wọlé pẹ̀lú àkàǹtì iṣẹ́ rẹ láti tẹ̀síwájú.",
       notAdminTitle: "O kò ní ààyè sí console",

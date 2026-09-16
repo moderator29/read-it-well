@@ -1443,9 +1443,9 @@ export const ig: Dictionary = {
     },
 
     access: {
-      unconfiguredTitle: "Console emepeghị ugbu a",
+      unconfiguredTitle: "Anyị enweghị ike iru console ugbu a",
       unconfiguredBody:
-        "Console ga-amalite ozugbo igodo ikpo okwu rutere. Ọ dịghị ihe furu efu n'etiti.",
+        "Nke a si n'akụkụ anyị, ọ bụghị nke gị. Ọ dịghị ihe furu efu. Nwaa ọzọ n'ime nkeji ole na ole.",
       signedOutTitle: "Nbanye ndị ọrụ",
       signedOutBody: "Jiri akaụntụ ọrụ gị banye ka ị gaa n'ihu.",
       notAdminTitle: "Ị nweghị ohere ịbanye console",

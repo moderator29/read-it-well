@@ -1704,9 +1704,15 @@ export const en = {
     },
 
     access: {
-      unconfiguredTitle: "The console is not open yet",
+      /*
+       * "The platform keys land" was engineering language on a user-facing
+       * surface, and worse, it made an internal deployment detail the
+       * operator's problem. An unreachable console is our fault and the copy
+       * says so, says nothing is lost, and says what to do.
+       */
+      unconfiguredTitle: "We cannot reach the console right now",
       unconfiguredBody:
-        "The console switches on the moment the platform keys land. Nothing is lost in the meantime.",
+        "This is on our side, not yours. Nothing has been lost. Try again in a few minutes.",
       signedOutTitle: "Staff sign in",
       signedOutBody: "Sign in with your operations account to continue.",
       notAdminTitle: "You do not have console access",

@@ -114,3 +114,31 @@ this".**
   Emerald success, rose error, bright cyan pending
 - **No new raw colours and no new raw spacing.** Use the scale or add to it
 - **Never say tested, verified or done unless it is true**
+
+---
+
+## Close-out, 16 September 2026, 03:20
+
+**All sixty landed**, across one overnight session: the lead on 47 to 60 plus
+the logo, the OG card and the slogan system; owner A on 1 to 23; owner B on 24
+to 46. Every batch was re-audited by the lead before its commit, and four
+findings by the agents were fixed at the lead's own source on the way through
+(the icon hue, the light-twin edge strays, the slogan's i18n entanglement, the
+no-JavaScript blank page).
+
+**Verified at close**: tsc clean, vitest 1424 across 44 files, check-css-tokens
+clean with raw colour literals down from 304 to 208 over the night, icon
+vectors 62 of 62, one ambient animation per route (two on the landing hero, by
+design; zero under reduced motion), and sixteen route and theme combinations
+rendered at 390px with zero page errors.
+
+**Carried forward, named rather than hidden**: two objects to commission
+(`homes-sparkle`, `house-sparkle`); the light pass of six icon sheets; a
+mark-only logo render (the script prefers it automatically when supplied);
+`QueueFilters` adopted by one console queue of nineteen; the `/admin/bookings`
+status filter narrows returned rows, not the query; `MomentScreen` has one
+call site left; `Sheet` wants an `initialFocus` prop; `KIND_NOUN` and the
+wallet's `STATUS_LABEL` are hard-coded English awaiting dictionary keys; and
+nothing signed-in has ever been rendered by anybody doing this work, because
+there are no credentials in the environment. One seeded login remains the
+highest-leverage gift to the next session.

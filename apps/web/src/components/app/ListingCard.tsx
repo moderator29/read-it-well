@@ -664,11 +664,10 @@ export function ListingCard({
             <p className="nf-caption mt-inline inline-flex max-w-full items-start gap-inline-tight rounded-[var(--nf-radius-control)] bg-[var(--nf-surface-inset)] px-sm py-2xs font-medium text-[var(--nf-content-secondary)]">
               {/* Muted, not brand blue. A brand-coloured mark in the quietest
                   row on the card pulls the eye to the least important thing on
-                  it, and this glyph is a sparkle, which does not mean
-                  electricity to anybody. It is the nearest thing the stroked
-                  set has; a bolt or a plug belongs in `UiIcon` and is noted for
-                  whoever owns that file. */}
-              <UiIcon name="sparkle" size="xs" className="mt-3xs shrink-0" />
+                  it. This was a sparkle while the stroked set had nothing that
+                  meant electricity; the bolt was added the same night this
+                  comment asked for it. */}
+              <UiIcon name="bolt" size="xs" className="mt-3xs shrink-0" />
               <span className="break-words">{power}</span>
             </p>
           )}

@@ -1433,9 +1433,9 @@ export const ha: Dictionary = {
     },
 
     access: {
-      unconfiguredTitle: "Console bai buɗe ba tukuna",
+      unconfiguredTitle: "Ba za mu iya kaiwa ga console yanzu ba",
       unconfiguredBody:
-        "Console zai fara aiki daidai lokacin da mabuɗan dandalin suka iso. Ba a rasa komai a tsakani.",
+        "Wannan daga gare mu ne, ba daga gare ka ba. Ba a rasa komai ba. Sake gwadawa nan da wasu mintuna.",
       signedOutTitle: "Shigar ma'aikata",
       signedOutBody: "Ka shiga da asusun aikinka don ci gaba.",
       notAdminTitle: "Ba ka da damar shiga console",
