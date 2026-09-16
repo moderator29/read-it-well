@@ -314,15 +314,24 @@
 
   /* Brand object ground
    *
-   * The commissioned icon artwork is opaque RGB rendered on white, and the
-   * white is removed at paint time with `mix-blend-mode: multiply`. Multiply
-   * against a near-black canvas returns near-black, so an object with nothing
-   * light behind it is not "subtle", it is gone. This token is the minimum
-   * ground that keeps an untiled object legible: one flat plate, no border, no
-   * shadow, no glow. In daylight the surfaces are already white, multiply is
-   * the identity there, and the token goes transparent so the object simply
-   * sits on the page with nothing around it at all. */
-  --nf-icon-ground: #F5F7FD;
+   * THIS IS TRANSPARENT AT NIGHT NOW, AND THAT WAS THE ACCEPTANCE TEST.
+   *
+   * It used to be #F5F7FD, a near-white plate painted behind every untiled
+   * brand object. It had to be. The clay artwork was opaque RGB rendered on
+   * white and the white was removed at paint time with
+   * `mix-blend-mode: multiply`; multiply against a near-black canvas returns
+   * near-black, so an object with nothing light behind it was not subtle, it was
+   * gone. The plate was the rescue, and the cost was that every content object
+   * on the default theme was a white sticker on navy.
+   *
+   * `public/brand/glass` has a real alpha channel, so the plate is not needed
+   * and its absence is how the cutout is judged: if an object still required
+   * something light behind it to read on the canvas, the cut would be wrong and
+   * the answer would be to recut it rather than to keep the plate.
+   *
+   * The light value is where the token still earns its place. See the note in
+   * the daylight block below. */
+  --nf-icon-ground: transparent;
 
   /* State
    *
@@ -596,6 +605,76 @@
   --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
                    0 12px 40px -8px color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
   --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-electric-400) 45%, transparent);
+
+  /* ---------------------------------------------------------------------
+   * THE GLOW SCALE. Six depths of one light.
+   *
+   * The brand glow is the signature: the logo works because one object glows
+   * against a dark ground. It was also the single least governed value in the
+   * product. `rgb(12 57 239 / alpha)` was written by hand 53 times at 21
+   * different alphas across eight stylesheets, as an outer bloom, as a ring, as
+   * a gradient border stop and as a fill wash, and no two files agreed. So the
+   * one thing the founder keeps asking to tune, the light inside the material,
+   * was the one thing that could not be tuned in a single place.
+   *
+   * TWENTY-ONE ALPHAS ARE NOT TWENTY-ONE DESIGNS. 0.4, 0.45, 0.46, 0.5, 0.52
+   * and 0.55 all appeared, and nobody can see the difference between any two of
+   * them: that is one decision typed six times. Six steps is enough to express
+   * every real intent below, and few enough that choosing one is a decision the
+   * next person can see.
+   *
+   * THESE ARE COLOURS, NOT SHADOWS, and that is what makes them usable. The
+   * literals they replace were not all blooms: a box-shadow needs a colour, a
+   * gradient border stop needs a colour, and a 1px ring needs a colour. A token
+   * that can only be a complete `box-shadow` value answers a third of the call
+   * sites and leaves the rest hand-written, which is how `--nf-glow-brand`
+   * above ended up sitting beside fifty literals doing the same job.
+   *
+   * AND THE INK IS PER THEME, WHICH IS THE ACTUAL BUG THIS FIXES. Every one of
+   * those 53 literals was the DARK theme's brand hex, #0C39EF, including the
+   * thirteen inside `:root[data-theme="light"]` rules in light.css. So daylight
+   * was firing the night theme's glow on a primary button hover, on a focused
+   * field and on an active chip, in a theme whose brand blue is #0C2FE8. One
+   * ink token, redefined below, and that stops being possible.
+   *
+   *   wash   a tint inside a surface, not a light. The faintest useful step
+   *   1      a hint: the corner bloom on a resting card
+   *   2      a soft halo: an ambient bloom, a hover lift
+   *   3      the working glow: focus, active, the primary action
+   *   4      a strong glow: the one object a screen is built around
+   *   rim    the lit leading edge, near-opaque. An edge, never a bloom
+   * ------------------------------------------------------------------ */
+  --nf-glow-ink: var(--nf-electric-400);
+  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) 8%, transparent);
+  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) 16%, transparent);
+  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) 30%, transparent);
+  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
+  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
+
+  /*
+   * THE EDGE IS NOT THE GLOW, and separating them is what makes the scale above
+   * safe to tune.
+   *
+   * The same literal was doing two unrelated jobs. `rgb(12 57 239 / 0.55)` was
+   * the spread of a bloom in one file and the colour of a 1px border in
+   * another, so the first attempt at this scale stepped a focused field's
+   * border down by a third in daylight along with the blooms, which is a
+   * visible regression on the one control that must never get quieter.
+   *
+   * A bloom is light thrown into the space around an object, so it has to
+   * weaken on paper or it is a smudge. An edge is the object's own outline, so
+   * it has to hold in both themes or the object loses its shape. Four steps,
+   * and they keep their strength across the crossing while the ink under them
+   * follows the theme.
+   *
+   * `--nf-glow-brand-rim` keeps the name the brief gave it and is the last rung
+   * of this ladder rather than of the one above: the lit leading edge at near
+   * full strength, an edge and never a bloom.
+   */
+  --nf-brand-edge-soft: color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
+  --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
+  --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
+  --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
   /* ---------------------------------------------------------------------
    * Radius
@@ -999,9 +1078,29 @@
   --nf-media-glass: rgb(96 116 150 / 0.42);
   --nf-media-land: rgb(18 21 26 / 0.07);
 
-  /* Multiply is the identity against white, so a brand object needs no plate
-     at all on paper: it simply sits on the page. */
-  --nf-icon-ground: transparent;
+  /* Brand object ground, in daylight. THE TWO THEMES HAVE SWAPPED ROLES.
+   *
+   * This was `transparent`, because multiply was the identity against white and
+   * a clay object needed nothing behind it on paper. The glass objects invert
+   * the problem. They are see-through by design, so their interior alpha is
+   * partial: correct against a dark ground, thin on white paper, where the glow
+   * also spreads into a soft square-ish blue field.
+   *
+   * So daylight gets the base navy and the object sits on a navy chip, which
+   * removes the field and gives the glass something to be glass against. It was
+   * tested on the four real surfaces in this file rather than assumed, and it is
+   * visibly the most premium the set looks anywhere: `docs/img/glass-in-daylight.png`
+   * and `docs/FRONTEND_REVAMP.md` 2.8.
+   *
+   * One token, 80 objects. The other 23 are the transaction marks, which ship
+   * their own light twin and take no chip: they arrive on their own rounded
+   * glass tile, and a chip behind one is a tile around a tile.
+   *
+   * `--nf-ink-950` rather than `--nf-canvas-base`, which is the same value at
+   * night and #F4F5F7 here, so it would resolve to a white plate on white. This
+   * is one of the few places the daylight block reads layer 1 directly, and the
+   * reason is that the value wanted IS the night ground. */
+  --nf-icon-ground: var(--nf-ink-950);
 
   /*
    * The artwork ground, in daylight. See the long note beside the night value.
@@ -1177,6 +1276,38 @@
     0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 28%, transparent),
     0 6px 18px -8px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
   --nf-glow-accent: 0 6px 18px -10px color-mix(in oklab, var(--nf-brand-accent) 28%, transparent);
+
+  /*
+   * The glow scale on paper, and it is not the night scale with a different
+   * hex in it.
+   *
+   * The ink moves first: #0C39EF is the night accent, and the daylight brand is
+   * #0C2FE8, one step brighter, which is what every other accent role in this
+   * block already resolves to. That alone fixes the thirteen light-theme rules
+   * that were painting the night theme's blue.
+   *
+   * Then every step steps DOWN, which is the same argument this file already
+   * makes for `--nf-glow-brand` two rules up: a glow is a light source, and a
+   * light source only reads against a dark ground. The identical bloom that
+   * lifts a button off the night canvas is a dirty blue smudge on white paper.
+   * The rim is the exception and barely moves, because a rim is an EDGE rather
+   * than a bloom, and an edge has to survive on paper or the object loses its
+   * outline entirely.
+   */
+  --nf-glow-ink: var(--nf-brand-primary);
+  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) 6%, transparent);
+  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) 12%, transparent);
+  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) 20%, transparent);
+  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) 34%, transparent);
+  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) 48%, transparent);
+  /* The edges do NOT step down. See the note beside them in the night block:
+     a bloom is light in the space around an object and a border is the object's
+     own outline, and an outline that fades on paper loses the object. Only the
+     ink under them moves, which is the whole fix. */
+  --nf-brand-edge-soft: color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
+  --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
+  --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
+  --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
   /*
    * The signature ramps.

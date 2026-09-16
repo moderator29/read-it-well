@@ -192,43 +192,19 @@
   }
 
   /*
-   * Living glass.
+   * THE TILE SHEEN IS GONE, AND SO IS THE PROP THAT STAGGERED IT.
    *
-   * A specular highlight travels slowly across every object tile, the way
-   * light moves over real glass when you turn it. Long cycle and low opacity,
-   * so it registers as the surface being alive rather than as an animation
-   * demanding attention. Staggered per tile by index so a grid never pulses
-   * in lockstep.
+   * A white specular band swept across every `.nf-icon-tile` on a 7 second
+   * infinite loop, staggered by a `--tile-i` index so a grid did not pulse in
+   * lockstep, at `mix-blend-mode: screen` and 0.75 opacity. Two things made it
+   * indefensible. It was another infinite loop competing with the canvas for the
+   * one ambient animation a viewport is allowed, on a surface that repeats down
+   * a list. And `--tile-i` was written by a `BrandIcon` prop that no call site
+   * on the platform ever passed, so the stagger it existed for never once ran.
+   *
+   * The glass objects carry their own interior light, which is what the sheen
+   * was imitating. The prop went with the rule.
    */
-  .nf-icon-tile::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    overflow: hidden;
-    background: linear-gradient(
-      115deg,
-      transparent 38%,
-      rgb(255 255 255 / 0.6) 47%,
-      rgb(160 190 255 / 0.35) 52%,
-      transparent 62%
-    );
-    background-size: 260% 100%;
-    background-position: 160% 0;
-    animation: nf-tile-sheen 7s var(--nf-ease-standard) infinite;
-    animation-delay: calc(var(--tile-i, 0) * 900ms);
-    mix-blend-mode: screen;
-    opacity: 0.75;
-  }
-  :root[data-theme="light"] .nf-icon-tile::after {
-    mix-blend-mode: normal;
-    opacity: 0.5;
-  }
-  @keyframes nf-tile-sheen {
-    0%, 62% { background-position: 160% 0; }
-    92%, 100% { background-position: -60% 0; }
-  }
 
   /*
    * Page scene anchor. The artwork dissolves into the canvas behind a page's
@@ -236,35 +212,27 @@
    * it belongs to the surface rather than sitting on it.
    */
   /*
-   * THE BLEND MODE IS OVERRIDDEN HERE, AND WITHOUT IT THIS PAINTS NOTHING.
+   * THE BLEND MODE OVERRIDES ARE GONE, AND THERE IS ONLY ONE DIFFERENCE LEFT.
    *
-   * This treatment was tuned for the eight `story-*.png` scene renders, which
-   * were full-colour artwork on a dark ground. Those were deleted on
-   * 15 September 2026 and `PageScene` now draws one of the 87 commissioned
-   * brand objects, which are soft matte white clay on a white studio plinth.
+   * This block used to carry opposite blend modes per theme. The clay artwork
+   * was opaque white on a white plinth and `.nf-brand-icon` multiplied to remove
+   * that plinth, so at night multiply had to be turned OFF here (multiply a
+   * mostly-white object against navy and almost nothing survives: measured on
+   * Bookings, Wallet, Saved and Messages, the centre pixel was within a few
+   * values of the canvas beside it, so the flourish had silently gone from six
+   * surfaces) and in daylight it had to be turned ON, because against white it
+   * is the identity and it is what made the plinth disappear.
    *
-   * That artwork does not survive the same treatment. `.nf-brand-icon` carries
-   * `mix-blend-mode: multiply`, which exists to remove the white plinth on the
-   * night theme. Multiply a mostly-white object against the navy canvas and
-   * almost nothing is left; the remaining 0.4 opacity and the mask finished the
-   * job. Measured on Bookings, Wallet, Saved and Messages, the element rendered
-   * at its correct 220x220 and its centre pixel was within a few values of the
-   * canvas beside it. **The flourish had silently gone from six surfaces.**
+   * There is no plinth now. The glass objects have a real alpha channel and
+   * composite correctly on either ground with no blend mode at all, so both
+   * overrides are deleted.
    *
-   * So the two themes need opposite treatments, which is the whole reason this
-   * block exists rather than one opacity:
-   *
-   *   NIGHT. Multiply is turned off and the opacity drops a long way. A white
-   *   object at low opacity over navy is a soft pale ghost, and the radial mask
-   *   already fades its edges, so no square can show. This is the flourish the
-   *   scene renders used to give, made out of the artwork that exists now.
-   *
-   *   DAY. Multiply is kept, because against white it is the identity and it is
-   *   what makes the plinth disappear. The opacity RISES, because on paper only
-   *   the blue parts of the object carry and at 0.3 they carried nothing.
+   * The one thing that does still differ is the opacity, and it is a contrast
+   * fact rather than a blend trick: a watermark is holding its own against a
+   * near-black canvas at night and against light grey paper in the day, and an
+   * object lit for the dark needs more of itself to register on paper.
    */
   .nf-page-scene {
-    mix-blend-mode: normal;
     opacity: 0.16;
     filter: saturate(1.1);
     -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
@@ -272,8 +240,7 @@
     animation: nf-scene-live 20s var(--nf-ease-standard) infinite;
   }
   :root[data-theme="light"] .nf-page-scene {
-    mix-blend-mode: multiply;
-    opacity: 0.5;
+    opacity: 0.28;
   }
   /*
    * The one hole in an otherwise thorough reduced-motion story. Duration
@@ -454,49 +421,53 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-icon-tile::after,
     .nf-story-art,
     .nf-hero-scene {
       animation: none !important;
     }
-    .nf-icon-tile::after { display: none; }
   }
 
   /*
-   * Story stage.
+   * Story stages. ONE STAGE NOW, AND IT IS THE DARK ONE IN BOTH THEMES.
    *
-   * The commissioned character scenes are lit product shots on white, so
-   * they get a studio ground rather than a dark panel: a soft silver-white
-   * sweep with a faint blue floor glow, which reads as the same photographic
-   * space the artwork was rendered in. At night the stage keeps its bright
-   * ground so the character stays the light source of the card.
-   */
-  /*
-   * Story stages.
+   * There were two. `--paper` was a silver-white sweep and `--night` a navy
+   * one, because each commissioned scene had been lit on its own ground: some
+   * were studio product shots on white, some neon objects on black. Cutting
+   * either one out left a halo on the opposite ground, so the stage adopted the
+   * light the artwork was rendered in and the image edges were feathered to
+   * dissolve the square.
    *
-   * Each commissioned scene was lit on its own ground: some are studio white
-   * product shots, some are neon objects on black. Cutting either one out
-   * leaves halos on the opposite ground, so instead the stage adopts the
-   * light the artwork was rendered in, and the image edges are feathered so
-   * the square dissolves into it. The result is seamless in both themes.
+   * Every one of those reasons died with the clay pack. The glass objects are
+   * lit for a dark ground, all of them, with a real alpha channel and no square
+   * to hide. On the paper stage a glass object was a pale square holding a faint
+   * blue drawing: exactly the white sticker the swap set out to remove, and it
+   * was the second one visible on `/rent`. So `--paper` resolves to the same
+   * navy stage as `--night`.
+   *
+   * IT IS NAVY IN DAYLIGHT TOO, and that is deliberate rather than an oversight.
+   * A glass object is see-through by design, so it needs something to be glass
+   * against; a dark plate on a white card is the container answer rather than the
+   * recolour answer, and it gives the light theme two or three deliberate dark
+   * panels, which is how a paper product carries a dark brand.
+   *
+   * The two class names stay so no call site has to change today. The prop that
+   * chooses between them is now a no-op and should be removed from
+   * `SceneBanner` and `StoryRail` by the owners of those files.
    */
-  .nf-story-stage--paper {
-    background:
-      radial-gradient(75% 55% at 50% 100%, rgb(12 57 239 / 0.1) 0%, transparent 70%),
-      radial-gradient(120% 90% at 70% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 62%),
-      linear-gradient(180deg, #FBFCFD 0%, #F1F3F7 100%);
-    border-bottom: 1px solid rgb(18 21 26 / 0.07);
-  }
+  .nf-story-stage--paper,
   .nf-story-stage--night {
     background:
-      radial-gradient(70% 50% at 50% 100%, rgb(12 57 239 / 0.3) 0%, transparent 70%),
+      radial-gradient(70% 50% at 50% 100%, var(--nf-glow-2) 0%, transparent 70%),
       linear-gradient(180deg, #05060F 0%, #01010A 100%);
     border-bottom: 1px solid rgb(92 124 255 / 0.28);
   }
-  .nf-story-art {
-    -webkit-mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
-    mask-image: radial-gradient(76% 76% at 50% 48%, #000 62%, transparent 92%);
-  }
+  /*
+   * THE FEATHER MASK IS GONE. It existed to dissolve the clay artwork's opaque
+   * white square into the stage behind it. The glass objects have no square:
+   * their alpha ramp IS their glow, so the mask was not softening an edge, it
+   * was eating the outer 24 percent of the object and the bloom that makes the
+   * mark look like the logo. Removing it is visible at once on `/rent`.
+   */
 
   /* A scene shown small inside the platform gets a rounded chip, never a hard
      square block sitting on the card. */

@@ -325,8 +325,8 @@
         padding-box,
       linear-gradient(135deg,
         rgb(92 124 255 / 0.82) 0%,
-        rgb(12 57 239 / 0.52) 20%,
-        rgb(12 57 239 / 0.06) 46%,
+        var(--nf-brand-edge) 20%,
+        var(--nf-glow-wash) 46%,
         transparent 68%)
         border-box;
     border: 1px solid transparent;
@@ -380,7 +380,7 @@
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.06),
       0 12px 40px rgb(0 0 0 / 0.5),
-      0 0 28px rgb(12 57 239 / 0.22);
+      0 0 28px var(--nf-glow-1);
   }
   /*
    * Cursor-lit glass: a soft light spot follows the pointer across the card
@@ -452,59 +452,121 @@
   /*
    * Brand icon objects.
    *
-   * The commissioned pack is rendered on a white ground, which is exactly
-   * how this style of iconography is meant to be used: the object sits on
-   * its own bright tile. On paper the tile is nearly invisible and the
-   * object simply floats. On the night canvas the same tile becomes the
-   * thing that makes it pop, so the image element itself carries a soft
-   * white surface with a squircle radius and a blue-lit edge.
+   * THE BLEND MODE IS GONE, AND THAT IS THE WHOLE POINT OF THE NEW PACK.
+   *
+   * The clay artwork was opaque RGB rendered on white, so the white had to be
+   * removed at paint time with `mix-blend-mode: multiply`. Multiply against the
+   * night canvas returns the night canvas, so an object with nothing light
+   * behind it was not understated, it was invisible, and a near-white plate had
+   * to be painted behind every one of them to rescue it. On the default theme
+   * that made every content object a white sticker on navy.
+   *
+   * `public/brand/glass` has a real alpha channel: the alpha IS the glow ramp,
+   * so there is no edge and nothing to key out. The object composites correctly
+   * on the canvas, on a card and on paper with no blend mode, no plate and no
+   * mask. Three rules went with it.
    */
   .nf-brand-icon {
     display: block;
     object-fit: contain;
-    /* The artwork is lit on white, so it multiplies cleanly into any tile:
-       the ground disappears and only the object and its shadow survive. */
-    mix-blend-mode: multiply;
+  }
+
+  /*
+   * The theme switch for the 23 marks that ship with a light twin.
+   *
+   * No filter gets from one to the other: the difference is which parts of the
+   * object are transparent, so a frosted-white mark keyed off white inverts on
+   * a dark ground (the tick inside `seal-check` turns black). Both files are in
+   * the markup and this chooses. See the long note in `BrandIcon.tsx` for why
+   * it is not `<picture>` and not an effect.
+   */
+  .nf-brand-icon--day {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-brand-icon--day {
+    display: block;
+  }
+  :root[data-theme="light"] .nf-brand-icon--night {
+    display: none;
   }
 
   /*
    * The untiled object's ground, and the default treatment for a brand object
    * everywhere on the platform.
    *
-   * ONE LAYER. A flat plate with a squircle radius: no border, no rim, no
-   * shadow, no glow, no inner well, no parallax. Compare with `.nf-icon-tile`
-   * below, which carries six, and which used to be what every object wore.
+   * IN THE DARK THEME THIS PAINTS NOTHING, and that was the acceptance test for
+   * the artwork swap. `--nf-icon-ground` is `transparent` at night now: if an
+   * object still needed a plate to be legible on the canvas, the cutout would be
+   * wrong and the answer would be to recut it rather than to keep the plate.
    *
-   * It cannot simply be nothing. The artwork is opaque RGB on white and the
-   * white is removed by the `mix-blend-mode: multiply` above; multiply against
-   * the night canvas returns the night canvas, so an object with nothing light
-   * behind it disappears entirely in the default theme. `--nf-icon-ground`
-   * resolves to a soft near-white at night and to `transparent` in daylight,
-   * where multiply is already the identity against the white surfaces and the
-   * object needs no ground at all.
+   * It still exists because daylight wants it the other way round. A glass
+   * object is see-through by design, so its interior alpha is partial, which is
+   * correct against a dark ground and reads thin on white paper. So in the light
+   * theme the token is the base navy and the 80 objects with no light twin sit
+   * on a navy chip, which gives the glass something to be glass against. That
+   * was tested on four real surfaces rather than assumed: see
+   * `docs/img/glass-in-daylight.png` and `docs/FRONTEND_REVAMP.md` 2.8.
+   *
+   * ONE LAYER. A flat plate with a squircle radius: no border, no rim, no
+   * shadow, no glow, no inner well, no parallax.
+   *
+   * `aspect-ratio: 1` is what makes the percentage radius honest. A percentage
+   * corner on a non-square box draws an ellipse, and a fixed radius cannot serve
+   * a plate that is 16px behind a list row and 160px on an empty state, so the
+   * radius stays proportional and the box is held square instead.
    */
   .nf-brand-icon-ground {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    aspect-ratio: 1;
     border-radius: 26%;
     background: var(--nf-icon-ground);
   }
+  /*
+   * A twinned mark never takes the chip. The 23 transaction marks arrive on
+   * their own rounded glass tile, so a chip behind one is a tile around a tile,
+   * and their light twin is already drawn for paper.
+   */
+  .nf-brand-icon-ground--twinned {
+    background: none;
+  }
+  /*
+   * An object already standing on a dark stage needs no chip in daylight
+   * either: the stage IS the chip, and a slightly different navy inside it
+   * would read as a rounded rectangle nobody asked for.
+   */
+  :root[data-theme="light"] .nf-story-stage--paper .nf-brand-icon-ground,
+  :root[data-theme="light"] .nf-story-stage--night .nf-brand-icon-ground {
+    background: none;
+  }
 
   /*
-   * The icon tile.
+   * The icon tile: the chip a surface asks for when the object is its subject.
    *
-   * Every brand object sits on this chip, the same glass material the rest of
-   * the platform is built from: edge-lit translucent blue at night, a soft
-   * white chip with a hairline on paper. The object is inset so it never
-   * touches the tile wall.
-   */
-  /*
-   * The object tile, built the way the reference platform builds glass: an
-   * outer shell carrying the edge-lit stride, an inner well the object sits
-   * in, and a corner light running off the upper left. The stride is drawn
-   * with the padding-box and border-box trick so one element gets a true ring
-   * that decays around the corner rather than a flat outline.
+   * TEN LAYERS BECAME THREE, AND THE OLD TILE WAS WHITE.
+   *
+   * It carried a radial gradient, a linear gradient, a four stop gradient
+   * border, a 95 percent white inset rim, a brand hairline, two brand drop
+   * shadows, a brand bloom, a `::before` inner well with two more insets, a 3D
+   * perspective transform, a `translateZ` on the child and a hover scale. Ten
+   * layers around a 24px icon, and both of its fills were near-white, because it
+   * was drawn for clay artwork that had to sit on something bright.
+   *
+   * The glass objects are lit for a dark ground, so a white chip behind one is
+   * the same white sticker `--nf-icon-ground` used to be, one class away. It is
+   * now the platform's own glass: fill, border, rim and one elevation rung, from
+   * the tokens, which means it is correct in both themes with no override and it
+   * moves when the material moves.
+   *
+   * The parallax went with it. `TiltField` still writes `--tilt-x` and
+   * `--tilt-y` from a pointer listener and nothing reads them here any more, so
+   * a tile that is never hovered no longer carries a perspective transform it
+   * does not use. A pointer-driven lean is also invisible on the phone this
+   * product is built for.
+   *
+   * `aspect-ratio: 1` holds the box square, which is what makes the percentage
+   * radius honest: a percentage corner on a non-square box draws an ellipse.
    */
   .nf-icon-tile {
     position: relative;
@@ -513,89 +575,11 @@
     justify-content: center;
     flex: none;
     padding: 9%;
-    border: 1.5px solid transparent;
-    border-radius: 30%;
-    background:
-      radial-gradient(125% 100% at 24% 8%, rgb(255 255 255 / 0.95) 0%, rgb(244 247 253 / 0.86) 45%, transparent 74%) padding-box,
-      linear-gradient(158deg, #FFFFFF 0%, #EDF1F9 100%) padding-box,
-      linear-gradient(135deg,
-        rgb(92 124 255 / 0.95) 0%,
-        rgb(12 57 239 / 0.62) 22%,
-        rgb(12 57 239 / 0.12) 52%,
-        transparent 74%)
-        border-box;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.95),
-      0 8px 22px -12px rgb(12 57 239 / 0.5);
-  }
-  /* The inner well: a soft inset ring so the object reads as seated in the
-     tile rather than pasted on top of it. */
-  .nf-icon-tile::before {
-    content: "";
-    position: absolute;
-    inset: 7%;
-    border-radius: 26%;
-    pointer-events: none;
-    box-shadow:
-      inset 0 0 0 1px rgb(12 57 239 / 0.1),
-      inset 0 2px 6px rgb(12 57 239 / 0.09);
-  }
-  .nf-icon-tile > img {
-    position: relative;
-    z-index: 1;
-  }
-  :root[data-theme="light"] .nf-icon-tile {
-    background:
-      radial-gradient(125% 100% at 24% 8%, #FFFFFF 0%, rgb(248 250 253 / 0.9) 48%, transparent 76%) padding-box,
-      linear-gradient(158deg, #FFFFFF 0%, #F3F6FB 100%) padding-box,
-      linear-gradient(135deg,
-        rgb(12 57 239 / 0.55) 0%,
-        rgb(12 57 239 / 0.28) 26%,
-        rgb(18 21 26 / 0.07) 60%,
-        rgb(18 21 26 / 0.05) 100%)
-        border-box;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.95),
-      0 2px 6px -2px rgb(18 21 26 / 0.09);
-  }
-  :root:not([data-theme="light"]) .nf-icon-tile {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.95),
-      0 0 0 1px rgb(12 57 239 / 0.2),
-      0 10px 26px -12px rgb(12 57 239 / 0.75),
-      0 0 20px -8px rgb(12 57 239 / 0.5);
-  }
-  /*
-   * Tile parallax. The pointer director writes --tilt-x and --tilt-y, and the
-   * tile leans toward the cursor in real perspective. Defaults are zero, so a
-   * tile that is never hovered simply sits flat.
-   */
-  .nf-icon-tile {
-    transform-style: preserve-3d;
-    transform: perspective(420px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    transition:
-      transform var(--nf-duration-base) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  /* The object inside floats a touch above the tile face, so the lean reads
-     as depth rather than as the whole chip skewing. */
-  .nf-icon-tile > img {
-    transform: translateZ(10px);
-  }
-  /* Objects lift and their stride brightens when the card they sit on is
-     hovered, so the whole tile feels lit rather than static. */
-  .nf-card--interactive:hover .nf-icon-tile {
-    transform: perspective(420px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
-      translateY(-2px) scale(1.04);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-icon-tile,
-    .nf-card--interactive:hover .nf-icon-tile {
-      transform: none;
-    }
-    .nf-icon-tile > img {
-      transform: none;
-    }
+    aspect-ratio: 1;
+    border: 1px solid var(--nf-glass-border);
+    border-radius: 28%;
+    background: var(--nf-glass-fill);
+    box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1);
   }
 
   /*
@@ -605,38 +589,53 @@
    * ambient motion, so these fire on state rather than on a loop: a bell that
    * rings when something is unread, a calendar that settles when a booking is
    * confirmed, a shield that pulses once when verification lands.
+   *
+   * NONE OF THE THREE LOOPS FOR EVER ANY MORE. `alert` ran `infinite` and
+   * `verified` ran `infinite`, so an unread badge shook a bell every 2.4 seconds
+   * for as long as the screen was open, which is the same fault as a spinner
+   * that never stops: it answers nothing and it never settles. Both now fire a
+   * fixed number of beats and stop, which is what "a thing that reacts to
+   * something real" actually means.
+   *
+   * The `translateZ` and the `perspective` came out of the keyframes with the
+   * tile's parallax. A keyframe that restates a transform the base rule no
+   * longer sets is a keyframe that quietly cancels it.
    */
   .nf-icon-tile[data-state="alert"] > img {
-    animation: nf-ring 2.4s var(--nf-ease-standard) infinite;
+    animation: nf-ring 2.4s var(--nf-ease-standard) 3;
     transform-origin: 50% 18%;
   }
   @keyframes nf-ring {
-    0%, 62%, 100% { transform: translateZ(10px) rotate(0deg); }
-    68% { transform: translateZ(10px) rotate(11deg); }
-    74% { transform: translateZ(10px) rotate(-9deg); }
-    80% { transform: translateZ(10px) rotate(6deg); }
-    86% { transform: translateZ(10px) rotate(-4deg); }
-    92% { transform: translateZ(10px) rotate(2deg); }
+    0%, 62%, 100% { transform: rotate(0deg); }
+    68% { transform: rotate(11deg); }
+    74% { transform: rotate(-9deg); }
+    80% { transform: rotate(6deg); }
+    86% { transform: rotate(-4deg); }
+    92% { transform: rotate(2deg); }
   }
   .nf-icon-tile[data-state="confirmed"] {
     animation: nf-confirm-pop var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
   }
   @keyframes nf-confirm-pop {
-    0% { transform: perspective(420px) scale(0.86); opacity: 0; }
-    60% { transform: perspective(420px) scale(1.06); opacity: 1; }
-    100% { transform: perspective(420px) scale(1); opacity: 1; }
+    0% { transform: scale(0.86); opacity: 0; }
+    60% { transform: scale(1.06); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
   }
-  .nf-icon-tile[data-state="verified"]::before {
-    animation: nf-verify-pulse 2.8s var(--nf-ease-standard) infinite;
+  .nf-icon-tile[data-state="verified"] {
+    animation: nf-verify-pulse 1.4s var(--nf-ease-standard) 2;
   }
   @keyframes nf-verify-pulse {
-    0%, 70%, 100% { box-shadow: inset 0 0 0 1px rgb(12 57 239 / 0.1), inset 0 2px 6px rgb(12 57 239 / 0.09); }
-    82% { box-shadow: inset 0 0 0 2px rgb(12 57 239 / 0.55), inset 0 2px 10px rgb(12 57 239 / 0.3); }
+    0%, 60%, 100% { box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1); }
+    78% {
+      box-shadow:
+        var(--nf-elev-1-rim),
+        var(--nf-elev-1),
+        0 0 0 2px var(--nf-border-brand);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-icon-tile[data-state] > img,
-    .nf-icon-tile[data-state],
-    .nf-icon-tile[data-state]::before {
+    .nf-icon-tile[data-state] {
       animation: none !important;
     }
   }
