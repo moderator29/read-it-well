@@ -137,7 +137,13 @@ const PAD_X = 40;
 const LOGO_SIZE = 40;
 
 const LOGO = "{{ .SiteURL }}/brand/vallo-mark.png";
-const SIGN_OFF = "Vallo. Find it. Rent it. Love it.";
+/* The slogan, kept in step with SIGN_OFF in apps/web/src/lib/email/theme.ts
+   and landing.slogan in packages/i18n. Three copies by design, because this
+   generator and the renderer are both dependency-free; the email tests assert
+   the rendered templates carry the renderer's value, which is what catches
+   the three drifting apart. It caught exactly that on the day the slogan
+   changed. */
+const SIGN_OFF = "Vallo. Real Estate reimagined!";
 
 /* ------------------------------------------------------------------------- *
  * Primitives. Each one is the auth-side twin of a block in render.ts, with the

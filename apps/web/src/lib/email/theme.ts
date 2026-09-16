@@ -147,5 +147,13 @@ export const PAD_X = 40;
  * reserves exactly its own box rather than collapsing the lockup. */
 export const LOGO_SIZE = 40;
 
-/** The one sign-off, in both renderings and in all five auth templates. */
-export const SIGN_OFF = "Vallo. Find it. Rent it. Love it.";
+/**
+ * The one sign-off, in both renderings and in all five auth templates.
+ *
+ * An email ends with the brand making one claim, and this is the one. The
+ * slogan is deliberately identical in every locale, the way a wordmark is;
+ * see `landing.slogan` in packages/i18n. It cannot import from there because
+ * the email renderer stays dependency-free by design, so the string is
+ * duplicated knowingly and this comment is the tie between the two.
+ */
+export const SIGN_OFF = "Vallo. Real Estate reimagined!";
