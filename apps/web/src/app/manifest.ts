@@ -26,8 +26,20 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: "Vallo",
     short_name: "Vallo",
+    /*
+     * THIS SENTENCE CARRIED THREE FAULTS AND IT IS THE ONE A STORE LISTING
+     * QUOTES.
+     *
+     * It offered "experiences", which is not a value `property_type` has, so
+     * the category can never return a row: the same phantom the landing page
+     * was carrying. It claimed "Verified listings" when zero listings are
+     * verified and a check constraint enforces that, which is the same
+     * unsupportable claim that has now come off /about. And it described four
+     * nightly-shaped things on a platform that also sells houses, land, shops
+     * and offices, so it read as a booking app.
+     */
     description:
-      "Find, book and manage homes, hotels, shortlets and experiences across Nigeria. Verified listings, a naira wallet, and an assistant that understands what you actually want.",
+      "Nigeria's property marketplace. Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. One search, one naira wallet, and agents checked by real people.",
     lang: "en-NG",
     dir: "ltr",
     start_url: "/home",
@@ -61,16 +73,16 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: "Search stays",
+        name: "Search property",
         short_name: "Search",
-        description: "Find homes, hotels and shortlets across Nigeria",
+        description: "Rent, buy, shortlet, land and commercial, in one search",
         url: "/search",
         icons: [{ src: "/pwa/shortcut-search.png", sizes: "96x96", type: "image/png" }],
       },
       {
         name: "My bookings",
         short_name: "Bookings",
-        description: "Check your trips and booking references",
+        description: "Check your bookings and their payment references",
         url: "/bookings",
         icons: [{ src: "/pwa/shortcut-bookings.png", sizes: "96x96", type: "image/png" }],
       },
@@ -80,6 +92,55 @@ export default function manifest(): MetadataRoute.Manifest {
         description: "Your naira balance and transactions",
         url: "/wallet",
         icons: [{ src: "/pwa/shortcut-wallet.png", sizes: "96x96", type: "image/png" }],
+      },
+    ],
+    /*
+     * THE INSTALL CARD.
+     *
+     * Without these, an install prompt is a browser dialogue carrying a name
+     * and an icon. With them, Chrome on Android renders a store-style card with
+     * real screens in it, which is the difference between "a site wants to
+     * install something" and "this is the app". On the mid-range Android this
+     * product is built for, that prompt is the whole install funnel.
+     *
+     * Chrome uses the richer card only when at least one wide screenshot is
+     * present alongside the narrow ones, which is why the desktop shot is here
+     * on a portrait-locked application.
+     *
+     * They are RENDERED FROM THE RUNNING APPLICATION by
+     * `scripts/build-pwa-screenshots.mjs`, not drawn, so they cannot drift from
+     * what a person actually meets. That script refuses to write a shot that
+     * captured a page error, and it waits out the entrance choreography so
+     * nothing is caught half-revealed.
+     */
+    screenshots: [
+      {
+        src: "/pwa/shots/narrow-home.jpg",
+        sizes: "780x1688",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        label: "Nine markets, one search",
+      },
+      {
+        src: "/pwa/shots/narrow-markets.jpg",
+        sizes: "780x1688",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        label: "Rent, buy, shortlet, land and commercial",
+      },
+      {
+        src: "/pwa/shots/narrow-search.jpg",
+        sizes: "780x1688",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        label: "Search every market at once",
+      },
+      {
+        src: "/pwa/shots/wide-home.jpg",
+        sizes: "2560x1600",
+        type: "image/jpeg",
+        form_factor: "wide",
+        label: "Vallo on a larger screen",
       },
     ],
   };
