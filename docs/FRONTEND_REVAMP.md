@@ -121,15 +121,50 @@ card, below it you amputate the bloom, which is half of what makes the mark look
 like the logo.
 
 The artwork is additive light on black, so the render is close to `object +
-black` and **brightness is opacity**. So alpha comes from luminance, normalised
+black` and **brightness is opacity**. So alpha comes from brightness, normalised
 between a floor and a ceiling, and the colour is then unpremultiplied by that
 alpha. This is not an approximation of a cutout, it is the inverse of how the
 image was formed. Composited back onto black it returns the original pixel for
 pixel; composited onto navy, onto a card or onto white the glow falls off
 smoothly, because there is no edge to see: the alpha ramp is the glow.
 
+**And the first version of this changed the brand colour, which the founder
+caught before anybody else did.** It is recorded here because the mistake is
+instructive and because the fix is what makes the claim above actually true.
+
+Two things were wrong, and they compounded.
+
+**The key used luminance.** Luminance weights blue at 0.0722, because human eyes
+are poor at blue. On this artwork that is a disaster, because the subject IS
+blue: a saturated blue pixel at full blue and no red or green has a luminance of
+18, which is below the floor, so the key deleted it as background. **The parts of
+the mark carrying the most brand colour were the parts most likely to be thrown
+away**, while white highlights, which luminance rates highest, survived at full
+alpha. Cut a blue object with a luminance key and what comes back is the white
+parts of it.
+
+**The unpremultiply clamped.** Dividing each channel by the alpha and clamping at
+255 meant blue, already near maximum, stopped at the clamp while red and green
+carried on rising. The ratio between the channels is the hue, so flattening it
+turned electric blue into pale cyan.
+
+The fix is two lines of arithmetic. **The key is the brightest channel**, which
+has no colour bias and is what makes the division below safe. **And where the
+division would push a channel past 255, the alpha is raised instead of the colour
+being clipped**, so all three channels are always divided by one number and the
+hue is preserved by construction.
+
+**The difference is measurable, and it is the test that should have been run
+first.** Composite the cut back onto black and compare it with the supplied
+slice, pixel for pixel:
+
+| | worst channel error | mean error |
+| --- | ---: | ---: |
+| First version | 254 of 255 | 6.5 to 16.7 |
+| Now | **26 of 255**, which is exactly the floor, so it is only the ground that was deliberately dropped | **around 1** |
+
 Verified on four real surfaces from `packages/design-tokens/src/tokens.css`. See
-`docs/img/glass-on-four-grounds.png`, which is the evidence for section 2.6.
+`docs/img/glass-on-four-grounds.png`, which is the evidence for section 2.8.
 
 ### 2.4 Table one: every current object and what replaces it
 
@@ -386,14 +421,17 @@ dark card, `#F4F5F7` light canvas, `#FFFFFF` light card.
 
 - The dark artwork on the two dark surfaces is **excellent**, with no halo
   anywhere and no edge.
-- The dark artwork on the two light surfaces is **washed out**. It renders as a
-  pale cyan haze. It is not broken, it is weak, and weak is worse: a broken image
-  gets fixed and a weak one ships.
+- The dark artwork on the two light surfaces is **usable but hazy**. The object
+  itself reads correctly; what does not is its glow, which on white becomes a
+  soft blue field around a roughly square footprint. **This finding was overstated
+  in the first draft**, which called it a washed-out cyan haze. That was largely
+  the colour bug in section 2.3 rather than the artwork, and it is corrected here
+  rather than left standing.
 - The light twin on the light surfaces is **excellent**.
 - The light twin on the dark surfaces **fails hard**. The white tick inside
-  `badge-success` turns black, and the paper in `receipt-check` goes to near
-  black. A frosted white object keyed off white leaves the white as the
-  transparent part, so on a dark ground the object inverts.
+  `seal-check` turns black, and the paper in `receipt-check` goes to near black. A
+  frosted white object keyed off white leaves the white as the transparent part,
+  so on a dark ground the object inverts.
 
 **So the twins are genuinely necessary and a filter is genuinely not enough.**
 No `invert()`, no `hue-rotate()`, no opacity change gets from one of these to the
@@ -408,10 +446,11 @@ parts, and the middle one is the important one:
    `/brand/glass/${name}.png`. No lookup table, no second inventory.
 
 2. **For the other 79, put the object on a navy chip in daylight.** This was
-   tested rather than assumed, and it is in `docs/img/glass-in-daylight.png`: the
-   dark artwork on `#010118` on a white card is not a workaround, **it is better
-   than the bare object on white**, and it is the most premium the set looks
-   anywhere. The mechanism already exists. `--nf-icon-ground` is the flat plate
+   tested rather than assumed, and it is in `docs/img/glass-in-daylight.png`.
+   Since the colour fix the bare object on white is acceptable rather than
+   broken, so this is now a preference rather than a rescue: the chip removes the
+   square halo, gives the glass something to be glass against, and is visibly the
+   most premium the set looks anywhere. The mechanism already exists. `--nf-icon-ground` is the flat plate
    `BrandIcon` draws behind an untiled object; it resolves to `transparent` in
    the light theme today because the current clay artwork needs nothing there.
    Change that one token to the base navy and 79 objects are solved. **One token,

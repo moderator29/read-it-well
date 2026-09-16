@@ -32,6 +32,12 @@ glow is not decoration around the mark, **the glow is part of the mark**, and it
 brightness is its opacity. Crop it off and the object stops looking like the
 logo.
 
+**And "brightness" means the brightest channel, never luminance.** Luminance
+weights blue at 0.0722 and the subject here is blue, so a luminance key reads the
+most saturated parts of the mark as background and keeps the white highlights.
+The first cut of these objects made exactly that mistake and came back pale cyan.
+`scripts/cut-icon-ground.mjs` carries the full account.
+
 The clay set is the other language: soft matte white, brand blue only on the
 part carrying the meaning, on a white rounded-square plinth, lit as a studio
 photograph. **The two cannot coexist in one product.** Every surface moves
@@ -68,7 +74,7 @@ in `packages/design-tokens/src/tokens.css`.
 
 | | Dark surfaces | Light surfaces |
 | --- | --- | --- |
-| **The dark artwork** | Excellent. No halo, no edge anywhere | **Washed out.** A pale cyan haze |
+| **The dark artwork** | Excellent. No halo, no edge anywhere | Usable, but its glow becomes a soft blue field around a roughly square footprint |
 | **The light twin** | **Fails.** The white tick inside `seal-check` turns black | Excellent |
 
 **No filter crosses that gap.** Not `invert()`, not `hue-rotate()`, not an
@@ -81,8 +87,8 @@ and the two share a name: `glass/<name>.png` and `glass/light/<name>.png`.
 
 **Only the 24 transaction marks have a twin today.** For the other 79 objects the
 answer is not 79 more files. **The dark artwork on a navy chip in daylight was
-tested and is better than the bare object on white**, and it is the most premium
-the set looks anywhere. `--nf-icon-ground` is already the flat plate `BrandIcon`
+tested and is visibly the most premium the set looks anywhere**, and it removes
+the square halo the bare object leaves on white. `--nf-icon-ground` is already the flat plate `BrandIcon`
 draws behind an untiled object, and it already resolves to `transparent` in the
 light theme because the clay artwork needs nothing there. Pointing it at the base
 navy solves 79 objects with one token.
