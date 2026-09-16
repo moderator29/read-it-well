@@ -127,7 +127,25 @@ older one, and everything below is current as of this handoff.
    is the towers and swoosh alone; `vallo-wordmark.png` is the rendered word.
    There is no ink variant: the new mark is a photographic glass render and an
    ink version of it is a new render, not a filter. One mark serves both
-   themes. `docs/BRAND_MARKS.md` carries the prompt for a proper ink re-render.
+   themes.
+9. **The content objects are glass now, not clay.** As of 16 September 2026,
+   `apps/web/public/brand/glass/` holds 104 objects, 24 light twins and 12 wide
+   hero scenes, cut from ten sheets the founder supplied. They are in the LOGO's
+   language: a transparent object lit from inside, electric blue, rendered on
+   black, with a bloom that is part of the mark rather than decoration around it.
+   The 87 matte white clay objects in `brand/icons/` are what the product still
+   draws and are what these replace. **Nothing is wired up yet.**
+   `docs/BRAND_MARKS.md` is the system, `docs/FRONTEND_REVAMP.md` section 2 is
+   the replacement map.
+10. **Light and dark are a pairing, not a filter.** An object keyed off black and
+   an object keyed off white differ in which parts of them are transparent, so no
+   `invert()`, `hue-rotate()` or opacity change gets from one to the other. A
+   mark that must work in both themes needs two files under one name. Tested, and
+   the evidence is `docs/img/glass-on-four-grounds.png`.
+11. **The slogan is "Real Estate reimagined!"**, set 16 September 2026. "Find it.
+   Rent it. Love it." is retired. It is a positioning line that sits beside the
+   logo, never a headline, and it is not a find and replace: see
+   `docs/PRODUCT.md` section 7 and `docs/FRONTEND_REVAMP.md` section 3.
 
 ### 2.2 Product
 

@@ -37,6 +37,36 @@ time and a missing file never breaks a page.
 
 ---
 
+## 1.5 What the new glass artwork changes, and what it does not
+
+Added 16 September 2026, after ten sheets of glass objects landed in
+`apps/web/public/brand/glass/`.
+
+**It changes nothing about this list.** Every scene below is still needed and the
+priority has gone up, not down. An icon is not a photograph, and the thing a
+person deciding where to live needs to see is the building.
+
+Two things it does change:
+
+1. **The eight `story-*.png` renders can go.** `StoryRail` paints eight of them
+   at 6.6MB between them, with a CSS mask dissolving their white studio ground
+   into the paper, which is a workaround for artwork that was never cut out
+   properly. The twelve hero scenes are drawn on black with real glowing plinths
+   and a real alpha channel, so they need no mask. That is 6.6MB of photography
+   budget freed on the highest-value page in the product.
+2. **The landing hero has an option it did not have.** It currently reuses
+   `rentme-city.png` as a CSS background in `CityHero.tsx`. A hero scene is not a
+   substitute for a photograph of a Lagos street, but it is a considerable
+   improvement on a stretched stock building, and it can ship today.
+
+**And one thing it makes more urgent.** The database was read on 16 September:
+**all 64 listings carry zero photographs.** So `MediaFrame` does not have a
+fallback path, it has the only path, and what it draws is what every listing on
+the platform looks like on every surface. The eight scenes below are not polish.
+Until one of them exists, the product's entire catalogue is a drawing.
+
+---
+
 ## 2. The licence position, and why Pinterest is not on this list
 
 **Pinterest is a mood board, not a source.** Almost everything on it is somebody

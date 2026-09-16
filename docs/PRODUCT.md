@@ -18,13 +18,20 @@ Last verified against the code and the live Supabase project
 ## 1. What Vallo is
 
 **A Nigeria first property marketplace for renting, buying and selling, with a
-social layer, a naira wallet, escrow and a verification ladder.**
+social layer, a naira wallet and a verification ladder.**
+
+**Escrow is not in that sentence and used to be.** It is being built, it is not
+usable, and the terms of service say plainly that the platform does not hold
+your money. A one-line description of the product is exactly the place a promise
+like that leaks from, so it is removed until the thing exists. Section 5 of the
+vocabulary below has the full position.
 
 Everything on the platform was listed on the platform by a real person who
 applied, was verified and was approved. There is no third-party inventory, no
 Google Places feed, no hotel rate aggregator and no scraped stock. That is not a
-gap, it is the whole argument: it is the only reason the verified badge, escrow
-and an inspection can mean anything.
+gap, it is the whole argument: it is the only reason the verified badge and an
+inspection can mean anything, and the only ground on which escrow could ever
+mean anything if it is built.
 
 **This is now true of the database as well as the code.** `places_cache` and its
 243 rows of cached Google payloads are dropped, `partner_stay_intents` is
@@ -251,13 +258,28 @@ collapse into one tick.**
    `COMPLETED`, so the platform cannot yet record that a stay happened, which is
    the condition escrow would release on.
 
-   It is also, correctly, **not promised anywhere in user-facing copy**:
-   `app/(site)/safety/page.tsx` says in a comment that the page makes "no promise
-   of an escrow that is not built", and it keeps that promise. Grep the four
-   locale files for escrow: zero hits. **That refusal must survive the build as
-   well as the marketing pass.** Escrow may not be mentioned to a user until the
-   money can actually be held, released and disputed. See RECOMMENDATIONS
-   section 7.
+   **This paragraph used to say escrow is not promised anywhere in user-facing
+   copy. That is no longer true, and the way it became untrue is the lesson.**
+   `app/(site)/safety/page.tsx` still keeps its promise, and the four locale
+   files still return zero hits for escrow. But
+   `apps/web/src/components/app/wallet/BalanceBreakdownSheet.tsx` renders, to a
+   user, "Escrow moves money out of it and holds it until both sides are done",
+   "Money in escrow", "What you have in escrow", and "You have paid this into
+   escrow. It comes back if the deal does not happen."
+
+   **It got through because the check was a grep of the locale files, and that
+   component hardcodes its English.** A guarantee that is only enforced where
+   the strings are translated is not enforced.
+
+   It matters more now than it did when this was written, because
+   `apps/web/src/lib/legal/terms.tsx` was rewritten on 15 September to say in as
+   many words that Vallo does not hold your money in escrow. **The wallet screen
+   and the contract now say opposite things about where somebody's rent money
+   is.** That is the highest-priority item in `docs/FRONTEND_REVAMP.md`.
+
+   **The rule stands and is restated.** Escrow may not be mentioned to a user
+   until the money can actually be held, released and disputed. See
+   RECOMMENDATIONS section 7.
 
 **The badge is earned and is never for sale.** A paid inspection is a service
 with a real cost and may be charged for; the badge that results depends on the
@@ -303,6 +325,29 @@ Money is always **integer kobo**, a bigint, and only `formatMoney` from
 divide by 100 by hand. Percentages are integer basis points for the same reason.
 
 British spelling in documentation and product copy. **Zero em dashes anywhere.**
+
+### How the product presents itself
+
+**The slogan is "Real Estate reimagined!"**, set by the founder on 16 September
+2026. It replaces "Find it. Rent it. Love it.", which is retired.
+
+**A slogan is a positioning line and not a product description**, so it belongs
+beside the logo and nowhere else: the landing hero's companion line, the page
+title, the Open Graph card, the footer, the auth shell and the email sign off. It
+is not a headline. The retired one was the landing page `h1`, which is why the
+page opens by saying nothing about property.
+
+**The sentence that says what the product does is the one in section 1 of this
+document**, and it is the one a headline should be built from. A visitor's first
+four seconds should tell them there are properties, roughly what one costs, and
+where. A slogan does none of that.
+
+**Changing it is not a find and replace**, and this is recorded because the first
+attempt at it was. The three words are an i18n key, `landing.hero.line1/2/3`, the
+auth shell and the footer reach it through that key, it is translated into
+Yorùbá, Hausa and Igbo, and **it is reused as the titles of the three
+how-it-works steps**. `docs/FRONTEND_REVAMP.md` section 3 has the full inventory
+and the three separate jobs it breaks into.
 
 ## 8. Language and theme
 
