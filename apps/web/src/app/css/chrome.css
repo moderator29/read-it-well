@@ -18,22 +18,65 @@
     flex-direction: column;
     line-height: 1.05;
   }
+  /*
+   * THE PRODUCT'S NAME WAS SET IN THE WRONG TYPEFACE, IN THE HEADER OF EVERY
+   * PAGE.
+   *
+   * This rule set `font-weight: 800` and `letter-spacing: -0.03em` and NO
+   * `font-family`, so the wordmark inherited the body face. Every heading in
+   * the product is Poppins, the display face, and the one word that is the
+   * brand was Inter. Nothing marked it, because inheriting a family is silent:
+   * the text renders, it is bold, it is the right colour, and it is simply not
+   * the typeface the logo is drawn in.
+   *
+   * AND NAMING POPPINS AT 800 WOULD HAVE MADE IT WORSE. fonts.css ships Poppins
+   * at 600 and 700 only - 500 and 800 were dropped as 26KB of every page load
+   * that was never painted - so a family declared at weight 800 would be
+   * SYNTHESISED: the browser algorithmically smears the 700 outline to fake a
+   * heavier one, which on a geometric sans destroys exactly the even stroke
+   * that makes it geometric. A fake bold of the brand face would be worse than
+   * an honest Inter.
+   *
+   * So: `--nf-font-display` at 700, the heaviest weight that actually exists.
+   *
+   * READING THE TOKEN RATHER THAN NAMING POPPINS also buys the locale
+   * behaviour for free. `:root[lang="yo"]` and `[lang="ig"]` redefine
+   * `--nf-font-display` to Inter, because Poppins has no Latin Extended
+   * Additional and cannot draw the dotted vowels those orthographies need. The
+   * wordmark now follows every other heading into Inter for those two locales
+   * instead of being the one piece of display type that did not.
+   *
+   * THE TRACKING CHANGED BECAUSE THE TYPEFACE DID. -0.03em was tuned for Inter
+   * at 800 and does not transfer: Poppins is wider in the sidebearings and its
+   * counters close sooner under negative tracking. `--nf-tracking-tight` is
+   * what every other Poppins heading in the product uses, so the wordmark now
+   * tracks like the display face it is set in rather than like the body face it
+   * used to be. NOT OPTICALLY CHECKED IN A BROWSER - the arithmetic reason to
+   * move off -0.03em is sound, the exact landing place wants an eye on it at
+   * 390px and at 1440.
+   */
   .nf-logo__word {
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-family: var(--nf-font-display);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-tight);
     color: var(--nf-content-primary);
   }
-  .nf-logo__word-accent {
-    background: var(--nf-gradient-brand);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .nf-logo__tagline {
-    font-size: 0.6875rem;
-    color: var(--nf-content-muted);
-    letter-spacing: 0.01em;
-  }
+
+  /*
+   * `.nf-logo__word-accent` AND `.nf-logo__tagline` STOOD HERE AND ARE GONE.
+   *
+   * They are the last of the RentMe lockup. The accent rule painted the brand
+   * gradient into a second half of the word and the tagline rule set FIND IT.
+   * RENT IT. LOVE IT. underneath at 11px, and `Logo.tsx` says in its own
+   * docstring, in bold, that there is no accent split and no tagline: "Vallo is
+   * one word: splitting it would invent a seam the artwork does not have, and
+   * the tagline belonged to a product that no longer exists."
+   *
+   * The component was rewritten and the stylesheet was not, so two rules for a
+   * lockup nobody can render sat in the header partial, and the tagline's 11px
+   * was also below the 12px floor the type scale sets. Neither has a call site
+   * anywhere in the tree. `.nf-logo__text` stays: `Logo.tsx` still uses it.
+   */
 
   /*
    * `.nf-ai-banner` STOOD HERE AND IS GONE.

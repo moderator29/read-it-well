@@ -43,6 +43,12 @@ export async function submitVerification(
   return {
     ok: false,
     message:
-      "We cannot accept documents just yet: identity storage is still being switched on. Nothing was sent and nothing you entered was lost. Please try again shortly.",
+      /* Two faults in one sentence, and both are the banned family. "Still
+         being switched on" is our deployment described to an applicant in our
+         own vocabulary, and "shortly" is a schedule nobody here can keep. In
+         production this branch means storage is unreachable rather than
+         unbuilt, so the copy says whose fault it is, that nothing has been
+         lost, and what to do. */
+      "We cannot accept documents right now. This is on our side, not yours. Nothing was sent and nothing you entered was lost. Try again in a few minutes.",
   };
 }

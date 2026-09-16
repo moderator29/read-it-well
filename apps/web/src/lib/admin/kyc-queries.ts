@@ -1,8 +1,9 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../supabase/database.types";
+import { Constants, type Database } from "../supabase/database.types";
 import { requireAdmin } from "./guard";
+import { lagosDayEnd, lagosDayStart, pickStatus, type AdminQueueFilter } from "./queue-filter";
 import type { AdminRead } from "./money-queries";
 
 /**
@@ -103,14 +104,39 @@ function isTooOld(kind: string, issuedOn: string | null): boolean {
  * week. The subject carries their ladder and their business details, so the
  * decision is taken with everything in view.
  */
-export async function getKycQueue(): Promise<AdminRead<KycQueue>> {
+/*
+ * NARROWED BY STATUS AND BY DATE, AND DELIBERATELY NOT BY FREE TEXT.
+ *
+ * The other queues in this console search the field an operator recognises a
+ * row by. Here that field is the SUBJECT'S NAME, and the name is not on
+ * `agent_documents`: it is resolved afterwards, from `profiles`, through either
+ * the document's uploader or the application it was filed against, which are
+ * two different paths because the older shape used the second. A search that
+ * pre-resolved names would have to walk both paths to be correct, and one that
+ * walked only the first would silently miss every document filed under the
+ * older shape, which is exactly the kind of quiet wrongness a reviewer cannot
+ * see and cannot correct for.
+ *
+ * Post-filtering the grouped subjects is the other option and it is the fault
+ * this whole sprint item is about: it searches only what the 300-row cap
+ * already returned. So this queue gets the two narrowings that can be pushed
+ * into the query honestly and does not get the one that cannot. Making it
+ * searchable properly means a name column on the document row or a view that
+ * joins one, which is a schema question.
+ */
+export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<KycQueue>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return UNAVAILABLE;
 
+  const review = pickStatus(Constants.public.Enums.document_review_status, filter?.status);
+
   try {
-    const { data: docs, error } = await access.supabase
-      .from("agent_documents")
-      .select(DOCUMENT_COLUMNS)
+    let select = access.supabase.from("agent_documents").select(DOCUMENT_COLUMNS);
+    if (review) select = select.eq("review_status", review);
+    if (filter?.from) select = select.gte("uploaded_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("uploaded_at", lagosDayEnd(filter.to));
+
+    const { data: docs, error } = await select
       .order("uploaded_at", { ascending: false })
       .limit(300);
     if (error) return UNAVAILABLE;

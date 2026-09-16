@@ -3,6 +3,15 @@ import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getEscrowConsole, type EscrowView } from "@/lib/admin/money-queries";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
+import {
+  QueueFilters,
+  QueuePager,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { EscrowRuling } from "../_components/MoneyDecisions";
 
@@ -62,12 +71,44 @@ const STATE_LABEL: Record<string, string> = {
  * decision is taken with the evidence in the same frame rather than after
  * clicking through to find it.
  */
-export default async function AdminEscrowPage() {
+/**
+ * The chips, from `escrow_state` itself.
+ *
+ * Eight values, and the words are the ones this screen already uses for the
+ * chip on each card, so the filter and the row it filters cannot disagree.
+ * `STATE_LABEL` is still English and still local to this file; it is named in
+ * the sprint report with the rest of the console vocabulary.
+ */
+function statusFilters(): readonly QueueStatusOption[] {
+  return Constants.public.Enums.escrow_state.map((value) => ({
+    value,
+    label: STATE_LABEL[value] ?? value,
+  }));
+}
+
+export default async function AdminEscrowPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const read = await getEscrowConsole();
+  /* The shared queue frame. This desk read the newest two hundred escrows and
+     printed all of them in three sections, so the two hundred and first did not
+     exist for an operator and there was no way to ask for one property's. The
+     stat tiles above are deliberately NOT narrowed: see `getEscrowConsole`. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const read = await getEscrowConsole({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
+  });
 
   if (read.state !== "ok") {
     return (
@@ -81,7 +122,9 @@ export default async function AdminEscrowPage() {
     );
   }
 
-  const { disputes, open, settled, totals } = read.data;
+  const { disputes, open, settled, totals, full } = read.data;
+  const shown = disputes.length + open.length + settled.length;
+  const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
 
   return (
     <div className="nf-console">
@@ -109,15 +152,37 @@ export default async function AdminEscrowPage() {
         />
       </ui.StatRow>
 
+      {/* Under the tiles, not above them. The tiles answer "how much are we
+          holding", which is true of the whole platform and does not change when
+          an operator narrows; the filter belongs with the rows it narrows. */}
+      <QueueFilters
+        base="/admin/escrow"
+        query={query}
+        common={common}
+        statuses={statusFilters()}
+        searchPlaceholder="Search by property"
+      />
+
+      {narrowed && shown === 0 && (
+        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
+      )}
+
       <ui.Section
         title="Disputes"
         hint="Two people who disagree about money the platform is holding. Until somebody rules, neither of them can have it."
       >
+        {/* The per-section empty states are statements about the WHOLE desk,
+            and under a filter they stop being true: "Nothing is in dispute" is
+            a lie to somebody who has narrowed to RELEASED. Narrowed, the
+            section simply says nothing and the one no-match panel above
+            answers for the screen. */}
         {disputes.length === 0 ? (
-          <ui.QueueEmpty
-            title="Nothing is in dispute"
-            body="Every escrow either settled on its own or is still running. Nobody is waiting on a ruling."
-          />
+          narrowed ? null : (
+            <ui.QueueEmpty
+              title="Nothing is in dispute"
+              body="Every escrow either settled on its own or is still running. Nobody is waiting on a ruling."
+            />
+          )
         ) : (
           <ul className="nf-stack nf-stack--row">
             {disputes.map((escrow) => (
@@ -131,9 +196,11 @@ export default async function AdminEscrowPage() {
 
       <ui.Section title="Open holds">
         {open.length === 0 ? (
-          <p className="nf-body text-content-2">
-            The platform is not holding anybody&apos;s money.
-          </p>
+          narrowed ? null : (
+            <p className="nf-body text-content-2">
+              The platform is not holding anybody&apos;s money.
+            </p>
+          )
         ) : (
           <ul className="nf-stack nf-stack--row">
             {open.map((escrow) => (
@@ -156,6 +223,14 @@ export default async function AdminEscrowPage() {
           </ul>
         </ui.Section>
       )}
+
+      <QueuePager
+        base="/admin/escrow"
+        query={query}
+        pageSize={QUEUE_PAGE_SIZE}
+        full={full}
+        count={shown}
+      />
     </div>
   );
 }

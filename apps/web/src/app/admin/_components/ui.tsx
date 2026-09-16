@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
-import { fill, type AdminCommon } from "./copy";
+import { ADMIN_COLUMN_WORDS, fill, type AdminCommon } from "./copy";
 
 /**
  * The console's shared furniture.
@@ -217,8 +217,14 @@ export function adminUi(t: Dictionary, locale: Locale) {
    */
   function columnLabel(column: string, value: string | null | undefined): string {
     if (!value) return c.notRecorded;
+    /* Three tiers, in this order: the dictionary if it has the branch yet, the
+       English staged in `copy.ts`, then a readable version of the column. Each
+       is strictly better than the one after it and the first two disappear
+       without a call-site change as the dictionary catches up. */
     const translated = columnWords?.[column]?.[value];
     if (translated) return translated;
+    const staged = ADMIN_COLUMN_WORDS[column]?.[value];
+    if (staged) return staged;
     const spaced = value.replace(/_/g, " ").trim();
     if (spaced.length === 0) return c.notRecorded;
     return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();

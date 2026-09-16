@@ -15,7 +15,35 @@
    * most-tapped control in discovery. The minimum lifts them to 44px; the
    * padding is left alone so the drawn pill keeps its proportions and simply
    * centres inside a taller box.
-   */
+   *
+   * ---------------------------------------------------------------------
+   * IT WAS SHOUTING AND IT WAS UNREADABLE, WHICH IS AN UNUSUAL PAIR.
+   *
+   * A 44px control carrying 13px type, a BRAND-coloured border, an outer glow
+   * and an inner glow. Eight or ten of them in a row across the top of /search,
+   * each one lit, none of them saying anything a reader can read at a glance.
+   * The glow says "this is important" and the type size says "this is a footnote",
+   * and a filter row where every chip is important is a filter row with no state
+   * at all: the SELECTED one had nothing left to be louder than.
+   *
+   * Four changes, and they are all subtraction except the first.
+   *
+   * THE LABEL GOES UP A RUNG, caption to body-sm, 13px to 14px. It is the thing
+   * the control exists to communicate and it was two steps below body on the
+   * densest screen in the product.
+   *
+   * THE BORDER STOPS BEING BRAND. `--nf-brand-edge-soft` on every chip meant the
+   * brand colour marked "is a chip" rather than "is on". It is the ordinary
+   * default border now, and the brand edge is what selection looks like.
+   *
+   * THE FILL IS THIN GLASS, not the well. The well is a trough cut INTO a
+   * surface - correct for the icon button and the sunken meter, wrong for a
+   * chip, which sits ON the page and should read as a light plate.
+   *
+   * AND BOTH GLOWS GO. A resting chip casts no light. What is left for the
+   * selected state is the brand border and one soft bloom, which is now the
+   * only glow in the row and therefore legible as a state.
+   * ------------------------------------------------------------------ */
   .nf-chip {
     display: inline-flex;
     align-items: center;
@@ -24,24 +52,45 @@
     gap: var(--nf-gap-inline);
     padding: var(--nf-pad-chip-block) var(--nf-pad-chip-inline);
     border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-caption);
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: 0 0 10px var(--nf-glow-1), inset 0 0 10px var(--nf-glow-wash);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: var(--nf-glass-fill-thin);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   /*
-   * A chip paints at 36.6px because that is the right visual weight in a filter
-   * row, but a tappable chip still owes the user a 44pt target. Rather than
-   * inflating every chip and breaking the rows, interactive chips grow their
-   * hit area with a centred overlay. Visual size is unchanged; only the touch
-   * region grows. Non-interactive status pills are excluded deliberately.
+   * THE HIT-AREA OVERLAY STOOD HERE AND IS GONE, WITH THE COMMENT THAT DEFENDED
+   * IT.
+   *
+   * That comment said: "A chip paints at 36.6px because that is the right visual
+   * weight in a filter row, but a tappable chip still owes the user a 44pt
+   * target. Rather than inflating every chip and breaking the rows, interactive
+   * chips grow their hit area with a centred overlay." Every word of it was true
+   * when it was written and none of it was true any more.
+   *
+   * `.nf-chip` sets `min-height: 44px` fifteen lines up. It has since the pass
+   * that raised the chips off 37px. So the painted chip is 44px, the overlay was
+   * `min-height: 2.75rem` - the same 44px - centred on a box that was already
+   * that tall, and it grew the hit area by nothing at all. It was papering over
+   * a gap that had been closed, and the comment above it described a 36.6px
+   * drawing that had stopped existing.
+   *
+   * Two implementations of one guarantee is the fault, not the overlay: the next
+   * person to change the chip's height would have changed one of them. The
+   * `min-height` is the one that survives, because it makes the PAINTED control
+   * the tap target rather than putting an invisible box over a smaller one, and
+   * an invisible box over a smaller one is how two adjacent chips end up with
+   * overlapping click regions.
+   *
+   * `position: relative` stays. The chips are still positioning contexts for
+   * their own content, and removing it would move things that have nothing to do
+   * with this.
    */
   a.nf-chip,
   button.nf-chip,
@@ -49,24 +98,11 @@
     position: relative;
   }
 
-  a.nf-chip::after,
-  button.nf-chip::after,
-  label.nf-chip::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    translate: 0 -50%;
-    min-height: 2.75rem;
-    height: 100%;
-  }
   @media (hover: hover) {
     .nf-chip:hover {
       color: var(--nf-content-primary);
-      border-color: var(--nf-brand-edge-strong);
+      border-color: var(--nf-border-strong);
       transform: translateY(-1px);
-      box-shadow: 0 0 16px var(--nf-glow-2), inset 0 0 12px var(--nf-glow-wash);
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -74,11 +110,16 @@
       transform: none;
     }
   }
+  /*
+   * Selected. The brand edge and ONE bloom, which is the only light left in the
+   * row now that the resting state has none, so it reads as a state rather than
+   * as a slightly brighter member of a lit set.
+   */
   .nf-chip[aria-pressed="true"],
   .nf-chip--active {
     color: var(--nf-content-primary);
-    border-color: var(--nf-glow-brand-rim);
-    box-shadow: 0 0 18px var(--nf-glow-3), inset 0 0 14px var(--nf-glow-1);
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow: 0 0 14px var(--nf-glow-1);
   }
 
   /* ------------------------------------------------------- the feed tabs */
@@ -570,100 +611,30 @@
   }
 
   /*
-   * Full-bleed moment screen: the one-thing-happened surface (payment landed,
-   * booking confirmed, verification passed). A glowing badge, a headline, an
-   * optional line under it, and the actions pinned near the bottom. No card,
-   * no list, the whole viewport is the message.
+   * THE MOMENT SCREEN STOOD HERE. NINETY LINES, AND IT IS ALL GONE.
+   *
+   * `.nf-moment`, `__glow`, `__badge`, `__title`, `__description`, `__actions`,
+   * `__footnote`, the three `--success` / `--warning` / `--brand` variants, the
+   * `--nf-moment-color` custom property they set and the `nf-moment-badge-in`
+   * keyframe. The full-bleed "one thing happened" surface: a glowing badge, a
+   * headline, a line under it and the actions pinned near the bottom.
+   *
+   * `MomentScreen` had one caller left, in `ListingWizard.tsx`, which has been
+   * moved onto `ResultSheet`; the component is being deleted in the same pass.
+   * Nothing in the tree renders any of these class names.
+   *
+   * THIS CLOSES F2-026 BY DELETION RATHER THAN BY THE LAYOUT FIX IT ASKED FOR,
+   * which is the better close: the finding describes how the actions sit at the
+   * bottom of a viewport-height surface, and the right answer to a layout
+   * problem on a component with no callers is not to fix the layout. It also
+   * takes F2-025 with it - `MomentScreen` passed a `state` prop to `BrandIcon`
+   * that was only honoured in the tiled branch, so it was silently discarded,
+   * and that prop is now gone from `BrandIcon` as well because this was its only
+   * caller.
+   *
+   * The one thing worth carrying forward, if a full-bleed result surface is ever
+   * wanted again: `--nf-moment-color` was a per-variant custom property read by
+   * a single `__glow` rule, which is the right shape. Three variants set one
+   * value and one gradient read it, rather than three gradients.
    */
-  @keyframes nf-moment-badge-in {
-    from {
-      opacity: 0;
-      transform: scale(0.7);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  .nf-moment {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    min-height: 60vh;
-    padding: var(--nf-space-xl) var(--nf-space-lg);
-    text-align: center;
-    position: relative;
-  }
-  .nf-moment__glow {
-    position: absolute;
-    top: 12%;
-    left: 50%;
-    width: 20rem;
-    height: 20rem;
-    transform: translateX(-50%);
-    border-radius: var(--nf-radius-circle);
-    background: radial-gradient(
-      circle,
-      color-mix(in oklab, var(--nf-moment-color, var(--nf-brand-primary)) 32%, transparent) 0%,
-      transparent 68%
-    );
-    filter: blur(4px);
-    pointer-events: none;
-  }
-  .nf-moment__badge {
-    position: relative;
-    z-index: 1;
-    margin-bottom: var(--nf-gap-block);
-    animation: nf-moment-badge-in 0.5s var(--nf-ease-standard) both;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-moment__badge {
-      animation: none;
-    }
-  }
-  .nf-moment__title {
-    position: relative;
-    z-index: 1;
-    font-size: clamp(1.5rem, 5vw, 2rem);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--nf-content-primary);
-    max-width: 26rem;
-  }
-  .nf-moment__description {
-    position: relative;
-    z-index: 1;
-    margin-top: var(--nf-gap-row);
-    max-width: 24rem;
-    color: var(--nf-content-secondary);
-    line-height: 1.5;
-  }
-  .nf-moment__actions {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-gap-row);
-    width: 100%;
-    max-width: 22rem;
-    margin-top: var(--nf-gap-block);
-  }
-  .nf-moment__footnote {
-    position: relative;
-    z-index: 1;
-    margin-top: var(--nf-gap-group);
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
-  }
-  .nf-moment--success {
-    --nf-moment-color: var(--nf-state-success);
-  }
-  .nf-moment--warning {
-    --nf-moment-color: var(--nf-state-warning);
-  }
-  .nf-moment--brand {
-    --nf-moment-color: var(--nf-brand-primary);
-  }
 }

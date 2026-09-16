@@ -51,8 +51,22 @@
      */
     border-radius: var(--nf-radius-control);
     padding: var(--nf-space-sm) var(--nf-space-lg);
-    /* The default height, which is the medium rung. See the size scale below. */
-    min-height: 3rem;
+    /*
+     * THE HEIGHT IS A VARIABLE NOW, AND IT WAS THE SAME NUMBER IN EIGHT PLACES.
+     *
+     * 2.75rem appeared three times, 3rem three times and 3.5rem twice: once as
+     * each size's `min-height`, once again as the matching `min-width` on the
+     * three icon-button rules, and once more as the height of the 44pt hit-area
+     * pseudo-element on `--sm`. Eight declarations, three numbers, and changing
+     * a size meant finding all of them. The icon rules were the dangerous half:
+     * `.nf-btn--icon` sets `aspect-ratio: 1`, so a `min-width` that disagreed
+     * with the height would not error, it would quietly render an oval.
+     *
+     * One custom property per size class carries it to all of them. The default
+     * here is the medium rung; see the size scale below.
+     */
+    --nf-btn-h: 3rem;
+    min-height: var(--nf-btn-h);
     cursor: pointer;
     white-space: nowrap;
     border: var(--nf-border-width) solid transparent;
@@ -154,7 +168,7 @@
    * control people press to do things was too small whatever the height is.
    */
   .nf-btn--sm {
-    min-height: 2.75rem;
+    --nf-btn-h: 2.75rem;
     padding: var(--nf-gap-inline) var(--nf-space-md);
     font-size: var(--nf-text-body-sm);
   }
@@ -176,36 +190,36 @@
     left: 0;
     right: 0;
     top: 50%;
-    height: 2.75rem;
+    height: var(--nf-btn-h);
     transform: translateY(-50%);
     border-radius: inherit;
   }
   .nf-btn--md {
-    min-height: 3rem;
+    --nf-btn-h: 3rem;
     padding: var(--nf-space-sm) var(--nf-space-lg);
   }
   .nf-btn--lg {
-    min-height: 3.5rem;
+    --nf-btn-h: 3.5rem;
     padding: var(--nf-space-md) var(--nf-space-xl);
     font-size: var(--nf-text-body-lg);
   }
 
-  /* Icon-only buttons are square at their size, never a padded rectangle. */
+  /*
+   * Icon-only buttons are square at their size, never a padded rectangle.
+   *
+   * THREE RULES BECAME ONE. There was a `.nf-btn--icon.nf-btn--sm`, a
+   * `.nf-btn--icon.nf-btn--md` and a `.nf-btn--icon.nf-btn--lg`, each setting a
+   * `min-width` that restated its size's height as a literal. Their own comment
+   * said "the sizes moved, so these move with them", which is exactly the
+   * problem: they moved because somebody moved them, by hand, three times, and
+   * a square that disagreed with its own height renders an oval without
+   * complaining. Reading the height means they cannot disagree.
+   */
   .nf-btn--icon {
     padding: var(--nf-space-0);
     aspect-ratio: 1;
     width: auto;
-  }
-  /* Square at their size, and the sizes moved, so these move with them. A
-     square that disagreed with its own height would render an oval. */
-  .nf-btn--icon.nf-btn--sm {
-    min-width: 2.75rem;
-  }
-  .nf-btn--icon.nf-btn--md {
-    min-width: 3rem;
-  }
-  .nf-btn--icon.nf-btn--lg {
-    min-width: 3.5rem;
+    min-width: var(--nf-btn-h);
   }
 
   .nf-btn--full {
@@ -222,6 +236,8 @@
   .nf-btn[data-loading="true"] {
     cursor: progress;
   }
+  /* The indeterminate line that says so is at the very bottom of this file, and
+     the note there explains why it cannot live next to this rule. */
 
   /* ---- primary: the signature gradient, lit on the moments that earn it ---- */
   .nf-btn--primary {
@@ -260,7 +276,7 @@
   }
   .nf-btn--primary:active:not(:disabled)::after {
     transform: translateX(130%);
-    transition: transform 260ms var(--nf-ease-standard);
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-btn--primary:active:not(:disabled) {
     box-shadow:
@@ -474,6 +490,119 @@
   @media (prefers-reduced-motion: reduce) {
     .nf-segmented__capsule {
       transition: none;
+    }
+  }
+
+  /*
+   * =====================================================================
+   * LOADING, DRAWN. `cursor: progress` WAS THE WHOLE OF IT.
+   *
+   * A loading button set the cursor and nothing else. The cursor is invisible on
+   * a phone, which is most of this product's traffic, so on the platform's most
+   * important state - the one where a person has tapped Pay or Withdraw and is
+   * waiting to find out whether it worked - the button was visually identical to
+   * a button that had not been tapped. Everything else the state used to do had
+   * been correctly REMOVED: the label no longer dims to 0.7 and the disabled
+   * recipe no longer fades it to 0.38, because dimming the one thing a person is
+   * watching at the moment they most need to read it is worse than nothing. That
+   * left the state with nothing at all, and the component's spinner carrying it
+   * alone.
+   *
+   * So: a 2px indeterminate line inside the bottom edge, travelling, in the
+   * button's own ink.
+   *
+   * `currentColor`, NOT `--nf-content-on-brand` as the finding proposes. White is
+   * right on the primary and the danger fills and wrong on every other variant:
+   * ghost, quiet and glass buttons carry dark ink on a light fill in daylight,
+   * and a white line on those is invisible. `currentColor` is the label's colour
+   * by construction, so it is correct on all six variants in both themes with no
+   * per-variant rule, which is the whole argument for reading a token over
+   * naming a colour.
+   *
+   * WHY IT IS THE LAST RULE IN THE FILE. It has to be `::after`, because
+   * `::before` is taken by the 44pt hit area on `.nf-btn--sm` and a test
+   * measures that pseudo-element. `::after` is free during loading - the base
+   * sheen is decoration and the primary's ripple only paints on `:active`, which
+   * a loading button cannot be because it is also disabled - but
+   * `.nf-btn--primary::after` and `.nf-btn:disabled::after` have IDENTICAL
+   * specificity to this selector, so the only thing that decides the winner is
+   * source order. Raising the specificity with a repeated attribute selector
+   * would work and would be a trick; being last is the honest version, and this
+   * comment is the reason it must stay last.
+   *
+   * `z-index: 1`, not the -1 the sheen and the ripple use, and the difference is
+   * deliberate rather than inconsistent. Those two sit BEHIND the label and in
+   * front of the fill, which works because `.nf-btn` declares
+   * `isolation: isolate` and so is a stacking context of its own - without that
+   * a negative z-index pseudo-element escapes to the nearest ancestor context
+   * and paints behind the button's own background, which is to say invisibly.
+   * This line wants to be in front of the fill but has no reason to be behind
+   * the label: it is 2px off the bottom inside edge and the label is vertically
+   * centred in a 44 to 56px box, so they never meet. Positive is the simpler
+   * answer and it does not depend on the isolation staying put.
+   *
+   * THE LOOP IS LEGAL under "nothing loops for its own sake": it reports
+   * something that is genuinely still happening and it stops when the answer
+   * arrives, which is the same licence the skeleton shimmer holds.
+   * ===================================================================== */
+  .nf-btn[data-loading="true"]::after {
+    content: "";
+    position: absolute;
+    inset: auto var(--nf-border-width) var(--nf-border-width) var(--nf-border-width);
+    height: 2px;
+    border-radius: var(--nf-radius-pill);
+    background: currentColor;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+    transform-origin: left center;
+    /*
+     * `alternate`, so the segment sweeps out and back rather than jumping to the
+     * left edge every cycle. A restart is a discontinuity, and a discontinuity on
+     * a progress indicator reads as the request having failed and begun again.
+     */
+    animation: nf-btn-loading var(--nf-duration-deliberate) var(--nf-ease-standard)
+      infinite alternate;
+  }
+  /*
+   * 65%, and the number is derived rather than eyeballed. Transforms apply right
+   * to left, so the segment is scaled to 35% of the button's width about its
+   * left edge and then translated by a percentage OF THAT SAME UNSCALED WIDTH.
+   * To finish flush with the right edge it has to travel 100% - 35% = 65%.
+   */
+  @keyframes nf-btn-loading {
+    from {
+      transform: translateX(0) scaleX(0.35);
+    }
+    to {
+      transform: translateX(65%) scaleX(0.35);
+    }
+  }
+  /*
+   * Reduced motion, and the state is still STATED. The line stops travelling and
+   * becomes a full-width rule at a lower opacity, so a reader who has asked for
+   * no motion still sees that the button is working rather than seeing nothing,
+   * which is the standing rule that the product must be complete without motion
+   * rather than merely still.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn[data-loading="true"]::after {
+      /*
+       * `display: block` IS LOAD-BEARING AND IT IS NOT REDUNDANT.
+       *
+       * The primary's ripple is killed under reduced motion by
+       * `.nf-btn--primary::after { display: none }` two hundred lines up. That
+       * rule has the same specificity as this one and comes first, so without
+       * this line a reduced-motion user pressing the hero CTA - the single most
+       * important loading state in the product - would get NO indicator at all,
+       * in the exact configuration where the standing rule says the product must
+       * still be complete. Everything else here degrades gracefully; this one
+       * needed saying out loud.
+       */
+      display: block;
+      animation: none;
+      transform: none;
+      opacity: 0.38;
     }
   }
 }

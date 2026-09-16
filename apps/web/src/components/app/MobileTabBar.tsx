@@ -97,19 +97,103 @@ export const TAB_BAR_ROUTES = [
   "/search",
   "/wallet",
   "/profile",
-  "/saved",
   /*
-   * `/assistant` is deliberately NOT here even though it is a dock
-   * destination. It is an immersive route - it owns the whole viewport with
-   * its own header and a composer pinned to the bottom edge - so a dock
-   * floating over its composer would be in the way of the one thing that
-   * screen is for. Tapping the tab still gets you there; the dock simply
-   * steps aside once you arrive, the same way it does for an open thread.
+   * `/saved` IS GONE FROM THIS LIST, and its presence was the exact bug the
+   * paragraph above claims to have fixed. No tab and no island points at
+   * `/saved`, so the dock rendered on it with the pill parked and nothing
+   * highlighted: the bottom of the screen occupied by a control answering no
+   * question, which is the sentence this file already wrote about settings and
+   * checkout. `/saved` is reached from the rail and the drawer and carries its
+   * own back affordance, like every other non-tab destination.
+   *
+   * `/assistant` is deliberately NOT here either, for a different reason. It IS
+   * a dock destination, but it is an immersive route - it owns the whole
+   * viewport with its own header and a composer pinned to the bottom edge - so
+   * a dock floating over its composer would be in the way of the one thing that
+   * screen is for. Tapping the tab still gets you there; the dock simply steps
+   * aside once you arrive, the same way it does for an open thread.
    */
 ];
 
+/**
+ * The immersive routes: the ones that own the whole viewport.
+ *
+ * Lives here rather than in `AppShell` because the shell and the dock both have
+ * to agree about it, and they were deciding it separately: the shell tested a
+ * regex and the dock tested a list, so a route could be immersive to one and a
+ * tab root to the other. One function, both callers.
+ *
+ * `/messages/new` IS NOT IMMERSIVE, and the negative lookahead is the whole
+ * point of this regex. An open thread is a conversation and owns the screen; a
+ * BRIDGE to a conversation that does not exist yet is an ordinary page with a
+ * heading and a back control. `/^\/messages\/[^/]+$/` matched both, so the
+ * first contact with an agent - "the single most important hop in the messaging
+ * journey" by its own docstring - lost the page gutter and the top inset, and
+ * its back button sat at x=0, y=0 with its tap target clipped by the screen
+ * edge and, on a notched phone, under the status bar.
+ */
+export function isImmersiveRoute(pathname: string): boolean {
+  if (pathname === "/assistant") return true;
+  return /^\/messages\/(?!new$)[^/]+$/.test(pathname);
+}
+
+/**
+ * The tab a route belongs to, or null when none does.
+ *
+ * ---------------------------------------------------------------------------
+ * PREFIX MATCHING, BECAUSE AN EXACT ONE DROPPED THE DOCK ONE TAP IN.
+ *
+ * This was `TAB_BAR_ROUTES.includes(pathname)`, so `/around/lekki`,
+ * `/wallet/transactions`, `/profile/application` and every other descendant of
+ * a tab destination lost the whole bottom navigation. Going one level down
+ * inside a tab removed the navigation that got you there, which teaches people
+ * not to trust it and costs them the gesture they were about to make.
+ * `AdminNav`'s own `isActive` has done this correctly with `startsWith` since
+ * before the dock existed, twenty files away.
+ *
+ * An immersive descendant still wins: a thread under `/messages` is not under a
+ * tab root at all today, and the test is here so that the day one is, the dock
+ * steps aside rather than floating over a composer.
+ *
+ * Returning the ROOT rather than a boolean is what closes the other half of the
+ * same bug. The dock highlights by comparing its own hrefs against the route,
+ * so under a bare `startsWith` a reader on `/around/lekki` would have got the
+ * dock back with nothing lit - the parked-pill state this file already calls a
+ * lie. The root is the tab, so the pill goes where the reader is.
+ */
+export function tabRootFor(pathname: string): string | null {
+  if (isImmersiveRoute(pathname)) return null;
+  return (
+    TAB_BAR_ROUTES.find(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    ) ?? null
+  );
+}
+
 export function showsTabBar(pathname: string): boolean {
-  return TAB_BAR_ROUTES.includes(pathname);
+  return tabRootFor(pathname) !== null;
+}
+
+/**
+ * Whether a route IS a tab destination, rather than living under one.
+ *
+ * ---------------------------------------------------------------------------
+ * TWO QUESTIONS THAT USED TO SHARE ONE PREDICATE, AND ONLY ONE OF THEM WANTS
+ * PREFIX MATCHING.
+ *
+ * "Should the dock show" and "is this a root screen" were both answered by
+ * `showsTabBar`, which was fine while that was an exact match and is not once
+ * it is a prefix. The dock wants the prefix: a reader one level inside a tab
+ * should keep the navigation that got them there. The app HEADER wants the
+ * exact test: a root screen carries the hamburger and the wordmark, and a
+ * detail screen carries a `PageHeader` with a back control and its own title,
+ * which is the single bar that screen needs. Answering the header with the
+ * prefix would put both bars on `/wallet/transactions` - a hamburger above a
+ * back button above a title - which is the "inner tab" stacking this shell is
+ * written to avoid.
+ */
+export function isTabRoot(pathname: string): boolean {
+  return !isImmersiveRoute(pathname) && TAB_BAR_ROUTES.includes(pathname);
 }
 
 export function MobileTabBar({
@@ -150,18 +234,25 @@ export function MobileTabBar({
     { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
   ];
 
+  /*
+   * Which tab the pill sits behind, resolved through the ROOT of the route
+   * rather than the route itself, so `/wallet/transactions` lights the wallet.
+   * Matching the full pathname was half of the parked-pill bug: the other half
+   * was `/saved` being on the route list at all, and both are gone.
+   *
+   * -1 is still handled rather than assumed away. `/profile` is a tab root and
+   * the ISLAND rather than a tab owns it, so a reader on `/profile/application`
+   * legitimately has no tab lit, and the pill hides instead of parking on Home
+   * and claiming a destination the reader is not on.
+   */
+  const root = tabRootFor(active);
+  const activeIndex = tabs.findIndex((tab) => tab.href === root);
+
   /* Profile for a member, the way in for a guest. One slot, two honest jobs. */
   const island: Tab = signedIn
     ? { href: "/profile", label: t.nav.profile, icon: "user" }
     : { href: "/sign-up", label: t.common.signUp, icon: "user" };
-  const islandActive = island.href === active;
-  /*
-   * Which tab the pill sits behind. -1 means no tab owns the route, which is a
-   * real state: `/saved` and a guest on `/messages` both render the dock with
-   * nothing highlighted. The pill hides rather than parking on the first tab
-   * and claiming a destination the reader is not on.
-   */
-  const activeIndex = tabs.findIndex((tab) => tab.href === active);
+  const islandActive = island.href === root;
   /* The island is the way through to notifications on a phone. */
   const marked = signedIn && unreadNotifications > 0;
 
@@ -200,7 +291,7 @@ export function MobileTabBar({
         */}
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {tabs.map((tab) => {
-          const isActive = tab.href === active;
+          const isActive = tab.href === root;
 
           return (
             <li key={tab.href} className="nf-tab">
@@ -247,8 +338,12 @@ export function MobileTabBar({
             /* Cyan, not brand blue. The marker was the same hue as the island
                it sits on, on the one control that carries the unread state on a
                phone, so the thing it exists to announce was the hardest thing
-               in the bar to see. Attention is cyan on this platform. */
-            className="absolute right-2.5 top-2.5 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-canvas)] bg-[var(--nf-state-warning)]"
+               in the bar to see. Attention is cyan on this platform.
+
+               `--nf-status-pending` rather than `--nf-state-warning`: they are
+               the same value, and one of the two names says what this dot
+               means. The console's queue badges take the same token. */
+            className="absolute right-2.5 top-2.5 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-canvas)] bg-[var(--nf-status-pending)]"
           />
         )}
       </Link>

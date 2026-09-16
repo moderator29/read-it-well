@@ -151,7 +151,7 @@
     border: 2px solid currentColor;
     border-right-color: transparent;
     opacity: 0.9;
-    animation: nf-spin 620ms linear infinite;
+    animation: nf-spin var(--nf-duration-deliberate) linear infinite;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-spinner {

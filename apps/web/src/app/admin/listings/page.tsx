@@ -5,6 +5,13 @@ import { getListingSubmissions, type ListingReviewView } from "@/lib/admin/queri
 import { ListingDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import {
+  QueueFilters,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 import { PERIOD_SUFFIX, SALE_STATUS_LABEL, TENURE_LABEL } from "@/lib/listings/pricing";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -221,14 +228,37 @@ function ListingCard({
   );
 }
 
-export default async function AdminListingsPage() {
+/** The chips, from `listing_status`. Eight values, straight off the enum. */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return Constants.public.Enums.listing_status.map((value) => ({
+    value,
+    label: ui.statusLabel(value),
+  }));
+}
+
+export default async function AdminListingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.admin.listings;
   const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const listings = await getListingSubmissions();
+  /* The shared queue frame. Search is over the title and the city, not the
+     address: see the note on `getListingSubmissions`. No pager, for the same
+     reason as the applications queue. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const narrowed = queueNarrowed(query);
+  const listings = await getListingSubmissions({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+  });
 
   if (listings.state !== "ok") {
     return (
@@ -248,8 +278,20 @@ export default async function AdminListingsPage() {
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={onUs} />
 
-      {waiting.length === 0 ? (
-        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+      <QueueFilters
+        base="/admin/listings"
+        query={query}
+        common={common}
+        statuses={statusFilters(ui)}
+        searchPlaceholder="Search by title or city"
+      />
+
+      {waiting.length === 0 && decided.length === 0 && narrowed ? (
+        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
+      ) : waiting.length === 0 ? (
+        narrowed ? null : (
+          <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+        )
       ) : (
         <ul className="nf-queue-list">
           {waiting.map((listing) => (

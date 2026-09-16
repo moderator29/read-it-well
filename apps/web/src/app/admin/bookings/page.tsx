@@ -155,6 +155,7 @@ export default async function AdminBookingsPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.admin.bookings;
+  const common = t.admin.common;
   const ui = adminUi(t, locale);
 
   /*
@@ -193,7 +194,6 @@ export default async function AdminBookingsPage({
       <QueueFilters
         base="/admin/bookings"
         query={query}
-        common={common}
         common={common}
         /* The real enum, and only the real enum, so a chip here can never offer
            a value the column would refuse. All five of them: the board has a

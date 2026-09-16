@@ -528,7 +528,7 @@
        * it costs one animated angle on one element instead of a fifth layer on
        * all 423.
        */
-      animation: nf-edge-stride 900ms var(--nf-ease-standard) 1;
+      animation: nf-edge-stride var(--nf-duration-cinematic) var(--nf-ease-standard) 1;
     }
   }
   @media (hover: hover) {
@@ -557,7 +557,7 @@
    */
   @media (hover: hover) {
     .nf-card--interactive img.object-cover {
-      transition: transform 900ms var(--nf-ease-standard);
+      transition: transform var(--nf-duration-cinematic) var(--nf-ease-standard);
     }
     .nf-card--interactive:hover img.object-cover {
       transform: scale(1.05);
@@ -819,7 +819,7 @@
     z-index: 60;
     pointer-events: none;
     background: color-mix(in oklab, var(--nf-canvas-base) 30%, transparent);
-    animation: nf-confirm-dim 900ms var(--nf-ease-standard) both;
+    animation: nf-confirm-dim var(--nf-duration-cinematic) var(--nf-ease-standard) both;
   }
   :root[data-theme="light"] .nf-confirm-dim {
     background: var(--nf-wash-5);
@@ -846,7 +846,8 @@
       transparent 58%
     );
     transform: translateX(-130%);
-    animation: nf-confirm-sweep 650ms var(--nf-ease-standard) 260ms both;
+    animation: nf-confirm-sweep var(--nf-duration-deliberate) var(--nf-ease-standard)
+      var(--nf-duration-base) both;
   }
   @keyframes nf-confirm-sweep {
     to { transform: translateX(130%); }

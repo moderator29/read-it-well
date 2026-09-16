@@ -125,7 +125,20 @@ export default async function AdminPaymentsPage() {
                     <span className="nf-body block font-semibold text-content">
                       {wallet.ownerName ?? "Name not on file"}
                     </span>
-                    <span className="nf-caption block truncate">{wallet.walletId}</span>
+                    {/*
+                      NEVER TRUNCATED. A wallet id is the string an operator
+                      quotes to an engineer or types into the money screen to
+                      find the ledger behind an overdrawn balance, and it was
+                      rendered with an ellipsis, so the one identifier on the
+                      row could not do the one job it has. `user-select: all`
+                      means one tap takes the whole thing, which is the
+                      difference between an id somebody can send and one they
+                      have to transcribe. Same treatment `/admin/money` already
+                      gives its references.
+                    */}
+                    <span className="nf-caption block [overflow-wrap:anywhere] [user-select:all]">
+                      {wallet.walletId}
+                    </span>
                   </span>
                   <span className="nf-numeric nf-body shrink-0 font-bold text-[var(--nf-state-error)]">
                     {formatMoney(wallet.balanceMinor, locale)}
@@ -156,8 +169,13 @@ export default async function AdminPaymentsPage() {
                       <span className="nf-body block font-semibold text-content">
                         {hold.ownerName ?? "Name not on file"}
                       </span>
-                      <span className="nf-caption block truncate">
-                        {hold.reference} · held since {ui.when(hold.createdAt)}
+                      {/* The reference wraps rather than clipping, for the same
+                          reason: it is what a stuck hold is traced by with the
+                          processor. The date rides with it on the same line and
+                          wraps with it. */}
+                      <span className="nf-caption block [overflow-wrap:anywhere]">
+                        <span className="[user-select:all]">{hold.reference}</span> · held since{" "}
+                        {ui.when(hold.createdAt)}
                       </span>
                     </span>
                     <span className="nf-numeric nf-body shrink-0 font-bold">
@@ -192,10 +210,15 @@ export default async function AdminPaymentsPage() {
                     tone={payment.status === "FAILED" ? "danger" : "warning"}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="nf-body block font-semibold text-content">
+                    {/* The provider's reference is the whole point of this row:
+                        it is what an operator pastes into Paystack or Yellow
+                        Card to find out what actually happened to an unsettled
+                        payment. It sat in a flex child with `min-w-0`, so it
+                        was free to clip. */}
+                    <span className="nf-body block font-semibold text-content [overflow-wrap:anywhere] [user-select:all]">
                       {payment.providerRef ?? payment.id}
                     </span>
-                    <span className="nf-caption block truncate">
+                    <span className="nf-caption block [overflow-wrap:anywhere]">
                       {payment.provider ?? "Unknown provider"} · {ui.when(payment.createdAt)}
                     </span>
                   </span>

@@ -84,7 +84,7 @@
     border: 2px solid transparent;
     border-top-color: var(--nf-brand-secondary);
     border-right-color: color-mix(in oklab, var(--nf-brand-secondary) 35%, transparent);
-    animation: nf-bot-spin 850ms linear infinite;
+    animation: nf-bot-spin var(--nf-duration-cinematic) linear infinite;
     pointer-events: none;
   }
   @keyframes nf-bot-spin {
@@ -123,7 +123,7 @@
   .nf-onboarding {
     color: var(--nf-content-on-paper);
     opacity: 1;
-    transition: opacity 260ms var(--nf-ease-standard);
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-onboarding .nf-overline {
     color: var(--nf-content-on-paper-muted);
@@ -180,7 +180,7 @@
    * app/agents/status/StatusIcon.tsx for the honest, one-shot trigger).
    */
   .nf-status-assemble {
-    animation: nf-status-assemble 600ms var(--nf-ease-spring) both;
+    animation: nf-status-assemble var(--nf-duration-deliberate) var(--nf-ease-spring) both;
   }
   @keyframes nf-status-assemble {
     0% { opacity: 0; transform: scale(0.7) rotate(-8deg); }
@@ -368,10 +368,10 @@
     to { opacity: 1; transform: none; }
   }
   .nf-tx-in {
-    animation: nf-tx-slide-in 420ms var(--nf-ease-entrance) both;
+    animation: nf-tx-slide-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
   }
   .nf-tx-out {
-    animation: nf-tx-slide-out 420ms var(--nf-ease-entrance) both;
+    animation: nf-tx-slide-out var(--nf-duration-entrance) var(--nf-ease-entrance) both;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-tx-in,
@@ -529,10 +529,29 @@
    * it, could not see it. The day somebody makes the bar taller, every anchored
    * heading on the site lands underneath it and nothing fails.
    *
-   * Same 88 pixels, said as what it is: the bar, plus one row of air.
+   * Said as what it is: the bar, plus one row of air.
+   *
+   * AND THE BAR IS TWO HEIGHTS, WHICH THE FIRST VERSION OF THIS FIX MISSED.
+   * Pointing it at `--nf-header-height` was right in shape and wrong in fact
+   * while that token said 76px, because the marketing header is 60 below the
+   * `sm` breakpoint and 72 above it. An anchored heading was clearing 88px of a
+   * bar that was never 76 tall: 16 pixels of dead space on a desktop and 28 on
+   * a phone, which on a phone is most of a line of body text pushed off the top
+   * for no reason. The token carries the real pair now; this follows it.
+   *
+   * Mobile first, so the narrow value needs no query and the wide one takes the
+   * breakpoint. 40rem is a literal because `@media` cannot read a custom
+   * property - there is no `@media (min-width: var(--x))` in CSS - and it is
+   * Tailwind's own `sm`, which is the variant `SiteHeader.tsx` switches on. If
+   * that breakpoint ever moves, this number moves with it by hand.
    */
   [id^="nf-"] {
-    scroll-margin-top: calc(var(--nf-header-height) + var(--nf-gap-row));
+    scroll-margin-top: calc(var(--nf-header-height-sm) + var(--nf-gap-row));
+  }
+  @media (min-width: 40rem) {
+    [id^="nf-"] {
+      scroll-margin-top: calc(var(--nf-header-height) + var(--nf-gap-row));
+    }
   }
 
   /* ------------------------------------------------ landing motion system */

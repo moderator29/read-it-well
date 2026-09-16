@@ -67,7 +67,7 @@
    * (Tailwind's `scale-110`) is never left fighting a lingering animation.
    */
   .nf-map-pin-drop {
-    animation: nf-map-pin-drop 640ms var(--nf-ease-spring) backwards;
+    animation: nf-map-pin-drop var(--nf-duration-deliberate) var(--nf-ease-spring) backwards;
     animation-delay: calc(var(--pin-i, 0) * 26ms);
   }
   @keyframes nf-map-pin-drop {
@@ -76,7 +76,7 @@
     100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
   }
   .nf-map-cluster-drop {
-    animation: nf-map-cluster-drop 640ms var(--nf-ease-spring) backwards;
+    animation: nf-map-cluster-drop var(--nf-duration-deliberate) var(--nf-ease-spring) backwards;
     animation-delay: calc(var(--pin-i, 0) * 26ms);
   }
   @keyframes nf-map-cluster-drop {
@@ -113,7 +113,16 @@
     inset: -7px;
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width-strong) solid var(--nf-brand-secondary);
-    animation: nf-map-pin-bloom 1.5s var(--nf-ease-standard) 500ms both;
+    /*
+     * The one duration in this workstream's files that is deliberately NOT a
+     * rung, and it is a ring expanding and fading out from a dropped pin. The
+     * scale tops out at 900ms, which is a camera move; this is 1.5s because a
+     * bloom that dissipates has to be slower than anything a person is waiting
+     * on or it reads as a flash rather than as something settling. One shot,
+     * `both`, and the reduced-motion block below removes it entirely.
+     */
+    animation: nf-map-pin-bloom 1.5s var(--nf-ease-standard)
+      var(--nf-duration-entrance) both;
     pointer-events: none;
   }
   @keyframes nf-map-pin-bloom {

@@ -695,7 +695,7 @@ Two tiers, and they do not mix. `docs/ICON_SYSTEM.md` is required reading.
 
 - **`UiIcon`**: 40 stroked glyphs for navigation and controls. One stroke weight,
   computed from the size, and there is no `strokeWidth` prop. One size scale:
-  12, 16, 20, 24, 28, 32, nothing between
+  16, 20, 24, 28, 32, 40, nothing between
 - **`BrandIcon`**: 87 commissioned 3D objects for content. Props are `name`,
   `size`, `fill`, `label`, `priority`, `className`. There is no `ramp` prop
 - `Icon` and `Icon3D` are **deleted**. The pre-commit grep for `Icon3D` must

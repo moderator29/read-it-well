@@ -56,8 +56,8 @@ export default async function ConversationPage({
         <div className="mx-auto max-w-2xl">
           <PageHeader title="Inbox" fallback="/messages" />
           <p className="nf-card p-6 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
-            Messaging is paused for maintenance. Your conversations are safe and will be back
-            shortly.
+            Messaging is paused for maintenance. Your conversations are safe and nothing has
+            been lost. Try again in a few minutes.
           </p>
         </div>
       );

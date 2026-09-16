@@ -14,6 +14,7 @@ import { Segmented } from "@/components/ui/Segmented";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
+import { EmptyActions } from "@/components/app/EmptyActions";
 
 /**
  * The signed-in trips hub: the user's real bookings from the platform,
@@ -397,9 +398,12 @@ export function MyBookings({
                  happen. Cancelled is empty because nothing went wrong, which is
                  good news and needs no call to action. */
               current.key === "cancelled" ? undefined : (
-                <ButtonLink href="/search" variant="primary">
-                  Find a place
-                </ButtonLink>
+                /* Through `EmptyActions` like every other empty state on the
+                   platform: stacked and full width. It was an intrinsic-width
+                   button in a centred column, which is the third of the three
+                   treatments F2-073 counted and reads at 390px as a chip
+                   somebody forgot to style. */
+                <EmptyActions primary={{ label: "Find a place", href: "/search" }} />
               )
             }
             data-testid={`bookings-empty-${current.key}`}

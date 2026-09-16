@@ -124,6 +124,7 @@ export function QueueFilters({
   query,
   statuses,
   common,
+  searchable = true,
   searchLabel,
   searchPlaceholder,
 }: {
@@ -143,6 +144,18 @@ export function QueueFilters({
    * that is translated is the half that tells the reader the rest is a bug.
    */
   common: AdminCommon;
+  /**
+   * False where the queue genuinely cannot be searched.
+   *
+   * Not a convenience. `/admin/kyc` is the case: the field a reviewer
+   * recognises a row by is the subject's NAME, which is not on the document
+   * row and is resolved afterwards through two different paths. A box that
+   * searched one of those paths would quietly miss the rows filed under the
+   * other, and a search an operator cannot tell is incomplete is worse than a
+   * screen that does not offer one. The date range and the status chips still
+   * work, so the frame is not all-or-nothing.
+   */
+  searchable?: boolean;
   /** Only where the queue's own noun genuinely beats "Search this queue". */
   searchLabel?: string;
   searchPlaceholder?: string;
@@ -153,16 +166,18 @@ export function QueueFilters({
   return (
     <div className="mb-block">
       <form method="get" action={base} className="flex flex-wrap items-end gap-row">
-        <label className="min-w-0 flex-1">
-          <span className="nf-label">{searchLabel ?? common.searchLabel}</span>
-          <input
-            type="search"
-            name="q"
-            defaultValue={query.q ?? ""}
-            placeholder={searchPlaceholder ?? common.searchPlaceholder}
-            className="nf-field mt-inline-tight w-full"
-          />
-        </label>
+        {searchable && (
+          <label className="min-w-0 flex-1">
+            <span className="nf-label">{searchLabel ?? common.searchLabel}</span>
+            <input
+              type="search"
+              name="q"
+              defaultValue={query.q ?? ""}
+              placeholder={searchPlaceholder ?? common.searchPlaceholder}
+              className="nf-field mt-inline-tight w-full"
+            />
+          </label>
+        )}
 
         {/* A DATE RANGE, because half of what an operator is asked is "what
             happened on Tuesday". Two native date inputs rather than a picker:

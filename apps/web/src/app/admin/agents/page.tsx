@@ -7,6 +7,13 @@ import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { ApplicationDecision, VerificationRungDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import {
+  QueueFilters,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -289,7 +296,26 @@ function ApplicationCard({
   );
 }
 
-export default async function AdminAgentsPage() {
+/**
+ * The chips, from `agent_application_status`.
+ *
+ * Seven values including DRAFT, which no bucket on this screen holds. It is
+ * offered anyway and returns nothing, because a chip list built from the enum
+ * is a chip list that cannot go stale, and an operator who picks it learns
+ * something true: drafts are not submitted and are not the console's business.
+ */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return Constants.public.Enums.agent_application_status.map((value) => ({
+    value,
+    label: ui.statusLabel(value),
+  }));
+}
+
+export default async function AdminAgentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.admin.applications;
@@ -297,7 +323,19 @@ export default async function AdminAgentsPage() {
   const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const applications = await getAgentApplications();
+  /* The shared queue frame. This queue read the newest thirty waiting and ten
+     decided and printed all of them, with no way to search a name, so an
+     operator asked "what happened to Adaeze's application" had to scroll. No
+     pager here on purpose: see the note on `getAgentApplications`. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const narrowed = queueNarrowed(query);
+  const applications = await getAgentApplications({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+  });
 
   if (applications.state !== "ok") {
     return (
@@ -328,8 +366,23 @@ export default async function AdminAgentsPage() {
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={onUs} />
 
-      {waiting.length === 0 ? (
-        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+      <QueueFilters
+        base="/admin/agents"
+        query={query}
+        common={common}
+        statuses={statusFilters(ui)}
+        searchPlaceholder="Search by name or business"
+      />
+
+      {waiting.length === 0 && decided.length === 0 && narrowed ? (
+        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
+      ) : waiting.length === 0 ? (
+        /* Narrowed, this section says nothing at all: "nothing is waiting" is
+           false to somebody who has just asked to see the decided ones, and the
+           one no-match panel above already answers for the screen. */
+        narrowed ? null : (
+          <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+        )
       ) : (
         <ul className="nf-queue-list">
           {waiting.map((application) => (

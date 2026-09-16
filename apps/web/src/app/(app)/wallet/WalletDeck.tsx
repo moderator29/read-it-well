@@ -710,6 +710,27 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
   const absMinor = Math.abs(balanceMinor);
   const koboRemainder = absMinor % 100;
   const wholeNaira = (absMinor - koboRemainder) / 100;
+
+  /*
+   * THE LAST HAND-WRITTEN NAIRA SIGN ON THE MONEY PATH, AND THE SIGN THAT WENT
+   * WITH IT.
+   *
+   * This wrote `{"₦"}` in front of an odometer fed `Math.abs(balanceMinor)`,
+   * which is the same pair of faults `BalanceCard` was carrying and fixed:
+   * `ha-NG` emits "₦ 9,000,000" with a space, so the hero on the wallet page
+   * and this line inside the drawer rendered the currency differently on a
+   * Hausa phone; and an available balance below zero - which
+   * `admin_payment_health` hunts for by name - was drawn as though it were
+   * money the person had.
+   *
+   * `whole` from `formatKoboExact` already carries the minus, the symbol and
+   * whatever spacing the locale puts between them. Everything before its first
+   * digit is that lead, and the odometer rolls the magnitude behind it, exactly
+   * as the card does it.
+   */
+  const digitAt = amount.whole.search(/\d/);
+  const lead = digitAt === -1 ? amount.whole : amount.whole.slice(0, digitAt);
+
   /*
    * Was border-white/10 on bg-white/[0.04]. A white wash reads as a subtle
    * inset on a dark ground and as nothing at all on a light one, so in
@@ -721,7 +742,7 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
     <p className="nf-body-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-row py-inline text-[var(--nf-content-muted)]">
       Available balance{" "}
       <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
-        {"₦"}
+        {lead}
         <Odometer value={wholeNaira} locale={locale} suffix={amount.kobo} />
       </span>
     </p>

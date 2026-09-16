@@ -91,7 +91,24 @@ export default async function AdminSwitchesPage() {
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
       <p className="nf-card mb-4 flex gap-2.5 p-3.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        <UiIcon name="bell" size={16} className="mt-0.5 shrink-0 text-[var(--nf-state-warning)]" />
+        {/*
+          NOT A BELL, AND NOT THE PENDING COLOUR.
+
+          Same defect F2-057 names on `QueueUnavailable` and `CheckRow`, on a
+          third object in the same console. `--nf-state-warning` resolves to
+          `--nf-cyan-400`, which is the token `--nf-status-pending` is defined
+          as, so a standing note about what these controls do was painted in the
+          colour this product reserves for "still going through". And a bell
+          means "you have a notification" everywhere else on the platform.
+
+          NOT ROSE EITHER, which was the other candidate. Nothing here has
+          failed and nothing is in flight: it is a note about the consequence of
+          a control the operator has not touched yet. Painting it as an error
+          would cry wolf on a screen an operator opens every day. The weight is
+          in the sentence, which says the surface goes away from everyone
+          immediately, and `info` is the glyph that means exactly this.
+        */}
+        <UiIcon name="info" size={16} className="mt-0.5 shrink-0 text-[var(--nf-content-secondary)]" />
         <span>{copy.warning}</span>
       </p>
 

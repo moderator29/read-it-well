@@ -50,21 +50,28 @@ function Bridge({
 }) {
   return (
     /*
-      THE GUTTER AND THE TITLE, BOTH WRONG ON THE SAME SCREEN.
+      THE GUTTER AND THE TITLE, BOTH WRONG ON THE SAME SCREEN, AND THE GUTTER IS
+      FIXED AT THE ROOT NOW.
 
-      `AppShell` treats `/messages/[^/]+` as immersive, which `/messages/new`
-      matches, and immersive drops the page gutter and the top inset. This
+      `AppShell` treated `/messages/[^/]+` as immersive, which `/messages/new`
+      matched, and immersive drops the page gutter and the top inset. This
       Bridge had none of its own, so the back button sat at exactly x=0, y=0
       with its tap target clipped by the screen edge, and on a notched phone it
-      was under the status bar. The regex belongs to the shell and the shell is
-      not this file's to change, so the screen carries its own gutter, which it
-      should have had regardless.
+      was under the status bar.
 
-      And it was titled "Inbox" on a screen that is not the inbox. It is the
-      first contact with an agent about one property, which its own docstring
-      calls the single most important hop in the messaging journey.
+      The first fix was for this screen to carry its own `px-gutter pt-block`,
+      because the regex was thought to belong to another owner. It does not:
+      `isImmersiveRoute` now lives beside `TAB_BAR_ROUTES`, excludes this route
+      by name, and the shell gives this page the ordinary wrapper. So the local
+      compensation is GONE rather than left in - two gutters is the same bug
+      pointed the other way, and a padding that exists to cancel a condition
+      that no longer holds is the next person's puzzle.
+
+      The title stays fixed. It said "Inbox" on a screen that is not the inbox:
+      it is the first contact with an agent about one property, which its own
+      docstring calls the single most important hop in the messaging journey.
     */
-    <div className="mx-auto max-w-2xl px-gutter pt-block">
+    <div className="mx-auto max-w-2xl">
       <PageHeader title="Message the agent" fallback={`/listing/${listingId}`} />
       <EmptyState
         icon="chat-duo"

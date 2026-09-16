@@ -1,8 +1,16 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../supabase/database.types";
+import { Constants, type Database } from "../supabase/database.types";
 import { requireAdmin } from "./guard";
+import {
+  lagosDayEnd,
+  lagosDayStart,
+  pageRange,
+  pickStatus,
+  takePage,
+  type AdminQueueFilter,
+} from "./queue-filter";
 
 /**
  * The money console's reads: wallets, the ledger, escrow, and what we charge.
@@ -214,25 +222,63 @@ export type EscrowConsole = {
   open: EscrowView[];
   /** Recently settled, so an operator can answer "where did it go". */
   settled: EscrowView[];
+  /** True when the narrowed read came back with a whole page, so there is more. */
+  full: boolean;
+  /** Over every escrow on the platform, never over the filtered page. */
   totals: { heldMinor: number; openCount: number; disputeCount: number };
 };
 
 const ESCROW_COLUMNS =
   "id, state, purpose, amount_minor, commission_minor, payer_id, payee_id, listing_id, payer_confirmed_at, payee_confirmed_at, inspection_confirmation_id, dispute_reason, resolution_note, auto_release_at, created_at, held_at, released_at, refunded_at, resolved_at, listings ( title )";
 
-export async function getEscrowConsole(): Promise<AdminRead<EscrowConsole>> {
+/**
+ * The escrow desk, narrowed by the console's shared queue frame.
+ *
+ * ---------------------------------------------------------------------------
+ * THE TOTALS ARE READ SEPARATELY, AND THAT IS THE WHOLE CARE IN THIS FUNCTION.
+ *
+ * "Money held" is a headline figure on a money screen. Computing it from the
+ * same rows the list is built from would make it the total of whatever the
+ * operator happened to have filtered to, so choosing the DISPUTED chip would
+ * silently redraw "we are holding X" as "we are holding X in disputes" with
+ * nothing on screen saying the number had changed meaning. A stat tile that
+ * quietly re-scopes itself under a filter is worse than no tile.
+ *
+ * So the totals come from their own two-column read of every escrow, and the
+ * list comes from the narrowed one. That is a second round trip and it is worth
+ * it: the previous single read was capped at 200 rows, so the totals were
+ * already silently approximate the moment there were 201 escrows, and this
+ * fixes that at the same time.
+ */
+export async function getEscrowConsole(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<EscrowConsole>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return UNAVAILABLE;
 
-  try {
-    const { data, error } = await access.supabase
-      .from("escrows")
-      .select(ESCROW_COLUMNS)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) return UNAVAILABLE;
+  const term = (filter?.q ?? "").trim();
+  const state = pickStatus(Constants.public.Enums.escrow_state, filter?.status);
+  const page = pageRange(filter);
 
-    const rows = data ?? [];
+  try {
+    let select = access.supabase.from("escrows").select(ESCROW_COLUMNS);
+    /* The listing's title, through the embedded relation, because "the Lekki
+       flat" is how an operator remembers an escrow. Not the id: an id is how
+       you find a row you already have. */
+    if (term.length > 0) select = select.ilike("listings.title", `%${term}%`).not("listings", "is", null);
+    if (state) select = select.eq("state", state);
+    if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
+
+    const [listed, everything] = await Promise.all([
+      select.order("created_at", { ascending: false }).range(page.from, page.to),
+      access.supabase.from("escrows").select("state, amount_minor"),
+    ]);
+    const { data, error } = listed;
+    if (error || everything.error) return UNAVAILABLE;
+
+    const { rows: data_, full } = takePage(data ?? []);
+    const rows = data_;
     const names = await displayNames(
       access.supabase,
       rows.flatMap((r) => [r.payer_id, r.payee_id]),
@@ -263,26 +309,32 @@ export async function getEscrowConsole(): Promise<AdminRead<EscrowConsole>> {
     const open = views.filter((v) =>
       ["INITIATED", "FUNDED", "HELD", "RELEASE_REQUESTED"].includes(v.state),
     );
-    const settled = views
-      .filter((v) => ["RELEASED", "REFUNDED", "RESOLVED"].includes(v.state))
-      .slice(0, 25);
+    /* No longer `.slice(0, 25)`. The page the operator asked for is the page
+       they get; a second cap inside a paged read is a row that exists, was
+       fetched, and is then dropped on the floor with no Next link to reach it. */
+    const settled = views.filter((v) => ["RELEASED", "REFUNDED", "RESOLVED"].includes(v.state));
 
+    const all = everything.data ?? [];
     return {
       state: "ok",
       data: {
         disputes,
         open,
         settled,
+        full,
         totals: {
-          /* Only HELD and RELEASE_REQUESTED money is actually out of somebody's
-             balance. An INITIATED escrow has moved nothing, and counting it
-             here would tell an operator the platform is holding money it is
-             not. */
-          heldMinor: views
-            .filter((v) => ["HELD", "RELEASE_REQUESTED", "DISPUTED"].includes(v.state))
-            .reduce((sum, v) => sum + v.amountMinor, 0),
-          openCount: open.length,
-          disputeCount: disputes.length,
+          /* Over EVERY escrow, not over the filtered page. See the note above
+             this function. Only HELD, RELEASE_REQUESTED and DISPUTED money is
+             actually out of somebody's balance: an INITIATED escrow has moved
+             nothing, and counting it would tell an operator the platform is
+             holding money it is not. */
+          heldMinor: all
+            .filter((r) => ["HELD", "RELEASE_REQUESTED", "DISPUTED"].includes(r.state))
+            .reduce((sum, r) => sum + r.amount_minor, 0),
+          openCount: all.filter((r) =>
+            ["INITIATED", "FUNDED", "HELD", "RELEASE_REQUESTED"].includes(r.state),
+          ).length,
+          disputeCount: all.filter((r) => r.state === "DISPUTED").length,
         },
       },
     };

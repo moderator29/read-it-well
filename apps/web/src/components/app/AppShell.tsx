@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
 import { AppRail } from "./AppRail";
-import { MobileTabBar, showsTabBar } from "./MobileTabBar";
+import { MobileTabBar, isImmersiveRoute, isTabRoot, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
@@ -100,7 +100,25 @@ export function AppShell({
    * the shell steps back: no app header, no tab bar, no page padding, and the
    * column runs the full height so the thread scrolls inside itself.
    */
-  const immersive = active === "/assistant" || /^\/messages\/[^/]+$/.test(active);
+  /*
+   * ONE DEFINITION, SHARED WITH THE DOCK, AND IT USED TO SWALLOW
+   * `/messages/new`.
+   *
+   * The test was written here as `active === "/assistant" ||
+   * /^\/messages\/[^/]+$/.test(active)`, and the dock decided the same
+   * question from its own list, so the two could disagree about a route. Worse,
+   * the regex matched `/messages/new`, which is not a thread: it is the bridge
+   * to one, an ordinary page with a heading and a back control. Immersive drops
+   * the gutter and the top inset, so that screen's back button sat at x=0, y=0
+   * with its tap target clipped by the screen edge and, on a notched phone,
+   * under the status bar - on the single most important hop in the messaging
+   * journey, by that screen's own docstring.
+   *
+   * `isImmersiveRoute` lives beside `TAB_BAR_ROUTES` because the shell and the
+   * dock have to agree, and it carries the negative lookahead that keeps the
+   * bridge out.
+   */
+  const immersive = isImmersiveRoute(active);
 
   /*
    * Edge-to-edge surfaces.
@@ -163,11 +181,17 @@ export function AppShell({
    * `PageHeader` with a back control and its own title, and that is the single
    * bar the screen needs. Losing the hamburger there is not a regression, it is
    * the pattern: a detail screen in a first-party app carries back and a title,
-   * and the drawer belongs to the root screens you reach it from. `showsTabBar`
-   * is the same list the dock uses, so the shell and the dock cannot disagree
-   * about which screens are roots.
+   * and the drawer belongs to the root screens you reach it from.
+   *
+   * `isTabRoot` AND NOT `showsTabBar`, and the difference is load bearing since
+   * the dock started prefix matching. The dock now follows a reader one level
+   * into a tab, which is right: the navigation that got you there should not
+   * vanish. This header must not, because a detail screen already draws a
+   * `PageHeader` with back and a title, and answering this with the prefix puts
+   * a hamburger above a back button above a title on `/wallet/transactions`.
+   * One list, two questions, and `MobileTabBar` owns both answers.
    */
-  const isTabRoute = showsTabBar(active);
+  const isTabRoute = isTabRoot(active);
   /*
    * Rendered at all: on a phone, only on a tab destination. A guest keeps it
    * everywhere, because for a guest the contents are Sign in and Sign up, which

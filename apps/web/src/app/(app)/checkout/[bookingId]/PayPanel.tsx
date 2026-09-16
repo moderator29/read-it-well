@@ -242,7 +242,13 @@ export function PayPanel({ view }: { view: CheckoutView }) {
                infrastructure jargon, printed to somebody trying to pay. This
                says what is true, what it costs them, and what to do instead. */
             body="Card payment is not available right now."
-            note="Your dates stay held and nothing has been charged. Pay from your wallet, or try again shortly."
+            /* "…or try again SHORTLY" is gone, and it was the last time this
+               product named a schedule in a refusal on the money path. It is a
+               milder relative of the banned "coming soon": a promise about a
+               time nobody here can keep, told to somebody holding a card. The
+               sentence loses the word and keeps the instruction, which is the
+               only part the reader could act on anyway. */
+            note="Your dates stay held and nothing has been charged. Pay from your wallet, or try the card again from here."
           />
         )}
         {view.walletCovers ? (

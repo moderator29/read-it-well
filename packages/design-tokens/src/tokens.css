@@ -75,14 +75,20 @@
    * the error colour.
    *
    * EVERY OTHER UNREFERENCED RAMP STEP STAYS, and that is a decision rather than
-   * an oversight. `--nf-ink-500/600/700`, `--nf-mist-200`, `--nf-royal-500/600/
-   * 700` and `--nf-cyan-500` have no consumer today. A palette is a palette, not
-   * a usage list: layer 1 exists, in ADR-002's words, "so the semantic layer has
-   * somewhere to resolve to", and a ramp with holes punched in it where nothing
-   * currently lands is harder to read and to extend than a complete one. Three
-   * of them are also mirrored as literals in `index.ts`, where `royal500` and
-   * `cyan500` are read by the icon ramps, so deleting the CSS side would create
-   * exactly the drift that file's own comments were written to stop.
+   * an oversight. `--nf-ink-500/600/700`, `--nf-mist-200` and the whole of
+   * `--nf-royal-400/500/600/700` have no consumer today. A palette is a palette,
+   * not a usage list: layer 1 exists, in ADR-002's words, "so the semantic layer
+   * has somewhere to resolve to", and a ramp with holes punched in it where
+   * nothing currently lands is harder to read and to extend than a complete one.
+   * All eight are also mirrored as literals in `index.ts`, where `royal500` is
+   * read by the icon ramps, so deleting the CSS side would create exactly the
+   * drift that file's own comments were written to stop.
+   *
+   * `--nf-cyan-500` was on that list and has come off it: the daylight pending
+   * accent reads it now. It is the rung between the night theme's #00C8FF, which
+   * is invisible on white, and the AA-safe daylight ink, and it had been sitting
+   * in the ramp waiting for exactly that job - which is the argument for keeping
+   * the other eight, made by one of them.
    */
   --nf-emerald-400: #10B981;
   --nf-rose-400: #FF1744;
@@ -432,6 +438,18 @@
    * night canvas, and electric-300 already carries a daylight override. */
   --nf-status-pending: var(--nf-state-warning);
   --nf-status-pending-surface: var(--nf-state-warning-surface);
+  /*
+   * THE ACCENT, WHICH EXISTS ENTIRELY FOR DAYLIGHT, and is the same colour as
+   * the ink here so that no rule needs a theme branch.
+   *
+   * A state ink has to clear 4.5:1 as small bold text. A MARK and a TINTED FILL
+   * do not: neither is text, and holding them to a text threshold is what
+   * flattened pending on paper into the dullest colour on the screen. Two
+   * values, one for the word and one for everything else, is the honest way to
+   * satisfy both constraints; see the daylight block for the numbers and the
+   * argument.
+   */
+  --nf-state-warning-accent: var(--nf-state-warning);
   --nf-status-approved: var(--nf-state-success);
   --nf-status-approved-surface: var(--nf-state-success-surface);
   --nf-status-rejected: var(--nf-state-error);
@@ -1257,6 +1275,24 @@
   --nf-duration-slow: 380ms;
   --nf-duration-deliberate: 620ms;
   /*
+   * THE RUNG ABOVE DELIBERATE, BECAUSE THE PRODUCT HAD ONE AND HAD NOT NAMED IT.
+   *
+   * The scale stopped at 620ms and the stylesheets then wrote 900ms three times
+   * in one file for three different objects: the stride ring taking one turn
+   * around a hovered card, a cover photograph pushing in, and the confirmation
+   * dim. `glass.css` says of the second of those that "900ms is deliberate here
+   * where it would be lag anywhere", which is exactly right and is the argument
+   * for a rung rather than against one. There is a length in this product that
+   * is longer than any response and is not a mistake: a CAMERA MOVE, something
+   * that is meant to be watched rather than answered.
+   *
+   * Nothing may use this for a response to a tap, a hover state or a
+   * transition a person is waiting on. It is one-shot, on a genuine moment,
+   * and every site that takes it already has a reduced-motion rule turning it
+   * off outright.
+   */
+  --nf-duration-cinematic: 900ms;
+  /*
    * The entrance, as a role rather than a rung.
    *
    * Content rising in wants 400 to 600ms: under 400 it snaps and reads as a
@@ -1336,6 +1372,19 @@
    */
 
   /*
+   * `--nf-text-hero` STOOD IN THIS SCALE AND IS GONE, and it is the one deletion
+   * from the type ladder.
+   *
+   * It was `clamp(1.7rem, 1.05rem + 2.9vw, 3.5rem)`: 28.1px at 390 and 56px at
+   * 1440. Nothing read it, in any stylesheet or component. And it could not
+   * safely have been read, because it is not a rung at all - it is a line that
+   * CROSSES the ladder diagonally. At 390 it sits below h0 (30) and at 1440 it
+   * sits above it (50), so a `hero` heading would have been smaller than the h0
+   * beneath it on a phone and larger on a desktop, and nothing would have
+   * reported it. That is the same crossing fault the note beside the headings
+   * describes, in its worst form: not a rung that drifted out of order, but one
+   * that was never in an order to begin with.
+   *
    * Type scale. The clamp lower bounds are tuned for a phone first: a heading
    * must feel calm on a 390px screen, not shout, so the mobile floor sits well
    * below the desktop ceiling and grows with the viewport.
@@ -1382,8 +1431,59 @@
    * calmer where there is room.
    */
   --nf-text-display: clamp(2.25rem, 1.4rem + 2.8vw, 4rem);
-  --nf-text-hero: clamp(1.7rem, 1.05rem + 2.9vw, 3.5rem);
   /*
+   * ===================================================================
+   * THE LADDER INVERTED TWICE ON A PHONE, AND IT IS ARITHMETIC RATHER THAN
+   * TASTE, SO IT CAN BE CHECKED RATHER THAN ARGUED ABOUT.
+   *
+   * Every rung here is a `clamp()`, which means each one is a LINE with its own
+   * slope, and lines with different slopes cross. Six lines were written at six
+   * different times, each one correct against the rung above it at the width
+   * the author was looking at, and nothing ever evaluated all six at the same
+   * width. Evaluated, at a 16px root:
+   *
+   *            390    430    533    640    768   1024   1440
+   *   display   36     36   37.3   40.3   43.9   51.1   62.7
+   *   h0        40   40.4   41.6   42.8   44.3   47.2   51.9   <- above display
+   *   h1      24.6   25.3   27.2   29.1   31.4   36.0   40.0
+   *   h2      20.8   21.1   22.1   23.2   24.5   27.0   29.6
+   *   h3      19.1   19.4   20.0   20.6   21.4   22.9   23.0
+   *   h4        20     20     20     20     20     20     20   <- above h3
+   *
+   * `h0` WAS LARGER THAN `display` AT EVERY WIDTH BELOW ROUGHLY 800px. On a
+   * 390px phone the display size was 36px and the section heading under it was
+   * 40px, so the largest type on the page was not the headline. h0's floor was
+   * set to 40 to match the price figure it was extracted from, and display's
+   * ceiling had since been brought down from 73.6px to 64px by L-91, which
+   * moved its floor to 36. Each change was right on its own and the pair was
+   * never evaluated together.
+   *
+   * `h4` WAS LARGER THAN `h3` BELOW 533px, which is every phone. h4 is a fixed
+   * 20px and h3 rises from 19.1px, so they cross at 533 and below that the
+   * fourth heading level is bigger than the third.
+   *
+   * Both are fixed by making the rungs answer each other rather than answering
+   * one screen each.
+   *
+   * h0 runs 30px to 50px, which sits between display and h1 at BOTH ends: 36 /
+   * 30 / 24.6 on a phone and 62.7 / 50 / 40 on a desktop. The price figure that
+   * h0 was extracted from is the thing that loses here, dropping from 40px to
+   * 30px on a phone, and that is the correct loser: a price is a large FIGURE
+   * and it was set by a component that had no rung to reach for, which is the
+   * hole this rung was added to fill. If a price genuinely needs to be larger
+   * than the page's own headline on a phone, that is a deliberate exception at
+   * one call site with a reason on it, not the shape of the scale.
+   *
+   * h4 becomes fluid, 17px to 20px, holding a steady ~1.13 ratio under h3 at
+   * every width instead of crossing it. At 390 that puts it level with
+   * `--nf-text-body-lg`, and that is fine and normal: the smallest heading
+   * level matching the largest body size is ordinary typography, and the two
+   * are told apart by weight and by the display face rather than by size.
+   *
+   * IF YOU ADD OR RETUNE A RUNG, EVALUATE THE WHOLE LADDER AT 390, 768 AND
+   * 1440 BEFORE YOU COMMIT IT. Two clamps cannot be compared by reading them.
+   * ===================================================================
+   *
    * h0: THE HOLE IN THE MIDDLE OF THE SCALE.
    *
    * Between `h1`, which tops out at 40px, and `display`, which is a landing
@@ -1393,15 +1493,12 @@
    * that it was the single arbitrary size in the file and that it was
    * deliberate. It was deliberate and it was still a hole in the scale: a rung
    * that one component has to invent is a rung the scale is missing.
-   *
-   * 40px at 390 and 52px at 1440, which is exactly what that component was
-   * already drawing. It is the rung, not a new size.
    */
-  --nf-text-h0: clamp(2.5rem, 2.22rem + 1.14vw, 3.25rem);
+  --nf-text-h0: clamp(1.875rem, 1.41rem + 1.9vw, 3.125rem);
   --nf-text-h1: clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem);
   --nf-text-h2: clamp(1.3rem, 1.05rem + 1vw, 1.85rem);
   --nf-text-h3: clamp(1.1875rem, 1.05rem + 0.6vw, 1.4375rem);
-  --nf-text-h4: 1.25rem;
+  --nf-text-h4: clamp(1.0625rem, 0.99rem + 0.29vw, 1.25rem);
   --nf-text-body-lg: 1.0625rem;
   --nf-text-body: 1rem;
   /*
@@ -1462,7 +1559,35 @@
    * A layout token nothing reads is a comment with a colon in it.
    * ------------------------------------------------------------------ */
   --nf-rail-width: 264px;
-  --nf-header-height: 76px;
+  /*
+   * TWO HEADER HEIGHTS, AND THEY ARE THE NUMBERS THE HEADER ACTUALLY RENDERS.
+   *
+   * This was a single `--nf-header-height: 76px` and 76 was not a height
+   * anything in the product paints. `components/site/SiteHeader.tsx` writes
+   * `h-[60px] sm:h-[72px]`, so the marketing header is 60 on a phone and 72
+   * above the `sm` breakpoint, and the token sat beside it claiming a third
+   * number. Nothing reported the disagreement because nothing read the token -
+   * which is how it stayed wrong long enough for a value to be invented for it.
+   *
+   * THE HEADER IS THE THING THAT IS RIGHT HERE AND THE TOKEN IS THE THING THAT
+   * WAS WRONG, so the token moved. 76 was never measured against anything; 60
+   * and 72 are what a person sees.
+   *
+   * Bridged in `app/css/theme.css` as `--spacing-header` and
+   * `--spacing-header-sm`, so the header itself can say `h-header-sm sm:h-header`
+   * instead of two arbitrary bracket values, and the anchor offset in motion.css
+   * reads the pair rather than restating their sum.
+   *
+   * A THIRD HEIGHT IS STILL OUT THERE AND THIS PAIR DOES NOT DESCRIBE IT.
+   * `components/app/AppShell.tsx` writes `h-[64px]` for the in-app header. That
+   * may be deliberate - the app chrome carries different content from the
+   * marketing chrome - or it may be a fourth number nobody compared. It is not
+   * this workstream's file, so it is named here rather than quietly folded in:
+   * decide whether the app header is 64 on purpose, and if it is, it wants a
+   * rung of its own with the reason on it.
+   */
+  --nf-header-height-sm: 60px;
+  --nf-header-height: 72px;
   --nf-content-max: 1440px;
 
   /*
@@ -1844,13 +1969,34 @@
   --nf-state-info: #0369A1;
 
   /*
+   * PENDING HAD NO ENERGY ON PAPER, AND THE CONTRAST REASONING ABOVE IS WHY.
+   *
+   * The platform's attention colour is a bright cyan. Daylight steps it down to
+   * #0E6E8C so that small bold text clears AA on white, which is correct and
+   * measured and is not in question. The consequence nobody costed is that the
+   * ONE state that most needs to be noticed - a payment that has not settled, a
+   * booking nobody has answered - became the flattest thing on a light screen,
+   * because every part of the pill inherited a value chosen for the hardest
+   * legibility case in it.
+   *
+   * A mark is not text and a 14% tint is not text. So the accent carries them,
+   * and the word keeps the AA-safe ink. `--nf-cyan-500` is the rung between the
+   * night theme's #00C8FF, which is invisible on white, and the daylight ink,
+   * and it was already in the palette with nothing reading it.
+   */
+  --nf-state-warning-accent: var(--nf-cyan-500);
+
+  /*
    * Badge tints derive from the daylight inks above rather than the Layer 1
    * raw palette. Deriving from the raw brights meant the tint was mixed from
    * one colour and the label painted in another, which is what pushed the
    * success and error badges under AA even after their inks were stepped down.
    */
   --nf-state-success-surface: color-mix(in oklab, var(--nf-state-success) 12%, transparent);
-  --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning) 12%, transparent);
+  /* Warning's tint mixes from the ACCENT, not the ink, for the reason above: a
+     tint is not text. 14% rather than 12% because the accent is a lighter
+     colour and the same percentage of it lands quieter. */
+  --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning-accent) 14%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 12%, transparent);
   --nf-state-info-surface: color-mix(in oklab, var(--nf-state-info) 12%, transparent);
   /* Rating rides --nf-electric-300, so it follows this deeper blue on paper
@@ -1960,6 +2106,7 @@
     --nf-duration-base: 1ms;
     --nf-duration-slow: 1ms;
     --nf-duration-deliberate: 1ms;
+    --nf-duration-cinematic: 1ms;
     --nf-duration-entrance: 1ms;
     --nf-duration-press: 1ms;
     --nf-ease-spring: linear;

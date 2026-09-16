@@ -181,9 +181,10 @@ older one, and everything below is current as of this handoff.
 17. **ZERO em dashes** anywhere: code, copy, docs, commit messages. British
     spelling in docs and product copy.
 18. Navigation icons are stroked `UiIcon` glyphs, 40 of them, one stroke weight
-    (`UI_ICON_STROKE_PX` 1.4 rendered pixels, computed from the size, there is
-    no `strokeWidth` prop) and one size scale (12, 16, 20, 24, 28, 32, nothing
-    between). Content objects are `BrandIcon`, 57 commissioned 3D objects, props
+    (`UI_ICON_STROKE_PX` 1.5 rendered pixels, computed from the size, there is
+    no `strokeWidth` prop) and one size scale (16, 20, 24, 28, 32, 40, nothing
+    between; 12 was removed because a stroked glyph on a 24 grid renders a 0.7
+    pixel line there, and 40 added for empty states and role rows). Content objects are `BrandIcon`, 57 commissioned 3D objects, props
     `name`/`size`/`fill`/`label`/`priority`/`className`, there is NO `ramp`
     prop. `Icon` and `Icon3D` are **deleted**, not merely retired, and the
     pre-commit grep for `Icon3D` must return empty. `TrustIcon` is six marks on

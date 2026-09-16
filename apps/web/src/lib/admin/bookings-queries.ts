@@ -348,12 +348,36 @@ export async function getBookingBoard(
     const rows = await decorate(db, (data ?? []) as BookingSelect[]);
     const today = lagosToday();
 
+    /*
+     * STATUS DECIDES THE BUCKET. THE DATE ONLY BREAKS THE TIE.
+     *
+     * This read `status !== "CANCELLED" && checkOut >= today` for live and the
+     * same test inverted for past, so every status that was not CANCELLED was
+     * filed by its dates alone. That was very nearly right while
+     * `booking_status` had three values and is wrong now that it has five: a
+     * stay an agent has recorded as COMPLETED or as a NO_SHOW is over, whatever
+     * its dates say. A NO_SHOW whose checkout had not passed would have sat
+     * under "Live and upcoming" on the operator's board, which is the console
+     * telling a support desk a stay is still running that the agent has already
+     * recorded the guest as missing.
+     *
+     * COMPLETED AND NO_SHOW BOTH GO TO "ALREADY OVER", which is what that
+     * group's own heading says and is true of both. They keep their own chip on
+     * the card, so the operator reads which of the two it was without the
+     * grouping having to encode it. Splitting them into a fourth group was the
+     * alternative and it buys nothing: an operator scanning this board is
+     * asking "is this stay still running", and both answers to that are the
+     * same.
+     */
+    const isOver = (row: AdminBookingRow): boolean =>
+      row.status === "COMPLETED" || row.status === "NO_SHOW" || row.checkOut < today;
+
     const live = rows
-      .filter((row) => row.status !== "CANCELLED" && row.checkOut >= today)
+      .filter((row) => row.status !== "CANCELLED" && !isOver(row))
       .sort((a, b) => a.checkIn.localeCompare(b.checkIn))
       .slice(0, BUCKET_LIMIT);
     const past = rows
-      .filter((row) => row.status !== "CANCELLED" && row.checkOut < today)
+      .filter((row) => row.status !== "CANCELLED" && isOver(row))
       .slice(0, BUCKET_LIMIT);
     const cancelled = rows
       .filter((row) => row.status === "CANCELLED")

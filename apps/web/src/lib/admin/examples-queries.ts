@@ -1,7 +1,16 @@
 import "server-only";
 
+import { Constants } from "../supabase/database.types";
 import type { AdminRead } from "./money-queries";
 import { requireAdmin } from "./guard";
+import {
+  lagosDayEnd,
+  lagosDayStart,
+  pageRange,
+  pickStatus,
+  takePage,
+  type AdminQueueFilter,
+} from "./queue-filter";
 
 /**
  * The example listings, as a set.
@@ -51,6 +60,9 @@ export type ExampleListingView = {
 export type ExamplesConsole = {
   live: ExampleListingView[];
   retired: ExampleListingView[];
+  /** True when the narrowed read came back with a whole page, so there is more. */
+  full: boolean;
+  /** Over every seeded listing, never over the filtered page. */
   totals: {
     total: number;
     liveCount: number;
@@ -113,20 +125,52 @@ function amountOf(row: ExampleRow): number | null {
   return null;
 }
 
-export async function getExamplesConsole(): Promise<AdminRead<ExamplesConsole>> {
+/**
+ * The seeded catalogue, narrowed by the console's shared queue frame.
+ *
+ * ---------------------------------------------------------------------------
+ * THE TILES ARE READ SEPARATELY FROM THE LIST, for the same reason they are on
+ * the escrow desk. "On the catalogue" and "past their date" are statements
+ * about the whole seeded set and they are the numbers this screen exists to
+ * drive down. Computing them from the filtered page would redraw them as
+ * "…among the ones you are looking at" the moment somebody typed a city, with
+ * nothing saying the number had changed meaning, and an operator would read a
+ * cleared queue that was not cleared.
+ *
+ * The second read is three columns over `is_demo` rows and nothing else, so it
+ * costs a round trip and no meaningful bytes. It also fixes a quieter fault: the
+ * single read was capped at 300, so every figure on this screen was already
+ * silently wrong above 300 examples.
+ */
+export async function getExamplesConsole(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<ExamplesConsole>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return UNAVAILABLE;
 
-  try {
-    const { data, error } = await access.supabase
-      .from("listings")
-      .select(EXAMPLE_COLUMNS)
-      .eq("is_demo", true)
-      .order("created_at", { ascending: false })
-      .limit(300);
-    if (error) return UNAVAILABLE;
+  const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
+  const status = pickStatus(Constants.public.Enums.listing_status, filter?.status);
+  const page = pageRange(filter);
 
-    const views: ExampleListingView[] = ((data ?? []) as unknown as ExampleRow[]).map((row) => ({
+  try {
+    let select = access.supabase.from("listings").select(EXAMPLE_COLUMNS).eq("is_demo", true);
+    if (term.length > 0) select = select.or(`title.ilike.%${term}%,city.ilike.%${term}%`);
+    if (status) select = select.eq("status", status);
+    if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
+
+    const [listed, everything] = await Promise.all([
+      select.order("created_at", { ascending: false }).range(page.from, page.to),
+      access.supabase
+        .from("listings")
+        .select("status, city, demo_retire_after")
+        .eq("is_demo", true),
+    ]);
+    const { data: paged, error } = listed;
+    if (error || everything.error) return UNAVAILABLE;
+    const { rows: data, full } = takePage(paged ?? []);
+
+    const views: ExampleListingView[] = (data as unknown as ExampleRow[]).map((row) => ({
       id: row.id,
       title: row.title ?? "Untitled example",
       status: row.status,
@@ -142,11 +186,14 @@ export async function getExamplesConsole(): Promise<AdminRead<ExamplesConsole>> 
 
     const live = views.filter((view) => !view.retired);
     const retired = views.filter((view) => view.retired);
-    const cities = new Set(live.map((view) => view.city).filter((city): city is string => !!city));
 
+    /* The tiles, over every seeded listing rather than over the page. */
     const today = lagosToday();
-    const dueDates = live
-      .map((view) => view.retireAfter)
+    const all = everything.data ?? [];
+    const allLive = all.filter((row) => row.status !== "SUSPENDED");
+    const cities = new Set(allLive.map((row) => row.city).filter((city): city is string => !!city));
+    const dueDates = allLive
+      .map((row) => row.demo_retire_after)
       .filter((date): date is string => !!date)
       .sort();
 
@@ -155,12 +202,13 @@ export async function getExamplesConsole(): Promise<AdminRead<ExamplesConsole>> 
       data: {
         live,
         retired,
+        full,
         totals: {
-          total: views.length,
-          liveCount: live.length,
-          retiredCount: retired.length,
+          total: all.length,
+          liveCount: allLive.length,
+          retiredCount: all.length - allLive.length,
           cities: cities.size,
-          overdueCount: live.filter((view) => isOverdue(view.retireAfter, today)).length,
+          overdueCount: allLive.filter((row) => isOverdue(row.demo_retire_after, today)).length,
           nextDueOn: dueDates[0] ?? null,
         },
       },

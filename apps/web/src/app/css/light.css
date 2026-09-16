@@ -60,10 +60,21 @@
     color: var(--nf-content-primary);
     box-shadow: var(--nf-elev-1);
   }
+  /*
+   * HOVER IS NEUTRAL ON PAPER TOO, and it was the brand edge.
+   *
+   * The night chip was rebuilt so that the brand colour on a chip's edge means
+   * exactly one thing: this filter is ON. Leaving daylight's hover on
+   * `--nf-brand-edge` would have kept the older meaning alive in the theme half
+   * the users are in - a pointer passing over a chip would have given it the
+   * same signal as selecting it, one step quieter - which is the ambiguity the
+   * night change removed. Hover lifts a rung and darkens the hairline; selection
+   * is blue. Same sentence in both themes.
+   */
   @media (hover: hover) {
     :root[data-theme="light"] .nf-chip:hover,
     :root[data-theme="light"] .nf-icon-btn:hover {
-      border-color: var(--nf-brand-edge);
+      border-color: var(--nf-border-strong);
       box-shadow: var(--nf-elev-2);
     }
   }

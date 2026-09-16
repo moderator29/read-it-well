@@ -162,6 +162,7 @@ export default async function AdminSupportPage({
      have just paged past. `queueNarrowed` itself deliberately ignores the
      offset, because the Clear control is about the filters. */
   const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
+  const noMatch = queueNoMatch(common);
 
   return (
     <div className="nf-console">
@@ -241,8 +242,12 @@ export default async function AdminSupportPage({
         </section>
       )}
 
-      <QueueFilters base="/admin/support" query={query}
-        common={common} statuses={statusFilters(ui)} />
+      <QueueFilters
+        base="/admin/support"
+        query={query}
+        common={common}
+        statuses={statusFilters(ui)}
+      />
 
       {open.length === 0 && closed.length === 0 ? (
         <ui.QueueEmpty

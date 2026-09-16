@@ -122,8 +122,23 @@ check(
   !/strokeWidth\?: number/.test(uiIconSource),
 );
 
-/* 3. One size scale. */
-const UI_SCALE = [12, 16, 20, 24, 28, 32];
+/* 3. One size scale.
+ *
+ * READ FROM THE SOURCE, NOT RETYPED. This held [12, 16, 20, 24, 28, 32], which
+ * was the scale when it was written and has not been the scale for some time:
+ * 12 came out because a stroked glyph on a 24 grid renders a 0.7 CSS pixel line
+ * there, and 40 went in for empty states and role rows, both argued beside the
+ * constant in UiIcon.tsx. So this spec asserted the old ladder against the new
+ * component, which meant it would have failed a correct `size={40}` and passed
+ * a `size={12}` the component silently snaps up to 16. A spec that is the last
+ * holder of a superseded number does not protect the scale, it blocks the
+ * migration onto it.
+ *
+ * Parsing the constant means the next change to the ladder is one edit in one
+ * file, and this check follows it rather than having to be remembered. */
+const scaleMatch = /export const UI_ICON_SIZES = \[([^\]]+)\]/.exec(uiIconSource);
+check("UiIcon exports a readable size scale", scaleMatch !== null);
+const UI_SCALE = (scaleMatch?.[1] ?? "").split(",").map((n) => Number(n.trim()));
 /* BrandIcon sits on an 8px grid from 24 up: below 24 the plinth in the artwork
    collapses into a coloured square, which is why the floor is not lower. */
 const brandOnGrid = (n) => n >= 24 && n % 8 === 0;

@@ -603,22 +603,84 @@ function toApplicationView(
 
 export type ApplicationQueue = { waiting: ApplicationView[]; decided: ApplicationView[] };
 
-export async function getAgentApplications(): Promise<AdminRead<ApplicationQueue>> {
+/**
+ * Agent applications, narrowed by the console's shared queue frame.
+ *
+ * ---------------------------------------------------------------------------
+ * TWO BUCKETS, ONE TABLE, AND NO PAGER. THAT IS DELIBERATE.
+ *
+ * "Waiting on us" and "recently decided" are not two pages of one list, they
+ * are two questions, ordered by two different columns (`submitted_at` and
+ * `reviewed_at`) and capped at thirty and ten on purpose. A single cursor
+ * cannot walk two independently-ordered reads, and offering Next would have to
+ * mean "next page of whichever one you were looking at", which is a control
+ * that does a different thing depending on where the reader's eye was. So this
+ * queue gets the search, the status chips and the date range, which is what an
+ * operator asked for, and does not get a pager, which would be a lie about what
+ * the read knows.
+ *
+ * THE SEARCH IS OVER THE NAMES A REVIEWER HAS. `full_name` and `business_name`,
+ * joined with `.or()`. Not the email, because an application's email is on the
+ * auth user rather than on this row, and not the id, because an id is how you
+ * find a row you already have.
+ *
+ * THE STATUS CHIP NARROWS BOTH BUCKETS, and one of them always empties, because
+ * every value of `agent_application_status` belongs to exactly one bucket. That
+ * reads correctly: choosing REJECTED empties "waiting" and leaves the rejected
+ * ones under "recently decided". The page suppresses the per-section empty
+ * copy when a filter is on, so nothing says "nothing is waiting" to somebody
+ * who has just asked to see decided rows.
+ */
+export async function getAgentApplications(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<ApplicationQueue>> {
   const admin = await adminClient();
   if (!admin) return UNAVAILABLE;
 
+  /* Stripped of the characters PostgREST's `or` grammar reads as structure: a
+     comma would split one condition into two and a bracket would open a group,
+     so an unsanitised name with a comma in it produces a filter the database
+     rejects rather than a search. */
+  const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
+  const status = pickStatus(Constants.public.Enums.agent_application_status, filter?.status);
+  type ApplicationStatus = Database["public"]["Enums"]["agent_application_status"];
+
+  const waitingStatuses = ["SUBMITTED", "UNDER_REVIEW", "MORE_INFO_REQUIRED"] as const;
+  const decidedStatuses = ["APPROVED", "REJECTED", "SUSPENDED"] as const;
+  /* Generic over the literal union so the `.in()` below keeps its type: a
+     `string[]` here would force a cast at the call site and throw away the one
+     check that stops a bucket naming a status the column does not have. */
+  const inBucket = <T extends ApplicationStatus>(bucket: readonly T[]): T[] =>
+    status ? bucket.filter((value) => value === status) : [...bucket];
+
   try {
+    const narrow = <T extends { or: (f: string) => T; gte: (c: string, v: string) => T; lte: (c: string, v: string) => T }>(
+      builder: T,
+    ): T => {
+      let next = builder;
+      if (term.length > 0) {
+        next = next.or(`full_name.ilike.%${term}%,business_name.ilike.%${term}%`);
+      }
+      if (filter?.from) next = next.gte("created_at", lagosDayStart(filter.from));
+      if (filter?.to) next = next.lte("created_at", lagosDayEnd(filter.to));
+      return next;
+    };
+
     const [waiting, decided] = await Promise.all([
-      admin
-        .from("agent_applications")
-        .select(APPLICATION_COLUMNS)
-        .in("status", ["SUBMITTED", "UNDER_REVIEW", "MORE_INFO_REQUIRED"])
+      narrow(
+        admin
+          .from("agent_applications")
+          .select(APPLICATION_COLUMNS)
+          .in("status", inBucket(waitingStatuses)),
+      )
         .order("submitted_at", { ascending: false, nullsFirst: false })
         .limit(30),
-      admin
-        .from("agent_applications")
-        .select(APPLICATION_COLUMNS)
-        .in("status", ["APPROVED", "REJECTED", "SUSPENDED"])
+      narrow(
+        admin
+          .from("agent_applications")
+          .select(APPLICATION_COLUMNS)
+          .in("status", inBucket(decidedStatuses)),
+      )
         .order("reviewed_at", { ascending: false, nullsFirst: false })
         .limit(10),
     ]);
@@ -857,22 +919,61 @@ function toListingView(admin: SupabaseClient<Database>, row: ListingRow): Listin
 
 export type ListingQueue = { waiting: ListingReviewView[]; decided: ListingReviewView[] };
 
-export async function getListingSubmissions(): Promise<AdminRead<ListingQueue>> {
+/**
+ * Listing submissions, narrowed by the console's shared queue frame.
+ *
+ * The same two-bucket shape as `getAgentApplications`, for the same reason and
+ * with the same consequence: a search, a status chip row and a date range, and
+ * no pager, because "waiting on us" and "recently decided" are ordered by two
+ * different columns and one cursor cannot walk both. The note on that function
+ * is the long version.
+ *
+ * The search is over the title and the city, which is how a reviewer describes
+ * a listing to a colleague: "the Lekki three-bed". Not the address, which is
+ * the one field on this row that identifies somebody's home rather than a
+ * property, and putting it behind a free-text search on an operator console is
+ * a wider exposure than a queue needs.
+ */
+export async function getListingSubmissions(
+  filter?: AdminQueueFilter,
+): Promise<AdminRead<ListingQueue>> {
   const admin = await adminClient();
   if (!admin) return UNAVAILABLE;
 
+  const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
+  const status = pickStatus(Constants.public.Enums.listing_status, filter?.status);
+  type ListingStatus = Database["public"]["Enums"]["listing_status"];
+  const inBucket = <T extends ListingStatus>(bucket: readonly T[]): T[] =>
+    status ? bucket.filter((value) => value === status) : [...bucket];
+
+  const waitingStatuses = [
+    "SUBMITTED",
+    "UNDER_REVIEW",
+    "APPROVED",
+    "MORE_INFO_REQUIRED",
+  ] as const;
+  const decidedStatuses = ["PUBLISHED", "REJECTED", "SUSPENDED"] as const;
+
   try {
+    const narrow = <T extends { or: (f: string) => T; gte: (c: string, v: string) => T; lte: (c: string, v: string) => T }>(
+      builder: T,
+    ): T => {
+      let next = builder;
+      if (term.length > 0) next = next.or(`title.ilike.%${term}%,city.ilike.%${term}%`);
+      if (filter?.from) next = next.gte("created_at", lagosDayStart(filter.from));
+      if (filter?.to) next = next.lte("created_at", lagosDayEnd(filter.to));
+      return next;
+    };
+
     const [waiting, decided] = await Promise.all([
-      admin
-        .from("listings")
-        .select(LISTING_COLUMNS)
-        .in("status", ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "MORE_INFO_REQUIRED"])
+      narrow(
+        admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(waitingStatuses)),
+      )
         .order("submitted_at", { ascending: false, nullsFirst: false })
         .limit(30),
-      admin
-        .from("listings")
-        .select(LISTING_COLUMNS)
-        .in("status", ["PUBLISHED", "REJECTED", "SUSPENDED"])
+      narrow(
+        admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(decidedStatuses)),
+      )
         .order("reviewed_at", { ascending: false, nullsFirst: false })
         .limit(10),
     ]);

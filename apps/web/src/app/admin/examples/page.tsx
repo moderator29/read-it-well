@@ -3,6 +3,15 @@ import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getExamplesConsole, isOverdue, lagosToday } from "@/lib/admin/examples-queries";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
+import {
+  QueueFilters,
+  QueuePager,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 import type { ExampleListingView } from "@/lib/admin/examples-queries";
 import { RetireExamples } from "./RetireExamples";
 
@@ -28,12 +37,36 @@ export const dynamic = "force-dynamic";
  * The count at the top is the honest measure of how much of the catalogue is
  * still furniture, which is a number the owner should be able to watch fall.
  */
-export default async function AdminExamplesPage() {
+/** The chips, from `listing_status`, because an example is a listing. */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return Constants.public.Enums.listing_status.map((value) => ({
+    value,
+    label: ui.statusLabel(value),
+  }));
+}
+
+export default async function AdminExamplesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const read = await getExamplesConsole();
+  /* The shared queue frame. The tiles above are deliberately not narrowed by
+     it: see the note on `getExamplesConsole`. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
+  const read = await getExamplesConsole({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
+  });
 
   if (read.state !== "ok") {
     return (
@@ -95,15 +128,32 @@ export default async function AdminExamplesPage() {
         />
       )}
 
+      <QueueFilters
+        base="/admin/examples"
+        query={query}
+        common={common}
+        statuses={statusFilters(ui)}
+        searchPlaceholder="Search by title or city"
+      />
+
+      {narrowed && live.length === 0 && retired.length === 0 && (
+        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
+      )}
+
       <ui.Section
         title="Still on the catalogue"
         hint="Visible to the public in search and on the map."
       >
         {live.length === 0 ? (
-          <ui.QueueEmpty
-            title="No example is public any more"
-            body="Everything a visitor can see is a real listing from a real lister."
-          />
+          /* Narrowed, this section says nothing: "no example is public any
+             more" is a claim about the whole catalogue and is false to somebody
+             who has just filtered to one city. */
+          narrowed ? null : (
+            <ui.QueueEmpty
+              title="No example is public any more"
+              body="Everything a visitor can see is a real listing from a real lister."
+            />
+          )
         ) : (
           <div className="nf-card">
             <ul className="nf-rows nf-group">
@@ -145,6 +195,14 @@ export default async function AdminExamplesPage() {
           </div>
         </ui.Section>
       )}
+
+      <QueuePager
+        base="/admin/examples"
+        query={query}
+        pageSize={QUEUE_PAGE_SIZE}
+        full={read.data.full}
+        count={live.length + retired.length}
+      />
     </div>
   );
 }

@@ -16,7 +16,7 @@ const MAX_EMAIL_LENGTH = 80;
  * Identity card for the profile surface, before there is an account.
  *
  * This card renders ONLY on the signed-out and could-not-load branches of
- * /profile. The signed-in hero is `AccountProfile`, which reads the real
+ * /profile. The signed-in hero is `AccountHero`, which reads the real
  * profiles row and real counts of that person's bookings, saves and reviews.
  *
  * Everything here is therefore scoped to this device, and says so. It used to
@@ -193,7 +193,8 @@ export function ProfileIdentityCard() {
 
       {/* Where the activity strip was. Stays, saves and reviews are real
           counts of real rows, so they arrive with an account and not before;
-          `AccountProfile` renders them the moment there is one. */}
+          `AccountHero` and `AccountBody` render them the moment there is
+          one. */}
       {/* NO SECOND BORDER. This was a bordered box inside a card, which is the
           one nesting the surface language has no exceptions to, drawn around a
           prompt that the card's own bottom edge already separates. The rule

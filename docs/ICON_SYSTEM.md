@@ -92,7 +92,7 @@ in hero or story panels.
 set. Used for ALL navigation (rails, tab bar, headers, chips) and small
 controls. Never replaced by the 3D pack: navigation must stay flat and fast.
 
-**One weight.** `UI_ICON_STROKE_PX` is 1.4 RENDERED CSS pixels, and the
+**One weight.** `UI_ICON_STROKE_PX` is 1.5 RENDERED CSS pixels, and the
 `stroke-width` attribute is computed from the size rather than passed in.
 There is no `strokeWidth` prop. A fixed number on the 24 grid renders thinner
 the smaller the glyph gets, which is why thirty-two call sites had each
@@ -100,8 +100,18 @@ hand-tuned a value between 1.5 and 2.6 and the platform ended up with a dozen
 weights. State is carried by colour and by the filled pill behind an active
 tab, never by a heavier line.
 
-**One size scale.** `UI_ICON_SIZES` is 12, 16, 20, 24, 28, 32: a 4px grid, and
-nothing between the steps. `snapUiIconSize` rounds anything else onto the
+**One size scale.** `UI_ICON_SIZES` is 16, 20, 24, 28, 32, 40: a 4px grid, and
+nothing between the steps.
+
+*Corrected 16 September 2026.* This file said 12, 16, 20, 24, 28, 32 and a
+weight of 1.4, and so did `HANDOFF.md` rule 18 and one executable spec. The code
+says 16 to 40 at 1.5 and carries the argument for each change beside the
+constant: **12 came out** because a stroked glyph drawn on a 24 grid renders a
+0.7 CSS pixel line at that size, which a display either drops or smears, and
+**40 went in** because empty states and role rows use it. Three documents and a
+spec all quoting a superseded number is not a stronger claim than the code, it
+is one stale line copied three times. The spec now parses the constant instead
+of restating it. `snapUiIconSize` rounds anything else onto the
 nearest one, so a size cannot drift off the grid whatever a caller passes.
 BrandIcon sits on an 8px grid from 24 up; below 24 the plinth in the artwork
 collapses into a coloured square.

@@ -234,13 +234,48 @@ export async function getMyBookings(
       arrivingName: (row.guest_name ?? "").trim() || null,
       arrivingPhone: (row.guest_phone ?? "").trim() || null,
       reviewed: reviewedBookingIds.has(row.id),
+      /*
+       * COMPLETED COUNTS, AND IT DID NOT.
+       *
+       * This asked for CONFIRMED and a passed checkout, which was the only way
+       * to say "the stay happened" while `booking_status` had no terminal good
+       * value. It has one now, and an agent recording a stay as COMPLETED moved
+       * the row out of CONFIRMED, so the guest SILENTLY LOST the ability to
+       * review the stay at the exact moment the platform learned for certain
+       * that it had happened. The date test stays for CONFIRMED, which is still
+       * the ordinary path for a stay nobody has recorded either way.
+       */
       reviewable:
-        row.status === "CONFIRMED" &&
-        row.check_out <= today &&
+        (row.status === "COMPLETED" ||
+          (row.status === "CONFIRMED" && row.check_out <= today)) &&
         !reviewedBookingIds.has(row.id),
     };
+    /*
+     * STATUS DECIDES THE BUCKET. THE DATE ONLY BREAKS THE TIE.
+     *
+     * This was `CANCELLED ? cancelled : checkOut <= today ? completed :
+     * upcoming`, so every status that was not CANCELLED was filed by its dates
+     * alone. With three statuses that was very nearly right. With five it is
+     * not: a stay the agent has recorded as COMPLETED or as a NO_SHOW is over,
+     * whatever its dates say, and a NO_SHOW whose checkout has not passed yet
+     * would have been filed under Upcoming - the platform telling somebody they
+     * have a stay coming up that it has already recorded them as missing.
+     *
+     * So the three terminal statuses are placed by status and only PENDING and
+     * CONFIRMED are placed by date.
+     *
+     * NO_SHOW GOES WITH THE PAST STAYS AND NOT WITH THE CANCELLED ONES, which
+     * is the one judgement call here. Filing it under Cancelled would tell the
+     * guest we cancelled their booking, which we did not; the tab is the record
+     * of stays that are behind them and the row's own pill says "No show",
+     * which is the accurate word and is the agent's, not ours. `reviewable`
+     * above already refuses it a review control, so nothing invites them to
+     * write about a stay they did not take.
+     */
     if (row.status === "CANCELLED") groups.cancelled.push(view);
-    else if (row.check_out <= today) groups.completed.push(view);
+    else if (row.status === "COMPLETED" || row.status === "NO_SHOW") {
+      groups.completed.push(view);
+    } else if (row.check_out <= today) groups.completed.push(view);
     else groups.upcoming.push(view);
   }
 

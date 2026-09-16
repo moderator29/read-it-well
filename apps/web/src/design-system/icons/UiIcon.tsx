@@ -21,7 +21,8 @@
  *
  * THE TWO DOCUMENTS ARE THE OTHER HALF OF THIS AND THEY ARE STILL WRONG.
  * `docs/ICON_SYSTEM.md` and `docs/HANDOFF.md` rule 18 both state the scale as
- * "12, 16, 20, 24, 28, 32" and the weight as 1.4. The scale is
+ * "12, 16, 20, 24, 28, 32" and the weight as 1.4, until 16 September 2026 when
+ * they were corrected to match this file. The scale is
  * [16, 20, 24, 28, 32, 40] and `UI_ICON_STROKE_PX` is 1.5. Checked rather than
  * assumed, in both directions: the code carries the argument for each of those
  * changes written out beside it, the documents carry only the old numbers, and

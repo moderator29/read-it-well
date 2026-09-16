@@ -78,6 +78,14 @@
      file, as the note there instructs: there is no container called
      `affordance`, so no width utility moves. */
   --spacing-affordance: var(--nf-pad-field-affordance);
+  /*
+   * `h-header` and `h-header-sm`, so the site header can state its height by
+   * name instead of writing `h-[60px] sm:h-[72px]`. Checked against the max-w
+   * list at the bottom of this file, as the note there instructs: there is no
+   * container called `header` or `header-sm`, so no width utility moves.
+   */
+  --spacing-header: var(--nf-header-height);
+  --spacing-header-sm: var(--nf-header-height-sm);
 
   /*
    * ------------------------------------------------- CONTAINER WIDTHS

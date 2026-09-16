@@ -7,6 +7,12 @@ import {
   type KycSubjectView,
 } from "@/lib/admin/kyc-queries";
 import { adminUi, type AdminUi } from "../_components/ui";
+import {
+  QueueFilters,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { DocumentDecision } from "../_components/MoneyDecisions";
 
@@ -88,12 +94,39 @@ const RUNG_LABEL: Record<string, string> = {
  *   Whether this is a re-submission. A third attempt at the same document
  *   deserves more care than a first, in both directions.
  */
-export default async function AdminKycPage() {
+/** The chips, from `document_review_status`: pending, approved, rejected. */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return Constants.public.Enums.document_review_status.map((value) => ({
+    value,
+    label: ui.columnLabel("kycReview", value),
+  }));
+}
+
+export default async function AdminKycPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  const read = await getKycQueue();
+  /* Status and date only, and NO SEARCH BOX, which is the honest answer here
+     rather than a missing feature: the field a reviewer recognises a subject by
+     is their name, and the name is not on the document row. The long version is
+     on `getKycQueue`. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  /* Not `queueNarrowed`, which counts `q`. There is no search box here, so a
+     hand-typed `?q=` would light up the no-match panel while changing nothing
+     about the rows. Only the three narrowings this queue actually applies. */
+  const narrowed = Boolean(query.status || query.from || query.to);
+  const read = await getKycQueue({
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+  });
 
   if (read.state !== "ok") {
     return (
@@ -117,11 +150,25 @@ export default async function AdminKycPage() {
         count={pendingCount}
       />
 
-      {waiting.length === 0 ? (
-        <ui.QueueEmpty
-          title="Nothing is waiting"
-          body="Every document that has been uploaded has been decided. Somebody uploading one now appears here immediately."
-        />
+      <QueueFilters
+        base="/admin/kyc"
+        query={query}
+        common={common}
+        searchable={false}
+        statuses={statusFilters(ui)}
+      />
+
+      {waiting.length === 0 && decided.length === 0 && narrowed ? (
+        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
+      ) : waiting.length === 0 ? (
+        /* Narrowed, this says nothing: "nothing is waiting" is false to
+           somebody who has just asked to see the approved ones. */
+        narrowed ? null : (
+          <ui.QueueEmpty
+            title="Nothing is waiting"
+            body="Every document that has been uploaded has been decided. Somebody uploading one now appears here immediately."
+          />
+        )
       ) : (
         <ul className="space-y-4">
           {waiting.map((subject) => (
