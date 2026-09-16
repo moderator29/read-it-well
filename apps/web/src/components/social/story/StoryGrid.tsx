@@ -53,12 +53,12 @@ export function StoryGrid({
               <span className="nf-story-plate__headline">{story.headline}</span>
               <span className="nf-story-plate__meta">
                 {story.placeLabel ? (
-                  <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-2xs">
                     <UiIcon name="location" size={13} />
                     {story.placeLabel}
                   </span>
                 ) : null}
-                <span className="inline-flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-2xs">
                   <PostGlyph name="like" size={13} active />
                   <span className="nf-numeric">{story.likeCount}</span>
                 </span>

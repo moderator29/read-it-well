@@ -174,7 +174,7 @@ export function ChoicePicker({
           <button
             type="button"
             onClick={() => onChange("")}
-            className="text-[0.6875rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+            className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
             {t.pickers.clear}
           </button>
@@ -194,7 +194,7 @@ export function ChoicePicker({
             .join(" ") || undefined
         }
         style={error ? INVALID_STYLE : undefined}
-        className="nf-field mt-1.5 flex w-full items-center justify-between gap-sm text-left disabled:cursor-not-allowed disabled:opacity-55"
+        className="nf-field mt-2xs flex w-full items-center justify-between gap-sm text-left disabled:cursor-not-allowed disabled:opacity-55"
       >
         <span
           className={
@@ -213,12 +213,12 @@ export function ChoicePicker({
       </button>
 
       {disabled && disabledHint && (
-        <p id={hintId} className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {disabledHint}
         </p>
       )}
       {!disabled && hint && (
-        <p id={hintId} className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {hint}
         </p>
       )}
@@ -226,7 +226,7 @@ export function ChoicePicker({
         <p
           id={errorId}
           role="alert"
-          className="mt-1.5 text-[var(--nf-text-overline)] font-medium text-[var(--nf-state-error)]"
+          className="mt-2xs text-[var(--nf-text-overline)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -248,7 +248,7 @@ export function ChoicePicker({
               ref={panelRef}
               className="nf-rise absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
             >
-              <div className="border-b border-[var(--nf-border-subtle)] px-5 pb-md pt-5">
+              <div className="border-b border-[var(--nf-border-subtle)] px-lg pb-md pt-lg">
                 <div className="flex items-center gap-sm">
                   <button
                     type="button"
@@ -289,15 +289,15 @@ export function ChoicePicker({
                 />
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-xs">
+              <div className="min-h-0 flex-1 overflow-y-auto px-lg pb-[max(2rem,env(safe-area-inset-bottom))] pt-xs">
                 {loading ? (
                   <p className="py-xl text-center text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
                     {t.pickers.loading}
                   </p>
                 ) : total === 0 ? (
-                  <div className="py-10 text-center">
+                  <div className="py-2xl text-center">
                     <p className="text-[var(--nf-text-body-sm)] font-semibold">{t.pickers.emptyTitle}</p>
-                    <p className="mx-auto mt-1.5 max-w-[34ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+                    <p className="mx-auto mt-2xs max-w-[34ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                       {groups.length === 0 ? t.pickers.emptyUnreachable : t.pickers.emptySearch}
                     </p>
                   </div>
@@ -305,7 +305,7 @@ export function ChoicePicker({
                   filtered.map((group) => (
                     <section key={group.category || "all"} className="pt-md first:pt-xs">
                       {group.category && (
-                        <h3 className="nf-overline sticky top-0 z-10 -mx-5 bg-[var(--nf-surface-primary)] px-5 py-xs">
+                        <h3 className="nf-overline sticky top-0 z-10 -mx-5 bg-[var(--nf-surface-primary)] px-lg py-xs">
                           {group.category}
                         </h3>
                       )}

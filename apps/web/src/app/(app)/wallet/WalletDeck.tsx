@@ -527,7 +527,7 @@ function WithdrawForm({
         <p className="nf-body-sm text-[var(--nf-content-muted)]">Checking the account…</p>
       )}
       {holder.state === "found" && (
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-sunken)] px-sm py-2.5">
+        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-sunken)] px-sm py-sm">
           <p className="nf-overline">Name on the account</p>
           <p className="nf-body mt-3xs font-semibold text-[var(--nf-content-primary)]">
             {holder.name}

@@ -685,8 +685,8 @@ export default async function ListingDetailPage({
           except the booking panel, which is a discrete object rather than a
           section, and which is the only raised surface on the screen.
         */}
-        <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-lg pt-7 sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-9 md:-mx-8 md:px-xl">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+        <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-lg pb-lg pt-xl sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-xl md:-mx-8 md:px-xl">
+          <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
             {/* --------------------------------------------- main column */}
             <div className="min-w-0">
               <Stack>
@@ -788,7 +788,7 @@ export default async function ListingDetailPage({
                   )}
 
                   {/* Bed, bath and what the place carries, as one inline run. */}
-                  <div className="mt-5">
+                  <div className="mt-md">
                     <ListingAmenities
                       bedrooms={listing.bedrooms}
                       bathrooms={listing.bathrooms}
@@ -1006,7 +1006,7 @@ function RestaurantPanel({
   messageHref: string;
 }) {
   return (
-    <div className="nf-card p-5">
+    <div className="nf-card p-lg">
       {listing.priceMinor > 0 && (
         <p>
           <Amount
@@ -1016,11 +1016,11 @@ function RestaurantPanel({
             className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
             secondaryClassName="text-[0.54em] font-semibold opacity-60"
           />
-          <span className={`ml-1.5 ${TYPE.body}`}>per head</span>
+          <span className={`ml-2xs ${TYPE.body}`}>per head</span>
         </p>
       )}
 
-      <p className={`mt-2.5 ${TYPE.body}`}>
+      <p className={`mt-xs ${TYPE.body}`}>
         Listed on Vallo by the person who runs it. Message them to ask about a
         table, a large party or anything the page does not answer.
       </p>

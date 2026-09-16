@@ -198,7 +198,7 @@ export default async function AroundManagePage({
         </section>
       ) : null}
 
-      <section className="mb-9">
+      <section className="mb-xl">
         <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           Your places
         </h2>
@@ -226,13 +226,13 @@ export default async function AroundManagePage({
             ))}
           </ul>
         ) : (
-          <div className="nf-card p-5 text-center">
+          <div className="nf-card p-lg text-center">
             <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
               {open.length > 0
                 ? "You are in every place that is open so far."
                 : AREA_COPY.noneOpenYet}
             </p>
-            <Link href="/around/new" className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-5 text-[var(--nf-text-body-sm)]">
+            <Link href="/around/new" className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-lg text-[var(--nf-text-body-sm)]">
               Suggest a place
             </Link>
           </div>

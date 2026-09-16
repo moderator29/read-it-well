@@ -43,7 +43,7 @@ export function ReviewList({ reviews }: { reviews: ReviewCard[] }) {
             {review.listingTitle} · {review.createdLabel}
           </p>
           {review.body ? (
-            <p className="mt-2.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {review.body}
             </p>
           ) : null}

@@ -363,11 +363,11 @@ export function PostCard({
 
       <div className="flex items-center gap-xs">
         {isSystem ? (
-          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 py-2xs text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm py-2xs text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             Vallo
           </span>
         ) : isBot ? (
-          <span className="inline-flex items-center gap-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-sm py-2xs text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="inline-flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-sm py-2xs text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
             Vallo AI
           </span>
         ) : (
@@ -489,7 +489,7 @@ export function PostCard({
       {post.areaName && post.areaSlug && !isSystem ? (
         <Link
           href={`/around/${post.areaSlug}`}
-          className="mt-sm inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 text-[0.68rem] font-semibold text-[var(--nf-content-muted)]"
+          className="mt-sm inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm text-[0.68rem] font-semibold text-[var(--nf-content-muted)]"
         >
           Around {post.areaName}
         </Link>
@@ -509,7 +509,7 @@ export function PostCard({
       ) : null}
 
       {post.sourceNote ? (
-        <p className="mt-2.5 text-[0.72rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[0.72rem] leading-relaxed text-[var(--nf-content-muted)]">
           {post.sourceNote}
         </p>
       ) : null}
@@ -599,7 +599,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
       <p className="text-[var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
         {listing.title}
       </p>
-      <p className="mt-3xs flex items-center gap-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <p className="mt-3xs flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {listing.area}, {listing.city}
         {listing.verified ? (
           <span className="font-semibold text-[var(--nf-brand-secondary)]">&middot; Verified</span>

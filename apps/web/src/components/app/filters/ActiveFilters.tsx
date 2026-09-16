@@ -36,7 +36,7 @@ function RemoveChip({
         href={href}
         prefetch
         data-testid={testId}
-        className="nf-chip min-h-11 whitespace-nowrap py-1.5 pr-sm text-[var(--nf-text-caption)]"
+        className="nf-chip min-h-11 whitespace-nowrap py-xs pr-sm text-[var(--nf-text-caption)]"
       >
         <span>{label}</span>
         <span className="sr-only">Remove {removes}</span>
@@ -229,7 +229,7 @@ export function ActiveFilters({
       <ul
         aria-label="Active filters"
         data-testid="active-filters"
-        className="flex items-center gap-xs px-5 md:px-xl"
+        className="flex items-center gap-xs px-lg md:px-xl"
       >
         {chips}
         {activeFilterCount(query) > 0 && (

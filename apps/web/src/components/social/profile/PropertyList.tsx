@@ -33,7 +33,7 @@ export function PropertyList({ properties }: { properties: PropertyCard[] }) {
               <p className="text-[var(--nf-text-body)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
                 {property.title}
               </p>
-              <p className="mt-2xs inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs inline-flex items-center gap-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 <UiIcon name="location" size={13} />
                 {[property.area, property.city].filter(Boolean).join(", ")}
               </p>

@@ -12,6 +12,7 @@ import {
   type QueueStatusOption,
 } from "../_components/QueueFilters";
 import { Constants } from "@/lib/supabase/database.types";
+import { ESCROW_STATE_WORDS } from "@/components/app/untranslated";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { EscrowRuling } from "../_components/MoneyDecisions";
 
@@ -47,16 +48,11 @@ const STATE_TONE: Record<string, StatusTone> = {
   RESOLVED: "success",
 };
 
-const STATE_LABEL: Record<string, string> = {
-  INITIATED: "Agreed, not funded",
-  FUNDED: "Funded",
-  HELD: "Held",
-  RELEASE_REQUESTED: "Release asked for",
-  RELEASED: "Released",
-  REFUNDED: "Refunded",
-  DISPUTED: "In dispute",
-  RESOLVED: "Ruled on",
-};
+/* Staged in `components/app/untranslated.ts` with the rest of this owner's
+   untranslated copy, so translating it is one job rather than a hunt. The
+   destination is `t.admin.escrow.state.<VALUE>`. `STATE_TONE` above stays here:
+   a tone is not copy. */
+const STATE_LABEL = ESCROW_STATE_WORDS;
 
 /**
  * The escrow console, and the dispute queue that is the point of it.
@@ -76,8 +72,8 @@ const STATE_LABEL: Record<string, string> = {
  *
  * Eight values, and the words are the ones this screen already uses for the
  * chip on each card, so the filter and the row it filters cannot disagree.
- * `STATE_LABEL` is still English and still local to this file; it is named in
- * the sprint report with the rest of the console vocabulary.
+ * `STATE_LABEL` is still English, and it is staged in
+ * `components/app/untranslated.ts` rather than written here.
  */
 function statusFilters(): readonly QueueStatusOption[] {
   return Constants.public.Enums.escrow_state.map((value) => ({

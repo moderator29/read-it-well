@@ -54,7 +54,7 @@ export default async function PlacePage() {
               : copy.accountBodySignedOut}
           </p>
           {session.state === "signed-out" && (
-            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-5 w-full sm:w-auto">
+            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
               {t.common.signIn}
             </Link>
           )}

@@ -40,7 +40,7 @@ export default async function ProposeAreaPage() {
 
       <ProposeAreaForm states={states} signedIn={signedIn} />
 
-      <section className="nf-card mt-xl p-5">
+      <section className="nf-card mt-xl p-lg">
         <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           If you want to look after a place
         </h2>
@@ -49,7 +49,7 @@ export default async function ProposeAreaPage() {
           worth knowing what that does and does not mean before you ask.
         </p>
 
-        <div className="mt-md grid gap-5 sm:grid-cols-2">
+        <div className="mt-md grid gap-md sm:grid-cols-2">
           <div>
             <h3 className="text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.12em] text-[var(--nf-state-success)]">
               You can

@@ -63,15 +63,15 @@ export function DocumentUploader({
   }
 
   return (
-    <section className="nf-card p-md sm:p-5">
+    <section className="nf-card p-md sm:p-lg">
       <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h3>
 
-      <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {spec.qualifies}
       </p>
 
       {/* The rule that gets people refused, said before they upload. */}
-      <p className="mt-xs flex items-start gap-1.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-xs flex items-start gap-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="verified" size="sm" className="mt-3xs shrink-0" />
         <span>{spec.caution}</span>
       </p>
@@ -86,7 +86,7 @@ export function DocumentUploader({
       />
 
       {file ? (
-        <div className="mt-md flex items-center gap-sm rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-3.5 py-sm">
+        <div className="mt-md flex items-center gap-sm rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-md py-sm">
           <span className="nf-role-mark" aria-hidden="true">
             <UiIcon name="document" size="md" />
           </span>

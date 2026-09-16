@@ -98,7 +98,7 @@ export function ListingAmenities({
   return (
     <ul
       data-testid="amenity-row"
-      className="flex flex-wrap items-center gap-y-2.5 text-[var(--nf-text-body)]"
+      className="flex flex-wrap items-center gap-y-xs text-[var(--nf-text-body)]"
     >
       {marks.map((mark, i) => (
         <li
@@ -113,7 +113,7 @@ export function ListingAmenities({
               of marks; a divider of its own would be a list item that is not
               a fact about the property. */}
           {i > 0 && (
-            <span aria-hidden="true" className="px-2.5 text-[var(--nf-content-muted)]">
+            <span aria-hidden="true" className="px-sm text-[var(--nf-content-muted)]">
               ·
             </span>
           )}

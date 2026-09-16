@@ -16,7 +16,7 @@ export default function LoadingProposeArea() {
         <span className="nf-social-skeleton block h-3 w-72 rounded-[var(--nf-radius-xs)]" />
       </div>
 
-      <div className="nf-card space-y-md p-5" aria-hidden="true">
+      <div className="nf-card space-y-md p-lg" aria-hidden="true">
         <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
         <div className="grid gap-md sm:grid-cols-2">
           <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
@@ -29,7 +29,7 @@ export default function LoadingProposeArea() {
       {/* The moderator rules panel underneath. It is static copy and arrives with
           the page, so its shape is held rather than left as a gap that pushes the
           form upward when it lands. */}
-      <div className="nf-card mt-xl space-y-sm p-5" aria-hidden="true">
+      <div className="nf-card mt-xl space-y-sm p-lg" aria-hidden="true">
         <span className="nf-social-skeleton block h-4 w-56 rounded-[var(--nf-radius-xs)]" />
         <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
         <span className="nf-social-skeleton block h-3 w-4/5 rounded-[var(--nf-radius-xs)]" />

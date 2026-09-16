@@ -177,19 +177,19 @@ export default async function CheckoutPage({
       <Reveal>
         <section
           aria-labelledby="nf-checkout-summary"
-          className="nf-card p-md sm:p-5"
+          className="nf-card p-md sm:p-lg"
         >
           <h2 id="nf-checkout-summary" className="nf-h3">
             {view.title}
           </h2>
           {view.location.length > 0 && (
-            <p className="mt-2xs flex items-center gap-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs flex items-center gap-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">{view.location}</span>
             </p>
           )}
 
-          <dl className="mt-md grid gap-2.5 border-t border-[var(--nf-border-subtle)] pt-md">
+          <dl className="mt-md grid gap-xs border-t border-[var(--nf-border-subtle)] pt-md">
             <div className="flex items-start justify-between gap-md">
               <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">Dates</dt>
               <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">

@@ -58,7 +58,7 @@ export function PlaceForm({
   const fieldErrors = state && !state.ok ? state.fieldErrors : undefined;
 
   return (
-    <form action={formAction} className="nf-card p-5 sm:p-lg" data-testid="place-form">
+    <form action={formAction} className="nf-card p-lg sm:p-lg" data-testid="place-form">
       <PlaceFields
         t={t}
         states={states}
@@ -72,7 +72,7 @@ export function PlaceForm({
         <p
           role="alert"
           data-testid="place-error"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
@@ -82,14 +82,14 @@ export function PlaceForm({
         <p
           role="status"
           data-testid="place-saved"
-          className="nf-rise mt-5 flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]"
+          className="nf-rise mt-md flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]"
         >
           <UiIcon name="verified" size={16} className="shrink-0" />
           Saved. Home now opens on this city.
         </p>
       )}
 
-      <button type="submit" disabled={pending} className="nf-btn nf-btn--primary mt-5 w-full">
+      <button type="submit" disabled={pending} className="nf-btn nf-btn--primary mt-md w-full">
         {pending ? "Saving..." : "Save"}
       </button>
 

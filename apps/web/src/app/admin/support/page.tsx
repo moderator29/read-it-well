@@ -63,7 +63,7 @@ function TicketRow({
         href={`/admin/support?ticket=${ticket.id}`}
         aria-current={selected ? "true" : undefined}
         className={[
-          "nf-card nf-card--interactive block p-3.5 sm:p-md",
+          "nf-card nf-card--interactive block p-md sm:p-md",
           selected ? "ring-1 ring-[var(--nf-border-brand)]" : "",
         ].join(" ")}
       >
@@ -80,7 +80,7 @@ function TicketRow({
         </div>
         {/* Never truncated: the topic is the sentence the person chose, and it
             is the whole of what this row is about. */}
-        <p className="mt-1.5 text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
+        <p className="mt-2xs text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
           {supportTopicLabel(ticket.topic) ?? copy.generalQuestion}
         </p>
         {/* THE NAME WRAPS TOO, AND THE COMMENT ABOVE DID NOT COVER IT.
@@ -176,7 +176,7 @@ export default async function AdminSupportPage({
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {selected && (
-        <section className="nf-card mb-lg p-md sm:p-5">
+        <section className="nf-card mb-lg p-md sm:p-lg">
           <div className="flex flex-wrap items-center gap-xs">
             <ui.StatusChip status={selected.status} />
             <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -191,7 +191,7 @@ export default async function AdminSupportPage({
             </Link>
           </div>
 
-          <h2 className="nf-h3 mt-2.5">
+          <h2 className="nf-h3 mt-xs">
             {supportTopicLabel(selected.topic) ?? copy.generalQuestion}
           </h2>
 
@@ -206,10 +206,10 @@ export default async function AdminSupportPage({
           </ui.DetailSection>
 
           <div className="mt-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm">
-            <p className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
+            <p className="nf-overline text-[var(--nf-content-muted)]">
               {copy.whatTheyAsked}
             </p>
-            <p className="mt-1.5 whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
+            <p className="mt-2xs whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
               {selected.body}
             </p>
           </div>
@@ -229,10 +229,10 @@ export default async function AdminSupportPage({
                   }
                 >
                   <span className="flex flex-wrap items-center gap-xs">
-                    <span className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
+                    <span className="nf-overline text-[var(--nf-content-muted)]">
                       {message.senderRole === "admin" ? copy.supportSender : selected.name}
                     </span>
-                    <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">
+                    <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {ui.when(message.createdAt)}
                     </span>
                   </span>
@@ -270,7 +270,7 @@ export default async function AdminSupportPage({
           {open.length === 0 ? (
             <ui.QueueEmpty title={copy.nothingWaitingTitle} body={copy.nothingWaitingBody} />
           ) : (
-            <ul className="space-y-2.5">
+            <ul className="space-y-xs">
               {open.map((ticket) => (
                 <TicketRow
                   key={ticket.id}
@@ -287,7 +287,7 @@ export default async function AdminSupportPage({
           {closed.length > 0 && (
             <section className="mt-xl">
               <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyClosed}</h2>
-              <ul className="space-y-2.5">
+              <ul className="space-y-xs">
                 {closed.map((ticket) => (
                   <TicketRow
                     key={ticket.id}

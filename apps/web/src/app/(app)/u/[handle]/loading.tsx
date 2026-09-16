@@ -35,16 +35,16 @@ export default function LoadingProfile() {
         </div>
       </div>
 
-      <div className="mt-3.5 space-y-2.5" aria-hidden="true">
+      <div className="mt-sm space-y-xs" aria-hidden="true">
         <span className="nf-social-skeleton block h-5 w-40 rounded-[var(--nf-radius-xs)]" />
         <span className="nf-social-skeleton block h-3 w-32 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton mt-5 block h-3 w-full rounded-[var(--nf-radius-xs)]" />
+        <span className="nf-social-skeleton mt-md block h-3 w-full rounded-[var(--nf-radius-xs)]" />
         <span className="nf-social-skeleton block h-3 w-4/5 rounded-[var(--nf-radius-xs)]" />
-        <div className="flex gap-5 pt-1.5">
+        <div className="flex gap-md pt-xs">
           <span className="nf-social-skeleton block h-3 w-24 rounded-[var(--nf-radius-xs)]" />
           <span className="nf-social-skeleton block h-3 w-24 rounded-[var(--nf-radius-xs)]" />
         </div>
-        <div className="flex gap-5 pt-1.5">
+        <div className="flex gap-md pt-xs">
           <span className="nf-social-skeleton block h-4 w-20 rounded-[var(--nf-radius-xs)]" />
           <span className="nf-social-skeleton block h-4 w-20 rounded-[var(--nf-radius-xs)]" />
           <span className="nf-social-skeleton block h-4 w-14 rounded-[var(--nf-radius-xs)]" />

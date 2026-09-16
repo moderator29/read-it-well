@@ -155,7 +155,7 @@ export function KycFlow({
       />
 
       <h1 className="nf-h2 mt-lg">{step.title}</h1>
-      <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {step.hint}
       </p>
 
@@ -203,7 +203,7 @@ export function KycFlow({
                     setAt((i) => i + 1);
                   }}
                   aria-pressed={business === option.value}
-                  className="flex w-full items-center gap-3.5 px-2xs py-md text-left transition-colors hover:bg-[var(--nf-interactive-hover)]"
+                  className="flex w-full items-center gap-sm px-2xs py-md text-left transition-colors hover:bg-[var(--nf-interactive-hover)]"
                 >
                   <span className="nf-role-mark" aria-hidden="true">
                     <UiIcon name={option.value ? "building-apartment" : "user"} size="md" />
@@ -240,13 +240,13 @@ export function KycFlow({
            * is three small tasks rather than one long one.
            */
           BUSINESS_SECTIONS.map((section) => (
-            <section key={section.heading} className="nf-card p-md sm:p-5">
+            <section key={section.heading} className="nf-card p-md sm:p-lg">
               <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 {section.heading}
               </h2>
               <p className="mt-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{section.note}</p>
 
-              <div className="mt-md space-y-3.5">
+              <div className="mt-md space-y-sm">
                 {section.fields.map((field) => (
                   <TextField
                     key={field.name}
@@ -328,7 +328,7 @@ export function KycFlow({
                 <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {GAPS_TITLE}
                 </p>
-                <ul className="mt-xs list-disc space-y-2xs pl-5 text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+                <ul className="mt-xs list-disc space-y-2xs pl-lg text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
                   {gaps.map((gap) => (
                     <li key={gap}>{gap}</li>
                   ))}
@@ -347,7 +347,7 @@ export function KycFlow({
 
       {/* ------------------------------------------------------------ footer */}
       {step.id !== "business-question" && (
-        <div className="mt-7">
+        <div className="mt-lg">
           {step.id === "review" ? (
             <Button
               variant="primary"
@@ -398,7 +398,7 @@ function Submitted() {
       <span className="nf-role-mark nf-role-mark--lg mx-auto" aria-hidden="true">
         <UiIcon name="calendar-booking" size="lg" />
       </span>
-      <h1 className="nf-h2 mt-5">{SENT_TITLE}</h1>
+      <h1 className="nf-h2 mt-md">{SENT_TITLE}</h1>
       <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {SENT_BODY}
       </p>
@@ -407,7 +407,7 @@ function Submitted() {
       </p>
       <Link
         href="/profile"
-        className="mt-lg inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+        className="mt-lg inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
         {SENT_ACTION}
         <UiIcon name="arrow-right" size="sm" />

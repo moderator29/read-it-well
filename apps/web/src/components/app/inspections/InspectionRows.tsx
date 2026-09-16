@@ -133,7 +133,7 @@ function InspectionRow({
 
   return (
     <Row className="flex-col items-stretch gap-xs py-md">
-      <div className="flex w-full items-start gap-3.5">
+      <div className="flex w-full items-start gap-sm">
         <span className="nf-role-mark mt-3xs shrink-0" aria-hidden="true">
           <UiIcon name="calendar-booking" size={ICON.row} />
         </span>

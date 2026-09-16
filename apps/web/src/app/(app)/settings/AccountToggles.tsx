@@ -67,7 +67,7 @@ function saveNote(t: Dictionary, saved: boolean, error: string | null) {
     <span
       role="status"
       data-testid="settings-saved"
-      className="nf-rise inline-flex items-center gap-1.5 text-[var(--nf-state-success)]"
+      className="nf-rise inline-flex items-center gap-2xs text-[var(--nf-state-success)]"
     >
       <UiIcon name="verified" size={16} className="shrink-0" />
       {t.settings.account.saved}

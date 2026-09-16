@@ -76,7 +76,7 @@ export function ReportSheet({
   return (
     <div className="nf-social-sheet" role="dialog" aria-modal="true" aria-label={title}>
       <div ref={panelRef} className="nf-social-sheet__panel">
-        <header className="mb-5 flex items-start justify-between gap-sm">
+        <header className="mb-md flex items-start justify-between gap-sm">
           <div className="min-w-0">
             <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">{sent ? "Thank you" : title}</h2>
             <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
@@ -115,7 +115,7 @@ export function ReportSheet({
         ) : (
           <>
             <fieldset>
-              <legend className="nf-overline mb-2.5">What is wrong</legend>
+              <legend className="nf-overline mb-xs">What is wrong</legend>
               <div className="flex flex-col gap-xs">
                 {reasons.map((key) => (
                   <label key={key} className="nf-social-reason">
@@ -132,7 +132,7 @@ export function ReportSheet({
               </div>
             </fieldset>
 
-            <label className="mt-5 block">
+            <label className="mt-md block">
               <span className="nf-overline">Anything else, if it helps</span>
               <textarea
                 className="nf-field mt-xs min-h-[88px] w-full resize-y text-[var(--nf-text-body-sm)] leading-[1.5]"

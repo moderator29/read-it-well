@@ -47,12 +47,12 @@ export function LoadingShell({
  */
 export function PageHeaderSkeleton({ subtitle = false }: { subtitle?: boolean }) {
   return (
-    <div className="mb-5 flex items-center gap-md sm:mb-lg">
+    <div className="mb-md flex items-center gap-md sm:mb-lg">
       <Skeleton circle width="2.25rem" className="shrink-0 sm:hidden" />
       <Skeleton circle width="2.5rem" className="hidden shrink-0 sm:block" />
       <div className="min-w-0 flex-1">
         <Skeleton width="45%" height="1.375rem" radius="sm" />
-        {subtitle ? <Skeleton className="mt-1.5" width="65%" height="0.8125rem" radius="sm" /> : null}
+        {subtitle ? <Skeleton className="mt-2xs" width="65%" height="0.8125rem" radius="sm" /> : null}
       </div>
     </div>
   );
@@ -86,7 +86,7 @@ export function CardRowsSkeleton({
   return (
     <ul className={["space-y-sm", className ?? ""].filter(Boolean).join(" ")}>
       {Array.from({ length: rows }, (_, i) => (
-        <li key={i} className="nf-card p-md sm:p-5">
+        <li key={i} className="nf-card p-md sm:p-lg">
           <div className="flex items-start gap-md">
             <Skeleton width="2.75rem" height="2.75rem" radius="md" className="shrink-0" />
             <div className="min-w-0 flex-1" style={{ minHeight: height }}>

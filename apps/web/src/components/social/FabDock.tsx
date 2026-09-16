@@ -122,7 +122,7 @@ export function FabDock({
           aria-label={composeKind === "ASK" ? "Ask a question" : "Say something"}
         >
           <div ref={composerRef} className="nf-social-sheet__panel">
-            <header className="mb-5 flex items-start justify-between gap-sm">
+            <header className="mb-md flex items-start justify-between gap-sm">
               <div className="min-w-0">
                 <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">
                   {composeKind === "ASK" ? "Ask a question" : "Say something"}

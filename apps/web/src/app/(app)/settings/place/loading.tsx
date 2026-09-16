@@ -14,7 +14,7 @@ export default function LoadingPlaceSettings() {
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="nf-card p-md">
             <Skeleton width="40%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-2.5" width="66%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-xs" width="66%" height="0.875rem" radius="sm" />
           </div>
         ))}
       </div>

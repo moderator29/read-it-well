@@ -47,10 +47,10 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <header className="mb-5 flex items-start justify-between gap-sm">
+      <header className="mb-md flex items-start justify-between gap-sm">
         <div>
           <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{o.title}</h1>
-          <p className="mt-1.5 max-w-[62ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {o.lede}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default async function AdminOverviewPage() {
                 <li key={tile.key}>
                   <Link
                     href={tile.href}
-                    className="nf-card nf-card--interactive flex h-full flex-col gap-xs p-md sm:p-5"
+                    className="nf-card nf-card--interactive flex h-full flex-col gap-xs p-md sm:p-lg"
                   >
                     <span className="flex items-center justify-between gap-xs">
                       <span className="flex items-center gap-xs text-[var(--nf-content-secondary)]">
@@ -106,7 +106,7 @@ export default async function AdminOverviewPage() {
             })}
           </ul>
 
-          <section className="nf-card mt-md p-md sm:p-5">
+          <section className="nf-card mt-md p-md sm:p-lg">
             <h2 className="nf-h3">{o.how.title}</h2>
             <ul className="mt-xs space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {[o.how.audit, o.how.notify, o.how.invisible].map((line) => (
@@ -122,7 +122,7 @@ export default async function AdminOverviewPage() {
             </ul>
             <Link
               href="/admin/switches"
-              className="mt-sm inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="mt-sm inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               {o.how.openSwitches}
               <UiIcon name="arrow-right" size={16} />

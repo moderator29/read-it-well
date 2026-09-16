@@ -14,7 +14,7 @@ export default function LoadingNewMessage() {
         {Array.from({ length: 2 }, (_, i) => (
           <div key={i} className="nf-card p-md">
             <Skeleton width="50%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-2.5" width="78%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-xs" width="78%" height="0.875rem" radius="sm" />
           </div>
         ))}
       </div>

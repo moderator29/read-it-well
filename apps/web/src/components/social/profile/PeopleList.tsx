@@ -102,16 +102,16 @@ export function PeopleList({
    */
   if (people.length === 0 && total > 0) {
     return (
-      <div className="nf-card nf-social-card mt-5 p-lg text-center sm:p-xl">
+      <div className="nf-card nf-social-card mt-md p-lg text-center sm:p-xl">
         <div className="mx-auto w-fit">
           <BrandIcon name="user-check" size={44} />
         </div>
-        <h2 className="nf-h3 mt-3.5 text-[var(--nf-text-body-lg)]">Nobody here you can see</h2>
+        <h2 className="nf-h3 mt-sm text-[var(--nf-text-body-lg)]">Nobody here you can see</h2>
         <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           The count is real, and none of these accounts is reachable from your
           own. That happens when a block sits between you.
         </p>
-        <div className="mt-5">
+        <div className="mt-md">
           <Link href={`/u/${handle}`} className="nf-btn nf-btn--primary">
             Back to @{handle}
           </Link>
@@ -123,17 +123,17 @@ export function PeopleList({
   if (people.length === 0) {
     const copy = EMPTY[direction];
     return (
-      <div className="nf-card nf-social-card mt-5 p-lg text-center sm:p-xl">
+      <div className="nf-card nf-social-card mt-md p-lg text-center sm:p-xl">
         <div className="mx-auto w-fit">
           <BrandIcon name="user-check" size={44} />
         </div>
-        <h2 className="nf-h3 mt-3.5 text-[var(--nf-text-body-lg)]">
+        <h2 className="nf-h3 mt-sm text-[var(--nf-text-body-lg)]">
           {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}
         </h2>
         <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {isOwner ? copy.mineBody : copy.theirsBody.replace("{handle}", handle)}
         </p>
-        <div className="mt-5">
+        <div className="mt-md">
           <Link
             href={isOwner ? "/around" : `/u/${handle}`}
             className="nf-btn nf-btn--primary"
@@ -147,7 +147,7 @@ export function PeopleList({
 
   return (
     <>
-      <ul className="mt-5 flex flex-col gap-[var(--nf-social-gap)]">
+      <ul className="mt-md flex flex-col gap-[var(--nf-social-gap)]">
         {people.map((person) => {
           const name = person.displayLabel || `@${person.handle}`;
           const monogram = (person.displayLabel || person.handle)
@@ -187,7 +187,7 @@ export function PeopleList({
                   @{person.handle}
                 </p>
                 {person.bio ? (
-                  <p className="mt-1.5 whitespace-pre-line text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="mt-2xs whitespace-pre-line text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {person.bio}
                   </p>
                 ) : null}
@@ -221,7 +221,7 @@ export function PeopleList({
       ) : null}
 
       {cursor ? (
-        <div className="mt-5 text-center">
+        <div className="mt-md text-center">
           <button
             type="button"
             onClick={loadMore}
@@ -232,7 +232,7 @@ export function PeopleList({
           </button>
         </div>
       ) : (
-        <p aria-live="polite" className="mt-5 text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p aria-live="polite" className="mt-md text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           That is everybody.
         </p>
       )}

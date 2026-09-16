@@ -52,7 +52,7 @@ export default async function AdminModerationPage() {
       </header>
 
       {queue.total === 0 ? (
-        <p className="nf-card p-5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-card p-lg text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           Nothing is held. When the scanner stops a post, a story, a comment or a
           bio, it lands here and its author is told it is being checked.
         </p>
@@ -60,7 +60,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Posts" count={queue.posts.length}>
         {queue.posts.map((post) => (
-          <li key={post.id} className="nf-card p-md sm:p-5">
+          <li key={post.id} className="nf-card p-md sm:p-lg">
             <Meta
               handle={post.author.handle}
               label={post.author.label}
@@ -87,7 +87,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Stories" count={queue.stories.length}>
         {queue.stories.map((story) => (
-          <li key={story.id} className="nf-card p-md sm:p-5">
+          <li key={story.id} className="nf-card p-md sm:p-lg">
             <Meta
               handle={story.author.handle}
               label={story.author.label}
@@ -99,7 +99,7 @@ export default async function AdminModerationPage() {
               {story.headline}
             </h3>
             {story.standfirst ? (
-              <p className="mt-1.5 whitespace-pre-wrap text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs whitespace-pre-wrap text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {story.standfirst}
               </p>
             ) : null}
@@ -116,7 +116,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Story comments" count={queue.comments.length}>
         {queue.comments.map((comment) => (
-          <li key={comment.id} className="nf-card p-md sm:p-5">
+          <li key={comment.id} className="nf-card p-md sm:p-lg">
             <Meta
               handle={comment.author.handle}
               label={comment.author.label}
@@ -143,7 +143,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Bios" count={queue.bios.length}>
         {queue.bios.map((bio) => (
-          <li key={bio.userId} className="nf-card p-md sm:p-5">
+          <li key={bio.userId} className="nf-card p-md sm:p-lg">
             <Meta
               handle={bio.handle}
               label={bio.label}

@@ -454,32 +454,44 @@
    * photograph must read as a placeholder that happens to be well drawn, never
    * as a feature somebody chose.
    *
-   * The one exception is `--nf-media-glass`, which carries a little warmth: a
-   * lit window is the single detail that tells the eye this is a building
-   * somebody lives in rather than a shape. */
+   * THIS BLOCK WAS DECLARED TWICE IN THIS SAME `:root`, AND THE COPY THAT WON
+   * WAS THE ONE THE NOTE ABOVE SAYS WAS WRONG.
+   *
+   * Seventeen lines further down, under a character-for-character copy of this
+   * comment, stood a second set of the same five custom properties holding
+   * `rgb(255 255 255 / 0.13)`, `rgb(0 0 0 / 0.28)`, `rgb(255 255 255 / 0.2)`,
+   * `rgb(255 236 190 / 0.5)` and `rgb(255 255 255 / 0.07)`. Later declaration
+   * of the same property in the same rule wins, so those were the values the
+   * product painted and these were dead the day they were written.
+   *
+   * Read the sky note above and the fault is plain in the file's own words: it
+   * says the drawn property "in front of it was translucent white at thirteen
+   * percent", says the sky has been lifted out of near-black, and says "every
+   * part of the building below has been lifted to match". `--nf-media-wall` was
+   * still `rgb(255 255 255 / 0.13)`. The lift was written, reviewed and never
+   * once rendered, which is why the placeholder stayed a grey smudge on a sky
+   * that had already been fixed.
+   *
+   * Nothing warned about it. A repeated custom property is legal CSS, this file
+   * is two thousand lines, and the duplicated comment made the second block
+   * look like the first at a glance rather than like a second definition of it.
+   * That is the same shape as every other fault this sprint has turned up: not
+   * a wrong value, a value nobody could see was not the one in use.
+   *
+   * THE LIT WINDOW IS LIT, NOT WARM. `--nf-media-glass` was
+   * `rgb(255 226 158 / 0.88)`, an amber, in both dead and live copies. The
+   * brand rule forbids amber by name and this was the only warm value in the
+   * palette, which is exactly the kind of exception that leaks: a placeholder
+   * illustration is one import away from being reused as a real surface. What
+   * the detail has to do is say somebody lives there, and brightness does that
+   * on its own - this is the lightest value in the set by a distance, against a
+   * wall at 34 per cent and a shade at 46 - so the window now reads as lit
+   * rather than as candlelit, and the palette is cool throughout. */
   --nf-media-wall: rgb(226 234 250 / 0.34);
   --nf-media-wall-shade: rgb(6 10 26 / 0.46);
   --nf-media-roof: rgb(226 234 250 / 0.52);
-  --nf-media-glass: rgb(255 226 158 / 0.88);
+  --nf-media-glass: rgb(214 229 255 / 0.88);
   --nf-media-land: rgb(10 16 36 / 0.55);
-
-  /* The drawn property, for a listing with no photograph yet.
-   *
-   * Five values, because a building needs a face, a side the light does not
-   * reach, a roof, glass, and the ground it stands on. They are neutrals lifted
-   * off the surface family rather than brand colours, for the same reason the
-   * ground above is not brand blue: an illustration standing in for a missing
-   * photograph must read as a placeholder that happens to be well drawn, never
-   * as a feature somebody chose.
-   *
-   * The one exception is `--nf-media-glass`, which carries a little warmth: a
-   * lit window is the single detail that tells the eye this is a building
-   * somebody lives in rather than a shape. */
-  --nf-media-wall: rgb(255 255 255 / 0.13);
-  --nf-media-wall-shade: rgb(0 0 0 / 0.28);
-  --nf-media-roof: rgb(255 255 255 / 0.2);
-  --nf-media-glass: rgb(255 236 190 / 0.5);
-  --nf-media-land: rgb(255 255 255 / 0.07);
 
   /* Brand object ground
    *

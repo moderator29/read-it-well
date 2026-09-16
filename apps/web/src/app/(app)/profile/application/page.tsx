@@ -149,7 +149,7 @@ export default async function ProfileApplicationPage() {
 
             {/* The journey. Dots and a hairline rail; completed stages solid,
                 the current one warm, upcoming ones quiet. */}
-            <Row className="flex-col items-stretch py-5">
+            <Row className="flex-col items-stretch py-lg">
               <ol className="w-full">
                 {stages.map((stage, i) => {
                   const done = i < stageIndex || (i === stageIndex && decided);
@@ -217,7 +217,7 @@ export default async function ProfileApplicationPage() {
             </Row>
 
             {reviewerNote.length > 0 && (
-              <Row className="flex-col items-start gap-2xs py-5">
+              <Row className="flex-col items-start gap-2xs py-lg">
                 <span className={TYPE.label}>{s.reviewerNote}</span>
                 <p className={`whitespace-pre-line ${TYPE.body}`}>{reviewerNote}</p>
               </Row>

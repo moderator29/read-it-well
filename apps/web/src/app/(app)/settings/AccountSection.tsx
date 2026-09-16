@@ -165,10 +165,10 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
 
       <div
         ref={panelRef}
-        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-xl pt-5"
+        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-lg pb-xl pt-lg"
       >
         <div className="mx-auto max-w-lg">
-          <div className="mb-5 flex items-center justify-between gap-md">
+          <div className="mb-md flex items-center justify-between gap-md">
             <h2 className="nf-h3">{copy.title}</h2>
             <button
               type="button"
@@ -181,7 +181,7 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
           </div>
 
           {state?.ok ? (
-            <div className="nf-card p-5" data-testid="delete-done">
+            <div className="nf-card p-lg" data-testid="delete-done">
               <p className="flex items-center gap-xs text-[var(--nf-text-body-lg)] font-semibold">
                 <UiIcon name="verified" size={20} className="shrink-0 text-[var(--nf-state-success)]" />
                 {copy.doneTitle}
@@ -191,7 +191,7 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
               </p>
             </div>
           ) : step === "explain" ? (
-            <div className="nf-card p-5">
+            <div className="nf-card p-lg">
               <p className="text-[var(--nf-text-body-sm)] font-semibold">{copy.permanentTitle}</p>
               <ul className="mt-sm space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {[copy.losesProfile, copy.losesContent, copy.keepsBookings].map((line) => (
@@ -204,7 +204,7 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
               <p className="mt-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                 {copy.talkFirst}
               </p>
-              <div className="mt-5 grid gap-sm sm:grid-cols-2">
+              <div className="mt-md grid gap-sm sm:grid-cols-2">
                 <Button variant="primary" full onClick={onClose}>
                   {copy.keep}
                 </Button>
@@ -219,11 +219,11 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
               </div>
             </div>
           ) : (
-            <form action={formAction} className="nf-card p-5">
+            <form action={formAction} className="nf-card p-lg">
               {/* The phrase is a constant the server checks against, not a word
                   to translate, so it arrives in a slot rather than being
                   concatenated around a hard-coded "Type". */}
-              <label htmlFor={phraseId} className="nf-label mb-1.5 block">
+              <label htmlFor={phraseId} className="nf-label mb-2xs block">
                 {copy.typeToConfirm.replace("{phrase}", DELETE_CONFIRM_PHRASE)}
               </label>
               <input
@@ -238,20 +238,20 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
                 onChange={(e) => setPhrase(e.target.value)}
                 className="nf-field"
               />
-              <p className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {copy.capitals}
               </p>
 
               {state && !state.ok && (
                 <p
                   role="alert"
-                  className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+                  className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
                 >
                   {state.fieldErrors?.confirmPhrase ?? state.error}
                 </p>
               )}
 
-              <div className="mt-5 grid gap-sm sm:grid-cols-2">
+              <div className="mt-md grid gap-sm sm:grid-cols-2">
                 <Button variant="primary" full onClick={onClose}>
                   {copy.keep}
                 </Button>

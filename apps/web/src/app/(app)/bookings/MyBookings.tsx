@@ -115,7 +115,7 @@ function BookingCard({
     <li
       className={`nf-card overflow-hidden p-0 text-left ${justBooked ? "nf-confirm-sweep nf-just-booked" : ""}`}
     >
-      <div className="flex gap-4.5 p-3.5 sm:gap-md sm:p-md">
+      <div className="flex gap-md p-md sm:gap-md sm:p-md">
         <Link
           href={`/listing/${b.listingId}`}
           aria-label={b.title}
@@ -139,7 +139,7 @@ function BookingCard({
           {/* Wraps rather than clipping: "Marina Waterfront, Calabar" was one
               pixel over its column and arrived as "Calaba". */}
           {(b.area || b.city) && (
-            <p className={`mt-1.5 flex items-start gap-xs ${TYPE.rowMeta}`}>
+            <p className={`mt-2xs flex items-start gap-xs ${TYPE.rowMeta}`}>
               <UiIcon name="location" size={ICON.inline} className="mt-px shrink-0" />
               <span>{[b.area, b.city].filter(Boolean).join(", ")}</span>
             </p>
@@ -150,7 +150,7 @@ function BookingCard({
             <span className="font-medium">{b.dateRange}</span>
           </p>
 
-          <p className={`mt-1.5 flex items-center gap-xs ${TYPE.body}`}>
+          <p className={`mt-2xs flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="user" size={ICON.inline} className="shrink-0" />
             {plural(b.guests, counts.guests, locale)} &middot;{" "}
             {plural(b.nights, counts.nights, locale)}
@@ -162,7 +162,7 @@ function BookingCard({
           {b.arrivingName && (
             <p
               data-testid="booking-arriving"
-              className="mt-1.5 text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]"
+              className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]"
             >
               Arriving: {b.arrivingName}
               {b.arrivingPhone && (
@@ -176,8 +176,8 @@ function BookingCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-3.5 py-sm sm:px-md">
-        <p className="flex items-baseline gap-1.5">
+      <div className="flex items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-md py-sm sm:px-md">
+        <p className="flex items-baseline gap-2xs">
           <span className="nf-numeric text-[var(--nf-text-body-sm)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {b.totalDisplay}
           </span>
@@ -208,7 +208,7 @@ function BookingCard({
           {b.reviewable && (
             <Link
               href={`/bookings/${b.id}/review`}
-              className="nf-btn nf-btn--primary px-sm py-1.5 text-[var(--nf-text-caption)]"
+              className="nf-btn nf-btn--primary px-sm py-xs text-[var(--nf-text-caption)]"
             >
               Leave a review
             </Link>

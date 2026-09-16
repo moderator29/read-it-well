@@ -198,7 +198,7 @@ export function ProfileTabs({
         role="tabpanel"
         aria-labelledby={`nf-tab-${tab}`}
         tabIndex={-1}
-        className="mt-5"
+        className="mt-md"
       >
         <Panel
           tab={tab}

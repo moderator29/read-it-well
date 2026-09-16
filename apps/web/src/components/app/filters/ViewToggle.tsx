@@ -43,7 +43,7 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
             prefetch
             data-testid={`view-${option.view}`}
             aria-current={active ? "true" : undefined}
-            className={`nf-segmented__link min-h-11 whitespace-nowrap px-3.5 text-[var(--nf-text-caption)] ${
+            className={`nf-segmented__link min-h-11 whitespace-nowrap px-md text-[var(--nf-text-caption)] ${
               active ? "font-bold" : ""
             }`}
           >

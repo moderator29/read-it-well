@@ -133,7 +133,7 @@ export function Composer({
         <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           It is with us
         </p>
-        <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {POST_COPY.held}
         </p>
         <button
@@ -399,7 +399,7 @@ export function Composer({
           changes with a prop rather than with anything on screen. */}
       {!isReply ? (
         <p
-          className="mt-xs flex items-center gap-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
+          className="mt-xs flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
           data-testid="composer-destination"
         >
           <UiIcon name={areaId ? "location" : "compass"} size={16} />
@@ -429,7 +429,7 @@ export function Composer({
         >
           <p className="leading-relaxed">{error}</p>
           {strandedPost ? (
-            <div className="mt-2.5 flex flex-wrap gap-xs">
+            <div className="mt-xs flex flex-wrap gap-xs">
               <button
                 type="button"
                 className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[var(--nf-text-overline)]"
@@ -495,7 +495,7 @@ export function Composer({
             Cancel
           </button>
         ) : null}
-        <button type="submit" className="nf-btn nf-btn--primary h-10 px-5 text-[var(--nf-text-body-sm)]" disabled={!canSend}>
+        <button type="submit" className="nf-btn nf-btn--primary h-10 px-lg text-[var(--nf-text-body-sm)]" disabled={!canSend}>
           {pending ? "Sending" : isReply ? "Reply" : "Post"}
         </button>
       </div>

@@ -18,7 +18,7 @@ export default function LoadingVerification() {
       </div>
       <Skeleton height="0.375rem" radius="pill" className="mt-sm" />
       <Skeleton width="12rem" height="2rem" radius="sm" className="mt-lg" />
-      <Skeleton width="min(24rem, 100%)" height="1rem" radius="sm" className="mt-2.5" />
+      <Skeleton width="min(24rem, 100%)" height="1rem" radius="sm" className="mt-xs" />
       <Skeleton height="12rem" radius="xl" className="mt-lg" />
     </LoadingShell>
   );

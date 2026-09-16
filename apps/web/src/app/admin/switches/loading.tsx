@@ -12,23 +12,23 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export default function LoadingSwitches() {
   return (
     <LoadingShell label="Loading feature switches" className="nf-console w-full">
-      <header className="mb-5">
+      <header className="mb-md">
         <Skeleton width="12rem" height="1.75rem" radius="sm" />
         <Skeleton className="mt-xs" width="90%" height="0.875rem" radius="sm" />
       </header>
 
       {/* The standing note about what a switch does. */}
-      <div className="nf-card mb-md flex gap-2.5 p-3.5">
+      <div className="nf-card mb-md flex gap-xs p-md">
         <Skeleton width="1.25rem" height="1.25rem" radius="sm" className="shrink-0" />
         <div className="min-w-0 flex-1">
           <Skeleton width="100%" height="0.8125rem" radius="sm" />
-          <Skeleton className="mt-1.5" width="72%" height="0.8125rem" radius="sm" />
+          <Skeleton className="mt-2xs" width="72%" height="0.8125rem" radius="sm" />
         </div>
       </div>
 
       <ul className="nf-queue-list">
         {Array.from({ length: 5 }, (_, i) => (
-          <li key={i} className="nf-card flex flex-wrap items-start gap-md p-md sm:p-5">
+          <li key={i} className="nf-card flex flex-wrap items-start gap-md p-md sm:p-lg">
             <div className="min-w-0 flex-1">
               <Skeleton width="45%" height="1rem" radius="sm" />
               <Skeleton className="mt-xs" width="85%" height="0.8125rem" radius="sm" />

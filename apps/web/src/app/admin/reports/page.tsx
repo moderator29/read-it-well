@@ -51,7 +51,7 @@ function ReportCard({
   const closed = report.status === "resolved" || report.status === "dismissed";
 
   return (
-    <li className="nf-card p-md sm:p-5">
+    <li className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={report.status} />
         {/* NOT `label={report.targetType}`. That printed the column: "listing",
@@ -79,7 +79,7 @@ function ReportCard({
         </span>
       </div>
 
-      <p className="mt-2.5 whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
+      <p className="mt-xs whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
         {report.reason}
       </p>
 

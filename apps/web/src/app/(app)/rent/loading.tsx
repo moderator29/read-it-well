@@ -29,13 +29,13 @@ export default function LoadingRent() {
       </div>
 
       {/* The city rail: full-bleed on phones, exactly as the real nav is. */}
-      <div className="-mx-5 mt-md flex gap-xs overflow-hidden px-5 md:-mx-8 md:px-xl">
+      <div className="-mx-5 mt-md flex gap-xs overflow-hidden px-lg md:-mx-8 md:px-xl">
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} width="7rem" height="2.75rem" radius="pill" className="shrink-0" />
         ))}
       </div>
 
-      <ul className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-md grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
           <li key={i}>
             <SkeletonCard />

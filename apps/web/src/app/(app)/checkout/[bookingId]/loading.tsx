@@ -10,7 +10,7 @@ export default function LoadingCheckout() {
   return (
     <LoadingShell label="Loading your booking" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
-      <div className="nf-card p-5">
+      <div className="nf-card p-lg">
         <Skeleton width="40%" height="0.8125rem" radius="sm" />
         <Skeleton className="mt-sm" height="2.25rem" radius="sm" />
         <Skeleton className="mt-md" height="3.5rem" radius="lg" />
@@ -19,7 +19,7 @@ export default function LoadingCheckout() {
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="nf-card p-md">
             <Skeleton width="46%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-2.5" width="30%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-xs" width="30%" height="0.875rem" radius="sm" />
           </div>
         ))}
       </div>

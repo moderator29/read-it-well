@@ -143,7 +143,7 @@ export function RequestInspection({
             full
             size="lg"
             variant="primary"
-            className="mt-5"
+            className="mt-md"
             disabled={pending || when.length === 0}
             onClick={submit}
           >

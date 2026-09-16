@@ -14,7 +14,7 @@ export default function LoadingAssistant() {
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="nf-card p-md">
             <Skeleton width="55%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-2.5" width="82%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-xs" width="82%" height="0.875rem" radius="sm" />
           </div>
         ))}
       </div>

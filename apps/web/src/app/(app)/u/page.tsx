@@ -198,7 +198,7 @@ export default async function PeoplePage({
       )}
 
       {!view.signedIn && view.people.length > 0 ? (
-        <p className="mt-5 text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-md text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           <Link href="/sign-in" className="font-semibold text-[var(--nf-brand-secondary)]">
             Sign in
           </Link>{" "}

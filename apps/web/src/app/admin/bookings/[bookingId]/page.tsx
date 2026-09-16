@@ -47,7 +47,7 @@ export default async function AdminBookingPage({
   const read = await getBookingDetail(bookingId);
 
   const backLink = (
-    <Link href="/admin/bookings" className="nf-chip mb-md inline-flex w-fit items-center gap-1.5">
+    <Link href="/admin/bookings" className="nf-chip mb-md inline-flex w-fit items-center gap-2xs">
       {copy.back}
     </Link>
   );
@@ -81,7 +81,7 @@ export default async function AdminBookingPage({
     <div className="nf-console">
       {backLink}
 
-      <header className="mb-5">
+      <header className="mb-md">
         <div className="flex flex-wrap items-center gap-xs">
           <ui.StatusChip status={stay.status} />
           {stay.paidMinor > 0 ? (
@@ -99,14 +99,14 @@ export default async function AdminBookingPage({
             />
           )}
         </div>
-        <h1 className="nf-h1 mt-2.5 text-[1.5rem] sm:text-[1.75rem]">{stay.listingTitle}</h1>
+        <h1 className="nf-h1 mt-xs text-[1.5rem] sm:text-[1.75rem]">{stay.listingTitle}</h1>
         <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           {place.length > 0 ? `${place} · ` : ""}
           {fill(copy.bookedWhen, { when: ui.when(stay.createdAt) })}
         </p>
       </header>
 
-      <div className="nf-card p-md sm:p-5">
+      <div className="nf-card p-md sm:p-lg">
         <ui.DetailSection title={copy.sections.stay}>
           <ui.DetailRow label={f.reference} value={<span className="nf-numeric">{stay.id}</span>} />
           <ui.DetailRow

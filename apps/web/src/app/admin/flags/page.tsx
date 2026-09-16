@@ -44,7 +44,7 @@ type FlagCopy = Dictionary["admin"]["flags"];
 function Fragment({ text }: { text: string }) {
   return (
     <code
-      className="nf-numeric rounded-[var(--nf-radius-xs)] px-1.5 py-3xs text-[var(--nf-text-caption)] font-semibold"
+      className="nf-numeric rounded-[var(--nf-radius-xs)] px-xs py-3xs text-[var(--nf-text-caption)] font-semibold"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
     >
       {text}
@@ -96,7 +96,7 @@ function FlagCard({
   const roleLabel: Record<PartyRole, string> = copy.role;
 
   return (
-    <li className="nf-card p-md sm:p-5">
+    <li className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={flag.status} />
         <ui.StatusChip label={copy.reason[flag.reason]} tone="neutral" />
@@ -121,7 +121,7 @@ function FlagCard({
       />
 
       <div className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm">
-        <p className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
+        <p className="nf-overline text-[var(--nf-content-muted)]">
           {copy.context}
         </p>
         <ul className="mt-xs space-y-xs">
@@ -142,14 +142,14 @@ function FlagCard({
               }
             >
               <span className="flex items-center gap-xs">
-                <span className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
+                <span className="nf-overline text-[var(--nf-content-muted)]">
                   {roleLabel[line.role]}
                 </span>
-                <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">
+                <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {ui.when(line.createdAt)}
                 </span>
                 {line.flagged && (
-                  <span className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-state-warning)]">
+                  <span className="nf-overline text-[var(--nf-state-warning)]">
                     {copy.flagged}
                   </span>
                 )}

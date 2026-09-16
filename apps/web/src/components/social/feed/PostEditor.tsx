@@ -107,7 +107,7 @@ export function PostEditor({
         </button>
         <button
           type="submit"
-          className="nf-btn nf-btn--primary h-10 px-5 text-[var(--nf-text-body-sm)]"
+          className="nf-btn nf-btn--primary h-10 px-lg text-[var(--nf-text-body-sm)]"
           disabled={!changed || pending}
         >
           {pending ? "Saving" : "Save"}

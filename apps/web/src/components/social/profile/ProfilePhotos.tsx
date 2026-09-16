@@ -202,7 +202,7 @@ export function ProfilePhotos({
         </div>
       </div>
 
-      <div className="flex items-end gap-sm px-md pb-md sm:px-5">
+      <div className="flex items-end gap-sm px-md pb-md sm:px-lg">
         <button
           type="button"
           onClick={() => avatarInput.current?.click()}
@@ -249,18 +249,18 @@ export function ProfilePhotos({
         </div>
       </div>
 
-      <p className="px-md pb-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)] sm:px-5">
+      <p className="px-md pb-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)] sm:px-lg">
         Photos are re-encoded on your phone before they are uploaded, so the location tag a camera
         writes never leaves it.
       </p>
 
       {error && (
-        <p role="alert" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-error)] sm:px-5">
+        <p role="alert" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-error)] sm:px-lg">
           {error}
         </p>
       )}
       {note && !error && (
-        <p role="status" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-success)] sm:px-5">
+        <p role="status" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-success)] sm:px-lg">
           {note}
         </p>
       )}

@@ -117,7 +117,7 @@ export function TravelTime({
 
   if (state.phase === "answered") {
     return (
-      <p className="mt-sm flex items-center gap-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+      <p className="mt-sm flex items-center gap-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         <UiIcon name="compass" size={16} className="shrink-0 opacity-70" aria-hidden />
         <span>
           {/* Numbers and units only. The duration is already rounded to five
@@ -140,7 +140,7 @@ export function TravelTime({
       onClick={ask}
       disabled={working}
       aria-busy={working}
-      className="mt-sm inline-flex items-center gap-1.5 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm py-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] transition-opacity hover:opacity-80 disabled:opacity-60"
+      className="mt-sm inline-flex items-center gap-2xs rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm py-xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] transition-opacity hover:opacity-80 disabled:opacity-60"
     >
       <UiIcon name="compass" size={16} className="shrink-0 opacity-70" aria-hidden />
       {working ? workingLabel : label}

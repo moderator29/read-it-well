@@ -14,7 +14,7 @@ export default function LoadingLegalTerms() {
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="nf-card p-md">
             <Skeleton width="35%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-2.5" width="95%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-xs" width="95%" height="0.875rem" radius="sm" />
           </div>
         ))}
       </div>

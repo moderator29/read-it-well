@@ -113,6 +113,42 @@ function deviceChanged(): void {
   for (const listener of listeners) listener();
 }
 
+/**
+ * Tell the store the device list moved underneath it.
+ *
+ * Exported for the one surface that writes device saves without going through
+ * `useSaveControl`: the listing detail page calls `addLocalSave` /
+ * `removeLocalSave` itself, inside its own transition, because it has a toast
+ * and a sign-in prompt to sequence around the write. Without this the store
+ * keeps its cached version and every other heart on the page behind it stays
+ * stale until a reload - which is the same two-copies-of-one-fact bug the store
+ * exists to end, arriving through the write side instead of the read side.
+ */
+export function deviceSavesChanged(): void {
+  deviceChanged();
+}
+
+/**
+ * Whether this listing is on the device, read from the store above.
+ *
+ * Exported because the listing DETAIL page was the one surface still doing this
+ * with an effect - `useEffect(() => { if (readLocalSaves().some(...))
+ * setSaved(true) })` - which is the exact shape the store's own docstring names
+ * as the version it replaced. Two copies of one fact meant a heart on the
+ * detail page and the same heart on a card behind it could disagree until a
+ * reload.
+ *
+ * It is the read side only. A surface that WRITES still goes through
+ * `useSaveControl`, which is what bumps the version.
+ */
+export function useDeviceSaved(listingId: string): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => savedIds().has(listingId),
+    () => false,
+  );
+}
+
 export function useSaveControl(listingId: string, initialSaved = false) {
   /**
    * The person's own answer, once they have given one. `null` means they have

@@ -87,7 +87,7 @@ export default async function RentPage({
         />
 
         <nav aria-label="Rent by city" className="nf-scroll-x -mx-5 mt-md md:-mx-8">
-          <ul className="flex gap-xs px-5 md:px-xl">
+          <ul className="flex gap-xs px-lg md:px-xl">
             {CITIES.map((city) => {
               const active = q?.trim().toLowerCase() === city.toLowerCase();
               return (
@@ -110,9 +110,9 @@ export default async function RentPage({
         </nav>
       </Reveal>
 
-      <Reveal className="mt-5" delay={60}>
+      <Reveal className="mt-md" delay={60}>
         {rentals.length === 0 ? (
-          <div className="nf-card p-10 text-center">
+          <div className="nf-card p-2xl text-center">
             <span className="nf-story-art mx-auto block h-20 w-20">
               <BrandIcon name="keys-home" fill />
             </span>
@@ -125,7 +125,7 @@ export default async function RentPage({
             </ButtonLink>
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
             {rentals.map((r) => (
               <li key={r.id} className="flex flex-col gap-sm">
                 <ListingCard listing={r} locale={locale} t={t} />

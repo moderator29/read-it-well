@@ -45,7 +45,7 @@ export function ListingTenure({ listing }: { listing: Listing }) {
               <p className="mt-2xs text-[var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                 {tenure}
               </p>
-              <p className={`mt-1.5 ${TYPE.body}`}>
+              <p className={`mt-2xs ${TYPE.body}`}>
                 The title the seller states they hold. Have your own solicitor
                 verify it at the land registry before any money changes hands.
               </p>
@@ -55,7 +55,7 @@ export function ListingTenure({ listing }: { listing: Listing }) {
               <p className="mt-2xs text-[var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                 No title stated
               </p>
-              <p className={`mt-1.5 ${TYPE.body}`}>
+              <p className={`mt-2xs ${TYPE.body}`}>
                 The seller has not said what title comes with this property. That
                 is not the same as there being none, and it is not the same as
                 there being one. Ask them directly, and have a solicitor check

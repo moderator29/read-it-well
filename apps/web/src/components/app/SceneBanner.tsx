@@ -50,10 +50,10 @@ export function SceneBanner({
   return (
     <Link
       href={href}
-      className={`nf-card nf-card--interactive group flex items-center gap-md overflow-hidden p-0 pr-md sm:gap-5 sm:pr-lg ${className ?? ""}`}
+      className={`nf-card nf-card--interactive group flex items-center gap-md overflow-hidden p-0 pr-md sm:gap-md sm:pr-lg ${className ?? ""}`}
     >
       <span
-        className={`nf-scene-chip nf-story-stage--${stage} m-sm flex h-[92px] w-[92px] shrink-0 items-center justify-center p-xs sm:m-md sm:h-[112px] sm:w-[112px] sm:p-2.5`}
+        className={`nf-scene-chip nf-story-stage--${stage} m-sm flex h-[92px] w-[92px] shrink-0 items-center justify-center p-xs sm:m-md sm:h-[112px] sm:w-[112px] sm:p-sm`}
       >
         {/* `fill` rather than a size: the chip owns the dimensions at both
             breakpoints, and a sized icon inside a sized chip is two sources of
@@ -75,7 +75,7 @@ export function SceneBanner({
         <span className="mt-2xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {body}
         </span>
-        <span className="mt-2.5 inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)]">
+        <span className="mt-xs inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)]">
           {action}
           <UiIcon
             name="arrow-right"

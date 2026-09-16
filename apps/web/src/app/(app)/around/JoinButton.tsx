@@ -41,7 +41,7 @@ export function JoinButton({
   const [error, setError] = useState<string | null>(null);
 
   const label = isJoined ? "Joined" : "Join";
-  const height = size === "sm" ? "h-9 px-md text-[var(--nf-text-overline)]" : "h-11 px-5 text-[var(--nf-text-body-sm)]";
+  const height = size === "sm" ? "h-9 px-md text-[var(--nf-text-overline)]" : "h-11 px-lg text-[var(--nf-text-body-sm)]";
 
   const toggle = () => {
     if (!signedIn) {

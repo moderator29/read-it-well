@@ -13,6 +13,10 @@ import {
   type QueueStatusOption,
 } from "../_components/QueueFilters";
 import { Constants } from "@/lib/supabase/database.types";
+import {
+  KYC_DOCUMENT_KIND_WORDS,
+  KYC_DOCUMENT_SUBTYPE_WORDS,
+} from "@/components/app/untranslated";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { DocumentDecision } from "../_components/MoneyDecisions";
 
@@ -23,33 +27,13 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-/*
- * The document vocabulary, still English and still local.
- *
- * These are NOT the F2-060 fault. That finding is about surfaces printing a raw
- * column value at an operator; these are written words somebody chose, and both
- * lookups already fall back rather than printing the column. They do belong in
- * the dictionary, and the keys are listed in the sprint report with the rest,
- * but moving them is a `packages/i18n` change and not this owner's to make.
- */
-const KIND_LABEL: Record<string, string> = {
-  identity: "Government issued ID",
-  address: "Proof of address",
-  business: "Business document",
-};
-
-const SUBTYPE_LABEL: Record<string, string> = {
-  passport: "International passport",
-  drivers_licence: "Driver's licence",
-  nin_card: "NIN card or slip",
-  voters_card: "Permanent voter's card",
-  utility_bill: "Utility bill",
-  bank_statement: "Bank statement",
-  tenancy_agreement: "Tenancy agreement",
-  cac_certificate: "CAC certificate",
-  tax_certificate: "Tax certificate",
-  business_address_proof: "Proof of business address",
-};
+/* The document vocabulary, staged in `components/app/untranslated.ts` with the
+   rest of this owner's untranslated copy. These are NOT the F2-060 fault: that
+   finding is about surfaces printing a raw column value at an operator, and
+   these are written words somebody chose. They still belong in the dictionary,
+   at `t.admin.kyc.documentKind` and `t.admin.kyc.documentSubtype`. */
+const KIND_LABEL = KYC_DOCUMENT_KIND_WORDS;
+const SUBTYPE_LABEL = KYC_DOCUMENT_SUBTYPE_WORDS;
 
 /**
  * One mapping for both a document's review status and a ladder rung's, because
@@ -207,14 +191,14 @@ function SubjectCard({
   decidable?: boolean;
 }) {
   return (
-    <article className="nf-card p-md sm:p-5">
+    <article className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-baseline gap-sm">
         <h3 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           {subject.displayName ?? "No display name"}
         </h3>
         <span className="nf-badge nf-badge--brand nf-numeric">Tier {subject.tier}</span>
         {subject.applicationReference && (
-          <span className="font-mono text-[0.6875rem] text-[var(--nf-content-muted)]">
+          <span className="font-mono text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {subject.applicationReference}
           </span>
         )}
@@ -235,7 +219,7 @@ function SubjectCard({
                 tone={toneForReview(rung.status)}
               />
               {rung.note && (
-                <span className="mt-3xs block max-w-[52ch] text-[0.6875rem] leading-relaxed text-[var(--nf-content-muted)]">
+                <span className="mt-3xs block max-w-[52ch] text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                   {rung.note}
                 </span>
               )}
@@ -288,7 +272,7 @@ function SubjectCard({
                   Older than {ADDRESS_PROOF_MAX_AGE_DAYS} days, or undated
                 </span>
               )}
-              <span className="ml-auto text-[0.6875rem] text-[var(--nf-content-muted)]">
+              <span className="ml-auto text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {ui.when(doc.uploadedAt)}
               </span>
             </div>

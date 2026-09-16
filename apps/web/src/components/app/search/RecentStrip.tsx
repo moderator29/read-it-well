@@ -53,7 +53,7 @@ function Row({
         </button>
       </div>
       <div className="nf-scroll-x -mx-5 mt-xs md:-mx-8">
-        <ul className="flex gap-xs px-5 md:px-xl">{children}</ul>
+        <ul className="flex gap-xs px-lg md:px-xl">{children}</ul>
       </div>
     </div>
   );

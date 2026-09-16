@@ -65,7 +65,7 @@ export function ProposeAreaForm({
         <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_COPY.proposePending}
         </p>
-        <div className="mt-5 flex flex-col gap-xs sm:flex-row sm:justify-center">
+        <div className="mt-md flex flex-col gap-xs sm:flex-row sm:justify-center">
           <button
             type="button"
             className="nf-btn nf-btn--primary"
@@ -110,7 +110,7 @@ export function ProposeAreaForm({
 
   return (
     <form
-      className="flex flex-col gap-5"
+      className="flex flex-col gap-md"
       onSubmit={(event) => {
         event.preventDefault();
         if (!pending) submit();
@@ -166,7 +166,7 @@ export function ProposeAreaForm({
         </div>
       </fieldset>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-md sm:grid-cols-2">
         <SelectField
           label="State"
           value={stateCode}

@@ -591,7 +591,7 @@ export function TicketReply({
         <p className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]">{copy.reply.sent}</p>
       )}
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-md">
+      <div className="mt-xs flex flex-wrap items-center gap-md">
         <Button
           variant="primary"
           onClick={send}
@@ -636,7 +636,7 @@ export function TicketStatusControl({
           where it already is is not a move - and selection is now a ring and a
           fill rather than a hairline glow, which is the difference between an
           operator seeing the current state and guessing at it. */}
-      <ChipRow bleed={false} fadeEdges={false} className="mt-1.5">
+      <ChipRow bleed={false} fadeEdges={false} className="mt-2xs">
         {TICKET_STATES.map((state) => (
           <Chip
             key={state}
@@ -769,7 +769,7 @@ export function StayCancel({
   const extra = (
     <div className="mt-md">
       <span className="nf-label">{copy.sheet.reasonLabel}</span>
-      <div className="mt-1.5 grid gap-xs">
+      <div className="mt-2xs grid gap-xs">
         {CANCELLATION_REASONS.map((option) => (
           <button
             key={option.code}

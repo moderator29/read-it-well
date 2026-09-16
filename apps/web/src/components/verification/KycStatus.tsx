@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { KYC_STATUS_WORDS } from "@/components/app/untranslated";
 
 /**
  * Where a submission stands, and what to do about it.
@@ -141,7 +142,7 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
         </p>
         <Link
           href={retryHref}
-          className="mt-md inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           {CONTINUE}
           <UiIcon name="arrow-right" size="sm" />
@@ -174,7 +175,7 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
         </p>
         <Link
           href="/help"
-          className="mt-md inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           {GET_HELP}
           <UiIcon name="arrow-right" size="sm" />
@@ -202,7 +203,7 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
       </p>
       <Link
         href={retryHref}
-        className="mt-md inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+        className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
         {RETRY}
         <UiIcon name="arrow-right" size="sm" />
@@ -229,7 +230,7 @@ function Panel({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="nf-card p-5 sm:p-lg">
+    <section className="nf-card p-lg sm:p-lg">
       <div className="flex items-start gap-md">
         <span className="nf-role-mark" aria-hidden="true">
           <UiIcon name={icon} size="md" />
@@ -251,24 +252,31 @@ function Panel({
   );
 }
 
-const PENDING_PILL = "In review";
-const PENDING_TITLE = "We are checking your documents";
-const PENDING_BODY =
-  "A person reads every submission by hand. Most decisions come back within one working day, and we email you either way. You can keep drafting listings while you wait.";
-const SUBMITTED_PREFIX = "Sent";
-const APPROVED_PILL = "Verified";
-const APPROVED_TITLE = "You are verified";
-const APPROVED_BODY =
-  "Your listings can go live, and the verified mark now shows on your profile and beside your name in every conversation.";
-const REJECTED_PILL = "Not approved";
-const REJECTED_TITLE = "We could not verify this";
-const FIX_LABEL = "What to do:";
-const RETRY = "Send it again";
-const MORE_INFO_PILL = "Over to you";
-const MORE_INFO_TITLE = "We need one more thing from you";
-const CONTINUE = "Send what was asked for";
-const SUSPENDED_PILL = "Stopped";
-const SUSPENDED_TITLE = "This account is stopped";
-const SUSPENDED_FIX =
-  "Nothing you send here will lift this, because it is a decision about the account rather than about a document. Talk to our team and they will tell you what it would take.";
-const GET_HELP = "Talk to our team";
+/*
+ * Every string on this screen, staged in `components/app/untranslated.ts`.
+ *
+ * It was fifteen `const`s at the foot of this file, which is why the most-read
+ * screen in the supply-side funnel was the last one entirely in English: copy
+ * that looks like part of a component does not look like copy. The destination
+ * is `t.verification.status.*`.
+ */
+const {
+  pendingPill: PENDING_PILL,
+  pendingTitle: PENDING_TITLE,
+  pendingBody: PENDING_BODY,
+  submittedPrefix: SUBMITTED_PREFIX,
+  approvedPill: APPROVED_PILL,
+  approvedTitle: APPROVED_TITLE,
+  approvedBody: APPROVED_BODY,
+  rejectedPill: REJECTED_PILL,
+  rejectedTitle: REJECTED_TITLE,
+  retry: RETRY,
+  moreInfoPill: MORE_INFO_PILL,
+  moreInfoTitle: MORE_INFO_TITLE,
+  moreInfoContinue: CONTINUE,
+  suspendedPill: SUSPENDED_PILL,
+  suspendedTitle: SUSPENDED_TITLE,
+  suspendedFix: SUSPENDED_FIX,
+  getHelp: GET_HELP,
+  fixLabel: FIX_LABEL,
+} = KYC_STATUS_WORDS;

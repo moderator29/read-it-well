@@ -88,7 +88,7 @@ export function ReserveTable({
 
   if (state?.ok) {
     return (
-      <div className="nf-card p-5">
+      <div className="nf-card p-lg">
         <p className="flex items-center gap-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           <UiIcon name="chat-bubble" size={20} className="shrink-0 opacity-80" aria-hidden />
           Request sent
@@ -112,7 +112,7 @@ export function ReserveTable({
   }
 
   return (
-    <form action={formAction} className="nf-card p-5">
+    <form action={formAction} className="nf-card p-lg">
       <input type="hidden" name="listingId" value={listingId} />
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="time" value={time} />
@@ -128,7 +128,7 @@ export function ReserveTable({
         <div
           role="group"
           aria-labelledby={dateId}
-          className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-2xs pb-2xs"
+          className="-mx-1 mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
         >
           {days.map((iso) => {
             const active = iso === date;
@@ -138,7 +138,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setDate(iso)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-1.5 text-[var(--nf-text-caption)] transition-colors ${
+                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[var(--nf-text-caption)] transition-colors ${
                   active
                     ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
@@ -158,7 +158,7 @@ export function ReserveTable({
         <div
           role="group"
           aria-labelledby={timeId}
-          className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-2xs pb-2xs"
+          className="-mx-1 mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
         >
           {SLOTS.map((slot) => {
             const active = slot === time;
@@ -168,7 +168,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setTime(slot)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-1.5 text-[var(--nf-text-caption)] tabular-nums transition-colors ${
+                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[var(--nf-text-caption)] tabular-nums transition-colors ${
                   active
                     ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
@@ -185,7 +185,7 @@ export function ReserveTable({
         <label className="nf-label" htmlFor={partyId}>
           Guests
         </label>
-        <div className="mt-1.5 flex items-center gap-sm">
+        <div className="mt-2xs flex items-center gap-sm">
           <button
             type="button"
             onClick={() => setParty((n) => Math.max(1, n - 1))}
@@ -207,7 +207,7 @@ export function ReserveTable({
               const next = Number(event.target.value);
               setParty(Number.isFinite(next) ? Math.min(MAX_PARTY, Math.max(1, next)) : 1);
             }}
-            className="w-16 rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-xs py-1.5 text-center text-[var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
+            className="w-16 rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-xs py-xs text-center text-[var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
           <button
             type="button"
@@ -222,7 +222,7 @@ export function ReserveTable({
         {/* Said before somebody counts to fifty and is refused, rather than
             after. The database enforces the same number. */}
         {party >= MAX_PARTY && (
-          <p className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             For a larger party,{" "}
             <Link href={messageHref} className="underline underline-offset-2">
               message the restaurant
@@ -242,7 +242,7 @@ export function ReserveTable({
           rows={2}
           maxLength={500}
           placeholder="A birthday, a wheelchair, an allergy"
-          className="mt-1.5 w-full rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
+          className="mt-2xs w-full rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
         />
       </div>
 

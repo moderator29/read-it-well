@@ -74,7 +74,7 @@ function StayCard({
   const counts = getDictionary(locale).counts;
 
   return (
-    <li className="nf-card p-md sm:p-5">
+    <li className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={stay.status} />
         {stay.paidMinor > 0 ? (
@@ -96,7 +96,7 @@ function StayCard({
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {stay.listingTitle}
       </h3>
       <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
@@ -113,7 +113,7 @@ function StayCard({
 
       <Link
         href={`/admin/bookings/${stay.id}`}
-        className="nf-chip mt-sm inline-flex w-fit items-center gap-1.5"
+        className="nf-chip mt-sm inline-flex w-fit items-center gap-2xs"
       >
         {copy.open}
       </Link>

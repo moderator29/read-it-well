@@ -77,7 +77,7 @@ export function ThreadOptionsSheet({
       footer={
         <>
           {inspected ? (
-            <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[var(--nf-text-caption)]">
+            <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[var(--nf-text-caption)]">
               <UiIcon name="verified" size={16} />
               {confirmedLabel}
             </p>
@@ -95,7 +95,11 @@ export function ThreadOptionsSheet({
         </>
       }
     >
-      <div className="-mt-2 mb-md flex items-start justify-between gap-md">
+      {/* `-mt-xs`, the second half of the negative-margin probe. See the note
+          on `AccountBody`'s tab strip. A failure here is 8px of extra air above
+          one line in a sheet: visible if you are looking, invisible if not,
+          which is exactly what a probe should risk. */}
+      <div className="-mt-xs mb-md flex items-start justify-between gap-md">
         <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {counterpartName}
         </p>
@@ -124,7 +128,7 @@ export function ThreadOptionsSheet({
           <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {[listing.area, listing.city].filter(Boolean).join(", ")}
           </p>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
+          <div className="mt-2xs flex flex-wrap gap-2xs">
             {listing.verified ? (
               <span className="nf-badge nf-badge--success">
                 <UiIcon name="verified" size={12} />

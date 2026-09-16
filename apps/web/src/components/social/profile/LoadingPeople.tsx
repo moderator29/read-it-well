@@ -16,7 +16,7 @@ export function LoadingPeople() {
         <span className="nf-social-skeleton block h-3 w-52 rounded-[var(--nf-radius-xs)]" />
       </div>
 
-      <ul className="mt-5 flex flex-col gap-[var(--nf-social-gap)]" aria-hidden="true">
+      <ul className="mt-md flex flex-col gap-[var(--nf-social-gap)]" aria-hidden="true">
         {[0, 1, 2, 3, 4].map((row) => (
           <li key={row} className="nf-card nf-social-card nf-social-person">
             <span className="nf-social-skeleton nf-social-person__face" />

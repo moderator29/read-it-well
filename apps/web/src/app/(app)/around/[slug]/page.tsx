@@ -78,7 +78,7 @@ export default async function AreaPage({
     return (
       <div className="mx-auto w-full max-w-3xl pb-4xl pt-md">
         <PageHeader title="Around" fallback="/around" />
-        <p className="nf-card p-5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card p-lg text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           We cannot reach this place right now. This is on our side, not yours.
           Nothing has been lost, and the rest of the app works as normal.
         </p>
@@ -119,19 +119,19 @@ export default async function AreaPage({
       ) : null}
 
       {area.status === "PROPOSED" ? (
-        <p className="nf-card mb-5 border-[var(--nf-border-brand)] p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card mb-md border-[var(--nf-border-brand)] p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           You suggested this place and it is still with us. {AREA_COPY.proposePending}
         </p>
       ) : null}
 
       {area.status === "PAUSED" ? (
-        <p className="nf-card mb-5 p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card mb-md p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {AREA_COPY.paused}
         </p>
       ) : null}
 
       {area.slowMode && area.status === "ACTIVE" ? (
-        <p className="mb-5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-md py-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mb-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-md py-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_COPY.slowMode}
         </p>
       ) : null}
@@ -168,7 +168,7 @@ export default async function AreaPage({
         {feed.ended && feed.posts.length > 0 ? (
           <p
             aria-live="polite"
-            className="mt-5 text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
+            className="mt-md text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
           >
             {POST_COPY.endOfSession}
           </p>
@@ -178,16 +178,16 @@ export default async function AreaPage({
       {/* What this place is, under the conversation rather than above it. The
           board's district feed goes header, chips, cards; the description is
           something people read once and the feed is what they came for. */}
-      <section className="nf-card mb-5 p-5">
+      <section className="nf-card mb-md p-lg">
         {area.blurb ? (
           <p className="text-[var(--nf-text-body)] leading-relaxed text-[var(--nf-content-primary)]">
             {area.blurb}
           </p>
         ) : null}
 
-        <dl className="mt-md flex flex-wrap gap-x-7 gap-y-sm">
+        <dl className="mt-md flex flex-wrap gap-x-lg gap-y-sm">
           <div>
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+            <dt className="nf-overline text-[var(--nf-content-muted)]">
               Members
             </dt>
             <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
@@ -195,7 +195,7 @@ export default async function AreaPage({
             </dd>
           </div>
           <div>
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+            <dt className="nf-overline text-[var(--nf-content-muted)]">
               Posts
             </dt>
             <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
@@ -203,7 +203,7 @@ export default async function AreaPage({
             </dd>
           </div>
           <div>
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+            <dt className="nf-overline text-[var(--nf-content-muted)]">
               Looked after by
             </dt>
             <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
@@ -246,7 +246,7 @@ export default async function AreaPage({
           on every place, so offering them is one predicate rather than a join
           nobody can read. */}
       {within.length > 0 ? (
-        <section className="nf-enter mb-5">
+        <section className="nf-enter mb-md">
           <h2 className="nf-enter__title">{PLACE_COPY.withinTitle(area.name)}</h2>
           <p className="nf-enter__lede">{PLACE_COPY.withinBody}</p>
           <ul className="nf-enter__grid">

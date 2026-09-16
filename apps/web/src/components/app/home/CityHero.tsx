@@ -180,16 +180,16 @@ export function CityHero({
             style={{ background: "var(--nf-scrim-artwork)" }}
           />
 
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-sm p-md sm:p-5">
+          <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-sm p-md sm:p-lg">
             <div className="min-w-0">
-              <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-[var(--nf-content-on-media-accent)]">
+              <p className="nf-overline text-[var(--nf-content-on-media-accent)]">
                 {contextLabel}
               </p>
               <p className="mt-3xs text-[var(--nf-text-h4)] font-bold leading-tight text-[var(--nf-content-on-media)] sm:text-[1.625rem]">
                 {cityLabel || "Nigeria"}
               </p>
             </div>
-            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-2.5 py-2xs text-[0.6875rem] font-semibold text-[var(--nf-content-on-media-accent)]">
+            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-sm py-2xs text-[0.6875rem] font-semibold text-[var(--nf-content-on-media-accent)]">
               {areas.length} {areas.length === 1 ? "place" : "places"}
             </span>
           </div>
@@ -200,7 +200,7 @@ export function CityHero({
             {pins.map((pin) => (
               <span
                 key={pin.area.id}
-                className="absolute flex items-center gap-1.5"
+                className="absolute flex items-center gap-2xs"
                 style={{
                   left: `${pin.x}%`,
                   top: `${pin.y}%`,
@@ -214,7 +214,7 @@ export function CityHero({
                 </span>
                 <span className="whitespace-nowrap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-xs py-[3px] text-[0.625rem] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
                   {pin.area.name}
-                  <span className="nf-numeric ml-1.5 text-[var(--nf-content-on-media-accent)]">
+                  <span className="nf-numeric ml-2xs text-[var(--nf-content-on-media-accent)]">
                     {pin.area.postCount}
                   </span>
                 </span>
@@ -222,7 +222,7 @@ export function CityHero({
             ))}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 p-md sm:p-5">
+          <div className="absolute inset-x-0 bottom-0 p-md sm:p-lg">
             <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-on-media-accent)]">
               {areas.length === 0
                 ? "No places are open here yet. When one opens it appears on this card."
@@ -236,10 +236,10 @@ export function CityHero({
 
       {/* The real navigation, and the honest home for a place with no pin. */}
       {areas.length > 0 && (
-        <ul className="nf-scroll-x -mx-5 mt-sm flex snap-x gap-xs px-5 pb-2xs scroll-pl-5 sm:mx-0 sm:flex-wrap sm:px-0">
+        <ul className="nf-scroll-x -mx-5 mt-sm flex snap-x gap-xs px-lg pb-2xs scroll-pl-5 sm:mx-0 sm:flex-wrap sm:px-0">
           {areas.map((area) => (
             <li key={area.id} className="shrink-0 snap-start">
-              <Link href={`/around/${area.slug}`} className="nf-chip gap-1.5">
+              <Link href={`/around/${area.slug}`} className="nf-chip gap-2xs">
                 <UiIcon name="location" size={12} className="shrink-0" />
                 {area.name}
                 <span className="nf-numeric text-[var(--nf-content-muted)]">{area.postCount}</span>

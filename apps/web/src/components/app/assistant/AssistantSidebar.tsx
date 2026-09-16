@@ -84,7 +84,7 @@ export function AssistantSidebar({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* -------------------------------------------- search and new chat */}
-      <div className="space-y-2.5 p-sm pb-2.5">
+      <div className="space-y-xs p-sm pb-sm">
         {/* The sidebar's own search bar was the fifth arrangement of a leading
             icon and a left padding on the platform. It also had no way to get
             back to the whole history except deleting what you typed, which is
@@ -131,7 +131,7 @@ export function AssistantSidebar({
                     /* The active row's border was `rgb(0 102 255 / 0.55)`, a
                        raw literal of the brand blue that would not have moved
                        if the brand did. Same colour, said in the token. */
-                    className={`w-full rounded-xl border px-sm py-2.5 pr-10 text-left transition-colors ${
+                    className={`w-full rounded-xl border px-sm py-sm pr-2xl text-left transition-colors ${
                       active
                         ? "border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)]"
                         : "border-transparent hover:bg-[var(--nf-glass-fill)]"
@@ -146,7 +146,7 @@ export function AssistantSidebar({
                     >
                       {t.title}
                     </span>
-                    <span className="nf-numeric mt-3xs block text-[0.6875rem] text-[var(--nf-content-muted)]">
+                    <span className="nf-numeric mt-3xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {whenLabel(t.updatedAt)}
                     </span>
                   </button>
@@ -183,7 +183,7 @@ export function AssistantSidebar({
           type="button"
           onClick={() => setSettingsOpen(true)}
           aria-haspopup="dialog"
-          className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-sm py-2.5 text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
+          className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-sm py-sm text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
         >
           <UiIcon name="settings-gear" size={18} className="shrink-0" />
           <span className="flex-1 text-[var(--nf-text-caption)] font-medium">Settings</span>

@@ -157,7 +157,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
         aria-live="polite"
         aria-label="Conversation"
       >
-        <p className="flex items-center justify-center gap-1.5 py-2xs text-center text-[0.7rem] text-[var(--nf-content-muted)]">
+        <p className="flex items-center justify-center gap-2xs py-2xs text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           <UiIcon name="verified" size={12} />
           Chats are protected by Vallo fraud monitoring
         </p>
@@ -166,7 +166,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           m.author === "guest" ? (
             <div key={m.id} className="nf-rise flex justify-end">
               {/* Deep blue keeps white body text readable at chat sizes. */}
-              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-md py-2.5 text-[var(--nf-content-on-brand)]">
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-md py-sm text-[var(--nf-content-on-brand)]">
                 {m.image && (
                   /* Object URLs cannot go through the image optimiser. */
                   // eslint-disable-next-line @next/next/no-img-element
@@ -177,7 +177,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                   />
                 )}
                 {m.body && <p className="text-[var(--nf-text-body-sm)] leading-relaxed">{m.body}</p>}
-                <p className="nf-numeric mt-2xs text-right text-[0.65rem] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
+                <p className="nf-numeric mt-2xs text-right text-[var(--nf-text-overline)] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>
@@ -190,7 +190,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
               >
                 {thread.agentName.charAt(0)}
               </span>
-              <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md px-md py-2.5">
+              <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md px-md py-sm">
                 {m.image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -204,7 +204,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                     {m.body}
                   </p>
                 )}
-                <p className="nf-numeric mt-2xs text-right text-[0.65rem] text-[var(--nf-content-muted)]">
+                <p className="nf-numeric mt-2xs text-right text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>

@@ -44,7 +44,7 @@ function SwitchRow({
   const label = labels[flag.key] ?? flag.key;
 
   return (
-    <li className="nf-card flex flex-wrap items-start gap-md p-md sm:p-5">
+    <li className="nf-card flex flex-wrap items-start gap-md p-md sm:p-lg">
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-xs">
           <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{label}</span>
@@ -61,7 +61,7 @@ function SwitchRow({
             consequence: consequences[flag.key] ?? copy.consequences.generic,
           })}
         </span>
-        <span className="mt-2xs block text-[0.6875rem] text-[var(--nf-content-muted)]">
+        <span className="mt-2xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.lastChanged, { when: ui.when(flag.updatedAt) })}
         </span>
       </span>
@@ -90,7 +90,7 @@ export default async function AdminSwitchesPage() {
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
-      <p className="nf-card mb-md flex gap-2.5 p-3.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="nf-card mb-md flex gap-xs p-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
         {/*
           NOT A BELL, AND NOT THE PENDING COLOUR.
 

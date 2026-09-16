@@ -66,12 +66,12 @@ export function StoryComposer({
 
   if (!signedIn || !userId) {
     return (
-      <div className="nf-card nf-social-card p-7 text-center">
+      <div className="nf-card nf-social-card p-xl text-center">
         <div className="mx-auto w-fit">
           <BrandIcon name="camera" size={44} />
         </div>
         <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">Sign in to write a story</h2>
-        <p className="mx-auto mt-2.5 max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           A story is a picture, a headline and a line or two about a place. It
           stays up, so it needs to belong to somebody.
         </p>
@@ -84,12 +84,12 @@ export function StoryComposer({
 
   if (areas.length === 0) {
     return (
-      <div className="nf-card nf-social-card p-7 text-center">
+      <div className="nf-card nf-social-card p-xl text-center">
         <div className="mx-auto w-fit">
           <BrandIcon name="pin-map" size={44} />
         </div>
         <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">A story belongs to a place</h2>
-        <p className="mx-auto mt-2.5 max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           You are not in any place yet. Join one and you can write about it
           straight away.
         </p>
@@ -104,12 +104,12 @@ export function StoryComposer({
 
   if (held) {
     return (
-      <div className="nf-card nf-social-card p-7 text-center">
+      <div className="nf-card nf-social-card p-xl text-center">
         <div className="mx-auto w-fit">
           <BrandIcon name="doc-shield" size={44} />
         </div>
         <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">It is with us</h2>
-        <p className="mx-auto mt-2.5 max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {STORY_COPY.held}
         </p>
         <Link href="/around" className="nf-btn nf-btn--primary mt-lg">
@@ -198,7 +198,7 @@ export function StoryComposer({
 
   return (
     <form
-      className="flex flex-col gap-5"
+      className="flex flex-col gap-md"
       onSubmit={(event) => {
         event.preventDefault();
         if (canPublish) publish();
@@ -262,7 +262,7 @@ export function StoryComposer({
             <UiIcon name="location" size={16} />
           </span>
           <input
-            className="nf-field w-full ps-10"
+            className="nf-field w-full ps-2xl"
             value={place}
             maxLength={STORY_PLACE_MAX}
             placeholder={STORY_COPY.placePlaceholder}
@@ -291,7 +291,7 @@ export function StoryComposer({
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-2.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
         >
           {error}
         </p>

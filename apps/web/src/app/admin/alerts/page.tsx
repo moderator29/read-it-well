@@ -60,7 +60,7 @@ function AlertCard({
   ui: AdminUi;
 }) {
   return (
-    <li className="nf-card p-md sm:p-5">
+    <li className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={alert.status} />
         <ui.StatusChip
@@ -77,11 +77,11 @@ function AlertCard({
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         {alert.title}
       </h3>
       {alert.description && (
-        <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {alert.description}
         </p>
       )}

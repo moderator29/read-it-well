@@ -143,7 +143,7 @@ export default async function AdminSocialPage({
         ) : (
           <ul className="flex flex-col gap-sm">
             {queue.proposed.map((area) => (
-              <li key={area.id} className="nf-card p-md sm:p-5">
+              <li key={area.id} className="nf-card p-md sm:p-lg">
                 <div className="flex flex-wrap items-baseline gap-x-xs gap-y-2xs">
                   <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {area.name}
@@ -203,7 +203,7 @@ export default async function AdminSocialPage({
         ) : (
           <ul className="flex flex-col gap-sm">
             {queue.applications.map((application) => (
-              <li key={application.id} className="nf-card p-md sm:p-5">
+              <li key={application.id} className="nf-card p-md sm:p-lg">
                 <div className="flex flex-wrap items-baseline gap-x-xs">
                   <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {application.displayLabel ??

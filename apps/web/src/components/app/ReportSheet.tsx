@@ -73,7 +73,7 @@ export function ReportSheet({
         type="button"
         onClick={() => setOpen(true)}
         data-testid="report-opener"
-        className="inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
+        className="inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="bell" size={16} className="shrink-0" />
         Report this listing
@@ -120,14 +120,14 @@ export function ReportSheet({
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-check" fill />
                     </span>
-                    <p className="mt-3.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="mt-sm text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Thank you, we have it
                     </p>
                     <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       Our team reviews every report. You will not have to chase this,
                       and the host is never told who reported them.
                     </p>
-                    <button type="button" onClick={close} className="nf-btn nf-btn--glass mt-5">
+                    <button type="button" onClick={close} className="nf-btn nf-btn--glass mt-md">
                       Back to the listing
                     </button>
                   </div>
@@ -136,7 +136,7 @@ export function ReportSheet({
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-lock" fill />
                     </span>
-                    <p className="mt-3.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="mt-sm text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Sign in to report this
                     </p>
                     <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -144,7 +144,7 @@ export function ReportSheet({
                       with noise and what lets us come back to you about it. The host is
                       never told who reported them.
                     </p>
-                    <Link href="/sign-in" className="nf-btn nf-btn--primary mt-5">
+                    <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md">
                       Sign in
                     </Link>
                   </div>
@@ -157,7 +157,7 @@ export function ReportSheet({
                       <legend className="px-2xs text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
                         What happened?
                       </legend>
-                      <div className="mt-xs grid gap-1.5">
+                      <div className="mt-xs grid gap-2xs">
                         {REPORT_CATEGORY_ORDER.map((code) => {
                           const copy = REPORT_CATEGORY_COPY[code];
                           const active = category === code;
@@ -208,7 +208,7 @@ export function ReportSheet({
                         name="details"
                         rows={4}
                         maxLength={DETAILS_MAX}
-                        className="nf-field mt-2.5 resize-y"
+                        className="nf-field mt-xs resize-y"
                         placeholder="He asked me to transfer to a personal account before any inspection."
                       />
                     </div>

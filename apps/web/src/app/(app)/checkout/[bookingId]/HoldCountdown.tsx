@@ -129,7 +129,7 @@ export function HoldCountdown({
   const expired = view.kind === "expired";
 
   return (
-    <div className="nf-panel-sunken flex items-center gap-3.5">
+    <div className="nf-panel-sunken flex items-center gap-sm">
       <span className="block h-11 w-11 shrink-0">
         <BrandIcon name="calendar-clock" fill />
       </span>

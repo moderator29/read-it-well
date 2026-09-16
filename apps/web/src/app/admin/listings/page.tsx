@@ -70,7 +70,7 @@ function ListingCard({
   const f = copy.fields;
 
   return (
-    <li className="nf-card p-md sm:p-5">
+    <li className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={listing.status} />
         <ui.StatusChip label={copy.propertyType[listing.propertyType]} tone="neutral" />
@@ -89,7 +89,7 @@ function ListingCard({
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {listing.title}
       </h3>
       <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
@@ -126,11 +126,11 @@ function ListingCard({
         <div className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
           <p className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
             To move in: {formatMoney(listing.moveIn.totalMinor, locale)}
-            <span className="ml-1.5 font-normal text-[var(--nf-content-muted)]">
+            <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">
               {listing.moveIn.totalStated ? "as stated" : "summed from the parts"}
             </span>
           </p>
-          <ul className="mt-1.5 space-y-3xs">
+          <ul className="mt-2xs space-y-3xs">
             {listing.moveIn.parts.map((part) => (
               <li
                 key={part.key}

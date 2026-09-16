@@ -16,11 +16,11 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export default function LoadingAdminOverview() {
   return (
     <LoadingShell label="Loading the console" className="mx-auto w-full max-w-5xl">
-      <header className="mb-5 flex items-start justify-between gap-sm">
+      <header className="mb-md flex items-start justify-between gap-sm">
         <div className="min-w-0 flex-1">
           <Skeleton width="15rem" height="1.75rem" radius="sm" />
           <Skeleton className="mt-xs" width="100%" height="0.875rem" radius="sm" />
-          <Skeleton className="mt-1.5" width="55%" height="0.875rem" radius="sm" />
+          <Skeleton className="mt-2xs" width="55%" height="0.875rem" radius="sm" />
         </div>
         <Skeleton width="2.5rem" height="1.375rem" radius="pill" className="shrink-0" />
       </header>
@@ -30,7 +30,7 @@ export default function LoadingAdminOverview() {
           whole wall at the moment it arrives. */}
       <ul className="nf-panel-sunken grid grid-cols-2 gap-md lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
-          <li key={i} className="nf-card flex h-full flex-col gap-xs p-md sm:p-5">
+          <li key={i} className="nf-card flex h-full flex-col gap-xs p-md sm:p-lg">
             <div className="flex items-center justify-between gap-xs">
               <Skeleton width="6rem" height="0.75rem" radius="sm" />
               <Skeleton width="1.25rem" height="1.25rem" radius="sm" />
@@ -43,7 +43,7 @@ export default function LoadingAdminOverview() {
         ))}
       </ul>
 
-      <section className="nf-card mt-md p-md sm:p-5">
+      <section className="nf-card mt-md p-md sm:p-lg">
         <Skeleton width="11rem" height="1.125rem" radius="sm" />
         <div className="mt-sm space-y-xs">
           <Skeleton width="100%" height="0.875rem" radius="sm" />

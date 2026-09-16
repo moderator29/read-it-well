@@ -51,7 +51,7 @@ export function StandingDesk({
   return (
     <div className="space-y-lg">
       {/* --------------------------------------------------------- grant */}
-      <form action={formAction} noValidate className="nf-card p-md sm:p-5">
+      <form action={formAction} noValidate className="nf-card p-md sm:p-lg">
         <h2 className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
           Grant standing
         </h2>
@@ -112,7 +112,7 @@ export function StandingDesk({
         {state?.ok && (
           <p
             role="status"
-            className="mt-sm flex items-center gap-1.5 text-[var(--nf-text-caption)] text-[var(--nf-state-success)]"
+            className="mt-sm flex items-center gap-2xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]"
           >
             <UiIcon name="verified" size={16} className="shrink-0" />
             Granted to @{state.data.handle}. Your name is on it.
@@ -138,7 +138,7 @@ export function StandingDesk({
             <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               Nobody has been granted standing yet
             </p>
-            <p className="mx-auto mt-1.5 max-w-[46ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mx-auto mt-2xs max-w-[46ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               When you grant one it appears here with your name and your reason against
               it, permanently.
             </p>

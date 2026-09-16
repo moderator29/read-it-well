@@ -15,10 +15,10 @@ export default function LoadingArea() {
         <span className="nf-social-skeleton block h-3 w-36 rounded-[var(--nf-radius-xs)]" />
       </div>
 
-      <div className="nf-card mb-5 space-y-sm p-5" aria-hidden="true">
+      <div className="nf-card mb-md space-y-sm p-lg" aria-hidden="true">
         <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
         <span className="nf-social-skeleton block h-3 w-3/4 rounded-[var(--nf-radius-xs)]" />
-        <div className="flex gap-7 pt-xs">
+        <div className="flex gap-lg pt-xs">
           <span className="nf-social-skeleton block h-8 w-16 rounded-[var(--nf-radius-xs)]" />
           <span className="nf-social-skeleton block h-8 w-16 rounded-[var(--nf-radius-xs)]" />
           <span className="nf-social-skeleton block h-8 w-24 rounded-[var(--nf-radius-xs)]" />

@@ -14,7 +14,7 @@ export default function LoadingBookings() {
     <LoadingShell label="Loading your bookings" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
 
-      <div className="nf-card p-md sm:p-5">
+      <div className="nf-card p-md sm:p-lg">
         <div className="flex items-start gap-md">
           <Skeleton width="4.5rem" height="4.5rem" radius="md" className="shrink-0" />
           <div className="min-w-0 flex-1">
@@ -35,7 +35,7 @@ export default function LoadingBookings() {
             <div className="min-w-0 flex-1">
               <Skeleton width="70%" height="0.875rem" radius="sm" />
               <Skeleton className="mt-xs" width="100%" height="0.78rem" radius="sm" />
-              <Skeleton className="mt-1.5" width="85%" height="0.78rem" radius="sm" />
+              <Skeleton className="mt-2xs" width="85%" height="0.78rem" radius="sm" />
             </div>
           </li>
         ))}

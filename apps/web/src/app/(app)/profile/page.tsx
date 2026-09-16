@@ -183,7 +183,7 @@ export default async function ProfilePage() {
         somebody has to remember here.
       */}
       {rolesView.roles.map((role) => (
-        <VerifyPrompt key={role.id} role={role} className="mb-5" />
+        <VerifyPrompt key={role.id} role={role} className="mb-md" />
       ))}
 
       <AccountHero

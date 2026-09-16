@@ -47,7 +47,7 @@ export default async function AdminMoneyPage() {
   function EntryRow({ entry }: { entry: WalletEntryView }) {
     const outgoing = entry.direction === "debit";
     return (
-      <li className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-2.5">
+      <li className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
         <span className="min-w-0">
           <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
             {/* Same column-keyed lookup as the status chip beside it, rather
@@ -87,7 +87,7 @@ export default async function AdminMoneyPage() {
             {outgoing ? "-" : "+"}
             {formatMoney(entry.amountMinor, locale)}
           </span>
-          <span className="text-[0.6875rem] text-[var(--nf-content-muted)]">
+          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {ui.when(entry.createdAt)}
           </span>
         </span>
@@ -105,7 +105,7 @@ export default async function AdminMoneyPage() {
 
       {/* Stuck first. It is the only thing here somebody is waiting on. */}
       {stuck.length > 0 && (
-        <section className="nf-card mb-5 p-md sm:p-5">
+        <section className="nf-card mb-md p-md sm:p-lg">
           <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             Stuck, and somebody is waiting
           </h2>
@@ -123,7 +123,7 @@ export default async function AdminMoneyPage() {
         </section>
       )}
 
-      <section className="mb-5 grid gap-sm sm:grid-cols-3">
+      <section className="mb-md grid gap-sm sm:grid-cols-3">
         <div className="nf-card p-md">
           <p className="text-[var(--nf-text-overline)] uppercase tracking-wide text-[var(--nf-content-muted)]">
             Settled across all wallets
@@ -148,7 +148,7 @@ export default async function AdminMoneyPage() {
         </div>
       </section>
 
-      <section className="nf-card mb-5 p-md sm:p-5">
+      <section className="nf-card mb-md p-md sm:p-lg">
         <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">Wallets</h2>
         {wallets.length === 0 ? (
           <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
@@ -160,7 +160,7 @@ export default async function AdminMoneyPage() {
             {wallets.map((wallet) => (
               <li
                 key={wallet.id}
-                className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-2.5"
+                className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm"
               >
                 <span className="min-w-0">
                   <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
@@ -191,7 +191,7 @@ export default async function AdminMoneyPage() {
         )}
       </section>
 
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-lg">
         <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           The ledger, newest first
         </h2>

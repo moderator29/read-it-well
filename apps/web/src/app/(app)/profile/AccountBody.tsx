@@ -115,7 +115,16 @@ export function AccountBody({
       <div
         role="tablist"
         aria-label="Your account"
-        className="-mx-4 flex gap-2xs overflow-x-auto border-b border-[var(--nf-border-subtle)] px-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
+        /* `-mx-md` AND NOT `-mx-4`, AND THIS ONE IS A PROBE.
+           Thirty-nine negative margins were left off the scale because nobody
+           here can run a build to confirm Tailwind v4 generates a negative
+           utility from a `--spacing-*` theme key. Two are converted first, this
+           and `ThreadOptionsSheet`'s `-mt-xs`, so the answer costs one build
+           rather than thirty-nine. If it does NOT resolve, this strip stops
+           bleeding into the gutter and sits inset by 16px on a phone, which is
+           visible at a glance and harmless meanwhile. `px-md` beside it is the
+           16px it cancels. */
+        className="-mx-md flex gap-2xs overflow-x-auto border-b border-[var(--nf-border-subtle)] px-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
       >
         {tabs.map((entry) => (
           <button
@@ -139,7 +148,7 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-account"
           aria-labelledby="account-tab-account"
-          className="space-y-lg pt-5"
+          className="space-y-lg pt-lg"
         >
           <SettingsGroup label="What you have here">
             <RowLink
@@ -234,7 +243,7 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-posts"
           aria-labelledby="account-tab-posts"
-          className="pt-5"
+          className="pt-lg"
         >
           {handle === null ? (
             <EmptyPanel
@@ -374,7 +383,7 @@ function DetailsSheet({
         {state && !state.ok && !state.fieldErrors && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
           >
             {state.error}
           </p>
@@ -426,7 +435,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="nf-label mb-1.5 block">
+      <span className="nf-label mb-2xs block">
         {label}
         {optional && (
           <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">(optional)</span>
@@ -444,7 +453,7 @@ function Field({
         aria-invalid={error ? true : undefined}
         className="nf-field"
       />
-      {error && <span className="mt-1.5 block text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">{error}</span>}
+      {error && <span className="mt-2xs block text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">{error}</span>}
     </label>
   );
 }

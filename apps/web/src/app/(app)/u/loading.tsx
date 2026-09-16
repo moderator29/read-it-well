@@ -37,7 +37,7 @@ export default function LoadingPeopleDirectory() {
         <Skeleton className="shrink-0" width="6.25rem" height="3rem" radius="pill" />
       </div>
 
-      <Skeleton className="mt-5" width="10rem" height="0.75rem" radius="sm" />
+      <Skeleton className="mt-md" width="10rem" height="0.75rem" radius="sm" />
 
       {/* The slabs hide themselves, but the LIST does not: without this a
           screen reader is told "list, 5 items" about five empty rows. The

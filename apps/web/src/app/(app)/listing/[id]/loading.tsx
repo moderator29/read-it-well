@@ -25,7 +25,7 @@ export default function LoadingListing() {
         />
       </div>
 
-      <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-lg pt-lg sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-xl md:-mx-8 md:px-xl">
+      <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-lg pb-lg pt-lg sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-xl md:-mx-8 md:px-xl">
         <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
           <div className="min-w-0">
             {/* Status row, title, location, then the hero price. */}
@@ -34,10 +34,10 @@ export default function LoadingListing() {
               <Skeleton width="4.5rem" height="1.375rem" radius="pill" />
             </div>
             <Skeleton className="mt-sm" width="80%" height="2.25rem" radius="sm" />
-            <Skeleton className="mt-2.5" width="45%" height="1rem" radius="sm" />
+            <Skeleton className="mt-xs" width="45%" height="1rem" radius="sm" />
             <Skeleton className="mt-md" width="12rem" height="3rem" radius="sm" />
 
-            <div className="mt-lg space-y-2.5">
+            <div className="mt-lg space-y-xs">
               <Skeleton height="0.875rem" radius="sm" />
               <Skeleton height="0.875rem" radius="sm" />
               <Skeleton width="72%" height="0.875rem" radius="sm" />
@@ -52,11 +52,11 @@ export default function LoadingListing() {
           </div>
 
           {/* The reserve panel, pinned beside the content from lg up. */}
-          <aside className="nf-card p-5">
+          <aside className="nf-card p-lg">
             <Skeleton width="60%" height="1.5rem" radius="sm" />
             <Skeleton className="mt-md" height="3rem" radius="lg" />
             <Skeleton className="mt-sm" height="3rem" radius="lg" />
-            <Skeleton className="mt-5" height="3.5rem" radius="pill" />
+            <Skeleton className="mt-md" height="3.5rem" radius="pill" />
             <Skeleton className="mt-md" width="70%" height="0.8125rem" radius="sm" />
           </aside>
         </div>

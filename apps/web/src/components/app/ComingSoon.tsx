@@ -40,14 +40,14 @@ export function ComingSoon({
         <span className="nf-story-art mx-auto block h-28 w-28 sm:h-32 sm:w-32">
           <BrandIcon name={icon} fill />
         </span>
-        <p className="mx-auto mt-2.5 max-w-[44ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-xs max-w-[44ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {promise}
         </p>
       </Reveal>
 
       {preview && (
         <Reveal delay={110} className="mt-xl text-left">
-          <div className="nf-card relative overflow-hidden p-5 pt-lg">
+          <div className="nf-card relative overflow-hidden p-lg pt-lg">
             {preview}
           </div>
         </Reveal>

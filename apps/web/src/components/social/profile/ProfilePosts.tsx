@@ -102,7 +102,7 @@ export function ProfilePosts({
   if (posts.length === 0) {
     return (
       <section
-        className="mt-5"
+        className="mt-md"
         role="tabpanel"
         aria-labelledby={labelledBy}
         tabIndex={-1}
@@ -111,14 +111,14 @@ export function ProfilePosts({
           <div className="mx-auto w-fit">
             <BrandIcon name={copy.icon} size={44} />
           </div>
-          <h3 className="nf-h3 mt-3.5 text-[var(--nf-text-body-lg)]">
+          <h3 className="nf-h3 mt-sm text-[var(--nf-text-body-lg)]">
             {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}
           </h3>
           <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {isOwner ? copy.mineBody : copy.theirsBody.replace("{handle}", handle)}
           </p>
           {isOwner && (
-            <div className="mt-5">
+            <div className="mt-md">
               {hasBio ? (
                 <Link href="/around" className="nf-btn nf-btn--primary">
                   Find a place to talk in
@@ -138,7 +138,7 @@ export function ProfilePosts({
   const feedEmpty = FEED_EMPTY[tab];
 
   return (
-    <section className="mt-5" role="tabpanel" aria-labelledby={labelledBy} tabIndex={-1}>
+    <section className="mt-md" role="tabpanel" aria-labelledby={labelledBy} tabIndex={-1}>
       <Feed
         key={tab}
         initial={posts}

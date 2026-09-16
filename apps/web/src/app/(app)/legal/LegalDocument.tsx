@@ -43,12 +43,12 @@ export function LegalDocument({
 
       <p className="nf-chip mt-md">Last updated: {updated}</p>
 
-      <div className="nf-card mt-lg p-5 sm:p-xl">
+      <div className="nf-card mt-lg p-lg sm:p-xl">
         <div className="space-y-xl">
           {sections.map((section) => (
             <section key={section.title}>
               <h2 className="nf-h3">{section.title}</h2>
-              <div className="mt-2.5 space-y-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-1.5 [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5">
+              <div className="mt-xs space-y-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-2xs [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-2xs [&_ul]:pl-lg">
                 {section.body}
               </div>
             </section>

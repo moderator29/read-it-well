@@ -200,7 +200,7 @@ export default async function AroundPage({
           </p>
           <Link
             href="/around/settings"
-            className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-5 text-[var(--nf-text-body-sm)]"
+            className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-lg text-[var(--nf-text-body-sm)]"
           >
             {t.social.pickPlaces}
           </Link>
@@ -253,7 +253,7 @@ export default async function AroundPage({
         {feed.ended && feed.posts.length > 0 ? (
           <p
             aria-live="polite"
-            className="mt-5 text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
+            className="mt-md text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
           >
             {POST_COPY.endOfSession}
           </p>

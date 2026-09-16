@@ -45,7 +45,7 @@ export default async function InterestsSettingsPage() {
               : t.interests.accountBodySignedOut}
           </p>
           {state.state === "signed-out" && (
-            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-5 w-full sm:w-auto">
+            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
               {t.common.signIn}
             </Link>
           )}
@@ -61,7 +61,7 @@ export default async function InterestsSettingsPage() {
         subtitle={t.interests.screenSubtitle}
         fallback="/settings"
       />
-      <div className="nf-card p-5 sm:p-lg">
+      <div className="nf-card p-lg sm:p-lg">
         <InterestChoices initial={state.interests} mode="settings" t={t} />
       </div>
     </div>

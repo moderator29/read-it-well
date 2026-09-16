@@ -16,7 +16,7 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export default function LoadingSearch() {
   return (
     <LoadingShell label="Loading search results">
-      <div className="nf-glass -mx-5 -mt-4 border-b border-[var(--nf-border-subtle)] px-5 py-sm md:-mx-8 md:px-xl">
+      <div className="nf-glass -mx-5 -mt-4 border-b border-[var(--nf-border-subtle)] px-lg py-sm md:-mx-8 md:px-xl">
         <div className="mx-auto flex max-w-3xl items-center gap-xs">
           <Skeleton height="3.5rem" radius="lg" />
           <Skeleton width="3.5rem" height="3.5rem" radius="md" className="shrink-0" />
@@ -24,18 +24,18 @@ export default function LoadingSearch() {
       </div>
 
       {/* The category tiles and the active-filter rail beneath the bar. */}
-      <div className="mt-5 flex gap-xs overflow-hidden">
+      <div className="mt-md flex gap-xs overflow-hidden">
         {Array.from({ length: 5 }, (_, i) => (
           <Skeleton key={i} width="6.5rem" height="2.75rem" radius="pill" className="shrink-0" />
         ))}
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-md">
+      <div className="mt-md flex items-center justify-between gap-md">
         <Skeleton width="11rem" height="1rem" radius="sm" />
         <Skeleton width="8rem" height="2.75rem" radius="pill" className="shrink-0" />
       </div>
 
-      <ul className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-md grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
           <li key={i}>
             <SkeletonCard />

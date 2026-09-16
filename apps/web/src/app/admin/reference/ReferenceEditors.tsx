@@ -193,7 +193,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
 
       <ul className="flex flex-col gap-xs">
         {filtered.map((row) => (
-          <li key={row.code} className="nf-card p-3.5">
+          <li key={row.code} className="nf-card p-md">
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}
@@ -389,7 +389,7 @@ export function LocalGovernmentEditor({
 
       <ul className="flex flex-col gap-xs">
         {filtered.map((row) => (
-          <li key={row.code} className="nf-card p-3.5">
+          <li key={row.code} className="nf-card p-md">
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}

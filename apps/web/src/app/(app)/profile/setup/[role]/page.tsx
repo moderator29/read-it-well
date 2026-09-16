@@ -64,7 +64,7 @@ export default async function ProfileSetupPage({
 
       <p className="nf-lede max-w-[52ch]">{copy.setup.involves}</p>
 
-      <div className="mt-7">
+      <div className="mt-lg">
         <ApplyWizard t={t} role={role} />
       </div>
     </div>

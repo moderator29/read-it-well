@@ -63,13 +63,13 @@ export function ListingPhotoGrid({
 
   return (
     <section data-testid="listing-photo-grid">
-      <div className="mb-3.5 flex items-baseline justify-between gap-md">
+      <div className="mb-sm flex items-baseline justify-between gap-md">
         <h2 className="nf-h3">Photos</h2>
         <button
           type="button"
           onClick={() => setShowAll(true)}
           data-testid="photos-show-all"
-          className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
+          className="inline-flex min-h-[2.75rem] items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
         >
           <UiIcon name="grid" size={16} />
           Show all {photos.length}

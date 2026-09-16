@@ -87,7 +87,7 @@ export async function RentalPanel({
       : 1;
 
   return (
-    <div className="nf-card p-5" data-testid="rental-panel">
+    <div className="nf-card p-lg" data-testid="rental-panel">
       <p>
         <Amount
           minorUnits={priceMinor}

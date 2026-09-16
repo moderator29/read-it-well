@@ -95,7 +95,7 @@ export function AdminRail({
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={[
-                      "flex items-center gap-sm rounded-[var(--nf-radius-md)] px-sm py-2.5 text-[var(--nf-text-body-sm)] font-medium transition-colors",
+                      "flex items-center gap-sm rounded-[var(--nf-radius-md)] px-sm py-sm text-[var(--nf-text-body-sm)] font-medium transition-colors",
                       active
                         ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
                         : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
@@ -121,7 +121,7 @@ export function AdminRail({
                         work-waiting count means: cyan is this product's
                         attention colour by rule.
                       */
-                      <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
+                      <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
                         {count}
                       </span>
                     )}
@@ -199,7 +199,7 @@ export function AdminTabs({
              colour, so a shut control still answers "is there work". Cyan
              rather than brand blue for the same reason the rail's badge is:
              a work-waiting count means attention, not brand. */
-          <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
             {waiting}
           </span>
         )}

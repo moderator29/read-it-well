@@ -18,7 +18,7 @@ export default function LoadingNewStory() {
         <span className="nf-social-skeleton block h-3 w-64 rounded-[var(--nf-radius-xs)]" />
       </div>
 
-      <div className="nf-card nf-social-card space-y-md p-5" aria-hidden="true">
+      <div className="nf-card nf-social-card space-y-md p-lg" aria-hidden="true">
         {/* The picture comes first in the real composer, and it is the tallest
             thing on the page, so the skeleton keeps its proportion. */}
         <span className="nf-social-skeleton block aspect-[4/5] w-full rounded-[var(--nf-radius-lg)]" />

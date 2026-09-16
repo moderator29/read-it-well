@@ -123,7 +123,7 @@ export function ListingUtilities({
                 inside a row that already has a label.
               */}
               {utilities.prepaidMeter && (
-                <span className={`mt-1.5 flex items-center gap-xs ${TYPE.rowMeta}`}>
+                <span className={`mt-2xs flex items-center gap-xs ${TYPE.rowMeta}`}>
                   <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
                   Prepaid meter, so you buy units rather than settle a shared bill
                 </span>
@@ -165,7 +165,7 @@ export function ListingUtilities({
                     </p>
                   )}
                   {access.gateDirections && (
-                    <p className={`mt-1.5 whitespace-pre-wrap ${TYPE.body}`}>
+                    <p className={`mt-2xs whitespace-pre-wrap ${TYPE.body}`}>
                       {access.gateDirections}
                     </p>
                   )}
@@ -192,7 +192,7 @@ export function ListingUtilities({
                     <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
                     Gated, with the details released on confirmation
                   </p>
-                  <p className={`mt-1.5 ${TYPE.body}`}>
+                  <p className={`mt-2xs ${TYPE.body}`}>
                     {bookingConfirmed
                       ? "Your booking is confirmed. Open it from your bookings to see the gate details."
                       : "The estate name, what to tell security, the desk number and any code arrive here the moment your booking is confirmed. They are never shown publicly, which is what stops a listing being used to case a property."}

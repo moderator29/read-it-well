@@ -159,10 +159,10 @@ export function PlaceFields({
   const stateName = states.find((state) => state.code === value.stateCode)?.name ?? "";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-md">
       <div>
         <span className="nf-label">{t.pickers.countryLabel}</span>
-        <div className="nf-field mt-1.5 flex items-center justify-between gap-sm opacity-80">
+        <div className="nf-field mt-2xs flex items-center justify-between gap-sm opacity-80">
           <span>{t.pickers.countryName}</span>
           <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {t.pickers.countryOnly}

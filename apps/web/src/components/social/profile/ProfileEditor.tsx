@@ -105,14 +105,14 @@ export function ProfileEditor({
             <UiIcon name="sparkle" size={15} className="shrink-0" />
             {BIO_HELD_TITLE}
           </p>
-          <p className="mt-1.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {BIO_HELD_DETAIL}
           </p>
         </div>
       )}
 
       {/* ------------------------------------------------------------ handle */}
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-lg">
         <h2 className="nf-overline">{claiming ? "Claim your handle" : "Your handle"}</h2>
         <label htmlFor={handleId} className="nf-label mt-sm">
           Handle
@@ -154,7 +154,7 @@ export function ProfileEditor({
       </section>
 
       {/* --------------------------------------------------------------- bio */}
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-lg">
         <h2 className="nf-overline">About you</h2>
 
         <label htmlFor={bioId} className="nf-label mt-sm">
@@ -184,7 +184,7 @@ export function ProfileEditor({
 
         <label htmlFor={pronounsId} className="nf-label mt-md">
           Pronouns
-          <span className="ml-1.5 font-normal text-[var(--nf-content-muted)]">optional</span>
+          <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">optional</span>
         </label>
         <input
           id={pronounsId}
@@ -203,7 +203,7 @@ export function ProfileEditor({
 
         <label htmlFor={linkId} className="nf-label mt-md">
           Link
-          <span className="ml-1.5 font-normal text-[var(--nf-content-muted)]">optional</span>
+          <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">optional</span>
         </label>
         <input
           id={linkId}
@@ -227,7 +227,7 @@ export function ProfileEditor({
       </section>
 
       {/* -------------------------------------------------------- home area */}
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-lg">
         <h2 className="nf-overline">Where you are</h2>
         <label htmlFor={areaId} className="nf-label mt-sm">
           Home area
@@ -272,7 +272,7 @@ export function ProfileEditor({
         through role and aria-labelledby, and the heading then matches every
         other section on the page.
       */}
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-lg">
         <h2 id={`${policyId}-label`} className="nf-overline">
           Who can message you
         </h2>
@@ -355,7 +355,7 @@ export function ProfileEditor({
           </p>
           <Link
             href={`/u/${saved.handle}`}
-            className="mt-xs inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
+            className="mt-xs inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
           >
             View your profile
             <UiIcon name="arrow-right" size={14} />

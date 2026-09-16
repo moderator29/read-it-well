@@ -43,7 +43,7 @@ export function TrendingStrip({
       </div>
 
       {items.length === 0 ? (
-        <div className="nf-card flex items-center gap-md p-md sm:p-5">
+        <div className="nf-card flex items-center gap-md p-md sm:p-lg">
           <span className="block h-12 w-12 shrink-0">
             <BrandIcon name="chat-duo" fill />
           </span>
@@ -62,7 +62,7 @@ export function TrendingStrip({
             <li key={item.key}>
               <Link
                 href={item.href}
-                className="nf-card nf-card--interactive flex items-center gap-3.5 p-sm sm:p-3.5"
+                className="nf-card nf-card--interactive flex items-center gap-sm p-sm sm:p-md"
               >
                 <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-elevated)]">
                   {item.imageUrl ? (
@@ -78,14 +78,14 @@ export function TrendingStrip({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="grid h-full w-full place-items-center p-2.5">
+                    <span className="grid h-full w-full place-items-center p-sm">
                       <BrandIcon name="pin-map" fill />
                     </span>
                   )}
                 </span>
 
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-xs text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+                  <span className="nf-overline flex items-center gap-xs text-[var(--nf-content-muted)]">
                     {item.kindLabel}
                     {item.placeLabel && (
                       <>

@@ -173,7 +173,7 @@ export function InterestChoices({
                   className="absolute right-3 top-3 shrink-0"
                 />
               )}
-              <span className="pr-5 text-[var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
+              <span className="pr-lg text-[var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
                 {t.interests.markets[value]}
               </span>
               <span className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
@@ -188,7 +188,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-error"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
@@ -198,7 +198,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-skip-error"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {skipError}
         </p>
@@ -208,7 +208,7 @@ export function InterestChoices({
         <p
           role="status"
           data-testid="interests-saved"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-3.5 py-2.5 text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
         >
           {chosen.length === 0
             ? t.interests.savedNothing

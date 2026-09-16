@@ -174,7 +174,7 @@ export function WelcomeCards({
             {/* ONE headline, ONE supporting line. Anything else on a slide
                 somebody looks at for two seconds is a thing they will not
                 read. */}
-            <div className="absolute inset-x-0 bottom-0 px-lg pb-10 sm:px-10 sm:pb-14">
+            <div className="absolute inset-x-0 bottom-0 px-lg pb-2xl sm:px-2xl sm:pb-3xl">
               <h2 className="nf-h1 max-w-[16ch] text-[var(--nf-content-on-media)]">
                 {slide.title}
               </h2>
@@ -193,14 +193,14 @@ export function WelcomeCards({
           type="button"
           onClick={onDone}
           data-testid="welcome-skip"
-          className="nf-tap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] px-3.5 py-xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md"
+          className="nf-tap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] px-md py-xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {w.skip}
         </button>
       </div>
 
       {/* ------------------------------------------------------- foot */}
-      <div className="shrink-0 px-lg pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-10">
+      <div className="shrink-0 px-lg pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-lg sm:px-2xl">
         {/* Real buttons, not painted dots. Each says which slide it goes to,
             and the current one says that it is current. */}
         <div className="flex items-center justify-center gap-xs">

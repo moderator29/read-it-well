@@ -164,7 +164,7 @@ export function IntentTune({
           {say(ranked ? copy.standingOn : copy.standingOff)}
         </p>
 
-        <div className="mt-5 flex flex-col gap-xs">
+        <div className="mt-md flex flex-col gap-xs">
           <Button
             type="button"
             variant="primary"
@@ -193,7 +193,7 @@ export function IntentTune({
           <p
             role="status"
             data-testid="intent-tune-note"
-            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
+            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
           >
             {note}
           </p>
@@ -203,7 +203,7 @@ export function IntentTune({
           <p
             role="alert"
             data-testid="intent-tune-error"
-            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
           >
             {error}
           </p>

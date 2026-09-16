@@ -45,7 +45,7 @@ export function ProfileNotice({
           the type and would have rendered a quiet ghost button as the only
           thing to do, which reads as the action nobody wanted you to take.
         */
-        <div className="mt-5 flex justify-center">
+        <div className="mt-md flex justify-center">
           <EmptyActions primary={primary} {...(secondary ? { secondary } : {})} />
         </div>
       )}

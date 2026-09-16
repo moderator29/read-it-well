@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 /**
  * Device settings store.
@@ -86,25 +86,103 @@ function persist(next: NfSettings): void {
   }
 }
 
+/* ------------------------------------------------- the store, shared by all */
+
 /**
- * Hydrating hook over the settings document. First render uses the defaults so
- * server and client markup agree, then the stored values arrive on mount.
+ * ONE SNAPSHOT FOR EVERY READER, AND THERE USED TO BE ONE PER COMPONENT.
+ *
+ * This hook was `useState(SETTINGS_DEFAULTS)` plus an effect that loaded
+ * storage on mount, which React 19 flags as a render-phase write. The warning
+ * was the small half of it. The large half is that `SettingsGroups.tsx` calls
+ * this hook FIVE TIMES on one screen - Appearance, Notifications, Privacy,
+ * Search and Data each call it - so there were five independent copies of one
+ * document, and `set` persisted the WHOLE document from its own copy's `prev`.
+ *
+ * So: open /settings, turn a notification off, then change a privacy toggle.
+ * The privacy card's `prev` was loaded at mount and does not contain the
+ * notification change, so persisting it writes the old value back. **The first
+ * change is silently reverted in storage**, and neither card shows it, because
+ * neither card is reading the other's copy. Reproducible with any two toggles
+ * in two different cards, in one visit, and invisible until the next page load.
+ *
+ * `useSyncExternalStore` is the fix rather than a tidy-up: there is exactly one
+ * snapshot, every reader gets the same object, and a write goes to storage and
+ * then notifies everybody. Two cards cannot hold different ideas of one
+ * document because there is only one.
+ *
+ * THE SNAPSHOT HAS TO BE REFERENTIALLY STABLE or React re-renders forever, so
+ * the parsed document is cached against the RAW STRING it came from. Same
+ * string, same object. That also makes a cross-tab `storage` event work for
+ * free: the string differs, so the cache misses and everything re-reads.
+ *
+ * A FAILED WRITE STILL HOLDS FOR THE SESSION. `persist` swallows storage
+ * errors, so after writing, the cache is set from the value we tried to write
+ * rather than re-read from a store that may have refused it. Private mode keeps
+ * working; it simply forgets on reload, which is what private mode is.
+ */
+let cachedRaw: string | null = null;
+let cachedValue: NfSettings = SETTINGS_DEFAULTS;
+const listeners = new Set<() => void>();
+
+function readRaw(): string | null {
+  try {
+    return window.localStorage.getItem(SETTINGS_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getSnapshot(): NfSettings {
+  const raw = readRaw();
+  if (raw !== cachedRaw) {
+    cachedRaw = raw;
+    cachedValue = loadSettings();
+  }
+  return cachedValue;
+}
+
+/**
+ * The server, and the first client render, see the defaults.
+ *
+ * A stable reference, deliberately the same object `cachedValue` starts at, so
+ * hydration compares equal and the markup cannot disagree with itself. This is
+ * the job the mount effect was doing, done where it belongs.
+ */
+function getServerSnapshot(): NfSettings {
+  return SETTINGS_DEFAULTS;
+}
+
+function subscribe(onChange: () => void): () => void {
+  listeners.add(onChange);
+  /* Another tab writing the same key. `e.key === null` is a `clear()`, which
+     wipes this document too, so it counts. */
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === null || event.key === SETTINGS_KEY) onChange();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    listeners.delete(onChange);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+function writeSetting<K extends keyof NfSettings>(key: K, value: NfSettings[K]): void {
+  const next: NfSettings = { ...getSnapshot(), [key]: value };
+  persist(next);
+  cachedValue = next;
+  cachedRaw = readRaw();
+  for (const listener of listeners) listener();
+}
+
+/**
+ * The settings document and one writer, shared by every card that reads it.
  */
 export function useNfSettings() {
-  const [settings, setSettings] = useState<NfSettings>(SETTINGS_DEFAULTS);
-
-  useEffect(() => {
-    setSettings(loadSettings());
-  }, []);
-
-  const set = useCallback(<K extends keyof NfSettings>(key: K, value: NfSettings[K]) => {
-    setSettings((prev) => {
-      const next = { ...prev, [key]: value };
-      persist(next);
-      return next;
-    });
-  }, []);
-
+  const settings = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const set = useCallback(
+    <K extends keyof NfSettings>(key: K, value: NfSettings[K]) => writeSetting(key, value),
+    [],
+  );
   return { settings, set };
 }
 

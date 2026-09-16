@@ -102,13 +102,13 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
         </div>
       )}
 
-      <div className="nf-card mt-5 p-5">
+      <div className="nf-card mt-md p-lg">
         <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           {unconfigured
             ? "We cannot reach your account right now"
             : "Your stays live in your account"}
         </h2>
-        <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {unconfigured
             ? "This is on our side, not yours. Everything you set here is kept on this device and nothing has been lost. Try again in a few minutes."
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
@@ -187,19 +187,43 @@ function DeviceDetailsSheet({
   const [draftName, setDraftName] = useState(name);
   const [draftEmail, setDraftEmail] = useState(email);
 
-  // Re-seed from the stored values each time it opens, so cancelling really
-  // cancels rather than leaving a half-typed value waiting for the next visit.
-  useEffect(() => {
-    if (!open) return;
-    setDraftName(name);
-    setDraftEmail(email);
-  }, [open, name, email]);
+  /*
+   * Re-seed from the stored values each time it OPENS, so cancelling really
+   * cancels rather than leaving a half-typed value waiting for the next visit.
+   *
+   * ---------------------------------------------------------------------------
+   * THE EFFECT THIS REPLACES HAD A BUG UNDER THE LINT WARNING.
+   *
+   * It was `useEffect(..., [open, name, email])` with an early return when
+   * closed, so it re-seeded on any change to `name` or `email` WHILE THE SHEET
+   * WAS OPEN, not only when it opened. `onSave` in the parent calls `setName`
+   * and `setEmail`, so a save that did not also close the sheet overwrote
+   * whatever the person was still typing. Reacting to three things when you
+   * mean one transition is how that hides.
+   *
+   * WHY NOT A `key` ON THE SHEET, which was the suggestion. A key is the right
+   * answer when a component's whole identity changes, and it would work here:
+   * remount on open, `useState(name)` seeds fresh. But the remount has to land
+   * on one side of the open transition or the other - key on open and the sheet
+   * mounts already-open, skipping its entrance; key on close and the exit
+   * animation is cut. This needs neither: it seeds on the transition itself,
+   * during render, so there is no committed frame with the stale draft in it
+   * and `Sheet` keeps both animations.
+   */
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setDraftName(name);
+      setDraftEmail(email);
+    }
+  }
 
   return (
     <Sheet open={open} onClose={onClose} title="On this device">
       <div className="space-y-md">
         <label className="block">
-          <span className="nf-label mb-1.5 block">Your name</span>
+          <span className="nf-label mb-2xs block">Your name</span>
           <input
             type="text"
             value={draftName}
@@ -213,7 +237,7 @@ function DeviceDetailsSheet({
         </label>
 
         <label className="block">
-          <span className="nf-label mb-1.5 block">
+          <span className="nf-label mb-2xs block">
             Email <span className="font-normal text-[var(--nf-content-muted)]">(optional)</span>
           </span>
           <input

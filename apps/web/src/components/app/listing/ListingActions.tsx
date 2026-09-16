@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { toggleSave } from "@/lib/saved/actions";
-import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
+import { addLocalSave, removeLocalSave } from "@/lib/saved/local";
+import { deviceSavesChanged, useDeviceSaved } from "@/components/app/SaveControl";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -61,18 +62,27 @@ export function ListingActions({
   /** Whether this listing is already on the account's shortlist. */
   initialSaved?: boolean;
 }) {
-  const [saved, setSaved] = useState(initialSaved);
+  /*
+   * The device's answer, from the one store every heart reads.
+   *
+   * This was `useState(initialSaved)` plus an effect that read `localStorage`
+   * on mount, which is the version `SaveControl`'s store docstring calls out by
+   * name as "what the detail page does". Two consequences, and the cascading
+   * render React complains about is the smaller one: the heart on this page and
+   * the same heart on a card behind it held separate copies of one fact, so
+   * saving here left the card stale until a reload.
+   *
+   * `override` is this page's own optimistic answer, `null` until somebody taps.
+   * The stored truth wins until then, exactly as `useSaveControl` does it.
+   */
+  const [override, setOverride] = useState<boolean | null>(null);
+  const onDevice = useDeviceSaved(listingId);
+  const saved = override ?? (initialSaved || onDevice);
+  const setSaved = setOverride;
   const [message, setMessage] = useState<string | null>(null);
   const [signInPrompt, setSignInPrompt] = useState(false);
   const [pending, startTransition] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Device saves (catalogue listings, and anything hearted while signed out)
-  // live in localStorage, which the server render cannot see.
-  useEffect(() => {
-    if (initialSaved) return;
-    if (readLocalSaves().some((save) => save.id === listingId)) setSaved(true);
-  }, [initialSaved, listingId]);
 
   useEffect(() => {
     return () => {
@@ -109,6 +119,9 @@ export function ListingActions({
         // A catalogue id can never be a row, so the device owns this save.
         if (next) addLocalSave(listingId);
         else removeLocalSave(listingId);
+        /* And the store is told, so every other heart for this listing on the
+           page behind this one moves with it rather than waiting for a reload. */
+        deviceSavesChanged();
         say(next ? "Saved to your shortlist" : "Removed from saved");
         return;
       }
@@ -193,11 +206,11 @@ export function ListingActions({
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-1.5 text-right text-[var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
+          className="max-w-[15rem] rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-xs text-right text-[var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {message}
           {signInPrompt && (
-            <Link href="/sign-in" className="ml-1.5 font-semibold underline underline-offset-2">
+            <Link href="/sign-in" className="ml-2xs font-semibold underline underline-offset-2">
               Sign in
             </Link>
           )}

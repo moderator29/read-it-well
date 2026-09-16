@@ -50,11 +50,63 @@
  *   .nf-h4          20   --nf-text-h4
  *   .nf-h3 .nf-h2 .nf-h1 .nf-display  fluid clamps, chosen by ROLE
  *
- * The named classes come first in every message, ahead of the tokens, because
- * they carry the line height and the colour with them. A size chosen without
- * its leading is half a decision: `--nf-text-body-sm` on its own leaves the
- * author to invent a `leading-*` and the next author to invent a different one,
- * which is how the type ended up with 45 sizes and no rhythm.
+ * A CLASS IS NOT A SIZE, AND THIS RULE ONCE SAID IT WAS.
+ *
+ * Every message used to end with "prefer the class over the token". It is good
+ * advice for two of the six rungs and actively destructive for two others, and
+ * the person migrating this rule's own output nearly found that out the
+ * expensive way. `text-[0.75rem]` reports at 12px, the 12px rung is
+ * `.nf-overline`, and `.nf-overline` does not mean "12px". It means 12px AND
+ * uppercase AND tracked at 0.1em AND weight 650 AND a different ink. Taken at
+ * its word across the 158 sites that reported it, that single sentence would
+ * have UPPERCASED AND BOLDED 158 plain twelve-pixel labels, and every one of
+ * those edits would have passed lint, type-check and test, because none of
+ * those can see that a word changed shape.
+ *
+ * So the messages now separate the two things a rung offers:
+ *
+ *   the TOKEN is the size and nothing else      var(--nf-text-overline)
+ *   the CLASS is the size plus a TREATMENT      .nf-overline
+ *
+ * and each message spells out what its class's treatment actually does, so the
+ * choice is made by somebody who can see both halves. A plain label at 12px
+ * wants the token. An overline wants the class. The rule cannot tell which of
+ * those it is looking at - that is the eye's job - so it must not pretend to.
+ *
+ * The general form of the hazard is worth naming, because it outlives this
+ * rule: a lint message is read by people doing hundreds of edits an hour and,
+ * increasingly, by a codemod that will do them without reading anything else.
+ * At that volume advice is executed rather than considered. A message that
+ * names a replacement which is not equivalent is not a suggestion, it is a
+ * redesign with a machine's throughput behind it.
+ *
+ * Two rungs are genuinely size-only - `.nf-body` and `.nf-body-sm` add a line
+ * height and nothing more - and their messages say so, because a caveat that
+ * fires on every rung equally is a caveat nobody reads by the third one.
+ *
+ * WHAT IS LEFT, AND WHY THE COUNT STOPS FALLING.
+ *
+ * Roughly 1,110 sites reported the day this rule was registered. What survives
+ * migration is not unfinished work, it is the family this rule cannot answer
+ * on its own, and it is three things:
+ *
+ *   BETWEEN RUNGS. 15px and 18px are real values in the tree and neither is a
+ *   rung. Each one is a decision: move it to the rung above or below, or argue
+ *   for a new rung. A scale gains a rung when a role needs it, not when a file
+ *   does.
+ *
+ *   NOT TYPE AT ALL. `pointer-coarse:text-[16px]` in `components/ui/Field.tsx`
+ *   is mobile Safari's zoom threshold in the platform's own units; an icon
+ *   sized in `em` inside a button is a proportion of its label. These want a
+ *   disable comment carrying the reason, not a rung.
+ *
+ *   WANTS THE CLASS, NOT THE TOKEN. A site reporting 12px that turns out to be
+ *   a genuine overline should take `.nf-overline` and drop whatever separate
+ *   `uppercase tracking-wide font-semibold` utilities it was carrying, which is
+ *   a tidier edit than a swap and not one a codemod can make.
+ *
+ * None of those three is closed by a find and replace, and a remainder that
+ * holds steady around a few dozen is this rule working, not this rule stalling.
  *
  * WHAT IT DELIBERATELY DOES NOT SEE.
  *
@@ -102,15 +154,71 @@ const NAMED_STEP = new RegExp(
   String.raw`(?:^|[\s"'\`:\[{])text-(xs|sm|base|lg|xl|[2-9]xl)(?![\w-])`,
 );
 
-/** The fixed rungs, in CSS pixels at a 16px root. The fluid ones cannot be
- *  matched against a single number and are handled in prose below. */
+/**
+ * The fixed rungs, in CSS pixels at a 16px root. The fluid ones cannot be
+ * matched against a single number and are handled in prose below.
+ *
+ * `carries` is what the CLASS does BEYOND setting the size, transcribed from
+ * `app/css/typography.css` and kept in the same order the declarations appear
+ * there. It is the load-bearing field: without it a message cannot honestly
+ * name the class, because the class is not a synonym for the token. When one of
+ * those six rules changes, this string changes with it.
+ *
+ * `role` is what the class's treatment is FOR, and it is what the message asks
+ * the reader to check the text against. `sizeOnly` marks the two rungs whose
+ * class adds a line height and nothing visible otherwise, so the message can
+ * recommend them outright instead of spending the reader's attention on a
+ * choice that does not exist.
+ */
 const RUNGS = [
-  { px: 12, klass: ".nf-overline", token: "--nf-text-overline" },
-  { px: 13, klass: ".nf-caption", token: "--nf-text-caption" },
-  { px: 14, klass: ".nf-body-sm", token: "--nf-text-body-sm" },
-  { px: 16, klass: ".nf-body", token: "--nf-text-body" },
-  { px: 17, klass: ".nf-lede", token: "--nf-text-body-lg" },
-  { px: 20, klass: ".nf-h4", token: "--nf-text-h4" },
+  {
+    px: 12,
+    klass: ".nf-overline",
+    token: "--nf-text-overline",
+    carries:
+      "UPPERCASES the text, tracks it at 0.1em, sets weight 650 and changes " +
+      "the ink to --nf-content-subtle",
+    role: "a section label sitting above a block, shouting quietly",
+  },
+  {
+    px: 13,
+    klass: ".nf-caption",
+    token: "--nf-text-caption",
+    carries: "sets a 1.5 line height and drops the ink to --nf-content-muted",
+    role: "a caption or a secondary note, deliberately quieter than its subject",
+  },
+  {
+    px: 14,
+    klass: ".nf-body-sm",
+    token: "--nf-text-body-sm",
+    carries: "sets a 1.55 line height",
+    role: "small body copy",
+    sizeOnly: true,
+  },
+  {
+    px: 16,
+    klass: ".nf-body",
+    token: "--nf-text-body",
+    carries: "sets a 1.6 line height",
+    role: "body copy",
+    sizeOnly: true,
+  },
+  {
+    px: 17,
+    klass: ".nf-lede",
+    token: "--nf-text-body-lg",
+    carries: "sets a 1.62 line height and drops the ink to --nf-content-secondary",
+    role: "the standfirst paragraph under a heading",
+  },
+  {
+    px: 20,
+    klass: ".nf-h4",
+    token: "--nf-text-h4",
+    carries:
+      "switches the face to --nf-font-display, sets a 1.35 line height, sets " +
+      "weight 600 and tightens the tracking",
+    role: "a heading",
+  },
 ];
 
 /** Absolute units, in CSS pixels. Anything not here is not matched at all. */
@@ -137,10 +245,12 @@ function adviseFor(px) {
   if (px < 12) {
     return (
       `${px}px is below the floor of the scale. 12px is the smallest type in ` +
-      "this product and .nf-overline is it. Below that, tracked and uppercase, " +
-      "it stops being small text and becomes texture: the audit's words for the " +
-      "state this scale was built to end were \"the least readable text in the " +
-      "product\", and it was 11.5px."
+      "this product: `var(--nf-text-overline)` for the size, and `.nf-overline` " +
+      "ONLY if the text is a section label, because that class also uppercases " +
+      "it, tracks it and sets weight 650. Below 12px, text stops being small " +
+      "and becomes texture: the audit's words for the state this scale was " +
+      "built to end were \"the least readable text in the product\", and it " +
+      "was 11.5px."
     );
   }
   let best = RUNGS[0];
@@ -149,14 +259,22 @@ function adviseFor(px) {
   }
   const exact = best.px === px;
   return (
-    `${px}px ${exact ? "IS" : "rounds to"} ${best.px}px, which is ` +
-    `\`${best.klass}\` (\`var(${best.token})\`). ` +
+    `${px}px ${exact ? "IS" : "rounds to"} the ${best.px}px rung. ` +
     (exact
       ? "The rung already held this number; it was typed out beside it."
       : "If the difference matters, say why in a comment and disable the line; " +
         "if it does not, and at this size it almost never does, take the rung.") +
-    " Prefer the class over the token: it carries the line height and the ink " +
-    "with it, and a size chosen without its leading is half a decision."
+    ` THE SIZE IS \`var(${best.token})\`, and that is the whole of the change ` +
+    "if what you have is a plain label at this size." +
+    (best.sizeOnly
+      ? ` \`${best.klass}\` is the same size and additionally ${best.carries}, ` +
+        "which is almost always what you want as well, so take the class unless " +
+        "the leading is already being set by something around it."
+      : ` \`${best.klass}\` is NOT a synonym for that token: it also ` +
+        `${best.carries}. Take the class only if this text IS ${best.role}. ` +
+        "Applied to anything else it changes what the words look like, not just " +
+        "how big they are, and a run of such edits is a redesign nobody asked " +
+        "for that lint, types and tests all pass clean.")
   );
 }
 

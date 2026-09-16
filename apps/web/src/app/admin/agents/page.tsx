@@ -53,7 +53,7 @@ function VerificationLadderPanel({
   return (
     <section className="mt-md" aria-label={copy.title}>
       <div className="flex flex-wrap items-center gap-xs">
-        <h4 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
+        <h4 className="nf-overline text-[var(--nf-content-muted)]">
           {copy.title}
         </h4>
         <ui.StatusChip
@@ -65,7 +65,7 @@ function VerificationLadderPanel({
         />
       </div>
 
-      <ol className="mt-2.5 space-y-2.5">
+      <ol className="mt-xs space-y-xs">
         {VERIFICATION_ORDER.map((rung) => {
           const decision = ladder.rungs[rung.kind];
           // Only the rung immediately above the current tier can be passed. The
@@ -103,12 +103,12 @@ function VerificationLadderPanel({
                 />
               </div>
 
-              <p className="mt-1.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {rung.evidence}
               </p>
 
               {decision && (
-                <p className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {fill(copy.decidedBy, {
                     who: decision.decidedByName ?? common.someone,
                     when: ui.when(decision.decidedAt),
@@ -159,7 +159,7 @@ function ApplicationCard({
   const f = copy.fields;
 
   return (
-    <li className="nf-card p-md sm:p-5">
+    <li className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={application.status} />
         <ui.StatusChip
@@ -171,7 +171,7 @@ function ApplicationCard({
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {application.fullName ?? copy.nameMissing}
       </h3>
       <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">

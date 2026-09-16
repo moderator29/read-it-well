@@ -82,7 +82,7 @@ export function FirstRun({
         </p>
       </div>
 
-      <div className="nf-rise mt-7" style={{ animationDelay: "90ms" }}>
+      <div className="nf-rise mt-lg" style={{ animationDelay: "90ms" }}>
         <InterestChoices initial={interests} t={t} />
       </div>
     </div>

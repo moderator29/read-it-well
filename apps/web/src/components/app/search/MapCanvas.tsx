@@ -700,7 +700,7 @@ export function MapCanvas({
                   "--pin-i": i,
                 } as React.CSSProperties
               }
-              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-2.5 py-1.5 text-[var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
+              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-sm py-xs text-[var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
                 chosen
                   ? "scale-110 border border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
                   : "border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-primary)] hover:border-[var(--nf-brand-primary)]"
@@ -786,7 +786,7 @@ export function MapCanvas({
         {visible.length === 0 && (
           <div
             style={{ boxShadow: CARD_LIFT }}
-            className="pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 text-center"
+            className="pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-lg text-center"
           >
             <BrandIcon name="map-spot" size={44} className="mx-auto" />
             <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
@@ -812,7 +812,7 @@ export function MapCanvas({
         <div className="flex-1" />
 
         {/* Attribution and the state of the imagery, always clear of the dock. */}
-        <p className="pointer-events-auto px-sm pb-2xs text-[0.625rem] leading-tight text-[var(--nf-content-muted)]">
+        <p className="pointer-events-auto px-sm pb-2xs text-[var(--nf-text-overline)] leading-tight text-[var(--nf-content-muted)]">
           {imagery === "offline" ? (
             <span data-testid="map-imagery-note">
               Map imagery could not load. Every place is still placed by its area.
@@ -849,7 +849,7 @@ export function MapCanvas({
               aria-live="polite"
               data-testid="map-locate-message"
               style={{ boxShadow: CARD_LIFT }}
-              className="pointer-events-auto mr-auto max-w-[62%] rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-2.5 py-1.5 text-[0.6875rem] leading-snug text-[var(--nf-content-secondary)]"
+              className="pointer-events-auto mr-auto max-w-[62%] rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-sm py-xs text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-secondary)]"
             >
               {locateMessage}
             </p>
@@ -937,13 +937,13 @@ export function MapCanvas({
                       choose(listing);
                       setListOpen(false);
                     }}
-                    className="flex w-full items-center gap-sm px-sm py-2.5 text-left hover:bg-[var(--nf-surface-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)]"
+                    className="flex w-full items-center gap-sm px-sm py-sm text-left hover:bg-[var(--nf-surface-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)]"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
                         {listing.title}
                       </span>
-                      <span className="block truncate text-[0.6875rem] text-[var(--nf-content-muted)]">
+                      <span className="block truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                         {listing.area}, {listing.city}
                       </span>
                     </span>

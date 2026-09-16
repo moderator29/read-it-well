@@ -44,7 +44,7 @@ export default async function AdminReferencePage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-xl">
       <header>
         <h1 className="text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Reference data</h1>
         <p className="mt-2xs max-w-[70ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">

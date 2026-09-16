@@ -114,7 +114,7 @@ export function FollowButton({
   };
 
   return (
-    <div className={compact ? "shrink-0" : "flex flex-col items-end gap-1.5"}>
+    <div className={compact ? "shrink-0" : "flex flex-col items-end gap-2xs"}>
       <button
         type="button"
         onClick={onClick}

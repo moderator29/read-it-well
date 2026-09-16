@@ -42,7 +42,7 @@ export function ListingOptionsSheet({
       title="Listing and safety"
       footer={
         inspected ? (
-          <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[var(--nf-text-caption)]">
+          <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[var(--nf-text-caption)]">
             <UiIcon name="verified" size={16} />
             Inspection confirmed on this device
           </p>
@@ -80,7 +80,7 @@ export function ListingOptionsSheet({
           <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {listing.area}, {listing.city}
           </p>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
+          <div className="mt-2xs flex flex-wrap gap-2xs">
             {listing.verified ? (
               <span className="nf-badge nf-badge--success">
                 <UiIcon name="verified" size={12} />

@@ -19,7 +19,7 @@ export default function LoadingAround() {
     >
       <span className="sr-only">Loading your feed</span>
 
-      <div className="mb-5 flex items-center gap-md" aria-hidden="true">
+      <div className="mb-md flex items-center gap-md" aria-hidden="true">
         <span className="nf-social-skeleton block h-9 w-9 rounded-full" />
         <span className="nf-social-skeleton block h-7 w-32 rounded-[var(--nf-radius-xs)]" />
       </div>

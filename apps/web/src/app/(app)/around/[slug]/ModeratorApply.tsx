@@ -119,10 +119,10 @@ export function ModeratorApply({
         </h3>
         <div className="mt-sm grid gap-md sm:grid-cols-2">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-state-success)]">
+            <p className="nf-overline text-[var(--nf-state-success)]">
               You can
             </p>
-            <ul className="mt-1.5 flex flex-col gap-2xs">
+            <ul className="mt-2xs flex flex-col gap-2xs">
               {MODERATOR_CAN.map((line) => (
                 <li key={line} className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-secondary)]">
                   {line}
@@ -131,10 +131,10 @@ export function ModeratorApply({
             </ul>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+            <p className="nf-overline text-[var(--nf-content-muted)]">
               You cannot
             </p>
-            <ul className="mt-1.5 flex flex-col gap-2xs">
+            <ul className="mt-2xs flex flex-col gap-2xs">
               {MODERATOR_CANNOT.map((line) => (
                 <li key={line} className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-secondary)]">
                   {line}

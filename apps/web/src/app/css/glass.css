@@ -682,8 +682,29 @@
     }
   }
 
+  /*
+   * L-142. THREE NAMES FOR ONE LINE, AND THIS CLASS WAS READING THE WRONG ONE.
+   *
+   * `--nf-divider` and `--nf-border-subtle` are two different roles and the
+   * note beside them in `tokens.css` says so plainly: a divider is the rule
+   * BETWEEN two rows inside a surface, border-subtle is the outer EDGE of an
+   * object. Keeping them apart is what lets a list's rules be tuned without
+   * every card edge moving with them.
+   *
+   * Every call site of this class is the first role. `Screen.tsx` uses it to
+   * separate one section of a screen from the next, `SiteFooter` to part the
+   * footer from the page, `ProfileIdentityCard` and `ListingMoveIn` to rule off
+   * a block inside a card, `FilterDrawer` between filter groups. Not one of
+   * them is drawing the edge of an object. So the class was spending the edge
+   * token on the separator role, which is how a system with two well-argued
+   * names ends up behaving as though it had one.
+   *
+   * It is a visible change and a small one, 0.08 to 0.10 alpha, in the correct
+   * direction: a rule inside a surface should be slightly more present than the
+   * outline of the surface, because it is doing work at a shorter distance.
+   */
   .nf-hairline {
-    border-top: 1px solid var(--nf-border-subtle);
+    border-top: 1px solid var(--nf-divider);
   }
 
   /*

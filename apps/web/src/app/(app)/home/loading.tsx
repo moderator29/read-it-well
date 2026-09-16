@@ -19,24 +19,24 @@ export default function LoadingHome() {
     <LoadingShell label="Loading your home screen">
       <section>
         <Skeleton width="16rem" height="2rem" radius="sm" />
-        <Skeleton className="mt-2.5" width="22rem" height="1rem" radius="sm" />
+        <Skeleton className="mt-xs" width="22rem" height="1rem" radius="sm" />
         {/* The search row: field plus its submit, at the real 48px. */}
-        <div className="mt-5 flex max-w-2xl items-center gap-xs sm:mt-lg">
+        <div className="mt-md flex max-w-2xl items-center gap-xs sm:mt-lg">
           <Skeleton height="3rem" radius="lg" />
           <Skeleton width="6rem" height="3rem" radius="pill" className="shrink-0" />
         </div>
       </section>
 
       {/* The category rail: five tiles that scroll on phones and grid from sm. */}
-      <div className="mt-10 grid grid-cols-3 gap-md sm:mt-2xl lg:grid-cols-5">
+      <div className="mt-xl grid grid-cols-3 gap-md sm:mt-2xl lg:grid-cols-5">
         {Array.from({ length: 5 }, (_, i) => (
           <Skeleton key={i} height="6.5rem" radius="lg" className={i > 2 ? "hidden lg:block" : ""} />
         ))}
       </div>
 
-      <div className="mt-10 sm:mt-2xl">
+      <div className="mt-xl sm:mt-2xl">
         <Skeleton width="12rem" height="1.5rem" radius="sm" />
-        <ul className="mt-md grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-md grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }, (_, i) => (
             <li key={i}>
               <SkeletonCard />

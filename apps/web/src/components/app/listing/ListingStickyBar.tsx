@@ -125,7 +125,7 @@ export function ListingStickyBar({
     <ActionBar>
       <div
         data-testid="listing-sticky-bar"
-        className="flex w-full items-center gap-2.5 sm:gap-sm"
+        className="flex w-full items-center gap-xs sm:gap-sm"
       >
         <p className="flex min-w-0 flex-1 flex-col">
           {amount > 0 ? (
