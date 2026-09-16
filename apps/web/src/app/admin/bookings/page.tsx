@@ -193,6 +193,8 @@ export default async function AdminBookingsPage({
       <QueueFilters
         base="/admin/bookings"
         query={query}
+        common={common}
+        common={common}
         /* The real enum, and only the real enum, so a chip here can never offer
            a value the column would refuse. All five of them: the board has a
            terminal good state now that an agent can record a stay as taken. */

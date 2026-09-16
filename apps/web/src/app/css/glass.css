@@ -103,7 +103,28 @@
    * With the standard property last it survives the merge, and the prefix is
    * still there for the Safari versions that need it.
    */
-  .nf-glass {
+  /*
+   * `.nf-site-bar` IS ON THESE SELECTORS AND IT USED TO BE A SECOND CHROME BAR.
+   *
+   * The product had two implementations of one object. The app, agent and admin
+   * headers are `nf-glass nf-glass--chrome`; the marketing header in
+   * `components/site/SiteHeader.tsx` was `nf-site-bar`, a standalone rule in
+   * chrome.css that tinted the canvas at 93% and blurred at the STRONG rung,
+   * against this one's 84% and the base rung. So the two halves of the product
+   * wore visibly different chrome, and a visitor crossing from the landing page
+   * into the app saw the bar change material under a logo that did not.
+   *
+   * It is listed here rather than deleted because the class is written into
+   * markup this workstream does not own. Naming it alongside `.nf-glass` gives
+   * it the identical material with no change to a file in another queue, and it
+   * is greppable: the day `SiteHeader.tsx` says `nf-glass nf-glass--chrome`,
+   * every `.nf-site-bar` on these five selectors comes off in one pass.
+   *
+   * The settled values are 88% and the strong blur, between the two that were
+   * there. See the note on the tint in `--chrome` below.
+   */
+  .nf-glass,
+  .nf-site-bar {
     position: relative;
     isolation: isolate;
     background: var(--nf-glass-fill);
@@ -130,7 +151,8 @@
    * child-lifting rule unnecessary, so it is gone: it was creating a stacking
    * context on every direct child of every glass element for no reason.
    */
-  .nf-glass::before {
+  .nf-glass::before,
+  .nf-site-bar::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -184,7 +206,8 @@
    * below the bar so the blur has a soft exit instead of a hard seam, and the
    * side and top borders are dropped because the bar spans the viewport.
    */
-  .nf-glass--chrome {
+  .nf-glass--chrome,
+  .nf-site-bar {
     /*
      * THE BAR IS THE CANVAS, NOT A WHITE WASH OVER IT.
      *
@@ -207,8 +230,23 @@
      * Only the chrome bars take this. A glass CARD still wants the white lift,
      * because what is behind a card is a fixed background rather than moving
      * content, and there the wash is what separates the two.
+     *
+     * 88 PER CENT, AND THE STRONG BLUR, AND BOTH ARE A MERGER.
+     *
+     * This rule was 84% on the base blur and `.nf-site-bar` was 93% on the
+     * strong one. Neither number was wrong and neither was arrived at with the
+     * other in view. 88 is between them, and the strong rung wins on the blur
+     * because a chrome bar is the one surface in the product with the WHOLE
+     * PAGE moving underneath it: that is what a heavy blur is for, and the base
+     * rung was chosen for panels that sit on a fixed canvas.
+     *
+     * The blur has to be restated here rather than inherited, because
+     * `.nf-glass` sets the base rung and this rule needs to outrank it. Prefix
+     * first, standard property last; see the long note above `.nf-glass`.
      */
-    background: color-mix(in oklab, var(--nf-surface-canvas) 84%, transparent);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     border-inline: 0;
     border-top: 0;
     /* The hairline underneath is drawn by the shadow below, so the real border
@@ -218,7 +256,8 @@
       inset 0 1px 0 var(--nf-glass-rim),
       0 1px 0 var(--nf-glass-border);
   }
-  .nf-glass--chrome::after {
+  .nf-glass--chrome::after,
+  .nf-site-bar::after {
     content: "";
     position: absolute;
     inset: 100% 0 auto 0;
@@ -246,16 +285,19 @@
      * separately because their own rule sets a background after `.nf-glass`
      * and would otherwise win.
      *
-     * With no blur available, a bar at 84% is not glass, it is a strip you can
+     * With no blur available, a bar at 88% is not glass, it is a strip you can
      * read the page through: text scrolls under the header and stays legible
-     * enough to compete with the header's own. `.nf-site-bar` already reached
-     * this conclusion in chrome.css and its comment is the one to keep - a
-     * washed strip with content showing through is worse than a solid bar.
+     * enough to compete with the header's own. `.nf-site-bar` had already
+     * reached this conclusion in its own rule in chrome.css, and its comment is
+     * the one worth keeping - a washed strip with content showing through is
+     * worse than a solid bar.
      */
-    .nf-glass--chrome {
+    .nf-glass--chrome,
+    .nf-site-bar {
       background: var(--nf-surface-canvas);
     }
-    .nf-glass::before {
+    .nf-glass::before,
+    .nf-site-bar::before {
       display: none;
     }
   }

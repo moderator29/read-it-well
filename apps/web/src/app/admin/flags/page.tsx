@@ -8,7 +8,7 @@ import { fill, type AdminCommon } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
-  QUEUE_NO_MATCH,
+  queueNoMatch,
   QueueFilters,
   QueuePager,
   queueNarrowed,
@@ -227,12 +227,13 @@ export default async function AdminFlagsPage({
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
-      <QueueFilters base="/admin/flags" query={query} statuses={statusFilters(ui)} />
+      <QueueFilters base="/admin/flags" query={query}
+        common={common} statuses={statusFilters(ui)} />
 
       {rows.length === 0 ? (
         <ui.QueueEmpty
-          title={narrowed ? QUEUE_NO_MATCH.title : copy.emptyTitle}
-          body={narrowed ? QUEUE_NO_MATCH.body : copy.emptyBody}
+          title={narrowed ? noMatch.title : copy.emptyTitle}
+          body={narrowed ? noMatch.body : copy.emptyBody}
           everHadRows={narrowed}
         />
       ) : open.length === 0 ? null : (

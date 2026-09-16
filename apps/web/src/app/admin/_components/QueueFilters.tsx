@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { AdminCommon } from "./copy";
 
 /**
  * The console's one queue frame: find a row, narrow to it, page through.
@@ -109,57 +110,56 @@ export function queueNarrowed(query: QueueQuery): boolean {
  * hundreds, none of them dismissed. A narrowed empty queue is a result and has
  * to read as one.
  *
- * ENGLISH, AND IT SHOULD NOT STAY THAT WAY. `t.admin.common` has no keys for
- * this pair; `t.admin.bookings` has its own, which is why the one queue that
- * already had a search box reads correctly in four languages and the other
- * eighteen would not. Stated once here rather than eighteen times, so the
- * dictionary work is one key pair rather than eighteen. The exact keys are in
- * the sprint report.
+ * It was an English constant in this file for one sprint, because the shared
+ * console furniture had no keys and eighteen queues each inventing their own
+ * pair was the worse of the two wrongs. The keys exist now, so the pair comes
+ * from the dictionary and a Hausa operator reads a Hausa result.
  */
-export const QUEUE_NO_MATCH = {
-  title: "Nothing matched that",
-  body: "No row in this queue matches what you have narrowed to. Clear the filters to see everything again.",
-} as const;
-
-/**
- * The same, for the search field itself.
- *
- * `QueueFilters` already writes "From", "To", "Apply" and "Clear" in English
- * because the console's shared furniture has no keys for them, so a default
- * here changes nothing about how translated the frame is and removes eighteen
- * opportunities for a queue to be dropped in with no label at all. A queue with
- * its own keys, like bookings, still passes them and still wins.
- */
-const DEFAULT_SEARCH_LABEL = "Search";
-const DEFAULT_SEARCH_PLACEHOLDER = "Search this queue";
+export function queueNoMatch(common: AdminCommon): { title: string; body: string } {
+  return { title: common.noMatchTitle, body: common.noMatchBody };
+}
 
 export function QueueFilters({
   base,
   query,
   statuses,
-  searchLabel = DEFAULT_SEARCH_LABEL,
-  searchPlaceholder = DEFAULT_SEARCH_PLACEHOLDER,
+  common,
+  searchLabel,
+  searchPlaceholder,
 }: {
   /** The queue's own path, e.g. "/admin/bookings". */
   base: string;
   query: QueueQuery;
   /** The real enum for THIS queue. Omit where the queue has no status. */
   statuses?: readonly QueueStatusOption[];
+  /**
+   * The console's shared words.
+   *
+   * REQUIRED, AND IT USED TO BE FOUR ENGLISH LITERALS IN THIS FILE. "From",
+   * "To", "Apply" and "Clear" were written here, and the search label and the
+   * no-match pair were English defaults, so the one queue that had its own keys
+   * read correctly in four languages and the frame around it did not. A control
+   * that is half translated is worse than one that is not, because the half
+   * that is translated is the half that tells the reader the rest is a bug.
+   */
+  common: AdminCommon;
+  /** Only where the queue's own noun genuinely beats "Search this queue". */
   searchLabel?: string;
   searchPlaceholder?: string;
 }) {
   const narrowed = queueNarrowed(query);
+  const f = common.filters;
 
   return (
     <div className="mb-block">
       <form method="get" action={base} className="flex flex-wrap items-end gap-row">
         <label className="min-w-0 flex-1">
-          <span className="nf-label">{searchLabel}</span>
+          <span className="nf-label">{searchLabel ?? common.searchLabel}</span>
           <input
             type="search"
             name="q"
             defaultValue={query.q ?? ""}
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder ?? common.searchPlaceholder}
             className="nf-field mt-inline-tight w-full"
           />
         </label>
@@ -169,7 +169,7 @@ export function QueueFilters({
             they are keyboard-reachable, they are localised by the browser, and
             they are the one control a console does not need to invent. */}
         <label className="min-w-0">
-          <span className="nf-label">From</span>
+          <span className="nf-label">{f.from}</span>
           <input
             type="date"
             name="from"
@@ -178,7 +178,7 @@ export function QueueFilters({
           />
         </label>
         <label className="min-w-0">
-          <span className="nf-label">To</span>
+          <span className="nf-label">{f.to}</span>
           <input
             type="date"
             name="to"
@@ -192,15 +192,21 @@ export function QueueFilters({
         {query.status && <input type="hidden" name="status" value={query.status} />}
 
         <button type="submit" className="nf-chip nf-chip--active shrink-0">
-          Apply
+          {f.apply}
         </button>
         {narrowed && (
           <Link href={base} className="nf-chip shrink-0">
-            Clear
+            {f.clear}
           </Link>
         )}
       </form>
 
+      {/* The status nav's own label and the four strings in `QueuePager` are
+          still English. `t.admin.common.filters` gained from, to, apply and
+          clear and has no key for these; they are named in the sprint report
+          for the next dictionary pass rather than invented here, because a
+          fifth private copy of console vocabulary is what this frame exists to
+          stop. */}
       {statuses && statuses.length > 0 && (
         /* Links rather than a control, for the same reason the search is a GET:
            a narrowed queue has to be a URL. `aria-current` is what tells a

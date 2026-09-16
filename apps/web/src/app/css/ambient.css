@@ -405,6 +405,41 @@
     pointer-events: none;
     z-index: 0;
   }
+
+  /*
+   * AN AURORA INSIDE A CARD IS NOT ATMOSPHERE, IT IS DECORATION ON A PANEL.
+   *
+   * The aurora is the PAGE's light: two 46rem and 38rem blobs at a 90px blur,
+   * positioned off the top corners, sized for a viewport. Every correct use of
+   * it in the tree is at the root of a layout or a page - the site layout, the
+   * auth layout, the error and not-found and offline screens. Two uses were not:
+   * `app/page.tsx` mounts one inside the landing page's final CTA card and
+   * `components/app/AiAssistantBanner.tsx` mounts one inside the assistant card,
+   * and both are `nf-card nf-card--live`, so each of those panels carried a card
+   * gradient, a gradient border, the live ring AND a full-page aurora clipped
+   * into a box a fraction of its size.
+   *
+   * BOTH WROTE `opacity-60` ON IT, which is the tell. Nobody dims the page's own
+   * atmosphere; they dimmed these because the effect was too much for the place
+   * it had been put, which is the argument against putting it there.
+   *
+   * The landing page therefore painted two auroras, four blurred blobs, on one
+   * screen - against a standing rule of one ambient treatment per viewport.
+   * Worth being exact about the rule, though: NEITHER OF THEM ANIMATES any more.
+   * `nf-aurora-pulse` and the drifts came out some time ago, and the note two
+   * hundred lines up records it. So this is a paint cost and a restraint
+   * problem, not a second moving thing, and calling it a second animation would
+   * be describing a version of the file that no longer exists.
+   *
+   * It is a rule here rather than a deletion at the two call sites because both
+   * files belong to other queues. The selector is the honest statement of the
+   * constraint anyway: the aurora belongs to the page, so inside a card it does
+   * not draw, and nobody has to remember.
+   */
+  .nf-card .nf-aurora,
+  .nf-aurora .nf-aurora {
+    display: none;
+  }
   .nf-aurora::before,
   .nf-aurora::after {
     content: "";

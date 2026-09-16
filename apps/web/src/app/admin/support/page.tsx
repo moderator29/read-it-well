@@ -9,7 +9,7 @@ import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
-  QUEUE_NO_MATCH,
+  queueNoMatch,
   QueueFilters,
   QueuePager,
   queueNarrowed,
@@ -241,12 +241,13 @@ export default async function AdminSupportPage({
         </section>
       )}
 
-      <QueueFilters base="/admin/support" query={query} statuses={statusFilters(ui)} />
+      <QueueFilters base="/admin/support" query={query}
+        common={common} statuses={statusFilters(ui)} />
 
       {open.length === 0 && closed.length === 0 ? (
         <ui.QueueEmpty
-          title={narrowed ? QUEUE_NO_MATCH.title : copy.emptyTitle}
-          body={narrowed ? QUEUE_NO_MATCH.body : copy.emptyBody}
+          title={narrowed ? noMatch.title : copy.emptyTitle}
+          body={narrowed ? noMatch.body : copy.emptyBody}
           everHadRows={narrowed}
         />
       ) : (

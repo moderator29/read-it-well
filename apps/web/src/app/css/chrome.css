@@ -498,28 +498,41 @@
    * edge floating over content is the thing that makes a page feel like it is
    * missing a layer.
    */
-  .nf-site-bar {
-    background: color-mix(in oklab, var(--nf-surface-canvas) 93%, transparent);
-    border-bottom: 1px solid var(--nf-border-subtle);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-  }
-
-  /* Daylight wants more of the paper and less of the blur: a light bar that is
-     too transparent reads as grubby rather than as glass, because dark text
-     passing under it dirties the whole strip. */
-  :root[data-theme="light"] .nf-site-bar {
-    background: color-mix(in oklab, var(--nf-surface-primary) 94%, transparent);
-  }
-
-  /* No backdrop-filter, no translucency. A washed strip with content showing
-     through is worse than a solid bar. */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .nf-site-bar {
-      background: var(--nf-surface-canvas);
-    }
-    :root[data-theme="light"] .nf-site-bar {
-      background: var(--nf-surface-primary);
-    }
-  }
+  /*
+   * THE SECOND CHROME BAR STOOD HERE AND IS GONE. All four of its rules.
+   *
+   * `.nf-site-bar` tinted the canvas at 93% and blurred at the strong rung, had
+   * its own daylight override tinting `--nf-surface-primary` at 94%, and its own
+   * no-backdrop-filter fallback. Every one of those was a considered answer to a
+   * question `.nf-glass--chrome` in glass.css had already answered differently:
+   * 84% on the base blur, canvas in both themes, opaque canvas with no filter.
+   *
+   * Two implementations of one object, and the product wore one on the landing
+   * page and the other everywhere else, so crossing from marketing into the app
+   * changed the material of the bar under a logo that stayed put. Neither set of
+   * numbers was wrong. They were taken independently and nothing brought them
+   * into the same room.
+   *
+   * `.nf-site-bar` is now listed alongside `.nf-glass` and `.nf-glass--chrome`
+   * over there and draws the identical material, settled at 88% and the strong
+   * blur. The class survives only because it is written into
+   * `components/site/SiteHeader.tsx`, which belongs to another queue; the day
+   * that markup says `nf-glass nf-glass--chrome`, the name comes off five
+   * selectors and disappears.
+   *
+   * TWO THINGS WERE DROPPED RATHER THAN MERGED.
+   *
+   * The daylight override tinted `--nf-surface-primary`, pure white, where the
+   * chrome rule tints `--nf-surface-canvas`, #F4F5F7 on paper. The chrome rule's
+   * own argument is that a bar tinted with the canvas is correct in BOTH themes
+   * by construction, because the canvas is what the page IS, and a bar whiter
+   * than the page it floats over reads as a separate sheet laid on top of it.
+   * That argument holds here, so there was nothing left to override.
+   *
+   * And the `border-bottom` went, because `.nf-glass--chrome` draws its hairline
+   * with `box-shadow: 0 1px 0 var(--nf-glass-border)` and explicitly zeroes the
+   * real border to stop a bar carrying two 1px lines of the same colour stacked.
+   * Keeping both would have reintroduced exactly the doubled edge that rule was
+   * written to prevent.
+   */
 }

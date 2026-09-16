@@ -4,7 +4,7 @@ import { getLocale } from "@/lib/locale";
 import { getReports, type ReportView } from "@/lib/admin/queries";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
-  QUEUE_NO_MATCH,
+  queueNoMatch,
   QueueFilters,
   QueuePager,
   queueNarrowed,
@@ -180,6 +180,8 @@ export default async function AdminReportsPage({
       <QueueFilters
         base="/admin/reports"
         query={query}
+        common={common}
+        common={common}
         statuses={statusFilters(ui)}
       />
 
@@ -188,8 +190,8 @@ export default async function AdminReportsPage({
            an unnarrowed one on a table that has never held a row is not good
            news and must not be drawn as a clearance. */
         <ui.QueueEmpty
-          title={narrowed ? QUEUE_NO_MATCH.title : copy.emptyTitle}
-          body={narrowed ? QUEUE_NO_MATCH.body : copy.emptyBody}
+          title={narrowed ? noMatch.title : copy.emptyTitle}
+          body={narrowed ? noMatch.body : copy.emptyBody}
           everHadRows={narrowed}
         />
       ) : (

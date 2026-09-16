@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
-import { MomentScreen } from "@/components/app/MomentScreen";
+import { ResultScreen } from "@/components/app/ResultSheet";
 import {
   addPhoto,
   removePhoto,
@@ -990,24 +990,29 @@ export function ListingWizard({
 
   if (submitted) {
     return (
-      <MomentScreen
-        variant="success"
-        title={copy.submitted.title}
-        description={copy.submitted.body}
-        actions={
-          <>
-            <ButtonLink href="/agent/listings" variant="primary">
-              {copy.submitted.goToListings}
-            </ButtonLink>
-            {/* "List another" is the one control on the platform that means a
-                blank wizard and nothing else, so it says so. Bare /agent/list
-                resumes an open draft now, which is right for the navigation
-                entry and would be wrong here. */}
-            <ButtonLink href="/agent/list?new=1" variant="secondary">
-              {copy.submitted.another}
-            </ButtonLink>
-          </>
-        }
+      /*
+       * THE LAST `MomentScreen` ON THE PLATFORM, AND IT IS GONE WITH THIS.
+       *
+       * `ResultSheet` and `ResultScreen` replaced forty three bespoke
+       * confirmation states with one component driven by a state, and this was
+       * the single caller left holding the old one. No copy changes: the same
+       * three strings, the same two destinations, the same argument about
+       * `?new=1` below. What changes is that a submitted listing now tells the
+       * agent it went through in the same voice, with the same mark and the
+       * same rhythm, as every other confirmation in the product.
+       */
+      <ResultScreen
+        state="confirmed"
+        verdict={copy.submitted.title}
+        consequence={copy.submitted.body}
+        actions={[
+          { label: copy.submitted.goToListings, href: "/agent/listings", tone: "primary" },
+          /* "List another" is the one control on the platform that means a
+             blank wizard and nothing else, so it says so. Bare /agent/list
+             resumes an open draft now, which is right for the navigation
+             entry and would be wrong here. */
+          { label: copy.submitted.another, href: "/agent/list?new=1", tone: "quiet" },
+        ]}
       />
     );
   }
