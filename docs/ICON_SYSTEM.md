@@ -14,6 +14,20 @@ is defined nowhere in the codebase.
 `apps/web/src/design-system/icons/BrandIcon.tsx`, artwork in
 `apps/web/public/brand/icons/*.png`.
 
+**A replacement set exists and is not wired up.** As of 16 September 2026,
+`apps/web/public/brand/glass/` holds 104 glass objects, 24 light twins and 12
+hero scenes, cut from ten sheets the founder supplied, in the logo's own
+language rather than the clay one. **Nothing points at it yet.** The inventory
+below is still what the product draws. `docs/BRAND_MARKS.md` describes the glass
+system, `docs/FRONTEND_REVAMP.md` section 2 holds the full replacement map, and
+the three changes the swap needs are in its section 2.10.
+
+**When the swap lands, three things in this file change**, so they are flagged
+here rather than left to be discovered: the inventory below, the paragraph about
+multiply and masking, and the note that the plinth collapses below 24px. The
+glass artwork has a real alpha channel, so there is no white ground to remove and
+no plinth to collapse.
+
 White ceramic objects with brand blue accents, each on a soft plinth, lit
 from the upper left, sliced from the four supplied pack sheets. This is the
 platform's signature iconography: features, categories, facts, empty states,
@@ -35,6 +49,14 @@ wrapper. Props are `name`, `size`, `fill`, `label`, `priority` and `className`.
 **There is no `ramp` prop.** The artwork is rendered on white: in daylight it
 composites with multiply so the ground disappears on paper, at night it is
 masked and lifted so the object reads on the dark canvas.
+
+**That mechanism is why `--nf-icon-ground` exists, and it is the single thing the
+glass set changes most.** Multiply against the night canvas returns the night
+canvas, so an untiled object with nothing light behind it is not understated, it
+is invisible, and the flat plate is what rescues it. The glass artwork carries
+its own alpha, so on the day of the swap the blend mode and the dark plate both
+become unnecessary. **Deleting `--nf-icon-ground` on dark is the acceptance test
+for the replacement**: if an object still needs a plate, the cutout is wrong.
 
 **Do not reach for `.nf-icon-chip`.** This file used to tell you to wrap an
 object in that class when it needed its own tile. The class is defined in no

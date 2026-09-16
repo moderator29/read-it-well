@@ -1,182 +1,203 @@
-# Brand marks: the transaction and status set
+# Brand marks: the glass system
 
-What to commission so every success, pending, verified and failed moment in the
-product has a mark that belongs to Vallo.
+**Rewritten 16 September 2026, and the thing it used to say is now wrong.**
 
-This file exists because of `docs/HANDOFF_02_PLATFORM.md` section 24. Read that
-section before using this one: it explains the confirmation system these marks
-sit inside, and why a generic orange tick is the wrong answer.
+This file used to open by saying there are two 3D languages in the brand, that
+the logo is glass and neon and the 87 objects are soft matte clay, and that **new
+marks must match the clay, not the logo**. That was correct when it was written
+and the world moved. The founder has supplied ten sheets of glass artwork in the
+logo's own language, and the clay set is what is being replaced. **The
+instruction is now the opposite: match the logo.**
 
----
+The old section 3 of this file was a commission for twenty four transaction and
+status marks. **That commission has been delivered.** Section 4 below says which
+arrived, under which names, and which one must not be used.
 
-## 1. The house style, and it is not the logo style
-
-There are two 3D languages in this brand and confusing them is the easy mistake.
-
-**The logo** is glass and neon: a dark navy tile, electric blue rim light, chrome
-and glow. It is the app icon and the identity.
-
-**The 87 brand objects are something else, and the new marks must match them, not
-the logo.** Looking at `wallet-secure.png` and `user-verified.png`, the actual
-house style is:
-
-- A **soft matte white object**, rounded and clay-like, no sharp edges
-- **Brand blue only on the part that carries the meaning.** The wallet is white,
-  the lock shield is blue. The person is white, the verified rosette is blue
-- Sitting on a **white rounded-square plinth**, which every object shares and
-  which is what makes 87 different objects read as one set
-- **Pure white background**, soft studio lighting, gentle contact shadow, subtle
-  ambient occlusion
-- **Three-quarter view from slightly above**, consistent across the set
-- Friendly and calm, not technical
-
-**`user-verified.png` already solves the verified tick.** It is a scalloped
-rosette with a white tick, in brand blue, on a white figure. That is exactly the
-mark the reference screenshot did in orange. Use it, do not replace it.
+Read `docs/HANDOFF_03_FRONTEND.md` for the direction, `docs/ICON_SYSTEM.md` for
+the two tiers, and `docs/FRONTEND_REVAMP.md` for the full replacement map.
 
 ---
 
-## 2. What already exists. Check here first
+## 1. The house style, and it is the logo's style now
 
-Twenty of the 87 already serve a status or transaction meaning. **Do not
-commission a duplicate.**
+**Glass.** A transparent object lit from inside, rendered on black, with an
+electric blue body, a bright rim where the light catches an edge, white where a
+surface is nearly normal to the light, and a soft bloom around the whole thing.
+No plinth, no white paper, no contact shadow. Three-quarter view from slightly
+above, same as before.
 
-| Mark | Use it for |
-| --- | --- |
-| `user-verified` | Identity verified, the verified badge, a verified agent |
-| `user-check` | Profile complete, application approved |
-| `home-check` | Listing verified, property approved |
-| `calendar-check` | Booking confirmed, inspection booked |
-| `clock-check` | Completed on time, history |
-| `calendar-clock` | Scheduled, upcoming, awaiting a date |
-| `calendar-time` | Duration, tenancy period |
-| `luggage-check` | Check-in complete, stay confirmed |
-| `shield-check` | Protected, safe to proceed, trust |
-| `shield-lock` | Secured, encrypted |
-| `shield-home` | Property protection |
-| `doc-shield` | Document protected |
-| `doc-lock` | Document private, under lock |
-| `card-lock` | Card secured |
-| `wallet-secure` | Wallet, secured balance |
-| `naira-hand` | Money, payment, payout |
-| `bell-alert` | Attention needed, alert |
-| `bell-badge` | New notification, unread |
-| `gift-star` | Reward earned, referral |
-| `tag-percent` | Discount, offer |
+The important property, and the one every rule below follows from: **these
+objects are additive light.** The render is close to `object + black`, so the
+glow is not decoration around the mark, **the glow is part of the mark**, and its
+brightness is its opacity. Crop it off and the object stops looking like the
+logo.
+
+The clay set is the other language: soft matte white, brand blue only on the
+part carrying the meaning, on a white rounded-square plinth, lit as a studio
+photograph. **The two cannot coexist in one product.** Every surface moves
+together or the set reads as two sets.
 
 ---
 
-## 3. The gap. Twenty-four marks to commission
+## 2. What exists today
 
-Grouped by the moment each one appears. Every row says the state, where it is
-used, and the object to build.
+Ten unique sheets, in `assets/brand-sheets/`. Twelve were supplied and two were
+byte-for-byte duplicates, confirmed by checksum before deletion.
 
-### 3.1 Money moving. The highest value group
+**210 objects, all sliced, keyed to alpha and named.** 140 are delivered as
+files in `apps/web/public/brand/glass/`: 104 objects at 256px, 24 light twins,
+and 12 wide hero scenes at source resolution. 3.3MB in total, against 6.5MB for
+the 87 clay objects still live in `apps/web/public/brand/icons/`.
 
-| # | Name | State | Object |
-| ---: | --- | --- | --- |
-| 1 | `payment-sent` | Payment made, rent paid | Naira note lifting off an open palm with a blue motion arc |
-| 2 | `payment-received` | Money in, payout landed | Naira note dropping into an open blue-lipped pouch |
-| 3 | `payment-pending` | Processing, in flight | Naira coin mid-spin inside a soft blue ring, slightly blurred |
-| 4 | `payment-failed` | Declined, reversed | Naira note with a blue cross seal resting against it |
-| 5 | `transfer-arrow` | Wallet to wallet, send money | Two rounded blue arrows curving between two white pads |
-| 6 | `wallet-plus` | Wallet funded, top up | Wallet with a blue plus badge |
-| 7 | `wallet-out` | Withdrawal, cash out | Wallet with a blue arrow leaving it |
-| 8 | `receipt-check` | Receipt issued, proof of payment | Curled receipt with a blue tick seal |
-| 9 | `escrow-hold` | Funds held safely. **Build it, do not ship it until escrow exists** | Blue-banded strongbox with a naira note half inside |
-| 10 | `savings-pot` | Savings, rent set aside | Round white pot with a blue lid slot and one coin entering |
-| 11 | `ledger-book` | Transaction history, statement | Open book with blue ruled lines and a small blue tick |
+`scripts/icon-manifest.mjs` is the authority on what each of the 210 is and which
+drawing of a repeated object wins. `assets/README.md` says how to rebuild the
+whole set from the sheets, which is three commands.
 
-### 3.2 States that are not money
-
-| # | Name | State | Object |
-| ---: | --- | --- | --- |
-| 12 | `seal-check` | Generic success. The hero mark | Scalloped blue rosette with a thick white tick, floating slightly off its plinth |
-| 13 | `seal-pending` | Under review, awaiting a decision | Same rosette in soft white with a blue hourglass in the centre |
-| 14 | `seal-cross` | Rejected, declined, failed | Same rosette with a blue cross |
-| 15 | `hourglass-blue` | Processing, please wait | Rounded hourglass, white frame, blue sand mid-fall |
-| 16 | `progress-ring` | Step 2 of 4, partial completion | Thick white ring two thirds filled in blue |
-| 17 | `alert-triangle` | Attention, action required | Rounded triangle, white body, blue exclamation |
-| 18 | `info-round` | Explanation, disclosure, tooltip | Rounded disc, white, blue lowercase i |
-| 19 | `clock-expired` | Offer expired, hold released, session timed out | Clock with a soft blue slash across it |
-
-### 3.3 Identity and documents
-
-| # | Name | State | Object |
-| ---: | --- | --- | --- |
-| 20 | `id-card-check` | NIN or ID verified | Rounded ID card, blue photo block, blue tick corner |
-| 21 | `doc-review` | Document under review | Document with a blue magnifier resting over it |
-| 22 | `doc-cross` | Document rejected, resubmit | Document with a blue cross seal |
-
-### 3.4 Property flow
-
-| # | Name | State | Object |
-| ---: | --- | --- | --- |
-| 23 | `keys-handover` | Tenancy started, keys released | Two white hands, one passing a blue key |
-| 24 | `contract-sign` | Agreement signed, tenancy agreement | Document with a blue pen resting on a signature line |
+**Nothing is wired up.** The glass set sits beside the clay set rather than on
+top of it, so it can be reviewed in place, at real sizes, in both themes, before
+anything moves.
 
 ---
 
-## 4. The prompt to generate them
+## 3. Light and dark, which is a pairing and not a filter
 
-One master style block, then one subject line per mark. **Keep the style block
-identical every time**, or the set will not match.
+**This was tested rather than assumed**, and the evidence is two images in this
+repository: `docs/img/glass-on-four-grounds.png` and
+`docs/img/glass-in-daylight.png`. Both artworks, against all four real surfaces
+in `packages/design-tokens/src/tokens.css`.
 
-### Style block, use verbatim
+| | Dark surfaces | Light surfaces |
+| --- | --- | --- |
+| **The dark artwork** | Excellent. No halo, no edge anywhere | **Washed out.** A pale cyan haze |
+| **The light twin** | **Fails.** The white tick inside `seal-check` turns black | Excellent |
 
-> A single 3D icon rendered in a soft matte clay style. The object sits on a
-> small white rounded-square plinth with softly rounded corners. Pure white
-> seamless background. The object itself is soft matte white with smooth
-> rounded edges and no sharp corners, and ONLY the element that carries the
-> meaning is rendered in a rich electric royal blue, roughly #0010E0. Soft
-> studio lighting from above and slightly left, gentle contact shadow beneath
-> the plinth, subtle ambient occlusion, a faint soft highlight on the top
-> surfaces. Three-quarter view from slightly above eye level. Clean, calm,
-> friendly, premium, tactile. No text, no letters, no numbers, no gradients
-> in the background, no reflections on the floor, no extra props. Square
-> image, centred, generous white margin around the object.
+**No filter crosses that gap.** Not `invert()`, not `hue-rotate()`, not an
+opacity change, because the difference between the two is **which parts of the
+object are transparent**. A frosted white object keyed off white leaves the white
+as the transparent part, so on a dark ground it inverts.
 
-### Then the subject line
+So a mark that must work in both themes needs **two files, not one recolouring**,
+and the two share a name: `glass/<name>.png` and `glass/light/<name>.png`.
 
-> The object is: [subject from the table above].
+**Only the 24 transaction marks have a twin today.** For the other 80 objects the
+answer is not 80 more files. **The dark artwork on a navy chip in daylight was
+tested and is better than the bare object on white**, and it is the most premium
+the set looks anywhere. `--nf-icon-ground` is already the flat plate `BrandIcon`
+draws behind an untiled object, and it already resolves to `transparent` in the
+light theme because the clay artwork needs nothing there. Pointing it at the base
+navy solves 80 objects with one token.
 
-### Worked example
+Commission the light pass of the remaining six sheets only for the places an
+object must sit bare on paper with no chip allowed: **email, print, and a
+light-theme empty state where a chip would read as a hole.**
 
-> A single 3D icon rendered in a soft matte clay style. [full style block]
->
-> The object is: a curled paper receipt with softly rounded edges, standing
-> upright on the plinth, with a small scalloped blue seal bearing a white tick
-> pressed onto its lower half.
-
----
-
-## 5. Rules when the files come back
-
-- **Square, transparent or pure white, and at least 1024px.** The existing set is
-  square with a white ground
-- **Filenames are lowercase with hyphens**, matching the names in section 3, and
-  they go in `apps/web/public/brand/icons/`
-- They are used through **`BrandIcon`** with props `name`, `size`, `fill`,
-  `label`, `priority`, `className`. There is no `ramp` prop. See
-  `docs/ICON_SYSTEM.md`
-- **Never mix these with `UiIcon`.** `UiIcon` is the 40 stroked navigation
-  glyphs. These are content objects. The two tiers do not mix in one row
-- **Check the render against the set before accepting it.** Open it next to
-  `wallet-secure.png` and `user-verified.png`. If the plinth, the lighting angle
-  or the blue is different, regenerate rather than ship an object that looks like
-  a visitor
-- **No orange, amber, gold or purple**, ever, in any of them
+One honest limit. **A glass object is see-through by design**, so its alpha is
+partial across the interior. That is correct on a dark surface and reads thin on
+a pale one, and it is exactly why the chip works: the chip gives the glass
+something to be glass against.
 
 ---
 
-## 6. Where these get used
+## 4. The commission, delivered
 
-`docs/HANDOFF_02_PLATFORM.md` section 24 defines the confirmation sheet these sit
-inside: the mark in a glass container, the verdict in two words, the fact, the
-line saying what happens next, and at most two actions.
+The old section 3 of this file ordered twenty four marks by name, each with the
+state it serves and a description of the object to build. **Sheet `CF5A4150` is
+that order, filled.** Twenty three of the twenty four are on it, and several
+match the written description object for object: mark nine was specified as a
+"blue-banded strongbox with a naira note half inside", and index 09 is a
+blue-banded strongbox with a naira note half inside.
 
-Build the shared component once and let it take the mark by name. **Do not build
-a bespoke success screen per flow**, which is what the product does today.
+**The delivered marks keep the names this file gave them**, because a document
+that already specifies a name is the authority and renaming a delivered
+commission strands the document that ordered it. Three deviations:
+
+| Ordered as | Delivered as | Why |
+| --- | --- | --- |
+| `hourglass-blue` | `hourglass` | A colour does not belong in an object's name. The light twin of this object is not blue |
+| `info-round` | `info` | The roundness is not the meaning |
+| `payment-pending` | **not delivered** | Index 03 is a plain naira coin, not a pending state, so it is named `coin-naira` rather than pressed into a role it does not play |
+
+**`payment-pending` needs no commission.** Pending is covered twice over by
+`seal-pending` and `hourglass`.
+
+### One mark is delivered and withheld
+
+**`escrow-hold`, mark nine.** This file said of it: build it, do not ship it
+until escrow exists. **Escrow does not exist**, and
+`apps/web/src/lib/legal/terms.tsx` now says in as many words that Vallo does not
+hold your money in escrow, so an escrow mark on a screen would be the artwork
+contradicting the contract.
+
+It is cut, named, and in `WITHHELD` in the manifest so that nothing can reach for
+it by accident. **Keep it.** The day the product does hold money, it is already
+drawn.
+
+### There is a live defect this mark points at
+
+`apps/web/src/components/app/wallet/BalanceBreakdownSheet.tsx` renders, to a
+user: "Escrow moves money out of it and holds it until both sides are done",
+"Money in escrow", "What you have in escrow", and "You have paid this into
+escrow. It comes back if the deal does not happen." **The wallet screen and the
+terms of service say opposite things about where somebody's rent money is.** That
+is not an artwork problem and it is the highest-priority item in
+`docs/FRONTEND_REVAMP.md`.
+
+---
+
+## 5. What is still to commission
+
+Small, and much smaller than expected.
+
+**Two objects**, both in live use, both with no glass equivalent anywhere on the
+ten sheets:
+
+| Name | What it is for | Interim |
+| --- | --- | --- |
+| `homes-sparkle` | Several homes, recommended | `cluster-home` |
+| `house-sparkle` | One home, featured | `modern-house` |
+
+**One improvement rather than a gap.** `support-chat` is currently taken from
+`2676C1FC` index 14, which is a bare headset, where the object it replaces is a
+headset with a speech bubble. The headset is a fair drawing of support and it
+keeps four live call sites working with no edit. A bubble-and-headset object
+would be better.
+
+**The light pass of six sheets**, per section 3 above, and only for the surfaces
+named there.
+
+Everything else is either already drawn, substituted in
+`docs/FRONTEND_REVAMP.md` section 2.6, or dead artwork that should be deleted
+rather than redrawn.
+
+---
+
+## 6. Rules when new files come back
+
+- **Rendered on black, not on white, and not on transparent.** The cutout is
+  computed from the black ground; an object supplied on a transparent background
+  has already had that decision made for it, usually badly. Give us the render.
+- **Square, at least 1024px** for an object; a hero scene may be wider than it is
+  tall and must not be squared.
+- **The glow must be inside the frame.** A generous margin is not wasted space,
+  it is the mark. The commonest way to ruin one of these is to crop tight.
+- **No text, no letters, no numbers, anywhere in the artwork.** This platform
+  ships `packages/i18n` and text baked into an image cannot be translated.
+  `9795AD6E` index 23 is a hotel with the word HOTEL rendered into it as pixels;
+  it is named `hotel-sign` and is used by nothing, for exactly this reason.
+- **Filenames are lowercase with hyphens**, and where an object replaces one that
+  exists, **it keeps that object's name**. That is what makes a swap a file change
+  rather than a code change.
+- **Add it to `scripts/icon-manifest.mjs` and rerun.** Never drop a file straight
+  into `public/brand/glass/`: the manifest is what makes the set reproducible,
+  and a file nobody recorded is a file nobody can regenerate.
+- **Never mix these with `UiIcon`** in one row. `UiIcon` is the 40 stroked
+  navigation glyphs, these are content objects, and the two tiers do not meet.
+  See `docs/ICON_SYSTEM.md`.
+- **No orange, amber, gold or purple**, ever, in any of them.
+- **Check the render against the set before accepting it**, on the night canvas
+  and on a white card, at 24px and at 96px. If the rim light, the bloom or the
+  blue is different, regenerate rather than ship an object that looks like a
+  visitor.
 
 ---
 
@@ -204,11 +225,13 @@ inconsistent, and that the worst one is on the screen carrying the most money.**
 
 ### The three things missing from every one of them
 
-Even the good ones. This is where the marks in section 3 earn their place.
+Even the good ones. This is where the marks in section 4 earn their place, and
+**they now exist**: when this list was written they were a commission, and
+`seal-pending` and `hourglass` have since been delivered on `CF5A4150`.
 
 1. **A mark.** Every pending state in this product is a spinner. A spinner is
-   the absence of a design. `payment-pending`, `seal-pending` and
-   `hourglass-blue` in section 3 exist for exactly this and none is used yet.
+   the absence of a design. `seal-pending` and `hourglass` were drawn for exactly
+   this and neither is used yet, because nothing is wired up.
 2. **The amount.** A person who has just sent 850,000 naira wants to see
    850,000 naira on the screen that says it is going. Only the withdraw sheet
    does.
@@ -237,8 +260,10 @@ bespoke success screen is the thing section 24.3 says not to do.
 
 ### And the marks that are already right
 
-Check section 2 before commissioning anything. `user-verified.png` is already
-the blue scalloped rosette with a white tick, which is precisely the mark the
-founder's reference screenshot rendered in orange. **It does not need
-replacing.** The reference's anatomy is worth taking; its execution is
-everything this brand is not.
+`user-verified` is already the scalloped rosette with a white tick, which is
+precisely the mark the founder's reference screenshot rendered in orange. **The
+anatomy does not need redesigning**, and it survives the move to glass: it exists
+on `B04429B0` index 17, under the same name, so the swap keeps it.
+
+The generic version of the same shape is `seal-check`, and the reference's
+anatomy is worth taking while its execution is everything this brand is not.
