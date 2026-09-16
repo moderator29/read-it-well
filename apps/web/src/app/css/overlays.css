@@ -124,13 +124,41 @@
      * reason. Both themes are correct by construction, because the token under
      * it is white on paper.
      */
-    background: color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent);
+    /*
+     * The sheet carries the strides too, and it is the surface that earns them
+     * most: it is the only thing in the product that is unambiguously floating
+     * over live content, so the run of light along its top edge is what says
+     * "this is glass and the page is still behind it". Same ring as the card,
+     * same three rungs, so the two surfaces are visibly the same material.
+     */
+    background:
+      linear-gradient(
+          color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent),
+          color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent)
+        )
+        padding-box,
+      conic-gradient(
+          from var(--nf-stride-angle),
+          var(--nf-edge-stride-peak) 0deg,
+          var(--nf-edge-stride-lit) 16deg,
+          var(--nf-edge-stride-base) 44deg,
+          var(--nf-edge-stride-base) 80deg,
+          var(--nf-edge-stride-lit) 90deg,
+          var(--nf-edge-stride-base) 100deg,
+          var(--nf-edge-stride-base) 164deg,
+          var(--nf-edge-stride-peak) 180deg,
+          var(--nf-edge-stride-lit) 196deg,
+          var(--nf-edge-stride-base) 224deg,
+          var(--nf-edge-stride-base) 260deg,
+          var(--nf-edge-stride-lit) 270deg,
+          var(--nf-edge-stride-base) 280deg,
+          var(--nf-edge-stride-base) 344deg,
+          var(--nf-edge-stride-peak) 360deg
+        )
+        border-box;
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    /* The sheet's top edge carries the brand the way every card does now:
-       one sharp lit line where the surface meets the content it floats over. */
-    border: var(--nf-border-width) solid
-      color-mix(in oklab, var(--nf-elev-3-border) 60%, var(--nf-brand-edge));
+    border: var(--nf-border-width) solid transparent;
     border-bottom: 0;
     box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
     /* Starts fully off-screen and is driven in. A fade would defeat the point. */

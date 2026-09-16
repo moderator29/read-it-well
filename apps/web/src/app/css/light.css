@@ -20,10 +20,39 @@
   /* The `backdrop-filter: none` that used to sit here is gone because the base
      rule no longer sets one: a card sits on a fixed canvas and has nothing
      behind it to blur, in either theme. */
+  /*
+   * DAYLIGHT GETS THE STRIDES TOO, and until now it got a grey box.
+   *
+   * This rule replaced the whole background, so the ring the night theme
+   * paints was dropped on paper and every card fell back to a flat 9 per cent
+   * neutral hairline. That is the founder's complaint word for word, and half
+   * the users only ever see this theme. The ring is the same one; the rungs
+   * under it are derived from the edge scale, which already crosses, so the
+   * strides land softer on white without a second set of numbers to keep in
+   * step.
+   */
   :root[data-theme="light"] .nf-card {
     background:
       linear-gradient(#FFFFFF, #FFFFFF) padding-box,
-      linear-gradient(rgb(18 21 26 / 0.09), rgb(18 21 26 / 0.09)) border-box;
+      conic-gradient(
+          from var(--nf-stride-angle),
+          var(--nf-edge-stride-peak) 0deg,
+          var(--nf-edge-stride-lit) 16deg,
+          var(--nf-edge-stride-base) 44deg,
+          var(--nf-edge-stride-base) 80deg,
+          var(--nf-edge-stride-lit) 90deg,
+          var(--nf-edge-stride-base) 100deg,
+          var(--nf-edge-stride-base) 164deg,
+          var(--nf-edge-stride-peak) 180deg,
+          var(--nf-edge-stride-lit) 196deg,
+          var(--nf-edge-stride-base) 224deg,
+          var(--nf-edge-stride-base) 260deg,
+          var(--nf-edge-stride-lit) 270deg,
+          var(--nf-edge-stride-base) 280deg,
+          var(--nf-edge-stride-base) 344deg,
+          var(--nf-edge-stride-peak) 360deg
+        )
+        border-box;
     box-shadow: var(--nf-shadow-card);
   }
   /* Pointer only, in step with the base rule. A plain `:hover` sticks after a
@@ -31,9 +60,30 @@
      touched something else. */
   @media (hover: hover) {
     :root[data-theme="light"] .nf-card--interactive:hover {
+      /* The ring stays on hover so the sweep has something to travel along;
+         only the lift changes. Replacing it with a flat soft edge here is what
+         made the daylight hover read as the card losing its brand. */
       background:
         linear-gradient(#FFFFFF, #FFFFFF) padding-box,
-        linear-gradient(var(--nf-brand-edge-soft), var(--nf-brand-edge-soft)) border-box;
+        conic-gradient(
+          from var(--nf-stride-angle),
+          var(--nf-edge-stride-peak) 0deg,
+          var(--nf-edge-stride-lit) 16deg,
+          var(--nf-edge-stride-base) 44deg,
+          var(--nf-edge-stride-base) 80deg,
+          var(--nf-edge-stride-lit) 90deg,
+          var(--nf-edge-stride-base) 100deg,
+          var(--nf-edge-stride-base) 164deg,
+          var(--nf-edge-stride-peak) 180deg,
+          var(--nf-edge-stride-lit) 196deg,
+          var(--nf-edge-stride-base) 224deg,
+          var(--nf-edge-stride-base) 260deg,
+          var(--nf-edge-stride-lit) 270deg,
+          var(--nf-edge-stride-base) 280deg,
+          var(--nf-edge-stride-base) 344deg,
+          var(--nf-edge-stride-peak) 360deg
+        )
+          border-box;
       box-shadow: var(--nf-shadow-lifted);
     }
   }
@@ -295,15 +345,36 @@
      header bars keep their translucent glass; they never carry the
      interactive card class. */
   :root[data-theme="light"] .nf-glass.nf-card--interactive {
-    background: #FFFFFF;
-    border-color: rgb(18 21 26 / 0.1);
+    /* Same ring. This selector outranks the card rule above, so a flat white
+       fill here silently took the strides off every glass card in daylight. */
+    background:
+      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      conic-gradient(
+        from var(--nf-stride-angle),
+        var(--nf-edge-stride-peak) 0deg,
+        var(--nf-edge-stride-lit) 16deg,
+        var(--nf-edge-stride-base) 44deg,
+        var(--nf-edge-stride-base) 80deg,
+        var(--nf-edge-stride-lit) 90deg,
+        var(--nf-edge-stride-base) 100deg,
+        var(--nf-edge-stride-base) 164deg,
+        var(--nf-edge-stride-peak) 180deg,
+        var(--nf-edge-stride-lit) 196deg,
+        var(--nf-edge-stride-base) 224deg,
+        var(--nf-edge-stride-base) 260deg,
+        var(--nf-edge-stride-lit) 270deg,
+        var(--nf-edge-stride-base) 280deg,
+        var(--nf-edge-stride-base) 344deg,
+        var(--nf-edge-stride-peak) 360deg
+      )
+        border-box;
+    border-color: transparent;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: var(--nf-shadow-card);
   }
   @media (hover: hover) {
     :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
-      border-color: var(--nf-brand-edge-soft);
       box-shadow: var(--nf-shadow-lifted);
     }
   }

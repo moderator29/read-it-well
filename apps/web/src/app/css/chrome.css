@@ -207,12 +207,37 @@
      * full semicircles, not a rounded rectangle. 90 per cent canvas keeps a
      * breath of the content moving behind it so it still reads as floating.
      */
-    background: color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent);
-    /* The same whisper of brand on the chrome hairline as the cards carry:
-       enough that the bar belongs to the same lit-glass family, not enough to
-       fight the content above it. */
-    border: var(--nf-border-width) solid
-      color-mix(in oklab, var(--nf-glass-border) 70%, var(--nf-brand-edge));
+    /*
+     * The capsule is lit the way the cards are, and on a pill the strides read
+     * best of anything in the product: there are no corners to hide the
+     * catches, so the light runs the curve and leaves. Same ring, same rungs.
+     */
+    background:
+      linear-gradient(
+          color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent),
+          color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent)
+        )
+        padding-box,
+      conic-gradient(
+          from var(--nf-stride-angle),
+          var(--nf-edge-stride-peak) 0deg,
+          var(--nf-edge-stride-lit) 16deg,
+          var(--nf-edge-stride-base) 44deg,
+          var(--nf-edge-stride-base) 80deg,
+          var(--nf-edge-stride-lit) 90deg,
+          var(--nf-edge-stride-base) 100deg,
+          var(--nf-edge-stride-base) 164deg,
+          var(--nf-edge-stride-peak) 180deg,
+          var(--nf-edge-stride-lit) 196deg,
+          var(--nf-edge-stride-base) 224deg,
+          var(--nf-edge-stride-base) 260deg,
+          var(--nf-edge-stride-lit) 270deg,
+          var(--nf-edge-stride-base) 280deg,
+          var(--nf-edge-stride-base) 344deg,
+          var(--nf-edge-stride-peak) 360deg
+        )
+        border-box;
+    border: var(--nf-border-width) solid transparent;
     border-radius: var(--nf-radius-pill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
@@ -327,9 +352,35 @@
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     /* The detached island is the same material and needs the same fallback, or
        it becomes an 11%-white wash with content scrolling through it. */
-    .nf-dock-island,
-    .nf-tabbar {
+    .nf-dock-island {
       background: var(--nf-surface-elevated);
+    }
+    /* The capsule keeps its stride ring in the fallback; only the fill goes
+       opaque. `background: <colour>` here would have dropped the border-box
+       layer and left the bar with a transparent 1px border. */
+    .nf-tabbar {
+      background:
+        linear-gradient(var(--nf-surface-elevated), var(--nf-surface-elevated))
+          padding-box,
+        conic-gradient(
+          from var(--nf-stride-angle),
+          var(--nf-edge-stride-peak) 0deg,
+          var(--nf-edge-stride-lit) 16deg,
+          var(--nf-edge-stride-base) 44deg,
+          var(--nf-edge-stride-base) 80deg,
+          var(--nf-edge-stride-lit) 90deg,
+          var(--nf-edge-stride-base) 100deg,
+          var(--nf-edge-stride-base) 164deg,
+          var(--nf-edge-stride-peak) 180deg,
+          var(--nf-edge-stride-lit) 196deg,
+          var(--nf-edge-stride-base) 224deg,
+          var(--nf-edge-stride-base) 260deg,
+          var(--nf-edge-stride-lit) 270deg,
+          var(--nf-edge-stride-base) 280deg,
+          var(--nf-edge-stride-base) 344deg,
+          var(--nf-edge-stride-peak) 360deg
+        )
+          border-box;
     }
   }
 

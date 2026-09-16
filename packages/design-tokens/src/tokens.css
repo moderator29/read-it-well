@@ -686,6 +686,29 @@
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
+  /*
+   * THE STRIDES. The three rungs a lit edge is actually made of.
+   *
+   * The edge scale above says how blue the outline is. It cannot say WHERE the
+   * light lands on it, and that is the whole difference between an object
+   * outlined in brand and an object made of glass. Real glass does not glow
+   * evenly round its perimeter: it runs quiet, catches hard for a short run
+   * where the light meets it, then goes quiet again. Those catches are the
+   * strides, and their absence is what the founder kept looking at and not
+   * finding on our containers.
+   *
+   * Three rungs, and the gap between them is the whole effect:
+   *   base   the quiet run, most of the perimeter, brand present but calm
+   *   lit    a short catch, the secondary glints on the off axis
+   *   peak   the two long strides on the light axis, near full brand ink
+   *
+   * They are derived rather than literal, so they cross into daylight with the
+   * edge scale they are built from and nothing here needs a light twin.
+   */
+  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 58%, var(--nf-brand-edge));
+  --nf-edge-stride-lit: var(--nf-brand-edge-strong);
+  --nf-edge-stride-peak: var(--nf-glow-brand-rim);
+
   /* ---------------------------------------------------------------------
    * Radius
    * ------------------------------------------------------------------ */
@@ -1428,6 +1451,10 @@
   --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
+
+  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 58%, var(--nf-brand-edge));
+  --nf-edge-stride-lit: var(--nf-brand-edge-strong);
+  --nf-edge-stride-peak: var(--nf-glow-brand-rim);
 
   /*
    * The signature ramps.
