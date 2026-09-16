@@ -329,7 +329,15 @@ async function sliceSheet(file) {
 }
 
 await mkdir(OUT, { recursive: true });
-const files = (await readdir(SHEETS)).filter((f) => f.toLowerCase().endsWith(".png")).sort();
+/*
+ * Only the founder's sheets. The directory also archives sources that are not
+ * sheets at all (the wordmark render the brand-marks script keys from), and
+ * the first thing this filter prevented was the slicer cutting the VALLO
+ * wordmark into four "objects" named 01 to 04. A sheet is named by the
+ * founder's generator: an 8-4-4-4-12 UUID.
+ */
+const SHEET_NAME = /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\.png$/i;
+const files = (await readdir(SHEETS)).filter((f) => SHEET_NAME.test(f)).sort();
 
 const report = [];
 for (const file of files) {

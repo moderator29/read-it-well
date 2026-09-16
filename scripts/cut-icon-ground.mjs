@@ -203,13 +203,70 @@ function keyOnLight(data, w, h, c) {
   return out;
 }
 
+/**
+ * Drop the slivers of a neighbouring object that ride along a cell edge.
+ *
+ * The light sheet's cells are declared equal divisions, and an equal division
+ * puts the boundary wherever it lands, which on the first row is inside the
+ * neighbour's outline: `payment-failed` shipped with a blue fragment of
+ * `transfer-arrow` floating at its right edge, and it was found on a rendered
+ * confirmation sheet, not here, which is exactly the wrong place to find it.
+ *
+ * The test is connectivity, not position. The object is one connected piece of
+ * alpha that reaches the middle of its cell; a sliver is a separate piece that
+ * never gets near it. So: label the connected components of the alpha, keep
+ * every component whose bounding box touches the central 60 per cent of the
+ * cell, and drop the rest. An object's own limb that reaches the edge stays,
+ * because it is connected to the body that spans the centre; a fragment of the
+ * neighbour hugs the edge and is connected to nothing.
+ */
+function dropEdgeStrays(rgba, w, h) {
+  const lab = new Int32Array(w * h).fill(-1);
+  const stack = new Int32Array(w * h);
+  const boxes = [];
+  let next = 0;
+  for (let p = 0; p < w * h; p += 1) {
+    if (rgba[p * 4 + 3] === 0 || lab[p] >= 0) continue;
+    const id = next++;
+    let sp = 0;
+    stack[sp++] = p;
+    lab[p] = id;
+    let x0 = w, x1 = 0, y0 = h, y1 = 0;
+    while (sp > 0) {
+      const q = stack[--sp];
+      const x = q % w, y = (q - x) / w;
+      if (x < x0) x0 = x; if (x > x1) x1 = x;
+      if (y < y0) y0 = y; if (y > y1) y1 = y;
+      if (x > 0 && rgba[(q - 1) * 4 + 3] > 0 && lab[q - 1] < 0) { lab[q - 1] = id; stack[sp++] = q - 1; }
+      if (x < w - 1 && rgba[(q + 1) * 4 + 3] > 0 && lab[q + 1] < 0) { lab[q + 1] = id; stack[sp++] = q + 1; }
+      if (y > 0 && rgba[(q - w) * 4 + 3] > 0 && lab[q - w] < 0) { lab[q - w] = id; stack[sp++] = q - w; }
+      if (y < h - 1 && rgba[(q + w) * 4 + 3] > 0 && lab[q + w] < 0) { lab[q + w] = id; stack[sp++] = q + w; }
+    }
+    boxes.push({ id, x0, x1, y0, y1 });
+  }
+  const cx0 = w * 0.2, cx1 = w * 0.8, cy0 = h * 0.2, cy1 = h * 0.8;
+  const keep = new Set(
+    boxes.filter((b) => b.x1 >= cx0 && b.x0 <= cx1 && b.y1 >= cy0 && b.y0 <= cy1).map((b) => b.id),
+  );
+  let dropped = 0;
+  for (let p = 0; p < w * h; p += 1) {
+    if (rgba[p * 4 + 3] > 0 && !keep.has(lab[p])) {
+      rgba[p * 4] = 0; rgba[p * 4 + 1] = 0; rgba[p * 4 + 2] = 0; rgba[p * 4 + 3] = 0;
+      dropped += 1;
+    }
+  }
+  return dropped;
+}
+
 async function cutOne(src, dest, onLight) {
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: w, height: h, channels: c } = info;
   const rgba = onLight ? keyOnLight(data, w, h, c) : keyOnDark(data, w, h, c);
+  const dropped = dropEdgeStrays(rgba, w, h);
   await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
     .png({ compressionLevel: 9 })
     .toFile(dest);
+  return dropped;
 }
 
 await mkdir(OUT, { recursive: true });
@@ -224,10 +281,14 @@ for (const set of sets) {
   const dir = path.join(OUT, set);
   await mkdir(dir, { recursive: true });
   const files = (await readdir(path.join(SLICED, set))).filter((f) => f.endsWith(".png")).sort();
+  let strays = 0;
   for (const f of files) {
-    await cutOne(path.join(SLICED, set, f), path.join(dir, f), onLight);
+    strays += (await cutOne(path.join(SLICED, set, f), path.join(dir, f), onLight)) > 0 ? 1 : 0;
     total += 1;
   }
-  console.log(`${set}  ${onLight ? "light" : "dark "}  ${String(files.length).padStart(2)} cut`);
+  console.log(
+    `${set}  ${onLight ? "light" : "dark "}  ${String(files.length).padStart(2)} cut` +
+      (strays > 0 ? `  (${strays} carried an edge stray, now dropped)` : ""),
+  );
 }
 console.log(`\n${total} objects written to assets/brand-cut`);
