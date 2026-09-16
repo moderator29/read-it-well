@@ -16,27 +16,31 @@ import Image from "next/image";
  *              consumed by the manifest, the favicon set and the native
  *              shells. `scripts/build-web-icons.mjs` fans it out.
  *
- * THE LIGHT THEME, AND WHY THERE IS NO INK VARIANT ANY MORE.
+ * THE MARK HAS A REAL ALPHA CHANNEL NOW, AND WHAT THIS COMMENT USED TO SAY IS
+ * KEPT BECAUSE IT EXPLAINS THE FILE ON DISK CHANGING UNDER THE SAME NAME.
  *
- * The old artwork shipped as a pair: a neon cutout for the night theme and an
- * ink recolour that CSS swapped in for paper, because the old mark was flat
- * blue shapes that a recolour could survive.
+ * Until 16 September 2026 `vallo-mark.png` was a 640px square CROP out of the
+ * app tile: three channels, no alpha, towers clipped, swoosh cut at both sides,
+ * blue bleeding to every edge. At header size it read as a navy smudge inside a
+ * hard square, and this comment defended that by saying the mark "carries its
+ * own deep navy ground". That was making a virtue of a defect. The founder
+ * asked for the logo to be more visible and for the container around it to go,
+ * and the container WAS the defect.
  *
- * The new mark cannot be recoloured that way. It is a photographic render of a
- * glass object lit from behind, and an ink version of it is a new render, not a
- * filter. Producing one by cutting the glow out and inverting leaves a halo,
- * which the brief forbids by name.
+ * The mark is now the five towers and the swoosh alone, keyed off the tile with
+ * the same brightest-channel technique that cut the icon sheets, feathered
+ * where the tile's own panel bloom overlapped it. `scripts/build-brand-marks.mjs`
+ * is the record, including the approaches that failed and the one-line render
+ * to ask the founder for that would beat the extraction.
  *
- * So there is one mark and it is used on both themes. That is not a compromise
- * in the way it sounds: the mark carries its own deep navy ground, so on paper
- * it reads as a dark object sitting on a white card, which is exactly how an
- * app icon reads on a light home screen. **A proper ink re-render is still
- * wanted and the prompt for it is in `docs/BRAND_MARKS.md`.** Until it exists,
- * one asset is honest and two would be a bad cutout pretending to be a pair.
+ * ON PAPER the mark still reads correctly, as glass with a soft blue halo
+ * rather than a dark slab, so there is still exactly one asset for both themes
+ * and still no ink variant. The reasoning about recolouring survives: an ink
+ * version of a photographic glass render is a new render, not a filter.
  */
 
 export function LogoMark({
-  size = 44,
+  size = 48,
   responsive = false,
   className,
   title,
@@ -103,7 +107,7 @@ export function LogoLockup({
  * exists.
  */
 export function Logo({
-  size = 40,
+  size = 48,
   wordSize = 21,
   responsive = false,
   className,

@@ -85,7 +85,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         <div className="grid grid-cols-2 gap-x-block gap-y-block md:grid-cols-[1.6fr_repeat(4,1fr)]">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
-              <Logo size={40} wordSize={21} />
+              <Logo size={52} wordSize={22} />
             </Link>
             <p className="nf-body-sm mt-heading max-w-[28ch] font-medium text-[var(--nf-content-secondary)]">
               {t.landing.footer.tagline}

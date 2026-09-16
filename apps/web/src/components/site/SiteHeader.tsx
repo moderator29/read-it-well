@@ -40,7 +40,7 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
       <div className="nf-site-bar nf-safe-top">
         <div className="nf-shell flex h-[60px] items-center gap-group sm:h-[72px] sm:gap-heading">
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap shrink-0">
-            <Logo size={46} wordSize={21} responsive priority />
+            <Logo size={58} wordSize={23} responsive priority />
           </Link>
 
           {/*
