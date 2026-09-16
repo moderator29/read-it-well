@@ -268,17 +268,26 @@ export const en = {
     },
     hero: {
       /*
-       * The headline is THE OFFER, not the slogan. "Find it. Rent it. Love
-       * it." stood here for a year and it is why the first four seconds of
-       * this product taught a visitor nothing: a slogan as an h1 says the
-       * company likes itself. These two lines say what you can do and what
-       * makes doing it here different, which is the whole argument of
-       * PRODUCT.md section 1 in eleven words.
+       * THE SLOGAN IS THE HEADLINE, AND THAT IS THE FOUNDER'S DIRECT CALL.
+       *
+       * The first rebuild made the h1 the offer ("Rent, buy or sell. The
+       * move-in total, printed.") on the argument that a slogan as a headline
+       * says nothing. The founder read it and asked for the brand line
+       * instead, steered toward "real estate marketplace". So the three jobs
+       * are dealt differently now, and nothing is lost: the OVERLINE names
+       * what this is (Nigeria's real estate marketplace), the H1 is the brand
+       * making its one claim, and the SUBTITLE carries the offer and the
+       * proof. The move-in argument still gets a whole band of its own two
+       * scrolls down.
+       *
+       * The h1 stays in English in every locale, like the wordmark; the
+       * overline and subtitle translate.
        */
-      title1: "Rent, buy or sell.",
-      title2: "The move-in total, printed.",
+      overline: "Nigeria's real estate marketplace",
+      title1: "Real Estate,",
+      title2: "reimagined.",
       subtitle:
-        "Every place on Vallo was listed by a real person, with the light, the water and the gate answered before you visit.",
+        "Rent, buy or sell with agents checked by real people. Every listing answers the light, the water and the gate, and shows the whole move-in cost up front.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Start exploring",
       popularLabel: "Popular right now",

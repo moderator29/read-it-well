@@ -190,10 +190,11 @@ export const ha: Dictionary = {
       market: { rent: "Don haya", sale: "Don sayarwa", night: "Kowane dare", head: "Kowane mutum" },
     },
     hero: {
-      title1: "Yi haya, saya ko sayar.",
-      title2: "Jimillar kuɗin shiga, a rubuce.",
+      overline: "Kasuwar gidaje da filaye ta Najeriya",
+      title1: "Real Estate,",
+      title2: "reimagined.",
       subtitle:
-        "Mutum na gaske ne ya sanya kowane wuri a Vallo, tare da amsar wutar lantarki, ruwa da ƙofa kafin ka ziyarta.",
+        "Yi haya, saya ko sayar tare da wakilan da mutane na gaske suka duba. Kowane jeri yana amsa wuta, ruwa da ƙofa, kuma yana nuna dukan kuɗin shiga tun farko.",
       searchPlaceholder: "Ina kake son zuwa?",
       searchLabel: "Fara bincike",
       popularLabel: "Sanannu yanzu",

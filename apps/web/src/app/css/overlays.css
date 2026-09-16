@@ -127,7 +127,10 @@
     background: color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    border: var(--nf-border-width) solid var(--nf-elev-3-border);
+    /* The sheet's top edge carries the brand the way every card does now:
+       one sharp lit line where the surface meets the content it floats over. */
+    border: var(--nf-border-width) solid
+      color-mix(in oklab, var(--nf-elev-3-border) 60%, var(--nf-brand-edge));
     border-bottom: 0;
     box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
     /* Starts fully off-screen and is driven in. A fade would defeat the point. */

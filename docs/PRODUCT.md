@@ -332,10 +332,16 @@ British spelling in documentation and product copy. **Zero em dashes anywhere.**
 2026. It replaces "Find it. Rent it. Love it.", which is retired.
 
 **A slogan is a positioning line and not a product description**, so it belongs
-beside the logo and nowhere else: the landing hero's companion line, the page
-title, the Open Graph card, the footer, the auth shell and the email sign off. It
-is not a headline. The retired one was the landing page `h1`, which is why the
-page opens by saying nothing about property.
+beside the logo: the page title, the Open Graph card, the footer, the auth shell
+and the email sign off.
+
+**One exception, made by the founder on 16 September 2026 and recorded here so
+it reads as a decision rather than a drift: the landing `h1` is the brand line,
+"Real Estate, reimagined."** The rule's reason still holds, so the h1 does not
+carry the job alone: the overline above it names what this is (Nigeria's real
+estate marketplace), the subtitle carries the offer and the proof, and the
+move-in argument keeps its own band. The h1 stays in English in every locale,
+the way the wordmark does.
 
 **The sentence that says what the product does is the one in section 1 of this
 document**, and it is the one a headline should be built from. A visitor's first

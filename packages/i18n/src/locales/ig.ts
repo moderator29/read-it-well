@@ -191,10 +191,11 @@ export const ig: Dictionary = {
       market: { rent: "Maka mgbazinye", sale: "Maka ire", night: "Kwa abalị", head: "Kwa onye" },
     },
     hero: {
-      title1: "Gbaa, zụta ma ọ bụ ree.",
-      title2: "Mkpokọta ego mbata, e biri ya.",
+      overline: "Ahịa ụlọ na ala nke Naịjirịa",
+      title1: "Real Estate,",
+      title2: "reimagined.",
       subtitle:
-        "Onye nkịtị debere ebe ọ bụla dị na Vallo, tinyere azịza maka ọkụ, mmiri na ọnụ ụzọ tupu ị ga eleta.",
+        "Gbaa, zụta ma ọ bụ ree n'aka ndị nnọchiteanya ndị mmadụ n'ezie nyochara. Ndepụta ọ bụla na-aza ọkụ, mmiri na ọnụ ụzọ, ma gosi ego mbata niile na mbụ.",
       searchPlaceholder: "Ebee ka ị chọrọ ịga?",
       searchLabel: "Malite ịchọ",
       popularLabel: "Ewu ewu ugbu a",

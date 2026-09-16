@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { Logo } from "@/design-system/brand/Logo";
+import { LogoMark } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { ThemeToggle } from "./ThemeToggle";
@@ -39,8 +39,13 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
     <header className="sticky top-0 z-50">
       <div className="nf-site-bar nf-safe-top">
         <div className="nf-shell flex h-[60px] items-center gap-group sm:h-[72px] sm:gap-heading">
+          {/* THE MARK ALONE, NO WORDMARK BESIDE IT. The founder asked for the
+              logo by itself on the landing header, and with the containerless
+              mark it is right: the mark IS the name now, the way the best
+              consumer brands wear theirs, and losing the word bought back the
+              room to wear it bigger. The accessible name is unchanged. */}
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap shrink-0">
-            <Logo size={58} wordSize={23} responsive priority />
+            <LogoMark size={64} responsive title="Vallo" priority />
           </Link>
 
           {/*

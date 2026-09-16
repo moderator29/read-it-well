@@ -208,7 +208,11 @@
      * breath of the content moving behind it so it still reads as floating.
      */
     background: color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent);
-    border: var(--nf-border-width) solid var(--nf-glass-border);
+    /* The same whisper of brand on the chrome hairline as the cards carry:
+       enough that the bar belongs to the same lit-glass family, not enough to
+       fight the content above it. */
+    border: var(--nf-border-width) solid
+      color-mix(in oklab, var(--nf-glass-border) 70%, var(--nf-brand-edge));
     border-radius: var(--nf-radius-pill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
@@ -283,14 +287,16 @@
     flex-shrink: 0;
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: var(--nf-radius-control);
+    /* A circle, as the founder's reference has it. A rounded square beside a
+       true pill read as two families. */
+    border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
     /* The canvas rather than a white wash, for the same reason the header
        takes it: this floats over scrolling content, so a white fill lightens
        whatever passes beneath and the dock stops matching the page it sits on.
        See the note on `.nf-glass--chrome`. */
-    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
-    border: 1px solid var(--nf-glass-border);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent);
+    border: 1px solid color-mix(in oklab, var(--nf-glass-border) 70%, var(--nf-brand-edge));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:

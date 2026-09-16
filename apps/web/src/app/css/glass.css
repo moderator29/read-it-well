@@ -312,6 +312,24 @@
    * canvas depth comes from the rim rather than from a black shadow, so the rim
    * is part of the rung and not a seventh layer.
    */
+  /*
+   * THE EDGE IS THE BRAND NOW, AND THE FOUNDER ASKED FOR IT BY NAME.
+   *
+   * The first calm pass gave the card a corner catch that faded into a
+   * neutral hairline by 42 per cent, and the founder looked at the product
+   * and said the one thing the artwork is made of, the electric blue edge
+   * light, was invisible on the containers. Right. The logo is a glass object
+   * whose identity IS the lit edge; a card in the same product with a grey
+   * outline is a box from a different company.
+   *
+   * So the hairline itself is blue now, end to end. Not a glow: a SHARP 1px
+   * electric line, brightest where the light enters at the top-left, catching
+   * again at the bottom-right the way the tile's rim does, and never dropping
+   * below a quarter of brand ink anywhere on its run. The sparkle is the two
+   * corner catchlights; the sharpness is that none of it is blurred. The
+   * interior stays calm, which is what keeps forty of these on one page from
+   * shouting: the blue lives on one crisp line, exactly like the artwork.
+   */
   .nf-card {
     background:
       linear-gradient(
@@ -321,10 +339,12 @@
         padding-box,
       linear-gradient(
           135deg,
-          var(--nf-brand-edge-soft) 0%,
-          var(--nf-glow-1) 18%,
-          var(--nf-glass-border) 42%,
-          var(--nf-glass-border) 100%
+          var(--nf-brand-edge-strong) 0%,
+          var(--nf-brand-edge) 14%,
+          color-mix(in oklab, var(--nf-glass-border) 65%, var(--nf-brand-edge)) 40%,
+          color-mix(in oklab, var(--nf-glass-border) 65%, var(--nf-brand-edge)) 72%,
+          var(--nf-brand-edge) 92%,
+          var(--nf-brand-edge-strong) 100%
         )
         border-box;
     border: 1px solid transparent;
@@ -342,7 +362,11 @@
      * override that drifts.
      */
     border-radius: var(--nf-radius-xl);
-    box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1);
+    /* The inner top catchlight rides in brand ink too, so the edge reads as
+       lit glass rather than as a painted outline. Still one line, still sharp. */
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-brand-edge-soft) 60%, transparent),
+      var(--nf-elev-1);
     transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
   @media (prefers-reduced-motion: reduce) {

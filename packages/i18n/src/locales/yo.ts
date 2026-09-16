@@ -189,10 +189,11 @@ export const yo: Dictionary = {
       market: { rent: "Fún háyà", sale: "Fún títà", night: "Fún alẹ́ kan", head: "Fún ẹnì kan" },
     },
     hero: {
-      title1: "Háyà, rà, tàbí tà.",
-      title2: "Àpapọ̀ owó ìwọlé, ní kíkun.",
+      overline: "Ọjà ohun ìoní ilẹ̀ Nàìjíríà",
+      title1: "Real Estate,",
+      title2: "reimagined.",
       subtitle:
-        "Ènìyàn gidi ni ó fi gbogbo ibi tí ó wà lórí Vallo sílẹ̀, pẹ̀lú ìdáhùn nípà iná, omi àti ẹnu ọ̀nà kí o tó lọ wò ó.",
+        "Háyà, rà tàbí tà pẹ̀lú àwọn aṣojú tí ènìyàn gidi ti ṣàyẹ̀wò. Gbogbo àkọsílẹ̀ ní ìdáhùn iná, omi àti ẹnu ọ̀nà, ó sì fi gbogbo owó ìwọlé hàn ṣáájú.",
       searchPlaceholder: "Ibo ni o fẹ́ lọ?",
       searchLabel: "Bẹ̀rẹ̀ ìwádìí",
       popularLabel: "Gbajúmọ̀ báyìí",

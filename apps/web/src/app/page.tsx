@@ -115,11 +115,11 @@ export default async function LandingPage() {
           <div className="nf-shell relative z-10">
             <div className="grid items-center gap-block lg:grid-cols-[1.05fr_0.95fr]">
               <div className="max-w-2xl">
-                {/* The slogan rides above the headline as an overline: present
-                    on the first screen, and never the headline itself. The
-                    headline is the offer. */}
+                {/* The marketplace line above, the brand line as the
+                    headline. The founder's call, and the reasoning is with
+                    the strings in packages/i18n. */}
                 <p className="nf-rise nf-overline text-[var(--nf-brand-secondary)]">
-                  {t.landing.slogan}
+                  {t.landing.hero.overline}
                 </p>
 
                 <h1 className="nf-display mt-4">
