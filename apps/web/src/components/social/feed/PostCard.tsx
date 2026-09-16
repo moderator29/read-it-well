@@ -142,8 +142,12 @@ function Avatar({ author }: { author: PostAuthor | null }) {
      * already the right bytes, and routing it through the optimiser adds a
      * round trip to serve the same image slightly later.
      */
-    // eslint-disable-next-line @next/next/no-img-element
     return (
+      /* The directive has to sit on the line ABOVE the element it excuses, and
+         it was sitting above the `return`, so it suppressed nothing and was
+         itself reported as unused: two warnings out of one misplaced comment,
+         and the `<img>` below went on being flagged. */
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={author.avatarPath}
         alt=""

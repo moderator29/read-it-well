@@ -765,6 +765,11 @@ export const en = {
    * languages.
    */
   settings: {
+      searchPlaceholder: "Search settings",
+      searchNoMatchTitle: "Nothing in settings matches that",
+      searchNoMatchBody:
+        "Try a shorter word, or part of it. Nothing has been changed by searching, and every setting is still here.",
+      searchClear: "Show every setting",
     appearance: {
       label: "Appearance",
       note: "Kept on this device. Dark is the designed default.",
@@ -1085,6 +1090,15 @@ export const en = {
   },
 
   agent: {
+    standing: {
+      DRAFT: "Not sent yet",
+      SUBMITTED: "With us for review",
+      UNDER_REVIEW: "Being reviewed",
+      MORE_INFO_REQUIRED: "We need something more from you",
+      APPROVED: "Approved",
+      REJECTED: "Not approved",
+      SUSPENDED: "Paused, contact support",
+    },
     mode: {
       personal: "Personal Mode",
       agent: "Agent Mode",
@@ -1963,6 +1977,74 @@ export const en = {
         to: "To",
         apply: "Apply",
         clear: "Clear",
+      },
+      /*
+       * PER COLUMN, NOT PER VALUE, and that is the whole point of the block.
+       *
+       * `admin.common.status` is one flat map keyed by the bare value, and in it
+       * PENDING reads "Requested", which is right for a booking and wrong for
+       * money in flight. An operator on the money screen would have met a
+       * confidently mistranslated chip rather than a shouting one, which is
+       * worse. Keying by column lets one enum value mean different things in
+       * the two places it appears, because it does.
+       *
+       * `reportTarget`'s mixed case is the schema's, not a typo: `listing` is
+       * written by lib/reports/schema.ts and POST and SOCIAL_PROFILE by
+       * lib/social/posts-actions.ts.
+       *
+       * The escrow kinds say where the money is and never who holds it,
+       * because the terms say in bold that we hold none.
+       */
+      columns: {
+        walletEntryStatus: {
+          PENDING: "Not settled yet",
+          COMPLETED: "Settled",
+          FAILED: "Failed",
+          REVERSED: "Reversed",
+        },
+        walletEntryKind: {
+          deposit: "Deposit",
+          withdrawal: "Withdrawal",
+          payment: "Payment",
+          refund: "Refund",
+          transfer_in: "Transfer received",
+          transfer_out: "Transfer sent",
+          escrow_hold: "On hold",
+          escrow_release: "Hold released",
+          escrow_refund: "Hold returned",
+        },
+        kycReview: {
+          pending: "Not reviewed yet",
+          approved: "Approved",
+          rejected: "Not accepted",
+        },
+        reportTarget: {
+          listing: "A listing",
+          POST: "A post",
+          SOCIAL_PROFILE: "A profile",
+        },
+        reportCategory: {
+          off_platform_payment: "Asked to pay outside Vallo",
+          scam: "Looks like a scam",
+          unsafe: "Unsafe or threatening",
+          not_as_described: "Not as described",
+          unavailable: "Not actually available",
+          offensive: "Offensive",
+          duplicate: "Duplicate",
+          other: "Something else",
+        },
+      },
+      statusLabel: "Filter by status",
+      pager: {
+        label: "Queue pages",
+        showing: "Showing {from} to {to}",
+        previous: "Previous",
+        next: "Next",
+      },
+      searchPlaceholders: {
+        agents: "Search by name or business",
+        listings: "Search by title or city",
+        escrow: "Search by property",
       },
     },
 

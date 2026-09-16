@@ -252,6 +252,33 @@
     /* The hairline underneath is drawn by the shadow below, so the real border
        has to go or the bar carries two 1px lines of the same colour stacked. */
     border-bottom: 0;
+    /*
+     * THE ONE GLASS SURFACE THAT DOES NOT TAKE THE THREE-PART RECIPE, and it is
+     * deliberate rather than the fourth rung nobody got round to.
+     *
+     * Base, `--thin` and `--strong` each take a rim, a floor and an elevation
+     * rung, stepping together: rim / rim-thin / rim-strong against shadow /
+     * shadow-thin / shadow-lifted. A chrome bar takes the base rim and then
+     * neither of the other two, for a reason per omission.
+     *
+     * NO FLOOR, because the floor is `inset 0 -1px 0` of dark and this rule
+     * draws `0 1px 0 var(--nf-glass-border)` as an OUTER hairline on the same
+     * edge. Both would put a line along the bottom of the bar, one just inside
+     * the other, which is the doubled edge the `border-bottom: 0` two lines up
+     * exists to prevent.
+     *
+     * NO ELEVATION RUNG, because the bar does not float above the page, it is
+     * PINNED TO IT. What separates it from the content passing underneath is
+     * the blur and the scrim strip in `::after` below, which is a soft exit
+     * rather than a drop shadow; a rung here would add a hard shadow edge on
+     * top of a gradient whose whole job is to not have one.
+     *
+     * AND THE RIM STAYS THE BASE ONE even though the fill is now 88% canvas,
+     * which is nearly opaque. The rim ladder tracks the WHITE-fill ladder -
+     * 4.5%, 7.5%, 11% - and a chrome bar is not on that ladder at all: it tints
+     * with the canvas, on a different axis, for the reason set out above. There
+     * is no `--nf-glass-rim-chrome` and there should not be one.
+     */
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
       0 1px 0 var(--nf-glass-border);

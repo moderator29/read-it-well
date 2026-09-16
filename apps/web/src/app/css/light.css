@@ -382,8 +382,50 @@
     }
   }
 
-  /* Small glass chips sitting on a white card (the step numbers) need a
-     visible well instead of white on white. */
+  /*
+   * Small glass chips sitting on a white card need a visible well instead of
+   * white on white.
+   *
+   * THE PATTERN THIS PATCHES MAY ALREADY BE GONE, AND I COULD NOT PROVE IT
+   * EITHER WAY FROM THE SOURCE, WHICH IS WHY THE RULE IS STILL HERE.
+   *
+   * Its existence is the finding: glass nested inside a card is two floating
+   * surfaces, one of which is not floating, and HANDOFF_03 section 2.3 forbids
+   * it. The filed answer is to remove the nesting at the call sites rather than
+   * to style it, and the comment this replaces named "the step numbers" on the
+   * landing page as the case.
+   *
+   * Every `.nf-glass` ELEMENT in the tree was enumerated - eleven of them, once
+   * the hover-utility and comment matches are discarded:
+   *
+   *   ui/ActionBar.tsx            a pinned action bar
+   *   app/ReportSheet.tsx         a sheet header
+   *   app/filters/FilterDrawer    a drawer header and its footer
+   *   (site)/styleguide/page.tsx  a demonstration of the class itself
+   *   (app)/listing/[id]/page.tsx and its loading twin, a panel over the hero
+   *   (app)/search/page.tsx       and its loading twin, a sticky filter bar
+   *   (app)/saved/SavedBoard.tsx  a save button positioned over a card
+   *
+   * None is statically inside a `.nf-card`, and the step-number badges are not
+   * among them at all - that pattern has left the tree. The closest case,
+   * `SavedBoard`, is a SIBLING of the rendered card inside a positioning
+   * wrapper, not a descendant, so this selector does not reach it.
+   *
+   * WHAT GREP CANNOT SETTLE is composition: any of those eleven could be
+   * rendered as a child of a card by a component that does not mention either
+   * class name, and a descendant selector does not care which file the nesting
+   * happened in. Deleting the rule on the strength of a static read would
+   * produce invisible white-on-white in daylight if I am wrong, which is
+   * exactly the failure it exists to prevent, in the theme half the users are
+   * in.
+   *
+   * SO IT STAYS, AND HERE IS HOW TO CLOSE IT IN ONE PASS: render the app in the
+   * light theme with `document.querySelectorAll('.nf-card .nf-glass')` in the
+   * console on the wallet, saved, search and listing routes. Empty on all four
+   * means the nesting is gone and this rule goes with it. That is one browser
+   * session, which this workstream does not have, rather than an afternoon of
+   * reading component trees.
+   */
   :root[data-theme="light"] .nf-card .nf-glass {
     background: var(--nf-surface-inset);
     border-color: var(--nf-border-subtle);
@@ -432,7 +474,10 @@
    * neutral inset well, same shapes, same behaviour.
    */
   :root[data-theme="light"] .nf-badge-overlap {
-    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent),
+    /* `--nf-brand-edge-soft` is `color-mix(--nf-glow-ink 35%)` and in daylight
+       `--nf-glow-ink` IS `--nf-brand-primary`, so this is the identical colour
+       under the name the glow ladder gives it. Nothing moved. */
+    box-shadow: 0 6px 16px -4px var(--nf-brand-edge-soft),
       0 0 0 3px var(--nf-surface-canvas);
   }
   :root[data-theme="light"] .nf-panel-sunken {
@@ -466,15 +511,37 @@
  * the night theme never reaches these rules.
  */
 
-/* Translucent-white wells and hairlines inside cards (the wallet balance
-   stats, the eye toggle, the ledger icon tiles) are invisible white on white
-   in daylight; they become neutral inset wells with real hairlines. */
-:root[data-theme="light"] .nf-card :is(.bg-white\/5, .bg-white\/\[0\.04\], .bg-white\/\[0\.05\]) {
-  background-color: var(--nf-surface-inset);
-}
-:root[data-theme="light"] .nf-card :is(.border-white\/10, .border-white\/15) {
-  border-color: var(--nf-border-default);
-}
+/*
+ * TWO RULES MATCHING ESCAPED TAILWIND CLASS NAMES STOOD HERE AND ARE GONE,
+ * BECAUSE EVERY CLASS THEY MATCHED HAS GONE.
+ *
+ * They were:
+ *
+ *   .nf-card :is(.bg-white\/5, .bg-white\/[0.04], .bg-white\/[0.05])
+ *   .nf-card :is(.border-white\/10, .border-white\/15)
+ *
+ * repairing translucent-white wells and hairlines that were invisible white on
+ * white in daylight - the wallet balance stats, the eye toggle, the ledger icon
+ * tiles. The filed finding calls them patches over "40-odd call sites that wrote
+ * raw white overlays" and says to replace the call sites and then delete the
+ * rules. That migration has since happened: `nf/no-raw-colour` treats
+ * `bg-white/5` as an error in `src/components/**`, the surfaces were converted,
+ * and the count is now ZERO live uses of all five class names in the tree.
+ *
+ * The only remaining matches are inside COMMENTS, in `BalanceCard.tsx` and
+ * `WalletDeck.tsx`, and both are of the form "Was border-white/10 on
+ * bg-white/[0.04]" - authors recording what they replaced. Checked by grepping
+ * for each of the five and discarding comment lines, rather than by trusting
+ * the count in the finding.
+ *
+ * So these matched nothing. A stylesheet that matches utility class names is
+ * fragile whether or not it is doing anything; one that matches utility class
+ * names that no longer exist is a trap, because the next person reads it as
+ * evidence the pattern is still in use and writes another one.
+ *
+ * THE RULE BELOW IS THE LAST OF THIS KIND AND IT IS STILL LOAD-BEARING. See the
+ * note on it.
+ */
 
 /* The open wallet action tile swaps its neon halo for a blue hairline and a
    paper shadow: still unmistakably active, never a glow smear. */
@@ -485,8 +552,31 @@
   box-shadow: var(--nf-elev-1);
 }
 
-/* Hover feedback painted with the glass fill (rail links, list rows, nav
-   items) is white on white in daylight; it becomes a quiet neutral wash. */
+/*
+ * Hover feedback painted with the glass fill (rail links, list rows, nav items)
+ * is white on white in daylight; it becomes a quiet neutral wash.
+ *
+ * THIS ONE IS ALIVE AND IT IS THE ONLY SURVIVING UTILITY-NAME MATCH. Sixteen
+ * call sites still write `hover:bg-[var(--nf-glass-fill)]`, so deleting it
+ * would strand every one of them invisible on paper.
+ *
+ * It is also a DIFFERENT fault from the two above, which is worth separating.
+ * Those matched raw white literals, which is a colour-provenance problem.
+ * This matches a token-based utility that is simply the WRONG TOKEN: the glass
+ * fill is the material a glass panel is made of, and a row hover is not a glass
+ * panel. `--nf-interactive-hover` is the token for "a pointer is over this", it
+ * is answered in both themes - white at 4% on the canvas, ink at 4.5% on
+ * paper - and a call site using it needs no repair rule at all. This rule is
+ * literally substituting that token in, one theme at a time, from a stylesheet.
+ *
+ * `components/ui/Table.tsx` has been moved onto it and the row hover there is
+ * now correct in both themes without passing through here. The other fifteen
+ * belong to other queues and are listed for them in the handover: Disclosure,
+ * RecentActivity, TransactionsSection, AssistantSidebar (x3),
+ * AssistantSettingsSheet, AgentMobileNav (x2), ModeSwitcher, AdminNav,
+ * TenancyTerm, LiveNotifications and Inbox. When that list is empty, this rule
+ * follows the two above it.
+ */
 :root[data-theme="light"] .hover\:bg-\[var\(--nf-glass-fill\)\]:hover {
   background-color: var(--nf-interactive-hover);
 }

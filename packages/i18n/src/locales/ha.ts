@@ -500,6 +500,11 @@ export const ha: Dictionary = {
 },
 
   settings: {
+      searchPlaceholder: "Nema a cikin saituna",
+      searchNoMatchTitle: "Babu abin da ya dace a cikin saituna",
+      searchNoMatchBody:
+        "Gwada gajeren kalma, ko wani ɓangare nata. Nema bai canza komai ba, kuma kowane saiti yana nan.",
+      searchClear: "Nuna kowane saiti",
     appearance: {
       label: "Kamanni",
       note: "Ana ajiye shi a wannan na'urar. Duhu shi ne tsohon zaɓi da aka tsara.",
@@ -780,6 +785,15 @@ export const ha: Dictionary = {
   },
 
   agent: {
+    standing: {
+      DRAFT: "Ba a aika ba tukuna",
+      SUBMITTED: "Yana tare da mu don dubawa",
+      UNDER_REVIEW: "Ana dubawa",
+      MORE_INFO_REQUIRED: "Muna buƙatar ƙarin abu daga gare ka",
+      APPROVED: "An amince",
+      REJECTED: "Ba a amince ba",
+      SUSPENDED: "An dakatar, tuntuɓi tallafi",
+    },
     mode: {
       personal: "Yanayin Kai",
       agent: "Yanayin Wakili",
@@ -1597,6 +1611,57 @@ export const ha: Dictionary = {
         to: "Zuwa",
         apply: "Yi amfani",
         clear: "Share",
+      },
+      columns: {
+        walletEntryStatus: {
+          PENDING: "Ba a kammala ba tukuna",
+          COMPLETED: "An kammala",
+          FAILED: "Bai yi nasara ba",
+          REVERSED: "An juya baya",
+        },
+        walletEntryKind: {
+          deposit: "Ajiyar kuɗi",
+          withdrawal: "Cire kuɗi",
+          payment: "Biyan kuɗi",
+          refund: "Mayar da kuɗi",
+          transfer_in: "Kuɗin da aka karɓa",
+          transfer_out: "Kuɗin da aka aika",
+          escrow_hold: "Ana riƙe",
+          escrow_release: "An sako riƙon",
+          escrow_refund: "An mayar da riƙon",
+        },
+        kycReview: {
+          pending: "Ba a duba ba tukuna",
+          approved: "An amince",
+          rejected: "Ba a karɓa ba",
+        },
+        reportTarget: {
+          listing: "Wani jeri",
+          POST: "Wani saƙo",
+          SOCIAL_PROFILE: "Wani bayanin martaba",
+        },
+        reportCategory: {
+          off_platform_payment: "An nemi a biya waje da Vallo",
+          scam: "Yana kama da zamba",
+          unsafe: "Mara tsaro ko mai barazana",
+          not_as_described: "Ba kamar yadda aka bayyana ba",
+          unavailable: "Babu shi da gaske",
+          offensive: "Mai cin mutunci",
+          duplicate: "An maimaita",
+          other: "Wani abu dabam",
+        },
+      },
+      statusLabel: "Tace bisa ga matsayi",
+      pager: {
+        label: "Shafukan jeri",
+        showing: "Ana nuna {from} zuwa {to}",
+        previous: "Na baya",
+        next: "Na gaba",
+      },
+      searchPlaceholders: {
+        agents: "Nema da suna ko kasuwanci",
+        listings: "Nema da take ko birni",
+        escrow: "Nema da kadara",
       },
     },
 

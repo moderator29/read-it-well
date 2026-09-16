@@ -151,7 +151,17 @@ export default async function Page() {
             </div>
             <div className="flex items-center justify-between gap-3">
               <dt className="text-[var(--nf-content-muted)]">Status</dt>
-              <dd className="text-[var(--nf-content-secondary)]">{agent.status}</dd>
+              {/*
+                This printed the raw enum, so an agent read APPROVED in
+                shouting capitals about their own account. `columnLabel` is the
+                console's three-tier lookup and it is available here: the
+                dictionary first, the staged English second, and a humanised
+                value last, so this reads a real sentence whichever tier
+                answers.
+              */}
+              <dd className="text-[var(--nf-content-secondary)]">
+                {t.agent.standing[agent.status] ?? agent.status}
+              </dd>
             </div>
           </dl>
           <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">

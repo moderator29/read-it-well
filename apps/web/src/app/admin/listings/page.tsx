@@ -150,7 +150,12 @@ function ListingCard({
             {listing.photos.map((photo, index) => (
               <li key={photo}>
                 {/* Plain img: these are reviewer thumbnails from the platform
-                    storage bucket, not optimised marketing imagery. */}
+                    storage bucket, not optimised marketing imagery, and a
+                    signed URL cannot go through the optimiser at all. The
+                    reasoning was written here already; the directive makes it
+                    machine-readable so the rule stops reporting a decision
+                    somebody has taken. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo}
                   alt={fill(copy.photoAlt, { title: listing.title, number: index + 1 })}

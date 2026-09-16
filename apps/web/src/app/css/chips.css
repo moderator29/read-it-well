@@ -383,7 +383,7 @@
     letter-spacing: 0.02em;
     color: var(--nf-content-on-brand);
     background: var(--nf-gradient-brand);
-    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
+    box-shadow: 0 6px 16px -4px var(--nf-glow-4),
       0 0 0 3px var(--nf-surface-canvas);
   }
   .nf-badge-overlap--success {

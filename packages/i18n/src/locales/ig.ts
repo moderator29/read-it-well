@@ -501,6 +501,11 @@ export const ig: Dictionary = {
 },
 
   settings: {
+      searchPlaceholder: "Chọọ na ntọala",
+      searchNoMatchTitle: "O nweghị ihe dabara na ntọala",
+      searchNoMatchBody:
+        "Nwaa okwu dị mkpụmkpụ, ma ọ bụ akụkụ ya. Ịchọ agbanweghị ihe ọ bụla, ntọala niile ka dịkwa ebe a.",
+      searchClear: "Gosi ntọala niile",
     appearance: {
       label: "Ọdịdị",
       note: "Echekwara ya na ngwaọrụ a. Ọchịchịrị bụ nhọrọ mbụ e mere.",
@@ -788,6 +793,15 @@ export const ig: Dictionary = {
   },
 
   agent: {
+    standing: {
+      DRAFT: "Ezigabeghị ya",
+      SUBMITTED: "Ọ nọ n'aka anyị maka nyocha",
+      UNDER_REVIEW: "A na-enyocha ya",
+      MORE_INFO_REQUIRED: "Anyị chọrọ ihe ọzọ n'aka gị",
+      APPROVED: "Akwadoro ya",
+      REJECTED: "Akwadoghị ya",
+      SUSPENDED: "Akwụsịtụrụ ya, kpọtụrụ nkwado",
+    },
     mode: {
       personal: "Ọnọdụ Onwe",
       agent: "Ọnọdụ Onye Nnọchi",
@@ -1607,6 +1621,57 @@ export const ig: Dictionary = {
         to: "Ruo",
         apply: "Tinye ya",
         clear: "Hichapụ",
+      },
+      columns: {
+        walletEntryStatus: {
+          PENDING: "Akwụsibeghị ya",
+          COMPLETED: "Akwụsịla ya",
+          FAILED: "Ọ gaghị",
+          REVERSED: "A tụgharịrị ya",
+        },
+        walletEntryKind: {
+          deposit: "Ntinye ego",
+          withdrawal: "Iwepụta ego",
+          payment: "Ịkwụ ụgwọ",
+          refund: "Nkwụghachi ego",
+          transfer_in: "Ego e nwetara",
+          transfer_out: "Ego ezigara",
+          escrow_hold: "A na-ejide ya",
+          escrow_release: "A hapụla njide",
+          escrow_refund: "Enyeghachiri njide",
+        },
+        kycReview: {
+          pending: "Enyochabeghị ya",
+          approved: "Akwadoro ya",
+          rejected: "A nabataghị ya",
+        },
+        reportTarget: {
+          listing: "Otu ndepụta",
+          POST: "Otu ozi",
+          SOCIAL_PROFILE: "Otu profaịlụ",
+        },
+        reportCategory: {
+          off_platform_payment: "Ọ rịọrọ ka akwụọ ụgwọ na mpụga Vallo",
+          scam: "Ọ dị ka aghụghọ",
+          unsafe: "Ọ dịghị mma ma ọ bụ na-eyi egwu",
+          not_as_described: "Ọ bụghị ka akọwara ya",
+          unavailable: "Ọ dịghị adị n'ezie",
+          offensive: "Na-akpasu iwe",
+          duplicate: "Nkeji ugboro abụọ",
+          other: "Ihe ọzọ",
+        },
+      },
+      statusLabel: "Nzacha site n'ọnọdụ",
+      pager: {
+        label: "Ibe usoro",
+        showing: "Na-egosi {from} ruo {to}",
+        previous: "Nke gara aga",
+        next: "Nke ọzọ",
+      },
+      searchPlaceholders: {
+        agents: "Chọọ site na aha ma ọ bụ azụmahịa",
+        listings: "Chọọ site na isiokwu ma ọ bụ obodo",
+        escrow: "Chọọ site na ụlọ",
       },
     },
 

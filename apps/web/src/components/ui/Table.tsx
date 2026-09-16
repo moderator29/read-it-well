@@ -192,7 +192,12 @@ export function TR({ onClick, selected, className, children }: TRProps) {
       onClick={onClick}
       aria-selected={selected}
       className={[
-        inHead ? "" : "transition-colors hover:bg-[var(--nf-glass-fill)] motion-reduce:transition-none",
+        /* `--nf-interactive-hover`, not `--nf-glass-fill`. The glass fill is what a
+           glass PANEL is made of; a row hover is not a panel, and on paper the
+           glass fill is white on white, which is why light.css carries a rule
+           matching this exact escaped class name to swap the token back in. The
+           right token needs no rule. */
+        inHead ? "" : "transition-colors hover:bg-[var(--nf-interactive-hover)] motion-reduce:transition-none",
         onClick ? "cursor-pointer" : "",
         className ?? "",
       ]

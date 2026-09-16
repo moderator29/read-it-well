@@ -244,8 +244,24 @@ function BookingCard({
       <div className="p-3.5 sm:p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="truncate text-[0.9375rem] font-semibold">{booking.guestName}</h3>
-            <p className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-[var(--nf-content-secondary)]">
+            {/*
+              F2-065. THE GUEST'S NAME WAS TRUNCATED ON THE SCREEN WHERE AN
+              AGENT DECIDES ABOUT THAT GUEST.
+              Nigerian names run long and compound, so "Oluwaseun Adebayo-
+              Ogundimu" elided to "Oluwaseun Adeb…" on a 390px card, and the
+              agent accepting or declining could not read who they were
+              answering. It wraps now. A card that is one line taller is a
+              smaller cost than a decision taken about a name nobody could see.
+
+              The listing line keeps its ellipsis, deliberately: a title is
+              recognised from its opening words and the agent already knows
+              their own stock, so the two strings are not the same kind of
+              string and do not want the same treatment.
+            */}
+            <h3 className="text-[0.9375rem] font-semibold [overflow-wrap:anywhere]">
+              {booking.guestName}
+            </h3>
+            <p className="mt-0.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
               <UiIcon name="house" size={12} className="shrink-0" />
               <span className="truncate">{booking.listingTitle}</span>
             </p>

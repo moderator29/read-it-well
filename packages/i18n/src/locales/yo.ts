@@ -499,6 +499,11 @@ export const yo: Dictionary = {
 },
 
   settings: {
+      searchPlaceholder: "Wá nínú àwọn ètò",
+      searchNoMatchTitle: "Kò sí ohun tí ó bá a mu nínú àwọn ètò",
+      searchNoMatchBody:
+        "Gbìyànjú ọ̀rọ̀ kúkúrú, tàbí apá kan rẹ̀. Wíwá kò yí nǹkan kan padà, gbogbo ètò sì wà níbẹ̀ síbẹ̀.",
+      searchClear: "Fi gbogbo ètò hàn",
     appearance: {
       label: "Ìrísí",
       note: "A fi pamọ́ sórí ẹ̀rọ yìí. Dúdú ni ìpìlẹ̀ tí a ṣe.",
@@ -782,6 +787,15 @@ export const yo: Dictionary = {
   },
 
   agent: {
+    standing: {
+      DRAFT: "A kò tíì fi ránṣẹ́",
+      SUBMITTED: "Ó wà lọ́dọ̀ wa fún àyẹ̀wò",
+      UNDER_REVIEW: "A ń yẹ̀ ẹ́ wò",
+      MORE_INFO_REQUIRED: "A nílò nǹkan mìíràn lọ́wọ́ rẹ",
+      APPROVED: "A ti fọwọ́sí",
+      REJECTED: "A kò fọwọ́sí",
+      SUSPENDED: "Ó dúró, kan sí ìrànlọ́wọ́",
+    },
     mode: {
       personal: "Ipo Ara-ẹni",
       agent: "Ipo Aṣojú",
@@ -1603,6 +1617,57 @@ export const yo: Dictionary = {
         to: "Dé",
         apply: "Lò ó",
         clear: "Nù ú",
+      },
+      columns: {
+        walletEntryStatus: {
+          PENDING: "Kò tíì parí",
+          COMPLETED: "Ó ti parí",
+          FAILED: "Kò yọrí sí rere",
+          REVERSED: "A ti yí padà",
+        },
+        walletEntryKind: {
+          deposit: "Ìfikún owó",
+          withdrawal: "Ìyọ owó",
+          payment: "Ìsanwó",
+          refund: "Ìdápadà owó",
+          transfer_in: "Owó tí a gbà",
+          transfer_out: "Owó tí a rán",
+          escrow_hold: "Ó wà ní ìdádúró",
+          escrow_release: "A ti tú ìdádúró",
+          escrow_refund: "A ti dá ìdádúró padà",
+        },
+        kycReview: {
+          pending: "A kò tíì yẹ̀ ẹ́ wò",
+          approved: "A ti fọwọ́sí",
+          rejected: "A kò gbà",
+        },
+        reportTarget: {
+          listing: "Àtòjọ kan",
+          POST: "Ìfìwéránṣẹ́ kan",
+          SOCIAL_PROFILE: "Àkọsílẹ̀ ẹnìkan",
+        },
+        reportCategory: {
+          off_platform_payment: "Ó ní kí n san owó lóde Vallo",
+          scam: "Ó dàbí ìtànjẹ",
+          unsafe: "Kò láàbò tàbí ó ń halẹ̀",
+          not_as_described: "Kò rí bí a ṣe sọ",
+          unavailable: "Kò sí ní tòótọ́",
+          offensive: "Ó ń bini nínú",
+          duplicate: "Ó jẹ́ àdàkọ",
+          other: "Nǹkan mìíràn",
+        },
+      },
+      statusLabel: "Ṣàyẹ̀wò nípa ipò",
+      pager: {
+        label: "Àwọn ojú ewé",
+        showing: "Ń fi {from} dé {to} hàn",
+        previous: "Tí ó ṣáájú",
+        next: "Tí ó tẹ̀lé",
+      },
+      searchPlaceholders: {
+        agents: "Wá nípa orúkọ tàbí iṣẹ́",
+        listings: "Wá nípa àkọlé tàbí ìlú",
+        escrow: "Wá nípa ohun-ìní",
       },
     },
 

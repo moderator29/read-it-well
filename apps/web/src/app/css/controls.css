@@ -178,7 +178,11 @@
     box-shadow:
       inset 0 1px 0 var(--nf-wash-6),
       inset 0 -2px 8px var(--nf-shade-1),
-      0 10px 28px -12px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+      /* `--nf-glow-4`, not a 70% mix of the brand: same alpha, and the GLOW
+         INK, which is electric-400 at night rather than the deeper
+         electric-500 that `--nf-brand-primary` resolves to. The ladder picked
+         the brighter blue for blooms on purpose. See F2-036. */
+      0 10px 28px -12px var(--nf-glow-4);
     transition:
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-fast) var(--nf-ease-standard);
@@ -268,7 +272,7 @@
     box-shadow:
       inset 0 2px 6px var(--nf-shade-2),
       0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 24%, transparent),
-      0 0 26px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+      0 0 26px -6px var(--nf-glow-4);
   }
   .nf-field[aria-invalid="true"] {
     border-color: var(--nf-state-error);
