@@ -67,7 +67,10 @@
  * schema. None of them creates a new right or a new liability.
  *
  * These seven need a solicitor's eye before Launch and are marked here rather
- * than in a separate document that would drift away from the text:
+ * than in a separate document that would drift away from the text. (The
+ * numbers below were re-pointed on 16 September 2026 to the current section
+ * numbering; three of them still named an older draft's numbers. The flags
+ * themselves are unchanged.)
  *
  *   4   Payments, now that it describes a direct payment rather than a hold.
  *       The consumer protection position changes when the platform is not
@@ -78,9 +81,9 @@
  *       commitment.
  *   6   The commission paragraph, which describes a fee that is set to zero
  *       today. It must not read as introducing one.
- *   9   Limitation of liability, which no longer rests on a holding promise.
- *   10  Suspension, closure and the appeal route.
- *   13  Governing law, which must stay consistent with the Co-Founder and
+ *   13  Limitation of liability, which no longer rests on a holding promise.
+ *   14  Suspension, closure and the appeal route.
+ *   18  Governing law, which must stay consistent with the Co-Founder and
  *       Investment Agreement: Nigerian law, and arbitration in Abuja under the
  *       Arbitration and Mediation Act 2023.
  *   15  The wallet, which states what a balance is not. That sentence is the

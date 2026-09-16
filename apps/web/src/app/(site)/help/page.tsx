@@ -74,7 +74,7 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "Do I pay the agent directly?",
-    a: "Never. You pay on Vallo, through the checkout screen, using a card, a bank transfer raised by the payment processor, or your Vallo wallet. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. Settlement to the agent is between Vallo and the agent, and it is not something you arrange or hand over.",
+    a: "Never. You pay on Vallo, through the checkout screen, using a card, a bank transfer raised by the payment processor, or your Vallo wallet. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. How the agent is paid is handled on the platform, and it is never something you arrange by transfer.",
   },
   {
     category: "Payments and refunds",
@@ -94,14 +94,19 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "How long does a refund take to arrive?",
-    a: "Wallet refunds are quickest, usually within one business day. Refunds to a card or bank account typically take three to ten business days depending on your bank. If a refund seems stuck, contact support with your booking reference.",
+    /* This answer used to promise card reversals in three to ten business
+       days. Refunds do not go back to a card: they land in the wallet, which
+       is what the docs, the cancellation policy and the product itself say. */
+    a: "A refund lands in your Vallo wallet, usually within minutes of the decision. Moving it from the wallet to your bank is an ordinary withdrawal and takes as long as your bank takes. If nothing has appeared in your wallet statement, contact support with your booking reference.",
   },
 
   // ------------------------------------------------------------ listing
   {
     category: "Listing your property",
     q: "How do I list my property on Vallo?",
-    a: "Apply through the Become an agent page. The application has six short steps: personal details, identity verification, business type, documents, payout account and review. Your progress saves as you go, and once approved you can publish listings from the agent dashboard.",
+    /* "Agent dashboard" is not a Vallo word: the agent surface is the
+       workspace, called Agent Mode in the product. PRODUCT.md section 7. */
+    a: "Apply through the Become an agent page. The application has six short steps: personal details, identity verification, business type, documents, payout account and review. Your progress saves as you go, and once approved you publish listings from your agent workspace.",
   },
   {
     category: "Listing your property",
@@ -111,7 +116,7 @@ const FAQS: Faq[] = [
   {
     category: "Listing your property",
     q: "When do agents get paid?",
-    a: "After each completed stay, your earnings are paid to the Nigerian bank account you added during your application. You can follow every payout from the earnings page in your agent dashboard.",
+    a: "After each completed stay, your earnings are paid to the Nigerian bank account you added during your application. You can follow every payout from the earnings page in your agent workspace.",
   },
 
   // ------------------------------------------------------- verification
@@ -123,7 +128,7 @@ const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "How are agents verified?",
-    a: "Every agent verifies their identity with their NIN or a government issued ID. Agents operating as a business also upload their business registration documents. Applications are reviewed by a person, not just a script.",
+    a: "Every agent verifies their identity with their NIN or a government issued ID. Agents operating as a business also upload their business registration documents. Applications are reviewed by a person, not a script.",
   },
   {
     category: "Verification and trust",
@@ -155,12 +160,12 @@ const FAQS: Faq[] = [
   {
     category: "Languages and accessibility",
     q: "Which languages does Vallo work in?",
-    a: "English, Yoruba, Hausa and Igbo. You can switch language at any time from the switcher in the header, and your choice is remembered on your device.",
+    a: "English, Yorùbá, Hausa and Igbo. You can switch language at any time from the switcher in the header, and your choice is remembered on your device.",
   },
   {
     category: "Languages and accessibility",
     q: "Can I get support in my own language?",
-    a: "Yes. Write to support in English, Yoruba, Hausa or Igbo and you will get a reply in the language you used.",
+    a: "Yes. Write to support in English, Yorùbá, Hausa or Igbo and you will get a reply in the language you used.",
   },
 ];
 

@@ -12,10 +12,15 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * generic terms ("verified", "secure"), and the trust strip beneath it said
  * "Secure & Trusted / Your safety is our priority" with a heart emoji, which
  * is the exact grammar of every template site on earth. What separates Vallo
- * is not that it says trustworthy things, it is that the questions a Nigerian
- * renter actually asks, about the light, the water and the gate, are answered
- * ON THE LISTING, as data. So the band lists those questions and where the
- * answers live, and claims nothing it cannot show.
+ * is not that it says trustworthy things, it is that the questions a person
+ * actually asks are answered ON THE LISTING, as data.
+ *
+ * THE QUESTIONS WERE REWRITTEN FOR EVERY MARKET, not only for a tenancy. They
+ * read "the light and the water", "what it really costs" and "who you are
+ * dealing with", because a person taking a shop front, a plot of land or a
+ * hotel room for the night asks all three, and the first draft of this band
+ * asked them as though the reader were always renting a flat. The columns
+ * behind them are the same columns; only the framing widened.
  *
  * The scene on the right is `hero-protected` from the commissioned hero set:
  * a shield with a house and a tick on a lit glass plinth. It is the one hero

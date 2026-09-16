@@ -16,6 +16,13 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * appeared on the landing page as a sub-clause in a four-cell feature grid,
  * which is roughly the effort a company spends on a claim it does not mean.
  *
+ * IT IS A PROOF, NOT THE SPINE, and the difference cost a rewrite to learn.
+ * A version of this page put the move-in total at the top and built three of
+ * its seven sections on it, and the page came out describing a service for
+ * renting a flat rather than a marketplace with nine markets in it. The band
+ * now sits after the markets and the account, where it does what it is good
+ * at: proving how this platform behaves with one number, in one place.
+ *
  * THE LEDGER IS A REAL LISTING, NOT AN ILLUSTRATION. The figures are read from
  * the catalogue at render time: the first recommended listing that carries a
  * move-in total and at least one named part. This page has already had one

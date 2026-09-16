@@ -7,6 +7,9 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { HowItWorks } from "@/components/site/landing/HowItWorks";
+import { MarketsBand } from "@/components/site/landing/MarketsBand";
+import { OneAccountBand } from "@/components/site/landing/OneAccountBand";
+import { NextBand } from "@/components/site/landing/NextBand";
 import { MoveInTruth } from "@/components/site/landing/MoveInTruth";
 import { StandardBand } from "@/components/site/landing/StandardBand";
 import { AgentsBand } from "@/components/site/landing/AgentsBand";
@@ -16,22 +19,45 @@ import { AssistantShowcase } from "@/components/site/landing/SignatureShowcase";
 import { gatedHref } from "@/lib/site/gated-href";
 
 /*
- * The landing page: seven ideas, in the order a stranger needs them.
+ * The landing page: a marketplace, stated as one.
  *
- * IT WAS EIGHTEEN BANDS AND 10,862 PIXELS AT 390PX, roughly thirteen phone
- * screens, and the audit's verdict was blunt: a landing page that says
- * everything says nothing. The first four seconds taught a visitor that a
- * company called Vallo existed and liked itself, because the h1 was the
- * slogan; they did not learn that there are properties, what one costs, or
- * where. This rewrite makes the page say ONE thing per section and stop:
+ * ---------------------------------------------------------------------------
+ * THE MISTAKE THIS VERSION EXISTS TO CORRECT, BECAUSE IT WAS MINE AND IT WAS
+ * A BIG ONE.
+ * ---------------------------------------------------------------------------
  *
- *   1. The offer, in the hero: rent, buy or sell, the move-in total printed.
- *   2. Proof there are places: real listings, straight from the catalogue.
- *   3. The argument: the rent is not the price, and we print the price.
- *   4. How it works, in three verbs.
- *   5. The standard: light, water, gate, a person checked, everything inside.
- *   6. Why we exist, and the invitation to list.
- *   7. The assistant, then the door.
+ * The rebuild before this one cut eighteen bands down to seven and built the
+ * survivors around the move-in total. That number is a genuine differentiator
+ * and the argument for it was sound, but it is A YEARLY TENANCY'S CONCERN, and
+ * three of the seven sections were built on it: the truth band, the three
+ * steps, and a standard written as light, water and the gate. A stranger read
+ * the result and learned that Vallo helps you rent a flat.
+ *
+ * Vallo is not that. It carries NINE live markets, from a hotel room tonight
+ * to a plot of land, with a naira wallet, savings pots, crypto top-ups where
+ * they are switched on, an assistant that reads the catalogue in four
+ * languages, messaging, a verification ladder and a social layer. The founder
+ * said it plainly: somebody arriving should see a marketplace, not one market.
+ *
+ * A marketplace is defined by BREADTH, and breadth has to be stated rather
+ * than implied. So the page now leads with what is here and what the account
+ * does, and the move-in total takes its proper place as one proof among
+ * several rather than as the spine:
+ *
+ *   1. The offer, in the hero: the brand line, over the markets, over the
+ *      breadth in a sentence.
+ *   2. THE MARKETS. Nine of them, with real counts. This is the section that
+ *      says "marketplace" and its absence is what broke the last version.
+ *   3. Proof there are places: real listings, straight from the catalogue.
+ *   4. ONE ACCOUNT: what you can DO here. Wallet, pots, assistant, messages,
+ *      verification, records. A marketplace that only lists things is a
+ *      noticeboard.
+ *   5. The honest number: the move-in total, as a proof of how we operate.
+ *   6. How it works, in three verbs.
+ *   7. The standard, written for every market rather than for tenancies.
+ *   8. Why we exist, and the invitation to list.
+ *   9. WHAT IS NEXT, labelled as a plan and obeying strict rules about it.
+ *  10. The assistant, the questions, the door.
  *
  * WHAT WAS DELETED, AND WHY IT IS NOT COMING BACK.
  *
@@ -189,8 +215,14 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* --------------------------------- the markets: what a marketplace is */}
+        <MarketsBand locale={locale} />
+
         {/* ------------------------------------- proof: places on the shelf */}
         <FeaturedCarousel locale={locale} />
+
+        {/* ------------------------------- one account: what you can DO here */}
+        <OneAccountBand t={t} />
 
         {/* ------------------------------------------- the move-in argument */}
         <MoveInTruth locale={locale} />
@@ -227,6 +259,9 @@ export default async function LandingPage() {
         </section>
 
         <AgentsBand t={t} />
+
+        {/* ---------------------------------- the plan, labelled as a plan */}
+        <NextBand t={t} />
 
         {/* Real voices or nothing: renders null until a real review exists. */}
         <VoicesBand locale={locale} />

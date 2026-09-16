@@ -63,7 +63,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 1,
     title: "What Vallo is, and who it is for",
     summary:
-      "A Nigeria-first platform for finding somewhere, booking it, paying for it and talking about it, with no platform fee anywhere.",
+      "Nigeria's all-in-one property marketplace: rent, buy, stay and eat, with a naira wallet, a social layer and no platform fee anywhere.",
     icon: "house-sparkle",
     sections: [
       {
@@ -72,11 +72,11 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              Vallo is a Nigerian platform for finding a place and getting into it.
-              Shortlets, hotels, apartments, homes, villas, restaurants, experiences,
-              annual rentals, shops, offices and land all sit in one catalogue, and the
-              same account carries your bookings, your money, your messages and your
-              conversations about the areas you live in.
+              Vallo is Nigeria&apos;s all-in-one property marketplace, for finding a
+              place and getting into it. Shortlets, hotels, apartments, homes, villas,
+              restaurants, experiences, annual rentals, shops, offices and land sit in
+              one catalogue, and the same account carries your bookings, your money,
+              your messages and your conversations about the areas you live in.
             </p>
             <p>
               It is built for how renting and staying actually works here. That means
@@ -112,6 +112,10 @@ export const CHAPTERS: DocChapter[] = [
               conversation is on record.
             </li>
             <li>
+              <strong>Ask the assistant.</strong> Ask for what you want in English,
+              Yorùbá, Hausa or Igbo and get real listings back, never invented ones.
+            </li>
+            <li>
               <strong>Join your place.</strong> Around is a layer of places rather than
               strangers: your local government, your estate, your campus, and what
               people there are saying today.
@@ -129,11 +133,12 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              <strong>Guests and tenants.</strong> Someone looking for two nights in
-              Lekki, a month in Wuse, or a year in Yaba. The rent market works
-              differently from a shortlet, and the product says so: an annual tenancy is
-              message the agent, inspect the property, then pay. There is no Reserve
-              button on a rental, by design.
+              <strong>Guests, tenants and buyers.</strong> Someone looking for two
+              nights in Lekki, a year in Yaba, a shop front in Onitsha or a plot of
+              land in Epe. Each market works the way that market works, and the
+              product says so: an annual tenancy is message the agent, inspect the
+              property, then pay, and there is no Reserve button on a rental, by
+              design.
             </p>
             <p>
               <strong>Agents and hosts.</strong> Independent agents, estate managers and
@@ -233,7 +238,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 2,
     title: "Getting started",
     summary:
-      "Creating an account, signing in with email or Google, and filling in the profile the rest of the product reads.",
+      "Creating an account, signing in and getting back in, and filling in the profile the rest of the product reads.",
     icon: "user-check",
     sections: [
       {
@@ -428,8 +433,8 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               The category tiles across the top narrow the catalogue to one kind: hotels,
               apartments, homes, shortlets, villas, restaurants, experiences, rentals,
-              shops, offices or land. The result count names the category honestly, so
-              you get plots rather than results.
+              shops, offices or land. The result count speaks the category&apos;s own
+              language, so land counts in plots rather than results.
             </p>
             <p>
               Sorting is Recommended, Top rated, Price low to high, or Price high to low.
@@ -466,8 +471,8 @@ export const CHAPTERS: DocChapter[] = [
                 for the host to accept.
               </li>
               <li>
-                <strong>Verified only.</strong> Only first-party stock we have checked.
-                See{" "}
+                <strong>Verified only.</strong> Only listings that carry the verified
+                badge. See{" "}
                 <Link href="/docs/understanding-a-listing" className={A}>
                   Understanding a listing
                 </Link>
@@ -574,7 +579,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 4,
     title: "Understanding a listing",
     summary:
-      "The badges, verified against partner stock, what the light and water rows really say, and how the gate details reach you.",
+      "The badges, where the listings come from, what the light and water rows really say, and how the gate details reach you.",
     icon: "listing-review",
     sections: [
       {
@@ -609,35 +614,34 @@ export const CHAPTERS: DocChapter[] = [
               <strong>Instant.</strong> You can book without waiting for the host to
               accept. Without it, the host has to accept your request first.
             </li>
-            <li>
-              <strong>Powered by Google</strong>, or a hotel that books with a partner.
-              That is third-party stock. It comes from an outside inventory provider so
-              the catalogue is not empty in a city we have not filled yet.
-            </li>
           </ul>
         ),
       },
       {
+        /* This section once compared first-party listings with partner stock,
+           and a bullet above it described a "Powered by Google" badge. The
+           partner feeds are deleted (`lib/listings/types.ts`: "THERE IS NO
+           PARTNER SHAPE HERE ANY MORE"), so the section now says what replaced
+           them. The id is kept because anchor ids are stable and people link
+           to headings. */
         id: "verified-vs-partner",
-        heading: "Verified against partner stock",
+        heading: "Where the listings come from",
         body: (
           <>
             <p>
-              These two never overlap, and the rule is absolute:{" "}
-              <strong>only first-party inventory can carry the verified badge.</strong>{" "}
-              A partner listing is never verified, whatever the partner says about it,
-              because we have not met that agent, checked that identity or reviewed that
-              property.
+              Every listing on Vallo was listed on Vallo, by a real person who applied,
+              was verified and was approved. Nothing is imported from an outside feed,
+              nothing is scraped, and no third party fills the catalogue for us.
             </p>
             <p>
-              Partner listings also do not book on Vallo. A partner hotel opens the
-              partner to book; a partner restaurant gives you directions and the venue,
-              because we do not take restaurant reservations for venues that are not
-              ours. Nothing about a partner listing touches your wallet.
+              That is the ground the rest of the trust stands on. The verified badge can
+              mean something because there is a checked person behind every listing:
+              somebody to message, somebody to inspect the property with, and somebody
+              accountable if it is not as described.
             </p>
             <p>
-              If you only want stock we stand behind, use the <em>Verified only</em>{" "}
-              filter in search.
+              If you only want listings that have passed those checks, use the{" "}
+              <em>Verified only</em> filter in search.
             </p>
           </>
         ),
@@ -728,7 +732,7 @@ export const CHAPTERS: DocChapter[] = [
               Before you book, the page tells you the estate has a gate and that the
               details arrive when the booking is confirmed. The moment it is confirmed,
               the real details appear on the same listing and on your booking. A listing
-              with no gate simply does not show the block at all.
+              with no gate does not show the block at all.
             </p>
           </>
         ),
@@ -802,7 +806,7 @@ export const CHAPTERS: DocChapter[] = [
             The person paying is often not the person staying: a sister in London pays for
             a cousin flying into Lagos. You can name the guest who will arrive, with their
             phone number, and that is what the host and the gate get. Leave it blank and
-            the booking is simply yours.
+            the booking is yours.
           </p>
         ),
       },
@@ -986,7 +990,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 6,
     title: "Your wallet",
     summary:
-      "Funding, withdrawing to a Nigerian bank, sending money to another account, the statement, and what the platform charges: nothing.",
+      "Funding, savings pots, withdrawing to a Nigerian bank, sending money to another account, and what the platform charges: nothing.",
     icon: "wallet-secure",
     sections: [
       {
@@ -1028,6 +1032,17 @@ export const CHAPTERS: DocChapter[] = [
               once. It is keyed on the reference, so whichever arrives first wins and the
               second changes nothing.
             </p>
+            {/* Crypto top-ups are built and feature-flagged
+                (`lib/wallet/actions.ts`, `startCryptoDeposit`), so the honest
+                register is "where switched on": present tense for the flow,
+                and the absent control named as the off state. */}
+            <p>
+              Where crypto top-ups are switched on, you can also fund the wallet
+              through Yellow Card. You type the amount in naira, exactly as you would
+              for a card, and the processor works out what that costs in the coin at
+              the moment you pay. If the control is not on your screen, it is not
+              switched on for your wallet yet.
+            </p>
           </>
         ),
       },
@@ -1062,13 +1077,36 @@ export const CHAPTERS: DocChapter[] = [
         ),
       },
       {
+        /* Pots are built and light up when their migration is applied
+           (`lib/wallet/pots.ts`); the wording on what a pot is and is not
+           follows the comment on `wallet_pots` in the migration itself. */
+        id: "pots",
+        heading: "Savings pots",
+        body: (
+          <>
+            <p>
+              A pot is money you set aside inside your own wallet: name it, give it a
+              target if you want one, and move money in and out whenever you like.
+              Money in a pot has left your spendable balance and is still entirely
+              yours, which is the point: it cannot be spent at checkout by accident,
+              and it is back the moment you move it back.
+            </p>
+            <p>
+              Pots earn nothing and cost nothing. There is no interest, no yield and
+              no lock-in. Where pots are not switched on yet, the wallet does not
+              draw the section at all.
+            </p>
+          </>
+        ),
+      },
+      {
         id: "limits",
         heading: "The limits",
         body: (
           <p>
             The smallest amount you can move in one go is {MIN_MOVE}, and the largest is{" "}
             {MAX_MOVE}. Those bounds apply to adding money, withdrawing and transferring
-            alike. Larger than the ceiling, split it into more than one movement.
+            alike. To move more than the ceiling, split it across more than one movement.
           </p>
         ),
       },
@@ -1506,7 +1544,7 @@ export const CHAPTERS: DocChapter[] = [
               <Link href="/agents/status" className={A}>
                 its status page
               </Link>
-              . A person reviews it, not just a script.
+              . A person reviews it, not a script.
             </p>
           </>
         ),
@@ -1567,10 +1605,13 @@ export const CHAPTERS: DocChapter[] = [
               They are released to a guest only once their booking is confirmed, which is
               why they can be specific enough to be useful.
             </p>
+            {/* This paragraph used to say a listing could be marked instant
+                book. The wizard no longer offers that control (see the note in
+                `app/agent/list/ListingWizard.tsx`), so the claim is removed
+                rather than softened. */}
             <p>
-              You can also mark a listing as instant book, which lets a guest pay without
-              waiting for you to accept. A published listing is announced once in the
-              place it sits in, so people in that area see it.
+              A published listing is announced once in the place it sits in, so the
+              people who live in that area see it.
             </p>
           </>
         ),
@@ -1685,9 +1726,9 @@ export const CHAPTERS: DocChapter[] = [
               It does not mean the mattress is comfortable. Read the reviews for that.
             </p>
             <p>
-              The verified badge is first-party stock only. Third-party listings from an
-              outside inventory provider never carry it, because we have not met that
-              agent or seen that property.
+              Every listing here was put up by a person we have checked. There is no
+              outside inventory on Vallo at all, which is the only reason the badge can
+              carry any weight.
             </p>
           </>
         ),

@@ -99,7 +99,7 @@ export default async function ContactPage({
             </p>
             <div className="mt-heading flex flex-wrap items-center justify-center gap-inline">
               <span className="nf-chip">Replies within 24 hours</span>
-              <span className="nf-chip">English, Yoruba, Hausa, Igbo</span>
+              <span className="nf-chip">English, Yorùbá, Hausa, Igbo</span>
             </div>
           </div>
         </Reveal>

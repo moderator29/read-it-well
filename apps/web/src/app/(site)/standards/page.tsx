@@ -52,7 +52,7 @@ const NOT_ALLOWED: { title: string; body: string }[] = [
   },
   {
     title: "Fake accounts and manufactured reputation",
-    body: "More than one account for one person, reviews written for a stay that did not happen, and utility reports filed about a place you are selling in. Standing on Vallo is earned or it is worth nothing.",
+    body: "More than one account for one person, reviews written for a stay that did not happen, and utility reports filed to flatter an area you are selling in. Standing on Vallo is earned or it is worth nothing.",
   },
 ];
 
@@ -66,7 +66,7 @@ const ENFORCEMENT: { title: string; body: string }[] = [
     body: "The scanner holds, it never bans. Every hold, flag, alert and report lands in a queue that a member of staff works through by hand, oldest first, and a person makes the decision to release it or to take it down.",
   },
   {
-    title: "Serious things are escalated, not just closed",
+    title: "Serious things are escalated, not merely closed",
     body: "A report that somebody was asked to pay off-platform, or that somebody has already lost money, opens a risk alert that stays open until a person writes down what was done about it. Closing it without a note is not possible.",
   },
   {

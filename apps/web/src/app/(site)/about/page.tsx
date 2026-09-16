@@ -6,7 +6,7 @@ import { ButtonLink } from "@/components/ui/Button";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Vallo is a Nigeria-first platform for discovering and booking verified homes, hotels, restaurants and experiences, in the languages Nigerians actually speak.",
+    "Vallo is Nigeria's all-in-one property marketplace: homes, shortlets, hotels, shops, offices and land, listed by verified people, in the languages Nigerians actually speak.",
 };
 
 /**
@@ -26,12 +26,16 @@ export default function AboutPage() {
     {
       icon: "globe-pin",
       title: "Speak people's language",
-      body: "Vallo works in English, Yoruba, Hausa and Igbo, because booking a home for your family should never require translating your own country.",
+      body: "Vallo works in English, Yorùbá, Hausa and Igbo, because booking a home for your family should never require translating your own country.",
     },
     {
+      /* This card used to say "we earn only when a booking completes", which
+         promised a commission the platform does not charge. The fee position
+         (PRODUCT.md section 3) is that Vallo charges nothing, so the card now
+         says that. */
       icon: "wallet-secure",
       title: "Fair to both sides",
-      body: "Guests pay securely and agents get paid promptly. Listing is free, and we earn only when a booking completes, so our incentives sit exactly where yours do.",
+      body: "Listing is free and the platform charges no fee: not to look, not to book, not to be paid. What a guest pays is what the agent receives, less only the payment processor's own charge.",
     },
     {
       icon: "house-sparkle",
@@ -40,11 +44,17 @@ export default function AboutPage() {
     },
   ];
 
+  /* Until this pass the grid held Stays, Hotels, Food and Experiences: the
+     product's earlier scope, with no property in it. It now carries the whole
+     marketplace. Six cards, because four could not hold nine markets without
+     lying by omission. */
   const categories: { icon: BrandIconName; title: string; body: string }[] = [
-    { icon: "homes-sparkle", title: "Stays", body: "Shortlets, apartments and homes for a night or a season." },
-    { icon: "hotel-star", title: "Hotels", body: "From boutique guesthouses to city landmarks." },
-    { icon: "gift", title: "Food", body: "Restaurants and kitchens worth crossing town for." },
-    { icon: "luggage-check", title: "Experiences", body: "Events, outings and adventures across the country." },
+    { icon: "keys-home", title: "Rentals", body: "Annual homes and flats. Message the agent, inspect, then pay." },
+    { icon: "house-sparkle", title: "Property for sale", body: "Homes, apartments and villas, offered by the person accountable for them." },
+    { icon: "home-search", title: "Commercial and land", body: "Shops, offices and plots, let on a tenancy or offered for sale." },
+    { icon: "homes-sparkle", title: "Stays", body: "Shortlets, apartments and villas for a night or a season." },
+    { icon: "hotel-star", title: "Hotels", body: "From guesthouses to city landmarks, listed by the people who run them." },
+    { icon: "gift", title: "Food and experiences", body: "Restaurants worth crossing town for, and things worth leaving the house for." },
   ];
 
   return (
@@ -64,9 +74,11 @@ export default function AboutPage() {
             Rent, buy or sell property, with the fear taken out.
           </h1>
           <p className="mx-auto mt-group max-w-[56ch] text-[var(--nf-content-secondary)]">
-            Vallo is a Nigeria-first platform for discovering and booking places to
-            stay, eat and explore. We bring verified homes, hotels, restaurants and
-            experiences into one trusted place, in the languages Nigerians actually speak.
+            Vallo is Nigeria&apos;s all-in-one property marketplace: homes to rent or
+            buy, shortlets and hotels, shops, offices and land, with a naira wallet
+            and the areas around them. Every listing was put up by a real person we
+            have checked, and the whole product works in the languages Nigerians
+            actually speak.
           </p>
         </div>
 

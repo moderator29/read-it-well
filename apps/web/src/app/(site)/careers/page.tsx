@@ -8,7 +8,7 @@ import { SUPPORT_HREF, SUPPORT_IS_EMAIL, SUPPORT_LABEL } from "@/lib/support-ema
 export const metadata: Metadata = {
   title: "Careers",
   description:
-    "Help build the platform Nigerians use to find, book and live. See how we work at Vallo and send a speculative application.",
+    "Help build Nigeria's all-in-one property marketplace. How we work at Vallo, and how to send a speculative application.",
 };
 
 /**
@@ -26,7 +26,7 @@ export default function CareersPage() {
     {
       icon: "house-sparkle",
       title: "Nigeria is the brief",
-      body: "We design for NEPA outages, bank transfer receipts and four languages, not for an imagined user in another country. Local knowledge is a superpower here.",
+      body: "We design for NEPA outages, bank transfer receipts and four languages, not for an imagined user in another country. Local knowledge counts for more here than anything on a CV.",
     },
     {
       icon: "shield-check",
@@ -49,7 +49,7 @@ export default function CareersPage() {
     "Engineers who care about performance on mid-range Android phones",
     "Designers who can make trust visible in an interface",
     "Operations and support people who love untangling real problems",
-    "Writers and translators fluent in Yoruba, Hausa or Igbo",
+    "Writers and translators fluent in Yorùbá, Hausa or Igbo",
   ];
 
   return (
@@ -64,12 +64,13 @@ export default function CareersPage() {
             Careers at Vallo
           </span>
           <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
-            Build the way Nigeria books
+            Build Nigeria&apos;s property marketplace
           </h1>
           <p className="mx-auto mt-group max-w-[54ch] text-[var(--nf-content-secondary)]">
-            We are a small team building the platform Nigerians use to find, book and
-            live: verified stays, food and experiences, in four languages. If that
-            sounds like your kind of problem, we want to hear from you.
+            We are a small team building the place Nigerians rent, buy, stay and
+            list: homes, hotels, shops, offices and land, a naira wallet, and four
+            languages. Every listing is put up by a verified person. If that sounds
+            like your kind of problem, we want to hear from you.
           </p>
         </div>
 

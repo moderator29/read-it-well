@@ -28,9 +28,15 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "1. Who we are",
     body: (
       <>
+        {/* This description is identity, not obligation. It said "stays,
+            hotels, restaurants and experiences", the product's earlier scope,
+            and omitted property entirely; it now matches how the terms of
+            service section 2 describes the platform. No right or duty in this
+            policy turns on the sentence. */}
         <p>
-          {COMPANY_TRADING_NAME} is a Nigeria-first platform for discovering and booking
-          stays, hotels, restaurants and experiences
+          {COMPANY_TRADING_NAME} is a marketplace for property in Nigeria: homes to
+          rent, property for sale, land, shops and offices, and stays, hotels and
+          restaurants listed by the people who run them
           {COMPANY_DOMAIN ? <>, on the web at {COMPANY_DOMAIN}</> : null}. It is operated
           by {COMPANY_FORMAL_NAME}, a private company limited by shares registered in
           Nigeria under the Companies and Allied Matters Act 2020, whose registered

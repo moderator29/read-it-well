@@ -287,10 +287,87 @@ export const en = {
       title1: "Real Estate,",
       title2: "reimagined.",
       subtitle:
-        "Rent, buy or sell with agents checked by real people. Every listing answers the light, the water and the gate, and shows the whole move-in cost up front.",
+        "Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. Nine markets, agents checked by real people, and one wallet for all of it.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Start exploring",
       popularLabel: "Popular right now",
+    },
+    /*
+     * THE MARKETS, AND WHY THEY ARE BACK ON THE FRONT DOOR.
+     *
+     * The first rebuild cut the category grid as repetition and built the page
+     * around the move-in total. That is a yearly tenancy's concern, so the
+     * page ended up describing one market out of nine. A marketplace is
+     * defined by its breadth, and breadth has to be stated, not implied.
+     */
+    markets: {
+      overline: "Nine markets, one account",
+      title: "Somewhere for a night. Somewhere for a decade. Ground to build on.",
+      body: "Vallo carries the whole property market: a hotel room tonight, a flat for the year, a house to buy, a shop to trade from, an office to grow into, and the land itself. Every market is searched the same way and paid for in the same wallet.",
+      shortlet: "Shortlets",
+      hotel: "Hotels",
+      apartment: "Apartments",
+      rental: "Yearly rent",
+      home: "Homes to buy",
+      villa: "Villas",
+      shop: "Shops",
+      office: "Offices",
+      land: "Land",
+      /* "{count} listed" reads as a fact. A market with nothing in it says so
+         in words rather than printing a zero dressed as a figure. */
+      count: "{count} listed",
+      none: "Opening soon",
+    },
+    /*
+     * What the account DOES, as against what it holds. Every line is built and
+     * reachable today; the plan lives in `next` and is labelled as a plan.
+     */
+    oneAccount: {
+      overline: "All of it, in one place",
+      title: "Search, talk, pay and keep the record, without leaving Vallo",
+      body: "Most property in Nigeria is arranged across a phone call, a WhatsApp thread and a bank transfer, and none of those remember anything. Here the conversation, the money and the paperwork are the same account, so a year later you can still show what happened.",
+      points: {
+        wallet: {
+          title: "A naira wallet",
+          body: "Top up by card or bank transfer, pay from your balance, and withdraw to your own account. Crypto top-ups too, where they are switched on.",
+        },
+        savings: {
+          title: "Savings pots",
+          body: "Set money aside toward rent or a deposit, in a pot that is separate from your spending balance.",
+        },
+        assistant: {
+          title: "An assistant that reads the catalogue",
+          body: "Ask in plain words, in any of four languages, and get real listings back with the figures attached.",
+        },
+        messages: {
+          title: "Messages with the lister",
+          body: "Every conversation with an agent stays on the platform, so there is a record if anything is ever disputed.",
+        },
+        verified: {
+          title: "Agents checked by a person",
+          body: "A person reviews every agent application by hand before they can publish, and the listing shows when it was checked.",
+        },
+        record: {
+          title: "Receipts and agreements",
+          body: "Payments, bookings and documents are kept against your account for as long as you have one.",
+        },
+      },
+    },
+    /*
+     * The roadmap. The one section describing what does not exist yet, and the
+     * component enforces the rules that keeps it honest: future tense, no
+     * links, no dates. See the note at the top of NextBand.tsx.
+     */
+    next: {
+      overline: "The road ahead",
+      title: "What we are building next",
+      body: "Stated as a plan, because that is what it is. Nothing below is available yet, and anything that ships moves out of this list and into the product.",
+      items: {
+        stablecoin: "Saving in stablecoins, so money set aside for rent holds its value while it waits.",
+        chain: "Settlement on chain, so a payment carries its own proof rather than a screenshot of one.",
+        instalments: "Paying rent in instalments, for tenancies where the lister agrees to it.",
+        more: "More markets, more cities, and the tools agents keep asking us for.",
+      },
     },
     /*
      * The three steps. These had no keys of their own: HowItWorks borrowed
@@ -301,7 +378,7 @@ export const en = {
      */
     how: {
       overline: "How it works",
-      title: "Three steps, and the keys are yours",
+      title: "Three steps, in every market",
       step1: {
         title: "Search",
         body: "Rent, buy, shortlet, land and commercial, in one search, with the full move-in total on every price.",
@@ -322,8 +399,9 @@ export const en = {
      */
     truth: {
       overline: "The honest number",
-      title: "The rent is not the price. We print the price.",
-      body: "A two million naira rent can cost three and a half million at the door once caution, service, agency and legal are added. Every Vallo listing carries the whole figure, added up in front of you, before you fall in love with the place.",
+      title: "The price is never only the price. We print the whole of it.",
+      body:
+        "A two million naira rent can cost three and a half million at the door once caution, service, agency and legal are added, and a shop or an office is no different. Every Vallo listing carries the whole figure, added up in front of you, before you fall in love with the place.",
       ledgerTitle: "What moving in actually costs",
       statedNote: "Stated by the lister as the whole figure, checked against the parts.",
     },
@@ -334,11 +412,11 @@ export const en = {
      */
     standard: {
       overline: "The Vallo standard",
-      title: "Questions other platforms make you ask, answered on every listing",
+      title: "Questions other platforms leave you to ask, answered on the listing",
       points: {
-        power: { title: "The light", body: "Grid band and backup, stated per listing, not discovered after you move." },
-        water: { title: "The water", body: "Borehole, treated mains or tanker, on the listing." },
-        gate: { title: "The gate", body: "Estate access and security, answered before you visit." },
+        power: { title: "The light and the water", body: "Grid band, backup and water supply, stated on a listing rather than discovered after you arrive." },
+        water: { title: "What it really costs", body: "Rent, caution, service, agency and legal, added up in front of you before you commit to anything." },
+        gate: { title: "Who you are dealing with", body: "A named agent, checked by a person, with the date of the check on the listing." },
         checked: { title: "Checked by a person", body: "The verified tick appears only after a person has checked the agent, by hand, and it shows the date." },
         inside: { title: "Everything inside Vallo", body: "Chat, viewing and payment stay on the platform, so there is a record if anything goes wrong." },
       },
