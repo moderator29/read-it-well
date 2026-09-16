@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description:
     /* This printed the fifteen characters {SUPPORT_EMAIL} into the page
        description, which is what a search result and a shared link show. */
-    "Reach the Vallo support team. Send us a message and we reply within one business day.",
+    "Reach the Vallo support team. Send us a message and somebody reads it.",
 };
 
 
@@ -93,12 +93,25 @@ export default async function ContactPage({
                 </p>
               </>
             )}
+            {/*
+              THIS SCREEN MADE TWO DIFFERENT PROMISES AND KEPT NEITHER ON PAPER.
+              The paragraph said one business day, Monday to Saturday, and the
+              chip below it said 24 hours, which are not the same promise, and
+              there is no rota, no queue and no measured response time behind
+              either of them. A support promise you have not staffed is a
+              complaint waiting to be quoted back at you.
+
+              What is left is what is true: a person reads every message, and
+              the ones where somebody is standing outside a door are answered
+              before the ones that can wait.
+            */}
             <p className="mx-auto mt-group max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              We reply within one business day, Monday to Saturday. Urgent booking
-              problems on the day of check-in are answered first.
+              A person reads every message that arrives here. Urgent problems, a
+              payment that has gone wrong or a door you cannot get through today,
+              are answered before anything else.
             </p>
             <div className="mt-heading flex flex-wrap items-center justify-center gap-inline">
-              <span className="nf-chip">Replies within 24 hours</span>
+              <span className="nf-chip">Answered by a person</span>
               <span className="nf-chip">English, Yorùbá, Hausa, Igbo</span>
             </div>
           </div>

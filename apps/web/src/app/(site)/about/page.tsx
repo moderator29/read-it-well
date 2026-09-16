@@ -21,12 +21,18 @@ export default function AboutPage() {
     {
       icon: "shield-check",
       title: "Trust before traffic",
-      body: "Every listing is checked and every agent is identity-verified before a single guest sees them. We would rather grow slowly than list a place we cannot stand behind.",
+      /* This card claimed every listing is checked and every agent is
+         identity-verified. Zero listings are verified, which a check constraint
+         enforces, so the sentence was not merely optimistic, it was a
+         verification claim the database is built to refuse. What follows is
+         what is actually true and it is a stronger thing to say: the ladder
+         exists, it gates being paid, and nothing arrives from an outside feed. */
+      body: "Nothing here came from a feed. Every listing was put up by a named person who applied to be here, and an agent climbs a verification ladder before any money can reach them. We would rather grow slowly than carry a place nobody can be held to.",
     },
     {
       icon: "globe-pin",
       title: "Speak people's language",
-      body: "Vallo works in English, Yorùbá, Hausa and Igbo, because booking a home for your family should never require translating your own country.",
+      body: "Vallo works in English, Yorùbá, Hausa and Igbo, because renting a flat, buying a house or taking a shop should never require translating your own country.",
     },
     {
       /* This card used to say "we earn only when a booking completes", which
@@ -35,7 +41,7 @@ export default function AboutPage() {
          says that. */
       icon: "wallet-secure",
       title: "Fair to both sides",
-      body: "Listing is free and the platform charges no fee: not to look, not to book, not to be paid. What a guest pays is what the agent receives, less only the payment processor's own charge.",
+      body: "Listing is free and the platform charges no fee: not to look, not to book, not to be paid, in any market here. What anybody pays is what the agent receives, less only the payment processor's own charge.",
     },
     {
       icon: "house-sparkle",
