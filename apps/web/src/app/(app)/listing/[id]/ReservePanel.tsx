@@ -460,7 +460,7 @@ export function ReservePanel({
           </div>
         </div>
         {(hint || fieldError("checkIn") || fieldError("checkOut")) && (
-          <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
+          <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-error)]">
             {hint ?? fieldError("checkIn") ?? fieldError("checkOut")}
           </p>
         )}
@@ -531,7 +531,12 @@ export function ReservePanel({
                 className="nf-field"
               />
               {fieldError("guestName") && (
-                <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
+                /* A FIELD ERROR IS AN ERROR. `--nf-state-warning` resolves to
+                  `--nf-cyan-400`, the same token `--nf-status-pending` is
+                  defined as, so a refused input was drawn in the colour that
+                  means "still going through". `Field.tsx` already gets this
+                  right; these hand-rolled messages did not. */
+                <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-error)]">
                   {fieldError("guestName")}
                 </p>
               )}
@@ -575,7 +580,7 @@ export function ReservePanel({
                 Leave it blank and it all comes to you to pass on.
               </p>
               {fieldError("guestEmail") && (
-                <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-warning)]">
+                <p role="alert" className="mt-row nf-body-sm text-[var(--nf-state-error)]">
                   {fieldError("guestEmail")}
                 </p>
               )}

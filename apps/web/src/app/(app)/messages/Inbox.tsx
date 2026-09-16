@@ -335,7 +335,9 @@ export function Inbox({
       </div>
 
       {markError && (
-        <p role="alert" className="nf-body-sm mt-inline text-[var(--nf-state-warning)]">
+        /* Rose, not cyan: `--nf-state-warning` is the pending token under
+           another name, and a write that did not happen is not in flight. */
+        <p role="alert" className="nf-body-sm mt-inline text-[var(--nf-state-error)]">
           {markError}
         </p>
       )}

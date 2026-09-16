@@ -279,9 +279,12 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
           </p>
 
           {state && !state.ok && (
+            /* A cancellation that was refused is a failure, and it was drawn
+               in the pending colour on a neutral surface, which is the same
+               defect the wallet's own banner had. */
             <p
               role="alert"
-              className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-row rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
             >
               {state.error}
             </p>
