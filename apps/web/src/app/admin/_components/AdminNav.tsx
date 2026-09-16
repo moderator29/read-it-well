@@ -102,9 +102,26 @@ export function AdminRail({
                     ].join(" ")}
                   >
                     <UiIcon name={item.icon} size={20} className="shrink-0" />
-                    <span className="flex-1 truncate">{labelFor(item, labels)}</span>
+                    {/* A destination's name does not clip. The rail is the
+                        console's map and a clipped label is a map with a road
+                        name half painted. */}
+                    <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+                      {labelFor(item, labels)}
+                    </span>
                     {count > 0 && (
-                      <span className="nf-numeric inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--nf-brand-primary)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
+                      /*
+                        CYAN, NOT BRAND BLUE, AND THIS IS THE WHOLE REASON AN
+                        OPERATOR SCANS THE RAIL.
+
+                        The badge was `--nf-brand-primary` against an active row
+                        filled with `color-mix(brand-primary 22%)`, so the count
+                        of work waiting on the destination you are standing on
+                        was the hardest one on the rail to see. It also said
+                        "brand" rather than "attention", and attention is what a
+                        work-waiting count means: cyan is this product's
+                        attention colour by rule.
+                      */
+                      <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-1.5 text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
                         {count}
                       </span>
                     )}

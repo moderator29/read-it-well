@@ -5,6 +5,19 @@ import { getLocale } from "@/lib/locale";
 import { getBookingBoard, type AdminBookingRow } from "@/lib/admin/bookings-queries";
 import { fill, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import {
+  QueueFilters,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+
+/** `public.booking_status`, verified against the live catalogue. Three values. */
+const BOOKING_STATUS_FILTERS: readonly QueueStatusOption[] = [
+  { value: "PENDING", label: "Pending" },
+  { value: "CONFIRMED", label: "Confirmed" },
+  { value: "CANCELLED", label: "Cancelled" },
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());

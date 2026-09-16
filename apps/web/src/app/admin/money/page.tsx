@@ -53,7 +53,12 @@ export default async function AdminMoneyPage() {
             {entry.note ?? entry.kind.replace(/_/g, " ")}
             {entry.ownerName ? ` · ${entry.ownerName}` : ""}
           </span>
-          <span className="block truncate font-mono text-[0.6875rem] text-[var(--nf-content-muted)]">
+          {/* THE REFERENCE IS NEVER CLIPPED. It is the only string an operator
+              can trace a payment by with Paystack or Yellow Card, and it was
+              rendered at 11px monospace with an ellipsis, so the money screen
+              could not do the one thing it exists for. `user-select: all` means
+              one tap takes the whole string. */}
+          <span className="block font-mono text-[0.8125rem] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
             {entry.reference}
           </span>
         </span>
@@ -142,7 +147,12 @@ export default async function AdminMoneyPage() {
                   <span className="block text-[0.875rem] text-[var(--nf-content-primary)]">
                     {wallet.ownerName ?? "No display name"}
                   </span>
-                  <span className="block truncate font-mono text-[0.6875rem] text-[var(--nf-content-muted)]">
+                  {/* THE REFERENCE IS NEVER CLIPPED. It is the only string an operator
+              can trace a payment by with Paystack or Yellow Card, and it was
+              rendered at 11px monospace with an ellipsis, so the money screen
+              could not do the one thing it exists for. `user-select: all` means
+              one tap takes the whole string. */}
+          <span className="block font-mono text-[0.8125rem] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
                     {wallet.userId}
                   </span>
                 </span>

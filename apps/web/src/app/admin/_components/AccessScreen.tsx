@@ -46,15 +46,44 @@ export function AccessScreen({
   return (
     <main id="main" className="flex min-h-dvh items-center justify-center px-4 py-12">
       <div className="nf-card w-full max-w-md p-6 text-center sm:p-8">
-        <Link href="/" aria-label={t.a11y.logoHome} className="inline-block">
-          <Logo size={40} wordSize={20} />
+        {/*
+          `block w-fit mx-auto` AND NOT `inline-block`, ON BOTH ANCHORS.
+
+          Measured rather than inferred: both of these computed to `width: 32px`
+          inside a 308px container, so the logo lockup overflowed its own box
+          and sat visibly right of centre, and "Sign in with another account"
+          rendered as five stacked words, one per line. Reproduced on fresh
+          loads at 390, 430, 768 and 1280 in both themes. No CSS rule sets a
+          width; removing `inline-block` restores 179px, and a fresh
+          `inline-block` probe in the same parent also measures 179px, so it is
+          a shrink-to-fit inside the `min-h-dvh` flex container rather than a
+          rule anybody wrote. The mechanism is not root-caused and the fix does
+          not depend on it: a block that sizes to its content cannot collapse
+          this way.
+
+          This is the first thing anybody sees at `/admin`, in all three
+          refusal states.
+        */}
+        <Link
+          href="/"
+          aria-label={t.a11y.logoHome}
+          className="mx-auto block w-fit"
+        >
+          <Logo size={48} wordSize={24} />
         </Link>
 
-        <span
-          className="mx-auto mt-6 grid h-14 w-14 place-items-center rounded-full"
-          style={{ background: "var(--nf-brand-primary-soft)", color: "var(--nf-content-link)" }}
-        >
-          <UiIcon name="key" size={24} />
+        {/*
+          NO PLATE BEHIND THE GLYPH.
+
+          `docs/ICON_SYSTEM.md` records that a tinted tile behind a glyph came
+          from the retired reference brief and is not part of this system, and
+          in the light theme `--nf-brand-primary-soft` on white reads distinctly
+          LAVENDER, which is a hue this brand has banned by name. What stops an
+          object floating is its size and the air around it, not a box, which is
+          the conclusion `ComingSoon` had already reached.
+        */}
+        <span className="mx-auto mt-6 block text-[var(--nf-content-link)]">
+          <UiIcon name="key" size={32} />
         </span>
 
         <h1 className="nf-h2 mt-4 text-[1.375rem]">{copy.title}</h1>
@@ -69,7 +98,7 @@ export function AccessScreen({
         {state !== "signed-out" && (
           <Link
             href="/sign-in"
-            className="mt-3 inline-block text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="mx-auto mt-3 block w-fit text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {a.otherAccount}
           </Link>
