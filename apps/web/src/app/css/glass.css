@@ -32,9 +32,10 @@
    *
    * A conic gradient in the border box is that, exactly. Its angle maps to
    * POSITION AROUND THE PERIMETER rather than to a diagonal, so a stop is a
-   * place on the edge: 0 is where the light enters, 180 is where it leaves,
-   * and the two off-axis stops are the glints the corners throw back. Four
-   * strides, two long and two short, on a quiet blue run.
+   * place on the edge: 0 is where the light enters and 180 is where it leaves.
+   * Two strides, on a quiet hairline. The stops live on `--nf-edge-stride-stops`
+   * in the token file, where the note beside them says why there are two and
+   * not four.
    *
    * NONE OF IT IS BLURRED and none of it is a shadow. The founder asked for
    * sharp twice. Every stride is a stop on a 1px line, so it is as sharp as
@@ -366,14 +367,14 @@
    * outline is a box from a different company.
    *
    * So the hairline itself is blue now, end to end. Not a glow: a SHARP 1px
-   * electric line that never drops below a quarter of brand ink anywhere on
-   * its run, and that CATCHES IN FOUR PLACES rather than shading evenly from
-   * one corner to the other. Two long strides on the light axis, where the
-   * light enters and where it leaves, and two short glints off it. See the
-   * stride note at the top of this file for why that is a conic ring and not
-   * a diagonal ramp. The sharpness is that none of it is blurred. The interior
-   * stays calm, which is what keeps forty of these on one page from shouting:
-   * the blue lives on one crisp line, exactly like the artwork.
+   * electric line, and it CATCHES IN TWO PLACES rather than shading evenly
+   * from one corner to the other: where the light enters and where it leaves.
+   * Between them it is the ordinary hairline with brand in it, which is what
+   * keeps forty of these on one page from reading as forty drawn boxes. See
+   * the stride note at the top of this file for why that is a conic ring and
+   * not a diagonal ramp. The sharpness is that none of it is blurred, and the
+   * interior stays calm: the blue lives on one crisp line, exactly like the
+   * artwork.
    */
   .nf-card {
     background:
@@ -382,24 +383,7 @@
           color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent)
         )
         padding-box,
-      conic-gradient(
-          from var(--nf-stride-angle),
-          var(--nf-edge-stride-peak) 0deg,
-          var(--nf-edge-stride-lit) 16deg,
-          var(--nf-edge-stride-base) 44deg,
-          var(--nf-edge-stride-base) 80deg,
-          var(--nf-edge-stride-lit) 90deg,
-          var(--nf-edge-stride-base) 100deg,
-          var(--nf-edge-stride-base) 164deg,
-          var(--nf-edge-stride-peak) 180deg,
-          var(--nf-edge-stride-lit) 196deg,
-          var(--nf-edge-stride-base) 224deg,
-          var(--nf-edge-stride-base) 260deg,
-          var(--nf-edge-stride-lit) 270deg,
-          var(--nf-edge-stride-base) 280deg,
-          var(--nf-edge-stride-base) 344deg,
-          var(--nf-edge-stride-peak) 360deg
-        )
+      conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
         border-box;
     border: 1px solid transparent;
     /*
@@ -629,6 +613,23 @@
    */
   .nf-brand-icon-ground--twinned {
     background: none;
+  }
+  /*
+   * The chip gets an edge in daylight, and only in daylight.
+   *
+   * The one-layer rule above is right and this does not break it: at night the
+   * chip paints nothing at all, so there is nothing to put a rim on. On paper
+   * a deep navy square against white has a hard machine-cut boundary, and a
+   * hairline in the same brand ink every container now carries is what turns
+   * that boundary into an edge the object is standing on. It is the same line
+   * as the strides, at the quiet rung, so the chip belongs to the containers
+   * around it instead of sitting in front of them.
+   */
+  :root[data-theme="light"] .nf-brand-icon-ground {
+    box-shadow: inset 0 0 0 1px var(--nf-edge-stride-base);
+  }
+  :root[data-theme="light"] .nf-brand-icon-ground--twinned {
+    box-shadow: none;
   }
   /*
    * An object already standing on a dark stage needs no chip in daylight

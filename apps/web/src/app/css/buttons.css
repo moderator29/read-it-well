@@ -428,6 +428,46 @@
     z-index: 1;
   }
 
+  /*
+   * The link form of a segment, for the controls that are addresses rather
+   * than state.
+   *
+   * `ViewToggle` is two anchors because the view lives in the query string, so
+   * it cannot drive the travelling capsule, which needs a measured element.
+   * What it can do is stop being two chips: the selected link takes the same
+   * raised surface and elevation rung the capsule paints, and the unselected
+   * one is a label on the track with no border, no fill and no glow of its own.
+   * Same vocabulary, one container.
+   */
+  .nf-segmented__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    border: 0;
+    border-radius: var(--nf-radius-control);
+    background: transparent;
+    color: var(--nf-content-muted);
+    transition:
+      color var(--nf-duration-base) var(--nf-ease-standard),
+      background var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-segmented__link[aria-current="true"] {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
+  }
+  @media (hover: hover) {
+    .nf-segmented__link:not([aria-current="true"]):hover {
+      color: var(--nf-content-primary);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-segmented__link {
+      transition: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .nf-segmented__capsule {
       transition: none;

@@ -705,9 +705,50 @@
    * They are derived rather than literal, so they cross into daylight with the
    * edge scale they are built from and nothing here needs a light twin.
    */
-  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 58%, var(--nf-brand-edge));
-  --nf-edge-stride-lit: var(--nf-brand-edge-strong);
-  --nf-edge-stride-peak: var(--nf-glow-brand-rim);
+  /*
+   * Retuned after seeing eight of them in a grid. The quiet run was 58 per
+   * cent glass border and 42 per cent brand, which is not a quiet run: every
+   * card carried a fully blue outline and the strides had nothing to stand
+   * out from. The base is now mostly the ordinary hairline with brand in it,
+   * and the two peaks come down a rung, because a stride reads by CONTRAST
+   * with its run and not by how bright it is on its own.
+   */
+  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 84%, var(--nf-brand-edge));
+  --nf-edge-stride-lit: var(--nf-brand-edge);
+  --nf-edge-stride-peak: var(--nf-brand-edge-strong);
+
+  /*
+   * THE RING ITSELF, in one place, because six surfaces paint it.
+   *
+   * TWO STRIDES, NOT FOUR. The first cut caught the edge in four places, and
+   * on a 180px card that is not light on glass, it is a blue outline with
+   * bumps: at that spacing the eye joins them up and reads a box somebody has
+   * drawn round, which is the opposite of clean. Light has ONE source. It
+   * enters at one corner and leaves at the far one, so there are two catches
+   * and the rest of the perimeter is the quiet hairline that holds the shape.
+   *
+   * Each catch is about 30 degrees of the run and peaks in under 12, so it
+   * stays a stride rather than a gradient. Everything between them is base,
+   * flat, with no ramp to notice.
+   *
+   * The angle is deliberately NOT in this token. A custom property resolves
+   * its var()s where it is declared, so an angle baked in here would freeze at
+   * the root's value and the hover sweep would have nothing to move. Each
+   * surface writes `conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))`
+   * and keeps its own angle.
+   */
+  --nf-edge-stride-stops:
+    var(--nf-edge-stride-peak) 0deg,
+    var(--nf-edge-stride-lit) 12deg,
+    var(--nf-edge-stride-base) 30deg,
+    var(--nf-edge-stride-base) 162deg,
+    var(--nf-edge-stride-lit) 174deg,
+    var(--nf-edge-stride-peak) 182deg,
+    var(--nf-edge-stride-lit) 192deg,
+    var(--nf-edge-stride-base) 210deg,
+    var(--nf-edge-stride-base) 342deg,
+    var(--nf-edge-stride-lit) 352deg,
+    var(--nf-edge-stride-peak) 360deg;
 
   /* ---------------------------------------------------------------------
    * Radius
@@ -1246,8 +1287,18 @@
    * `--nf-ink-950` rather than `--nf-canvas-base`, which is the same value at
    * night and #F4F5F7 here, so it would resolve to a white plate on white. This
    * is one of the few places the daylight block reads layer 1 directly, and the
-   * reason is that the value wanted IS the night ground. */
-  --nf-icon-ground: var(--nf-ink-950);
+   * reason is that the value wanted IS the night ground.
+   *
+   * IT IS NOT THE BARE INK ANY MORE, AND THAT IS WHAT MADE A GRID OF THEM LOOK
+   * DIRTY. `--nf-ink-950` is #010118, which is black with a rumour of blue in
+   * it. One of those on a white card is a chip. Eight of them in a two-up grid
+   * are eight black holes punched through the page, because nothing about the
+   * colour says brand, it only says absent. Mixing the brand ink in takes it to
+   * a deep navy that reads as the night canvas the artwork was drawn for, which
+   * is what a person actually recognises when they see it beside the logo. The
+   * glass has exactly as much to be glass against and the page stops looking
+   * perforated. */
+  --nf-icon-ground: color-mix(in oklab, var(--nf-ink-950) 86%, var(--nf-brand-primary));
 
   /*
    * The artwork ground, in daylight. See the long note beside the night value.
@@ -1452,9 +1503,16 @@
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
-  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 58%, var(--nf-brand-edge));
-  --nf-edge-stride-lit: var(--nf-brand-edge-strong);
-  --nf-edge-stride-peak: var(--nf-glow-brand-rim);
+  /*
+   * Daylight runs quieter still. The same alpha that reads as a lit edge on
+   * navy reads as a drawn border on white, because there is nothing for it to
+   * be brighter than. Base is very nearly the neutral hairline, and the two
+   * catches land where the soft and the ordinary edge sit, so a white card is
+   * a white card with light on two of its corners.
+   */
+  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 90%, var(--nf-brand-edge));
+  --nf-edge-stride-lit: var(--nf-brand-edge-soft);
+  --nf-edge-stride-peak: var(--nf-brand-edge);
 
   /*
    * The signature ramps.

@@ -218,24 +218,7 @@
           color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent)
         )
         padding-box,
-      conic-gradient(
-          from var(--nf-stride-angle),
-          var(--nf-edge-stride-peak) 0deg,
-          var(--nf-edge-stride-lit) 16deg,
-          var(--nf-edge-stride-base) 44deg,
-          var(--nf-edge-stride-base) 80deg,
-          var(--nf-edge-stride-lit) 90deg,
-          var(--nf-edge-stride-base) 100deg,
-          var(--nf-edge-stride-base) 164deg,
-          var(--nf-edge-stride-peak) 180deg,
-          var(--nf-edge-stride-lit) 196deg,
-          var(--nf-edge-stride-base) 224deg,
-          var(--nf-edge-stride-base) 260deg,
-          var(--nf-edge-stride-lit) 270deg,
-          var(--nf-edge-stride-base) 280deg,
-          var(--nf-edge-stride-base) 344deg,
-          var(--nf-edge-stride-peak) 360deg
-        )
+      conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
         border-box;
     border: var(--nf-border-width) solid transparent;
     border-radius: var(--nf-radius-pill);
@@ -362,24 +345,7 @@
       background:
         linear-gradient(var(--nf-surface-elevated), var(--nf-surface-elevated))
           padding-box,
-        conic-gradient(
-          from var(--nf-stride-angle),
-          var(--nf-edge-stride-peak) 0deg,
-          var(--nf-edge-stride-lit) 16deg,
-          var(--nf-edge-stride-base) 44deg,
-          var(--nf-edge-stride-base) 80deg,
-          var(--nf-edge-stride-lit) 90deg,
-          var(--nf-edge-stride-base) 100deg,
-          var(--nf-edge-stride-base) 164deg,
-          var(--nf-edge-stride-peak) 180deg,
-          var(--nf-edge-stride-lit) 196deg,
-          var(--nf-edge-stride-base) 224deg,
-          var(--nf-edge-stride-base) 260deg,
-          var(--nf-edge-stride-lit) 270deg,
-          var(--nf-edge-stride-base) 280deg,
-          var(--nf-edge-stride-base) 344deg,
-          var(--nf-edge-stride-peak) 360deg
-        )
+        conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
           border-box;
     }
   }

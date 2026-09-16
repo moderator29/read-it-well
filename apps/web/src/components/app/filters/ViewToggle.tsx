@@ -10,6 +10,14 @@ import { toViewHref, type DiscoveryQuery } from "@/lib/listings/search-params";
  * to someone and it opens on the map. Stroked control glyphs, never the 3D
  * pack: this is navigation.
  *
+ * ONE CONTAINER, NOT THREE. This was an `.nf-glass` track holding two
+ * `.nf-chip`s, and a chip carries its own brand border, an outer glow and an
+ * inner glow. So a control with two states painted three bordered boxes inside
+ * each other, which is the clearest instance in the product of the thing the
+ * founder called a box in a box. The track is now the segmented track that
+ * already exists for exactly this, and the states are a label that either sits
+ * on the raised capsule or does not.
+ *
  * Both links state the view explicitly, including `view=list`, which the
  * general href builder leaves out as a default. See `toViewHref`: without it,
  * switching back to List handed the page an address with no view in it and the
@@ -24,7 +32,7 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
   return (
     <nav
       aria-label="Result view"
-      className="nf-glass inline-flex shrink-0 items-center gap-1 rounded-[var(--nf-radius-control)] p-1"
+      className="nf-segmented inline-flex shrink-0 items-center gap-1 p-1"
     >
       {options.map((option) => {
         const active = query.view === option.view;
@@ -35,8 +43,8 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
             prefetch
             data-testid={`view-${option.view}`}
             aria-current={active ? "true" : undefined}
-            className={`nf-chip min-h-11 whitespace-nowrap px-3.5 text-[0.8125rem] ${
-              active ? "nf-chip--active font-bold text-[var(--nf-content-primary)]" : ""
+            className={`nf-segmented__link min-h-11 whitespace-nowrap px-3.5 text-[0.8125rem] ${
+              active ? "font-bold" : ""
             }`}
           >
             <UiIcon name={option.icon} size={16} className="shrink-0" />
