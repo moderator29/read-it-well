@@ -11,17 +11,21 @@
   /*
    * Buttons are physical objects, not coloured rectangles.
    *
-   * Each one is built from five stacked layers, which is what separates a button
-   * that looks pressable from one that looks printed:
+   * The body is a vertical gradient lit from the top, an inset hairline on the
+   * leading edge, and a specular sheen over the upper half. What it is NOT any
+   * more is permanently glowing.
    *
-   *   1. an outer bloom, so it sits in the page rather than on it
-   *   2. a vertical body gradient, light at the top where the light source is
-   *   3. an inset top hairline, the highlight on the leading edge
-   *   4. an inset bottom shade, the occluded trailing edge
-   *   5. a specular sheen over the top half, via ::after
+   * THE GLOW IS A STATE NOW AND IT USED TO BE THE RESTING APPEARANCE. Every
+   * primary button on the platform carried `0 0 12px` of brand bloom at rest,
+   * and `danger` carried a rose bloom of the same strength, so on a screen with
+   * a Pay button and a Cancel button the destructive action was as luminous as
+   * the one the design wanted pressed. The direction is explicit about this:
+   * focus, active and selected are where the glow belongs, they are moments,
+   * and a glow that is everywhere is a glow that means nothing.
    *
-   * Pressing moves it down one pixel and pulls the bloom in, so the object reads
-   * as physically depressing rather than merely changing colour.
+   * So at rest a button has a gradient, an edge and a rim. The bloom appears on
+   * hover, on focus and under the finger, and it is the only thing on the screen
+   * doing that.
    */
   .nf-btn {
     position: relative;
@@ -47,15 +51,22 @@
      */
     border-radius: var(--nf-radius-control);
     padding: var(--nf-space-sm) var(--nf-space-lg);
-    /* The floor, and now also the smallest painted size. See `--sm` below. */
+    /* The default height, which is the medium rung. See the size scale below. */
     min-height: 3rem;
     cursor: pointer;
     white-space: nowrap;
-    border: 1px solid transparent;
+    border: var(--nf-border-width) solid transparent;
+    /*
+     * Transform moves on the press curve and everything else on the standard
+     * one. They are different events: a press has to land while the finger is
+     * still on the glass, a colour change does not.
+     */
     transition:
-      transform var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
-      filter var(--nf-duration-fast) var(--nf-ease-standard);
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard),
+      background-color var(--nf-duration-base) var(--nf-ease-standard),
+      border-color var(--nf-duration-base) var(--nf-ease-standard),
+      color var(--nf-duration-base) var(--nf-ease-standard);
   }
 
   /* Specular sheen across the upper half. */
@@ -64,57 +75,82 @@
     position: absolute;
     inset: 1px 1px 52% 1px;
     border-radius: inherit;
-    background: linear-gradient(180deg, rgb(255 255 255 / 0.12) 0%, rgb(255 255 255 / 0) 100%);
+    background: linear-gradient(180deg, var(--nf-glass-rim) 0%, transparent 100%);
+    opacity: 0.55;
     pointer-events: none;
     z-index: -1;
   }
 
   /*
-   * Press.
+   * Press, and it is the most important line in this file.
    *
-   * This was `translateY(1px)` and the primary's ripple and glow lived entirely
-   * on :hover, which means a touch user - the whole App Store audience - got no
-   * feedback at all from any button on the platform. Press is now a scale plus
-   * a shadow compression that springs back, and it is defined once here rather
-   * than negotiated at 140 call sites.
+   * It was `translateY(1px)`, and the primary's ripple and glow lived entirely
+   * on `:hover`, so a touch user got no feedback at all from any button on the
+   * platform. It is a scale on the shared press tokens now, so every pressable
+   * surface in the product moves the same way and reduced motion switches all
+   * of them off in one place.
+   *
+   * THE SCALE FOLLOWS THE OBJECT, NOT THE SIZE CLASS. A single 0.97 is a 10px
+   * shrink on a 350px full-width CTA, which reads as rubber, and barely a pixel
+   * on a 44px icon button, which cannot be felt. What matters is the widest
+   * dimension rather than the height, so the gentle scale goes to the large and
+   * full-width buttons and the firm one to the square icon buttons, and the
+   * distance the edge actually travels stays roughly constant.
    */
   .nf-btn:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: scale(0.965);
+    transform: scale(var(--nf-press-scale));
+  }
+  .nf-btn--lg:active:not(:disabled):not([aria-disabled="true"]),
+  .nf-btn--full:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  .nf-btn--icon:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(var(--nf-press-scale-sm));
   }
 
   /*
-   * One disabled recipe. There were seven different `disabled:opacity-*` values
-   * across the codebase. `aria-disabled` is included so the Button primitive can
-   * keep a control focusable while inert, which is what a form-level disabled
-   * submit should do for screen reader users.
+   * Disabled, and it is now VISIBLE and inert rather than faded away.
+   *
+   * One recipe replaced seven `disabled:opacity-*` values, which was right, and
+   * the value it settled on was wrong. At 0.38 a gradient-filled primary on the
+   * night canvas is close to invisible, so a refused action read as a missing
+   * button rather than a present one that will not accept a press. A disabled
+   * control has to be legible: a person needs to be able to read what they
+   * cannot do yet.
+   *
+   * AND A LOADING BUTTON IS EXCLUDED, which is the other half of the fix. The
+   * component sets the `disabled` attribute while loading, correctly, so that a
+   * double tap cannot submit twice. That meant the spinner and the label were
+   * dimmed to 0.38 at the exact moment a person most needs to see them. A
+   * loading button keeps its full contrast and loses only the press.
    */
-  .nf-btn:disabled,
-  .nf-btn[aria-disabled="true"] {
-    opacity: 0.38;
+  .nf-btn:disabled:not([data-loading="true"]),
+  .nf-btn[aria-disabled="true"]:not([data-loading="true"]) {
+    background: var(--nf-interactive-disabled);
+    background-image: none;
+    color: var(--nf-content-muted);
+    border-color: var(--nf-border-subtle);
+    opacity: 1;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
   }
+  .nf-btn:disabled::after,
+  .nf-btn[aria-disabled="true"]::after {
+    content: none;
+  }
 
-  /* Size scale. Three heights exist; nothing else is a button height. */
   /*
-   * THE THREE SIZES WENT UP A STEP. 40/48/56 became 44/56/64.
+   * THE SIZE SCALE IS 44 / 48 / 56, and it was 44 / 56 / 64.
    *
-   * The owner asked for bigger buttons with a comfortable hit target, and the
-   * honest reading of "comfortable" is that 44px is the FLOOR rather than the
-   * target: Apple's 44pt and Google's 48dp are both stated as minimums, and a
-   * primary action somebody taps with a thumb on a moving bus wants more than
-   * the minimum.
+   * 64px at 17px type is a banner rather than a button: the landing hero CTA
+   * measured 64 by 350 at 390px and read as a mobile advertisement. 44 / 48 / 56
+   * is the iOS ladder, it still honours 44 as the floor WCAG 2.5.8 sets, and it
+   * leaves the large size genuinely large without the page having to carry a
+   * slab.
    *
-   * The compact size is 44 now, which also retires a workaround. It used to be
-   * 40 with a `::before` pseudo-element stretching the hit area to 44 without
-   * moving a pixel of the design - a good trick, and one that only existed
-   * because the painted control was too small. The pseudo-element stays,
-   * because it still costs nothing and still guarantees the floor whatever a
-   * border does to the box, but it is no longer papering over anything.
-   *
-   * The label went up with the heights. `--nf-text-caption` on the small size
-   * was 13px on a control people press to do things.
+   * The label went up with the heights in an earlier pass and stays: 13px on a
+   * control people press to do things was too small whatever the height is.
    */
   .nf-btn--sm {
     min-height: 2.75rem;
@@ -124,13 +160,10 @@
   /*
    * The 44pt floor on the compact size.
    *
-   * 40px is the right PAINT for a control in a 64px header - the site header's
-   * Sign up is the one every marketing page carries - and 4px short of the
-   * floor WCAG 2.5.8 sets for a target. A pseudo element settles it the same
-   * way `Switch` does: pointer events on a pseudo hit the element it belongs
-   * to, so the target reaches 44 while the button still draws at 40, and
-   * `icons-and-targets.spec` can measure it, which it cannot do for a hit area
-   * grown by a child node.
+   * The painted control is 44 now, so this no longer papers over a 40px paint.
+   * It stays because it costs nothing and it still guarantees the floor whatever
+   * a border does to the box, and because `icons-and-targets.spec` can measure a
+   * pseudo-element where it cannot measure a hit area grown by a child node.
    *
    * `pointer-events` is deliberately NOT set to none here. On `.nf-btn::after`
    * it is, because that one is a specular gloss and must never intercept
@@ -142,17 +175,18 @@
     left: 0;
     right: 0;
     top: 50%;
-    /* Stated, not derived. A negative inset assumed the button was exactly
-       40px; it renders at 38 once the light theme's 1.5px border is in the
-       box, and -2px each side landed on 42. A height of 44 is 44 whatever the
-       paint underneath it turns out to be. */
     height: 2.75rem;
     transform: translateY(-50%);
     border-radius: inherit;
   }
   .nf-btn--md {
-    min-height: 3.5rem;
+    min-height: 3rem;
     padding: var(--nf-space-sm) var(--nf-space-lg);
+  }
+  .nf-btn--lg {
+    min-height: 3.5rem;
+    padding: var(--nf-space-md) var(--nf-space-xl);
+    font-size: var(--nf-text-body-lg);
   }
 
   /* Icon-only buttons are square at their size, never a padded rectangle. */
@@ -167,10 +201,10 @@
     min-width: 2.75rem;
   }
   .nf-btn--icon.nf-btn--md {
-    min-width: 3.5rem;
+    min-width: 3rem;
   }
   .nf-btn--icon.nf-btn--lg {
-    min-width: 4rem;
+    min-width: 3.5rem;
   }
 
   .nf-btn--full {
@@ -178,65 +212,75 @@
   }
 
   /*
-   * Loading. The label stays and dims rather than being swapped for the word
-   * "Saving...", which is what all eighteen pending buttons used to do and why
-   * they visibly jumped width mid-press. The spinner takes the leading icon
-   * slot, so the geometry never moves.
+   * Loading. The label stays and does NOT dim, which is the change: it used to
+   * drop to 0.7 on top of the 0.38 the disabled recipe was also applying. The
+   * spinner takes the leading icon slot, so the geometry never moves and the
+   * button cannot jump width mid-press the way eighteen "Saving..." buttons
+   * used to.
    */
   .nf-btn[data-loading="true"] {
     cursor: progress;
   }
-  .nf-btn[data-loading="true"] .nf-btn__label {
-    opacity: 0.7;
-  }
 
-  /* ---- primary: the signature gradient with the blue glow ---- */
+  /* ---- primary: the signature gradient, lit on the moments that earn it ---- */
   .nf-btn--primary {
     position: relative;
     overflow: hidden;
     color: var(--nf-content-on-brand);
     background: var(--nf-gradient-cta);
-    border: 1.5px solid rgb(12 57 239 / 0.6);
-    box-shadow: 0 0 12px rgb(12 57 239 / 0.35);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
   }
-  /* The signature ripple: a band of light crosses the button on hover. */
+  /*
+   * The signature ripple, ON PRESS ONLY and half as long.
+   *
+   * It was a 650ms sweep on hover and a 480ms one on press, at 32 percent white.
+   * 650ms is nearly twice `--nf-duration-slow`, so the platform's single most
+   * used control carried its longest animation, and it ran on a pointer event
+   * that most of this product's users do not have. A press sweep is a physical
+   * answer to a finger; a hover sweep is a light show.
+   */
   .nf-btn--primary::after {
     content: "";
     position: absolute;
     inset: -40% -60%;
     pointer-events: none;
+    z-index: -1;
     background: linear-gradient(
       115deg,
       transparent 42%,
-      rgb(255 255 255 / 0.32) 50%,
+      color-mix(in oklab, var(--nf-content-on-brand) 18%, transparent) 50%,
       transparent 58%
     );
     transform: translateX(-130%);
   }
-  .nf-btn--primary:hover:not(:disabled)::after {
+  .nf-btn--primary:active:not(:disabled)::after {
     transform: translateX(130%);
-    transition: transform 650ms var(--nf-ease-standard);
+    transition: transform 260ms var(--nf-ease-standard);
+  }
+  .nf-btn--primary:active:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 10px var(--nf-glow-2);
+  }
+  /*
+   * Hover is a pointer state and nothing else. Without the media query a plain
+   * `:hover` sticks after a tap on iOS and Android, so a button somebody pressed
+   * stayed lit until they touched something else, which is the opposite of the
+   * press reading as a moment.
+   */
+  @media (hover: hover) {
+    .nf-btn--primary:hover:not(:disabled) {
+      border-color: var(--nf-brand-edge-strong);
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim),
+        0 0 20px var(--nf-glow-3);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-btn--primary::after {
       display: none;
     }
-  }
-  .nf-btn--primary:hover:not(:disabled) {
-    box-shadow: 0 0 24px rgb(12 57 239 / 0.45);
-    transform: translateY(-1px);
-  }
-  /*
-   * The signature ripple fires on press as well as hover, so it finally reaches
-   * touch devices. Hover stays as the desktop bonus it always was.
-   */
-  .nf-btn--primary:active:not(:disabled)::after {
-    transform: translateX(130%);
-    transition: transform 480ms var(--nf-ease-standard);
-  }
-  .nf-btn--primary:active:not(:disabled) {
-    transform: scale(0.965);
-    box-shadow: 0 0 6px rgb(12 57 239 / 0.22);
   }
 
   /*
@@ -247,58 +291,79 @@
    * primary, or as red text on neutral glass, and in one case agent Delete was
    * the lowest-contrast element in its own row. Destructive actions get real
    * destructive material.
+   *
+   * AND IT DOES NOT GLOW, at rest or on hover. It used to carry a rose bloom of
+   * the same strength as the primary's blue one, so on any screen holding both,
+   * the destructive action was the most luminous object on it. Danger gets its
+   * colour and its weight. The bloom belongs to the action the design wants
+   * taken.
    */
   .nf-btn--danger {
     position: relative;
     overflow: hidden;
-    color: #fff;
+    color: var(--nf-content-on-brand);
     background: linear-gradient(
       180deg,
       color-mix(in oklab, var(--nf-state-error) 92%, white) 0%,
       var(--nf-state-error) 100%
     );
-    border: 1.5px solid color-mix(in oklab, var(--nf-state-error) 70%, transparent);
-    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-error) 30%, transparent);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 70%, transparent);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
   }
-  .nf-btn--danger::after {
-    content: none;
-  }
-  .nf-btn--danger:hover:not(:disabled) {
-    box-shadow: 0 0 24px color-mix(in oklab, var(--nf-state-error) 42%, transparent);
-    transform: translateY(-1px);
-  }
-  .nf-btn--danger:active:not(:disabled) {
-    transform: scale(0.965);
-    box-shadow: 0 0 6px color-mix(in oklab, var(--nf-state-error) 22%, transparent);
+  @media (hover: hover) {
+    .nf-btn--danger:hover:not(:disabled) {
+      background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-state-error) 100%, white) 0%,
+        color-mix(in oklab, var(--nf-state-error) 88%, black) 100%
+      );
+    }
   }
 
   /* Quiet destructive: the confirm step inside a sheet, where a solid red
      button would shout louder than the decision deserves. */
   .nf-btn--danger-quiet {
-    background: color-mix(in oklab, var(--nf-state-error) 14%, transparent);
+    background: var(--nf-state-error-surface);
     color: var(--nf-state-error);
-    border: 1.5px solid color-mix(in oklab, var(--nf-state-error) 34%, transparent);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 34%, transparent);
     box-shadow: none;
   }
   .nf-btn--danger-quiet::after {
     content: none;
   }
-  .nf-btn--danger-quiet:hover:not(:disabled) {
-    background: color-mix(in oklab, var(--nf-state-error) 22%, transparent);
+  @media (hover: hover) {
+    .nf-btn--danger-quiet:hover:not(:disabled) {
+      background: color-mix(in oklab, var(--nf-state-error) 22%, transparent);
+    }
   }
 
-  /* ---- ghost: translucent white, blue-ice edge on hover ---- */
+  /*
+   * ---- secondary: and it is finally made of glass ----
+   *
+   * The class is called glass and it was not glass. It had a 4 percent white
+   * fill, a 1.5px border and `box-shadow: none`, and no backdrop filter at all,
+   * against the four-ingredient definition this platform sets out in
+   * `tokens.css`. Measured on the landing CTA it was a nearly invisible outline
+   * on a lit panel. The secondary button sits next to the primary, which is
+   * exactly where the material should be legible, so it now has all four: the
+   * blurred and saturated fill, the lit rim, the hairline and a shadow.
+   */
   .nf-btn--glass {
     color: var(--nf-content-secondary);
-    background: rgb(255 255 255 / 0.04);
-    border: 1.5px solid rgb(255 255 255 / 0.14);
-    box-shadow: none;
+    background: var(--nf-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-glass-border);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-elev-1);
   }
-  .nf-btn--glass:hover:not(:disabled) {
-    background: rgb(255 255 255 / 0.08);
-    border-color: rgb(92 124 255 / 0.45);
-    color: var(--nf-content-primary);
-    box-shadow: 0 0 12px rgb(12 57 239 / 0.35);
+  @media (hover: hover) {
+    .nf-btn--glass:hover:not(:disabled) {
+      background: var(--nf-glass-fill-strong);
+      border-color: var(--nf-brand-edge-soft);
+      color: var(--nf-content-primary);
+    }
   }
 
   .nf-btn--ghost {
@@ -309,15 +374,11 @@
   .nf-btn--ghost::after {
     content: none;
   }
-  .nf-btn--ghost:hover:not(:disabled) {
-    color: var(--nf-content-primary);
-    background: var(--nf-glass-fill);
-  }
-
-  .nf-btn--lg {
-    min-height: 4rem;
-    padding: var(--nf-space-md) var(--nf-space-xl);
-    font-size: var(--nf-text-body-lg);
+  @media (hover: hover) {
+    .nf-btn--ghost:hover:not(:disabled) {
+      color: var(--nf-content-primary);
+      background: var(--nf-interactive-hover);
+    }
   }
 
   /* ----------------------------------------------------------- segmented */

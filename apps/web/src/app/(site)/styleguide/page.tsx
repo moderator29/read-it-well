@@ -106,7 +106,6 @@ const BUTTON_VARIANTS = [
   "ghost",
   "danger",
   "dangerQuiet",
-  "glass",
 ] as const;
 
 const STATUS_TONES: StatusTone[] = [
@@ -229,7 +228,7 @@ export default function StyleguidePage() {
 
       <Section
         title="Buttons"
-        blurb="Six variants and three heights, 40, 48 and 56px. No other button heights exist on this platform. Every one of these is the real primitive, so a variant added to Button appears here and a variant removed breaks this file, which is the right place for that to hurt."
+        blurb="Five variants and three heights, 44, 48 and 56px. No other button heights exist on this platform. Every one of these is the real primitive, so a variant added to Button appears here and a variant removed breaks this file, which is the right place for that to hurt."
       >
         <div className="nf-card space-y-heading p-card-sm">
           {(["sm", "md", "lg"] as const).map((size) => (

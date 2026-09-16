@@ -30,7 +30,15 @@
 
   .nf-drawer {
     width: min(88%, 26rem);
-    background: var(--nf-surface-primary);
+    /*
+     * Real glass, on the same terms as the sheet below: a high-opacity veil of
+     * the surface rather than the solid colour, over a strong blur. The drawer
+     * floats over the app by definition, which is the one condition this
+     * platform's material rules say glass has to meet.
+     */
+    background: color-mix(in oklab, var(--nf-surface-primary) 88%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow: var(--nf-elev-4-rim), var(--nf-elev-4);
     overscroll-behavior: contain;
   }
@@ -60,11 +68,21 @@
    * The surface rides `translateY`, which the component drives directly during
    * a drag and hands back to the spring on release.
    */
+  /*
+   * THE SCRIM IS A TOKEN NOW, AND IT WAS ONE HARD-CODED BLACK FOR BOTH THEMES.
+   *
+   * `rgb(0 0 0 / 0.55)` over the night canvas is a considered dim. The same
+   * 55 per cent black over a white paper app is a curtain: the product goes
+   * from a bright document to a dark one the instant any sheet opens, which is
+   * every wallet drawer and every confirmation. `--nf-overlay-backdrop` already
+   * existed for exactly this, already carries a lighter paper value, and this
+   * file was the one overlay that had not been moved onto it.
+   */
   .nf-sheet-backdrop {
     position: fixed;
     inset: 0;
     z-index: 80;
-    background: rgb(0 0 0 / 0.55);
+    background: var(--nf-overlay-backdrop);
     -webkit-backdrop-filter: blur(6px) saturate(120%);
     backdrop-filter: blur(6px) saturate(120%);
     opacity: 0;
@@ -83,8 +101,33 @@
     flex-direction: column;
     max-height: 92dvh;
     border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
-    background: var(--nf-surface-elevated);
-    border: 1px solid var(--nf-elev-3-border);
+    /*
+     * REAL GLASS, AND IT WAS A SOLID PANEL.
+     *
+     * This is the surface the material was designed for. A sheet is the one
+     * thing in the product that is unambiguously floating over live content:
+     * the page is still there underneath, it is still scrolled where the person
+     * left it, and softening it through the sheet is what says so. A flat
+     * `--nf-surface-elevated` panel said nothing of the kind, and eight surfaces
+     * ride this class.
+     *
+     * All four ingredients, which is the rule: the blurred and saturated
+     * material below, the bright inner rim and the two layer ambient shadow
+     * from elevation rung 3, and the hairline border.
+     *
+     * 88 PER CENT, NOT `--nf-glass-fill-strong`. The glass fills are 11 per cent
+     * white, which is correct for a chrome bar and wrong for a panel carrying a
+     * withdrawal form: text on glass over moving content is unreadable at the
+     * exact moment somebody is deciding to trust you with money. A high-opacity
+     * veil of the sheet's own surface colour keeps the material honest and the
+     * type solid, and it is the same trick `.nf-glass--chrome` uses for the same
+     * reason. Both themes are correct by construction, because the token under
+     * it is white on paper.
+     */
+    background: color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    border: var(--nf-border-width) solid var(--nf-elev-3-border);
     border-bottom: 0;
     box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
     /* Starts fully off-screen and is driven in. A fade would defeat the point. */

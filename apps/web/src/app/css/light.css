@@ -17,38 +17,37 @@
    * headlines and calls to action. Modelled on the cleanest exchange light
    * themes; recoloured to our blue.
    */
+  /* The `backdrop-filter: none` that used to sit here is gone because the base
+     rule no longer sets one: a card sits on a fixed canvas and has nothing
+     behind it to blur, in either theme. */
   :root[data-theme="light"] .nf-card {
     background:
       linear-gradient(#FFFFFF, #FFFFFF) padding-box,
       linear-gradient(rgb(18 21 26 / 0.09), rgb(18 21 26 / 0.09)) border-box;
     box-shadow: var(--nf-shadow-card);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
-  :root[data-theme="light"] .nf-card--interactive:hover {
-    background:
-      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
-      linear-gradient(rgb(12 57 239 / 0.35), rgb(12 57 239 / 0.35)) border-box;
-    box-shadow: var(--nf-shadow-lifted);
-  }
-  :root[data-theme="light"] .nf-card--interactive::after {
-    background: radial-gradient(
-      200px circle at var(--mx, 50%) var(--my, 40%),
-      rgb(12 57 239 / 0.05) 0%,
-      transparent 70%
-    );
+  /* Pointer only, in step with the base rule. A plain `:hover` sticks after a
+     tap on a touch screen, so a card somebody tapped stayed lit until they
+     touched something else. */
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-card--interactive:hover {
+      background:
+        linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+        linear-gradient(var(--nf-brand-edge-soft), var(--nf-brand-edge-soft)) border-box;
+      box-shadow: var(--nf-shadow-lifted);
+    }
   }
   :root[data-theme="light"] .nf-chip,
   :root[data-theme="light"] .nf-icon-btn {
     background: #FFFFFF;
     border-color: rgb(18 21 26 / 0.12);
     color: var(--nf-content-primary);
-    box-shadow: 0 1px 2px rgb(18 21 26 / 0.04);
+    box-shadow: var(--nf-elev-1);
   }
   :root[data-theme="light"] .nf-chip:hover,
   :root[data-theme="light"] .nf-icon-btn:hover {
-    border-color: rgb(12 57 239 / 0.55);
-    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-2);
   }
   /* Active filter chips go solid brand blue with white text, table-header
      style, so the selected state is unmistakable on paper. */
@@ -57,23 +56,35 @@
     background: var(--nf-brand-primary);
     border-color: var(--nf-brand-primary);
     color: #FFFFFF;
-    box-shadow: 0 4px 12px rgb(12 47 232 / 0.3);
+    box-shadow: 0 4px 12px var(--nf-glow-3);
   }
+  /* The secondary button is opaque white on paper, so the blur behind it would
+     be a composited layer sampling a backdrop nothing can see. */
   :root[data-theme="light"] .nf-btn--glass {
     background: #FFFFFF;
     border-color: rgb(18 21 26 / 0.14);
     color: var(--nf-content-primary);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-elev-1);
   }
-  :root[data-theme="light"] .nf-btn--glass:hover:not(:disabled) {
-    background: #FFFFFF;
-    border-color: rgb(12 57 239 / 0.5);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-btn--glass:hover:not(:disabled) {
+      background: #FFFFFF;
+      border-color: var(--nf-brand-edge);
+    }
   }
+  /* A bloom is a light source and paper has no darkness for one to read
+     against, so daylight's primary carries a short brand-tinted shadow rather
+     than the night theme's halo, on the same hover-only terms. */
   :root[data-theme="light"] .nf-btn--primary {
     border-color: transparent;
-    box-shadow: 0 4px 14px rgb(12 47 232 / 0.28);
+    box-shadow: 0 4px 14px var(--nf-glow-2);
   }
-  :root[data-theme="light"] .nf-btn--primary:hover:not(:disabled) {
-    box-shadow: 0 6px 18px rgb(12 47 232 / 0.34);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-btn--primary:hover:not(:disabled) {
+      box-shadow: 0 6px 18px var(--nf-glow-3);
+    }
   }
   /* Inputs: flat white wells with neutral hairlines; blue only on focus. */
   :root[data-theme="light"] .nf-field {
@@ -85,10 +96,10 @@
   :root[data-theme="light"] .nf-field:focus {
     background:
       linear-gradient(#FFFFFF, #FFFFFF) padding-box,
-      linear-gradient(rgb(12 57 239 / 0.7), rgb(12 57 239 / 0.7)) border-box;
+      linear-gradient(var(--nf-brand-edge-strong), var(--nf-brand-edge-strong)) border-box;
     box-shadow:
       inset 0 1px 2px rgb(18 21 26 / 0.04),
-      0 0 0 3px rgb(12 57 239 / 0.14);
+      0 0 0 3px var(--nf-glow-1);
   }
   /* The breathing live ring quiets down to a hairline on paper. */
   :root[data-theme="light"] .nf-card--live {
@@ -197,14 +208,14 @@
     border-color: rgb(18 21 26 / 0.14);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+    box-shadow: var(--nf-elev-1);
   }
   :root[data-theme="light"] .nf-auth-row::after {
     display: none;
   }
   :root[data-theme="light"] .nf-auth-row:hover:not(:disabled) {
-    border-color: rgb(12 57 239 / 0.5);
-    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-2);
   }
   :root[data-theme="light"] .nf-auth-row__mark {
     background: var(--nf-surface-inset);
@@ -263,10 +274,10 @@
       linear-gradient(#FFFFFF, #FFFFFF) padding-box,
       conic-gradient(
           from var(--nf-spin),
-          rgb(12 57 239 / 0.55) 0%,
+          var(--nf-brand-edge) 0%,
           rgb(18 21 26 / 0.1) 18%,
           rgb(18 21 26 / 0.1) 82%,
-          rgb(12 57 239 / 0.55) 100%
+          var(--nf-brand-edge) 100%
         )
         border-box;
   }
@@ -283,7 +294,7 @@
     box-shadow: var(--nf-shadow-card);
   }
   :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
-    border-color: rgb(12 57 239 / 0.35);
+    border-color: var(--nf-brand-edge-soft);
     box-shadow: var(--nf-shadow-lifted);
   }
 
@@ -305,17 +316,17 @@
     background: #FFFFFF;
     color: var(--nf-content-primary);
     border-color: rgb(18 21 26 / 0.14);
-    box-shadow: 0 1px 2px rgb(18 21 26 / 0.05);
+    box-shadow: var(--nf-elev-1);
   }
   :root[data-theme="light"] select.nf-btn--primary:hover:not(:disabled) {
-    border-color: rgb(12 57 239 / 0.5);
-    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-2);
   }
 
   /* Active map pin: brand hairline and a clean lift, no neon halo. */
   :root[data-theme="light"] .nf-map-pin--active {
     border-color: var(--nf-brand-primary);
-    box-shadow: 0 6px 18px rgb(18 21 26 / 0.22);
+    box-shadow: var(--nf-elev-2);
   }
 
   /* The wallet card's cyan conic sheen and white grid texture are gone rather
@@ -345,14 +356,14 @@
   :root[data-theme="light"] .nf-action-circle__ring {
     background: #FFFFFF;
     border-color: rgb(18 21 26 / 0.12);
-    box-shadow: 0 1px 2px rgb(18 21 26 / 0.04);
+    box-shadow: var(--nf-elev-1);
   }
   :root[data-theme="light"] .nf-action-circle:hover .nf-action-circle__ring {
-    border-color: rgb(12 57 239 / 0.55);
-    box-shadow: 0 2px 8px rgb(18 21 26 / 0.08);
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-2);
   }
   :root[data-theme="light"] .nf-action-circle__ring--solid {
-    box-shadow: 0 8px 20px -6px rgb(12 47 232 / 0.32);
+    box-shadow: 0 8px 20px -6px var(--nf-glow-3);
   }
 }
 
@@ -380,7 +391,7 @@
 :root[data-theme="light"] button.nf-card[aria-expanded="true"] {
   background:
     linear-gradient(#ffffff, #ffffff) padding-box,
-    linear-gradient(rgb(12 57 239 / 0.55), rgb(12 57 239 / 0.55)) border-box;
+    linear-gradient(var(--nf-brand-edge), var(--nf-brand-edge)) border-box;
   box-shadow: var(--nf-shadow-card);
 }
 

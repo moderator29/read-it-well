@@ -119,8 +119,8 @@ export function Segmented<T extends string>({
   const pad = size === "sm" ? "p-[3px]" : "p-1";
   const seg =
     size === "sm"
-      ? "h-9 px-3 text-[0.8125rem]"
-      : "h-11 px-4 text-[0.875rem]";
+      ? "h-9 px-3 text-[var(--nf-text-caption)]"
+      : "h-11 px-4 text-[var(--nf-text-body-sm)]";
 
   return (
     <div

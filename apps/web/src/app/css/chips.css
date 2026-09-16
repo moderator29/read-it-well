@@ -27,9 +27,9 @@
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);
-    border: 1px solid rgb(12 57 239 / 0.35);
+    border: 1px solid var(--nf-brand-edge-soft);
     background: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
-    box-shadow: 0 0 10px rgb(12 57 239 / 0.16), inset 0 0 10px rgb(12 57 239 / 0.07);
+    box-shadow: 0 0 10px var(--nf-glow-1), inset 0 0 10px var(--nf-glow-wash);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
@@ -63,9 +63,9 @@
   }
   .nf-chip:hover {
     color: var(--nf-content-primary);
-    border-color: rgb(12 57 239 / 0.7);
+    border-color: var(--nf-brand-edge-strong);
     transform: translateY(-1px);
-    box-shadow: 0 0 16px rgb(12 57 239 / 0.3), inset 0 0 12px rgb(12 57 239 / 0.1);
+    box-shadow: 0 0 16px var(--nf-glow-2), inset 0 0 12px var(--nf-glow-wash);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-chip:hover {
@@ -75,8 +75,8 @@
   .nf-chip[aria-pressed="true"],
   .nf-chip--active {
     color: var(--nf-content-primary);
-    border-color: rgb(12 57 239 / 0.9);
-    box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
+    border-color: var(--nf-glow-brand-rim);
+    box-shadow: 0 0 18px var(--nf-glow-3), inset 0 0 14px var(--nf-glow-1);
   }
 
   /* ------------------------------------------------------- the feed tabs */
@@ -249,8 +249,35 @@
    * They cannot both appear. A demo listing is never verified, by the badge
    * rule in the repository and by a database constraint under it.
    */
+  /*
+   * A 12 PER CENT WASH IS NOT A SURFACE, and this badge is usually pinned to a
+   * photograph or a pale media ground rather than to a card.
+   *
+   * `--nf-state-warning-surface` is the cyan at 12 per cent of itself over
+   * whatever is behind it. On a card that is a readable tint. On the pale media
+   * ground a listing without a photograph paints, in the light theme, it is
+   * twelve per cent of a deep teal over near-white, which leaves the label
+   * floating on almost nothing: the badge reads as text somebody forgot to
+   * style. Colour alone cannot carry a chip that does not know what is behind
+   * it.
+   *
+   * So it gets a ground of its own and an edge. The tone is unchanged, because
+   * the tone is the meaning: cyan is attention, and this badge says "this is an
+   * example, not a real listing", which is exactly an attention state.
+   */
+  /*
+   * The tint is LAYERED over an opaque surface rather than mixed into one. A
+   * `color-mix` of a translucent tint and a solid colour produces a third
+   * translucent colour, which is the same problem again; two background layers
+   * composite, which is what "a tint on a surface" actually means. Both themes
+   * are answered by one declaration, because `--nf-surface-elevated` is the
+   * card colour at night and white on paper.
+   */
   .nf-badge--example {
-    background: var(--nf-state-warning-surface);
+    background:
+      linear-gradient(var(--nf-state-warning-surface), var(--nf-state-warning-surface)),
+      var(--nf-surface-elevated);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-warning) 42%, transparent);
     color: var(--nf-state-warning);
     letter-spacing: 0.02em;
   }
@@ -412,9 +439,9 @@
     height: 3.25rem;
     border-radius: var(--nf-radius-circle);
     color: var(--nf-content-primary);
-    border: 1px solid rgb(12 57 239 / 0.45);
+    border: 1px solid var(--nf-brand-edge);
     background: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
-    box-shadow: 0 0 10px rgb(12 57 239 / 0.22), inset 0 0 10px rgb(12 57 239 / 0.1);
+    box-shadow: 0 0 10px var(--nf-glow-1), inset 0 0 10px var(--nf-glow-wash);
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
@@ -427,8 +454,8 @@
   }
   .nf-action-circle:hover .nf-action-circle__ring {
     transform: translateY(-2px);
-    border-color: rgb(12 57 239 / 0.9);
-    box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
+    border-color: var(--nf-glow-brand-rim);
+    box-shadow: 0 0 18px var(--nf-glow-3), inset 0 0 14px var(--nf-glow-1);
   }
   .nf-action-circle:active .nf-action-circle__ring {
     transform: scale(0.94);

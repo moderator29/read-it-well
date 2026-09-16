@@ -100,15 +100,15 @@ export const TYPE = {
   /**
    * A screen's own answer: the price on a property, and nothing else.
    *
-   * THE ONE ARBITRARY SIZE IN THIS FILE, and it is deliberate. `nf-display`
-   * climbs to 4.6rem, which is a landing-page size and would set a rent above
-   * the title it belongs to. This sits between `nf-h1` and `nf-display` with
-   * the tight tracking a large figure needs. Every other role below is a
-   * platform class, so this is one value rather than the forty-seven the type
-   * audit counted.
+   * THIS USED TO BE THE ONE ARBITRARY SIZE IN THE FILE, and its comment argued
+   * that the arbitrariness was deliberate: `nf-display` was a landing-page size
+   * and would set a rent above the title it belongs to, so there was nothing
+   * between `nf-h1` and it to reach for. That was true and it was a hole in the
+   * scale rather than an exception to it. `--nf-text-h0` is now that rung, at
+   * exactly the 40 to 52px this was already drawing, so the role is a class like
+   * every other one below it.
    */
-  display:
-    "text-[2.5rem] font-extrabold leading-[0.95] tracking-[-0.035em] text-[var(--nf-content-primary)] sm:text-[3.25rem]",
+  display: "nf-h0 text-[var(--nf-content-primary)]",
   /** Section headings. `nf-h3`, which is 1.1875rem on a phone and 1.4375 up. */
   sectionTitle: "nf-h3 text-[var(--nf-content-primary)]",
   /** The lead sentence of a block, and every empty-state body. 1.0625rem. */

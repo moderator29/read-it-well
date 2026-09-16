@@ -1,4 +1,76 @@
 /*
+ * THE MOTION SYSTEM.
+ *
+ * One file, one contract, and reduced motion answered once at the top rather
+ * than in fourteen places further down.
+ *
+ * ------------------------------------------------------------------ the rules
+ *
+ * 1. MOTION IS PHYSICS. A thing arrives from where it came from, answers the
+ *    finger, and settles. Two curves carry all of it, both named in
+ *    `packages/design-tokens`: `--nf-ease-entrance`, which is the spring-like
+ *    arrival, and `--nf-ease-press`, which is the short one a finger gets.
+ *    `--nf-ease-standard` remains for colour and shadow, which are not objects
+ *    moving. Nothing is `linear` except a meter that genuinely drains at a
+ *    constant rate.
+ *
+ * 2. AN ENTRANCE IS 400 TO 600ms AND STAGGERS BY 40 TO 60ms, NEVER MORE THAN
+ *    FOUR STEPS. Past four the last card arrives after the reader has already
+ *    looked at it, at which point a stagger is not choreography, it is lag.
+ *
+ * 3. A PRESS IS THE CHEAPEST AND THE MOST IMPORTANT. Every tappable surface
+ *    scales and comes back. On a phone it is the whole difference between an
+ *    app and a website, and it is the only one of press and hover that most of
+ *    this product's users will ever trigger.
+ *
+ * 4. HOVER IS A SEPARATE THING AND IT LIVES INSIDE `@media (hover: hover)`. A
+ *    bare `:hover` sticks after a tap on iOS and Android, so a surface somebody
+ *    pressed stays lit until they touch something else.
+ *
+ * 5. AMBIENT MOTION IS ONE PER VIEWPORT, 20 TO 40 SECONDS, AND ONE OR TWO PER
+ *    CENT. If a reviewer can see it happening it is too much.
+ *
+ * 6. NOTHING LOOPS FOR ITS OWN SAKE. A spinner that spins for ever is the
+ *    absence of a design. A loop is legal when it is reporting something that
+ *    is genuinely still happening.
+ *
+ * --------------------------------------------------------- reduced motion
+ *
+ * THE SWITCH BELOW IS THE WHOLE ANSWER AND IT IS DELIBERATELY UNLAYERED.
+ *
+ * `tokens.css` already collapses every `--nf-duration-*` to 1ms under this
+ * query, which covers everything that reads a token. It does not cover an
+ * animation that hard-codes its own seconds, and this codebase has already been
+ * caught by that once: `.nf-page-scene` wrote its own 20s and kept drifting for
+ * people who had asked for stillness. So this is the floor, and it catches the
+ * hard-coded ones too.
+ *
+ * `animation-iteration-count: 1` matters as much as the duration. A duration of
+ * 0.01ms on an `infinite` animation does not stop it, it runs it a hundred
+ * thousand times a second, which is worse than the motion it was meant to
+ * remove.
+ *
+ * IT IS OUTSIDE EVERY LAYER ON PURPOSE. For important declarations the cascade
+ * reverses: a layered `!important` beats an unlayered one. So this sits at the
+ * bottom of the important cascade, which makes it a floor that any rule further
+ * down can still override where the end state matters. Two do, and both are
+ * meters rather than flourishes: the undo bar stays full and still, and the
+ * verifying bar fills rather than finishing off-screen.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
  * The shared animation utilities: rise, float, reveal, card entrance and shine.
  * Distinct from motion.css, which animates named components.
  *
@@ -71,28 +143,6 @@
   .nf-rise-seq {
     animation: nf-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
     animation-delay: calc(min(var(--nf-rise-i, 0), 8) * 60ms);
-  }
-
-  /*
-   * REDUCED MOTION HAS TO KILL THE DELAY, NOT JUST THE DURATION.
-   *
-   * Every --nf-duration-* token collapses to 1ms under this query, which is
-   * why almost nothing in this file needs a rule here. A DELAY is not a
-   * duration and does not collapse, and `both` fill mode holds the element at
-   * the keyframe's opening frame - opacity zero - for the whole of it. So a
-   * reader who has asked for less motion was watching the hero's last line
-   * appear out of nothing 560ms after the rest of the page, which is a worse
-   * experience than the animation they opted out of.
-   */
-  @media (prefers-reduced-motion: reduce) {
-    .nf-rise,
-    .nf-rise-2,
-    .nf-rise-3,
-    .nf-rise-4,
-    .nf-rise-5,
-    .nf-rise-seq {
-      animation-delay: 0s;
-    }
   }
 
   .nf-float {
@@ -194,14 +244,18 @@
       filter: none;
     }
   }
+  /*
+   * The reveal needs a rule of its own where the loops do not, because its
+   * hidden state is a normal declaration rather than an animation: the switch
+   * at the top of this file can collapse a transition to nothing and still
+   * leave the element sitting at `opacity: 0` waiting for an observer that is
+   * never going to fire for it.
+   */
   @media (prefers-reduced-motion: reduce) {
     .nf-reveal {
       opacity: 1;
       transform: none;
       transition: none;
-    }
-    .nf-float-slow {
-      animation: none !important;
     }
   }
 
@@ -226,14 +280,6 @@
       transform: none;
     }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-card-in {
-      animation: none !important;
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  }
-
   /* Gradient sheen that sweeps across a headline, used sparingly on the hero. */
   @keyframes nf-shine {
     0% { background-position: 0% 50%; }
@@ -242,23 +288,6 @@
   .nf-shine {
     background-size: 200% auto;
     animation: nf-shine 6s linear infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-shine {
-      animation: none !important;
-    }
-  }
-
-  /*
-   * Reduced motion kills looping decorative animation outright. Entrance
-   * animations survive because their duration already collapses to 1ms, so
-   * content still appears rather than staying invisible.
-   */
-  @media (prefers-reduced-motion: reduce) {
-    .nf-float,
-    .nf-pulse-ring {
-      animation: none !important;
-    }
   }
   /*
    * An undo window, draining.

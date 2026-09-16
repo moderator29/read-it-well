@@ -26,7 +26,7 @@
     white-space: nowrap;
     box-shadow:
       0 6px 18px rgb(0 0 0 / 0.4),
-      0 0 14px rgb(12 57 239 / 0.35);
+      0 0 14px var(--nf-glow-2);
     cursor: pointer;
   }
   .nf-map-pin i {
@@ -37,7 +37,7 @@
   }
   .nf-map-pin--active {
     border-color: var(--nf-brand-secondary);
-    box-shadow: 0 0 20px rgb(12 57 239 / 0.6);
+    box-shadow: 0 0 20px var(--nf-glow-4);
   }
   :root[data-theme="light"] .nf-map-pin {
     background: #ffffff;

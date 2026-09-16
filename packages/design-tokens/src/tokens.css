@@ -454,13 +454,23 @@
   --nf-glass-rim-strong: rgb(255 255 255 / 0.34);
   --nf-glass-floor: rgb(0 0 0 / 0.22);
 
-  /* Ambient shadow, two layers: contact + spread. */
-  --nf-glass-shadow:
-    0 1px 2px rgb(0 0 0 / 0.34),
-    0 12px 32px -8px rgb(0 0 0 / 0.46);
-  --nf-glass-shadow-lifted:
-    0 2px 4px rgb(0 0 0 / 0.32),
-    0 20px 56px -12px rgb(0 0 0 / 0.55);
+  /*
+   * Ambient shadow. TWO ALIASES ONTO THE LADDER, not a second ladder.
+   *
+   * These were two hand-tuned pairs sitting beside a six rung elevation scale
+   * that says the same things, so the product had two parallel shadow systems
+   * and raising a glass surface was a different kind of edit from raising a
+   * card. They were also within a few percent of the rungs they duplicated,
+   * which is the tell: not two designs, one design typed twice.
+   *
+   * Rung 2 is "raised: hover, selected, a card that has come forward", which is
+   * a glass panel. Rung 4 is "modal: detached from every edge", which is what
+   * the floating dock, the dock island and the strong glass panel actually are.
+   * Both are named for what the surface IS, so a reader can now tell why a
+   * shadow is the size it is. Daylight follows automatically, because the ladder
+   * already has a paper answer and these did not. */
+  --nf-glass-shadow: var(--nf-elev-2);
+  --nf-glass-shadow-lifted: var(--nf-elev-4);
 
   --nf-glass-specular: linear-gradient(
     152deg,
@@ -705,6 +715,22 @@
    */
   --nf-radius-control: 14px;
 
+  /* ---------------------------------------------------------------------
+   * BORDER WIDTH. Two values, and neither of them is a half pixel.
+   *
+   * Four button variants and several controls were drawn with `1.5px`. On a
+   * device pixel ratio of 1 that renders as an inconsistent 1 or 2 depending on
+   * which edge it is, and it adds a real pixel to the box: this file already
+   * records a 44px target measuring 42 for exactly that reason, and the compact
+   * button's hit-area pad had to be restated in absolute terms because a
+   * negative inset assumed a border width the light theme did not have.
+   *
+   * 1px is the hairline. 2px is the deliberate emphasis, the one a focus ring
+   * and a selected edge use. There is nothing in between.
+   * ------------------------------------------------------------------ */
+  --nf-border-width: 1px;
+  --nf-border-width-strong: 2px;
+
   /*
    * A CIRCLE, SAID AS A CIRCLE.
    *
@@ -872,11 +898,57 @@
   --nf-duration-base: 240ms;
   --nf-duration-slow: 380ms;
   --nf-duration-deliberate: 620ms;
+  /*
+   * The entrance, as a role rather than a rung.
+   *
+   * Content rising in wants 400 to 600ms: under 400 it snaps and reads as a
+   * repaint rather than an arrival, over 600 the reader is waiting for the page
+   * to finish. Entrances were reaching for `slow` (380) in one file and
+   * `deliberate` (620) in another, so the same gesture landed at two speeds
+   * depending on which utility a call site happened to find. 520ms, once.
+   */
+  --nf-duration-entrance: 520ms;
 
   --nf-ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --nf-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
   --nf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
-  --nf-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /*
+   * The overshoot is capped at 28 percent and it used to be 56.
+   *
+   * A 56 percent overshoot on a 240ms move is a bounce, and a bounce is the
+   * opposite of expensive: it reads as a toy. 28 still overshoots enough for
+   * the eye to register the object arriving with weight and settling, which is
+   * the whole reason to have a spring at all.
+   */
+  --nf-ease-spring: cubic-bezier(0.34, 1.28, 0.64, 1);
+
+  /* ---------------------------------------------------------------------
+   * PRESS. The cheapest thing on this list and the one that decides whether a
+   * phone screen feels like an app or like a website.
+   *
+   * A hover is a pointer telling a surface it is being considered. A press is a
+   * finger telling it that something is happening NOW, and on a phone it is the
+   * only one of the two that ever fires. The platform had press physics on
+   * `.nf-btn` and nowhere else, so every card, row, chip and tile in the
+   * product absorbed a tap and answered with nothing until the next screen
+   * arrived.
+   *
+   * ONE CURVE AND ONE DURATION. The press is not an entrance: it has to land
+   * inside the time a finger is still touching the glass, which is why it is
+   * 120ms and not 240. `--nf-ease-press` is a fast-out curve, so the surface
+   * leaves immediately on touch and eases back rather than the reverse.
+   *
+   * THREE SCALES, BECAUSE A BIG OBJECT MOVES LESS. 0.97 on a 350px hero button
+   * is a 10px shrink, which reads as rubber; 0.97 on a 40px icon button is
+   * barely more than a pixel and cannot be felt at all. The same proportion is
+   * not the same gesture, so the scale steps with the size of the thing being
+   * pressed and the DISTANCE stays roughly constant.
+   * ------------------------------------------------------------------ */
+  --nf-duration-press: 120ms;
+  --nf-ease-press: cubic-bezier(0.3, 0, 0.2, 1);
+  --nf-press-scale-sm: 0.94;
+  --nf-press-scale: 0.97;
+  --nf-press-scale-lg: 0.985;
 
   /* ---------------------------------------------------------------------
    * Typography scale. Roles, not raw sizes (Design prompt §4).
@@ -928,19 +1000,71 @@
    * heading tiers stay distinguishable on a narrow screen, which is the only
    * place they were ever at risk of collapsing into each other.
    */
-  --nf-text-display: clamp(1.95rem, 1.1rem + 4vw, 4.6rem);
+  /*
+   * THE DISPLAY SIZE CAME DOWN AT THE TOP AND WENT UP AT THE BOTTOM.
+   *
+   * It was `clamp(1.95rem, 1.1rem + 4vw, 4.6rem)`, which measures 33.2px at
+   * 390px and 73.6px at 1440. Both ends were wrong in the same direction. 73.6px
+   * is larger than any marketing headline on the products this is measured
+   * against, and it is what forced a three word headline to stack into three
+   * one-word lines and take the left half of a desktop page. 33.2px on a phone
+   * is smaller than the product's own h1 wants to be on the one screen that
+   * matters most.
+   *
+   * 36px at 390 and 64px at 1440. Bigger where a person actually reads it,
+   * calmer where there is room.
+   */
+  --nf-text-display: clamp(2.25rem, 1.4rem + 2.8vw, 4rem);
   --nf-text-hero: clamp(1.7rem, 1.05rem + 2.9vw, 3.5rem);
+  /*
+   * h0: THE HOLE IN THE MIDDLE OF THE SCALE.
+   *
+   * Between `h1`, which tops out at 40px, and `display`, which is a landing
+   * page size, there was nothing. So the one place in the product that needs a
+   * large figure rather than a large headline, the price on a property, wrote
+   * its own `text-[2.5rem] ... sm:text-[3.25rem]` and said in its own comment
+   * that it was the single arbitrary size in the file and that it was
+   * deliberate. It was deliberate and it was still a hole in the scale: a rung
+   * that one component has to invent is a rung the scale is missing.
+   *
+   * 40px at 390 and 52px at 1440, which is exactly what that component was
+   * already drawing. It is the rung, not a new size.
+   */
+  --nf-text-h0: clamp(2.5rem, 2.22rem + 1.14vw, 3.25rem);
   --nf-text-h1: clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem);
   --nf-text-h2: clamp(1.3rem, 1.05rem + 1vw, 1.85rem);
   --nf-text-h3: clamp(1.1875rem, 1.05rem + 0.6vw, 1.4375rem);
   --nf-text-h4: 1.25rem;
   --nf-text-body-lg: 1.0625rem;
   --nf-text-body: 1rem;
-  --nf-text-body-sm: 0.90625rem;
+  /*
+   * THE LAST TWO STEPS LAND ON WHOLE PIXELS NOW.
+   *
+   * body-sm was 0.90625rem and overline 0.71875rem: five-decimal and
+   * five-decimal rem values that resolve to 14.5px and 11.5px at a 16px root
+   * and to a fraction of a pixel at any other. A half-pixel font size is
+   * rounded by the rasteriser, differently per platform, so the same row
+   * measured 14px on one machine and 15px on another and no two baselines in a
+   * list agreed.
+   *
+   * 14px and 12px. The step from body (16) to body-sm (14) to caption (13) is
+   * still a real step at each rung, and the overline gains half a pixel where
+   * it was the least readable text in the product.
+   */
+  --nf-text-body-sm: 0.875rem;
   --nf-text-caption: 0.8125rem;
-  --nf-text-overline: 0.71875rem;
+  --nf-text-overline: 0.75rem;
 
+  /*
+   * Tracking is size dependent, which one value cannot express.
+   *
+   * -0.035em is right on a 64px headline and too tight on a 36px one: optical
+   * letter spacing has to loosen as type gets smaller or the counters close up.
+   * A single number is therefore always a phone problem or a desktop problem,
+   * never neither, and this one was the phone's.
+   */
   --nf-tracking-display: -0.035em;
+  --nf-tracking-display-sm: -0.02em;
   --nf-tracking-tight: -0.02em;
   --nf-tracking-normal: 0em;
   --nf-tracking-overline: 0.14em;
@@ -1127,12 +1251,8 @@
   --nf-glass-rim: rgb(255 255 255 / 0.9);
   --nf-glass-rim-strong: rgb(255 255 255 / 1);
   --nf-glass-floor: rgb(18 21 26 / 0.05);
-  --nf-glass-shadow:
-    0 1px 1px rgb(18 21 26 / 0.05),
-    0 8px 24px -6px rgb(18 21 26 / 0.10);
-  --nf-glass-shadow-lifted:
-    0 2px 3px rgb(18 21 26 / 0.06),
-    0 18px 44px -10px rgb(18 21 26 / 0.16);
+  /* The two glass shadows are aliases of the ladder now and the ladder has its
+     own daylight rungs below, so there is nothing to answer here. */
   --nf-glass-specular: linear-gradient(
     152deg,
     rgb(255 255 255 / 0.9) 0%,
@@ -1347,6 +1467,23 @@
     --nf-duration-base: 1ms;
     --nf-duration-slow: 1ms;
     --nf-duration-deliberate: 1ms;
+    --nf-duration-entrance: 1ms;
+    --nf-duration-press: 1ms;
     --nf-ease-spring: linear;
+    /*
+     * The press scales collapse to 1, which is not the same trick as collapsing
+     * a duration and it is the more important one.
+     *
+     * A duration of 1ms still MOVES the object: it just moves instantly, so a
+     * pressed card still jumps 1.5 percent smaller and back. Somebody who has
+     * asked their operating system for less motion has asked for less motion,
+     * not for the same motion delivered faster. At a scale of 1 every rule that
+     * reads these tokens becomes a no-op without a single one of them needing
+     * its own reduced-motion branch, which is how this stays true for rules
+     * nobody has written yet.
+     */
+    --nf-press-scale-sm: 1;
+    --nf-press-scale: 1;
+    --nf-press-scale-lg: 1;
   }
 }

@@ -216,7 +216,20 @@ export function Sheet({
         className="nf-sheet outline-none"
         data-open={entered}
         data-dragging={dragging || undefined}
-        style={{ ["--nf-sheet-y" as string]: `${Math.max(0, offset)}px` }}
+        /*
+         * The upward resistance above is REAL now, and it was dead code.
+         *
+         * `onPointerMove` computes a damped negative offset when the sheet is
+         * dragged past its tallest detent, and this line clamped it to zero, so
+         * the resistance the comment described resisted nothing: the surface
+         * simply did not move. A rubber band that does not band is worse than
+         * none, because the sheet reads as stuck.
+         *
+         * The clamp is kept as a floor on the DAMPED value rather than on the
+         * raw one, so the surface can lift by at most a quarter of the overdrag
+         * and cannot be torn off the top of the screen.
+         */
+        style={{ ["--nf-sheet-y" as string]: `${Math.max(-56, offset)}px` }}
       >
         {/*
           The grip owns the drag. Putting it on the whole surface would fight
@@ -235,7 +248,7 @@ export function Sheet({
           className={
             hideTitle
               ? "sr-only"
-              : "shrink-0 px-5 pb-3 text-[1.0625rem] font-bold tracking-tight text-[var(--nf-content-primary)]"
+              : "shrink-0 px-5 pb-3 text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
           }
         >
           {title}

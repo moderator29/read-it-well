@@ -60,7 +60,7 @@
     border-radius: 50%;
     border: 3px solid var(--nf-surface-primary);
     background: var(--nf-brand-primary);
-    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    box-shadow: 0 0 10px var(--nf-glow-3);
     cursor: grab;
   }
   .nf-range__input::-moz-range-thumb {
@@ -70,7 +70,7 @@
     border-radius: 50%;
     border: 3px solid var(--nf-surface-primary);
     background: var(--nf-brand-primary);
-    box-shadow: 0 0 10px rgb(12 57 239 / 0.45);
+    box-shadow: 0 0 10px var(--nf-glow-3);
     cursor: grab;
   }
   /* The thumb is filled with --nf-brand-primary, so a ring in the same colour
@@ -291,9 +291,9 @@
     border-radius: var(--nf-radius-control);
     color: var(--nf-content-primary);
     cursor: pointer;
-    border: 1px solid rgb(12 57 239 / 0.45);
+    border: 1px solid var(--nf-brand-edge);
     background: linear-gradient(180deg, rgb(0 3 32 / 0.55), rgb(0 1 16 / 0.7));
-    box-shadow: 0 0 10px rgb(12 57 239 / 0.22), inset 0 0 10px rgb(12 57 239 / 0.1);
+    box-shadow: 0 0 10px var(--nf-glow-1), inset 0 0 10px var(--nf-glow-wash);
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
@@ -321,8 +321,8 @@
     transform: translate(-50%, -50%);
   }
   .nf-icon-btn:hover {
-    border-color: rgb(12 57 239 / 0.9);
-    box-shadow: 0 0 18px rgb(12 57 239 / 0.4), inset 0 0 14px rgb(12 57 239 / 0.16);
+    border-color: var(--nf-glow-brand-rim);
+    box-shadow: 0 0 18px var(--nf-glow-3), inset 0 0 14px var(--nf-glow-1);
   }
   .nf-icon-btn:active {
     transform: scale(0.94);

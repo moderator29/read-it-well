@@ -24,20 +24,30 @@ import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/
  * here, once, for everyone.
  */
 
+/**
+ * FIVE VARIANTS FOR FIVE IMPLEMENTATIONS. There were six for five.
+ *
+ * `secondary` and `glass` both resolved to `.nf-btn--glass`: two public names
+ * for one button, so a reader could not tell whether a call site had made a
+ * choice or had guessed. `secondary` is the honest name for the quiet action
+ * beside the primary one, and `glass` described the material rather than the
+ * job, which is what the class name is for. Nothing on the platform passed
+ * `variant="glass"`, so this removes a name rather than a button.
+ */
 export type ButtonVariant =
   | "primary"
   | "secondary"
   | "ghost"
   | "danger"
-  | "dangerQuiet"
-  | "glass";
+  | "dangerQuiet";
 
 /**
- * 44 / 56 / 64px, up a step from 40 / 48 / 56.
+ * 44 / 48 / 56px, down from 44 / 56 / 64.
  *
- * The owner asked for bigger buttons with a comfortable hit target. The heights
- * themselves live in `css/buttons.css`; this union is the vocabulary. No other
- * button heights exist on the platform.
+ * The large button was a 64px slab at 17px type: the landing hero CTA measured
+ * 64 by 350 at 390px, which is a banner. This is the iOS ladder, and 44 is
+ * still the floor. The heights themselves live in `css/buttons.css`; this union
+ * is the vocabulary. No other button heights exist on the platform.
  */
 export type ButtonSize = "sm" | "md" | "lg";
 
@@ -47,7 +57,6 @@ const VARIANT_CLASS: Record<ButtonVariant, string> = {
   ghost: "nf-btn--ghost",
   danger: "nf-btn--danger",
   dangerQuiet: "nf-btn--danger-quiet",
-  glass: "nf-btn--glass",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
@@ -58,14 +67,15 @@ const SIZE_CLASS: Record<ButtonSize, string> = {
 
 /** Icon sizing tracks the button size so the glyph stays optically centred. */
 /*
- * On the icon scale, not beside it, and up a step with the rest of it.
+ * 16 / 20 / 24, and it was 20 / 24 / 24.
  *
- * This was 15/17/19 once, which are three of the fifteen ad-hoc sizes the icon
- * sweep existed to remove, then 16/16/20 to land on the grid. It is 20/24/24
- * now: the scale's floor moved to 16 and its steps moved with it, and a glyph
- * that stayed put while its button grew by 8px would read as having shrunk.
+ * Two of the three were the same number, which is the fault the type scale had
+ * before it was fixed: a caller choosing the medium button believed they were
+ * choosing a smaller glyph and changed nothing. With the heights now stepping
+ * 44 / 48 / 56 the glyphs step with them, one rung of the `UiIcon` grid each,
+ * and all three are on it.
  */
-const ICON_SIZE: Record<ButtonSize, UiIconSize> = { sm: 20, md: 24, lg: 24 };
+const ICON_SIZE: Record<ButtonSize, UiIconSize> = { sm: 16, md: 20, lg: 24 };
 
 type CommonProps = {
   variant?: ButtonVariant;

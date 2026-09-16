@@ -80,7 +80,7 @@
     content: "";
     position: absolute;
     inset: -4px;
-    border-radius: 999px;
+    border-radius: var(--nf-radius-circle);
     border: 2px solid transparent;
     border-top-color: var(--nf-brand-secondary);
     border-right-color: color-mix(in oklab, var(--nf-brand-secondary) 35%, transparent);

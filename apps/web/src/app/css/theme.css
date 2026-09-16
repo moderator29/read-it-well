@@ -97,6 +97,24 @@
   --container-6xl: 72rem;
   --container-7xl: 80rem;
 
+  /*
+   * RADIUS, AND THE NAMESPACE COLLISION IS CLOSED HERE.
+   *
+   * Tailwind's own `rounded-xl` is 12px and `--nf-radius-xl` is 22px, and both
+   * names were in use across the tree, so a reader could not tell which scale a
+   * class belonged to and two cards side by side could disagree about their
+   * corners while both looked correct in source.
+   *
+   * These five lines are the fix: Tailwind resolves `rounded-<name>` from
+   * `--radius-<name>`, so pointing that namespace at ours makes the two scales
+   * one. Measured in a browser rather than assumed: `rounded-xl` computes to
+   * 22px, `rounded-2xl` to 32px, `rounded-lg` to 18px and `rounded-md` to 14px.
+   *
+   * One caveat worth writing down, because it cannot be measured the same way:
+   * a utility Tailwind never sees in source is never generated, so probing
+   * `rounded-3xl` on an injected element returns 0px whether or not the name
+   * resolves. That is the probe failing, not the scale.
+   */
   --radius-sm: var(--nf-radius-sm);
   --radius-md: var(--nf-radius-md);
   --radius-lg: var(--nf-radius-lg);

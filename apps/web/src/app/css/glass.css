@@ -1,5 +1,5 @@
 /*
- * The Vallo material. Glass, the elevation scale, the stride ring, the card,
+ * The Vallo material. Glass, the elevation scale, the card,
  * the icon tile and the confirmation moment. Everything else in the platform is
  * built on top of what is in this file.
  *
@@ -259,109 +259,88 @@
   }
 
   /*
-   * The stride.
+   * `.nf-stride` STOOD HERE AND IS GONE.
    *
-   * A luminous gradient ring drawn on the border box while the fill stays on the
-   * padding box. One element, no pseudo element, no wrapper, so it composes with
-   * anything. This is the single treatment that makes every container on the
-   * platform read as one material.
-   *
-   * The ring is brightest at the upper left and decays to almost nothing at the
-   * lower right, which is the same light direction the 3D icon family uses.
+   * A luminous gradient ring on the border box with its own brand bloom and its
+   * own drop shadow: a fourth elevation idea sitting alongside the six rung
+   * ladder, the two glass shadows and the three legacy aliases. Its comment
+   * called it "the single treatment that makes every container on the platform
+   * read as one material", and nothing on the platform used the class. Not one
+   * element in the tree. The card carries that lit edge itself, which is where
+   * the idea actually lives.
    */
-  .nf-stride {
-    border: 1px solid transparent;
-    background:
-      linear-gradient(var(--nf-stride-fill, var(--nf-surface-secondary)), var(--nf-stride-fill, var(--nf-surface-secondary)))
-        padding-box,
-      linear-gradient(
-          142deg,
-          color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 0%,
-          color-mix(in oklab, var(--nf-brand-primary) 28%, transparent) 34%,
-          rgb(255 255 255 / 0.07) 62%,
-          rgb(255 255 255 / 0.03) 100%
-        )
-        border-box;
-    box-shadow:
-      0 0 16px -10px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent),
-      var(--nf-shadow-card);
-  }
 
-  /* Soft depth: the default card material, now wearing the stride. */
+  /*
+   * The card. SIX LAYERS BECAME TWO: a fill and an edge.
+   *
+   * It carried, in one declaration: a radial brand bloom, a three stop linear
+   * fill, a four stop gradient border, a backdrop blur, an inset rim and an
+   * elevation shadow. There are 423 of them, and the landing page paints over
+   * forty, so that page had over forty individually glowing top-left corners
+   * and forty composited blur passes. Six layers around a 24px icon, repeated,
+   * is most of what reads as choked.
+   *
+   * THE BLUR IS DELETED, and it is the single biggest paint saving available. A
+   * card sits on a FIXED canvas, so there is nothing moving behind it to blur:
+   * the filter was compositing a fresh backdrop for every card on every scroll
+   * frame in order to sample a background that never changed. Glass belongs to
+   * surfaces that float over content, which is the chrome bars, the sheets and
+   * the tab bar, and those keep it. This is also what the direction means by
+   * "a page where everything is glass is a page where nothing is".
+   *
+   * THE FILL IS ONE VEIL OF THE CANVAS, NOT THREE, AND IT IS DEEPER THAN IT WAS.
+   * The three stops ran 58, 70 and 78 percent of the canvas colour, which on a
+   * page whose ambient bloom is considerably brighter than `--nf-surface-canvas`
+   * meant the bloom came straight through the card and a panel was lighter than
+   * the token that names it. One stop at 88 percent is a real pane: still the
+   * page's own colour, so the card cannot drift into a different blue the way
+   * the hand-mixed fill did, but now visibly a surface rather than a tint.
+   *
+   * THE BORDER IS A CORNER CATCH ON A COMPLETE HAIRLINE. The four stop ramp
+   * started at a near-opaque `rgb(92 124 255 / 0.82)` and ran to TRANSPARENT at
+   * 68 percent, so every card had one shouting corner and three quarters of its
+   * perimeter had no edge at all. Now the brand catches the upper left for about
+   * a fifth of the ramp and settles into the ordinary glass hairline for the
+   * rest, so the object is fully outlined and the light still comes from one
+   * place: the same upper left every other surface in this file is lit from.
+   *
+   * What is left is a fill and an edge, where the edge is the border and the
+   * elevation rung it belongs to. This file's own argument is that on this
+   * canvas depth comes from the rim rather than from a black shadow, so the rim
+   * is part of the rung and not a seventh layer.
+   */
   .nf-card {
-    /*
-     * THE FILL IS THE CANVAS NOW, NOT A BLUE MIXED BY HAND TO LOOK LIKE IT.
-     *
-     * The three stops here were literal `rgb(2 8 56)`, `rgb(0 3 30)` and
-     * `rgb(0 2 20)` over a canvas of `#000010`, with a 16% brand bloom on top.
-     * Every one of those is bluer and lighter than the page, so a card read as
-     * a panel laid on the app rather than as part of it - which is exactly what
-     * the owner pointed at on the assistant card and the search box: "check the
-     * background of that area to our platform background, you see they are
-     * different".
-     *
-     * Derived from `--nf-surface-canvas` the divergence cannot come back. A
-     * card is now a veil of the page's own colour at three depths, so if the
-     * canvas is ever retuned the cards follow it without anybody remembering
-     * this file exists. The bloom drops to 7%: enough to keep the corner lit,
-     * not enough to make the panel a different colour from the screen.
-     *
-     * The rim below is untouched. The brand edge is what makes this material
-     * ours and it was never the thing that clashed.
-     */
     background:
-      radial-gradient(
-          125% 90% at 0% 0%,
-          color-mix(in oklab, var(--nf-brand-primary) 7%, transparent) 0%,
-          transparent 46%
+      linear-gradient(
+          color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent),
+          color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent)
         )
         padding-box,
       linear-gradient(
-          160deg,
-          color-mix(in oklab, var(--nf-surface-canvas) 58%, transparent) 0%,
-          color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 64%,
-          color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent) 100%
+          135deg,
+          var(--nf-brand-edge-soft) 0%,
+          var(--nf-glow-1) 18%,
+          var(--nf-glass-border) 42%,
+          var(--nf-glass-border) 100%
         )
-        padding-box,
-      linear-gradient(135deg,
-        rgb(92 124 255 / 0.82) 0%,
-        var(--nf-brand-edge) 20%,
-        var(--nf-glow-wash) 46%,
-        transparent 68%)
         border-box;
     border: 1px solid transparent;
     /*
      * 22px, up from 18px.
      *
-     * The material stays exactly as it is: the layered gradient, the corner
-     * bloom and the rim are the best surface on this platform and they are not
-     * being flattened. What changes is the PROPORTION.
-     *
      * The reference platform's surfaces sit around 20 to 24px and read as
      * roomy. At 18px, with our padding, a card reads as a box holding content
-     * rather than as a space content lives in, and the difference between
-     * those two readings is most of what "mature" means when somebody looks at
-     * a screen and cannot say why one feels expensive.
+     * rather than as a space content lives in, and the difference between those
+     * two readings is most of what "mature" means when somebody looks at a
+     * screen and cannot say why one feels expensive.
      *
      * A radius change is cheap to make and expensive to get wrong, so it is
      * made once, here, on the shared material, rather than as a per-component
      * override that drifts.
      */
     border-radius: var(--nf-radius-xl);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    backdrop-filter: blur(14px) saturate(140%);
-    /*
-     * Rung 1 of the ladder rather than a hand-written drop. The card keeps its
-     * own gradient border and corner glow - that layered material is the best
-     * surface on the platform and the template the rest is being rebuilt from -
-     * but its depth now comes from the same source as every other surface, so
-     * raising a card is a rung change instead of a bespoke shadow.
-     */
     box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1);
     transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  .nf-card.nf-elev--hoverable:hover {
-    box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-card {
@@ -369,59 +348,80 @@
     }
   }
 
+  /*
+   * An interactive card answers the finger first and the pointer second.
+   *
+   * THE PRESS IS THE ONE THAT MATTERS AND IT DID NOT EXIST. A card that is a
+   * link had a hover lift, which no phone ever sees, and nothing at all on
+   * touch. `.nf-press` in motion.css is the shared physics and this simply
+   * takes it: a scale down on `:active` that settles on one curve.
+   *
+   * THE HOVER IS BEHIND `(hover: hover)`, which it was not. A plain `:hover`
+   * sticks after a tap on iOS and Android, so a card a person tapped stayed
+   * lifted and lit until they touched something else.
+   *
+   * AND THE CURSOR-TRACKING LIGHT IS DELETED. A soft radial followed the
+   * pointer across every interactive card, driven by a delegated pointermove
+   * listener writing `--mx` and `--my` across the whole page. On the landing
+   * page that was forty lights answering one cursor, it is invisible on the
+   * phone this product is built for, and the hover shadow it sat inside was a
+   * bespoke three layer stack including its own brand bloom, written beside a
+   * rule two lines below that already said the same thing with the ladder. The
+   * two rules disagreed about one interaction; now there is one rule and it is
+   * a rung change.
+   *
+   * `TiltField` in components/site still writes `--mx` and `--my`, and nothing
+   * reads them any more.
+   */
   .nf-card--interactive {
     position: relative;
     transition:
-      transform var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
-  .nf-card--interactive:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.06),
-      0 12px 40px rgb(0 0 0 / 0.5),
-      0 0 28px var(--nf-glow-1);
+  .nf-card--interactive:active {
+    transform: scale(var(--nf-press-scale-lg));
   }
-  /*
-   * Cursor-lit glass: a soft light spot follows the pointer across the card
-   * face, driven by --mx/--my set from a single delegated listener. Invisible
-   * until the card is hovered on a fine pointer, free on touch devices.
-   */
-  .nf-card--interactive::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
-    background: radial-gradient(
-      200px circle at var(--mx, 50%) var(--my, 40%),
-      rgb(92 124 255 / 0.14) 0%,
-      transparent 70%
-    );
-  }
-  @media (pointer: fine) {
-    .nf-card--interactive:hover::after {
-      opacity: 1;
+  @media (hover: hover) {
+    .nf-card--interactive:hover {
+      box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
     }
   }
-  /* Cinematic media: cover imagery breathes on hover, a slow Ken Burns. */
-  .nf-card--interactive img.object-cover {
-    transition: transform 900ms var(--nf-ease-standard);
-  }
-  .nf-card--interactive:hover img.object-cover {
-    transform: scale(1.05);
+  .nf-card.nf-elev--hoverable:hover {
+    box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-card--interactive:hover {
+    .nf-card--interactive {
+      transition: none;
+    }
+    .nf-card--interactive:active {
       transform: none;
     }
     .nf-card--interactive:hover img.object-cover {
       transform: none;
     }
-    .nf-card--interactive::after {
-      display: none;
+  }
+
+  /*
+   * Cinematic media: cover imagery pushes in on hover, a slow camera move.
+   *
+   * Pointer only, and 900ms is deliberate here where it would be lag anywhere
+   * else: this is a camera, not a control answering a finger. On touch it never
+   * runs, which is correct, because the tap already has the press.
+   */
+  @media (hover: hover) {
+    .nf-card--interactive img.object-cover {
+      transition: transform 900ms var(--nf-ease-standard);
+    }
+    .nf-card--interactive:hover img.object-cover {
+      transform: scale(1.05);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-card--interactive img.object-cover,
+    .nf-card--interactive:hover img.object-cover {
+      transition: none;
+      transform: none;
     }
   }
 

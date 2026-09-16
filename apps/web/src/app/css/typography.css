@@ -8,16 +8,47 @@
   /* ------------------------------------------------------------ typography */
 
   .nf-display,
+  .nf-h0,
   .nf-h1,
   .nf-h2,
   .nf-h3 {
     font-family: var(--nf-font-display);
   }
 
+  /*
+   * THE LEADING WAS BELOW ONE, WHICH IS A DESCENDER COLLIDING WITH AN ASCENDER.
+   *
+   * `line-height: 0.98` at 33px on a phone measured a 32.5px line box against a
+   * 33.2px font size, so the descenders on one line sat inside the ascenders of
+   * the next. It is a real effect of a real decision: sub-one leading looks
+   * tight and expensive on a single 64px line and it breaks the moment a
+   * headline wraps, which on a 390px screen is always.
+   *
+   * 1.04 still reads tight at display size and leaves the wrap legible, and the
+   * tracking loosens with the viewport for the same reason: a value tuned for
+   * 64px closes the counters at 36.
+   */
   .nf-display {
     font-size: var(--nf-text-display);
-    line-height: 0.98;
+    line-height: 1.04;
     font-weight: 700;
+    letter-spacing: var(--nf-tracking-display-sm);
+  }
+  @media (min-width: 640px) {
+    .nf-display {
+      letter-spacing: var(--nf-tracking-display);
+    }
+  }
+
+  /*
+   * The rung between a heading and a display: a large FIGURE rather than a
+   * large headline. A rent, a balance, a total. Heavier than h1 because a
+   * number carries its weight in its strokes rather than in its length.
+   */
+  .nf-h0 {
+    font-size: var(--nf-text-h0);
+    line-height: 1.05;
+    font-weight: 800;
     letter-spacing: var(--nf-tracking-display);
   }
 
@@ -90,12 +121,24 @@
     color: var(--nf-content-muted);
   }
 
+  /*
+   * The overline was the least readable text in the product, and it sits above
+   * roughly every section on the platform.
+   *
+   * 11.5px, uppercase, tracked at 0.14em, in `--nf-content-muted`, which is the
+   * AA floor. Every one of those four choices takes legibility away and they
+   * compound. The size moved to 12px with the token, the tracking comes back to
+   * 0.1em, which is still clearly an overline, and the ink steps up one tier to
+   * `--nf-content-subtle`, which this file's own token notes measure at 11.47:1
+   * on the night canvas and 6.95:1 on paper: safe at any size in both themes,
+   * where muted is only safe because it scrapes the minimum.
+   */
   .nf-overline {
     font-size: var(--nf-text-overline);
     text-transform: uppercase;
-    letter-spacing: var(--nf-tracking-overline);
+    letter-spacing: 0.1em;
     font-weight: 650;
-    color: var(--nf-content-muted);
+    color: var(--nf-content-subtle);
   }
 
   .nf-gradient-text {
