@@ -147,7 +147,7 @@
     flex-shrink: 0;
     width: 1em;
     height: 1em;
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     border: 2px solid currentColor;
     border-right-color: transparent;
     opacity: 0.9;

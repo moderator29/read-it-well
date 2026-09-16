@@ -657,7 +657,7 @@ export const yo: Dictionary = {
     notify: {
       guest: {
         bookings: "Ìfipamọ́",
-        bookingsSub: "Ìbéèrè, ìfẹsẹ̀múlẹ̀ àti ìyípadà sí ìrìnàjò rẹ.",
+        bookingsSub: "Ìbéèrè, ìfẹsẹ̀múlẹ̀ àti ìyípadà sí ìdúró rẹ.",
         messages: "Ìránṣẹ́",
         messagesSub: "Ìdáhùn tuntun láti ọ̀dọ̀ àwọn olùgbàlejò àti aṣojú tí o ń bá sọ̀rọ̀.",
         wallet: "Àpò owó",
@@ -1452,6 +1452,26 @@ export const yo: Dictionary = {
     },
   },
 
+
+  wallet: {
+    entryKind: {
+      deposit: "Ìfikún owó",
+      withdrawal: "Ìyọ owó",
+      payment: "Ìsanwó",
+      refund: "Ìdápadà owó",
+      transfer_in: "Owó tí a gbà",
+      transfer_out: "Owó tí a rán",
+      escrow_hold: "Ó wà ní ìdádúró",
+      escrow_release: "A ti tú ìdádúró",
+      escrow_refund: "A ti dá ìdádúró padà",
+    },
+    entryStatus: {
+      PENDING: "Ó ń lọ lọ́wọ́",
+      COMPLETED: "Ó parí",
+      FAILED: "Kò lọ",
+      REVERSED: "A ti yí padà",
+    },
+  },
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.
@@ -1546,6 +1566,18 @@ export const yo: Dictionary = {
         COMPLETED: "Ó ti parí",
         NO_SHOW: "Kò dé",
         CANCELLED: "Tí a fagilé",
+      },
+
+      searchLabel: "Wá",
+      searchPlaceholder: "Wá nínú ìtòlẹ́sẹẹsẹ yìí",
+      noMatchTitle: "Kò sí ohun tí ó bá a mu",
+      noMatchBody:
+        "Kò sí ìlà nínú ìtòlẹ́sẹẹsẹ yìí tí ó bá ohun tí o ti dín kù mu. Nù àwọn àṣàyàn náà kúrò láti tún rí gbogbo rẹ̀.",
+      filters: {
+        from: "Láti",
+        to: "Dé",
+        apply: "Lò ó",
+        clear: "Nù ú",
       },
     },
 

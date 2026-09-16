@@ -56,7 +56,7 @@ export default async function Page() {
           </span>
           <h1 className="nf-h2 mt-5">{t.agent.nav.settings}</h1>
           <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
-            Your host preferences switch on the moment the platform keys land.
+            We cannot reach your preferences right now.
           </p>
           <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-6">
             {t.agent.nav.dashboard}

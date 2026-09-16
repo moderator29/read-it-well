@@ -47,7 +47,7 @@ export default async function Page({
     const copy =
       read.state === "unconfigured"
         ? {
-            title: "Calendars switch on shortly",
+            title: "We cannot reach your calendar right now",
             body: "This platform is still waiting on its keys, so there is no calendar to manage yet.",
           }
         : read.state === "missing"

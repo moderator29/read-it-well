@@ -83,7 +83,7 @@ async function run(theme) {
 
     check(
       "an honest state is on screen instead",
-      /Notifications switch on shortly|Sign in to see your notifications/.test(text),
+      /We cannot reach your notifications right now|Sign in to see your notifications/.test(text),
     );
     check("the state offers a way onward", (await page.locator("a[href]").count()) > 0);
     check(

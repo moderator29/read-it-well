@@ -77,7 +77,7 @@
     top: 6vh;
     width: 62vmax;
     height: 62vmax;
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     background: radial-gradient(circle, var(--nf-glow-2) 0%, transparent 62%);
     /*
      * THE ONE AMBIENT ANIMATION ON THE PLATFORM.
@@ -105,7 +105,7 @@
     bottom: -6vh;
     width: 68vmax;
     height: 68vmax;
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     background: radial-gradient(circle, color-mix(in oklab, var(--nf-brand-secondary) 18%, transparent) 0%, transparent 64%);
     /* Still. The second bloom is depth, not movement: one light source moves
        and the rest of the ground is lit by it. `will-change` went with the
@@ -124,7 +124,7 @@
     top: calc(var(--nf-py, 38) * 1% - 23vmax);
     width: 46vmax;
     height: 46vmax;
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     background: radial-gradient(circle, var(--nf-glow-wash) 0%, transparent 60%);
     transition:
       left 1100ms var(--nf-ease-standard),
@@ -409,7 +409,7 @@
   .nf-aurora::after {
     content: "";
     position: absolute;
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     filter: blur(90px);
     opacity: 0.2;
   }

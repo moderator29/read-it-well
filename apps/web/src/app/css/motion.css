@@ -141,7 +141,7 @@
     min-height: 44px;
     padding: var(--nf-gap-inline) var(--nf-space-sm);
     border-radius: var(--nf-radius-control);
-    border: 1.5px solid var(--nf-border-on-paper);
+    border: var(--nf-border-width-strong) solid var(--nf-border-on-paper);
     background: var(--nf-surface-on-paper);
     backdrop-filter: blur(6px);
     color: var(--nf-content-on-paper-secondary);

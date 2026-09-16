@@ -112,7 +112,7 @@ export function PayoutAccounts({
             <BrandIcon name="card-lock" fill tile={false} />
           </span>
           <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            Adding an account switches on the moment the payment keys land. We
+            We cannot add a payout account right now. We
             will not store an account we cannot confirm belongs to you, because
             an unconfirmed payout target is how money reaches the wrong person.
           </p>

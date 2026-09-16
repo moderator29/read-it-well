@@ -146,7 +146,7 @@ await expectVisible(
 
 const notificationsText = await page.locator("body").innerText();
 const honest =
-  /Notifications switch on shortly|Sign in to see your notifications/.test(notificationsText);
+  /We cannot reach your notifications right now|Sign in to see your notifications/.test(notificationsText);
 const invented = notificationsText.includes("Booking confirmed");
 if (honest && !invented) {
   console.log("  ok  signed-out notifications state is honest");

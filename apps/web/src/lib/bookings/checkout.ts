@@ -60,7 +60,7 @@ const PAUSED_MESSAGE =
   "Bookings are paused for maintenance. Please try again in a little while.";
 
 const CARD_UNCONFIGURED_MESSAGE =
-  "Card payment switches on the moment payment keys land. Your booking is untouched and your dates are still held.";
+  "We cannot reach card payment right now. Your booking is untouched and your dates are still held.";
 
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";

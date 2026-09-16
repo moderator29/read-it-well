@@ -112,7 +112,7 @@
     position: absolute;
     inset: -7px;
     border-radius: var(--nf-radius-circle);
-    border: 1.5px solid var(--nf-brand-secondary);
+    border: var(--nf-border-width-strong) solid var(--nf-brand-secondary);
     animation: nf-map-pin-bloom 1.5s var(--nf-ease-standard) 500ms both;
     pointer-events: none;
   }

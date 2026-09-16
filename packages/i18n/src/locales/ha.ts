@@ -658,7 +658,7 @@ export const ha: Dictionary = {
     notify: {
       guest: {
         bookings: "Ajiye",
-        bookingsSub: "Buƙatu, tabbatarwa da canje-canje ga tafiyarka.",
+        bookingsSub: "Buƙatu, tabbatarwa da canje-canje ga zamanka.",
         messages: "Saƙonni",
         messagesSub: "Sabbin amsoshi daga masu gida da wakilan da kake magana da su.",
         wallet: "Walat",
@@ -1447,6 +1447,26 @@ export const ha: Dictionary = {
     },
   },
 
+
+  wallet: {
+    entryKind: {
+      deposit: "Ajiyar kuɗi",
+      withdrawal: "Cire kuɗi",
+      payment: "Biyan kuɗi",
+      refund: "Mayar da kuɗi",
+      transfer_in: "Kuɗin da aka karɓa",
+      transfer_out: "Kuɗin da aka aika",
+      escrow_hold: "Ana riƙe",
+      escrow_release: "An sako riƙon",
+      escrow_refund: "An mayar da riƙon",
+    },
+    entryStatus: {
+      PENDING: "Ana ci gaba",
+      COMPLETED: "An gama",
+      FAILED: "Bai wuce ba",
+      REVERSED: "An juya baya",
+    },
+  },
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.
@@ -1540,6 +1560,18 @@ export const ha: Dictionary = {
         COMPLETED: "An kammala",
         NO_SHOW: "Bai zo ba",
         CANCELLED: "An soke",
+      },
+
+      searchLabel: "Nema",
+      searchPlaceholder: "Nema a cikin wannan jerin",
+      noMatchTitle: "Babu abin da ya dace",
+      noMatchBody:
+        "Babu layi a cikin wannan jerin da ya dace da abin da ka tace. Share tacewar don sake ganin komai.",
+      filters: {
+        from: "Daga",
+        to: "Zuwa",
+        apply: "Yi amfani",
+        clear: "Share",
       },
     },
 

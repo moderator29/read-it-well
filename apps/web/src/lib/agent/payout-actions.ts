@@ -45,7 +45,7 @@ const SERVICE_DOWN_MESSAGE =
   "We could not save that just then. Nothing was lost, please try again in a moment.";
 
 const UNVERIFIABLE_MESSAGE =
-  "Bank confirmation switches on the moment the payment keys land. Until then we will not store an account we cannot confirm belongs to you.";
+  "We cannot confirm a bank account right now, and we will not store an account we cannot confirm belongs to you.";
 
 export type ResolvedName = { accountName: string };
 

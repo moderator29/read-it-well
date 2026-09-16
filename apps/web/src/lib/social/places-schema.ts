@@ -151,9 +151,6 @@ export const PLACE_COPY = {
   /** Read out on one nobody has been in. It is an invitation, not a warning. */
   notOpenYet: "Nobody has been in this one yet.",
 
-  unconfigured:
-    "Places switch on the moment the platform keys land. Nothing here is a mock up: there is simply nothing to read yet.",
-
   /** The heading on a local government's page, over the finer places inside it. */
   withinTitle: (name: string) => `Inside ${name}`,
 

@@ -77,7 +77,7 @@ const RAW_ERROR_MARKERS = [
  * the environment has.
  */
 const HONEST_HEADLINES = [
-  "Payment switches on shortly",
+  "We cannot reach payment right now",
   "Sign in to pay for this stay",
   "We could not find that booking",
   "Checkout is unavailable for a moment",

@@ -21,7 +21,7 @@ const NOTICES: Record<string, string> = {
   "link-expired":
     "That link has expired or was already used. Sign in below, or ask for a new link.",
   "link-invalid": "That link was incomplete. Sign in below and it will work as normal.",
-  unconfigured: "Accounts switch on the moment the platform keys land.",
+  unconfigured: "We cannot reach accounts right now. Nothing you typed was lost.",
   "signed-out": "You are signed out. Sign in whenever you are ready.",
   /*
    * Sent by the middleware when somebody reaches a product address without a

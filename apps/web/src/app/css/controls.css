@@ -57,7 +57,7 @@
     pointer-events: auto;
     height: 1.5rem;
     width: 1.5rem;
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     border: 3px solid var(--nf-surface-primary);
     background: var(--nf-brand-primary);
     box-shadow: 0 0 10px var(--nf-glow-3);
@@ -67,7 +67,7 @@
     pointer-events: auto;
     height: 1.5rem;
     width: 1.5rem;
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     border: 3px solid var(--nf-surface-primary);
     background: var(--nf-brand-primary);
     box-shadow: 0 0 10px var(--nf-glow-3);
@@ -161,7 +161,7 @@
     cursor: pointer;
     border: 1px solid transparent;
     background: var(--nf-wash-1);
-    border: 1.5px solid var(--nf-wash-5);
+    border: var(--nf-border-width-strong) solid var(--nf-wash-5);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
     backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
     box-shadow:

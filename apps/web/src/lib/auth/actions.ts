@@ -134,7 +134,7 @@ function emailConfigured(): boolean {
 }
 
 const NOT_CONNECTED_MESSAGE =
-  "Accounts switch on the moment the platform keys land. Nothing you typed was lost.";
+  "We cannot reach accounts right now. Nothing you typed was lost.";
 
 /**
  * Translate a Supabase auth error into something a person can act on.

@@ -182,7 +182,22 @@ const HEIGHT: Record<ControlSize, string> = { md: "h-12", lg: "h-14" };
  * 14px. Scoped to coarse pointers so the desktop type scale is untouched. This
  * duplicates a global rule deliberately - a primitive that silently depends on a
  * rule it does not own breaks the day that rule is refactored.
+ *
+ * AND IT IS `px`, NOT `rem`, AND NOT `--nf-text-body`, WHICH IS ALSO 16.
+ *
+ * This is the one site in the tree that `nf/no-arbitrary-font-size` reports and
+ * should not fix, so it is worth writing down why rather than leaving the next
+ * person to re-derive it from a disable comment.
+ *
+ * `--nf-text-body` is `1rem`, and `1rem` is 16 pixels only while the root font
+ * size is 16 pixels. A reader who has set their browser's default text to 12px
+ * gets a 12px field and Safari hijacks the viewport on every tap into it -
+ * which is precisely the reader most likely to have changed that setting. The
+ * threshold is stated by the platform in absolute pixels, so it is answered in
+ * absolute pixels. The scale is not involved; this is hardware, in the same
+ * category as the `env()` and `calc()` values `nf/no-raw-spacing` lets through.
  */
+// eslint-disable-next-line nf/no-arbitrary-font-size -- 16px is Safari's zoom threshold in absolute pixels, not a rung: see above.
 const FIELD_TYPE = "text-[var(--nf-text-body)] pointer-coarse:text-[16px]";
 
 /**

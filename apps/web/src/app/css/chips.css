@@ -603,7 +603,7 @@
     width: 20rem;
     height: 20rem;
     transform: translateX(-50%);
-    border-radius: 50%;
+    border-radius: var(--nf-radius-circle);
     background: radial-gradient(
       circle,
       color-mix(in oklab, var(--nf-moment-color, var(--nf-brand-primary)) 32%, transparent) 0%,

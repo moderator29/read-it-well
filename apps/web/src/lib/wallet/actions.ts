@@ -91,7 +91,7 @@ import type { WalletSummary } from "./types";
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
 const FUNDING_UNCONFIGURED_MESSAGE =
-  "Wallet funding switches on the moment payment keys land. Your balance is untouched and nothing was charged.";
+  "We cannot add money right now. Your balance is untouched and nothing was charged.";
 /**
  * A reference that does not resolve is the one wallet error where the reader's
  * real fear is "has my money gone", so the copy answers that first and gives
@@ -311,7 +311,7 @@ export async function withdraw(
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   if (!isPaystackConfigured()) {
-    return fail("Withdrawals switch on the moment payment keys land. Your balance is untouched.");
+    return fail("We cannot send a withdrawal right now. Your balance is untouched.");
   }
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);

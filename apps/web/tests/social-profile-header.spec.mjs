@@ -296,7 +296,7 @@ async function run(theme) {
     } else {
       check(
         "the unreadable state is a designed page, not a crash",
-        /switch on shortly|Nothing to show|not a handle/i.test(text),
+        /cannot reach profiles right now|Nothing to show|not a handle/i.test(text),
         text.slice(0, 200),
       );
       check("and it carries a way onward", (await page.locator('a[href="/home"]').count()) >= 1);

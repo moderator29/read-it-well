@@ -133,7 +133,7 @@ export const STORY_FAILURE = {
    * says so rather than blaming them or claiming a network problem.
    */
   notYet:
-    "Stories switch on shortly. Everything else you can do here works as normal.",
+    "We cannot reach stories right now. Everything else you can do here works as normal.",
   signedOutLike: "Sign in to like this story.",
 } as const;
 

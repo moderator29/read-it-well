@@ -686,7 +686,7 @@ export const en = {
     screenSubtitle: "Choose as many as you like, or none at all",
     accountTitle: "This one belongs to your account",
     accountBodyUnconfigured:
-      "Accounts switch on the moment the platform keys land. What you are here for is kept on your account, so it follows you to every device.",
+      "We cannot reach accounts right now. What you are here for is kept on your account, so it follows you to every device.",
     accountBodySignedOut:
       "What you are here for is kept on your account, so it follows you to every device and decides what we put in front of you first.",
     /* The settings row that reads the answer back. */
@@ -756,7 +756,7 @@ export const en = {
       screenSubtitle: "Nigeria, then your state, then your local government",
       accountTitle: "This one belongs to your account",
       accountBodyUnconfigured:
-        "Accounts switch on the moment the platform keys land. Your state, local government and occupation are kept on your account, so they follow you to every device.",
+        "We cannot reach accounts right now. Your state, local government and occupation are kept on your account, so they follow you to every device.",
       accountBodySignedOut:
         "Your state, local government and occupation are kept on your account, so they follow you to every device and decide which places home opens on.",
       statesUnavailable:
@@ -903,7 +903,7 @@ export const en = {
       label: "Account",
       saved: "Saved to your account",
       unconfiguredNote:
-        "Accounts switch on the moment the platform keys land. Everything you set here is kept on this device until then.",
+        "We cannot reach accounts right now. Everything you set here is kept on this device.",
       signedIn: "Signed in",
       notSignedIn: "Not signed in",
       signedOutSub:
@@ -919,7 +919,7 @@ export const en = {
     notify: {
       guest: {
         bookings: "Bookings",
-        bookingsSub: "Requests, confirmations and changes to your trips.",
+        bookingsSub: "Requests, confirmations and changes to your stays.",
         messages: "Messages",
         messagesSub: "New replies from hosts and agents you are talking to.",
         wallet: "Wallet",
@@ -1227,7 +1227,7 @@ export const en = {
         submit: "Submit",
       },
       unconfiguredNotice:
-        "Publishing switches on the moment the platform keys land. Keep going: everything you type is kept on this device and will be waiting for you.",
+        "We cannot reach publishing right now. Keep going: everything you type is kept on this device and will be waiting for you.",
       savedAt: "Saved at {time}",
       saving: "Saving",
       next: "Next",
@@ -1384,7 +1384,7 @@ export const en = {
       },
       needsTitle: "Add a title on step one first, then we can send this listing for review.",
       needsKeys:
-        "Sending for review switches on the moment the platform keys land. Your work is saved on this device.",
+        "We cannot send this for review right now. Your work is saved on this device.",
     },
 
     /**
@@ -1766,6 +1766,40 @@ export const en = {
    * The admin console. Staff-only copy, but copy all the same: an operator in
    * Kano works the same queues as an operator in Lagos.
    */
+
+  /*
+   * The wallet's own vocabulary.
+   *
+   * These were two hard-coded English maps in `components/app/wallet/kinds.ts`,
+   * read by the ledger, the recent activity strip and the receipt. Money is the
+   * one place on this platform where a reader should never have to work out
+   * what a word means, and three of the four languages were being handed
+   * English.
+   *
+   * The three escrow labels say what the platform actually does and never use
+   * the word escrow, because the terms of service say in bold that we do not
+   * hold money in escrow, and a ledger row contradicting the contract is the
+   * fault F2-001 was about.
+   */
+  wallet: {
+    entryKind: {
+      deposit: "Deposit",
+      withdrawal: "Withdrawal",
+      payment: "Payment",
+      refund: "Refund",
+      transfer_in: "Transfer received",
+      transfer_out: "Transfer sent",
+      escrow_hold: "On hold",
+      escrow_release: "Hold released",
+      escrow_refund: "Hold returned",
+    },
+    entryStatus: {
+      PENDING: "Going through",
+      COMPLETED: "Done",
+      FAILED: "Did not go through",
+      REVERSED: "Reversed",
+    },
+  },
   admin: {
     console: {
       title: "Admin console",
@@ -1861,6 +1895,28 @@ export const en = {
         COMPLETED: "Completed",
         NO_SHOW: "No show",
         CANCELLED: "Cancelled",
+      },
+
+      /*
+       * The shared queue frame, for the eighteen console destinations that are
+       * not bookings.
+       *
+       * `t.admin.bookings` already had its own four of these, written when the
+       * bookings board was the only queue with a filter on it. Eighteen more
+       * queues each owning a private copy of the word "Search" is how a console
+       * ends up calling the same control four things, so these are the shared
+       * ones and a queue only adds its own where its noun genuinely differs.
+       */
+      searchLabel: "Search",
+      searchPlaceholder: "Search this queue",
+      noMatchTitle: "Nothing matched that",
+      noMatchBody:
+        "No row in this queue matches what you have narrowed to. Clear the filters to see everything again.",
+      filters: {
+        from: "From",
+        to: "To",
+        apply: "Apply",
+        clear: "Clear",
       },
     },
 

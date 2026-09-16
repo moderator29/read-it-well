@@ -80,7 +80,7 @@ async function run(theme) {
     const absentText = await page.locator("body").innerText();
     check(
       "the review route answers with a designed state, not a crash",
-      /Reviews switch on shortly|Sign in to review your stay|We could not find that stay|Reviews are unavailable for a moment/.test(
+      /We cannot reach reviews right now|Sign in to review your stay|We could not find that stay|Reviews are unavailable for a moment/.test(
         absentText,
       ),
     );
@@ -105,7 +105,7 @@ async function run(theme) {
     const malformedText = await page.locator("body").innerText();
     check(
       "a malformed booking id is a designed screen too",
-      /We could not find that stay|Reviews switch on shortly|Sign in to review your stay/.test(
+      /We could not find that stay|We cannot reach reviews right now|Sign in to review your stay/.test(
         malformedText,
       ),
     );

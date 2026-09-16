@@ -660,7 +660,7 @@ export const ig: Dictionary = {
     notify: {
       guest: {
         bookings: "Ndebe",
-        bookingsSub: "Arịrịọ, nkwenye na mgbanwe na njem gị.",
+        bookingsSub: "Arịrịọ, nkwenye na mgbanwe na obibi gị.",
         messages: "Ozi",
         messagesSub: "Nzaghachi ọhụrụ site n'aka ndị nwe ụlọ na ndị nnọchiteanya ị na-agwa okwu.",
         wallet: "Akpa ego",
@@ -1457,6 +1457,26 @@ export const ig: Dictionary = {
     },
   },
 
+
+  wallet: {
+    entryKind: {
+      deposit: "Ntinye ego",
+      withdrawal: "Iwepụta ego",
+      payment: "Ịkwụ ụgwọ",
+      refund: "Nkwụghachi ego",
+      transfer_in: "Ego e nwetara",
+      transfer_out: "Ego ezigara",
+      escrow_hold: "A na-ejide ya",
+      escrow_release: "A hapụla njide",
+      escrow_refund: "Enyeghachiri njide",
+    },
+    entryStatus: {
+      PENDING: "Na-aga",
+      COMPLETED: "Emechaala",
+      FAILED: "Ọ gaghị",
+      REVERSED: "A tụgharịrị ya",
+    },
+  },
   admin: {
     console: {
       // NATIVE REVIEW: "console" kept in English the way Nigerian staff say it.
@@ -1550,6 +1570,18 @@ export const ig: Dictionary = {
         COMPLETED: "Emechaala",
         NO_SHOW: "Ọ bịaghị",
         CANCELLED: "Akagbuola",
+      },
+
+      searchLabel: "Chọọ",
+      searchPlaceholder: "Chọọ n'usoro a",
+      noMatchTitle: "O nweghị ihe dabara",
+      noMatchBody:
+        "O nweghị ahịrị n'usoro a dabara n'ihe ị belatara. Hichapụ nzacha ndị ahụ ka ị hụ ihe niile ọzọ.",
+      filters: {
+        from: "Site na",
+        to: "Ruo",
+        apply: "Tinye ya",
+        clear: "Hichapụ",
       },
     },
 

@@ -624,7 +624,7 @@
     justify-content: center;
     overflow: hidden;
     aspect-ratio: 1;
-    border-radius: 26%;
+    border-radius: var(--nf-radius-squircle);
     background: var(--nf-icon-ground);
   }
   /*
@@ -688,6 +688,8 @@
    *
    * `aspect-ratio: 1` holds the box square, which is what makes the percentage
    * radius honest: a percentage corner on a non-square box draws an ellipse.
+   * The corner itself is `--nf-radius-squircle` now and was 28% here against the
+   * brand ground's 26% four hundred lines up: the same plate, two numbers.
    */
   .nf-icon-tile {
     position: relative;
@@ -698,7 +700,7 @@
     padding: 9%;
     aspect-ratio: 1;
     border: 1px solid var(--nf-glass-border);
-    border-radius: 28%;
+    border-radius: var(--nf-radius-squircle);
     background: var(--nf-glass-fill);
     box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1);
   }

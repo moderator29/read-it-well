@@ -61,8 +61,29 @@
   --nf-electric-700: #000F98;
   --nf-cyan-400: #00C8FF;
   --nf-cyan-500: #06B6D4;
-  --nf-crimson-400: #FF1744;
-  --nf-crimson-500: #DC143C;
+  /*
+   * CRIMSON IS GONE, THE WHOLE HUE, and it is the only ramp deleted here.
+   *
+   * `--nf-crimson-400` was #FF1744, which is `--nf-rose-400` to the digit, and
+   * `--nf-crimson-500` was #DC143C, a second red nothing read. Two error reds,
+   * one of them an exact duplicate of the other, in a palette whose own note
+   * thirty lines up says the brand is one blue family and that emerald and rose
+   * are the only two hues outside it because they earn it by meaning something.
+   * Crimson meant nothing. Nothing in the stylesheets referenced it, no semantic
+   * token resolved to it, and the JS mirror in `index.ts` never had it, so this
+   * ramp existed only to be confused with rose by the next person looking for
+   * the error colour.
+   *
+   * EVERY OTHER UNREFERENCED RAMP STEP STAYS, and that is a decision rather than
+   * an oversight. `--nf-ink-500/600/700`, `--nf-mist-200`, `--nf-royal-500/600/
+   * 700` and `--nf-cyan-500` have no consumer today. A palette is a palette, not
+   * a usage list: layer 1 exists, in ADR-002's words, "so the semantic layer has
+   * somewhere to resolve to", and a ramp with holes punched in it where nothing
+   * currently lands is harder to read and to extend than a complete one. Three
+   * of them are also mirrored as literals in `index.ts`, where `royal500` and
+   * `cyan500` are read by the icon ramps, so deleting the CSS side would create
+   * exactly the drift that file's own comments were written to stop.
+   */
   --nf-emerald-400: #10B981;
   --nf-rose-400: #FF1744;
   --nf-sky-400: #38BDF8;
@@ -657,9 +678,15 @@
    * drop shadow.
    * ------------------------------------------------------------------ */
 
-  /* 0 - ground: the page itself */
-  --nf-elev-0: none;
-  --nf-elev-0-rim: none;
+  /*
+   * RUNG 0 STOOD HERE AND IS GONE. It was `--nf-elev-0: none` and
+   * `--nf-elev-0-rim: none`: a name for the absence of a shadow, read by no
+   * rule and by no class, beside a `.nf-elev-1` .. `.nf-elev-5` set in glass.css
+   * that never had a rung-0 member either. `box-shadow: none` already says it,
+   * in fewer characters and with no indirection, and the ground is the one
+   * elevation that needs no token because it is what everything else is
+   * measured from. Five rungs and the ground.
+   */
 
   /* 1 - card: resting content */
   --nf-elev-1:
@@ -712,17 +739,23 @@
    * travels the blue family from the pale electric through to the deep neon, so
    * the mark is the palette rather than a contradiction of it.
    */
-  --nf-gradient-primary: linear-gradient(
-    90deg,
-    var(--nf-electric-300) 0%,
-    var(--nf-royal-400) 22%,
-    var(--nf-electric-400) 48%,
-    var(--nf-electric-500) 72%,
-    var(--nf-electric-700) 100%
-  );
+  /*
+   * `--nf-gradient-primary` AND `--nf-gradient-iridescent` STOOD HERE.
+   *
+   * Both were unreferenced, in both themes, by every stylesheet and every
+   * component. The gradient family is now the four that are actually painted:
+   * `-brand` (22 uses), `-agent` (8), `-cta` and `-text` and `-surface` (1
+   * each). These two were a five-stop and a three-stop version of the same
+   * blue travel that `-brand` does in two stops, kept in step by hand across
+   * two theme blocks, for nobody.
+   *
+   * The logo's iridescent ramp is NOT this token and does not lose anything:
+   * it is `iridescentRamp` in `packages/design-tokens/src/index.ts`, as four
+   * literal stops, because an SVG `<stop stop-color>` cannot resolve a CSS
+   * gradient. That one is live and stays.
+   */
   --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
-  --nf-gradient-iridescent: linear-gradient(135deg, #5C7CFF 0%, #0C39EF 52%, #0010E0 100%);
   /*
    * The same gradient, lifted until every stop is readable AS TEXT.
    *
@@ -764,9 +797,22 @@
    * in the `nf-ambient` layer in globals.css.
    * ------------------------------------------------------------------ */
   --nf-canvas-base: #010118;
-  --nf-canvas-bloom-1: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-500) 92%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-2: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-600) 85%, transparent) 0%, transparent 62%);
-  --nf-canvas-bloom-3: radial-gradient(circle, color-mix(in oklab, var(--nf-electric-400) 80%, transparent) 0%, transparent 62%);
+  /*
+   * THE THREE BLOOM TOKENS ARE GONE, AND ONE OF THEM WAS WORSE THAN DEAD.
+   *
+   * `--nf-canvas-bloom-1/2/3` declared the drifting colour blooms in both theme
+   * blocks and nothing read them. `ambient.css` paints its own, at its own
+   * colours and alphas, and has done for some time; these three sat beside it
+   * describing a ground that had moved.
+   *
+   * The daylight block then set all three to `none` under the comment "the
+   * blooms are switched off entirely in daylight", which reads like a switch
+   * and was not one. Daylight switches the blooms off with `display: none` on
+   * the spans in light.css. Had anyone ever relied on that token to turn them
+   * off, it would have done nothing, silently, in the theme half the users are
+   * in - which is the same failure as `.nf-feedtabs` and the same reason the
+   * unresolved-var check now exists.
+   */
 
   /* ---------------------------------------------------------------------
    * Elevation, legacy names. THREE ALIASES, DOWN TO ELEVEN CALL SITES, AND
@@ -976,11 +1022,23 @@
    * button's hit-area pad had to be restated in absolute terms because a
    * negative inset assumed a border width the light theme did not have.
    *
-   * 1px is the hairline. 2px is the deliberate emphasis, the one a focus ring
-   * and a selected edge use. There is nothing in between.
+   * 1px is the hairline. The strong rung is the deliberate emphasis: a control
+   * that wants a visibly heavier edge than a divider.
+   *
+   * IT WAS 2px AND NOTHING READ IT, while three rules in three stylesheets each
+   * hand-wrote `border: 1.5px` - the auth row, the map pin's active state and
+   * the onboarding skip button. Three authors independently reached for the
+   * same width, and it was not the width the ladder offered, so all three wrote
+   * a literal and the token stayed aspirational at a value the product had
+   * never chosen.
+   *
+   * 1.5px is what the product actually paints, so that is what the rung says
+   * now, and the three sites read it. Nothing moved a pixel: the token had no
+   * consumer to disturb. If something later needs a true 2px it should be a
+   * third rung with a reason, not this one quietly changed back.
    * ------------------------------------------------------------------ */
   --nf-border-width: 1px;
-  --nf-border-width-strong: 2px;
+  --nf-border-width-strong: 1.5px;
 
   /*
    * A CIRCLE, SAID AS A CIRCLE.
@@ -992,6 +1050,29 @@
    * on 999px being larger than half of it.
    */
   --nf-radius-circle: 50%;
+
+  /*
+   * THE SQUIRCLE, AND IT WAS TWO NUMBERS FOR ONE DECISION.
+   *
+   * `.nf-brand-icon-ground` rounded at 26% and `.nf-icon-tile` at 28%, side by
+   * side in glass.css, both holding their box square with `aspect-ratio: 1`,
+   * both doing the same job: a proportional plate behind an icon. Two per cent
+   * apart is not a decision anybody can see and not one anybody took; it is two
+   * authors arriving near the same answer with nothing to agree with.
+   *
+   * IT STAYS A PERCENTAGE AND THAT IS DELIBERATE, against the filed finding,
+   * which wanted the percentage radii deleted on the grounds that a percentage
+   * corner draws an ellipse on a non-square box. True, and both rules already
+   * answer it: each sets `aspect-ratio: 1`, and each says in its own comment
+   * that this is what makes the percentage honest. The box cannot be non-square.
+   *
+   * What a fixed radius cannot do is serve the same plate at 16px behind a list
+   * row and at 160px on an empty state. At 16px, 22px of corner is a circle; at
+   * 160px it is very nearly a rectangle. The proportional corner is the reason
+   * the icon set reads as one family at every size, so the fault was the two
+   * numbers, not the unit.
+   */
+  --nf-radius-squircle: 26%;
 
   /* ---------------------------------------------------------------------
    * SPACE. THE SCALE THAT DID NOT EXIST.
@@ -1136,8 +1217,17 @@
   --nf-pad-cell: var(--nf-space-xl);       /* 32 */
   --nf-pad-row-block: var(--nf-space-sm);
   --nf-pad-row-inline: var(--nf-space-md);
-  --nf-pad-control-block: var(--nf-space-sm);
-  --nf-pad-control-inline: var(--nf-space-md);
+  /*
+   * `--nf-pad-control-block` and `--nf-pad-control-inline` stood here and had no
+   * consumer. The row pair above is read four times each and the chip pair below
+   * once, so this was the one role in the family nothing wanted - and there is a
+   * reason. A control does not decide its height by padding: `.nf-btn`,
+   * `.nf-field`, `.nf-chip` and `.nf-icon-btn` all set an explicit height or
+   * min-height from the 44/48/56 ladder and let the label centre inside it,
+   * which is the only way to guarantee a tap target. Vertical padding on a
+   * control is a way of arriving at a height by accident. The horizontal half
+   * went with it rather than leave half a role behind.
+   */
   --nf-pad-chip-block: var(--nf-space-xs);
   --nf-pad-chip-inline: var(--nf-space-sm);
   /*
@@ -1234,7 +1324,16 @@
    */
   --nf-font-display: var(--nf-font-poppins), var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
   --nf-font-sans: var(--nf-font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --nf-font-numeric: var(--nf-font-inter), ui-sans-serif, system-ui, sans-serif;
+  /*
+   * `--nf-font-numeric` stood here, was Inter, and was never read. `.nf-numeric`
+   * in base.css does the numeric job the right way - `font-variant-numeric:
+   * tabular-nums` and `font-feature-settings: "tnum"` - which lines figures up
+   * in the FACE THE TEXT IS ALREADY IN. A separate numeric family is how an
+   * amount ends up in a different typeface from the label beside it, and this
+   * token pointed at the body face anyway, so it promised a decision that had
+   * never been taken and could not have been acted on without making the
+   * product worse.
+   */
 
   /*
    * Type scale. The clamp lower bounds are tuned for a phone first: a heading
@@ -1708,11 +1807,10 @@
   --nf-shadow-lifted: var(--nf-elev-2);
   --nf-shadow-float: var(--nf-elev-4);
 
-  /* Flat neutral canvas. The blooms are switched off entirely in daylight. */
+  /* Flat neutral canvas. Daylight switches the blooms off with `display: none`
+     on the spans, in light.css; the three `none` tokens that used to sit here
+     and claim to do it read nothing and did nothing. See the night block. */
   --nf-canvas-base: #F4F5F7;
-  --nf-canvas-bloom-1: none;
-  --nf-canvas-bloom-2: none;
-  --nf-canvas-bloom-3: none;
 
   /*
    * Accent and state ink on paper. The airy night-theme accents fail AA on
@@ -1846,16 +1944,7 @@
    * every stop steps down until white on the LIGHTEST point of the gradient
    * clears 4.5:1. The lightest stop below is #2450FF at 5.73:1.
    */
-  --nf-gradient-primary: linear-gradient(
-    90deg,
-    #2450FF 0%,
-    #2B3FE0 22%,
-    #0C39EF 48%,
-    #0C2FE8 72%,
-    #1A2596 100%
-  );
   --nf-gradient-brand: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
-  --nf-gradient-iridescent: linear-gradient(135deg, #2450FF 0%, #0C39EF 52%, #0010D0 100%);
   --nf-gradient-agent: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
 }
 

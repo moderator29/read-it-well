@@ -110,9 +110,18 @@ async function run(theme) {
     /* ------------------------------------------------------------ the head */
     const masthead = page.getByTestId("feed-masthead");
     check("the masthead is there", (await masthead.count()) === 1);
+    /* The mark came OFF this masthead. The site header already carries one
+       about 100px above it, and two marks on one screen is the duplication
+       F1-096 is about. What replaced it is a real `h1` naming the screen,
+       which it never had: its name was `sr-only` text beside a picture.
+
+       The old check asserted `svg, img` count >= 1 and still passed after the
+       mark was removed, because the filter and settings icon buttons are svgs.
+       A check that cannot fail is not a check. */
     check(
-      "it carries the mark, not the word Around",
-      (await masthead.locator("svg, img").count()) >= 1,
+      "it names the screen in a real heading, and carries no second logo",
+      (await masthead.getByRole("heading", { level: 1 }).count()) === 1 &&
+        (await masthead.locator('img[alt*="Vallo" i]').count()) === 0,
     );
     check(
       "filters on the left, settings on the right",

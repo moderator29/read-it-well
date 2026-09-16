@@ -137,7 +137,7 @@ async function run(theme) {
      */
     check(
       "the page answers with a designed state, not a crash",
-      /Nothing to show at|Profiles switch on shortly|That is not a handle/.test(freeText),
+      /Nothing to show at|We cannot reach profiles right now|That is not a handle/.test(freeText),
     );
     check("the page is addressed to the handle asked for", freeText.includes(FREE_HANDLE));
     check(
@@ -160,7 +160,7 @@ async function run(theme) {
     const badText = await page.locator("body").innerText();
     check(
       "a malformed handle is told what a handle is",
-      /That is not a handle|Profiles switch on shortly/.test(badText),
+      /That is not a handle|We cannot reach profiles right now/.test(badText),
     );
     check(
       "the malformed state offers a way onward",
@@ -176,7 +176,7 @@ async function run(theme) {
     const editText = await page.locator("body").innerText();
     check(
       "the editor answers with a designed state",
-      /Claim your handle|Profiles switch on shortly|Sign in to claim your handle|belongs to somebody else|This is not your profile/.test(
+      /Claim your handle|We cannot reach profiles right now|Sign in to claim your handle|belongs to somebody else|This is not your profile/.test(
         editText,
       ),
     );

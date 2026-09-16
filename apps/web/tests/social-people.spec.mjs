@@ -205,7 +205,7 @@ async function run(theme) {
       const text = await page.locator("body").innerText();
       check(
         "no profile could be read, and the page says so in a designed state",
-        /Profiles switch on shortly|Nothing to show at|That is not a handle/.test(text),
+        /We cannot reach profiles right now|Nothing to show at|That is not a handle/.test(text),
       );
       check(
         "that state carries a way onward",
@@ -227,7 +227,7 @@ async function run(theme) {
       const text = await page.locator("body").innerText();
       check(
         `/${direction} renders a designed page`,
-        /Followers|Following|Profiles switch on shortly|Nothing to show for/.test(text),
+        /Followers|Following|We cannot reach profiles right now|Nothing to show for/.test(text),
       );
       check(
         `/${direction} carries the platform back control`,
@@ -325,7 +325,7 @@ async function run(theme) {
       );
       check(
         "the answer says which routes it searched, or says nobody matched",
-        /Searched by|Nobody matched|switch on shortly/i.test(
+        /Searched by|Nobody matched|cannot reach profiles right now/i.test(
           await page.locator("body").innerText(),
         ),
       );

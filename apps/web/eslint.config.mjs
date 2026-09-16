@@ -3,9 +3,20 @@ import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
 import nfColour from "./eslint-rules/no-raw-colour.mjs";
 import nfSpacing from "./eslint-rules/no-raw-spacing.mjs";
+import nfFontSize from "./eslint-rules/no-arbitrary-font-size.mjs";
 
-/** Both design-system rules under one plugin namespace, `nf/`. */
-const nf = { rules: { ...nfColour.rules, ...nfSpacing.rules } };
+/**
+ * All three design-system rules under one plugin namespace, `nf/`.
+ *
+ * THREE, AND FOR A LONG TIME THIS LINE SAID "BOTH". `nf/no-arbitrary-font-size`
+ * was named in the sprint plan, in the briefs handed to the workstreams and in
+ * the header below as one of three rules, and it had never been written. The
+ * directory held two files and this line spread two of them. Because the only
+ * signal a missing lint rule produces is zero violations, the absence read as
+ * success everywhere it was looked at. It exists now; see
+ * eslint-rules/no-arbitrary-font-size.mjs.
+ */
+const nf = { rules: { ...nfColour.rules, ...nfSpacing.rules, ...nfFontSize.rules } };
 
 /**
  * ESLint, which has never actually run on this repository.
@@ -209,6 +220,40 @@ const config = [
     ],
     plugins: { nf },
     rules: { "nf/no-raw-spacing": "warn" },
+  },
+
+  /*
+   * ------------------------------------------------------------------
+   * Type provenance. The third of the three, and the one that did not exist.
+   *
+   * See eslint-rules/no-arbitrary-font-size.mjs for the full account. The short
+   * version: this rule was named in three documents as though it had shipped,
+   * the rules directory held two files, and the type scale therefore had
+   * nothing watching it while 1,170 size decisions were taken against twelve
+   * rungs. A missing rule reports zero violations, which is indistinguishable
+   * from a clean tree until somebody counts by hand.
+   *
+   * WARN EVERYWHERE, AND DELIBERATELY NOT ERROR ANYWHERE YET.
+   *
+   * The two rules above earn their `error` in specific directories by being at
+   * zero there today, which is the pattern: a rule holds a real line where the
+   * migration has landed and describes an aspiration everywhere else. This one
+   * has landed nowhere. Turning it to error in any directory on the day it is
+   * written would mean `npm run lint` fails on a clean checkout, which is the
+   * first step towards the config being deleted rather than obeyed, and it is
+   * the reasoning this file has already applied twice.
+   *
+   * WHERE THE RATCHET STARTS. `src/design-system/**` is at zero as of this
+   * commit and `src/components/ui/**` is at zero with one disabled line
+   * carrying its reason. Those two are the first candidates for `error`, and
+   * they should be promoted in the change that verifies them rather than in
+   * the change that introduces the rule: a rule and its first enforcement in
+   * one commit is a rule nobody has had a chance to disagree with.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    plugins: { nf },
+    rules: { "nf/no-arbitrary-font-size": "warn" },
   },
 ];
 
