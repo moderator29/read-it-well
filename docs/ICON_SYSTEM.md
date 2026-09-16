@@ -14,19 +14,32 @@ is defined nowhere in the codebase.
 `apps/web/src/design-system/icons/BrandIcon.tsx`, artwork in
 `apps/web/public/brand/icons/*.png`.
 
-**A replacement set exists and is not wired up.** As of 16 September 2026,
-`apps/web/public/brand/glass/` holds 103 glass objects, 24 light twins and 12
-hero scenes, cut from ten sheets the founder supplied, in the logo's own
-language rather than the clay one. **Nothing points at it yet.** The inventory
-below is still what the product draws. `docs/BRAND_MARKS.md` describes the glass
-system, `docs/FRONTEND_REVAMP.md` section 2 holds the full replacement map, and
-the three changes the swap needs are in its section 2.10.
+**THE SWAP LANDED, 16 September 2026.** `BrandIcon` draws from
+`apps/web/public/brand/glass/`: 103 glass objects in the logo's own language,
+23 of them with a light twin that swaps in automatically on paper, and 12 hero
+scenes under `glass/hero/` that are scenes, never icons, and are painted with
+`next/image` at their own call sites rather than through this component.
 
-**When the swap lands, three things in this file change**, so they are flagged
-here rather than left to be discovered: the inventory below, the paragraph about
-multiply and masking, and the note that the plinth collapses below 24px. The
-glass artwork has a real alpha channel, so there is no white ground to remove and
-no plinth to collapse.
+**What the swap deleted, and each deletion is a rule now:**
+
+- `mix-blend-mode: multiply` is gone. The clay artwork was opaque RGB on white
+  and multiply removed the white at paint time; the glass artwork carries a
+  real alpha channel. Never reintroduce a blend mode to rescue artwork: fix
+  the artwork.
+- The near-white ground plate on dark is gone, and **its absence is the
+  standing acceptance test**: if an object ever needs a plate behind it to be
+  visible on the night canvas, the cutout is wrong.
+- In daylight the single objects sit on one navy chip through one token,
+  `--nf-icon-ground`, and the transaction marks use their light twin instead.
+- Seven clay names live on as `LEGACY_ALIASES` in `BrandIcon.tsx`, resolving
+  to their glass substitutes so 36 call sites keep working. The renames belong
+  to the files' owners. Two objects still need commissioning: `homes-sparkle`
+  and `house-sparkle` are standing in as `cluster-home` and `modern-house`.
+
+The clay set remains on disk at `brand/icons/` as an archive and nothing draws
+it. The inventory below is the OLD inventory, kept for the historical name
+mapping at the bottom of this file; `BRAND_ICONS` in `BrandIcon.tsx` is
+generated from the glass directory and is the authority now.
 
 White ceramic objects with brand blue accents, each on a soft plinth, lit
 from the upper left, sliced from the four supplied pack sheets. This is the
@@ -100,15 +113,14 @@ the TSX and re-run the script, never the other way round. Nobody has to trace a
 glyph from a screenshot. See `assets/icons/README.md` for where the artwork
 lives.
 
-## Not a tier: TrustIcon (the landing trust strip)
+## Deleted: TrustIcon
 
-`apps/web/src/design-system/icons/TrustIcon.tsx`. Six marks: globe, shield,
-ai-chip, africa, app-store, play-store. **Landing trust strip only**, and
-deliberately not exported for general use.
-
-ADR-011 is the authority and it says two tiers. This is a mark set, not a tier: a
-tier is a rule about which family answers a job, and no job anywhere else in the
-product is answered by these six.
+Six marks (globe, shield, ai-chip, africa, app-store, play-store) that existed
+for one consumer, the landing trust strip. The strip was deleted in the
+September 2026 landing rebuild, its claims having been the most template-shaped
+copy on the page, and the component went with it: a mark set with zero
+consumers is where retired branding hides from the next sweep. ADR-011 stands
+at two tiers, now with nothing beside them.
 
 ## Deleted: Icon3D
 
