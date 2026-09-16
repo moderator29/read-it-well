@@ -44,3 +44,17 @@ scripts/.shots/
 
 # Parallel build outputs (see next.config.ts distDir)
 apps/web/.next-*
+
+# Derived icon artwork. `assets/brand-sheets` holds the founder's original
+# sheets and is the only part that is source; everything below is one command
+# away from existing again:
+#
+#   node scripts/slice-icon-sheets.mjs
+#   node scripts/cut-icon-ground.mjs
+#   node scripts/name-icon-objects.mjs
+#
+# The last of those writes the named set into apps/web/public/brand/glass,
+# which IS committed, because that is what the product serves. The two
+# intermediates are 37MB and nobody needs them in a clone.
+assets/brand-sliced/
+assets/brand-cut/
