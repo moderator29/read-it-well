@@ -46,31 +46,54 @@ const PRELOADED_FONTS: Record<string, readonly string[]> = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  /*
+   * The slogan is the founder's, verbatim, exclamation mark included. The
+   * template must not strip it: metadata titles pass through as written.
+   *
+   * The description says what the product IS, in PRODUCT.md's words, rather
+   * than listing categories. The line it replaced described "homes, hotels,
+   * restaurants and experiences", which was the travel app this stopped being,
+   * and promised "verified listings" while the catalogue holds zero.
+   */
   title: {
-    default: "Vallo. Find it. Rent it. Love it.",
+    default: "Vallo. Real Estate reimagined!",
     template: "%s | Vallo",
   },
   description:
-    "Discover and book homes, hotels, restaurants and experiences across Nigeria. Verified listings, secure payments and an assistant that understands what you actually want.",
+    "Rent, buy or sell property across Nigeria. Every place on Vallo was listed by a real person, with the light, the water and the gate answered, and the move-in total printed in full.",
   applicationName: "Vallo",
   keywords: [
     "Nigeria",
-    "shortlet",
+    "rent",
+    "property",
+    "real estate",
     "apartments",
-    "hotels",
-    "restaurants",
-    "experiences",
-    "booking",
+    "shortlet",
+    "land",
     "Lagos",
     "Abuja",
+    "Port Harcourt",
   ],
+  /*
+   * The card image is NOT declared here on purpose. `opengraph-image.png` sits
+   * beside this file and Next emits og:image and twitter:image for it
+   * automatically, at the right URL, with dimensions. Declaring `images` here
+   * as well would be a second copy of the same fact that drifts the first time
+   * the file changes. `scripts/build-og-image.mjs` is the generator.
+   */
   openGraph: {
-    title: "Vallo. Find it. Rent it. Love it.",
+    title: "Vallo. Real Estate reimagined!",
     description:
-      "Your all-in-one platform for homes, hotels, restaurants, experiences and more, across Nigeria.",
+      "Rent, buy or sell property across Nigeria, listed by real people, with the move-in total printed in full.",
     siteName: "Vallo",
     locale: "en_NG",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vallo. Real Estate reimagined!",
+    description:
+      "Rent, buy or sell property across Nigeria, listed by real people, with the move-in total printed in full.",
   },
   robots: { index: true, follow: true },
 
