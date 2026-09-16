@@ -3,6 +3,15 @@ import Link from "next/link";
 import { requireAdmin, adminRefusal } from "@/lib/admin/guard";
 import { getSocialQueue } from "@/lib/social/admin-queries";
 import { AreaDecision, ModeratorDecision, PauseToggle } from "./SocialDecisions";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import {
+  QueueFilters,
+  queueNarrowed,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
+import { Constants } from "@/lib/supabase/database.types";
 
 export const metadata: Metadata = {
   title: "Around",
@@ -34,65 +43,126 @@ export const dynamic = "force-dynamic";
  * decision recorded in R-107: the console is an internal surface for a small
  * team and translating it would be work with no reader.
  */
-export default async function AdminSocialPage() {
+/**
+ * The chips, from `area_status`.
+ *
+ * Five values, and two of them - ARCHIVED and REJECTED - belong to no bucket on
+ * this screen, so choosing one returns nothing. That is deliberate and it is
+ * the same call the applications queue makes about DRAFT: the list is built
+ * from the enum so it cannot go stale, and an operator who picks one learns
+ * something true about where those places are.
+ *
+ * The words are the console's own status vocabulary, which already carries all
+ * five, so a Hausa operator reads Hausa.
+ */
+function statusFilters(statusNames: Record<string, string | undefined>): readonly QueueStatusOption[] {
+  return Constants.public.Enums.area_status.map((value) => ({
+    value,
+    label: statusNames[value] ?? value,
+  }));
+}
+
+export default async function AdminSocialPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const access = await requireAdmin();
   if (access.state !== "admin") {
     return (
-      <div className="nf-card p-6">
-        <h1 className="text-lg font-semibold text-[var(--nf-content-primary)]">Around</h1>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+      <div className="nf-card p-lg">
+        <h1 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
+        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {adminRefusal(access)}
         </p>
       </div>
     );
   }
 
-  const queue = await getSocialQueue();
+  /* The shared queue frame, the eleventh destination to get it. This screen
+     read the oldest hundred of each bucket and printed all of them, with no way
+     to ask for one place by name. No pager: see the note on `getSocialQueue`. */
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const narrowed = queueNarrowed(query);
+  const t = getDictionary(await getLocale());
+  const common = t.admin.common;
+  const queue = await getSocialQueue({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+  });
+  const nothing =
+    queue.proposed.length === 0 && queue.applications.length === 0 && queue.open.length === 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-xl">
       <header>
-        <h1 className="text-xl font-semibold text-[var(--nf-content-primary)]">Around</h1>
-        <p className="mt-1 text-sm text-[var(--nf-content-muted)]">
+        <h1 className="text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
+        <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
           Places people asked for, and people who asked to look after one.
         </p>
       </header>
 
+      <QueueFilters
+        base="/admin/social"
+        query={query}
+        common={common}
+        statuses={statusFilters(common.status as Record<string, string | undefined>)}
+        searchPlaceholder="Search by place or city"
+      />
+
+      {narrowed && nothing && (
+        <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+          <span className="block font-semibold text-[var(--nf-content-primary)]">
+            {common.noMatchTitle}
+          </span>
+          <span className="mt-2xs block">{common.noMatchBody}</span>
+        </p>
+      )}
+
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Places waiting
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.proposed.length}
           </span>
         </h2>
 
+        {/* Narrowed, the section says nothing: "nothing waiting" is a claim
+            about the whole desk and is false to somebody who has just filtered
+            to one city. The single no-match panel above answers for the
+            screen. */}
         {queue.proposed.length === 0 ? (
-          <p className="nf-card p-4 text-sm text-[var(--nf-content-muted)]">
-            Nothing waiting. When somebody suggests a place it lands here.
-          </p>
+          narrowed ? null : (
+            <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+              Nothing waiting. When somebody suggests a place it lands here.
+            </p>
+          )
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-sm">
             {queue.proposed.map((area) => (
-              <li key={area.id} className="nf-card p-4 sm:p-5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <h3 className="text-base font-semibold text-[var(--nf-content-primary)]">
+              <li key={area.id} className="nf-card p-md sm:p-5">
+                <div className="flex flex-wrap items-baseline gap-x-xs gap-y-2xs">
+                  <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {area.name}
                   </h3>
-                  <span className="text-xs uppercase tracking-wider text-[var(--nf-content-muted)]">
+                  <span className="text-[var(--nf-text-overline)] uppercase tracking-wider text-[var(--nf-content-muted)]">
                     {area.kind}
                   </span>
-                  <span className="text-xs text-[var(--nf-content-muted)]">
+                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {area.city}, {area.stateCode}
                   </span>
                 </div>
 
                 {area.blurb ? (
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {area.blurb}
                   </p>
                 ) : null}
 
-                <p className="mt-2 text-xs text-[var(--nf-content-muted)]">
+                <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   Address will be{" "}
                   <span className="nf-numeric">/around/{area.slug}</span>
                   {area.proposerHandle ? (
@@ -117,37 +187,39 @@ export default async function AdminSocialPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           People who want to look after a place
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.applications.length}
           </span>
         </h2>
 
         {queue.applications.length === 0 ? (
-          <p className="nf-card p-4 text-sm text-[var(--nf-content-muted)]">
-            No applications open.
-          </p>
+          narrowed ? null : (
+            <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+              No applications open.
+            </p>
+          )
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-sm">
             {queue.applications.map((application) => (
-              <li key={application.id} className="nf-card p-4 sm:p-5">
-                <div className="flex flex-wrap items-baseline gap-x-2">
-                  <h3 className="text-base font-semibold text-[var(--nf-content-primary)]">
+              <li key={application.id} className="nf-card p-md sm:p-5">
+                <div className="flex flex-wrap items-baseline gap-x-xs">
+                  <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {application.displayLabel ??
                       (application.handle ? `@${application.handle}` : "A member")}
                   </h3>
-                  <span className="text-xs text-[var(--nf-content-muted)]">
+                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     wants to look after {application.areaName}
                   </span>
                 </div>
 
-                <blockquote className="mt-3 border-l-2 border-[var(--nf-border-brand)] pl-3 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+                <blockquote className="mt-sm border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {application.reason}
                 </blockquote>
 
                 {application.handle ? (
-                  <p className="mt-2 text-xs text-[var(--nf-content-muted)]">
+                  <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     <Link
                       href={`/u/${application.handle}`}
                       className="text-[var(--nf-brand-secondary)]"
@@ -175,44 +247,46 @@ export default async function AdminSocialPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Open places
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.open.length}
           </span>
         </h2>
 
         {queue.open.length === 0 ? (
-          <p className="nf-card p-4 text-sm text-[var(--nf-content-muted)]">
-            No places are open yet. Approving one above opens it.
-          </p>
+          narrowed ? null : (
+            <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+              No places are open yet. Approving one above opens it.
+            </p>
+          )
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-xs">
             {queue.open.map((area) => (
               <li
                 key={area.id}
-                className="nf-card flex flex-wrap items-center gap-3 p-4"
+                className="nf-card flex flex-wrap items-center gap-sm p-md"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-xs">
                     <Link
                       href={`/around/${area.slug}`}
-                      className="truncate text-sm font-semibold text-[var(--nf-content-primary)]"
+                      className="truncate text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
                     >
                       {area.name}
                     </Link>
                     {area.status === "PAUSED" ? (
-                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
                         Paused
                       </span>
                     ) : null}
                   </div>
-                  <p className="nf-numeric mt-0.5 text-xs text-[var(--nf-content-muted)]">
+                  <p className="nf-numeric mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {area.city} &middot; {area.memberCount} members &middot;{" "}
                     {area.moderatorCount} looking after it
                   </p>
                   {area.moderatorCount === 0 ? (
-                    <p className="mt-1 text-xs text-[var(--nf-state-warning)]">
+                    <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-state-warning)]">
                       Nobody is watching this place.
                     </p>
                   ) : null}

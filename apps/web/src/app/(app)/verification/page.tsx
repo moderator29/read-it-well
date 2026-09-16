@@ -153,7 +153,7 @@ export default async function VerificationPage({
             a document should not have to remember, from the screen before, which
             one was refused and why. */}
         {whatWasSaid && (
-          <p className="nf-card mb-block p-card text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="nf-card mb-block p-card text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             <span className="block font-semibold text-[var(--nf-content-primary)]">
               What the reviewer said
             </span>

@@ -76,10 +76,10 @@ export function ReportSheet({
   return (
     <div className="nf-social-sheet" role="dialog" aria-modal="true" aria-label={title}>
       <div ref={panelRef} className="nf-social-sheet__panel">
-        <header className="mb-5 flex items-start justify-between gap-3">
+        <header className="mb-5 flex items-start justify-between gap-sm">
           <div className="min-w-0">
-            <h2 className="nf-h3 text-[1.15rem]">{sent ? "Thank you" : title}</h2>
-            <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">{sent ? "Thank you" : title}</h2>
+            <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               {subject}
             </p>
           </div>
@@ -95,11 +95,11 @@ export function ReportSheet({
 
         {sent ? (
           <>
-            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Somebody will read this. We never tell the person who reported
               them, and we do not tell them what was said about them either.
             </p>
-            <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               If you would rather not see them at all in the meantime, mute or
               block them from the same menu. Neither of those tells them
               anything.
@@ -107,7 +107,7 @@ export function ReportSheet({
             <button
               type="button"
               onClick={onClose}
-              className="nf-btn nf-btn--primary mt-6 w-full"
+              className="nf-btn nf-btn--primary mt-lg w-full"
             >
               Done
             </button>
@@ -116,7 +116,7 @@ export function ReportSheet({
           <>
             <fieldset>
               <legend className="nf-overline mb-2.5">What is wrong</legend>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-xs">
                 {reasons.map((key) => (
                   <label key={key} className="nf-social-reason">
                     <input
@@ -135,7 +135,7 @@ export function ReportSheet({
             <label className="mt-5 block">
               <span className="nf-overline">Anything else, if it helps</span>
               <textarea
-                className="nf-field mt-2 min-h-[88px] w-full resize-y text-[0.9375rem] leading-[1.5]"
+                className="nf-field mt-xs min-h-[88px] w-full resize-y text-[var(--nf-text-body-sm)] leading-[1.5]"
                 value={detail}
                 maxLength={600}
                 onChange={(event) => setDetail(event.target.value)}
@@ -146,13 +146,13 @@ export function ReportSheet({
             {error ? (
               <p
                 role="alert"
-                className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-3 py-2 text-sm leading-relaxed text-[var(--nf-content-primary)]"
+                className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
               >
                 {error}
               </p>
             ) : null}
 
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+            <div className="mt-lg flex flex-col gap-xs sm:flex-row-reverse">
               <button
                 type="button"
                 onClick={send}

@@ -72,12 +72,12 @@ export function FirstRun({
     <div className="relative z-10 w-full max-w-[32rem]">
       <div className="nf-rise flex flex-col items-center text-center">
         <LogoMark size={40} title="Vallo" />
-        <h1 className="nf-h2 mt-4">{t.interests.question}</h1>
-        <p className="mt-2 max-w-[26rem] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h2 mt-md">{t.interests.question}</h1>
+        <p className="mt-xs max-w-[26rem] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.interests.screenSubtitle}. {t.interests.note}
         </p>
         {/* The one line rescued from the carousel. See the note above. */}
-        <p className="mt-3 max-w-[26rem] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-sm max-w-[26rem] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           {t.welcomeCards.three.body}
         </p>
       </div>

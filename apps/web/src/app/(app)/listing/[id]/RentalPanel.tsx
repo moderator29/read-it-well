@@ -98,7 +98,7 @@ export async function RentalPanel({
           secondaryClassName="text-[0.54em] font-semibold opacity-60"
         />
       </p>
-      <p className={`mt-1 ${TYPE.rowMeta}`}>
+      <p className={`mt-2xs ${TYPE.rowMeta}`}>
         {forSale
           ? "Agreed with the agent after an inspection."
           : period === "year"
@@ -117,10 +117,10 @@ export async function RentalPanel({
         />
       )}
 
-      <ol className="mt-4 space-y-3 border-t border-[var(--nf-border-subtle)] pt-4">
+      <ol className="mt-md space-y-sm border-t border-[var(--nf-border-subtle)] pt-md">
         {STEPS.map((step, i) => (
-          <li key={step.label} className="flex items-start gap-3">
-            <span className="nf-numeric nf-caption mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] font-bold text-[var(--nf-content-secondary)]">
+          <li key={step.label} className="flex items-start gap-sm">
+            <span className="nf-numeric nf-caption mt-3xs grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] font-bold text-[var(--nf-content-secondary)]">
               {i + 1}
             </span>
             <span className="min-w-0">
@@ -143,19 +143,19 @@ export async function RentalPanel({
         href={`/messages/new?listing=${listingId}`}
         variant="primary"
         full
-        className="mt-4"
+        className="mt-md"
         leadingIcon="chat-bubble"
       >
         Message agent
       </ButtonLink>
 
-      <div className="mt-2">
+      <div className="mt-xs">
         <RequestInspection listingId={listingId} existing={existing} locale={locale} />
       </div>
 
       {/* The trust block: an object large enough to read as content, so this is
           the one place on the panel that takes a 3D brand icon. */}
-      <div className="mt-4 flex items-start gap-3 border-t border-[var(--nf-border-subtle)] pt-4">
+      <div className="mt-md flex items-start gap-sm border-t border-[var(--nf-border-subtle)] pt-md">
         <span className="block h-11 w-11 shrink-0">
           <BrandIcon name="shield-check" fill />
         </span>

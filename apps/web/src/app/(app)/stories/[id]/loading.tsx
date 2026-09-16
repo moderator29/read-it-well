@@ -30,7 +30,7 @@ export default function LoadingStory() {
         </div>
 
         <div className="nf-story__foot">
-          <div className="nf-story__card space-y-3">
+          <div className="nf-story__card space-y-sm">
             <span className="nf-social-skeleton block h-4 w-24 rounded-[var(--nf-radius-pill)]" />
             <span className="nf-social-skeleton block h-6 w-4/5 rounded-[var(--nf-radius-xs)]" />
             <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />

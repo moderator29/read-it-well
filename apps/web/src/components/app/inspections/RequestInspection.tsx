@@ -56,8 +56,8 @@ export function RequestInspection({
       : formatDate(date, locale, { weekday: "short", day: "numeric", month: "short" });
 
     return (
-      <p className={`flex items-start gap-2 ${TYPE.rowMeta}`} data-testid="inspection-existing">
-        <UiIcon name="calendar-booking" size={20} className="mt-0.5 shrink-0" />
+      <p className={`flex items-start gap-xs ${TYPE.rowMeta}`} data-testid="inspection-existing">
+        <UiIcon name="calendar-booking" size={20} className="mt-3xs shrink-0" />
         <span>
           {existing.state === "CONFIRMED"
             ? `${CONFIRMED_FOR} ${stamp}. ${TRACK_IT}`
@@ -105,21 +105,21 @@ export function RequestInspection({
       </AuthGate>
 
       <Sheet open={open} onOpenChange={setOpen} title={SHEET_TITLE} detents={[0.6]}>
-        <div className="px-1 pb-2">
+        <div className="px-2xs pb-xs">
           <p className={TYPE.body}>{SHEET_SUB}</p>
 
-          <label className="mt-4 block">
+          <label className="mt-md block">
             <span className="nf-label">{WHEN_LABEL}</span>
             <input
               type="datetime-local"
               value={when}
               onChange={(event) => setWhen(event.target.value)}
-              className="nf-field mt-1 w-full"
+              className="nf-field mt-2xs w-full"
               data-testid="inspection-when"
             />
           </label>
 
-          <label className="mt-4 block">
+          <label className="mt-md block">
             <span className="nf-label">{NOTE_LABEL}</span>
             <input
               type="text"
@@ -127,17 +127,17 @@ export function RequestInspection({
               maxLength={400}
               onChange={(event) => setNote(event.target.value)}
               placeholder={NOTE_PLACEHOLDER}
-              className="nf-field mt-1 w-full"
+              className="nf-field mt-2xs w-full"
             />
           </label>
 
           {error && (
-            <p role="alert" className={`mt-3 ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
+            <p role="alert" className={`mt-sm ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
               {error}
             </p>
           )}
 
-          <p className={`mt-4 ${TYPE.rowMeta}`}>{SAFETY}</p>
+          <p className={`mt-md ${TYPE.rowMeta}`}>{SAFETY}</p>
 
           <Button
             full

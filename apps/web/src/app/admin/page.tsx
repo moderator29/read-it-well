@@ -47,10 +47,10 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <header className="mb-5 flex items-start justify-between gap-3">
+      <header className="mb-5 flex items-start justify-between gap-sm">
         <div>
           <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{o.title}</h1>
-          <p className="mt-1.5 max-w-[62ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-1.5 max-w-[62ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {o.lede}
           </p>
         </div>
@@ -68,7 +68,7 @@ export default async function AdminOverviewPage() {
         <ui.QueueUnavailable />
       ) : (
         <>
-          <ul className="nf-panel-sunken grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <ul className="nf-panel-sunken grid grid-cols-2 gap-md lg:grid-cols-3">
             {TILES.map((tile) => {
               const value = counts.data[tile.key] ?? 0;
               const copy = o.tiles[tile.key];
@@ -76,12 +76,12 @@ export default async function AdminOverviewPage() {
                 <li key={tile.key}>
                   <Link
                     href={tile.href}
-                    className="nf-card nf-card--interactive flex h-full flex-col gap-2 p-4 sm:p-5"
+                    className="nf-card nf-card--interactive flex h-full flex-col gap-xs p-md sm:p-5"
                   >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="flex items-center gap-2 text-[var(--nf-content-secondary)]">
+                    <span className="flex items-center justify-between gap-xs">
+                      <span className="flex items-center gap-xs text-[var(--nf-content-secondary)]">
                         <UiIcon name={tile.icon} size={20} className="shrink-0" />
-                        <span className="text-[0.75rem] font-semibold uppercase tracking-wide">
+                        <span className="text-[var(--nf-text-overline)] font-semibold uppercase tracking-wide">
                           {copy.label}
                         </span>
                       </span>
@@ -97,7 +97,7 @@ export default async function AdminOverviewPage() {
                     >
                       {value}
                     </span>
-                    <span className="text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+                    <span className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                       {value > 0 ? copy.lede : o.queueClear}
                     </span>
                   </Link>
@@ -106,15 +106,15 @@ export default async function AdminOverviewPage() {
             })}
           </ul>
 
-          <section className="nf-card mt-4 p-4 sm:p-5">
+          <section className="nf-card mt-md p-md sm:p-5">
             <h2 className="nf-h3">{o.how.title}</h2>
-            <ul className="mt-2 space-y-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <ul className="mt-xs space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {[o.how.audit, o.how.notify, o.how.invisible].map((line) => (
-                <li key={line} className="flex gap-3">
+                <li key={line} className="flex gap-sm">
                   <UiIcon
                     name="verified"
                     size={16}
-                    className="mt-0.5 shrink-0 text-[var(--nf-state-success)]"
+                    className="mt-3xs shrink-0 text-[var(--nf-state-success)]"
                   />
                   {line}
                 </li>
@@ -122,7 +122,7 @@ export default async function AdminOverviewPage() {
             </ul>
             <Link
               href="/admin/switches"
-              className="mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="mt-sm inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               {o.how.openSwitches}
               <UiIcon name="arrow-right" size={16} />

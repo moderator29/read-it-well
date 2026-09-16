@@ -12,14 +12,14 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export default function LoadingVerification() {
   return (
     <LoadingShell label="Loading verification" className="mx-auto max-w-xl">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-sm">
         <Skeleton width="2.5rem" height="2.5rem" radius="pill" className="shrink-0" />
         <Skeleton width="6rem" height="1rem" radius="sm" />
       </div>
-      <Skeleton height="0.375rem" radius="pill" className="mt-3" />
-      <Skeleton width="12rem" height="2rem" radius="sm" className="mt-6" />
+      <Skeleton height="0.375rem" radius="pill" className="mt-sm" />
+      <Skeleton width="12rem" height="2rem" radius="sm" className="mt-lg" />
       <Skeleton width="min(24rem, 100%)" height="1rem" radius="sm" className="mt-2.5" />
-      <Skeleton height="12rem" radius="xl" className="mt-6" />
+      <Skeleton height="12rem" radius="xl" className="mt-lg" />
     </LoadingShell>
   );
 }

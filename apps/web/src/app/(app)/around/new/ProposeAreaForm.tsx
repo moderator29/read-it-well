@@ -51,17 +51,17 @@ export function ProposeAreaForm({
 
   if (done) {
     return (
-      <div className="nf-card p-6 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--nf-state-success-surface)]">
+      <div className="nf-card p-lg text-center">
+        <div className="mx-auto mb-md flex h-12 w-12 items-center justify-center rounded-full bg-[var(--nf-state-success-surface)]">
           <UiIcon name="verified" size={22} className="text-[var(--nf-state-success)]" />
         </div>
-        <h2 className="text-lg font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           Thank you. We have it.
         </h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_COPY.proposePending}
         </p>
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+        <div className="mt-5 flex flex-col gap-xs sm:flex-row sm:justify-center">
           <button
             type="button"
             className="nf-btn nf-btn--primary"
@@ -113,7 +113,7 @@ export function ProposeAreaForm({
       }}
     >
       {!signedIn ? (
-        <p className="nf-card border-[var(--nf-border-brand)] p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card border-[var(--nf-border-brand)] p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           Sign in first and we will keep what you type here.
         </p>
       ) : null}
@@ -128,25 +128,25 @@ export function ProposeAreaForm({
         hint="The name people actually say, not the official one."
       />
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-semibold text-[var(--nf-content-primary)]">
+      <fieldset className="flex flex-col gap-xs">
+        <legend className="mb-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           What kind of place is it?
         </legend>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-xs">
           {AREA_KINDS.map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setKind(option)}
               aria-pressed={kind === option}
-              className={`rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-primary)] p-3 text-left transition-colors ${
+              className={`rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-primary)] p-sm text-left transition-colors ${
                 kind === option
                   ? "border-2 border-[var(--nf-brand-primary)] shadow-[var(--nf-glow-accent)]"
                   : "border-2 border-[var(--nf-border-default)]"
               }`}
             >
               <span
-                className={`block text-sm font-semibold ${
+                className={`block text-[var(--nf-text-body-sm)] font-semibold ${
                   kind === option
                     ? "text-[var(--nf-brand-primary)]"
                     : "text-[var(--nf-content-primary)]"
@@ -154,7 +154,7 @@ export function ProposeAreaForm({
               >
                 {AREA_KIND_LABEL[option]}
               </span>
-              <span className="mt-1 block text-xs leading-snug text-[var(--nf-content-muted)]">
+              <span className="mt-2xs block text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
                 {AREA_KIND_HINT[option]}
               </span>
             </button>
@@ -199,7 +199,7 @@ export function ProposeAreaForm({
       />
 
       {slug ? (
-        <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-3 py-2 text-xs text-[var(--nf-content-muted)]">
+        <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Its address will be{" "}
           <span className="nf-numeric text-[var(--nf-content-secondary)]">
             {displayHost()}/around/{slug}
@@ -207,14 +207,14 @@ export function ProposeAreaForm({
         </p>
       ) : null}
 
-      <p className="text-xs leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         {AREA_COPY.proposeWhy}
       </p>
 
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-3 py-2 text-sm text-[var(--nf-content-primary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
         >
           {error}
         </p>

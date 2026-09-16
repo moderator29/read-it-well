@@ -25,7 +25,7 @@ export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
     <div data-testid="listing-about">
       <div
         id={regionId}
-        className="space-y-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]"
+        className="space-y-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
       >
         <p className={expandable && !open ? "line-clamp-4" : undefined}>{lead}</p>
         {open && rest.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -38,7 +38,7 @@ export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
           aria-expanded={open}
           aria-controls={regionId}
           data-testid="about-toggle"
-          className="mt-2.5 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4 transition-colors hover:text-[var(--nf-brand-primary)]"
+          className="mt-2.5 inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4 transition-colors hover:text-[var(--nf-brand-primary)]"
         >
           {open ? "Show less" : "Read more"}
           <UiIcon

@@ -3,6 +3,7 @@ import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getPaymentHealth, STALE_HOLD_MINUTES } from "@/lib/admin/payments-queries";
 import { adminUi } from "../_components/ui";
+import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { SweepHolds } from "./SweepHolds";
 
 export const metadata: Metadata = {
@@ -117,36 +118,52 @@ export default async function AdminPaymentsPage() {
           title="Overdrawn wallets"
           hint="A wallet whose settled entries sum below zero. This is not a delay, it is an arithmetic failure in the ledger, and it has no button here on purpose: an adjusting entry typed into a web form would bury the evidence an engineer needs to find the cause."
         >
-          <div className="nf-card">
-            <ul className="nf-rows nf-group">
+          {/*
+            A TABLE, BECAUSE THIS IS A TABLE.
+
+            These three lists were flex rows inside a card, each hand-rolling
+            the one thing a money column needs: `nf-numeric shrink-0` on the
+            figure so the digits line up by place value. `components/ui/Table`
+            owns that (`align="end"` right-aligns AND makes the figures
+            tabular, because those always travel together), plus a sticky
+            header, a row hover and a scroll box that takes the sideways scroll
+            so the page never does. It was built for exactly this and F2-053
+            records that the console used it zero times.
+
+            NOT the queues, though, and that is the other half of the decision:
+            every queue row carries a decision control, and a table of rows with
+            buttons is worse on a phone than a card list. The console is used on
+            a phone at eleven at night by `nav.ts`'s own account. These three are
+            read-only columns of figures, which is the case a table wins.
+
+            The wallet id is still never truncated: a wallet id is what an
+            operator quotes to an engineer, and `user-select: all` means one tap
+            takes the whole string rather than transcribing it.
+          */}
+          <Table caption="Overdrawn wallets" density="compact">
+            <THead>
+              <TR>
+                <TH>Owner</TH>
+                <TH>Wallet</TH>
+                <TH align="end">Balance</TH>
+              </TR>
+            </THead>
+            <TBody>
               {overdrawn.map((wallet) => (
-                <li key={wallet.walletId} className="nf-row">
-                  <span className="min-w-0 flex-1">
-                    <span className="nf-body block font-semibold text-content">
-                      {wallet.ownerName ?? "Name not on file"}
-                    </span>
-                    {/*
-                      NEVER TRUNCATED. A wallet id is the string an operator
-                      quotes to an engineer or types into the money screen to
-                      find the ledger behind an overdrawn balance, and it was
-                      rendered with an ellipsis, so the one identifier on the
-                      row could not do the one job it has. `user-select: all`
-                      means one tap takes the whole thing, which is the
-                      difference between an id somebody can send and one they
-                      have to transcribe. Same treatment `/admin/money` already
-                      gives its references.
-                    */}
-                    <span className="nf-caption block [overflow-wrap:anywhere] [user-select:all]">
-                      {wallet.walletId}
-                    </span>
-                  </span>
-                  <span className="nf-numeric nf-body shrink-0 font-bold text-[var(--nf-state-error)]">
+                <TR key={wallet.walletId}>
+                  <TD className="font-semibold text-[var(--nf-content-primary)]">
+                    {wallet.ownerName ?? "Name not on file"}
+                  </TD>
+                  <TD className="[overflow-wrap:anywhere] [user-select:all]">
+                    {wallet.walletId}
+                  </TD>
+                  <TD align="end" className="font-bold text-[var(--nf-state-error)]">
                     {formatMoney(wallet.balanceMinor, locale)}
-                  </span>
-                </li>
+                  </TD>
+                </TR>
               ))}
-            </ul>
-          </div>
+            </TBody>
+          </Table>
         </ui.Section>
       )}
 
@@ -161,30 +178,34 @@ export default async function AdminPaymentsPage() {
           />
         ) : (
           <div className="nf-stack nf-stack--group">
-            <div className="nf-card">
-              <ul className="nf-rows nf-group">
+            {/* The reference gets its own column and still never clips: it is
+                what a stuck hold is traced by with the processor. */}
+            <Table caption="Stuck withdrawal holds" density="compact">
+              <THead>
+                <TR>
+                  <TH>Owner</TH>
+                  <TH>Reference</TH>
+                  <TH>Held since</TH>
+                  <TH align="end">Amount</TH>
+                </TR>
+              </THead>
+              <TBody>
                 {staleHolds.map((hold) => (
-                  <li key={hold.reference} className="nf-row">
-                    <span className="min-w-0 flex-1">
-                      <span className="nf-body block font-semibold text-content">
-                        {hold.ownerName ?? "Name not on file"}
-                      </span>
-                      {/* The reference wraps rather than clipping, for the same
-                          reason: it is what a stuck hold is traced by with the
-                          processor. The date rides with it on the same line and
-                          wraps with it. */}
-                      <span className="nf-caption block [overflow-wrap:anywhere]">
-                        <span className="[user-select:all]">{hold.reference}</span> · held since{" "}
-                        {ui.when(hold.createdAt)}
-                      </span>
-                    </span>
-                    <span className="nf-numeric nf-body shrink-0 font-bold">
+                  <TR key={hold.reference}>
+                    <TD className="font-semibold text-[var(--nf-content-primary)]">
+                      {hold.ownerName ?? "Name not on file"}
+                    </TD>
+                    <TD className="[overflow-wrap:anywhere] [user-select:all]">
+                      {hold.reference}
+                    </TD>
+                    <TD>{ui.when(hold.createdAt)}</TD>
+                    <TD align="end" className="font-bold">
                       {formatMoney(hold.amountMinor, locale)}
-                    </span>
-                  </li>
+                    </TD>
+                  </TR>
                 ))}
-              </ul>
-            </div>
+              </TBody>
+            </Table>
 
             <SweepHolds
               holds={staleHolds}
@@ -201,34 +222,40 @@ export default async function AdminPaymentsPage() {
           title="Waiting on the provider"
           hint="Payments the provider has not settled, from the last thirty days. Re-asking the provider is the reconcile job's decision to take, not this screen's."
         >
-          <div className="nf-card">
-            <ul className="nf-rows nf-group">
+          {/* The provider's reference gets the widest column: it is what an
+              operator pastes into Paystack or Yellow Card to find out what
+              actually happened, and it never clips. */}
+          <Table caption="Payments waiting on the provider" density="compact">
+            <THead>
+              <TR>
+                <TH>State</TH>
+                <TH>Reference</TH>
+                <TH>Provider</TH>
+                <TH>Started</TH>
+                <TH align="end">Amount</TH>
+              </TR>
+            </THead>
+            <TBody>
               {unsettled.map((payment) => (
-                <li key={payment.id} className="nf-row">
-                  <ui.StatusChip
-                    label={payment.status === "FAILED" ? "Failed" : "Pending"}
-                    tone={payment.status === "FAILED" ? "danger" : "warning"}
-                  />
-                  <span className="min-w-0 flex-1">
-                    {/* The provider's reference is the whole point of this row:
-                        it is what an operator pastes into Paystack or Yellow
-                        Card to find out what actually happened to an unsettled
-                        payment. It sat in a flex child with `min-w-0`, so it
-                        was free to clip. */}
-                    <span className="nf-body block font-semibold text-content [overflow-wrap:anywhere] [user-select:all]">
-                      {payment.providerRef ?? payment.id}
-                    </span>
-                    <span className="nf-caption block [overflow-wrap:anywhere]">
-                      {payment.provider ?? "Unknown provider"} · {ui.when(payment.createdAt)}
-                    </span>
-                  </span>
-                  <span className="nf-numeric nf-body shrink-0 font-bold">
+                <TR key={payment.id}>
+                  <TD>
+                    <ui.StatusChip
+                      label={payment.status === "FAILED" ? "Failed" : "Pending"}
+                      tone={payment.status === "FAILED" ? "danger" : "warning"}
+                    />
+                  </TD>
+                  <TD className="font-semibold text-[var(--nf-content-primary)] [overflow-wrap:anywhere] [user-select:all]">
+                    {payment.providerRef ?? payment.id}
+                  </TD>
+                  <TD>{payment.provider ?? "Unknown provider"}</TD>
+                  <TD>{ui.when(payment.createdAt)}</TD>
+                  <TD align="end" className="font-bold">
                     {formatMoney(payment.amountMinor, locale)}
-                  </span>
-                </li>
+                  </TD>
+                </TR>
               ))}
-            </ul>
-          </div>
+            </TBody>
+          </Table>
         </ui.Section>
       )}
     </div>

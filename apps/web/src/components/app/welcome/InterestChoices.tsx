@@ -140,7 +140,7 @@ export function InterestChoices({
       <div
         role="group"
         aria-label={t.interests.question}
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+        className="grid grid-cols-2 gap-sm sm:grid-cols-3"
       >
         {PROPERTY_TYPES.map((value) => {
           const selected = chosen.includes(value);
@@ -153,7 +153,7 @@ export function InterestChoices({
               aria-pressed={selected}
               disabled={busy}
               onClick={() => toggle(value)}
-              className="nf-card nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-center gap-1 p-4 text-left transition-transform active:scale-[0.97] disabled:opacity-60"
+              className="nf-card nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-center gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
               style={
                 selected
                   ? {
@@ -173,10 +173,10 @@ export function InterestChoices({
                   className="absolute right-3 top-3 shrink-0"
                 />
               )}
-              <span className="pr-5 text-[0.9375rem] font-semibold leading-tight text-[var(--nf-content-primary)]">
+              <span className="pr-5 text-[var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
                 {t.interests.markets[value]}
               </span>
-              <span className="text-[0.75rem] leading-snug text-[var(--nf-content-muted)]">
+              <span className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
                 {t.interests.hints[value]}
               </span>
             </button>
@@ -188,7 +188,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-error"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
@@ -198,7 +198,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-skip-error"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {skipError}
         </p>
@@ -208,7 +208,7 @@ export function InterestChoices({
         <p
           role="status"
           data-testid="interests-saved"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-3.5 py-2.5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-state-success)]"
+          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-3.5 py-2.5 text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
         >
           {chosen.length === 0
             ? t.interests.savedNothing
@@ -230,7 +230,7 @@ export function InterestChoices({
         loading={saving}
         disabled={skipping}
         data-testid="welcome-save"
-        className="mt-6"
+        className="mt-lg"
       >
         {firstRun ? t.common.continue : t.interests.save}
       </Button>
@@ -244,7 +244,7 @@ export function InterestChoices({
           loading={skipping}
           disabled={saving}
           data-testid="welcome-skip"
-          className="mt-2"
+          className="mt-xs"
         >
           {t.interests.skip}
         </Button>
@@ -257,7 +257,7 @@ export function InterestChoices({
         and the rule it was keeping was never to promise a surface nobody had
         built.
       */}
-      <p className="mt-4 text-center text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-md text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         {t.interests.note}
         {firstRun ? t.interests.noteFirstRun : ""}
       </p>

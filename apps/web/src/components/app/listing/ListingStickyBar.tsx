@@ -125,7 +125,7 @@ export function ListingStickyBar({
     <ActionBar>
       <div
         data-testid="listing-sticky-bar"
-        className="flex w-full items-center gap-2.5 sm:gap-3"
+        className="flex w-full items-center gap-2.5 sm:gap-sm"
       >
         <p className="flex min-w-0 flex-1 flex-col">
           {amount > 0 ? (
@@ -141,7 +141,7 @@ export function ListingStickyBar({
                     front of the number say the same thing and the card says it
                     the same way. */}
                 {moveIn && moveInStated !== true && (
-                  <span className="text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
+                  <span className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
                     from{" "}
                   </span>
                 )}
@@ -156,7 +156,7 @@ export function ListingStickyBar({
                    * comparing against the listing below it.
                    */
                   glance
-                  className="text-[1.0625rem] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
+                  className="text-[var(--nf-text-body-lg)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
                   /* A compacted figure's fraction is a SIGNIFICANT DIGIT, not
                      kobo: ₦6,750,000 splits into "₦6", ".8" and "m", and the
                      default muted tail draws that ".8" at 0.62em, so the bar
@@ -171,7 +171,7 @@ export function ListingStickyBar({
               {/* No `truncate`. A caption that reads "to move in, from the p..."
                   is a promise trimmed into a different promise, and this column
                   has the room to wrap. */}
-              <span className="text-[0.75rem] leading-snug text-[var(--nf-content-muted)]">
+              <span className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
                 {caption}
               </span>
             </>
@@ -182,7 +182,7 @@ export function ListingStickyBar({
                button is for: "Five bedroom villa for sale in Oniru Vict..." is
                the one sentence on the screen, cut. It wraps, and the bar grows
                by a line on the few rows that need it. */
-            <span className="text-[0.875rem] font-semibold leading-snug text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">
+            <span className="text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">
               {fallbackLabel}
             </span>
           )}

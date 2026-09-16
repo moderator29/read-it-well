@@ -42,7 +42,7 @@ export function ListingOptionsSheet({
       title="Listing and safety"
       footer={
         inspected ? (
-          <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[0.8125rem]">
+          <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[var(--nf-text-caption)]">
             <UiIcon name="verified" size={16} />
             Inspection confirmed on this device
           </p>
@@ -53,8 +53,8 @@ export function ListingOptionsSheet({
         )
       }
     >
-      <div className="-mt-2 mb-4 flex items-start justify-between gap-4">
-        <p className="text-[0.8125rem] text-[var(--nf-content-muted)]">
+      <div className="-mt-2 mb-md flex items-start justify-between gap-md">
+        <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {agentName}
         </p>
         <button type="button" aria-label="Close" onClick={onClose} className="nf-icon-btn h-9 w-9">
@@ -63,7 +63,7 @@ export function ListingOptionsSheet({
       </div>
 
       {/* ------------------------------------------------ listing mini view */}
-      <div className="nf-card flex items-center gap-4 p-3">
+      <div className="nf-card flex items-center gap-md p-sm">
         <div
           aria-hidden="true"
           className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
@@ -76,8 +76,8 @@ export function ListingOptionsSheet({
           <MediaFrame hue={listing.hue} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.9063rem] font-semibold">{listing.title}</p>
-          <p className="mt-0.5 truncate text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="truncate text-[var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
+          <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {listing.area}, {listing.city}
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -95,11 +95,11 @@ export function ListingOptionsSheet({
       </div>
 
       {/* --------------------------------------------- inspection and safety */}
-      <div className="mt-4 flex items-start gap-4">
+      <div className="mt-md flex items-start gap-md">
         <span className="h-14 w-14 shrink-0" aria-hidden="true">
           <BrandIcon name="shield-lock" fill />
         </span>
-        <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           For your safety, only pay after you have inspected the property. Conversations are
           monitored for fraud.
         </p>

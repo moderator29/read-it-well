@@ -107,7 +107,7 @@ export function AccountBody({
   ];
 
   return (
-    <div className="mt-6">
+    <div className="mt-lg">
       {/* The strip scrolls horizontally on purpose even at two tabs: it is the
           same component shape as the public page, which has six, and a strip
           that reflows at one width and scrolls at another is two components
@@ -115,7 +115,7 @@ export function AccountBody({
       <div
         role="tablist"
         aria-label="Your account"
-        className="-mx-4 flex gap-1 overflow-x-auto border-b border-[var(--nf-border-subtle)] px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
+        className="-mx-4 flex gap-2xs overflow-x-auto border-b border-[var(--nf-border-subtle)] px-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
       >
         {tabs.map((entry) => (
           <button
@@ -139,7 +139,7 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-account"
           aria-labelledby="account-tab-account"
-          className="space-y-6 pt-5"
+          className="space-y-lg pt-5"
         >
           <SettingsGroup label="What you have here">
             <RowLink
@@ -324,8 +324,8 @@ function DetailsSheet({
 
   return (
     <Sheet open={open} onClose={onClose} title="Your details">
-      <form action={formAction} noValidate id="account-details-form" className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <form action={formAction} noValidate id="account-details-form" className="space-y-md">
+        <div className="grid gap-md sm:grid-cols-2">
           <Field
             name="firstName"
             label="First name"
@@ -374,19 +374,19 @@ function DetailsSheet({
         {state && !state.ok && !state.fieldErrors && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]"
+            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
           >
             {state.error}
           </p>
         )}
 
-        <p className="text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           Your name is what hosts see when you message or book. Your phone number stays
           private to you and the platform.
         </p>
       </form>
 
-      <div className="pt-1">
+      <div className="pt-2xs">
         <button
           type="submit"
           form="account-details-form"
@@ -429,7 +429,7 @@ function Field({
       <span className="nf-label mb-1.5 block">
         {label}
         {optional && (
-          <span className="ml-1 font-normal text-[var(--nf-content-muted)]">(optional)</span>
+          <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">(optional)</span>
         )}
       </span>
       <input
@@ -444,7 +444,7 @@ function Field({
         aria-invalid={error ? true : undefined}
         className="nf-field"
       />
-      {error && <span className="mt-1.5 block text-[0.75rem] text-[var(--nf-state-error)]">{error}</span>}
+      {error && <span className="mt-1.5 block text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">{error}</span>}
     </label>
   );
 }

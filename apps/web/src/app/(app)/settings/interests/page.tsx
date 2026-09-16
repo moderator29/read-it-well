@@ -34,12 +34,12 @@ export default async function InterestsSettingsPage() {
     return (
       <div className="mx-auto max-w-lg">
         <PageHeader title={t.interests.screenTitle} fallback="/settings" />
-        <div className="nf-card p-6 text-center sm:p-8">
+        <div className="nf-card p-lg text-center sm:p-xl">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="globe-pin" fill />
           </span>
-          <h2 className="nf-h3 mt-4">{t.interests.accountTitle}</h2>
-          <p className="mx-auto mt-2 max-w-[42ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <h2 className="nf-h3 mt-md">{t.interests.accountTitle}</h2>
+          <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {state.state === "unconfigured"
               ? t.interests.accountBodyUnconfigured
               : t.interests.accountBodySignedOut}
@@ -61,7 +61,7 @@ export default async function InterestsSettingsPage() {
         subtitle={t.interests.screenSubtitle}
         fallback="/settings"
       />
-      <div className="nf-card p-5 sm:p-6">
+      <div className="nf-card p-5 sm:p-lg">
         <InterestChoices initial={state.interests} mode="settings" t={t} />
       </div>
     </div>

@@ -507,7 +507,7 @@ export function ListingCard({
                 currency={listing.currency}
                 glance
                 suffix={price.suffix}
-                className="text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                className="text-[var(--nf-text-h4)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
                 secondaryClassName={fractionClass(
                   price.minor,
                   "text-[0.6em] font-semibold text-[var(--nf-content-muted)]",
@@ -545,7 +545,7 @@ export function ListingCard({
                   locale={locale}
                   currency={listing.currency}
                   glance
-                  className="whitespace-nowrap text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                  className="whitespace-nowrap text-[var(--nf-text-h4)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
                   secondaryClassName={fractionClass(
                     price.minor,
                     "text-[0.6em] font-semibold text-[var(--nf-content-muted)]",

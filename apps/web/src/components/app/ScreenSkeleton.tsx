@@ -47,7 +47,7 @@ export function LoadingShell({
  */
 export function PageHeaderSkeleton({ subtitle = false }: { subtitle?: boolean }) {
   return (
-    <div className="mb-5 flex items-center gap-4 sm:mb-6">
+    <div className="mb-5 flex items-center gap-md sm:mb-lg">
       <Skeleton circle width="2.25rem" className="shrink-0 sm:hidden" />
       <Skeleton circle width="2.5rem" className="hidden shrink-0 sm:block" />
       <div className="min-w-0 flex-1">
@@ -63,7 +63,7 @@ export function TitleBlockSkeleton({ className }: { className?: string }) {
   return (
     <div className={className}>
       <Skeleton width="14rem" height="1.75rem" radius="sm" />
-      <Skeleton className="mt-2" width="22rem" height="0.9375rem" radius="sm" />
+      <Skeleton className="mt-xs" width="22rem" height="0.9375rem" radius="sm" />
     </div>
   );
 }
@@ -84,15 +84,15 @@ export function CardRowsSkeleton({
   className?: string;
 }) {
   return (
-    <ul className={["space-y-3", className ?? ""].filter(Boolean).join(" ")}>
+    <ul className={["space-y-sm", className ?? ""].filter(Boolean).join(" ")}>
       {Array.from({ length: rows }, (_, i) => (
-        <li key={i} className="nf-card p-4 sm:p-5">
-          <div className="flex items-start gap-4">
+        <li key={i} className="nf-card p-md sm:p-5">
+          <div className="flex items-start gap-md">
             <Skeleton width="2.75rem" height="2.75rem" radius="md" className="shrink-0" />
             <div className="min-w-0 flex-1" style={{ minHeight: height }}>
               <Skeleton width="55%" height="0.9375rem" radius="sm" />
-              <Skeleton className="mt-2" width="80%" height="0.75rem" radius="sm" />
-              <Skeleton className="mt-2" width="35%" height="0.75rem" radius="sm" />
+              <Skeleton className="mt-xs" width="80%" height="0.75rem" radius="sm" />
+              <Skeleton className="mt-xs" width="35%" height="0.75rem" radius="sm" />
             </div>
           </div>
         </li>

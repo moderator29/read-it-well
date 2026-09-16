@@ -58,7 +58,7 @@ export function PlaceForm({
   const fieldErrors = state && !state.ok ? state.fieldErrors : undefined;
 
   return (
-    <form action={formAction} className="nf-card p-5 sm:p-6" data-testid="place-form">
+    <form action={formAction} className="nf-card p-5 sm:p-lg" data-testid="place-form">
       <PlaceFields
         t={t}
         states={states}
@@ -72,7 +72,7 @@ export function PlaceForm({
         <p
           role="alert"
           data-testid="place-error"
-          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-5 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
@@ -82,7 +82,7 @@ export function PlaceForm({
         <p
           role="status"
           data-testid="place-saved"
-          className="nf-rise mt-5 flex items-center gap-2 text-[0.8125rem] text-[var(--nf-state-success)]"
+          className="nf-rise mt-5 flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]"
         >
           <UiIcon name="verified" size={16} className="shrink-0" />
           Saved. Home now opens on this city.
@@ -93,7 +93,7 @@ export function PlaceForm({
         {pending ? "Saving..." : "Save"}
       </button>
 
-      <p className="mt-3 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         Your state and local government decide which places home opens on. Your
         occupation is shown on your public profile only if you put it there.
       </p>

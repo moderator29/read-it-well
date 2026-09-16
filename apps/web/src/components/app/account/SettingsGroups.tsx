@@ -320,7 +320,7 @@ export function SearchCard({ t }: { t: Dictionary }) {
  * exactly one session today, this device, so that is what the row shows, and
  * sign out everywhere says plainly when it will start doing something.
  */
-export function SecurityCard({ t }: { t: Dictionary }) {
+export function SecurityCard({ t, children }: { t: Dictionary; children?: ReactNode }) {
   const { settings, set } = useNfSettings();
   const copy = t.settings.security;
   const [device, setDevice] = useState(copy.thisDevice);
@@ -369,7 +369,11 @@ export function SecurityCard({ t }: { t: Dictionary }) {
         onClick={() => setSignOutNote(true)}
         chevron={false}
       />
-    </SettingsGroup>
+      {/* `DevicesRow` lands here. Where an account is signed in is the half of
+          security this screen did not have, and it was a card of its own
+          holding one link; see the note on that component. */}
+      {children}
+      </SettingsGroup>
   );
 }
 

@@ -84,7 +84,7 @@ export function AssistantSidebar({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* -------------------------------------------- search and new chat */}
-      <div className="space-y-2.5 p-3 pb-2.5">
+      <div className="space-y-2.5 p-sm pb-2.5">
         {/* The sidebar's own search bar was the fifth arrangement of a leading
             icon and a left padding on the platform. It also had no way to get
             back to the whole history except deleting what you typed, which is
@@ -110,16 +110,16 @@ export function AssistantSidebar({
       {/* ------------------------------------------------------- history */}
       <nav
         aria-label="Conversation history"
-        className="min-h-0 flex-1 overflow-y-auto px-3 pb-2"
+        className="min-h-0 flex-1 overflow-y-auto px-sm pb-xs"
       >
         {visible.length === 0 ? (
-          <p className="px-1 pt-3 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="px-2xs pt-sm text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
             {query.trim()
               ? "No conversations match your search."
               : "Your conversations will appear here."}
           </p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="space-y-2xs">
             {visible.map((t) => {
               const active = t.id === activeId;
               return (
@@ -131,14 +131,14 @@ export function AssistantSidebar({
                     /* The active row's border was `rgb(0 102 255 / 0.55)`, a
                        raw literal of the brand blue that would not have moved
                        if the brand did. Same colour, said in the token. */
-                    className={`w-full rounded-xl border px-3 py-2.5 pr-10 text-left transition-colors ${
+                    className={`w-full rounded-xl border px-sm py-2.5 pr-10 text-left transition-colors ${
                       active
                         ? "border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)]"
                         : "border-transparent hover:bg-[var(--nf-glass-fill)]"
                     }`}
                   >
                     <span
-                      className={`block truncate text-[0.8438rem] font-medium ${
+                      className={`block truncate text-[var(--nf-text-caption)] font-medium ${
                         active
                           ? "text-[var(--nf-content-primary)]"
                           : "text-[var(--nf-content-secondary)]"
@@ -146,7 +146,7 @@ export function AssistantSidebar({
                     >
                       {t.title}
                     </span>
-                    <span className="nf-numeric mt-0.5 block text-[0.6875rem] text-[var(--nf-content-muted)]">
+                    <span className="nf-numeric mt-3xs block text-[0.6875rem] text-[var(--nf-content-muted)]">
                       {whenLabel(t.updatedAt)}
                     </span>
                   </button>
@@ -178,20 +178,20 @@ export function AssistantSidebar({
         The row sits at the foot the way ChatGPT puts its account there, and
         `AssistantSettingsSheet` holds the lot. The history gets the space.
       */}
-      <div className="border-t border-[var(--nf-border-subtle)] p-3">
+      <div className="border-t border-[var(--nf-border-subtle)] p-sm">
         <button
           type="button"
           onClick={() => setSettingsOpen(true)}
           aria-haspopup="dialog"
-          className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-3 py-2.5 text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
+          className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-sm py-2.5 text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
         >
           <UiIcon name="settings-gear" size={18} className="shrink-0" />
-          <span className="flex-1 text-[0.8438rem] font-medium">Settings</span>
+          <span className="flex-1 text-[var(--nf-text-caption)] font-medium">Settings</span>
           {/* The current reply style, on the row. A settings entry that says
               only "Settings" makes somebody open it to find out what it is
               set to; naming the one they are most likely to be checking
               answers that without a tap. */}
-          <span className="shrink-0 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <span className="shrink-0 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {tone}
           </span>
           <UiIcon name="chevron-right" size={14} className="shrink-0" />

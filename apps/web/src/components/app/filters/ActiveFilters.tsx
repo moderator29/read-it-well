@@ -36,7 +36,7 @@ function RemoveChip({
         href={href}
         prefetch
         data-testid={testId}
-        className="nf-chip min-h-11 whitespace-nowrap py-1.5 pr-3 text-[0.8125rem]"
+        className="nf-chip min-h-11 whitespace-nowrap py-1.5 pr-sm text-[var(--nf-text-caption)]"
       >
         <span>{label}</span>
         <span className="sr-only">Remove {removes}</span>
@@ -225,11 +225,11 @@ export function ActiveFilters({
   if (chips.length === 0) return null;
 
   return (
-    <div className="nf-scroll-x -mx-5 mt-3 md:-mx-8">
+    <div className="nf-scroll-x -mx-5 mt-sm md:-mx-8">
       <ul
         aria-label="Active filters"
         data-testid="active-filters"
-        className="flex items-center gap-2 px-5 md:px-8"
+        className="flex items-center gap-xs px-5 md:px-xl"
       >
         {chips}
         {activeFilterCount(query) > 0 && (
@@ -238,7 +238,7 @@ export function ActiveFilters({
               href={toSearchHref(clearedFilters(query))}
               prefetch
               data-testid="active-clear-all"
-              className="inline-flex min-h-11 items-center px-2 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="inline-flex min-h-11 items-center px-xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               Clear all
             </Link>

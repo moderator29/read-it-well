@@ -112,10 +112,10 @@ export function ListingUtilities({
         value={
           powerAnswered ? (
             <>
-              <span className="block text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+              <span className="block text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                 {powerLine}
               </span>
-              {grid && <span className={`mt-1 block ${TYPE.rowMeta}`}>{grid.detail}</span>}
+              {grid && <span className={`mt-2xs block ${TYPE.rowMeta}`}>{grid.detail}</span>}
               {/*
                 A prepaid meter is a fact about how you pay for the light, so it
                 belongs under the light. Stated as a sentence rather than as a
@@ -123,7 +123,7 @@ export function ListingUtilities({
                 inside a row that already has a label.
               */}
               {utilities.prepaidMeter && (
-                <span className={`mt-1.5 flex items-center gap-2 ${TYPE.rowMeta}`}>
+                <span className={`mt-1.5 flex items-center gap-xs ${TYPE.rowMeta}`}>
                   <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
                   Prepaid meter, so you buy units rather than settle a shared bill
                 </span>
@@ -140,27 +140,27 @@ export function ListingUtilities({
         value={
           water ? (
             <>
-              <span className="block text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+              <span className="block text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                 {water.label}
               </span>
-              <span className={`mt-1 block ${TYPE.rowMeta}`}>{water.detail}</span>
+              <span className={`mt-2xs block ${TYPE.rowMeta}`}>{water.detail}</span>
             </>
           ) : null
         }
       />
 
       {utilities.hasEstateAccess && (
-        <div className="flex gap-3 py-4">
+        <div className="flex gap-sm py-md">
           <span className="block h-10 w-10 shrink-0">
             <BrandIcon name="keys-home" fill />
           </span>
           <div className="min-w-0 flex-1">
             <dt className={TYPE.label}>The gate</dt>
-            <dd className="mt-1">
+            <dd className="mt-2xs">
               {access ? (
                 <div data-testid="gate-details">
                   {access.estateName && (
-                    <p className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                       {access.estateName}
                     </p>
                   )}
@@ -170,7 +170,7 @@ export function ListingUtilities({
                     </p>
                   )}
                   {access.securityPhone && (
-                    <p className={`nf-numeric mt-2 ${TYPE.body}`}>
+                    <p className={`nf-numeric mt-xs ${TYPE.body}`}>
                       Security desk:{" "}
                       <a
                         href={`tel:${access.securityPhone.replace(/\s+/g, "")}`}
@@ -181,14 +181,14 @@ export function ListingUtilities({
                     </p>
                   )}
                   {access.accessCode && (
-                    <p className={`nf-numeric mt-1 ${TYPE.body}`}>
+                    <p className={`nf-numeric mt-2xs ${TYPE.body}`}>
                       Access code: <span className="font-bold">{access.accessCode}</span>
                     </p>
                   )}
                 </div>
               ) : (
                 <div data-testid="gate-withheld">
-                  <p className="flex items-center gap-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+                  <p className="flex items-center gap-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
                     Gated, with the details released on confirmation
                   </p>
@@ -219,13 +219,13 @@ function Row({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-3 py-4 first:pt-0">
+    <div className="flex gap-sm py-md first:pt-0">
       <span className="block h-10 w-10 shrink-0">
         <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0 flex-1">
         <dt className={TYPE.label}>{term}</dt>
-        <dd className="mt-1">
+        <dd className="mt-2xs">
           {answered ? (
             value
           ) : (

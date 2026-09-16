@@ -168,7 +168,7 @@ export function ChoicePicker({
     <div>
       <input type="hidden" name={name} value={value} />
 
-      <div className="flex items-baseline justify-between gap-2">
+      <div className="flex items-baseline justify-between gap-xs">
         <span className="nf-label">{label}</span>
         {allowClear && value !== "" && !disabled && (
           <button
@@ -194,7 +194,7 @@ export function ChoicePicker({
             .join(" ") || undefined
         }
         style={error ? INVALID_STYLE : undefined}
-        className="nf-field mt-1.5 flex w-full items-center justify-between gap-3 text-left disabled:cursor-not-allowed disabled:opacity-55"
+        className="nf-field mt-1.5 flex w-full items-center justify-between gap-sm text-left disabled:cursor-not-allowed disabled:opacity-55"
       >
         <span
           className={
@@ -213,12 +213,12 @@ export function ChoicePicker({
       </button>
 
       {disabled && disabledHint && (
-        <p id={hintId} className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {disabledHint}
         </p>
       )}
       {!disabled && hint && (
-        <p id={hintId} className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {hint}
         </p>
       )}
@@ -226,7 +226,7 @@ export function ChoicePicker({
         <p
           id={errorId}
           role="alert"
-          className="mt-1.5 text-[0.75rem] font-medium text-[var(--nf-state-error)]"
+          className="mt-1.5 text-[var(--nf-text-overline)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -248,8 +248,8 @@ export function ChoicePicker({
               ref={panelRef}
               className="nf-rise absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
             >
-              <div className="border-b border-[var(--nf-border-subtle)] px-5 pb-4 pt-5">
-                <div className="flex items-center gap-3">
+              <div className="border-b border-[var(--nf-border-subtle)] px-5 pb-md pt-5">
+                <div className="flex items-center gap-sm">
                   <button
                     type="button"
                     aria-label={t.pickers.close}
@@ -274,7 +274,7 @@ export function ChoicePicker({
                   could only be emptied by selecting the text and deleting it.
                 */}
                 <TextField
-                  className="mt-4"
+                  className="mt-md"
                   label={searchPlaceholder ?? t.pickers.search}
                   hideLabel
                   type="search"
@@ -289,23 +289,23 @@ export function ChoicePicker({
                 />
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-xs">
                 {loading ? (
-                  <p className="py-8 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+                  <p className="py-xl text-center text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
                     {t.pickers.loading}
                   </p>
                 ) : total === 0 ? (
                   <div className="py-10 text-center">
-                    <p className="text-[0.9375rem] font-semibold">{t.pickers.emptyTitle}</p>
-                    <p className="mx-auto mt-1.5 max-w-[34ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                    <p className="text-[var(--nf-text-body-sm)] font-semibold">{t.pickers.emptyTitle}</p>
+                    <p className="mx-auto mt-1.5 max-w-[34ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                       {groups.length === 0 ? t.pickers.emptyUnreachable : t.pickers.emptySearch}
                     </p>
                   </div>
                 ) : (
                   filtered.map((group) => (
-                    <section key={group.category || "all"} className="pt-4 first:pt-2">
+                    <section key={group.category || "all"} className="pt-md first:pt-xs">
                       {group.category && (
-                        <h3 className="nf-overline sticky top-0 z-10 -mx-5 bg-[var(--nf-surface-primary)] px-5 py-2">
+                        <h3 className="nf-overline sticky top-0 z-10 -mx-5 bg-[var(--nf-surface-primary)] px-5 py-xs">
                           {group.category}
                         </h3>
                       )}
@@ -321,7 +321,7 @@ export function ChoicePicker({
                                   setOpen(false);
                                 }}
                                 aria-pressed={active}
-                                className="flex w-full items-center justify-between gap-3 py-3 text-left text-[0.9375rem] text-[var(--nf-content-primary)]"
+                                className="flex w-full items-center justify-between gap-sm py-sm text-left text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
                               >
                                 <span className="min-w-0 flex-1">{option.name}</span>
                                 {active && (

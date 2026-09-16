@@ -103,18 +103,18 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
       )}
 
       <div className="nf-card mt-5 p-5">
-        <h2 className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           {unconfigured
             ? "We cannot reach your account right now"
             : "Your stays live in your account"}
         </h2>
-        <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {unconfigured
             ? "This is on our side, not yours. Everything you set here is kept on this device and nothing has been lost. Try again in a few minutes."
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
         </p>
         {!unconfigured && (
-          <Link href="/sign-in" className="nf-btn nf-btn--primary mt-4 w-full sm:w-auto">
+          <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
             Sign in
           </Link>
         )}
@@ -129,7 +129,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
        * never be written again is worse than one that does not exist: anybody
        * who had set a name would keep it forever with no way to correct it.
        */}
-      <div className="mt-6">
+      <div className="mt-lg">
         <SettingsGroup
           label="On this device"
           note="Kept in this browser only, and used to fill in a support request so somebody can reply to you. Signing in replaces it with your account."
@@ -197,7 +197,7 @@ function DeviceDetailsSheet({
 
   return (
     <Sheet open={open} onClose={onClose} title="On this device">
-      <div className="space-y-4">
+      <div className="space-y-md">
         <label className="block">
           <span className="nf-label mb-1.5 block">Your name</span>
           <input
@@ -228,13 +228,13 @@ function DeviceDetailsSheet({
           />
         </label>
 
-        <p className="text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           Neither of these leaves this browser. Nothing is sent anywhere until you open a
           support request yourself.
         </p>
       </div>
 
-      <div className="pt-4">
+      <div className="pt-md">
         <button
           type="button"
           onClick={() => onSave(draftName, draftEmail)}

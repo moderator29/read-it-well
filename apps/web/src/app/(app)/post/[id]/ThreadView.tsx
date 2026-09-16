@@ -270,7 +270,7 @@ export function ThreadView({
       {notice ? (
         <p
           role="status"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-4 py-3 text-sm leading-relaxed text-[var(--nf-content-secondary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-md py-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {notice}
         </p>
@@ -308,7 +308,7 @@ export function ThreadView({
       ) : null}
 
       {replies.length > 0 ? (
-        <h2 className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <h2 className="mt-xs text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           {replies.length === 1 ? "1 reply" : `${replies.length} replies`}
         </h2>
       ) : null}
@@ -392,14 +392,14 @@ export function ThreadView({
  */
 function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-default)] px-4 py-3">
-      <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
+    <div className="flex flex-wrap items-center justify-between gap-sm rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-default)] px-md py-sm">
+      <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         You muted {who}.
       </p>
       <button
         type="button"
         onClick={onShow}
-        className="text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]"
+        className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
       >
         Read it anyway
       </button>
@@ -432,7 +432,7 @@ function handleOf(post: PostView): string {
  */
 function ReplyingTo({ who }: { who: string }) {
   return (
-    <p className="ps-1 text-[0.8125rem] leading-snug text-[var(--nf-content-muted)]">
+    <p className="ps-2xs text-[var(--nf-text-caption)] leading-snug text-[var(--nf-content-muted)]">
       Replying to <span className="font-semibold text-[var(--nf-brand-secondary)]">{who}</span>
     </p>
   );

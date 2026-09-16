@@ -48,7 +48,7 @@ export default async function PeoplePage({
 
   if (view.state === "unconfigured") {
     return (
-      <div className="mx-auto w-full max-w-2xl pb-24 pt-4">
+      <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
         <PageHeader title="People" fallback="/around" />
         <ProfileNotice
           icon="user-check"
@@ -63,7 +63,7 @@ export default async function PeoplePage({
   const searching = view.query.length > 0;
 
   return (
-    <div className="mx-auto w-full max-w-2xl pb-24 pt-4">
+    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader title="People" fallback="/around" />
 
       {/*
@@ -81,7 +81,7 @@ export default async function PeoplePage({
         field, so clearing writes the DOM directly and the form still posts
         empty, which is the "see everybody" case.
       */}
-      <form action="/u" method="get" className="mt-1 flex items-start gap-2">
+      <form action="/u" method="get" className="mt-2xs flex items-start gap-xs">
         <TextField
           className="min-w-0 flex-1"
           label="Search for somebody by name or handle"
@@ -99,20 +99,20 @@ export default async function PeoplePage({
         </Button>
       </form>
 
-      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+      <p className="mt-md text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
         {searching ? `People matching ${view.query}` : "People who just arrived"}
       </p>
 
       {/* Why these people, said plainly. A search for "Ikeja" that quietly also
           matched an occupation looks like a broken search unless it says so. */}
       {searching && view.people.length > 0 ? (
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           Searched by {matchLabel(view.matchedOn)}.
         </p>
       ) : null}
 
       {view.people.length === 0 ? (
-        <div className="mt-4">
+        <div className="mt-md">
           <ProfileNotice
             icon="home-search"
             title={searching ? `Nobody here is called ${view.query}` : "Nobody has a page yet"}
@@ -126,7 +126,7 @@ export default async function PeoplePage({
           />
         </div>
       ) : (
-        <ul className="mt-3 flex flex-col gap-[var(--nf-social-gap)]">
+        <ul className="mt-sm flex flex-col gap-[var(--nf-social-gap)]">
           {view.people.map((person) => (
             <li key={person.userId} className="nf-card nf-social-card nf-people__row">
               <Link href={`/u/${person.handle}`} className="nf-people__who">
@@ -198,7 +198,7 @@ export default async function PeoplePage({
       )}
 
       {!view.signedIn && view.people.length > 0 ? (
-        <p className="mt-5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-5 text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           <Link href="/sign-in" className="font-semibold text-[var(--nf-brand-secondary)]">
             Sign in
           </Link>{" "}

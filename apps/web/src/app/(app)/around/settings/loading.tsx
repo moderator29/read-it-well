@@ -10,22 +10,22 @@
  */
 export default function LoadingAroundManage() {
   return (
-    <div className="mx-auto w-full max-w-3xl pb-24 pt-4" aria-busy="true" aria-live="polite">
+    <div className="mx-auto w-full max-w-3xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading places</span>
 
-      <div className="mb-6 space-y-3" aria-hidden="true">
+      <div className="mb-lg space-y-sm" aria-hidden="true">
         <span className="nf-social-skeleton block h-7 w-32 rounded-[var(--nf-radius-xs)]" />
         <span className="nf-social-skeleton block h-3 w-4/5 rounded-[var(--nf-radius-xs)]" />
       </div>
 
       <span
-        className="nf-social-skeleton mb-3 block h-3 w-24 rounded-[var(--nf-radius-xs)]"
+        className="nf-social-skeleton mb-sm block h-3 w-24 rounded-[var(--nf-radius-xs)]"
         aria-hidden="true"
       />
-      <ul className="flex flex-col gap-2" aria-hidden="true">
+      <ul className="flex flex-col gap-xs" aria-hidden="true">
         {[0, 1, 2, 3].map((row) => (
-          <li key={row} className="nf-card flex items-start gap-3 p-4">
-            <div className="min-w-0 flex-1 space-y-2">
+          <li key={row} className="nf-card flex items-start gap-sm p-md">
+            <div className="min-w-0 flex-1 space-y-xs">
               <span className="nf-social-skeleton block h-4 w-40 rounded-[var(--nf-radius-xs)]" />
               <span className="nf-social-skeleton block h-3 w-56 rounded-[var(--nf-radius-xs)]" />
             </div>

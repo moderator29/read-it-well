@@ -1,4 +1,5 @@
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
+import type { ReactNode } from "react";
 import type { Dictionary } from "@vallo/i18n";
 
 /**
@@ -15,6 +16,7 @@ export function PlaceCard({
   stateName,
   lgaName,
   occupationName,
+  children,
 }: {
   /* Handed down from the settings page, which resolved the locale. The state
      and local government NAMES come from the database and are English there;
@@ -24,6 +26,10 @@ export function PlaceCard({
   stateName: string;
   lgaName: string;
   occupationName: string;
+  /* `InterestsRow` lands here. Where somebody is and what they came for are the
+     whole of what the platform knows before they have searched for anything,
+     and the second of the two was a card of its own holding one link. */
+  children?: ReactNode;
 }) {
   const place = [lgaName, stateName].filter(Boolean).join(", ");
   const href = signedIn ? "/settings/place" : "/sign-in";
@@ -51,6 +57,7 @@ export function PlaceCard({
         value={occupationName || t.common.notSet}
         testId="settings-occupation-row"
       />
+          {children}
     </SettingsGroup>
   );
 }

@@ -25,26 +25,26 @@ export default function LoadingListing() {
         />
       </div>
 
-      <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-6 pt-6 sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-6 sm:pb-8 sm:pt-8 md:-mx-8 md:px-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+      <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-lg pt-lg sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-xl md:-mx-8 md:px-xl">
+        <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
           <div className="min-w-0">
             {/* Status row, title, location, then the hero price. */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-xs">
               <Skeleton width="5.5rem" height="1.375rem" radius="pill" />
               <Skeleton width="4.5rem" height="1.375rem" radius="pill" />
             </div>
-            <Skeleton className="mt-3" width="80%" height="2.25rem" radius="sm" />
+            <Skeleton className="mt-sm" width="80%" height="2.25rem" radius="sm" />
             <Skeleton className="mt-2.5" width="45%" height="1rem" radius="sm" />
-            <Skeleton className="mt-4" width="12rem" height="3rem" radius="sm" />
+            <Skeleton className="mt-md" width="12rem" height="3rem" radius="sm" />
 
-            <div className="mt-6 space-y-2.5">
+            <div className="mt-lg space-y-2.5">
               <Skeleton height="0.875rem" radius="sm" />
               <Skeleton height="0.875rem" radius="sm" />
               <Skeleton width="72%" height="0.875rem" radius="sm" />
             </div>
 
             {/* The amenity grid. */}
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="mt-lg grid grid-cols-2 gap-sm sm:grid-cols-3">
               {Array.from({ length: 6 }, (_, i) => (
                 <Skeleton key={i} height="2.75rem" radius="md" />
               ))}
@@ -54,10 +54,10 @@ export default function LoadingListing() {
           {/* The reserve panel, pinned beside the content from lg up. */}
           <aside className="nf-card p-5">
             <Skeleton width="60%" height="1.5rem" radius="sm" />
-            <Skeleton className="mt-4" height="3rem" radius="lg" />
-            <Skeleton className="mt-3" height="3rem" radius="lg" />
+            <Skeleton className="mt-md" height="3rem" radius="lg" />
+            <Skeleton className="mt-sm" height="3rem" radius="lg" />
             <Skeleton className="mt-5" height="3.5rem" radius="pill" />
-            <Skeleton className="mt-4" width="70%" height="0.8125rem" radius="sm" />
+            <Skeleton className="mt-md" width="70%" height="0.8125rem" radius="sm" />
           </aside>
         </div>
       </div>

@@ -71,7 +71,7 @@ export function FollowButton({
   const [pending, startTransition] = useTransition();
 
   const shape = compact
-    ? "nf-btn nf-btn--primary h-9 shrink-0 px-4 text-[0.8rem]"
+    ? "nf-btn nf-btn--primary h-9 shrink-0 px-md text-[var(--nf-text-caption)]"
     : "nf-btn min-w-[6.5rem]";
 
   /*
@@ -135,7 +135,7 @@ export function FollowButton({
       {error && (
         <p
           role="alert"
-          className="max-w-[14rem] text-right text-[0.75rem] leading-snug text-[var(--nf-state-error)]"
+          className="max-w-[14rem] text-right text-[var(--nf-text-overline)] leading-snug text-[var(--nf-state-error)]"
         >
           {error}
         </p>

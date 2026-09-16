@@ -39,21 +39,21 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mt-3">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-[0.75rem] font-semibold uppercase tracking-wide text-[var(--nf-content-muted)]">
+    <div className="mt-sm">
+      <div className="flex items-center justify-between gap-sm">
+        <h2 className="text-[var(--nf-text-overline)] font-semibold uppercase tracking-wide text-[var(--nf-content-muted)]">
           {title}
         </h2>
         <button
           type="button"
           onClick={onClear}
-          className="relative shrink-0 text-[0.75rem] font-semibold text-[var(--nf-brand-secondary)] before:absolute before:-inset-3 before:content-['']"
+          className="relative shrink-0 text-[var(--nf-text-overline)] font-semibold text-[var(--nf-brand-secondary)] before:absolute before:-inset-3 before:content-['']"
         >
           {clearLabel}
         </button>
       </div>
-      <div className="nf-scroll-x -mx-5 mt-2 md:-mx-8">
-        <ul className="flex gap-2 px-5 md:px-8">{children}</ul>
+      <div className="nf-scroll-x -mx-5 mt-xs md:-mx-8">
+        <ul className="flex gap-xs px-5 md:px-xl">{children}</ul>
       </div>
     </div>
   );

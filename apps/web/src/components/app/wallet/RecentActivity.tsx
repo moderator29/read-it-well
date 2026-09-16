@@ -52,7 +52,7 @@ export function RecentActivity({
         {entries.length > 0 && (
           <Link
             href="/wallet/transactions"
-            className="nf-tap inline-flex items-center gap-2xs text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="nf-tap inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {/* The number is the reason to tap. "See all" alone does not say
                 whether there are four movements behind it or four hundred. */}

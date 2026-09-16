@@ -63,20 +63,20 @@ export function ListingPhotoGrid({
 
   return (
     <section data-testid="listing-photo-grid">
-      <div className="mb-3.5 flex items-baseline justify-between gap-4">
+      <div className="mb-3.5 flex items-baseline justify-between gap-md">
         <h2 className="nf-h3">Photos</h2>
         <button
           type="button"
           onClick={() => setShowAll(true)}
           data-testid="photos-show-all"
-          className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
+          className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
         >
           <UiIcon name="grid" size={16} />
           Show all {photos.length}
         </button>
       </div>
 
-      <ul className="grid grid-cols-3 gap-2">
+      <ul className="grid grid-cols-3 gap-xs">
         {preview.map((photo, i) => {
           const last = i === preview.length - 1 && remainder > 0;
           return (
@@ -93,7 +93,7 @@ export function ListingPhotoGrid({
               >
                 <Tile photo={photo} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 33vw, 220px" />
                 {last && (
-                  <span className="nf-numeric absolute inset-0 grid place-items-center bg-[var(--nf-overlay-media-strong)] text-[1.0625rem] font-bold text-[var(--nf-content-on-media)] backdrop-blur-[2px]">
+                  <span className="nf-numeric absolute inset-0 grid place-items-center bg-[var(--nf-overlay-media-strong)] text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-on-media)] backdrop-blur-[2px]">
                     +{remainder}
                   </span>
                 )}
@@ -104,7 +104,7 @@ export function ListingPhotoGrid({
       </ul>
 
       <Sheet open={showAll} onOpenChange={setShowAll} title={`${title} photos`}>
-        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <ul className="grid grid-cols-2 gap-xs sm:grid-cols-3">
           {photos.map((photo, i) => (
             <li key={`all-${photo}-${i}`}>
               <button

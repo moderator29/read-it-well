@@ -91,9 +91,22 @@
    * the button's positioning transform or a selected pin's own scale-110.
    * Selected pins drop the class entirely (see MapCanvas), so the moment a
    * pin is chosen it holds still.
+   *
+   * AND IT IS OFF, BECAUSE THE ARITHMETIC IS THE ARGUMENT. Every line above is
+   * well reasoned and every one of them is about ONE pin. The class is applied
+   * per mark, so a result set puts twenty, forty, sixty of these on one screen
+   * at once, each an infinite transform animation, on the densest and most
+   * scroll-heavy surface in the product and on the phone this is built for.
+   * "A still map reads as a dead one" is a claim about a single mark; what it
+   * produced is a screen where everything twitches and the SELECTED pin - the
+   * one that drops the class and holds still - is the only calm thing on it,
+   * which inverts the signal the mechanism was built to send.
+   *
+   * The drop-in on arrival stays. A pin landing is an event.
    */
   .nf-map-pin-breathe {
-    animation: nf-map-pin-breathe 5s var(--nf-ease-standard) infinite;
+    /* No animation. See the ambient budget note in glass.css. */
+    animation: none;
   }
   @keyframes nf-map-pin-breathe {
     0%, 100% { transform: scale(1); }

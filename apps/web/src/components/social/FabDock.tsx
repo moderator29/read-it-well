@@ -122,12 +122,12 @@ export function FabDock({
           aria-label={composeKind === "ASK" ? "Ask a question" : "Say something"}
         >
           <div ref={composerRef} className="nf-social-sheet__panel">
-            <header className="mb-5 flex items-start justify-between gap-3">
+            <header className="mb-5 flex items-start justify-between gap-sm">
               <div className="min-w-0">
-                <h2 className="nf-h3 text-[1.15rem]">
+                <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">
                   {composeKind === "ASK" ? "Ask a question" : "Say something"}
                 </h2>
-                <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                   {picking
                     ? "Choose where this belongs"
                     : chosen
@@ -146,7 +146,7 @@ export function FabDock({
             </header>
 
             {picking ? (
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-xs">
                 {/* Everybody, first and always present. It is the destination
                     that needs no membership and no setup, so it is the one a
                     person can always get back to. */}
@@ -202,7 +202,7 @@ export function FabDock({
                 <button
                   type="button"
                   onClick={() => setPicking(true)}
-                  className="mb-3 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]"
+                  className="mb-sm text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
                 >
                   {chosen ? "Post somewhere else" : "Post in a place instead"}
                 </button>

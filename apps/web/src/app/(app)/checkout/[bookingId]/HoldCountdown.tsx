@@ -144,13 +144,13 @@ export function HoldCountdown({
 
         {view.kind === "unknown" ? (
           <p
-            className="nf-numeric mt-0.5 text-[1.125rem] font-bold tracking-tight text-[var(--nf-content-primary)]"
+            className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
             aria-hidden="true"
           >
             &nbsp;
           </p>
         ) : expired ? (
-          <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-3xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             These dates are no longer held and somebody else can book them. If the stay is still
             open, paying now still confirms it. If it has already been released, the payment is
             refused before anything is charged.
@@ -161,12 +161,12 @@ export function HoldCountdown({
              somebody who came here to pay. */
           <p
             aria-live="off"
-            className="nf-numeric mt-0.5 text-[1.125rem] font-bold tracking-tight text-[var(--nf-content-primary)]"
+            className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
           >
             {pad(view.m)}m {pad(view.s)}s left
           </p>
         ) : (
-          <p className="mt-0.5 text-[1.125rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+          <p className="mt-3xs text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             Until {view.until}
           </p>
         )}

@@ -32,17 +32,17 @@ export function ListingTenure({ listing }: { listing: Listing }) {
 
   return (
     <div data-testid="listing-tenure">
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-sm">
         <UiIcon
           name={tenure ? "document" : "info"}
           size={ICON.section}
-          className="mt-0.5 shrink-0 text-[var(--nf-content-muted)]"
+          className="mt-3xs shrink-0 text-[var(--nf-content-muted)]"
         />
         <div className="min-w-0">
           <p className={TYPE.label}>Title</p>
           {tenure ? (
             <>
-              <p className="mt-1 text-[1.125rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+              <p className="mt-2xs text-[var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                 {tenure}
               </p>
               <p className={`mt-1.5 ${TYPE.body}`}>
@@ -52,7 +52,7 @@ export function ListingTenure({ listing }: { listing: Listing }) {
             </>
           ) : (
             <>
-              <p className="mt-1 text-[1.125rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+              <p className="mt-2xs text-[var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                 No title stated
               </p>
               <p className={`mt-1.5 ${TYPE.body}`}>
@@ -67,7 +67,7 @@ export function ListingTenure({ listing }: { listing: Listing }) {
       </div>
 
       {status && (
-        <p className={`mt-4 ${TYPE.body}`}>
+        <p className={`mt-md ${TYPE.body}`}>
           <span className="font-semibold text-[var(--nf-content-primary)]">{status}</span>
           {listing.saleStatus === "under_offer" &&
             " - an offer has been accepted, but the sale has not completed."}

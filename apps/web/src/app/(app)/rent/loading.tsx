@@ -15,21 +15,21 @@ export default function LoadingRent() {
     <LoadingShell label="Loading rentals">
       <PageHeaderSkeleton />
 
-      <div className="mt-2 max-w-[52ch] space-y-2">
+      <div className="mt-xs max-w-[52ch] space-y-xs">
         <Skeleton height="0.9375rem" radius="sm" />
         <Skeleton width="70%" height="0.9375rem" radius="sm" />
       </div>
 
-      <div className="nf-card mt-4 flex items-start gap-4 p-4">
+      <div className="nf-card mt-md flex items-start gap-md p-md">
         <Skeleton width="1.25rem" height="1.25rem" radius="sm" className="shrink-0" />
-        <div className="min-w-0 flex-1 space-y-2">
+        <div className="min-w-0 flex-1 space-y-xs">
           <Skeleton height="0.8125rem" radius="sm" />
           <Skeleton width="65%" height="0.8125rem" radius="sm" />
         </div>
       </div>
 
       {/* The city rail: full-bleed on phones, exactly as the real nav is. */}
-      <div className="-mx-5 mt-4 flex gap-2 overflow-hidden px-5 md:-mx-8 md:px-8">
+      <div className="-mx-5 mt-md flex gap-xs overflow-hidden px-5 md:-mx-8 md:px-xl">
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} width="7rem" height="2.75rem" radius="pill" className="shrink-0" />
         ))}

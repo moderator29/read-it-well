@@ -43,7 +43,7 @@ export function isFeedTab(value: string | undefined | null): value is FeedTab {
  */
 export function FeedMasthead({ t }: { t: Dictionary }) {
   return (
-    <header className="mb-3 flex items-center justify-between gap-3" data-testid="feed-masthead">
+    <header className="mb-sm flex items-center justify-between gap-sm" data-testid="feed-masthead">
       <Link
         href="/around?filters=1"
         aria-label={t.social.filters}

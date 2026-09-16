@@ -24,7 +24,7 @@ export default async function NewStoryPage() {
 
   if (session.state === "unconfigured") {
     return (
-      <div className="mx-auto w-full max-w-2xl pb-24 pt-4">
+      <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
         <PageHeader title="Write a story" fallback="/around" />
         <ProfileNotice
           icon="camera"
@@ -43,7 +43,7 @@ export default async function NewStoryPage() {
     .map((area) => ({ id: area.id, name: area.name, city: area.city }));
 
   return (
-    <div className="mx-auto w-full max-w-2xl pb-24 pt-4">
+    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader
         title="Write a story"
         subtitle="A picture, a headline, and a line or two. It stays up."

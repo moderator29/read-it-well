@@ -673,7 +673,7 @@ export function MapCanvas({
                 "--pin-i": i,
               } as React.CSSProperties
             }
-            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-3 py-2 text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
+            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-sm py-xs text-[var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
           >
             <span className="nf-map-pin-breathe inline-block">{group.items.length}</span>
             <span className="sr-only"> places grouped here, open them</span>
@@ -700,7 +700,7 @@ export function MapCanvas({
                   "--pin-i": i,
                 } as React.CSSProperties
               }
-              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-2.5 py-1.5 text-[0.75rem] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
+              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-2.5 py-1.5 text-[var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
                 chosen
                   ? "scale-110 border border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
                   : "border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-primary)] hover:border-[var(--nf-brand-primary)]"
@@ -710,7 +710,7 @@ export function MapCanvas({
                   loop never fights the button's own position or selection
                   transform (see the CSS comment by nf-map-pin-breathe). */}
               <span
-                className={`inline-flex items-center gap-1 ${chosen ? "" : "nf-map-pin-breathe"}`}
+                className={`inline-flex items-center gap-2xs ${chosen ? "" : "nf-map-pin-breathe"}`}
               >
                 {pin.verified && (
                   <UiIcon
@@ -741,12 +741,12 @@ export function MapCanvas({
 
       {/* ------------------------------------------------------------ chrome */}
       <div className="pointer-events-none absolute inset-0 z-[1100] flex flex-col">
-        <div className="flex items-start gap-2 p-3">
+        <div className="flex items-start gap-xs p-sm">
           <p
             data-testid="map-count"
             role="status"
             aria-live="polite"
-            className="nf-chip pointer-events-auto min-w-0 max-w-[62%] shrink text-[0.75rem]"
+            className="nf-chip pointer-events-auto min-w-0 max-w-[62%] shrink text-[var(--nf-text-overline)]"
           >
             <UiIcon name="map" size={12} className="shrink-0 opacity-70" />
             {/* "23 places on this map" is a sentence, and it was being clipped
@@ -774,7 +774,7 @@ export function MapCanvas({
               type="button"
               data-testid="map-clear-area"
               onClick={clearArea}
-              className="nf-chip pointer-events-auto ml-auto h-8 shrink-0 whitespace-nowrap text-[0.75rem]"
+              className="nf-chip pointer-events-auto ml-auto h-8 shrink-0 whitespace-nowrap text-[var(--nf-text-overline)]"
             >
               <UiIcon name="arrow-left" size={12} />
               All places
@@ -786,23 +786,23 @@ export function MapCanvas({
         {visible.length === 0 && (
           <div
             style={{ boxShadow: CARD_LIFT }}
-            className="pointer-events-auto mx-auto mt-6 w-[min(20rem,86%)] rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 text-center"
+            className="pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-5 text-center"
           >
             <BrandIcon name="map-spot" size={44} className="mx-auto" />
-            <p className="mt-3 font-semibold text-[var(--nf-content-primary)]">
+            <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
               No places here
             </p>
-            <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               {areaBox
                 ? "No place sits inside this part of the map."
                 : "This search matched no place we can put on the map."}
             </p>
             {areaBox ? (
-              <Button variant="secondary" onClick={clearArea} className="mt-4">
+              <Button variant="secondary" onClick={clearArea} className="mt-md">
                 Show every place
               </Button>
             ) : (
-              <ButtonLink href={wholeMapHref} variant="secondary" className="mt-4">
+              <ButtonLink href={wholeMapHref} variant="secondary" className="mt-md">
                 Show every place
               </ButtonLink>
             )}
@@ -812,7 +812,7 @@ export function MapCanvas({
         <div className="flex-1" />
 
         {/* Attribution and the state of the imagery, always clear of the dock. */}
-        <p className="pointer-events-auto px-3 pb-1 text-[0.625rem] leading-tight text-[var(--nf-content-muted)]">
+        <p className="pointer-events-auto px-sm pb-2xs text-[0.625rem] leading-tight text-[var(--nf-content-muted)]">
           {imagery === "offline" ? (
             <span data-testid="map-imagery-note">
               Map imagery could not load. Every place is still placed by its area.
@@ -842,7 +842,7 @@ export function MapCanvas({
 
         {/* Controls. They sit above the dock in the same column, so a docked
             card can never cover the locate control. */}
-        <div className="flex items-end justify-end gap-2 px-3 pb-2">
+        <div className="flex items-end justify-end gap-xs px-sm pb-xs">
           {locateMessage && (
             <p
               role="status"
@@ -913,10 +913,10 @@ export function MapCanvas({
           <div
             data-testid="map-list"
             style={{ boxShadow: LIFT }}
-            className="pointer-events-auto mx-3 mb-3 max-h-[46%] overflow-hidden rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)]"
+            className="pointer-events-auto mx-sm mb-sm max-h-[46%] overflow-hidden rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)]"
           >
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--nf-border-subtle)] px-3 py-2">
-              <h2 className="text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+            <div className="flex items-center justify-between gap-sm border-b border-[var(--nf-border-subtle)] px-sm py-xs">
+              <h2 className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
                 Places on this map
               </h2>
               <button
@@ -937,17 +937,17 @@ export function MapCanvas({
                       choose(listing);
                       setListOpen(false);
                     }}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-[var(--nf-surface-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)]"
+                    className="flex w-full items-center gap-sm px-sm py-2.5 text-left hover:bg-[var(--nf-surface-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)]"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+                      <span className="block truncate text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
                         {listing.title}
                       </span>
                       <span className="block truncate text-[0.6875rem] text-[var(--nf-content-muted)]">
                         {listing.area}, {listing.city}
                       </span>
                     </span>
-                    <span className="nf-numeric shrink-0 text-[0.8125rem] font-bold text-[var(--nf-content-primary)]">
+                    <span className="nf-numeric shrink-0 text-[var(--nf-text-caption)] font-bold text-[var(--nf-content-primary)]">
                       {listing.priceMinor > 0
                         ? formatMoney(listing.priceMinor, locale, listing.currency, {
                             compact: true,

@@ -60,8 +60,8 @@ function AlertCard({
   ui: AdminUi;
 }) {
   return (
-    <li className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <li className="nf-card p-md sm:p-5">
+      <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={alert.status} />
         <ui.StatusChip
           label={fill(copy.severityChip, { level: copy.severity[alert.severity] })}
@@ -72,22 +72,22 @@ function AlertCard({
             {...dueChip(alert.createdAt, gradeForSeverity(alert.severity), common)}
           />
         )}
-        <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {ui.when(alert.createdAt)}
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-2.5 text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         {alert.title}
       </h3>
       {alert.description && (
-        <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {alert.description}
         </p>
       )}
 
       {alert.entityType && (
-        <p className="mt-2 break-words text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-xs break-words text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.attachedTo, { type: alert.entityType, id: alert.entityId ?? "" }).trim()}
         </p>
       )}
@@ -95,7 +95,7 @@ function AlertCard({
       {alert.status === "open" ? (
         <AlertResolve alertId={alert.id} copy={copy} common={common} />
       ) : (
-        <p className="mt-3 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.resolvedWhen, { when: ui.when(alert.resolvedAt) })}{" "}
           {fill(common.resolvedBy, { who: alert.resolvedByName ?? common.someone })}.{" "}
           {common.noteInAuditLog}
@@ -185,8 +185,8 @@ export default async function AdminAlertsPage({
           )}
 
           {resolved.length > 0 && (
-            <section className="mt-8">
-              <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyResolved}</h2>
+            <section className="mt-xl">
+              <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyResolved}</h2>
               <ul className="nf-queue-list">
                 {resolved.map((alert) => (
                   <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />

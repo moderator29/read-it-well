@@ -605,8 +605,67 @@
    * perfectly still. The pane wrapping this image is `overflow-hidden`, so
    * the zoom never spills past the frame the card promised.
    */
+  /*
+   * ==================================================================
+   * ONE AMBIENT ANIMATION PER VIEWPORT, AND THERE WERE SEVEN.
+   *
+   * Counted across this workstream's files, every `animation: ... infinite` and
+   * then split by whether it REPORTS SOMETHING or merely moves:
+   *
+   *   reporting, and all of these stay - they say a thing is genuinely
+   *   happening and they stop when it stops:
+   *     nf-spin            a request is in flight
+   *     nf-shimmer         content is loading
+   *     nf-verify-sweep    a check is running
+   *     nf-typing-breathe  somebody is typing
+   *     nf-bot-spin        the assistant is thinking
+   *     nf-btn-loading     this button is working
+   *
+   *   ambient, and the budget for these is ONE:
+   *     nf-drift-a         the canvas bloom          <- the one
+   *     nf-float           .nf-icon-field spans
+   *     nf-scene-live      .nf-hero-scene
+   *     nf-drift           .nf-drift
+   *     nf-gallery-pan     .nf-gallery-kenburns
+   *     nf-art-breathe     .nf-story-art
+   *     nf-map-pin-breathe every idle pin on the map
+   *
+   * The canvas bloom keeps it. It is behind everything rather than attached to
+   * one object, which is what makes it atmosphere instead of a thing moving on
+   * the page, and the file has already said so twice while six other loops went
+   * on running underneath.
+   *
+   * THREE OF THE SIX WERE ON CLASSES NOTHING RENDERS. `.nf-icon-field`,
+   * `.nf-hero-scene` and `.nf-drift` have zero call sites in the component tree
+   * between them - checked by grep across every `.tsx` - so they were infinite
+   * animations declared for elements that do not exist. That is not a
+   * performance cost today; it is the trap, because the day somebody uses the
+   * class they inherit a loop nobody chose.
+   *
+   * The pattern is the one `.nf-float` in animation.css already set: the CLASS
+   * survives, because call sites and other rules depend on its positioning and
+   * its material, and only the animation stops. Every one of the six also had a
+   * `prefers-reduced-motion` rule turning it off, which is worth noticing: the
+   * product was already correct for readers who asked for less motion and
+   * wrong for everyone else.
+   * ==================================================================
+   */
+  /*
+   * THE KEN BURNS IS OFF. L-108, and the rule above.
+   *
+   * A 20 second infinite pan on the listing's lead photograph: the largest
+   * image on the screen, moving forever, on the page where a person is reading
+   * a price and a description. It is also the single most expensive thing on
+   * the platform per pixel of value, which is the audit's phrase for it, and
+   * with `listing_photos = 0` it was panning a placeholder.
+   *
+   * The keyframe stays for the same reason the class does: it costs nothing
+   * unused and it is what to reach for if a gallery ever wants a deliberate,
+   * finite camera move on a real event.
+   */
   .nf-gallery-kenburns {
-    animation: nf-gallery-pan 20s var(--nf-ease-standard) infinite alternate;
+    /* No animation. See the ambient budget note above. */
+    animation: none;
   }
   @keyframes nf-gallery-pan {
     from { transform: scale(1) translate3d(0, 0, 0); }

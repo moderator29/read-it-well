@@ -60,7 +60,7 @@ function NoteField({
 }) {
   return (
     <textarea
-      className="nf-field min-h-[64px] w-full resize-y text-sm"
+      className="nf-field min-h-[64px] w-full resize-y text-[var(--nf-text-body-sm)]"
       value={value}
       maxLength={400}
       placeholder={placeholder}
@@ -73,7 +73,7 @@ function NoteField({
 function ErrorLine({ error }: { error: string | null }) {
   if (!error) return null;
   return (
-    <p role="alert" className="mt-2 text-xs text-[var(--nf-state-error)]">
+    <p role="alert" className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
       {error}
     </p>
   );
@@ -84,14 +84,14 @@ export function AreaDecision({ areaId, name }: { areaId: string; name: string })
   const [note, setNote] = useState("");
 
   return (
-    <div className="mt-3">
+    <div className="mt-sm">
       <NoteField
         value={note}
         onChange={setNote}
         disabled={pending}
         placeholder={`Why ${name} is or is not opening. If you decline, this is what they read.`}
       />
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-xs flex flex-wrap gap-xs">
         <Button
           variant="primary"
           size="sm"
@@ -111,7 +111,7 @@ export function AreaDecision({ areaId, name }: { areaId: string; name: string })
         </Button>
       </div>
       {note.trim().length === 0 ? (
-        <p className="mt-2 text-xs text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Declining needs a reason. They receive it word for word.
         </p>
       ) : null}
@@ -131,14 +131,14 @@ export function ModeratorDecision({
   const [note, setNote] = useState("");
 
   return (
-    <div className="mt-3">
+    <div className="mt-sm">
       <NoteField
         value={note}
         onChange={setNote}
         disabled={pending}
         placeholder={`A note to them about ${areaName}. If you decline, this is what they read.`}
       />
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-xs flex flex-wrap gap-xs">
         <Button
           variant="primary"
           size="sm"
@@ -164,7 +164,7 @@ export function ModeratorDecision({
           Decline
         </Button>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         Approving lets them hide a post while somebody reviews it. It does not let
         them delete one, and it grants nothing outside this place.
       </p>
@@ -206,7 +206,7 @@ export function PauseToggle({
         disabled={pending}
         placeholder={paused ? `Why ${name} is coming back.` : `Why ${name} is pausing.`}
       />
-      <div className="mt-2 flex gap-2">
+      <div className="mt-xs flex gap-xs">
         <Button
           variant={paused ? "primary" : "danger"}
           size="sm"

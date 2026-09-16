@@ -70,15 +70,15 @@ export function TenancyTerm({
   const label = `${terms} ${terms === 1 ? noun : `${noun}s`}`;
 
   return (
-    <div className="mt-4 border-t border-[var(--nf-border-subtle)] pt-4">
-      <div className="flex items-center justify-between gap-3">
+    <div className="mt-md border-t border-[var(--nf-border-subtle)] pt-md">
+      <div className="flex items-center justify-between gap-sm">
         <span className={TYPE.rowTitle}>How long</span>
         {/*
           A stepper rather than a select, matching the guests control on the
           stay panel: the range is small, both ends are one tap, and the number
           stays visible instead of hiding inside a closed menu.
         */}
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-2xs">
           <StepButton
             icon="minus"
             label={`Fewer ${noun}s`}
@@ -86,7 +86,7 @@ export function TenancyTerm({
             onClick={() => setTerms((n) => Math.max(floor, n - 1))}
           />
           <span
-            className="nf-numeric min-w-[5.5rem] text-center text-[0.875rem] font-semibold text-[var(--nf-content-primary)]"
+            className="nf-numeric min-w-[5.5rem] text-center text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
             aria-live="polite"
           >
             {label}
@@ -104,18 +104,18 @@ export function TenancyTerm({
           which already prints one term's rent. At the floor it would be the
           same figure twice, forty pixels apart. */}
       {terms > 1 && (
-        <p className="mt-3 flex items-baseline justify-between gap-3">
+        <p className="mt-sm flex items-baseline justify-between gap-sm">
           <span className={TYPE.rowMeta}>Rent for {label}</span>
           <Amount
             minorUnits={priceMinor * terms}
             locale={locale}
             currency={currency}
-            className="text-[1.0625rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+            className="text-[var(--nf-text-body-lg)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
           />
         </p>
       )}
 
-      <p className={`mt-2 ${TYPE.rowMeta}`}>
+      <p className={`mt-xs ${TYPE.rowMeta}`}>
         Rent only, before caution, agency and legal fees. The agent agrees the
         final terms with you.
       </p>

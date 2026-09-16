@@ -51,8 +51,8 @@ function VerificationLadderPanel({
   const tierNames = copy.tierName as Record<string, string>;
 
   return (
-    <section className="mt-4" aria-label={copy.title}>
-      <div className="flex flex-wrap items-center gap-2">
+    <section className="mt-md" aria-label={copy.title}>
+      <div className="flex flex-wrap items-center gap-xs">
         <h4 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
           {copy.title}
         </h4>
@@ -76,13 +76,13 @@ function VerificationLadderPanel({
           return (
             <li
               key={rung.kind}
-              className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3"
+              className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+              <div className="flex flex-wrap items-center gap-xs">
+                <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {rung.step}
                 </span>
-                <span className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+                <span className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {copy.rung[rung.kind]}
                 </span>
                 <ui.StatusChip
@@ -103,12 +103,12 @@ function VerificationLadderPanel({
                 />
               </div>
 
-              <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-1.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {rung.evidence}
               </p>
 
               {decision && (
-                <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+                <p className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {fill(copy.decidedBy, {
                     who: decision.decidedByName ?? common.someone,
                     when: ui.when(decision.decidedAt),
@@ -118,7 +118,7 @@ function VerificationLadderPanel({
               )}
 
               {blocked ? (
-                <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+                <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {copy.blockedBelow}
                 </p>
               ) : (
@@ -159,22 +159,22 @@ function ApplicationCard({
   const f = copy.fields;
 
   return (
-    <li className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <li className="nf-card p-md sm:p-5">
+      <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={application.status} />
         <ui.StatusChip
           label={application.type === "business" ? copy.business : copy.individual}
           tone="neutral"
         />
-        <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {application.reference}
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-2.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {application.fullName ?? copy.nameMissing}
       </h3>
-      <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+      <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {fill(copy.submittedWhen, { when: ui.when(application.submittedAt) })}
       </p>
 
@@ -220,7 +220,7 @@ function ApplicationCard({
             each one is a real link. The bucket is private and these signatures
             are short lived, so nothing here is a durable public URL. */}
         {application.documents.length > 0 && (
-          <ul className="mt-2 flex flex-wrap gap-2 px-4 pb-3">
+          <ul className="mt-xs flex flex-wrap gap-xs px-md pb-sm">
             {application.documents.map((doc) => {
               const label =
                 copy.documentKinds[doc.kind as keyof typeof copy.documentKinds] ?? doc.kind;
@@ -231,13 +231,13 @@ function ApplicationCard({
                       href={doc.url}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="nf-chip text-[0.75rem]"
+                      className="nf-chip text-[var(--nf-text-overline)]"
                     >
                       {label}
                       <span className="text-[var(--nf-content-muted)]">{copy.documentOpen}</span>
                     </a>
                   ) : (
-                    <span className="nf-chip text-[0.75rem] opacity-60">
+                    <span className="nf-chip text-[var(--nf-text-overline)] opacity-60">
                       {label}
                       <span className="text-[var(--nf-content-muted)]">
                         {copy.documentUnavailable}
@@ -279,7 +279,7 @@ function ApplicationCard({
           common={common}
         />
       ) : (
-        <p className="mt-4 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-md text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.decidedWhen, { when: ui.when(application.reviewedAt) })} {common.inAuditLog}
         </p>
       )}
@@ -400,8 +400,8 @@ export default async function AdminAgentsPage({
       )}
 
       {decided.length > 0 && (
-        <section className="mt-8">
-          <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyDecided}</h2>
+        <section className="mt-xl">
+          <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
           <ul className="nf-queue-list">
             {decided.map((application) => (
               <ApplicationCard

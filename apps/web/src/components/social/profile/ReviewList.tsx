@@ -15,13 +15,13 @@ export function ReviewList({ reviews }: { reviews: ReviewCard[] }) {
   return (
     <ul className="flex flex-col gap-[var(--nf-social-gap)]">
       {reviews.map((review) => (
-        <li key={review.id} className="nf-card nf-social-card p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-[0.9rem] font-bold text-[var(--nf-content-primary)]">
+        <li key={review.id} className="nf-card nf-social-card p-md">
+          <div className="flex items-center justify-between gap-sm">
+            <p className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
               {review.authorLabel}
             </p>
             <span
-              className="inline-flex items-center gap-0.5"
+              className="inline-flex items-center gap-3xs"
               aria-label={`${review.rating} out of 5`}
             >
               {[1, 2, 3, 4, 5].map((star) => (
@@ -39,11 +39,11 @@ export function ReviewList({ reviews }: { reviews: ReviewCard[] }) {
               ))}
             </span>
           </div>
-          <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {review.listingTitle} · {review.createdLabel}
           </p>
           {review.body ? (
-            <p className="mt-2.5 text-[0.9rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-2.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {review.body}
             </p>
           ) : null}

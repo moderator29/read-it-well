@@ -175,12 +175,12 @@ export function ProfilePhotos({
         )}
         <div className="nf-social-cover__scrim" aria-hidden="true" />
 
-        <div className="absolute right-3 top-3 flex gap-2">
+        <div className="absolute right-3 top-3 flex gap-xs">
           <button
             type="button"
             onClick={() => coverInput.current?.click()}
             disabled={busy !== null}
-            className="nf-btn nf-btn--glass gap-inline-tight px-3 py-2 text-[0.75rem]"
+            className="nf-btn nf-btn--glass gap-inline-tight px-sm py-xs text-[var(--nf-text-overline)]"
           >
             {/* The glyph, so the control is findable before it is read. A
                 bare word floating over a photograph is the one thing on this
@@ -194,7 +194,7 @@ export function ProfilePhotos({
               type="button"
               onClick={() => void removeCover()}
               disabled={busy !== null}
-              className="nf-btn nf-btn--ghost px-3 py-2 text-[0.75rem]"
+              className="nf-btn nf-btn--ghost px-sm py-xs text-[var(--nf-text-overline)]"
             >
               Remove
             </button>
@@ -202,7 +202,7 @@ export function ProfilePhotos({
         </div>
       </div>
 
-      <div className="flex items-end gap-3 px-4 pb-4 sm:px-5">
+      <div className="flex items-end gap-sm px-md pb-md sm:px-5">
         <button
           type="button"
           onClick={() => avatarInput.current?.click()}
@@ -235,11 +235,11 @@ export function ProfilePhotos({
           </span>
         </button>
 
-        <div className="min-w-0 flex-1 pb-1">
-          <p className="text-[0.8125rem] font-semibold">
+        <div className="min-w-0 flex-1 pb-2xs">
+          <p className="text-[var(--nf-text-caption)] font-semibold">
             {busy === "avatar" ? "Saving your photo" : "Your photo"}
           </p>
-          <p className="mt-0.5 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-3xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             This is the same photo you use everywhere on Vallo. You can also change it from{" "}
             <Link href="/profile" className="font-semibold text-[var(--nf-brand-secondary)]">
               your account
@@ -249,18 +249,18 @@ export function ProfilePhotos({
         </div>
       </div>
 
-      <p className="px-4 pb-4 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)] sm:px-5">
+      <p className="px-md pb-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)] sm:px-5">
         Photos are re-encoded on your phone before they are uploaded, so the location tag a camera
         writes never leaves it.
       </p>
 
       {error && (
-        <p role="alert" className="px-4 pb-4 text-[0.75rem] text-[var(--nf-state-error)] sm:px-5">
+        <p role="alert" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-error)] sm:px-5">
           {error}
         </p>
       )}
       {note && !error && (
-        <p role="status" className="px-4 pb-4 text-[0.75rem] text-[var(--nf-state-success)] sm:px-5">
+        <p role="status" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-success)] sm:px-5">
           {note}
         </p>
       )}

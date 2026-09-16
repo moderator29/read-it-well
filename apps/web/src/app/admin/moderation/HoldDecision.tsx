@@ -50,13 +50,13 @@ export function HoldDecision({
   const canRemove = reason.trim().length > 0;
 
   return (
-    <div className="mt-3">
+    <div className="mt-sm">
       <label className="sr-only" htmlFor={`reason-${target}-${id}`}>
         Why this {what} is coming down
       </label>
       <textarea
         id={`reason-${target}-${id}`}
-        className="nf-field min-h-[60px] w-full resize-y text-sm"
+        className="nf-field min-h-[60px] w-full resize-y text-[var(--nf-text-body-sm)]"
         value={reason}
         maxLength={400}
         placeholder={`Why this ${what} is coming down. The author reads this word for word.`}
@@ -70,7 +70,7 @@ export function HoldDecision({
         solid danger button now: the two outcomes read as two different kinds
         of decision, which is the only honest way to draw them.
       */}
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-xs flex flex-wrap gap-xs">
         <Button
           variant="primary"
           size="sm"
@@ -93,13 +93,13 @@ export function HoldDecision({
       </div>
 
       {!canRemove && (
-        <p className="mt-2 text-xs text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Taking something down needs a reason. They receive it word for word.
         </p>
       )}
 
       {error && (
-        <p role="alert" className="mt-2 text-xs text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

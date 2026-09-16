@@ -246,7 +246,7 @@ function Lightbox({
       </div>
 
       {/* Chrome sits above the track and clears the notch and the home indicator. */}
-      <div className="nf-safe-top pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
+      <div className="nf-safe-top pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-sm p-sm">
         <button
           type="button"
           onClick={onClose}
@@ -256,7 +256,7 @@ function Lightbox({
         >
           <UiIcon name="close" size={20} />
         </button>
-        <p className="nf-numeric pointer-events-none mt-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md">
+        <p className="nf-numeric pointer-events-none mt-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md">
           <span className="sr-only">Photo </span>
           {active + 1} / {photos.length}
         </p>

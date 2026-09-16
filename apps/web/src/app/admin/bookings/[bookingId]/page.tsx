@@ -47,7 +47,7 @@ export default async function AdminBookingPage({
   const read = await getBookingDetail(bookingId);
 
   const backLink = (
-    <Link href="/admin/bookings" className="nf-chip mb-4 inline-flex w-fit items-center gap-1.5">
+    <Link href="/admin/bookings" className="nf-chip mb-md inline-flex w-fit items-center gap-1.5">
       {copy.back}
     </Link>
   );
@@ -82,7 +82,7 @@ export default async function AdminBookingPage({
       {backLink}
 
       <header className="mb-5">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-xs">
           <ui.StatusChip status={stay.status} />
           {stay.paidMinor > 0 ? (
             <ui.StatusChip
@@ -100,13 +100,13 @@ export default async function AdminBookingPage({
           )}
         </div>
         <h1 className="nf-h1 mt-2.5 text-[1.5rem] sm:text-[1.75rem]">{stay.listingTitle}</h1>
-        <p className="mt-1 text-[0.875rem] text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           {place.length > 0 ? `${place} · ` : ""}
           {fill(copy.bookedWhen, { when: ui.when(stay.createdAt) })}
         </p>
       </header>
 
-      <div className="nf-card p-4 sm:p-5">
+      <div className="nf-card p-md sm:p-5">
         <ui.DetailSection title={copy.sections.stay}>
           <ui.DetailRow label={f.reference} value={<span className="nf-numeric">{stay.id}</span>} />
           <ui.DetailRow
@@ -161,7 +161,7 @@ export default async function AdminBookingPage({
 
         <ui.DetailSection title={copy.sections.payments}>
           {stay.payments.length === 0 ? (
-            <p className="py-2 text-[0.875rem] text-[var(--nf-content-muted)]">
+            <p className="py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               {copy.noPayments}
             </p>
           ) : (
@@ -177,7 +177,7 @@ export default async function AdminBookingPage({
                     {" · "}
                     {payment.status}
                     {payment.reference ? (
-                      <span className="mt-0.5 block break-all text-[0.75rem] text-[var(--nf-content-muted)]">
+                      <span className="mt-3xs block break-all text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                         {payment.reference}
                       </span>
                     ) : null}
@@ -190,7 +190,7 @@ export default async function AdminBookingPage({
 
         <ui.DetailSection title={copy.sections.refunds}>
           {stay.refunds.length === 0 ? (
-            <p className="py-2 text-[0.875rem] text-[var(--nf-content-muted)]">{copy.noRefunds}</p>
+            <p className="py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">{copy.noRefunds}</p>
           ) : (
             stay.refunds.map((refund) => (
               <ui.DetailRow
@@ -207,12 +207,12 @@ export default async function AdminBookingPage({
                         retained: money(refund.retainedMinor),
                       })}
                     </span>
-                    <span className="mt-0.5 block text-[0.75rem] text-[var(--nf-content-muted)]">
+                    <span className="mt-3xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {copy.reasons[refund.reason as CancellationReason] ?? refund.reason}
                     </span>
-                    {refund.note ? <span className="mt-0.5 block">{refund.note}</span> : null}
+                    {refund.note ? <span className="mt-3xs block">{refund.note}</span> : null}
                     {refund.reference ? (
-                      <span className="mt-0.5 block break-all text-[0.75rem] text-[var(--nf-content-muted)]">
+                      <span className="mt-3xs block break-all text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                         {refund.reference}
                       </span>
                     ) : null}
@@ -236,7 +236,7 @@ export default async function AdminBookingPage({
                     {event.actorName ? ` · ${event.actorName}` : ""}
                   </span>
                   {event.note ? (
-                    <span className="mt-0.5 block text-[0.8125rem] text-[var(--nf-content-secondary)]">
+                    <span className="mt-3xs block text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
                       {event.note}
                     </span>
                   ) : null}
@@ -249,7 +249,7 @@ export default async function AdminBookingPage({
         {cancellable ? (
           <StayCancel bookingId={stay.id} copy={copy} common={common} locale={locale} />
         ) : (
-          <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             {stay.status === "CANCELLED" ? copy.cancelledAlready : copy.pastNote}
           </p>
         )}

@@ -111,7 +111,7 @@ export function PhoneField({
       <label htmlFor={fieldId} className="nf-label">
         {label}
       </label>
-      <div className="flex items-stretch gap-2">
+      <div className="flex items-stretch gap-xs">
         {/*
           `aria-hidden`, because the code is announced as part of the input's
           own description instead. A screen reader hitting a stray "+234" as a
@@ -146,7 +146,7 @@ export function PhoneField({
       <p
         id={noteId}
         role={shown?.tone === "error" ? "alert" : undefined}
-        className={`mt-1.5 text-[0.78rem] leading-relaxed ${
+        className={`mt-1.5 text-[var(--nf-text-overline)] leading-relaxed ${
           shown?.tone === "error"
             ? "text-[var(--nf-state-error)]"
             : "text-[var(--nf-content-muted)]"

@@ -24,12 +24,12 @@ export function ProfileNotice({
   secondary?: { href: string; label: string };
 }) {
   return (
-    <section className="nf-card p-6 text-center sm:p-8">
+    <section className="nf-card p-lg text-center sm:p-xl">
       <div className="mx-auto w-fit">
         <BrandIcon name={icon} size={48} />
       </div>
-      <h2 className="nf-h3 mt-4">{title}</h2>
-      <p className="mx-auto mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <h2 className="nf-h3 mt-md">{title}</h2>
+      <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {body}
       </p>
       {primary && (

@@ -31,7 +31,7 @@ export function SocialPaused({
   fallback?: string;
 }) {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-24 pt-4">
+    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader title={title} fallback={fallback} />
       <ProfileNotice
         icon="shield-check"

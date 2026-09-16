@@ -111,7 +111,7 @@ export default async function ProfilePage() {
         {account.state === "no-row" && (
           <p
             role="status"
-            className="nf-card mt-3 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]"
+            className="nf-card mt-sm p-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]"
           >
             We could not load your account profile just now, so this page is showing what is
             held on this device. Sign out and back in, then open this page again.
@@ -122,7 +122,7 @@ export default async function ProfilePage() {
             them would make the app look smaller than it is to the one person
             most likely to be deciding whether to sign up. No counts, because
             there is nothing yet to count. */}
-        <div className="mt-6 space-y-6">
+        <div className="mt-lg space-y-lg">
           <SettingsGroup label="What is here">
             <RowLink href="/search" icon="search" label="Find a place" />
             <RowLink href="/bookings" icon="calendar-booking" label={t.nav.bookings} />
@@ -171,7 +171,7 @@ export default async function ProfilePage() {
         roles={rolesView.roles}
         current={rolesView.current}
         variant="row"
-        className="mb-4"
+        className="mb-md"
       />
 
       {/*

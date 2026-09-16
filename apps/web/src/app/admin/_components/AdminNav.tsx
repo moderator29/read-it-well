@@ -81,11 +81,11 @@ export function AdminRail({
           className="mt-group first:mt-0"
         >
           {group.heading && (
-            <p id={`admin-nav-${group.key}`} className="nf-overline mb-inline-tight px-3">
+            <p id={`admin-nav-${group.key}`} className="nf-overline mb-inline-tight px-sm">
               {group.heading}
             </p>
           )}
-          <ul className="space-y-0.5">
+          <ul className="space-y-3xs">
             {group.items.map((item) => {
               const active = isActive(pathname, item.href);
               const count = counts[item.key] ?? 0;
@@ -95,7 +95,7 @@ export function AdminRail({
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={[
-                      "flex items-center gap-3 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.875rem] font-medium transition-colors",
+                      "flex items-center gap-sm rounded-[var(--nf-radius-md)] px-sm py-2.5 text-[var(--nf-text-body-sm)] font-medium transition-colors",
                       active
                         ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
                         : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
@@ -180,14 +180,14 @@ export function AdminTabs({
     */
     <nav
       aria-label={navLabel}
-      className="-mx-4 border-b border-[var(--nf-border-subtle)] px-4 py-2 lg:hidden"
+      className="-mx-4 border-b border-[var(--nf-border-subtle)] px-md py-xs lg:hidden"
     >
       <button
         type="button"
         aria-expanded={open}
         aria-controls="admin-sections"
         onClick={() => setOpen((was) => !was)}
-        className="flex w-full items-center gap-inline rounded-[var(--nf-radius-md)] px-row py-inline text-left text-[0.875rem] font-medium text-[var(--nf-content-primary)]"
+        className="flex w-full items-center gap-inline rounded-[var(--nf-radius-md)] px-row py-inline text-left text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
       >
         <UiIcon name={current?.icon ?? "grid"} size={20} className="shrink-0" />
         {/* The label does not clip, for the same reason the rail's does not. */}

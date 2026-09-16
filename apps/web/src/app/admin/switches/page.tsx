@@ -44,24 +44,24 @@ function SwitchRow({
   const label = labels[flag.key] ?? flag.key;
 
   return (
-    <li className="nf-card flex flex-wrap items-start gap-4 p-4 sm:p-5">
+    <li className="nf-card flex flex-wrap items-start gap-md p-md sm:p-5">
       <span className="min-w-0 flex-1">
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">{label}</span>
+        <span className="flex flex-wrap items-center gap-xs">
+          <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{label}</span>
           <ui.StatusChip
             label={flag.enabled ? copy.on : copy.off}
             tone={flag.enabled ? "success" : "danger"}
           />
         </span>
-        <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <span className="mt-2xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {flag.note ?? copy.defaultNote}
         </span>
-        <span className="mt-1 block text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <span className="mt-2xs block text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {fill(copy.switchingOff, {
             consequence: consequences[flag.key] ?? copy.consequences.generic,
           })}
         </span>
-        <span className="mt-1 block text-[0.6875rem] text-[var(--nf-content-muted)]">
+        <span className="mt-2xs block text-[0.6875rem] text-[var(--nf-content-muted)]">
           {fill(copy.lastChanged, { when: ui.when(flag.updatedAt) })}
         </span>
       </span>
@@ -90,7 +90,7 @@ export default async function AdminSwitchesPage() {
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
-      <p className="nf-card mb-4 flex gap-2.5 p-3.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="nf-card mb-md flex gap-2.5 p-3.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
         {/*
           NOT A BELL, AND NOT THE PENDING COLOUR.
 
@@ -108,7 +108,7 @@ export default async function AdminSwitchesPage() {
           in the sentence, which says the surface goes away from everyone
           immediately, and `info` is the glyph that means exactly this.
         */}
-        <UiIcon name="info" size={16} className="mt-0.5 shrink-0 text-[var(--nf-content-secondary)]" />
+        <UiIcon name="info" size={16} className="mt-3xs shrink-0 text-[var(--nf-content-secondary)]" />
         <span>{copy.warning}</span>
       </p>
 

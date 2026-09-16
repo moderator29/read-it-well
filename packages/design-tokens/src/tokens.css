@@ -70,9 +70,9 @@
    * thirty lines up says the brand is one blue family and that emerald and rose
    * are the only two hues outside it because they earn it by meaning something.
    * Crimson meant nothing. Nothing in the stylesheets referenced it, no semantic
-   * token resolved to it, and the JS mirror in `index.ts` never had it, so this
-   * ramp existed only to be confused with rose by the next person looking for
-   * the error colour.
+   * token resolved to it, and the JS mirror that used to sit beside this file
+   * never had it either, so this ramp existed only to be confused with rose by
+   * the next person looking for the error colour.
    *
    * EVERY OTHER UNREFERENCED RAMP STEP STAYS, and that is a decision rather than
    * an oversight. `--nf-ink-500/600/700`, `--nf-mist-200` and the whole of
@@ -80,9 +80,14 @@
    * not a usage list: layer 1 exists, in ADR-002's words, "so the semantic layer
    * has somewhere to resolve to", and a ramp with holes punched in it where
    * nothing currently lands is harder to read and to extend than a complete one.
-   * All eight are also mirrored as literals in `index.ts`, where `royal500` is
-   * read by the icon ramps, so deleting the CSS side would create exactly the
-   * drift that file's own comments were written to stop.
+   * THEY WERE ALSO THE HALF OF THIS ARGUMENT THAT HAS SINCE CHANGED, and the
+   * note is corrected rather than left standing. When this was first written,
+   * all eight were mirrored as literals in `src/index.ts` and `royal500` was
+   * read by the icon ramps there, which was a second reason to keep them.
+   * `index.ts` has since been deleted - nothing imported it, and its stated
+   * justification was falsified by the tree's own SVG code; see the package
+   * README. So the mirror argument is gone and only the first one remains,
+   * which is the one that mattered: a palette is not a usage list.
    *
    * `--nf-cyan-500` was on that list and has come off it: the daylight pending
    * accent reads it now. It is the rung between the night theme's #00C8FF, which
@@ -126,6 +131,13 @@
      (deep navy-black, dark neon blue, electric blue glow) and a stray orange
      or cyan accent reads as a different product. Personal is the electric
      mid, Agent the bright glow, Admin the deep neon. */
+  /* Two of the three currently have no consumer: `--nf-mode-agent` is read 15
+     times and personal and admin nowhere, because the agent surfaces are the
+     only ones that have been given a mode accent so far. They stay as a SET -
+     a family that cannot express two of the three modes it names is worse than
+     one nobody has finished using - and they were kept once before on the
+     strength of a JS mirror that has since been deleted, so this note is now
+     the whole of the reason. */
   --nf-mode-personal: var(--nf-electric-500);
   --nf-mode-agent: var(--nf-electric-400);
   --nf-mode-admin: var(--nf-electric-700);
@@ -546,7 +558,25 @@
    * daylight `--nf-well-fill` pair further down.
    */
   --nf-surface-inverse: rgb(244 245 247 / 0.92);
-  --nf-content-on-inverse: rgb(18 21 26 / 0.7);
+  /*
+   * DERIVED FROM `--nf-content-inverse`, WHICH IS THE INK IT IS 70 PER CENT OF.
+   *
+   * These were two independent values for one thing: `--nf-content-inverse` has
+   * existed since the start as "the ink for a surface running opposite to the
+   * theme", with no surface to sit on and, once the JS mirror that quoted it
+   * was deleted, no consumer at all. `--nf-surface-inverse` and this pair were
+   * added later for the daylight dock without noticing it was already there.
+   * That is the same fault as the two 14px radii and the header height: one
+   * decision, two definitions, neither knowing about the other.
+   *
+   * So the full-strength ink is the primitive and the secondary tier is a mix
+   * of it, which is the direction this file uses everywhere else. The daylight
+   * value is unchanged to the digit, because `--nf-content-inverse` is #FFFFFF
+   * on paper and 70 per cent of it is the rgb(255 255 255 / 0.7) that was
+   * written here; the night value moves by three points of one channel, on a
+   * token whose only consumer is a daylight rule.
+   */
+  --nf-content-on-inverse: color-mix(in oklab, var(--nf-content-inverse) 70%, transparent);
   --nf-wash-on-inverse: rgb(18 21 26 / 0.13);
 
   /*
@@ -767,10 +797,12 @@
    * blue travel that `-brand` does in two stops, kept in step by hand across
    * two theme blocks, for nobody.
    *
-   * The logo's iridescent ramp is NOT this token and does not lose anything:
-   * it is `iridescentRamp` in `packages/design-tokens/src/index.ts`, as four
-   * literal stops, because an SVG `<stop stop-color>` cannot resolve a CSS
-   * gradient. That one is live and stays.
+   * The logo's iridescent ramp was a separate thing, `iridescentRamp` in
+   * `src/index.ts`, four literal stops for an SVG `<stop stop-color>`. That
+   * file has since gone too, for reasons set out in the package README: nothing
+   * imported it, and the two inline SVG gradients that actually exist in the
+   * product resolve `var()` and `currentColor` in a stop without any mirror at
+   * all.
    */
   --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
@@ -1334,6 +1366,23 @@
 
   --nf-ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --nf-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  /*
+   * `--nf-ease-exit` HAS NO CONSUMER, AND THAT IS THE FINDING RATHER THAN THE
+   * DEAD CODE.
+   *
+   * It is the accelerate-only curve, the textbook partner to `--nf-ease-entrance`
+   * and the conventional pair every motion system names. `entrance` is read 21
+   * times. `exit` is read nowhere, which means nothing in this product LEAVES on
+   * a designed curve: the sheet, the backdrop, the overlays and the drawers all
+   * go out on `--nf-ease-standard`, the same curve they came in on. Things do
+   * not leave the way they arrive - an entrance decelerates into place because
+   * it is settling, an exit accelerates away because it is going - and a
+   * product where they do reads as slightly reluctant to close anything.
+   *
+   * Kept for that reason rather than deleted as an orphan. The honest close is
+   * to give the sheet and the backdrop their exit curve, which is a motion
+   * change on a primitive and wants an eye on it, not a token sweep.
+   */
   --nf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
   /*
    * The overshoot is capped at 28 percent and it used to be 56.
@@ -1807,7 +1856,9 @@
   --nf-well-fill-deep: linear-gradient(180deg, rgb(18 21 26 / 0.1), rgb(18 21 26 / 0.05));
 
   --nf-surface-inverse: rgb(18 21 26 / 0.92);
-  --nf-content-on-inverse: rgb(255 255 255 / 0.7);
+  /* Derived; see the night block. `--nf-content-inverse` is #FFFFFF here, so
+     this resolves to exactly the rgb(255 255 255 / 0.7) it used to state. */
+  --nf-content-on-inverse: color-mix(in oklab, var(--nf-content-inverse) 70%, transparent);
   --nf-wash-on-inverse: rgb(255 255 255 / 0.13);
 
   /*

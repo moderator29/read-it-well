@@ -123,7 +123,7 @@ export function KycFlow({
   return (
     <div className="mx-auto max-w-xl">
       {/* ------------------------------------------------------------ header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-sm">
         {/* The back control. Present from the second step onward, and it is a
             real control rather than a reliance on the browser's back button,
             which on a single-route wizard would leave the flow entirely. */}
@@ -142,7 +142,7 @@ export function KycFlow({
           </Link>
         )}
 
-        <p className="nf-numeric text-[0.8125rem] font-semibold text-[var(--nf-content-muted)]">
+        <p className="nf-numeric text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]">
           {progressLabel(at, steps.length)}
         </p>
       </div>
@@ -151,16 +151,16 @@ export function KycFlow({
         steps={steps.length}
         current={at + 1}
         label={progressLabel(at, steps.length)}
-        className="mt-3"
+        className="mt-sm"
       />
 
-      <h1 className="nf-h2 mt-6">{step.title}</h1>
-      <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <h1 className="nf-h2 mt-lg">{step.title}</h1>
+      <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {step.hint}
       </p>
 
       {/* -------------------------------------------------------------- body */}
-      <div className="mt-6 space-y-4">
+      <div className="mt-lg space-y-md">
         {step.id === "identity-document" && (
           <DocumentUploader
             kind="identity"
@@ -203,16 +203,16 @@ export function KycFlow({
                     setAt((i) => i + 1);
                   }}
                   aria-pressed={business === option.value}
-                  className="flex w-full items-center gap-3.5 px-1 py-4 text-left transition-colors hover:bg-[var(--nf-interactive-hover)]"
+                  className="flex w-full items-center gap-3.5 px-2xs py-md text-left transition-colors hover:bg-[var(--nf-interactive-hover)]"
                 >
                   <span className="nf-role-mark" aria-hidden="true">
                     <UiIcon name={option.value ? "building-apartment" : "user"} size="md" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                    <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                       {option.label}
                     </span>
-                    <span className="mt-0.5 block text-[0.8125rem] leading-snug text-[var(--nf-content-muted)]">
+                    <span className="mt-3xs block text-[var(--nf-text-caption)] leading-snug text-[var(--nf-content-muted)]">
                       {option.detail}
                     </span>
                   </span>
@@ -240,13 +240,13 @@ export function KycFlow({
            * is three small tasks rather than one long one.
            */
           BUSINESS_SECTIONS.map((section) => (
-            <section key={section.heading} className="nf-card p-4 sm:p-5">
-              <h2 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+            <section key={section.heading} className="nf-card p-md sm:p-5">
+              <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 {section.heading}
               </h2>
-              <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">{section.note}</p>
+              <p className="mt-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{section.note}</p>
 
-              <div className="mt-4 space-y-3.5">
+              <div className="mt-md space-y-3.5">
                 {section.fields.map((field) => (
                   <TextField
                     key={field.name}
@@ -273,12 +273,12 @@ export function KycFlow({
            * and fraud checks are three different decisions, and under the NDPA
            * the third has to be specific and freely given.
            */
-          <ul className="space-y-3">
+          <ul className="space-y-sm">
             {CONSENTS.map((consent) => {
               const ticked = consents.includes(consent.id);
               return (
                 <li key={consent.id}>
-                  <label className="nf-card flex cursor-pointer items-start gap-3 p-4">
+                  <label className="nf-card flex cursor-pointer items-start gap-sm p-md">
                     <input
                       type="checkbox"
                       checked={ticked}
@@ -289,13 +289,13 @@ export function KycFlow({
                             : list.filter((id) => id !== consent.id),
                         )
                       }
-                      className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
+                      className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
                     />
                     <span className="min-w-0">
-                      <span className="block text-[0.9375rem] font-medium leading-snug text-[var(--nf-content-primary)]">
+                      <span className="block text-[var(--nf-text-body-sm)] font-medium leading-snug text-[var(--nf-content-primary)]">
                         {consent.label}
                       </span>
-                      <span className="mt-1 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                      <span className="mt-2xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                         {consent.detail}
                       </span>
                     </span>
@@ -324,11 +324,11 @@ export function KycFlow({
 
             {/* Never "complete all required fields". The gaps are named. */}
             {gaps.length > 0 && (
-              <div role="alert" className="nf-card p-4">
-                <p className="text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+              <div role="alert" className="nf-card p-md">
+                <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {GAPS_TITLE}
                 </p>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+                <ul className="mt-xs list-disc space-y-2xs pl-5 text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
                   {gaps.map((gap) => (
                     <li key={gap}>{gap}</li>
                   ))}
@@ -337,7 +337,7 @@ export function KycFlow({
             )}
 
             {failure && (
-              <p role="alert" className="text-[0.875rem] leading-relaxed text-[var(--nf-state-error)]">
+              <p role="alert" className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-state-error)]">
                 {failure}
               </p>
             )}
@@ -372,9 +372,9 @@ export function KycFlow({
 
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
-    <li className="flex items-baseline justify-between gap-4 px-4 py-3">
-      <span className="shrink-0 text-[0.8125rem] text-[var(--nf-content-muted)]">{label}</span>
-      <span className="truncate text-right text-[0.875rem] text-[var(--nf-content-primary)]">
+    <li className="flex items-baseline justify-between gap-md px-md py-sm">
+      <span className="shrink-0 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{label}</span>
+      <span className="truncate text-right text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
         {value}
       </span>
     </li>
@@ -394,20 +394,20 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
  */
 function Submitted() {
   return (
-    <div className="mx-auto max-w-md py-8 text-center">
+    <div className="mx-auto max-w-md py-xl text-center">
       <span className="nf-role-mark nf-role-mark--lg mx-auto" aria-hidden="true">
         <UiIcon name="calendar-booking" size="lg" />
       </span>
       <h1 className="nf-h2 mt-5">{SENT_TITLE}</h1>
-      <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {SENT_BODY}
       </p>
-      <p className="mt-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         {SENT_MEANWHILE}
       </p>
       <Link
         href="/profile"
-        className="mt-6 inline-flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+        className="mt-lg inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
         {SENT_ACTION}
         <UiIcon name="arrow-right" size="sm" />

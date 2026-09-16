@@ -199,7 +199,7 @@ export function ListingGallery({
       {count > 0 && (
         <p
           data-testid="gallery-counter"
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-2.5 py-1 text-[0.75rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md sm:bottom-14 sm:right-4"
+          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-2.5 py-2xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           <span className="sr-only">Photo </span>
           {Math.min(active + 1, count)} / {count}

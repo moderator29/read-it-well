@@ -27,7 +27,7 @@ export function ComingSoon({
   return (
     <div className="mx-auto max-w-xl">
       <PageHeader title={title} />
-      <div className="py-4 text-center sm:py-6">
+      <div className="py-md text-center sm:py-lg">
       <Reveal>
         {/*
           NO TILE, and this was the last opt-in on the platform.
@@ -40,14 +40,14 @@ export function ComingSoon({
         <span className="nf-story-art mx-auto block h-28 w-28 sm:h-32 sm:w-32">
           <BrandIcon name={icon} fill />
         </span>
-        <p className="mx-auto mt-2.5 max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-2.5 max-w-[44ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {promise}
         </p>
       </Reveal>
 
       {preview && (
-        <Reveal delay={110} className="mt-8 text-left">
-          <div className="nf-card relative overflow-hidden p-5 pt-6">
+        <Reveal delay={110} className="mt-xl text-left">
+          <div className="nf-card relative overflow-hidden p-5 pt-lg">
             {preview}
           </div>
         </Reveal>

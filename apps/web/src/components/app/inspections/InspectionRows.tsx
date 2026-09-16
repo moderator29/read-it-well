@@ -132,9 +132,9 @@ function InspectionRow({
   }
 
   return (
-    <Row className="flex-col items-stretch gap-2 py-4">
+    <Row className="flex-col items-stretch gap-xs py-md">
       <div className="flex w-full items-start gap-3.5">
-        <span className="nf-role-mark mt-0.5 shrink-0" aria-hidden="true">
+        <span className="nf-role-mark mt-3xs shrink-0" aria-hidden="true">
           <UiIcon name="calendar-booking" size={ICON.row} />
         </span>
 
@@ -145,7 +145,7 @@ function InspectionRow({
           <span className={`block ${TYPE.rowTitle}`}>
             {inspection.listingTitle ?? UNTITLED}
           </span>
-          <span className={`mt-0.5 block ${TYPE.rowMeta}`}>
+          <span className={`mt-3xs block ${TYPE.rowMeta}`}>
             {whenLine(shown, locale)}
             {inspection.counterpartName ? ` · ${inspection.counterpartName}` : ""}
           </span>
@@ -154,16 +154,16 @@ function InspectionRow({
               A reschedule that overwrote the ask would hide the fact that
               somebody wanted Saturday and is being given Sunday. */}
           {inspection.slotAt && inspection.slotAt !== inspection.requestedAt && (
-            <span className={`mt-0.5 block ${TYPE.caption}`}>
+            <span className={`mt-3xs block ${TYPE.caption}`}>
               {ASKED_FOR} {whenLine(inspection.requestedAt, locale)}
             </span>
           )}
 
           {inspection.note && (
-            <span className={`mt-1 block ${TYPE.rowMeta}`}>{inspection.note}</span>
+            <span className={`mt-2xs block ${TYPE.rowMeta}`}>{inspection.note}</span>
           )}
           {inspection.listerNote && (
-            <span className={`mt-1 block ${TYPE.rowMeta}`}>{inspection.listerNote}</span>
+            <span className={`mt-2xs block ${TYPE.rowMeta}`}>{inspection.listerNote}</span>
           )}
         </span>
 
@@ -187,7 +187,7 @@ function InspectionRow({
         confirmed viewing needs nothing done to it, so it says so and stops.
       */}
       {yourMove && side === "lister" && (
-        <div className="flex flex-wrap gap-2 pl-[3.25rem]">
+        <div className="flex flex-wrap gap-xs pl-[3.25rem]">
           <Button
             size="sm"
             variant="primary"
@@ -211,7 +211,7 @@ function InspectionRow({
       )}
 
       {yourMove && side === "requester" && inspection.state === "PROPOSED" && (
-        <div className="flex flex-wrap gap-2 pl-[3.25rem]">
+        <div className="flex flex-wrap gap-xs pl-[3.25rem]">
           <Button
             size="sm"
             variant="primary"
@@ -234,7 +234,7 @@ function InspectionRow({
       {/* A confirmed viewing can be marked as done by either side, because
           either of them might be the one holding the phone afterwards. */}
       {inspection.state === "CONFIRMED" && (
-        <div className="flex flex-wrap items-center gap-2 pl-[3.25rem]">
+        <div className="flex flex-wrap items-center gap-xs pl-[3.25rem]">
           <Button
             size="sm"
             variant="secondary"
@@ -301,20 +301,20 @@ function ProposeSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title={PROPOSE_TITLE} detents={[0.55]}>
-      <div className="px-1 pb-2">
+      <div className="px-2xs pb-xs">
         <p className={TYPE.body}>{PROPOSE_SUB}</p>
 
-        <label className="mt-4 block">
+        <label className="mt-md block">
           <span className="nf-label">{WHEN_LABEL}</span>
           <input
             type="datetime-local"
             value={when}
             onChange={(event) => setWhen(event.target.value)}
-            className="nf-field mt-1 w-full"
+            className="nf-field mt-2xs w-full"
           />
         </label>
 
-        <label className="mt-4 block">
+        <label className="mt-md block">
           <span className="nf-label">{NOTE_LABEL}</span>
           <input
             type="text"
@@ -322,7 +322,7 @@ function ProposeSheet({
             maxLength={400}
             onChange={(event) => setNote(event.target.value)}
             placeholder={NOTE_PLACEHOLDER}
-            className="nf-field mt-1 w-full"
+            className="nf-field mt-2xs w-full"
           />
         </label>
 
@@ -330,7 +330,7 @@ function ProposeSheet({
           full
           size="lg"
           variant="primary"
-          className="mt-6"
+          className="mt-lg"
           disabled={pending || when.length === 0}
           onClick={() => onSubmit(new Date(when).toISOString(), note.trim())}
         >

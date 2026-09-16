@@ -12,21 +12,21 @@
 export default function LoadingAround() {
   return (
     <div
-      className="mx-auto w-full max-w-3xl pt-4"
+      className="mx-auto w-full max-w-3xl pt-md"
       style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
       aria-busy="true"
       aria-live="polite"
     >
       <span className="sr-only">Loading your feed</span>
 
-      <div className="mb-5 flex items-center gap-4" aria-hidden="true">
+      <div className="mb-5 flex items-center gap-md" aria-hidden="true">
         <span className="nf-social-skeleton block h-9 w-9 rounded-full" />
         <span className="nf-social-skeleton block h-7 w-32 rounded-[var(--nf-radius-xs)]" />
       </div>
 
       {/* The switcher, at its own height, so the first card does not climb into
           the space the chips are about to take. */}
-      <div className="mb-4 flex items-center gap-2 overflow-hidden" aria-hidden="true">
+      <div className="mb-md flex items-center gap-xs overflow-hidden" aria-hidden="true">
         {[28, 20, 24].map((width, index) => (
           <span
             key={index}
@@ -38,15 +38,15 @@ export default function LoadingAround() {
 
       <div className="flex flex-col gap-[var(--nf-feed-gap)]" aria-hidden="true">
         {[0, 1, 2].map((card) => (
-          <div key={card} className="nf-card nf-post p-4">
-            <div className="flex items-center gap-3">
+          <div key={card} className="nf-card nf-post p-md">
+            <div className="flex items-center gap-sm">
               <span className="nf-social-skeleton block h-10 w-10 rounded-full" />
-              <div className="min-w-0 flex-1 space-y-2">
+              <div className="min-w-0 flex-1 space-y-xs">
                 <span className="nf-social-skeleton block h-3 w-32 rounded-[var(--nf-radius-xs)]" />
                 <span className="nf-social-skeleton block h-3 w-20 rounded-[var(--nf-radius-xs)]" />
               </div>
             </div>
-            <div className="mt-4 space-y-2">
+            <div className="mt-md space-y-xs">
               <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
               <span className="nf-social-skeleton block h-3 w-11/12 rounded-[var(--nf-radius-xs)]" />
               <span className="nf-social-skeleton block h-3 w-2/3 rounded-[var(--nf-radius-xs)]" />

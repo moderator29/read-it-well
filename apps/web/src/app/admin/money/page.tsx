@@ -47,9 +47,9 @@ export default async function AdminMoneyPage() {
   function EntryRow({ entry }: { entry: WalletEntryView }) {
     const outgoing = entry.direction === "debit";
     return (
-      <li className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-[var(--nf-border-subtle)] py-2.5">
+      <li className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-2.5">
         <span className="min-w-0">
-          <span className="block text-[0.875rem] text-[var(--nf-content-primary)]">
+          <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
             {/* Same column-keyed lookup as the status chip beside it, rather
                 than a second hand-rolled `replace(/_/g, " ")` that would print
                 "escrow hold" in lower case beside a properly named status. */}
@@ -61,11 +61,11 @@ export default async function AdminMoneyPage() {
               rendered at 11px monospace with an ellipsis, so the money screen
               could not do the one thing it exists for. `user-select: all` means
               one tap takes the whole string. */}
-          <span className="block font-mono text-[0.8125rem] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+          <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
             {entry.reference}
           </span>
         </span>
-        <span className="flex shrink-0 items-baseline gap-3">
+        <span className="flex shrink-0 items-baseline gap-sm">
           {/*
             NOT `label={entry.status}`. That printed `PENDING`, `COMPLETED`,
             `FAILED` and `REVERSED` in shouting capitals on the money screen,
@@ -83,7 +83,7 @@ export default async function AdminMoneyPage() {
             label={ui.columnLabel("walletEntryStatus", entry.status)}
             status={entry.status}
           />
-          <span className="nf-numeric text-[0.875rem] font-semibold">
+          <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
             {outgoing ? "-" : "+"}
             {formatMoney(entry.amountMinor, locale)}
           </span>
@@ -105,17 +105,17 @@ export default async function AdminMoneyPage() {
 
       {/* Stuck first. It is the only thing here somebody is waiting on. */}
       {stuck.length > 0 && (
-        <section className="nf-card mb-5 p-4 sm:p-5">
-          <h2 className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+        <section className="nf-card mb-5 p-md sm:p-5">
+          <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             Stuck, and somebody is waiting
           </h2>
-          <p className="mt-1 max-w-[62ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             These debits have been PENDING for over half an hour. The money has
             left a spendable balance and has not arrived anywhere. The stale
             hold sweeper releases withdrawal holds on a schedule; anything here
             that is not a withdrawal has not got a sweeper and needs a person.
           </p>
-          <ul className="mt-3">
+          <ul className="mt-sm">
             {stuck.map((entry) => (
               <EntryRow key={entry.id} entry={entry} />
             ))}
@@ -123,47 +123,47 @@ export default async function AdminMoneyPage() {
         </section>
       )}
 
-      <section className="mb-5 grid gap-3 sm:grid-cols-3">
-        <div className="nf-card p-4">
-          <p className="text-[0.75rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
+      <section className="mb-5 grid gap-sm sm:grid-cols-3">
+        <div className="nf-card p-md">
+          <p className="text-[var(--nf-text-overline)] uppercase tracking-wide text-[var(--nf-content-muted)]">
             Settled across all wallets
           </p>
-          <p className="nf-numeric mt-1 text-[1.25rem] font-bold">
+          <p className="nf-numeric mt-2xs text-[var(--nf-text-h4)] font-bold">
             {formatMoney(totals.balanceMinor, locale)}
           </p>
         </div>
-        <div className="nf-card p-4">
-          <p className="text-[0.75rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
+        <div className="nf-card p-md">
+          <p className="text-[var(--nf-text-overline)] uppercase tracking-wide text-[var(--nf-content-muted)]">
             Held pending
           </p>
-          <p className="nf-numeric mt-1 text-[1.25rem] font-bold">
+          <p className="nf-numeric mt-2xs text-[var(--nf-text-h4)] font-bold">
             {formatMoney(totals.heldMinor, locale)}
           </p>
         </div>
-        <div className="nf-card p-4">
-          <p className="text-[0.75rem] uppercase tracking-wide text-[var(--nf-content-muted)]">
+        <div className="nf-card p-md">
+          <p className="text-[var(--nf-text-overline)] uppercase tracking-wide text-[var(--nf-content-muted)]">
             Wallets
           </p>
-          <p className="nf-numeric mt-1 text-[1.25rem] font-bold">{totals.walletCount}</p>
+          <p className="nf-numeric mt-2xs text-[var(--nf-text-h4)] font-bold">{totals.walletCount}</p>
         </div>
       </section>
 
-      <section className="nf-card mb-5 p-4 sm:p-5">
-        <h2 className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">Wallets</h2>
+      <section className="nf-card mb-5 p-md sm:p-5">
+        <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">Wallets</h2>
         {wallets.length === 0 ? (
-          <p className="mt-2 text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             Nobody has a wallet yet. One is created the first time somebody is
             paid or funds an account.
           </p>
         ) : (
-          <ul className="mt-2">
+          <ul className="mt-xs">
             {wallets.map((wallet) => (
               <li
                 key={wallet.id}
-                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-[var(--nf-border-subtle)] py-2.5"
+                className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-2.5"
               >
                 <span className="min-w-0">
-                  <span className="block text-[0.875rem] text-[var(--nf-content-primary)]">
+                  <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
                     {wallet.ownerName ?? "No display name"}
                   </span>
                   {/* THE REFERENCE IS NEVER CLIPPED. It is the only string an operator
@@ -171,17 +171,17 @@ export default async function AdminMoneyPage() {
               rendered at 11px monospace with an ellipsis, so the money screen
               could not do the one thing it exists for. `user-select: all` means
               one tap takes the whole string. */}
-          <span className="block font-mono text-[0.8125rem] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+          <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
                     {wallet.userId}
                   </span>
                 </span>
-                <span className="flex shrink-0 items-baseline gap-4">
+                <span className="flex shrink-0 items-baseline gap-md">
                   {wallet.heldMinor > 0 && (
-                    <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+                    <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {formatMoney(wallet.heldMinor, locale)} held
                     </span>
                   )}
-                  <span className="nf-numeric text-[0.9375rem] font-semibold">
+                  <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
                     {formatMoney(wallet.balanceMinor, locale)}
                   </span>
                 </span>
@@ -191,16 +191,16 @@ export default async function AdminMoneyPage() {
         )}
       </section>
 
-      <section className="nf-card p-4 sm:p-5">
-        <h2 className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+      <section className="nf-card p-md sm:p-5">
+        <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           The ledger, newest first
         </h2>
         {recent.length === 0 ? (
-          <p className="mt-2 text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             No money has moved yet.
           </p>
         ) : (
-          <ul className="mt-2">
+          <ul className="mt-xs">
             {recent.map((entry) => (
               <EntryRow key={entry.id} entry={entry} />
             ))}

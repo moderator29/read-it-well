@@ -170,7 +170,7 @@ export default async function AdminKycPage({
           />
         )
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-md">
           {waiting.map((subject) => (
             <li key={subject.userId ?? subject.documents[0]?.id}>
               <SubjectCard subject={subject} ui={ui} decidable />
@@ -180,11 +180,11 @@ export default async function AdminKycPage({
       )}
 
       {decided.length > 0 && (
-        <section className="mt-8">
-          <h2 className="mb-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+        <section className="mt-xl">
+          <h2 className="mb-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             Recently decided
           </h2>
-          <ul className="space-y-4">
+          <ul className="space-y-md">
             {decided.map((subject) => (
               <li key={subject.userId ?? subject.documents[0]?.id}>
                 <SubjectCard subject={subject} ui={ui} />
@@ -207,9 +207,9 @@ function SubjectCard({
   decidable?: boolean;
 }) {
   return (
-    <article className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-baseline gap-3">
-        <h3 className="text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+    <article className="nf-card p-md sm:p-5">
+      <div className="flex flex-wrap items-baseline gap-sm">
+        <h3 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           {subject.displayName ?? "No display name"}
         </h3>
         <span className="nf-badge nf-badge--brand nf-numeric">Tier {subject.tier}</span>
@@ -221,13 +221,13 @@ function SubjectCard({
       </div>
 
       {subject.rungs.length > 0 && (
-        <ul className="mt-2 flex flex-wrap gap-2">
+        <ul className="mt-xs flex flex-wrap gap-xs">
           {subject.rungs.map((rung) => (
             <li
               key={rung.kind}
-              className="rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-2 py-1"
+              className="rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-xs py-2xs"
             >
-              <span className="text-[0.75rem] font-medium text-[var(--nf-content-primary)]">
+              <span className="text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-primary)]">
                 {RUNG_LABEL[rung.kind] ?? rung.kind}
               </span>{" "}
               <ui.StatusChip
@@ -235,7 +235,7 @@ function SubjectCard({
                 tone={toneForReview(rung.status)}
               />
               {rung.note && (
-                <span className="mt-0.5 block max-w-[52ch] text-[0.6875rem] leading-relaxed text-[var(--nf-content-muted)]">
+                <span className="mt-3xs block max-w-[52ch] text-[0.6875rem] leading-relaxed text-[var(--nf-content-muted)]">
                   {rung.note}
                 </span>
               )}
@@ -245,7 +245,7 @@ function SubjectCard({
       )}
 
       {subject.business && (
-        <dl className="mt-3">
+        <dl className="mt-sm">
           <ui.DetailRow label="Business" value={subject.business.name} />
           <ui.DetailRow label="RC number" value={subject.business.registrationNumber} />
           <ui.DetailRow label="Tax id" value={subject.business.taxId} />
@@ -256,18 +256,18 @@ function SubjectCard({
         </dl>
       )}
 
-      <ul className="mt-3 space-y-3">
+      <ul className="mt-sm space-y-sm">
         {subject.documents.map((doc) => (
           <li
             key={doc.id}
-            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3"
+            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
           >
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[0.875rem] font-medium text-[var(--nf-content-primary)]">
+            <div className="flex flex-wrap items-center gap-xs">
+              <span className="text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
                 {KIND_LABEL[doc.kind] ?? doc.kind}
               </span>
               {doc.subtype && (
-                <span className="text-[0.75rem] text-[var(--nf-content-secondary)]">
+                <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]">
                   {SUBTYPE_LABEL[doc.subtype] ?? doc.subtype}
                 </span>
               )}
@@ -293,7 +293,7 @@ function SubjectCard({
               </span>
             </div>
 
-            <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               Issued {ui.day(doc.issuedOn)}
               {doc.reviewedAt
                 ? ` · decided ${ui.when(doc.reviewedAt)}${doc.reviewedByName ? ` by ${doc.reviewedByName}` : ""}`
@@ -301,7 +301,7 @@ function SubjectCard({
             </p>
 
             {doc.rejectionReason && (
-              <p className="mt-1 text-[0.75rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Sent back: {doc.rejectionReason}
               </p>
             )}
@@ -311,12 +311,12 @@ function SubjectCard({
                 href={doc.url}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 inline-block text-[0.8125rem] font-medium underline"
+                className="mt-xs inline-block text-[var(--nf-text-caption)] font-medium underline"
               >
                 Open the document
               </a>
             ) : (
-              <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+              <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 The file could not be reached just now. Reload to try again.
               </p>
             )}

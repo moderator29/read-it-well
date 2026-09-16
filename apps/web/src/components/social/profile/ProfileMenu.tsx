@@ -200,17 +200,17 @@ export function ProfileMenu({
         aria-label={`You blocked ${who}`}
       >
         <div ref={blockedRef} className="nf-social-sheet__panel">
-          <h2 className="nf-h3 text-[1.15rem]">You blocked {who}</h2>
-          <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">You blocked {who}</h2>
+          <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {POST_COPY.blockedDone}
           </p>
-          <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             That is why this page is covered: from now on it is not there for
             you, and yours is not there for them. Nothing you already wrote is
             deleted.
           </p>
 
-          <div className="mt-6 flex flex-col gap-2">
+          <div className="mt-lg flex flex-col gap-xs">
             <Link href="/around" className="nf-btn nf-btn--primary w-full">
               Back to Around
             </Link>
@@ -227,7 +227,7 @@ export function ProfileMenu({
           {notice ? (
             <p
               role="alert"
-              className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]"
+              className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
             >
               {notice}
             </p>
@@ -340,17 +340,17 @@ export function ProfileMenu({
           aria-label={`Block ${who}?`}
         >
           <div ref={confirmRef} className="nf-social-sheet__panel">
-            <h2 className="nf-h3 text-[1.15rem]">Block {who}?</h2>
-            <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">Block {who}?</h2>
+            <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               You will not see each other anywhere on Vallo. Their page stops
               existing for you and yours stops existing for them, including in
               places you are both in.
             </p>
-            <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               They are not told. Undo is offered on the next screen if you
               change your mind.
             </p>
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+            <div className="mt-lg flex flex-col gap-xs sm:flex-row-reverse">
               <button
                 type="button"
                 onClick={doBlock}

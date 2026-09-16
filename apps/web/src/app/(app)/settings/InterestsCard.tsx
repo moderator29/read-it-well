@@ -1,9 +1,20 @@
-import { RowLink, SettingsGroup } from "@/components/app/account/rows";
+import { RowLink } from "@/components/app/account/rows";
 import type { Dictionary } from "@vallo/i18n";
 import { type PropertyType } from "@/lib/interests/schema";
 
 /**
  * The row that owns what somebody came here for.
+ *
+ * ---------------------------------------------------------------------------
+ * IT IS A ROW NOW, AND IT USED TO BE A CARD HOLDING A ROW.
+ *
+ * Same fold as `DevicesRow` and for the same reason: its own docstring called
+ * it a row and it was wrapped in a `SettingsGroup` with a heading and a note,
+ * drawn around one link. It sits inside `PlaceCard`, which is where the page's
+ * own comment already put it: "directly under where-you-are, because the two
+ * together are the whole of what the platform knows about somebody before they
+ * have searched for anything: where they are and what they came for". The
+ * group's note becomes the row's `sub`.
  *
  * A row rather than the cards themselves, for the same reason `PlaceCard` is a
  * row: nine toggles inlined into a settings list would be the loudest thing on
@@ -17,7 +28,7 @@ import { type PropertyType } from "@/lib/interests/schema";
  * an empty list, and telling them the same thing would be wrong in one
  * direction or the other.
  */
-export function InterestsCard({
+export function InterestsRow({
   t,
   signedIn,
   interests,
@@ -41,21 +52,13 @@ export function InterestsCard({
     : t.common.notSet;
 
   return (
-    <SettingsGroup
-      label={t.interests.screenTitle}
-      note={
-        signedIn
-          ? t.interests.rowNote
-          : t.interests.rowNoteSignedOut
-      }
-    >
-      <RowLink
-        href={signedIn ? "/settings/interests" : "/sign-in"}
-        icon="compass"
-        label={t.interests.rowLabel}
-        value={value}
-        testId="settings-interests-row"
-      />
-    </SettingsGroup>
+    <RowLink
+      href={signedIn ? "/settings/interests" : "/sign-in"}
+      icon="compass"
+      label={t.interests.rowLabel}
+      sub={signedIn ? t.interests.rowNote : t.interests.rowNoteSignedOut}
+      value={value}
+      testId="settings-interests-row"
+    />
   );
 }

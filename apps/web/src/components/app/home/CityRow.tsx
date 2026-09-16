@@ -28,9 +28,9 @@ export function CityRow({
   const shown = label || "Choose your city";
 
   return (
-    <div className="mt-6 flex items-end justify-between gap-4">
+    <div className="mt-lg flex items-end justify-between gap-md">
       <div className="min-w-0">
-        <p className="text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+        <p className="text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
           Explore your city
         </p>
         <Link
@@ -38,21 +38,21 @@ export function CityRow({
           aria-label={
             isOwn ? `Your city is ${shown}. Change it.` : `Choose the city you explore from.`
           }
-          className="nf-tap mt-1 inline-flex max-w-full items-center gap-1.5 rounded-[var(--nf-radius-sm)] text-[var(--nf-content-primary)] transition-opacity hover:opacity-80"
+          className="nf-tap mt-2xs inline-flex max-w-full items-center gap-1.5 rounded-[var(--nf-radius-sm)] text-[var(--nf-content-primary)] transition-opacity hover:opacity-80"
         >
           <UiIcon
             name="location"
             size={20}
             className="shrink-0 text-[var(--nf-brand-secondary)]"
           />
-          <span className="truncate text-[1.0625rem] font-bold">{shown}</span>
+          <span className="truncate text-[var(--nf-text-body-lg)] font-bold">{shown}</span>
           <UiIcon
             name="chevron-down"
             size={16}
             className="shrink-0 text-[var(--nf-content-muted)]"
           />
         </Link>
-        <p className="mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {isOwn ? context : "Set yours to see what is happening around you"}
         </p>
       </div>

@@ -164,7 +164,7 @@ export default async function CheckoutPage({
       */}
       {!settling && (
         <Reveal>
-          <div className="mb-4">
+          <div className="mb-md">
             <SegmentedProgress
               steps={3}
               current={2}
@@ -177,36 +177,36 @@ export default async function CheckoutPage({
       <Reveal>
         <section
           aria-labelledby="nf-checkout-summary"
-          className="nf-card p-4 sm:p-5"
+          className="nf-card p-md sm:p-5"
         >
           <h2 id="nf-checkout-summary" className="nf-h3">
             {view.title}
           </h2>
           {view.location.length > 0 && (
-            <p className="mt-1 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs flex items-center gap-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">{view.location}</span>
             </p>
           )}
 
-          <dl className="mt-4 grid gap-2.5 border-t border-[var(--nf-border-subtle)] pt-4">
-            <div className="flex items-start justify-between gap-4">
-              <dt className="text-[0.8125rem] text-[var(--nf-content-muted)]">Dates</dt>
-              <dd className="text-right text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+          <dl className="mt-md grid gap-2.5 border-t border-[var(--nf-border-subtle)] pt-md">
+            <div className="flex items-start justify-between gap-md">
+              <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">Dates</dt>
+              <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
                 {view.dateRange}
               </dd>
             </div>
-            <div className="flex items-start justify-between gap-4">
-              <dt className="text-[0.8125rem] text-[var(--nf-content-muted)]">Guests</dt>
-              <dd className="text-right text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+            <div className="flex items-start justify-between gap-md">
+              <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">Guests</dt>
+              <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
                 {plural(view.guests, counts.guests, locale)} &middot;{" "}
                 {plural(view.nights, counts.nights, locale)}
               </dd>
             </div>
             {view.lines.map((line) => (
-              <div key={line.label} className="flex items-start justify-between gap-4">
-                <dt className="text-[0.8125rem] text-[var(--nf-content-muted)]">{line.label}</dt>
-                <dd className="text-right text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+              <div key={line.label} className="flex items-start justify-between gap-md">
+                <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{line.label}</dt>
+                <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
                   {/* A receipt line, so the kobo is stated rather than rounded
                       away: this column has to add up to the total below it. */}
                   <Amount
@@ -220,9 +220,9 @@ export default async function CheckoutPage({
             ))}
           </dl>
 
-          <div className="mt-4 border-t border-[var(--nf-border-subtle)] pt-4">
+          <div className="mt-md border-t border-[var(--nf-border-subtle)] pt-md">
             <p className="nf-overline text-[var(--nf-content-muted)]">Total to pay</p>
-            <p className="mt-1">
+            <p className="mt-2xs">
               <Amount
                 minorUnits={view.totalMinor}
                 locale={locale}
@@ -234,7 +234,7 @@ export default async function CheckoutPage({
               />
             </p>
             {view.platformTakesNothing && (
-              <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                 Vallo adds nothing of its own to this total. Every naira goes to the stay.
               </p>
             )}
@@ -243,7 +243,7 @@ export default async function CheckoutPage({
       </Reveal>
 
       {view.paid ? (
-        <Reveal delay={80} className="mt-4">
+        <Reveal delay={80} className="mt-md">
           <ResultScreen
             state="received"
             mark="receipt-check"
@@ -253,7 +253,7 @@ export default async function CheckoutPage({
           />
         </Reveal>
       ) : view.status === "CANCELLED" ? (
-        <Reveal delay={80} className="mt-4">
+        <Reveal delay={80} className="mt-md">
           {/* EXPIRED, NOT FAILED, AND NOT A TICK. A cancellation is terminal
               and it is not a failure: nothing went wrong, a window closed.
               Painting it rose would manufacture alarm, and painting it cyan
@@ -269,7 +269,7 @@ export default async function CheckoutPage({
         </Reveal>
       ) : (
         <>
-          <Reveal delay={80} className="mt-4">
+          <Reveal delay={80} className="mt-md">
             {/*
               ONE BRANCH PER LIFECYCLE VALUE, AND THERE ARE FIVE OF THEM NOW.
 
@@ -345,7 +345,7 @@ export default async function CheckoutPage({
         by then the schedule is support's business and there is a person on it.
       */}
       {!view.paid && view.status !== "CANCELLED" && (
-        <Reveal delay={180} className="mt-8">
+        <Reveal delay={180} className="mt-xl">
           <CancellationTimeline
             checkIn={view.checkIn}
             totalMinor={view.totalMinor}
@@ -355,9 +355,9 @@ export default async function CheckoutPage({
         </Reveal>
       )}
 
-      <Reveal delay={200} className="mt-6">
-        <p className="flex items-start gap-3 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
-          <span className="mt-0.5 block h-5 w-5 shrink-0">
+      <Reveal delay={200} className="mt-lg">
+        <p className="flex items-start gap-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+          <span className="mt-3xs block h-5 w-5 shrink-0">
             <BrandIcon name="naira-hand" fill tile={false} />
           </span>
           <span>
@@ -379,8 +379,8 @@ export default async function CheckoutPage({
  */
 function HoldNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="nf-card flex items-start gap-3 p-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-      <span className="mt-0.5 block h-5 w-5 shrink-0">
+    <p className="nf-card flex items-start gap-sm p-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <span className="mt-3xs block h-5 w-5 shrink-0">
         <BrandIcon name="calendar-check" fill tile={false} />
       </span>
       <span>{children}</span>

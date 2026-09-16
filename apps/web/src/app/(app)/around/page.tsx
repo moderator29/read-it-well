@@ -161,7 +161,7 @@ export default async function AroundPage({
 
   return (
     <div
-      className="mx-auto w-full max-w-3xl pt-4"
+      className="mx-auto w-full max-w-3xl pt-md"
       /* The dock floats over the bottom of the screen on a phone, and this is
          the one route in the social layer that keeps it. Padding rather than a
          fixed pb-24 so the clearance tracks the dock's real height and the home
@@ -176,7 +176,7 @@ export default async function AroundPage({
           the masthead because the masthead is the product's identity and this
           is a filter on top of it. */}
       {selected ? (
-        <p className="mb-3 flex items-center gap-2 text-sm text-[var(--nf-content-secondary)]">
+        <p className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           <UiIcon name="location" size={15} />
           <span className="font-semibold text-[var(--nf-content-primary)]">{selected.name}</span>
           <Link href="/around" className="ms-auto text-[var(--nf-brand-secondary)]">
@@ -194,13 +194,13 @@ export default async function AroundPage({
           `/around/settings` settled on for this same fact: a screen that
           apologises twice for one thing reads as a screen nobody looked at. */}
       {browsingOpen && !unconfigured ? (
-        <div className="nf-card mb-4 p-4">
-          <p className="text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+        <div className="nf-card mb-md p-md">
+          <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {signedIn ? t.social.browsingOpen : t.social.browsingOpenSignedOut}
           </p>
           <Link
             href="/around/settings"
-            className="nf-btn nf-btn--primary mt-4 inline-flex h-10 items-center px-5 text-sm"
+            className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-5 text-[var(--nf-text-body-sm)]"
           >
             {t.social.pickPlaces}
           </Link>
@@ -210,7 +210,7 @@ export default async function AroundPage({
       {selected ? (
         <Link
           href={`/around/${selected.slug}`}
-          className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--nf-brand-secondary)]"
+          className="mb-md inline-flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
         >
           <UiIcon name="compass" size={15} />
           {t.social.openPlacePage}
@@ -253,7 +253,7 @@ export default async function AroundPage({
         {feed.ended && feed.posts.length > 0 ? (
           <p
             aria-live="polite"
-            className="mt-5 text-center text-xs text-[var(--nf-content-muted)]"
+            className="mt-5 text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
           >
             {POST_COPY.endOfSession}
           </p>

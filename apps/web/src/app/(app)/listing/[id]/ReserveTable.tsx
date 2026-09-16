@@ -89,21 +89,21 @@ export function ReserveTable({
   if (state?.ok) {
     return (
       <div className="nf-card p-5">
-        <p className="flex items-center gap-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+        <p className="flex items-center gap-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           <UiIcon name="chat-bubble" size={20} className="shrink-0 opacity-80" aria-hidden />
           Request sent
         </p>
         {/* Deliberately not "Table booked". Nothing is held until a person at
             the restaurant says so, and a receipt that claimed otherwise would
             put somebody at a door with no table. */}
-        <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           The restaurant has your request for {party} on {dayLabel(date, todayIso)} at{" "}
           {time}. They will confirm or decline it, and you will see the answer in
           your bookings.
         </p>
         <Link
           href="/bookings"
-          className="mt-4 inline-flex text-[0.875rem] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4"
+          className="mt-md inline-flex text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4"
         >
           See your bookings
         </Link>
@@ -117,18 +117,18 @@ export function ReserveTable({
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="time" value={time} />
 
-      <p className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+      <p className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         Book a table
       </p>
 
-      <div className="mt-4">
+      <div className="mt-md">
         <span className="nf-label" id={dateId}>
           Day
         </span>
         <div
           role="group"
           aria-labelledby={dateId}
-          className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-1 pb-1"
+          className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-2xs pb-2xs"
         >
           {days.map((iso) => {
             const active = iso === date;
@@ -138,7 +138,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setDate(iso)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-3 py-1.5 text-[0.8125rem] transition-colors ${
+                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-1.5 text-[var(--nf-text-caption)] transition-colors ${
                   active
                     ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
@@ -151,14 +151,14 @@ export function ReserveTable({
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-md">
         <span className="nf-label" id={timeId}>
           Time
         </span>
         <div
           role="group"
           aria-labelledby={timeId}
-          className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-1 pb-1"
+          className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-2xs pb-2xs"
         >
           {SLOTS.map((slot) => {
             const active = slot === time;
@@ -168,7 +168,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setTime(slot)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-3 py-1.5 text-[0.8125rem] tabular-nums transition-colors ${
+                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-1.5 text-[var(--nf-text-caption)] tabular-nums transition-colors ${
                   active
                     ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
@@ -181,11 +181,11 @@ export function ReserveTable({
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-md">
         <label className="nf-label" htmlFor={partyId}>
           Guests
         </label>
-        <div className="mt-1.5 flex items-center gap-3">
+        <div className="mt-1.5 flex items-center gap-sm">
           <button
             type="button"
             onClick={() => setParty((n) => Math.max(1, n - 1))}
@@ -207,7 +207,7 @@ export function ReserveTable({
               const next = Number(event.target.value);
               setParty(Number.isFinite(next) ? Math.min(MAX_PARTY, Math.max(1, next)) : 1);
             }}
-            className="w-16 rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-2 py-1.5 text-center text-[0.9375rem] tabular-nums text-[var(--nf-content-primary)]"
+            className="w-16 rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-xs py-1.5 text-center text-[var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
           <button
             type="button"
@@ -222,7 +222,7 @@ export function ReserveTable({
         {/* Said before somebody counts to fifty and is refused, rather than
             after. The database enforces the same number. */}
         {party >= MAX_PARTY && (
-          <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             For a larger party,{" "}
             <Link href={messageHref} className="underline underline-offset-2">
               message the restaurant
@@ -232,7 +232,7 @@ export function ReserveTable({
         )}
       </div>
 
-      <div className="mt-4">
+      <div className="mt-md">
         <label className="nf-label" htmlFor={noteId}>
           Anything they should know
         </label>
@@ -242,23 +242,23 @@ export function ReserveTable({
           rows={2}
           maxLength={500}
           placeholder="A birthday, a wheelchair, an allergy"
-          className="mt-1.5 w-full rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-3 py-2 text-[0.875rem] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
+          className="mt-1.5 w-full rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
         />
       </div>
 
       {state && !state.ok && (
-        <p role="alert" className="mt-3 text-[0.8125rem] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-sm text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}
 
-      <Button type="submit" variant="primary" full className="mt-4" disabled={pending}>
+      <Button type="submit" variant="primary" full className="mt-md" disabled={pending}>
         {pending ? "Sending" : "Request a table"}
       </Button>
 
       {/* The promise, kept small and directly under the button that makes it.
           Nothing is held until the restaurant answers. */}
-      <p className="mt-2 text-center text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         The restaurant confirms it. Nothing is held until they do.
       </p>
     </form>

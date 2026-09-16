@@ -70,11 +70,11 @@ export function Disclosure({
         onClick={() => setOpen(true)}
         aria-expanded={open}
         data-testid={testId}
-        className="group flex w-full items-center gap-4 py-4 text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
+        className="group flex w-full items-center gap-md py-md text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
       >
         <span className="min-w-0 flex-1">
           <span className={`block ${TYPE.rowTitle}`}>{label}</span>
-          {hint && <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{hint}</span>}
+          {hint && <span className={`mt-3xs block ${TYPE.rowMeta}`}>{hint}</span>}
         </span>
         <UiIcon
           name="chevron-right"

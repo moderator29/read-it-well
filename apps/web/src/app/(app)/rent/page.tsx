@@ -55,20 +55,20 @@ export default async function RentPage({
       <PageHeader title={t.nav.rent} />
       </div>
 
-      <Reveal as="section" className="mt-2">
-        <p className="max-w-[52ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <Reveal as="section" className="mt-xs">
+        <p className="max-w-[52ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           Homes for real rent, priced per year. Message the agent, inspect the
           property, then pay. Verified listings only.
         </p>
 
         {/* The safety rule of the rent market, stated up front. */}
-        <div className="nf-card mt-4 flex items-start gap-4 p-4">
+        <div className="nf-card mt-md flex items-start gap-md p-md">
           <UiIcon
             name="verified"
             size={20}
-            className="mt-0.5 shrink-0 text-[var(--nf-state-success)]"
+            className="mt-3xs shrink-0 text-[var(--nf-state-success)]"
           />
-          <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             For your safety, keep every chat and payment inside Vallo. Deals
             made outside the platform are not protected by us. Pay only after
             you have inspected the property.
@@ -83,11 +83,11 @@ export default async function RentPage({
           body="Listings and agents are verified before they go live, and the whole conversation stays inside Vallo."
           href="/help"
           action="How we protect you"
-          className="mt-4"
+          className="mt-md"
         />
 
-        <nav aria-label="Rent by city" className="nf-scroll-x -mx-5 mt-4 md:-mx-8">
-          <ul className="flex gap-2 px-5 md:px-8">
+        <nav aria-label="Rent by city" className="nf-scroll-x -mx-5 mt-md md:-mx-8">
+          <ul className="flex gap-xs px-5 md:px-xl">
             {CITIES.map((city) => {
               const active = q?.trim().toLowerCase() === city.toLowerCase();
               return (
@@ -116,18 +116,18 @@ export default async function RentPage({
             <span className="nf-story-art mx-auto block h-20 w-20">
               <BrandIcon name="keys-home" fill />
             </span>
-            <p className="mt-4 font-semibold">No rentals matched</p>
-            <p className="mt-1 text-[0.875rem] text-[var(--nf-content-muted)]">
+            <p className="mt-md font-semibold">No rentals matched</p>
+            <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               Try another city, or browse everything for rent.
             </p>
-            <ButtonLink href="/rent" variant="secondary" className="mt-6">
+            <ButtonLink href="/rent" variant="secondary" className="mt-lg">
               {t.nav.rent}
             </ButtonLink>
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {rentals.map((r) => (
-              <li key={r.id} className="flex flex-col gap-3">
+              <li key={r.id} className="flex flex-col gap-sm">
                 <ListingCard listing={r} locale={locale} t={t} />
                 <ButtonLink
                   href={messageHrefs.get(r.id) ?? "/messages"}

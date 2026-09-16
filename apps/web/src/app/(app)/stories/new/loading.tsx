@@ -10,15 +10,15 @@
  */
 export default function LoadingNewStory() {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-24 pt-4" aria-busy="true" aria-live="polite">
+    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
       <span className="sr-only">Opening the story composer</span>
 
-      <div className="mb-6 space-y-3" aria-hidden="true">
+      <div className="mb-lg space-y-sm" aria-hidden="true">
         <span className="nf-social-skeleton block h-7 w-40 rounded-[var(--nf-radius-xs)]" />
         <span className="nf-social-skeleton block h-3 w-64 rounded-[var(--nf-radius-xs)]" />
       </div>
 
-      <div className="nf-card nf-social-card space-y-4 p-5" aria-hidden="true">
+      <div className="nf-card nf-social-card space-y-md p-5" aria-hidden="true">
         {/* The picture comes first in the real composer, and it is the tallest
             thing on the page, so the skeleton keeps its proportion. */}
         <span className="nf-social-skeleton block aspect-[4/5] w-full rounded-[var(--nf-radius-lg)]" />

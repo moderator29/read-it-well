@@ -10,9 +10,9 @@ export default function LoadingProfile() {
   return (
     <LoadingShell label="Loading your account" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
-      <div className="space-y-3">
+      <div className="space-y-sm">
         {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="nf-card p-4">
+          <div key={i} className="nf-card p-md">
             <Skeleton width="45%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-2.5" width="70%" height="0.875rem" radius="sm" />
           </div>

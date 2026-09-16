@@ -63,16 +63,16 @@ export function DocumentUploader({
   }
 
   return (
-    <section className="nf-card p-4 sm:p-5">
-      <h3 className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h3>
+    <section className="nf-card p-md sm:p-5">
+      <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h3>
 
-      <p className="mt-1.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-1.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {spec.qualifies}
       </p>
 
       {/* The rule that gets people refused, said before they upload. */}
-      <p className="mt-2 flex items-start gap-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size="sm" className="mt-0.5 shrink-0" />
+      <p className="mt-xs flex items-start gap-1.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <UiIcon name="verified" size="sm" className="mt-3xs shrink-0" />
         <span>{spec.caution}</span>
       </p>
 
@@ -86,15 +86,15 @@ export function DocumentUploader({
       />
 
       {file ? (
-        <div className="mt-4 flex items-center gap-3 rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-3.5 py-3">
+        <div className="mt-md flex items-center gap-sm rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-3.5 py-sm">
           <span className="nf-role-mark" aria-hidden="true">
             <UiIcon name="document" size="md" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[0.875rem] font-medium text-[var(--nf-content-primary)]">
+            <span className="block truncate text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
               {file.name}
             </span>
-            <span className="nf-numeric block text-[0.75rem] text-[var(--nf-content-muted)]">
+            <span className="nf-numeric block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {Math.max(1, Math.round(file.size / 1024))} KB
             </span>
           </span>
@@ -110,7 +110,7 @@ export function DocumentUploader({
           variant="secondary"
           size="md"
           full
-          className="mt-4"
+          className="mt-md"
           leadingIcon="plus"
           onClick={() => input.current?.click()}
         >
@@ -119,12 +119,12 @@ export function DocumentUploader({
       )}
 
       {/* The limits, always visible, never only inside an error. */}
-      <p className="mt-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {ACCEPTED_LABEL}. {LIMIT_PREFIX} {MAX_FILE_LABEL}.
       </p>
 
       {error && (
-        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

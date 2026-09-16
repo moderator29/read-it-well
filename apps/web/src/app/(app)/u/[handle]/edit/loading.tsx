@@ -12,12 +12,12 @@ export default function LoadingProfileEdit() {
       <PageHeaderSkeleton />
       <div className="nf-card p-5">
         <Skeleton width="40%" height="0.8125rem" radius="sm" />
-        <Skeleton className="mt-3" height="2.25rem" radius="sm" />
-        <Skeleton className="mt-4" height="3.5rem" radius="lg" />
+        <Skeleton className="mt-sm" height="2.25rem" radius="sm" />
+        <Skeleton className="mt-md" height="3.5rem" radius="lg" />
       </div>
-      <div className="space-y-3">
+      <div className="space-y-sm">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="nf-card p-4">
+          <div key={i} className="nf-card p-md">
             <Skeleton width="38%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-2.5" width="72%" height="0.875rem" radius="sm" />
           </div>

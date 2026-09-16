@@ -257,28 +257,27 @@ const config = [
    * the migration has landed and describes an aspiration everywhere else. A
    * ratchet that never tightens is a warning nobody reads.
    *
-   * WHAT PROMOTES NEXT. 1,110 sites remain, and here is every one of them by
-   * directory, counted rather than estimated, so the two other workstreams can
-   * take theirs without re-running anything:
+   * WHAT PROMOTES NEXT, AND WHY THERE IS NO TABLE HERE.
    *
-   *     225  src/app/admin                 31  src/components/auth
-   *     169  src/app/(app)                 11  src/components/site
-   *     168  src/app/agent                  8  src/lib
-   *     141  src/app/(site)                 6  src/app/(auth)
-   *     133  src/components/app             4  src/app/offline
-   *     121  src/components/social          3  src/components/messages
-   *      51  src/components/agent           3  src/components/roles
-   *      32  src/components/verification    2  src/app/page.tsx
-   *                                         1  src/app/error.tsx
-   *                                         1  src/app/not-found.tsx
+   * There was one. It listed all eighteen directories and their counts, taken
+   * the day the rule was flipped, and it was WRONG WITHIN THE HOUR: another
+   * workstream migrated a tranche of `src/app/admin` while this file was being
+   * written and the total went from 1,110 to 714. A snapshot of a number that
+   * is actively falling is the stale-by-one-edit fault this whole sprint has
+   * been pulling out of stylesheets, and putting one in the config that
+   * PRODUCES the number would be the worst place for it.
    *
-   * `src/components/site/**` at 11 and `src/app/(auth)/**` at 6 could reach
-   * zero in an afternoon; `src/app/admin/**` at 225 is a project. Nothing
-   * should be promoted on the strength of being SMALL, though - it should be
-   * promoted the day somebody has actually read the sites and moved them, which
-   * is the difference between this list and a wish. Four of the five largest
-   * are also where the product's densest screens live, so the sizes there are
-   * more likely to be load-bearing than lazy.
+   * So: 1,110 at the moment the rule was registered, across eighteen
+   * directories, none of them in the design system. For the live figure, which
+   * is the only one worth acting on:
+   *
+   *   npx eslint . -f json | node -e '<group messages by ruleId and dirname>'
+   *
+   * A directory promotes to `error` the day somebody has READ its sites and
+   * moved them, not the day its number looks small. Four of the five largest
+   * are the product's densest screens, where a size is more likely to be
+   * load-bearing than lazy, and the point of the rule is to make each of those
+   * a decision rather than to make the count go down.
    * ------------------------------------------------------------------ */
   {
     files: ["src/design-system/**/*.{ts,tsx}", "src/components/ui/**/*.{ts,tsx}"],

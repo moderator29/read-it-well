@@ -131,7 +131,7 @@ export function StoryRail({
             following you, replying to you, naming you in a post, liking or
             reposting what you wrote, and every decision we make about it.
           </p>
-          <Link href="/notifications" className="nf-btn nf-btn--glass mt-3 w-full">
+          <Link href="/notifications" className="nf-btn nf-btn--glass mt-sm w-full">
             <UiIcon name="bell" size={15} />
             Open your updates
           </Link>

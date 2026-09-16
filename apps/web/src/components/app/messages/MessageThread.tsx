@@ -153,11 +153,11 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
       {/* ------------------------------------------------------ chat thread */}
       <div
         ref={scrollerRef}
-        className="flex-1 space-y-4 overflow-y-auto pb-4 pr-1"
+        className="flex-1 space-y-md overflow-y-auto pb-md pr-2xs"
         aria-live="polite"
         aria-label="Conversation"
       >
-        <p className="flex items-center justify-center gap-1.5 py-1 text-center text-[0.7rem] text-[var(--nf-content-muted)]">
+        <p className="flex items-center justify-center gap-1.5 py-2xs text-center text-[0.7rem] text-[var(--nf-content-muted)]">
           <UiIcon name="verified" size={12} />
           Chats are protected by Vallo fraud monitoring
         </p>
@@ -166,45 +166,45 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           m.author === "guest" ? (
             <div key={m.id} className="nf-rise flex justify-end">
               {/* Deep blue keeps white body text readable at chat sizes. */}
-              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-4 py-2.5 text-[var(--nf-content-on-brand)]">
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-md py-2.5 text-[var(--nf-content-on-brand)]">
                 {m.image && (
                   /* Object URLs cannot go through the image optimiser. */
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={m.image.src}
                     alt={m.image.alt}
-                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
+                    className="mb-xs aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
-                {m.body && <p className="text-[0.9rem] leading-relaxed">{m.body}</p>}
-                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
+                {m.body && <p className="text-[var(--nf-text-body-sm)] leading-relaxed">{m.body}</p>}
+                <p className="nf-numeric mt-2xs text-right text-[0.65rem] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>
             </div>
           ) : (
-            <div key={m.id} className="nf-rise flex items-end gap-3">
+            <div key={m.id} className="nf-rise flex items-end gap-sm">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[0.75rem] font-bold text-[var(--nf-brand-secondary)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-text-overline)] font-bold text-[var(--nf-brand-secondary)]"
               >
                 {thread.agentName.charAt(0)}
               </span>
-              <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md px-4 py-2.5">
+              <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md px-md py-2.5">
                 {m.image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={m.image.src}
                     alt={m.image.alt}
-                    className="mb-2 aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
+                    className="mb-xs aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
                 {m.body && (
-                  <p className="text-[0.9rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {m.body}
                   </p>
                 )}
-                <p className="nf-numeric mt-1 text-right text-[0.65rem] text-[var(--nf-content-muted)]">
+                <p className="nf-numeric mt-2xs text-right text-[0.65rem] text-[var(--nf-content-muted)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>
@@ -215,14 +215,14 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
 
       {/* --------------------------------------------------------- composer */}
       {pendingImage && (
-        <div className="flex items-center gap-3 border-t border-[var(--nf-border-subtle)] pt-3">
+        <div className="flex items-center gap-sm border-t border-[var(--nf-border-subtle)] pt-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={pendingImage}
             alt="Photo ready to send"
             className="h-14 w-14 rounded-xl object-cover"
           />
-          <p className="min-w-0 flex-1 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="min-w-0 flex-1 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
             Photo attached
           </p>
           <Button
@@ -243,7 +243,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           e.preventDefault();
           send();
         }}
-        className={`flex items-center gap-3 pt-3 ${
+        className={`flex items-center gap-sm pt-sm ${
           pendingImage ? "" : "border-t border-[var(--nf-border-subtle)]"
         }`}
       >

@@ -371,11 +371,18 @@
    * the approach in `.nf-page-scene`, which turns multiply off on the night
    * theme rather than wrapping it in a group.
    */
+  /*
+   * No animation, and no call sites either - the comment above already records
+   * that this class went unused when a larger render covered the same area. The
+   * spans kept a 9 second float, and their `:nth-child(2n)` siblings a 12
+   * second one on a negative delay, for elements the component tree does not
+   * render. See the ambient budget note in glass.css.
+   */
   .nf-icon-field > span {
     position: absolute;
     opacity: 0.5;
     filter: saturate(1.1);
-    animation: nf-float 9s var(--nf-ease-standard) infinite;
+    animation: none;
   }
   .nf-icon-field > span:nth-child(2n) {
     animation-duration: 12s;

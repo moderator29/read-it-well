@@ -140,7 +140,7 @@ export default async function ProfileApplicationPage() {
           <RowList boxed inset={false}>
             {/* The reference. The only string support will ever ask for, so it
                 keeps the biggest type on the page after the heading. */}
-            <Row className="flex-wrap justify-between gap-y-2">
+            <Row className="flex-wrap justify-between gap-y-xs">
               <span className="nf-numeric nf-h4 tracking-[0.04em]">{application.reference}</span>
               <StatusPill tone={toneForStatus(application.status)}>
                 {statusLabel[application.status]}
@@ -155,7 +155,7 @@ export default async function ProfileApplicationPage() {
                   const done = i < stageIndex || (i === stageIndex && decided);
                   const current = i === stageIndex && !decided;
                   return (
-                    <li key={stage.label} className="relative flex gap-4 pb-6 last:pb-0">
+                    <li key={stage.label} className="relative flex gap-md pb-lg last:pb-0">
                       {i < stages.length - 1 && (
                         <span
                           aria-hidden="true"
@@ -170,7 +170,7 @@ export default async function ProfileApplicationPage() {
                       )}
                       <span
                         aria-hidden="true"
-                        className="mt-1 grid h-[1.05rem] w-[1.05rem] shrink-0 place-items-center rounded-full border"
+                        className="mt-2xs grid h-[1.05rem] w-[1.05rem] shrink-0 place-items-center rounded-full border"
                         style={
                           done
                             ? {
@@ -207,7 +207,7 @@ export default async function ProfileApplicationPage() {
                           {stage.label}
                         </span>
                         {stage.note && (done || current) && (
-                          <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{stage.note}</span>
+                          <span className={`mt-3xs block ${TYPE.rowMeta}`}>{stage.note}</span>
                         )}
                       </span>
                     </li>
@@ -217,7 +217,7 @@ export default async function ProfileApplicationPage() {
             </Row>
 
             {reviewerNote.length > 0 && (
-              <Row className="flex-col items-start gap-1 py-5">
+              <Row className="flex-col items-start gap-2xs py-5">
                 <span className={TYPE.label}>{s.reviewerNote}</span>
                 <p className={`whitespace-pre-line ${TYPE.body}`}>{reviewerNote}</p>
               </Row>

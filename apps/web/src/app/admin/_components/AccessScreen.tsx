@@ -44,8 +44,8 @@ export function AccessScreen({
           };
 
   return (
-    <main id="main" className="flex min-h-dvh items-center justify-center px-4 py-12">
-      <div className="nf-card w-full max-w-md p-6 text-center sm:p-8">
+    <main id="main" className="flex min-h-dvh items-center justify-center px-md py-2xl">
+      <div className="nf-card w-full max-w-md p-lg text-center sm:p-xl">
         {/*
           `block w-fit mx-auto` AND NOT `inline-block`, ON BOTH ANCHORS.
 
@@ -82,23 +82,23 @@ export function AccessScreen({
           object floating is its size and the air around it, not a box, which is
           the conclusion `ComingSoon` had already reached.
         */}
-        <span className="mt-6 flex justify-center text-[var(--nf-content-link)]">
+        <span className="mt-lg flex justify-center text-[var(--nf-content-link)]">
           <UiIcon name="key" size={32} />
         </span>
 
-        <h1 className="nf-h2 mt-4 text-[1.375rem]">{copy.title}</h1>
-        <p className="mx-auto mt-2 max-w-[42ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h2 mt-md text-[var(--nf-text-h4)]">{copy.title}</h1>
+        <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {copy.body}
         </p>
 
-        <ButtonLink href={copy.action.href} variant="primary" full className="mt-6">
+        <ButtonLink href={copy.action.href} variant="primary" full className="mt-lg">
           {copy.action.label}
         </ButtonLink>
 
         {state !== "signed-out" && (
           <Link
             href="/sign-in"
-            className="mx-auto mt-3 block w-fit text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="mx-auto mt-sm block w-fit text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {a.otherAccount}
           </Link>

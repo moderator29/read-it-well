@@ -165,10 +165,10 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
 
       <div
         ref={panelRef}
-        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-8 pt-5"
+        className="nf-rise absolute inset-0 overflow-y-auto bg-[var(--nf-surface-primary)] px-5 pb-xl pt-5"
       >
         <div className="mx-auto max-w-lg">
-          <div className="mb-5 flex items-center justify-between gap-4">
+          <div className="mb-5 flex items-center justify-between gap-md">
             <h2 className="nf-h3">{copy.title}</h2>
             <button
               type="button"
@@ -182,29 +182,29 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
 
           {state?.ok ? (
             <div className="nf-card p-5" data-testid="delete-done">
-              <p className="flex items-center gap-2 text-[1.0625rem] font-semibold">
+              <p className="flex items-center gap-xs text-[var(--nf-text-body-lg)] font-semibold">
                 <UiIcon name="verified" size={20} className="shrink-0 text-[var(--nf-state-success)]" />
                 {copy.doneTitle}
               </p>
-              <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {copy.doneBody}
               </p>
             </div>
           ) : step === "explain" ? (
             <div className="nf-card p-5">
-              <p className="text-[0.9375rem] font-semibold">{copy.permanentTitle}</p>
-              <ul className="mt-3 space-y-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="text-[var(--nf-text-body-sm)] font-semibold">{copy.permanentTitle}</p>
+              <ul className="mt-sm space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {[copy.losesProfile, copy.losesContent, copy.keepsBookings].map((line) => (
-                  <li key={line} className="flex gap-3">
+                  <li key={line} className="flex gap-sm">
                     <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
                     {line}
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              <p className="mt-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                 {copy.talkFirst}
               </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="mt-5 grid gap-sm sm:grid-cols-2">
                 <Button variant="primary" full onClick={onClose}>
                   {copy.keep}
                 </Button>
@@ -238,20 +238,20 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
                 onChange={(e) => setPhrase(e.target.value)}
                 className="nf-field"
               />
-              <p className="mt-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+              <p className="mt-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {copy.capitals}
               </p>
 
               {state && !state.ok && (
                 <p
                   role="alert"
-                  className="mt-3 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]"
+                  className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-3.5 py-2.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
                 >
                   {state.fieldErrors?.confirmPhrase ?? state.error}
                 </p>
               )}
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="mt-5 grid gap-sm sm:grid-cols-2">
                 <Button variant="primary" full onClick={onClose}>
                   {copy.keep}
                 </Button>

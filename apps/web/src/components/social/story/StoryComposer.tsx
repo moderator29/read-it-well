@@ -70,12 +70,12 @@ export function StoryComposer({
         <div className="mx-auto w-fit">
           <BrandIcon name="camera" size={44} />
         </div>
-        <h2 className="nf-h3 mt-4 text-[1.05rem]">Sign in to write a story</h2>
-        <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">Sign in to write a story</h2>
+        <p className="mx-auto mt-2.5 max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           A story is a picture, a headline and a line or two about a place. It
           stays up, so it needs to belong to somebody.
         </p>
-        <Link href="/sign-in" className="nf-btn nf-btn--primary mt-6">
+        <Link href="/sign-in" className="nf-btn nf-btn--primary mt-lg">
           Sign in
         </Link>
       </div>
@@ -88,14 +88,14 @@ export function StoryComposer({
         <div className="mx-auto w-fit">
           <BrandIcon name="pin-map" size={44} />
         </div>
-        <h2 className="nf-h3 mt-4 text-[1.05rem]">A story belongs to a place</h2>
-        <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">A story belongs to a place</h2>
+        <p className="mx-auto mt-2.5 max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           You are not in any place yet. Join one and you can write about it
           straight away.
         </p>
         {/* The directory, because being in no place is what this state is
             about and only the directory can end it. */}
-        <Link href="/around/settings" className="nf-btn nf-btn--primary mt-6">
+        <Link href="/around/settings" className="nf-btn nf-btn--primary mt-lg">
           Find a place
         </Link>
       </div>
@@ -108,11 +108,11 @@ export function StoryComposer({
         <div className="mx-auto w-fit">
           <BrandIcon name="doc-shield" size={44} />
         </div>
-        <h2 className="nf-h3 mt-4 text-[1.05rem]">It is with us</h2>
-        <p className="mx-auto mt-2.5 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">It is with us</h2>
+        <p className="mx-auto mt-2.5 max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {STORY_COPY.held}
         </p>
-        <Link href="/around" className="nf-btn nf-btn--primary mt-6">
+        <Link href="/around" className="nf-btn nf-btn--primary mt-lg">
           Back to Around
         </Link>
       </div>
@@ -225,7 +225,7 @@ export function StoryComposer({
         <button
           type="button"
           onClick={() => fileInput.current?.click()}
-          className="-mt-3 self-start text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]"
+          className="-mt-3 self-start text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
         >
           Choose a different picture
         </button>
@@ -235,7 +235,7 @@ export function StoryComposer({
       <label className="block">
         <span className="nf-overline">Headline</span>
         <textarea
-          className="nf-field mt-2 w-full resize-none text-[1.25rem] font-bold leading-tight tracking-[-0.02em]"
+          className="nf-field mt-xs w-full resize-none text-[var(--nf-text-h4)] font-bold leading-tight tracking-[-0.02em]"
           rows={2}
           value={headline}
           maxLength={STORY_HEADLINE_MAX}
@@ -247,7 +247,7 @@ export function StoryComposer({
       <label className="block">
         <span className="nf-overline">The opening paragraph</span>
         <textarea
-          className="nf-field mt-2 min-h-[110px] w-full resize-y text-[0.97rem] leading-relaxed"
+          className="nf-field mt-xs min-h-[110px] w-full resize-y text-[var(--nf-text-body)] leading-relaxed"
           value={standfirst}
           maxLength={STORY_STANDFIRST_MAX}
           placeholder={STORY_COPY.standfirstPlaceholder}
@@ -257,7 +257,7 @@ export function StoryComposer({
 
       <label className="block">
         <span className="nf-overline">Where it happened</span>
-        <div className="relative mt-2">
+        <div className="relative mt-xs">
           <span className="pointer-events-none absolute inset-y-0 start-3 grid place-items-center text-[var(--nf-content-muted)]">
             <UiIcon name="location" size={16} />
           </span>
@@ -275,7 +275,7 @@ export function StoryComposer({
         <label className="block">
           <span className="nf-overline">Which place is it about</span>
           <select
-            className="nf-field mt-2 w-full"
+            className="nf-field mt-xs w-full"
             value={areaId}
             onChange={(event) => setAreaId(event.target.value)}
           >
@@ -291,7 +291,7 @@ export function StoryComposer({
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-3 py-2.5 text-sm leading-relaxed text-[var(--nf-content-primary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-2.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
         >
           {error}
         </p>

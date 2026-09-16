@@ -30,9 +30,9 @@ export default async function AdminModerationPage() {
   const access = await requireAdmin();
   if (access.state !== "admin") {
     return (
-      <div className="nf-card p-6">
-        <h1 className="text-lg font-semibold text-[var(--nf-content-primary)]">Held</h1>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+      <div className="nf-card p-lg">
+        <h1 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Held</h1>
+        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {adminRefusal(access)}
         </p>
       </div>
@@ -42,17 +42,17 @@ export default async function AdminModerationPage() {
   const queue = await getModerationQueue();
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-xl">
       <header>
-        <h1 className="text-xl font-semibold text-[var(--nf-content-primary)]">Held</h1>
-        <p className="mt-1 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+        <h1 className="text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Held</h1>
+        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           Words the safety scan stopped before anybody else saw them. Every one
           of these has an author waiting to be told what happened.
         </p>
       </header>
 
       {queue.total === 0 ? (
-        <p className="nf-card p-5 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-card p-5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           Nothing is held. When the scanner stops a post, a story, a comment or a
           bio, it lands here and its author is told it is being checked.
         </p>
@@ -60,7 +60,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Posts" count={queue.posts.length}>
         {queue.posts.map((post) => (
-          <li key={post.id} className="nf-card p-4 sm:p-5">
+          <li key={post.id} className="nf-card p-md sm:p-5">
             <Meta
               handle={post.author.handle}
               label={post.author.label}
@@ -68,11 +68,11 @@ export default async function AdminModerationPage() {
               place={post.areaName}
               tag={post.isReply ? "Reply" : post.kind}
             />
-            <blockquote className="mt-3 whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-3 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {post.body || "This post carries no words, only an attachment."}
             </blockquote>
             {post.holdReason ? <Reason text={post.holdReason} /> : null}
-            <p className="mt-2 text-xs">
+            <p className="mt-xs text-[var(--nf-text-overline)]">
               <Link
                 href={`/post/${post.rootId}`}
                 className="text-[var(--nf-brand-secondary)]"
@@ -87,7 +87,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Stories" count={queue.stories.length}>
         {queue.stories.map((story) => (
-          <li key={story.id} className="nf-card p-4 sm:p-5">
+          <li key={story.id} className="nf-card p-md sm:p-5">
             <Meta
               handle={story.author.handle}
               label={story.author.label}
@@ -95,16 +95,16 @@ export default async function AdminModerationPage() {
               place={story.areaName ?? story.placeLabel}
               tag="Story"
             />
-            <h3 className="mt-3 text-base font-semibold text-[var(--nf-content-primary)]">
+            <h3 className="mt-sm text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
               {story.headline}
             </h3>
             {story.standfirst ? (
-              <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-1.5 whitespace-pre-wrap text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {story.standfirst}
               </p>
             ) : null}
             {story.holdReason ? <Reason text={story.holdReason} /> : null}
-            <p className="mt-2 text-xs">
+            <p className="mt-xs text-[var(--nf-text-overline)]">
               <Link href={`/stories/${story.id}`} className="text-[var(--nf-brand-secondary)]">
                 Open the story
               </Link>
@@ -116,7 +116,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Story comments" count={queue.comments.length}>
         {queue.comments.map((comment) => (
-          <li key={comment.id} className="nf-card p-4 sm:p-5">
+          <li key={comment.id} className="nf-card p-md sm:p-5">
             <Meta
               handle={comment.author.handle}
               label={comment.author.label}
@@ -124,11 +124,11 @@ export default async function AdminModerationPage() {
               place={comment.storyHeadline}
               tag="Comment"
             />
-            <blockquote className="mt-3 whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-3 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {comment.body}
             </blockquote>
             {comment.holdReason ? <Reason text={comment.holdReason} /> : null}
-            <p className="mt-2 text-xs">
+            <p className="mt-xs text-[var(--nf-text-overline)]">
               <Link
                 href={`/stories/${comment.storyId}`}
                 className="text-[var(--nf-brand-secondary)]"
@@ -143,7 +143,7 @@ export default async function AdminModerationPage() {
 
       <Section title="Bios" count={queue.bios.length}>
         {queue.bios.map((bio) => (
-          <li key={bio.userId} className="nf-card p-4 sm:p-5">
+          <li key={bio.userId} className="nf-card p-md sm:p-5">
             <Meta
               handle={bio.handle}
               label={bio.label}
@@ -151,20 +151,20 @@ export default async function AdminModerationPage() {
               place={null}
               tag="Bio"
             />
-            <blockquote className="mt-3 whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-3 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {bio.bio || "This bio is empty."}
             </blockquote>
             {bio.link ? (
-              <p className="nf-numeric mt-2 break-all text-xs text-[var(--nf-content-muted)]">
+              <p className="nf-numeric mt-xs break-all text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 Link: {bio.link}
               </p>
             ) : null}
-            <p className="mt-2 text-xs">
+            <p className="mt-xs text-[var(--nf-text-overline)]">
               <Link href={`/u/${bio.handle}`} className="text-[var(--nf-brand-secondary)]">
                 Open the profile
               </Link>
             </p>
-            <p className="mt-2 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
               Taking a bio down empties it. The profile itself stays exactly where
               it is.
             </p>
@@ -190,13 +190,13 @@ function Section({
   if (count === 0) return null;
   return (
     <section>
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--nf-content-primary)]">
+      <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
         {title}
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-xs text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {count}
         </span>
       </h2>
-      <ul className="flex flex-col gap-3">{children}</ul>
+      <ul className="flex flex-col gap-sm">{children}</ul>
     </section>
   );
 }
@@ -215,27 +215,27 @@ function Meta({
   tag: string;
 }) {
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-      <span className="text-sm font-semibold text-[var(--nf-content-primary)]">
+    <div className="flex flex-wrap items-baseline gap-x-xs gap-y-2xs">
+      <span className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
         {label ?? (handle ? `@${handle}` : "A member")}
       </span>
       {handle ? (
-        <Link href={`/u/${handle}`} className="text-xs text-[var(--nf-brand-secondary)]">
+        <Link href={`/u/${handle}`} className="text-[var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
           @{handle}
         </Link>
       ) : null}
-      <span className="text-xs uppercase tracking-wider text-[var(--nf-content-muted)]">
+      <span className="text-[var(--nf-text-overline)] uppercase tracking-wider text-[var(--nf-content-muted)]">
         {tag}
       </span>
-      {place ? <span className="text-xs text-[var(--nf-content-muted)]">{place}</span> : null}
-      <span className="nf-numeric text-xs text-[var(--nf-content-muted)]">{stamp(when)}</span>
+      {place ? <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{place}</span> : null}
+      <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{stamp(when)}</span>
     </div>
   );
 }
 
 function Reason({ text }: { text: string }) {
   return (
-    <p className="mt-2 text-xs leading-relaxed text-[var(--nf-state-warning)]">
+    <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-warning)]">
       Held because: {text}
     </p>
   );

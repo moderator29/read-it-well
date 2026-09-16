@@ -147,8 +147,8 @@ export function ListingActions({
      * while the photography still runs full bleed behind them. 44px squares,
      * which is the App Store minimum and what the pair used to miss by four.
      */
-    <div className="nf-safe-top absolute right-3 top-3 z-20 flex flex-col items-end gap-2 sm:right-4 sm:top-4">
-      <div className="flex items-center gap-2">
+    <div className="nf-safe-top absolute right-3 top-3 z-20 flex flex-col items-end gap-xs sm:right-4 sm:top-4">
+      <div className="flex items-center gap-xs">
         <button
           type="button"
           onClick={share}
@@ -193,7 +193,7 @@ export function ListingActions({
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-3 py-1.5 text-right text-[0.75rem] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
+          className="max-w-[15rem] rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-1.5 text-right text-[var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {message}
           {signInPrompt && (

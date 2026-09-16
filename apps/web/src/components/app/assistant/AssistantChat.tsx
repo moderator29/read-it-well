@@ -447,7 +447,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
   );
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:px-8">
+    <div className="flex h-full min-h-0 w-full flex-col px-md pb-[max(1rem,env(safe-area-inset-bottom))] pt-sm sm:px-lg lg:px-xl">
       <PageHeader
         title="Vallo AI"
         subtitle="Beta"
@@ -464,7 +464,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
         }
       />
 
-      <div className="flex min-h-0 flex-1 gap-6">
+      <div className="flex min-h-0 flex-1 gap-lg">
         {/* --------------------------------------------- desktop sidebar */}
         <aside
           aria-label="Assistant navigation"
@@ -477,7 +477,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
         <section className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-1 flex-col lg:mx-0 lg:max-w-none">
           <div
             ref={scrollerRef}
-            className="flex-1 space-y-5 overflow-y-auto pb-5 pr-1"
+            className="flex-1 space-y-5 overflow-y-auto pb-5 pr-2xs"
             aria-live="polite"
             aria-label="Conversation"
           >
@@ -487,12 +487,12 @@ export function AssistantChat({ locale }: { locale: Locale }) {
                   <BrandIcon name="bot-home" fill />
                 </span>
                 <div>
-                  <p className="text-[0.9375rem] font-semibold">How can I help today?</p>
-                  <p className="mx-auto mt-1 max-w-[36ch] text-[0.8125rem] text-[var(--nf-content-muted)]">
+                  <p className="text-[var(--nf-text-body-sm)] font-semibold">How can I help today?</p>
+                  <p className="mx-auto mt-2xs max-w-[36ch] text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                     Ask about places to stay, eat and explore across Nigeria.
                   </p>
                 </div>
-                <div className="flex flex-wrap justify-center gap-2">
+                <div className="flex flex-wrap justify-center gap-xs">
                   {STARTERS.map((s) => (
                     <button key={s} type="button" onClick={() => send(s)} className="nf-chip">
                       <UiIcon name="sparkle" size={16} />
@@ -507,7 +507,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
               if (m.role === "user") {
                 return (
                   <div key={m.id} className="nf-rise flex justify-end">
-                    <p className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-4 py-2.5 text-[0.9rem] leading-relaxed text-[var(--nf-content-on-brand)]">
+                    <p className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-md py-2.5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-on-brand)]">
                       {m.text}
                     </p>
                   </div>
@@ -520,22 +520,22 @@ export function AssistantChat({ locale }: { locale: Locale }) {
               // its own once the turn finishes.
               const thisStreaming = streamingHere && m.id === lastMessage?.id;
               return (
-                <div key={m.id} className="nf-rise flex items-end gap-3">
+                <div key={m.id} className="nf-rise flex items-end gap-sm">
                   <span
                     className={`h-12 w-12 shrink-0 ${thisStreaming ? "nf-bot-thinking" : ""}`}
                     aria-hidden="true"
                   >
                     <BrandIcon name="bot-home" fill />
                   </span>
-                  <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-4">
+                  <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-md">
                     {m.text.trim() && (
-                      <p className="whitespace-pre-wrap text-[0.9rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                      <p className="whitespace-pre-wrap text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                         {m.text}
                       </p>
                     )}
                     {m.listings && m.listings.length > 0 && (
                       <ul
-                        className="mt-3 space-y-2 [perspective:700px]"
+                        className="mt-sm space-y-xs [perspective:700px]"
                         aria-label="Matching listings"
                       >
                         {m.listings.map((l, i) => (
@@ -554,7 +554,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
                         variant="secondary"
                         size="sm"
                         leadingIcon="arrow-right"
-                        className="mt-3"
+                        className="mt-sm"
                         onClick={() => {
                           if (activeId) retry(activeId, m.id);
                         }}
@@ -569,12 +569,12 @@ export function AssistantChat({ locale }: { locale: Locale }) {
             })}
 
             {showTyping && (
-              <div className="nf-rise flex items-end gap-3">
+              <div className="nf-rise flex items-end gap-sm">
                 <span className="nf-bot-thinking h-12 w-12 shrink-0" aria-hidden="true">
                   <BrandIcon name="bot-home" fill />
                 </span>
                 <div
-                  className="nf-card rounded-2xl rounded-bl-md px-4 py-3.5"
+                  className="nf-card rounded-2xl rounded-bl-md px-md py-3.5"
                   aria-label="Vallo AI is typing"
                 >
                   <span className="flex items-center gap-1.5" aria-hidden="true">
@@ -597,7 +597,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
               e.preventDefault();
               send(draft);
             }}
-            className="flex items-center gap-2.5 border-t border-[var(--nf-border-subtle)] pt-3"
+            className="flex items-center gap-2.5 border-t border-[var(--nf-border-subtle)] pt-sm"
           >
             <label htmlFor="assistant-input" className="sr-only">
               Message Vallo AI
@@ -647,8 +647,8 @@ export function AssistantChat({ locale }: { locale: Locale }) {
               historyShown ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            <div className="flex items-center justify-between border-b border-[var(--nf-border-subtle)] py-2 pl-4 pr-2">
-              <p className="text-[0.875rem] font-semibold">Conversations</p>
+            <div className="flex items-center justify-between border-b border-[var(--nf-border-subtle)] py-xs pl-md pr-xs">
+              <p className="text-[var(--nf-text-body-sm)] font-semibold">Conversations</p>
               <button
                 type="button"
                 aria-label="Close conversation history"
@@ -674,7 +674,7 @@ function ThreadListingCard({ listing, locale }: { listing: AssistantListingItem;
   return (
     <Link
       href={listing.href}
-      className="nf-card nf-card--interactive flex items-center gap-4 rounded-xl p-2.5"
+      className="nf-card nf-card--interactive flex items-center gap-md rounded-xl p-2.5"
     >
       <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[var(--nf-glass-fill)]">
         {listing.photo && (
@@ -682,17 +682,17 @@ function ThreadListingCard({ listing, locale }: { listing: AssistantListingItem;
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+        <span className="block truncate text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           {listing.title}
         </span>
-        <span className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <span className="mt-3xs flex items-center gap-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           <span className="truncate">{listing.city}</span>
-          <span className="nf-numeric flex shrink-0 items-center gap-0.5">
+          <span className="nf-numeric flex shrink-0 items-center gap-3xs">
             <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
             {formatRating(listing.rating, locale)}
           </span>
         </span>
-        <span className="nf-numeric mt-0.5 block truncate text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+        <span className="nf-numeric mt-3xs block truncate text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
           {listing.price}
         </span>
       </span>

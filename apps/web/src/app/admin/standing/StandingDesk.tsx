@@ -49,13 +49,13 @@ export function StandingDesk({
     state && !state.ok ? state.fieldErrors?.[key] : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-lg">
       {/* --------------------------------------------------------- grant */}
-      <form action={formAction} noValidate className="nf-card p-4 sm:p-5">
-        <h2 className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">
+      <form action={formAction} noValidate className="nf-card p-md sm:p-5">
+        <h2 className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
           Grant standing
         </h2>
-        <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           This is the only badge a person awards. Everything else on the platform is
           earned from real events, and granting one of those by hand would make every
           earned one worth less.
@@ -69,7 +69,7 @@ export function StandingDesk({
           The field primitives own the invalid state, the message and the
           label/error wiring together.
         */}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-md grid gap-sm sm:grid-cols-2">
           <TextField
             type="text"
             name="handle"
@@ -96,7 +96,7 @@ export function StandingDesk({
           name="reason"
           label="Why"
           rows={3}
-          className="mt-3"
+          className="mt-sm"
           placeholder="Answered forty questions in Yaba this month, every one of them useful."
           error={fieldError("reason")}
         />
@@ -104,7 +104,7 @@ export function StandingDesk({
         {state && !state.ok && (
           <p
             role="alert"
-            className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+            className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
           >
             {state.error}
           </p>
@@ -112,7 +112,7 @@ export function StandingDesk({
         {state?.ok && (
           <p
             role="status"
-            className="mt-3 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-state-success)]"
+            className="mt-sm flex items-center gap-1.5 text-[var(--nf-text-caption)] text-[var(--nf-state-success)]"
           >
             <UiIcon name="verified" size={16} className="shrink-0" />
             Granted to @{state.data.handle}. Your name is on it.
@@ -122,7 +122,7 @@ export function StandingDesk({
         <Button
           type="submit"
           variant="primary"
-          className="mt-4"
+          className="mt-md"
           disabled={manualBadges.length === 0}
           loading={pending}
         >
@@ -132,13 +132,13 @@ export function StandingDesk({
 
       {/* -------------------------------------------------------- record */}
       <section>
-        <h2 className="nf-h3 mb-3 text-[1rem]">Every grant, and who signed for it</h2>
+        <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">Every grant, and who signed for it</h2>
         {grants.length === 0 ? (
-          <div className="nf-card p-6 text-center">
-            <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+          <div className="nf-card p-lg text-center">
+            <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               Nobody has been granted standing yet
             </p>
-            <p className="mx-auto mt-1.5 max-w-[46ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mx-auto mt-1.5 max-w-[46ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               When you grant one it appears here with your name and your reason against
               it, permanently.
             </p>
@@ -146,14 +146,14 @@ export function StandingDesk({
         ) : (
           <ul className="nf-queue-list">
             {grants.map((grant) => (
-              <li key={`${grant.userId}-${grant.badgeCode}`} className="nf-card p-4">
-                <div className="flex flex-wrap items-center gap-2">
+              <li key={`${grant.userId}-${grant.badgeCode}`} className="nf-card p-md">
+                <div className="flex flex-wrap items-center gap-xs">
                   <span className="nf-badge nf-badge--brand">{grant.badgeName}</span>
                   {/* `.nf-badge` alone paints no fill and no colour, so this
                       read as invisible text exactly where a revocation had to be
                       seen. It is a status, so it is a status pill. */}
                   {grant.revoked && <StatusPill tone="danger">Revoked</StatusPill>}
-                  <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {new Date(grant.grantedAt).toLocaleDateString("en-GB", {
                       day: "numeric",
                       month: "short",
@@ -161,17 +161,17 @@ export function StandingDesk({
                     })}
                   </span>
                 </div>
-                <p className="mt-2 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <p className="mt-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {grant.holder}
                 </p>
-                <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {grant.grantedByName
                     ? `Granted by ${grant.grantedByName}.`
                     : "Granted by an administrator whose account has since been closed."}
                   {grant.reason ? ` ${grant.reason}` : ""}
                 </p>
                 {!grant.revoked && (
-                  <form action={revokeAction} className="mt-3">
+                  <form action={revokeAction} className="mt-sm">
                     <input type="hidden" name="userId" value={grant.userId} />
                     <input type="hidden" name="badgeCode" value={grant.badgeCode} />
                     {/* Revoking somebody's standing is destructive, and it was
@@ -186,7 +186,7 @@ export function StandingDesk({
           </ul>
         )}
         {revokeState && !revokeState.ok && (
-          <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-warning)]">
+          <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-warning)]">
             {revokeState.error}
           </p>
         )}

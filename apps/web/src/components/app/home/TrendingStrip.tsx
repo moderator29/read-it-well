@@ -25,7 +25,7 @@ export function TrendingStrip({
 }) {
   return (
     <section aria-labelledby="trending-heading">
-      <div className="mb-3 flex items-end justify-between gap-4">
+      <div className="mb-sm flex items-end justify-between gap-md">
         <h2 id="trending-heading" className="nf-h3">
           Trending in {cityLabel ? cityLabel : "your city"}
         </h2>
@@ -35,7 +35,7 @@ export function TrendingStrip({
         {hasPlaces && (
           <Link
             href="/around/settings"
-            className="shrink-0 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="shrink-0 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             All places
           </Link>
@@ -43,13 +43,13 @@ export function TrendingStrip({
       </div>
 
       {items.length === 0 ? (
-        <div className="nf-card flex items-center gap-4 p-4 sm:p-5">
+        <div className="nf-card flex items-center gap-md p-md sm:p-5">
           <span className="block h-12 w-12 shrink-0">
             <BrandIcon name="chat-duo" fill />
           </span>
           <div className="min-w-0">
-            <p className="text-[0.9375rem] font-semibold">Nothing is trending yet</p>
-            <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="text-[var(--nf-text-body-sm)] font-semibold">Nothing is trending yet</p>
+            <p className="mt-3xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               {hasPlaces
                 ? "Be the first to say something in one of the places above."
                 : "Once a place opens near you, what people are saying appears here."}
@@ -57,12 +57,12 @@ export function TrendingStrip({
           </div>
         </div>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-xs">
           {items.map((item) => (
             <li key={item.key}>
               <Link
                 href={item.href}
-                className="nf-card nf-card--interactive flex items-center gap-3.5 p-3 sm:p-3.5"
+                className="nf-card nf-card--interactive flex items-center gap-3.5 p-sm sm:p-3.5"
               >
                 <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-elevated)]">
                   {item.imageUrl ? (
@@ -85,7 +85,7 @@ export function TrendingStrip({
                 </span>
 
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+                  <span className="flex items-center gap-xs text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
                     {item.kindLabel}
                     {item.placeLabel && (
                       <>
@@ -96,7 +96,7 @@ export function TrendingStrip({
                       </>
                     )}
                   </span>
-                  <span className="mt-1 block text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+                  <span className="mt-2xs block text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                     {item.headline}
                   </span>
                 </span>

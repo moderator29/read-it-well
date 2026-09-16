@@ -85,7 +85,7 @@ export default async function AroundManagePage({
 
   return (
     <div
-      className="mx-auto w-full max-w-3xl pt-4"
+      className="mx-auto w-full max-w-3xl pt-md"
       style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
       data-testid="around-settings"
     >
@@ -99,7 +99,7 @@ export default async function AroundManagePage({
         actions={
           <Link
             href="/around/new"
-            className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-2 px-4 text-sm"
+            className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-xs px-md text-[var(--nf-text-body-sm)]"
           >
             <UiIcon name="sparkle" size={16} />
             Suggest a place
@@ -107,7 +107,7 @@ export default async function AroundManagePage({
         }
       />
 
-      <p className="mb-4 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mb-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         {AREA_COPY.what}
       </p>
 
@@ -116,7 +116,7 @@ export default async function AroundManagePage({
           reachable only if you already knew it. */}
       <Link
         href="/u"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--nf-brand-secondary)]"
+        className="mb-lg inline-flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
       >
         <UiIcon name="user" size={15} />
         Find people
@@ -128,7 +128,7 @@ export default async function AroundManagePage({
           reads as a screen nobody looked at. */}
       {unconfigured ? (
         <p
-          className="nf-card mb-6 p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-card mb-lg p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
           /* Named so a spec can tell the two honest answers apart: the picker
              itself, or this sentence in its place. Without the hook a run with
              no keys looks identical to a run where the picker silently went
@@ -147,48 +147,48 @@ export default async function AroundManagePage({
       )}
 
       {openProposals.length > 0 ? (
-        <section className="mb-8">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <section className="mb-xl">
+          <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
             Waiting on us
           </h2>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-xs">
             {openProposals.map((proposal) => (
               <li
                 key={proposal.id}
-                className="nf-card flex items-center gap-3 p-4"
+                className="nf-card flex items-center gap-sm p-md"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
+                  <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     {proposal.name}
                   </p>
-                  <p className="mt-0.5 text-xs text-[var(--nf-content-muted)]">
+                  <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {proposal.city} &middot; you suggested this
                   </p>
                 </div>
-                <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-3 py-1 text-xs font-semibold text-[var(--nf-content-muted)]">
+                <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-sm py-2xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
                   With us
                 </span>
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             {AREA_COPY.proposePending}
           </p>
         </section>
       ) : null}
 
       {answered.length > 0 ? (
-        <section className="mb-8">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <section className="mb-xl">
+          <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
             We came back to you
           </h2>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-xs">
             {answered.map((proposal) => (
-              <li key={proposal.id} className="nf-card p-4">
-                <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
+              <li key={proposal.id} className="nf-card p-md">
+                <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {proposal.name}
                 </p>
-                <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+                <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                   {proposal.decisionNote ??
                     "We could not open this one. You can suggest another at any time."}
                 </p>
@@ -199,40 +199,40 @@ export default async function AroundManagePage({
       ) : null}
 
       <section className="mb-9">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           Your places
         </h2>
         {mine.length > 0 ? (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-xs">
             {mine.map((area) => (
               <AreaRow key={area.id} area={area} joined signedIn={signedIn} locale={locale} />
             ))}
           </ul>
         ) : (
-          <p className="nf-card p-4 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="nf-card p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
             {signedIn ? AREA_COPY.joinedNone : "Sign in to keep your places here."}
           </p>
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           Open places
         </h2>
         {others.length > 0 ? (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-xs">
             {others.map((area) => (
               <AreaRow key={area.id} area={area} joined={false} signedIn={signedIn} locale={locale} />
             ))}
           </ul>
         ) : (
           <div className="nf-card p-5 text-center">
-            <p className="text-sm leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
               {open.length > 0
                 ? "You are in every place that is open so far."
                 : AREA_COPY.noneOpenYet}
             </p>
-            <Link href="/around/new" className="nf-btn nf-btn--primary mt-4 inline-flex h-10 items-center px-5 text-sm">
+            <Link href="/around/new" className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-5 text-[var(--nf-text-body-sm)]">
               Suggest a place
             </Link>
           </div>
@@ -264,7 +264,7 @@ function AreaRow({
   locale: Locale;
 }) {
   return (
-    <li className="nf-card flex items-start gap-3 p-4">
+    <li className="nf-card flex items-start gap-sm p-md">
       {/*
         Nothing in this row truncates, and that is deliberate rather than
         untidy. A place name is a proper noun, and "Magodo Phase 2 Es..." is not
@@ -276,23 +276,23 @@ function AreaRow({
         The row wraps instead.
       */}
       <Link href={`/around/${area.slug}`} className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <p className="text-base font-semibold text-[var(--nf-content-primary)]">
+        <div className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
+          <p className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             {area.name}
           </p>
           {area.status === "PAUSED" ? (
-            <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+            <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
               Paused
             </span>
           ) : null}
         </div>
-        <p className="mt-0.5 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-3xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_KIND_LABEL[area.kind]} &middot; {area.city} &middot;{" "}
           <span className="nf-numeric">{formatNumber(area.memberCount, locale)}</span>{" "}
           {area.memberCount === 1 ? "member" : "members"}
         </p>
         {area.blurb ? (
-          <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
             {area.blurb}
           </p>
         ) : null}

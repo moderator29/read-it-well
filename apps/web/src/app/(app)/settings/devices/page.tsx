@@ -62,7 +62,7 @@ export default async function DevicesPage() {
             <BrandIcon name="globe-pin" fill />
           </span>
           <h2 className="nf-h3 mt-heading">{copy.accountTitle}</h2>
-          <p className="mx-auto mt-block max-w-[42ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-block max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {state.state === "unconfigured"
               ? copy.accountBodyUnconfigured
               : copy.accountBodySignedOut}

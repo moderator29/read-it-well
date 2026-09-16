@@ -115,7 +115,7 @@ function BookingCard({
     <li
       className={`nf-card overflow-hidden p-0 text-left ${justBooked ? "nf-confirm-sweep nf-just-booked" : ""}`}
     >
-      <div className="flex gap-4.5 p-3.5 sm:gap-4 sm:p-4">
+      <div className="flex gap-4.5 p-3.5 sm:gap-md sm:p-md">
         <Link
           href={`/listing/${b.listingId}`}
           aria-label={b.title}
@@ -134,23 +134,23 @@ function BookingCard({
               Palm Grove Shortlet" as "Lekki Pa". The name of the stay is the
               whole point of the card. */}
           <StatusPill tone={toneForStatus(b.status)}>{statusWords[b.status]}</StatusPill>
-          <h3 className={`mt-2 ${TYPE.rowTitle}`}>{b.title}</h3>
+          <h3 className={`mt-xs ${TYPE.rowTitle}`}>{b.title}</h3>
 
           {/* Wraps rather than clipping: "Marina Waterfront, Calabar" was one
               pixel over its column and arrived as "Calaba". */}
           {(b.area || b.city) && (
-            <p className={`mt-1.5 flex items-start gap-2 ${TYPE.rowMeta}`}>
+            <p className={`mt-1.5 flex items-start gap-xs ${TYPE.rowMeta}`}>
               <UiIcon name="location" size={ICON.inline} className="mt-px shrink-0" />
               <span>{[b.area, b.city].filter(Boolean).join(", ")}</span>
             </p>
           )}
 
-          <p className={`mt-3 flex items-center gap-2 ${TYPE.body}`}>
+          <p className={`mt-sm flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="calendar-booking" size={ICON.inline} className="shrink-0" />
             <span className="font-medium">{b.dateRange}</span>
           </p>
 
-          <p className={`mt-1.5 flex items-center gap-2 ${TYPE.body}`}>
+          <p className={`mt-1.5 flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="user" size={ICON.inline} className="shrink-0" />
             {plural(b.guests, counts.guests, locale)} &middot;{" "}
             {plural(b.nights, counts.nights, locale)}
@@ -162,7 +162,7 @@ function BookingCard({
           {b.arrivingName && (
             <p
               data-testid="booking-arriving"
-              className="mt-1.5 text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]"
+              className="mt-1.5 text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]"
             >
               Arriving: {b.arrivingName}
               {b.arrivingPhone && (
@@ -176,14 +176,14 @@ function BookingCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-[var(--nf-border-subtle)] px-3.5 py-3 sm:px-4">
+      <div className="flex items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-3.5 py-sm sm:px-md">
         <p className="flex items-baseline gap-1.5">
-          <span className="nf-numeric text-[0.9375rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+          <span className="nf-numeric text-[var(--nf-text-body-sm)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {b.totalDisplay}
           </span>
-          <span className="text-[0.75rem] text-[var(--nf-content-muted)]">total</span>
+          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">total</span>
         </p>
-        <span className="flex items-center gap-4">
+        <span className="flex items-center gap-md">
           {/* A PENDING stay is reserved, not paid. Until this link existed the
               guest had nowhere to complete it, which is exactly the gap
               checkout closes. */}
@@ -196,7 +196,7 @@ function BookingCard({
             <button
               type="button"
               onClick={() => onCancel(b)}
-              className="text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               Cancel
             </button>
@@ -208,7 +208,7 @@ function BookingCard({
           {b.reviewable && (
             <Link
               href={`/bookings/${b.id}/review`}
-              className="nf-btn nf-btn--primary px-3 py-1.5 text-[0.8125rem]"
+              className="nf-btn nf-btn--primary px-sm py-1.5 text-[var(--nf-text-caption)]"
             >
               Leave a review
             </Link>
@@ -216,7 +216,7 @@ function BookingCard({
           {b.reviewed && (
             <Link
               href={`/bookings/${b.id}/review`}
-              className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
               Your review
@@ -224,7 +224,7 @@ function BookingCard({
           )}
           <Link
             href={`/listing/${b.listingId}`}
-            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             View details
             <UiIcon name="arrow-right" size={16} />
@@ -271,7 +271,7 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
             Done
           </Button>
         ) : (
-          <form action={formAction} className="grid gap-3">
+          <form action={formAction} className="grid gap-sm">
             <input type="hidden" name="bookingId" value={booking.id} />
             <Button type="submit" variant="primary" full loading={pending}>
               Yes, cancel the booking
@@ -285,17 +285,17 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
     >
       {cancelled ? (
         <div className="text-center">
-          <p className="flex items-center justify-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="flex items-center justify-center gap-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
             <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
             Booking cancelled
           </p>
-          <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {booking.title} for {booking.dateRange} is cancelled. The dates are free again.
           </p>
         </div>
       ) : (
         <>
-          <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {booking.title}, {booking.dateRange}. This releases your dates and cannot be
             undone.
           </p>
@@ -306,7 +306,7 @@ function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () =
                defect the wallet's own banner had. */
             <p
               role="alert"
-              className="mt-row rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+              className="mt-row rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
             >
               {state.error}
             </p>
@@ -368,7 +368,7 @@ export function MyBookings({
           role="tabpanel"
           id={`bookings-panel-${current.key}`}
           aria-labelledby={`bookings-tab-${current.key}`}
-          className="nf-rise grid gap-4 pt-4"
+          className="nf-rise grid gap-md pt-md"
         >
           {bookings.map((b) => (
             <BookingCard

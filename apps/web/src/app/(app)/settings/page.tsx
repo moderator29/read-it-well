@@ -26,8 +26,8 @@ import { loadSettingsState } from "@/lib/profile/queries";
 import { AccountNotificationsCard, AccountPrivacyCard } from "./AccountToggles";
 import { AccountSection } from "./AccountSection";
 import { PlaceCard } from "./PlaceCard";
-import { InterestsCard } from "./InterestsCard";
-import { DevicesCard } from "./DevicesCard";
+import { InterestsRow } from "./InterestsCard";
+import { DevicesRow } from "./DevicesCard";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { loadSessions } from "@/lib/security/sessions";
 
@@ -179,28 +179,27 @@ export default async function SettingsPage({
         {show("settings-place") && (
           <section id="settings-place" className="scroll-mt-28">
             <Reveal delay={60}>
+              {/* WHAT YOU CAME FOR IS A ROW OF THIS GROUP NOW, not a card of
+                  its own. It was a labelled surface wrapped around one link,
+                  which is the container F2-071 measures and the same argument
+                  that folded Language into Appearance. The page's old comment
+                  already said the two belonged together: where somebody is and
+                  what they came for are the whole of what the platform knows
+                  before they have searched for anything. */}
               <PlaceCard
                 t={t}
                 signedIn={signedIn}
                 stateName={signedIn ? account.place.stateName : ""}
                 lgaName={signedIn ? account.place.lgaName : ""}
                 occupationName={signedIn ? account.place.occupationName : ""}
-              />
-            </Reveal>
-          </section>
-        )}
-        {show("settings-interests") && (
-          <section id="settings-interests" className="scroll-mt-28">
-            <Reveal delay={70}>
-              {/* Directly under where-you-are, because the two together are the
-                  whole of what the platform knows about somebody before they have
-                  searched for anything: where they are and what they came for. */}
-              <InterestsCard
-                t={t}
-                signedIn={signedIn}
-                interests={intent.state === "signed-in" ? intent.interests : []}
-                asked={intent.state === "signed-in" ? intent.asked : false}
-              />
+              >
+                <InterestsRow
+                  t={t}
+                  signedIn={signedIn}
+                  interests={intent.state === "signed-in" ? intent.interests : []}
+                  asked={intent.state === "signed-in" ? intent.asked : false}
+                />
+              </PlaceCard>
             </Reveal>
           </section>
         )}
@@ -240,18 +239,17 @@ export default async function SettingsPage({
         {show("settings-security") && (
           <section id="settings-security" className="scroll-mt-28">
             <Reveal delay={200}>
-              <SecurityCard t={t} />
-            </Reveal>
-          </section>
-        )}
-        {/* Directly under Security, because it is the half of security this
-            screen did not have. `SecurityCard` still draws "Sign out
-            everywhere" as a note that explains it will work one day; this row
-            is the one that does. SEC-5. */}
-        {show("settings-devices") && (
-          <section id="settings-devices" className="scroll-mt-28">
-            <Reveal delay={220}>
-              <DevicesCard t={t} signedIn={signedIn} count={deviceCount} />
+              {/* WHERE YOU ARE SIGNED IN IS A ROW OF THIS GROUP NOW. It was a
+                  118px card holding one link and its own heading, which F2-071
+                  names as the clearest example of what makes this screen four
+                  thousand pixels tall. The page's old comment already argued
+                  the relationship: it is the half of security this screen did
+                  not have. `SecurityCard` still draws "Sign out everywhere" as
+                  a note explaining it will work one day; this row is the one
+                  that does. SEC-5. */}
+              <SecurityCard t={t}>
+                <DevicesRow t={t} signedIn={signedIn} count={deviceCount} />
+              </SecurityCard>
             </Reveal>
           </section>
         )}

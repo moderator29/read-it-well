@@ -10,9 +10,9 @@ export default function LoadingSettings() {
   return (
     <LoadingShell label="Loading your settings" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
-      <div className="space-y-3">
+      <div className="space-y-sm">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="nf-card p-4">
+          <div key={i} className="nf-card p-md">
             <Skeleton width="42%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-2.5" width="62%" height="0.875rem" radius="sm" />
           </div>

@@ -162,7 +162,7 @@ function Avatar({ author }: { author: PostAuthor | null }) {
   return (
     <span
       aria-hidden="true"
-      className="grid size-[var(--nf-feed-avatar)] shrink-0 place-items-center rounded-full bg-[image:var(--nf-gradient-brand)] text-base font-bold text-[var(--nf-content-on-brand)] ring-1 ring-[var(--nf-border-default)]"
+      className="grid size-[var(--nf-feed-avatar)] shrink-0 place-items-center rounded-full bg-[image:var(--nf-gradient-brand)] text-[var(--nf-text-body)] font-bold text-[var(--nf-content-on-brand)] ring-1 ring-[var(--nf-border-default)]"
     >
       {initial}
     </span>
@@ -355,31 +355,31 @@ export function PostCard({
   const body = (
     <>
       {post.repostedBy ? (
-        <p className="mb-2 flex items-center gap-2 text-[0.72rem] font-semibold text-[var(--nf-content-muted)]">
+        <p className="mb-xs flex items-center gap-xs text-[0.72rem] font-semibold text-[var(--nf-content-muted)]">
           <PostGlyph name="repost" size={14} />
           Reposted by {post.repostedBy}
         </p>
       ) : null}
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-xs">
         {isSystem ? (
-          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 py-1 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 py-2xs text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             Vallo
           </span>
         ) : isBot ? (
-          <span className="inline-flex items-center gap-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-3 py-1 text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="inline-flex items-center gap-1.5 rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-sm py-2xs text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
             Vallo AI
           </span>
         ) : (
           <>
             <Link
               href={post.author?.handle ? `/u/${post.author.handle}` : "#"}
-              className="truncate text-[0.9rem] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]"
+              className="truncate text-[var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]"
             >
               {post.author?.displayLabel ?? `@${post.author?.handle ?? "someone"}`}
             </Link>
             {post.author?.handle ? (
-              <span className="truncate text-[0.8rem] text-[var(--nf-content-muted)]">
+              <span className="truncate text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 @{post.author.handle}
               </span>
             ) : null}
@@ -388,19 +388,19 @@ export function PostCard({
                 per cent, and over a white card on paper it lands in the purple
                 range. The brand carries no purple. */}
             {post.author?.isAgent ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
+              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
                 Agent
               </span>
             ) : null}
             {post.author?.moderatorOf ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
+              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-xs py-3xs text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
                 Mod
               </span>
             ) : null}
           </>
         )}
 
-        <span className="shrink-0 text-[0.8rem] text-[var(--nf-content-muted)]">
+        <span className="shrink-0 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           &middot; {post.createdLabel}
           {post.edited ? " · edited" : ""}
         </span>
@@ -424,7 +424,7 @@ export function PostCard({
       ) : null}
 
       {post.replyingTo ? (
-        <p className="mt-2 text-[0.78rem] text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Replying to{" "}
           <span className="font-semibold text-[var(--nf-brand-secondary)]">
             {post.replyingTo}
@@ -433,22 +433,22 @@ export function PostCard({
       ) : null}
 
       {post.heldReason ? (
-        <p className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-3 py-2 text-[0.78rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
           {post.heldReason} Only you can see this until then.
         </p>
       ) : null}
 
       {editor ? (
-        <div className="mt-3">{editor}</div>
+        <div className="mt-sm">{editor}</div>
       ) : post.body ? (
-        <div className={isSystem ? "mt-2" : "mt-3 flex items-center gap-3"}>
+        <div className={isSystem ? "mt-xs" : "mt-sm flex items-center gap-sm"}>
           {isSystem || isBot ? null : <Avatar author={post.author} />}
           <PostBody
             text={post.body}
             className={
               isSystem
-                ? "text-[0.86rem] leading-relaxed text-[var(--nf-content-secondary)]"
-                : "min-w-0 text-[0.97rem] leading-[1.5] tracking-[-0.005em] text-[var(--nf-content-primary)]"
+                ? "text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+                : "min-w-0 text-[var(--nf-text-body)] leading-[1.5] tracking-[-0.005em] text-[var(--nf-content-primary)]"
             }
           />
         </div>
@@ -489,7 +489,7 @@ export function PostCard({
       {post.areaName && post.areaSlug && !isSystem ? (
         <Link
           href={`/around/${post.areaSlug}`}
-          className="mt-3 inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 text-[0.68rem] font-semibold text-[var(--nf-content-muted)]"
+          className="mt-sm inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-2.5 text-[0.68rem] font-semibold text-[var(--nf-content-muted)]"
         >
           Around {post.areaName}
         </Link>
@@ -595,18 +595,18 @@ export function PostCard({
 
 function ListingFacts({ listing }: { listing: PostListing }) {
   return (
-    <div className="mt-3 border-t border-[var(--nf-border-subtle)] pt-3">
-      <p className="text-[0.92rem] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
+    <div className="mt-sm border-t border-[var(--nf-border-subtle)] pt-sm">
+      <p className="text-[var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
         {listing.title}
       </p>
-      <p className="mt-0.5 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+      <p className="mt-3xs flex items-center gap-1.5 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {listing.area}, {listing.city}
         {listing.verified ? (
           <span className="font-semibold text-[var(--nf-brand-secondary)]">&middot; Verified</span>
         ) : null}
       </p>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <p className="nf-numeric text-[1.05rem] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
+      <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
+        <p className="nf-numeric text-[var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
           {listing.priceLabel}{" "}
           <span className="text-[0.72rem] font-medium tracking-normal text-[var(--nf-content-muted)]">
             {listing.periodLabel}
@@ -614,7 +614,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
         </p>
         <Link
           href={`/listing/${listing.id}`}
-          className="nf-btn nf-btn--primary inline-flex h-9 items-center px-4 text-[0.8rem]"
+          className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[var(--nf-text-caption)]"
         >
           See the place
         </Link>
@@ -625,8 +625,8 @@ function ListingFacts({ listing }: { listing: PostListing }) {
 
 function ListingBlock({ listing }: { listing: PostListing }) {
   return (
-    <div className="mt-3 overflow-hidden rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)]">
-      <div className="p-3">
+    <div className="mt-sm overflow-hidden rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)]">
+      <div className="p-sm">
         <ListingFacts listing={listing} />
       </div>
     </div>

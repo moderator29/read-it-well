@@ -136,13 +136,55 @@ export function Sheet({
    */
   const [entered, setEntered] = useState(false);
 
+  /*
+   * The client latch for `createPortal`, and the one `setState` in an effect
+   * here that is CORRECT AS WRITTEN rather than awaiting a fix.
+   *
+   * `createPortal` needs `document.body`, which does not exist while rendering
+   * on the server, so this component must return `null` on the server AND on
+   * the first client render - if the two disagree, React throws a hydration
+   * mismatch on the most-used overlay in the product. That is precisely what
+   * "have I committed on the client yet" means, and there is no render-time
+   * expression for it: any value derivable during render is derivable on the
+   * server too, which is the thing that must not happen.
+   *
+   * So the rule is right in general and wrong here, and the disable carries the
+   * reason on the line rather than in a config entry, which is this codebase's
+   * stated escape hatch for all three `nf/` rules as well.
+   */
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- portal client latch; see above.
   useEffect(() => setMounted(true), []);
 
+  /*
+   * RESETTING ON `open` HAPPENS DURING RENDER NOW, NOT IN TWO EFFECTS.
+   *
+   * `setEntered(false)` sat in the entrance effect and `setOffset(0)` sat in the
+   * focus effect, so opening the sheet took an extra render pass each and the
+   * two halves of one reset lived sixty lines apart. Both are the same thing:
+   * state that has to go back to its initial value when a PROP changes, which
+   * React documents as an adjustment made while rendering, guarded by comparing
+   * against the previous value. It is cheaper than an effect - React re-runs
+   * this component before touching the DOM, so nothing paints the stale value -
+   * and it puts the whole reset in one place where it can be read at once.
+   *
+   * The guard is what makes it safe: without `prevOpen !== open` this is an
+   * infinite render loop.
+   *
+   * `entered` must be false at the moment `open` becomes true, and that is the
+   * load-bearing half. The transition needs a frame at the start value to
+   * animate from; see the note above. Doing it here rather than in the effect
+   * below also closes the gap where a fast reopen could have committed
+   * `entered: true` from the previous cycle before the reset ran.
+   */
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    setEntered(false);
+    setOffset(0);
+  }
+
   useEffect(() => {
-    if (!open) {
-      setEntered(false);
-      return;
-    }
+    if (!open) return;
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => setEntered(true));
@@ -202,7 +244,6 @@ export function Sheet({
       return;
     }
     restoreFocus.current = document.activeElement as HTMLElement | null;
-    setOffset(0);
     const node = sheetRef.current;
     if (!node) return;
     /*

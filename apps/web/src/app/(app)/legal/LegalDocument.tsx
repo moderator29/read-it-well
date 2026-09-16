@@ -38,17 +38,17 @@ export function LegalDocument({
   otherLabel: string;
 }) {
   return (
-    <div className="nf-shell pb-16 pt-4">
+    <div className="nf-shell pb-3xl pt-md">
       <PageHeader title={title} subtitle={intro} fallback="/settings" />
 
-      <p className="nf-chip mt-4">Last updated: {updated}</p>
+      <p className="nf-chip mt-md">Last updated: {updated}</p>
 
-      <div className="nf-card mt-6 p-5 sm:p-8">
-        <div className="space-y-8">
+      <div className="nf-card mt-lg p-5 sm:p-xl">
+        <div className="space-y-xl">
           {sections.map((section) => (
             <section key={section.title}>
               <h2 className="nf-h3">{section.title}</h2>
-              <div className="mt-2.5 space-y-3 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-1.5 [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5">
+              <div className="mt-2.5 space-y-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-1.5 [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5">
                 {section.body}
               </div>
             </section>
@@ -58,7 +58,7 @@ export function LegalDocument({
 
       {/* Both links stay inside the product. Sending somebody to /terms from
           here would undo the entire reason this page exists. */}
-      <p className="mt-8 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+      <p className="mt-xl text-center text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
         See also our{" "}
         <Link
           href={otherHref}

@@ -434,8 +434,23 @@
    * 28 seconds and one per cent, up from 12 and 1.5. A reviewer should not be
    * able to catch it moving.
    */
+  /*
+   * THE STORY ART IS STILL. L-52.
+   *
+   * `nf-art-breathe` ran on EVERY panel carrying `data-breathe`, and there are
+   * five call sites and eight panels on a full rail, so one screen could hold
+   * eight simultaneous infinite transform animations against a budget of one.
+   * It had already been slowed from 12 seconds to 28 and its scale cut to one
+   * per cent, which is the tell: it was quietened twice rather than answered,
+   * and a one per cent breath nobody can see is not restraint, it is a loop
+   * that has stopped earning its cost without stopping.
+   *
+   * The attribute hook stays so no call site changes and so a deliberate,
+   * finite version can be hung off it later.
+   */
   .nf-story-art[data-breathe] {
-    animation: nf-art-breathe 28s var(--nf-ease-standard) infinite;
+    /* No animation. See the ambient budget note in glass.css. */
+    animation: none;
   }
   @keyframes nf-art-breathe {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
@@ -451,8 +466,15 @@
    * five per cent shift in saturation nobody has ever noticed. Transform only,
    * and slower: 30 seconds and one per cent.
    */
+  /*
+   * `.nf-hero-scene` HAS NO CALL SITES, and it was running a 30 second infinite
+   * drift for them. The filter half of this was removed in an earlier pass for
+   * costing a full-layer repaint per frame; the transform half survived, on a
+   * class the component tree never uses.
+   */
   .nf-hero-scene {
-    animation: nf-scene-live 30s var(--nf-ease-standard) infinite;
+    /* No animation. See the ambient budget note in glass.css. */
+    animation: none;
   }
   @keyframes nf-scene-live {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
@@ -689,9 +711,14 @@
     }
   }
 
-  /* Slow ambient drift for decorative objects sitting inside sections. */
+  /*
+   * Slow ambient drift for decorative objects sitting inside sections - which
+   * is the description of a loop that exists for its own sake, and it has no
+   * call sites either. Two of the three dead ambient classes are in this file.
+   */
   .nf-drift {
-    animation: nf-drift 14s var(--nf-ease-standard) infinite;
+    /* No animation. See the ambient budget note in glass.css. */
+    animation: none;
   }
   @keyframes nf-drift {
     0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }

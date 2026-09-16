@@ -74,8 +74,8 @@ function StayCard({
   const counts = getDictionary(locale).counts;
 
   return (
-    <li className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <li className="nf-card p-md sm:p-5">
+      <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={stay.status} />
         {stay.paidMinor > 0 ? (
           <ui.StatusChip
@@ -91,19 +91,19 @@ function StayCard({
             tone="warning"
           />
         )}
-        <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.bookedWhen, { when: ui.when(stay.createdAt) })}
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-2.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {stay.listingTitle}
       </h3>
-      <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {place.length > 0 ? `${place} · ` : ""}
         {ui.day(stay.checkIn)} {"→"} {ui.day(stay.checkOut)}
       </p>
-      <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {stay.guestName ?? copy.unnamed}
         {" · "}
         {plural(stay.nights, counts.nights, locale)}
@@ -113,7 +113,7 @@ function StayCard({
 
       <Link
         href={`/admin/bookings/${stay.id}`}
-        className="nf-chip mt-3 inline-flex w-fit items-center gap-1.5"
+        className="nf-chip mt-sm inline-flex w-fit items-center gap-1.5"
       >
         {copy.open}
       </Link>
@@ -136,8 +136,8 @@ function Group({
 }) {
   if (stays.length === 0) return null;
   return (
-    <section className="mt-8 first:mt-0">
-      <h2 className="nf-h3 mb-3 text-[1rem]">{title}</h2>
+    <section className="mt-xl first:mt-0">
+      <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{title}</h2>
       <ul className="nf-queue-list">
         {stays.map((stay) => (
           <StayCard key={stay.id} stay={stay} copy={copy} ui={ui} locale={locale} />

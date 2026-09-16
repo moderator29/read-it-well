@@ -73,7 +73,7 @@ export function ReportSheet({
         type="button"
         onClick={() => setOpen(true)}
         data-testid="report-opener"
-        className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
+        className="inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="bell" size={16} className="shrink-0" />
         Report this listing
@@ -93,7 +93,7 @@ export function ReportSheet({
             data-testid="report-sheet"
             className="absolute inset-0 flex flex-col bg-[var(--nf-surface-primary)]"
           >
-            <header className="nf-glass flex items-center gap-3 border-b border-[var(--nf-border-subtle)] px-4 py-3">
+            <header className="nf-glass flex items-center gap-sm border-b border-[var(--nf-border-subtle)] px-md py-sm">
               <button
                 ref={closeRef}
                 type="button"
@@ -104,26 +104,26 @@ export function ReportSheet({
                 <UiIcon name="arrow-left" size={20} />
               </button>
               <div className="min-w-0 flex-1">
-                <p className="text-[0.9375rem] font-bold text-[var(--nf-content-primary)]">
+                <p className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
                   Report this listing
                 </p>
-                <p className="truncate text-[0.75rem] text-[var(--nf-content-muted)]">
+                <p className="truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {targetLabel}
                 </p>
               </div>
             </header>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-              <div className="mx-auto grid max-w-2xl gap-4 pb-8">
+            <div className="min-h-0 flex-1 overflow-y-auto px-md py-md">
+              <div className="mx-auto grid max-w-2xl gap-md pb-xl">
                 {state?.ok ? (
-                  <div className="nf-card p-6 text-center" data-testid="report-filed">
+                  <div className="nf-card p-lg text-center" data-testid="report-filed">
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-check" fill />
                     </span>
-                    <p className="mt-3.5 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="mt-3.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Thank you, we have it
                     </p>
-                    <p className="mx-auto mt-2 max-w-[42ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                    <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       Our team reviews every report. You will not have to chase this,
                       and the host is never told who reported them.
                     </p>
@@ -132,14 +132,14 @@ export function ReportSheet({
                     </button>
                   </div>
                 ) : !signedIn ? (
-                  <div className="nf-card p-6 text-center">
+                  <div className="nf-card p-lg text-center">
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-lock" fill />
                     </span>
-                    <p className="mt-3.5 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="mt-3.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Sign in to report this
                     </p>
-                    <p className="mx-auto mt-2 max-w-[42ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                    <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       A report belongs to somebody, which is what stops the queue filling
                       with noise and what lets us come back to you about it. The host is
                       never told who reported them.
@@ -149,22 +149,22 @@ export function ReportSheet({
                     </Link>
                   </div>
                 ) : (
-                  <form action={formAction} noValidate className="grid gap-4">
+                  <form action={formAction} noValidate className="grid gap-md">
                     <input type="hidden" name="targetType" value={targetType} />
                     <input type="hidden" name="targetId" value={targetId} />
 
-                    <fieldset className="nf-card p-4">
-                      <legend className="px-1 text-[0.875rem] font-bold text-[var(--nf-content-primary)]">
+                    <fieldset className="nf-card p-md">
+                      <legend className="px-2xs text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
                         What happened?
                       </legend>
-                      <div className="mt-2 grid gap-1.5">
+                      <div className="mt-xs grid gap-1.5">
                         {REPORT_CATEGORY_ORDER.map((code) => {
                           const copy = REPORT_CATEGORY_COPY[code];
                           const active = category === code;
                           return (
                             <label
                               key={code}
-                              className={`flex cursor-pointer items-start gap-3 rounded-[var(--nf-radius-md)] border p-3 transition-colors ${
+                              className={`flex cursor-pointer items-start gap-sm rounded-[var(--nf-radius-md)] border p-sm transition-colors ${
                                 active
                                   ? "border-[var(--nf-brand-primary)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_10%,transparent)]"
                                   : "border-[var(--nf-border-subtle)]"
@@ -176,13 +176,13 @@ export function ReportSheet({
                                 value={code}
                                 checked={active}
                                 onChange={() => setCategory(code)}
-                                className="mt-1 h-4 w-4 shrink-0 accent-[var(--nf-brand-primary)]"
+                                className="mt-2xs h-4 w-4 shrink-0 accent-[var(--nf-brand-primary)]"
                               />
                               <span className="min-w-0">
-                                <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                                <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                                   {copy.label}
                                 </span>
-                                <span className="mt-0.5 block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                                <span className="mt-3xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                                   {copy.hint}
                                 </span>
                               </span>
@@ -192,14 +192,14 @@ export function ReportSheet({
                       </div>
                     </fieldset>
 
-                    <div className="nf-card p-4">
+                    <div className="nf-card p-md">
                       <label
                         htmlFor={`${uid}-details`}
-                        className="text-[0.875rem] font-bold text-[var(--nf-content-primary)]"
+                        className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
                       >
                         Anything else we should know
                       </label>
-                      <p className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+                      <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                         Optional, and it helps. Dates, amounts and account numbers are
                         exactly the detail that makes a report actionable.
                       </p>
@@ -216,13 +216,13 @@ export function ReportSheet({
                     {state && !state.ok && (
                       <p
                         role="alert"
-                        className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+                        className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
                       >
                         {state.error}
                       </p>
                     )}
 
-                    <div className="grid gap-2">
+                    <div className="grid gap-xs">
                       <button
                         type="submit"
                         disabled={pending || category === null}
@@ -235,7 +235,7 @@ export function ReportSheet({
                       </button>
                     </div>
 
-                    <p className="text-center text-[0.78rem] leading-relaxed text-[var(--nf-content-muted)]">
+                    <p className="text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                       The host is never told who reported them. If you are in danger,
                       contact the emergency services first.
                     </p>

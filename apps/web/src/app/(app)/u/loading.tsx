@@ -22,17 +22,17 @@ import { Skeleton } from "@/components/ui/Skeleton";
  */
 export default function LoadingPeopleDirectory() {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-24 pt-4" aria-busy="true" aria-live="polite">
+    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
       <span className="sr-only">Looking for people</span>
 
-      <div className="mb-6 space-y-3">
+      <div className="mb-lg space-y-sm">
         <Skeleton width="7rem" height="1.75rem" radius="sm" />
         <Skeleton width="12rem" height="0.75rem" radius="sm" />
       </div>
 
       {/* The field takes `--nf-radius-lg` from `.nf-field`; the Search button
           beside it is a pill, at the same 48px height the row is set to. */}
-      <div className="mt-1 flex items-start gap-2">
+      <div className="mt-2xs flex items-start gap-xs">
         <Skeleton className="min-w-0 flex-1" height="3rem" radius="lg" />
         <Skeleton className="shrink-0" width="6.25rem" height="3rem" radius="pill" />
       </div>
@@ -43,14 +43,14 @@ export default function LoadingPeopleDirectory() {
           screen reader is told "list, 5 items" about five empty rows. The
           announcement belongs to the live region at the top, which says what is
           actually happening. */}
-      <ul className="mt-3 flex flex-col gap-[var(--nf-social-gap)]" aria-hidden="true">
+      <ul className="mt-sm flex flex-col gap-[var(--nf-social-gap)]" aria-hidden="true">
         {[0, 1, 2, 3, 4].map((row) => (
           <li key={row} className="nf-card nf-social-card nf-people__row">
             {/* Sized by hand rather than borrowing `.nf-people__avatar`, which
                 fills itself with the brand gradient and would render a solid
                 blue disc where a face is about to be. */}
             <Skeleton circle width="46px" className="shrink-0" />
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 space-y-xs">
               <Skeleton width="8rem" height="1rem" radius="sm" />
               <Skeleton width="11rem" height="0.75rem" radius="sm" />
             </div>

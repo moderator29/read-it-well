@@ -192,7 +192,7 @@ export function MapDock({
                   currency={listing.currency}
                   glance
                   suffix={`/ ${per}`}
-                  className="text-[1.0625rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+                  className="text-[var(--nf-text-body-lg)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
                   secondaryClassName="text-[0.65em] font-semibold opacity-60"
                 />
               ) : (

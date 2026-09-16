@@ -51,7 +51,7 @@ export function ActivityList({
     <div className="flex flex-col gap-[var(--nf-social-gap)]">
       {entries.map((entry, index) => (
         <div key={`${entry.kind}-${entry.post.id}-${index}`}>
-          <p className="mb-1.5 inline-flex items-center gap-2 text-[0.72rem] font-semibold text-[var(--nf-content-muted)]">
+          <p className="mb-1.5 inline-flex items-center gap-xs text-[0.72rem] font-semibold text-[var(--nf-content-muted)]">
             <PostGlyph name={entry.kind === "LIKE" ? "like" : "repost"} size={14} active />
             {entry.kind === "LIKE"
               ? isOwner

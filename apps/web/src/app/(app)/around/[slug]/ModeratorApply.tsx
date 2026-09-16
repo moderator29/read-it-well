@@ -42,16 +42,16 @@ export function ModeratorApply({
 
   if (pendingApplication) {
     return (
-      <div className="nf-card p-4">
-        <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
+      <div className="nf-card p-md">
+        <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           You asked to look after {areaName}
         </p>
-        <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_COPY.moderatorPending}
         </p>
         <button
           type="button"
-          className="nf-btn nf-btn--ghost mt-3 inline-flex h-9 items-center px-4 text-xs"
+          className="nf-btn nf-btn--ghost mt-sm inline-flex h-9 items-center px-md text-[var(--nf-text-overline)]"
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
@@ -64,7 +64,7 @@ export function ModeratorApply({
           {pending ? "Withdrawing" : "Withdraw it"}
         </button>
         {error ? (
-          <p role="alert" className="mt-2 text-xs text-[var(--nf-state-error)]">
+          <p role="alert" className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
             {error}
           </p>
         ) : null}
@@ -77,12 +77,12 @@ export function ModeratorApply({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="nf-card w-full p-4 text-left transition-colors hover:border-[var(--nf-border-brand)]"
+        className="nf-card w-full p-md text-left transition-colors hover:border-[var(--nf-border-brand)]"
       >
-        <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
+        <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Look after {areaName}
         </p>
-        <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           If you know this place, you can help keep it honest. We read every
           application.
         </p>
@@ -94,7 +94,7 @@ export function ModeratorApply({
 
   return (
     <form
-      className="nf-card flex flex-col gap-4 p-4"
+      className="nf-card flex flex-col gap-md p-md"
       onSubmit={(event) => {
         event.preventDefault();
         if (pending) return;
@@ -114,17 +114,17 @@ export function ModeratorApply({
       }}
     >
       <div>
-        <h3 className="text-sm font-semibold text-[var(--nf-content-primary)]">
+        <h3 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Look after {areaName}
         </h3>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <div className="mt-sm grid gap-md sm:grid-cols-2">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-state-success)]">
               You can
             </p>
-            <ul className="mt-1.5 flex flex-col gap-1">
+            <ul className="mt-1.5 flex flex-col gap-2xs">
               {MODERATOR_CAN.map((line) => (
-                <li key={line} className="text-xs leading-snug text-[var(--nf-content-secondary)]">
+                <li key={line} className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-secondary)]">
                   {line}
                 </li>
               ))}
@@ -134,9 +134,9 @@ export function ModeratorApply({
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
               You cannot
             </p>
-            <ul className="mt-1.5 flex flex-col gap-1">
+            <ul className="mt-1.5 flex flex-col gap-2xs">
               {MODERATOR_CANNOT.map((line) => (
-                <li key={line} className="text-xs leading-snug text-[var(--nf-content-secondary)]">
+                <li key={line} className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-secondary)]">
                   {line}
                 </li>
               ))}
@@ -163,23 +163,23 @@ export function ModeratorApply({
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-3 py-2 text-sm text-[var(--nf-content-primary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
         >
           {error}
         </p>
       ) : null}
 
-      <div className="flex gap-2">
+      <div className="flex gap-xs">
         <button
           type="submit"
-          className="nf-btn nf-btn--primary h-10 flex-1 text-sm"
+          className="nf-btn nf-btn--primary h-10 flex-1 text-[var(--nf-text-body-sm)]"
           disabled={pending || remaining > 0}
         >
           {pending ? "Sending" : "Send application"}
         </button>
         <button
           type="button"
-          className="nf-btn nf-btn--ghost h-10 px-4 text-sm"
+          className="nf-btn nf-btn--ghost h-10 px-md text-[var(--nf-text-body-sm)]"
           onClick={() => setOpen(false)}
           disabled={pending}
         >

@@ -77,7 +77,7 @@ export function ThreadOptionsSheet({
       footer={
         <>
           {inspected ? (
-            <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[0.8125rem]">
+            <p className="nf-badge nf-badge--success w-full justify-center py-2.5 text-[var(--nf-text-caption)]">
               <UiIcon name="verified" size={16} />
               {confirmedLabel}
             </p>
@@ -88,15 +88,15 @@ export function ThreadOptionsSheet({
           )}
 
           {note && (
-            <p role="status" className="mt-3 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
+            <p role="status" className="mt-sm text-center text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               {note}
             </p>
           )}
         </>
       }
     >
-      <div className="-mt-2 mb-4 flex items-start justify-between gap-4">
-        <p className="text-[0.8125rem] text-[var(--nf-content-muted)]">
+      <div className="-mt-2 mb-md flex items-start justify-between gap-md">
+        <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {counterpartName}
         </p>
         <button type="button" aria-label="Close" onClick={onClose} className="nf-icon-btn h-9 w-9">
@@ -105,7 +105,7 @@ export function ThreadOptionsSheet({
       </div>
 
       {/* ------------------------------------------------ listing mini view */}
-      <div className="nf-card flex items-center gap-4 p-3">
+      <div className="nf-card flex items-center gap-md p-sm">
         <div
           aria-hidden="true"
           className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
@@ -120,8 +120,8 @@ export function ThreadOptionsSheet({
           <MediaSkyline hue={0} className="opacity-60" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.9063rem] font-semibold">{listing.title}</p>
-          <p className="mt-0.5 truncate text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="truncate text-[var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
+          <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {[listing.area, listing.city].filter(Boolean).join(", ")}
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -139,11 +139,11 @@ export function ThreadOptionsSheet({
       </div>
 
       {/* --------------------------------------------- inspection and safety */}
-      <div className="mt-4 flex items-start gap-4">
+      <div className="mt-md flex items-start gap-md">
         <span className="h-14 w-14 shrink-0" aria-hidden="true">
           <BrandIcon name="shield-lock" fill />
         </span>
-        <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {SAFETY_EDUCATION_COPY}
         </p>
       </div>

@@ -70,8 +70,8 @@ function ListingCard({
   const f = copy.fields;
 
   return (
-    <li className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <li className="nf-card p-md sm:p-5">
+      <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={listing.status} />
         <ui.StatusChip label={copy.propertyType[listing.propertyType]} tone="neutral" />
         {failing > 0 && (
@@ -84,15 +84,15 @@ function ListingCard({
             tone="warning"
           />
         )}
-        <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.submittedWhen, { when: ui.when(listing.submittedAt) })}
         </span>
       </div>
 
-      <h3 className="mt-2.5 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-2.5 text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {listing.title}
       </h3>
-      <p className="mt-0.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {[listing.area, listing.city, listing.stateCode].filter(Boolean).join(", ") ||
           copy.locationMissing}
         {" · "}
@@ -123,18 +123,18 @@ function ListingCard({
         until now this screen showed them one figure and no breakdown at all.
       */}
       {listing.moveIn && (
-        <div className="mt-2 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3">
-          <p className="text-[0.75rem] font-semibold text-[var(--nf-content-primary)]">
+        <div className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
+          <p className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
             To move in: {formatMoney(listing.moveIn.totalMinor, locale)}
             <span className="ml-1.5 font-normal text-[var(--nf-content-muted)]">
               {listing.moveIn.totalStated ? "as stated" : "summed from the parts"}
             </span>
           </p>
-          <ul className="mt-1.5 space-y-0.5">
+          <ul className="mt-1.5 space-y-3xs">
             {listing.moveIn.parts.map((part) => (
               <li
                 key={part.key}
-                className="flex justify-between gap-3 text-[0.75rem] text-[var(--nf-content-secondary)]"
+                className="flex justify-between gap-sm text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
               >
                 <span>{part.label}</span>
                 <span className="nf-numeric">{formatMoney(part.minor, locale)}</span>
@@ -145,8 +145,8 @@ function ListingCard({
       )}
 
       {listing.photos.length > 0 && (
-        <div className="nf-scroll-x -mx-1 mt-3 px-1">
-          <ul className="flex w-max gap-2">
+        <div className="nf-scroll-x -mx-1 mt-sm px-2xs">
+          <ul className="flex w-max gap-xs">
             {listing.photos.map((photo, index) => (
               <li key={photo}>
                 {/* Plain img: these are reviewer thumbnails from the platform
@@ -169,7 +169,7 @@ function ListingCard({
       )}
 
       <ui.DetailSection title={copy.checklistTitle}>
-        <ul className="mt-1">
+        <ul className="mt-2xs">
           {listing.checks.map((check) => {
             const key = CHECK_KEYS[check.label];
             return (
@@ -225,7 +225,7 @@ function ListingCard({
           common={common}
         />
       ) : (
-        <p className="mt-4 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-md text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {listing.status === "PUBLISHED" ? copy.liveInSearch : copy.closed} {common.inAuditLog}
         </p>
       )}
@@ -313,8 +313,8 @@ export default async function AdminListingsPage({
       )}
 
       {decided.length > 0 && (
-        <section className="mt-8">
-          <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyDecided}</h2>
+        <section className="mt-xl">
+          <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
           <ul className="nf-queue-list">
             {decided.map((listing) => (
               <ListingCard

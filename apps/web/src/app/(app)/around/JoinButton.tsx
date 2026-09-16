@@ -41,7 +41,7 @@ export function JoinButton({
   const [error, setError] = useState<string | null>(null);
 
   const label = isJoined ? "Joined" : "Join";
-  const height = size === "sm" ? "h-9 px-4 text-xs" : "h-11 px-5 text-sm";
+  const height = size === "sm" ? "h-9 px-md text-[var(--nf-text-overline)]" : "h-11 px-5 text-[var(--nf-text-body-sm)]";
 
   const toggle = () => {
     if (!signedIn) {
@@ -68,7 +68,7 @@ export function JoinButton({
   };
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-end gap-2xs">
       <button
         type="button"
         onClick={toggle}
@@ -83,7 +83,7 @@ export function JoinButton({
         {label}
       </button>
       {error ? (
-        <span role="alert" className="max-w-[14rem] text-right text-xs text-[var(--nf-state-error)]">
+        <span role="alert" className="max-w-[14rem] text-right text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
           {error}
         </span>
       ) : null}

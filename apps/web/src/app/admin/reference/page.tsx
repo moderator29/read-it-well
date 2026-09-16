@@ -28,9 +28,9 @@ export default async function AdminReferencePage() {
   const access = await requireAdmin();
   if (access.state !== "admin") {
     return (
-      <div className="nf-card p-6">
-        <h1 className="text-lg font-semibold text-[var(--nf-content-primary)]">Reference data</h1>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--nf-content-muted)]">
+      <div className="nf-card p-lg">
+        <h1 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Reference data</h1>
+        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {adminRefusal(access)}
         </p>
       </div>
@@ -46,8 +46,8 @@ export default async function AdminReferencePage() {
   return (
     <div className="flex flex-col gap-10">
       <header>
-        <h1 className="text-xl font-semibold text-[var(--nf-content-primary)]">Reference data</h1>
-        <p className="mt-1 max-w-[70ch] text-sm leading-relaxed text-[var(--nf-content-muted)]">
+        <h1 className="text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Reference data</h1>
+        <p className="mt-2xs max-w-[70ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           The closed lists every profile picks from. A code is the value stored
           on the person&apos;s row, so it can never be edited once it exists, and
           nothing here can be deleted: a delete would quietly empty the answer of

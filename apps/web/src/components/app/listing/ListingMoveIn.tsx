@@ -131,7 +131,7 @@ export function ListingMoveIn({
                       minorUnits={part.minor}
                       locale={locale}
                       currency={listing.currency}
-                      className="text-[1rem] font-semibold text-[var(--nf-content-primary)]"
+                      className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]"
                     />
                   </dd>
                 </div>
@@ -143,7 +143,7 @@ export function ListingMoveIn({
                     minorUnits={total}
                     locale={locale}
                     currency={listing.currency}
-                    className="text-[1.25rem] font-bold text-[var(--nf-content-primary)]"
+                    className="text-[var(--nf-text-h4)] font-bold text-[var(--nf-content-primary)]"
                   />
                 </dd>
               </div>

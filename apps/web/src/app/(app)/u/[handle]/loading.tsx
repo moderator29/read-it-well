@@ -49,7 +49,7 @@ export default function LoadingProfile() {
           <span className="nf-social-skeleton block h-4 w-20 rounded-[var(--nf-radius-xs)]" />
           <span className="nf-social-skeleton block h-4 w-14 rounded-[var(--nf-radius-xs)]" />
         </div>
-        <span className="nf-social-skeleton mt-6 block h-11 w-full rounded-[var(--nf-radius-pill)]" />
+        <span className="nf-social-skeleton mt-lg block h-11 w-full rounded-[var(--nf-radius-pill)]" />
       </div>
     </div>
   );

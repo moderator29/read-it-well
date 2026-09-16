@@ -1,8 +1,23 @@
-import { RowLink, SettingsGroup } from "@/components/app/account/rows";
+import { RowLink } from "@/components/app/account/rows";
 import type { Dictionary } from "@vallo/i18n";
 
 /**
  * The row that owns where somebody is signed in.
+ *
+ * ---------------------------------------------------------------------------
+ * IT IS A ROW NOW, AND IT USED TO BE A CARD HOLDING A ROW.
+ *
+ * The docstring below already called it a row, and it was wrapped in its own
+ * `SettingsGroup`: a heading, a bordered card and a note, drawn around one
+ * link. F2-071 measures that at 118px and names it as the clearest instance of
+ * why settings is four thousand pixels tall. A labelled surface wrapped around
+ * one control is a container that has not earned its border, which is the same
+ * argument that folded Language into Appearance.
+ *
+ * It sits inside `SecurityCard` instead, which is where the page's own comment
+ * already said it belonged: "directly under Security, because it is the half of
+ * security this screen did not have". The group's note becomes the row's `sub`,
+ * so the sentence that explains it survives the card that used to carry it.
  *
  * A row rather than the list itself, for the same reason `PlaceCard` and
  * `InterestsCard` are rows: a list of sessions with two destructive buttons on
@@ -19,7 +34,7 @@ import type { Dictionary } from "@vallo/i18n";
  * somebody who is reading it while signed in is not a smaller mistake than a
  * wrong number, it is a bigger one.
  */
-export function DevicesCard({
+export function DevicesRow({
   t,
   signedIn,
   count,
@@ -40,14 +55,13 @@ export function DevicesCard({
         : copy.rowValueMany.replace("{count}", String(count));
 
   return (
-    <SettingsGroup label={copy.screenTitle} note={signedIn ? copy.rowNote : copy.rowNoteSignedOut}>
-      <RowLink
-        href={signedIn ? "/settings/devices" : "/sign-in"}
-        icon="key"
-        label={copy.rowLabel}
-        value={value}
-        testId="settings-devices-row"
-      />
-    </SettingsGroup>
+    <RowLink
+      href={signedIn ? "/settings/devices" : "/sign-in"}
+      icon="key"
+      label={copy.rowLabel}
+      sub={signedIn ? copy.rowNote : copy.rowNoteSignedOut}
+      value={value}
+      testId="settings-devices-row"
+    />
   );
 }

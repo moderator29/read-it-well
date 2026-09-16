@@ -76,9 +76,9 @@ export default async function AreaPage({
   // the first one tells the owner we deleted their page.
   if (detail === "unconfigured") {
     return (
-      <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
+      <div className="mx-auto w-full max-w-3xl pb-4xl pt-md">
         <PageHeader title="Around" fallback="/around" />
-        <p className="nf-card p-5 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card p-5 text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           We cannot reach this place right now. This is on our side, not yours.
           Nothing has been lost, and the rest of the app works as normal.
         </p>
@@ -107,36 +107,36 @@ export default async function AreaPage({
   const isModerator = viewer.role === "MODERATOR";
 
   return (
-    <div className="mx-auto w-full max-w-3xl pb-24 pt-4">
+    <div className="mx-auto w-full max-w-3xl pb-4xl pt-md">
       {/* The way back up. A person who walked into Lekki Phase 1 from a search
           may not know Eti-Osa is above it, and this is the only line on the
           page that tells them. */}
       {door ? (
-        <Link href={`/around/${door.slug}`} className="nf-enter__back mb-4">
+        <Link href={`/around/${door.slug}`} className="nf-enter__back mb-md">
           <UiIcon name="arrow-left" size={15} />
           Part of {door.name}
         </Link>
       ) : null}
 
       {area.status === "PROPOSED" ? (
-        <p className="nf-card mb-5 border-[var(--nf-border-brand)] p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card mb-5 border-[var(--nf-border-brand)] p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           You suggested this place and it is still with us. {AREA_COPY.proposePending}
         </p>
       ) : null}
 
       {area.status === "PAUSED" ? (
-        <p className="nf-card mb-5 p-4 text-sm leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card mb-5 p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {AREA_COPY.paused}
         </p>
       ) : null}
 
       {area.slowMode && area.status === "ACTIVE" ? (
-        <p className="mb-5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-4 py-3 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mb-5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-md py-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_COPY.slowMode}
         </p>
       ) : null}
 
-      <section className="mb-6">
+      <section className="mb-lg">
         <Feed
           initial={feed.posts}
           signedIn={viewer.signedIn}
@@ -168,7 +168,7 @@ export default async function AreaPage({
         {feed.ended && feed.posts.length > 0 ? (
           <p
             aria-live="polite"
-            className="mt-5 text-center text-xs text-[var(--nf-content-muted)]"
+            className="mt-5 text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
           >
             {POST_COPY.endOfSession}
           </p>
@@ -180,17 +180,17 @@ export default async function AreaPage({
           something people read once and the feed is what they came for. */}
       <section className="nf-card mb-5 p-5">
         {area.blurb ? (
-          <p className="text-base leading-relaxed text-[var(--nf-content-primary)]">
+          <p className="text-[var(--nf-text-body)] leading-relaxed text-[var(--nf-content-primary)]">
             {area.blurb}
           </p>
         ) : null}
 
-        <dl className="mt-4 flex flex-wrap gap-x-7 gap-y-3">
+        <dl className="mt-md flex flex-wrap gap-x-7 gap-y-sm">
           <div>
             <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
               Members
             </dt>
-            <dd className="nf-numeric mt-0.5 text-lg font-bold text-[var(--nf-content-primary)]">
+            <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
               {formatNumber(area.memberCount, locale)}
             </dd>
           </div>
@@ -198,7 +198,7 @@ export default async function AreaPage({
             <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
               Posts
             </dt>
-            <dd className="nf-numeric mt-0.5 text-lg font-bold text-[var(--nf-content-primary)]">
+            <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
               {formatNumber(area.postCount, locale)}
             </dd>
           </div>
@@ -206,14 +206,14 @@ export default async function AreaPage({
             <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
               Looked after by
             </dt>
-            <dd className="nf-numeric mt-0.5 text-lg font-bold text-[var(--nf-content-primary)]">
+            <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
               {moderators.length}
             </dd>
           </div>
         </dl>
 
         {moderators.length > 0 ? (
-          <p className="mt-4 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             Kept by{" "}
             {moderators.map((mod, index) => (
               <span key={mod.userId}>
@@ -234,7 +234,7 @@ export default async function AreaPage({
             delete anybody&rsquo;s post.
           </p>
         ) : (
-          <p className="mt-4 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             Nobody is looking after this place yet.
           </p>
         )}
@@ -277,11 +277,11 @@ export default async function AreaPage({
       ) : null}
 
       {isModerator ? (
-        <div className="nf-card border-[var(--nf-border-brand)] p-4">
-          <p className="text-sm font-semibold text-[var(--nf-content-primary)]">
+        <div className="nf-card border-[var(--nf-border-brand)] p-md">
+          <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
             You look after {area.name}
           </p>
-          <p className="mt-1 text-xs leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             Your name carries a moderator mark in this place and nowhere else.
             You can hide a post while somebody reviews it. You cannot delete one,
             and nobody expects you to be available at 2am.

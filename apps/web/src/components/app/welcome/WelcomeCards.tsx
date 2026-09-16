@@ -174,11 +174,11 @@ export function WelcomeCards({
             {/* ONE headline, ONE supporting line. Anything else on a slide
                 somebody looks at for two seconds is a thing they will not
                 read. */}
-            <div className="absolute inset-x-0 bottom-0 px-6 pb-10 sm:px-10 sm:pb-14">
+            <div className="absolute inset-x-0 bottom-0 px-lg pb-10 sm:px-10 sm:pb-14">
               <h2 className="nf-h1 max-w-[16ch] text-[var(--nf-content-on-media)]">
                 {slide.title}
               </h2>
-              <p className="mt-3 max-w-[36ch] text-[1rem] leading-relaxed text-[var(--nf-content-on-media-muted)]">
+              <p className="mt-sm max-w-[36ch] text-[var(--nf-text-body)] leading-relaxed text-[var(--nf-content-on-media-muted)]">
                 {slide.body}
               </p>
             </div>
@@ -188,22 +188,22 @@ export function WelcomeCards({
 
       {/* Skip, from the first frame, over the image, and it does not move
           between slides. `nf-safe-top` clears the notch. */}
-      <div className="nf-safe-top absolute right-4 top-0 z-10 pt-3">
+      <div className="nf-safe-top absolute right-4 top-0 z-10 pt-sm">
         <button
           type="button"
           onClick={onDone}
           data-testid="welcome-skip"
-          className="nf-tap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] px-3.5 py-2 text-[0.8125rem] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md"
+          className="nf-tap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] px-3.5 py-xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md"
         >
           {w.skip}
         </button>
       </div>
 
       {/* ------------------------------------------------------- foot */}
-      <div className="shrink-0 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-10">
+      <div className="shrink-0 px-lg pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-10">
         {/* Real buttons, not painted dots. Each says which slide it goes to,
             and the current one says that it is current. */}
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-xs">
           {slides.map((slide, i) => (
             <button
               key={slide.title}
@@ -226,7 +226,7 @@ export function WelcomeCards({
           ))}
         </div>
 
-        <div className="mt-3">
+        <div className="mt-sm">
           {index < last ? (
             <Button
               type="button"

@@ -80,7 +80,7 @@ export default async function EditSocialProfilePage({
 
       {editor.state === "claiming" && (
         <>
-          <p className="mb-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mb-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             @{handle} is free. Take it and this becomes your address on Vallo.
           </p>
           <ProfileEditor profile={null} initialHandle={handle} areas={editor.areas} />
@@ -92,7 +92,7 @@ export default async function EditSocialProfilePage({
           {/* The photos write on their own, the moment one is chosen, and they
               sit outside the form for that reason: a picture is not something
               anybody expects to have to press Save for. */}
-          <div className="mb-3">
+          <div className="mb-sm">
             <ProfilePhotos
               userId={editor.profile.userId}
               handle={editor.profile.handle}

@@ -94,27 +94,27 @@ export function ProfileEditor({
   const claiming = profile === null;
 
   return (
-    <form action={formAction} className="space-y-3" noValidate>
+    <form action={formAction} className="space-y-sm" noValidate>
       {bioHeld && (
         <div
           role="status"
-          className="nf-card p-4"
+          className="nf-card p-md"
           style={{ borderColor: "color-mix(in oklab, var(--nf-state-warning) 45%, transparent)" }}
         >
-          <p className="flex items-center gap-2 text-[0.875rem] font-semibold text-[var(--nf-state-warning)]">
+          <p className="flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-warning)]">
             <UiIcon name="sparkle" size={15} className="shrink-0" />
             {BIO_HELD_TITLE}
           </p>
-          <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-1.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {BIO_HELD_DETAIL}
           </p>
         </div>
       )}
 
       {/* ------------------------------------------------------------ handle */}
-      <section className="nf-card p-4 sm:p-5">
+      <section className="nf-card p-md sm:p-5">
         <h2 className="nf-overline">{claiming ? "Claim your handle" : "Your handle"}</h2>
-        <label htmlFor={handleId} className="nf-label mt-3">
+        <label htmlFor={handleId} className="nf-label mt-sm">
           Handle
         </label>
         <div className="relative">
@@ -141,7 +141,7 @@ export function ProfileEditor({
             placeholder="yourname"
           />
         </div>
-        <p id={`${handleId}-help`} className="mt-2 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p id={`${handleId}-help`} className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {fieldError("handle") ? (
             <span className="text-[var(--nf-state-error)]">{fieldError("handle")}</span>
           ) : (
@@ -154,10 +154,10 @@ export function ProfileEditor({
       </section>
 
       {/* --------------------------------------------------------------- bio */}
-      <section className="nf-card p-4 sm:p-5">
+      <section className="nf-card p-md sm:p-5">
         <h2 className="nf-overline">About you</h2>
 
-        <label htmlFor={bioId} className="nf-label mt-3">
+        <label htmlFor={bioId} className="nf-label mt-sm">
           Bio
         </label>
         <textarea
@@ -172,7 +172,7 @@ export function ProfileEditor({
           className="nf-field resize-y"
           placeholder="Where you are, what you know, what you are looking for."
         />
-        <p id={`${bioId}-help`} className="mt-2 flex items-start justify-between gap-3 text-[0.75rem] leading-relaxed">
+        <p id={`${bioId}-help`} className="mt-xs flex items-start justify-between gap-sm text-[var(--nf-text-overline)] leading-relaxed">
           <span className={fieldError("bio") ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-muted)]"}>
             {fieldError("bio") ??
               "Never put a phone number or an account number here. Those are held for review."}
@@ -182,7 +182,7 @@ export function ProfileEditor({
           </span>
         </p>
 
-        <label htmlFor={pronounsId} className="nf-label mt-4">
+        <label htmlFor={pronounsId} className="nf-label mt-md">
           Pronouns
           <span className="ml-1.5 font-normal text-[var(--nf-content-muted)]">optional</span>
         </label>
@@ -198,10 +198,10 @@ export function ProfileEditor({
           placeholder="she/her"
         />
         {fieldError("pronouns") && (
-          <p className="mt-2 text-[0.75rem] text-[var(--nf-state-error)]">{fieldError("pronouns")}</p>
+          <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">{fieldError("pronouns")}</p>
         )}
 
-        <label htmlFor={linkId} className="nf-label mt-4">
+        <label htmlFor={linkId} className="nf-label mt-md">
           Link
           <span className="ml-1.5 font-normal text-[var(--nf-content-muted)]">optional</span>
         </label>
@@ -219,7 +219,7 @@ export function ProfileEditor({
           className="nf-field"
           placeholder="myshop.ng"
         />
-        <p className="mt-2 text-[0.75rem] leading-relaxed">
+        <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed">
           <span className={fieldError("link") ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-muted)]"}>
             {fieldError("link") ?? "One place people can find you. We add the https:// for you."}
           </span>
@@ -227,9 +227,9 @@ export function ProfileEditor({
       </section>
 
       {/* -------------------------------------------------------- home area */}
-      <section className="nf-card p-4 sm:p-5">
+      <section className="nf-card p-md sm:p-5">
         <h2 className="nf-overline">Where you are</h2>
-        <label htmlFor={areaId} className="nf-label mt-3">
+        <label htmlFor={areaId} className="nf-label mt-sm">
           Home area
         </label>
         {areas.length > 0 ? (
@@ -251,14 +251,14 @@ export function ProfileEditor({
         ) : (
           <>
             <input type="hidden" name="homeAreaId" value="" />
-            <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               No places are open yet. When the first areas open you will be able to say which one
               is home, and this is where you set it.
             </p>
           </>
         )}
         {fieldError("homeAreaId") && (
-          <p className="mt-2 text-[0.75rem] text-[var(--nf-state-error)]">
+          <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
             {fieldError("homeAreaId")}
           </p>
         )}
@@ -272,14 +272,14 @@ export function ProfileEditor({
         through role and aria-labelledby, and the heading then matches every
         other section on the page.
       */}
-      <section className="nf-card p-4 sm:p-5">
+      <section className="nf-card p-md sm:p-5">
         <h2 id={`${policyId}-label`} className="nf-overline">
           Who can message you
         </h2>
         <div
           role="radiogroup"
           aria-labelledby={`${policyId}-label`}
-          className="mt-3 space-y-2"
+          className="mt-sm space-y-xs"
         >
           {CONTACT_POLICIES.map((policy) => {
             const copy = CONTACT_POLICY_COPY[policy];
@@ -287,7 +287,7 @@ export function ProfileEditor({
             return (
               <label
                 key={policy}
-                className="flex cursor-pointer items-start gap-3 rounded-[var(--nf-radius-md)] border p-3 transition-colors"
+                className="flex cursor-pointer items-start gap-sm rounded-[var(--nf-radius-md)] border p-sm transition-colors"
                 /*
                  * A brand ring rather than a brand tint. `--nf-brand-primary-soft`
                  * is electric blue mixed at 16 per cent, and over a white card
@@ -306,11 +306,11 @@ export function ProfileEditor({
                   value={policy}
                   checked={active}
                   onChange={() => setContactPolicy(policy)}
-                  className="mt-1 h-4 w-4 shrink-0 accent-[var(--nf-brand-primary)]"
+                  className="mt-2xs h-4 w-4 shrink-0 accent-[var(--nf-brand-primary)]"
                 />
                 <span className="min-w-0">
-                  <span className="block text-[0.875rem] font-semibold">{copy.title}</span>
-                  <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+                  <span className="block text-[var(--nf-text-body-sm)] font-semibold">{copy.title}</span>
+                  <span className="mt-3xs block text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                     {copy.detail}
                   </span>
                 </span>
@@ -319,7 +319,7 @@ export function ProfileEditor({
           })}
         </div>
 
-        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3">
+        <label className="mt-sm flex cursor-pointer items-start gap-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
           {/* The hidden field posts first, so an unticked box still sends a
               value and the last one written wins. */}
           <input type="hidden" name="pidginOk" value="off" />
@@ -329,11 +329,11 @@ export function ProfileEditor({
             value="on"
             checked={pidginOk}
             onChange={(e) => setPidginOk(e.target.checked)}
-            className="mt-1 h-4 w-4 shrink-0 accent-[var(--nf-brand-primary)]"
+            className="mt-2xs h-4 w-4 shrink-0 accent-[var(--nf-brand-primary)]"
           />
           <span className="min-w-0">
-            <span className="block text-[0.875rem] font-semibold">{PIDGIN_COPY.title}</span>
-            <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <span className="block text-[var(--nf-text-body-sm)] font-semibold">{PIDGIN_COPY.title}</span>
+            <span className="mt-3xs block text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
               {PIDGIN_COPY.detail}
             </span>
           </span>
@@ -342,20 +342,20 @@ export function ProfileEditor({
 
       {/* ------------------------------------------------------------ result */}
       {state && !state.ok && (
-        <p role="alert" className="text-[0.8125rem] leading-relaxed text-[var(--nf-state-error)]">
+        <p role="alert" className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}
 
       {saved && (
-        <div role="status" className="nf-card p-4">
-          <p className="flex items-center gap-2 text-[0.875rem] font-semibold text-[var(--nf-state-success)]">
+        <div role="status" className="nf-card p-md">
+          <p className="flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-success)]">
             <UiIcon name="verified" size={15} className="shrink-0" />
             {saved.claimed ? `@${saved.handle} is yours.` : "Your profile is saved."}
           </p>
           <Link
             href={`/u/${saved.handle}`}
-            className="mt-2 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[var(--nf-brand-secondary)]"
+            className="mt-xs inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
           >
             View your profile
             <UiIcon name="arrow-right" size={14} />
@@ -363,7 +363,7 @@ export function ProfileEditor({
         </div>
       )}
 
-      <div className="flex flex-col gap-2 pb-2 sm:flex-row-reverse">
+      <div className="flex flex-col gap-xs pb-xs sm:flex-row-reverse">
         <button type="submit" disabled={pending} className="nf-btn nf-btn--primary w-full sm:w-auto">
           {pending ? "Saving" : claiming ? "Claim this handle" : "Save profile"}
         </button>

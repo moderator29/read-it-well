@@ -203,7 +203,7 @@ export function AccountHero({
               type="button"
               onClick={() => coverInput.current?.click()}
               disabled={busy !== null}
-              className="nf-btn nf-btn--glass px-3 py-2 text-[0.75rem]"
+              className="nf-btn nf-btn--glass px-sm py-xs text-[var(--nf-text-overline)]"
               data-testid="account-cover-button"
             >
               <UiIcon name="sparkle" size={16} />
@@ -346,19 +346,19 @@ export function AccountHero({
       </div>
 
       {!identity && (
-        <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           A handle is your address on Vallo. Claim one and this page gets a cover, a
           public page and somewhere for what you write to live.
         </p>
       )}
 
-      <p className="mt-3 text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         Photos are re-encoded on your phone before they are uploaded, so the location tag a
         camera writes never leaves it.
       </p>
 
       {error && (
-        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

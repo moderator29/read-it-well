@@ -237,11 +237,11 @@ export function ProfileHeader({
 
       {/* --------------------------------------------------------- the bio */}
       {isOwner && profile.bioStatus === "HELD" && (
-        <div role="status" className="nf-card nf-social-card mt-5 p-4">
-          <p className="text-[0.875rem] font-semibold text-[var(--nf-state-warning)]">
+        <div role="status" className="nf-card nf-social-card mt-5 p-md">
+          <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-warning)]">
             {BIO_HELD_TITLE}
           </p>
-          <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-1.5 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {BIO_HELD_DETAIL}
           </p>
         </div>

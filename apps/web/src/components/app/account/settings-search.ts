@@ -87,7 +87,13 @@ function section(id: string, label: string, ...blocks: unknown[]): SettingsSecti
 }
 
 /**
- * The twelve sections, in the order the page renders them.
+ * The ten sections, in the order the page renders them.
+ *
+ * It was twelve. "Where you are signed in" and "What you are here for" were
+ * each a labelled card wrapped around a single link, and both are now rows of
+ * the group they already belonged beside. Their dictionary blocks moved with
+ * them rather than being dropped, so a search for "sessions" or "shortlets"
+ * still lands on the card that holds the control.
  *
  * Built here rather than in the page because the page's job is to lay them out
  * and this is the only place that has to know which dictionary block belongs to
@@ -101,13 +107,15 @@ export function settingsSections(t: Dictionary): SettingsSection[] {
        so its block is indexed under appearance. Somebody searching "Hausa"
        should land on the card that actually holds the control. */
     section("settings-appearance", t.settings.appearance.label, t.settings.appearance, t.settings.language),
-    section("settings-place", t.settings.place.label, t.settings.place),
-    section("settings-interests", t.interests.screenTitle, t.interests),
+    /* Place carries the interests row now, so it carries the interests words.
+       Somebody searching "shortlets" or "what I came for" has to land on the
+       card that actually holds the control, and that card is this one. */
+    section("settings-place", t.settings.place.label, t.settings.place, t.interests),
     section("settings-notifications", t.settings.notifications.label, t.settings.notifications, t.settings.notify),
     section("settings-privacy", t.settings.privacy.label, t.settings.privacy),
     section("settings-search", t.settings.search.label, t.settings.search),
-    section("settings-security", t.settings.security.label, t.settings.security),
-    section("settings-devices", t.settings.devices.rowLabel, t.settings.devices),
+    /* Security carries the devices row, so it carries the devices words. */
+    section("settings-security", t.settings.security.label, t.settings.security, t.settings.devices),
     section("settings-data", t.settings.data.label, t.settings.data),
     section("settings-account", t.settings.account.label, t.settings.account, t.settings.delete),
     /*

@@ -30,21 +30,21 @@ export function PropertyList({ properties }: { properties: PropertyCard[] }) {
               />
             ) : null}
             <div className="nf-post__under">
-              <p className="text-[0.95rem] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
+              <p className="text-[var(--nf-text-body)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
                 {property.title}
               </p>
-              <p className="mt-1 inline-flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs inline-flex items-center gap-1.5 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 <UiIcon name="location" size={13} />
                 {[property.area, property.city].filter(Boolean).join(", ")}
               </p>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <p className="nf-numeric text-[1.05rem] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
+              <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
+                <p className="nf-numeric text-[var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
                   {formatMoney(property.priceMinor, "en")}{" "}
                   <span className="text-[0.72rem] font-medium tracking-normal text-[var(--nf-content-muted)]">
                     {property.pricePeriod === "year" ? "a year" : "a night"}
                   </span>
                 </p>
-                <p className="text-[0.78rem] text-[var(--nf-content-muted)]">
+                <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   <span className="nf-numeric">{property.bedrooms}</span>{" "}
                   {property.bedrooms === 1 ? "bedroom" : "bedrooms"}
                   {" · "}

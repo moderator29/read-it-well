@@ -495,7 +495,7 @@ export default async function ListingDetailPage({
       </ButtonLink>
     </div>
   ) : isRestaurant ? (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-md">
       <ReserveTable listingId={listing.id} messageHref={messageHref} />
       <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
     </div>
@@ -685,7 +685,7 @@ export default async function ListingDetailPage({
           except the booking panel, which is a discrete object rather than a
           section, and which is the only raised surface on the screen.
         */}
-        <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-6 pt-7 sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-6 sm:pb-8 sm:pt-9 md:-mx-8 md:px-8">
+        <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-5 pb-lg pt-7 sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-9 md:-mx-8 md:px-xl">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
             {/* --------------------------------------------- main column */}
             <div className="min-w-0">
@@ -699,20 +699,20 @@ export default async function ListingDetailPage({
                     rest moved down to the trust marks under the price, where
                     they are facts rather than competing states.
                   */}
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-sm">
                     <StatusPill tone={market.tone} icon={market.icon} size="sm">
                       {market.label}
                     </StatusPill>
 
                     {listing.rating > 0 && (
-                      <span className="nf-numeric ml-auto flex shrink-0 items-center gap-2">
+                      <span className="nf-numeric ml-auto flex shrink-0 items-center gap-xs">
                         <UiIcon
                           name="star"
                           size={ICON.inline}
                           filled
                           className="text-[var(--nf-rating)]"
                         />
-                        <span className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+                        <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                           {formatRating(listing.rating, locale)}
                         </span>
                         {/* The count renders only when the record carries one.
@@ -772,7 +772,7 @@ export default async function ListingDetailPage({
                       {marks.map((mark) => (
                         <li
                           key={mark.label}
-                          className={`flex items-center gap-2 ${TYPE.body}`}
+                          className={`flex items-center gap-xs ${TYPE.body}`}
                         >
                           <UiIcon
                             name={mark.icon}
@@ -925,7 +925,7 @@ export default async function ListingDetailPage({
                         <CancellationTimeline locale={locale} headingLevel="h3" />
                       </Disclosure>
                     )}
-                    <div className="py-4">
+                    <div className="py-md">
                       <ReportSheet
                         targetType="listing"
                         targetId={listing.id}
@@ -1025,7 +1025,7 @@ function RestaurantPanel({
         table, a large party or anything the page does not answer.
       </p>
 
-      <ButtonLink href={messageHref} variant="secondary" full className="mt-4">
+      <ButtonLink href={messageHref} variant="secondary" full className="mt-md">
         Message
       </ButtonLink>
 

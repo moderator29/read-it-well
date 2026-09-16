@@ -107,14 +107,14 @@ export function ProfilePosts({
         aria-labelledby={labelledBy}
         tabIndex={-1}
       >
-        <div className="nf-card nf-social-card p-6 text-center sm:p-8">
+        <div className="nf-card nf-social-card p-lg text-center sm:p-xl">
           <div className="mx-auto w-fit">
             <BrandIcon name={copy.icon} size={44} />
           </div>
-          <h3 className="nf-h3 mt-3.5 text-[1.05rem]">
+          <h3 className="nf-h3 mt-3.5 text-[var(--nf-text-body-lg)]">
             {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}
           </h3>
-          <p className="mx-auto mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {isOwner ? copy.mineBody : copy.theirsBody.replace("{handle}", handle)}
           </p>
           {isOwner && (

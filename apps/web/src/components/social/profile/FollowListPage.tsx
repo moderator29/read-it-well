@@ -85,7 +85,7 @@ export async function FollowListPage({
           opened the wrong one of the two does not have to go back to find it. */}
       <nav
         aria-label="This person"
-        className="flex flex-wrap items-center gap-2 text-[0.8125rem]"
+        className="flex flex-wrap items-center gap-xs text-[var(--nf-text-caption)]"
       >
         <Link href={`/u/${view.handle}`} className="nf-chip">
           @{view.handle}

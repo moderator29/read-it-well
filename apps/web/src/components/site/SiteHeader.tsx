@@ -38,7 +38,22 @@ export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
   return (
     <header className="sticky top-0 z-50">
       <div className="nf-site-bar nf-safe-top">
-        <div className="nf-shell flex h-[60px] items-center gap-group sm:h-[72px] sm:gap-heading">
+        {/*
+          L-119. THE HEADER'S HEIGHT WAS TWO ARBITRARY VALUES AND A TOKEN THAT
+          DISAGREED WITH BOTH.
+          This wrote h-[60px] and sm:h-[72px] while `--nf-header-height` said
+          76px, a height nothing in the product ever painted. It survived
+          because nothing read it, which is how a value gets invented for a
+          token, and it became load-bearing the moment `motion.css` pointed
+          `scroll-margin-top` at it: anchored headings were then clearing 88px
+          of a bar that is 60px on a phone, pushing most of a line of body text
+          off the top of the screen.
+
+          The token pair now holds the numbers this element actually renders,
+          and this element reads them, so there is one place to change a header
+          height and the anchor offset follows it.
+        */}
+        <div className="nf-shell flex h-header-sm items-center gap-group sm:h-header sm:gap-heading">
           {/* THE MARK ALONE, NO WORDMARK BESIDE IT. The founder asked for the
               logo by itself on the landing header, and with the containerless
               mark it is right: the mark IS the name now, the way the best

@@ -114,7 +114,7 @@ function ActionSheet({
             {common.done}
           </Button>
         ) : (
-          <div className="grid gap-3">
+          <div className="grid gap-sm">
             <Button
               variant={destructive ? "dangerQuiet" : "primary"}
               full
@@ -133,24 +133,24 @@ function ActionSheet({
     >
       {succeeded ? (
         <div className="text-center">
-          <p className="flex items-center justify-center gap-2 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="flex items-center justify-center gap-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
             <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
             {successTitle}
           </p>
-          <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {successBody}
           </p>
         </div>
       ) : (
         <>
-          <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {description}
           </p>
 
           {extra}
 
           {withNotes && (
-            <label className="mt-4 block">
+            <label className="mt-md block">
               <span className="nf-label">
                 {notesLabel}
                 {notesRequired ? "" : ` ${common.optional}`}
@@ -160,7 +160,7 @@ function ActionSheet({
                 onChange={(event) => setNotes(event.target.value)}
                 rows={3}
                 maxLength={2000}
-                className="nf-field mt-1 w-full resize-y"
+                className="nf-field mt-2xs w-full resize-y"
                 placeholder={common.notePlaceholder}
               />
             </label>
@@ -169,7 +169,7 @@ function ActionSheet({
           {result && !result.ok && (
             <p
               role="alert"
-              className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {result.error}
             </p>
@@ -181,7 +181,7 @@ function ActionSheet({
 }
 
 function Row({ children }: { children: ReactNode }) {
-  return <div className="mt-4 flex flex-wrap gap-2">{children}</div>;
+  return <div className="mt-md flex flex-wrap gap-xs">{children}</div>;
 }
 
 /** ------------------------------------------------------------ message flags */
@@ -566,7 +566,7 @@ export function TicketReply({
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-md">
       <label className="block">
         <span className="nf-label">{copy.reply.label}</span>
         <textarea
@@ -574,7 +574,7 @@ export function TicketReply({
           onChange={(event) => setBody(event.target.value)}
           rows={4}
           maxLength={4000}
-          className="nf-field mt-1 w-full resize-y"
+          className="nf-field mt-2xs w-full resize-y"
           placeholder={copy.reply.placeholder}
         />
       </label>
@@ -582,16 +582,16 @@ export function TicketReply({
       {result && !result.ok && (
         <p
           role="alert"
-          className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+          className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
         >
           {result.error}
         </p>
       )}
       {result?.ok && (
-        <p className="mt-2 text-[0.8125rem] text-[var(--nf-state-success)]">{copy.reply.sent}</p>
+        <p className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]">{copy.reply.sent}</p>
       )}
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-4">
+      <div className="mt-2.5 flex flex-wrap items-center gap-md">
         <Button
           variant="primary"
           onClick={send}
@@ -600,7 +600,7 @@ export function TicketReply({
         >
           {copy.reply.send}
         </Button>
-        <span className="text-[0.75rem] text-[var(--nf-content-muted)]">{copy.reply.note}</span>
+        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{copy.reply.note}</span>
       </div>
     </div>
   );
@@ -630,7 +630,7 @@ export function TicketStatusControl({
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-md">
       <span className="nf-label">{copy.stateLabel}</span>
       {/* The shared rail. The current state stays disabled - moving a ticket to
           where it already is is not a move - and selection is now a ring and a
@@ -650,7 +650,7 @@ export function TicketStatusControl({
         ))}
       </ChipRow>
       {result && !result.ok && (
-        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-warning)]">
+        <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-warning)]">
           {result.error}
         </p>
       )}
@@ -699,7 +699,7 @@ export function SwitchControl({
       )}
 
       {result && !result.ok && (
-        <p role="alert" className="mt-2 w-full text-[0.8125rem] text-[var(--nf-state-warning)]">
+        <p role="alert" className="mt-xs w-full text-[var(--nf-text-caption)] text-[var(--nf-state-warning)]">
           {result.error}
         </p>
       )}
@@ -767,25 +767,25 @@ export function StayCancel({
   const money = (minor: number) => formatMoney(minor, locale);
 
   const extra = (
-    <div className="mt-4">
+    <div className="mt-md">
       <span className="nf-label">{copy.sheet.reasonLabel}</span>
-      <div className="mt-1.5 grid gap-2">
+      <div className="mt-1.5 grid gap-xs">
         {CANCELLATION_REASONS.map((option) => (
           <button
             key={option.code}
             type="button"
             onClick={() => setReason(option.code)}
             aria-pressed={reason === option.code}
-            className={`rounded-[var(--nf-radius-md)] border p-3 text-left ${
+            className={`rounded-[var(--nf-radius-md)] border p-sm text-left ${
               reason === option.code
                 ? "border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary-soft)]"
                 : "border-[var(--nf-border-subtle)]"
             }`}
           >
-            <span className="block text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+            <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               {copy.reasons[option.code]}
             </span>
-            <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <span className="mt-3xs block text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
               {option.detail}
             </span>
           </button>
@@ -794,7 +794,7 @@ export function StayCancel({
 
       <p
         aria-live="polite"
-        className="mt-3 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-primary)]"
+        className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-primary)]"
       >
         {previewing || !preview
           ? copy.sheet.working

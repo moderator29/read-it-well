@@ -63,31 +63,31 @@ function TicketRow({
         href={`/admin/support?ticket=${ticket.id}`}
         aria-current={selected ? "true" : undefined}
         className={[
-          "nf-card nf-card--interactive block p-3.5 sm:p-4",
+          "nf-card nf-card--interactive block p-3.5 sm:p-md",
           selected ? "ring-1 ring-[var(--nf-border-brand)]" : "",
         ].join(" ")}
       >
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-xs">
           <ui.StatusChip status={ticket.status} />
           {awaitingUs && (
             <ui.StatusChip
               {...dueChip(ticket.createdAt, gradeForTopic(ticket.topic), common)}
             />
           )}
-          <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {ticket.reference}
           </span>
         </div>
         {/* Never truncated: the topic is the sentence the person chose, and it
             is the whole of what this row is about. */}
-        <p className="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-[var(--nf-content-primary)]">
+        <p className="mt-1.5 text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
           {supportTopicLabel(ticket.topic) ?? copy.generalQuestion}
         </p>
-        <p className="mt-0.5 truncate text-[0.8125rem] text-[var(--nf-content-secondary)]">
+        <p className="mt-3xs truncate text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
           {ticket.name} · {ui.when(ticket.createdAt)}
         </p>
         {ticket.replyCount > 0 && (
-          <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {ticket.replyCount === 1
               ? copy.threadCountOne
               : fill(copy.threadCount, { count: ticket.replyCount })}
@@ -169,15 +169,15 @@ export default async function AdminSupportPage({
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {selected && (
-        <section className="nf-card mb-6 p-4 sm:p-5">
-          <div className="flex flex-wrap items-center gap-2">
+        <section className="nf-card mb-lg p-md sm:p-5">
+          <div className="flex flex-wrap items-center gap-xs">
             <ui.StatusChip status={selected.status} />
-            <span className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+            <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {selected.reference}
             </span>
             <Link
               href="/admin/support"
-              className="ml-auto inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="ml-auto inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               <UiIcon name="arrow-left" size={16} />
               {copy.allTickets}
@@ -198,21 +198,21 @@ export default async function AdminSupportPage({
             <ui.DetailRow label={copy.fields.filed} value={ui.when(selected.createdAt)} />
           </ui.DetailSection>
 
-          <div className="mt-4 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3">
+          <div className="mt-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm">
             <p className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
               {copy.whatTheyAsked}
             </p>
-            <p className="mt-1.5 whitespace-pre-wrap break-words text-[0.875rem] leading-relaxed text-[var(--nf-content-primary)]">
+            <p className="mt-1.5 whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
               {selected.body}
             </p>
           </div>
 
           {thread?.state === "ok" && thread.data.length > 0 && (
-            <ul className="mt-3 space-y-2">
+            <ul className="mt-sm space-y-xs">
               {thread.data.map((message) => (
                 <li
                   key={message.id}
-                  className="rounded-[var(--nf-radius-md)] p-3"
+                  className="rounded-[var(--nf-radius-md)] p-sm"
                   style={
                     message.senderRole === "admin"
                       ? { background: "var(--nf-brand-primary-soft)" }
@@ -221,7 +221,7 @@ export default async function AdminSupportPage({
                         }
                   }
                 >
-                  <span className="flex flex-wrap items-center gap-2">
+                  <span className="flex flex-wrap items-center gap-xs">
                     <span className="text-[0.6875rem] font-bold uppercase tracking-wide text-[var(--nf-content-muted)]">
                       {message.senderRole === "admin" ? copy.supportSender : selected.name}
                     </span>
@@ -229,7 +229,7 @@ export default async function AdminSupportPage({
                       {ui.when(message.createdAt)}
                     </span>
                   </span>
-                  <p className="mt-1 whitespace-pre-wrap break-words text-[0.875rem] leading-relaxed text-[var(--nf-content-primary)]">
+                  <p className="mt-2xs whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
                     {message.body}
                   </p>
                 </li>
@@ -257,7 +257,7 @@ export default async function AdminSupportPage({
         />
       ) : (
         <>
-          <h2 className="nf-h3 mb-3 text-[1rem]">
+          <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">
             {open.length > 0 ? copy.waitingOnUs : copy.noneWaitingHeading}
           </h2>
           {open.length === 0 ? (
@@ -278,8 +278,8 @@ export default async function AdminSupportPage({
           )}
 
           {closed.length > 0 && (
-            <section className="mt-8">
-              <h2 className="nf-h3 mb-3 text-[1rem]">{common.recentlyClosed}</h2>
+            <section className="mt-xl">
+              <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyClosed}</h2>
               <ul className="space-y-2.5">
                 {closed.map((ticket) => (
                   <TicketRow

@@ -98,7 +98,7 @@ export function ListingAmenities({
   return (
     <ul
       data-testid="amenity-row"
-      className="flex flex-wrap items-center gap-y-2.5 text-[1rem]"
+      className="flex flex-wrap items-center gap-y-2.5 text-[var(--nf-text-body)]"
     >
       {marks.map((mark, i) => (
         <li
@@ -120,7 +120,7 @@ export function ListingAmenities({
           <UiIcon
             name={mark.icon}
             size={ICON.inline}
-            className="mr-2 shrink-0 text-[var(--nf-content-muted)]"
+            className="mr-xs shrink-0 text-[var(--nf-content-muted)]"
           />
           <span className="whitespace-nowrap">{mark.label}</span>
         </li>

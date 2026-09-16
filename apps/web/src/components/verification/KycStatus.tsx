@@ -95,7 +95,7 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
         body={PENDING_BODY}
       >
         {status.submittedAt && (
-          <p className="mt-2 text-[0.8125rem] text-[var(--nf-content-muted)]">
+          <p className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
             {SUBMITTED_PREFIX} {status.submittedAt}
           </p>
         )}
@@ -135,13 +135,13 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
         title={MORE_INFO_TITLE}
         body={status.request}
       >
-        <p className="mt-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           <span className="font-semibold text-[var(--nf-content-primary)]">{FIX_LABEL} </span>
           {status.fix}
         </p>
         <Link
           href={retryHref}
-          className="mt-4 inline-flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-md inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           {CONTINUE}
           <UiIcon name="arrow-right" size="sm" />
@@ -168,13 +168,13 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
         title={SUSPENDED_TITLE}
         body={status.reason}
       >
-        <p className="mt-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           <span className="font-semibold text-[var(--nf-content-primary)]">{FIX_LABEL} </span>
           {SUSPENDED_FIX}
         </p>
         <Link
           href="/help"
-          className="mt-4 inline-flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-md inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           {GET_HELP}
           <UiIcon name="arrow-right" size="sm" />
@@ -196,13 +196,13 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
         refused stops reading, so the sentence that tells them it is
         recoverable has to be immediately underneath and cannot be small print.
       */}
-      <p className="mt-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         <span className="font-semibold text-[var(--nf-content-primary)]">{FIX_LABEL} </span>
         {status.fix}
       </p>
       <Link
         href={retryHref}
-        className="mt-4 inline-flex items-center gap-1.5 text-[0.9375rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+        className="mt-md inline-flex items-center gap-1.5 text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
         {RETRY}
         <UiIcon name="arrow-right" size="sm" />
@@ -229,19 +229,19 @@ function Panel({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="nf-card p-5 sm:p-6">
-      <div className="flex items-start gap-4">
+    <section className="nf-card p-5 sm:p-lg">
+      <div className="flex items-start gap-md">
         <span className="nf-role-mark" aria-hidden="true">
           <UiIcon name={icon} size="md" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <div className="flex flex-wrap items-center gap-xs">
+            <h2 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
               {title}
             </h2>
             <StatusPill tone={tone}>{pill}</StatusPill>
           </div>
-          <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {body}
           </p>
           {children}

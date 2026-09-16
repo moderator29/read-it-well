@@ -32,7 +32,7 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
   return (
     <nav
       aria-label="Result view"
-      className="nf-segmented inline-flex shrink-0 items-center gap-1 p-1"
+      className="nf-segmented inline-flex shrink-0 items-center gap-2xs p-2xs"
     >
       {options.map((option) => {
         const active = query.view === option.view;
@@ -43,7 +43,7 @@ export function ViewToggle({ query }: { query: DiscoveryQuery }) {
             prefetch
             data-testid={`view-${option.view}`}
             aria-current={active ? "true" : undefined}
-            className={`nf-segmented__link min-h-11 whitespace-nowrap px-3.5 text-[0.8125rem] ${
+            className={`nf-segmented__link min-h-11 whitespace-nowrap px-3.5 text-[var(--nf-text-caption)] ${
               active ? "font-bold" : ""
             }`}
           >
