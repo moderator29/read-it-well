@@ -31,9 +31,17 @@
  * not carry the object at all.
  *
  * NAMES ARE THE EXISTING NAMES WHEREVER AN EQUIVALENT EXISTS. `shield-check`
- * stays `shield-check`. That is the whole point: 73 of the 87 objects the
+ * stays `shield-check`. That is the whole point: most of the 87 objects the
  * platform draws today can be replaced by dropping a file in, with no call site
  * touched. The names that are new are new because the object is new.
+ *
+ * One name is stretched rather than invented, and it is worth saying which.
+ * `2676C1FC` index 14 is a bare headset. The object it replaces, `support-chat`,
+ * is a headset with a speech bubble. Calling the headset `support-chat` keeps
+ * four live call sites working with no edit, and a headset alone is a fair
+ * drawing of support. A bubble-and-headset object would be better and is a line
+ * in the commission list in docs/FRONTEND_REVAMP.md, not a reason to leave four
+ * screens on the old artwork in the meantime.
  *
  * WHAT IS RECORDED AND NOT FIXED. `9795AD6E` index 23 is a hotel with the word
  * HOTEL rendered into the artwork as pixels. This platform ships `packages/i18n`
@@ -98,7 +106,7 @@ export const SHEETS = {
   "2676c1fc": [
     "hotel", "hotel-room", "shortlet", "serviced-apartment", "lake-house",
     "house-boat", "land-plot", "warehouse", "coworking-space", "shop-retail",
-    "shield-check", "shield-home", "shield-lock", "headset", "doc-shield",
+    "shield-check", "shield-home", "shield-lock", "support-chat", "doc-shield",
     "doc-lock", "user-check", "home-check", "reviews", "clock-check",
     "gift-star", "chart-growth", "report-stats", "calendar-check", "calendar-clock",
   ],

@@ -65,6 +65,7 @@
   "shield-lock",
   "shop-retail",
   "studio-apartment",
+  "support-chat",
   "support-shield",
   "tag-hash",
   "tag-percent",
@@ -93,7 +94,6 @@
   "listing-review",
   "parking-space",
   "phone-home",
-  "support-chat",
   "swimming-pool"
  ],
  "brandNew": [
@@ -111,7 +111,6 @@
   "doc-failed",
   "doc-home",
   "doc-search",
-  "headset",
   "home-lock",
   "hotel-room",
   "hourglass",
@@ -148,5 +147,1063 @@
   "schedule",
   "support",
   "trip"
- ]
+ ],
+ "sources": {
+  "hero:hero-app": {
+   "kind": "hero",
+   "name": "hero-app",
+   "sheet": "8dbe517e",
+   "index": 5
+  },
+  "hero:hero-assistant": {
+   "kind": "hero",
+   "name": "hero-assistant",
+   "sheet": "7ee388e5",
+   "index": 1
+  },
+  "hero:hero-assistant-chat": {
+   "kind": "hero",
+   "name": "hero-assistant-chat",
+   "sheet": "7ee388e5",
+   "index": 2
+  },
+  "hero:hero-assistant-home": {
+   "kind": "hero",
+   "name": "hero-assistant-home",
+   "sheet": "7ee388e5",
+   "index": 3
+  },
+  "hero:hero-globe": {
+   "kind": "hero",
+   "name": "hero-globe",
+   "sheet": "8dbe517e",
+   "index": 2
+  },
+  "hero:hero-growth": {
+   "kind": "hero",
+   "name": "hero-growth",
+   "sheet": "8dbe517e",
+   "index": 3
+  },
+  "hero:hero-map-stay": {
+   "kind": "hero",
+   "name": "hero-map-stay",
+   "sheet": "7ee388e5",
+   "index": 5
+  },
+  "hero:hero-property": {
+   "kind": "hero",
+   "name": "hero-property",
+   "sheet": "8dbe517e",
+   "index": 1
+  },
+  "hero:hero-protected": {
+   "kind": "hero",
+   "name": "hero-protected",
+   "sheet": "8dbe517e",
+   "index": 4
+  },
+  "hero:hero-schedule": {
+   "kind": "hero",
+   "name": "hero-schedule",
+   "sheet": "7ee388e5",
+   "index": 6
+  },
+  "hero:hero-support": {
+   "kind": "hero",
+   "name": "hero-support",
+   "sheet": "8dbe517e",
+   "index": 6
+  },
+  "hero:hero-trip": {
+   "kind": "hero",
+   "name": "hero-trip",
+   "sheet": "7ee388e5",
+   "index": 4
+  },
+  "light:alert-warning": {
+   "kind": "light",
+   "name": "alert-warning",
+   "sheet": "c0f67033",
+   "index": 17
+  },
+  "light:badge-failed": {
+   "kind": "light",
+   "name": "badge-failed",
+   "sheet": "c0f67033",
+   "index": 14
+  },
+  "light:badge-pending": {
+   "kind": "light",
+   "name": "badge-pending",
+   "sheet": "c0f67033",
+   "index": 13
+  },
+  "light:badge-success": {
+   "kind": "light",
+   "name": "badge-success",
+   "sheet": "c0f67033",
+   "index": 12
+  },
+  "light:cash-box": {
+   "kind": "light",
+   "name": "cash-box",
+   "sheet": "c0f67033",
+   "index": 9
+  },
+  "light:chart-donut": {
+   "kind": "light",
+   "name": "chart-donut",
+   "sheet": "c0f67033",
+   "index": 16
+  },
+  "light:clock-expired": {
+   "kind": "light",
+   "name": "clock-expired",
+   "sheet": "c0f67033",
+   "index": 19
+  },
+  "light:coin-naira": {
+   "kind": "light",
+   "name": "coin-naira",
+   "sheet": "c0f67033",
+   "index": 3
+  },
+  "light:contract-sign": {
+   "kind": "light",
+   "name": "contract-sign",
+   "sheet": "c0f67033",
+   "index": 24
+  },
+  "light:deposit": {
+   "kind": "light",
+   "name": "deposit",
+   "sheet": "c0f67033",
+   "index": 2
+  },
+  "light:doc-failed": {
+   "kind": "light",
+   "name": "doc-failed",
+   "sheet": "c0f67033",
+   "index": 22
+  },
+  "light:doc-search": {
+   "kind": "light",
+   "name": "doc-search",
+   "sheet": "c0f67033",
+   "index": 21
+  },
+  "light:hourglass": {
+   "kind": "light",
+   "name": "hourglass",
+   "sheet": "c0f67033",
+   "index": 15
+  },
+  "light:id-check": {
+   "kind": "light",
+   "name": "id-check",
+   "sheet": "c0f67033",
+   "index": 20
+  },
+  "light:info": {
+   "kind": "light",
+   "name": "info",
+   "sheet": "c0f67033",
+   "index": 18
+  },
+  "light:key-handover": {
+   "kind": "light",
+   "name": "key-handover",
+   "sheet": "c0f67033",
+   "index": 23
+  },
+  "light:ledger-check": {
+   "kind": "light",
+   "name": "ledger-check",
+   "sheet": "c0f67033",
+   "index": 11
+  },
+  "light:payment-failed": {
+   "kind": "light",
+   "name": "payment-failed",
+   "sheet": "c0f67033",
+   "index": 4
+  },
+  "light:payout-hand": {
+   "kind": "light",
+   "name": "payout-hand",
+   "sheet": "c0f67033",
+   "index": 1
+  },
+  "light:receipt-check": {
+   "kind": "light",
+   "name": "receipt-check",
+   "sheet": "c0f67033",
+   "index": 8
+  },
+  "light:refund": {
+   "kind": "light",
+   "name": "refund",
+   "sheet": "c0f67033",
+   "index": 5
+  },
+  "light:savings-pot": {
+   "kind": "light",
+   "name": "savings-pot",
+   "sheet": "c0f67033",
+   "index": 10
+  },
+  "light:wallet-add": {
+   "kind": "light",
+   "name": "wallet-add",
+   "sheet": "c0f67033",
+   "index": 6
+  },
+  "light:wallet-send": {
+   "kind": "light",
+   "name": "wallet-send",
+   "sheet": "c0f67033",
+   "index": 7
+  },
+  "object:alert-warning": {
+   "kind": "object",
+   "name": "alert-warning",
+   "sheet": "cf5a4150",
+   "index": 17
+  },
+  "object:badge-failed": {
+   "kind": "object",
+   "name": "badge-failed",
+   "sheet": "cf5a4150",
+   "index": 14
+  },
+  "object:badge-pending": {
+   "kind": "object",
+   "name": "badge-pending",
+   "sheet": "cf5a4150",
+   "index": 13
+  },
+  "object:badge-success": {
+   "kind": "object",
+   "name": "badge-success",
+   "sheet": "cf5a4150",
+   "index": 12
+  },
+  "object:beach-house": {
+   "kind": "object",
+   "name": "beach-house",
+   "sheet": "ecfa9c34",
+   "index": 1
+  },
+  "object:bell-badge": {
+   "kind": "object",
+   "name": "bell-badge",
+   "sheet": "b04429b0",
+   "index": 15
+  },
+  "object:booking-instant": {
+   "kind": "object",
+   "name": "booking-instant",
+   "sheet": "0b2e4d21",
+   "index": 10
+  },
+  "object:bot": {
+   "kind": "object",
+   "name": "bot",
+   "sheet": "b04429b0",
+   "index": 10
+  },
+  "object:bungalow": {
+   "kind": "object",
+   "name": "bungalow",
+   "sheet": "ecfa9c34",
+   "index": 2
+  },
+  "object:calendar-check": {
+   "kind": "object",
+   "name": "calendar-check",
+   "sheet": "2676c1fc",
+   "index": 24
+  },
+  "object:calendar-clock": {
+   "kind": "object",
+   "name": "calendar-clock",
+   "sheet": "2676c1fc",
+   "index": 25
+  },
+  "object:calendar-home": {
+   "kind": "object",
+   "name": "calendar-home",
+   "sheet": "0b2e4d21",
+   "index": 13
+  },
+  "object:calendar-time": {
+   "kind": "object",
+   "name": "calendar-time",
+   "sheet": "0b2e4d21",
+   "index": 14
+  },
+  "object:camera": {
+   "kind": "object",
+   "name": "camera",
+   "sheet": "b04429b0",
+   "index": 22
+  },
+  "object:card-lock": {
+   "kind": "object",
+   "name": "card-lock",
+   "sheet": "0b2e4d21",
+   "index": 3
+  },
+  "object:cash-box": {
+   "kind": "object",
+   "name": "cash-box",
+   "sheet": "cf5a4150",
+   "index": 9
+  },
+  "object:chart-donut": {
+   "kind": "object",
+   "name": "chart-donut",
+   "sheet": "cf5a4150",
+   "index": 16
+  },
+  "object:chart-growth": {
+   "kind": "object",
+   "name": "chart-growth",
+   "sheet": "2676c1fc",
+   "index": 22
+  },
+  "object:chat-duo": {
+   "kind": "object",
+   "name": "chat-duo",
+   "sheet": "b04429b0",
+   "index": 16
+  },
+  "object:clock-check": {
+   "kind": "object",
+   "name": "clock-check",
+   "sheet": "2676c1fc",
+   "index": 20
+  },
+  "object:clock-expired": {
+   "kind": "object",
+   "name": "clock-expired",
+   "sheet": "cf5a4150",
+   "index": 19
+  },
+  "object:cluster-home": {
+   "kind": "object",
+   "name": "cluster-home",
+   "sheet": "ecfa9c34",
+   "index": 3
+  },
+  "object:coin-naira": {
+   "kind": "object",
+   "name": "coin-naira",
+   "sheet": "cf5a4150",
+   "index": 3
+  },
+  "object:concierge-bell": {
+   "kind": "object",
+   "name": "concierge-bell",
+   "sheet": "fda04dd1",
+   "index": 5
+  },
+  "object:container-home": {
+   "kind": "object",
+   "name": "container-home",
+   "sheet": "ecfa9c34",
+   "index": 4
+  },
+  "object:contract-sign": {
+   "kind": "object",
+   "name": "contract-sign",
+   "sheet": "cf5a4150",
+   "index": 24
+  },
+  "object:coworking-space": {
+   "kind": "object",
+   "name": "coworking-space",
+   "sheet": "2676c1fc",
+   "index": 9
+  },
+  "object:deposit": {
+   "kind": "object",
+   "name": "deposit",
+   "sheet": "cf5a4150",
+   "index": 2
+  },
+  "object:doc-failed": {
+   "kind": "object",
+   "name": "doc-failed",
+   "sheet": "cf5a4150",
+   "index": 22
+  },
+  "object:doc-home": {
+   "kind": "object",
+   "name": "doc-home",
+   "sheet": "b04429b0",
+   "index": 19
+  },
+  "object:doc-lock": {
+   "kind": "object",
+   "name": "doc-lock",
+   "sheet": "2676c1fc",
+   "index": 16
+  },
+  "object:doc-search": {
+   "kind": "object",
+   "name": "doc-search",
+   "sheet": "cf5a4150",
+   "index": 21
+  },
+  "object:doc-shield": {
+   "kind": "object",
+   "name": "doc-shield",
+   "sheet": "2676c1fc",
+   "index": 15
+  },
+  "object:duplex": {
+   "kind": "object",
+   "name": "duplex",
+   "sheet": "ecfa9c34",
+   "index": 22
+  },
+  "object:farm-house": {
+   "kind": "object",
+   "name": "farm-house",
+   "sheet": "ecfa9c34",
+   "index": 6
+  },
+  "object:gift": {
+   "kind": "object",
+   "name": "gift",
+   "sheet": "0b2e4d21",
+   "index": 6
+  },
+  "object:gift-star": {
+   "kind": "object",
+   "name": "gift-star",
+   "sheet": "2676c1fc",
+   "index": 21
+  },
+  "object:globe-pin": {
+   "kind": "object",
+   "name": "globe-pin",
+   "sheet": "0b2e4d21",
+   "index": 24
+  },
+  "object:heart-home": {
+   "kind": "object",
+   "name": "heart-home",
+   "sheet": "b04429b0",
+   "index": 13
+  },
+  "object:home-check": {
+   "kind": "object",
+   "name": "home-check",
+   "sheet": "2676c1fc",
+   "index": 18
+  },
+  "object:home-lock": {
+   "kind": "object",
+   "name": "home-lock",
+   "sheet": "fda04dd1",
+   "index": 7
+  },
+  "object:home-search": {
+   "kind": "object",
+   "name": "home-search",
+   "sheet": "b04429b0",
+   "index": 1
+  },
+  "object:hotel": {
+   "kind": "object",
+   "name": "hotel",
+   "sheet": "ecfa9c34",
+   "index": 16
+  },
+  "object:hotel-room": {
+   "kind": "object",
+   "name": "hotel-room",
+   "sheet": "2676c1fc",
+   "index": 2
+  },
+  "object:hotel-star": {
+   "kind": "object",
+   "name": "hotel-star",
+   "sheet": "b04429b0",
+   "index": 21
+  },
+  "object:hourglass": {
+   "kind": "object",
+   "name": "hourglass",
+   "sheet": "cf5a4150",
+   "index": 15
+  },
+  "object:house-boat": {
+   "kind": "object",
+   "name": "house-boat",
+   "sheet": "ecfa9c34",
+   "index": 7
+  },
+  "object:id-check": {
+   "kind": "object",
+   "name": "id-check",
+   "sheet": "cf5a4150",
+   "index": 20
+  },
+  "object:info": {
+   "kind": "object",
+   "name": "info",
+   "sheet": "cf5a4150",
+   "index": 18
+  },
+  "object:key-cycle": {
+   "kind": "object",
+   "name": "key-cycle",
+   "sheet": "0b2e4d21",
+   "index": 19
+  },
+  "object:key-handover": {
+   "kind": "object",
+   "name": "key-handover",
+   "sheet": "cf5a4150",
+   "index": 23
+  },
+  "object:keys-home": {
+   "kind": "object",
+   "name": "keys-home",
+   "sheet": "b04429b0",
+   "index": 14
+  },
+  "object:keys-tag": {
+   "kind": "object",
+   "name": "keys-tag",
+   "sheet": "0b2e4d21",
+   "index": 18
+  },
+  "object:lake-house": {
+   "kind": "object",
+   "name": "lake-house",
+   "sheet": "ecfa9c34",
+   "index": 8
+  },
+  "object:land-plot": {
+   "kind": "object",
+   "name": "land-plot",
+   "sheet": "2676c1fc",
+   "index": 7
+  },
+  "object:ledger-check": {
+   "kind": "object",
+   "name": "ledger-check",
+   "sheet": "cf5a4150",
+   "index": 11
+  },
+  "object:listing-search": {
+   "kind": "object",
+   "name": "listing-search",
+   "sheet": "fda04dd1",
+   "index": 14
+  },
+  "object:loft": {
+   "kind": "object",
+   "name": "loft",
+   "sheet": "ecfa9c34",
+   "index": 10
+  },
+  "object:luggage-check": {
+   "kind": "object",
+   "name": "luggage-check",
+   "sheet": "0b2e4d21",
+   "index": 15
+  },
+  "object:luggage-plane": {
+   "kind": "object",
+   "name": "luggage-plane",
+   "sheet": "b04429b0",
+   "index": 24
+  },
+  "object:mansion": {
+   "kind": "object",
+   "name": "mansion",
+   "sheet": "ecfa9c34",
+   "index": 11
+  },
+  "object:map-route": {
+   "kind": "object",
+   "name": "map-route",
+   "sheet": "0b2e4d21",
+   "index": 23
+  },
+  "object:map-spot": {
+   "kind": "object",
+   "name": "map-spot",
+   "sheet": "b04429b0",
+   "index": 6
+  },
+  "object:mini-flat": {
+   "kind": "object",
+   "name": "mini-flat",
+   "sheet": "ecfa9c34",
+   "index": 12
+  },
+  "object:modern-house": {
+   "kind": "object",
+   "name": "modern-house",
+   "sheet": "ecfa9c34",
+   "index": 13
+  },
+  "object:mountain-cabin": {
+   "kind": "object",
+   "name": "mountain-cabin",
+   "sheet": "ecfa9c34",
+   "index": 14
+  },
+  "object:naira-coins": {
+   "kind": "object",
+   "name": "naira-coins",
+   "sheet": "b04429b0",
+   "index": 4
+  },
+  "object:naira-hand": {
+   "kind": "object",
+   "name": "naira-hand",
+   "sheet": "fda04dd1",
+   "index": 16
+  },
+  "object:office-space": {
+   "kind": "object",
+   "name": "office-space",
+   "sheet": "ecfa9c34",
+   "index": 25
+  },
+  "object:payment-failed": {
+   "kind": "object",
+   "name": "payment-failed",
+   "sheet": "cf5a4150",
+   "index": 4
+  },
+  "object:payout-hand": {
+   "kind": "object",
+   "name": "payout-hand",
+   "sheet": "cf5a4150",
+   "index": 1
+  },
+  "object:penthouse": {
+   "kind": "object",
+   "name": "penthouse",
+   "sheet": "ecfa9c34",
+   "index": 15
+  },
+  "object:pin-map": {
+   "kind": "object",
+   "name": "pin-map",
+   "sheet": "fda04dd1",
+   "index": 25
+  },
+  "object:receipt-check": {
+   "kind": "object",
+   "name": "receipt-check",
+   "sheet": "cf5a4150",
+   "index": 8
+  },
+  "object:refund": {
+   "kind": "object",
+   "name": "refund",
+   "sheet": "cf5a4150",
+   "index": 5
+  },
+  "object:report-stats": {
+   "kind": "object",
+   "name": "report-stats",
+   "sheet": "2676c1fc",
+   "index": 23
+  },
+  "object:reviews": {
+   "kind": "object",
+   "name": "reviews",
+   "sheet": "2676c1fc",
+   "index": 19
+  },
+  "object:savings-pot": {
+   "kind": "object",
+   "name": "savings-pot",
+   "sheet": "cf5a4150",
+   "index": 10
+  },
+  "object:search-home": {
+   "kind": "object",
+   "name": "search-home",
+   "sheet": "0b2e4d21",
+   "index": 20
+  },
+  "object:serviced-apartment": {
+   "kind": "object",
+   "name": "serviced-apartment",
+   "sheet": "2676c1fc",
+   "index": 4
+  },
+  "object:shared-apartment": {
+   "kind": "object",
+   "name": "shared-apartment",
+   "sheet": "ecfa9c34",
+   "index": 17
+  },
+  "object:shield-check": {
+   "kind": "object",
+   "name": "shield-check",
+   "sheet": "2676c1fc",
+   "index": 11
+  },
+  "object:shield-home": {
+   "kind": "object",
+   "name": "shield-home",
+   "sheet": "2676c1fc",
+   "index": 12
+  },
+  "object:shield-lock": {
+   "kind": "object",
+   "name": "shield-lock",
+   "sheet": "2676c1fc",
+   "index": 13
+  },
+  "object:shop-retail": {
+   "kind": "object",
+   "name": "shop-retail",
+   "sheet": "2676c1fc",
+   "index": 10
+  },
+  "object:shortlet": {
+   "kind": "object",
+   "name": "shortlet",
+   "sheet": "2676c1fc",
+   "index": 3
+  },
+  "object:studio-apartment": {
+   "kind": "object",
+   "name": "studio-apartment",
+   "sheet": "ecfa9c34",
+   "index": 18
+  },
+  "object:support-chat": {
+   "kind": "object",
+   "name": "support-chat",
+   "sheet": "2676c1fc",
+   "index": 14
+  },
+  "object:support-shield": {
+   "kind": "object",
+   "name": "support-shield",
+   "sheet": "fda04dd1",
+   "index": 9
+  },
+  "object:tag-hash": {
+   "kind": "object",
+   "name": "tag-hash",
+   "sheet": "0b2e4d21",
+   "index": 5
+  },
+  "object:tag-percent": {
+   "kind": "object",
+   "name": "tag-percent",
+   "sheet": "b04429b0",
+   "index": 5
+  },
+  "object:terrace-house": {
+   "kind": "object",
+   "name": "terrace-house",
+   "sheet": "ecfa9c34",
+   "index": 19
+  },
+  "object:tour-360": {
+   "kind": "object",
+   "name": "tour-360",
+   "sheet": "b04429b0",
+   "index": 23
+  },
+  "object:townhouse": {
+   "kind": "object",
+   "name": "townhouse",
+   "sheet": "ecfa9c34",
+   "index": 20
+  },
+  "object:tree-house": {
+   "kind": "object",
+   "name": "tree-house",
+   "sheet": "ecfa9c34",
+   "index": 21
+  },
+  "object:twin-house": {
+   "kind": "object",
+   "name": "twin-house",
+   "sheet": "ecfa9c34",
+   "index": 5
+  },
+  "object:user-check": {
+   "kind": "object",
+   "name": "user-check",
+   "sheet": "2676c1fc",
+   "index": 17
+  },
+  "object:user-verified": {
+   "kind": "object",
+   "name": "user-verified",
+   "sheet": "b04429b0",
+   "index": 17
+  },
+  "object:villa": {
+   "kind": "object",
+   "name": "villa",
+   "sheet": "ecfa9c34",
+   "index": 23
+  },
+  "object:wallet": {
+   "kind": "object",
+   "name": "wallet",
+   "sheet": "b04429b0",
+   "index": 3
+  },
+  "object:wallet-add": {
+   "kind": "object",
+   "name": "wallet-add",
+   "sheet": "cf5a4150",
+   "index": 6
+  },
+  "object:wallet-secure": {
+   "kind": "object",
+   "name": "wallet-secure",
+   "sheet": "0b2e4d21",
+   "index": 2
+  },
+  "object:wallet-send": {
+   "kind": "object",
+   "name": "wallet-send",
+   "sheet": "cf5a4150",
+   "index": 7
+  },
+  "object:warehouse": {
+   "kind": "object",
+   "name": "warehouse",
+   "sheet": "ecfa9c34",
+   "index": 24
+  }
+ },
+ "alternates": {
+  "beach-house": [
+   "9795ad6e/01",
+   "ecfa9c34/01",
+   "b04429b0/11"
+  ],
+  "bungalow": [
+   "9795ad6e/02",
+   "ecfa9c34/02"
+  ],
+  "calendar-check": [
+   "0b2e4d21/11",
+   "b04429b0/07",
+   "2676c1fc/24"
+  ],
+  "calendar-clock": [
+   "0b2e4d21/12",
+   "2676c1fc/25"
+  ],
+  "card-lock": [
+   "0b2e4d21/03",
+   "fda04dd1/18"
+  ],
+  "chart-growth": [
+   "0b2e4d21/08",
+   "b04429b0/12",
+   "fda04dd1/23",
+   "2676c1fc/22"
+  ],
+  "container-home": [
+   "9795ad6e/04",
+   "ecfa9c34/04"
+  ],
+  "coworking-space": [
+   "9795ad6e/21",
+   "2676c1fc/09"
+  ],
+  "doc-lock": [
+   "fda04dd1/11",
+   "2676c1fc/16"
+  ],
+  "doc-shield": [
+   "b04429b0/09",
+   "fda04dd1/10",
+   "2676c1fc/15"
+  ],
+  "duplex": [
+   "9795ad6e/05",
+   "ecfa9c34/22"
+  ],
+  "farm-house": [
+   "9795ad6e/06",
+   "ecfa9c34/06"
+  ],
+  "gift": [
+   "0b2e4d21/06",
+   "fda04dd1/21"
+  ],
+  "gift-star": [
+   "0b2e4d21/07",
+   "b04429b0/20",
+   "fda04dd1/22",
+   "2676c1fc/21"
+  ],
+  "home-check": [
+   "fda04dd1/13",
+   "2676c1fc/18"
+  ],
+  "home-search": [
+   "0b2e4d21/22",
+   "b04429b0/01"
+  ],
+  "hotel": [
+   "9795ad6e/13",
+   "ecfa9c34/16",
+   "2676c1fc/01"
+  ],
+  "hotel-room": [
+   "9795ad6e/24",
+   "2676c1fc/02"
+  ],
+  "hotel-star": [
+   "b04429b0/21",
+   "fda04dd1/04"
+  ],
+  "house-boat": [
+   "9795ad6e/07",
+   "ecfa9c34/07",
+   "2676c1fc/06"
+  ],
+  "keys-home": [
+   "0b2e4d21/17",
+   "b04429b0/14"
+  ],
+  "lake-house": [
+   "ecfa9c34/08",
+   "2676c1fc/05"
+  ],
+  "land-plot": [
+   "9795ad6e/09",
+   "ecfa9c34/09",
+   "2676c1fc/07"
+  ],
+  "listing-search": [
+   "0b2e4d21/21",
+   "fda04dd1/14"
+  ],
+  "loft": [
+   "9795ad6e/10",
+   "ecfa9c34/10"
+  ],
+  "luggage-plane": [
+   "0b2e4d21/16",
+   "b04429b0/24"
+  ],
+  "mansion": [
+   "9795ad6e/11",
+   "ecfa9c34/11"
+  ],
+  "modern-house": [
+   "9795ad6e/03",
+   "ecfa9c34/13",
+   "fda04dd1/02"
+  ],
+  "mountain-cabin": [
+   "9795ad6e/08",
+   "ecfa9c34/14",
+   "fda04dd1/03"
+  ],
+  "naira-hand": [
+   "0b2e4d21/01",
+   "fda04dd1/16"
+  ],
+  "penthouse": [
+   "9795ad6e/12",
+   "ecfa9c34/15"
+  ],
+  "report-stats": [
+   "0b2e4d21/09",
+   "fda04dd1/24",
+   "2676c1fc/23"
+  ],
+  "reviews": [
+   "fda04dd1/15",
+   "2676c1fc/19"
+  ],
+  "shared-apartment": [
+   "9795ad6e/14",
+   "ecfa9c34/17"
+  ],
+  "shield-check": [
+   "9795ad6e/25",
+   "fda04dd1/06",
+   "2676c1fc/11"
+  ],
+  "shield-home": [
+   "b04429b0/02",
+   "fda04dd1/08",
+   "2676c1fc/12"
+  ],
+  "shield-lock": [
+   "b04429b0/08",
+   "2676c1fc/13"
+  ],
+  "shop-retail": [
+   "9795ad6e/22",
+   "2676c1fc/10"
+  ],
+  "studio-apartment": [
+   "9795ad6e/15",
+   "ecfa9c34/18"
+  ],
+  "tag-hash": [
+   "0b2e4d21/05",
+   "fda04dd1/20"
+  ],
+  "tag-percent": [
+   "0b2e4d21/04",
+   "b04429b0/05",
+   "fda04dd1/19"
+  ],
+  "terrace-house": [
+   "9795ad6e/16",
+   "ecfa9c34/19"
+  ],
+  "tour-360": [
+   "0b2e4d21/25",
+   "b04429b0/23"
+  ],
+  "tree-house": [
+   "9795ad6e/17",
+   "ecfa9c34/21"
+  ],
+  "twin-house": [
+   "9795ad6e/18",
+   "ecfa9c34/05"
+  ],
+  "user-check": [
+   "fda04dd1/12",
+   "2676c1fc/17"
+  ],
+  "villa": [
+   "9795ad6e/19",
+   "ecfa9c34/23",
+   "fda04dd1/01"
+  ],
+  "wallet-secure": [
+   "0b2e4d21/02",
+   "fda04dd1/17"
+  ],
+  "warehouse": [
+   "9795ad6e/20",
+   "ecfa9c34/24",
+   "2676c1fc/08"
+  ]
+ }
 }

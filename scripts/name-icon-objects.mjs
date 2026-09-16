@@ -81,6 +81,8 @@ for (const [sheet, names] of Object.entries(SHEETS)) {
 }
 
 const written = { object: [], light: [], hero: [] };
+/** name -> where the delivered file was cut from, so the map in the docs is generated. */
+const sources = new Map();
 const withheld = [];
 let bytes = 0;
 
@@ -109,6 +111,7 @@ async function emit(kind, name, sheet, index, { resize = true } = {}) {
   const info = await pipe.png({ compressionLevel: 9, palette: true, quality: 90 }).toFile(dest);
   bytes += info.size;
   written[kind].push(name);
+  sources.set(`${kind}:${name}`, { kind, name, sheet, index: index + 1 });
 }
 
 for (const [name, drawn] of [...drawings].sort(([a], [b]) => a.localeCompare(b))) {
@@ -156,6 +159,13 @@ const report = {
   brandNew,
   withheld,
   heroOnly: [...heroOnly],
+  sources: Object.fromEntries([...sources].sort(([a], [b]) => a.localeCompare(b))),
+  alternates: Object.fromEntries(
+    [...drawings]
+      .filter(([name, d]) => d.length > 1 && !WITHHELD.has(name))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, d]) => [name, d.map((x) => `${x.sheet}/${String(x.index + 1).padStart(2, "0")}`)]),
+  ),
 };
 await writeFile(path.join(ROOT, "assets/icon-replacement.json"), JSON.stringify(report, null, 1), "utf8");
 
