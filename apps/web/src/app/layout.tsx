@@ -6,7 +6,6 @@ import { prefersLessData } from "@/lib/save-data";
 import { NONCE_HEADER } from "@/lib/security/csp";
 import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
-import { TiltField } from "@/components/site/TiltField";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import "./globals.css";
 
@@ -242,6 +241,19 @@ export default async function RootLayout({
               "try{var c=navigator.connection;if(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))document.documentElement.dataset.saveData='on'}catch(e){}",
           }}
         />
+        {/*
+          WITHOUT JAVASCRIPT, EVERYTHING BELOW THE FOLD WAS INVISIBLE.
+
+          Reveal renders data-shown="false" on the server and an
+          IntersectionObserver flips it, so a reader with no JavaScript, or a
+          crawler that does not run it, got a page that faded out one viewport
+          down and never came back. The fix costs nothing where JavaScript
+          runs: this style exists only inside noscript, so the entrance
+          choreography is untouched for everyone who can see it.
+        */}
+        <noscript>
+          <style>{`.nf-reveal { opacity: 1 !important; transform: none !important; }`}</style>
+        </noscript>
         {/* The living canvas, mounted once behind every page. */}
         <div className="nf-ambient" aria-hidden="true">
           <span />
@@ -250,7 +262,6 @@ export default async function RootLayout({
           <span />
         </div>
         <LivingCanvas />
-        <TiltField />
         {/* Film grain over everything, so surfaces feel physical, not printed. */}
         <div className="nf-grain" aria-hidden="true" />
         <ScrollToTop />

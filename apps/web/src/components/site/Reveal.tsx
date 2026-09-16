@@ -11,7 +11,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * motion by rendering visible immediately. `delay` staggers siblings.
  *
  * ALREADY ON SCREEN MEANS ALREADY REVEALED. A block sitting in the viewport at
- * first paint gets `data-instant`, which switches the scroll-driven animation
+ * first paint is shown outright rather than left mid flight.
+ *
+ * `data-instant` used to be set here too, feeding a second, scroll-driven
  * off for it entirely. Without that, the CSS view() timeline held the first
  * result card on /search at 56% opacity behind a 1.3px blur until the visitor
  * scrolled, because an animation outranks this component's revealed state in the
@@ -32,13 +34,11 @@ export function Reveal({
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [shown, setShown] = useState(false);
-  const [instant, setInstant] = useState(false);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
       setShown(true);
-      setInstant(true);
       return;
     }
     const el = ref.current;
@@ -50,7 +50,6 @@ export function Reveal({
     const box = el.getBoundingClientRect();
     if (box.top < window.innerHeight) {
       setShown(true);
-      setInstant(true);
       return;
     }
 
@@ -74,7 +73,6 @@ export function Reveal({
     <Comp
       ref={ref as React.Ref<HTMLDivElement>}
       data-shown={shown}
-      data-instant={instant ? "true" : undefined}
       style={{ transitionDelay: shown ? `${delay}ms` : "0ms" }}
       className={`nf-reveal ${className ?? ""}`}
     >

@@ -34,7 +34,7 @@ export default function AgentError({
   return (
     <main
       id="main"
-      className="flex min-h-dvh flex-col items-center justify-center px-5 py-10"
+      className="flex min-h-dvh flex-col items-center justify-center px-gutter py-section"
     >
       {/* Rose and a warning triangle. `variant="warning"` resolved to
           `--nf-state-warning`, which is the same token `--nf-status-pending` is

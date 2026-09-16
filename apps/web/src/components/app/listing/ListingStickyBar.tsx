@@ -1,6 +1,6 @@
 "use client";
 
-import { getDictionary, plural, type Locale } from "@vallo/i18n";
+import { getDictionary, isGlanceCompact, plural, type Locale } from "@vallo/i18n";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -109,9 +109,7 @@ export function ListingStickyBar({
     quoting && stay
       ? t.reserve.totalForNights.replace("{nights}", plural(stay.nights, t.counts.nights, locale))
       : moveIn
-        ? moveInStated === true
-          ? "to move in"
-          : "to move in, from the parts named"
+        ? "to move in"
         : perLabel;
 
   const external = (a: StickyAction) =>
@@ -135,6 +133,18 @@ export function ListingStickyBar({
               {/* No `truncate` on a price: a clipped figure states a wrong
                   number. The bar's own layout gives this column the room. */}
               <span data-testid="sticky-total" className="min-w-0">
+                {/* "from" sits before the figure rather than in the caption
+                    after it. The caption tried to carry it as "to move in, from
+                    the parts named" and at 390px, in a column the two buttons
+                    have already narrowed, that wrapped to four lines and made
+                    the bar taller than the decision on it. Four characters in
+                    front of the number say the same thing and the card says it
+                    the same way. */}
+                {moveIn && moveInStated !== true && (
+                  <span className="text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
+                    from{" "}
+                  </span>
+                )}
                 <Amount
                   minorUnits={amount}
                   locale={locale}
@@ -147,6 +157,15 @@ export function ListingStickyBar({
                    */
                   glance
                   className="text-[1.0625rem] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
+                  /* A compacted figure's fraction is a SIGNIFICANT DIGIT, not
+                     kobo: ₦6,750,000 splits into "₦6", ".8" and "m", and the
+                     default muted tail draws that ".8" at 0.62em, so the bar
+                     read as ₦6 on a figure worth ₦6.8m. It keeps the figure's
+                     own size whenever the glance rule has compacted. Same rule,
+                     same reason, as the card. */
+                  secondaryClassName={
+                    isGlanceCompact(amount) ? "" : "text-[0.62em] font-semibold opacity-60"
+                  }
                 />
               </span>
               {/* No `truncate`. A caption that reads "to move in, from the p..."
