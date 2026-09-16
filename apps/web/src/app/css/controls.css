@@ -96,7 +96,7 @@
     justify-content: center;
     width: 100%;
     padding: var(--nf-gap-inline);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     background: transparent;
     color: var(--nf-content-secondary);
@@ -124,14 +124,25 @@
     color: var(--nf-content-on-brand);
   }
 
-  /* The quiet size, for controls that sit inside a card rather than under one:
-     a reply, an edit, a withdraw. Still a 40px target, so it stays a thumb
-     target on a phone rather than becoming a link pretending to be a button. */
-  .nf-btn--sm {
-    padding: var(--nf-gap-inline) var(--nf-space-md);
-    font-size: var(--nf-text-body-sm);
-    border-radius: var(--nf-radius-md);
-  }
+  /*
+   * A SECOND `.nf-btn--sm` STOOD HERE AND IS GONE.
+   *
+   * `buttons.css` defines `.nf-btn--sm` with the same padding and the same font
+   * size, and this file is imported after it, so this copy was the one that
+   * won. It declared nothing the other did not except a `border-radius` of
+   * `--nf-radius-md`, which is 14px, which is what the base `.nf-btn` already
+   * sets through `--nf-radius-control`. So the rule that won the cascade added
+   * exactly nothing and restated two values that had to be kept in step by
+   * hand across two files.
+   *
+   * Its comment also said "Still a 40px target" while the rule in buttons.css
+   * says 44 and sets `--nf-btn-h: 2.75rem` to prove it. Two comments about one
+   * class disagreeing about its height is the clearest possible sign that
+   * nobody knew both existed.
+   *
+   * The size lives in `buttons.css` with the other three. Nothing moved a
+   * pixel.
+   */
 
   /* Devices without backdrop-filter get a solid body, never a washed out panel. */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -344,12 +355,27 @@
   /*
    * The square variant. A round control reads as "one more action"; a square
    * one reads as a panel you open, which is what the filter drawer is. The
-   * radius is deliberately the card radius, not the pill, so the opener looks
-   * like the surface it summons rather than like the search button beside it.
+   * radius is deliberately softer than the control's, so the opener looks like
+   * the surface it summons rather than like the search button beside it.
    * Everything else is inherited, so the two shapes stay one material.
+   *
+   * IT WAS A VARIANT THAT CHANGED NOTHING. It set `--nf-radius-md`, which is
+   * 14px, and `.nf-icon-btn` above sets `--nf-radius-control`, which is also
+   * 14px. Written when the base was a full pill and the comment's "not the
+   * pill" was the whole point; the base moved to 14 in the pass that took the
+   * capsules off every control, and this variant silently became a no-op. Two
+   * live call sites - `FilterDrawer.tsx` and `FilterLink.tsx` - have been
+   * asking for a different shape and getting the one they already had.
+   *
+   * `--nf-radius-lg`, 18px, which is a real step away from 14 on a 52px box
+   * without going all the way to the card's 22. NOT CHECKED IN A BROWSER: the
+   * argument that the variant must differ from the base is arithmetic, the
+   * choice of 18 over 22 is a judgement, and if the openers are meant to match
+   * the buttons then the honest answer is to delete the variant and the two
+   * call sites rather than to leave it drawing nothing.
    */
   .nf-icon-btn--square {
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-lg);
   }
 
   /*

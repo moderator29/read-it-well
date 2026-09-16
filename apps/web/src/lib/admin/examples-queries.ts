@@ -1,7 +1,7 @@
 import "server-only";
 
 import { Constants } from "../supabase/database.types";
-import type { AdminRead } from "./money-queries";
+import { SUMMARY_LIMIT, type AdminRead } from "./money-queries";
 import { requireAdmin } from "./guard";
 import {
   lagosDayEnd,
@@ -138,9 +138,11 @@ function amountOf(row: ExampleRow): number | null {
  * cleared queue that was not cleared.
  *
  * The second read is three columns over `is_demo` rows and nothing else, so it
- * costs a round trip and no meaningful bytes. It also fixes a quieter fault: the
+ * costs a round trip and no meaningful bytes. It also lifts a quieter fault: the
  * single read was capped at 300, so every figure on this screen was already
- * silently wrong above 300 examples.
+ * silently wrong above 300 examples. It is a higher ceiling and not an absent
+ * one - `SUMMARY_LIMIT` rows - and above that the tiles are a floor. A seeded
+ * catalogue of two thousand would be its own problem.
  */
 export async function getExamplesConsole(
   filter?: AdminQueueFilter,
@@ -164,7 +166,8 @@ export async function getExamplesConsole(
       access.supabase
         .from("listings")
         .select("status, city, demo_retire_after")
-        .eq("is_demo", true),
+        .eq("is_demo", true)
+        .limit(SUMMARY_LIMIT),
     ]);
     const { data: paged, error } = listed;
     if (error || everything.error) return UNAVAILABLE;

@@ -53,12 +53,41 @@
       box-shadow: var(--nf-elev-2);
     }
   }
+  /*
+   * A CHIP AND A CARD WERE THE SAME OBJECT IN DAYLIGHT.
+   *
+   * This rule painted the chip `--nf-surface-primary` with a `--nf-border-default`
+   * hairline, `--nf-content-primary` ink and `--nf-elev-1`. A daylight card is
+   * pure white with a hairline and `--nf-elev-1`. Every property matched. So the
+   * filter row on `/search` was eight small cards sitting on a card, and there
+   * was nothing in the material to say which was the surface and which was the
+   * control.
+   *
+   * THE CHIP IS RECESSED ON PAPER AND RAISED AT NIGHT, and that is not a
+   * compromise, it is the only honest answer on each ground. A surface separates
+   * from its background by being lighter or darker than it, and a ground only
+   * offers one of those: on the near-black canvas a chip lifts with a pale glass
+   * fill, and on white paper there is nothing lighter than the page, so it sets
+   * into it. Same relationship, opposite direction, which is exactly what the
+   * wash and shade ladders do everywhere else in this file.
+   *
+   * `--nf-surface-inset` is the grey the finding asks for. The literal token it
+   * names, `--nf-surface-secondary`, is #FFFFFF in daylight - the same white as
+   * primary and elevated - so taking it at its word would have changed nothing
+   * at all. Inset is what "the grey" means here, and it is also the token the
+   * sunken panel and the field well already use, so a recessed chip is made of
+   * the same material as every other recessed thing on paper.
+   *
+   * THE DROP SHADOW GOES WITH IT. A recessed object does not cast one. Keeping
+   * `--nf-elev-1` under an inset fill is the contradiction that made the chip
+   * read as a card in the first place, one layer down.
+   */
   :root[data-theme="light"] .nf-chip,
   :root[data-theme="light"] .nf-icon-btn {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-subtle);
     color: var(--nf-content-primary);
-    box-shadow: var(--nf-elev-1);
+    box-shadow: none;
   }
   /*
    * HOVER IS NEUTRAL ON PAPER TOO, and it was the brand edge.
@@ -68,14 +97,20 @@
    * `--nf-brand-edge` would have kept the older meaning alive in the theme half
    * the users are in - a pointer passing over a chip would have given it the
    * same signal as selecting it, one step quieter - which is the ambiguity the
-   * night change removed. Hover lifts a rung and darkens the hairline; selection
-   * is blue. Same sentence in both themes.
+   * night change removed. Selection is blue; hover is not.
+   *
+   * AND HOVER RISES TO THE PAGE RATHER THAN LIFTING OFF IT. It was
+   * `box-shadow: var(--nf-elev-2)`, a drop shadow, which was coherent while the
+   * chip was a little white card and is not now that it is set into the surface.
+   * A recessed control answers a pointer by coming UP to meet it, so the fill
+   * travels from the inset grey to the page's own white and the hairline
+   * darkens. Nothing is cast, because nothing has left the surface.
    */
   @media (hover: hover) {
     :root[data-theme="light"] .nf-chip:hover,
     :root[data-theme="light"] .nf-icon-btn:hover {
+      background: var(--nf-surface-primary);
       border-color: var(--nf-border-strong);
-      box-shadow: var(--nf-elev-2);
     }
   }
   /* Active filter chips go solid brand blue with white text, table-header

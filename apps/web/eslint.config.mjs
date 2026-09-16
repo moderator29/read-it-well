@@ -243,15 +243,51 @@ const config = [
    * first step towards the config being deleted rather than obeyed, and it is
    * the reasoning this file has already applied twice.
    *
-   * WHERE THE RATCHET STARTS. `src/design-system/**` is at zero as of this
-   * commit and `src/components/ui/**` is at zero with one disabled line
-   * carrying its reason. Those two are the first candidates for `error`, and
-   * they should be promoted in the change that verifies them rather than in
-   * the change that introduces the rule: a rule and its first enforcement in
-   * one commit is a rule nobody has had a chance to disagree with.
+   * THE RATCHET HAS TIGHTENED ONCE, WHICH IS THE POINT OF HAVING ONE.
+   *
+   * The rule shipped as `warn` everywhere, deliberately, because a rule and its
+   * first enforcement in one commit is a rule nobody has had a chance to
+   * disagree with. It has since survived a commit and a re-audit, and
+   * `src/design-system/**` and `src/components/ui/**` are still at zero - the
+   * latter with one `eslint-disable-next-line` carrying its reason on it, which
+   * is the escape hatch working as designed rather than a violation hiding.
+   *
+   * So those two are `error` now, the same shape the colour and spacing rules
+   * above use, and for the same stated reason: a rule holds a real line where
+   * the migration has landed and describes an aspiration everywhere else. A
+   * ratchet that never tightens is a warning nobody reads.
+   *
+   * WHAT PROMOTES NEXT. 1,110 sites remain, and here is every one of them by
+   * directory, counted rather than estimated, so the two other workstreams can
+   * take theirs without re-running anything:
+   *
+   *     225  src/app/admin                 31  src/components/auth
+   *     169  src/app/(app)                 11  src/components/site
+   *     168  src/app/agent                  8  src/lib
+   *     141  src/app/(site)                 6  src/app/(auth)
+   *     133  src/components/app             4  src/app/offline
+   *     121  src/components/social          3  src/components/messages
+   *      51  src/components/agent           3  src/components/roles
+   *      32  src/components/verification    2  src/app/page.tsx
+   *                                         1  src/app/error.tsx
+   *                                         1  src/app/not-found.tsx
+   *
+   * `src/components/site/**` at 11 and `src/app/(auth)/**` at 6 could reach
+   * zero in an afternoon; `src/app/admin/**` at 225 is a project. Nothing
+   * should be promoted on the strength of being SMALL, though - it should be
+   * promoted the day somebody has actually read the sites and moved them, which
+   * is the difference between this list and a wish. Four of the five largest
+   * are also where the product's densest screens live, so the sizes there are
+   * more likely to be load-bearing than lazy.
    * ------------------------------------------------------------------ */
   {
+    files: ["src/design-system/**/*.{ts,tsx}", "src/components/ui/**/*.{ts,tsx}"],
+    plugins: { nf },
+    rules: { "nf/no-arbitrary-font-size": "error" },
+  },
+  {
     files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/design-system/**/*.{ts,tsx}", "src/components/ui/**/*.{ts,tsx}"],
     plugins: { nf },
     rules: { "nf/no-arbitrary-font-size": "warn" },
   },

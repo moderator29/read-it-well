@@ -288,6 +288,28 @@ export function BrandIcon({
    * React to something real rather than to a loop: "alert" rings the object
    * while something is unread, "confirmed" pops it once when a booking lands,
    * "verified" pulses its inner ring while a check is in force.
+   *
+   * IT ONLY WORKS WITH `tile`, AND THE COMPONENT DOES NOT SAY SO ANYWHERE ELSE.
+   *
+   * `data-state` is written by the TILED branch at the bottom of this file and
+   * by nothing else, and every rule that reads it in glass.css is scoped to
+   * `.nf-icon-tile`. `tile` defaults to `false`. So a call that passes `state`
+   * without also passing `tile` is accepted by the type, rendered without the
+   * attribute, and does nothing at all - no error, no warning, no visible
+   * difference from not having passed it.
+   *
+   * That is F2-025, and it is still open. The finding was expected to close
+   * itself when `MomentScreen` was deleted, on the basis that it was the only
+   * caller. It was not: `app/(app)/listing/[id]/ReservePanel.tsx` passes
+   * `state="confirmed"` on the booking-requested mark, without `tile`, so the
+   * one confirmation pop the component exists to give is the one thing that
+   * does not happen there.
+   *
+   * The prop is therefore NOT dead and was not removed with the moment screen.
+   * Two honest ways out, neither of them this workstream's to take alone:
+   * the call site adds `tile`, or the untiled branch learns `data-state` and
+   * `.nf-brand-icon-ground[data-state]` gains the three rules - which is new
+   * motion on a money surface and a design decision rather than a cleanup.
    */
   state?: "alert" | "confirmed" | "verified";
   className?: string;

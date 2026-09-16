@@ -83,7 +83,27 @@
       color var(--nf-duration-base) var(--nf-ease-standard);
   }
 
-  /* Specular sheen across the upper half. */
+  /*
+   * Specular sheen across the upper half, AND IT REACHES TWO OF THE FIVE
+   * VARIANTS. That was never written down and it should have been, because it
+   * is a decision and it currently looks like a collision.
+   *
+   * `::after` is the only spare pseudo-element on a button - `::before` is the
+   * 44pt hit area on `--sm`, which a spec measures - so every variant that
+   * wants that slot for something else takes it from this rule, and CSS gives
+   * no sign when one rule replaces another's pseudo-element.
+   *
+   * WHO HAS IT: `--danger` had it and no longer does (see the note there), and
+   * a bare `.nf-btn` with no variant, which `Button.tsx` never renders because
+   * `variant` defaults to `secondary`. One hand-written call site does -
+   * `components/social/profile/ProfileMenu.tsx` - so the rule stays as the
+   * honest fallback for markup that asks for a button and nothing more.
+   *
+   * WHO DOES NOT, AND WHY: `--ghost`, `--glass` and `--danger-quiet` set
+   * `content: none` outright, because a sheen on a transparent or near-white
+   * fill is a white smear on nothing. `--primary` REPLACES it with the press
+   * ripple, which is the trade the note beside that rule explains.
+   */
   .nf-btn::after {
     content: "";
     position: absolute;
@@ -256,6 +276,20 @@
    * used control carried its longest animation, and it ran on a pointer event
    * that most of this product's users do not have. A press sweep is a physical
    * answer to a finger; a hover sweep is a light show.
+   *
+   * AND IT TAKES THE PSEUDO-ELEMENT FROM THE SHEEN, DELIBERATELY. The base
+   * `.nf-btn::after` is a specular gloss across the upper half, and this rule
+   * has the same specificity and comes later, so the primary has no sheen. That
+   * was true before anyone wrote it down, which made it indistinguishable from
+   * an accident.
+   *
+   * It is the right trade. The primary's fill is `--nf-gradient-cta`, a
+   * vertical ramp that is already lightest at the top, and it carries
+   * `inset 0 1px 0 var(--nf-glass-rim)` as well, so the top light is stated
+   * twice before any gloss is added; a third statement of it is not depth, it
+   * is haze. The ripple, by contrast, is the ONLY physical feedback a touch
+   * user gets from the platform's most-pressed control. One slot, and the
+   * feedback wins.
    */
   .nf-btn--primary::after {
     content: "";
@@ -329,6 +363,25 @@
     );
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 70%, transparent);
     box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+  }
+  /*
+   * AND IT LOSES THE SHEEN, for the same reason it lost the bloom.
+   *
+   * Danger was the one gradient-filled variant still carrying the base
+   * `.nf-btn::after` gloss, and its construction is the primary's exactly: a
+   * vertical ramp that is lightest at the top, plus `inset 0 1px 0` of rim. The
+   * top light was already said twice and the gloss said it a third time, in
+   * white, over red. The primary does not carry it and nobody had noticed that
+   * the destructive button did - which is the same asymmetry F2-040 found in
+   * the glow, one layer down: "Danger gets its colour and its weight."
+   *
+   * `content: none` rather than a replacement, because unlike the primary there
+   * is nothing better to put in the slot: danger has no ripple. Same form as
+   * `--ghost`, `--glass` and `--danger-quiet` two rules down, so four of the
+   * five variants now opt out the same visible way and only one trades.
+   */
+  .nf-btn--danger::after {
+    content: none;
   }
   @media (hover: hover) {
     .nf-btn--danger:hover:not(:disabled) {

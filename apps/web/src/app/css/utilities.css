@@ -502,7 +502,7 @@
     display: block;
     width: 100%;
     text-align: start;
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     background: var(--nf-surface-inset);
     padding: var(--nf-pad-card-sm);
@@ -558,7 +558,7 @@
     gap: var(--nf-gap-row);
     text-align: center;
     padding-block: var(--nf-gap-inline);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-control);
     color: var(--nf-content-primary);
   }
 

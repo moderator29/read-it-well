@@ -192,6 +192,15 @@ export async function getMoneyConsole(): Promise<AdminRead<MoneyConsole>> {
   }
 }
 
+/**
+ * How many rows a headline figure is summed over.
+ *
+ * Shared by the escrow desk and the examples console, because both draw tiles
+ * that must not re-scope under a filter and both therefore read a second, thin
+ * slice of their table to compute them. See the note on `getEscrowConsole`.
+ */
+export const SUMMARY_LIMIT = 2000;
+
 /* ------------------------------------------------------------------ escrow */
 
 export type EscrowView = {
@@ -244,11 +253,18 @@ const ESCROW_COLUMNS =
  * nothing on screen saying the number had changed meaning. A stat tile that
  * quietly re-scopes itself under a filter is worse than no tile.
  *
- * So the totals come from their own two-column read of every escrow, and the
- * list comes from the narrowed one. That is a second round trip and it is worth
- * it: the previous single read was capped at 200 rows, so the totals were
- * already silently approximate the moment there were 201 escrows, and this
- * fixes that at the same time.
+ * So the totals come from their own two-column read, and the list comes from
+ * the narrowed one. That is a second round trip and it is worth it: the
+ * previous single read was capped at 200 rows, so the totals were already
+ * silently approximate the moment there were 201 escrows.
+ *
+ * IT IS A HIGHER CEILING RATHER THAN NO CEILING, and that is worth saying
+ * plainly. `SUMMARY_LIMIT` rows are summed, so above that the figures become a
+ * floor rather than a total, exactly as they were above 200 before. The honest
+ * end state is a database-side aggregate - a view that sums by state - which is
+ * a schema change and is written up as a recommendation rather than guessed at
+ * here. Two thousand escrows is a long way from where this platform is, and the
+ * bound is stated rather than assumed away.
  */
 export async function getEscrowConsole(
   filter?: AdminQueueFilter,
@@ -261,24 +277,74 @@ export async function getEscrowConsole(
   const page = pageRange(filter);
 
   try {
+    /*
+     * THE TOTALS READ RUNS FIRST AND UNCONDITIONALLY, which is the whole point
+     * of it being a separate read. An early return on "no listing matched that"
+     * that also returned zeroed tiles would re-scope the headline figures under
+     * a filter, which is exactly the fault this function is written to avoid,
+     * and it would do it in the loudest possible way: "we are holding nothing".
+     */
+    const everything = await access.supabase
+      .from("escrows")
+      .select("state, amount_minor")
+      .limit(SUMMARY_LIMIT);
+    if (everything.error) return UNAVAILABLE;
+
+    const all = everything.data ?? [];
+    const totals = {
+      /* Over EVERY escrow up to `SUMMARY_LIMIT`, never over the filtered page.
+         Only HELD, RELEASE_REQUESTED and DISPUTED money is actually out of
+         somebody's balance: an INITIATED escrow has moved nothing, and counting
+         it would tell an operator the platform is holding money it is not. */
+      heldMinor: all
+        .filter((r) => ["HELD", "RELEASE_REQUESTED", "DISPUTED"].includes(r.state))
+        .reduce((sum, r) => sum + r.amount_minor, 0),
+      openCount: all.filter((r) =>
+        ["INITIATED", "FUNDED", "HELD", "RELEASE_REQUESTED"].includes(r.state),
+      ).length,
+      disputeCount: all.filter((r) => r.state === "DISPUTED").length,
+    };
+    const emptyBoard = {
+      state: "ok" as const,
+      data: { disputes: [], open: [], settled: [], full: false, totals },
+    };
+
+    /*
+     * THE SEARCH RESOLVES LISTING IDS FIRST, rather than filtering on the
+     * embedded `listings.title`.
+     *
+     * Filtering an embedded resource needs PostgREST to treat the embed as an
+     * inner join, which is a behaviour this codebase uses nowhere else and
+     * which nobody here can run against a database to confirm. `getBookingBoard`
+     * already answers the same question - "which rows point at a listing whose
+     * title matches" - with two ordinary queries, and a proven shape beats a
+     * clever one on a screen about money. An empty match short-circuits rather
+     * than sending `in ()` to Postgres, and it keeps the tiles.
+     */
+    let listingMatches: string[] | null = null;
+    if (term.length > 0) {
+      const { data: matched, error: matchError } = await access.supabase
+        .from("listings")
+        .select("id")
+        .ilike("title", `%${term}%`)
+        .limit(60);
+      if (matchError) return UNAVAILABLE;
+      listingMatches = (matched ?? []).map((row) => row.id);
+      if (listingMatches.length === 0) return emptyBoard;
+    }
+
     let select = access.supabase.from("escrows").select(ESCROW_COLUMNS);
-    /* The listing's title, through the embedded relation, because "the Lekki
-       flat" is how an operator remembers an escrow. Not the id: an id is how
-       you find a row you already have. */
-    if (term.length > 0) select = select.ilike("listings.title", `%${term}%`).not("listings", "is", null);
+    if (listingMatches) select = select.in("listing_id", listingMatches);
     if (state) select = select.eq("state", state);
     if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
     if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
 
-    const [listed, everything] = await Promise.all([
-      select.order("created_at", { ascending: false }).range(page.from, page.to),
-      access.supabase.from("escrows").select("state, amount_minor"),
-    ]);
-    const { data, error } = listed;
-    if (error || everything.error) return UNAVAILABLE;
+    const { data, error } = await select
+      .order("created_at", { ascending: false })
+      .range(page.from, page.to);
+    if (error) return UNAVAILABLE;
 
-    const { rows: data_, full } = takePage(data ?? []);
-    const rows = data_;
+    const { rows, full } = takePage(data ?? []);
     const names = await displayNames(
       access.supabase,
       rows.flatMap((r) => [r.payer_id, r.payee_id]),
@@ -314,30 +380,7 @@ export async function getEscrowConsole(
        fetched, and is then dropped on the floor with no Next link to reach it. */
     const settled = views.filter((v) => ["RELEASED", "REFUNDED", "RESOLVED"].includes(v.state));
 
-    const all = everything.data ?? [];
-    return {
-      state: "ok",
-      data: {
-        disputes,
-        open,
-        settled,
-        full,
-        totals: {
-          /* Over EVERY escrow, not over the filtered page. See the note above
-             this function. Only HELD, RELEASE_REQUESTED and DISPUTED money is
-             actually out of somebody's balance: an INITIATED escrow has moved
-             nothing, and counting it would tell an operator the platform is
-             holding money it is not. */
-          heldMinor: all
-            .filter((r) => ["HELD", "RELEASE_REQUESTED", "DISPUTED"].includes(r.state))
-            .reduce((sum, r) => sum + r.amount_minor, 0),
-          openCount: all.filter((r) =>
-            ["INITIATED", "FUNDED", "HELD", "RELEASE_REQUESTED"].includes(r.state),
-          ).length,
-          disputeCount: all.filter((r) => r.state === "DISPUTED").length,
-        },
-      },
-    };
+    return { state: "ok", data: { disputes, open, settled, full, totals } };
   } catch {
     return UNAVAILABLE;
   }

@@ -1027,8 +1027,37 @@
    * `--nf-radius-pill` STAYS, because a progress bar's cap and a sheet grip
    * genuinely want a semicircle and would look wrong at 14px. What it no
    * longer means is "this is a control".
-   */
-  --nf-radius-control: 14px;
+   *
+   * ------------------------------------------------------------------
+   * AND IT DERIVES FROM THE RUNG NOW, BECAUSE 14px WAS WRITTEN TWICE.
+   *
+   * `--nf-radius-md` is 14px and this was 14px, independently, and the two had
+   * no stated relationship. One number, two definitions, either of which could
+   * be edited without the other: the exact fault the elevation ladder, the
+   * spacing ladder and the header height have each been through this sprint.
+   *
+   * THE DIRECTION IS RUNG TO ROLE, not the other way round, and that is the
+   * precedent the rest of the system already sets: `--nf-gap-row` derives from
+   * `--nf-space-sm`, `--nf-pad-card` from `--nf-space-lg`. Rungs are the
+   * primitives and roles say what a primitive is FOR. Inverting it here would
+   * have made this file the one place a rung was defined in terms of a job.
+   *
+   * BOTH NAMES SURVIVE AND THAT IS DELIBERATE. `--nf-radius-control` is the one
+   * to reach for on anything you press, because it says so and because the day
+   * controls want 12 or 18 there is one line to change; `--nf-radius-md` is the
+   * one to reach for when you want the rung and the object is not a control - a
+   * skeleton block, a notice panel, a thumbnail. The number exists once either
+   * way.
+   *
+   * WHAT IS LEFT, for the two workstreams that own it: roughly 145 references
+   * to `--nf-radius-md` and `rounded-md` across 71 files. None of them is
+   * wrong - they all resolve to the same 14px - but the ones on controls should
+   * read the role, and the heaviest are `app/social-feed.css` (9),
+   * `agent/list/ListingWizard.tsx` (5), `(site)/styleguide/page.tsx` (4),
+   * `(app)/around/new/loading.tsx` (4), then a long tail of two and three. The
+   * design system's own six have been moved.
+   * ------------------------------------------------------------------ */
+  --nf-radius-control: var(--nf-radius-md);
 
   /* ---------------------------------------------------------------------
    * BORDER WIDTH. Two values, and neither of them is a half pixel.
