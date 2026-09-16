@@ -148,8 +148,10 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
         <p>We do not sell personal data. We share it only where the service requires:</p>
         <ul>
           <li>
-            <strong>Agents and guests.</strong> When you book, the agent sees the details
-            needed to host you. When you list, guests see your public agent profile.
+            <strong>Agents and the people who contact them.</strong> When you book a
+            stay, request an inspection, apply for a tenancy or enquire about a sale,
+            the agent sees the details they need to answer you. When you list, the
+            people who contact you see your public agent profile.
           </li>
           <li>
             <strong>Payment processors.</strong> Licensed Nigerian providers that process

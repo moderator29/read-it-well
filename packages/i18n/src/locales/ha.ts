@@ -1272,6 +1272,8 @@ export const ha: Dictionary = {
     status: {
       PENDING: "Yana jiran shawararka",
       CONFIRMED: "An tabbatar",
+      COMPLETED: "An gama zaman",
+      NO_SHOW: "Bako bai zo ba",
       CANCELLED: "An soke",
     },
     actions: {
@@ -1535,6 +1537,8 @@ export const ha: Dictionary = {
         SUSPENDED: "An dakatar",
         PENDING: "An nema",
         CONFIRMED: "An tabbatar",
+        COMPLETED: "An kammala",
+        NO_SHOW: "Bai zo ba",
         CANCELLED: "An soke",
       },
     },

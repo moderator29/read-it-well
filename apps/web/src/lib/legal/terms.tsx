@@ -199,16 +199,26 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <ul>
         <li>
-          One cancellation schedule covers every stay, rather than a different one for
-          each host: everything back until 72 hours before check-in, half back inside
-          that window, and nothing back once check-in day has started.
+          <strong>This schedule governs stays booked and paid for on{" "}
+          {COMPANY_TRADING_NAME}</strong>, which is a shortlet, a hotel room or anything
+          else let by the night. One schedule covers all of them, rather than a
+          different one for each agent: everything back until 72 hours before check-in,
+          half back inside that window, and nothing back once check-in day has started.
+        </li>
+        <li>
+          <strong>A tenancy, a sale, a lease or a purchase of land is not governed by
+          it</strong>, because no money for one of those passes through{" "}
+          {COMPANY_TRADING_NAME}. What is payable, what is returnable and on what notice
+          are terms of the agreement you sign with the landlord, the vendor or their
+          agent, and you should read that agreement before you pay anybody anything. We
+          carry the messages and we hold no part of that money.
         </li>
         <li>
           A stay nobody has paid for is only a hold on the calendar and can be called
           off at any time for nothing.
         </li>
         <li>
-          If the host cancels, the property was not what was listed, or you could not
+          If the agent cancels, the property was not what was listed, or you could not
           get in, you get everything back whenever it happens. Report it rather than
           cancelling it yourself.
         </li>

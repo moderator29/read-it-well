@@ -7,6 +7,7 @@ import type { Listing } from "../listings/types";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { lagosToday } from "./schema";
+import type { Database } from "../supabase/database.types";
 
 /**
  * Read side of the bookings loop.
@@ -57,7 +58,7 @@ export type BookingView = {
   nights: number;
   guests: number;
   totalDisplay: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+  status: Database["public"]["Enums"]["booking_status"];
   /** True when the guest may still call the stay off. */
   cancellable: boolean;
   /** The person actually arriving, when the payer booked it for somebody else. */

@@ -1282,6 +1282,8 @@ export const ig: Dictionary = {
     status: {
       PENDING: "Na-eche mkpebi gị",
       CONFIRMED: "Akwadoro ya",
+      COMPLETED: "Ọbibi emechaala",
+      NO_SHOW: "Ọbịa abịaghị",
       CANCELLED: "Akagburu",
     },
     actions: {
@@ -1545,6 +1547,8 @@ export const ig: Dictionary = {
         SUSPENDED: "Akwụsịtụrụ ya",
         PENDING: "A rịọrọ",
         CONFIRMED: "E kwadoro",
+        COMPLETED: "Emechaala",
+        NO_SHOW: "Ọ bịaghị",
         CANCELLED: "Akagbuola",
       },
     },

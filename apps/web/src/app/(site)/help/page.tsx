@@ -89,7 +89,7 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "How do refunds work?",
-    a: "One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the host's. If the host cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your Vallo wallet, and you move them to your bank from there.",
+    a: "One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the agent's. If the agent cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your Vallo wallet, and you move them to your bank from there.",
   },
   {
     category: "Payments and refunds",
@@ -143,7 +143,7 @@ const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "Does Vallo charge any fees?",
-    a: "No. Vallo charges no fees. Not to book, not to list, not to be paid. The total you see before you confirm a stay is the host's nightly rate and cleaning charge and nothing else. Anyone presenting an inspection fee, a holding fee, an agency fee or a caution fee as ours is lying, and you should report them.",
+    a: "No. Vallo charges no fees. Not to book, not to list, not to be paid, in any market on the platform. The total you see before you commit is the agent's own number: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale, a shop, an office or land. Nothing of ours sits on top of it. An agency fee or a caution fee can be a real part of what a landlord asks for, and when it is, it is named on the listing and counted into the move-in total. Anyone presenting an inspection fee, a holding fee or a platform fee as ours is lying, and you should report them.",
   },
   {
     category: "Verification and trust",

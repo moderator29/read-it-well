@@ -54,6 +54,7 @@ import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet
 import { announceConfirmedStay } from "./arrival";
 import { cancelInputSchema } from "./schema";
 import { bookingForReference, markChargeFailed, settleBookingCharge } from "./settlement";
+import type { Database } from "../supabase/database.types";
 
 const PAUSED_MESSAGE =
   "Bookings are paused for maintenance. Please try again in a little while.";
@@ -130,7 +131,7 @@ type PayableBooking = {
   id: string;
   listing_id: string;
   guest_id: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+  status: Database["public"]["Enums"]["booking_status"];
   check_in: string;
   check_out: string;
   nights: number;

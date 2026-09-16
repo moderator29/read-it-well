@@ -141,9 +141,10 @@ export const CHAPTERS: DocChapter[] = [
               design.
             </p>
             <p>
-              <strong>Agents and hosts.</strong> Independent agents, estate managers and
-              property owners who want their stock in front of people without paying to
-              be there.
+              <strong>Agents.</strong> Independent agents, estate managers and property
+              owners who want their stock in front of people without paying to be there.
+              One word for all of them, whether what they list is a room for a weekend,
+              a flat for a year, a shop, an office or a plot of land.
             </p>
             <p>
               <strong>People who live somewhere.</strong> You do not have to be booking
@@ -160,10 +161,20 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               Vallo takes no fee. Not to look, not to book, not to list, not to be
-              paid. The total on a booking is the nightly rate multiplied by the nights
-              plus a cleaning charge if the host sets one. There is no service fee, no
-              booking fee, no listing fee and no commission taken out of what a guest
-              pays an agent.
+              paid. There is no service fee, no booking fee, no listing fee and no
+              commission taken out of what anybody pays an agent, in any market on
+              this platform.
+            </p>
+            <p>
+              What a total is made of depends on the market, and in every one of them
+              it is the agent&rsquo;s number and nothing of ours on top of it. On a
+              shortlet or a hotel room it is the nights multiplied by the rate, plus a
+              cleaning charge where the agent sets one. On a yearly tenancy it is the
+              move-in total, which is the rent and every other sum payable before you
+              get the keys, printed as one figure. On a sale, on land, and on a shop or
+              an office, the price on the listing is the asking price, and what is
+              finally paid is agreed between you and the agent. Vallo adds nothing to
+              any of them and takes a share of none of them.
             </p>
             <p>
               This is not a promotion with an end date. It is how the ledger is built:
@@ -468,7 +479,7 @@ export const CHAPTERS: DocChapter[] = [
               </li>
               <li>
                 <strong>Instant book.</strong> Only places you can book without waiting
-                for the host to accept.
+                for the agent to accept.
               </li>
               <li>
                 <strong>Verified only.</strong> Only listings that carry the verified
@@ -493,7 +504,7 @@ export const CHAPTERS: DocChapter[] = [
             </p>
             <p>
               <strong>Power is a requirement, so the filters combine with AND.</strong>{" "}
-              There are two of them: <em>Backup power</em>, meaning the host has a
+              There are two of them: <em>Backup power</em>, meaning the agent has a
               generator, an inverter or solar, and <em>Band A</em>, meaning the address
               sits on a Band A feeder. A place can have both, so asking for both means
               both.
@@ -506,7 +517,7 @@ export const CHAPTERS: DocChapter[] = [
               rather than a filter.
             </p>
             <p>
-              A host who has not answered is not counted as a yes. Silence about the
+              An agent who has not answered is not counted as a yes. Silence about the
               light is shown as silence, and the filter leaves that listing out.
             </p>
           </>
@@ -590,7 +601,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               A listing opens with its photographs, then the title, the area and city, the
               price, and the rows that matter: rooms, guests, amenities, light and water,
-              the gate, the host, the reviews and the map.
+              the gate, the agent, the reviews and the map.
             </p>
             <p>
               Tap any photograph to open the viewer and go through the set full screen.
@@ -611,8 +622,8 @@ export const CHAPTERS: DocChapter[] = [
               the strongest thing a listing can say about itself here.
             </li>
             <li>
-              <strong>Instant.</strong> You can book without waiting for the host to
-              accept. Without it, the host has to accept your request first.
+              <strong>Instant.</strong> You can book without waiting for the agent to
+              accept. Without it, the agent has to accept your request first.
             </li>
           </ul>
         ),
@@ -663,9 +674,9 @@ export const CHAPTERS: DocChapter[] = [
               nothing from the distribution company.
             </p>
             <p>
-              <strong>What the host does about it.</strong> No backup, a generator, an
+              <strong>What the agent does about it.</strong> No backup, a generator, an
               inverter, solar, or a generator and inverter together. Where there is a
-              backup, the host states how many hours a day it actually runs, which is
+              backup, the agent states how many hours a day it actually runs, which is
               the number that decides whether the place is livable in a bad week.
             </p>
             <p>
@@ -673,7 +684,7 @@ export const CHAPTERS: DocChapter[] = [
               whether you can be asked to buy units.
             </p>
             <p>
-              <strong>Unanswered is shown as unanswered.</strong> A host who has not said
+              <strong>Unanswered is shown as unanswered.</strong> An agent who has not said
               whether there is light does not get silence read as good news. Where the
               answer is missing, the listing says so and points you at the one control
               that gets a real answer: message the agent.
@@ -724,7 +735,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               So they are not on the listing. A published listing is readable by the whole
               internet, and a gate code stored on it would be a gate code published. They
-              live in their own place with their own rule: the host can see them, an
+              live in their own place with their own rule: the agent can see them, an
               administrator can see them, and a guest holding a confirmed booking on that
               listing can see them. Nobody else, ever.
             </p>
@@ -805,7 +816,7 @@ export const CHAPTERS: DocChapter[] = [
           <p>
             The person paying is often not the person staying: a sister in London pays for
             a cousin flying into Lagos. You can name the guest who will arrive, with their
-            phone number, and that is what the host and the gate get. Leave it blank and
+            phone number, and that is what the agent and the gate get. Leave it blank and
             the booking is yours.
           </p>
         ),
@@ -816,7 +827,7 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <ul>
             <li>
-              <strong>Minimum stay.</strong> If the host takes bookings of three nights or
+              <strong>Minimum stay.</strong> If the agent takes bookings of three nights or
               more, a two-night request is refused, and the message names the number so
               you know which way to move.
             </li>
@@ -836,19 +847,32 @@ export const CHAPTERS: DocChapter[] = [
         heading: "The price breakdown",
         body: (
           <>
-            <p>Checkout shows every line that makes up the total, in naira:</p>
+            <p>
+              Checkout is the nightly side of the marketplace: a shortlet, a hotel room
+              or anything else let by the night. A yearly tenancy is settled on its own
+              terms with the agent, and a sale or a lease is negotiated, so neither
+              passes through this screen. What follows is what the nightly path shows
+              you, in naira:
+            </p>
             <ul>
               <li>
-                <strong>The nightly rate multiplied by the nights.</strong> Written out,
-                so you can check the arithmetic.
+                <strong>The rate multiplied by the nights.</strong> Written out, so you
+                can check the arithmetic.
               </li>
               <li>
-                <strong>Cleaning</strong>, only when the host charges for it.
+                <strong>Cleaning</strong>, only when the agent charges for it.
               </li>
               <li>
                 <strong>The total.</strong> Nothing hidden inside it.
               </li>
             </ul>
+            <p>
+              On a yearly tenancy the equivalent figure is the move-in total, printed on
+              the listing before you ever message anybody: the rent plus caution,
+              agency, legal and anything else payable before the keys change hands. It
+              exists for the same reason this breakdown does, which is that the number
+              people actually have to find is the only number worth advertising.
+            </p>
             <p>
               There is no platform line, because the platform takes nothing. The amount
               you are charged is the amount stored on the booking, worked out from the
@@ -893,17 +917,17 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               A listing marked <em>Instant</em> is payable straight away. Everything else
-              is a request: you reserve, the host sees it in their bookings console, and
+              is a request: you reserve, the agent sees it in their bookings console, and
               they accept or decline.
             </p>
             <p>
-              Once a host accepts, the stay is payable. Open it from{" "}
+              Once an agent accepts, the stay is payable. Open it from{" "}
               <Link href="/bookings" className={A}>
                 Bookings
               </Link>{" "}
-              and pay by card or wallet exactly as above. A stay a host has accepted is
+              and pay by card or wallet exactly as above. A stay an agent has accepted is
               not paid until you pay it, and the product says so plainly rather than
-              telling you it is settled when the host has received nothing.
+              telling you it is settled when the agent has received nothing.
             </p>
           </>
         ),
@@ -921,7 +945,7 @@ export const CHAPTERS: DocChapter[] = [
                 directions, security number, any access code.
               </li>
               <li>You get a notification, and an email with the booking on it.</li>
-              <li>The host is told somebody is coming, and who.</li>
+              <li>The agent is told somebody is coming, and who.</li>
             </ul>
             <p>
               Everything after that lives under{" "}
@@ -952,14 +976,14 @@ export const CHAPTERS: DocChapter[] = [
               </li>
               <li>
                 <strong>Inside that window:</strong> half back. The other half stays with
-                the host, whose nights are now very hard to re-let.
+                the agent, whose nights are now very hard to re-let.
               </li>
               <li>
-                <strong>From check-in day onwards:</strong> the stay is the host&apos;s.
+                <strong>From check-in day onwards:</strong> the stay is the agent&apos;s.
               </li>
             </ul>
             <p>
-              If the host cancels, or the property was materially not what was listed, you
+              If the agent cancels, or the property was materially not what was listed, you
               get everything back whenever it happens. Refunds land in your Vallo wallet,
               usually within minutes, and you move them to your bank from there.
             </p>
@@ -1916,7 +1940,7 @@ export const CHAPTERS: DocChapter[] = [
               bookings, your messages and your settings are all reached that way.
             </p>
             <p>
-              Gate details are the sharpest example. They are readable by the host, by an
+              Gate details are the sharpest example. They are readable by the agent, by an
               administrator, and by a guest holding a confirmed booking on that listing,
               and by nobody else, and the rule is enforced by the database rather than by a
               screen deciding what to draw.
@@ -2071,7 +2095,7 @@ export const CHAPTERS: DocChapter[] = [
         heading: "It says the stay is too short, or the party too large",
         body: (
           <p>
-            The host sets a minimum stay and a maximum number of guests. The message names
+            The agent sets a minimum stay and a maximum number of guests. The message names
             the number you need to meet, so add the nights or lower the party. If neither
             works, search again with the guest filter set and you will only be shown places
             that take your party.

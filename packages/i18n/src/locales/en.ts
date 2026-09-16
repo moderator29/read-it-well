@@ -1575,6 +1575,8 @@ export const en = {
     status: {
       PENDING: "Awaiting your decision",
       CONFIRMED: "Confirmed",
+      COMPLETED: "Stay complete",
+      NO_SHOW: "Guest never arrived",
       CANCELLED: "Cancelled",
     },
     actions: {
@@ -1856,6 +1858,8 @@ export const en = {
         SUSPENDED: "Suspended",
         PENDING: "Requested",
         CONFIRMED: "Confirmed",
+        COMPLETED: "Completed",
+        NO_SHOW: "No show",
         CANCELLED: "Cancelled",
       },
     },

@@ -38,11 +38,13 @@ export default function CancellationPolicyPage() {
             Cancellations
           </span>
           <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
-            One cancellation policy, on every listing
+            One cancellation policy, on every stay
           </h1>
           <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            Not one policy per host. The same three steps apply to every stay on
-            Vallo, so you never have to work out which rules you agreed to.
+            Not one policy per agent. The same three steps apply to every stay booked
+            and paid for on Vallo, so you never have to work out which rules you agreed
+            to. A tenancy, a sale or a lease is settled in the agreement you sign with
+            the agent and is not covered by the schedule below.
           </p>
         </div>
 
@@ -65,7 +67,7 @@ export default function CancellationPolicyPage() {
               nothing more. Cancel it from Bookings at any hour, for nothing, and
               the nights reopen for somebody else immediately. A hold you walk
               away from releases itself, so you cannot accidentally block a
-              host&apos;s calendar by forgetting about it.
+              agent&apos;s calendar by forgetting about it.
             </p>
           </div>
         </section>
@@ -107,7 +109,7 @@ export default function CancellationPolicyPage() {
           <ul className="mt-group space-y-row">
             <li className="nf-card p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-                The host cancels
+                The agent cancels
               </h3>
               <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 You get everything back, whenever it happens, including inside
@@ -133,7 +135,7 @@ export default function CancellationPolicyPage() {
               </h3>
               <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 A gate that will not open, an estate that has no record of you, a
-                key nobody brings. Message the host in the thread so there is a
+                key nobody brings. Message the agent in the thread so there is a
                 time stamp, then report it. Same treatment: full refund once it is
                 confirmed.
               </p>

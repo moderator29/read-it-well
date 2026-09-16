@@ -1278,6 +1278,8 @@ export const yo: Dictionary = {
     status: {
       PENDING: "Ń dúró de ìpinnu rẹ",
       CONFIRMED: "A ti fọwọ́sí",
+      COMPLETED: "Ìdúró ti parí",
+      NO_SHOW: "Àlejò kò dé",
       CANCELLED: "A ti fagilé",
     },
     actions: {
@@ -1541,6 +1543,8 @@ export const yo: Dictionary = {
         SUSPENDED: "A dá dúró",
         PENDING: "Tí a béèrè",
         CONFIRMED: "Tí a fọwọ́sí",
+        COMPLETED: "Ó ti parí",
+        NO_SHOW: "Kò dé",
         CANCELLED: "Tí a fagilé",
       },
     },

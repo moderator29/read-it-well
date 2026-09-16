@@ -3,6 +3,7 @@ import "server-only";
 import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { isPaystackConfigured } from "../payments/paystack";
+import type { Database } from "../supabase/database.types";
 
 /**
  * Read side of checkout.
@@ -73,7 +74,7 @@ export type CheckoutView = {
   locale: Locale;
   totalMinor: number;
   totalDisplay: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+  status: Database["public"]["Enums"]["booking_status"];
   /** True once a payment attempt has settled, whatever the status says. */
   paid: boolean;
   /** When the hold on these nights runs out, as an ISO instant. */

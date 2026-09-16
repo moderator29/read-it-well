@@ -3763,7 +3763,7 @@ export type Database = {
       area_status: "PROPOSED" | "ACTIVE" | "PAUSED" | "ARCHIVED" | "REJECTED"
       availability_status: "available" | "booked" | "unavailable"
       badge_audience: "AGENT" | "MEMBER"
-      booking_status: "PENDING" | "CONFIRMED" | "CANCELLED"
+      booking_status: "PENDING" | "CONFIRMED" | "COMPLETED" | "NO_SHOW" | "CANCELLED"
       build_condition: "newly_built" | "renovated" | "old" | "off_plan"
       document_review_status: "pending" | "approved" | "rejected"
       document_subtype:
@@ -4038,7 +4038,7 @@ export const Constants = {
       area_status: ["PROPOSED", "ACTIVE", "PAUSED", "ARCHIVED", "REJECTED"],
       availability_status: ["available", "booked", "unavailable"],
       badge_audience: ["AGENT", "MEMBER"],
-      booking_status: ["PENDING", "CONFIRMED", "CANCELLED"],
+      booking_status: ["PENDING", "CONFIRMED", "COMPLETED", "NO_SHOW", "CANCELLED"],
       build_condition: ["newly_built", "renovated", "old", "off_plan"],
       document_review_status: ["pending", "approved", "rejected"],
       document_subtype: [

@@ -54,20 +54,36 @@ const EMPTY_COPY: Record<TabKey, string> = {
     "Cancelled bookings are kept here so you always have the record, even after the dates have gone.",
 };
 
-/**
- * The words only. The colour is no longer decided here.
+/*
+ * THE LOCAL STATUS MAP IS GONE, AND IT WAS TWO FAULTS AT ONCE.
  *
- * This was a `nf-badge--*` map, and its CANCELLED branch returned an EMPTY
- * class - `.nf-badge` alone paints no fill and no colour, so a cancelled stay
- * rendered an invisible pill where the cancellation notice should have been.
- * `toneForStatus` is the platform's one status vocabulary, so the same word is
- * the same colour here, in the agent's queue and on the wallet ledger.
+ * It was `Record<BookingView["status"], string>` holding three hand-written
+ * English strings. The colour had already been taken off it, correctly, and
+ * routed through `toneForStatus`, which left a map whose only job was to name a
+ * status in one of the four languages this platform ships in. On the screen
+ * where a guest checks what has happened to a stay they have paid for, three of
+ * those four readers got English.
+ *
+ * Then the lifecycle grew. `booking_status` now carries five values, in the
+ * order PENDING, CONFIRMED, COMPLETED, NO_SHOW, CANCELLED, and the map named
+ * three of them, so it stopped compiling the moment the type caught up. The
+ * temptation there is to add two more English strings, which would fix the
+ * build and leave the real fault exactly where it was.
+ *
+ * `t.admin.common.status` is the platform's one status vocabulary and it
+ * already holds all five, translated, in every locale. Reading it means a new
+ * status value is a dictionary entry rather than a fourth private copy of the
+ * same list, and it means this hub, the agent's board and the console cannot
+ * drift into calling one status three different things. It is read through the
+ * same `getDictionary(locale)` call this card already makes for its counts, so
+ * it costs no extra prop and no client boundary.
+ *
+ * WHAT IS NOT IDEAL AND IS NOT THIS OWNER'S TO MOVE: the block lives under
+ * `admin` in the dictionary while it is read here by a guest. The words
+ * themselves are guest-facing - PENDING reads "Requested" - so the naming is
+ * wrong rather than the copy. It is written up rather than renamed, because
+ * `packages/i18n` belongs to somebody else and a rename touches every locale.
  */
-const STATUS_LABEL: Record<BookingView["status"], string> = {
-  PENDING: "Awaiting confirmation",
-  CONFIRMED: "Confirmed",
-  CANCELLED: "Cancelled",
-};
 
 function BookingCard({
   booking: b,
@@ -87,7 +103,12 @@ function BookingCard({
      that ships in four languages, and the inflection itself only ever had two
      forms. Both now come from the shared `counts` block and pick their category
      through `Intl.PluralRules` for the reader's own locale. */
-  const counts = getDictionary(locale).counts;
+  const t = getDictionary(locale);
+  const counts = t.counts;
+  /* All five of `booking_status`, in the reader's language. See the note above
+     `BookingCard`'s neighbours: a fifth value is a dictionary entry now, not an
+     edit to a private map on this screen. */
+  const statusWords = t.admin.common.status;
 
   return (
     <li
@@ -111,7 +132,7 @@ function BookingCard({
               row left the title 90px on a 390px phone, which rendered "Lekki
               Palm Grove Shortlet" as "Lekki Pa". The name of the stay is the
               whole point of the card. */}
-          <StatusPill tone={toneForStatus(b.status)}>{STATUS_LABEL[b.status]}</StatusPill>
+          <StatusPill tone={toneForStatus(b.status)}>{statusWords[b.status]}</StatusPill>
           <h3 className={`mt-2 ${TYPE.rowTitle}`}>{b.title}</h3>
 
           {/* Wraps rather than clipping: "Marina Waterfront, Calabar" was one

@@ -47,8 +47,10 @@ import { confirm } from "../bookings/actions";
 import {
   bookingIdSchema,
   declineInputSchema,
+  recordStayInputSchema,
   type BookingIdInput,
   type DeclineInput,
+  type RecordStayInput,
 } from "./bookings-schema";
 
 const NOT_AGENT_MESSAGE =
@@ -68,6 +70,15 @@ const NOT_PENDING_MESSAGE =
 
 const RACED_MESSAGE =
   "This request changed while you were deciding. Reload the page to see where it stands.";
+
+const NOT_CONFIRMED_MESSAGE =
+  "Only a confirmed stay can be recorded. Reload the page to see where this one stands.";
+
+const NOT_ENDED_MESSAGE =
+  "This stay has not ended yet, so there is nothing to record. Come back after the last night.";
+
+const NOT_ARRIVED_MESSAGE =
+  "Arrival day has not come yet, so a no show cannot be recorded.";
 
 type HostGate =
   | { ok: false; error: string }
@@ -297,6 +308,137 @@ export async function declineBooking(input: DeclineInput): Promise<ActionResult<
   } catch {
     // createAdminClient throws without a service key. Nothing was written, and
     // the host is told exactly that.
+    return fail(SERVICE_DOWN_MESSAGE);
+  }
+
+  refreshBookingSurfaces();
+  return ok(null);
+}
+
+/* ---------------------------------------------------------- record stay */
+
+/**
+ * Today in Lagos, as a plain date string.
+ *
+ * "Has this stay finished" is a question about the day the guest is standing
+ * in, not the day the server is running in. On a UTC box an hour either side of
+ * midnight is the difference between the control appearing and not, every
+ * single night, and Nigeria does not observe daylight saving so a fixed offset
+ * would be correct too. `en-CA` is used for its format, which is ISO, matching
+ * the date columns this is compared against.
+ */
+function todayInLagos(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
+}
+
+/**
+ * Record what became of a confirmed stay: CONFIRMED to COMPLETED or NO_SHOW.
+ *
+ * THE BOOKING LOOP HAD NO END. A request could be made, accepted and called
+ * off, and there it stopped: three states describing an intent and its
+ * withdrawal, with nothing that says the guest actually arrived and stayed. So
+ * an agent's list grew a tail of confirmed bookings from months ago that they
+ * could not clear, a completed stay was indistinguishable from one still to
+ * come, and nothing downstream had an event to hang on.
+ *
+ * `booking_status` now carries COMPLETED and NO_SHOW, placed after CONFIRMED so
+ * anything sorting on the enum reads the journey in order. This is the
+ * transition that reaches them, and it is written as the twin of
+ * declineBooking, deliberately: same gate, same ownership proof, same
+ * status-guarded update, same race resolution, same append to
+ * booking_state_events. A second shape for the same kind of move is how state
+ * machines drift apart.
+ *
+ * The dates are checked because a control that lets somebody mark next month's
+ * stay complete is not a record, it is a text field. A stay can be completed
+ * once its last night has passed; a no show can be recorded from arrival day,
+ * because that is the day you learn it.
+ *
+ * The guest is told about a completion, by private.notify_booking_change, and
+ * is told nothing about a no show. That asymmetry is on purpose: a notification
+ * saying somebody failed to turn up is an accusation, and the row is visible on
+ * their own booking either way.
+ */
+export async function recordStay(input: RecordStayInput): Promise<ActionResult<null>> {
+  const gate = await requireHost();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(recordStayInputSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { bookingId, outcome, note } = parsed.data;
+
+  const booking = await ownedBooking(gate.supabase, gate.agentId, bookingId);
+  if (!booking) return fail(NOT_FOUND_MESSAGE);
+
+  // Replay: already recorded, and recorded the same way. A double tap is not an
+  // error and must not read as one.
+  if (booking.status === outcome) {
+    refreshBookingSurfaces();
+    return ok(null);
+  }
+  // Recorded the OTHER way is a different matter, and it is not ours to
+  // overwrite: a stay that is on the record as complete does not quietly become
+  // a no show because somebody tapped the wrong control.
+  if (booking.status === "COMPLETED" || booking.status === "NO_SHOW") {
+    return fail(
+      "This stay is already on the record. Reload the page to see what was recorded.",
+    );
+  }
+  if (booking.status !== "CONFIRMED") return fail(NOT_CONFIRMED_MESSAGE);
+
+  const today = todayInLagos();
+  // check_out is the morning the guest leaves, so the stay is over once that
+  // date has arrived. Strictly greater, so same-day shortlets can be recorded
+  // on the day they end rather than the day after.
+  if (outcome === "COMPLETED" && booking.check_out > today) return fail(NOT_ENDED_MESSAGE);
+  if (outcome === "NO_SHOW" && booking.check_in > today) return fail(NOT_ARRIVED_MESSAGE);
+
+  try {
+    const admin = createAdminClient();
+
+    // Guarded on CONFIRMED, so two devices cannot both record an outcome: the
+    // second update matches no row and says so rather than reporting success.
+    const { data: moved, error: updateError } = await admin
+      .from("bookings")
+      .update({ status: outcome })
+      .eq("id", booking.id)
+      .eq("status", "CONFIRMED")
+      .select("id");
+
+    if (updateError) return fail(SERVICE_DOWN_MESSAGE);
+
+    if (!moved || moved.length === 0) {
+      // Something moved it between our read and our write. If it landed where
+      // we were going, that is a success from the agent's point of view.
+      const { data: current } = await admin
+        .from("bookings")
+        .select("status")
+        .eq("id", booking.id)
+        .maybeSingle();
+      if (current?.status === outcome) {
+        refreshBookingSurfaces();
+        return ok(null);
+      }
+      return fail(RACED_MESSAGE);
+    }
+
+    // The outcome is recorded. Everything below is completion work on a
+    // decision that has already committed, so a failure here must not tell the
+    // agent the record did not happen: it did.
+    //
+    // booking_state_events is the trail, and it is the ONLY trail. It already
+    // holds the actor, the note, both ends of the transition and the time, so
+    // nothing here is copied back onto the booking row.
+    await admin.from("booking_state_events").insert({
+      booking_id: booking.id,
+      from_status: "CONFIRMED",
+      to_status: outcome,
+      actor_id: gate.user.id,
+      note: note && note.length > 0 ? note : null,
+    });
+  } catch {
+    // createAdminClient throws without a service key. Nothing was written, and
+    // the agent is told exactly that.
     return fail(SERVICE_DOWN_MESSAGE);
   }
 

@@ -340,7 +340,7 @@ type SupportBooking = {
   id: string;
   listing: string | null;
   where: string | null;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+  status: Database["public"]["Enums"]["booking_status"];
   stage: "upcoming" | "staying" | "completed" | "cancelled";
   dates: string;
   checkIn: string;

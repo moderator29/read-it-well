@@ -35,7 +35,7 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "The price you agree is the price you pay",
-    body: `${NO_FEES_LINE} The total you see before you confirm is the nightly rate and the cleaning charge the host set, and nothing else is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs.`,
+    body: `${NO_FEES_LINE} The total you see before you commit is the agent's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs.`,
   },
   {
     title: "There is a record, permanently",

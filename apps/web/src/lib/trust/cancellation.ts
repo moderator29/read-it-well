@@ -33,7 +33,7 @@ export type CancellationStop = {
 
 /**
  * 72 hours, not 24. A Lagos guest cancelling a Friday stay on Wednesday
- * evening still leaves the host a whole working day to re-let the nights,
+ * evening still leaves the agent a whole working day to re-let the nights,
  * which is the only thing that makes a full refund fair to both sides.
  */
 export const FULL_REFUND_HOURS = 72;
@@ -54,7 +54,7 @@ export const CANCELLATION_STOPS: CancellationStop[] = [
     refundBasisPoints: 5_000,
     label: "Half back",
     detail:
-      "Inside the last 72 hours, half comes back to you. The other half stays with the host, whose nights are now very hard to re-let.",
+      "Inside the last 72 hours, half comes back to you. The other half stays with the agent, whose nights are now very hard to re-let.",
   },
   {
     tier: "none",
@@ -62,7 +62,7 @@ export const CANCELLATION_STOPS: CancellationStop[] = [
     refundBasisPoints: 0,
     label: "Nothing back",
     detail:
-      "Once check-in day has started the stay is the host's to keep. If you never got in, or the place was not what was listed, do not cancel: report it, and a person looks at the booking.",
+      "Once check-in day has started the stay is the agent's to keep. If you never got in, or the place was not what was listed, do not cancel: report it, and a person looks at the booking.",
   },
 ];
 
@@ -82,7 +82,7 @@ export type RefundOutcome = {
   stop: CancellationStop;
   /** What returns to the guest, in kobo. */
   refundMinor: number;
-  /** What stays with the host, in kobo. Always `paidMinor - refundMinor`. */
+  /** What stays with the agent, in kobo. Always `paidMinor - refundMinor`. */
   retainedMinor: number;
   hoursBeforeCheckIn: number;
 };
@@ -137,7 +137,7 @@ export function refundAtStop(stop: CancellationStop, totalMinor: number): number
  * The four cases /cancellations actually names.
  *
  * Three of them override the schedule to a full refund, because the page says
- * in plain words that they do: a host cancelling, a place that is not what was
+ * in plain words that they do: an agent cancelling, a place that is not what was
  * listed, and a guest who could not get in. The schedule only ever governs a
  * cancellation the guest chose.
  *
@@ -155,7 +155,7 @@ export const CANCELLATION_REASONS = [
   },
   {
     code: "host_cancelled",
-    label: "The host cancelled",
+    label: "The agent cancelled",
     detail:
       "Everything comes back, whatever the hour. The schedule never applies to a cancellation the guest did not choose.",
     overridesToFull: true,

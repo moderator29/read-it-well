@@ -42,5 +42,28 @@ export const declineInputSchema = z.object({
     ),
 });
 
+/**
+ * Recording what became of a confirmed stay.
+ *
+ * The note is optional, unlike a decline's reason, and the difference is who
+ * reads it. A decline is an answer owed to a guest, so it has a floor. A stay
+ * note is the agent's own record, shown to nobody, so requiring one would only
+ * teach people to type a full stop.
+ */
+export const MAX_STAY_NOTE_LENGTH = 500;
+
+export const recordStayInputSchema = z.object({
+  bookingId: uuid("We could not identify that booking."),
+  outcome: z.enum(["COMPLETED", "NO_SHOW"], {
+    message: "A stay either happened or the guest never arrived.",
+  }),
+  note: z
+    .string()
+    .trim()
+    .max(MAX_STAY_NOTE_LENGTH, `Keep the note to ${MAX_STAY_NOTE_LENGTH} characters or fewer.`)
+    .optional(),
+});
+
 export type BookingIdInput = z.input<typeof bookingIdSchema>;
 export type DeclineInput = z.input<typeof declineInputSchema>;
+export type RecordStayInput = z.input<typeof recordStayInputSchema>;
