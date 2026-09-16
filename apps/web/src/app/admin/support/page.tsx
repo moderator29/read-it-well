@@ -83,7 +83,14 @@ function TicketRow({
         <p className="mt-1.5 text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
           {supportTopicLabel(ticket.topic) ?? copy.generalQuestion}
         </p>
-        <p className="mt-3xs truncate text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+        {/* THE NAME WRAPS TOO, AND THE COMMENT ABOVE DID NOT COVER IT.
+            "Never truncated" two lines up is true, and it is scoped to the
+            topic. This line carried `truncate` and holds the requester's NAME,
+            which is the other thing an operator recognises a ticket by and the
+            thing they read back down a phone line. A clipped name on a support
+            queue is the same fault as a clipped reference on the money screen,
+            one row apart. */}
+        <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere]">
           {ticket.name} · {ui.when(ticket.createdAt)}
         </p>
         {ticket.replyCount > 0 && (

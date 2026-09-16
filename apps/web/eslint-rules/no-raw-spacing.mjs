@@ -55,8 +55,22 @@
  * each other. Putting that on a 4px content scale would misalign it by three
  * pixels, which is the whole point of the utility.
  *
- * A `calc()` or `env()` bracket passes. `pb-[calc(2.5rem+env(safe-area-inset-bottom))]`
- * is answering the hardware, not choosing a rhythm.
+ * A `calc()`, `env()` or `var()` bracket passes.
+ * `pb-[calc(2.5rem+env(safe-area-inset-bottom))]` is answering the hardware,
+ * not choosing a rhythm.
+ *
+ * `var()` WAS MISSING FROM THAT LIST AND THAT WAS A BUG, not a judgement.
+ * `gap-[var(--nf-feed-gap)]` is a design token doing exactly what this rule
+ * exists to ask for, and the rule was reporting it as a raw spacing value. It
+ * cost another workstream sixteen false positives in one migration, every one
+ * of them on correct code, and a rule that flags the fix is worse than a rule
+ * that misses the fault: the first thing it teaches is that it is wrong.
+ *
+ * Its sibling `nf/no-arbitrary-font-size` never had the problem, because its
+ * pattern requires a NUMBER and a UNIT inside the bracket and a `var()` has
+ * neither - which is why that rule's header can say `text-[var(--nf-text-caption)]`
+ * passes "obviously". This one matches anything between the brackets and so has
+ * to name the exceptions, and it named two of the three.
  *
  * It walks string literals and template chunks in the AST, so COMMENTS ARE
  * INVISIBLE TO IT. That is intentional and load-bearing, exactly as in
@@ -69,6 +83,26 @@
  * geometry, is real. Those sites carry an `eslint-disable-next-line
  * nf/no-raw-spacing` with the reason on the same line, which puts the argument
  * next to the code instead of in a list somewhere nobody reads.
+ *
+ * WHAT THE REMAINING COUNT IS, so nobody reads it as unfinished work.
+ *
+ * The bulk of the original 4,115 was mechanical: `p-4` is `p-card-sm`, `gap-3`
+ * is `gap-row`, and a migration can take those by the thousand. What is left
+ * after that pass is the residue neither this rule nor a codemod can answer,
+ * and it is a different KIND of thing rather than the same thing unfinished:
+ *
+ *   - a value genuinely between two rungs, where the author has to decide
+ *     whether the object wants the tighter or the looser one, and the answer
+ *     depends on what is around it;
+ *   - a value that is drawn GEOMETRY rather than rhythm - the 2px gutter and
+ *     3px inset inside a 38px segmented track, where the number is part of a
+ *     shape;
+ *   - a value that should become a ROLE in `packages/design-tokens` because
+ *     nothing on the ladder expresses it, which is a design decision and not a
+ *     find-and-replace.
+ *
+ * Those want an eye, one at a time. A falling count that stops falling is this
+ * rule having found everything it can find on its own.
  */
 
 /**
@@ -99,7 +133,7 @@ const NUMERIC_STEP = new RegExp(
  * safe-area and viewport answers, which no content scale can express.
  */
 const ARBITRARY = new RegExp(
-  String.raw`(?:^|[\s"'\`:\[{])-?(?:${PROPS})-\[(?![^\]]*(?:calc\(|env\())[^\]]+\]`,
+  String.raw`(?:^|[\s"'\`:\[{])-?(?:${PROPS})-\[(?![^\]]*(?:calc\(|env\(|var\())[^\]]+\]`,
 );
 
 const SCALE_HELP =

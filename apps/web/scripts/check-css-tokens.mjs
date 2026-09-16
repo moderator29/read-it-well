@@ -14,29 +14,35 @@
  * ---------------------------------------------------------------------------
  * 1. A LAYER-1 PALETTE TOKEN read from a stylesheet that is not the token file.
  *
- * FATAL for `src/app/css/**`, the nineteen design-system partials, which are at
- * zero. A COUNTED WARNING for the four stylesheets that sit loose in `src/app`
- * (side-nav, social, social-feed, settings-rows), which are owned by other
- * workstreams. Promote them by deleting the `SOFT` predicate below.
+ * FATAL FOR THE WHOLE OF `src/app`, and the `SOFT` predicate that used to
+ * exempt the four loose stylesheets is gone with it. They are at zero.
  *
  * ---------------------------------------------------------------------------
  * 2. A RAW COLOUR LITERAL, `#0C39EF` or `rgb(...)`, in a stylesheet.
  *
- * FATAL for `src/app/css/**` AS OF THIS COMMIT, and this is a change.
+ * FATAL FOR THE WHOLE OF `src/app`, in two steps, and this is the second.
  *
  * It used to be counted and not enforced anywhere, and the reasoning was
  * written here at some length: there were several hundred of them, almost all
  * white and black at an alpha, and "a check that fails on a clean checkout is a
  * check somebody deletes rather than obeys". That was correct while the number
- * was several hundred. The number under `src/app/css` is now ZERO - the rims,
- * the floors, the hover washes and the scrims all went onto the wash, shade,
- * well, inverse and on-paper token families - so the argument has run out. A
- * guard that could hold a real line and does not is just a number in a log.
+ * was several hundred. It became fatal for `src/app/css/**` when those nineteen
+ * partials reached zero, and the four loose stylesheets stayed counted because
+ * their 74 literals belonged to nobody and failing a build on their behalf is
+ * how a check gets deleted rather than obeyed.
  *
- * The four loose stylesheets stay COUNTED, because their 74 literals belong to
- * another workstream and failing their build on this one's behalf is how the
- * check gets deleted. Same predicate, same promotion path, same reasoning as
- * check 1. The count is printed either way so it can only go down.
+ * THOSE 74 ARE NOW ZERO TOO. `social-feed.css` held 64, `social.css` 7 and
+ * `settings-rows.css` 3, and the useful thing about doing them was what they
+ * turned out to be: the assistant post's card was painted ENTIRELY out of the
+ * palette already - `rgb(12 57 239)` is `--nf-electric-400` is the glow ink, so
+ * its bloom stops were the glow ladder's rungs written as numbers - and the
+ * story viewer needed one extra ink tier and two washes over media, which it
+ * had been hand-writing at six and seven different alphas. Four themed pairs
+ * were being stated twice each, once in a default rule and once in a
+ * `:root[data-theme="light"]` rule, with nothing marking them as twins.
+ *
+ * So the `SOFT` predicate is deleted rather than narrowed. Every stylesheet
+ * under `src/app` is now held to the same line for all three checks.
  *
  * ---------------------------------------------------------------------------
  * 3. A `var(--nf-...)` REFERENCING A PROPERTY THAT IS DEFINED NOWHERE, with no
@@ -136,12 +142,6 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const TOKENS = fileURLToPath(new URL("../../../packages/design-tokens/src", import.meta.url));
 const ROOTS = ["src/app"];
 
-/**
- * Stylesheets whose violations are reported but do not fail the build, because
- * they belong to other workstreams. Everything under src/app/css is fatal.
- */
-const SOFT = (path) => path.startsWith("src/app/") && !path.startsWith("src/app/css/");
-
 const LAYER_ONE =
   /--nf-(?:ink|mist|royal|electric|cyan|crimson|emerald|rose|sky)-\d{2,3}\b/g;
 const RAW_COLOUR = /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(?:rgba?|hsla?)\s*\(/g;
@@ -196,34 +196,28 @@ for (const file of filesUnder(join(ROOT, "src"), [".ts", ".tsx"])) {
 /* ------------------------------------------------------------ the checks */
 
 const failures = [];
-const soft = [];
 const unresolved = [];
-const unresolvedSoft = [];
-let rawColoursFatal = 0;
-let rawColoursSoft = 0;
+let rawColours = 0;
 
 for (const dir of ROOTS) {
   for (const file of filesUnder(join(ROOT, dir), [".css"])) {
     const source = withoutComments(readFileSync(file, "utf8"));
     const where = relative(ROOT, file);
-    const isSoft = SOFT(where);
 
     source.split("\n").forEach((line, index) => {
       for (const hit of line.matchAll(LAYER_ONE)) {
-        (isSoft ? soft : failures).push(`${where}:${index + 1}  ${hit[0]}`);
+        failures.push(`${where}:${index + 1}  ${hit[0]}`);
       }
       for (const hit of line.matchAll(REFERENCE)) {
         /* A fallback is the documented way to say "this may not be set", and it
            keeps the declaration valid either way, so it is never reported. */
         if (hit[2] === ",") continue;
         if (defined.has(hit[1])) continue;
-        (isSoft ? unresolvedSoft : unresolved).push(`${where}:${index + 1}  var(${hit[1]})`);
+        unresolved.push(`${where}:${index + 1}  var(${hit[1]})`);
       }
     });
 
-    const raw = [...source.matchAll(RAW_COLOUR)].length;
-    if (isSoft) rawColoursSoft += raw;
-    else rawColoursFatal += raw;
+    rawColours += [...source.matchAll(RAW_COLOUR)].length;
   }
 }
 
@@ -247,19 +241,6 @@ for (const file of filesUnder(TOKENS, [".css", ".ts"])) {
 }
 
 /* ------------------------------------------------------------ the report */
-
-if (soft.length > 0 || unresolvedSoft.length > 0 || rawColoursSoft > 0) {
-  console.warn(
-    "\ncss tokens: reported, not enforced, because these stylesheets belong to " +
-      "other workstreams:",
-  );
-  for (const entry of soft) console.warn(`  layer-1        ${entry}`);
-  for (const entry of unresolvedSoft) console.warn(`  unresolved     ${entry}`);
-  if (rawColoursSoft > 0) {
-    console.warn(`  raw colour     ${rawColoursSoft} literal(s) across src/app/*.css`);
-  }
-  console.warn("");
-}
 
 let failed = false;
 
@@ -293,22 +274,25 @@ if (unresolved.length > 0) {
   console.error(`\n${unresolved.length} unresolved reference(s).\n`);
 }
 
-if (rawColoursFatal > 0) {
+if (rawColours > 0) {
   failed = true;
   console.error(
-    "\nRaw colour literal under src/app/css. This directory reached zero and is\n" +
-      "enforced from that point: a literal cannot follow the theme, and dark is\n" +
-      "the default theme rather than the only one. Use a layer-2 token, or add\n" +
-      "one to packages/design-tokens and answer it in BOTH theme blocks.\n" +
-      `\n${rawColoursFatal} literal(s).\n`,
+    "\nRaw colour literal in a stylesheet under src/app. Every one of them\n" +
+      "reached zero and this is enforced from that point: a literal cannot follow\n" +
+      "the theme, and dark is the default theme rather than the only one. Use a\n" +
+      "layer-2 token, or add one to packages/design-tokens and answer it in BOTH\n" +
+      "theme blocks.\n" +
+      "\nIf what you want is a colour over a PHOTOGRAPH, the --nf-*-on-media\n" +
+      "family is deliberately theme-independent and is almost certainly what you\n" +
+      "are reaching for.\n" +
+      `\n${rawColours} literal(s).\n`,
   );
 }
 
 if (failed) process.exit(1);
 
 console.log(
-  `css tokens: src/app/css is clean - 0 layer-1 references, 0 raw colour ` +
-    `literals, 0 unresolved var() references. ${rawColoursSoft} raw colour ` +
-    "literal(s) remain in the four stylesheets outside it (counted, not yet " +
-    "enforced).",
+  "css tokens: every stylesheet under src/app is clean - 0 layer-1 references, " +
+    "0 raw colour literals, 0 unresolved var() references. All three are " +
+    "enforced.",
 );
