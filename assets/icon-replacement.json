@@ -1,9 +1,9 @@
 {
  "generated": "node scripts/name-icon-objects.mjs",
- "objects": 104,
+ "objects": 103,
  "lightTwins": 24,
  "heroScenes": 12,
- "megabytes": 3.32,
+ "megabytes": 3.29,
  "currentObjects": 87,
  "replaced": [
   "beach-house",
@@ -97,39 +97,39 @@
   "swimming-pool"
  ],
  "brandNew": [
-  "alert-warning",
-  "badge-failed",
-  "badge-pending",
-  "badge-success",
-  "cash-box",
-  "chart-donut",
+  "alert-triangle",
   "clock-expired",
   "coin-naira",
   "concierge-bell",
   "contract-sign",
-  "deposit",
-  "doc-failed",
+  "doc-cross",
   "doc-home",
-  "doc-search",
+  "doc-review",
   "home-lock",
   "hotel-room",
   "hourglass",
-  "id-check",
+  "id-card-check",
   "info",
-  "key-handover",
-  "ledger-check",
+  "keys-handover",
+  "ledger-book",
   "naira-coins",
   "payment-failed",
-  "payout-hand",
+  "payment-received",
+  "payment-sent",
+  "progress-ring",
   "receipt-check",
-  "refund",
   "savings-pot",
+  "seal-check",
+  "seal-cross",
+  "seal-pending",
   "shortlet",
+  "transfer-arrow",
   "wallet",
-  "wallet-add",
-  "wallet-send"
+  "wallet-out",
+  "wallet-plus"
  ],
  "withheld": [
+  "escrow-hold",
   "hotel-sign",
   "map-spot-alt",
   "shield-lock-alt"
@@ -221,41 +221,11 @@
    "sheet": "7ee388e5",
    "index": 4
   },
-  "light:alert-warning": {
+  "light:alert-triangle": {
    "kind": "light",
-   "name": "alert-warning",
+   "name": "alert-triangle",
    "sheet": "c0f67033",
    "index": 17
-  },
-  "light:badge-failed": {
-   "kind": "light",
-   "name": "badge-failed",
-   "sheet": "c0f67033",
-   "index": 14
-  },
-  "light:badge-pending": {
-   "kind": "light",
-   "name": "badge-pending",
-   "sheet": "c0f67033",
-   "index": 13
-  },
-  "light:badge-success": {
-   "kind": "light",
-   "name": "badge-success",
-   "sheet": "c0f67033",
-   "index": 12
-  },
-  "light:cash-box": {
-   "kind": "light",
-   "name": "cash-box",
-   "sheet": "c0f67033",
-   "index": 9
-  },
-  "light:chart-donut": {
-   "kind": "light",
-   "name": "chart-donut",
-   "sheet": "c0f67033",
-   "index": 16
   },
   "light:clock-expired": {
    "kind": "light",
@@ -275,23 +245,23 @@
    "sheet": "c0f67033",
    "index": 24
   },
-  "light:deposit": {
+  "light:doc-cross": {
    "kind": "light",
-   "name": "deposit",
-   "sheet": "c0f67033",
-   "index": 2
-  },
-  "light:doc-failed": {
-   "kind": "light",
-   "name": "doc-failed",
+   "name": "doc-cross",
    "sheet": "c0f67033",
    "index": 22
   },
-  "light:doc-search": {
+  "light:doc-review": {
    "kind": "light",
-   "name": "doc-search",
+   "name": "doc-review",
    "sheet": "c0f67033",
    "index": 21
+  },
+  "light:escrow-hold": {
+   "kind": "light",
+   "name": "escrow-hold",
+   "sheet": "c0f67033",
+   "index": 9
   },
   "light:hourglass": {
    "kind": "light",
@@ -299,9 +269,9 @@
    "sheet": "c0f67033",
    "index": 15
   },
-  "light:id-check": {
+  "light:id-card-check": {
    "kind": "light",
-   "name": "id-check",
+   "name": "id-card-check",
    "sheet": "c0f67033",
    "index": 20
   },
@@ -311,15 +281,15 @@
    "sheet": "c0f67033",
    "index": 18
   },
-  "light:key-handover": {
+  "light:keys-handover": {
    "kind": "light",
-   "name": "key-handover",
+   "name": "keys-handover",
    "sheet": "c0f67033",
    "index": 23
   },
-  "light:ledger-check": {
+  "light:ledger-book": {
    "kind": "light",
-   "name": "ledger-check",
+   "name": "ledger-book",
    "sheet": "c0f67033",
    "index": 11
   },
@@ -329,11 +299,23 @@
    "sheet": "c0f67033",
    "index": 4
   },
-  "light:payout-hand": {
+  "light:payment-received": {
    "kind": "light",
-   "name": "payout-hand",
+   "name": "payment-received",
+   "sheet": "c0f67033",
+   "index": 2
+  },
+  "light:payment-sent": {
+   "kind": "light",
+   "name": "payment-sent",
    "sheet": "c0f67033",
    "index": 1
+  },
+  "light:progress-ring": {
+   "kind": "light",
+   "name": "progress-ring",
+   "sheet": "c0f67033",
+   "index": 16
   },
   "light:receipt-check": {
    "kind": "light",
@@ -341,53 +323,53 @@
    "sheet": "c0f67033",
    "index": 8
   },
-  "light:refund": {
-   "kind": "light",
-   "name": "refund",
-   "sheet": "c0f67033",
-   "index": 5
-  },
   "light:savings-pot": {
    "kind": "light",
    "name": "savings-pot",
    "sheet": "c0f67033",
    "index": 10
   },
-  "light:wallet-add": {
+  "light:seal-check": {
    "kind": "light",
-   "name": "wallet-add",
+   "name": "seal-check",
    "sheet": "c0f67033",
-   "index": 6
+   "index": 12
   },
-  "light:wallet-send": {
+  "light:seal-cross": {
    "kind": "light",
-   "name": "wallet-send",
+   "name": "seal-cross",
+   "sheet": "c0f67033",
+   "index": 14
+  },
+  "light:seal-pending": {
+   "kind": "light",
+   "name": "seal-pending",
+   "sheet": "c0f67033",
+   "index": 13
+  },
+  "light:transfer-arrow": {
+   "kind": "light",
+   "name": "transfer-arrow",
+   "sheet": "c0f67033",
+   "index": 5
+  },
+  "light:wallet-out": {
+   "kind": "light",
+   "name": "wallet-out",
    "sheet": "c0f67033",
    "index": 7
   },
-  "object:alert-warning": {
+  "light:wallet-plus": {
+   "kind": "light",
+   "name": "wallet-plus",
+   "sheet": "c0f67033",
+   "index": 6
+  },
+  "object:alert-triangle": {
    "kind": "object",
-   "name": "alert-warning",
+   "name": "alert-triangle",
    "sheet": "cf5a4150",
    "index": 17
-  },
-  "object:badge-failed": {
-   "kind": "object",
-   "name": "badge-failed",
-   "sheet": "cf5a4150",
-   "index": 14
-  },
-  "object:badge-pending": {
-   "kind": "object",
-   "name": "badge-pending",
-   "sheet": "cf5a4150",
-   "index": 13
-  },
-  "object:badge-success": {
-   "kind": "object",
-   "name": "badge-success",
-   "sheet": "cf5a4150",
-   "index": 12
   },
   "object:beach-house": {
    "kind": "object",
@@ -455,18 +437,6 @@
    "sheet": "0b2e4d21",
    "index": 3
   },
-  "object:cash-box": {
-   "kind": "object",
-   "name": "cash-box",
-   "sheet": "cf5a4150",
-   "index": 9
-  },
-  "object:chart-donut": {
-   "kind": "object",
-   "name": "chart-donut",
-   "sheet": "cf5a4150",
-   "index": 16
-  },
   "object:chart-growth": {
    "kind": "object",
    "name": "chart-growth",
@@ -527,15 +497,9 @@
    "sheet": "2676c1fc",
    "index": 9
   },
-  "object:deposit": {
+  "object:doc-cross": {
    "kind": "object",
-   "name": "deposit",
-   "sheet": "cf5a4150",
-   "index": 2
-  },
-  "object:doc-failed": {
-   "kind": "object",
-   "name": "doc-failed",
+   "name": "doc-cross",
    "sheet": "cf5a4150",
    "index": 22
   },
@@ -551,9 +515,9 @@
    "sheet": "2676c1fc",
    "index": 16
   },
-  "object:doc-search": {
+  "object:doc-review": {
    "kind": "object",
-   "name": "doc-search",
+   "name": "doc-review",
    "sheet": "cf5a4150",
    "index": 21
   },
@@ -647,9 +611,9 @@
    "sheet": "ecfa9c34",
    "index": 7
   },
-  "object:id-check": {
+  "object:id-card-check": {
    "kind": "object",
-   "name": "id-check",
+   "name": "id-card-check",
    "sheet": "cf5a4150",
    "index": 20
   },
@@ -665,9 +629,9 @@
    "sheet": "0b2e4d21",
    "index": 19
   },
-  "object:key-handover": {
+  "object:keys-handover": {
    "kind": "object",
-   "name": "key-handover",
+   "name": "keys-handover",
    "sheet": "cf5a4150",
    "index": 23
   },
@@ -695,9 +659,9 @@
    "sheet": "2676c1fc",
    "index": 7
   },
-  "object:ledger-check": {
+  "object:ledger-book": {
    "kind": "object",
-   "name": "ledger-check",
+   "name": "ledger-book",
    "sheet": "cf5a4150",
    "index": 11
   },
@@ -785,9 +749,15 @@
    "sheet": "cf5a4150",
    "index": 4
   },
-  "object:payout-hand": {
+  "object:payment-received": {
    "kind": "object",
-   "name": "payout-hand",
+   "name": "payment-received",
+   "sheet": "cf5a4150",
+   "index": 2
+  },
+  "object:payment-sent": {
+   "kind": "object",
+   "name": "payment-sent",
    "sheet": "cf5a4150",
    "index": 1
   },
@@ -803,17 +773,17 @@
    "sheet": "fda04dd1",
    "index": 25
   },
+  "object:progress-ring": {
+   "kind": "object",
+   "name": "progress-ring",
+   "sheet": "cf5a4150",
+   "index": 16
+  },
   "object:receipt-check": {
    "kind": "object",
    "name": "receipt-check",
    "sheet": "cf5a4150",
    "index": 8
-  },
-  "object:refund": {
-   "kind": "object",
-   "name": "refund",
-   "sheet": "cf5a4150",
-   "index": 5
   },
   "object:report-stats": {
    "kind": "object",
@@ -832,6 +802,24 @@
    "name": "savings-pot",
    "sheet": "cf5a4150",
    "index": 10
+  },
+  "object:seal-check": {
+   "kind": "object",
+   "name": "seal-check",
+   "sheet": "cf5a4150",
+   "index": 12
+  },
+  "object:seal-cross": {
+   "kind": "object",
+   "name": "seal-cross",
+   "sheet": "cf5a4150",
+   "index": 14
+  },
+  "object:seal-pending": {
+   "kind": "object",
+   "name": "seal-pending",
+   "sheet": "cf5a4150",
+   "index": 13
   },
   "object:search-home": {
    "kind": "object",
@@ -929,6 +917,12 @@
    "sheet": "ecfa9c34",
    "index": 20
   },
+  "object:transfer-arrow": {
+   "kind": "object",
+   "name": "transfer-arrow",
+   "sheet": "cf5a4150",
+   "index": 5
+  },
   "object:tree-house": {
    "kind": "object",
    "name": "tree-house",
@@ -965,9 +959,15 @@
    "sheet": "b04429b0",
    "index": 3
   },
-  "object:wallet-add": {
+  "object:wallet-out": {
    "kind": "object",
-   "name": "wallet-add",
+   "name": "wallet-out",
+   "sheet": "cf5a4150",
+   "index": 7
+  },
+  "object:wallet-plus": {
+   "kind": "object",
+   "name": "wallet-plus",
    "sheet": "cf5a4150",
    "index": 6
   },
@@ -976,12 +976,6 @@
    "name": "wallet-secure",
    "sheet": "0b2e4d21",
    "index": 2
-  },
-  "object:wallet-send": {
-   "kind": "object",
-   "name": "wallet-send",
-   "sheet": "cf5a4150",
-   "index": 7
   },
   "object:warehouse": {
    "kind": "object",

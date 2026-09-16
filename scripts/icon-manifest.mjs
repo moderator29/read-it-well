@@ -112,36 +112,65 @@ export const SHEETS = {
   ],
 
   /*
-   * The transaction and status set. THIS IS THE ONE THAT IS GENUINELY NEW.
+   * The transaction and status set. THIS IS THE ONE THAT IS GENUINELY NEW, and
+   * the names on it are not invented here.
    *
-   * Nothing in the 87 objects the platform draws today covers a payout, a
-   * refund, a failed payment, a receipt, a signed contract or a handover of
-   * keys, and nothing covers the three outcomes a confirmation screen has to
-   * show. Twelve, thirteen and fourteen are success, pending and failed drawn
-   * as the same rosette, which is exactly what the confirmation system in
-   * docs/HANDOFF_03_FRONTEND.md section 5 needs and does not have.
+   * `docs/BRAND_MARKS.md` section 3 is a standing commission: twenty four marks,
+   * each with a name, the state it serves and a description of the object to
+   * build. It exists because nothing in the 87 objects the platform draws
+   * covers a payout, a refund, a receipt, a signed contract or a handover of
+   * keys. THIS SHEET IS THAT COMMISSION, DELIVERED. Twenty three of the twenty
+   * four are on it, and several match the written description object for
+   * object: number nine is specified as "blue-banded strongbox with a naira
+   * note half inside", and index 09 is a blue-banded strongbox with a naira
+   * note half inside.
+   *
+   * So the names below are BRAND_MARKS' names rather than new ones. A document
+   * that already specifies a name is the authority, and renaming a delivered
+   * commission would strand the document that ordered it. Three deviations,
+   * each deliberate:
+   *
+   *   `hourglass-blue` becomes `hourglass`. A colour does not belong in an
+   *   object's name. The light twin of this object is not blue, and a name that
+   *   asserts a colour goes stale the first time a theme changes.
+   *
+   *   `info-round` becomes `info`. The roundness is not the meaning.
+   *
+   *   `payment-pending`, number 3 on the list, is NOT on this sheet. Index 03
+   *   is a plain naira coin, which is not a pending state, so it is named
+   *   `coin-naira` rather than pressed into a role it does not play. Pending is
+   *   covered twice over by `seal-pending` and `hourglass`, so this is a gap
+   *   that needs no commission.
+   *
+   * ONE OF THESE MUST NOT BE USED. `escrow-hold` is index 09, and BRAND_MARKS
+   * says of it: build it, do not ship it until escrow exists. Escrow does not
+   * exist. `apps/web/src/lib/legal/terms.tsx` now says in as many words that
+   * Vallo does not hold your money in escrow, so an escrow mark on a screen
+   * would be the artwork contradicting the contract. It is cut and named so the
+   * slice is accounted for, and it is in WITHHELD below so that nothing can
+   * reach for it by accident.
    */
   "cf5a4150": [
-    "payout-hand", "deposit", "coin-naira", "payment-failed", "refund",
-    "wallet-add", "wallet-send", "receipt-check", "cash-box", "savings-pot",
-    "ledger-check", "badge-success", "badge-pending", "badge-failed", "hourglass",
-    "chart-donut", "alert-warning", "info", "clock-expired", "id-check",
-    "doc-search", "doc-failed", "key-handover", "contract-sign",
+    "payment-sent", "payment-received", "coin-naira", "payment-failed", "transfer-arrow",
+    "wallet-plus", "wallet-out", "receipt-check", "escrow-hold", "savings-pot",
+    "ledger-book", "seal-check", "seal-pending", "seal-cross", "hourglass",
+    "progress-ring", "alert-triangle", "info", "clock-expired", "id-card-check",
+    "doc-review", "doc-cross", "keys-handover", "contract-sign",
   ],
 
   /*
-   * The light twin of the set above: the same 24 objects, in the same reading
-   * order, as frosted white glass on white. The two sheets wrap differently
+   * The light twin of the set above: the same 24 objects, under the same names,
+   * in the same reading order, as frosted white glass on white. The two sheets wrap differently
    * (5,5,5,5,4 against 5,5,5,4,5), which is handled in the slicer, but index
    * for index they are the same object, so `cf5a4150[n]` and `c0f67033[n]`
    * are a pair.
    */
   "c0f67033": [
-    "payout-hand", "deposit", "coin-naira", "payment-failed", "refund",
-    "wallet-add", "wallet-send", "receipt-check", "cash-box", "savings-pot",
-    "ledger-check", "badge-success", "badge-pending", "badge-failed", "hourglass",
-    "chart-donut", "alert-warning", "info", "clock-expired", "id-check",
-    "doc-search", "doc-failed", "key-handover", "contract-sign",
+    "payment-sent", "payment-received", "coin-naira", "payment-failed", "transfer-arrow",
+    "wallet-plus", "wallet-out", "receipt-check", "escrow-hold", "savings-pot",
+    "ledger-book", "seal-check", "seal-pending", "seal-cross", "hourglass",
+    "progress-ring", "alert-triangle", "info", "clock-expired", "id-card-check",
+    "doc-review", "doc-cross", "keys-handover", "contract-sign",
   ],
 
   /*
@@ -225,11 +254,16 @@ export const CANONICAL = {
  * Objects that exist but must not become a canonical file, and why.
  *
  * `hotel-sign` carries the word HOTEL as pixels and cannot be translated.
+ *
+ * `escrow-hold` is a picture of money being held. Vallo holds nobody's money and
+ * the terms now say so plainly, so shipping this object would be the artwork
+ * contradicting the contract. See the long note on CF5A4150 above.
+ *
  * `shield-lock-alt` and `map-spot-alt` are second drawings of an object that is
  * already canonical elsewhere on the same sheet; they are named so the slice is
  * accounted for, not so anything uses them.
  */
-export const WITHHELD = new Set(["hotel-sign", "shield-lock-alt", "map-spot-alt"]);
+export const WITHHELD = new Set(["hotel-sign", "escrow-hold", "shield-lock-alt", "map-spot-alt"]);
 
 /** Sheets whose objects carry the light-theme artwork rather than the dark. */
 export const LIGHT_SHEET = "c0f67033";
