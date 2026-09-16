@@ -231,7 +231,7 @@ export function SegmentedProgress({
                    distinguishable from "where I have been" at a glance. */
                 boxShadow:
                   i === at - 1
-                    ? "0 0 12px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent)"
+                    ? "0 0 12px var(--nf-glow-3)"
                     : undefined,
               }}
             />

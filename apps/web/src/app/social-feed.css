@@ -131,14 +131,29 @@
    * obviously a machine answer without a coloured background shouting about
    * it. The mark inside the card does the naming; this only sets it apart.
    */
+  /*
+   * EVERY VALUE HERE WAS A LITERAL AND EVERY ONE OF THEM WAS ALREADY A TOKEN.
+   *
+   * `rgb(12 57 239)` is `--nf-electric-400`, which is `--nf-glow-ink`, so the
+   * bloom stops at 0.3, 0.7 and 0.12 are the glow ladder's rungs 2, 4 and 1 -
+   * `--nf-glow-2` IS 30 per cent of that exact ink and `--nf-glow-4` IS 70.
+   * `rgb(92 124 255)` is `--nf-electric-300`, which is `--nf-brand-secondary`.
+   * The card was painted entirely out of the palette by somebody who could not
+   * see the palette from here, because this stylesheet had never been through
+   * the token layer.
+   *
+   * The three-stop navy fill is `--nf-surface-ai`, a themed token that carries
+   * the daylight twin below, so the two rules state the SAME decision once each
+   * rather than two unrelated gradients that have to be kept in step by hand.
+   */
   .nf-card.nf-post--ai {
     background:
-      radial-gradient(135% 100% at 0% 0%, rgb(12 57 239 / 0.3) 0%, transparent 52%) padding-box,
-      linear-gradient(160deg, rgb(4 12 68 / 0.5) 0%, rgb(0 3 30 / 0.55) 64%, rgb(0 2 20 / 0.62) 100%) padding-box,
+      radial-gradient(135% 100% at 0% 0%, var(--nf-glow-2) 0%, transparent 52%) padding-box,
+      var(--nf-surface-ai) padding-box,
       linear-gradient(135deg,
-        rgb(92 124 255 / 0.95) 0%,
-        rgb(12 57 239 / 0.7) 22%,
-        rgb(12 57 239 / 0.12) 52%,
+        var(--nf-brand-secondary) 0%,
+        var(--nf-glow-4) 22%,
+        var(--nf-glow-1) 52%,
         transparent 74%)
       border-box;
   }
@@ -158,14 +173,14 @@
    */
   :root[data-theme="light"] .nf-card.nf-post--ai {
     background:
-      radial-gradient(135% 100% at 0% 0%, rgb(12 57 239 / 0.07) 0%, transparent 58%) padding-box,
-      linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+      radial-gradient(135% 100% at 0% 0%, var(--nf-glow-wash) 0%, transparent 58%) padding-box,
+      var(--nf-surface-ai) padding-box,
       linear-gradient(135deg,
-        rgb(12 57 239 / 0.5) 0%,
-        rgb(12 57 239 / 0.24) 30%,
-        rgb(18 21 26 / 0.09) 72%)
+        var(--nf-glow-3) 0%,
+        var(--nf-glow-2) 30%,
+        var(--nf-divider) 72%)
       border-box;
-    box-shadow: var(--nf-shadow-card);
+    box-shadow: var(--nf-elev-1);
   }
 
   /*
@@ -475,8 +490,8 @@
     block-size: 26px;
     border-radius: var(--nf-radius-control);
     color: var(--nf-content-on-brand);
-    background: rgb(0 0 0 / 0.62);
-    border: 1px solid rgb(255 255 255 / 0.22);
+    background: var(--nf-overlay-media-strong);
+    border: 1px solid var(--nf-border-on-media);
   }
   .nf-compose-pics__drop::after {
     content: "";
@@ -770,16 +785,16 @@
     inline-size: 44px;
     block-size: 44px;
     border-radius: var(--nf-radius-control);
-    color: #fff;
-    background: rgb(0 0 0 / 0.42);
-    border: 1px solid rgb(255 255 255 / 0.22);
+    color: var(--nf-content-on-media);
+    background: var(--nf-surface-control-on-media);
+    border: 1px solid var(--nf-border-on-media);
     backdrop-filter: blur(10px) saturate(150%);
     -webkit-backdrop-filter: blur(10px) saturate(150%);
     transition: background var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-social-round:hover,
   .nf-social-round:focus-visible {
-    background: rgb(0 0 0 / 0.58);
+    background: var(--nf-surface-control-on-media-strong);
   }
   /*
    * Daylight inverts these, and it has to. The cover's own scrim is a white
@@ -789,12 +804,12 @@
    */
   :root[data-theme="light"] .nf-social-round {
     color: var(--nf-content-primary);
-    background: rgb(255 255 255 / 0.72);
-    border-color: rgb(18 21 26 / 0.12);
+    background: var(--nf-surface-control-on-media);
+    border-color: var(--nf-border-default);
   }
   :root[data-theme="light"] .nf-social-round:hover,
   :root[data-theme="light"] .nf-social-round:focus-visible {
-    background: rgb(255 255 255 / 0.9);
+    background: var(--nf-surface-control-on-media-strong);
   }
 
   /*
@@ -844,7 +859,7 @@
         )
         border-box;
     border: 3px solid transparent;
-    box-shadow: 0 14px 34px -16px rgb(0 0 0 / 0.75);
+    box-shadow: 0 14px 34px -16px var(--nf-overlay-media-deep);
     display: grid;
     place-items: center;
   }
@@ -885,7 +900,7 @@
   }
 
   :root[data-theme="light"] .nf-social-avatar--ring {
-    box-shadow: 0 10px 26px -14px rgb(18 21 26 / 0.4);
+    box-shadow: 0 10px 26px -14px var(--nf-wash-7);
   }
 
   /* ------------------------------------------------------- the name row */
@@ -1337,8 +1352,8 @@
     inset: 0;
     z-index: -1;
     background:
-      linear-gradient(180deg, rgb(0 0 0 / 0.55) 0%, transparent 26%),
-      linear-gradient(0deg, rgb(0 0 0 / 0.86) 0%, rgb(0 0 0 / 0.5) 34%, transparent 62%);
+      linear-gradient(180deg, var(--nf-overlay-media-strong) 0%, transparent 26%),
+      linear-gradient(0deg, var(--nf-overlay-media-deep) 0%, var(--nf-overlay-media) 34%, transparent 62%);
   }
 
   .nf-story__top {
@@ -1364,9 +1379,9 @@
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
-    color: #fff;
+    color: var(--nf-content-on-media);
     font-weight: 700;
-    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.3);
+    box-shadow: 0 0 0 2px var(--nf-border-on-media);
   }
   .nf-story__face img {
     inline-size: 100%;
@@ -1377,8 +1392,8 @@
     display: block;
     font-size: var(--nf-text-body);
     font-weight: 700;
-    color: #fff;
-    text-shadow: 0 1px 10px rgb(0 0 0 / 0.5);
+    color: var(--nf-content-on-media);
+    text-shadow: 0 1px 10px var(--nf-overlay-media);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1386,7 +1401,7 @@
   .nf-story__when {
     display: block;
     font-size: var(--nf-text-caption);
-    color: rgb(255 255 255 / 0.76);
+    color: var(--nf-content-on-media-secondary);
   }
   .nf-story__menu {
     inset-inline-end: 0;
@@ -1413,11 +1428,11 @@
     position: relative;
     padding: 1.15rem 1.15rem 1.25rem;
     border-radius: var(--nf-feed-radius);
-    background: rgb(10 12 28 / 0.52);
-    border: 1px solid rgb(255 255 255 / 0.16);
+    background: var(--nf-surface-on-media);
+    border: 1px solid var(--nf-wash-on-media-2);
     backdrop-filter: blur(18px) saturate(150%);
     -webkit-backdrop-filter: blur(18px) saturate(150%);
-    box-shadow: 0 20px 50px -24px rgb(0 0 0 / 0.8);
+    box-shadow: 0 20px 50px -24px var(--nf-overlay-media-deep);
   }
 
   .nf-story__card-share {
@@ -1429,13 +1444,13 @@
     inline-size: 36px;
     block-size: 36px;
     border-radius: var(--nf-radius-control);
-    color: rgb(255 255 255 / 0.85);
-    background: rgb(255 255 255 / 0.12);
+    color: var(--nf-content-on-media-secondary);
+    background: var(--nf-wash-on-media-1);
   }
   .nf-story__card-share:hover,
   .nf-story__card-share:focus-visible {
-    color: #fff;
-    background: rgb(255 255 255 / 0.2);
+    color: var(--nf-content-on-media);
+    background: var(--nf-wash-on-media-2);
   }
 
   /* Brand blue, never the reference's violet. */
@@ -1458,7 +1473,7 @@
     line-height: 1.14;
     font-weight: 800;
     letter-spacing: -0.032em;
-    color: #fff;
+    color: var(--nf-content-on-media);
     /* Two lines is the design. A third is allowed rather than clipping a
        headline somebody wrote, because a cut headline is a different sentence. */
     text-wrap: balance;
@@ -1473,7 +1488,7 @@
     margin-block-start: 0.55rem;
     font-size: var(--nf-text-body);
     line-height: 1.55;
-    color: rgb(255 255 255 / 0.78);
+    color: var(--nf-content-on-media-secondary);
   }
 
   .nf-story__place {
@@ -1483,17 +1498,17 @@
     margin-block-start: 0.8rem;
     font-size: var(--nf-text-caption);
     font-weight: 600;
-    color: rgb(255 255 255 / 0.82);
+    color: var(--nf-content-on-media-secondary);
   }
 
   .nf-story__held {
     padding: 0.7rem 0.9rem;
     border-radius: var(--nf-radius-md);
     border: 1px solid var(--nf-border-brand);
-    background: rgb(10 12 28 / 0.6);
+    background: var(--nf-surface-on-media);
     font-size: var(--nf-text-caption);
     line-height: 1.5;
-    color: rgb(255 255 255 / 0.86);
+    color: var(--nf-content-on-media-secondary);
   }
 
   /* ------------------------------------------------- the three actions */
@@ -1507,7 +1522,7 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    color: rgb(255 255 255 / 0.82);
+    color: var(--nf-content-on-media-secondary);
   }
   .nf-story__act-circle {
     display: grid;
@@ -1515,8 +1530,8 @@
     inline-size: 46px;
     block-size: 46px;
     border-radius: var(--nf-radius-circle);
-    background: rgb(255 255 255 / 0.14);
-    border: 1px solid rgb(255 255 255 / 0.18);
+    background: var(--nf-wash-on-media-1);
+    border: 1px solid var(--nf-wash-on-media-2);
     transition:
       background var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-fast) var(--nf-ease-spring);
@@ -1535,7 +1550,7 @@
   .nf-story__act-count {
     font-size: var(--nf-text-caption);
     font-weight: 700;
-    color: rgb(255 255 255 / 0.86);
+    color: var(--nf-content-on-media-secondary);
   }
 
   /* ------------------------------------------------------ the facepile */
@@ -1555,10 +1570,10 @@
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
     background: var(--nf-gradient-brand);
-    color: #fff;
+    color: var(--nf-content-on-media);
     font-size: 0.7rem;
     font-weight: 700;
-    box-shadow: 0 0 0 2px rgb(10 12 28 / 0.85);
+    box-shadow: 0 0 0 2px var(--nf-surface-on-media);
   }
   .nf-story__pileface + .nf-story__pileface {
     margin-inline-start: -9px;
@@ -1574,14 +1589,14 @@
     block-size: 24px;
     padding-inline: 8px;
     border-radius: var(--nf-radius-control);
-    background: rgb(255 255 255 / 0.16);
-    color: #fff;
+    background: var(--nf-wash-on-media-2);
+    color: var(--nf-content-on-media);
     font-size: 0.7rem;
     font-weight: 700;
   }
   .nf-story__pilelabel {
     font-size: var(--nf-text-caption);
-    color: rgb(255 255 255 / 0.72);
+    color: var(--nf-content-on-media-muted);
   }
 
   /* --------------------------------------------------- the comment bar */
@@ -1594,9 +1609,9 @@
     min-block-size: 50px;
     padding-inline: 1rem;
     border-radius: var(--nf-radius-control);
-    background: rgb(255 255 255 / 0.13);
-    border: 1px solid rgb(255 255 255 / 0.18);
-    color: rgb(255 255 255 / 0.78);
+    background: var(--nf-wash-on-media-1);
+    border: 1px solid var(--nf-wash-on-media-2);
+    color: var(--nf-content-on-media-secondary);
     font-size: var(--nf-text-body);
     text-align: start;
   }
@@ -1710,7 +1725,7 @@
   .nf-story-plate__scrim {
     position: absolute;
     inset: 0;
-    background: linear-gradient(0deg, rgb(0 0 0 / 0.82) 0%, rgb(0 0 0 / 0.28) 44%, transparent 68%);
+    background: linear-gradient(0deg, var(--nf-overlay-media-deep) 0%, var(--nf-overlay-media-soft) 44%, transparent 68%);
   }
   .nf-story-plate__body {
     position: absolute;
@@ -1727,14 +1742,14 @@
     font-weight: 800;
     line-height: 1.2;
     letter-spacing: -0.025em;
-    color: #fff;
+    color: var(--nf-content-on-media);
   }
   .nf-story-plate__meta {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 14px;
     font-size: var(--nf-text-caption);
-    color: rgb(255 255 255 / 0.78);
+    color: var(--nf-content-on-media-secondary);
   }
 
   /* ------------------------------------------------ choosing the picture */
@@ -1787,7 +1802,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    background: rgb(0 0 0 / 0.5);
+    background: var(--nf-overlay-media);
   }
   @media (min-width: 640px) {
     .nf-comments {
@@ -2061,13 +2076,13 @@
        words. At 0.82 the sentence behind the ring was still legible through it,
        which put two pieces of copy on top of each other and made the labels
        hard to pick out. A modal that leaks readable text is not a modal. */
-    background: rgb(2 4 18 / 0.93);
+    background: var(--nf-overlay-ring);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     cursor: default;
   }
   :root[data-theme="light"] .nf-ring__scrim {
-    background: rgb(244 246 250 / 0.96);
+    background: var(--nf-overlay-ring);
   }
 
   .nf-ring__panel {
@@ -2269,7 +2284,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    background: rgb(0 0 0 / 0.5);
+    background: var(--nf-overlay-media);
   }
   @media (min-width: 640px) {
     .nf-actions {

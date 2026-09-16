@@ -85,7 +85,16 @@ export function CommentsSheet({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setRows(comments), [comments]);
+  /* The server is the truth, derived during render rather than in an effect.
+     Same conversion and same reasoning as `Feed`: an effect committed the old
+     comment list first and the new one a render later, so a sheet reopened
+     after somebody commented flashed the list without their comment in it. The
+     reference compare is what the dependency array already was. */
+  const [lastComments, setLastComments] = useState(comments);
+  if (comments !== lastComments) {
+    setLastComments(comments);
+    setRows(comments);
+  }
 
   /* This sheet is the one that stacks hardest: it opens an action sheet and a
      report sheet of its own, so the counted scroll lock is the point. The

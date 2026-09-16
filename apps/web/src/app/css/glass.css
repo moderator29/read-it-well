@@ -159,7 +159,9 @@
     z-index: -1;
     border-radius: inherit;
     background: var(--nf-glass-specular);
-    opacity: 0.85;
+    /* The 0.85 that stood here is folded into the gradient's own stops; see the
+       note beside `--nf-glass-specular`. Two opacity controls for one highlight
+       meant the value actually painted was in neither of them. */
     pointer-events: none;
   }
 
@@ -493,7 +495,10 @@
     /* The inner top catchlight rides in brand ink too, so the edge reads as
        lit glass rather than as a painted outline. Still one line, still sharp. */
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-brand-edge-soft) 60%, transparent),
+      /* A mix OF a mix: `--nf-brand-edge-soft` is already 35% of the glow ink,
+         so 60% of it landed at 21% - between rungs 1 and 2, nearer 1. A rung of
+         a rung is how a value ends up somewhere nobody chose. */
+      inset 0 1px 0 var(--nf-glow-1),
       var(--nf-elev-1);
     transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }

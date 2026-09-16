@@ -110,7 +110,7 @@ export function Switch({
           ? "var(--nf-brand-primary)"
           : "color-mix(in oklab, var(--nf-content-primary) 12%, transparent)",
         boxShadow: checked
-          ? "0 0 16px -2px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent), inset 0 1px 2px color-mix(in oklab, var(--nf-surface-canvas) 45%, transparent)"
+          ? "0 0 16px -2px var(--nf-glow-3), inset 0 1px 2px color-mix(in oklab, var(--nf-surface-canvas) 45%, transparent)"
           : "inset 0 1px 3px color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent)",
         transitionDuration: "var(--nf-duration-base)",
         transitionTimingFunction: "var(--nf-ease-standard)",

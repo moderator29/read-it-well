@@ -593,8 +593,10 @@
   background-color: var(--nf-interactive-hover);
 }
 
-/* Text selection on paper: light brand tint under ink, not white on mid-blue. */
+/* Text selection on paper: light brand tint under ink, not white on mid-blue.
+   The value lives in `--nf-selection-bg` now, which is answered in both themes,
+   so this rule survives only for the `color` beneath it. */
 :root[data-theme="light"] ::selection {
-  background: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+  background: var(--nf-selection-bg);
   color: var(--nf-content-primary);
 }

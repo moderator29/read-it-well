@@ -206,6 +206,25 @@ const config = [
       "src/app/(site)/**/*.{ts,tsx}",
       "src/components/site/**/*.{ts,tsx}",
       "src/components/app/AiAssistantBanner.tsx",
+      /*
+       * THE DESIGN SYSTEM JOINS THE LIST, which is the ratchet tightening for
+       * the second time.
+       *
+       * `src/design-system/**` and `src/components/ui/**` are at zero for this
+       * rule and have been through two commits and two re-audits since the
+       * migration that took them there. The twelve primitives and the two icon
+       * components are also the worst place in the tree for a raw step to
+       * reappear, because a `p-4` inside `Button` or `Sheet` is a spacing
+       * decision that every screen in the product then inherits without any of
+       * them having taken it.
+       *
+       * `nf/no-raw-colour` already treats both directories as errors - it
+       * covers all of `src/components/**` - so this closes the gap where two of
+       * the three design-system rules held a line in the design system and the
+       * third did not.
+       */
+      "src/design-system/**/*.{ts,tsx}",
+      "src/components/ui/**/*.{ts,tsx}",
     ],
     plugins: { nf },
     rules: { "nf/no-raw-spacing": "error" },
@@ -217,6 +236,8 @@ const config = [
       "src/app/(site)/**/*.{ts,tsx}",
       "src/components/site/**/*.{ts,tsx}",
       "src/components/app/AiAssistantBanner.tsx",
+      "src/design-system/**/*.{ts,tsx}",
+      "src/components/ui/**/*.{ts,tsx}",
     ],
     plugins: { nf },
     rules: { "nf/no-raw-spacing": "warn" },

@@ -206,8 +206,11 @@ html {
   pointer-events: auto;
 }
 
+/* One decision, two themes; see `--nf-selection-bg`. It was 40% of the brand
+   here and 18% of it in light.css, written out in both places, which is a
+   themed pair pretending to be two unrelated literals. */
 ::selection {
-  background: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+  background: var(--nf-selection-bg);
   color: var(--nf-content-on-brand);
 }
 

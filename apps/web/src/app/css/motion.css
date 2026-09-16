@@ -120,10 +120,17 @@
    * ink rather than the page's own theme colour, which would print
    * near-white on this ground under the dark default.
    */
+  /*
+   * The onboarding flight only ever LEAVES - it is at `opacity: 1` on mount and
+   * `--leaving` takes it to 0 - so this is a one-way transition and it takes the
+   * exit curve outright, with no second declaration needed. See the note on
+   * `.nf-sheet-backdrop` in overlays.css for why anything that goes away
+   * accelerates rather than decelerating.
+   */
   .nf-onboarding {
     color: var(--nf-content-on-paper);
     opacity: 1;
-    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+    transition: opacity var(--nf-duration-base) var(--nf-ease-exit);
   }
   .nf-onboarding .nf-overline {
     color: var(--nf-content-on-paper-muted);

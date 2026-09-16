@@ -304,9 +304,23 @@ export function FilterDrawer({
 
   useEffect(() => setMounted(true), []);
 
-  // The address bar is the truth: whenever it moves, the draft follows it, so
-  // reopening the drawer after a back navigation never shows a stale choice.
-  useEffect(() => setDraft(draftFrom(query)), [query]);
+  /*
+   * The address bar is the truth: whenever it moves, the draft follows it, so
+   * reopening the drawer after a back navigation never shows a stale choice.
+   *
+   * DERIVED DURING RENDER RATHER THAN IN AN EFFECT, same change and same
+   * reasoning as `Feed`'s post list. In an effect the drawer painted the old
+   * draft for one frame after a back navigation and then swapped it, which on
+   * the one control whose whole job is to show what the address bar currently
+   * says is a frame of the wrong answer. The comparison is by reference, which
+   * is precisely what the dependency array was doing, so the reset happens on
+   * exactly the same renders it did before - one commit earlier.
+   */
+  const [lastQuery, setLastQuery] = useState(query);
+  if (query !== lastQuery) {
+    setLastQuery(query);
+    setDraft(draftFrom(query));
+  }
 
   const close = useCallback(() => {
     setOpen(false);

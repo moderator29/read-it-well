@@ -41,6 +41,14 @@ export const SOCIAL_OFF_TITLE = "Around is paused";
 export const SOCIAL_OFF_BODY =
   "Places, posts and people are switched off for a moment while we sort something out. Nothing has been deleted and nothing you wrote has gone anywhere. The rest of Vallo works as normal.";
 
-/** The same fact, as one line, for an action that cannot go through. */
+/**
+ * The same fact, as one line, for an action that cannot go through.
+ *
+ * "…will work again SHORTLY" is gone. It is the mild end of the banned family:
+ * a promise about a time nobody here can keep, and in production this branch
+ * means a switch is off rather than that anything is unbuilt. The reader loses
+ * nothing, because the sentence they could act on is the one about their words
+ * still being there.
+ */
 export const SOCIAL_OFF_MESSAGE =
-  "Around is paused for a moment. Nothing you wrote has gone anywhere, and this will work again shortly.";
+  "Around is paused for a moment. Nothing you wrote has gone anywhere, and it comes back on as soon as we are done.";

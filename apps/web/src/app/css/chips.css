@@ -483,7 +483,7 @@
   /* Stat card chart: the line carries a faint glow at night, flattens to a
      plain stroke on paper so it never smears against a white card. */
   .nf-statchart polyline {
-    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent));
+    filter: drop-shadow(0 0 4px var(--nf-glow-3));
   }
   :root[data-theme="light"] .nf-statchart polyline {
     filter: none;
@@ -524,7 +524,7 @@
     border-color: transparent;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
-    box-shadow: 0 10px 24px -8px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+    box-shadow: 0 10px 24px -8px var(--nf-glow-4);
   }
   @media (hover: hover) {
     .nf-action-circle:hover .nf-action-circle__ring {

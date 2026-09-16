@@ -122,7 +122,64 @@
   /* Brand */
   --nf-brand-primary: var(--nf-electric-500);
   --nf-brand-primary-strong: var(--nf-electric-600);
-  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-electric-500) 16%, transparent);
+  /*
+   * THE BRAND TINT, AND THE ANSWER TO "PROPOSE A LADDER" IS THAT THERE IS NO
+   * LADDER TO PROPOSE. THERE IS ONE RUNG AND IT WAS ALREADY HERE.
+   *
+   * The audit counted 21 hand-mixed brand alphas at 13 distinct percentages and
+   * called them a missing tint scale. Classified by the property each one
+   * actually serves, they are four different things and only one is a tint:
+   *
+   *   8  gradient STOPS in ambient.css - the canvas blooms, the crossing light
+   *      beams, the live-card ring. That is the ground and the atmosphere, not
+   *      a fill on an object, and it does not belong on any object scale.
+   *   2  gradient stops elsewhere - a border-box edge in controls.css and a
+   *      scrim ramp in motion.css. Edges, not fills.
+   *   2  `::selection`, which is one decision with a value per theme and is now
+   *      `--nf-selection-bg` below.
+   *   6  TRUE OBJECT FILLS: a brand badge, two brand pills, the active dock
+   *      button, an action circle and the StatusPill's brand tone.
+   *
+   * Those six were written at 14, 15, 20, 20, 20 and 22 per cent. Every one of
+   * them is within six points of the token immediately below, which has existed
+   * the whole time and already has five other consumers across the admin
+   * layout, the docs sidebar and the landing page. Six authors reached for the
+   * same fill and none of them found the name for it.
+   *
+   * So the useful finding is not "there is no scale", it is "the scale is one
+   * value and nobody could see it". Inventing three more rungs to cover a
+   * cluster six points wide would have manufactured decisions the product has
+   * never needed to take. If a second tint is ever genuinely wanted - an
+   * emphatic fill at around a third - add it then, with its consumer.
+   */
+  /*
+   * AND IT MIXED A LAYER-1 STEP THAT HAS NO DAYLIGHT ANSWER, which is a bug
+   * this pass found by pointing six more call sites at it.
+   *
+   * It was `color-mix(var(--nf-electric-500) 16%)`. `--nf-electric-500` is
+   * #0010E0 and the light block does not redefine it, so the brand tint stayed
+   * the NIGHT blue on paper: a deep near-navy wash behind a badge on a white
+   * card, where every other brand surface had already stepped up to #0C2FE8.
+   * `--nf-brand-primary` is the semantic name and it IS answered in daylight,
+   * which is the whole reason layer 2 exists.
+   *
+   * The night value is unchanged to the digit, because `--nf-brand-primary`
+   * resolves to `--nf-electric-500` there. Only daylight moves, and it moves to
+   * the colour it should always have been.
+   */
+  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+
+  /*
+   * Text selection. One decision, and it was two literals in two stylesheets.
+   *
+   * `base.css` mixed the brand at 40% and `light.css` at 18%, and both were
+   * right: 40% of a deep blue behind white-ish ink on a near-black page reads,
+   * and 40% of it behind near-black ink on white paper would swallow the text.
+   * That is a themed pair, which is exactly what this layer is for, and having
+   * it as two hand-written mixes meant changing the selection colour required
+   * finding both and remembering which was which.
+   */
+  --nf-selection-bg: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
   --nf-brand-secondary: var(--nf-electric-300);
   --nf-brand-accent: var(--nf-electric-400);
 
@@ -220,11 +277,46 @@
    * card photography all read from here and are deliberately theme
    * independent. Having them as tokens is what stops the next person writing
    * bg-black/45 and border-white/25 by hand for the eleventh time. */
+  /*
+   * Four scrim depths now, and the two that were here covered a range the
+   * stylesheets were writing at eleven different alphas: 0.28, 0.30, 0.35,
+   * 0.42, 0.50 five times, 0.55, 0.58, 0.62, 0.65, 0.75, 0.80, 0.82 twice and
+   * 0.86. A scrim is the one thing on a photograph whose exact value cannot be
+   * reasoned about from the CSS, because it depends on the picture - which is
+   * precisely why it wants a small set of named depths rather than a number per
+   * call site.
+   */
+  --nf-overlay-media-soft: rgb(0 0 0 / 0.3);
   --nf-overlay-media: rgb(0 0 0 / 0.45);
   --nf-overlay-media-strong: rgb(0 0 0 / 0.62);
+  --nf-overlay-media-deep: rgb(0 0 0 / 0.8);
+  /* A PANEL floating on a photograph, rather than a wash over one: the story
+     card, the held-item chip and the ring around a pile face. Near-black with
+     enough blue in it to belong to this product rather than reading as grey. */
+  --nf-surface-on-media: rgb(10 12 28 / 0.6);
   --nf-border-on-media: rgb(255 255 255 / 0.25);
   --nf-content-on-media: #FFFFFF;
+  /*
+   * A SECOND INK TIER AND TWO WASHES, because the story viewer needed them and
+   * wrote them out fifteen times instead.
+   *
+   * `app/social-feed.css` is a full-screen surface sitting on a photograph: a
+   * headline, a standfirst, a place, a timestamp, a held-item chip, an action
+   * row, a comment bar. Ink over media wants three tiers - white, a readable
+   * secondary, a quiet muted - and the family had two, so the middle tier was
+   * hand-written at 0.76, 0.78 four times, 0.82 twice, 0.85 and 0.86 twice. Ten
+   * sites, six alphas, one decision. Likewise the white washes behind the
+   * action circles and the comment bar, at 0.12, 0.13, 0.14, 0.16 twice, 0.18
+   * twice and 0.20.
+   *
+   * These are theme-independent for the reason the whole family is: what is
+   * behind them is a photograph in both themes, so a daylight twin would be
+   * inventing a difference the product does not have.
+   */
+  --nf-content-on-media-secondary: rgb(255 255 255 / 0.84);
   --nf-content-on-media-muted: rgb(255 255 255 / 0.72);
+  --nf-wash-on-media-1: rgb(255 255 255 / 0.13);
+  --nf-wash-on-media-2: rgb(255 255 255 / 0.18);
   --nf-scrim-media: linear-gradient(
     to top,
     rgb(0 0 0 / 0.65) 0%,
@@ -275,6 +367,44 @@
    */
   --nf-surface-artwork: #010118;
   --nf-overlay-artwork: rgb(1 1 24 / 0.78);
+
+  /* ---------------------------------------------------------------------
+   * FOUR THEMED PAIRS THE LOOSE STYLESHEETS WERE CARRYING AS LITERALS.
+   *
+   * Each of these was written out in full in BOTH a default rule and a
+   * `:root[data-theme="light"]` rule, in `app/social.css` and
+   * `app/social-feed.css` - four decisions stated eight times, where changing
+   * one meant finding its twin and knowing it was a twin. That is the fault the
+   * token layer exists to remove, and these three stylesheets had never been
+   * through it because no workstream owned them.
+   *
+   * The cover scrim is the clearest of the four and worth reading: at night the
+   * band over a cover photograph is BLACK, and on paper it is WHITE. Not a
+   * lighter black - white. Ink over a dark photograph behind a dark scrim is
+   * unreadable, so daylight lifts the picture instead of dimming it. Two
+   * genuinely different treatments for one job, which is exactly what a themed
+   * token is for and exactly what a literal cannot express.
+   * ------------------------------------------------------------------ */
+  --nf-scrim-cover:
+    linear-gradient(180deg, rgb(0 0 0 / 0.5) 0%, transparent 38%),
+    linear-gradient(0deg, rgb(0 0 0 / 0.42) 0%, transparent 34%);
+  /* A full-screen dim behind a focused ring or story. Near-opaque on purpose:
+     this is the surface taking the whole screen, not a scrim over content. */
+  --nf-overlay-ring: rgb(2 4 18 / 0.93);
+  /* The assistant post's own fill. A three-stop navy ramp at night; flat white
+     on paper, where a dark panel inside a feed of white cards is a hole. */
+  --nf-surface-ai:
+    linear-gradient(
+      var(--nf-light-angle),
+      rgb(4 12 68 / 0.5) 0%,
+      rgb(0 3 30 / 0.55) 64%,
+      rgb(0 2 20 / 0.62) 100%
+    );
+  /* A round control riding on a cover photograph - back, share, more. Dark
+     glass at night, white glass on paper, because the photograph underneath is
+     the same either way but the ink on the control is not. */
+  --nf-surface-control-on-media: rgb(0 0 0 / 0.45);
+  --nf-surface-control-on-media-strong: rgb(0 0 0 / 0.62);
   --nf-content-on-media-accent: #B4C6FF;
   --nf-scrim-artwork: linear-gradient(
     180deg,
@@ -708,10 +838,26 @@
   --nf-glass-shadow: var(--nf-elev-2);
   --nf-glass-shadow-lifted: var(--nf-elev-4);
 
+  /*
+   * THE SPECULAR HAD TWO OPACITY CONTROLS AND NOW HAS ONE. L-69.
+   *
+   * These stops were 0.14 and 0.04, and `.nf-glass::before` in glass.css then
+   * painted them at `opacity: 0.85`. So the light coming off every glass
+   * surface on the platform was 0.119 and 0.034 - two numbers nobody wrote,
+   * arrived at by multiplying two numbers two people did write, in two files.
+   * Changing the strength of the specular meant deciding which of the two knobs
+   * to turn, and the answer was never in either place.
+   *
+   * The 0.85 is folded in and the stops are WASH RUNGS. `--nf-wash-4` is 0.12
+   * and `--nf-wash-1` is 0.04, which land within a thousandth and six
+   * thousandths of what was actually being painted - the ladder happened to
+   * already hold this light, which is the argument for having built it. One
+   * control, on the scale, and `opacity` on the pseudo-element is gone.
+   */
   --nf-glass-specular: linear-gradient(
     var(--nf-light-angle),
-    rgb(255 255 255 / 0.14) 0%,
-    rgb(255 255 255 / 0.04) 34%,
+    var(--nf-wash-4) 0%,
+    var(--nf-wash-1) 34%,
     transparent 62%
   );
 
@@ -1656,13 +1802,36 @@
    * instead of two arbitrary bracket values, and the anchor offset in motion.css
    * reads the pair rather than restating their sum.
    *
-   * A THIRD HEIGHT IS STILL OUT THERE AND THIS PAIR DOES NOT DESCRIBE IT.
-   * `components/app/AppShell.tsx` writes `h-[64px]` for the in-app header. That
-   * may be deliberate - the app chrome carries different content from the
-   * marketing chrome - or it may be a fourth number nobody compared. It is not
-   * this workstream's file, so it is named here rather than quietly folded in:
-   * decide whether the app header is 64 on purpose, and if it is, it wants a
-   * rung of its own with the reason on it.
+   * THE IN-APP HEADER IS 64px AND IT SHOULD BE THIS PAIR. NO THIRD RUNG.
+   *
+   * `components/app/AppShell.tsx` writes `h-[64px]`, fixed at every width, and
+   * the question was whether that is a deliberate third height or a number
+   * nobody compared. It is the second, and the arithmetic says so rather than
+   * taste.
+   *
+   * 64 IS NOT DERIVED FROM ANYTHING. The bar's tallest content is a 48px menu
+   * button, so 64 is 48 plus eight of air each side - a reasonable number, and
+   * one nothing states. 60 is 48 plus six and 72 is 48 plus twelve; both clear
+   * the control, and both are derived from what the marketing header actually
+   * renders, which is the only height in the product anybody measured.
+   *
+   * THE TWO BARS AGREE AT NO WIDTH AT ALL. The site bar is fluid, 60 below the
+   * `sm` breakpoint and 72 above it; the app bar is fixed at 64. So a visitor
+   * crossing from the landing page into the product sees the chrome change
+   * height on a phone by 4px and on a desktop by 8, under a logo that does not
+   * move. That is the same fault L-62 found in the MATERIAL of these two bars -
+   * one tinted at 84% on the base blur, the other at 93% on the strong one -
+   * and unifying the material while leaving the height is half a fix.
+   *
+   * AND IT MAKES THE ANCHOR OFFSET WRONG IN THE APP. `motion.css` computes
+   * `scroll-margin-top` from this pair. With the app bar at a fixed 64 and the
+   * token saying 72 on a desktop, every anchored heading inside the product
+   * clears twenty pixels of nothing.
+   *
+   * So: `AppShell.tsx` should write `h-header-sm sm:h-header`, the same two
+   * utilities `SiteHeader.tsx` now uses. That file is another queue's, so this
+   * is a recommendation with the numbers attached rather than an edit. Nothing
+   * here needs to change for it to land.
    */
   --nf-header-height-sm: 60px;
   --nf-header-height: 72px;
@@ -1933,6 +2102,17 @@
   --nf-surface-artwork: #F4F6FA;
   --nf-overlay-artwork: rgb(244 246 250 / 0.82);
 
+  /* The four pairs from the night block. See the long note there; the cover
+     scrim in particular INVERTS rather than softening, because on paper the
+     picture is lifted and the ink stays dark. */
+  --nf-scrim-cover:
+    linear-gradient(180deg, rgb(255 255 255 / 0.78) 0%, rgb(255 255 255 / 0.1) 42%, transparent 60%),
+    linear-gradient(0deg, rgb(255 255 255 / 0.55) 0%, transparent 32%);
+  --nf-overlay-ring: rgb(244 246 250 / 0.96);
+  --nf-surface-ai: linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary));
+  --nf-surface-control-on-media: rgb(255 255 255 / 0.72);
+  --nf-surface-control-on-media-strong: rgb(255 255 255 / 0.9);
+
   /*
    * Daylight glass. Same four ingredients as the night theme, tuned for paper:
    * the fill is near-opaque white, the rim is pure white rather than a
@@ -1950,10 +2130,16 @@
   --nf-glass-floor: rgb(18 21 26 / 0.05);
   /* The three glass shadows are aliases of the ladder now and the ladder has
      its own daylight rungs below, so there is nothing to answer here. */
+  /* Daylight's specular cannot read the wash ladder, and that is the ladder
+     being right rather than a gap: a wash is the surface lifting off its ground,
+     so on paper it is INK, and a specular is light, which is white on any
+     ground. The 0.85 from the pseudo-element is folded into these two stops the
+     same way - 0.9 and 0.3 become 0.765 and 0.255 - so both themes now have one
+     control each. */
   --nf-glass-specular: linear-gradient(
     var(--nf-light-angle),
-    rgb(255 255 255 / 0.9) 0%,
-    rgb(255 255 255 / 0.3) 30%,
+    rgb(255 255 255 / 0.765) 0%,
+    rgb(255 255 255 / 0.255) 30%,
     transparent 60%
   );
 
@@ -2065,6 +2251,11 @@
    * and it was already in the palette with nothing reading it.
    */
   --nf-state-warning-accent: var(--nf-cyan-500);
+
+  /* Selection on paper takes far less of the brand: 40% of a deep blue behind
+     near-black ink on white swallows the text, where the same 40% behind pale
+     ink on the night canvas reads. See the token in the night block. */
+  --nf-selection-bg: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
 
   /*
    * Badge tints derive from the daylight inks above rather than the Layer 1

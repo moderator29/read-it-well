@@ -201,7 +201,12 @@
       box-shadow:
         inset 0 1px 0 var(--nf-wash-7),
         inset 0 -2px 8px var(--nf-shade-1),
-        0 16px 38px -12px color-mix(in oklab, var(--nf-brand-primary) 88%, transparent);
+        /* `--nf-glow-4` is the top of the ladder at 70%, and this was 88, the ONE
+           bloom in the product written ABOVE the scale rather than between two
+           of its rungs. 18 points is a real drop and it is the intended one: 88
+           per cent of the brand under a hovered row is close to painting the
+           brand solid behind it. See F2-036. */
+        0 16px 38px -12px var(--nf-glow-4);
     }
   }
   /* A 1px drop is not a press, it is a nudge nobody notices on a touch screen.
@@ -271,7 +276,8 @@
         border-box;
     box-shadow:
       inset 0 2px 6px var(--nf-shade-2),
-      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 24%, transparent),
+      /* The focus halo. 24% sat between rungs 1 and 2, nearer 2. */
+      0 0 0 3px var(--nf-glow-2),
       0 0 26px -6px var(--nf-glow-4);
   }
   .nf-field[aria-invalid="true"] {
@@ -357,30 +363,32 @@
   }
 
   /*
-   * The square variant. A round control reads as "one more action"; a square
-   * one reads as a panel you open, which is what the filter drawer is. The
-   * radius is deliberately softer than the control's, so the opener looks like
-   * the surface it summons rather than like the search button beside it.
-   * Everything else is inherited, so the two shapes stay one material.
+   * `.nf-icon-btn--square` STOOD HERE AND IS DELETED, AND THIS IS THE FULL
+   * DECISION RATHER THAN A DEFERRAL.
    *
-   * IT WAS A VARIANT THAT CHANGED NOTHING. It set `--nf-radius-md`, which is
-   * 14px, and `.nf-icon-btn` above sets `--nf-radius-control`, which is also
-   * 14px. Written when the base was a full pill and the comment's "not the
-   * pill" was the whole point; the base moved to 14 in the pass that took the
-   * capsules off every control, and this variant silently became a no-op. Two
-   * live call sites - `FilterDrawer.tsx` and `FilterLink.tsx` - have been
-   * asking for a different shape and getting the one they already had.
+   * Its argument was: "a round control reads as one more action; a square one
+   * reads as a panel you open, which is what the filter drawer is. The radius
+   * is deliberately the card radius, NOT THE PILL." That last clause is the
+   * whole reason it existed, and it stopped being true when the founder asked
+   * for rectangles across the platform and `.nf-icon-btn` moved from
+   * `--nf-radius-pill` to `--nf-radius-control`. The base became a rectangle;
+   * the variant that existed to make it one had nothing left to do, and it sat
+   * as a silent no-op setting 14px on an element already at 14px.
    *
-   * `--nf-radius-lg`, 18px, which is a real step away from 14 on a 52px box
-   * without going all the way to the card's 22. NOT CHECKED IN A BROWSER: the
-   * argument that the variant must differ from the base is arithmetic, the
-   * choice of 18 over 22 is a judgement, and if the openers are meant to match
-   * the buttons then the honest answer is to delete the variant and the two
-   * call sites rather than to leave it drawing nothing.
+   * The previous pass gave it `--nf-radius-lg` so that it at least DID
+   * something. On reflection that was the wrong half of the fix. Four pixels of
+   * corner on a 52px box is a difference without a distinction: nobody reads
+   * "this summons a panel" out of an 18px radius next to a 14px one, and if the
+   * opener genuinely needs to say that, it says it with its glyph or its label,
+   * not with a corner. Meanwhile the founder asked for ONE control shape and
+   * this was a second one.
+   *
+   * Deleting the rule returns both openers to 14px, which is what they have
+   * actually been rendering all along, so nothing on screen moves. The class
+   * name is now inert in `components/app/filters/FilterDrawer.tsx` and
+   * `FilterLink.tsx`; those two files belong to another queue and can drop the
+   * token from their className whenever convenient.
    */
-  .nf-icon-btn--square {
-    border-radius: var(--nf-radius-lg);
-  }
 
   /*
    * The skeleton, and it already swept rather than pulsed: the item asking for

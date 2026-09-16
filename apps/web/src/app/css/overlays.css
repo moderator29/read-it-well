@@ -86,9 +86,27 @@
     -webkit-backdrop-filter: blur(6px) saturate(120%);
     backdrop-filter: blur(6px) saturate(120%);
     opacity: 0;
-    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+    /*
+     * THE EXIT CURVE, AND THIS IS THE FIRST RULE IN THE PRODUCT TO USE ONE.
+     *
+     * `--nf-ease-exit` has existed as long as `--nf-ease-entrance` and was read
+     * by nothing, while `entrance` is read twenty-one times. So everything in
+     * this product arrived on a designed curve and LEFT on the same one, which
+     * is backwards physically: a thing entering decelerates into place because
+     * it is settling, a thing leaving accelerates away because it is going. A
+     * backdrop that fades out on a decelerating curve hangs at the end, and a
+     * sheet whose dismissal hangs reads as reluctant to close.
+     *
+     * The mechanism is the state the transition is going TO. A transition uses
+     * the timing function declared on the element in its TARGET state, so a
+     * curve on the closed rule runs when the element is closing and a curve on
+     * the `[data-open="true"]` rule runs when it is opening. Two declarations,
+     * two directions, no JavaScript and no extra class.
+     */
+    transition: opacity var(--nf-duration-base) var(--nf-ease-exit);
   }
   .nf-sheet-backdrop[data-open="true"] {
+    transition: opacity var(--nf-duration-base) var(--nf-ease-entrance);
     opacity: 1;
   }
 
@@ -144,14 +162,20 @@
     border: var(--nf-border-width) solid transparent;
     border-bottom: 0;
     box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
-    /* Starts fully off-screen and is driven in. A fade would defeat the point. */
+    /* Starts fully off-screen and is driven in. A fade would defeat the point.
+       The closed rule carries the EXIT curve and the open rule below carries the
+       spring, so the sheet springs up and accelerates away; see the note on the
+       backdrop. A spring on the way out overshoots BELOW the bottom edge, which
+       is invisible, and then takes the rest of the duration to arrive at a
+       position nobody can see. */
     transform: translateY(100%);
-    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+    transition: transform var(--nf-duration-slow) var(--nf-ease-exit);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     touch-action: none;
   }
   .nf-sheet[data-open="true"] {
     transform: translateY(var(--nf-sheet-y, 0px));
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
   }
   /* While a finger is down the surface tracks it exactly; no easing, or it lags. */
   .nf-sheet[data-dragging="true"] {
@@ -192,9 +216,29 @@
     touch-action: pan-y;
   }
 
+  /*
+   * THE ATTRIBUTE STATES HAVE TO BE NAMED HERE, AND THIS IS A TRAP I WALKED
+   * INTO WHILE ADDING THE EXIT CURVE.
+   *
+   * `.nf-sheet` is one class, specificity (0,1,0). `.nf-sheet[data-open="true"]`
+   * is a class plus an attribute, (0,2,0). SPECIFICITY BEATS SOURCE ORDER and
+   * beats being inside a media query, so the moment the open rules above
+   * started declaring a `transition` of their own - which is how a two-way
+   * transition carries a different curve in each direction - this block stopped
+   * reaching them. A reader who has asked their operating system for less
+   * motion would have got the full spring on the way in and stillness only on
+   * the way out.
+   *
+   * It was correct before and correct after, and the window was one edit long,
+   * which is exactly how this kind of thing ships. Any new state on these two
+   * elements that declares a transition has to be added to this list.
+   */
   @media (prefers-reduced-motion: reduce) {
     .nf-sheet,
-    .nf-sheet-backdrop {
+    .nf-sheet[data-open="true"],
+    .nf-sheet[data-dragging="true"],
+    .nf-sheet-backdrop,
+    .nf-sheet-backdrop[data-open="true"] {
       transition: none;
     }
   }

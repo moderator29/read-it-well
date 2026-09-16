@@ -140,8 +140,26 @@ export function Feed({
   const [chip, setChip] = useState<DistrictChip>("all");
   const [, startTransition] = useTransition();
 
-  // The server is the truth. When a refresh brings new props, take them.
-  useEffect(() => setPosts(initial), [initial]);
+  /*
+   * The server is the truth. When a refresh brings new props, take them.
+   *
+   * DERIVED DURING RENDER RATHER THAN IN AN EFFECT, which is what React 19's
+   * `set-state-in-effect` is pointing at. `useEffect(() => setPosts(initial),
+   * [initial])` commits the stale list first and the new one one render later,
+   * so a refresh paints the old posts for a frame and then replaces them. The
+   * comparison is by reference, exactly as the dependency array was, so nothing
+   * about WHEN this resets has changed - only that it now happens before paint
+   * instead of after one.
+   *
+   * This is React's own "adjusting state when a prop changes" recipe and it
+   * converges: the branch only runs when the reference differs, and setting
+   * `lastInitial` in the same pass makes the next render fall straight through.
+   */
+  const [lastInitial, setLastInitial] = useState(initial);
+  if (initial !== lastInitial) {
+    setLastInitial(initial);
+    setPosts(initial);
+  }
 
   useEffect(() => {
     if (!notice) return;

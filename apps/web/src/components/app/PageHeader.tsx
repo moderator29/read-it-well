@@ -102,22 +102,37 @@ export function PageHeader({
       </button>
       {leading}
       <div className="min-w-0 flex-1">
-        {/* Neither of these truncates any more. A header that reads "Places on
-            R..." tells somebody nothing and cannot be recovered from, and the
-            owner has already caught this once. Two lines is the ceiling: past
-            that the words are wrong, not the box. */}
-        <h1 className="nf-h2 [overflow-wrap:anywhere] line-clamp-2">{title}</h1>
+        {/*
+          NEITHER OF THESE TRUNCATES, AND THE COMMENT THAT SAID SO WAS WRONG.
+          A header that reads "Places on R..." tells somebody nothing and cannot
+          be recovered from, and the owner has already caught this once. The
+          previous pass wrote that sentence and then left `line-clamp-2` on the
+          title and a hard `truncate` on the subtitle, so the title still clipped
+          at two lines and the subtitle still clipped at one - the exact two
+          things F2-048 names, under a comment claiming they were gone. A
+          comment that asserts a fix is the easiest place in a codebase for one
+          to hide.
+
+          `[overflow-wrap:anywhere]` is what actually keeps a long word inside
+          the column; the clamp was never what stopped an overflow, only what
+          hid it. A title long enough to wrap three times is a copy problem, and
+          a copy problem you can read is better than one you cannot.
+        */}
+        <h1 className="nf-h2 [overflow-wrap:anywhere]">{title}</h1>
         {subtitle &&
           (subtitleHref ? (
             <Link
               href={subtitleHref}
-              className="nf-body-sm mt-inline-tight flex items-center gap-inline-tight font-medium leading-snug text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] line-clamp-2 hover:underline"
+              className="nf-body-sm mt-inline-tight flex items-center gap-inline-tight font-medium leading-snug text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] hover:underline"
             >
-              <span className="min-w-0 truncate">{subtitle}</span>
+              {/* `min-w-0` stays so the flex child can shrink; `truncate` goes,
+                  because it was clipping the subtitle to one line inside a
+                  parent the previous pass had already clamped to two. */}
+              <span className="min-w-0">{subtitle}</span>
               <UiIcon name="chevron-right" size={ICON.inline} className="shrink-0" />
             </Link>
           ) : (
-            <p className="nf-body-sm mt-inline-tight leading-snug text-[var(--nf-content-muted)] [overflow-wrap:anywhere] line-clamp-2">
+            <p className="nf-body-sm mt-inline-tight leading-snug text-[var(--nf-content-muted)] [overflow-wrap:anywhere]">
               {subtitle}
             </p>
           ))}

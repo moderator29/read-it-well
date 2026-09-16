@@ -66,10 +66,23 @@ export function ThreadView({
   const [unfolded, setUnfolded] = useState<string[]>([]);
   const [, startTransition] = useTransition();
 
-  useEffect(() => {
+  /*
+   * The server is the truth. When a refresh brings a new thread, take it.
+   *
+   * Derived during render rather than in an effect, the same conversion as
+   * `Feed` and `FilterDrawer`: in an effect the screen paints the previous
+   * post and its replies for one frame after a refresh and then swaps both,
+   * which on a thread somebody has just replied to shows them the state before
+   * their reply. The comparison is by reference, exactly what the dependency
+   * array was, so this resets on the same renders it always did and one commit
+   * earlier.
+   */
+  const [lastThread, setLastThread] = useState(thread);
+  if (thread !== lastThread) {
+    setLastThread(thread);
     setRoot(thread.root);
     setReplies(thread.replies);
-  }, [thread]);
+  }
 
   useEffect(() => {
     if (!notice) return;

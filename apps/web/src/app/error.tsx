@@ -37,8 +37,24 @@ export default function Error({
         <span className="nf-float absolute left-[10%] top-[18%] block h-14 w-14 opacity-20 md:h-16 md:w-16">
           <BrandIcon name="support-chat" fill />
         </span>
+        {/*
+          F2-027's third error boundary, and the last padlock on a crash.
+
+          This drew `shield-lock` here. The `(app)` and `admin` boundaries both
+          had the same object and both lost it, for the reason written out in
+          `(app)/error.tsx`: a padlock shield on a screen that failed to load
+          tells somebody THEIR ACCOUNT IS LOCKED, which is far more alarming
+          than the truth and is not true. This one is decoration at 20 per cent
+          rather than the verdict mark, which makes it quieter and not
+          different: it is the only brand object on the screen besides the
+          support glyph, and what a reader takes from a crash page is the
+          shapes on it.
+
+          `alert-triangle` is what the other two boundaries settled on, so all
+          three now say the same thing with the same object.
+        */}
         <span className="nf-float-slow absolute bottom-[20%] right-[10%] block h-14 w-14 opacity-20 md:h-16 md:w-16">
-          <BrandIcon name="shield-lock" fill />
+          <BrandIcon name="alert-triangle" fill />
         </span>
       </div>
 
