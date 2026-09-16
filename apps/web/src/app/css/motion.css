@@ -589,35 +589,42 @@
   }
 
   /*
-   * Word by word headline wipe. Each word is a span that lifts and fades in
-   * on a stagger set inline, so a heading assembles itself rather than
-   * appearing whole.
+   * Word by word headline wipe, and it was running twenty-seven animations on
+   * one page, several of them for nearly six seconds.
+   *
+   * THERE WERE TWO PATHS, the same fault `.nf-reveal` had: a delay-staggered
+   * entrance, and a `@supports (animation-timeline: view())` block that
+   * replaced it with a scroll-driven one whose duration grew with the word
+   * index, `calc(1s + i * 0.18s)`. On a headline of twenty-seven words the last
+   * one took 5.9 seconds, and because a scroll-driven animation is tied to
+   * scroll position rather than to time it never finishes at all: the page
+   * reported twenty-seven running animations at rest. The scroll path is gone
+   * and the delay path stays, which is the one that ends.
+   *
+   * THE STAGGER IS CAPPED AT FOUR STEPS, like every other stagger in the
+   * product. Seventy milliseconds times twenty-seven words is nearly two
+   * seconds of a reader waiting for a heading to finish arriving, and nobody
+   * counts past four in a sweep. The words after the fourth arrive with it.
+   *
+   * AND THE BLUR IS GONE. `filter` is the one property in this entrance that is
+   * not handed to the compositor, so a six pixel blur on twenty-seven words was
+   * twenty-seven layers repainting every frame. The lift and the fade say the
+   * same thing and cost nothing. The 1.5 degree rotate went with it: a word
+   * that arrives crooked and straightens is a flourish rather than physics.
    */
   .nf-words > span {
     display: inline-block;
-    animation: nf-word-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--i, 0) * 70ms);
-  }
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .nf-words > span {
-        animation-timeline: view();
-        animation-range: entry 10% cover 30%;
-        animation-delay: 0s;
-        animation-duration: calc(1s + var(--i, 0) * 0.18s);
-      }
-    }
+    animation: nf-word-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(min(var(--i, 0), 3) * 50ms);
   }
   @keyframes nf-word-in {
     from {
       opacity: 0;
-      transform: translate3d(0, 0.5em, 0) rotate(1.5deg);
-      filter: blur(6px);
+      transform: translate3d(0, 0.5em, 0);
     }
     to {
       opacity: 1;
       transform: none;
-      filter: none;
     }
   }
 

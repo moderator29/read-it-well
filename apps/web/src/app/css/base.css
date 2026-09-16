@@ -208,7 +208,7 @@ html {
 
 ::selection {
   background: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
-  color: #fff;
+  color: var(--nf-content-on-brand);
 }
 
 /*
@@ -232,8 +232,12 @@ html {
   z-index: 999;
   padding: var(--nf-space-sm) var(--nf-space-md);
   background: var(--nf-brand-primary);
-  color: #fff;
-  border-radius: 0 0 var(--nf-radius-md) 0;
+  color: var(--nf-content-on-brand);
+  /* Both bottom corners, and it used to be one. The three-value shorthand
+     `0 0 14px` sets top-left and bottom-left to zero and rounds only the
+     bottom-right, so the first control a keyboard user ever meets was a
+     rectangle with one corner clipped off. */
+  border-radius: 0 0 var(--nf-radius-control) var(--nf-radius-control);
   font-weight: 600;
 }
 .nf-skip-link:focus {

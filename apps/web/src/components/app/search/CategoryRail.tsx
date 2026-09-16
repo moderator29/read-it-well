@@ -105,6 +105,24 @@ export function CategoryRail({
   counts: Map<ListingKind, number>;
   locale: Locale;
 }) {
+  /*
+   * NINE ZEROES IS NOT NINE FACTS.
+   *
+   * The note below defends rendering a zero, and it is right whenever the
+   * catalogue holds SOMETHING: a market with nothing in it is worth knowing
+   * before the tap rather than after it, and a reader can compare it against
+   * the markets that do have stock.
+   *
+   * It stops being right when every count is zero, which is the state of this
+   * platform today. Nine tiles all reading "0" is one fact printed nine times,
+   * it costs a row of chrome above the results on the screen whose whole job is
+   * results, and it reads as a counter that has failed rather than as a
+   * catalogue that is empty. The empty state directly below says the same thing
+   * once, in a sentence, with a way out.
+   */
+  const anyStock = CATEGORY_TILES.some(({ kind }) => (counts.get(kind) ?? 0) > 0);
+  if (!anyStock) return null;
+
   return (
     <section aria-labelledby="browse-by-type" className="nf-market">
       <h2 id="browse-by-type" className="nf-market__head">
@@ -132,7 +150,13 @@ export function CategoryRail({
                 aria-pressed={on}
                 aria-label={on ? `${label}, selected. Show every type` : label}
                 data-testid={`category-${kind}`}
-                className={`nf-market__tile${on ? " nf-market__tile--on" : ""}`}
+                /* An empty market steps back so the eye lands on the ones with
+                   stock in them. It is still a link and still reachable: the
+                   count is what says it is empty, and the dimming only stops it
+                   competing with a market that is not. */
+                className={`nf-market__tile${on ? " nf-market__tile--on" : ""}${
+                  count === 0 && !on ? " opacity-60" : ""
+                }`}
               >
                 <BrandIcon name={icon} size={40} />
                 <span className="nf-market__name">{label}</span>

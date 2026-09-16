@@ -159,8 +159,20 @@
     animation-delay: calc(min(var(--nf-rise-i, 0), 3) * 50ms);
   }
 
+  /*
+   * STILL, and `nf-float` and `nf-float-slow` are both kept as classes because
+   * they carry the positioning their call sites depend on.
+   *
+   * A seven second ten-pixel bob on every scattered accent object, plus an
+   * eleven second one on the rest, is several ambient loops on a page whose
+   * budget is one. The canvas bloom is the one thing that moves on its own in
+   * this product now; everything else answers an event. The audit's own words:
+   * a screen where twelve things glow is a screen where the eye has nowhere to
+   * rest, and the same is true of a screen where twelve things drift.
+   */
   .nf-float {
-    animation: nf-float 7s var(--nf-ease-standard) infinite;
+    /* No animation. See above. */
+    animation: none;
   }
 
   /*
@@ -177,8 +189,7 @@
 
   /* A second, slower float on an offset phase, for scattered accent objects. */
   .nf-float-slow {
-    animation: nf-float 11s var(--nf-ease-standard) infinite;
-    animation-delay: -3s;
+    animation: none;
   }
 
   /*
@@ -303,9 +314,15 @@
     0% { background-position: 0% 50%; }
     100% { background-position: 200% 50%; }
   }
+  /*
+   * The gradient headline keeps its ramp and loses the sweep. A six second
+   * light travelling across a heading, for ever, on the one line of the page a
+   * reader is meant to read first, is the definition of a loop running for its
+   * own sake: it answers nothing and it never settles. The gradient itself is
+   * the signature and it stays.
+   */
   .nf-shine {
     background-size: 200% auto;
-    animation: nf-shine 6s linear infinite;
   }
   /*
    * An undo window, draining.

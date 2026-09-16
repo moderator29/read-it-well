@@ -14,7 +14,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
-import { ButtonLink } from "@/components/ui/Button";
+import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 
 /**
@@ -166,13 +166,22 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
           body={
             hydrating
               ? "Places you hearted on this device are being matched to your account. This takes a moment."
-              : "Tap the heart on any place and it waits for you here, ready to compare side by side."
+              /* This said "Tap the heart on any place" about a control the
+                 grid did not have: the heart lived on the detail page, on the
+                 map's dock and nowhere else, so the instruction was true only
+                 for somebody who had already opened a property. The card
+                 carries it now, so the sentence is true, and it says where. */
+              : "Tap the heart on any card and it waits for you here, ready to compare side by side."
           }
           action={
-            <ButtonLink href="/search" variant="primary">
-              Find a place
-            </ButtonLink>
+            <EmptyActions primary={{ label: "Find a place", href: "/search" }} />
           }
+          /* CLEARANCE FOR THE FLOATING DOCK. `/saved` is a tab-bar route and
+             this is the whole page, so without it the action lands underneath
+             the navigation. Same clearance as `/search`, and the same note:
+             this belongs in the empty state itself, which is not this file's
+             to change. */
+          className="pb-4xl"
           data-testid="saved-empty"
         />
       </Reveal>

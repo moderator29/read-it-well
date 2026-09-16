@@ -54,7 +54,7 @@ export async function AgentShell({
             />
 
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
-              <LogoMark size={30} />
+              <LogoMark size={36} />
             </Link>
             {/* Mode marker: on the tightest screens the drawer carries it instead.
                 Wrapped rather than classed because the pill sets its own display. */}

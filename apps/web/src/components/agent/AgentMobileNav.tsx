@@ -94,7 +94,7 @@ export function AgentMobileNav({
         >
           <div className="mb-2 flex items-center justify-between px-1">
             <Link href="/" aria-label={t.a11y.logoHome} onClick={close}>
-              <Logo size={36} wordSize={18} />
+              <Logo size={44} wordSize={22} />
             </Link>
             <button
               type="button"

@@ -16,10 +16,15 @@
     align-items: center;
     transform: translate(-50%, -100%);
     padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-circle);
+    /* A capsule, not a circle. `--nf-radius-circle` is 50 per cent, which on a
+       wide short box draws an ellipse rather than a pill: this label is a price
+       on a map and it was being given curved SIDES. */
+    border-radius: var(--nf-radius-pill);
     background: rgb(1 1 24 / 0.88);
     border: 1px solid rgb(92 124 255 / 0.5);
-    color: #ffffff;
+    /* The ground here is deliberately dark in both themes, like the media
+       overlays, so the ink is the on-media one rather than the on-brand one. */
+    color: var(--nf-content-on-media);
     font-weight: 700;
     font-size: 0.75rem;
     line-height: 1.25;

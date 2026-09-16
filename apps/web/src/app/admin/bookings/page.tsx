@@ -131,65 +131,92 @@ export default async function AdminBookingsPage({
   const copy = t.admin.bookings;
   const ui = adminUi(t, locale);
 
+  /*
+   * THE SHARED QUEUE FRAME, ON THE ONE QUEUE THAT ALREADY HAD HALF OF IT.
+   *
+   * This page carried the console's ONLY search input, hand-rolled, with no
+   * status filter, no date range and no pagination, and the other eighteen
+   * destinations carried none of it at all. The frame is
+   * `_components/QueueFilters` now, so the next queue to grow a filter inherits
+   * the same URL contract rather than inventing a second one.
+   *
+   * THE NARROWING IS APPLIED OVER THE ROWS THE QUERY RETURNED, and that is an
+   * interim rather than the destination. `getBookingBoard` takes a search term
+   * and nothing else, and pushing a status and a date range into it is a query
+   * change rather than a frontend one. Today `bookings` holds zero rows and the
+   * read is capped well under a page, so the two are indistinguishable; the day
+   * this queue has a thousand rows the predicate has to move into the query,
+   * and the URL contract above is already the shape it will take.
+   */
   const params = await searchParams;
-  const raw = params["q"];
-  const query = (Array.isArray(raw) ? raw[0] : raw) ?? "";
+  const query = readQueueQuery(params);
 
-  const board = await getBookingBoard(query);
+  const board = await getBookingBoard(query.q ?? "");
+  const inRange = (iso: string | null): boolean => {
+    if (!query.from && !query.to) return true;
+    if (!iso) return false;
+    const at = iso.slice(0, 10);
+    if (query.from && at < query.from) return false;
+    if (query.to && at > query.to) return false;
+    return true;
+  };
+  const narrow = (rows: AdminBookingRow[]): AdminBookingRow[] =>
+    rows.filter(
+      (row) => (!query.status || row.status === query.status) && inRange(row.createdAt),
+    );
 
   return (
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
-      <form method="get" className="mb-6 flex flex-wrap items-end gap-2">
-        <label className="min-w-0 flex-1">
-          <span className="nf-label">{copy.searchLabel}</span>
-          <input
-            type="search"
-            name="q"
-            defaultValue={query}
-            placeholder={copy.searchPlaceholder}
-            className="nf-field mt-1 w-full"
-          />
-        </label>
-        <button type="submit" className="nf-chip nf-chip--active shrink-0">
-          {copy.search}
-        </button>
-        {query.length > 0 && (
-          <Link href="/admin/bookings" className="nf-chip shrink-0">
-            {copy.clearSearch}
-          </Link>
-        )}
-      </form>
+      <QueueFilters
+        base="/admin/bookings"
+        query={query}
+        /* The real enum, and only the real enum. `booking_status` is
+           PENDING, CONFIRMED, CANCELLED and nothing else, so a chip here can
+           never offer a value the column would refuse. It has no COMPLETED,
+           which is why the board has no terminal good state and why an agent
+           cannot record that a stay happened; that is a schema gap and it is
+           not this filter's to invent a value for. */
+        statuses={BOOKING_STATUS_FILTERS}
+        searchLabel={copy.searchLabel}
+        searchPlaceholder={copy.searchPlaceholder}
+      />
 
       {board.state !== "ok" ? (
         <ui.QueueUnavailable />
-      ) : board.data.live.length === 0 &&
-        board.data.past.length === 0 &&
-        board.data.cancelled.length === 0 ? (
+      ) : narrow(board.data.live).length === 0 &&
+        narrow(board.data.past).length === 0 &&
+        narrow(board.data.cancelled).length === 0 ? (
         <ui.QueueEmpty
-          title={board.data.searched ? copy.noMatchTitle : copy.emptyTitle}
-          body={board.data.searched ? copy.noMatchBody : copy.emptyBody}
+          title={
+            board.data.searched || queueNarrowed(query) ? copy.noMatchTitle : copy.emptyTitle
+          }
+          body={board.data.searched || queueNarrowed(query) ? copy.noMatchBody : copy.emptyBody}
+          /* `bookings` has never held a row, so an unnarrowed empty queue here
+             is "nothing has ever arrived", not "you have cleared everything".
+             A narrowed one IS a result and keeps the ordinary treatment. */
+          everHadRows={board.data.searched || queueNarrowed(query)}
         />
       ) : (
         <>
           <Group
             title={copy.groups.live}
-            stays={board.data.live}
+            stays={narrow(board.data.live)}
             copy={copy}
             ui={ui}
             locale={locale}
           />
           <Group
             title={copy.groups.past}
-            stays={board.data.past}
+            stays={narrow(board.data.past)}
             copy={copy}
             ui={ui}
             locale={locale}
           />
           <Group
             title={copy.groups.cancelled}
-            stays={board.data.cancelled}
+            stays={narrow(board.data.cancelled)}
             copy={copy}
             ui={ui}
             locale={locale}

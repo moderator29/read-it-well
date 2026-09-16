@@ -38,7 +38,7 @@ export function AgentRail({
     >
       <div className="nf-nav__head flex-col items-start gap-2">
         <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
-          <Logo size={34} wordSize={17} />
+          <Logo size={42} wordSize={21} />
         </Link>
         <AgentModePill label={t.agent.mode.agent} />
       </div>

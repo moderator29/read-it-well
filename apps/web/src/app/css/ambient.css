@@ -266,13 +266,24 @@
   }
 
   /*
-   * The living stride.
+   * The lit stride, and IT NO LONGER TURNS.
    *
-   * An upgrade of the card ring for hero-level containers: the gradient border
-   * slowly rotates around the box, so the container reads as lit by a light
-   * that is actually moving. Driven by a registered custom property so only
-   * the angle animates; browsers without @property simply hold the static
-   * ring, which is the normal card look, so nothing breaks.
+   * A gradient border rotating around the box for ever, driven by a registered
+   * custom property so only the angle animates. It is a lovely effect and it is
+   * a third ambient loop: `/home` was running this on two cards at once,
+   * alongside the canvas bloom, which is three things moving on a screen whose
+   * budget is one. The rule is not "no ambient motion", it is one per viewport,
+   * and the canvas is the right owner of it because it is behind everything
+   * rather than attached to one card.
+   *
+   * The ring stays exactly as it is drawn: a conic gradient starting at 142
+   * degrees, which is the platform's own light direction, so a hero container
+   * still reads as edge-lit. It is lit by a light that is in a place, rather
+   * than by a light that is going round.
+   *
+   * `@property` and the keyframe are kept: this is a treatment to reach for on
+   * a genuine event, a card that has just gone live, rather than one to run
+   * while somebody reads.
    */
   @property --nf-spin {
     syntax: "<angle>";
@@ -297,7 +308,6 @@
           color-mix(in oklab, var(--nf-brand-primary) 85%, white) 100%
         )
         border-box;
-    animation: nf-spin 14s linear infinite;
   }
 
   /*
@@ -306,27 +316,27 @@
    * The primary button's outer bloom swells and settles on a slow cycle, like
    * the object is drawing breath. Shadow-only, so layout never moves.
    */
-  @keyframes nf-breathe {
-    0%,
-    100% {
-      box-shadow:
-        inset 0 1px 0 rgb(255 255 255 / 0.5),
-        inset 0 -3px 9px rgb(0 0 0 / 0.32),
-        0 2px 4px rgb(0 0 0 / 0.34),
-        0 12px 30px -8px color-mix(in oklab, var(--nf-brand-primary) 78%, transparent),
-        0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 42%, transparent);
-    }
-    50% {
-      box-shadow:
-        inset 0 1px 0 rgb(255 255 255 / 0.5),
-        inset 0 -3px 9px rgb(0 0 0 / 0.32),
-        0 2px 4px rgb(0 0 0 / 0.34),
-        0 18px 48px -6px color-mix(in oklab, var(--nf-brand-primary) 95%, transparent),
-        0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
-    }
-  }
+  /*
+   * `@keyframes nf-breathe` stood here and is gone with its only caller. A
+   * keyframe nothing plays is a description of an animation somebody will
+   * reintroduce by accident.
+   */
+  /*
+   * The CTA does not breathe any more.
+   *
+   * A four and a half second pulse on the primary button, on both of the
+   * landing page's calls to action. A full-width pulsing blue slab is what a
+   * mobile advertisement does, and the glow is supposed to be the thing that
+   * marks a MOMENT: focus, press, selection. A button that glows continuously
+   * has spent the signal before anybody has touched it. The class stays so its
+   * call sites keep their geometry, and the resting shadow is the first
+   * keyframe of what used to be the cycle.
+   */
   .nf-breathe {
-    animation: nf-breathe 4.5s var(--nf-ease-standard) infinite;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-elev-1),
+      0 0 18px var(--nf-glow-2);
   }
 
   /* Decorative floating icon field behind hero content. */
@@ -366,9 +376,9 @@
     animation-delay: -7s;
   }
 
+  /* `.nf-card--live` and `.nf-breathe` were in this list and neither animates
+     any more, so only the floating field is left to switch off. */
   @media (prefers-reduced-motion: reduce) {
-    .nf-card--live,
-    .nf-breathe,
     .nf-icon-field > span {
       animation: none !important;
     }

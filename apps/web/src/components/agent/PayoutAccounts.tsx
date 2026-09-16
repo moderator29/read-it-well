@@ -266,7 +266,10 @@ function AccountRow({ account }: { account: PayoutAccount }) {
     <li className="nf-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 leading-tight">
-          <p className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+          {/* The account holder's name on the screen where money leaves the
+              platform. Never clipped: an operator or an agent checking a
+              payout against a bank statement needs the whole string. */}
+          <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">
             {account.accountName}
           </p>
           <p className="nf-numeric mt-1 text-[0.8125rem] text-[var(--nf-content-secondary)]">

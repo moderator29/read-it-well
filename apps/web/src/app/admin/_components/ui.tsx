@@ -58,9 +58,23 @@ const SUCCESS_WASH: CSSProperties = {
   color: "var(--nf-state-success)",
 };
 
-const WARNING_WASH: CSSProperties = {
-  background: "var(--nf-state-warning-surface)",
-  color: "var(--nf-state-warning)",
+/*
+ * `WARNING_WASH` IS GONE, AND ITS ABSENCE IS THE POINT.
+ *
+ * It was `--nf-state-warning-surface`, and `--nf-state-warning` is defined as
+ * `var(--nf-cyan-400)` while `--nf-status-pending` is defined as
+ * `var(--nf-state-warning)`. They are the same value under two names. Both
+ * users of this wash in this file were FAILURES - a queue that could not be
+ * read, and an admission check that did not pass - so both were drawn in the
+ * colour the product reserves for "still going through". Neither is. If a
+ * genuinely in-flight console state ever needs a wash, it takes the pending
+ * token by its own name rather than borrowing the warning one.
+ */
+
+/** Nothing has happened here. Not good news, not bad news, not a state. */
+const NEUTRAL_WASH: CSSProperties = {
+  background: "var(--nf-surface-inset)",
+  color: "var(--nf-content-muted)",
 };
 
 const DANGER_WASH: CSSProperties = {
@@ -70,6 +84,21 @@ const DANGER_WASH: CSSProperties = {
 
 /** What a metric tile is telling you. Not a status; a temperature. */
 export type StatTone = "neutral" | "warning" | "danger" | "success";
+
+/**
+ * The tone, in words, for anybody who cannot see the colour or the rule.
+ *
+ * English, because `t.admin.common` has no keys for these and adding them
+ * belongs to whoever owns the dictionary. It is stated here rather than left
+ * out, because the alternative is a flagged figure that is flagged only to
+ * people who can see hue.
+ */
+const STAT_TONE_WORD: Record<StatTone, string> = {
+  neutral: "",
+  warning: "needs a look",
+  danger: "needs action",
+  success: "healthy",
+};
 
 const STAT_VALUE_COLOUR: Record<StatTone, string> = {
   neutral: "var(--nf-content-primary)",
@@ -211,6 +240,19 @@ export function adminUi(t: Dictionary, locale: Locale) {
    * to scan is the one thing on these pages that should be big, so the value
    * is `nf-h3` rather than the 1.25rem the hand-rolled versions used.
    */
+  /**
+   * A metric tile.
+   *
+   * THE TONE WAS CARRIED IN COLOUR AND NOTHING ELSE. A `danger` stat was a rose
+   * number and a `warning` stat a cyan one, with nothing else different, and on
+   * the money and payments screens these are the headline figures an operator
+   * scans. Rule 13: colour is never the only signal.
+   *
+   * A left rule in the tone answers it, because it survives greyscale, it costs
+   * no layout, and it reads down a row of tiles as a shape rather than a hue.
+   * The screen-reader name says the same thing in words, so a figure that is
+   * flagged is flagged in three ways and not one.
+   */
   function Stat({
     label,
     value,
@@ -222,14 +264,19 @@ export function adminUi(t: Dictionary, locale: Locale) {
     hint?: string;
     tone?: StatTone;
   }) {
+    const flagged = tone !== "neutral";
     return (
-      <div className="nf-card p-card">
+      <div
+        className={`nf-card p-card${flagged ? " border-l-4" : ""}`}
+        style={flagged ? { borderLeftColor: STAT_VALUE_COLOUR[tone] } : undefined}
+      >
         <p className="nf-overline">{label}</p>
         <p
           className="nf-numeric nf-h3 mt-inline-tight"
           style={{ color: STAT_VALUE_COLOUR[tone] }}
         >
           {value}
+          {flagged && <span className="sr-only"> {STAT_TONE_WORD[tone]}</span>}
         </p>
         {hint && <p className="nf-caption mt-inline-tight">{hint}</p>}
       </div>
@@ -243,15 +290,47 @@ export function adminUi(t: Dictionary, locale: Locale) {
     );
   }
 
-  /** A clear queue is good news and should read like it. */
-  function QueueEmpty({ title, body }: { title: string; body: string }) {
+  /**
+   * An empty queue, and there are TWO of those.
+   *
+   * This drew a green circle with a verified tick and the words "all clear" on
+   * every one of the nineteen console destinations. Checked against the
+   * database: `agent_applications` 0, `reports` 0, `risk_alerts` 0,
+   * `message_flags` 0, `escrows` 0, `bookings` 0, `transactions` 0,
+   * `payout_accounts` 0, `agent_documents` 0. Not one of those tables has ever
+   * held a row. So on day one an operator opens the console and is congratulated
+   * nineteen times for clearing work that never arrived.
+   *
+   * "Nothing has ever arrived here" and "you have cleared everything" are
+   * different facts and the second one is a CLAIM. A tick is earned by somebody
+   * having done something; it does not belong on a queue nobody has ever used.
+   *
+   * The never-used state is neutral, carries no tick, and says what will appear
+   * here and what puts it there, because that is the primary state of the
+   * entire console today and it deserves to be designed as such rather than
+   * inherited from the good-news one.
+   *
+   * `everHadRows` defaults to true so the nineteen call sites that have not
+   * been told which state they are in keep the behaviour they had, and a page
+   * that can answer the question opts into the honest one.
+   */
+  function QueueEmpty({
+    title,
+    body,
+    everHadRows = true,
+  }: {
+    title: string;
+    body: string;
+    /** False when this table has never held a row for this queue. */
+    everHadRows?: boolean;
+  }) {
     return (
       <div className="nf-card p-card-lg text-center">
         <span
           className="mx-auto grid h-14 w-14 place-items-center rounded-full"
-          style={SUCCESS_WASH}
+          style={everHadRows ? SUCCESS_WASH : NEUTRAL_WASH}
         >
-          <UiIcon name="verified" size={28} />
+          <UiIcon name={everHadRows ? "verified" : "history"} size={28} />
         </span>
         <p className="nf-h4 mt-group">{title}</p>
         <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{body}</p>
@@ -265,12 +344,22 @@ export function adminUi(t: Dictionary, locale: Locale) {
    */
   function QueueUnavailable() {
     return (
+      /*
+        A READ FAILURE IS ROSE AND IT IS A CROSS.
+
+        This was a BELL in a cyan wash. `WARNING_WASH` is
+        `--nf-state-error-surface`'s cyan sibling, `--nf-state-warning-surface`,
+        and `--nf-state-warning` is the same token `--nf-status-pending` is
+        defined as, so a queue that could not load was drawn in the colour that
+        means "in flight" with a glyph that means "you have a notification".
+        `DANGER_WASH` was already in this file and was used by one component.
+      */
       <div className="nf-card p-card-lg text-center">
         <span
           className="mx-auto grid h-14 w-14 place-items-center rounded-full"
-          style={WARNING_WASH}
+          style={DANGER_WASH}
         >
-          <UiIcon name="bell" size={28} />
+          <UiIcon name="close" size={28} />
         </span>
         <p className="nf-h4 mt-group">{c.unavailableTitle}</p>
         <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{c.unavailableBody}</p>
@@ -329,16 +418,23 @@ export function adminUi(t: Dictionary, locale: Locale) {
   function CheckRow({ label, pass, detail }: { label: string; pass: boolean; detail: string }) {
     return (
       <li className="flex items-start gap-inline border-t border-[var(--nf-border-subtle)] py-row">
+        {/* Rose and a cross, for the same reason as `QueueUnavailable`: a
+            check that did not pass is a failure, and a bell in the pending
+            colour said neither. */}
         <span
           aria-hidden="true"
           className="grid h-6 w-6 shrink-0 place-items-center rounded-full"
-          style={pass ? SUCCESS_WASH : WARNING_WASH}
+          style={pass ? SUCCESS_WASH : DANGER_WASH}
         >
-          <UiIcon name={pass ? "verified" : "bell"} size={14} />
+          <UiIcon name={pass ? "verified" : "close"} size={14} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="nf-body-sm block font-semibold text-content">{label}</span>
-          <span className="nf-caption block truncate">{detail}</span>
+          {/* THE EVIDENCE IS NEVER CLIPPED. This row's own name for `detail` is
+              the evidence, and it carried `truncate`: an operator deciding
+              whether to admit an agent could not read the thing the decision
+              rests on. */}
+          <span className="nf-caption block [overflow-wrap:anywhere]">{detail}</span>
         </span>
         <span className="sr-only">{pass ? c.passes : c.needsAttention}</span>
       </li>

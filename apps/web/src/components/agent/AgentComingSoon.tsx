@@ -48,13 +48,25 @@ export async function AgentComingSoon({
           </span>
         </div>
 
+        {/*
+          WHAT THIS SAYS, AND WHAT IT STOPPED SAYING.
+
+          "will fill in shortly" is a schedule nobody can keep, and it is the
+          same promise the thirteen "switches on shortly" screens were making in
+          different words. The navigation being final IS the useful fact here:
+          it tells an agent this destination is reserved rather than missing,
+          which is why the rail lists it at all. So the sentence states that and
+          stops there, and the chip says what is true of the page rather than
+          what is planned for it.
+        */}
         <span className="nf-tag-pill nf-tag-pill--neutral mx-auto mt-5 inline-flex">
-          In development
+          Not built yet
         </span>
         <h1 className="nf-h2 mt-3">{title}</h1>
         <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
-          This part of the agent workspace is being built. The navigation is final, so
-          this destination is reserved and will fill in shortly.
+          The navigation is final, so this destination is reserved rather than missing.
+          Nothing you can do today happens here, and everything that does is on the
+          dashboard.
         </p>
         <ButtonLink href="/agent/dashboard" variant="secondary" className="mt-6">
           {t.agent.nav.dashboard}

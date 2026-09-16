@@ -100,7 +100,13 @@ export function AgentIdentityCard({
         {profile.displayName.slice(0, 1).toUpperCase()}
       </span>
       <span className="min-w-0 flex-1 leading-tight">
-        <span className="block truncate text-[0.875rem] font-semibold">{profile.displayName}</span>
+        {/* A NAME DOES NOT TRUNCATE. Nigerian names are frequently long and
+            hyphenated, and this is the agent's own name in their own
+            workspace: "Oluwaseun Adeyemi-Ogun..." is the product telling
+            somebody it could not be bothered to fit them in. It wraps. */}
+        <span className="block text-[0.875rem] font-semibold [overflow-wrap:anywhere]">
+          {profile.displayName}
+        </span>
         {profile.verified && (
           <span className="mt-0.5 inline-flex items-center gap-1 text-[0.75rem] text-[var(--nf-state-success)]">
             <UiIcon name="verified" size={12} />
