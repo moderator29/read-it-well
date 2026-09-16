@@ -631,6 +631,41 @@ These come from the owner directly and they are not open.
 
 ---
 
+### 12.x The blue moves closer to the logo
+
+Added 16 September 2026, from `docs/HANDOFF_03_FRONTEND.md` section 2.4. **The
+palette rules above hold in full and nothing here loosens them.** One blue
+family. Emerald for success, rose for error, bright cyan for attention and
+pending. No orange, amber, gold, purple, violet or magenta, ever. A new accent is
+a new depth of blue.
+
+What changes is the **character** of the blue. The logo and the commissioned
+objects use a blue with light in it: an electric royal blue with a lit edge and a
+bloom around it, not a flat brand fill. The interface should move toward that.
+
+- **Primary buttons** should feel lit from within the way the logo tile is. Edge
+  light, a considered glow, depth on press. Not a flat rectangle of brand colour
+- **Backgrounds** should carry the depth the logo sits on. Navy-black that is not
+  flat black, with the faintest field so the ground has dimension
+- **Containers and cards** should share one elevation language with the objects
+  rather than each surface inventing its own shadow
+- **Focus, active and selected states** are where the glow belongs. They are
+  moments, and a glow that is everywhere is a glow that means nothing
+
+**Restraint is the whole trick.** The logo works because one object glows against
+a dark ground. A screen where twelve things glow is a screen where the eye has
+nowhere to rest, and it reads cheap immediately.
+
+**One thing blocks doing this in one place**, and it was measured rather than
+guessed. `rgb(12 57 239 / alpha)`, the brand glow written by hand, appears
+roughly 60 times at about 15 different alphas across `buttons.css`,
+`ambient.css`, `glass.css` and `light.css`. It is not a token. Until it is a
+small glow scale, "lit from within" cannot be applied, changed or undone
+centrally, and **the light theme currently fires the dark theme's glow on a
+primary button hover.** See `docs/FRONTEND_REVAMP.md`, finding F2-036.
+
+---
+
 ## 13. The design system
 
 Strengthen the system rather than adding components. There are 183 components
@@ -769,6 +804,22 @@ dark; on the light theme use the ink variant, not the tile on white. And every
 place the old logo is referenced gets updated in the same commit as the rename,
 or the product ships with broken images.
 
+**What landed, 15 and 16 September 2026.** The upload is now
+`apps/web/public/brand/vallo-icon.png`, with `vallo-mark.png` for the skyline and
+swoosh alone and `vallo-word.png` for the wordmark. The whole derived set is
+generated rather than cut by hand: `scripts/build-web-icons.mjs` writes the
+favicon and the PWA set, `scripts/build-native-icons.mjs` writes the Capacitor
+sources, and `npx @capacitor/assets generate` fans those out to the 57 Android and
+iOS files. Both scripts open by explaining their own choices, which is the record
+the old hand-made set never had.
+
+**One thing about that went wrong and is worth keeping.** The Capacitor sources
+were regenerated and the fan-out was never run, so **57 native icon files still
+carried the old RentMe mark** while every check passed. It survived because the
+old mark is BLUE, so a hue scan reads it as entirely on brand; nothing but
+looking at it finds it. An agent caught it. If the brand mark changes again, the
+fan-out is the step to verify, not the sources.
+
 ### 15.3 What else is in `/brand/`
 
 Ten more assets carry the old name and most are in active use:
@@ -828,6 +879,22 @@ types each get their own image instead of two images covering eight.
 **The landing page hero is the highest-value single image in the product.** It is
 the first thing a visitor sees and it currently reuses `rentme-city.png` as a CSS
 background in `CityHero.tsx`. Treat it as its own decision.
+
+**What landed.** Nothing, and that is the honest answer. The network policy
+answers 403 to every image host, so no session in this environment can fetch a
+photograph however much it would like to. What was built instead is the wiring
+that makes dropping files in the only remaining step:
+`scripts/build-scene-manifest.mjs` runs before every build, reads
+`apps/web/public/brand/scenes/`, and writes the manifest `MediaFrame` imports. A
+scene with no file keeps its stand-in, so the product is never broken by a
+missing image and the eight scenes can be filled one at a time.
+`docs/IMAGERY.md` names a specific, correctly licensed image per scene.
+
+**And the position has hardened since this was written, because the database was
+read.** All 64 listings carry zero photographs, so `MediaFrame` does not have a
+fallback path, **it has the only path**. What it draws is what every listing on
+the platform looks like on every surface. See `docs/FRONTEND_REVAMP.md` section
+4, and its section 5 for what the card should do about that in the meantime.
 
 ### 15.5 Terms, disclaimers and privacy
 
@@ -1318,6 +1385,40 @@ not need replacing.
 
 **This area alone should produce dozens of recommendations**, and they are exactly
 the small, high-impact kind section 8 asks for.
+
+---
+
+### 24.x The artwork now exists, and it is still not wired up
+
+Added 16 September 2026.
+
+**This section called for a mark for every success, pending, verified and failed
+moment, `docs/BRAND_MARKS.md` turned that into a commission for twenty four, and
+sheet `CF5A4150` is that commission delivered.** Twenty three of the twenty four
+are cut, named under the names BRAND_MARKS gave them, and committed to
+`apps/web/public/brand/glass/`. `C0F67033` is the light twin of the same
+twenty four, so the confirmation system can cross themes without a filter.
+
+**The three marks this section most needs are `seal-check`, `seal-pending` and
+`seal-failed`**: the same scalloped rosette carrying a tick, an hourglass and a
+cross. **Pending finally has an object.** Every pending state in this product is
+a spinner today, and a spinner is the absence of a design.
+
+**Nothing is wired up.** No call site points at the glass set, and there is still
+no shared confirmation component. So the position is unchanged in the way that
+matters: the artwork is no longer the blocker, the component is.
+
+**One mark from that sheet is cut, named and withheld.** `escrow-hold` is a
+picture of money being held, and this platform holds nobody's money. See
+`docs/BRAND_MARKS.md` section 4.
+
+**And one thing found while checking this, which outranks everything above.**
+`apps/web/src/components/app/wallet/BalanceBreakdownSheet.tsx` renders to a user:
+"Escrow moves money out of it and holds it until both sides are done", and "You
+have paid this into escrow. It comes back if the deal does not happen." The terms
+of service, rewritten on 15 September, say Vallo does not hold your money in
+escrow. **The wallet screen and the contract say opposite things about where
+somebody's rent money is.** Fix that before designing anything.
 
 ---
 
