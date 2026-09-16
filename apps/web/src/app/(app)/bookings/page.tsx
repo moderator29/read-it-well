@@ -6,10 +6,10 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { MyBookings } from "./MyBookings";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
 import { readInspectionsForRequester } from "@/lib/inspections/queries";
 import { InspectionRows } from "@/components/app/inspections/InspectionRows";
+import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState, Row, RowList, Section, TYPE } from "@/components/app/Screen";
 
 export const metadata: Metadata = { title: "Bookings" };
@@ -135,7 +135,7 @@ export default async function BookingsPage({
       <Reveal>
         {unavailable ? (
           <div className="py-heading text-center" data-testid="bookings-unavailable">
-            <p className={TYPE.rowTitle}>We could not load your trips</p>
+            <p className={TYPE.rowTitle}>We could not load your stays</p>
             <p className={`mx-auto mt-row max-w-sm ${TYPE.body}`}>
               Something on our side did not answer just now. Nothing has changed about
               your bookings. Reload the page and they should come straight back.
@@ -149,21 +149,20 @@ export default async function BookingsPage({
             middleware sends a signed-out visitor to /sign-in before this file
             runs. It used to be three invented confirmed bookings with naira
             totals; it is the door now, which is the only honest thing a trips
-            hub can say to somebody it cannot identify.
+            hub can say to somebody it cannot identify. "Trips" is a banned
+            synonym for Stay in `PRODUCT.md` section 7 and it was in eleven
+            user-facing strings; the vocabulary exists so the product sounds
+            like one product.
           */
           <EmptyState
             icon="calendar-check"
-            title="Your trips are behind your sign in"
+            title="Sign in to see your stays"
             body="Every stay you book is tied to your account, so we only ever show you your own. Sign in and anything booked with this account appears here."
             action={
-              <ButtonLink href="/sign-in" variant="primary">
-                Sign in
-              </ButtonLink>
-            }
-            secondary={
-              <ButtonLink href="/search" variant="ghost">
-                Explore places
-              </ButtonLink>
+              <EmptyActions
+                primary={{ label: "Sign in", href: "/sign-in" }}
+                secondary={{ label: "Find somewhere to stay", href: "/search" }}
+              />
             }
             data-testid="bookings-signed-out"
           />

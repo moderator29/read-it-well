@@ -149,8 +149,10 @@
     font-weight: 600;
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-onboarding-skip:hover {
-    background: rgb(255 255 255 / 0.94);
+  @media (hover: hover) {
+    .nf-onboarding-skip:hover {
+      background: rgb(255 255 255 / 0.94);
+    }
   }
   /* The camera move: a slow pull back from a close crop of the world mark to
      the full scene, so the flight opens on a detail and reveals the whole

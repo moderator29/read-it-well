@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { MomentScreen } from "@/components/app/MomentScreen";
 import { PageHeader } from "@/components/app/PageHeader";
+import { EmptyState } from "@/components/app/Screen";
+import { EmptyActions } from "@/components/app/EmptyActions";
+import { Unreachable } from "@/components/app/Unreachable";
 import { resolveSession } from "@/lib/actions/session";
 import { loadNotifications } from "@/lib/messages/live";
 import { Reveal } from "@/components/site/Reveal";
@@ -55,16 +56,10 @@ export default async function NotificationsPage() {
       <div className="mx-auto max-w-2xl">
         <PageHeader title="Notifications" />
         <Reveal>
-          <MomentScreen
-            variant="brand"
+          <Unreachable
+            noun="notifications"
             icon="bell-badge"
-            title="Notifications switch on shortly"
-            description="Bookings, messages and wallet activity will land here the moment the platform keys are in place. Nothing is waiting for you yet."
-            actions={
-              <Link href="/search" className="nf-btn nf-btn--primary nf-btn--lg">
-                Explore places
-              </Link>
-            }
+            action={{ label: "Try again", href: "/notifications" }}
           />
         </Reveal>
       </div>
@@ -75,20 +70,20 @@ export default async function NotificationsPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Notifications" />
       <Reveal>
-        <MomentScreen
-          variant="brand"
-          icon="bell-alert"
+        {/* One empty state, one action treatment. This was a `MomentScreen`
+            with two hand-written `nf-btn` anchors at intrinsic width, beside a
+            sibling branch whose single action was full width. A confirmation
+            component was doing an empty state's job, which is the reason there
+            were nine of them. */}
+        <EmptyState
+          icon="bell-badge"
           title="Sign in to see your notifications"
-          description="Your bookings, messages and wallet activity are tied to your account, so we only ever show you your own. Nothing here belongs to anyone else."
-          actions={
-            <>
-              <Link href="/sign-in" className="nf-btn nf-btn--primary nf-btn--lg">
-                Sign in
-              </Link>
-              <Link href="/search" className="nf-btn nf-btn--glass nf-btn--lg">
-                Keep exploring
-              </Link>
-            </>
+          body="Your bookings, messages and wallet activity are tied to your account, so we only ever show you your own. Nothing here belongs to anyone else."
+          action={
+            <EmptyActions
+              primary={{ label: "Sign in", href: "/sign-in" }}
+              secondary={{ label: "Keep exploring", href: "/search" }}
+            />
           }
         />
       </Reveal>

@@ -41,9 +41,37 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * than as a dense toolbar, and a dock is where that is felt first.
  *
  * A floating dock lifted clear of every edge rather than an edge-to-edge bar.
- * The active tab expands into a labelled capsule while the rest stay icon-only,
- * and because the outgoing label collapses on the same spring the incoming one
- * expands on, the highlight reads as travelling along the bar.
+ *
+ * ---------------------------------------------------------------------------
+ * THE PILL TRAVELS NOW, AND IT USED TO CUT.
+ *
+ * Every tab carried its OWN pill at `inset: 0`, faded in by opacity and popped
+ * by a keyframe. Switching tabs was therefore a fade out in one place and a
+ * fade in somewhere else, with a bounce on the end of it: two events that the
+ * eye reads as a cut, not as a highlight moving. The comment above that CSS
+ * claimed the capsule "visibly travels along the bar", and what travelled was
+ * the label's width, which is not the same thing and is not what anybody sees.
+ *
+ * There is ONE pill now. It is a single absolutely positioned element inside
+ * the bar, and it is placed by arithmetic rather than by measurement: the tabs
+ * are equal width, so the pill is one tab wide and its offset is the active
+ * index times a tab plus a gap. The server already knows which tab is active,
+ * so the index is an inline custom property and the whole thing stays a server
+ * component with no JavaScript, no ref, no ResizeObserver and no layout read.
+ * Changing tabs changes one number, and a transition on `translate` does the
+ * rest on the entrance curve. That is a morph.
+ *
+ * EQUAL WIDTH IS WHAT MAKES THE ARITHMETIC POSSIBLE, and it settles a second
+ * complaint at the same time. The bar used to label only the tab you were
+ * already standing on: three of four destinations had no name, and `title` does
+ * nothing on a touch screen, so a person saw one word and three unlabelled
+ * glyphs. Every tab is labelled now, glyph over label the way a first-party
+ * bar does it, and the terminology work the product has already done is finally
+ * on the screen.
+ *
+ * THE ACTIVE GLYPH CHANGES WEIGHT, not only colour. `UiIcon` carries a drawn
+ * solid silhouette for each of these four, so the active destination reads as
+ * solid at a glance rather than as a slightly different shade of the same line.
  */
 type Tab = { href: string; label: string; icon: UiIconName };
 
@@ -120,14 +148,24 @@ export function MobileTabBar({
     ? { href: "/profile", label: t.nav.profile, icon: "user" }
     : { href: "/sign-up", label: t.common.signUp, icon: "user" };
   const islandActive = island.href === active;
+  /*
+   * Which tab the pill sits behind. -1 means no tab owns the route, which is a
+   * real state: `/saved` and a guest on `/messages` both render the dock with
+   * nothing highlighted. The pill hides rather than parking on the first tab
+   * and claiming a destination the reader is not on.
+   */
+  const activeIndex = tabs.findIndex((tab) => tab.href === active);
   /* The island is the way through to notifications on a phone. */
   const marked = signedIn && unreadNotifications > 0;
 
   return (
     <AutoHideDock
-      /* Keyed on the route, so an app navigation remounts the dock and it
-         never arrives on a new screen still hidden from the last one. */
-      key={active}
+      /*
+       * The route rather than a key. A key remounts the dock on every
+       * navigation, which put it back on screen and also destroyed the pill
+       * mid-journey; `AutoHideDock` resets itself from this instead.
+       */
+      route={active}
       label={t.nav.primaryLabel}
       /*
        * `max(0.9rem, env(...))` looked safe but collapsed the dock's own margin
@@ -138,35 +176,36 @@ export function MobileTabBar({
        */
       className="nf-dockrow fixed inset-x-4 bottom-[calc(0.35rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
-      <ul className="nf-tabbar flex items-center gap-1 px-1.5 py-1.5">
+      <ul
+        className="nf-tabbar"
+        style={
+          {
+            "--nf-tab-count": tabs.length,
+            "--nf-tab-i": Math.max(activeIndex, 0),
+          } as React.CSSProperties
+        }
+      >
+        {/*
+          The travelling pill. An `<li>` rather than a bare span because the
+          children of a list have to be list items, and `aria-hidden` plus an
+          empty box keeps it out of the accessibility tree entirely: it is the
+          drawing of a state that `aria-current` already announces.
+        */}
+        <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {tabs.map((tab) => {
           const isActive = tab.href === active;
 
           return (
-            <li key={tab.href}>
+            <li key={tab.href} className="nf-tab">
               <Link
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
-                title={tab.label}
-                className={[
-                  "nf-tab-pop",
-                  isActive
-                    ? "text-[var(--nf-content-on-brand)]"
-                    : "text-[var(--nf-content-primary)] opacity-75 hover:opacity-100",
-                ].join(" ")}
+                className="nf-tab__link"
               >
-                <span className="nf-tab-pop__pill" aria-hidden="true" />
-                <span className="nf-tab-pop__icon">
-                  <UiIcon name={tab.icon} size="lg" filled={isActive} />
+                <span className="nf-tab__icon">
+                  <UiIcon name={tab.icon} size="md" filled={isActive} />
                 </span>
-                {/*
-                  The label is always in the DOM, so it is always available to a
-                  screen reader and the link never needs an aria-label that
-                  duplicates it. Inactive tabs collapse it to zero width in CSS
-                  rather than removing it, which is what gives the active
-                  capsule something to expand from.
-                */}
-                <span className="nf-tab-pop__label">{tab.label}</span>
+                <span className="nf-tab__label">{tab.label}</span>
               </Link>
             </li>
           );
@@ -188,18 +227,19 @@ export function MobileTabBar({
                 .replace("{count}", String(unreadNotifications))
             : island.label
         }
-        className={[
-          "nf-dock-island relative",
-          islandActive ? "" : "opacity-90 hover:opacity-100",
-        ]
+        className={["nf-dock-island relative", islandActive ? "" : "opacity-90"]
           .filter(Boolean)
           .join(" ")}
       >
-        <UiIcon name={island.icon} size="lg" />
+        <UiIcon name={island.icon} size="md" filled={islandActive} />
         {marked && (
           <span
             aria-hidden="true"
-            className="absolute right-3 top-3 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-brand-primary)]"
+            /* Cyan, not brand blue. The marker was the same hue as the island
+               it sits on, on the one control that carries the unread state on a
+               phone, so the thing it exists to announce was the hardest thing
+               in the bar to see. Attention is cyan on this platform. */
+            className="absolute right-2.5 top-2.5 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-canvas)] bg-[var(--nf-state-warning)]"
           />
         )}
       </Link>

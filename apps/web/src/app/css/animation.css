@@ -113,15 +113,28 @@
   }
 
   .nf-rise {
-    animation: nf-rise var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
   }
 
-  /* Staggered entrances: each step lands a beat after the one before it, so
-     the hero reads as a sequence rather than a single card flip. */
-  .nf-rise-2 { animation-delay: 140ms; }
-  .nf-rise-3 { animation-delay: 280ms; }
-  .nf-rise-4 { animation-delay: 420ms; }
-  .nf-rise-5 { animation-delay: 560ms; }
+  /*
+   * Staggered entrances, and THE STEP WAS THREE TIMES TOO LONG.
+   *
+   * It was 140ms, so the fifth line of a hero began arriving 560ms after the
+   * first and finished 1.1 seconds in. A reader has read the headline long
+   * before the last line lands, and a stagger the reader has outrun is not
+   * choreography, it is the page being slow. 50ms across four steps reads as
+   * one sweep with weight in it, which is the whole effect.
+   *
+   * FOUR STEPS, AND THE FIFTH IS CAPPED ON PURPOSE. `nf-rise-5` keeps its name
+   * because call sites use it, and it holds at the fourth step's delay rather
+   * than adding another: past four the last thing arrives after the eye has
+   * already moved on. It is a cap rather than two names for one number, and the
+   * cap is the decision.
+   */
+  .nf-rise-2 { animation-delay: 50ms; }
+  .nf-rise-3 { animation-delay: 100ms; }
+  .nf-rise-4 { animation-delay: 150ms; }
+  .nf-rise-5 { animation-delay: 150ms; }
 
   /*
    * The same stagger for a LIST, whose length nobody knows at authoring time.
@@ -131,18 +144,19 @@
    * was either capping the stagger at five or writing nf-rise-6 upwards
    * forever. The index comes from the caller as --nf-rise-i.
    *
-   * The step is 60ms rather than the 140ms the hero uses. A hero's lines are
-   * read one after another and want to land that way; a row of peers is read as
-   * a group, and 140ms across five of them is most of a second of the reader
-   * waiting for a row to finish arriving. 60ms reads as a single sweep.
+   * The step is 50ms, the same as the hero's, because there is only one
+   * stagger in the product and a row of peers and a stack of lines should not
+   * arrive at two different speeds.
    *
-   * Capped at eight steps. Past that the last item is arriving long after the
-   * eye has finished with the row, which is the point at which a stagger stops
-   * being choreography and becomes lag.
+   * CAPPED AT THREE, WHICH IS FOUR STEPS. It was capped at eight, and eight
+   * steps at 60ms is half a second of a reader watching a row assemble. The cap
+   * is the point: a rail of twelve categories does not stagger twelve times, it
+   * staggers four and the rest arrive with the fourth. Nobody can count past
+   * four in a sweep and nobody tries.
    */
   .nf-rise-seq {
-    animation: nf-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
-    animation-delay: calc(min(var(--nf-rise-i, 0), 8) * 60ms);
+    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(min(var(--nf-rise-i, 0), 3) * 50ms);
   }
 
   .nf-float {
@@ -182,8 +196,8 @@
     opacity: 0;
     transform: translateY(22px);
     transition:
-      opacity var(--nf-duration-deliberate) var(--nf-ease-entrance),
-      transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+      opacity var(--nf-duration-entrance) var(--nf-ease-entrance),
+      transform var(--nf-duration-entrance) var(--nf-ease-entrance);
     will-change: opacity, transform;
   }
   .nf-reveal[data-shown="true"] {
@@ -192,63 +206,27 @@
     will-change: auto;
   }
   /*
-   * Where scroll-driven animation exists, the reveal is handed to the
-   * compositor and tied to the block's own scroll position: it lifts,
-   * unblurs and settles as it enters, and replays on the way back. The
-   * observer state above stays as the fallback for older engines.
+   * THERE WAS A SECOND REVEAL PATH AND IT IS GONE.
    *
-   * The range lives entirely inside "entry" (the element's own transit into
-   * the viewport), never "cover": a "cover" endpoint needs scroll distance
-   * AFTER the element is already visible to finish, which the last section
-   * on any page does not have. That was leaving whatever a guest scrolled
-   * to last permanently blurred, since there was no more page left to
-   * scroll through to complete it. Entry alone finishes the moment the
-   * element has fully entered, regardless of what does or does not follow.
+   * A `@supports (animation-timeline: view())` block ran the same entrance as a
+   * scroll-driven animation wherever the browser had one, so the reveal existed
+   * twice: an IntersectionObserver transition and a CSS scroll timeline, with a
+   * `data-instant` escape hatch documented as fixing a real bug where the two
+   * fought over an element already on screen at first paint.
+   *
+   * Two mechanisms for one effect is one more than can be reasoned about, and
+   * the observer is the one that works everywhere, handles above-the-fold
+   * correctly and is what the component already drives. Its keyframe also
+   * animated `filter: blur(3px)`, which is the one property in the entrance
+   * that forces a full repaint of the composited layer on every frame, unlike
+   * transform and opacity. One path, no blur.
    */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .nf-reveal {
-        opacity: 1;
-        transform: none;
-        transition: none;
-        animation: nf-reveal-in linear both;
-        animation-timeline: view();
-        animation-range: entry 4% entry 76%;
-      }
-      /*
-       * A block already on screen at first paint has no entry transit left to
-       * animate through, so it holds at whatever point of the range its
-       * position happens to fall on: the first result card on /search sat at
-       * 56% opacity behind a 1.3px blur until the visitor scrolled. An
-       * animation outranks a normal declaration in the cascade, so this has to
-       * cancel the animation outright rather than restate the end state.
-       * Reveal marks those blocks on mount.
-       */
-      .nf-reveal[data-instant="true"] {
-        animation: none;
-        opacity: 1;
-        transform: none;
-        filter: none;
-      }
-    }
-  }
-  @keyframes nf-reveal-in {
-    from {
-      opacity: 0;
-      transform: translate3d(0, 30px, 0) scale(0.988);
-      filter: blur(3px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-      filter: none;
-    }
-  }
+
   /*
    * The reveal needs a rule of its own where the loops do not, because its
-   * hidden state is a normal declaration rather than an animation: the switch
-   * at the top of this file can collapse a transition to nothing and still
-   * leave the element sitting at `opacity: 0` waiting for an observer that is
+   * hidden state is a normal declaration rather than an animation. The switch
+   * at the top of this file collapses the transition to nothing and still
+   * leaves the element sitting at `opacity: 0`, waiting for an observer that is
    * never going to fire for it.
    */
   @media (prefers-reduced-motion: reduce) {
@@ -262,13 +240,18 @@
   /*
    * Result grid assembly. Cards in a freshly loaded or refiltered list rise
    * and fade in on a short stagger, so the grid reads as assembling rather
-   * than dropping in as one block. The delay is read from --card-i, which
-   * the grid caps at 5 (six steps) so a long page of results does not keep
-   * animating for seconds after the first row has already settled.
+   * than dropping in as one block.
+   *
+   * THE CAP IS IN THE STYLESHEET NOW, NOT IN THE GRID. `--card-i` is written by
+   * the call site and the cap lived there, at five, which meant every list that
+   * forgot to cap it staggered for as long as it had rows. A cap that depends
+   * on each caller remembering is not a cap. Four steps at 50ms, the same
+   * stagger as every other entrance in the product, and a caller can pass any
+   * index it likes.
    */
   .nf-card-in {
-    animation: nf-card-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--card-i, 0) * 70ms);
+    animation: nf-card-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: calc(min(var(--card-i, 0), 3) * 50ms);
   }
   @keyframes nf-card-in {
     from {

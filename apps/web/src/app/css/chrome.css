@@ -173,18 +173,78 @@
     }
   }
 
+  /*
+   * The bar. Real glass, and the geometry the travelling pill is built on.
+   *
+   * THE LAYOUT IS IN THE STYLESHEET NOW. It was four Tailwind utilities on the
+   * element (`flex items-center gap-1 px-1.5 py-1.5`), which meant the two
+   * numbers the pill's arithmetic depends on, the gap and the padding, lived in
+   * the markup while the arithmetic lived here. They are custom properties, so
+   * the bar and the pill cannot disagree about them.
+   */
   .nf-tabbar {
+    --nf-tab-gap: var(--nf-space-2xs);
+    --nf-tab-pad: 0.375rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-tab-gap);
+    padding: var(--nf-tab-pad);
     /* Canvas tint rather than a white wash: this floats over scrolling
        content. See the note on `.nf-glass--chrome` in glass.css. */
     background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
-    border: 1px solid var(--nf-glass-border);
-    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-glass-border);
+    border-radius: var(--nf-radius-lg);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-strong),
       inset 0 -1px 0 var(--nf-glass-floor),
       var(--nf-glass-shadow-lifted);
+  }
+
+  /*
+   * THE PILL. One element, and it moves.
+   *
+   * Its width is one tab: the bar's own width, less its two paddings and the
+   * gaps between the tabs, divided by the number of tabs. Percentages on an
+   * absolutely positioned box resolve against the containing block's padding
+   * box, which is why the two paddings are subtracted here.
+   *
+   * Its position is the active index times one tab plus one gap, and inside a
+   * `translate` on this element `100%` means its own width, which IS one tab.
+   * So the whole traversal is one multiplication and the browser interpolates
+   * it on the entrance curve.
+   *
+   * `translate` rather than `transform`, so a press or any other transform on
+   * the bar cannot overwrite the position.
+   */
+  .nf-tabbar__pill {
+    position: absolute;
+    z-index: 0;
+    top: var(--nf-tab-pad);
+    bottom: var(--nf-tab-pad);
+    left: var(--nf-tab-pad);
+    width: calc(
+      (100% - (2 * var(--nf-tab-pad)) - ((var(--nf-tab-count) - 1) * var(--nf-tab-gap))) /
+        var(--nf-tab-count)
+    );
+    translate: calc(var(--nf-tab-i) * (100% + var(--nf-tab-gap)));
+    border-radius: calc(var(--nf-radius-lg) - var(--nf-tab-pad));
+    background: var(--nf-gradient-brand);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 6px 16px -6px var(--nf-glow-3);
+    transition: translate var(--nf-duration-base) var(--nf-ease-entrance);
+  }
+  /*
+   * Parked. `/saved` and, for a guest, `/messages` render the bar with no tab
+   * claiming the route. The pill is the drawing of "you are here", so when
+   * nobody is here it is not drawn: it used to leave the first tab looking
+   * selected on a screen the reader had not chosen.
+   */
+  .nf-tabbar__pill[data-parked] {
+    opacity: 0;
   }
 
   /*
@@ -220,7 +280,7 @@
       color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-dock-island:active {
-    transform: scale(0.93);
+    transform: scale(var(--nf-press-scale-sm));
   }
   /* The island's own active state: brand fill, matching the capsule's pill. */
   .nf-dock-island[aria-current="page"] {
@@ -249,140 +309,63 @@
   }
 
   /*
-   * The tab bar's active destination pops a soft brand pill in behind it
-   * rather than only recolouring text. The pill's opacity and scale are
-   * driven off `aria-current`, so switching tabs always plays the same
-   * settle-in motion on whichever tab just became active.
-   */
-  @keyframes nf-tab-pop-in {
-    0% {
-      transform: scale(0.82);
-    }
-    55% {
-      transform: scale(1.06);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  /*
    * The tab.
    *
-   * The reference standard is an active tab that EXPANDS into a labelled
-   * capsule while its neighbours stay icon-only circles, with the highlight
-   * sliding between positions rather than cross-fading.
+   * Equal width, glyph over label, the whole target tappable. It was a 48px
+   * capsule that expanded when active and carried no label otherwise; see the
+   * long note in `MobileTabBar.tsx` for why every destination is named now.
    *
-   * What was here did neither. No tab text was ever painted - labels existed
-   * only in aria-label - and the pill was `inset: 0` on a 48x48 circle, so each
-   * tab owned its own separate blob and moving between them was a fade out plus
-   * a fade in. Nothing travelled.
-   *
-   * The slide is produced without JavaScript, measurement or a shared indicator
-   * element: the outgoing tab's label collapses its max-width to zero at the
-   * same moment the incoming tab's expands. Both animate on the same spring, so
-   * the capsule visibly travels along the bar. Keeping it CSS-only is what lets
-   * the tab bar stay a server component.
+   * 52px rather than 48. The label costs a row, and 44 is the floor this
+   * codebase holds for a target everywhere else: this is the control a thumb
+   * reaches for without looking, so it keeps real margin over the floor rather
+   * than sitting on it.
    */
-  /* 56px, up from 48, with the glyph on the scale's `lg` step. The owner asked
-     for bigger and more tappable navigation, and the dock is where that is felt
-     first: this is the control a thumb reaches for without looking. */
-  .nf-tab-pop {
+  .nf-tab {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .nf-tab__link {
     position: relative;
+    z-index: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--nf-space-0);
-    /*
-     * 48px, down from 56px, at the owner's request that the bottom bar be a
-     * bit smaller. It was taking a noticeable band of a phone screen on every
-     * scrolling surface in the product.
-     *
-     * It does not go below 48. 44px is the floor this codebase holds for a tap
-     * target everywhere else, and this is the control a thumb reaches for
-     * without looking, so it keeps four pixels of margin over that floor
-     * rather than sitting exactly on it.
-     */
-    height: 3rem;
-    min-width: 3rem;
-    padding-inline: var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
+    gap: var(--nf-space-3xs);
+    height: 3.25rem;
+    padding-inline: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-subtle);
     transition:
-      gap var(--nf-duration-base) var(--nf-ease-spring),
-      color var(--nf-duration-fast) var(--nf-ease-standard);
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  .nf-tab-pop[aria-current="page"] {
-    gap: var(--nf-gap-inline);
+  .nf-tab__link[aria-current="page"] {
+    color: var(--nf-content-on-brand);
   }
-
-  .nf-tab-pop__pill {
-    position: absolute;
-    inset: 0;
-    border-radius: var(--nf-radius-control);
-    opacity: 0;
-    transform: scale(0.82);
-    background: var(--nf-gradient-brand);
-    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
-    transition:
-      opacity var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-fast) var(--nf-ease-standard);
+  /*
+   * The press is on the LINK rather than on the bar, so a thumb gets an answer
+   * from the thing it touched. It is the small scale: a 70px tab is a small
+   * object and a gentle scale on one would not be felt.
+   */
+  .nf-tab__link:active {
+    transform: scale(var(--nf-press-scale-sm));
   }
-  .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
-    opacity: 1;
-    transform: scale(1);
-    animation: nf-tab-pop-in 0.4s var(--nf-ease-standard);
-  }
-
-  .nf-tab-pop__icon {
-    position: relative;
+  .nf-tab__icon {
     display: flex;
     flex-shrink: 0;
-    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
-    transform: translateY(-1px);
-  }
-
-  /*
-   * The label. Collapsed to zero width when inactive rather than hidden, so it
-   * has a width to animate to. `max-width` rather than `width` because the
-   * content sizes itself and locales differ wildly in length - the Igbo label
-   * for one destination is 3.25x the English.
-   */
-  .nf-tab-pop__label {
-    position: relative;
-    display: block;
-    max-width: 0;
+  .nf-tab__label {
+    max-width: 100%;
     overflow: hidden;
-    /* Elide rather than clip. On a 320px phone the capsule leaves very little
-       room once four tabs and the island are placed, and the longer locale
-       strings - Igbo "Chogharia" for explore - overrun it. */
     text-overflow: ellipsis;
-    opacity: 0;
     white-space: nowrap;
-    font-size: 0.875rem;
-    font-weight: 650;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
     letter-spacing: -0.01em;
-    transition:
-      max-width var(--nf-duration-base) var(--nf-ease-spring),
-      opacity var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-tab-pop[aria-current="page"] .nf-tab-pop__label {
-    max-width: 7rem;
-    opacity: 1;
+    line-height: 1;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .nf-tab-pop,
-    .nf-tab-pop__label {
-      transition: none;
-    }
-    .nf-tab-pop[aria-current="page"] .nf-tab-pop__pill {
-      animation: none;
-    }
-    .nf-tab-pop[aria-current="page"] .nf-tab-pop__icon {
-      transform: none;
-    }
-  }
 
   /*
    * The desktop dock: a small floating capsule of quick-access icons, fixed
@@ -423,10 +406,12 @@
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-dock__btn:hover {
-    color: var(--nf-content-primary);
-    background: rgb(255 255 255 / 0.06);
-    transform: translateY(-1px);
+  @media (hover: hover) {
+    .nf-dock__btn:hover {
+      color: var(--nf-content-primary);
+      background: rgb(255 255 255 / 0.06);
+      transform: translateY(-1px);
+    }
   }
   .nf-dock__btn[aria-current="page"] {
     color: var(--nf-brand-secondary);
@@ -444,9 +429,11 @@
   :root[data-theme="light"] .nf-dock__btn {
     color: rgb(255 255 255 / 0.7);
   }
-  :root[data-theme="light"] .nf-dock__btn:hover {
-    color: #fff;
-    background: rgb(255 255 255 / 0.12);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-dock__btn:hover {
+      color: #fff;
+      background: rgb(255 255 255 / 0.12);
+    }
   }
   :root[data-theme="light"] .nf-dock__btn[aria-current="page"] {
     color: var(--nf-brand-secondary);

@@ -44,10 +44,12 @@
     color: var(--nf-content-primary);
     box-shadow: var(--nf-elev-1);
   }
-  :root[data-theme="light"] .nf-chip:hover,
-  :root[data-theme="light"] .nf-icon-btn:hover {
-    border-color: var(--nf-brand-edge);
-    box-shadow: var(--nf-elev-2);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-chip:hover,
+    :root[data-theme="light"] .nf-icon-btn:hover {
+      border-color: var(--nf-brand-edge);
+      box-shadow: var(--nf-elev-2);
+    }
   }
   /* Active filter chips go solid brand blue with white text, table-header
      style, so the selected state is unmistakable on paper. */
@@ -213,9 +215,11 @@
   :root[data-theme="light"] .nf-auth-row::after {
     display: none;
   }
-  :root[data-theme="light"] .nf-auth-row:hover:not(:disabled) {
-    border-color: var(--nf-brand-edge);
-    box-shadow: var(--nf-elev-2);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-auth-row:hover:not(:disabled) {
+      border-color: var(--nf-brand-edge);
+      box-shadow: var(--nf-elev-2);
+    }
   }
   :root[data-theme="light"] .nf-auth-row__mark {
     background: var(--nf-surface-inset);
@@ -248,10 +252,13 @@
       0 16px 32px -14px rgb(18 21 26 / 0.28);
   }
   :root[data-theme="light"] .nf-dock-island[aria-current="page"] {
-    box-shadow: 0 6px 18px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    box-shadow: 0 6px 18px -4px var(--nf-glow-3);
   }
-  :root[data-theme="light"] .nf-tab-pop__pill {
-    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  /* The travelling pill on paper: the same short brand-tinted lift the island
+     takes, rather than the night theme's halo. It lost its inner rim as well,
+     which is a white highlight and has nothing to catch on a light bar. */
+  :root[data-theme="light"] .nf-tabbar__pill {
+    box-shadow: 0 6px 16px -6px var(--nf-glow-3);
   }
 
   /* The daylight answer for `.nf-ai-banner` stood here. Both are gone with the
@@ -293,9 +300,11 @@
     backdrop-filter: none;
     box-shadow: var(--nf-shadow-card);
   }
-  :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
-    border-color: var(--nf-brand-edge-soft);
-    box-shadow: var(--nf-shadow-lifted);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-glass.nf-card--interactive:hover {
+      border-color: var(--nf-brand-edge-soft);
+      box-shadow: var(--nf-shadow-lifted);
+    }
   }
 
   /* Small glass chips sitting on a white card (the step numbers) need a
@@ -306,8 +315,10 @@
   }
 
   /* Ghost buttons get a real resting hover on paper. */
-  :root[data-theme="light"] .nf-btn--ghost:hover:not(:disabled) {
-    background: var(--nf-surface-inset);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-btn--ghost:hover:not(:disabled) {
+      background: var(--nf-surface-inset);
+    }
   }
 
   /* The language switcher is a control, not a call to action: white pill,
@@ -318,9 +329,11 @@
     border-color: rgb(18 21 26 / 0.14);
     box-shadow: var(--nf-elev-1);
   }
-  :root[data-theme="light"] select.nf-btn--primary:hover:not(:disabled) {
-    border-color: var(--nf-brand-edge);
-    box-shadow: var(--nf-elev-2);
+  @media (hover: hover) {
+    :root[data-theme="light"] select.nf-btn--primary:hover:not(:disabled) {
+      border-color: var(--nf-brand-edge);
+      box-shadow: var(--nf-elev-2);
+    }
   }
 
   /* Active map pin: brand hairline and a clean lift, no neon halo. */
@@ -358,9 +371,11 @@
     border-color: rgb(18 21 26 / 0.12);
     box-shadow: var(--nf-elev-1);
   }
-  :root[data-theme="light"] .nf-action-circle:hover .nf-action-circle__ring {
-    border-color: var(--nf-brand-edge);
-    box-shadow: var(--nf-elev-2);
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-action-circle:hover .nf-action-circle__ring {
+      border-color: var(--nf-brand-edge);
+      box-shadow: var(--nf-elev-2);
+    }
   }
   :root[data-theme="light"] .nf-action-circle__ring--solid {
     box-shadow: 0 8px 20px -6px var(--nf-glow-3);

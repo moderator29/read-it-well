@@ -603,11 +603,43 @@
    * and most of this platform had none.
    */
   .nf-press {
-    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-press:active {
-    transform: scale(0.97);
-    transition-duration: var(--nf-duration-instant);
+    transform: scale(var(--nf-press-scale));
+  }
+
+  /*
+   * THE PRESS IS APPLIED HERE RATHER THAN ASKED FOR.
+   *
+   * `.nf-press` existed and was opt-in, so a surface got physics only if
+   * whoever wrote it remembered to add the class. Almost none did. The list
+   * below is every interactive surface class the platform draws that is not
+   * already a button or a card, and it takes the same scale on the same curve,
+   * so a person tapping a chip, a list row, a category tile and a card in one
+   * session feels one product rather than four.
+   *
+   * The scales differ with the object and not with the class name: a small
+   * square control has to move further than a wide row for the movement to be
+   * felt at all, which is the argument set out beside the tokens.
+   */
+  a.nf-chip:active,
+  button.nf-chip:active,
+  label.nf-chip:active,
+  .nf-row--tap:active,
+  .nf-segmented__item:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  a.nf-chip,
+  button.nf-chip,
+  label.nf-chip,
+  .nf-row--tap,
+  .nf-segmented__item {
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   /*
@@ -640,11 +672,19 @@
     transform-origin: left center;
     transition: transform var(--nf-duration-base) var(--nf-ease-standard);
   }
-  .nf-link-quiet:hover {
-    color: var(--nf-content-primary);
+  @media (hover: hover) {
+    .nf-link-quiet:hover {
+      color: var(--nf-content-primary);
+    }
   }
-  .nf-link-quiet:hover::after,
+  /* Focus is not hover: a keyboard user needs the rule to draw itself, and
+     that half must never be gated behind a pointer. */
   .nf-link-quiet:focus-visible::after {
     transform: scaleX(1);
+  }
+  @media (hover: hover) {
+    .nf-link-quiet:hover::after {
+      transform: scaleX(1);
+    }
   }
 }

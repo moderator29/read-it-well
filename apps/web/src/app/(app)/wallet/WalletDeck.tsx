@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatMoney, type Locale } from "@vallo/i18n";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Odometer } from "@/components/site/Odometer";
 import { formatKoboExact } from "@/components/app/wallet/money";
 import { Amount } from "@/components/ui/Amount";
@@ -51,14 +51,18 @@ const TILES: {
   {
     key: "fund",
     label: "Add money",
-    icon: "wallet-secure",
+    icon: "wallet-plus",
     title: "Add money to your wallet",
     hint: "Fund your wallet by card or bank transfer through a secure Paystack window.",
   },
   {
     key: "withdraw",
+    /* `shield-lock` is a padlock, and it meant "take your own money out". The
+       four marks here are the four movements, and each one now draws the one
+       it names: money in, money out, a coin exchange, a transfer between
+       people. Two of them were the same mark before this. */
     label: "Withdraw",
-    icon: "shield-lock",
+    icon: "wallet-out",
     title: "Withdraw to your bank",
     hint: "Send wallet funds to any Nigerian bank account in your name.",
   },
@@ -70,14 +74,14 @@ const TILES: {
        the screen edge, in both themes. The sheet it opens is titled "Top up
        with crypto", so nothing is lost by the button being short. */
     label: "Crypto",
-    icon: "wallet-secure",
+    icon: "coin-naira",
     title: "Top up with crypto",
     hint: "Pay in crypto and your wallet is credited in naira. Yellow Card handles the exchange and settles to us; nothing about a coin or a rate touches your balance.",
   },
   {
     key: "transfer",
     label: "Transfer",
-    icon: "user-check",
+    icon: "transfer-arrow",
     title: "Transfer to another user",
     hint: "Send money to another Vallo user by email. It lands instantly.",
   },
@@ -178,16 +182,25 @@ export function WalletDeck({
           open={open === tile.key}
           title={tile.title}
           hint={tile.hint}
-          icon={tile.icon}
           onClose={() => setOpen(null)}
         >
           {tile.key === "fund" && <FundForm locale={locale} />}
           {tile.key === "crypto" && <CryptoForm locale={locale} />}
           {tile.key === "withdraw" && (
-            <WithdrawForm locale={locale} balanceMinor={balanceMinor} live={live} />
+            <WithdrawForm
+              locale={locale}
+              balanceMinor={balanceMinor}
+              live={live}
+              onDone={() => setOpen(null)}
+            />
           )}
           {tile.key === "transfer" && (
-            <TransferForm locale={locale} balanceMinor={balanceMinor} live={live} />
+            <TransferForm
+              locale={locale}
+              balanceMinor={balanceMinor}
+              live={live}
+              onDone={() => setOpen(null)}
+            />
           )}
         </WalletDrawer>
       ))}
@@ -201,14 +214,12 @@ function WalletDrawer({
   open,
   title,
   hint,
-  icon,
   onClose,
   children,
 }: {
   open: boolean;
   title: string;
   hint: string;
-  icon: BrandIconName;
   onClose: () => void;
   children: React.ReactNode;
 }) {
@@ -231,19 +242,26 @@ function WalletDrawer({
           <p className="nf-body-sm leading-relaxed text-[var(--nf-content-muted)]">
             {hint}
           </p>
-          <div className="flex shrink-0 items-center gap-inline">
-            <span className="h-13 w-13">
-              <BrandIcon name={icon} fill />
-            </span>
-            <button
-              type="button"
-              aria-label="Close"
-              onClick={onClose}
-              className="nf-icon-btn h-10 w-10"
-            >
-              <UiIcon name="close" size={20} />
-            </button>
-          </div>
+          {/*
+            THE CLOSE BUTTON HAS THE CORNER TO ITSELF.
+
+            A 52px object sat immediately beside a 40px close button in one flex
+            row. `BalanceCard`'s own comment records removing exactly this
+            mistake two rows up: "Three things of one size in a line read as
+            three controls, so the decoration was being scanned as a button that
+            does not respond." On the one screen where somebody is about to move
+            money, a decoy beside Close is the worst place in the product for
+            it. The sheet already has a title; the object is not carrying a fact
+            the title does not.
+          */}
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="nf-icon-btn h-10 w-10 shrink-0"
+          >
+            <UiIcon name="close" size={20} />
+          </button>
         </div>
 
         <div className="nf-card p-card-sm sm:p-card">{children}</div>
@@ -356,10 +374,13 @@ function WithdrawForm({
   locale,
   balanceMinor,
   live,
+  onDone,
 }: {
   locale: Locale;
   balanceMinor: number;
   live: boolean;
+  /** Closes the drawer onto the wallet, where the movement now sits. */
+  onDone: () => void;
 }) {
   const [state, formAction, pending] = useActionState(withdraw, WITHDRAW_INITIAL);
   const router = useRouter();
@@ -416,6 +437,20 @@ function WithdrawForm({
 
   if (state.ok && state.data) {
     return (
+      /*
+        IT USED TO END HERE, WITH NOWHERE TO GO.
+
+        The copy is the best consequence line in the product and it was handed
+        to a reader who then had only the X in the drawer's corner. A moment
+        that stops with no next action is a bug, and this one stopped on the
+        largest single movement most people will make on this platform.
+
+        Two things were added and neither is decoration. THE REFERENCE, because
+        a receipt with no reference cannot be traced by the person who has to
+        ring their bank about it, and the action already returns one. And a way
+        out that lands somewhere useful: closing the drawer puts the movement
+        at the top of the history behind it.
+      */
       <div role="status" aria-live="polite" className="py-inline text-center">
         <p>
           <Amount
@@ -432,6 +467,10 @@ function WithdrawForm({
           The withdrawal shows as pending until the bank confirms it, then your history
           updates on its own.
         </p>
+        <Reference value={state.data.reference} />
+        <Button type="button" variant="primary" full className="mt-block" onClick={onDone}>
+          Done
+        </Button>
       </div>
     );
   }
@@ -497,8 +536,13 @@ function WithdrawForm({
           </p>
         </div>
       )}
+      {/* ROSE, NOT CYAN. `--nf-state-warning` resolves to `--nf-cyan-400`,
+          which is the same token `--nf-status-pending` is defined as, so "we
+          could not find that account" was drawn in the colour this product
+          reserves for "still going through". A lookup that failed is a
+          failure. */}
       {holder.state === "missing" && holder.reason.length > 0 && (
-        <p role="alert" className="nf-body-sm text-[var(--nf-state-warning)]">
+        <p role="alert" className="nf-body-sm text-[var(--nf-state-error)]">
           {holder.reason}
         </p>
       )}
@@ -515,10 +559,13 @@ function TransferForm({
   locale,
   balanceMinor,
   live,
+  onDone,
 }: {
   locale: Locale;
   balanceMinor: number;
   live: boolean;
+  /** Closes the drawer onto the wallet, where the movement now sits. */
+  onDone: () => void;
 }) {
   const [state, formAction, pending] = useActionState(transferToUser, TRANSFER_INITIAL);
   const router = useRouter();
@@ -544,6 +591,10 @@ function TransferForm({
         <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
           Their wallet has it already, and both sides of the movement are in your history.
         </p>
+        <Reference value={state.data.reference} />
+        <Button type="button" variant="primary" full className="mt-block" onClick={onDone}>
+          Done
+        </Button>
       </div>
     );
   }
@@ -681,19 +732,61 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
   );
 }
 
+/**
+ * The string support traces a movement by.
+ *
+ * Full, selectable and never truncated, in tabular figures so a person reading
+ * it down a phone line does not lose their place. `user-select: all` means one
+ * tap selects the whole thing, which is the difference between a reference
+ * somebody can send to their bank and one they have to transcribe.
+ */
+function Reference({ value }: { value: string }) {
+  return (
+    <span className="mt-row block">
+      <span className="nf-caption block text-[var(--nf-content-muted)]">Reference</span>
+      <span className="nf-body-sm mt-3xs block font-mono font-semibold text-[var(--nf-content-primary)] [overflow-wrap:anywhere] [user-select:all] [font-variant-numeric:tabular-nums]">
+        {value}
+      </span>
+    </span>
+  );
+}
+
 function fieldError<T>(state: ActionResult<T>, field: string): string | undefined {
   return state.ok ? undefined : state.fieldErrors?.[field];
 }
 
+/**
+ * A refusal, drawn as a refusal.
+ *
+ * It was `role="status" aria-live="polite"`, secondary ink on the glass fill
+ * with a subtle border: a failed withdrawal, a rejected transfer and a declined
+ * funding all rendered in exactly the styling a neutral tip would use, and a
+ * screen reader was told about them in the same tone of voice as a hint. A
+ * person who has just tried to move money could not tell a failure from a note.
+ *
+ * `components/ui/Field.tsx` already gets this right for a field error, and the
+ * treatment here is the same one: assertive, rose ink on the error surface, a
+ * cross, and a verdict line above the message so the first thing read is what
+ * happened rather than why.
+ */
 function ErrorNotice<T>({ state }: { state: ActionResult<T> }) {
   if (state.ok || state.error.length === 0) return null;
   return (
     <div
-      role="status"
-      aria-live="polite"
-      className="nf-body-sm mt-row rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-glass-fill)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
+      role="alert"
+      className="nf-body-sm mt-row flex items-start gap-inline rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
     >
-      <p>{state.error}</p>
+      <UiIcon
+        name="close"
+        size="xs"
+        className="mt-3xs shrink-0 text-[var(--nf-state-error)]"
+      />
+      <span className="min-w-0">
+        <span className="block font-semibold text-[var(--nf-state-error)]">
+          That did not go through
+        </span>
+        <span className="mt-3xs block">{state.error}</span>
+      </span>
     </div>
   );
 }

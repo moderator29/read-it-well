@@ -961,6 +961,8 @@ export default async function ListingDetailPage({
           action={stickyAction}
           secondary={stickySecondary}
           fallbackLabel={listing.title}
+          moveInMinor={listing.moveInCostMinor}
+          moveInStated={listing.moveInCostStated}
         />
       </div>
     </PhotoViewerProvider>

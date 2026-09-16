@@ -1,26 +1,151 @@
 import type { Dictionary } from "@vallo/i18n";
 import type { Listing, PowerBackup, PowerGrid } from "@/lib/listings/types";
+import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
 
 /**
  * What a property card says, decided away from how it looks.
  *
- * Two functions, both pure, both tested. They exist apart from `ListingCard`
+ * Four functions, all pure, all tested. They exist apart from `ListingCard`
  * because the decisions in them are product decisions - which facts are worth a
- * scrolling grid, in what order, and what an unanswered question renders as -
- * and those are the things that quietly rot inside a 300 line component.
+ * scrolling grid, in what order, what an unanswered question renders as, and
+ * which of the three money stories on a row is the one to lead with - and those
+ * are the things that quietly rot inside a 300 line component.
  */
 
 /** One secondary fact. `numeric` gets tabular figures so columns line up. */
 export type CardFact = { key: string; label: string; numeric?: boolean };
 
+/* ------------------------------------------------------------------ price */
+
 /**
- * The market noun, as a reader would say it rather than as the enum spells it.
+ * The figure a card leads with, and what sits under it.
  *
- * `rental`, `shop`, `office` and `land` are the long-let and sale markets, and
- * calling a plot of land an "apartment type" would be worse than saying
- * nothing. Kept short because this sits in a row of four facts at 12px.
+ * WHY THIS IS A DECISION AND NOT A FIELD. `PRODUCT.md` section 5 states the
+ * product rule in one sentence: "the card leads with the total move-in cost and
+ * the rent is the secondary line", and the reason is the whole argument for
+ * this platform. A Lagos tenancy advertised at 4.5m a year is routinely 7m at
+ * the door once caution, agency, legal and agreement fees are counted, every
+ * competitor leads with the 4.5m, and the column holding the 7m
+ * (`total_move_in_cost_minor`) is a first-class indexed column on `listings`.
+ * Before this function the card printed `priceMinor` and the string `moveIn`
+ * appeared nowhere in it, so the one surface where the comparison actually
+ * happens was the one surface that hid the answer.
+ *
+ * WHEN THE MOVE-IN TOTAL DOES NOT LEAD. Three cases, and all three are the
+ * honest answer rather than a fallback:
+ *
+ *   A SALE has no move-in total and never will. The asking price is the figure
+ *   and `moveInCostMinor` is not carried on a sale row at all.
+ *
+ *   A NIGHTLY OR PER-HEAD RATE is not a tenancy. Nobody pays agency and legal
+ *   fees for two nights in a shortlet, and the period suffix is what the reader
+ *   is comparing.
+ *
+ *   A TENANCY WHOSE LISTER NAMED NOTHING keeps the rent as its lead. 24 of the
+ *   64 rows in the catalogue are in this state. Printing a zero or a guessed
+ *   total would be worse than printing the rent, because a stated zero and an
+ *   unstated fee are different promises.
+ *
+ * `approximate` carries `moveInCostStated === false` through to the surface, so
+ * a total summed from the parts the lister happened to name is printed as a
+ * floor ("from") rather than as a flat figure. `pricing.ts` computes that
+ * distinction and says in as many words that the caller is told which of the
+ * two it received; this is the caller honouring it.
  */
-const KIND_NOUN: Record<Listing["kind"], string> = {
+export type CardPrice =
+  | {
+      lead: "moveIn";
+      /** The move-in total in kobo, as the lister stated or as the parts sum. */
+      minor: number;
+      /** True when the figure is a floor built from the named parts. */
+      approximate: boolean;
+      /** The rent beneath it, in kobo, with its own period suffix. */
+      rentMinor: number;
+      rentSuffix: string;
+    }
+  | { lead: "headline"; minor: number; suffix: string }
+  /** No real figure anywhere on the row. The card says so in words. */
+  | { lead: "none" };
+
+export function cardPrice(listing: Listing): CardPrice {
+  const headline = listing.priceMinor > 0;
+  const period = listing.pricePeriod;
+  const suffix = period ? PERIOD_SUFFIX_SHORT[period] : PERIOD_SUFFIX_SHORT.sale;
+
+  /* A tenancy is the only thing that HAS a move-in total: `pricePeriod` of
+     night or guest is occupancy priced by the stay, and a sale carries no
+     period at all. Tested against the period rather than against `kind`,
+     because `listing_intent` cannot distinguish four markets with two values
+     and the period is the column that can. */
+  const tenancy = period === "year" || period === "month" || period === "quarter";
+  const moveIn = listing.moveInCostMinor ?? 0;
+
+  if (listing.intent !== "sale" && tenancy && moveIn > 0) {
+    return {
+      lead: "moveIn",
+      minor: moveIn,
+      approximate: listing.moveInCostStated !== true,
+      rentMinor: listing.priceMinor,
+      rentSuffix: suffix,
+    };
+  }
+
+  if (!headline) return { lead: "none" };
+  return { lead: "headline", minor: listing.priceMinor, suffix };
+}
+
+/* ----------------------------------------------------------------- market */
+
+/**
+ * WHAT MARKET THIS IS. Four answers, and the card had none of them.
+ *
+ * A sale and a tenancy were indistinguishable on the grid. "₦520m" and
+ * "₦2.8m/yr" sat side by side with nothing saying one was a purchase, because
+ * `PERIOD_SUFFIX_SHORT.sale` is deliberately the empty string and the only
+ * other statement of the market was inside the title, which the heading clamps
+ * away at "Five bedroom villa for sale i...". The detail page has said this
+ * correctly the whole time through `MARKET_PILL`; the card was the outlier.
+ *
+ * WHY IT IS DERIVED AND NOT READ. `listing_intent` is a two-value enum and this
+ * platform runs four markets, which `PRODUCT.md` section 5 names as a known
+ * rough edge: a nightly stay and an annual tenancy are both `rent`, and a
+ * restaurant table is too. The period is the column that can tell them apart,
+ * so the answer is composed from both, in one place, rather than re-derived by
+ * each surface the way the document says it currently is.
+ *
+ * It is a LABEL and never a colour. Rule 13: a sale and a let must be
+ * distinguishable by the word, because a reader who cannot see hue is entitled
+ * to the same answer as one who can.
+ *
+ * IT RETURNS A KEY, NOT A WORD, so the four markets are named once in the
+ * dictionary and read in Yoruba, Hausa and Igbo as well as English. A function
+ * that returned "For sale" would have been the fifth place on this platform
+ * where a market noun is written in English inside a component.
+ */
+export type CardMarket = keyof Dictionary["landing"]["card"]["market"];
+
+export function cardMarket(listing: Listing): CardMarket {
+  if (listing.intent === "sale") return "sale";
+  if (listing.pricePeriod === "night") return "night";
+  if (listing.pricePeriod === "guest") return "head";
+  return "rent";
+}
+
+/**
+ * The property noun, as a reader would say it rather than as the enum spells it.
+ *
+ * `shop`, `office` and `land` are the commercial and land markets, and calling
+ * a plot of land an "apartment type" would be worse than saying nothing. Kept
+ * short because this sits in a row of four facts at 12px.
+ *
+ * `rental` IS NULL, and that is the one entry worth explaining. It used to read
+ * "To rent", which is not a kind of building at all: it is the market, and the
+ * market now has its own label above. Leaving both in would have printed "To
+ * rent" twice on every tenancy card. There is no honest building noun for
+ * `rental` - the schema uses it for a flat, a house and a duplex alike - so the
+ * fact is omitted and the beds and baths carry the shape instead.
+ */
+const KIND_NOUN: Record<Listing["kind"], string | null> = {
   hotel: "Hotel",
   apartment: "Apartment",
   home: "House",
@@ -28,7 +153,7 @@ const KIND_NOUN: Record<Listing["kind"], string> = {
   villa: "Villa",
   restaurant: "Restaurant",
   experience: "Experience",
-  rental: "To rent",
+  rental: null,
   shop: "Shop",
   office: "Office",
   land: "Land",
@@ -68,7 +193,8 @@ export function cardFacts(listing: Listing, t: Dictionary): CardFact[] {
     });
   }
 
-  facts.push({ key: "kind", label: KIND_NOUN[listing.kind] });
+  const noun = KIND_NOUN[listing.kind];
+  if (noun) facts.push({ key: "kind", label: noun });
 
   /*
    * AVAILABILITY, and only when it is the useful answer.

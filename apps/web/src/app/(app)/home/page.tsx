@@ -196,7 +196,14 @@ export default async function HomePage() {
           action="/search"
           method="get"
           role="search"
-          className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-col gap-inline p-inline sm:flex-row sm:items-center"
+          /* ONE ROW AT EVERY WIDTH. It stacked below `sm`, which put a
+             full-width primary slab underneath the input INSIDE the field's own
+             outline: two rows of chrome around one question, and the heaviest
+             object on the screen given to the least interesting half of the
+             control. The submit keeps its glyph at every width and picks its
+             label up from `sm`, which is the same trick the listing's pinned
+             bar uses for its second action. */
+          className="nf-card nf-card--live nf-focus-well flex min-w-0 flex-1 flex-row items-center gap-inline p-inline"
         >
           <label htmlFor="home-q" className="sr-only">
             {t.landing.hero.searchLabel}
@@ -219,8 +226,15 @@ export default async function HomePage() {
               className="nf-body w-full bg-transparent py-row text-[var(--nf-content-primary)] outline-none placeholder:text-[var(--nf-content-muted)]"
             />
           </div>
-          <Button type="submit" variant="primary" size="lg">
-            {t.common.search}
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            leadingIcon="search"
+            aria-label={t.common.search}
+            className="shrink-0"
+          >
+            <span className="nf-btn__label hidden sm:inline">{t.common.search}</span>
           </Button>
         </form>
         <FilterLink label={t.common.search} />
@@ -328,10 +342,28 @@ export default async function HomePage() {
             container leaves this screen, the object goes 64px to 112px, and the
             words go up a tier with it.
           */
+          /*
+            AND IT ENDS SOMEWHERE. "Once listings are approved they will appear
+            in this space" is true and it is a full stop: a person reads it and
+            the screen has nothing further to offer them. Sending them to search
+            would be worse, because search is empty for the same reason this is.
+            The one thing that actually resolves the state is supply, so that is
+            the action the state offers.
+          */
           <EmptyState
             icon="home-search"
             title="Nothing to show here yet"
-            body="Once listings are approved they will appear in this space."
+            body="No agent has published a property in your city yet. The shelf fills the minute one does."
+            action={
+              <ButtonLink href="/agents" variant="primary" full>
+                List a property
+              </ButtonLink>
+            }
+            secondary={
+              <p className="nf-caption text-[var(--nf-content-muted)]">
+                Listing is free, and it stays free.
+              </p>
+            }
           />
         ) : (
           /* The grid assembles on the shared card stagger rather than landing

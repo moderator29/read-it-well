@@ -52,6 +52,8 @@ export function ListingStickyBar({
   action,
   secondary,
   fallbackLabel,
+  moveInMinor,
+  moveInStated,
 }: {
   variant: "stay" | "rental" | "partner";
   priceMinor: number;
@@ -67,13 +69,34 @@ export function ListingStickyBar({
   secondary?: StickyAction | null;
   /** Shown instead of a price when the listing carries no real rate. */
   fallbackLabel: string;
+  /**
+   * The move-in total in kobo, on a tenancy that states one.
+   *
+   * WHY THE PINNED BAR QUOTES IT RATHER THAN THE RENT. This bar is the last
+   * figure a person reads before they act, and on a Nigerian tenancy the rent
+   * is not the figure they have to find: `PRODUCT.md` section 5 makes the
+   * move-in total the number the product leads with, the card now does, and a
+   * bar quoting 4.5m under a page whose own panel says 6.8m is the product
+   * disagreeing with itself in the two places a reader compares.
+   *
+   * Absent on a stay, on a sale, and on the 24 rows in 64 whose lister named
+   * neither a total nor a part. In all of those the rate is the honest figure
+   * and nothing changes.
+   */
+  moveInMinor?: number;
+  /** False when the total is a floor summed from the parts, so it reads "from". */
+  moveInStated?: boolean;
 }) {
   // Only a stay has a date picker to read from; the hook is optional so the
   // same bar renders on rental and partner pages with no provider above it.
   const stay = useStayDatesOptional();
   const quoting = variant === "stay" && stay !== null && stay.ready && stay.totalMinor > 0;
 
-  const amount = quoting && stay ? stay.totalMinor : priceMinor;
+  /* A picked set of dates outranks everything: it is the very total the
+     reserve panel is about to submit. Otherwise a tenancy quotes what it costs
+     to move in and everything else quotes its own rate. */
+  const moveIn = variant === "rental" && (moveInMinor ?? 0) > 0 ? moveInMinor! : null;
+  const amount = quoting && stay ? stay.totalMinor : (moveIn ?? priceMinor);
 
   /* The caption once dates are picked. It was built by gluing an English
      ternary onto an English preposition, so a Yoruba reader was quoted a total
@@ -85,7 +108,11 @@ export function ListingStickyBar({
   const caption =
     quoting && stay
       ? t.reserve.totalForNights.replace("{nights}", plural(stay.nights, t.counts.nights, locale))
-      : perLabel;
+      : moveIn
+        ? moveInStated === true
+          ? "to move in"
+          : "to move in, from the parts named"
+        : perLabel;
 
   const external = (a: StickyAction) =>
     a.external ? ({ target: "_blank", rel: "noopener noreferrer" } as const) : {};
@@ -122,7 +149,10 @@ export function ListingStickyBar({
                   className="text-[1.0625rem] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
                 />
               </span>
-              <span className="truncate text-[0.75rem] text-[var(--nf-content-muted)]">
+              {/* No `truncate`. A caption that reads "to move in, from the p..."
+                  is a promise trimmed into a different promise, and this column
+                  has the room to wrap. */}
+              <span className="text-[0.75rem] leading-snug text-[var(--nf-content-muted)]">
                 {caption}
               </span>
             </>

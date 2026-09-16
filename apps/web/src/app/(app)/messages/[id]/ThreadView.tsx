@@ -452,10 +452,28 @@ export function ThreadView({
                 theme. The token is the contract, and it is the one that keeps
                 holding if the brand fill ever lightens.
               */}
+              {/*
+                A MESSAGE THAT FAILED MUST NOT LOOK SENT.
+
+                `sending` dimmed the bubble to 70 per cent and `failed` changed
+                nothing about it at all, so a message the agent never received
+                was a full-strength brand-filled bubble identical to a delivered
+                one, with a small rose line underneath that a thumb scrolls
+                past. On a platform whose standing safety rule is "keep every
+                conversation inside Vallo", that is the one state that must be
+                unmistakable.
+
+                A failed bubble is OUTLINED rather than filled. The shape
+                changes, not just the hue, so it survives greyscale and a
+                glance, and the fill it loses is exactly the thing that was
+                saying "this went".
+              */}
               <div
-                className={`max-w-[85%] rounded-2xl rounded-br-md bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] px-md py-xs text-[var(--nf-content-on-brand)] ${
-                  m.state === "sending" ? "opacity-70" : ""
-                }`}
+                className={`max-w-[85%] rounded-2xl rounded-br-md px-md py-xs ${
+                  m.state === "failed"
+                    ? "border border-[var(--nf-state-error)] bg-transparent text-[var(--nf-content-primary)]"
+                    : "bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] text-[var(--nf-content-on-brand)]"
+                } ${m.state === "sending" ? "opacity-70" : ""}`}
               >
                 {m.imageUrl && (
                   /* Signed and object URLs cannot go through the optimiser. */
@@ -470,7 +488,13 @@ export function ThreadView({
                 {/* Same rule as the bubble above: on a brand fill the text is
                     the on-brand token, dimmed with opacity rather than with a
                     `text-white/70` that cannot follow a theme. */}
-                <p className="nf-numeric nf-caption mt-inline-tight text-right text-[var(--nf-content-on-brand)] opacity-70">
+                <p
+                  className={`nf-numeric nf-caption mt-inline-tight text-right ${
+                    m.state === "failed"
+                      ? "text-[var(--nf-content-muted)]"
+                      : "text-[var(--nf-content-on-brand)] opacity-70"
+                  }`}
+                >
                   {m.state === "sending" ? "Sending" : m.timeLabel}
                 </p>
               </div>

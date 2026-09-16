@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
-import { ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
 import { startConversation } from "@/lib/messages/actions";
 import { getMessageRepository } from "@/lib/messages/repository";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
+import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState } from "@/components/app/Screen";
 
 export const metadata: Metadata = { title: "New message" };
@@ -46,23 +46,40 @@ function Bridge({
   title: string;
   message: string;
   listingId: string;
-  primary: React.ReactNode;
+  primary: { label: string; href: string };
 }) {
   return (
-    <div className="mx-auto max-w-2xl">
-      <PageHeader title="Inbox" fallback={`/listing/${listingId}`} />
+    /*
+      THE GUTTER AND THE TITLE, BOTH WRONG ON THE SAME SCREEN.
+
+      `AppShell` treats `/messages/[^/]+` as immersive, which `/messages/new`
+      matches, and immersive drops the page gutter and the top inset. This
+      Bridge had none of its own, so the back button sat at exactly x=0, y=0
+      with its tap target clipped by the screen edge, and on a notched phone it
+      was under the status bar. The regex belongs to the shell and the shell is
+      not this file's to change, so the screen carries its own gutter, which it
+      should have had regardless.
+
+      And it was titled "Inbox" on a screen that is not the inbox. It is the
+      first contact with an agent about one property, which its own docstring
+      calls the single most important hop in the messaging journey.
+    */
+    <div className="mx-auto max-w-2xl px-gutter pt-block">
+      <PageHeader title="Message the agent" fallback={`/listing/${listingId}`} />
       <EmptyState
         icon="chat-duo"
         title={title}
         body={message}
-        action={primary}
-        secondary={
+        action={
           /* Never a dead end, and never a lap of the same screen: the quiet
              half goes back to the property they came from, which is the one
-             place we know they wanted to be. */
-          <ButtonLink href={`/listing/${listingId}`} variant="ghost">
-            Back to the property
-          </ButtonLink>
+             place we know they wanted to be. Both halves through
+             `EmptyActions`, so this refusal has the same shape as every other
+             empty state in the product. */
+          <EmptyActions
+            primary={primary}
+            secondary={{ label: "Back to the property", href: `/listing/${listingId}` }}
+          />
         }
       />
     </div>
@@ -87,11 +104,7 @@ export default async function NewMessagePage({
         title="This chat cannot open yet"
         message={result.error}
         listingId={listing}
-        primary={
-          <ButtonLink href="/messages" variant="primary">
-            Go to your Inbox
-          </ButtonLink>
-        }
+        primary={{ label: "Go to your Inbox", href: "/messages" }}
       />
     );
   }
@@ -114,25 +127,17 @@ export default async function NewMessagePage({
         title="Sign in to message the agent"
         message="Chat with the agent, arrange an inspection and keep every step of the deal in one protected place. You will come straight back to this conversation."
         listingId={listing}
-        primary={
-          <ButtonLink href={authHref(next, "sign-in")} variant="primary">
-            Sign in
-          </ButtonLink>
-        }
+        primary={{ label: "Sign in", href: authHref(next, "sign-in") }}
       />
     );
   }
 
   return (
     <Bridge
-      title="Messaging is nearly here"
-      message="Messaging for this listing switches on the moment the platform keys land. Nothing is lost; come back soon."
+      title="We cannot reach messaging right now"
+      message="This is on our side, not yours. Nothing has been lost and nothing has been sent. Try again in a few minutes."
       listingId={listing}
-      primary={
-        <ButtonLink href="/messages" variant="primary">
-          Go to your Inbox
-        </ButtonLink>
-      }
+      primary={{ label: "Go to your Inbox", href: "/messages" }}
     />
   );
 }

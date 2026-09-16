@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getDictionary } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
-import { cardFacts, cardUtility } from "./listing-card-model";
+import { cardFacts, cardMarket, cardPrice, cardUtility } from "./listing-card-model";
 
 const en = getDictionary("en");
 
@@ -120,5 +120,86 @@ describe("cardUtility", () => {
       }),
     );
     expect(value).toBe("Band A");
+  });
+});
+
+describe("cardMarket", () => {
+  it("separates a sale from a tenancy, which the card could not say at all", () => {
+    expect(cardMarket(listing({ intent: "sale", pricePeriod: undefined }))).toBe("sale");
+    expect(cardMarket(listing({ pricePeriod: "year" }))).toBe("rent");
+  });
+
+  /* Two enum values, four markets. The period is what tells them apart. */
+  it("reads the period, because listing_intent cannot name four markets", () => {
+    expect(cardMarket(listing({ pricePeriod: "night" }))).toBe("night");
+    expect(cardMarket(listing({ pricePeriod: "guest" }))).toBe("head");
+    expect(cardMarket(listing({ pricePeriod: "month" }))).toBe("rent");
+  });
+
+  it("answers a key the dictionary holds in every locale", () => {
+    expect(Object.keys(en.landing.card.market).sort()).toEqual(
+      ["head", "night", "rent", "sale"],
+    );
+  });
+});
+
+describe("cardPrice", () => {
+  /*
+   * The product rule, as a test. `PRODUCT.md` section 5: "the card leads with
+   * the total move-in cost and the rent is the secondary line". Before this
+   * existed the card printed the rent and never read `moveInCostMinor` at all.
+   */
+  it("leads a tenancy with the move-in total and keeps the rent beneath it", () => {
+    const price = cardPrice(
+      listing({
+        pricePeriod: "year",
+        priceMinor: 450_000_000,
+        moveInCostMinor: 675_000_000,
+        moveInCostStated: true,
+      }),
+    );
+    expect(price).toEqual({
+      lead: "moveIn",
+      minor: 675_000_000,
+      approximate: false,
+      rentMinor: 450_000_000,
+      rentSuffix: "/yr",
+    });
+  });
+
+  it("marks a total summed from the named parts as a floor", () => {
+    const price = cardPrice(
+      listing({
+        pricePeriod: "year",
+        priceMinor: 450_000_000,
+        moveInCostMinor: 500_000_000,
+        moveInCostStated: false,
+      }),
+    );
+    expect(price.lead === "moveIn" && price.approximate).toBe(true);
+  });
+
+  it("keeps the rent as the lead when the lister named nothing", () => {
+    const price = cardPrice(listing({ pricePeriod: "year", priceMinor: 450_000_000 }));
+    expect(price).toEqual({ lead: "headline", minor: 450_000_000, suffix: "/yr" });
+  });
+
+  /* Nobody pays an agency fee for two nights, so a rate is never a move-in. */
+  it("never leads a nightly rate with a move-in total", () => {
+    const price = cardPrice(
+      listing({ pricePeriod: "night", priceMinor: 9_500_000, moveInCostMinor: 40_000_000 }),
+    );
+    expect(price).toEqual({ lead: "headline", minor: 9_500_000, suffix: "/night" });
+  });
+
+  it("leads a sale with its asking price and no period suffix", () => {
+    const price = cardPrice(
+      listing({ intent: "sale", priceMinor: 52_000_000_000, pricePeriod: undefined }),
+    );
+    expect(price).toEqual({ lead: "headline", minor: 52_000_000_000, suffix: "" });
+  });
+
+  it("answers none rather than zero when the row states no figure at all", () => {
+    expect(cardPrice(listing({ priceMinor: 0, pricePeriod: "year" }))).toEqual({ lead: "none" });
   });
 });

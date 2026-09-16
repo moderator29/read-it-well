@@ -311,18 +311,35 @@ export function MediaSkyline({
   hue = 0,
   kind,
   className,
+  opacity,
 }: {
   hue?: number;
   kind?: ListingKind;
   className?: string;
+  /** Drawn quiet, so something can be printed over it. See `GHOST_OPACITY`. */
+  opacity?: number;
 }) {
   const scene = SCENE_BY_KIND[kind ?? "home"];
-  const sunX = 60 + (Math.abs(hue) % 5) * 62;
+  /*
+   * THE DISC STAYS OUT OF THE TOP-LEFT CORNER, AND THAT IS NOT AN AESTHETIC
+   * PREFERENCE.
+   *
+   * It was `60 + (hue % 5) * 62`, so on one hue in five it landed at x=60 in a
+   * 400-wide viewBox, which is exactly where a card puts its corner mark. A
+   * rendered grid showed a grey circle punched through the word "Example" on
+   * one card and through the "V" of "Verified" on another. The card has since
+   * moved both of those marks off the media, but the corner is still where
+   * every surface puts a control, so the range starts at 45 per cent of the
+   * width instead. Nothing else about the scene changes and the five positions
+   * are still five.
+   */
+  const sunX = 180 + (Math.abs(hue) % 5) * 50;
 
   return (
     <svg
       viewBox="0 0 400 300"
       className={`absolute inset-0 h-full w-full ${className ?? ""}`}
+      style={opacity === undefined ? undefined : { opacity }}
       aria-hidden="true"
       preserveAspectRatio="none"
     >
@@ -488,6 +505,22 @@ export function MediaSkyline({
  * The parent must be `relative` and clip its own overflow, which every call
  * site already does because it is also positioning a `fill` image.
  */
+/**
+ * How much of the drawn scene survives when something is printed over it.
+ *
+ * MEASURED RATHER THAN CHOSEN, at 171px wide, which is what a card in a two-up
+ * grid at 390px actually gets. At full strength the roof lines and the lit
+ * windows sit directly behind a word and both lose: the scene reads as noise
+ * and the word reads as damaged. Below about a fifth the silhouette disappears
+ * entirely and the band becomes a flat rectangle, which is the thing this
+ * frame exists to avoid.
+ *
+ * A quarter keeps the shape of a building visible at arm's length and leaves
+ * the text at full contrast, which is the trade the card wants: an information
+ * surface that still has a picture's silhouette.
+ */
+const GHOST_OPACITY = 0.25;
+
 export function MediaFrame({
   hue,
   /** Position in a run of panes, so neighbours do not share a sky angle. */
@@ -495,11 +528,27 @@ export function MediaFrame({
   /** Which market this is, so the picture is of this kind of place. */
   kind,
   className,
+  ghost = false,
 }: {
   hue: number;
   index?: number;
   kind?: ListingKind;
   className?: string;
+  /**
+   * Draw the scene as a quiet ghost behind something else.
+   *
+   * WHY THIS PROP EXISTS. Every published listing in the catalogue has zero
+   * photographs, so this frame is not a fallback, it is the product. The card
+   * stopped reserving a photograph's shape for a photograph that is not
+   * arriving and now prints the two things a Nigerian renter decides on into
+   * the same box: the market and the power answer. The scene stays underneath
+   * them, because a card with no silhouette at all is a card with a hole in it.
+   *
+   * Off by default, and every other call site keeps the full drawing: the
+   * gallery, the lightbox and the map dock all show the scene on its own with
+   * nothing over it, where it is the subject rather than the ground.
+   */
+  ghost?: boolean;
 }) {
   const scene = SCENE_BY_KIND[kind ?? "home"];
   /* A dropped-in photograph for this scene wins over the stand-in. See the
@@ -534,7 +583,7 @@ export function MediaFrame({
           />
         </>
       ) : (
-        <MediaSkyline hue={hue + index} kind={kind} />
+        <MediaSkyline hue={hue + index} kind={kind} opacity={ghost ? GHOST_OPACITY : undefined} />
       )}
     </div>
   );

@@ -109,13 +109,40 @@ export function BalanceCard({
 }) {
   const [hidden, setHidden] = useState(false);
   const [inUsd, setInUsd] = useState(false);
-  const { kobo } = formatKoboExact(balanceMinor, locale);
+  const { whole, kobo } = formatKoboExact(balanceMinor, locale);
   // Integer naira, no floats: the kobo remainder is stripped by the same
   // exact arithmetic as formatKoboExact, then the rest is a whole multiple
   // of 100 kobo, so dividing by 100 is always exact.
   const absMinor = Math.abs(balanceMinor);
   const koboRemainder = absMinor % 100;
   const wholeNaira = (absMinor - koboRemainder) / 100;
+
+  /*
+   * EVERYTHING IN FRONT OF THE FIRST DIGIT, TAKEN FROM THE LOCALE.
+   *
+   * Two defects, one cause, and both were on the one figure that must never be
+   * approximated.
+   *
+   * THE SIGN WAS DISCARDED. This destructured only `kobo` from
+   * `formatKoboExact`, then rendered `Math.abs(balanceMinor)` through the
+   * odometer with a hand-written naira sign in front of it, so a wallet at
+   * MINUS four thousand naira displayed as ₦4,000.00. `admin_payment_health`
+   * hunts for "a wallet below zero", so the platform treats that as a state
+   * that happens.
+   *
+   * THE SYMBOL WAS HARD-CODED. `Amount`'s own docstring records that writing
+   * "₦" by hand made the wallet hero and the ledger row beneath it disagree,
+   * because `ha-NG` emits "₦ 9,000,000" with a space, and that building the
+   * figure from the locale's own parts fixed it "once, here". Three call sites
+   * on this card had not got the message.
+   *
+   * `whole` already carries the minus, the symbol and whatever spacing the
+   * locale puts between them, correctly, for every one of the four languages
+   * that ship. Everything before its first digit is that lead; the odometer
+   * rolls the magnitude behind it.
+   */
+  const digitAt = whole.search(/\d/);
+  const lead = digitAt === -1 ? whole : whole.slice(0, digitAt);
   const { inMinor, outMinor } = useMemo(() => flowsLast30Days(entries), [entries]);
   const points = useMemo(() => sparklinePoints(entries), [entries]);
 
@@ -220,7 +247,7 @@ export function BalanceCard({
       <p className="nf-numeric relative mt-row leading-none text-[var(--nf-content-primary)]">
         {hidden ? (
           <span className="text-[2rem] font-bold tracking-[-0.03em] sm:text-[2.35rem]">
-            {inUsd ? "$" : "\u20A6"}
+            {inUsd ? "$" : lead}
             {"\u2022\u2022\u2022\u2022\u2022\u2022"}
           </span>
         ) : inUsd && usdRate ? (
@@ -241,7 +268,7 @@ export function BalanceCard({
         ) : (
           <>
             <span className="text-[2rem] font-bold leading-none tracking-tight sm:text-[2.35rem]">
-              {"₦"}
+              {lead}
               <Odometer value={wholeNaira} locale={locale} className="nf-odometer-figure" />
             </span>
             <span className="text-[1.38rem] font-semibold text-[var(--nf-content-muted)] sm:text-[1.68rem]">
@@ -302,33 +329,60 @@ export function BalanceCard({
         reading as a pair. The period is the same for both, and a fact repeated
         in two labels is a fact that belongs above them.
       */}
-      <p className="nf-overline mt-block">Last 30 days</p>
-      <div className="nf-cells nf-cells--pair relative mt-row">
-        <div className="pr-lg">
-          <p className="nf-body-sm text-[var(--nf-content-muted)]">In</p>
-          <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-success)]">
-            {hidden ? (
-              "••••"
-            ) : (
-              <>
-                +<Amount minorUnits={inMinor} locale={locale} showFraction />
-              </>
-            )}
-          </p>
-        </div>
-        <div className="pl-lg">
-          <p className="nf-body-sm text-[var(--nf-content-muted)]">Out</p>
-          <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-error)]">
-            {hidden ? (
-              "••••"
-            ) : (
-              <>
-                -<Amount minorUnits={outMinor} locale={locale} showFraction />
-              </>
-            )}
-          </p>
-        </div>
-      </div>
+      {/*
+        TWO ZEROES UNDER A PERIOD HEADING IS NOT A REPORT, IT IS A SHRUG.
+
+        This is the primary state of the only real wallet on the platform,
+        checked against the database: one deposit and one failed withdrawal,
+        both older than the window, so the card rendered "In +₦0.00" beside
+        "Out -₦0.00" and no chart. A person reads that as a broken screen
+        rather than as a quiet month. One sentence says the same fact and does
+        not look like a failure.
+      */}
+      {inMinor === 0 && outMinor === 0 ? (
+        <p className="nf-body-sm relative mt-block text-[var(--nf-content-muted)]">
+          No money has moved in or out in the last 30 days.
+        </p>
+      ) : (
+        <>
+          <p className="nf-overline mt-block">Last 30 days</p>
+          <div className="nf-cells nf-cells--pair relative mt-row">
+            <div className="pr-lg">
+              <p className="nf-body-sm text-[var(--nf-content-muted)]">In</p>
+              <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-success)]">
+                {hidden ? (
+                  "••••"
+                ) : (
+                  <>
+                    +<Amount minorUnits={inMinor} locale={locale} showFraction />
+                  </>
+                )}
+              </p>
+            </div>
+            <div className="pl-lg">
+              <p className="nf-body-sm text-[var(--nf-content-muted)]">Out</p>
+              <p className="nf-numeric mt-inline-tight text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-state-error)]">
+                {hidden ? (
+                  "••••"
+                ) : (
+                  <>
+                    -<Amount minorUnits={outMinor} locale={locale} showFraction />
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+
+      {!points && (
+        /* A chart needs two settled points and this wallet has one or none.
+           Saying so is better than a gap where a chart is on every other
+           wallet, which reads as a chart that failed to draw. */
+        <p className="nf-caption relative mt-row">
+          Your balance history appears once a few movements have settled.
+        </p>
+      )}
 
       {points && (
         /*

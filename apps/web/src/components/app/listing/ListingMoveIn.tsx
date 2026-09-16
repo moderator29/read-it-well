@@ -100,7 +100,7 @@ export function ListingMoveIn({
       <p className={TYPE.label}>
         {stated ? "Total to move in" : "Move in from"}
       </p>
-      <p className="mt-1.5">
+      <p className="mt-row">
         <Amount
           minorUnits={total}
           locale={locale}
@@ -108,14 +108,14 @@ export function ListingMoveIn({
           className="text-[1.75rem] font-bold leading-none tracking-[-0.025em] text-[var(--nf-content-primary)] sm:text-[2rem]"
         />
       </p>
-      <p className={`mt-2 ${TYPE.body}`}>
+      <p className={`mt-row ${TYPE.body}`}>
         {stated
           ? "The figure the agent says you need at the door, rent included."
           : "The parts the agent has named so far, added up. Ask about anything not listed before you commit."}
       </p>
 
       {breakdownWorthOpening && (
-        <div className="nf-hairline mt-4">
+        <div className="nf-hairline mt-block">
           <Disclosure
             label="What makes up this figure"
             hint={`${parts.length} ${parts.length === 1 ? "line" : "lines"}`}
@@ -124,7 +124,7 @@ export function ListingMoveIn({
           >
             <dl className="divide-y divide-[var(--nf-border-subtle)]">
               {parts.map((part) => (
-                <div key={part.key} className="flex items-baseline justify-between gap-6 py-3.5">
+                <div key={part.key} className="flex items-baseline justify-between gap-group py-row">
                   <dt className={TYPE.body}>{part.label}</dt>
                   <dd className="shrink-0">
                     <Amount
@@ -136,7 +136,7 @@ export function ListingMoveIn({
                   </dd>
                 </div>
               ))}
-              <div className="flex items-baseline justify-between gap-6 py-4">
+              <div className="flex items-baseline justify-between gap-group py-group">
                 <dt className={TYPE.rowTitle}>{stated ? "Total" : "Named so far"}</dt>
                 <dd className="shrink-0">
                   <Amount
@@ -148,7 +148,7 @@ export function ListingMoveIn({
                 </dd>
               </div>
             </dl>
-            <p className={`mt-2 ${TYPE.caption} leading-relaxed`}>
+            <p className={`mt-row ${TYPE.caption} leading-relaxed`}>
               {stated
                 ? "Stated by the agent. Anything not listed here is not part of their quote, so ask before you pay."
                 : "The agent has not given one total, so this is the sum of the parts they named. There may be more; ask before you pay."}

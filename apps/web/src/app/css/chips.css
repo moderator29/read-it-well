@@ -61,11 +61,13 @@
     min-height: 2.75rem;
     height: 100%;
   }
-  .nf-chip:hover {
-    color: var(--nf-content-primary);
-    border-color: var(--nf-brand-edge-strong);
-    transform: translateY(-1px);
-    box-shadow: 0 0 16px var(--nf-glow-2), inset 0 0 12px var(--nf-glow-wash);
+  @media (hover: hover) {
+    .nf-chip:hover {
+      color: var(--nf-content-primary);
+      border-color: var(--nf-brand-edge-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 0 16px var(--nf-glow-2), inset 0 0 12px var(--nf-glow-wash);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-chip:hover {
@@ -142,8 +144,10 @@
       background var(--nf-duration-base) var(--nf-ease-spring);
   }
 
-  .nf-feedtab:hover {
-    color: var(--nf-content-primary);
+  @media (hover: hover) {
+    .nf-feedtab:hover {
+      color: var(--nf-content-primary);
+    }
   }
 
   .nf-feedtab:focus-visible {
@@ -452,13 +456,15 @@
     color: #fff;
     box-shadow: 0 10px 24px -8px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
   }
-  .nf-action-circle:hover .nf-action-circle__ring {
-    transform: translateY(-2px);
-    border-color: var(--nf-glow-brand-rim);
-    box-shadow: 0 0 18px var(--nf-glow-3), inset 0 0 14px var(--nf-glow-1);
+  @media (hover: hover) {
+    .nf-action-circle:hover .nf-action-circle__ring {
+      transform: translateY(-2px);
+      border-color: var(--nf-glow-brand-rim);
+      box-shadow: 0 0 18px var(--nf-glow-3), inset 0 0 14px var(--nf-glow-1);
+    }
   }
   .nf-action-circle:active .nf-action-circle__ring {
-    transform: scale(0.94);
+    transform: scale(var(--nf-press-scale-sm));
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-action-circle:hover .nf-action-circle__ring {

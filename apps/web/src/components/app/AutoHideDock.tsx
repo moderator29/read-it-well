@@ -30,17 +30,36 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  *   It comes back on focus, in CSS, so a keyboard reaching the dock while it
  *   is hidden reveals it rather than tabbing into something invisible.
  *
- * A NEW SCREEN ALWAYS STARTS WITH THE DOCK IN PLACE, and that is done by
- * keying this component on the active route where it is used, so a navigation
- * remounts it rather than carrying the last screen's state across. Two softer
- * approaches were tried and measured, and both failed the same way: a dock
- * hidden when the reader tapped Explore was still hidden on the search screen,
- * at scroll position zero, with nothing to scroll up from. Resetting the state
- * during render is not enough because an app navigation is a transition and
- * the render that reset it is not the one that commits, and waiting for the
- * first scroll event is not enough because a navigation to the top of a page
- * fires none. Remounting resets the state and the scroll anchor together, and
- * there is nothing left to get subtly wrong.
+ * A NEW SCREEN ALWAYS STARTS WITH THE DOCK IN PLACE, and it used to be done by
+ * remounting. The call site keyed this component on the active route, so a
+ * navigation threw the node away and built a new one. That was the right answer
+ * to a real problem, and two softer approaches had been tried and measured and
+ * failed the same way: a dock hidden when the reader tapped Explore was still
+ * hidden on the search screen, at scroll position zero, with nothing to scroll
+ * up from. Resetting the state during render is not enough, because an app
+ * navigation is a transition and the render that resets it is not the one that
+ * commits. Waiting for the first scroll event is not enough, because a
+ * navigation to the top of a page fires none.
+ *
+ * THE REMOUNT HAD A COST NOBODY HAD CHARGED IT FOR. The tab bar's highlight is
+ * a single element that travels from the old tab to the new one, and an element
+ * that is destroyed and rebuilt cannot travel: it can only appear, already
+ * arrived. So the bar cut between destinations and no amount of CSS was going
+ * to fix it, because the DOM node the CSS would have animated did not survive
+ * the navigation.
+ *
+ * So the reset is an EFFECT ON THE ROUTE, which is the third approach and the
+ * one neither of the first two was. It runs after the navigation has committed,
+ * which is exactly what resetting during render could not do, and it does not
+ * wait for a scroll event, which is what the second approach got wrong. The
+ * node survives, the pill travels, and a new screen still starts with the dock
+ * in place.
+ *
+ * The one thing it does not do is reset BEFORE the first paint of the new
+ * screen. If somebody scrolls down, hides the dock and taps a tab, the new
+ * screen can show one frame with the dock still out of view, and then it slides
+ * back in on its own transition. That reads as the dock returning rather than
+ * as a glitch, and it is the price of the node surviving.
  *
  * The wrapper is a client component holding only this behaviour. The dock
  * itself stays a server component, which matters: it is handed the whole
@@ -57,15 +76,24 @@ const JITTER = 8;
 
 export function AutoHideDock({
   label,
+  route,
   className,
   children,
 }: {
   label: string;
+  /** The active route. Changing it puts the dock back on screen. */
+  route: string;
   className?: string;
   children: ReactNode;
 }) {
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
+
+  /* The reset, after the navigation has committed. See the note above. */
+  useEffect(() => {
+    lastY.current = window.scrollY;
+    setHidden(false);
+  }, [route]);
 
   useEffect(() => {
     lastY.current = window.scrollY;

@@ -76,7 +76,17 @@ export type UiIconName =
   | "arrow-up"
   | "arrow-down"
   | "info"
-  | "mail";
+  | "mail"
+  /*
+   * Electricity, which the set had no way to say.
+   *
+   * A listing's power supply is one of the facts that decides a Nigerian
+   * tenancy, and the property card was drawing it with `sparkle`, which means
+   * "recommended" to anybody who has met it anywhere else in this product. A
+   * glyph that means the wrong thing is worse than no glyph, because the reader
+   * does not know they have misread it.
+   */
+  | "bolt";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
   // Filter control. Two rails with offset handles, the convention every
@@ -388,6 +398,12 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <rect x="3.8" y="13.2" width="7" height="7" rx="1.9" />
       <rect x="13.2" y="13.2" width="7" height="7" rx="1.9" />
     </>
+  ),
+  /* One stroke, drawn on the same 24 grid and with the same corner softness as
+     the rest of the set, so it sits in a row beside `home` and `wallet` without
+     reading as imported. */
+  bolt: (
+    <path d="M13.4 2.9a.55.55 0 0 1 .97.46l-1.3 5.79h4.38c.72 0 1.12.83.67 1.39l-7.52 9.36a.55.55 0 0 1-.97-.46l1.3-5.79H6.55c-.72 0-1.12-.83-.67-1.39Z" />
   ),
   key: (
     <>
@@ -728,6 +744,27 @@ const FILLABLE = new Set<UiIconName>([
  * call site.
  */
 const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
+  /*
+   * The last hole in the navigation set.
+   *
+   * `grid` is four separate rounded rectangles, so it was not in FILLABLE and
+   * the Around tab was the one destination in the bar whose active state was a
+   * colour change with no weight change behind it. Four solid squares on the
+   * same geometry as the outline, so the two drawings agree.
+   */
+  grid: (
+    <>
+      <rect x="3.8" y="3.8" width="7" height="7" rx="1.9" />
+      <rect x="13.2" y="3.8" width="7" height="7" rx="1.9" />
+      <rect x="3.8" y="13.2" width="7" height="7" rx="1.9" />
+      <rect x="13.2" y="13.2" width="7" height="7" rx="1.9" />
+    </>
+  ),
+  /* The same bolt as a solid, for a row that is reporting a fact rather than
+     offering a control. */
+  bolt: (
+    <path d="M13.4 2.9a.55.55 0 0 1 .97.46l-1.3 5.79h4.38c.72 0 1.12.83.67 1.39l-7.52 9.36a.55.55 0 0 1-.97-.46l1.3-5.79H6.55c-.72 0-1.12-.83-.67-1.39Z" />
+  ),
   home: (
     <path d="M11.02 3.62a1.5 1.5 0 0 1 1.96 0l7.63 6.64c.4.35.15 1.01-.38 1.01H18.3v7.83a2 2 0 0 1-2 2h-2.9v-4.7a1.4 1.4 0 0 0-2.8 0v4.7H7.7a2 2 0 0 1-2-2v-7.83H3.77c-.53 0-.78-.66-.38-1.01Z" />
   ),

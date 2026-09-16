@@ -28,7 +28,7 @@ import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
  */
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="flex items-center gap-0.5" aria-hidden="true">
+    <span className="flex items-center gap-3xs" aria-hidden="true">
       {Array.from({ length: 5 }, (_, i) => (
         <UiIcon
           key={i}
@@ -63,7 +63,7 @@ export function ListingReviews({
       <EmptyState
         icon="reviews"
         title="No reviews yet"
-        body="This place has not hosted a Vallo stay yet. Reviews appear here once a guest has actually stayed, and never before."
+        body="Nobody has stayed here through Vallo yet. A review appears once a guest actually has, and never before."
         data-testid="reviews-empty"
       />
     );
@@ -71,7 +71,7 @@ export function ListingReviews({
 
   return (
     <div>
-      <p className="flex items-baseline gap-2.5">
+      <p className="flex items-baseline gap-inline">
         <span className="nf-numeric text-[1.75rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
           {formatRating(rating, locale)}
         </span>
@@ -85,33 +85,33 @@ export function ListingReviews({
       </p>
 
       {reviews.length > 0 ? (
-        <ul className="mt-5 divide-y divide-[var(--nf-border-subtle)]">
+        <ul className="mt-block divide-y divide-[var(--nf-border-subtle)]">
           {reviews.map((review) => (
-            <li key={review.id} className="py-5 first:pt-0">
-              <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <li key={review.id} className="py-md first:pt-0">
+              <p className="flex flex-wrap items-center gap-x-inline gap-y-inline-tight">
                 <Stars rating={review.rating} />
                 <span className="sr-only">{review.rating} out of 5.</span>
                 <span className={TYPE.rowTitle}>{review.author}</span>
                 <span className={TYPE.caption}>{review.when}</span>
               </p>
-              {review.body && <p className={`mt-2 ${TYPE.body}`}>{review.body}</p>}
+              {review.body && <p className={`mt-row ${TYPE.body}`}>{review.body}</p>}
               {/* The host's answer, indented under the review it answers. One
                   per review, and it can never alter a word of the review
                   itself: it is a separate row in a separate table. */}
               {review.response && (
-                <div className="mt-3 border-l-2 border-[var(--nf-border-strong)] pl-4">
-                  <p className={`flex flex-wrap items-center gap-x-2 ${TYPE.rowMeta}`}>
+                <div className="mt-row border-l-2 border-[var(--nf-border-strong)] pl-md">
+                  <p className={`flex flex-wrap items-center gap-x-inline ${TYPE.rowMeta}`}>
                     <UiIcon
                       name="verified"
                       size={ICON.inline}
                       className="shrink-0 text-[var(--nf-brand-primary)]"
                     />
                     <span className="font-semibold text-[var(--nf-content-primary)]">
-                      Reply from the host
+                      Reply from the agent
                     </span>
                     <span>{review.response.when}</span>
                   </p>
-                  <p className={`mt-1.5 whitespace-pre-line ${TYPE.body}`}>
+                  <p className={`mt-inline-tight whitespace-pre-line ${TYPE.body}`}>
                     {review.response.body}
                   </p>
                 </div>
@@ -120,8 +120,8 @@ export function ListingReviews({
           ))}
         </ul>
       ) : (
-        <p className={`mt-4 flex items-start gap-2.5 ${TYPE.body}`}>
-          <UiIcon name="star" size={ICON.inline} className="mt-0.5 shrink-0" />
+        <p className={`mt-group flex items-start gap-inline ${TYPE.body}`}>
+          <UiIcon name="star" size={ICON.inline} className="mt-3xs shrink-0" />
           Written reviews from verified stays will appear here once guests share
           them on Vallo.
         </p>

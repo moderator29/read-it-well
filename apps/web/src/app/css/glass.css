@@ -243,10 +243,12 @@
     background: var(--nf-surface-raised);
     border-radius: var(--nf-radius-xl);
   }
-  .nf-elev-1.nf-elev--hoverable:hover {
-    --nf-elev-shadow: var(--nf-elev-2);
-    --nf-elev-rim: var(--nf-elev-2-rim);
-    --nf-elev-border: var(--nf-elev-2-border);
+  @media (hover: hover) {
+    .nf-elev-1.nf-elev--hoverable:hover {
+      --nf-elev-shadow: var(--nf-elev-2);
+      --nf-elev-rim: var(--nf-elev-2-rim);
+      --nf-elev-border: var(--nf-elev-2-border);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-elev-1,
@@ -387,8 +389,10 @@
       box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
     }
   }
-  .nf-card.nf-elev--hoverable:hover {
-    box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
+  @media (hover: hover) {
+    .nf-card.nf-elev--hoverable:hover {
+      box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-card--interactive {

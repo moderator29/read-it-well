@@ -28,11 +28,43 @@ import type { BalanceBreakdown, EscrowLine, EscrowPurpose, EscrowState } from "@
  * incoming, because money you might get back plus money you might receive is a
  * figure that is true of no moment in time.
  *
- * The two escrow sections list the individual holds and NAME THE PROPERTY on
+ * The two hold sections list the individual holds and NAME THE PROPERTY on
  * each, which is the point of the sheet as much as the totals are: "₦1,200,000
  * held" answers nothing on its own, and "₦1,200,000 held, deposit, 3 bedroom
  * flat at Admiralty Way" answers the whole question. The title is real or
  * absent - a hold whose listing has come down says the purpose and no more.
+ *
+ * ---------------------------------------------------------------------------
+ * THE WORD ESCROW IS GONE FROM THIS FILE, AND THAT IS THE MOST IMPORTANT
+ * THING ABOUT IT.
+ *
+ * This sheet used to tell any signed-in person, unconditionally: "Escrow moves
+ * money out of it and holds it until both sides are done", "Money in escrow",
+ * "What you have in escrow", and "You have paid this into escrow. It comes
+ * back if the deal does not happen."
+ *
+ * `apps/web/src/lib/legal/terms.tsx`, rewritten on 15 September, says in bold
+ * that Vallo does not hold your money in escrow and that a payment made here
+ * should not be treated as protected by us holding it. So the wallet screen
+ * and the contract said opposite things about where somebody's rent money is,
+ * and the wallet was the one making the promise.
+ *
+ * The underlying position: `escrows` holds zero rows, nothing routes a guest
+ * payment into it, and `booking_status` has no COMPLETED, so there is no
+ * condition a release could ever fire on. The same sentence was correctly
+ * removed from `api/assistant/route.ts` and `api/support/route.ts`; this file
+ * was missed because the check was a grep of the locale files and this
+ * component hardcodes its English.
+ *
+ * WHAT REPLACED IT. The rows describe the MOVEMENT and never a custodian:
+ * money can be on hold, and saying so is a fact about a balance. Nothing here
+ * says who is holding it, nothing says it is protected, and nothing says it
+ * comes back, because none of those is a promise this company has made.
+ *
+ * WHEN THE WORD COMES BACK. When a flow actually routes a payment into
+ * `escrows` AND the terms of service say the platform holds it. Not when
+ * either one arrives alone. That is the whole lesson of how it got here.
+ * ---------------------------------------------------------------------------
  */
 
 /** How the eight states read to somebody who is not reading the schema. */
@@ -110,6 +142,11 @@ export function BalanceBreakdownSheet({
                 figure. `inset={false}` because these rows lead with a label
                 rather than a glyph, so an indented rule would look like a
                 mistake instead of an alignment. */}
+            {/* The two held rows render only when something is actually held.
+                They printed "₦0.00" twice, under two sentences about a
+                mechanism that has never moved a naira, on every wallet on the
+                platform. `anyHeld` was already computed and was already the
+                right question to ask. */}
             <RowList inset={false}>
               <Part
                 label={AVAILABLE}
@@ -119,20 +156,24 @@ export function BalanceBreakdownSheet({
                 hidden={hidden}
                 emphasis
               />
-              <Part
-                label={HELD_OUT}
-                note={HELD_OUT_NOTE}
-                minor={breakdown.heldOutMinor}
-                locale={locale}
-                hidden={hidden}
-              />
-              <Part
-                label={HELD_IN}
-                note={HELD_IN_NOTE}
-                minor={breakdown.heldInMinor}
-                locale={locale}
-                hidden={hidden}
-              />
+              {breakdown.heldOutMinor > 0 && (
+                <Part
+                  label={HELD_OUT}
+                  note={HELD_OUT_NOTE}
+                  minor={breakdown.heldOutMinor}
+                  locale={locale}
+                  hidden={hidden}
+                />
+              )}
+              {breakdown.heldInMinor > 0 && (
+                <Part
+                  label={HELD_IN}
+                  note={HELD_IN_NOTE}
+                  minor={breakdown.heldInMinor}
+                  locale={locale}
+                  hidden={hidden}
+                />
+              )}
             </RowList>
 
             <Holds
@@ -255,20 +296,25 @@ function Holds({
 }
 
 /* --------------------------------------------------------------- the copy */
+/*
+ * Read the note at the head of this file before changing a word of this block.
+ * Every sentence here describes a movement of a balance. None of them names a
+ * custodian, promises a return, or uses the word escrow, and that is not a
+ * stylistic choice: it is the difference between this screen and the contract.
+ */
 const SHEET_TITLE = "Where your money is";
-const SHEET_SUB =
-  "Your wallet holds one balance. Escrow moves money out of it and holds it until both sides are done, so this is the whole picture.";
+const SHEET_SUB = "Your wallet holds one balance. This is what it is made of.";
 const BREAKDOWN_PLAIN = "Breakdown";
-const BREAKDOWN_WITH_HELD = "Money in escrow";
+const BREAKDOWN_WITH_HELD = "Money on hold";
 const AVAILABLE = "Available";
 const AVAILABLE_NOTE = "Yours to spend, send or withdraw right now.";
-const HELD_OUT = "Held for you";
-const HELD_OUT_NOTE = "You have paid this into escrow. It comes back if the deal does not happen.";
+const HELD_OUT = "On hold";
+const HELD_OUT_NOTE = "Paid out of your balance against a deal that has not closed.";
 const HELD_IN = "Coming to you";
-const HELD_IN_NOTE = "Somebody has put this into escrow with you as the payee. Not yours until it is released.";
-const YOUR_HOLDS = "What you have in escrow";
+const HELD_IN_NOTE = "Somebody has set this aside with you as the payee. Not yours until it is released.";
+const YOUR_HOLDS = "What you have on hold";
 const HOLDS_FOR_YOU = "What is being held for you";
 const UNNAMED_PROPERTY = "The property this was against is no longer listed";
-const NOTHING_HELD = "Nothing is in escrow right now, so your available balance is everything you have.";
+const NOTHING_HELD = "Nothing is on hold right now, so your available balance is everything you have.";
 const READ_FAILED =
-  "We could not check what is in escrow just now, so we are not showing a figure rather than showing you one we cannot stand behind. Your available balance above is unaffected.";
+  "We could not check what is on hold just now, so we are not showing a figure rather than showing you one we cannot stand behind. Your available balance above is unaffected.";

@@ -136,7 +136,20 @@ export function IntentTune({
          * and nothing else, so a span reports 32x32 and fails a floor it is
          * actually meeting. The same reasoning is written out in `Switch.tsx`.
          */
-        className="nf-tap grid size-8 place-items-center rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-sm transition-transform active:scale-[0.92] motion-reduce:transition-none"
+        /*
+         * THE SAME MATERIAL AS THE HEART BESIDE IT.
+         *
+         * This was `bg-[var(--nf-overlay-media)]` with `--nf-content-on-media`
+         * ink, which is the theme-independent dark-glass treatment, and it was
+         * correct while the control floated on a photograph. The card no longer
+         * has one: the media is an information band drawn in the surface
+         * family, and on the light theme a permanent dark disc sat beside a
+         * pale one on the same corner of the same card. `nf-icon-btn` is the
+         * platform's round control, it follows the theme, and it guarantees the
+         * 44px target through an overflowing pseudo-element, so the drawn 36px
+         * matches the save control exactly.
+         */
+        className="nf-icon-btn h-9 w-9"
       >
         <UiIcon name="sliders" size={16} />
       </button>

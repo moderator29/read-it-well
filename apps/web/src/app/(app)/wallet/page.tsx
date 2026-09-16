@@ -6,6 +6,7 @@ import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
+import { EmptyActions } from "@/components/app/EmptyActions";
 import { BalanceCard } from "@/components/app/wallet/BalanceCard";
 import { RecentActivity } from "@/components/app/wallet/RecentActivity";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
@@ -105,24 +106,26 @@ export default async function WalletPage({
          * product stopped using. `EmptyState` is that shape, at 112px with the
          * copy a tier up, and two containers leave this screen.
          *
-         * ONE ACTION, NOT TWO. Signing in is what this state is about; drifting
-         * off to browse places is a way out rather than an answer, so it is the
-         * quiet link beside the button rather than a second filled peer.
+         * THE HEADLINE IS A SENTENCE, NOT A CLAUSE THAT ORPHANS ITS LAST WORD.
+         * "Your wallet is behind your sign in" broke at 390px as "...your sign
+         * / in", leaving a two-letter orphan under a centred headline with a
+         * gap above it. Notifications already said "Sign in to see your
+         * notifications", which is shorter, active, and the same sentence in
+         * the right order; this screen and bookings now match it.
+         *
+         * AND THE SECOND ACTION IS RELEVANT. It was "Explore places", offered
+         * to somebody who came to look at their own money. See `EmptyActions`.
          */
         <Reveal>
           <EmptyState
             icon="wallet-secure"
-            title="Your wallet is behind your sign in"
-            body="Sign in to see your balance, add money, send it on and read every payment in and out. Nothing about your money is shown to anybody who is not signed in as you."
+            title="Sign in to see your wallet"
+            body="Your balance, every payment in and out, and the controls to add money or send it on. Nothing about your money is shown to anybody who is not signed in as you."
             action={
-              <ButtonLink href="/sign-in" variant="primary">
-                Sign in
-              </ButtonLink>
-            }
-            secondary={
-              <ButtonLink href="/search" variant="ghost">
-                Explore places
-              </ButtonLink>
+              <EmptyActions
+                primary={{ label: "Sign in", href: "/sign-in" }}
+                secondary={{ label: "How the wallet works", href: "/help" }}
+              />
             }
           />
         </Reveal>

@@ -115,12 +115,16 @@
       transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
-  .nf-market__tile:hover {
-    transform: translateY(-2px);
+  @media (hover: hover) {
+    .nf-market__tile:hover {
+      transform: translateY(-2px);
+    }
   }
 
-  .nf-market__tile:hover .nf-market__name {
-    color: var(--nf-content-primary);
+  @media (hover: hover) {
+    .nf-market__tile:hover .nf-market__name {
+      color: var(--nf-content-primary);
+    }
   }
 
   .nf-market__tile:focus-visible {
@@ -132,8 +136,10 @@
     .nf-market__tile {
       transition: none;
     }
-    .nf-market__tile:hover {
-      transform: none;
+    @media (hover: hover) {
+      .nf-market__tile:hover {
+        transform: none;
+      }
     }
   }
 

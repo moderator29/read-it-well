@@ -7,7 +7,7 @@ import { formatDate } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Reveal } from "@/components/site/Reveal";
 import type { WalletEntry } from "@/lib/wallet/types";
-import { KIND_ICON, KIND_LABEL } from "./kinds";
+import { KIND_ICON, KIND_LABEL, STATUS_LABEL } from "./kinds";
 import { Amount } from "@/components/ui/Amount";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
@@ -295,7 +295,7 @@ function EntryRow({
             region per row would announce the whole history on arrival. */}
         {!settled && (
           <StatusPill tone={toneForStatus(entry.status)} className="mt-inline-tight">
-            {entry.status.toLowerCase()}
+            {STATUS_LABEL[entry.status]}
           </StatusPill>
         )}
       </span>

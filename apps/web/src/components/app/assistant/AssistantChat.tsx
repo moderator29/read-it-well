@@ -53,10 +53,30 @@ const NETWORK_ERROR_MESSAGE =
 const PACE_FALLBACK_MESSAGE =
   "You are moving faster than the assistant can think. Give it a few minutes and try again.";
 
+/*
+ * THE THREE OPENING PROMPTS, AND WHY THESE THREE.
+ *
+ * They were "2 bedroom in Lekki under 300k", "Weekend beach resorts near
+ * Lagos" and "Best jollof in Abuja". The second and third were run against the
+ * whole catalogue and returned ZERO rows each: they are free-text moods this
+ * platform has no inventory for, so two of the three things offered to a person
+ * on their first turn were guaranteed to come back empty. An opening prompt
+ * that cannot be answered teaches somebody the assistant does not work.
+ *
+ * "under 300k" was also quietly wrong for the rent market. A Lagos two bedroom
+ * is priced per YEAR and 300,000 a year is below anything in the catalogue, so
+ * the one plausible prompt was still a filter that matches nothing.
+ *
+ * These three ask what this platform, specifically, can answer: the move-in
+ * total it computes, the power columns no competitor carries, and a real
+ * budget in the unit rent is actually quoted in. They also teach the product's
+ * own argument on the first turn, which a starter is the cheapest place in the
+ * whole interface to do.
+ */
 const STARTERS = [
-  "2 bedroom in Lekki under 300k",
-  "Weekend beach resorts near Lagos",
-  "Best jollof in Abuja",
+  "Two bedroom in Lekki under 5m a year",
+  "What will it cost me to move in?",
+  "Which places have a generator?",
 ];
 
 const DRAWER_EXIT_MS = 240;

@@ -44,15 +44,15 @@ export function ListingHostPanel({
 }) {
   return (
     <div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-group">
         <span className="block h-16 w-16 shrink-0">
           <BrandIcon name="user-check" fill />
         </span>
         <div className="min-w-0 flex-1">
           <p className={TYPE.rowTitle}>Vallo partner agent</p>
-          <p className={`mt-1 ${TYPE.rowMeta}`}>Manages this listing on Vallo</p>
+          <p className={`mt-inline-tight ${TYPE.rowMeta}`}>Manages this listing on Vallo</p>
           {verified && (
-            <p className={`mt-2 flex items-center gap-2 ${TYPE.body}`}>
+            <p className={`mt-row flex items-center gap-inline ${TYPE.body}`}>
               <UiIcon
                 name="verified"
                 size={ICON.inline}
@@ -70,7 +70,7 @@ export function ListingHostPanel({
           and carries the intent home with it: signing in lands the reader back
           in this conversation rather than on a generic screen. */}
       <AuthGate action="message">
-        <ButtonLink href={messageHref} variant="secondary" full className="mt-5">
+        <ButtonLink href={messageHref} variant="secondary" full className="mt-block">
           Message agent
         </ButtonLink>
       </AuthGate>
