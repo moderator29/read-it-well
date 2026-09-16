@@ -1,14 +1,13 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { submitReview, type ReviewWritten } from "@/lib/reviews/actions";
 import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { MomentScreen } from "@/components/app/MomentScreen";
+import { ResultScreen } from "@/components/app/ResultSheet";
 
 /**
  * The review form.
@@ -39,24 +38,19 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
 
   if (state?.ok) {
     return (
-      <MomentScreen
-        variant="success"
-        icon="reviews"
-        title="Thank you for the review"
-        description={`Your review of ${subject.title} is live. Other guests can see it now, and the host has been told.`}
-        actions={
-          <>
-            <Link
-              href={`/listing/${state.data.listingId}`}
-              className="nf-btn nf-btn--primary nf-btn--lg"
-            >
-              See it on the listing
-            </Link>
-            <Link href="/bookings" className="nf-btn nf-btn--glass nf-btn--lg">
-              My trips
-            </Link>
-          </>
-        }
+      <ResultScreen
+        state="confirmed"
+        mark="reviews"
+        verdict="Thank you for the review"
+        consequence={`Your review of ${subject.title} is live. Other guests can see it now, and the agent has been told.`}
+        actions={[
+          {
+            label: "See it on the listing",
+            href: `/listing/${state.data.listingId}`,
+            tone: "primary",
+          },
+          { label: "See your stays", href: "/bookings", tone: "quiet" },
+        ]}
       />
     );
   }
@@ -135,7 +129,7 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
           maxLength={BODY_MAX}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Was there steady light and water? How was the host? Would you go back?"
+          placeholder="Was there steady light and water? How was the agent? Would you go back?"
           className="nf-field mt-heading w-full resize-y leading-relaxed"
         />
         <p className="mt-row flex items-center justify-between gap-row nf-caption text-[var(--nf-content-muted)]">

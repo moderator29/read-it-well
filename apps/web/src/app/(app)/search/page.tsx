@@ -441,6 +441,21 @@ export default async function SearchPage({
              * out a changed digit without "places match your filters" is worse
              * than reading nothing.
              */}
+            {/*
+              A ZERO IS ONLY WORTH PRINTING WHEN IT IS A RESULT.
+
+              "0 stays across Nigeria" under a heading reading "Explore
+              properties", directly above an empty state that says the same
+              thing in a full sentence, is the count telling somebody the
+              shelf is empty three times in eighty pixels. With a FILTER on it
+              is a different fact and a useful one: the zero is what their
+              filter did, and removing one chip will change it. So the line
+              stays whenever anything is narrowing, and goes when nothing is.
+
+              The live region stays mounted either way, because a count that
+              appears and disappears from the accessibility tree is a count a
+              screen reader stops hearing about.
+            */}
             <p
               data-testid="results-count"
               data-count={listings.length}
@@ -448,9 +463,11 @@ export default async function SearchPage({
               aria-atomic="true"
               className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]"
             >
-              {formatNumber(listings.length, locale)}{" "}
-              {listings.length === 1 ? noun.one : noun.many}{" "}
-              {narrowed ? "match your filters" : "across Nigeria"}
+              {listings.length === 0 && !narrowed
+                ? ""
+                : `${formatNumber(listings.length, locale)} ${
+                    listings.length === 1 ? noun.one : noun.many
+                  } ${narrowed ? "match your filters" : "across Nigeria"}`}
             </p>
             {/*
               Says why the order is what it is, and only when it really is.
@@ -515,6 +532,10 @@ export default async function SearchPage({
           <ViewToggle query={query} />
         </div>
 
+        {/* An ordering control over nothing is a control that cannot do
+            anything, and four chips of it is a row of a phone screen spent
+            offering to reorder an empty shelf. */}
+        {listings.length > 1 && (
         <nav aria-label="Sort results" className="nf-scroll-x mt-row -mx-gutter px-gutter">
           <ul className="flex items-center gap-inline-tight">
             {SORTS.map((srt) => {
@@ -534,6 +555,7 @@ export default async function SearchPage({
             })}
           </ul>
         </nav>
+        )}
 
         {/* Everything narrowing the results, each one removable in one tap. */}
         <ActiveFilters query={query} locale={locale} />
@@ -612,6 +634,14 @@ export default async function SearchPage({
              * beside it, which is what `secondary` is for.
              */
             <EmptyState
+              /* CLEARANCE FOR THE FLOATING DOCK. `/search` is a tab-bar route
+                 and this state is the whole page, so with only the shell's own
+                 bottom padding the action landed underneath the dock: a
+                 primary button a thumb cannot reach because the navigation is
+                 sitting on it. The proper home for this is the empty state
+                 itself, which is not this file's to change; the clearance is
+                 stated here until it is. */
+              className="pb-4xl"
               icon="search-home"
               title={narrowed || query.q ? "No places matched" : "Nothing on the shelves yet"}
               body={

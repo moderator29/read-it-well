@@ -188,6 +188,17 @@
     position: relative;
     display: flex;
     align-items: center;
+    /*
+     * The bar takes the row, and it used to take only its content.
+     *
+     * With the tabs sized by their own capsules that was correct. With equal
+     * width tabs it is not: `flex: 1 1 0` divides whatever the parent gives,
+     * and an intrinsically sized parent gives the smallest thing that fits, so
+     * the bar collapsed to 159px of a 358px row and every label had to elide.
+     * Measured before the fix: "Explore" painted 38px against a 46px string.
+     */
+    flex: 1 1 auto;
+    min-width: 0;
     gap: var(--nf-tab-gap);
     padding: var(--nf-tab-pad);
     /* Canvas tint rather than a white wash: this floats over scrolling
@@ -284,7 +295,7 @@
   }
   /* The island's own active state: brand fill, matching the capsule's pill. */
   .nf-dock-island[aria-current="page"] {
-    color: #fff;
+    color: var(--nf-content-on-brand);
     background: var(--nf-gradient-brand);
     border-color: transparent;
     box-shadow:
@@ -431,7 +442,7 @@
   }
   @media (hover: hover) {
     :root[data-theme="light"] .nf-dock__btn:hover {
-      color: #fff;
+      color: var(--nf-content-on-brand);
       background: rgb(255 255 255 / 0.12);
     }
   }

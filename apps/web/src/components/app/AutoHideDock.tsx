@@ -48,18 +48,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * to fix it, because the DOM node the CSS would have animated did not survive
  * the navigation.
  *
- * So the reset is an EFFECT ON THE ROUTE, which is the third approach and the
- * one neither of the first two was. It runs after the navigation has committed,
- * which is exactly what resetting during render could not do, and it does not
- * wait for a scroll event, which is what the second approach got wrong. The
- * node survives, the pill travels, and a new screen still starts with the dock
- * in place.
- *
- * The one thing it does not do is reset BEFORE the first paint of the new
- * screen. If somebody scrolls down, hides the dock and taps a tab, the new
- * screen can show one frame with the dock still out of view, and then it slides
- * back in on its own transition. That reads as the dock returning rather than
- * as a glitch, and it is the price of the node surviving.
+ * So the state REMEMBERS WHICH SCREEN IT WAS DECIDED ON, which is the third
+ * approach and the one neither of the first two was. "Hidden" is not a fact
+ * about the dock, it is a fact about a reader scrolling down a particular
+ * screen, and the moment they are on a different screen it is not an answer to
+ * anything. Comparing beats correcting: there is no second render, nothing to
+ * schedule, and no frame in which the new screen shows the old screen's answer.
+ * The node survives, the pill travels, and a new screen still starts with the
+ * dock in place.
  *
  * The wrapper is a client component holding only this behaviour. The dock
  * itself stays a server component, which matters: it is handed the whole
@@ -86,14 +82,20 @@ export function AutoHideDock({
   className?: string;
   children: ReactNode;
 }) {
-  const [hidden, setHidden] = useState(false);
+  /*
+   * The state carries the route it was decided on, and the reset is a
+   * COMPARISON rather than a second `setState`.
+   *
+   * A `useEffect` that calls `setHidden(false)` when the route changes also
+   * works, and it is a cascading render the linter is right to refuse: the
+   * component paints the old screen's answer once and then corrects itself.
+   * Storing which screen the decision belongs to makes the correction free,
+   * because a decision taken on a screen the reader has left is simply not the
+   * current answer to anything.
+   */
+  const [decision, setDecision] = useState({ route, hidden: false });
+  const hidden = decision.route === route ? decision.hidden : false;
   const lastY = useRef(0);
-
-  /* The reset, after the navigation has committed. See the note above. */
-  useEffect(() => {
-    lastY.current = window.scrollY;
-    setHidden(false);
-  }, [route]);
 
   useEffect(() => {
     lastY.current = window.scrollY;
@@ -121,14 +123,14 @@ export function AutoHideDock({
       const atEnd = y + window.innerHeight >= document.documentElement.scrollHeight - SHOW_NEAR_END;
       if (y <= SHOW_ABOVE || atEnd) {
         lastY.current = y;
-        setHidden(false);
+        setDecision({ route, hidden: false });
         return;
       }
 
       const delta = y - lastY.current;
       if (Math.abs(delta) < JITTER) return;
       lastY.current = y;
-      setHidden(delta > 0);
+      setDecision({ route, hidden: delta > 0 });
     };
 
     /* Coalesced into one frame: a scroll event fires far more often than the
@@ -142,7 +144,9 @@ export function AutoHideDock({
       window.removeEventListener("scroll", onScroll);
       if (frame !== 0) window.cancelAnimationFrame(frame);
     };
-  }, []);
+    /* Re-anchored per route, so the scroll listener records its decisions
+       against the screen the reader is actually on. */
+  }, [route]);
 
   return (
     <nav aria-label={label} data-dock-hidden={hidden ? "true" : undefined} className={className}>

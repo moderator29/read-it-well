@@ -138,6 +138,56 @@ export function AppShell({
    * and one floated over the other. No dock, no collision, no special case.
    */
 
+  /*
+   * TWO STACKED HEADERS, AND NOW THERE IS ONE.
+   *
+   * The audit measured a signed-in wallet at 390px: 64px of sticky glass
+   * carrying a hamburger and a wordmark, then roughly 52px of the page's own
+   * `PageHeader` carrying a back button and the word "Wallet". 116px of chrome,
+   * twice saying where you are, before the balance. That measurement is the
+   * audit's rather than this session's, because there is no way to reach a
+   * signed-in screen in this environment. The second half needs no measuring at
+   * all: above `lg` every control in this bar is `lg:hidden` except the
+   * signed-out actions, so for a member it was an empty pane of glass still
+   * costing 64px of sticky height and a `backdrop-filter` repaint per scroll
+   * frame.
+   *
+   * Two rules, and each answers one of those.
+   *
+   * ABOVE `lg`, the bar renders only when it has something in it. Everything in
+   * it is `lg:hidden` except the signed-out actions, so for a signed-in person
+   * on a desktop it was a 64px pane of glass containing nothing at all.
+   *
+   * ON A PHONE, the bar renders only on the tab destinations. A route that is
+   * not a tab destination was reached FROM one, so the page draws a
+   * `PageHeader` with a back control and its own title, and that is the single
+   * bar the screen needs. Losing the hamburger there is not a regression, it is
+   * the pattern: a detail screen in a first-party app carries back and a title,
+   * and the drawer belongs to the root screens you reach it from. `showsTabBar`
+   * is the same list the dock uses, so the shell and the dock cannot disagree
+   * about which screens are roots.
+   */
+  const isTabRoute = showsTabBar(active);
+  /*
+   * Rendered at all: on a phone, only on a tab destination. A guest keeps it
+   * everywhere, because for a guest the contents are Sign in and Sign up, which
+   * is the most valuable thing on any screen they are reading.
+   */
+  const showsHeader = isTabRoute || !signedIn;
+  /*
+   * And where it is rendered, where it is VISIBLE. Every control in the bar is
+   * `lg:hidden` except the signed-out actions, so for a member above `lg` it is
+   * an empty pane of glass; the edge-to-edge branch keeps its desktop
+   * appearance for a guest, because that is the one case where the bar still
+   * has something in it.
+   */
+  const headerVisibility = [
+    edgeToEdge ? "hidden" : "",
+    signedIn ? "lg:hidden" : edgeToEdge ? "lg:block" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   /* The drawer closes itself on navigation. Escape, the scroll lock, the focus
      trap and returning focus to the opener are all useOverlay's, because this
      drawer carried aria-modal and none of the behaviour it promises. */
@@ -241,7 +291,7 @@ export function AppShell({
         }
       >
         {/* ------------------------------------------------------- top bar */}
-        {!immersive && (
+        {!immersive && showsHeader && (
         /*
          * Edge-to-edge is a PHONE behaviour, so the header is hidden rather
          * than dropped. On a phone the hero should reach the status bar, and
@@ -250,11 +300,11 @@ export function AppShell({
          * already carries navigation, and this header is the only place the
          * theme toggle, the language switcher and the assistant live - removing
          * it there would trade one fixed audit item for three regressions.
+         *
+         * `headerVisibility` above carries the rest: see the note beside it.
          */
         <header
-          className={`nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40 ${
-            edgeToEdge ? "hidden lg:block" : ""
-          }`}
+          className={`nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40 ${headerVisibility}`}
         >
           {/* The bar's own inline padding is the page gutter, so the menu
               button and the wordmark start on the same vertical as the content
@@ -296,7 +346,11 @@ export function AppShell({
                 the person in Kano. Where somebody actually is now belongs to
                 home, where it is read from their own profile. */}
             <Link href="/home" aria-label={t.a11y.logoHome} className="nf-tap shrink-0 lg:hidden">
-              <Logo size={34} wordSize={17} />
+              {/* 42/19, up from 34/17. The owner asked for the mark to be more
+                  visible everywhere, and the asset now carries a real alpha
+                  channel, so it is a mark rather than a square and it can
+                  afford the size. */}
+              <Logo size={42} wordSize={19} />
             </Link>
 
             <div className="flex-1" />

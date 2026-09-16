@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getLocale } from "@/lib/locale";
 import { getReviewView, type ReviewRead } from "@/lib/reviews/queries";
 import { RATING_LABELS } from "@/lib/reviews/schema";
-import { MomentScreen } from "@/components/app/MomentScreen";
+import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { ICON } from "@/components/app/Screen";
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 /**
  * Review a stay.
  *
- * The screen behind the trips hub's "Leave a review" control, which until now
+ * The screen behind the stays hub's "Leave a review" control, which until now
  * led to the listing page and nothing to review with. Every state that is not
  * "ready to write" is a designed, honest screen with a way onward: no keys yet,
  * signed out, no such stay, the stay is not finished, the stay was cancelled,
@@ -39,16 +39,12 @@ export default async function ReviewPage({
   if (read.state === "unconfigured") {
     return (
       <Shell>
-        <MomentScreen
-          variant="brand"
-          icon="reviews"
-          title="Reviews switch on shortly"
-          description="This platform is still waiting on its keys, so there are no stays to review yet. Nothing you did was lost."
-          actions={
-            <Link href="/search" className="nf-btn nf-btn--primary nf-btn--lg">
-              Explore stays
-            </Link>
-          }
+        <ResultScreen
+          state="pending"
+          mark="reviews"
+          verdict="We cannot reach reviews right now"
+          consequence="This is on our side, not yours. Nothing has been lost. Try again in a few minutes."
+          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -57,16 +53,12 @@ export default async function ReviewPage({
   if (read.state === "signed-out") {
     return (
       <Shell>
-        <MomentScreen
-          variant="brand"
-          icon="shield-check"
-          title="Sign in to review your stay"
-          description="Reviews are tied to the stay you took, so we need to know it was you. Sign in and you land straight back here."
-          actions={
-            <Link href="/sign-in" className="nf-btn nf-btn--primary nf-btn--lg">
-              Sign in
-            </Link>
-          }
+        <ResultScreen
+          state="confirmed"
+          mark="shield-check"
+          verdict="Sign in to review your stay"
+          consequence="Reviews are tied to the stay you took, so we need to know it was you. Sign in and you land straight back here."
+          actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
         />
       </Shell>
     );
@@ -75,16 +67,14 @@ export default async function ReviewPage({
   if (read.state === "missing") {
     return (
       <Shell>
-        <MomentScreen
-          variant="warning"
-          icon="calendar-check"
-          title="We could not find that stay"
-          description="It may belong to another account. Your trips are all in one place."
-          actions={
-            <Link href="/bookings" className="nf-btn nf-btn--primary nf-btn--lg">
-              My trips
-            </Link>
-          }
+        {/* Rose and a cross. This said "We could not find that stay" under a
+            calendar with a tick, in the pending colour. */}
+        <ResultScreen
+          state="failed"
+          mark="seal-cross"
+          verdict="We could not find that stay"
+          consequence="It may belong to another account. Your stays are all in one place."
+          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -93,16 +83,12 @@ export default async function ReviewPage({
   if (read.state === "unavailable") {
     return (
       <Shell>
-        <MomentScreen
-          variant="warning"
-          icon="shield-check"
-          title="Reviews are unavailable for a moment"
-          description="Your stay is unchanged and nothing was lost. Please try again shortly."
-          actions={
-            <Link href="/bookings" className="nf-btn nf-btn--primary nf-btn--lg">
-              My trips
-            </Link>
-          }
+        <ResultScreen
+          state="failed"
+          mark="alert-triangle"
+          verdict="Reviews did not load"
+          consequence="Your stay is unchanged and nothing was lost. Try again in a few minutes."
+          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -116,9 +102,9 @@ export default async function ReviewPage({
           "There is nothing to review, because the stay did not go ahead. The dates are open again if you still want them.",
       },
       unconfirmed: {
-        title: "The host has not accepted yet",
+        title: "The agent has not accepted yet",
         description:
-          "Reviews are for stays that actually happened, so this one opens up once the host accepts and the dates pass.",
+          "Reviews are for stays that actually happened, so this one opens up once the agent accepts and the dates pass.",
       },
       "not-finished": {
         title: "Your stay is not finished yet",
@@ -128,24 +114,22 @@ export default async function ReviewPage({
 
     return (
       <Shell subtitle={read.subject.title}>
-        <MomentScreen
-          variant="brand"
-          icon="calendar-clock"
-          title={copy.title}
-          description={copy.description}
-          actions={
-            <>
-              <Link href="/bookings" className="nf-btn nf-btn--primary nf-btn--lg">
-                My trips
-              </Link>
-              <Link
-                href={`/listing/${read.subject.listingId}`}
-                className="nf-btn nf-btn--glass nf-btn--lg"
-              >
-                View the stay
-              </Link>
-            </>
-          }
+        {/* A stay that cannot be reviewed YET is a window that has not opened,
+            and one that was cancelled is a window that closed. Neither is a
+            failure, so neither is rose. */}
+        <ResultScreen
+          state={read.reason === "cancelled" ? "expired" : "pending"}
+          mark="calendar-clock"
+          verdict={copy.title}
+          consequence={copy.description}
+          actions={[
+            { label: "See your stays", href: "/bookings", tone: "primary" },
+            {
+              label: "View the stay",
+              href: `/listing/${read.subject.listingId}`,
+              tone: "quiet",
+            },
+          ]}
         />
       </Shell>
     );
@@ -202,7 +186,7 @@ export default async function ReviewPage({
             See it on the listing
           </Link>
           <Link href="/bookings" className="nf-btn nf-btn--glass">
-            My trips
+            See your stays
           </Link>
         </Reveal>
       </Shell>

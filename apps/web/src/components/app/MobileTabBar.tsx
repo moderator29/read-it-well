@@ -139,7 +139,7 @@ export function MobileTabBar({
   const tabs: Tab[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
-    { href: "/around", label: t.nav.feed, icon: "grid" },
+    { href: "/around", label: t.nav.feed, icon: "feed" },
     ...(signedIn ? [{ href: "/messages", label: t.nav.messages, icon: "chat-bubble" } as Tab] : []),
   ];
 

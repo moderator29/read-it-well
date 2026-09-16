@@ -263,6 +263,41 @@
       transform: none;
     }
   }
+  /*
+   * A MESSAGE ARRIVING FROM THE EDGE IT BELONGS TO.
+   *
+   * A live region that appears by simply existing is a message a reader can
+   * miss entirely, which on a failed payment or a rejected field is the one
+   * thing that must not happen. A thing that arrives from somewhere is a thing
+   * the eye follows to where it came from, and a field's error comes from under
+   * the field, so it rises the short distance and settles.
+   *
+   * `--nf-arrive-from` is the distance and the direction: positive rises,
+   * negative drops, so a notice above its subject can use the same class
+   * without a second keyframe. Six pixels is deliberately small; this is a
+   * sentence appearing, not a panel.
+   *
+   * NOTE FOR WHOEVER BUILDS THE TOAST. There is no toast component on this
+   * platform: nothing in the tree renders one, so the other half of this is a
+   * component that does not exist yet rather than a treatment that is wrong.
+   * When it arrives it should take this, with `--nf-arrive-from` set negative
+   * if it comes down from the top edge, so every transient message in the
+   * product arrives on one curve from the edge it belongs to.
+   */
+  @keyframes nf-arrive {
+    from {
+      opacity: 0;
+      transform: translateY(var(--nf-arrive-from, 6px));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .nf-arrive {
+    animation: nf-arrive var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+
   /* Gradient sheen that sweeps across a headline, used sparingly on the hero. */
   @keyframes nf-shine {
     0% { background-position: 0% 50%; }

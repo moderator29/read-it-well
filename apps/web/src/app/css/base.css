@@ -111,6 +111,21 @@ html {
  * that clears 3:1 in both themes: 5.68:1 on night, 7.44:1 on paper. The offset
  * is what makes it work over any material, floating the ring clear so a
  * brand-blue button does not swallow a brand-blue ring.
+ *
+ * SURVIVING THE GLOW, which is the fourth thing and the one that was still
+ * open. The primary button used to carry a permanent `0 0 12px` brand bloom, so
+ * the ring and the glow occupied the same two pixels of air and the ring was
+ * the fainter of the two. The resting glow is gone (see `buttons.css`), which
+ * is the real fix: a ring only has to survive a light that is actually there.
+ *
+ * SURVIVING A BRAND GROUND is the remaining case, and it is a different one.
+ * The offset works by showing the PAGE between the control and the ring, which
+ * is why a blue ring round a blue button reads: the ring is not on the button,
+ * it is on the canvas beside it. That argument fails for a control whose ring
+ * lands on a brand FILL rather than on the page, which is the active tab inside
+ * its pill, the active dock island and a pressed chip. Those three redefine the
+ * token locally to the ink that is already correct on a brand fill, so there is
+ * still exactly one ring and one place its colour is decided.
  */
 :where(
     a,
@@ -127,6 +142,21 @@ html {
   ):focus-visible {
   outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
   outline-offset: var(--nf-focus-ring-offset);
+}
+
+/*
+ * The three controls whose focus ring lands on a brand fill rather than on the
+ * page. See the note above. `--nf-content-on-brand` is white in both themes,
+ * because the brand fill is a deep blue in both, so this is the one ink that is
+ * correct on it at night and at noon.
+ */
+:where(
+    .nf-tab__link[aria-current="page"],
+    .nf-dock-island[aria-current="page"],
+    .nf-chip[aria-pressed="true"],
+    .nf-chip--active
+  ):focus-visible {
+  --nf-focus-ring: var(--nf-content-on-brand);
 }
 
 /*

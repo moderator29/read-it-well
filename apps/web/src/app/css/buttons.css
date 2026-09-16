@@ -143,8 +143,9 @@
   /*
    * THE SIZE SCALE IS 44 / 48 / 56, and it was 44 / 56 / 64.
    *
-   * 64px at 17px type is a banner rather than a button: the landing hero CTA
-   * measured 64 by 350 at 390px and read as a mobile advertisement. 44 / 48 / 56
+   * 64px at 17px type is a banner rather than a button: the audit measured the
+   * landing hero CTA at 64 by 350 at 390px and called it a mobile
+   * advertisement. 44 / 48 / 56
    * is the iOS ladder, it still honours 44 as the floor WCAG 2.5.8 sets, and it
    * leaves the large size genuinely large without the page having to carry a
    * slab.

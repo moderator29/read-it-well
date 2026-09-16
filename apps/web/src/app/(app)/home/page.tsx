@@ -20,6 +20,7 @@ import { getMode } from "@/lib/mode";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import { roleStateFrom, type AgentFacts } from "@/components/roles/roles";
 import { ButtonLink } from "@/components/ui/Button";
+import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState, ICON } from "@/components/app/Screen";
 
 export const metadata: Metadata = {
@@ -355,9 +356,13 @@ export default async function HomePage() {
             title="Nothing to show here yet"
             body="No agent has published a property in your city yet. The shelf fills the minute one does."
             action={
-              <ButtonLink href="/agents" variant="primary" full>
-                List a property
-              </ButtonLink>
+              /* `/profile?switch=owner` and not `/agents`: there is no
+                 become-an-agent page left to send anybody to. Listing is a
+                 profile you switch into, and that sheet both explains it and
+                 starts the setup. Search's own empty state already routes
+                 there, and two empty states pointing at two different doors to
+                 the same thing is how one of them rots. */
+              <EmptyActions primary={{ label: "List a property", href: "/profile?switch=owner" }} />
             }
             secondary={
               <p className="nf-caption text-[var(--nf-content-muted)]">

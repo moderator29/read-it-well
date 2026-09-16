@@ -149,11 +149,17 @@ export function Field({
          * carries the error colour, so the state is stated three ways: colour,
          * copy, and the field's own ring. Colour alone would fail anyone who
          * cannot see it.
+         *
+         * `nf-arrive` is the fourth way, and it is the one a sighted reader
+         * notices first. The message rises the six pixels from under the field
+         * it belongs to rather than simply being there on the next paint, so
+         * the eye is carried to the control that refused rather than left to
+         * find a new line of red somewhere on the form.
          */
         <p
           id={errorId}
           role="alert"
-          className="mt-1.5 text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-1.5 text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>

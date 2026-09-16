@@ -79,7 +79,24 @@
     height: 62vmax;
     border-radius: 50%;
     background: radial-gradient(circle, var(--nf-glow-2) 0%, transparent 62%);
-    animation: nf-drift-a 16s ease-in-out infinite;
+    /*
+     * THE ONE AMBIENT ANIMATION ON THE PLATFORM.
+     *
+     * There were four running at once behind every screen: this bloom on 16s,
+     * a second bloom on 21s, an aurora pulsing its opacity on 9s and a
+     * full-viewport conic gradient rotating through 360 degrees on 20s. Four
+     * layers moving independently is not a ground that is alive, it is a
+     * screensaver, and the page in front of it is the thing somebody is trying
+     * to read.
+     *
+     * So one bloom drifts and everything else holds still. 34 seconds rather
+     * than 16, and a quarter of the distance: the old keyframe moved this
+     * 16vw and scaled it by 28 per cent, which on a phone is the light source
+     * crossing most of the screen. The test is that a reviewer should not be
+     * able to see it happening, only notice afterwards that the ground was
+     * never quite still.
+     */
+    animation: nf-drift-a 34s ease-in-out infinite;
     will-change: transform, opacity;
   }
   .nf-ambient > span:nth-child(3) {
@@ -90,9 +107,11 @@
     height: 68vmax;
     border-radius: 50%;
     background: radial-gradient(circle, rgb(92 124 255 / 0.18) 0%, transparent 64%);
-    animation: nf-drift-b 21s ease-in-out infinite;
-    animation-delay: -7s;
-    will-change: transform, opacity;
+    /* Still. The second bloom is depth, not movement: one light source moves
+       and the rest of the ground is lit by it. `will-change` went with the
+       animation, because a compositing hint on a 68vmax layer that never
+       changes is a layer promoted for nothing. */
+    opacity: 0.3;
   }
   /*
    * Pointer bloom: a quiet glow that trails the cursor across the canvas,
@@ -143,9 +162,21 @@
       radial-gradient(ellipse 60% 80% at 80% 20%, rgb(92 124 255 / 0.12) 0%, transparent 55%),
       radial-gradient(ellipse 100% 60% at 50% 80%, rgb(92 124 255 / 0.18) 0%, transparent 55%),
       radial-gradient(ellipse 40% 40% at 70% 60%, rgb(18 48 179 / 0.16) 0%, transparent 55%);
-    animation: nf-aurora-pulse 9s ease-in-out infinite;
+    /*
+     * THE PULSE IS GONE, AND IT WAS ALSO WHY THE GROUND WAS TOO BRIGHT.
+     *
+     * `nf-aurora-pulse` ran this layer's opacity between 0.6 and 1.0 on a nine
+     * second loop. An animation outranks a normal declaration, so the
+     * `opacity: 0.34` on the line below it never applied: the aurora has been
+     * painting at roughly two to three times its stated value for as long as
+     * the keyframe has existed. That is most of the reason `/styleguide` shows
+     * a `--nf-surface-canvas` swatch visibly DARKER than the page it is
+     * printed on, and why state panels lose their separation against the
+     * ground.
+     *
+     * Still, at the value the file always said it was.
+     */
     opacity: 0.34;
-    will-change: transform, opacity;
   }
   .nf-ambient::after {
     inset: -50%;
@@ -166,9 +197,15 @@
      * the dark theme read as a screensaver rather than as a ground. Kept,
      * quietly, because it is what stops the four static blooms banding.
      */
-    animation: nf-aurora-drift 20s linear infinite;
+    /*
+     * Static. The comment above says this layer is kept "because it is what
+     * stops the four static blooms banding", and a conic gradient does that
+     * whether or not it is turning. A layer whose only justification is that it
+     * breaks up banding has no business being the second moving thing on the
+     * screen, and rotating a full-viewport gradient for ever was the single
+     * largest piece of ambient motion in the product.
+     */
     opacity: 0.16;
-    will-change: transform;
   }
   /*
    * Phones crop a landscape artwork to a sliver under cover sizing, which is
@@ -189,26 +226,15 @@
       -webkit-mask-image: linear-gradient(to top, rgb(0 0 0) 0%, rgb(0 0 0 / 0.5) 12%, transparent 24%);
     }
   }
-  @keyframes nf-aurora-pulse {
-    0%, 100% { opacity: 0.6; transform: translate3d(0, 0, 0) scale(1); }
-    50% { opacity: 1; transform: translate3d(-2%, 2%, 0) scale(1.06); }
-  }
-  @keyframes nf-aurora-drift {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.1); }
-    100% { transform: rotate(360deg) scale(1); }
-  }
+  /*
+   * `nf-aurora-pulse`, `nf-aurora-drift`, `nf-drift-b` and `nf-drift-c` stood
+   * here and are gone with the rules that used them. `nf-drift-c` had already
+   * had no caller for some time. A keyframe nothing plays is a description of
+   * an animation somebody might reintroduce by accident.
+   */
   @keyframes nf-drift-a {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.3; }
-    50% { transform: translate3d(16vw, 14vh, 0) scale(1.28); opacity: 0.42; }
-  }
-  @keyframes nf-drift-b {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.24; }
-    50% { transform: translate3d(-15vw, 16vh, 0) scale(1.34); opacity: 0.36; }
-  }
-  @keyframes nf-drift-c {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.2; }
-    50% { transform: translate3d(13vw, -13vh, 0) scale(1.3); opacity: 0.3; }
+    50% { transform: translate3d(4vw, 3vh, 0) scale(1.06); opacity: 0.36; }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-ambient::before,

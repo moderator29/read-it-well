@@ -3,12 +3,11 @@ import { getDictionary, plural } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";
-import { MomentScreen } from "@/components/app/MomentScreen";
+import { ResultScreen } from "@/components/app/ResultSheet";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
-import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -61,16 +60,16 @@ export default async function CheckoutPage({
   if (read.state === "unconfigured") {
     return (
       <Shell>
-        <MomentScreen
-          variant="brand"
-          icon="card-lock"
-          title="Payment switches on shortly"
-          description="This platform is still waiting on its payment keys, so there is nothing to pay against yet. Nothing you did was lost."
-          actions={
-            <ButtonLink href="/search" variant="primary" size="lg">
-              Explore stays
-            </ButtonLink>
-          }
+        {/* "Payment switches on shortly" was infrastructure jargon shown to
+            somebody trying to pay, and it is the most expensive instance of
+            the thirteen because of who is reading it. It says what is true and
+            what has happened to the money instead. */}
+        <ResultScreen
+          state="pending"
+          mark="card-lock"
+          verdict="We cannot reach payment right now"
+          consequence="This is on our side, not yours. Nothing has been charged and your dates are unchanged. Try again in a few minutes."
+          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -79,16 +78,12 @@ export default async function CheckoutPage({
   if (read.state === "signed-out") {
     return (
       <Shell>
-        <MomentScreen
-          variant="brand"
-          icon="shield-check"
-          title="Sign in to pay for this stay"
-          description="Your booking and its dates are kept safe. Sign in and you land straight back here."
-          actions={
-            <ButtonLink href="/sign-in" variant="primary" size="lg">
-              Sign in
-            </ButtonLink>
-          }
+        <ResultScreen
+          state="confirmed"
+          mark="shield-check"
+          verdict="Sign in to pay for this stay"
+          consequence="Your booking and its dates are kept safe. Sign in and you land straight back here."
+          actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
         />
       </Shell>
     );
@@ -97,16 +92,16 @@ export default async function CheckoutPage({
   if (read.state === "missing") {
     return (
       <Shell>
-        <MomentScreen
-          variant="warning"
-          icon="calendar-check"
-          title="We could not find that booking"
-          description="It may have been cancelled, or it belongs to another account. Your trips are all in one place."
-          actions={
-            <ButtonLink href="/bookings" variant="primary" size="lg">
-              My bookings
-            </ButtonLink>
-          }
+        {/* A CROSS, NOT A TICK, AND ROSE, NOT CYAN. This said "We could not
+            find that booking" under `calendar-check`, a calendar with a TICK,
+            inside a cyan glow: a success mark and the pending colour, both
+            contradicting the sentence between them. */}
+        <ResultScreen
+          state="failed"
+          mark="seal-cross"
+          verdict="We could not find that booking"
+          consequence="It may have been cancelled, or it belongs to another account. Your stays are all in one place."
+          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -115,16 +110,12 @@ export default async function CheckoutPage({
   if (read.state === "unavailable") {
     return (
       <Shell>
-        <MomentScreen
-          variant="warning"
-          icon="shield-check"
-          title="Checkout is unavailable for a moment"
-          description="Your booking is unchanged and nothing has been charged. Please try again shortly."
-          actions={
-            <ButtonLink href="/bookings" variant="primary" size="lg">
-              My bookings
-            </ButtonLink>
-          }
+        <ResultScreen
+          state="failed"
+          mark="alert-triangle"
+          verdict="Checkout did not open"
+          consequence="Your booking is unchanged and nothing has been charged. Try again in a few minutes."
+          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -142,7 +133,19 @@ export default async function CheckoutPage({
 
   return (
     <Shell subtitle={view.title}>
-      {settling && <PaymentReturn reference={settling} />}
+      {settling && (
+        /* The sheet carries the amount and the property, because a
+           confirmation is a thing people screenshot and "Payment received" on
+           its own is not worth keeping. */
+        <PaymentReturn
+          reference={settling}
+          amountMinor={view.totalMinor}
+          currency={view.currency}
+          subject={view.title}
+          locale={locale}
+          retryHref={`/checkout/${bookingId}`}
+        />
+      )}
 
       {/*
         Where you are in the booking.
@@ -241,30 +244,27 @@ export default async function CheckoutPage({
 
       {view.paid ? (
         <Reveal delay={80} className="mt-4">
-          <MomentScreen
-            variant="success"
-            icon="calendar-check"
-            title="This stay is paid for"
-            description={`${view.totalDisplay} has been received and your dates are confirmed.`}
-            actions={
-              <ButtonLink href="/bookings" variant="primary" size="lg">
-                View my booking
-              </ButtonLink>
-            }
+          <ResultScreen
+            state="received"
+            mark="receipt-check"
+            verdict="This stay is paid for"
+            consequence={`${view.totalDisplay} has been received and your dates are confirmed.`}
+            actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
           />
         </Reveal>
       ) : view.status === "CANCELLED" ? (
         <Reveal delay={80} className="mt-4">
-          <MomentScreen
-            variant="warning"
-            icon="calendar-check"
-            title="This booking was cancelled"
-            description="Cancelled stays cannot be paid for. The dates are open again, so search and reserve them afresh if you still want them."
-            actions={
-              <ButtonLink href={`/listing/${view.listingId}`} variant="primary" size="lg">
-                Back to the stay
-              </ButtonLink>
-            }
+          {/* EXPIRED, NOT FAILED, AND NOT A TICK. A cancellation is terminal
+              and it is not a failure: nothing went wrong, a window closed.
+              Painting it rose would manufacture alarm, and painting it cyan
+              said it was still in progress. It was also marked with a tick. */}
+          <ResultScreen
+            state="expired"
+            verdict="This booking was cancelled"
+            consequence="Cancelled stays cannot be paid for. The dates are open again, so search and reserve them afresh if you still want them."
+            actions={[
+              { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "primary" },
+            ]}
           />
         </Reveal>
       ) : (
@@ -289,9 +289,26 @@ export default async function CheckoutPage({
             )}
           </Reveal>
 
-          <Reveal delay={140} className="mt-6">
+          {/*
+            NOT INSIDE A `Reveal`, AND THAT IS LOAD BEARING RATHER THAN A
+            STYLE PREFERENCE.
+
+            `PayPanel` now pins the pay action in an `ActionBar`, which is
+            `position: fixed`. `.nf-reveal` carries a permanent `will-change:
+            opacity, transform` until it is shown, and any of those properties
+            makes an element the containing block for fixed descendants, so
+            wrapped in one the pinned bar would anchor to this section instead
+            of to the viewport and land in the wrong place at the wrong size.
+            `animation.css` records the same trap catching the wallet drawer
+            once already.
+
+            It also should not fade in: this is the control the screen exists
+            for, and content that only exists once an IntersectionObserver has
+            fired is content that sometimes does not exist.
+          */}
+          <div className="mt-block">
             <PayPanel view={view} />
-          </Reveal>
+          </div>
         </>
       )}
 

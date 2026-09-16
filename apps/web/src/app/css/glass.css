@@ -277,10 +277,11 @@
    *
    * It carried, in one declaration: a radial brand bloom, a three stop linear
    * fill, a four stop gradient border, a backdrop blur, an inset rim and an
-   * elevation shadow. There are 423 of them, and the landing page paints over
-   * forty, so that page had over forty individually glowing top-left corners
-   * and forty composited blur passes. Six layers around a 24px icon, repeated,
-   * is most of what reads as choked.
+   * elevation shadow. The audit counts 423 call sites and over forty of them on
+   * the landing page alone, which is forty individually glowing top-left
+   * corners and forty composited blur passes on one screen. Six layers around a
+   * 24px icon, repeated, is most of what reads as choked. The counts are the
+   * audit's; the layers are countable in the declaration below.
    *
    * THE BLUR IS DELETED, and it is the single biggest paint saving available. A
    * card sits on a FIXED canvas, so there is nothing moving behind it to blur:

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MomentScreen } from "@/components/app/MomentScreen";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ResultScreen } from "@/components/app/ResultSheet";
 
 /**
  * Personal Mode's error boundary.
@@ -39,21 +38,25 @@ export default function AppError({
   }, [error]);
 
   return (
-    <MomentScreen
-      variant="warning"
-      icon="shield-lock"
-      title="That screen did not load"
-      description="Something on our side stopped part way through. Nothing you were doing was lost, and trying again usually settles it."
-      actions={
-        <>
-          <Button variant="primary" size="lg" onClick={reset}>
-            Try again
-          </Button>
-          <ButtonLink href="/home" variant="secondary" size="lg">
-            Back to home
-          </ButtonLink>
-        </>
-      }
+    /*
+      ROSE, AND NOT A PADLOCK.
+
+      This was `variant="warning"` with `icon="shield-lock"`. The variant
+      resolved to `--nf-state-warning`, which is the same token as
+      `--nf-status-pending`, so a crash was drawn in the colour that means
+      "still going through". And a padlock shield on "That screen did not load"
+      tells somebody their ACCOUNT IS LOCKED, which is a far more alarming
+      message than the one intended and is not true.
+    */
+    <ResultScreen
+      state="failed"
+      mark="alert-triangle"
+      verdict="That screen did not load"
+      consequence="Something on our side stopped part way through. Nothing you were doing was lost, and trying again usually settles it."
+      actions={[
+        { label: "Try again", onClick: reset, tone: "primary" },
+        { label: "Back to home", href: "/home", tone: "quiet" },
+      ]}
       footnote={
         error.digest ? (
           <span className="nf-numeric">Reference {error.digest}</span>

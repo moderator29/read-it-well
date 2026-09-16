@@ -239,23 +239,18 @@
     filter: saturate(1.1);
     -webkit-mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
     mask-image: radial-gradient(62% 62% at 55% 45%, #000 30%, transparent 76%);
-    animation: nf-scene-live 20s var(--nf-ease-standard) infinite;
+    /*
+     * Still. This is a watermark at 16 per cent behind a page's opening lines,
+     * and it was the SECOND ambient loop on any viewport that had one, next to
+     * the canvas bloom. One per viewport means one, and between a drifting
+     * ground and a drifting watermark the ground is the one that carries the
+     * light. The reduced-motion block that used to sit under this rule went
+     * with the animation.
+     */
   }
   :root[data-theme="light"] .nf-page-scene {
     opacity: 0.28;
   }
-  /*
-   * The one hole in an otherwise thorough reduced-motion story. Duration
-   * tokens collapse to 1ms everywhere else, but this animation hard-codes its
-   * own 20s and loops forever, so it kept drifting for users who asked for
-   * stillness. The artwork keeps its mask and opacity; only the drift stops.
-   */
-  @media (prefers-reduced-motion: reduce) {
-    .nf-page-scene {
-      animation: none;
-    }
-  }
-
   /* ---------------------------------------------------------- odometer */
 
   /* Figures paint solid brand ink: a clipped gradient cannot cross the
@@ -277,10 +272,21 @@
     display: inline-block;
     vertical-align: bottom;
   }
+  /*
+   * The roll is on the scale now. It was a hard-coded 1.15s, which is nearly
+   * twice `--nf-duration-deliberate` and outside the 400 to 600ms an entrance
+   * is allowed anywhere else in this product: a wallet balance took well over a
+   * second to finish saying what it was. The digits still land on a left to
+   * right stagger, so the figure assembles rather than snapping, and the whole
+   * thing is over inside the window every other arrival on the platform uses.
+   *
+   * `--nf-ease-entrance` was already right and is untouched: a mechanical
+   * counter overshooting slightly and settling is exactly what that curve is.
+   */
   .nf-odometer__strip {
     display: flex;
     flex-direction: column;
-    transition: transform 1.15s var(--nf-ease-entrance);
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
     will-change: transform;
   }
   .nf-odometer__digit {
@@ -402,24 +408,55 @@
     }
   }
 
-  /* Scene artwork breathes very slightly, so a still render never looks dead
-     next to the moving canvas behind it. */
-  .nf-story-art {
-    animation: nf-art-breathe 12s var(--nf-ease-standard) infinite;
+  /*
+   * THE BREATHE IS ON ONE OBJECT PER VIEWPORT, AND IT WAS ON EVERY ONE.
+   *
+   * `.nf-story-art` is on every scene the platform draws: eight rail panels on
+   * the landing page, the banner on `/rent`, the empty state, the first-run
+   * slides. Every one of them was running the same twelve second loop, so a
+   * page could carry eight simultaneous infinite transforms, on top of the four
+   * the canvas was running behind them. Eight objects breathing is ambient
+   * noise; one is a focal point, and the difference is the whole of what
+   * "alive" means here as opposed to "busy".
+   *
+   * So the loop belongs to an object that asks for it by name, and the marker
+   * is `[data-breathe]` rather than a second class, because it is a property of
+   * that one placement rather than a different kind of artwork. The scene still
+   * gets the sizing and the hover from `.nf-story-art` everywhere.
+   *
+   * NOTHING IN THE TREE SETS `data-breathe` TODAY, and that is stated here
+   * rather than left to be discovered. The one ambient animation a viewport is
+   * allowed currently belongs to the canvas bloom, which is the right owner of
+   * it on every screen that has no hero. The landing rebuild is where a hero
+   * scene will want it instead, and that is the placement this attribute is
+   * waiting for: one object, on one page, chosen deliberately.
+   *
+   * 28 seconds and one per cent, up from 12 and 1.5. A reviewer should not be
+   * able to catch it moving.
+   */
+  .nf-story-art[data-breathe] {
+    animation: nf-art-breathe 28s var(--nf-ease-standard) infinite;
   }
   @keyframes nf-art-breathe {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(0, -6px, 0) scale(1.015); }
+    50% { transform: translate3d(0, -4px, 0) scale(1.01); }
   }
 
-  /* The hero scene drifts and its light shifts, tying the artwork to the
-     ambient canvas instead of sitting on top of it. */
+  /*
+   * The hero scene drifts, and the FILTER half of it is gone.
+   *
+   * The keyframe animated `saturate()` and `brightness()` alongside the
+   * transform. Transform and opacity are handed to the compositor; `filter` is
+   * not, so every frame of this forced a repaint of a full-width layer for a
+   * five per cent shift in saturation nobody has ever noticed. Transform only,
+   * and slower: 30 seconds and one per cent.
+   */
   .nf-hero-scene {
-    animation: nf-scene-live 18s var(--nf-ease-standard) infinite;
+    animation: nf-scene-live 30s var(--nf-ease-standard) infinite;
   }
   @keyframes nf-scene-live {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); filter: saturate(1.05) brightness(1); }
-    50% { transform: translate3d(0, -14px, 0) scale(1.02); filter: saturate(1.12) brightness(1.05); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(0, -8px, 0) scale(1.01); }
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -621,7 +621,7 @@
    *
    * The brand glow is the signature: the logo works because one object glows
    * against a dark ground. It was also the single least governed value in the
-   * product. `rgb(12 57 239 / alpha)` was written by hand 53 times at 21
+   * product. `rgb(12 57 239 / alpha)` was written by hand 54 times at 21
    * different alphas across eight stylesheets, as an outer bloom, as a ring, as
    * a gradient border stop and as a fill wash, and no two files agreed. So the
    * one thing the founder keeps asking to tune, the light inside the material,
@@ -641,8 +641,8 @@
    * above ended up sitting beside fifty literals doing the same job.
    *
    * AND THE INK IS PER THEME, WHICH IS THE ACTUAL BUG THIS FIXES. Every one of
-   * those 53 literals was the DARK theme's brand hex, #0C39EF, including the
-   * thirteen inside `:root[data-theme="light"]` rules in light.css. So daylight
+   * those 54 literals was the DARK theme's brand hex, #0C39EF, including the
+   * thirteen lines of them inside `:root[data-theme="light"]` rules. So daylight
    * was firing the night theme's glow on a primary button hover, on a focused
    * field and on an active chip, in a theme whose brand blue is #0C2FE8. One
    * ink token, redefined below, and that stops being possible.

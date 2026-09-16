@@ -86,7 +86,17 @@ export type UiIconName =
    * glyph that means the wrong thing is worse than no glyph, because the reader
    * does not know they have misread it.
    */
-  | "bolt";
+  | "bolt"
+  /*
+   * The feed, which the bar was drawing as `grid`.
+   *
+   * Four squares is a photo grid or an app launcher to anybody who has met one
+   * before, and this destination is a scrolling feed of posts. The tab is
+   * labelled now, so the glyph is no longer carrying the meaning alone, but a
+   * glyph that says the wrong thing still costs a reader the half second it
+   * takes to overrule it.
+   */
+  | "feed";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
   // Filter control. Two rails with offset handles, the convention every
@@ -404,6 +414,16 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
      reading as imported. */
   bolt: (
     <path d="M13.4 2.9a.55.55 0 0 1 .97.46l-1.3 5.79h4.38c.72 0 1.12.83.67 1.39l-7.52 9.36a.55.55 0 0 1-.97-.46l1.3-5.79H6.55c-.72 0-1.12-.83-.67-1.39Z" />
+  ),
+  /* Two cards stacked, which is what a feed is. The first drawing was one wide
+     card with two lines under it and it read as a monitor, which is the trap
+     `grid` fell into from the other direction. Same rounded-rectangle language
+     and same corner softness as `grid`, so the two sit in a row together. */
+  feed: (
+    <>
+      <rect x="3.7" y="4" width="16.6" height="7" rx="2.2" />
+      <rect x="3.7" y="13" width="16.6" height="7" rx="2.2" />
+    </>
   ),
   key: (
     <>
@@ -758,6 +778,14 @@ const FILLED_PATHS: Partial<Record<UiIconName, React.ReactNode>> = {
       <rect x="13.2" y="3.8" width="7" height="7" rx="1.9" />
       <rect x="3.8" y="13.2" width="7" height="7" rx="1.9" />
       <rect x="13.2" y="13.2" width="7" height="7" rx="1.9" />
+    </>
+  ),
+  /* The feed's solid twin: both cards fill, on exactly the outline's geometry,
+     so the active and inactive drawings are the same object at two weights. */
+  feed: (
+    <>
+      <rect x="3.7" y="4" width="16.6" height="7" rx="2.2" />
+      <rect x="3.7" y="13" width="16.6" height="7" rx="2.2" />
     </>
   ),
   /* The same bolt as a solid, for a row that is reporting a fact rather than

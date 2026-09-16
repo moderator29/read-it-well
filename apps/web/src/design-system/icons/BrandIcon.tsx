@@ -222,9 +222,9 @@ const LIGHT_TWINS = new Set<string>([
  * Fourteen clay names have no glass equivalent. Seven of them were never drawn
  * anywhere outside the inventory in this file, so they are simply gone:
  * `cleaning`, `home-cam`, `home-refresh`, `home-swap`, `parking-space`,
- * `swimming-pool` and `phone-home`. The seven below are live on 36 call sites
- * across surfaces this file does not own, so deleting the name would have been
- * a compile error in somebody else's work rather than a substitution. The
+ * `swimming-pool` and `phone-home`. The seven below are drawn on real screens
+ * across files this one does not own, so deleting the name would have been a
+ * compile error in somebody else's work rather than a substitution. The
  * alias means every one of those screens gets the correct new artwork today,
  * and the rename can follow as a separate, readable change.
  *

@@ -101,7 +101,10 @@ export function AppRail({
       */}
       <div className="nf-nav__head">
         <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
-          <Logo size={34} wordSize={17} responsive />
+          {/* 42/19, up from 34/17, in step with the shell header. The mark has a
+              real alpha channel now, so it is a mark rather than a square crop
+              and it holds at a size a chrome rail can carry. */}
+          <Logo size={42} wordSize={19} responsive />
         </Link>
         {onClose && (
           <button

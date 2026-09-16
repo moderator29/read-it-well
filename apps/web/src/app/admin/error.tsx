@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MomentScreen } from "@/components/app/MomentScreen";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ResultScreen } from "@/components/app/ResultSheet";
 
 /**
  * The console's error boundary.
@@ -33,21 +32,18 @@ export default function AdminError({
   }, [error]);
 
   return (
-    <MomentScreen
-      variant="warning"
-      icon="shield-lock"
-      title="This queue did not load"
-      description="The console could not finish reading it. Nothing has been decided or changed by this failure - the queue is intact and will come back as it was."
-      actions={
-        <>
-          <Button variant="primary" size="lg" onClick={reset}>
-            Retry this queue
-          </Button>
-          <ButtonLink href="/admin" variant="secondary" size="lg">
-            Back to the console
-          </ButtonLink>
-        </>
-      }
+    /* Rose and a warning triangle, for the same reason as the app boundary:
+       the cyan it carried is the pending colour, and the padlock said the
+       operator was locked out. */
+    <ResultScreen
+      state="failed"
+      mark="alert-triangle"
+      verdict="This queue did not load"
+      consequence="The console could not finish reading it. Nothing has been decided or changed by this failure: the queue is intact and will come back as it was."
+      actions={[
+        { label: "Retry this queue", onClick: reset, tone: "primary" },
+        { label: "Back to the console", href: "/admin", tone: "quiet" },
+      ]}
       footnote={
         error.digest ? (
           <span className="nf-numeric">Reference {error.digest}</span>
