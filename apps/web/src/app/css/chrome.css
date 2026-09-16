@@ -201,11 +201,15 @@
     min-width: 0;
     gap: var(--nf-tab-gap);
     padding: var(--nf-tab-pad);
-    /* Canvas tint rather than a white wash: this floats over scrolling
-       content. See the note on `.nf-glass--chrome` in glass.css. */
-    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    /*
+     * Nearer opaque than the rest of the chrome, and a TRUE PILL, both from
+     * the founder's reference bar: a calm charcoal capsule whose ends are
+     * full semicircles, not a rounded rectangle. 90 per cent canvas keeps a
+     * breath of the content moving behind it so it still reads as floating.
+     */
+    background: color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent);
     border: var(--nf-border-width) solid var(--nf-glass-border);
-    border-radius: var(--nf-radius-lg);
+    border-radius: var(--nf-radius-pill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
@@ -230,6 +234,15 @@
    * `translate` rather than `transform`, so a press or any other transform on
    * the bar cannot overwrite the position.
    */
+  /*
+   * QUIET NOW, ON THE FOUNDER'S REFERENCE. The pill was a full brand-gradient
+   * block with its own glow, which made the bar the loudest thing on every
+   * screen it floated over. The reference bar marks the active tab with
+   * weight and brightness alone, so the pill becomes what it always was
+   * underneath: the drawing of "you are here", a soft lift of the capsule's
+   * own material that the active glyph sits on. The travel physics are
+   * untouched; only the paint calmed down.
+   */
   .nf-tabbar__pill {
     position: absolute;
     z-index: 0;
@@ -241,11 +254,9 @@
         var(--nf-tab-count)
     );
     translate: calc(var(--nf-tab-i) * (100% + var(--nf-tab-gap)));
-    border-radius: calc(var(--nf-radius-lg) - var(--nf-tab-pad));
-    background: var(--nf-gradient-brand);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 6px 16px -6px var(--nf-glow-3);
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
     transition: translate var(--nf-duration-base) var(--nf-ease-entrance);
   }
   /*
@@ -293,14 +304,11 @@
   .nf-dock-island:active {
     transform: scale(var(--nf-press-scale-sm));
   }
-  /* The island's own active state: brand fill, matching the capsule's pill. */
+  /* The island's active state matches the capsule's: the solid glyph at full
+     ink on a soft lift, never a brand block. One family, one language. */
   .nf-dock-island[aria-current="page"] {
-    color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-brand);
-    border-color: transparent;
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.24),
-      0 6px 18px -4px color-mix(in oklab, var(--nf-brand-primary) 65%, transparent);
+    color: var(--nf-content-primary);
+    background: color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-dock-island {
@@ -339,20 +347,20 @@
     position: relative;
     z-index: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--nf-space-3xs);
     height: 3.25rem;
     padding-inline: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-md);
-    color: var(--nf-content-subtle);
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-muted);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
+  /* Full brightness on the quiet pill: the active state is the solid glyph at
+     the content ink, the way the reference bar does it, not a colour badge. */
   .nf-tab__link[aria-current="page"] {
-    color: var(--nf-content-on-brand);
+    color: var(--nf-content-primary);
   }
   /*
    * The press is on the LINK rather than on the bar, so a thumb gets an answer
@@ -365,16 +373,6 @@
   .nf-tab__icon {
     display: flex;
     flex-shrink: 0;
-  }
-  .nf-tab__label {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1;
   }
 
 

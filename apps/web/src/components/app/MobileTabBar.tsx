@@ -30,15 +30,10 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * placements for one feature. It keeps exactly one, the side navigation, which
  * on this viewport is the drawer behind the header's menu control.
  *
- * SIGNED OUT IT IS THREE AND A DOOR. Bookings, a wallet and an inbox all lead
- * to the same sign-up screen for a guest, so offering them teaches somebody
- * that this bar wastes taps. A guest gets the three surfaces they can genuinely
- * read, and the island becomes the way to join.
- *
- * BIGGER, throughout. The glyphs are on the `lg` step, which moved from 24 to
- * 28 with the scale, the labels are 13px rather than 11, and the row is taller.
- * The owner asked for navigation that reads as deliberate and tappable rather
- * than as a dense toolbar, and a dock is where that is felt first.
+ * BIGGER, throughout. The glyphs are on the `lg` step, 28px, in a taller
+ * capsule. The owner asked for navigation that reads as deliberate and
+ * tappable rather than as a dense toolbar, and a dock is where that is felt
+ * first.
  *
  * A floating dock lifted clear of every edge rather than an edge-to-edge bar.
  *
@@ -61,13 +56,17 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * Changing tabs changes one number, and a transition on `translate` does the
  * rest on the entrance curve. That is a morph.
  *
- * EQUAL WIDTH IS WHAT MAKES THE ARITHMETIC POSSIBLE, and it settles a second
- * complaint at the same time. The bar used to label only the tab you were
- * already standing on: three of four destinations had no name, and `title` does
- * nothing on a touch screen, so a person saw one word and three unlabelled
- * glyphs. Every tab is labelled now, glyph over label the way a first-party
- * bar does it, and the terminology work the product has already done is finally
- * on the screen.
+ * EQUAL WIDTH IS WHAT MAKES THE ARITHMETIC POSSIBLE.
+ *
+ * THE VISIBLE LABELS CAME AND WENT IN ONE NIGHT, and both moves were on
+ * purpose. They were added because three of four destinations had no name and
+ * `title` does nothing on a touch screen. The founder then asked, with a
+ * reference in hand, for the capsule to be icon-only the way the best consumer
+ * bars are, and the founder's reference wins on look: the accessible name
+ * moved into `aria-label`, so a screen reader hears exactly what the label
+ * said, the weight change still marks the active tab for sight, and the bar
+ * gets the calm the reference has. If labels ever return, they return for
+ * everyone, not only the active tab.
  *
  * THE ACTIVE GLYPH CHANGES WEIGHT, not only colour. `UiIcon` carries a drawn
  * solid silhouette for each of these four, so the active destination reads as
@@ -79,9 +78,10 @@ type Tab = { href: string; label: string; icon: UiIconName };
  * The routes the dock belongs on.
  *
  * A tab bar is a statement about where you are, so showing it on a screen it
- * cannot point at is a lie: it appeared on the wallet, on settings, on
- * notifications, on a listing page and inside checkout, with nothing
- * highlighted, taking up the bottom of the screen and answering no question.
+ * cannot point at is a lie: it appeared on settings, on notifications, on a
+ * listing page and inside checkout, with nothing highlighted, taking up the
+ * bottom of the screen and answering no question. The wallet is back on the
+ * list because the wallet is a TAB now.
  *
  * Those screens are reached FROM a tab or from the side drawer, and they get
  * the back affordance instead. Kept as a shared constant so the shell and the
@@ -95,7 +95,7 @@ export const TAB_BAR_ROUTES = [
   "/home",
   "/around",
   "/search",
-  "/messages",
+  "/wallet",
   "/profile",
   "/saved",
   /*
@@ -132,15 +132,22 @@ export function MobileTabBar({
   signedIn?: boolean;
 }) {
   /*
-   * The same first three the rail leads with, in the same order, followed by
-   * the inbox. Four is the ceiling on a narrow phone once the active tab
-   * expands into a labelled capsule.
+   * FOUR, ALWAYS, and the fourth is the wallet.
+   *
+   * The bar used to show a guest three tabs on the grounds that gated
+   * destinations waste a guest's taps. The founder overruled it with the
+   * reference bar in hand: the capsule shows the real shape of the product to
+   * everyone, four destinations, and for a guest the wallet tap lands on the
+   * door with the destination kept, which is this platform's standing pattern
+   * for every gated link. Messages lost its slot to the wallet and keeps its
+   * three other ways in (home, the rail, the drawer); money is the spine of
+   * this product and it belongs on the bar.
    */
   const tabs: Tab[] = [
     { href: "/home", label: t.nav.home, icon: "home" },
     { href: "/search", label: t.nav.explore, icon: "compass" },
     { href: "/around", label: t.nav.feed, icon: "feed" },
-    ...(signedIn ? [{ href: "/messages", label: t.nav.messages, icon: "chat-bubble" } as Tab] : []),
+    { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
   ];
 
   /* Profile for a member, the way in for a guest. One slot, two honest jobs. */
@@ -200,12 +207,14 @@ export function MobileTabBar({
               <Link
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
+                aria-label={tab.label}
                 className="nf-tab__link"
               >
+                {/* Icon only. The name lives in aria-label above; see the
+                    labels note at the top of this file. */}
                 <span className="nf-tab__icon">
-                  <UiIcon name={tab.icon} size="md" filled={isActive} />
+                  <UiIcon name={tab.icon} size="lg" filled={isActive} />
                 </span>
-                <span className="nf-tab__label">{tab.label}</span>
               </Link>
             </li>
           );
@@ -231,7 +240,7 @@ export function MobileTabBar({
           .filter(Boolean)
           .join(" ")}
       >
-        <UiIcon name={island.icon} size="md" filled={islandActive} />
+        <UiIcon name={island.icon} size="lg" filled={islandActive} />
         {marked && (
           <span
             aria-hidden="true"
