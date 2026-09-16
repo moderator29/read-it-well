@@ -228,6 +228,41 @@ to trust us, plus the brand assets still carrying the old direction.
 
 ---
 
+## Progress, updated as it lands
+
+**Landed and committed: 9 of 60.** Items 43, 45, 46, 47, 48, 49, 53, 58 and 59.
+Item 48 and item 59 were found already closed by earlier work and are counted
+as landed rather than re-done. Owner A is working items 1 to 20 and owner B
+items 21 to 44 plus 50 to 52, which moved to B because the files are in B's
+scope and were assigned to L by mistake.
+
+**Blocked on the founder, and they cannot be unblocked from this side:**
+
+- **Item 54**, the two objects to commission. Interim aliases point
+  `homes-sparkle` at `cluster-home` and `house-sparkle` at `modern-house`, so
+  nothing is broken while they are missing.
+- **Item 55**, the light pass of six icon sheets. There is no light source
+  artwork for the 79 untwinned objects, so there is nothing to cut.
+- **Item 56**, the mark-only logo render. `build-brand-marks.mjs` already
+  prefers it automatically the moment the file exists.
+- **Item 57**, the favicon at 16px. **Tested rather than assumed, and the
+  answer is that it cannot be fixed by processing.** The script already does
+  the right thing: it drops the wordmark below 48px and cuts the two favicon
+  sizes from the mark alone. The mark itself is the problem. Five thin glass
+  towers and an orbital swoosh, rendered photographically, carry more detail
+  than sixteen pixels can hold. Three treatments were rendered and compared at
+  ten times magnification: a plain downscale, a trimmed downscale, and a
+  trimmed downscale with sharpening and a contrast lift. All three are a blue
+  blob. `docs/img/favicon-16-at-10x.png` is the current one at 10x. What this
+  needs is a purpose-drawn favicon glyph, most likely one tower and the swoosh
+  at full contrast, and that is a design decision rather than an asset
+  pipeline change.
+- **Item 60**, one seeded login. Still the highest-leverage item on either
+  list, and still the reason roughly a third of this product by surface area
+  has never been rendered by anybody doing this work.
+
+---
+
 ## The standard, unchanged
 
 - **390px first, in dark, then wider, then light.** A finding that only works
