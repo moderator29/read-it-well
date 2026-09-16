@@ -228,6 +228,31 @@ export const ha: Dictionary = {
         record: { title: "Rasidu da yarjejeniyoyi", body: "Biyan kuɗi, ajiye wuri da takardu suna nan a asusunka." },
       },
     },
+    faq: {
+      title: "Tambayoyi, da amsoshinsu",
+      items: [
+        {
+          q: "Kuɗina yana da tsaro?",
+          a: "Ana biyan kuɗi da naira ta hanyar kamfanin biyan kuɗi mai lasisi a Najeriya, kuma lambobin katinka ba sa taɓa sabar mu. Ba a taɓa cajin ka kafin ka tabbatar ba.",
+        },
+        {
+          q: "Akwai wani kuɗin sabis?",
+          a: "Babu ko ɗaya daga gare mu, a kowace kasuwa. Farashin da ke kan jerin shi ne farashin, kuma a kan haya ta shekara ana rubuta jimlar shigowa gaba ɗaya kafin ka yi alkawari da komai.",
+        },
+        {
+          q: "Zan iya sanya kadarata a jerin?",
+          a: "Eh, ko me ne shi: ɗaki, fili, gida, shago, ofis ko ƙasa. Nema daga Zama wakili cikin kusan minti goma. Mutum ne ke duba kowace buƙata da hannu, kuma wakilai da aka amince da su kaɗai ke iya wallafawa.",
+        },
+        {
+          q: "Wane harshe Vallo yake magana?",
+          a: "Turanci, Yarbanci, Hausa da Igbo, ana iya sauyawa a kowane lokaci, kuma mataimakin yana amsawa da duka huɗun.",
+        },
+        {
+          q: "Me ke faruwa bayan na biya?",
+          a: "Tabbatarwa da cikakkun bayanai suna zuwa nan take, tattaunawarka da wakilin tana nan a asusunka, kuma kowane biyan kuɗi yana da lambar tantancewa da za ka iya buɗewa daga walat ɗinka.",
+        },
+      ],
+    },
     next: {
       overline: "Hanyar gaba",
       title: "Abin da muke ginawa na gaba",
@@ -286,7 +311,7 @@ export const ha: Dictionary = {
       secondary: "Zama wakili",
     },
     footer: {
-      tagline: "Real Estate reimagined!",
+      tagline: "Kasuwar kadarori ta Najeriya. Haya, saye, zaman gajere, ƙasa da na kasuwanci, cikin asusu ɗaya.",
       rights: "An kiyaye duk haƙƙoƙi.",
       product: "Samfur",
       company: "Kamfani",

@@ -8,6 +8,7 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import "./globals.css";
+import { siteUrl } from "@/lib/site";
 
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
@@ -44,7 +45,23 @@ const PRELOADED_FONTS: Record<string, readonly string[]> = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  /*
+   * THE FALLBACK WAS `http://localhost:3000`, WRITTEN OUT HERE.
+   *
+   * metadataBase is what every relative URL in this file resolves against: the
+   * Open Graph image, the Twitter card, the canonical. A deployment that
+   * forgets one environment variable therefore does not fail, it publishes
+   * share cards pointing at localhost, and in a WhatsApp-first market the
+   * share card is the first thing most people meet. Nothing breaks loudly, the
+   * unfurl is simply blank for everybody.
+   *
+   * `siteUrl()` in `lib/site.ts` already resolves this properly and this file
+   * was not using it: explicit variable first, then Vercel's production domain,
+   * then the preview domain, and only then a local port. That is the same
+   * ladder `lib/site.ts` wrote for auth redirects after a real sign-up landed a
+   * phone on localhost, which is the same fault one layer down.
+   */
+  metadataBase: new URL(siteUrl()),
   /*
    * The slogan is the founder's, verbatim, exclamation mark included. The
    * template must not strip it: metadata titles pass through as written.

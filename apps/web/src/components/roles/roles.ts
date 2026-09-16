@@ -7,7 +7,7 @@ import type { UiIconName } from "@/design-system/icons/UiIcon";
  *
  *   renting or buying   somebody looking for a place to live or to own
  *   listing or selling  somebody putting their OWN property on the market
- *   professional        an agent or realtor, doing it for other people
+ *   professional        an agent or estate manager, doing it for other people
  *
  * The same human is routinely two of these at once. Somebody renting a flat in
  * Yaba while selling the family plot in Enugu is not two customers, and the
@@ -114,12 +114,12 @@ export const ROLE_COPY: Record<RoleId, RoleCopy> = {
     },
   },
   professional: {
-    label: "Agent or realtor",
+    label: "Agent or estate manager",
     description: "List and manage property for other people",
     icon: "building-apartment",
     href: "/agent/dashboard",
     setup: {
-      title: "Work as an agent or realtor",
+      title: "Work as an agent or estate manager",
       what: "For somebody doing this as a business: listing on behalf of owners, managing enquiries and inspections across a book of properties, and getting paid through the platform.",
       involves: "The same application plus your business details, a government issued ID and proof of address. We check every business by hand before any listing goes live.",
       action: "Set up this profile",

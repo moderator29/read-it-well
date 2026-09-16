@@ -17,6 +17,7 @@ import { VoicesBand } from "@/components/site/landing/VoicesBand";
 import { FeaturedCarousel } from "@/components/site/landing/FeaturedCarousel";
 import { AssistantShowcase } from "@/components/site/landing/SignatureShowcase";
 import { gatedHref } from "@/lib/site/gated-href";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /*
  * The landing page: a marketplace, stated as one.
@@ -101,28 +102,6 @@ const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Enugu", "Ibadan"];
  * 36 states "from day one" and described launch mechanics that read as small
  * print. If a question needs a hedge, it is not landing page material.
  */
-const FAQ: [string, string][] = [
-  [
-    "Is my payment safe?",
-    "Payments run in naira through a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm.",
-  ],
-  [
-    "Is there a booking fee?",
-    "No. The price on a listing is the price, and the move-in total is printed in full before you commit to anything.",
-  ],
-  [
-    "Can I list my property?",
-    "Yes. Apply from Become an agent in about ten minutes. A person reviews every application by hand, and only approved agents can publish.",
-  ],
-  [
-    "Which languages does Vallo speak?",
-    "English, Yorùbá, Hausa and Igbo, switchable at any time, and the assistant answers in all four.",
-  ],
-  [
-    "What happens after I book?",
-    "You get an instant confirmation with the details, the conversation with the agent stays in your account, and reminders arrive as your date approaches.",
-  ],
-];
 
 export default async function LandingPage() {
   const locale: Locale = await getLocale();
@@ -269,22 +248,39 @@ export default async function LandingPage() {
         <AssistantShowcase />
 
         {/* ------------------------------------------------------------- faq */}
-        <section className="nf-shell pt-14">
+        {/*
+          THE MARKER WAS A PLUS SIGN, TYPED.
+          A literal `+` rotated 45 degrees on open is the one glyph on this page
+          that is a text character pretending to be an icon: it takes the body
+          font rather than the icon set, it lands on the text baseline rather
+          than the optical centre, its weight is whatever Inter decides at
+          15px, and a screen reader meets it as a plus. `chevron-down` is the
+          same rotation idea in the platform's own stroked set, at a size on
+          the scale, and it is `aria-hidden` because `<details>` already
+          announces its own state.
+
+          `py-section` rather than `pt-14` with no bottom, which had the last
+          row butting into the CTA's own padding.
+        */}
+        <section className="nf-shell py-section">
           <Reveal className="mb-6 max-w-[52ch]">
-            <h2 className="nf-h1">Questions, answered</h2>
+            <h2 className="nf-h1">{t.landing.faq.title}</h2>
           </Reveal>
           <div className="space-y-2.5">
-            {FAQ.map(([q, a]) => (
-              <Reveal key={q}>
+            {t.landing.faq.items.map((item) => (
+              <Reveal key={item.q}>
                 <details className="nf-card group p-0">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-[0.9375rem] font-semibold [&::-webkit-details-marker]:hidden">
-                    {q}
-                    <span className="text-[var(--nf-content-muted)] transition-transform group-open:rotate-45">
-                      +
-                    </span>
+                    {item.q}
+                    <UiIcon
+                      name="chevron-down"
+                      size={20}
+                      aria-hidden
+                      className="shrink-0 text-[var(--nf-content-muted)] transition-transform group-open:rotate-180"
+                    />
                   </summary>
                   <p className="px-5 pb-4 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                    {a}
+                    {item.a}
                   </p>
                 </details>
               </Reveal>

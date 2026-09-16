@@ -358,6 +358,41 @@ export const en = {
      * component enforces the rules that keeps it honest: future tense, no
      * links, no dates. See the note at the top of NextBand.tsx.
      */
+    /*
+     * The landing FAQ, which was twelve hardcoded English questions on a page
+     * translated into four languages, then five hardcoded English ones.
+     *
+     * Two of the five also carried the old scope. "Is there a booking fee"
+     * and "What happens after I book" are a shortlet's questions, and the
+     * platform sells houses, land, shops and offices as well, so a buyer read
+     * a page that did not think they existed. They ask about fees and about
+     * paying now, which is the same question in every market.
+     */
+    faq: {
+      title: "Questions, answered",
+      items: [
+        {
+          q: "Is my money safe?",
+          a: "Payments run in naira through a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm.",
+        },
+        {
+          q: "Are there any fees?",
+          a: "None from us, in any market. The price on a listing is the price, and on a tenancy the move-in total is printed in full before you commit to anything.",
+        },
+        {
+          q: "Can I list my property?",
+          a: "Yes, whatever it is: a room, a flat, a house, a shop, an office or land. Apply from Become an agent in about ten minutes. A person reviews every application by hand, and only approved agents can publish.",
+        },
+        {
+          q: "Which languages does Vallo speak?",
+          a: "English, Yorùbá, Hausa and Igbo, switchable at any time, and the assistant answers in all four.",
+        },
+        {
+          q: "What happens after I pay?",
+          a: "Your confirmation and the details arrive at once, the conversation with the agent stays in your account, and every payment keeps a reference you can open from your wallet.",
+        },
+      ],
+    },
     next: {
       overline: "The road ahead",
       title: "What we are building next",
@@ -444,7 +479,18 @@ export const en = {
     footer: {
       /* The slogan, not a summary. One form in every locale, per the note on
          `landing.slogan`. */
-      tagline: "Real Estate reimagined!",
+      /*
+       * A DESCRIPTION, NOT THE SLOGAN AGAIN.
+       *
+       * This key held "Real Estate reimagined!" and so does `landing.slogan`,
+       * which the footer prints beside the copyright about 200px below it. The
+       * same eight words twice on every page of the site, once as though it
+       * were a summary of the company and once as the signature it actually
+       * is. The signature stays where a signature belongs. This slot says what
+       * Vallo is, which is the thing somebody scrolling to the bottom of a
+       * page is usually still trying to work out.
+       */
+      tagline: "Nigeria's property marketplace. Rent, buy, shortlet, land and commercial, in one account.",
       rights: "All rights reserved.",
       product: "Product",
       company: "Company",

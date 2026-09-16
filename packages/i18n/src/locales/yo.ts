@@ -227,6 +227,31 @@ export const yo: Dictionary = {
         record: { title: "Ìwé ìdánilójú àti àdéhùn", body: "Ìsanwó, ìfipamọ́ àti ìwé wà lórí àkọọ́lẹ̀ rẹ." },
       },
     },
+    faq: {
+      title: "Àwọn ìbéèrè, pẹ̀lú ìdáhùn",
+      items: [
+        {
+          q: "Ṣé owó mi wà láàbò?",
+          a: "A ń san owó ní náírà nípasẹ̀ ilé-iṣẹ́ ìsanwó tí ó ní ìwé àṣẹ ní Nàìjíríà, àwọn nọ́mbà káàdì rẹ kò sì fi ọwọ́ kan àwọn sáfà wa. A kò ní gba owó kankan kí o tó fọwọ́sí.",
+        },
+        {
+          q: "Ṣé owó ìdíyelé kankan wà?",
+          a: "Kò sí ọ̀kan láti ọ̀dọ̀ wa, ní ọjà kankan. Iye tí ó wà lórí àtòjọ ni iye náà, àti pé lórí ìyáleèlù, àpapọ̀ owó ìwọlé ni a kọ ní kíkún kí o tó fọwọ́ sí ohunkóhun.",
+        },
+        {
+          q: "Ṣé mo lè fi ilé mi sí orí àtòjọ?",
+          a: "Bẹ́ẹ̀ni, ohunkóhun tí ó bá jẹ́: yàrá, fílàtì, ilé, ṣọ́ọ̀bù, ọ́fíìsì tàbí ilẹ̀. Bẹ̀rẹ̀ láti Di aṣojú ní nǹkan bí ìṣẹ́jú mẹ́wàá. Ènìyàn ni ó ń yẹ gbogbo ìbéèrè wò, àwọn aṣojú tí a fọwọ́sí nìkan ló sì lè gbé nǹkan jáde.",
+        },
+        {
+          q: "Èdè wo ni Vallo ń sọ?",
+          a: "Gẹ̀ẹ́sì, Yorùbá, Hausa àti Igbo, tí o lè yí padà nígbàkúgbà, olùrànlọ́wọ́ náà sì ń dáhùn ní gbogbo mẹ́rẹ̀ẹ̀rin.",
+        },
+        {
+          q: "Kí ni ó ń ṣẹlẹ̀ lẹ́yìn tí mo bá san owó?",
+          a: "Ìwé ìfẹsẹ̀múlẹ̀ àti gbogbo àlàyé yóò dé lẹ́sẹ̀kẹsẹ̀, ìjíròrò rẹ pẹ̀lú aṣojú náà yóò wà nínú àkàúntì rẹ, gbogbo ìsanwó sì ní àmì ìdánimọ̀ tí o lè ṣí láti inú àpamọ́wọ́ rẹ.",
+        },
+      ],
+    },
     next: {
       overline: "Ọ̀nà tí ó wà níwájú",
       title: "Ohun tí à ń kọ́ nígbàmíì",
@@ -285,7 +310,7 @@ export const yo: Dictionary = {
       secondary: "Di aṣojú",
     },
     footer: {
-      tagline: "Real Estate reimagined!",
+      tagline: "Ọjà ohun-ìní Nàìjíríà. Háyà, rírà, ìdúró kúkúrú, ilẹ̀ àti ti òwò, nínú àkàúntì kan.",
       rights: "Gbogbo ẹ̀tọ́ ni a fi pamọ́.",
       product: "Ọjà",
       company: "Ilé iṣẹ́",

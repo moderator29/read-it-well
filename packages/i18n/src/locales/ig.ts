@@ -229,6 +229,31 @@ export const ig: Dictionary = {
         record: { title: "Akịtị na nkwekọrịta", body: "Ịkwụ ụgwọ, ndebe na akwụkwọ na-anọgide n'akaụntụ gị." },
       },
     },
+    faq: {
+      title: "Ajụjụ, na azịza ha",
+      items: [
+        {
+          q: "Ego m ọ dị nchebe?",
+          a: "A na-akwụ ụgwọ na naira site n'aka ụlọ ọrụ ịkwụ ụgwọ nwere ikike na Naịjirịa, nọmba kaadị gị adịghịkwa emetụ sava anyị aka. A naghị anara gị ego tupu ị kwado.",
+        },
+        {
+          q: "Ọ nwere ụgwọ ọrụ ọ bụla?",
+          a: "O nweghị nke ọ bụla site n'aka anyị, n'ahịa ọ bụla. Ọnụahịa dị na ndepụta bụ ọnụahịa ahụ, n'ụlọ mgbazinye afọ, e dekwara ngụkọta ego mbata n'uju tupu i kwenye n'ihe ọ bụla.",
+        },
+        {
+          q: "Enwere m ike idepụta ụlọ m?",
+          a: "Ee, ihe ọ bụla ọ bụ: ọnụ ụlọ, flat, ụlọ, ụlọ ahịa, ọfịs ma ọ bụ ala. Tinye akwụkwọ site na Bụrụ onye nnọchiteanya n'ime ihe dị ka nkeji iri. Mmadụ na-enyocha arịrịọ ọ bụla n'aka, naanị ndị nnọchiteanya akwadoro nwekwara ike ibipụta.",
+        },
+        {
+          q: "Asụsụ ole ka Vallo na-asụ?",
+          a: "Bekee, Yoruba, Hausa na Igbo, nke ị nwere ike ịgbanwe mgbe ọ bụla, onye enyemaka ahụ na-azakwa n'asụsụ anọ ahụ niile.",
+        },
+        {
+          q: "Gịnị na-eme mgbe m kwụsịrị ụgwọ?",
+          a: "Nkwenye na nkọwa niile na-abịa ozugbo, mkparịta ụka gị na onye nnọchiteanya ahụ na-anọgide n'akaụntụ gị, ịkwụ ụgwọ ọ bụla nwekwara nrụtụaka ị nwere ike imepe site na obere akpa gị.",
+        },
+      ],
+    },
     next: {
       overline: "Ụzọ dị n'ihu",
       title: "Ihe anyị na-ewu ọzọ",
@@ -287,7 +312,7 @@ export const ig: Dictionary = {
       secondary: "Bụrụ onye nnọchiteanya",
     },
     footer: {
-      tagline: "Real Estate reimagined!",
+      tagline: "Ahịa ụlọ na ala nke Naịjirịa. Mgbazinye, ịzụta, obibi mkpụmkpụ, ala na nke azụmahịa, n'otu akaụntụ.",
       rights: "Ikike niile echekwabara.",
       product: "Ngwaahịa",
       company: "Ụlọ ọrụ",

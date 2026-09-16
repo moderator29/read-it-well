@@ -87,10 +87,18 @@ export function SiteFooter({ t }: { t: Dictionary }) {
             <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
               <Logo size={52} wordSize={22} />
             </Link>
-            <p className="nf-body-sm mt-heading max-w-[28ch] font-medium text-[var(--nf-content-secondary)]">
+            {/*
+              ONE LINE UNDER THE LOGO, NOT TWO.
+              This stacked `footer.tagline` over `vision.title`: two taglines,
+              28 and 34 characters wide, in two sizes, saying two different
+              things about the company in the same breath. `vision.title` is the
+              heading of the vision band further up the page, borrowed, so the
+              footer was also quoting a section the reader had just passed.
+              `footer.tagline` now says what Vallo is and that is the whole job.
+            */}
+            <p className="nf-body-sm mt-heading max-w-measure-lede font-medium text-[var(--nf-content-secondary)]">
               {t.landing.footer.tagline}
             </p>
-            <p className="nf-caption mt-inline max-w-[34ch]">{t.landing.vision.title}</p>
           </div>
 
           {columns.map((col) => (

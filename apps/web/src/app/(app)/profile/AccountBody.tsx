@@ -221,7 +221,7 @@ export function AccountBody({
               It pointed at `/agents`, a marketing page that no longer exists,
               and it was the SECOND door to it on this one screen: the switch-
               profile control sits at the very top of the profile and already
-              offers Listing or selling and Agent or realtor, with an
+              offers Listing or selling and Agent or estate manager, with an
               explanation and the setup behind each. A row at the bottom of
               More saying the same thing in different words is the "twenty
               pages by twenty people" problem in miniature.
