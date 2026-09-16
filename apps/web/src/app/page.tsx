@@ -163,17 +163,26 @@ export default async function LandingPage() {
                * and the button above the fold, and a 260px scene would push
                * both below it; the scenes appear from the second section on,
                * where a phone reader has already met the words.
+               *
+               * THIS IS THE ONE OBJECT ON THE PLATFORM THAT BREATHES.
+               * `data-breathe` exists for exactly one placement, chosen
+               * deliberately, and this is it: 28 seconds, one per cent, on
+               * the first thing a visitor sees. Every other scene holds
+               * still, which is what keeps this one feeling alive rather
+               * than the page feeling busy. The rule and the numbers live
+               * in motion.css.
                */}
               <Reveal delay={140} className="hidden lg:block">
                 <Image
                   src="/brand/glass/hero/hero-property.png"
                   alt=""
                   aria-hidden="true"
+                  data-breathe
                   width={557}
                   height={470}
                   priority
                   sizes="(max-width: 1280px) 400px, 480px"
-                  className="nf-float-slow mx-auto h-auto w-full max-w-[480px]"
+                  className="nf-story-art mx-auto h-auto w-full max-w-[480px]"
                 />
               </Reveal>
             </div>

@@ -82,7 +82,7 @@ export function AccessScreen({
           object floating is its size and the air around it, not a box, which is
           the conclusion `ComingSoon` had already reached.
         */}
-        <span className="mx-auto mt-6 block text-[var(--nf-content-link)]">
+        <span className="mt-6 flex justify-center text-[var(--nf-content-link)]">
           <UiIcon name="key" size={32} />
         </span>
 

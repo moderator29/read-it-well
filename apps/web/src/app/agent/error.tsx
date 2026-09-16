@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MomentScreen } from "@/components/app/MomentScreen";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ResultScreen } from "@/components/app/ResultSheet";
 
 /**
  * Agent Mode's error boundary.
@@ -37,21 +36,21 @@ export default function AgentError({
       id="main"
       className="flex min-h-dvh flex-col items-center justify-center px-5 py-10"
     >
-      <MomentScreen
-        variant="warning"
-        icon="shield-lock"
-        title="We could not open that workspace"
-        description="A read on our side did not complete. Your listings, bookings and earnings are untouched - this is the page failing to load them, not the records themselves."
-        actions={
-          <>
-            <Button variant="primary" size="lg" onClick={reset}>
-              Try again
-            </Button>
-            <ButtonLink href="/agent/dashboard" variant="secondary" size="lg">
-              Back to dashboard
-            </ButtonLink>
-          </>
-        }
+      {/* Rose and a warning triangle. `variant="warning"` resolved to
+          `--nf-state-warning`, which is the same token `--nf-status-pending` is
+          defined as, so a crash was drawn in the colour that means "still going
+          through"; and a padlock shield on "We could not open that workspace"
+          tells an agent their account is locked, which is not what happened.
+          The third of three identical boundaries. */}
+      <ResultScreen
+        state="failed"
+        mark="alert-triangle"
+        verdict="We could not open that workspace"
+        consequence="A read on our side did not complete. Your listings, bookings and earnings are untouched: this is the page failing to load them, not the records themselves."
+        actions={[
+          { label: "Try again", onClick: reset, tone: "primary" },
+          { label: "Back to dashboard", href: "/agent/dashboard", tone: "quiet" },
+        ]}
         footnote={
           error.digest ? (
             <span className="nf-numeric">Reference {error.digest}</span>

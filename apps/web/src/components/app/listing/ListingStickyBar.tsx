@@ -157,7 +157,13 @@ export function ListingStickyBar({
               </span>
             </>
           ) : (
-            <span className="truncate text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+            /* The property's name, on the bar a person acts from, and it was
+               clipped. This is the branch where the listing carries no real
+               rate, so the title is the ONLY thing the bar says about what the
+               button is for: "Five bedroom villa for sale in Oniru Vict..." is
+               the one sentence on the screen, cut. It wraps, and the bar grows
+               by a line on the few rows that need it. */
+            <span className="text-[0.875rem] font-semibold leading-snug text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">
               {fallbackLabel}
             </span>
           )}

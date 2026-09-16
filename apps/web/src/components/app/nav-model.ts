@@ -131,7 +131,10 @@ export function buildNav({
       items: [
         { href: "/home", label: t.nav.home, icon: "home" },
         { href: "/search", label: t.nav.explore, icon: "compass" },
-        { href: "/around", label: t.nav.feed, icon: "grid" },
+        /* `grid` meant "Around" and nothing about a grid of four squares says
+           feed, place or neighbourhood: it was the one destination in the set
+           a person could not guess from its glyph. `feed` exists now. */
+        { href: "/around", label: t.nav.feed, icon: "feed" },
       ],
     },
   ];
