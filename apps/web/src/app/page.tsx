@@ -113,7 +113,7 @@ export default async function LandingPage() {
 
       <main id="main">
         {/* ----------------------------------------------------------- hero */}
-        <section className="relative overflow-hidden pb-12 pt-6 sm:pt-10 md:pt-14">
+        <section className="relative overflow-hidden pb-2xl pt-lg sm:pt-10 md:pt-14">
           <div className="nf-aurora" aria-hidden="true" />
           <div className="nf-grid-veil" aria-hidden="true" />
 
@@ -127,18 +127,18 @@ export default async function LandingPage() {
                   {t.landing.hero.overline}
                 </p>
 
-                <h1 className="nf-display mt-4">
+                <h1 className="nf-display mt-md">
                   <span className="nf-rise block">{t.landing.hero.title1}</span>
                   <span className="nf-rise nf-rise-2 nf-gradient-text nf-shine block">
                     {t.landing.hero.title2}
                   </span>
                 </h1>
 
-                <p className="nf-rise nf-rise-3 mt-4 max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)] sm:mt-5">
+                <p className="nf-rise nf-rise-3 mt-md max-w-[46ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)] sm:mt-5">
                   {t.landing.hero.subtitle}
                 </p>
 
-                <div className="nf-rise nf-rise-4 mt-7 flex flex-wrap items-center gap-3">
+                <div className="nf-rise nf-rise-4 mt-7 flex flex-wrap items-center gap-sm">
                   <ButtonLink href={gatedHref("/search")} variant="primary" size="lg" className="nf-breathe">
                     {t.landing.hero.searchLabel}
                   </ButtonLink>
@@ -147,7 +147,7 @@ export default async function LandingPage() {
                   </ButtonLink>
                 </div>
 
-                <ul className="nf-rise nf-rise-5 mt-4 flex flex-wrap gap-2">
+                <ul className="nf-rise nf-rise-5 mt-md flex flex-wrap gap-xs">
                   {CITIES.map((city) => (
                     <li key={city}>
                       <Link
@@ -218,8 +218,8 @@ export default async function LandingPage() {
             <div className="grid gap-block lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
               <Reveal>
                 <span className="nf-overline">{t.landing.vision.overline}</span>
-                <h2 className="nf-h1 mt-3">{t.landing.vision.title}</h2>
-                <p className="mt-4 max-w-[52ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
+                <h2 className="nf-h1 mt-sm">{t.landing.vision.title}</h2>
+                <p className="mt-md max-w-[52ch] text-[var(--nf-text-body-lg)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {t.landing.vision.body}
                 </p>
               </Reveal>
@@ -227,8 +227,8 @@ export default async function LandingPage() {
               <Reveal delay={80}>
                 <div className="nf-card p-card-lg">
                   <span className="nf-overline">{t.landing.vision.missionOverline}</span>
-                  <h3 className="nf-h3 mt-2">{t.landing.vision.missionTitle}</h3>
-                  <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">
+                  <h3 className="nf-h3 mt-xs">{t.landing.vision.missionTitle}</h3>
+                  <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">
                     {t.landing.vision.missionBody}
                   </p>
                 </div>
@@ -263,14 +263,14 @@ export default async function LandingPage() {
           row butting into the CTA's own padding.
         */}
         <section className="nf-shell py-section">
-          <Reveal className="mb-6 max-w-[52ch]">
+          <Reveal className="mb-lg max-w-[52ch]">
             <h2 className="nf-h1">{t.landing.faq.title}</h2>
           </Reveal>
           <div className="space-y-2.5">
             {t.landing.faq.items.map((item) => (
               <Reveal key={item.q}>
                 <details className="nf-card group p-0">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-[0.9375rem] font-semibold [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-sm px-5 py-md text-[0.9375rem] font-semibold [&::-webkit-details-marker]:hidden">
                     {item.q}
                     <UiIcon
                       name="chevron-down"
@@ -279,7 +279,7 @@ export default async function LandingPage() {
                       className="shrink-0 text-[var(--nf-content-muted)] transition-transform group-open:rotate-180"
                     />
                   </summary>
-                  <p className="px-5 pb-4 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="px-5 pb-md text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                     {item.a}
                   </p>
                 </details>
@@ -289,16 +289,16 @@ export default async function LandingPage() {
         </section>
 
         {/* ------------------------------------------------------------ cta */}
-        <section className="nf-shell py-16 sm:pt-20">
+        <section className="nf-shell py-3xl sm:pt-20">
           <Reveal>
-            <div className="nf-card nf-card--live relative overflow-hidden p-8 text-center sm:p-10 md:p-14">
+            <div className="nf-card nf-card--live relative overflow-hidden p-xl text-center sm:p-10 md:p-14">
               <div className="nf-aurora opacity-60" aria-hidden="true" />
               <div className="relative z-10">
                 <h2 className="nf-h1 mx-auto max-w-[20ch]">{t.landing.cta.title}</h2>
-                <p className="mx-auto mt-4 max-w-[52ch] text-[var(--nf-content-secondary)]">
+                <p className="mx-auto mt-md max-w-[52ch] text-[var(--nf-content-secondary)]">
                   {t.landing.cta.subtitle}
                 </p>
-                <div className="mt-8 flex flex-wrap justify-center gap-4">
+                <div className="mt-xl flex flex-wrap justify-center gap-md">
                   <ButtonLink href="/start" variant="primary" size="lg" className="nf-breathe">
                     {t.landing.cta.action}
                   </ButtonLink>
