@@ -242,39 +242,38 @@ to trust us, plus the brand assets still carrying the old direction.
 
 ## Progress, updated as it lands
 
-**Landed and committed: 36 of 60.** Counted per owner against the tree rather
-than from memory, on 17 September:
+**Landed and committed: 51 of 60**, counted per owner against the tree rather
+than from memory, on 17 September.
 
-- **Owner A, 18 of 20.** Items 1 to 5 (the depth model: the bloom stack, the
-  legacy shadow aliases, the thin glass rung, the glass shadows joining the
-  ladder, one light angle), 7, 9, 10 to 13 (the overline, the decimal rems, the
-  layout tokens, the measure rungs), 14 to 16 (the sheet's focus, its visual
-  viewport, its themed backdrop), 17 and 18 (the reveal's duplicate path and
-  its observer), 19 and 20 (the size scale and the fourth icon namespace).
-  **Open: item 6**, the 205 remaining raw colour literals, in progress, and
-  **item 8**, the 2,635 raw spacing steps.
-- **Owner B, 10 of 24.** Items 21 to 29, the money band, plus item 43 which
-  landed earlier. **Open: 30 to 42 and 44**, of which 30 to 38 are in progress.
+- **Owner A, 19 of 20.** The depth model (items 1 to 5), the arbitrary font
+  sizes and the rule that holds them (7 and 9), the type ladder and the frame
+  it sits in (10 to 13), the sheet (14 to 16), the reveal (17 and 18), the icon
+  scale and the fourth namespace (19 and 20), and item 6, the raw colour
+  literals, which is now an ERROR at zero across all four source directories.
+  **Open: item 8**, the raw spacing steps, in progress.
+- **Owner B, 24 of 24. Finished.** The money band (21 to 29), the queues and
+  the console (30 to 42 and 44), plus F2-056 taken beyond the queue.
 - **Owner L, 8 of 16.** Items 45 to 49, 53, 58 and 59. **Open: 50, 51 and 52**,
-  which are actionable, and five that are not, below.
+  now reassigned to owner B, plus five that cannot be moved from this side.
 
-**So 24 are open, and five of those cannot be moved from this side.** Nineteen
-are actionable work.
+**Nine are open. Five of those are blocked on the founder.** Four are
+actionable: item 8, and items 50 to 52.
 
-**A note on what "landed" means here, because it is not uniform.** Several
-items in every queue were found already standing when their owner reached them,
-having been closed by earlier work in this sprint or the one before it. Those
-are counted as landed and each owner's report says how it established the item
-was done. None of them was silently ticked. Several others are landed in code
-and have never been seen rendered by anybody, which is item 60's shadow over
-this whole ledger and is stated again below.
+**TWO NUMBERS IN THIS FILE WERE WRONG AND BOTH ARE CORRECTED AT THEIR SOURCE.**
+Item 6 said 205 raw colour literals; 262 of those were in `tokens.css`, which is
+where literals belong, and the real figure outside the definition layers was 31,
+of which 26 were correct by design. Item 8 said 2,635 raw spacing steps and the
+rule's own error message said 4,115; that figure counts every spacing utility,
+named and raw together, so a migration cannot reduce it and it has RISEN to
+4,388 as the product grew. The real raw population is 743 occurrences, reported
+as 506. Both were true when written and both described sets that later split.
 
-**How this sits against the 303 filed findings.** The sixty and this second
-sixty are both drawn from the Critical and High bands. The Medium band, 126
-findings, remains barely touched, and there is still no per-id ledger mapping
-sprint items onto finding ids, for the reason given at the top of this file: it
-would have to be reconstructed after the fact, and a reconstructed ledger is a
-worse thing to have than no ledger.
+**A note on what "landed" means, because it is not uniform.** Many items in
+every queue were found already standing when their owner reached them, closed by
+earlier work, and each owner's report says how it established that rather than
+ticking it silently. Owner B found seven of nine already done in one block. And
+a large share of what is landed has never been seen rendered by anybody, which
+is item 60's shadow over this entire ledger.
 
 **Blocked on the founder, and they cannot be unblocked from this side:**
 
