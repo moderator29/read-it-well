@@ -210,7 +210,9 @@ export function TR({ onClick, selected, className, children }: TRProps) {
               transitionDuration: "var(--nf-duration-fast)",
               transitionTimingFunction: "var(--nf-ease-standard)",
               ...(selected
-                ? { background: "color-mix(in oklab, var(--nf-brand-primary) 14%, transparent)" }
+                ? // Rung 1: a selected row is marked, not singled out. You should have
+                  // to look to see it, because the row beside it still has to be read.
+                  { background: "var(--nf-brand-tint-1)" }
                 : null),
             } satisfies CSSProperties)
       }

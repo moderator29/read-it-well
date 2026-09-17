@@ -8,6 +8,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
 import type { Dictionary } from "@vallo/i18n";
+import { useClientMount } from "@/components/app/client-mount";
 
 /**
  * One choice out of a very long list, without a very long list.
@@ -104,14 +105,17 @@ export function ChoicePicker({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [mounted, setMounted] = useState(false);
+  /* One hook, four call sites. This was `useState(false)` plus
+     `useEffect(() => setMounted(true), [])` in this file and in three others,
+     which is a second render scheduled for a fact React already knew. See
+     `client-mount.ts`. */
+  const mounted = useClientMount();
   const base = useId();
   const hintId = `${base}-hint`;
   const errorId = `${base}-error`;
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closePicker = useCallback(() => setOpen(false), []);
 
-  useEffect(() => setMounted(true), []);
 
   /* Escape, the Tab trap, the counted scroll lock and the focus return. The
      picker had Escape and a scroll lock that cleared the flag outright, which

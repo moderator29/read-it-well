@@ -492,7 +492,9 @@
   }
   .nf-dock__btn[aria-current="page"] {
     color: var(--nf-brand-secondary);
-    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+    /* Rung 2, exactly where it already was. The nav item you are on is the
+       clearest case of a surface the platform has singled out. */
+    background: var(--nf-brand-tint-2);
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-dock__btn:hover {

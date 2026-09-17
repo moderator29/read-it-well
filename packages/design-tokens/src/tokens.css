@@ -167,7 +167,62 @@
    * resolves to `--nf-electric-500` there. Only daylight moves, and it moves to
    * the colour it should always have been.
    */
-  --nf-brand-primary-soft: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+  --nf-brand-primary-soft: var(--nf-brand-tint-1);
+
+  /* ---------------------------------------------------------------------
+   * THE BRAND TINT LADDER. Four rungs, and there were thirteen values.
+   *
+   * A brand tint is a WASH OF THE BRAND ON A SURFACE: the plate behind a badge,
+   * the fill of a count pill, the row a table has selected, the nav item you are
+   * currently on, the highlight behind selected text. One job. Counted across
+   * the tree, `color-mix(in oklab, var(--nf-brand-primary) N%, transparent)`
+   * below half strength appeared at 25 sites across THIRTEEN distinct alphas:
+   * 12, 14, 15, 16, 18, 20, 22, 26, 28, 30, 32, 34 and 40.
+   *
+   * Nobody chose thirteen. Each site chose one number, in isolation, with no
+   * name to reach for, and a scale nobody can name is a scale nobody uses. The
+   * state surfaces beside these sites already had names - `StatusPill`'s four
+   * other tones all read `--nf-state-*-surface` and only its brand tone reached
+   * for a raw mix - so the brand was the one colour in the product with a job
+   * and no token for it.
+   *
+   * THE RUNGS ARE NAMED FOR THE JOB, NOT FOR THE STRENGTH:
+   *
+   *   1   a surface merely MARKED. A selected table row, the plate behind an
+   *       icon, a quiet tag. You should have to look to see it.
+   *   2   a surface the platform has SINGLED OUT. A badge, a count pill, the
+   *       nav item you are on. It should be obvious without being loud.
+   *   3   the same surface UNDER A FINGER, and brand-tinted EDGES, which need
+   *       more than a fill because a 1px line has almost no area.
+   *   4   text SELECTION, and only that. The one rung that has to carry ink on
+   *       top of it and stay legible in both directions.
+   *
+   * WHY DAYLIGHT IS NOT THE SAME LADDER, AND THIS IS ARITHMETIC RATHER THAN
+   * TASTE. The same alpha does two different things on the two grounds. A tint
+   * on the night surface barely moves luminance, because the ground is already
+   * near-black, so what the eye reads is CHROMA. On white paper the same tint
+   * subtracts luminance heavily and that is the dominant cue. Measured, plate
+   * against its own ground:
+   *
+   *              luminance delta      max channel delta
+   *   20% night    +0.0030               37
+   *   20% day      -0.3239               49
+   *
+   * A hundredfold difference in the cue that carries on paper. So the daylight
+   * rungs are chosen by how much a plate may DARKEN the page, in even steps:
+   * 0.12, 0.17, 0.23, 0.29. Which lands on 7, 10, 14 and 18 per cent.
+   *
+   * AND 18 IS WHERE DAYLIGHT SELECTION ALREADY WAS. `--nf-selection-bg` was a
+   * themed pair long before this ladder, 40 at night and 18 on paper, set by
+   * hand and argued for in the note below. Deriving a luminance budget from
+   * scratch reproduces that 18 exactly, which is the check on the method: the
+   * ladder is not a new opinion, it is the one daylight value somebody already
+   * got right, extended downwards in even steps.
+   * ------------------------------------------------------------------ */
+  --nf-brand-tint-1: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  --nf-brand-tint-2: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+  --nf-brand-tint-3: color-mix(in oklab, var(--nf-brand-primary) 28%, transparent);
+  --nf-brand-tint-4: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
 
   /*
    * Text selection. One decision, and it was two literals in two stylesheets.
@@ -179,7 +234,7 @@
    * it as two hand-written mixes meant changing the selection colour required
    * finding both and remembering which was which.
    */
-  --nf-selection-bg: color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+  --nf-selection-bg: var(--nf-brand-tint-4);
   --nf-brand-secondary: var(--nf-electric-300);
   --nf-brand-accent: var(--nf-electric-400);
 
@@ -635,7 +690,7 @@
   --nf-status-rejected: var(--nf-state-error);
   --nf-status-rejected-surface: var(--nf-state-error-surface);
   --nf-status-verified: var(--nf-electric-300);
-  --nf-status-verified-surface: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+  --nf-status-verified-surface: var(--nf-brand-tint-2);
 
   /* ---------------------------------------------------------------------
    * Vallo Material. Four surface families (Design prompt §5).
@@ -2149,8 +2204,44 @@
    * The night theme's ground has been three named blooms plus a base for as
    * long as it has existed; this is the same shape.
    */
+  /*
+   * THE FIFTH STOP IS THE LIGHT, AND L-110 WAS THE ABSENCE OF IT.
+   *
+   * The finding calls the daylight hero a blank sheet. It was never blank: the
+   * four layers below are a studio cloud and they give the page real depth.
+   * What it had none of was a LIGHT SOURCE. Every ambient layer in the product
+   * is `display: none` in daylight - all four drifting blooms, both
+   * `.nf-ambient` pseudo-elements, the aurora and the grid veil - so the paper
+   * theme had depth and no direction, and a hero with depth and no direction
+   * reads as a well-made empty page.
+   *
+   * IT GOES IN THE GROUND RATHER THAN IN A LAYER, and that is the whole
+   * argument. Re-enabling the aurora in daylight would have cost a second
+   * full-viewport composited layer on the one theme that currently composites
+   * one, to paint something that cannot be positioned per page and does not
+   * need to be. This ground already paints four gradients, so a fifth is free.
+   * It also means the daylight hero and the daylight app are lit together,
+   * because both read this token, which is a thing no per-page layer could
+   * promise. In this product a theme's light has always lived in its ground:
+   * the night canvas is three named blooms plus a base and always has been.
+   *
+   * IT SITS SECOND, UNDER THE WHITE SWEEP, AND THE ORDER IS THE EFFECT. Above
+   * the sweep, 12 per cent blue would wash across the brightest point of the
+   * page and read as a tint. Below it, the sweep's opaque centre covers the
+   * blue entirely and the blue only emerges where the white has fallen away, so
+   * what a reader sees is a halo around a bright corner rather than a stain on
+   * it. Offset from the sweep's own origin for the same reason: concentric with
+   * it, the two would read as one gradient that had gone slightly blue.
+   *
+   * `--nf-glow-1`, which is 12 per cent of `--nf-brand-primary` in this theme
+   * against 16 per cent of `--nf-electric-400` at night. The daylight ladder is
+   * already the quieter one, so this is the ladder's hint rung and not a value
+   * chosen for this line. If it reads as a cast rather than as light, the step
+   * down is `--nf-glow-wash` at 6 per cent and nothing else changes.
+   */
   --nf-canvas-daylight:
     radial-gradient(120% 90% at 78% -10%, #FFFFFF 0%, rgb(255 255 255 / 0) 55%),
+    radial-gradient(90% 70% at 82% -6%, var(--nf-glow-1) 0%, transparent 60%),
     radial-gradient(95% 75% at 8% 100%, #E9EBEF 0%, rgb(233 235 239 / 0) 62%),
     radial-gradient(70% 60% at 94% 88%, #ECEEF2 0%, rgb(236 238 242 / 0) 55%),
     linear-gradient(180deg, #F8F9FB 0%, #F2F3F6 100%);
@@ -2361,10 +2452,31 @@
    */
   --nf-state-warning-accent: var(--nf-cyan-500);
 
+  /* ---------------------------------------------------------------------
+   * THE BRAND TINT LADDER, IN DAYLIGHT. Half, and the last rung a little under.
+   *
+   * The night block carries the full argument and the measurement. The short
+   * version is that the same alpha does two different jobs on the two grounds:
+   * at 20 per cent a tint moves the night surface's luminance by +0.0030 and
+   * white paper's by -0.3239, a hundredfold difference in the cue that carries
+   * on paper, so daylight is chosen by how much a plate may darken the page
+   * rather than by matching a night value.
+   *
+   * The budget is 0.12, 0.17, 0.23 and 0.29 of luminance in even steps, which
+   * lands on these four numbers. Rung 4 comes out at exactly the 18 per cent
+   * that daylight selection was already set to by hand, which is the check that
+   * the method is describing this product rather than a general principle.
+   * ------------------------------------------------------------------ */
+  --nf-brand-tint-1: color-mix(in oklab, var(--nf-brand-primary) 7%, transparent);
+  --nf-brand-tint-2: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
+  --nf-brand-tint-3: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  --nf-brand-tint-4: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+
   /* Selection on paper takes far less of the brand: 40% of a deep blue behind
      near-black ink on white swallows the text, where the same 40% behind pale
-     ink on the night canvas reads. See the token in the night block. */
-  --nf-selection-bg: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+     ink on the night canvas reads. It is rung 4 in both themes and the themed
+     pair is the ladder's, not this token's, now. */
+  --nf-selection-bg: var(--nf-brand-tint-4);
 
   /*
    * Badge tints derive from the daylight inks above rather than the Layer 1

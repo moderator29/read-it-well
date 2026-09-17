@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -212,10 +212,31 @@ export function AppShell({
     .filter(Boolean)
     .join(" ");
 
-  /* The drawer closes itself on navigation. Escape, the scroll lock, the focus
-     trap and returning focus to the opener are all useOverlay's, because this
-     drawer carried aria-modal and none of the behaviour it promises. */
-  useEffect(() => setDrawer(false), [active]);
+  /*
+   * The drawer closes itself on navigation, DURING RENDER RATHER THAN IN AN
+   * EFFECT.
+   *
+   * This was `useEffect(() => setDrawer(false), [active])`, which means the new
+   * route commits once with the drawer still open and its scroll lock still on,
+   * and then commits again closed. React 19 names that: it is
+   * `react-hooks/set-state-in-effect`, and the effect was not synchronising
+   * with anything outside React - the pathname is React's own state, so the
+   * answer is derivable from it.
+   *
+   * Comparing the pathname against the one this component last saw is the
+   * documented way to reset state on a prop change. It runs before paint, so
+   * the drawer is never on screen over a page it does not belong to, and it
+   * costs one extra render of this component rather than one of the whole tree.
+   *
+   * Escape, the scroll lock, the focus trap and returning focus to the opener
+   * are all `useOverlay`'s, because this drawer carried `aria-modal` and none of
+   * the behaviour it promises.
+   */
+  const [drawerRoute, setDrawerRoute] = useState(active);
+  if (active !== drawerRoute) {
+    setDrawerRoute(active);
+    if (drawer) setDrawer(false);
+  }
   const drawerPanel = useRef<HTMLDivElement | null>(null);
   const closeDrawer = useCallback(() => setDrawer(false), []);
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });

@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RowButton, RowValue, SettingsGroup, Sheet } from "@/components/app/account/rows";
-
-const NAME_KEY = "nf_profile_name";
-const EMAIL_KEY = "nf_profile_email";
-const SINCE_KEY = "nf_member_since";
-const DEFAULT_NAME = "Guest";
-const MAX_NAME = 40;
-const MAX_EMAIL = 80;
+import {
+  formatSince,
+  GUEST_NAME,
+  MAX_EMAIL,
+  MAX_NAME,
+  useDeviceIdentity,
+} from "@/components/app/account/device-identity";
 
 /**
  * The profile before you sign in.
@@ -33,39 +33,26 @@ const MAX_EMAIL = 80;
  * same lie in a different costume.
  */
 export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
-  const [name, setName] = useState(DEFAULT_NAME);
-  const [email, setEmail] = useState("");
-  const [since, setSince] = useState("");
   const [editing, setEditing] = useState(false);
 
-  // First render matches the server so the markup agrees, then the device's own
-  // answers arrive.
-  useEffect(() => {
-    try {
-      const storedName = window.localStorage.getItem(NAME_KEY);
-      if (storedName && storedName.trim()) setName(storedName.trim().slice(0, MAX_NAME));
-      const storedEmail = window.localStorage.getItem(EMAIL_KEY);
-      if (storedEmail && storedEmail.trim()) setEmail(storedEmail.trim().slice(0, MAX_EMAIL));
-
-      let stamp = window.localStorage.getItem(SINCE_KEY);
-      if (!stamp) {
-        stamp = new Date().toISOString();
-        window.localStorage.setItem(SINCE_KEY, stamp);
-      }
-      const date = new Date(stamp);
-      if (!Number.isNaN(date.getTime())) {
-        setSince(
-          date.toLocaleDateString("en-NG", {
-            month: "long",
-            year: "numeric",
-            timeZone: "Africa/Lagos",
-          }),
-        );
-      }
-    } catch {
-      // Storage can be unavailable in private browsing. The defaults stand.
-    }
-  }, []);
+  /*
+   * THE HYDRATION EFFECT IS GONE, AND WITH IT THREE COPIES OF THE KEYS.
+   *
+   * This held `name`, `email` and `since` in `useState`, filled them from
+   * `localStorage` in a mount effect, and wrote them back by hand in the save
+   * handler. Two other components did the same thing with their own copies of
+   * the same three key strings, their own clamps, and their own idea of the time
+   * zone, so a name corrected in one was stale in the next until a reload. See
+   * `device-identity.ts` for the whole argument.
+   *
+   * The effect also drew `react-hooks/set-state-in-effect`, because that is
+   * precisely what it was: state synchronised from somewhere outside React,
+   * which is what `useSyncExternalStore` exists for.
+   */
+  const { identity, save } = useDeviceIdentity();
+  const name = identity.name || GUEST_NAME;
+  const email = identity.email;
+  const since = formatSince(identity.since);
 
   const monogram = name.charAt(0).toUpperCase() || "G";
 
@@ -148,22 +135,14 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
       <DeviceDetailsSheet
         open={editing}
         onClose={() => setEditing(false)}
-        name={name === DEFAULT_NAME ? "" : name}
+        name={identity.name}
         email={email}
         onSave={(nextName, nextEmail) => {
-          const cleanName = nextName.trim().slice(0, MAX_NAME);
-          const cleanEmail = nextEmail.trim().slice(0, MAX_EMAIL);
-          setName(cleanName || DEFAULT_NAME);
-          setEmail(cleanEmail);
-          try {
-            if (cleanName) window.localStorage.setItem(NAME_KEY, cleanName);
-            else window.localStorage.removeItem(NAME_KEY);
-            if (cleanEmail) window.localStorage.setItem(EMAIL_KEY, cleanEmail);
-            else window.localStorage.removeItem(EMAIL_KEY);
-          } catch {
-            // Private browsing. The values stand for this session and no more,
-            // which is the most this device will allow.
-          }
+          /* One call, and the store clamps, writes and tells every other
+             mounted reader. The `try` that used to be here lives in the store,
+             because two components wrapping the same write in their own
+             `try` is two chances to forget. */
+          save({ name: nextName, email: nextEmail });
           setEditing(false);
         }}
       />

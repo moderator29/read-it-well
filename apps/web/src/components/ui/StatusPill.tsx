@@ -40,7 +40,10 @@ const TONE_STYLE: Record<StatusTone, CSSProperties> = {
   danger: { background: "var(--nf-state-error-surface)", color: "var(--nf-state-error)" },
   info: { background: "var(--nf-state-info-surface)", color: "var(--nf-state-info)" },
   brand: {
-    background: "color-mix(in oklab, var(--nf-brand-primary) 20%, transparent)",
+    // Rung 2 of the brand tint ladder. The four tones above this one all read a
+    // `--nf-state-*-surface` token and only the brand tone reached for a raw mix,
+    // which is how one colour in the product ended up with thirteen strengths.
+    background: "var(--nf-brand-tint-2)",
     color: "var(--nf-brand-secondary)",
   },
   neutral: {

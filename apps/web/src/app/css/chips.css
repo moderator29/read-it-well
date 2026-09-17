@@ -279,7 +279,9 @@
     color: var(--nf-state-success);
   }
   .nf-badge--brand {
-    background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    /* Rung 2: a badge is a surface the platform has singled out. Was 22%, two
+       points off the rung, and two points is not a decision. */
+    background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
   }
   .nf-badge--warning {
@@ -405,7 +407,9 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     color: var(--nf-brand-secondary);
-    background: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
+    /* Rung 2, exactly where it already was. A count is a badge that happens to
+       hold a number. */
+    background: var(--nf-brand-tint-2);
   }
 
   /*
@@ -447,8 +451,12 @@
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--nf-brand-secondary);
-    background: color-mix(in oklab, var(--nf-brand-primary) 15%, transparent);
-    border: 1px solid color-mix(in oklab, var(--nf-brand-primary) 28%, transparent);
+    /* Rung 1 for the fill and rung 3 for the edge, which is the pair the ladder
+       exists to make sayable: a 1px line has almost no area, so it needs more
+       strength than the plate behind it to read as the same colour. Was 15 and
+       28, so the edge was already on a rung and the fill was one point off it. */
+    background: var(--nf-brand-tint-1);
+    border: 1px solid var(--nf-brand-tint-3);
   }
   .nf-tag-pill--success {
     color: var(--nf-state-success);

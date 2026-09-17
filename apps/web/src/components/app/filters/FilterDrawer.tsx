@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { TextField } from "@/components/ui/Field";
 import { Switch } from "@/components/ui/Switch";
+import { useClientMount } from "@/components/app/client-mount";
 
 /**
  * The filter control and its drawer.
@@ -296,13 +297,16 @@ export function FilterDrawer({
   // A link from a surface with no pool (landing, home) arrives with
   // ?filters=open, so the drawer opens where the bounds are real.
   const [open, setOpen] = useState(openOnMount);
-  const [mounted, setMounted] = useState(false);
+  /* One hook, four call sites. This was `useState(false)` plus
+     `useEffect(() => setMounted(true), [])` in this file and in three others,
+     which is a second render scheduled for a fact React already knew. See
+     `client-mount.ts`. */
+  const mounted = useClientMount();
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => setMounted(true), []);
 
   /*
    * The address bar is the truth: whenever it moves, the draft follows it, so

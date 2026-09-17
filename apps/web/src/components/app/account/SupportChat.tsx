@@ -10,6 +10,7 @@ import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/suppo
 import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
+import { useDeviceIdentity } from "./device-identity";
 
 /**
  * Help and support, AI first.
@@ -49,8 +50,6 @@ type Message = {
 };
 
 const THREAD_KEY = "nf_support_thread";
-const NAME_KEY = "nf_profile_name";
-const EMAIL_KEY = "nf_profile_email";
 
 const GREETING =
   "Hello, I am Vallo's support agent. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
@@ -143,10 +142,18 @@ export function SupportChat() {
    * store rather than asking the route the same question again.
    */
   const [keywordOnly, setKeywordOnly] = useState(false);
-  const [identity, setIdentity] = useState<{ name: string; email: string }>({
-    name: "",
-    email: "",
-  });
+  /*
+   * THE NAME AND EMAIL COME FROM THE STORE, NOT FROM A MOUNT EFFECT.
+   *
+   * This kept its own copy of the two key strings and read them once, inside
+   * the same effect that loads the thread. On `/settings` the identity card and
+   * this sheet can both be mounted: somebody who corrects their name in the
+   * card and then escalates here filed the ticket under the OLD name, because
+   * this component had already read storage and had no way to be told. A
+   * support ticket under the wrong name is a reply that does not arrive. See
+   * `./device-identity`.
+   */
+  const { identity } = useDeviceIdentity();
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -158,18 +165,12 @@ export function SupportChat() {
     messagesRef.current = messages;
   }, [messages]);
 
+  /* The thread itself is still an effect and should be: it is a document this
+     component owns and writes back, not a value shared with anybody, so there
+     is no second reader to notify and nothing to subscribe to. `hydrated` gates
+     the write below so an empty first render cannot erase a stored thread. */
   useEffect(() => {
     setMessages(loadThread());
-    try {
-      const name = window.localStorage.getItem(NAME_KEY);
-      const email = window.localStorage.getItem(EMAIL_KEY);
-      setIdentity({
-        name: name && name.trim() ? name.trim() : "",
-        email: email && email.trim() ? email.trim() : "",
-      });
-    } catch {
-      // Defaults stand: the escalation card asks for both inline.
-    }
     setHydrated(true);
   }, []);
 

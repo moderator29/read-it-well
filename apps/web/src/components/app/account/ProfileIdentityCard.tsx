@@ -4,13 +4,13 @@ import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-
-const NAME_KEY = "nf_profile_name";
-const EMAIL_KEY = "nf_profile_email";
-const SINCE_KEY = "nf_member_since";
-const DEFAULT_NAME = "Guest";
-const MAX_NAME_LENGTH = 40;
-const MAX_EMAIL_LENGTH = 80;
+import {
+  formatSince,
+  GUEST_NAME,
+  MAX_EMAIL,
+  MAX_NAME,
+  useDeviceIdentity,
+} from "./device-identity";
 
 /**
  * Identity card for the profile surface, before there is an account.
@@ -38,65 +38,41 @@ const MAX_EMAIL_LENGTH = 80;
  * opened the card, not when anybody joined.
  */
 export function ProfileIdentityCard() {
-  const [name, setName] = useState(DEFAULT_NAME);
-  const [email, setEmail] = useState("");
-  const [since, setSince] = useState("");
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const nameId = useId();
   const emailId = useId();
 
-  useEffect(() => {
-    try {
-      const storedName = window.localStorage.getItem(NAME_KEY);
-      if (storedName && storedName.trim()) setName(storedName.trim().slice(0, MAX_NAME_LENGTH));
-      const storedEmail = window.localStorage.getItem(EMAIL_KEY);
-      if (storedEmail && storedEmail.trim()) setEmail(storedEmail.trim().slice(0, MAX_EMAIL_LENGTH));
+  /*
+   * THE HYDRATION EFFECT IS GONE. See `device-identity.ts`.
+   *
+   * This card and `SignedOutHero` each held the same three values in their own
+   * `useState`, filled them from the same three `localStorage` keys in their own
+   * mount effect, and declared their own copies of the key names and the clamp
+   * lengths. Both can be on screen in one session and neither learned about the
+   * other's write.
+   *
+   * It also formatted the first-seen date WITHOUT a time zone while the hero
+   * passed `Africa/Lagos`, so the same stamp could name two different months on
+   * two surfaces of the same product. `formatSince` settles that in one place.
+   */
+  const { identity, save } = useDeviceIdentity();
+  const name = identity.name;
+  const email = identity.email;
+  const since = formatSince(identity.since);
 
-      let stamp = window.localStorage.getItem(SINCE_KEY);
-      if (!stamp) {
-        stamp = new Date().toISOString();
-        window.localStorage.setItem(SINCE_KEY, stamp);
-      }
-      const date = new Date(stamp);
-      if (!Number.isNaN(date.getTime())) {
-        setSince(date.toLocaleDateString("en-NG", { month: "long", year: "numeric" }));
-      }
-    } catch {
-      // Storage can be unavailable in private browsing. The defaults stand.
-    }
-  }, []);
+  /* Both editors write on every keystroke, which is what they did before and is
+     the right behaviour here: there is no Save button on this card, so a value
+     that is not written as it is typed is a value lost by navigating away. */
+  const updateName = (next: string) => save({ name: next.slice(0, MAX_NAME) });
+  const updateEmail = (next: string) => save({ email: next.slice(0, MAX_EMAIL) });
+
+  const shownName = name.trim() || GUEST_NAME;
+  const initial = shownName.charAt(0).toUpperCase();
 
   useEffect(() => {
     if (editing) inputRef.current?.focus();
   }, [editing]);
-
-  const updateName = (next: string) => {
-    const value = next.slice(0, MAX_NAME_LENGTH);
-    setName(value);
-    try {
-      const clean = value.trim();
-      if (clean && clean !== DEFAULT_NAME) window.localStorage.setItem(NAME_KEY, clean);
-      else window.localStorage.removeItem(NAME_KEY);
-    } catch {
-      // The in-memory value still updates the card.
-    }
-  };
-
-  const updateEmail = (next: string) => {
-    const value = next.slice(0, MAX_EMAIL_LENGTH);
-    setEmail(value);
-    try {
-      const clean = value.trim();
-      if (clean) window.localStorage.setItem(EMAIL_KEY, clean);
-      else window.localStorage.removeItem(EMAIL_KEY);
-    } catch {
-      // The in-memory value still updates the card.
-    }
-  };
-
-  const shownName = name.trim() || DEFAULT_NAME;
-  const initial = shownName.charAt(0).toUpperCase();
 
   return (
     <section className="nf-card p-card" aria-label={shownName}>
@@ -159,9 +135,9 @@ export function ProfileIdentityCard() {
               id={nameId}
               type="text"
               value={name}
-              maxLength={MAX_NAME_LENGTH}
+              maxLength={MAX_NAME}
               autoComplete="nickname"
-              placeholder={DEFAULT_NAME}
+              placeholder={GUEST_NAME}
               onChange={(e) => updateName(e.target.value)}
               className="nf-field"
             />
@@ -174,7 +150,7 @@ export function ProfileIdentityCard() {
               id={emailId}
               type="email"
               value={email}
-              maxLength={MAX_EMAIL_LENGTH}
+              maxLength={MAX_EMAIL}
               autoComplete="email"
               placeholder="you@example.com"
               onChange={(e) => updateEmail(e.target.value)}

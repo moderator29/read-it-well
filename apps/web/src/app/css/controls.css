@@ -495,7 +495,9 @@
     height: 2.75rem;
     border-radius: var(--nf-radius-circle);
     color: var(--nf-brand-primary);
-    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+    /* Rung 1: a plate behind an icon is a surface merely marked. Was 14% written
+       out, which is rung 1 to the digit. */
+    background: var(--nf-brand-tint-1);
   }
   .nf-role-mark--lg {
     width: 3.5rem;

@@ -11,6 +11,7 @@ import { deleteAccountAction, signOut } from "@/lib/profile/actions";
 import { DELETE_CONFIRM_PHRASE } from "@/lib/profile/schema";
 import type { Dictionary } from "@vallo/i18n";
 import type { ActionResult } from "@/lib/actions/envelope";
+import { useClientMount } from "@/components/app/client-mount";
 
 /**
  * The account block: who you are signed in as, sign out, and deletion.
@@ -115,7 +116,11 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
   const copy = t.settings.delete;
   const [step, setStep] = useState<"explain" | "confirm">("explain");
   const [phrase, setPhrase] = useState("");
-  const [mounted, setMounted] = useState(false);
+  /* One hook, four call sites. This was `useState(false)` plus
+     `useEffect(() => setMounted(true), [])` in this file and in three others,
+     which is a second render scheduled for a fact React already knew. See
+     `client-mount.ts`. */
+  const mounted = useClientMount();
   const phraseId = useId();
 
   const [state, formAction, pending] = useActionState<ActionResult<null> | null, FormData>(
@@ -125,7 +130,6 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
 
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => setMounted(true), []);
 
   /* Escape, the Tab trap, the counted scroll lock and the focus return, from
      the one shared implementation. This drawer asks a person to type a phrase

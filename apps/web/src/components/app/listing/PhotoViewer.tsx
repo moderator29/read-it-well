@@ -16,6 +16,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
+import { useClientMount } from "@/components/app/client-mount";
 
 /**
  * The listing lightbox.
@@ -113,12 +114,15 @@ function Lightbox({
 }) {
   const track = useRef<HTMLDivElement | null>(null);
   const surface = useRef<HTMLDivElement | null>(null);
-  const [mounted, setMounted] = useState(false);
+  /* One hook, four call sites. This was `useState(false)` plus
+     `useEffect(() => setMounted(true), [])` in this file and in three others,
+     which is a second render scheduled for a fact React already knew. See
+     `client-mount.ts`. */
+  const mounted = useClientMount();
   const [entered, setEntered] = useState(false);
   const [active, setActive] = useState(startIndex);
   const [broken, setBroken] = useState<Record<number, true>>({});
 
-  useEffect(() => setMounted(true), []);
 
   /*
    * The surface mounts at its closed state and flips open on the next frame, so
