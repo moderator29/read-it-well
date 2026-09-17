@@ -182,9 +182,13 @@ older one, and everything below is current as of this handoff.
     spelling in docs and product copy.
 18. Navigation icons are stroked `UiIcon` glyphs, 40 of them, one stroke weight
     (`UI_ICON_STROKE_PX` 1.5 rendered pixels, computed from the size, there is
-    no `strokeWidth` prop) and one size scale (16, 20, 24, 28, 32, 40, nothing
-    between; 12 was removed because a stroked glyph on a 24 grid renders a 0.7
-    pixel line there, and 40 added for empty states and role rows). Content objects are `BrandIcon`, 57 commissioned 3D objects, props
+    no `strokeWidth` prop) and one size scale (12, 16, 20, 24, 28, 32, 40,
+    nothing between). 12 IS BACK, and the argument that removed it had already
+    been retired when it was made: a 0.7 pixel line at 12px is what a FIXED
+    `strokeWidth` produces, and the weight is computed per size now, so 12
+    renders at 1.5 like every other step. It is also the second most requested
+    size in the tree, 35 call sites, every one of them off-scale by decree. 40
+    is for empty states and role rows. Content objects are `BrandIcon`, 57 commissioned 3D objects, props
     `name`/`size`/`fill`/`label`/`priority`/`className`, there is NO `ramp`
     prop. `Icon` and `Icon3D` are **deleted**, not merely retired, and the
     pre-commit grep for `Icon3D` must return empty. `TrustIcon` is six marks on

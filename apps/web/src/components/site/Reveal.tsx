@@ -53,6 +53,25 @@ export function Reveal({
       return;
     }
 
+    /*
+     * NO OBSERVER, NO HIDING. F2-054.
+     *
+     * Everything below this line is an optimisation: it decides WHEN a section
+     * animates in. The `opacity: 0` it is deciding for is content. If the
+     * observer never runs, the section is not un-animated, it is absent, and a
+     * visitor sees a blank band where the page's argument should be.
+     *
+     * `IntersectionObserver` is absent in older WebViews and in some privacy
+     * browsers, and `new IntersectionObserver` THROWS there rather than
+     * returning something inert. An exception thrown in an effect is not
+     * caught by this component, so the old code did not merely fail to observe:
+     * it took the render tree with it. Checked before constructed.
+     */
+    if (typeof IntersectionObserver === "undefined") {
+      setShown(true);
+      return;
+    }
+
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -62,7 +81,25 @@ export function Reveal({
           }
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+      /*
+       * THRESHOLD 0, AND IT WAS 0.12, WHICH IS A TRIGGER THAT DEPENDS ON THE
+       * SIZE OF THE THING BEING TRIGGERED.
+       *
+       * `threshold` is a fraction of the TARGET, not of the viewport. At 0.12 a
+       * section had to get 12 per cent of ITSELF into view, so the taller the
+       * section the further it had to travel, and a section more than about
+       * eight viewports tall can never satisfy it at all: 12 per cent of it is
+       * more than the whole screen, the entry fires zero times, and the band
+       * stays at `opacity: 0` for ever. `Reveal` wraps whole landing-page
+       * sections and a `ul`, so that is not a hypothetical shape.
+       *
+       * The intent behind 0.12 was "do not fire on the first pixel", and
+       * `rootMargin` already delivers it in the unit that makes sense: -8 per
+       * cent of the VIEWPORT off the bottom edge, which is the same delay for a
+       * section of any height. So the size-dependent half goes and the
+       * viewport-relative half stays.
+       */
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     io.observe(el);
     return () => io.disconnect();

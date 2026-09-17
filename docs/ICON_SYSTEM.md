@@ -100,18 +100,44 @@ hand-tuned a value between 1.5 and 2.6 and the platform ended up with a dozen
 weights. State is carried by colour and by the filled pill behind an active
 tab, never by a heavier line.
 
-**One size scale.** `UI_ICON_SIZES` is 16, 20, 24, 28, 32, 40: a 4px grid, and
-nothing between the steps.
+**One size scale.** `UI_ICON_SIZES` is 12, 16, 20, 24, 28, 32, 40: a 4px grid
+from 12 to 32, plus 40 for display, and nothing between the steps.
 
-*Corrected 16 September 2026.* This file said 12, 16, 20, 24, 28, 32 and a
-weight of 1.4, and so did `HANDOFF.md` rule 18 and one executable spec. The code
-says 16 to 40 at 1.5 and carries the argument for each change beside the
-constant: **12 came out** because a stroked glyph drawn on a 24 grid renders a
-0.7 CSS pixel line at that size, which a display either drops or smears, and
-**40 went in** because empty states and role rows use it. Three documents and a
-spec all quoting a superseded number is not a stronger claim than the code, it
-is one stale line copied three times. The spec now parses the constant instead
-of restating it. `snapUiIconSize` rounds anything else onto the
+*Corrected 16 September 2026, and corrected again on the 17th. The second
+correction is the one worth reading, because the first one was wrong and being
+consistent was what hid it.*
+
+On the 16th this file said 12, 16, 20, 24, 28, 32 at a weight of 1.4, and so did
+`HANDOFF.md` rule 18 and one executable spec, while the code said 16 to 40 at
+1.5. Three documents quoting a superseded number is not a stronger claim than
+the code, so the prose was corrected to match. That reasoning was right and the
+result was wrong, because **the argument the code was relying on had already
+been retired two hundred lines below the decision.**
+
+The argument was that a stroked glyph drawn on a 24 grid renders a 0.7 CSS
+pixel line at 12px, which a display either drops or smears. That is true of a
+FIXED `strokeWidth`: a constant 1.8 renders 1.8 at 24 and 0.9 at 12. It is the
+very thing the weight fix addressed. `stroke-width` is computed per size now,
+`(UI_ICON_STROKE_PX * 24) / edge`, which at 12 is 3 grid units, and 3 units on a
+glyph drawn at half the grid renders at **1.5 CSS pixels, not 0.7**. The
+objection was dead before the ban was written down.
+
+And 12 is the SECOND MOST REQUESTED SIZE IN THE PRODUCT. Counted across `src`,
+197 call sites pass an explicit number, and 12 appears at 35 of them, behind
+only 16 at 92. Thirty-five call sites were off-scale by decree while rendering
+exactly what they should. Adding the step takes on-scale coverage from 137 of
+197 to 172.
+
+**The lesson is about the shape of the mistake, not about icons.** A prose line
+and a constant disagreed; the prose was corrected to match the constant; the
+two then said the same thing and the agreement read as confirmation. Two things
+saying the same wrong thing is harder to spot than one of them saying it alone,
+because the check most people run is "do these agree" rather than "is the
+argument still true". When correcting a document to match code, read the code's
+own reasoning and check it has not been superseded somewhere else in its file.
+
+**40 went in** because empty states and role rows use it, and that part was
+right both times. The spec parses the constant instead of restating it. `snapUiIconSize` rounds anything else onto the
 nearest one, so a size cannot drift off the grid whatever a caller passes.
 BrandIcon sits on an 8px grid from 24 up; below 24 the plinth in the artwork
 collapses into a coloured square.

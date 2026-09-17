@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import {
@@ -15,6 +14,7 @@ import {
 } from "@/lib/social/posts-actions";
 import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 import { displayHost } from "@/lib/brand-domain";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -249,7 +249,7 @@ export function ProfileMenu({
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
         >
-          <PostGlyph name="more" size={20} />
+          <UiIcon name="more" size={20} />
         </button>
 
         {open ? (

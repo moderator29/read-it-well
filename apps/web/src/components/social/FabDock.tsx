@@ -4,9 +4,9 @@ import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useOverlay } from "@/lib/ui/use-overlay";
-import { PostGlyph } from "./feed/PostGlyph";
 import { Composer } from "./feed/Composer";
 import { CreateRing } from "./CreateRing";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * The dock, and the composer behind it.
@@ -92,7 +92,7 @@ export function FabDock({
           aria-label="Create something"
           onClick={() => setOpen((value) => !value)}
         >
-          <PostGlyph name={open ? "close" : "compose"} size={24} />
+          <UiIcon name={open ? "close" : "plus"} size={24} />
         </button>
       </div>
 
@@ -141,7 +141,7 @@ export function FabDock({
                 aria-label="Close"
                 className="nf-post__act shrink-0"
               >
-                <PostGlyph name="close" size={20} />
+                <UiIcon name="close" size={20} />
               </button>
             </header>
 

@@ -10,14 +10,20 @@
  * they take the colour of whatever they sit beside, and they hold a real line
  * at 16px where a rendered 3D object cannot.
  *
- * THIS PARAGRAPH SAID 12px AND THE SCALE TWO HUNDRED LINES DOWN SAYS 16.
+ * THIS PARAGRAPH SAID 12px, THEN THE SCALE SAID 16, AND NOW BOTH SAY 12 AGAIN.
  *
- * It was written when 12 was the floor, and it survived the change that removed
- * that step because a prose sentence is not something a compiler checks. See
- * the note beside `UI_ICON_SIZES`: at 12px a stroked glyph on a 24 grid renders
- * a 0.7 CSS pixel line, which is a smudge, and that is the reason the step went
- * rather than an oversight to be restored. Saying "legible at 12px" at the top
- * of the file that deleted 12px is how a scale grows a seventh step back.
+ * Worth keeping the whole loop rather than tidying it, because the loop is the
+ * lesson. The line was written when 12 was the floor. It survived the change
+ * that removed that step, because a prose sentence is not something a compiler
+ * checks, and was then CORRECTED to agree with the scale on the grounds that at
+ * 12px a stroked glyph renders a 0.7 CSS pixel line. That correction made the
+ * prose consistent with the code and both of them wrong, because the 0.7px line
+ * had already been fixed by computing `strokeWidth` per size, two hundred lines
+ * below. See the note beside `UI_ICON_SIZES` for the arithmetic and the counts.
+ *
+ * So: a stale sentence was reconciled to a stale decision and the agreement was
+ * read as confirmation. Two things saying the same wrong thing is not evidence,
+ * and it is harder to spot than one of them saying it alone.
  *
  * THE TWO DOCUMENTS ARE THE OTHER HALF OF THIS AND THEY ARE STILL WRONG.
  * `docs/ICON_SYSTEM.md` and `docs/HANDOFF.md` rule 18 both state the scale as
@@ -467,8 +473,9 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   ),
 
   /* ------------------------------------------------------- folded in.
-     Everything below arrived from `components/app/assistant/` or
-     `components/social/feed/PostGlyph.tsx`. Redrawn where the private set had
+     Everything below arrived from `components/app/assistant/` or from the
+     social layer's own private glyph set, which was an adapter by the time it
+     was deleted and is gone now. Redrawn where the private set had
      hand-tuned its own stroke weight, because the weight is the platform's and
      is derived from the size here; otherwise the geometry is carried over
      unchanged, which is why the social marks still read as the family they
@@ -673,7 +680,42 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
  * for a named step asked for "the small one", not for "sixteen pixels", so the
  * names are what carry the increase to everything that used them.
  */
-export const UI_ICON_SIZES = [16, 20, 24, 28, 32, 40] as const;
+/*
+ * 12 IS BACK, AND THE REASON IT LEFT HAD ALREADY BEEN FIXED BY THE TIME IT DID.
+ *
+ * The argument for removing it, stated at the top of this file and in the note
+ * above, is that "at 12px a stroked glyph on a 24 grid renders a 0.7 CSS pixel
+ * line, which is a smudge". That was true of a FIXED `strokeWidth` on the 24
+ * grid, which is what this component used to pass: a constant 1.8 renders 1.8
+ * CSS px at 24 and 0.9 at 12, which is exactly why thirty-two call sites had
+ * each hand-tuned their own weight.
+ *
+ * That was fixed. `strokeWidth` is computed per size now, `(UI_ICON_STROKE_PX *
+ * 24) / edge`, so the RENDERED line is 1.5 CSS px at every step. Work it
+ * through at 12: 1.5 * 24 / 12 is 3 grid units, and 3 units on a glyph drawn at
+ * half the grid's size renders at 1.5 CSS pixels. Not 0.7. The objection was
+ * retired by the weight fix and the ban outlived it, because the two decisions
+ * live two hundred lines apart in one file and nothing connects them.
+ *
+ * AND THE PRODUCT NEVER STOPPED ASKING FOR IT. Counted across `src`, 197 call
+ * sites pass an explicit number to `UiIcon`:
+ *
+ *     16   92        20   35        14    5        13    2
+ *     12   35        15   11        40    5        11, 17, 19, 24, 28   1 each
+ *                    18    4        32    3
+ *
+ * 12 is the SECOND most requested size in the product and it was the one step
+ * the scale refused to name, so thirty-five call sites were off-scale by decree.
+ *
+ * SEVEN STEPS RATHER THAN SIX, and six was the round number rather than the
+ * right one: the scale runs 12 to 32 on a 4px grid and adds 40 for display.
+ * On-scale coverage goes from 137 of 197 call sites to 172.
+ *
+ * `docs/ICON_SYSTEM.md` and `docs/HANDOFF.md` rule 18 both listed 12 and both
+ * lost it when this file did. They need it back and their lines are named in
+ * the report that accompanied this change.
+ */
+export const UI_ICON_SIZES = [12, 16, 20, 24, 28, 32, 40] as const;
 export type UiIconSize = (typeof UI_ICON_SIZES)[number];
 
 /** Nearest step, ties to the larger. Clamped to the ends of the scale. */
@@ -695,13 +737,21 @@ export function snapUiIconSize(size: number): UiIconSize {
  *
  * Numbers are what the grid is defined in, but a call site reads better saying
  * what it means than restating the arithmetic, and a name cannot drift the way
- * a literal can. These are ALL SIX steps above under the names the rest of the
- * platform uses; nothing here is a size the scale does not have, and no step of
- * the scale is missing a name. It said "six of the seven" while the scale had
- * six, which is the same stale-by-one-edit fault as the 12px line at the top of
- * the file: the seventh was 12, and it left.
+ * a literal can. These are ALL SEVEN steps above under the names the rest of
+ * the platform uses; nothing here is a size the scale does not have, and no
+ * step of the scale is missing a name.
+ *
+ * This sentence has now said "six of the seven", then "all six", and now "all
+ * seven": three edits chasing one number. When the scale changes, COUNT the
+ * entries below rather than adjusting the sentence.
+ *
+ * `2xs` is 12, restored with the step itself. The existing names do NOT slide
+ * down to absorb the new floor: a component that asked for `sm` asked for "the
+ * small one", and moving the names a rung would have changed four named `lg`
+ * sites, twelve `md`, sixteen `sm` and twelve `xs` without one of them editing
+ * a character.
  */
-export const ICON_SIZE = { xs: 16, sm: 20, md: 24, lg: 28, xl: 32, display: 40 } as const;
+export const ICON_SIZE = { "2xs": 12, xs: 16, sm: 20, md: 24, lg: 28, xl: 32, display: 40 } as const;
 export type IconSize = keyof typeof ICON_SIZE;
 
 /**

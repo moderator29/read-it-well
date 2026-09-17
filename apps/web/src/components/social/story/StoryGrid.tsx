@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import { STORY_COPY } from "@/lib/social/stories-schema";
 import { EmptyPanel } from "../profile/EmptyPanel";
@@ -59,7 +58,7 @@ export function StoryGrid({
                   </span>
                 ) : null}
                 <span className="inline-flex items-center gap-2xs">
-                  <PostGlyph name="like" size={13} active />
+                  <UiIcon name="heart" size={13} filled />
                   <span className="nf-numeric">{story.likeCount}</span>
                 </span>
                 <span>{story.createdLabel}</span>

@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { PostGlyph } from "./feed/PostGlyph";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { REPORT_REASON_LABEL, type ReportReason } from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Reporting something, with a reason.
@@ -89,7 +89,7 @@ export function ReportSheet({
             aria-label="Close"
             className="nf-post__act shrink-0"
           >
-            <PostGlyph name="close" size={20} />
+            <UiIcon name="close" size={20} />
           </button>
         </header>
 

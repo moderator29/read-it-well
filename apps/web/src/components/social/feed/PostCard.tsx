@@ -4,9 +4,9 @@ import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthGate } from "@/components/auth/AuthGate";
-import { PostGlyph } from "./PostGlyph";
 import { PostBody } from "./PostBody";
 import { Tombstone } from "./Tombstone";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * A post.
@@ -227,7 +227,7 @@ function ActionRow({
           aria-pressed={post.liked}
           onClick={onLike}
         >
-          <PostGlyph name="like" active={post.liked} />
+          <UiIcon name="heart" filled={post.liked} />
           <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
           <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
         </button>
@@ -235,7 +235,7 @@ function ActionRow({
 
       <AuthGate action="post">
         <button type="button" className="nf-post__act" onClick={onReply}>
-          <PostGlyph name="reply" />
+          <UiIcon name="chat-bubble" />
           <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
           <span className="sr-only">
             {post.replyCount === 1 ? "reply" : "replies"}, reply to this
@@ -251,7 +251,7 @@ function ActionRow({
           onClick={onRepost}
           data-active={post.reposted ? "" : undefined}
         >
-          <PostGlyph name="repost" active={post.reposted} />
+          <UiIcon name="repost" filled={post.reposted} />
           <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
           <span className="sr-only">
             {post.reposted ? "reposted, undo" : "reposts, repost this"}
@@ -265,14 +265,14 @@ function ActionRow({
         onClick={onShare}
         aria-label="Share this post"
       >
-        <PostGlyph name="share" />
+        <UiIcon name="share" />
       </button>
 
       <span
         className="nf-post__act nf-post__act--fact"
         title={`${formatNumber(post.viewCount, locale)} views`}
       >
-        <PostGlyph name="views" />
+        <UiIcon name="views" />
         <span className="nf-numeric">{compact(post.viewCount, locale)}</span>
         <span className="sr-only">views</span>
       </span>
@@ -289,7 +289,7 @@ function ActionRow({
           onClick={onSave}
           aria-label={post.saved ? "Saved, remove it" : "Save this"}
         >
-          <PostGlyph name="bookmark" active={post.saved} />
+          <UiIcon name="bookmark" filled={post.saved} />
         </button>
       </AuthGate>
     </div>
@@ -356,7 +356,7 @@ export function PostCard({
     <>
       {post.repostedBy ? (
         <p className="mb-xs flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
-          <PostGlyph name="repost" size={14} />
+          <UiIcon name="repost" size={14} />
           Reposted by {post.repostedBy}
         </p>
       ) : null}
@@ -415,7 +415,7 @@ export function PostCard({
           aria-haspopup="dialog"
           onClick={onMenu}
         >
-          <PostGlyph name="more" />
+          <UiIcon name="more" />
         </button>
       </div>
 

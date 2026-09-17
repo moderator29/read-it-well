@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { ReportSheet } from "@/components/social/ReportSheet";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { blockUser, muteTarget, reportPost } from "@/lib/social/posts-actions";
 import { POST_COPY, POST_MAX, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { PostBody } from "@/components/social/feed/PostBody";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Comments, as a sheet.
@@ -225,7 +225,7 @@ export function CommentsSheet({
               inputRef.current?.focus();
             }}
           >
-            <PostGlyph name="compose" size={20} />
+            <UiIcon name="plus" size={20} />
           </button>
           <h2 className="nf-comments__title">
             {rows.length > 0
@@ -233,7 +233,7 @@ export function CommentsSheet({
               : "Comments"}
           </h2>
           <button type="button" className="nf-post__act" aria-label="Close" onClick={onClose}>
-            <PostGlyph name="close" size={20} />
+            <UiIcon name="close" size={20} />
           </button>
         </header>
 
@@ -290,7 +290,7 @@ export function CommentsSheet({
                         aria-expanded={menuFor === comment.id}
                         onClick={() => setMenuFor(menuFor === comment.id ? null : comment.id)}
                       >
-                        <PostGlyph name="more" size={17} />
+                        <UiIcon name="more" size={17} />
                       </button>
                       {menuFor === comment.id ? (
                         <>
@@ -375,7 +375,7 @@ export function CommentsSheet({
                         aria-pressed={comment.liked}
                         onClick={() => like(comment)}
                       >
-                        <PostGlyph name="like" size={17} active={comment.liked} />
+                        <UiIcon name="heart" size={17} filled={comment.liked} />
                         <span className="nf-numeric">{comment.likeCount}</span>
                         <span className="sr-only">
                           {comment.liked ? "liked, undo" : "likes, like this comment"}
@@ -421,7 +421,7 @@ export function CommentsSheet({
               disabled={pending || body.trim().length === 0}
               aria-label="Send"
             >
-              <PostGlyph name="share" size={19} />
+              <UiIcon name="share" size={19} />
             </button>
           </div>
           {left < 240 ? (

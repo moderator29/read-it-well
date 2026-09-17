@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { BackChevron } from "@/components/social/profile/BackChevron";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
@@ -270,7 +269,7 @@ export function StoryViewer({
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
             >
-              <PostGlyph name="more" size={20} />
+              <UiIcon name="more" size={20} />
             </button>
             {menuOpen ? (
               <>
@@ -348,7 +347,7 @@ export function StoryViewer({
               aria-label="Share this story"
               className="nf-story__card-share"
             >
-              <PostGlyph name="share" size={18} />
+              <UiIcon name="share" size={18} />
             </button>
 
             <span className="nf-story-chip">{STORY_COPY.chip}</span>
@@ -377,7 +376,7 @@ export function StoryViewer({
               className={`nf-story__act${liked ? " nf-story__act--on" : ""}`}
             >
               <span className="nf-story__act-circle">
-                <PostGlyph name="like" size={22} active={liked} />
+                <UiIcon name="heart" size={22} filled={liked} />
               </span>
               <span className="nf-story__act-count nf-numeric">{likeCount}</span>
               <span className="sr-only">{liked ? "liked, undo" : "likes, like this story"}</span>
@@ -390,7 +389,7 @@ export function StoryViewer({
               className={`nf-story__act${saved ? " nf-story__act--on" : ""}`}
             >
               <span className="nf-story__act-circle">
-                <PostGlyph name="repost" size={22} active={saved} />
+                <UiIcon name="repost" size={22} filled={saved} />
               </span>
               <span className="nf-story__act-count nf-numeric">{saveCount}</span>
               <span className="sr-only">{saved ? "saved, undo" : "saves, save this story"}</span>
@@ -398,7 +397,7 @@ export function StoryViewer({
 
             <button type="button" onClick={share} className="nf-story__act">
               <span className="nf-story__act-circle">
-                <PostGlyph name="share" size={22} />
+                <UiIcon name="share" size={22} />
               </span>
               <span className="nf-story__act-count">Share</span>
             </button>
@@ -444,7 +443,7 @@ export function StoryViewer({
                 : STORY_COPY.addComment}
             </span>
             <span className="nf-story__send" aria-hidden="true">
-              <PostGlyph name="share" size={17} />
+              <UiIcon name="share" size={17} />
             </span>
           </button>
         </div>

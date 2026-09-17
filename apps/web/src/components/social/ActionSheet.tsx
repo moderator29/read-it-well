@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
-import { PostGlyph, type PostGlyphName } from "./feed/PostGlyph";
 
 /**
  * The sheet behind a card's `…`.
@@ -31,7 +30,7 @@ export type SheetAction = {
   note: string;
   /** One of the platform's navigation glyphs, or one of the social marks. */
   icon?: UiIconName;
-  glyph?: PostGlyphName;
+  glyph?: UiIconName;
   danger?: boolean;
 };
 
@@ -81,7 +80,7 @@ export function ActionSheet({
             >
               <span className="nf-actions__icon">
                 {action.glyph ? (
-                  <PostGlyph name={action.glyph} size={19} />
+                  <UiIcon name={action.glyph} size={19} />
                 ) : (
                   <UiIcon name={action.icon ?? "sliders"} size={19} />
                 )}
@@ -181,7 +180,7 @@ export function actionsForPost(options: {
       key: "contact",
       title: "Contact agent",
       note: "Send a message about this place",
-      glyph: "reply",
+      glyph: "chat-bubble",
     });
   }
 
@@ -214,7 +213,7 @@ export function actionsForPost(options: {
         key: "edit",
         title: "Change what it says",
         note: "For fifteen minutes after posting. It says edited afterwards",
-        glyph: "compose",
+        glyph: "plus",
       });
     }
     rows.push({
@@ -264,7 +263,7 @@ export function actionsForPost(options: {
     key: "report",
     title: "Report",
     note: "Tell us what is wrong with this",
-    glyph: "report",
+    glyph: "flag",
     danger: true,
   });
 

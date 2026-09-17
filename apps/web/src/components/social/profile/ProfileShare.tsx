@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { displayHost } from "@/lib/brand-domain";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * Share, floating on the cover beside the `…`.
@@ -71,7 +71,7 @@ export function ProfileShare({
         aria-label={`Share ${who}`}
         onClick={share}
       >
-        <PostGlyph name="share" size={19} />
+        <UiIcon name="share" size={19} />
       </button>
 
       {notice ? (

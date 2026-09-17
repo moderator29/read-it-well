@@ -1,9 +1,9 @@
 "use client";
 
-import { PostGlyph } from "@/components/social/feed/PostGlyph";
 import { Feed } from "@/components/social/feed/Feed";
 import type { ActivityEntry } from "@/lib/social/posts-queries";
 import { EmptyPanel } from "./EmptyPanel";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * What somebody has been doing, rather than what they wrote.
@@ -52,7 +52,7 @@ export function ActivityList({
       {entries.map((entry, index) => (
         <div key={`${entry.kind}-${entry.post.id}-${index}`}>
           <p className="mb-2xs inline-flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
-            <PostGlyph name={entry.kind === "LIKE" ? "like" : "repost"} size={14} active />
+            <UiIcon name={entry.kind === "LIKE" ? "heart" : "repost"} size={14} filled />
             {entry.kind === "LIKE"
               ? isOwner
                 ? "You liked this"

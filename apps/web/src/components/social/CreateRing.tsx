@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
-import { PostGlyph } from "./feed/PostGlyph";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * What do you want to create today?
@@ -220,7 +220,7 @@ export function CreateRing({
         </div>
 
         <button type="button" onClick={onClose} className="nf-ring__close" aria-label="Close">
-          <PostGlyph name="close" size={22} />
+          <UiIcon name="close" size={22} />
         </button>
       </div>
     </div>

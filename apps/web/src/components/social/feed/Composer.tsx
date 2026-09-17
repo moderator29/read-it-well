@@ -2,7 +2,6 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { PostGlyph } from "./PostGlyph";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { createClient } from "@/lib/supabase/client";
@@ -383,7 +382,7 @@ export function Composer({
                   disabled={pending || Boolean(strandedPost)}
                   aria-label={POST_COPY.pictureRemove}
                 >
-                  <PostGlyph name="close" size={13} />
+                  <UiIcon name="close" size={13} />
                 </button>
               </li>
             ))}
@@ -465,7 +464,7 @@ export function Composer({
           disabled={pending || Boolean(strandedPost) || pictures.length >= POST_MEDIA_MAX}
           aria-label={POST_COPY.picturePrompt}
         >
-          <PostGlyph name="picture" />
+          <UiIcon name="picture" />
           {pictures.length > 0 ? (
             <span className="nf-numeric text-[var(--nf-text-overline)]">
               {pictures.length}/{POST_MEDIA_MAX}
