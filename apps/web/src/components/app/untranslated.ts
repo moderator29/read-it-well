@@ -37,6 +37,8 @@
  * in the supply-side funnel and the only one still entirely in English.
  */
 
+import type { Database } from "@/lib/supabase/database.types";
+
 /* ------------------------------------------------------------------ escrow */
 
 /**
@@ -50,7 +52,21 @@
  * is a promise with nothing behind it yet, and an operator reading the wrong
  * word there will think the platform is holding money it is not.
  */
-export const ESCROW_STATE_WORDS: Record<string, string> = {
+/*
+ * Typed against the generated enum rather than `Record<string, string>`.
+ *
+ * `/admin/escrow` renders `STATE_LABEL[escrow.state] ?? escrow.state`, so a
+ * value with no word here reaches an operator as the raw column. That fallback
+ * is unreachable today only because this map happens to be complete, and
+ * "happens to be" is the condition every one of F2-060's four chips was in
+ * before somebody added a value. `Record<EscrowState, string>` makes the ninth
+ * escrow state a compile error in this file instead of `RELEASE_DENIED` in a
+ * chip on the dispute desk.
+ */
+export const ESCROW_STATE_WORDS: Record<
+  Database["public"]["Enums"]["escrow_state"],
+  string
+> = {
   INITIATED: "Agreed, not funded",
   FUNDED: "Funded",
   HELD: "Held",

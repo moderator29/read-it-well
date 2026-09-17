@@ -151,10 +151,29 @@ export default async function AgentDashboardPage() {
                 href={quick.href}
                 className="nf-card nf-card--interactive flex items-center gap-row p-card-sm"
               >
-                <span className="nf-icon-tile block h-10 w-10 shrink-0">
+                {/*
+                  NO PLATE, AND IT WAS A PLATE INSIDE A CARD.
+
+                  `.nf-icon-tile` is a glass surface in its own right: a border,
+                  a fill and an elevation rung. Four of them sat inside four
+                  `.nf-card` rows here, which is a bordered box drawn inside a
+                  bordered box, the one nesting the surface language has no
+                  exception to. `docs/ICON_SYSTEM.md` is more direct about it
+                  than that: a tinted tile behind a glyph came from the retired
+                  reference brief and is not part of this system, and in the
+                  light theme the wash on white reads as a hue this brand has
+                  banned by name. The four `admin/_components` plates went for
+                  the same reason; this was the last one. F2-034.
+
+                  The object goes UP to 48 as the plate comes off, because what
+                  stops a mark floating is its size and the air around it rather
+                  than a box, and 40px was chosen to fit inside a plinth that is
+                  no longer there.
+                */}
+                <span className="block h-12 w-12 shrink-0">
                   <BrandIcon name={quick.icon} fill />
                 </span>
-                <span className="text-[0.875rem] font-semibold">{quick.label}</span>
+                <span className="nf-body-sm font-semibold">{quick.label}</span>
               </Link>
             </li>
           ))}

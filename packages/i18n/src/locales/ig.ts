@@ -1666,6 +1666,11 @@ export const ig: Dictionary = {
           other: "Ihe ọzọ",
         },
       },
+      statTone: {
+        warning: "ọ chọrọ nlele",
+        danger: "ọ chọrọ ime ihe",
+        success: "ọ dị mma",
+      },
       statusLabel: "Nzacha site n'ọnọdụ",
       pager: {
         label: "Ibe usoro",

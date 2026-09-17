@@ -381,7 +381,16 @@ export default async function AdminAgentsPage({
            false to somebody who has just asked to see the decided ones, and the
            one no-match panel above already answers for the screen. */
         narrowed ? null : (
-          <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+          /* A TICK IS EARNED, AND HERE IT IS EARNED EXACTLY. An emerald tick on
+             "nothing is waiting" means somebody cleared this queue. That is
+             true when applications have been decided and it is a lie when none
+             has ever arrived, which is the state this table is in today.
+             `decided` answers it without another read. F2-056. */
+          <ui.QueueEmpty
+            title={copy.emptyTitle}
+            body={copy.emptyBody}
+            everHadRows={decided.length > 0}
+          />
         )
       ) : (
         <ul className="nf-queue-list">

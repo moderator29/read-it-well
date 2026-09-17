@@ -100,21 +100,6 @@ const DANGER_INK: CSSProperties = { color: "var(--nf-state-error)" };
 /** What a metric tile is telling you. Not a status; a temperature. */
 export type StatTone = "neutral" | "warning" | "danger" | "success";
 
-/**
- * The tone, in words, for anybody who cannot see the colour or the rule.
- *
- * English, because `t.admin.common` has no keys for these and adding them
- * belongs to whoever owns the dictionary. It is stated here rather than left
- * out, because the alternative is a flagged figure that is flagged only to
- * people who can see hue.
- */
-const STAT_TONE_WORD: Record<StatTone, string> = {
-  neutral: "",
-  warning: "needs a look",
-  danger: "needs action",
-  success: "healthy",
-};
-
 const STAT_VALUE_COLOUR: Record<StatTone, string> = {
   neutral: "var(--nf-content-primary)",
   warning: "var(--nf-state-warning)",
@@ -149,6 +134,20 @@ export function adminUi(t: Dictionary, locale: Locale) {
    * database value on an operator's screen.
    */
   const columnWords = c.columns;
+
+  /*
+   * The tone of a metric tile, in words, for anybody who cannot see the colour
+   * or the left rule.
+   *
+   * This was a module constant in English with a note saying the keys belonged
+   * to whoever owned the dictionary. It is the ONLY non-visual signal a flagged
+   * figure carries, so leaving it in English meant a Hausa operator using a
+   * screen reader heard the one part of Rule 13's answer in a language they had
+   * not chosen. `neutral` has no word on purpose: an unflagged number is not
+   * flagged, and announcing "neutral" after every figure on the money screen
+   * would be noise.
+   */
+  const statToneWord: Record<StatTone, string> = { neutral: "", ...c.statTone };
 
   /**
    * Lagos time, always, so the server and the browser never disagree on a
@@ -364,7 +363,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
           style={{ color: STAT_VALUE_COLOUR[tone] }}
         >
           {value}
-          {flagged && <span className="sr-only"> {STAT_TONE_WORD[tone]}</span>}
+          {flagged && <span className="sr-only"> {statToneWord[tone]}</span>}
         </p>
         {hint && <p className="nf-caption mt-inline-tight">{hint}</p>}
       </div>

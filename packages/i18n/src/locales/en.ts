@@ -2048,6 +2048,21 @@ export const en = {
           other: "Something else",
         },
       },
+      /*
+       * The tone of a metric tile, in words.
+       *
+       * A flagged figure is drawn with a left rule in its tone, which survives
+       * greyscale, and named here for a screen reader, which sees no rule and
+       * no colour at all. These were English constants in `_components/ui.tsx`
+       * with a note saying the keys belonged to whoever owned the dictionary,
+       * so a Hausa operator using a screen reader heard the one signal that was
+       * not visual in a language they had not chosen. F2-064.
+       */
+      statTone: {
+        warning: "needs a look",
+        danger: "needs action",
+        success: "healthy",
+      },
       statusLabel: "Filter by status",
       pager: {
         label: "Queue pages",

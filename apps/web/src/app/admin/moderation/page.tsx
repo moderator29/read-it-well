@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { requireAdmin, adminRefusal } from "@/lib/admin/guard";
 import { getModerationQueue } from "@/lib/admin/moderation-queries";
+import { adminUi } from "../_components/ui";
+import { QueueFilters, queueNoMatch, readQueueQuery } from "../_components/QueueFilters";
 import { HoldDecision } from "./HoldDecision";
 
 export const metadata: Metadata = {
@@ -26,8 +30,20 @@ export const dynamic = "force-dynamic";
  * in R-107: an internal surface for a small team, and translating it would be
  * work with no reader.
  */
-export default async function AdminModerationPage() {
+const LEDE =
+  "Words the safety scan stopped before anybody else saw them. Every one of these has an author waiting to be told what happened.";
+
+export default async function AdminModerationPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const access = await requireAdmin();
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const ui = adminUi(t, locale);
+  const common = t.admin.common;
+
   if (access.state !== "admin") {
     return (
       <div className="nf-card p-lg">
@@ -39,23 +55,60 @@ export default async function AdminModerationPage() {
     );
   }
 
-  const queue = await getModerationQueue();
+  const query = readQueueQuery(await searchParams);
+  const queue = await getModerationQueue({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+  });
+  const noMatch = queueNoMatch(common);
 
   return (
-    <div className="flex flex-col gap-xl">
-      <header>
-        <h1 className="text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Held</h1>
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
-          Words the safety scan stopped before anybody else saw them. Every one
-          of these has an author waiting to be told what happened.
-        </p>
-      </header>
+    /*
+      THE ONE QUEUE THAT WAS NOT IN THE CONSOLE.
+
+      This page hand-rolled its own header at `text-[var(--nf-text-h4)]` and its
+      own empty state in a card, outside `ui.QueueHeader` and `ui.QueueEmpty`
+      that every other destination uses, and it sat in a bare flex column rather
+      than in `.nf-console`. So the screen where a moderator decides whether
+      somebody's words come back was the one screen that did not look like the
+      console it is part of.
+
+      Bringing it in was held back for one sprint on purpose: a filter bar above
+      a header that does not match is worse than no filter bar. The header
+      matches now, so the filter bar can land with it. F2-055, F2-062.
+
+      THE ENGLISH STAYS, and that is R-107 rather than an oversight: the console
+      is an internal surface for a small team. What comes from the dictionary is
+      the shared console furniture, which is translated because it is shared,
+      and the four sections' own words are not.
+    */
+    <div className="nf-console">
+      <ui.QueueHeader title="Held" lede={LEDE} count={queue.total} />
+
+      {/* No status chips: every row on all four tables is HELD by definition,
+          and a control offering one value is not a filter. */}
+      <QueueFilters
+        base="/admin/moderation"
+        query={query}
+        common={common}
+        searchLabel="Find held words"
+        searchPlaceholder="A phrase from the post, story, comment or bio"
+      />
 
       {queue.total === 0 ? (
-        <p className="nf-card p-lg text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
-          Nothing is held. When the scanner stops a post, a story, a comment or a
-          bio, it lands here and its author is told it is being checked.
-        </p>
+        <ui.QueueEmpty
+          title={queue.narrowed ? noMatch.title : "Nothing is held"}
+          body={
+            queue.narrowed
+              ? noMatch.body
+              : "When the scanner stops a post, a story, a comment or a bio, it lands here and its author is told it is being checked."
+          }
+          /* A narrowed empty queue is a RESULT. An unnarrowed one on this queue
+             is genuinely "nothing has arrived", so it keeps the honest state
+             rather than the tick that congratulates somebody. */
+          everHadRows={queue.narrowed}
+        />
       ) : null}
 
       <Section title="Posts" count={queue.posts.length}>
@@ -172,6 +225,32 @@ export default async function AdminModerationPage() {
           </li>
         ))}
       </Section>
+
+      {/*
+        THE CAP, SAID OUT LOUD.
+
+        Each of the four reads is capped at fifty and they cannot share a pager:
+        one offset across four independent tables would mean the forty-first
+        post AND the forty-first bio, and a Next link offered whenever any one
+        of them came back full would walk the other three past rows nobody had
+        seen. So the cap stays and it is stated, because fifty rows that look
+        like all of them is how the oldest thing in a queue rots while the count
+        looks healthy. The search and the date range above are what reaches past
+        it, which is exactly what they are for.
+      */}
+      {(queue.posts.length >= 50 ||
+        queue.stories.length >= 50 ||
+        queue.comments.length >= 50 ||
+        queue.bios.length >= 50) && (
+        <p
+          role="status"
+          className="nf-body-sm mt-block rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-status-pending)_45%,transparent)] bg-[var(--nf-status-pending-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
+        >
+          A section above has reached fifty rows, which is as many as this screen
+          reads at once. There are more waiting than are shown. Narrow by a phrase
+          or a date to reach them.
+        </p>
+      )}
     </div>
   );
 }

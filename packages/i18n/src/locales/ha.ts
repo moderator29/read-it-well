@@ -1656,6 +1656,11 @@ export const ha: Dictionary = {
           other: "Wani abu dabam",
         },
       },
+      statTone: {
+        warning: "yana buƙatar dubawa",
+        danger: "yana buƙatar aiki",
+        success: "lafiya lau",
+      },
       statusLabel: "Tace bisa ga matsayi",
       pager: {
         label: "Shafukan jeri",

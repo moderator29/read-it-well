@@ -318,7 +318,15 @@ export const SUMMARY_LIMIT = 2000;
 
 export type EscrowView = {
   id: string;
-  state: string;
+  /*
+   * The enum, not `string`. It came off a column typed `escrow_state` and was
+   * widened to `string` on the way into this view, which meant the console's
+   * chip map could not be checked against it: `/admin/escrow` renders
+   * `STATE_LABEL[escrow.state] ?? escrow.state`, so the day a ninth state is
+   * added an operator gets the raw column on the dispute desk. Keeping the
+   * union here is what lets `ESCROW_STATE_WORDS` be exhaustive. F2-060.
+   */
+  state: Database["public"]["Enums"]["escrow_state"];
   purpose: string;
   amountMinor: number;
   commissionMinor: number | null;

@@ -148,9 +148,14 @@ export default async function AdminKycPage({
         /* Narrowed, this says nothing: "nothing is waiting" is false to
            somebody who has just asked to see the approved ones. */
         narrowed ? null : (
+          /* The body says "every document that has been uploaded has been
+             decided", which is only true if any ever was. `decided` is the
+             evidence, and without it the tick congratulates a reviewer on work
+             that never arrived. F2-056. */
           <ui.QueueEmpty
             title="Nothing is waiting"
             body="Every document that has been uploaded has been decided. Somebody uploading one now appears here immediately."
+            everHadRows={decided.length > 0}
           />
         )
       ) : (

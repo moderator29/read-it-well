@@ -149,9 +149,15 @@ export default async function AdminExamplesPage({
              more" is a claim about the whole catalogue and is false to somebody
              who has just filtered to one city. */
           narrowed ? null : (
+            /* "No example is public ANY MORE" is a claim about the past: it
+               says there were some and they were retired. `retired` is that
+               claim's evidence. With neither list holding a row, no example
+               was ever published and the tick would be celebrating a clean-up
+               nobody did. F2-056. */
             <ui.QueueEmpty
               title="No example is public any more"
               body="Everything a visitor can see is a real listing from a real lister."
+              everHadRows={retired.length > 0}
             />
           )
         ) : (

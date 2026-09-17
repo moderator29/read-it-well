@@ -1662,6 +1662,11 @@ export const yo: Dictionary = {
           other: "Nǹkan mìíràn",
         },
       },
+      statTone: {
+        warning: "ó nílò àyẹ̀wò",
+        danger: "ó nílò ìgbésẹ̀",
+        success: "ó dára",
+      },
       statusLabel: "Ṣàyẹ̀wò nípa ipò",
       pager: {
         label: "Àwọn ojú ewé",

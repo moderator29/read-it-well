@@ -174,9 +174,15 @@ export default async function AdminEscrowPage({
             answers for the screen. */}
         {disputes.length === 0 ? (
           narrowed ? null : (
+            /* The body says every escrow "either settled on its own or is
+               still running", which presumes there are escrows. `escrows` holds
+               zero rows today, so unqualified this is an emerald tick over a
+               sentence about a table that has never been written to. The open
+               and settled lists are the evidence either way. F2-056. */
             <ui.QueueEmpty
               title="Nothing is in dispute"
               body="Every escrow either settled on its own or is still running. Nobody is waiting on a ruling."
+              everHadRows={open.length + settled.length > 0}
             />
           )
         ) : (

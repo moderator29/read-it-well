@@ -295,7 +295,12 @@ export default async function AdminListingsPage({
         <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
       ) : waiting.length === 0 ? (
         narrowed ? null : (
-          <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} />
+          /* Earned only if something was actually reviewed. See F2-056. */
+          <ui.QueueEmpty
+            title={copy.emptyTitle}
+            body={copy.emptyBody}
+            everHadRows={decided.length > 0}
+          />
         )
       ) : (
         <ul className="nf-queue-list">
