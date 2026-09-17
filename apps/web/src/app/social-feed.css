@@ -16,6 +16,27 @@
  * Layer two tokens only. No raw colour, no hue outside the blue family.
  */
 
+/*
+ * THE EIGHT `--nf-shadow-float` REFERENCES IN THIS FILE ARE `--nf-elev-4` NOW.
+ * L-67.
+ *
+ * `--nf-shadow-card`, `--nf-shadow-lifted` and `--nf-shadow-float` are legacy
+ * aliases of elevation rungs 1, 2 and 4. They are honest aliases rather than a
+ * second system, so nothing was WRONG here; what was wrong is that the platform
+ * had two names for every rung and an alias is exactly the kind of thing nothing
+ * warns about when it goes.
+ *
+ * VALUE-IDENTICAL, ON PURPOSE. `--nf-shadow-float` is `var(--nf-elev-4)` and
+ * nothing else, so this is `var(--nf-elev-4)` and nothing else. The house rule
+ * is that a rung is a PAIR, `var(--nf-elev-4-rim), var(--nf-elev-4)`, and adding
+ * the rim here would have been a visual change smuggled inside a rename. A
+ * rename that moves pixels is a rename nobody can review.
+ *
+ * WHAT THESE EIGHT ACTUALLY WANT is `class="nf-elev-4"`, which carries the rim
+ * and the rung's border colour and nothing else now that the elevation classes
+ * no longer impose a background or a radius. That is a change with an eye on it
+ * rather than a search and replace, and it belongs to whoever owns this file.
+ */
 @layer components {
   /* ------------------------------------------------------------------
    * Geometry. One place, so a card, a menu and a composer cannot drift.
@@ -509,13 +530,25 @@
     position: absolute;
     inset-inline-end: 8px;
     top: 42px;
-    z-index: 30;
+    /*
+     * UP from 30, and 30 was a real bug rather than a spare number.
+     *
+     * `.nf-post` is `position: relative` with no z-index, so it forms NO
+     * stacking context and this menu competes page-wide rather than inside its
+     * own card. At 30 it lost to the sticky chrome at 50 and to the FAB, so an
+     * overflow menu opened from a post near the top of a 390px screen dropped
+     * 42px straight underneath the header.
+     *
+     * A popover is an overlay: above the page and its chrome, below anything
+     * modal.
+     */
+    z-index: var(--nf-z-overlay);
     inline-size: 13.5rem;
     padding: 6px;
     border-radius: var(--nf-radius-lg);
     background: var(--nf-surface-raised);
     border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-shadow-float);
+    box-shadow: var(--nf-elev-4);
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
   }
@@ -555,7 +588,7 @@
   .nf-social-sheet {
     position: fixed;
     inset: 0;
-    z-index: 80;
+    z-index: var(--nf-z-modal);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -579,7 +612,7 @@
     padding: 1.5rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
     background: var(--nf-surface-primary);
     border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-shadow-float);
+    box-shadow: var(--nf-elev-4);
   }
 
   @media (min-width: 640px) {
@@ -724,14 +757,23 @@
        one corner of a 390px screen is two too many, so they stack rather than
        overlap. */
     bottom: calc(9.5rem + env(safe-area-inset-bottom));
-    z-index: 70;
+    /*
+     * UP from 70, past the sheets, and this is a fix rather than a tidy.
+     *
+     * At 70 the toast sat UNDER every overlay in this file, and the story
+     * viewer renders it immediately before the comments sheet: a `role=status`
+     * message fired by an action taken inside a sheet was painted behind that
+     * same sheet. Feedback swallowed by the surface that caused it is feedback
+     * nobody receives. A toast outranks a modal for exactly this reason.
+     */
+    z-index: var(--nf-z-toast);
     margin-inline: auto;
     max-inline-size: 26rem;
     padding: 0.75rem 1rem;
     border-radius: var(--nf-radius-md);
     border: 1px solid var(--nf-border-brand);
     background: var(--nf-surface-raised);
-    box-shadow: var(--nf-shadow-float);
+    box-shadow: var(--nf-elev-4);
     font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-secondary);
@@ -1798,7 +1840,22 @@
   .nf-comments {
     position: fixed;
     inset: 0;
-    z-index: 90;
+    /*
+     * 90, 92 and 95 USED TO BE A LADDER INSIDE A LADDER.
+     *
+     * The comments sheet, the actions sheet and the create ring are all
+     * `position: fixed; inset: 0` with their own scrim and all three carry
+     * `aria-modal="true"`. They are PEERS, not a nesting: each one owns the
+     * screen while it is open, and two aria-modal dialogs open at once is a
+     * bug on its own terms rather than a stacking order to preserve. The three
+     * numbers implied a hierarchy that nothing in the component tree builds,
+     * and they ranked above the toast, which is the one thing here that should
+     * never be covered.
+     *
+     * So all three sit on the modal rung and DOM order resolves any accidental
+     * overlap, which is what DOM order is for.
+     */
+    z-index: var(--nf-z-modal);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -1821,7 +1878,7 @@
     border-start-end-radius: var(--nf-feed-radius);
     background: var(--nf-surface-primary);
     border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-shadow-float);
+    box-shadow: var(--nf-elev-4);
     overflow: hidden;
   }
   @media (min-width: 640px) {
@@ -2065,7 +2122,7 @@
   .nf-ring {
     position: fixed;
     inset: 0;
-    z-index: 95;
+    z-index: var(--nf-z-modal);
     display: grid;
     place-items: center;
   }
@@ -2217,7 +2274,7 @@
     border-radius: var(--nf-radius-lg);
     background: var(--nf-surface-raised);
     border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-shadow-float);
+    box-shadow: var(--nf-elev-4);
     transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-ring__petal:hover .nf-ring__tile,
@@ -2280,7 +2337,7 @@
   .nf-actions {
     position: fixed;
     inset: 0;
-    z-index: 92;
+    z-index: var(--nf-z-modal);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -2317,7 +2374,7 @@
     border-start-end-radius: var(--nf-feed-radius);
     background: var(--nf-surface-primary);
     border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-shadow-float);
+    box-shadow: var(--nf-elev-4);
   }
   @media (min-width: 640px) {
     .nf-actions__panel {
@@ -2515,7 +2572,11 @@
     inset-inline-end: 1rem;
     /* Clear of the tab bar: its own offset plus its height plus a gap. */
     bottom: calc(5.5rem + env(safe-area-inset-bottom));
-    z-index: 60;
+    /* DOWN from 60, and down is the correction. At 60 this was level with two
+       modal scrims, so a floating action button could paint on top of a
+       dialog's dim by DOM order alone. A FAB is chrome: it belongs with the
+       sticky things it sits beside, under anything that opens over the page. */
+    z-index: var(--nf-z-sticky);
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -2540,7 +2601,7 @@
     border: 1px solid var(--nf-border-brand);
     box-shadow:
       0 14px 34px -12px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
-      var(--nf-shadow-float);
+      var(--nf-elev-4);
     transition: transform var(--nf-duration-fast) var(--nf-ease-spring);
   }
   .nf-fab__button:active {
@@ -2553,7 +2614,7 @@
     border-radius: var(--nf-radius-lg);
     background: var(--nf-surface-raised);
     border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-shadow-float);
+    box-shadow: var(--nf-elev-4);
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
   }

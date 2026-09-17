@@ -97,7 +97,7 @@
    * nothing currently lands is harder to read and to extend than a complete one.
    * THEY WERE ALSO THE HALF OF THIS ARGUMENT THAT HAS SINCE CHANGED, and the
    * note is corrected rather than left standing. When this was first written,
-   * all eight were mirrored as literals in `src/index.ts` and `royal500` was
+   * all eight were mirrored as literals in the package's `index.ts` and `royal500` was
    * read by the icon ramps there, which was a second reason to keep them.
    * `index.ts` has since been deleted - nothing imported it, and its stated
    * justification was falsified by the tree's own SVG code; see the package
@@ -914,7 +914,12 @@
    * Two literals survive on purpose and both are `@property` initial values,
    * which have to be computationally independent and so may not read a var():
    * `--nf-spin` in ambient.css and `--nf-stride-angle` in glass.css. Both carry
-   * a comment pointing here. A third, `--nf-gradient-brand` and its siblings at
+   * a comment pointing here, AND BOTH NOW SAY 152. `--nf-stride-angle` said 135
+   * for a while after this token landed, because the constraint "it has to be a
+   * literal" was read as though it also settled which literal. It does not, and
+   * it mattered: that angle is the `from` of the conic ring whose brightest stop
+   * sits at 0deg, so it IS the position of the highlight, and the card's edge was
+   * lit seventeen degrees away from everything else on the card. A third, `--nf-gradient-brand` and its siblings at
    * 135, is not light at all: it is the brand ink ramping between two blues,
    * and giving it the key angle would be reading a colour as a shadow.
    * ------------------------------------------------------------------ */
@@ -1013,6 +1018,58 @@
    * This replaces --nf-shadow-sm|card|lifted|float, of which -sm had zero
    * uses and -float, the highest surface on the platform, was a single flat
    * drop shadow.
+   *
+   * ===================================================================
+   * THERE IS ONE DEPTH MODEL NOW. THERE WERE FOUR AND THEY DISAGREED.
+   * ===================================================================
+   *
+   * This is the statement the five findings L-64, L-66, L-67, L-68 and L-140
+   * add up to, and it is written here because the individual fixes are
+   * scattered across six files and none of them says it on its own.
+   *
+   * WHAT THE FOUR WERE:
+   *
+   *   1  this ladder, five rungs, each a rim plus a shadow plus a border
+   *   2  the glass shadows, two layers where the ladder's are three
+   *   3  the legacy aliases, a second name for rungs 1, 2 and 4
+   *   4  `.nf-stride`, a brand-bloom stack of its own beside all three
+   *
+   * Four vocabularies for one idea meant nobody could tell whether two surfaces
+   * were a rung apart by reading them, which is the only thing an elevation
+   * ladder is for.
+   *
+   * WHAT IS LEFT:
+   *
+   *   the ladder                          the model
+   *   the glass shadows                   aliases of rungs 1, 2 and 4
+   *   the legacy aliases                  aliases of rungs 1, 2 and 4,
+   *                                       five consumers left, all components
+   *   `.nf-stride`                        deleted
+   *
+   * One model, one skin still being retired. A surface's depth is a rung, and
+   * two surfaces are comparable by reading them.
+   *
+   * THE GLASS SHADOWS EARN THEIR NAMES RATHER THAN BEING REDUNDANT, and that is
+   * why they are aliases instead of deletions. `--nf-glass-shadow-thin`,
+   * `-shadow` and `-shadow-lifted` say WHICH GLASS, and the four ingredients of
+   * a glass surface move together: a thin fill wants a thin blur, a thin rim and
+   * rung 1; the strong chrome fill wants the strong blur and rung 4. Before
+   * L-64 the thin modifier changed the fill and the blur and left the thick
+   * surface's shadow on, so the depth modifier modified two thirds of the depth
+   * and a light material carried a heavy shadow. The mapping is now:
+   *
+   *   .nf-glass--thin    fill-thin    blur-thin    rim-thin    rung 1
+   *   .nf-glass          fill         blur         rim         rung 2
+   *   .nf-glass--strong  fill-strong  blur-strong  rim-strong  rung 4
+   *
+   * Rung 3 is skipped between glass and lifted glass on purpose: it is the
+   * sheet's rung, and a sheet is a different object from a bar.
+   *
+   * AND THE LIGHT COMES FROM ONE PLACE. L-140. Every lit edge in the material
+   * reads `--nf-light-angle`, 152 degrees, including the conic stride ring whose
+   * `@property` initial value cannot read a var() and so states the number
+   * directly. A ladder of shadows lit from two directions is not a ladder, it is
+   * two ladders, which is how this got to four in the first place.
    * ------------------------------------------------------------------ */
 
   /*
@@ -1087,7 +1144,7 @@
    * two theme blocks, for nobody.
    *
    * The logo's iridescent ramp was a separate thing, `iridescentRamp` in
-   * `src/index.ts`, four literal stops for an SVG `<stop stop-color>`. That
+   * the package's `index.ts`, four literal stops for an SVG `<stop stop-color>`. That
    * file has since gone too, for reasons set out in the package README: nothing
    * imported it, and the two inline SVG gradients that actually exist in the
    * product resolve `var()` and `currentColor` in a stop without any mirror at
@@ -1170,16 +1227,28 @@
    * at the rung it did in the dark. It does; that is now visible rather than
    * assumed. `app/css/chips.css` has only the tombstone for --nf-shadow-sm.
    *
-   * WHAT STILL BLOCKS DELETION, counted rather than estimated:
-   *   app/social-feed.css        1 card, 8 float
-   *   components/app/search/MapCanvas.tsx   LIFT and CARD_LIFT constants
-   *   components/app/search/MapDock.tsx     1 lifted
-   *   components/agent/AgentMobileNav.tsx   1 float
-   *   components/agent/ModeSwitcher.tsx     1 float
-   * All five are outside the design system's own files, so the last step is
-   * a rename in the surfaces, not a change here. Delete these three lines the
-   * day that list is empty, and not before: they are aliases, so nothing
-   * warns when one goes.
+   * `app/social-feed.css` HELD NINE AND HOLDS NONE. The list below said "1 card,
+   * 8 float" and the card reference had already gone; the eight are
+   * `var(--nf-elev-4)` now, value for value, with the reason written at the head
+   * of that file.
+   *
+   * WHAT STILL BLOCKS DELETION, counted against the tree today:
+   *   components/app/search/MapCanvas.tsx:59,60   LIFT and CARD_LIFT constants
+   *   components/app/search/MapDock.tsx:108        1 lifted
+   *   components/agent/AgentMobileNav.tsx:90       1 float
+   *   components/agent/ModeSwitcher.tsx:79         1 float
+   *
+   * Five references in four files, all of them components and none of them this
+   * queue's. `--nf-shadow-card` and `--nf-shadow-lifted` are held up by
+   * `MapCanvas.tsx` alone.
+   *
+   * DELETE THESE THREE LINES THE DAY THAT LIST IS EMPTY, AND NOT ONE DAY EARLY.
+   * They are aliases, so nothing warns when one goes: the consumer is left with
+   * `var()` naming a token that does not exist, the declaration is invalid at
+   * computed-value time, and the shadow silently stops painting. That is
+   * instance 1 of the family documented in `apps/web/scripts/check-css-tokens.mjs`,
+   * and the check that catches it has never been able to see a `.tsx` file's
+   * inline styles, which is where four of these five live.
    * ------------------------------------------------------------------ */
   --nf-shadow-card: var(--nf-elev-1);
   --nf-shadow-lifted: var(--nf-elev-2);
@@ -2112,35 +2181,71 @@
   --nf-content-max: 1440px;
 
   /*
-   * THE MEASURE. Three answers to how wide a line of text may be.
+   * THE MEASURE. FOUR answers to how wide a line of text may be, and it was
+   * three, and the fourth is the question my own note here left open.
    *
-   * There were twenty-six. Counted across `apps/web/src`: 125 `max-w-[..ch]`
-   * call sites at 16, 18, 20, 22, 24, 26, 28, 32, 34, 36, 38, 40, 42, 44, 46,
+   * There were twenty-five distinct values across 121 `max-w-[..ch]` call sites
+   * in `apps/web/src`: 16, 18, 20, 22, 24, 26, 32, 34, 36, 38, 40, 42, 44, 46,
    * 48, 50, 52, 54, 56, 58, 60, 62, 68, 70 and 76 characters. Nobody chose
-   * between twenty-six measures; each site chose once, alone, and the result is
+   * between twenty-five measures; each site chose once, alone, and the result is
    * that two paragraphs of the same kind on two screens wrap differently and
    * neither is wrong by any rule that exists.
    *
-   * They fall into three clumps, which is the useful part: 16 to 28 is a
-   * headline held to two or three words a line, 32 to 48 is a standfirst under
-   * one, and 50 to 76 is running prose. So three names, and the values are the
-   * ones the finding proposes rather than the arithmetic centres.
+   * THE FIRST THREE RUNGS WERE READ OFF THE CLUMPS AND NOT COMPUTED, AND THAT
+   * WAS THE MISTAKE. The note that stood here said the values fall into three
+   * groups and took the finding's proposed numbers, 18, 46 and 68. It also said,
+   * correctly, that 52ch is the single most used value in the tree and asked
+   * whoever migrated to read a few and decide whether it is a fourth kind of
+   * column. That question is now answered by measuring instead of reading, and
+   * the answer is yes.
    *
-   * ONE THING FOR WHOEVER MIGRATES, because it will be the first thing they
-   * hit: `52ch` is the single most common value in the tree, 22 uses, and it
-   * sits between `lede` and `body`. Read a few of them before deciding. If they
-   * are genuinely a fourth kind of column rather than a body measure typed
-   * narrow, add the rung here and say what it is for. Do not leave 52 where it
-   * is because it is hard to place; that is how there came to be twenty-six.
+   * Weighted by how many sites each value has, and scoring a rung set by the
+   * total distance every site would have to move:
    *
-   * The call sites are in the app and site trees, which this workstream does
-   * not own, so these three land here unread for now. That is deliberate and it
-   * is the split the sprint asked for: the scale is the design system's, the
-   * migration is the surfaces'.
+   *   18, 46, 68     530 characters of total movement, 4.38 per site
+   *   18, 42, 52     480                               3.97   best possible three
+   *   18, 42, 52, 62 266                               2.20   best possible four
+   *
+   * Four rungs halve the error, and no three-rung set gets close, because the
+   * two largest clusters in the tree are 42ch with 16 sites and 52ch with 22,
+   * and `46` sat in the valley between them. A rung in a valley is near to
+   * nothing: it was the second least used of the three I shipped.
+   *
+   * WHAT THE FOUR ARE, read off the call sites rather than off the numbers:
+   *
+   *   display  18ch   a headline, held to two or three words a line
+   *   lede     42ch   the standfirst under one. Every 42ch site in the tree is
+   *                   `mx-auto` centred supporting copy under a heading, on an
+   *                   empty state, a screen intro or a sheet description
+   *   section  52ch   a composed heading-plus-paragraph block, not a paragraph.
+   *                   Almost every 52ch site is a `<Reveal>` wrapping a whole
+   *                   landing-page section unit
+   *   body     62ch   running prose. The 62ch sites are the dense explanatory
+   *                   paragraphs in the admin and agent panels
+   *
+   * `lede` moves 46 to 42 and `body` 68 to 62, both TOWARDS what the tree
+   * already does. 62 is also inside the 45 to 75 character range that is the
+   * readability argument for a body measure, where 42 deliberately is not: a
+   * standfirst is short by design and is read as a unit rather than scanned line
+   * by line, which is why it gets its own rung instead of being a narrow body.
+   *
+   * Bridged in `app/css/theme.css` as `--container-measure-*`, which is the
+   * CONTAINER namespace and not the spacing one. Read the note at the foot of
+   * that file before adding a fifth: `max-w-<name>` resolves from
+   * `--spacing-<name>` first and wins over `--container-*`, so a spacing rung
+   * sharing a name with one of these would silently turn a width cap into a
+   * spacing value. That collision once made 144 width caps into spacing values
+   * and computed the search bar to 64 pixels wide on a phone. Nothing in the
+   * spacing scale is called `measure-*` and nothing should be. All four
+   * utilities were compiled and checked, not assumed.
+   *
+   * The call sites are in the app and site trees, which this workstream does not
+   * own, so the migration is the surfaces'. The scale is the design system's.
    */
   --nf-measure-display: 18ch;
-  --nf-measure-lede: 46ch;
-  --nf-measure-body: 68ch;
+  --nf-measure-lede: 42ch;
+  --nf-measure-section: 52ch;
+  --nf-measure-body: 62ch;
 }
 
 /*

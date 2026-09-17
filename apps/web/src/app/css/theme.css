@@ -146,6 +146,14 @@
    */
   --container-measure-display: var(--nf-measure-display);
   --container-measure-lede: var(--nf-measure-lede);
+  /* `section` is the fourth rung, added once the tree was measured rather than
+     read: 52ch is the most used value in the product by a distance. Checked
+     against the `max-w-*` list at the foot of this file and against the spacing
+     rungs above it: there IS a `--spacing-section`, so the collision risk here
+     is real, and it does not fire because the utility is `max-w-measure-section`
+     and the spacing rung is `section`. Different names. Compiled and confirmed,
+     not reasoned about. */
+  --container-measure-section: var(--nf-measure-section);
   --container-measure-body: var(--nf-measure-body);
 
   /*

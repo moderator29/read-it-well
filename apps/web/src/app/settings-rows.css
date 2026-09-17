@@ -454,7 +454,9 @@
   .nf-rows-sheet__scrim {
     position: fixed;
     inset: 0;
-    z-index: 60;
+    /* The scrim was at 60, which is the OVERLAY rung, and this is a modal's
+       scrim. That one rung is what let the page grain paint over it. */
+    z-index: var(--nf-z-modal);
     background: color-mix(in oklab, var(--nf-canvas-base) 72%, transparent);
     backdrop-filter: blur(var(--nf-glass-blur-thin));
     animation: nf-rows-sheet-in var(--nf-duration-base) var(--nf-ease-standard) both;
@@ -462,7 +464,7 @@
 
   .nf-rows-sheet {
     position: fixed;
-    z-index: 61;
+    z-index: calc(var(--nf-z-modal) + 1);
     inset-inline: 0;
     bottom: 0;
     max-height: min(86dvh, 46rem);

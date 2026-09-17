@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { applyTheme } from "@/components/app/account/settings-store";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -10,10 +11,12 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * the same tokens. The choice persists in localStorage and lands on the root
  * element as data-theme, which the token sheet keys off. A tiny inline script
  * in the root layout applies the stored theme before first paint, so there is
- * never a flash of the wrong mode; this control only has to flip and store.
+ * never a flash of the wrong mode; this control only has to flip.
+ *
+ * The flip itself goes through `applyTheme` in the settings store, which is the
+ * single writer of the theme: the storage key, the root attribute and the
+ * browser chrome colour all move together or the three of them drift apart.
  */
-const STORE = "nf_theme";
-
 export function ThemeToggle({
   className,
   variant = "icon",
@@ -37,16 +40,22 @@ export function ThemeToggle({
     if (current === "light") setTheme("light");
   }, []);
 
+  /*
+   * THIS USED TO BE ITS OWN COPY OF `applyTheme` AND THAT IS WHY IT DRIFTED.
+   *
+   * It wrote `nf_theme` and `data-theme` by hand, which was the same three
+   * lines the settings store already owned, so the moment the store learned a
+   * fourth thing (the browser chrome colour, which cannot be declared because
+   * `prefers-color-scheme` answers the OS and this product answers storage)
+   * this control kept flipping the page and stopped moving the chrome with it.
+   *
+   * Two writers of one piece of state is one writer too many. The store is the
+   * writer; this is a button.
+   */
   const flip = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    if (next === "light") document.documentElement.dataset.theme = "light";
-    else delete document.documentElement.dataset.theme;
-    try {
-      localStorage.setItem(STORE, next);
-    } catch {
-      /* storage unavailable */
-    }
+    applyTheme(next);
   };
 
   const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";

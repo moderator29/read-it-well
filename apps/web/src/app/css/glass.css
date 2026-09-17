@@ -47,17 +47,39 @@
    * ambient animation per viewport is still the rule and this is not spending
    * it.
    */
+  /*
+   * 152 AND NOT 135, AND THAT SEVENTEEN DEGREES WAS THE LAST THING IN THE
+   * PRODUCT LIT FROM A SECOND DIRECTION.
+   *
+   * L-140's answer was one light source at `--nf-light-angle`, 152 degrees,
+   * everywhere. The note beside that token records two literals that survive on
+   * purpose, this one and `--nf-spin` in ambient.css, because a `@property`
+   * initial value has to be computationally independent and so may not read a
+   * `var()`. That is true about the MECHANISM and says nothing about the VALUE:
+   * the constraint is that the number must be written out, not that it must be
+   * the number it happened to be already.
+   *
+   * It matters here more than anywhere, because of where the stops sit.
+   * `--nf-edge-stride-stops` puts its brightest stop, `peak`, at 0deg, and this
+   * is the `from` angle of the conic that carries them. So this value IS the
+   * position of the ring's primary highlight, and at 135 it sat seventeen
+   * degrees anticlockwise of every other lit edge on the same card. The proof
+   * that 152 was intended is its own sibling: `--nf-spin` is already 152.
+   *
+   * The keyframe follows it, 152 to 512, which is the same full turn from the
+   * new rest position.
+   */
   @property --nf-stride-angle {
     syntax: "<angle>";
     inherits: false;
-    initial-value: 135deg;
+    initial-value: 152deg;
   }
   @keyframes nf-edge-stride {
     from {
-      --nf-stride-angle: 135deg;
+      --nf-stride-angle: 152deg;
     }
     to {
-      --nf-stride-angle: 495deg;
+      --nf-stride-angle: 512deg;
     }
   }
 

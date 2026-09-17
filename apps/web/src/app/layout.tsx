@@ -155,18 +155,36 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   /*
-   * One theme-color per theme.
+   * ONE DECLARED VALUE, NOT A PAIR KEYED ON `prefers-color-scheme`.
    *
-   * This used to be a single navy for both, so a user on the light theme got a
-   * near-black browser chrome above a #F4F5F7 canvas, a hard seam exactly
-   * where the reference set expects the chrome to disappear into the page.
-   * The dark value still matches `background_color` and `theme_color` in the
-   * manifest, so install, splash and canvas remain one continuous colour.
+   * The pair was right while the theme followed the operating system and became
+   * wrong the day the default stopped following it. A `media` query answers the
+   * OS. This product's theme answers STORAGE. They disagreed for exactly the
+   * visitor the dark default was written for: a phone set to light, opening
+   * Vallo for the first time, got the dark canvas under a #F4F5F7 browser
+   * chrome, which is the hard seam the pair was added to remove, reintroduced
+   * by the half of the system that could not be told about the change.
+   * Measured across all six combinations of stored choice and OS preference
+   * rather than reasoned about; three of the six were mismatched.
+   *
+   * So dark is declared, because dark is what somebody who has not chosen will
+   * see, and the light value is written by the two places that know: the
+   * before-paint script below, and `applyThemeColour` in the settings store
+   * when somebody moves the setting.
+   *
+   * THIS IS `CHROME_COLOUR.dark` IN `lib/native/theme.ts` AND IT MUST STAY
+   * EQUAL TO IT, along with the `StatusBar` block in `capacitor.config.ts`.
+   * It is written out here rather than imported because this is server-rendered
+   * metadata with no CSS context, and because that file's own note is the
+   * record of why these two values are literals at all.
+   *
+   * It is deliberately NOT `--nf-surface-canvas`. That was tried and measured
+   * and it is the wrong colour: the canvas is #000010 in dark, but the browser
+   * chrome sits above the TOP of the page and the top of the page is the sticky
+   * glass header, which samples #090919. This value sits between them and is
+   * closer to the header, which is the thing the chrome actually abuts.
    */
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#010118" },
-    { media: "(prefers-color-scheme: light)", color: "#F4F5F7" },
-  ],
+  themeColor: "#010118",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -234,7 +252,7 @@ export default async function RootLayout({
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches))document.documentElement.dataset.theme='light'}catch(e){}",
+              "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches)){document.documentElement.dataset.theme='light';var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content','#F4F5F7')}}catch(e){}",
           }}
         />
         {/*

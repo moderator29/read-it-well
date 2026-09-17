@@ -60,3 +60,46 @@ TypeScript in the package. Removing it needs an `npm install` to rewrite
 `package-lock.json`, which is not a thing to do to a lock file while other
 workstreams are writing to the tree. It is harmless where it is; take it out
 with the next dependency change.
+
+## Writing about a file in a comment
+
+This belongs in a repository-level conventions document rather than here. It is
+written down in the only doc-shaped file this workstream owns, because an
+unwritten convention is the thing it exists to prevent. Move it when there is
+somewhere better.
+
+Two comments in this codebase vouched for components that have never existed:
+
+    see components/site/Onboarding.tsx for the honest, localStorage-gated,
+    reduced-motion-skipping trigger
+
+    see app/agents/status/StatusIcon.tsx for the honest, one-shot trigger
+
+Between them they vouched for fifteen rules of dead CSS, for months, and both
+read as obviously live. A named source file is the strongest evidence a reader
+gets that a rule is wired up, and nothing checked either one.
+
+`apps/web/scripts/check-css-tokens.mjs` now stats every source path it finds in
+a comment. It reports rather than fails, because whether a missing path is a
+fault depends on the tense of the sentence around it and prose has no syntax for
+tense. It found four kinds and only two are wrong:
+
+| kind | example | verdict |
+| --- | --- | --- |
+| vouching | "see `components/site/Onboarding.tsx` for the trigger" | fault |
+| stale | "`lib/agent/repository.ts` had already settled this" | fault |
+| historical | "everything below arrived from `components/app/assistant/glyphs.tsx`" | correct |
+| forward | "delete this the day `AgentShell` moves into `app/agent/layout.tsx`" | correct |
+
+**So: write a full path with an extension only when you are asserting that the
+file is there to be opened right now.** When you are recalling a file that has
+gone, or predicting one that has not arrived, name the directory or drop the
+extension:
+
+    arrived from `components/app/assistant/`
+    the day AgentShell moves into `app/agent/layout`
+
+It says the same thing, a reader cannot mistake it for a live reference either,
+and it is what lets the check become fatal. Every path in the design system's
+own files already follows it; at the time of writing three references elsewhere
+in the tree do not, and the check names them on every run.

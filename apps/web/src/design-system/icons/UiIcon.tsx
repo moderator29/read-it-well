@@ -467,7 +467,7 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   ),
 
   /* ------------------------------------------------------- folded in.
-     Everything below arrived from `components/app/assistant/glyphs.tsx` or
+     Everything below arrived from `components/app/assistant/` or
      `components/social/feed/PostGlyph.tsx`. Redrawn where the private set had
      hand-tuned its own stroke weight, because the weight is the platform's and
      is derived from the size here; otherwise the geometry is carried over

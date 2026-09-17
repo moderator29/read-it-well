@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { CHROME_COLOUR, currentTheme } from "@/lib/native/theme";
 
 /**
  * Device settings store.
@@ -236,6 +237,44 @@ export function applyTheme(choice: ThemeChoice): void {
     (choice === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
   if (light) document.documentElement.dataset.theme = "light";
   else delete document.documentElement.dataset.theme;
+  applyThemeColour();
+}
+
+/**
+ * The browser's own chrome follows the theme.
+ *
+ * TWO FAULTS, AND THE SECOND ONE ONLY TURNED UP BECAUSE THE FIRST WAS FIXED
+ * BADLY TWICE.
+ *
+ * THE FAULT. `<meta name="theme-color" media="(prefers-color-scheme: light)">`
+ * answers the OPERATING SYSTEM, and this product's theme answers STORAGE.
+ * Those are not the same question and they disagreed for exactly the visitor
+ * the dark default was written for: somebody whose phone is set to light,
+ * opening Vallo for the first time, got the dark canvas under a #F4F5F7
+ * browser chrome, which is the hard seam the two-value metadata existed to
+ * remove. Measured across all six combinations of stored choice and OS
+ * preference; three of the six were mismatched.
+ *
+ * THE FIRST BAD FIX was a pair of hex literals here, and `nf/no-raw-colour`
+ * called it. THE SECOND was reading `--nf-surface-canvas` instead, which is a
+ * better instinct and still the wrong source, and only a measurement showed it:
+ * the canvas is #000010 in dark, but the browser chrome sits above the TOP OF
+ * THE PAGE and the top of the page is the sticky glass header, which samples
+ * #090919. #010118 is neither of those and is closer to the header than the
+ * canvas is, which is why it was chosen and why nobody wrote down that it was a
+ * header colour rather than a canvas one.
+ *
+ * So the source is `CHROME_COLOUR`, which is the one place these two values
+ * live and which `viewport.themeColor` and the Capacitor `StatusBar` block both
+ * already mirror. A fourth opinion about the same colour was the whole problem.
+ *
+ * Called with no argument on purpose: it runs after `data-theme` has moved and
+ * reads the theme the document is actually in, so it cannot disagree with the
+ * screen.
+ */
+export function applyThemeColour(): void {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", CHROME_COLOUR[currentTheme()]);
 }
 
 export function readThemeChoice(): ThemeChoice {

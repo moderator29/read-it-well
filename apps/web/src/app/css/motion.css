@@ -123,7 +123,7 @@
    * anywhere in the component tree.
    *
    * THE COMMENT NAMED ITS OWN TRIGGER AND THE FILE DOES NOT EXIST. It said "see
-   * components/site/Onboarding.tsx for the honest, localStorage-gated,
+   * components/site/Onboarding for the honest, localStorage-gated,
    * reduced-motion-skipping trigger". There is no `Onboarding.tsx` anywhere
    * under `src`. That reference is why this read as live for so long: a
    * cross-reference to a named file is the strongest evidence a reader gets that
@@ -141,12 +141,12 @@
    *
    * `.nf-status-assemble`, its keyframe and its reduced-motion answer: the agent
    * status icon assembling itself once, "the one time a browser renders this
-   * application as just approved (see app/agents/status/StatusIcon.tsx for the
+   * application as just approved (see app/agents/status/StatusIcon for the
    * honest, one-shot trigger)". There is no `StatusIcon.tsx` anywhere under
    * `src`, and the class appears in no component.
    *
    * SECOND TIME IN TWO BLOCKS, IN THIS FILE, WITH THE SAME WORDING. The guided
-   * flight pointed at `components/site/Onboarding.tsx` in the same phrase - "for
+   * flight pointed at `components/site/Onboarding` in the same phrase - "for
    * the honest, ... trigger" - and that file does not exist either. Two dead
    * animations, both vouched for by a named component, both written by somebody
    * describing the thing they were about to build. A cross-reference is the

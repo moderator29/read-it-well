@@ -8,7 +8,7 @@ import { useSyncExternalStore } from "react";
  * ---------------------------------------------------------------------------
  * WHY IT LIVES IN `lib/ui` AND NOT IN `components/app`.
  *
- * It was in `components/app/client-mount.ts`, which was right while every
+ * It was in `components/app/`, which was right while every
  * consumer was a product component. The fifth consumer is `components/ui/Sheet`,
  * and `components/ui` is the PRIMITIVE layer that `components/app` is built on
  * top of: every dependency between those two directories runs app -> ui, and an

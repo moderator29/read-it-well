@@ -573,6 +573,140 @@ for (const file of filesUnder(TOKENS, [".css", ".ts"])) {
 }
 
 /*
+ * CHECK SEVEN: THE SAME CUSTOM PROPERTY DECLARED TWICE IN ONE RULE.
+ *
+ * Instance 3 of the family at the top of this file. Five `--nf-media-*` tokens
+ * appeared twice in the same `:root`, seventeen lines apart, under a
+ * character-for-character copy of the same thirteen-line comment, with all five
+ * values different. Later declaration wins, so a retune that the file's own
+ * prose describes had never once rendered, and the values that DID paint were
+ * the ones the prose calls wrong.
+ *
+ * Nothing warns about it. A repeated custom property is legal CSS, `tokens.css`
+ * is two and a half thousand lines, and a duplicated comment makes the second
+ * block look like the first at a glance rather than like a second definition of
+ * it.
+ *
+ * PER RULE, NOT PER FILE, and that is the whole difficulty. `--nf-surface-canvas`
+ * is declared in the night `:root` and again in the daylight block, which is the
+ * theming mechanism and is correct; declared twice in ONE of them, it is a bug.
+ * So this walks brace depth and keys by the block a declaration sits in.
+ *
+ * `@media` and `@supports` wrappers count as blocks of their own, which is
+ * conservative in the right direction: a token redeclared inside a media query
+ * is a deliberate override of the rule outside it, and this will not report it.
+ */
+const duplicates = [];
+
+for (const file of [...filesUnder(TOKENS, [".css"]), ...ROOTS.flatMap((dir) => filesUnder(join(ROOT, dir), [".css"]))]) {
+  const source = withoutComments(readFileSync(file, "utf8"));
+  const where = relative(ROOT, file);
+  /* One entry per open brace, holding what that block has declared so far. */
+  const stack = [];
+  let buffer = "";
+  let line = 1;
+  for (const character of source) {
+    if (character === "\n") line += 1;
+    if (character === "{") {
+      stack.push(new Map());
+      buffer = "";
+    } else if (character === "}") {
+      stack.pop();
+      buffer = "";
+    } else if (character === ";") {
+      const match = /^\s*(--nf-[a-z0-9-]+)\s*:/.exec(buffer);
+      const block = stack[stack.length - 1];
+      if (match && block) {
+        const first = block.get(match[1]);
+        if (first === undefined) block.set(match[1], line);
+        else duplicates.push(`${where}  ${match[1]}  declared at line ${first} and again at line ${line}`);
+      }
+      buffer = "";
+    } else {
+      buffer += character;
+    }
+  }
+}
+
+/*
+ * CHECK EIGHT: A COMMENT POINTING AT A SOURCE FILE THAT DOES NOT EXIST.
+ *
+ * Instance 5, and it is the one that cost the most. `.nf-onboarding` was
+ * introduced by "see components/site/Onboarding.tsx for the honest,
+ * localStorage-gated, reduced-motion-skipping trigger" and `.nf-status-assemble`
+ * by "see app/agents/status/StatusIcon.tsx for the honest, one-shot trigger".
+ * Neither file has ever existed. Between them they vouched for fifteen rules of
+ * dead CSS, and both read as obviously live, because a named component is the
+ * strongest evidence a reader gets that a rule is wired up. Both were written by
+ * somebody describing a file they were about to create.
+ *
+ * WHAT COUNTS AS A PATH. A slash, and an extension this repository actually
+ * uses. That is deliberately narrow: `HANDOFF_03 section 2.3` and `inbox item
+ * 226` are references to things outside the tree and are none of this check's
+ * business, and a check that reported them would be switched off in a week.
+ *
+ * WHERE IT LOOKS. A comment writes the path from wherever the author was
+ * standing, so `components/ui/Field.tsx`, `src/app/css/glass.css` and
+ * `apps/web/scripts/check-css-tokens.mjs` all appear and all are real. Each
+ * candidate is tried against every plausible root and only reported if NONE of
+ * them resolve. A false negative here costs nothing; a false positive costs the
+ * check its credibility.
+ */
+const missingPaths = [];
+const PATH_ROOTS = [
+  join(ROOT, "src"),
+  ROOT,
+  join(ROOT, ".."),
+  join(ROOT, "../.."),
+  join(ROOT, "src/app"),
+  /*
+   * THE LAST THREE WERE THE DIFFERENCE BETWEEN A CHECK AND A NUISANCE, and the
+   * first run proved it: 14 hits of which 5 were real files written from where
+   * the author was standing. `light.css` says `ui/ActionBar.tsx`,
+   * `UiIcon.tsx` says `wallet/BalanceCard.tsx`, `lib/email/listings.ts` says
+   * `email/recipients.ts`. All three exist; none of them resolve from `src`.
+   *
+   * The fix is a longer root list and not a looser pattern, which is the same
+   * shape as stripping comments out of the layer-1 scan: an incomplete resolver
+   * is a bug in the check, and lowering the bar to hide it would have thrown
+   * away the real findings with the noise.
+   */
+  join(ROOT, "src/components"),
+  join(ROOT, "src/components/app"),
+  join(ROOT, "src/lib"),
+  join(ROOT, "src/design-system"),
+];
+const PATH_IN_PROSE = /(?:^|[\s"'`(\[])((?:[\w.-]+\/)+[\w.-]+\.(?:tsx?|css|mjs|json))/g;
+
+function commentsOf(source, isCss) {
+  const blocks = [...source.matchAll(/\/\*[\s\S]*?\*\//g)].map((m) => m[0]);
+  if (isCss) return blocks;
+  return blocks.concat(
+    source.split("\n").filter((l) => /^\s*\/\//.test(l)),
+  );
+}
+
+for (const file of [
+  ...filesUnder(TOKENS, [".css"]),
+  ...ROOTS.flatMap((dir) => filesUnder(join(ROOT, dir), [".css"])),
+  ...filesUnder(join(ROOT, "src"), [".ts", ".tsx"]),
+]) {
+  const source = readFileSync(file, "utf8");
+  const where = relative(ROOT, file);
+  const seen = new Set();
+  for (const comment of commentsOf(source, file.endsWith(".css"))) {
+    for (const hit of comment.matchAll(PATH_IN_PROSE)) {
+      const candidate = hit[1];
+      if (seen.has(candidate)) continue;
+      seen.add(candidate);
+      if (PATH_ROOTS.some((root) => existsSync(join(root, candidate)))) continue;
+      const atLine = source.split("\n").findIndex((l) => l.includes(candidate)) + 1;
+      missingPaths.push(`${where}:${atLine}  ${candidate}`);
+    }
+  }
+}
+
+/*
  * CHECK SIX: DOES THE WHOLE STYLESHEET STILL PARSE, FROM THE ENTRY POINT.
  *
  * I WROTE THIS BECAUSE I BROKE IT. Deleting a dead rule from `motion.css` left
@@ -668,6 +802,77 @@ if (failures.length > 0) {
   console.error(`\n${failures.length} violation(s).\n`);
 }
 
+if (duplicates.length > 0) {
+  failed = true;
+  console.error(
+    "\nTHE SAME CUSTOM PROPERTY DECLARED TWICE IN ONE RULE. Later wins, so the\n" +
+      "first declaration is dead and the value that paints is the second one,\n" +
+      "whichever that turns out to be. Nothing warns: a repeated custom property\n" +
+      "is legal CSS.\n\n" +
+      "This is worth reading rather than fixing blind. When it last happened, five\n" +
+      "tokens were duplicated seventeen lines apart under a copy of the same\n" +
+      "comment, and the copy that WON was the one the file's own prose describes\n" +
+      "as wrong: a retune that had been written up and reviewed had never once\n" +
+      "rendered. Decide which value is the intended one before deleting either.\n",
+  );
+  for (const entry of duplicates) console.error(`  ${entry}`);
+  console.error(`\n${duplicates.length} duplicate declaration(s).\n`);
+}
+
+/*
+ * CHECK EIGHT REPORTS AND DOES NOT FAIL, AND THAT IS A JUDGEMENT ABOUT WHAT A
+ * MACHINE CAN KNOW RATHER THAN A SOFTENING OF IT.
+ *
+ * Every other check here is decidable. A `var()` either names a defined token or
+ * it does not; a property either takes a shadow or it does not. A path in prose
+ * is not, because whether it is a FAULT depends entirely on the tense of the
+ * sentence around it, and prose has no syntax for tense that a regular
+ * expression can read. The first run of this check found four kinds and only two
+ * of them are wrong:
+ *
+ *   VOUCHING    "see components/site/Onboarding.tsx for the honest trigger"
+ *               Asserts the file exists now. It never has. FAULT, and this is
+ *               the one the check was built for: it vouched for eleven rules of
+ *               dead CSS and read as obviously live.
+ *
+ *   STALE       "lib/agent/repository.ts had already decided the principle"
+ *               Asserts the file exists now. It does not. FAULT, or the path is
+ *               mistyped, and either way somebody will go looking.
+ *
+ *   HISTORICAL  "everything below arrived from components/app/assistant/glyphs.tsx"
+ *               Correct. The file is gone BECAUSE of the change being described.
+ *
+ *   FORWARD     "delete this the day AgentShell moves into app/agent/layout.tsx"
+ *               Correct. The file does not exist yet and that is the point.
+ *
+ * So it prints its list and exits zero, because a check that fails on correct
+ * prose is one somebody deletes rather than obeys, and that rule is older than
+ * this check.
+ *
+ * IT CAN BECOME FATAL, AND HERE IS THE CONDITION. The two correct kinds only
+ * need an extensioned path because we habitually write one. Name the DIRECTORY,
+ * or drop the extension, when you are recalling a file or predicting one:
+ * "arrived from `components/app/assistant/`" says the same thing and cannot be
+ * mistaken for a live reference by a reader either. Write a full path with an
+ * extension only when you are asserting that the file is there to be opened.
+ * Once the tree is clean under that convention, move this into the block above
+ * and let it fail. Every path in the design-system queue's own files already
+ * follows it.
+ */
+if (missingPaths.length > 0) {
+  console.error(
+    "\nA COMMENT NAMES A SOURCE FILE THAT DOES NOT EXIST. Read each one: this\n" +
+      "check cannot tell an assertion from a recollection, and the note above it\n" +
+      "in this file says which kinds are faults and which are fine.\n\n" +
+      "The fault to look for is a comment VOUCHING for a file, because a named\n" +
+      "component is the strongest evidence a reader gets that a rule is wired up.\n" +
+      "Two dead animations survived that way, both introduced by 'see X for the\n" +
+      "honest trigger', neither X ever written.\n",
+  );
+  for (const entry of missingPaths) console.error(`  ${entry}`);
+  console.error(`\n${missingPaths.length} unresolved path(s) in comments, reported only.\n`);
+}
+
 if (componentFailures.length > 0) {
   failed = true;
   console.error(
@@ -751,5 +956,6 @@ if (failed) process.exit(1);
 console.log(
   "css tokens: clean - 0 layer-1 references in stylesheets, 0 in components, " +
     "0 raw colour literals, 0 unresolved var() references, 0 var() references " +
-    "of the wrong type, and every partial parses. All six are enforced.",
+    "of the wrong type, 0 duplicate declarations, and every partial parses. " +
+    "Seven enforced, plus the comment-path report.",
 );
