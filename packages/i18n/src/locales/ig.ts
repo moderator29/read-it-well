@@ -1645,6 +1645,11 @@ export const ig: Dictionary = {
           approved: "Akwadoro ya",
           rejected: "A nabataghị ya",
         },
+        kycRung: {
+          passed: "Ọ gafere",
+          failed: "Ọ gafereghị",
+          pending: "Na-echere onye nyocha",
+        },
         reportTarget: {
           listing: "Otu ndepụta",
           POST: "Otu ozi",

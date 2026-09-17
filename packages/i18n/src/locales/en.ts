@@ -2018,6 +2018,20 @@ export const en = {
           approved: "Approved",
           rejected: "Not accepted",
         },
+        /*
+         * `agent_verification_checks.status`, which is a SEPARATE vocabulary
+         * from `kycReview` above and not a synonym for it. The check constraint
+         * allows exactly passed, failed and pending, and a rung's `pending`
+         * means an automated check has produced something a person has to look
+         * at, which is not what a document's `pending` means. Reusing the
+         * document words here would tell a reviewer a rung had not been looked
+         * at when in fact it is waiting on them.
+         */
+        kycRung: {
+          passed: "Passed",
+          failed: "Did not pass",
+          pending: "Waiting on a reviewer",
+        },
         reportTarget: {
           listing: "A listing",
           POST: "A post",

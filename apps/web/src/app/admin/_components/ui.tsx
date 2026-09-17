@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
-import { ADMIN_COLUMN_WORDS, fill, type AdminCommon } from "./copy";
+import { fill, type AdminCommon } from "./copy";
 
 /**
  * The console's shared furniture.
@@ -130,13 +130,25 @@ export function adminUi(t: Dictionary, locale: Locale) {
   // which arrive as plain strings, so the lookup is widened deliberately and
   // falls back to the raw value rather than to a blank chip.
   const statusNames = c.status as Record<string, string | undefined>;
-  /* The per-column vocabulary, if the dictionary has grown one yet. Widened
-     through `unknown` by exactly this one optional branch, so a typo in a
-     column name stays a lookup miss rather than becoming a type error the day
-     the keys land, and nothing else about the dictionary is loosened. */
-  const columnWords = (c as unknown as {
-    columns?: Record<string, Record<string, string | undefined> | undefined>;
-  }).columns;
+  /*
+   * The per-column vocabulary, straight off the typed dictionary.
+   *
+   * It used to be widened through `unknown` into an OPTIONAL branch, with an
+   * English copy of every word staged in `copy.ts` behind it, because
+   * `packages/i18n` was another owner's file and the keys did not exist. They
+   * exist now, in all four languages, so the optional read and the staged
+   * English have become the one thing they were never meant to be: a second
+   * copy of thirty-one strings that nothing keeps in step with the dictionary,
+   * and a silent catch for a key deleted by accident. A missing key would have
+   * fallen through to English on a Hausa console and nothing would have said
+   * so.
+   *
+   * `Dictionary` is `typeof en`, so every column and every value below is
+   * required and exhaustively typed. Deleting one, or adding a value to a
+   * column without a word for it, is a compile error here rather than a raw
+   * database value on an operator's screen.
+   */
+  const columnWords = c.columns;
 
   /**
    * Lagos time, always, so the server and the browser never disagree on a
@@ -217,14 +229,20 @@ export function adminUi(t: Dictionary, locale: Locale) {
    */
   function columnLabel(column: string, value: string | null | undefined): string {
     if (!value) return c.notRecorded;
-    /* Three tiers, in this order: the dictionary if it has the branch yet, the
-       English staged in `copy.ts`, then a readable version of the column. Each
-       is strictly better than the one after it and the first two disappear
-       without a call-site change as the dictionary catches up. */
-    const translated = columnWords?.[column]?.[value];
+    /* The dictionary, then a readable version of the raw value. The middle
+       tier is gone with the staged English above it.
+
+       THE FALLBACK STAYS, and it is not dead code. Three of these columns are
+       plain `text` rather than enums, so the database can hold a value nobody
+       has written a word for: `reports.target_type` and `reports.category` are
+       written by two different modules, and `agent_verification_checks.status`
+       is guarded only by a check constraint. A value that arrives without a
+       word becomes "Off platform payment" rather than `off_platform_payment`,
+       which is still English and still better than the column. */
+    const translated = (columnWords as Record<string, Record<string, string | undefined>>)[
+      column
+    ]?.[value];
     if (translated) return translated;
-    const staged = ADMIN_COLUMN_WORDS[column]?.[value];
-    if (staged) return staged;
     const spaced = value.replace(/_/g, " ").trim();
     if (spaced.length === 0) return c.notRecorded;
     return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();

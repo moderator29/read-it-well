@@ -1635,6 +1635,11 @@ export const ha: Dictionary = {
           approved: "An amince",
           rejected: "Ba a karɓa ba",
         },
+        kycRung: {
+          passed: "Ya wuce",
+          failed: "Bai wuce ba",
+          pending: "Ana jiran mai duba",
+        },
         reportTarget: {
           listing: "Wani jeri",
           POST: "Wani saƙo",

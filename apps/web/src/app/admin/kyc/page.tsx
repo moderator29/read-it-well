@@ -214,8 +214,17 @@ function SubjectCard({
               <span className="text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-primary)]">
                 {RUNG_LABEL[rung.kind] ?? rung.kind}
               </span>{" "}
+              {/* THE FIFTH RAW COLUMN VALUE, AND IT SURVIVED THE OTHER FOUR.
+                  `label={rung.status}` printed `passed`, `failed` and
+                  `pending` in lower case at a reviewer, three rows above a
+                  document chip that had already been fixed. Its own vocabulary
+                  rather than the document's: a rung's `pending` means an
+                  automated check produced something a person has to look at,
+                  and `kycReview`'s `pending` means nobody has opened it yet.
+                  Borrowing the document words here would have told a reviewer a
+                  rung was untouched when it was waiting on them. F2-060. */}
               <ui.StatusChip
-                label={rung.status}
+                label={ui.columnLabel("kycRung", rung.status)}
                 tone={toneForReview(rung.status)}
               />
               {rung.note && (

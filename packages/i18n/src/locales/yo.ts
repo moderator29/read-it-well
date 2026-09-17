@@ -1641,6 +1641,11 @@ export const yo: Dictionary = {
           approved: "A ti fọwọ́sí",
           rejected: "A kò gbà",
         },
+        kycRung: {
+          passed: "Ó kọjá",
+          failed: "Kò kọjá",
+          pending: "Ń dúró de olùyẹ̀wò",
+        },
         reportTarget: {
           listing: "Àtòjọ kan",
           POST: "Ìfìwéránṣẹ́ kan",
