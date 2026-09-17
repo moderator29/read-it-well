@@ -6,12 +6,12 @@ import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
+import { useClientMount } from "@/components/app/client-mount";
 import {
   applyReduceMotion,
   applyTextSize,
-  applyTheme,
-  readThemeChoice,
   useNfSettings,
+  useThemeChoice,
   type TextSize,
   type ThemeChoice,
 } from "./settings-store";
@@ -76,12 +76,19 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
     { value: "m", label: copy.textMedium },
     { value: "l", label: copy.textLarge },
   ];
-  // Dark is the platform default, so that is what this shows selected until the
-  // effect below reads whatever this device actually chose.
-  const [theme, setTheme] = useState<ThemeChoice>("dark");
+  /* Subscribed, not copied into state and corrected afterwards. This was
+     `useState("dark")` plus a mount effect, so on a device set to light the
+     theme row showed Dark selected for one commit before flipping - a flicker
+     on the exact row somebody opened this screen to change. See
+     `useThemeChoice` in `./settings-store`. */
+  const { theme, chooseTheme } = useThemeChoice();
 
+  /* The migration is a WRITE to another device's leftover key, so it stays an
+     effect: it is this component updating an external system, which is the case
+     the rule says an effect is for. It cannot move into the theme store either,
+     because the flag it migrates belongs to the settings document and not to the
+     theme. */
   useEffect(() => {
-    setTheme(readThemeChoice());
     try {
       // Migrate the flag earlier builds stored on its own key.
       if (window.localStorage.getItem("nf_reduce_motion") === "1") set("reduceMotion", true);
@@ -98,11 +105,6 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
     if (settings.reduceMotion) document.documentElement.dataset.reduceMotion = "1";
     else delete document.documentElement.dataset.reduceMotion;
   }, [settings.reduceMotion]);
-
-  const chooseTheme = (next: ThemeChoice) => {
-    setTheme(next);
-    applyTheme(next);
-  };
 
   return (
     <SettingsGroup label={copy.label} note={copy.note}>
@@ -323,35 +325,30 @@ export function SearchCard({ t }: { t: Dictionary }) {
 export function SecurityCard({ t, children }: { t: Dictionary; children?: ReactNode }) {
   const { settings, set } = useNfSettings();
   const copy = t.settings.security;
-  const [device, setDevice] = useState(copy.thisDevice);
-  const [signOutNote, setSignOutNote] = useState(false);
+  /*
+   * DERIVED DURING RENDER, BEHIND THE CLIENT LATCH.
+   *
+   * This was `useState(copy.thisDevice)` and a mount effect that read
+   * `navigator.userAgent` and set the state, which is `set-state-in-effect`
+   * again and for the plainest possible reason: the user agent is a constant
+   * for the life of the page, so nothing was being synchronised. It was read
+   * once, turned into a string, and pushed into React.
+   *
+   * It cannot simply be computed during render, because `navigator` does not
+   * exist while the server renders this row and reading it during hydration
+   * would make the client's markup disagree with the server's. `useClientMount`
+   * is the latch that says which side we are on, and it is the one
+   * `useSyncExternalStore` in the tree whose whole job is that question.
+   *
+   * Before the latch flips, the row reads "This device", which is true and says
+   * nothing it cannot support.
+   */
+  const onClient = useClientMount();
+  const device = onClient ? describeDevice(copy) : copy.thisDevice;
 
-  useEffect(() => {
-    const ua = navigator.userAgent;
-    const browser = /edg\//i.test(ua)
-      ? "Edge"
-      : /opr\//i.test(ua)
-        ? "Opera"
-        : /chrome|crios/i.test(ua)
-          ? "Chrome"
-          : /firefox|fxios/i.test(ua)
-            ? "Firefox"
-            : /safari/i.test(ua)
-              ? "Safari"
-              : copy.unknownBrowser;
-    const os = /android/i.test(ua)
-      ? "Android"
-      : /iphone|ipad|ipod/i.test(ua)
-        ? "iOS"
-        : /mac os/i.test(ua)
-          ? "macOS"
-          : /windows/i.test(ua)
-            ? "Windows"
-            : /linux/i.test(ua)
-              ? "Linux"
-              : copy.unknownOs;
-    setDevice(copy.deviceOn.replace("{browser}", browser).replace("{os}", os));
-  }, [copy]);
+  /* Set once, by the sign-out-everywhere row, to explain why nothing appeared
+     to happen. It is this card's own state and belongs in `useState`. */
+  const [signOutNote, setSignOutNote] = useState(false);
 
   return (
     <SettingsGroup label={copy.label} note={signOutNote ? copy.signOutNote : undefined}>
@@ -424,4 +421,45 @@ export function DataCard({ t }: { t: Dictionary }) {
       />
     </SettingsGroup>
   );
+}
+
+
+/**
+ * "Chrome on Android", from the user agent, as a person would say it.
+ *
+ * Lifted out of the component because it is a pure function of a string and a
+ * copy bundle, and because a ten-arm nested ternary inside a render body is the
+ * kind of thing that gets edited in the wrong arm. Unknown falls back to the
+ * copy bundle's own words rather than to the raw user agent, which is not
+ * something anybody should be shown on a settings row.
+ */
+function describeDevice(copy: {
+  unknownBrowser: string;
+  unknownOs: string;
+  deviceOn: string;
+}): string {
+  const ua = navigator.userAgent;
+  const browser = /edg\//i.test(ua)
+    ? "Edge"
+    : /opr\//i.test(ua)
+      ? "Opera"
+      : /chrome|crios/i.test(ua)
+        ? "Chrome"
+        : /firefox|fxios/i.test(ua)
+          ? "Firefox"
+          : /safari/i.test(ua)
+            ? "Safari"
+            : copy.unknownBrowser;
+  const os = /android/i.test(ua)
+    ? "Android"
+    : /iphone|ipad|ipod/i.test(ua)
+      ? "iOS"
+      : /mac os/i.test(ua)
+        ? "macOS"
+        : /windows/i.test(ua)
+          ? "Windows"
+          : /linux/i.test(ua)
+            ? "Linux"
+            : copy.unknownOs;
+  return copy.deviceOn.replace("{browser}", browser).replace("{os}", os);
 }

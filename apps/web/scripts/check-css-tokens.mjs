@@ -153,9 +153,23 @@ const JS_DEFINITION = /["'`](--nf-[a-z0-9-]+)["'`]/g;
 /** `var(--nf-x` plus whatever comes next, so the fallback can be detected. */
 const REFERENCE = /var\(\s*(--nf-[a-z0-9-]+)\s*([,)])/g;
 
-/** Strip /* … *\/ comments, so a note explaining a literal is not a literal. */
+/**
+ * Strip /* … *\/ comments, so a note explaining a literal is not a literal.
+ *
+ * THE NEWLINES ARE KEPT, AND EVERY LINE NUMBER THIS FILE HAS EVER PRINTED WAS
+ * WRONG WITHOUT THEM. The comments came out and the lines after them moved up
+ * by however many lines the comment had been, so a violation in a file with two
+ * hundred lines of prose above it was reported hundreds of lines from where it
+ * is. In this codebase, where the comments are usually longer than the code,
+ * the error was large enough that the number was not so much inaccurate as
+ * useless: the first real report from the fourth check named line 287 for a
+ * fault that is on line 474.
+ *
+ * Replacing each comment with its own newlines keeps every subsequent line
+ * exactly where it was, and all four checks report a number somebody can open.
+ */
 function withoutComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, "");
+  return source.replace(/\/\*[\s\S]*?\*\//g, (block) => "\n".repeat((block.match(/\n/g) ?? []).length));
 }
 
 function filesUnder(dir, extensions, found = []) {
@@ -173,9 +187,58 @@ function filesUnder(dir, extensions, found = []) {
 
 const defined = new Set();
 
+/*
+ * What SHAPE each token's value is, which is the fourth check's whole basis.
+ *
+ * A token name says what a value is FOR. It does not say what the value IS, and
+ * CSS will happily let you write one into a property that cannot take it. The
+ * value is read from the token files only: those are the two surfaces where a
+ * `--nf-*` is authored, and a component setting one at runtime has no static
+ * value to classify, so it is left unclassified and never reported.
+ *
+ *   shadow     three or more space-separated lengths, or anything with `inset`
+ *   gradient   contains `gradient(`
+ *   colour     a hex, an rgb/hsl function, or a color-mix
+ *
+ * Anything else, including an alias of another token, is "unknown" and passes.
+ * Following aliases would be better and is deliberately not done: an alias
+ * chain crosses theme blocks, so a token can be a colour at night and an alias
+ * in daylight, and a check that has to resolve the cascade to decide is a check
+ * that will one day be wrong in a way nobody can read. Direct values only.
+ */
+const shapeOf = new Map();
+
+function classifyValue(value) {
+  const v = value.replace(/\s+/g, " ").trim();
+  if (/gradient\(/.test(v)) return "gradient";
+  /* A shadow layer is two or more lengths in a row, optionally after `inset`.
+     A LENGTH HERE INCLUDES A BARE `0`, and leaving that out is what made the
+     first draft of this check pass the very bug it was written for:
+     `--nf-elev-3` begins `0 2px 4px`, so a pattern demanding a unit on the
+     first length classified a three-layer shadow as "unknown" and reported
+     nothing. The check was green and the sheet was still transparent. */
+  const LENGTH = String.raw`(?:-?[\d.]+(?:px|rem|em)|0)`;
+  if (new RegExp(String.raw`(?:^|,)\s*(?:inset\s+)?${LENGTH}\s+${LENGTH}(\s|,|$)`).test(v))
+    return "shadow";
+  if (/^(#|rgba?\(|hsla?\(|color-mix\()/.test(v)) return "colour";
+  return "unknown";
+}
+
+/** `--nf-x: <value>;` with the value captured, across line breaks. */
+const VALUED_DEFINITION = /(--nf-[a-z0-9-]+)\s*:\s*([^;{}]+);/g;
+
 for (const file of filesUnder(TOKENS, [".css"])) {
   const source = withoutComments(readFileSync(file, "utf8"));
   for (const hit of source.matchAll(DEFINITION)) defined.add(hit[1]);
+  for (const hit of source.matchAll(VALUED_DEFINITION)) {
+    const shape = classifyValue(hit[2]);
+    if (shape === "unknown") continue;
+    /* A token declared in both theme blocks must agree with itself, and if it
+       does not, this check says nothing about it rather than guessing. */
+    const seen = shapeOf.get(hit[1]);
+    if (seen && seen !== shape) shapeOf.set(hit[1], "unknown");
+    else shapeOf.set(hit[1], shape);
+  }
 }
 for (const dir of ROOTS) {
   for (const file of filesUnder(join(ROOT, dir), [".css"])) {
@@ -197,7 +260,61 @@ for (const file of filesUnder(join(ROOT, "src"), [".ts", ".tsx"])) {
 
 const failures = [];
 const unresolved = [];
+const mistyped = [];
 let rawColours = 0;
+
+/*
+ * Which properties can take which shape.
+ *
+ * Only the cases where the answer is unambiguous, because a check that fires on
+ * something arguable gets switched off. `background` is on the colour list AND
+ * accepts a gradient, so a gradient there is fine and only a shadow is wrong.
+ */
+const WANTS_COLOUR = new Set([
+  "color",
+  "background-color",
+  "border-color",
+  "border-top-color",
+  "border-right-color",
+  "border-bottom-color",
+  "border-left-color",
+  "outline-color",
+  "fill",
+  "stroke",
+  "caret-color",
+  "text-decoration-color",
+  "accent-color",
+]);
+const WANTS_PAINT = new Set(["background", "background-image"]);
+const WANTS_SHADOW = new Set(["box-shadow", "text-shadow"]);
+
+/*
+ * `property: var(--nf-x);` alone on the right-hand side, which is the only form
+ * where the token's shape IS the declaration's value. A token inside a larger
+ * value may legitimately be one part of a list and is not checked.
+ *
+ * IT ALSO HAS TO BE ALONE ON ITS LINE, and that is a real limit rather than an
+ * oversight. Every stylesheet in this tree is formatted one declaration per
+ * line, so the limit costs nothing today and a single-line rule written in
+ * passing would slip through it. Widening the pattern to find declarations
+ * mid-line means splitting on semicolons, which means knowing which semicolons
+ * are inside a `url()` or a quoted string, which is a CSS parser. The check is
+ * worth having at this precision and is not worth a parser; if the formatting
+ * convention ever changes, this is the line that has to change with it.
+ */
+const SOLE_VAR = /^\s*([a-z-]+)\s*:\s*var\(\s*(--nf-[a-z0-9-]+)\s*\)\s*;/;
+
+function typeFault(property, token) {
+  const shape = shapeOf.get(token);
+  if (!shape || shape === "unknown") return null;
+  if (WANTS_COLOUR.has(property) && shape !== "colour")
+    return `a ${shape} value in \`${property}\`, which only takes a colour`;
+  if (WANTS_PAINT.has(property) && shape === "shadow")
+    return `a shadow value in \`${property}\`, which takes a colour or an image`;
+  if (WANTS_SHADOW.has(property) && shape === "gradient")
+    return `a gradient in \`${property}\`, which takes a shadow list`;
+  return null;
+}
 
 for (const dir of ROOTS) {
   for (const file of filesUnder(join(ROOT, dir), [".css"])) {
@@ -214,6 +331,13 @@ for (const dir of ROOTS) {
         if (hit[2] === ",") continue;
         if (defined.has(hit[1])) continue;
         unresolved.push(`${where}:${index + 1}  var(${hit[1]})`);
+      }
+      const sole = SOLE_VAR.exec(line);
+      if (sole) {
+        const fault = typeFault(sole[1], sole[2]);
+        if (fault) {
+          mistyped.push(`${where}:${index + 1}  ${sole[1]}: var(${sole[2]})  -  ${fault}`);
+        }
       }
     });
 
@@ -274,6 +398,30 @@ if (unresolved.length > 0) {
   console.error(`\n${unresolved.length} unresolved reference(s).\n`);
 }
 
+if (mistyped.length > 0) {
+  failed = true;
+  console.error(
+    "\nA var() that RESOLVES and resolves to the wrong kind of value. This is\n" +
+      "the check above's twin and the reason it exists separately: the token is\n" +
+      "real, it is spelled correctly, and the third check passes it, but the\n" +
+      "value it holds cannot be used in the property it was written into. The\n" +
+      "declaration is invalid at computed-value time and the browser drops it in\n" +
+      "silence, exactly as an unresolved var() does.\n\n" +
+      "It was found by `background: var(--nf-elev-3)` in settings-rows.css.\n" +
+      "`--nf-elev-3` is a three-layer BOX-SHADOW, so that sheet had one\n" +
+      "background declaration and it was void: a settings sheet with a border, a\n" +
+      "radius, a shadow, an entrance animation and no fill at all, with the page\n" +
+      "showing through it. Nothing caught it, because every guard in this file\n" +
+      "asked whether the name was real and this name is real.\n\n" +
+      "Fix it by writing the token the property actually wants. A surface that\n" +
+      "wants rung 3's LOOK wants `background: var(--nf-surface-elevated)` and\n" +
+      "`box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3)`; the rung is the\n" +
+      "shadow pair, never the fill.\n",
+  );
+  for (const entry of mistyped) console.error(`  ${entry}`);
+  console.error(`\n${mistyped.length} mistyped reference(s).\n`);
+}
+
 if (rawColours > 0) {
   failed = true;
   console.error(
@@ -293,6 +441,6 @@ if (failed) process.exit(1);
 
 console.log(
   "css tokens: every stylesheet under src/app is clean - 0 layer-1 references, " +
-    "0 raw colour literals, 0 unresolved var() references. All three are " +
-    "enforced.",
+    "0 raw colour literals, 0 unresolved var() references, 0 var() references " +
+    "of the wrong type. All four are enforced.",
 );

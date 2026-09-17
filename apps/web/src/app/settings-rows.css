@@ -471,8 +471,27 @@
     border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
     border: 1px solid var(--nf-elev-3-border);
     border-bottom: 0;
-    background: var(--nf-elev-3);
-    box-shadow: var(--nf-glass-shadow-lifted);
+    /*
+     * THE SHEET HAD NO FILL, AND IT HAD NONE SINCE THE DAY THIS WAS WRITTEN.
+     *
+     * `background: var(--nf-elev-3)` names a token that exists and is spelled
+     * correctly, and `--nf-elev-3` is a three-layer BOX-SHADOW. A shadow list
+     * is not a valid background, so the declaration is invalid at
+     * computed-value time and the browser drops it without a word. This was
+     * the only background on the class, so the settings sheet had a border, a
+     * 2xl radius, a lifted shadow, an entrance animation and nothing behind
+     * its text. Confirmed in a browser before fixing: `backgroundColor`
+     * computed to `rgba(0, 0, 0, 0)` and `backgroundImage` to `none`, in both
+     * themes.
+     *
+     * A RUNG IS THE SHADOW PAIR, NEVER THE FILL. `--nf-elev-3` and its `-rim`
+     * are what the rung is; the surface underneath is the object's own. The
+     * old `--nf-glass-shadow-lifted` is an alias of rung 4, so this was also
+     * wearing rung 4's shadow under rung 3's border, which is the smaller half
+     * of the same confusion.
+     */
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
     animation: nf-rows-sheet-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
 

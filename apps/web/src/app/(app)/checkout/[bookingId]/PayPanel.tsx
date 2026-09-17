@@ -122,8 +122,13 @@ export function PayPanel({ view }: { view: CheckoutView }) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
-  const cardKey = useMemo(newKey, []);
-  const walletKey = useMemo(newKey, []);
+  /* Inline arrows rather than `useMemo(newKey, [])`. Passing the function by
+     reference works today and the React compiler refuses to see through it, so
+     it cannot keep the value stable when it takes over memoisation - which is
+     the one thing these two exist for. They key the two result panels, so a key
+     that changed between renders would remount a panel mid-payment. */
+  const cardKey = useMemo(() => newKey(), []);
+  const walletKey = useMemo(() => newKey(), []);
   const timers = useRef<number[]>([]);
 
   const busy =

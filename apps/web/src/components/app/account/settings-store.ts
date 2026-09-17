@@ -248,3 +248,66 @@ export function readThemeChoice(): ThemeChoice {
   // Nothing chosen means the brand's own theme, not the operating system's.
   return "dark";
 }
+
+/* ---------------------------------------------------------------- the theme */
+
+/**
+ * The chosen theme as a subscription, for the control that shows which one is on.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THE THEME NEEDED ITS OWN STORE RATHER THAN JOINING `NfSettings`.
+ *
+ * It cannot live in the settings document, and the reason is the flash. A
+ * before-paint script in the document head reads `nf_theme` and sets
+ * `data-theme` before React exists, because a theme applied after hydration is
+ * a white page that turns dark in front of the reader. That script cannot parse
+ * a JSON settings blob and pick a field out of it cheaply enough to run in the
+ * head, so the theme stays on its own key and `applyTheme` writes it.
+ *
+ * WHAT WAS WRONG WITH THE EFFECT. `SettingsGroups` initialised `useState` to
+ * "dark", then read the real answer in a mount effect, so the theme row showed
+ * Dark selected for one commit on a device set to light and then corrected
+ * itself. On `/settings` that is a visible flicker on the row somebody opened
+ * the screen to change. It was also `react-hooks/set-state-in-effect`, for the
+ * exact reason the rule exists: the value came from outside React and was being
+ * pushed into React's state instead of subscribed to.
+ *
+ * `getServerSnapshot` answers "dark" because the server has no storage and dark
+ * is the platform default, which is what the markup is built for.
+ */
+const themeListeners = new Set<() => void>();
+
+function themeSnapshot(): ThemeChoice {
+  return readThemeChoice();
+}
+
+function themeServerSnapshot(): ThemeChoice {
+  return "dark";
+}
+
+function themeSubscribe(onChange: () => void): () => void {
+  themeListeners.add(onChange);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === null || event.key === "nf_theme") onChange();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    themeListeners.delete(onChange);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+/* `readThemeChoice` returns one of three string literals, so the snapshot is
+   already compared correctly by identity and needs no caching. That is the one
+   thing this store gets for free that the settings document does not. */
+export function useThemeChoice(): {
+  theme: ThemeChoice;
+  chooseTheme: (next: ThemeChoice) => void;
+} {
+  const theme = useSyncExternalStore(themeSubscribe, themeSnapshot, themeServerSnapshot);
+  const chooseTheme = useCallback((next: ThemeChoice) => {
+    applyTheme(next);
+    for (const listener of themeListeners) listener();
+  }, []);
+  return { theme, chooseTheme };
+}
