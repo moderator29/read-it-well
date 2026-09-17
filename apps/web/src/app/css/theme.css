@@ -33,8 +33,11 @@
    * framework reaches the scale by name: `p-lg`, `gap-row`, `mt-section`,
    * `space-y-group`, `py-card`, `px-gutter`. This is the same move that gave
    * type `nf-lede`, `nf-body`, `nf-body-sm`, `nf-caption` and `nf-h4`: a scale
-   * nobody can name is a scale nobody uses, and 4,115 numeric spacing
-   * utilities against zero tokens is what that looks like measured.
+   * nobody can name is a scale nobody uses, and every spacing utility in the
+   * product being a raw number against zero tokens is what that looks like
+   * measured. The count lives in `eslint-rules/no-raw-spacing.mjs` rather than
+   * here: it was repeated in five files, which is how a figure outlives the
+   * thing it counted.
    *
    * The numeric steps (`p-4`, `mt-12`) still resolve, because Tailwind derives
    * those from the `--spacing` base rather than from these named keys. That is

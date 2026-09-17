@@ -654,7 +654,7 @@ export const ha: Dictionary = {
       accountTitle: "Shiga don ka ga na'urorinka",
       accountBodySignedOut: "Wannan jerin na asusunka ne, don haka yana buƙatar ka shiga.",
       accountBodyUnconfigured:
-        "Ba a kunna asusun a wannan turawa ba tukuna, don haka babu zaman da za a nuna.",
+        "Ba za mu iya kaiwa ga na'urorinka yanzu ba. Wannan na ɓangarenmu ne, ba naka ba, kuma babu abin da ya canza a asusunka.",
     },
 
     data: {

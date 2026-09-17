@@ -14,9 +14,10 @@
    * choked, jam-packed and different from one screen to the next.
    *
    * It was never a per-screen problem. There was no scale, so every screen
-   * settled its own rhythm from scratch: 4,115 numeric spacing utilities
-   * across 34 distinct steps, and 47 distinct literal values inside these
-   * stylesheets. Fixing one screen by hand cannot fix that, because the next
+   * settled its own rhythm from scratch: every spacing utility in the product
+   * a raw number, across 34 distinct steps, and 47 distinct literal values
+   * inside these stylesheets. The live counts are in
+   * `eslint-rules/no-raw-spacing.mjs`, in one place on purpose. Fixing one screen by hand cannot fix that, because the next
    * screen still has nothing to agree WITH. See the SPACE block in tokens.css
    * for the ladder and the intervals these draw from.
    *

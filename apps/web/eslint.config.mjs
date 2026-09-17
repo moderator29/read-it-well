@@ -221,6 +221,26 @@ const config = [
    * The same reasoning is why `packages/design-tokens` is not linted for
    * literals either. A definition layer is exempt by what it IS; every other
    * exemption in this repository is a single line with its reason on it.
+   *
+   * `src/lib/theme/chrome.ts` IS THE SECOND AND LAST FILE ON THAT FOOTING, and
+   * it qualifies for the same reason rather than by analogy. It is a definition
+   * layer for the four places that paint the chrome ABOVE the page: the
+   * `viewport.themeColor` meta tag, the before-paint theme script, the PWA
+   * manifest, and `capacitor.config.ts`. Every one of them is serialised where
+   * no CSS has run, so a `var()` in any of them resolves to nothing, which for a
+   * colour means paint nothing and on a status bar means a white strip above a
+   * near-black page.
+   *
+   * Two literals, one file, and the exemption is the thing that KEEPS it to two:
+   * before it existed the same two values stood at six sites in four files with
+   * the measurement behind them written out twice. A rule that forced disable
+   * comments onto the home would have made the home look like the problem.
+   *
+   * THE TEST FOR A THIRD ONE, so this does not become a list. A file earns this
+   * only if literals are correct for EVERY colour in it, for a reason about the
+   * medium rather than about the schedule, and if it is the place other files
+   * read from rather than one of the places that reads. Anything that is merely
+   * not migrated yet takes a per-line disable, or stays an error until it is.
    * ------------------------------------------------------------------ */
   {
     files: ["src/lib/**/*.{ts,tsx}"],
@@ -234,11 +254,18 @@ const config = [
    * Spacing provenance. Same shape as the colour rule above, same reasoning,
    * one commit behind it on the migration curve.
    *
-   * See eslint-rules/no-raw-spacing.mjs for what it catches and why. The short
-   * version: there was no spacing scale at all, so 4,115 spacing utilities got
-   * written against 34 raw Tailwind steps plus 19 arbitrary bracket escapes,
-   * and that is the mechanical cause of the product reading as choked on one
-   * screen and loose on the next.
+   * See eslint-rules/no-raw-spacing.mjs for what it catches, why, and for the
+   * live counts. The short version: there was no spacing scale at all, so every
+   * spacing utility in the product was written against 34 raw Tailwind steps
+   * plus 19 arbitrary bracket escapes, and that is the mechanical cause of the
+   * product reading as choked on one screen and loose on the next.
+   *
+   * THE FIGURE THAT USED TO STAND HERE, 4,115, IS DELIBERATELY GONE. It counted
+   * every spacing utility, which was the same set as the raw ones on the day it
+   * was written and stopped being so the moment the scale landed. It was quoted
+   * in five files and none of them could be updated without the other four. The
+   * rule header holds the measurement now, in one place, with the three
+   * different numbers this population can be counted as.
    *
    * ERROR ON THE SCREENS THAT ARE MIGRATED. The marketing site, the landing
    * page and the site components are at zero violations as of this commit, so

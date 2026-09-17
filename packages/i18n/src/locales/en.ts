@@ -932,7 +932,7 @@ export const en = {
       accountTitle: "Sign in to see your devices",
       accountBodySignedOut: "This list belongs to your account, so it needs you signed in.",
       accountBodyUnconfigured:
-        "Accounts are not switched on in this deployment yet, so there are no sessions to show.",
+        "We cannot reach your devices right now. This is on our side, not yours, and nothing about your account has changed.",
     },
 
     data: {

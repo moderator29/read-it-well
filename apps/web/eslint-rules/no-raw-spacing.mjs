@@ -14,7 +14,43 @@
  * Spacing was worse than colour ever was, because there was nothing to comply
  * WITH. Measured across 664 files under `apps/web/src` before this rule:
  *
- *   34 distinct raw Tailwind steps, 4,115 uses
+ *   34 distinct raw Tailwind steps
+ *
+ * WHAT 4,115 WAS, BECAUSE THIS MESSAGE USED TO QUOTE IT AS THE VIOLATION COUNT
+ * AND IT NEVER WAS ONE.
+ *
+ * The line here said "34 distinct raw Tailwind steps, 4,115 uses", and the
+ * error message said "34 of them ended up in use across 4,115 call sites".
+ *
+ * IT WAS TRUE WHEN IT WAS WRITTEN AND THE MIGRATION IS WHAT MADE IT FALSE, and
+ * that is the part worth understanding rather than the arithmetic. There was no
+ * spacing scale at all at the start, so EVERY spacing utility in the product was
+ * a raw numeric one and the two counts were the same set. The moment the roles
+ * and rungs landed, the set split in two and the figure stayed attached to the
+ * wrong half: it now counts every spacing utility, named and raw together, which
+ * a migration cannot reduce because converting `p-4` into `p-card-sm` replaces
+ * one utility with another. The number could not fall. It has RISEN, to 4,388,
+ * as the product grew.
+ *
+ * A figure that was accurate on the day it was written, quoted in five files,
+ * describing a set that later split. Nothing lied and nothing could catch it.
+ *
+ * Measured today, occurrences rather than reports, comments stripped:
+ *
+ *   4,388  every spacing utility in src
+ *   3,596  of which named roles and rungs, already migrated, 82 per cent
+ *      49  of which `p-0` style zeros, never reported by design
+ *     743  of which raw: 739 numeric steps and 4 unexcused brackets
+ *      30  arbitrary brackets excused for calc(), env() or var()
+ *
+ * AND 743 OCCURRENCES IS 506 ESLINT REPORTS, which is the second thing this
+ * file was quietly wrong about. `inspect` reports once per STRING LITERAL and
+ * returns, so a className holding `p-4 mt-6 gap-2` is one report and three
+ * violations. That is the right behaviour, because the fix is usually to
+ * rewrite the whole className at once and a per-utility list would be three
+ * lines pointing at the same place. It is the wrong number to quote as a
+ * population. If somebody reports this rule's count falling, ask which of the
+ * three they measured.
  *      -px -1.5 -1 0.5 1 1.5 2 2.5 3 3.5 4 4.5 5 6 7 8 9 10 11 12 14 16 20 24 28
  *   19 distinct arbitrary bracket escapes, 43 uses
  *      p-[0.4rem] gap-[0.55rem] mt-[1.9rem] pl-[3.25rem] p-[2.375rem]
@@ -86,7 +122,7 @@
  *
  * WHAT THE REMAINING COUNT IS, so nobody reads it as unfinished work.
  *
- * The bulk of the original 4,115 was mechanical: `p-4` is `p-card-sm`, `gap-3`
+ * The bulk of the original population was mechanical: `p-4` is `p-card-sm`, `gap-3`
  * is `gap-row`, and a migration can take those by the thousand. What is left
  * after that pass is the residue neither this rule nor a codemod can answer,
  * and it is a different KIND of thing rather than the same thing unfinished:
@@ -150,9 +186,8 @@ const CHECKS = [
     id: "numeric-step",
     message:
       "Raw Tailwind spacing step. Tailwind's numeric scale is linear, so " +
-      "neighbouring steps are indistinguishable and 34 of them ended up in " +
-      "use across 4,115 call sites, which is why this product reads as " +
-      "choked on one screen and loose on the next. " +
+      "neighbouring steps are indistinguishable, which is why this product " +
+      "reads as choked on one screen and loose on the next. " +
       SCALE_HELP,
   },
   {

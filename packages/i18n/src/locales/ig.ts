@@ -656,7 +656,7 @@ export const ig: Dictionary = {
       accountTitle: "Banye ka ị hụ ngwaọrụ gị",
       accountBodySignedOut: "Ndepụta a bụ nke akaụntụ gị, ya mere ọ chọrọ ka ị banye.",
       accountBodyUnconfigured:
-        "Agbanyebeghị akaụntụ na mbugharị a, ya mere ọ dịghị nnọkọ a ga-egosi.",
+        "Anyị enweghị ike iru ngwaọrụ gị ugbu a. Nke a bụ nsogbu anyị, ọ bụghị nke gị, ọ dịghịkwa ihe gbanwere na akaụntụ gị.",
     },
 
     data: {

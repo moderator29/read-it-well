@@ -1518,7 +1518,11 @@
    * The count at the time of writing, across 664 files under apps/web/src:
    *
    *   34 distinct raw Tailwind steps  (-px, -1.5, 0, 0.5 … 4.5, 7, 9, 11, 28)
-   *   4,115 uses of them
+   *   every spacing utility in the product was one of them, which is the same
+   *     sentence as "there was no scale". The figure that stood here counted
+   *     that set and could not fall once the set split; see the header of
+   *     `eslint-rules/no-raw-spacing.mjs` for the three counts and which is
+   *     which
    *   19 distinct arbitrary bracket escapes in 43 uses
    *      p-[0.4rem]  gap-[0.55rem]  mt-[1.9rem]  pl-[3.25rem]  p-[2.375rem]
    *   47 distinct literal values across 70 declarations in the stylesheets

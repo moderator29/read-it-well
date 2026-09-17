@@ -653,7 +653,7 @@ export const yo: Dictionary = {
       accountTitle: "Wọlé láti rí àwọn ẹ̀rọ rẹ",
       accountBodySignedOut: "Àkójọ yìí jẹ́ ti àkàǹtì rẹ, nítorí náà ó nílò kí o wọlé.",
       accountBodyUnconfigured:
-        "A kò tí ì tan àwọn àkàǹtì nínú ìtẹ̀jáde yìí, nítorí náà kò sí ìjókòó láti fihàn.",
+        "A kò lè dé ọ̀dọ̀ àwọn ẹ̀rọ rẹ báyìí. Ìṣòro wa ni, kì í ṣe tìrẹ, kò sì sí ohunkóhun tí ó yípadà nínú àkàǹtì rẹ.",
     },
 
     data: {
