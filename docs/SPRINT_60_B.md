@@ -242,11 +242,39 @@ to trust us, plus the brand assets still carrying the old direction.
 
 ## Progress, updated as it lands
 
-**Landed and committed: 9 of 60.** Items 43, 45, 46, 47, 48, 49, 53, 58 and 59.
-Item 48 and item 59 were found already closed by earlier work and are counted
-as landed rather than re-done. Owner A is working items 1 to 20 and owner B
-items 21 to 44 plus 50 to 52, which moved to B because the files are in B's
-scope and were assigned to L by mistake.
+**Landed and committed: 36 of 60.** Counted per owner against the tree rather
+than from memory, on 17 September:
+
+- **Owner A, 18 of 20.** Items 1 to 5 (the depth model: the bloom stack, the
+  legacy shadow aliases, the thin glass rung, the glass shadows joining the
+  ladder, one light angle), 7, 9, 10 to 13 (the overline, the decimal rems, the
+  layout tokens, the measure rungs), 14 to 16 (the sheet's focus, its visual
+  viewport, its themed backdrop), 17 and 18 (the reveal's duplicate path and
+  its observer), 19 and 20 (the size scale and the fourth icon namespace).
+  **Open: item 6**, the 205 remaining raw colour literals, in progress, and
+  **item 8**, the 2,635 raw spacing steps.
+- **Owner B, 10 of 24.** Items 21 to 29, the money band, plus item 43 which
+  landed earlier. **Open: 30 to 42 and 44**, of which 30 to 38 are in progress.
+- **Owner L, 8 of 16.** Items 45 to 49, 53, 58 and 59. **Open: 50, 51 and 52**,
+  which are actionable, and five that are not, below.
+
+**So 24 are open, and five of those cannot be moved from this side.** Nineteen
+are actionable work.
+
+**A note on what "landed" means here, because it is not uniform.** Several
+items in every queue were found already standing when their owner reached them,
+having been closed by earlier work in this sprint or the one before it. Those
+are counted as landed and each owner's report says how it established the item
+was done. None of them was silently ticked. Several others are landed in code
+and have never been seen rendered by anybody, which is item 60's shadow over
+this whole ledger and is stated again below.
+
+**How this sits against the 303 filed findings.** The sixty and this second
+sixty are both drawn from the Critical and High bands. The Medium band, 126
+findings, remains barely touched, and there is still no per-id ledger mapping
+sprint items onto finding ids, for the reason given at the top of this file: it
+would have to be reconstructed after the fact, and a reconstructed ledger is a
+worse thing to have than no ledger.
 
 **Blocked on the founder, and they cannot be unblocked from this side:**
 
