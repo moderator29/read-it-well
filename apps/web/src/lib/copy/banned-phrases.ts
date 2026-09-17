@@ -70,6 +70,44 @@ export const SCHEDULE_PROMISES: { label: string; pattern: RegExp }[] = [
   { label: "launches soon", pattern: /\blaunch(es|ing)?\s+soon\b/i },
   { label: "available soon", pattern: /\b(available|live|here|ready)\s+soon\b/i },
   { label: "goes live soon", pattern: /\bgoes?\s+live\s+soon\b/i },
+
+  /* ----------------------------------------------------------------------
+   * AND THE SAME PROMISE IN THE OTHER THREE LANGUAGES, BECAUSE IT CAME BACK
+   * THERE FIRST.
+   *
+   * Five English strings in `packages/i18n/src/locales/en.ts` had already been
+   * rewritten away from "the moment the platform keys land" before this sprint
+   * began. Their Yoruba, Hausa and Igbo translations had not: they still
+   * carried the promise, word for word, on screens nobody reading this file
+   * can read. A ban enforced only in English is a ban on one quarter of the
+   * product, and the quarter it is not enforced on is the one nobody checks.
+   *
+   * These are the exact renderings that shipped. Hausa alone had FOUR
+   * spellings of "the platform keys" across ten strings - `makullan dandalin`,
+   * `makullan dandamali`, `mabuɗan dandalin`, `maɓallan dandalin` - which is
+   * the same fault as five hand-typed copies of one banned-word list, in a
+   * different alphabet.
+   *
+   * WHAT THIS CANNOT DO, AND IT MATTERS: a translator who invents a FIFTH
+   * rendering is not caught, because nobody who has written a line of this
+   * guard speaks these languages. The patterns close the door that was open;
+   * they are not a substitute for a native reader.
+   */
+  {
+    label: "yo: the platform keys land",
+    pattern: /kọ́kọ́rọ́\s+(pátákó|pátákò|pèpéle)|kò\s+dì\s+kọ́kọ́rọ́/i,
+  },
+  { label: "yo: opening soon", pattern: /ṣíṣílẹ̀\s+láìpẹ́/i },
+  {
+    label: "ha: the platform keys land",
+    pattern: /(makullan|mabuɗan|maɓallan)\s+(dandalin|dandamali|dandali)|riƙe\s+makullansa/i,
+  },
+  { label: "ha: opening soon", pattern: /za a buɗe[^".]*ba da jimawa/i },
+  {
+    label: "ig: the platform keys land",
+    pattern: /igodo\s+(nke\s+)?ikpo okwu|ejighị\s+igodo/i,
+  },
+  { label: "ig: opening soon", pattern: /na-emeghe\s+n'oge na-adịghị anya/i },
 ];
 
 /**

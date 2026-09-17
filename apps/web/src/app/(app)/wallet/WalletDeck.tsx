@@ -296,7 +296,9 @@ const CRYPTO_INITIAL: ActionResult<CryptoStart | null> = { ok: false, error: "" 
  * WHAT THE TERMINAL STATE MAY NOT DO IS OFFER A RETRY. `startCardCheckout`
  * mints an idempotency key per attempt and can safely say "try again";
  * `withdraw` and `transferToUser` take no key and generate their reference
- * server-side, so a second submit is a second movement. The action is also
+ * server-side, so a second submit is a second movement; both carry the long
+ * version of this note in `lib/wallet/actions.ts`, because the reason lives
+ * with the functions and not with this panel. The action is also
  * still genuinely in flight - nothing here can cancel a server action - so the
  * honest terminal state says what is and is not known, sends the reader to the
  * one page that holds the answer, and tells them not to send it twice. If the

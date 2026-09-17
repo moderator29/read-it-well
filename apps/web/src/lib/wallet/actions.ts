@@ -296,6 +296,24 @@ export type WithdrawReceipt = {
  * the hold is marked FAILED and the balance is untouched; and if neither ever
  * happens, sweepStaleWithdrawalHolds asks Paystack what became of it and
  * releases the money rather than holding it forever.
+ *
+ * ---------------------------------------------------------------------------
+ * THIS ACTION TAKES NO IDEMPOTENCY KEY, AND THAT IS WHY THE DRAWER HAS NO
+ * RETRY BUTTON.
+ *
+ * `startCardCheckout` and `payWithWallet` both take an `idempotencyKey` minted
+ * per attempt by the caller, so a second submit replays the first answer and
+ * the checkout screen can safely offer "Try again" on a stalled payment. This
+ * action does not: the reference is generated HERE, per call, so a second
+ * submit is a second withdrawal of real money and nothing downstream would
+ * collapse them.
+ *
+ * So when `WalletDeck`'s twenty-five second clock runs out it says "Do not send
+ * this again" and offers the history instead of a retry. That is a fact about
+ * this function, not a decision about that panel, and it is written here
+ * because the next person to look at a money screen with no retry control will
+ * reasonably assume it was an oversight. Give this action a key and the panel
+ * can have its button.
  */
 export async function withdraw(
   _prev: ActionResult<WithdrawReceipt | null>,
@@ -590,6 +608,21 @@ export type TransferReceipt = {
  * neither can land without the other, and treats a unique_violation on either
  * reference as a duplicate rather than as a second payment. Nothing had ever
  * called it. This calls it.
+ *
+ * ---------------------------------------------------------------------------
+ * NO IDEMPOTENCY KEY HERE EITHER, AND THE SAME CONSEQUENCE ON SCREEN.
+ *
+ * The duplicate defence above is real and it is not the one people assume it
+ * is. `transfer_between_wallets` rejects a repeat of the SAME reference pair,
+ * and `pairId` is a fresh `randomUUID()` on every call, so a second submit
+ * arrives with a reference the database has never seen and is settled as a
+ * second transfer. The guard stops a retry of one request; it cannot stop a
+ * person pressing Send twice.
+ *
+ * That is why the stalled panel in `WalletDeck` offers the history and not a
+ * retry. See the longer note on `withdraw`: it is a fact about these two
+ * actions, not a decision about that component, and it changes the day either
+ * of them takes a key from its caller.
  */
 export async function transferToUser(
   _prev: ActionResult<TransferReceipt | null>,

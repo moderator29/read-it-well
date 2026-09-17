@@ -166,10 +166,17 @@ const config = [
    * them and nearer the header. That measurement is written out twice, here and
    * in `layout.tsx`, and the value appears at four sites in three files.
    *
-   * So the promotion is not blocked on a disable comment. It is blocked on
-   * `layout.tsx` and `manifest.ts` reading the constant that already exists,
-   * after which this reaches zero and flips to error. Those files belong to
-   * another queue and the routing is in the block-twelve report.
+   * THEY ARE CLEARED AND THIS IS AN ERROR NOW. `src/lib/theme/chrome.ts` holds
+   * the two values and the measurement, with no client directive, and the four
+   * serialisation points read it: the meta tag, the before-paint script, the
+   * manifest, and `capacitor.config.ts`, which keeps its three literals written
+   * out because the Capacitor CLI evaluates that file directly and an
+   * unresolvable `@/` alias there is an unbuildable native config that cannot be
+   * tested from this environment.
+   *
+   * The promotion was blocked on two files reading a constant, not on a disable
+   * comment, and that is the general shape: when a rule cannot be promoted, the
+   * question is what the remaining sites are FOR, not how to excuse them.
    * ------------------------------------------------------------------ */
   {
     files: ["src/design-system/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
@@ -179,7 +186,7 @@ const config = [
   {
     files: ["src/app/**/*.{ts,tsx}"],
     plugins: { nf },
-    rules: { "nf/no-raw-colour": "warn" },
+    rules: { "nf/no-raw-colour": "error" },
   },
   /*
    * ------------------------------------------------------------------
@@ -193,10 +200,10 @@ const config = [
    * habit rather than a rule, which is the same argument that put the layer-1
    * check into `.tsx` files in `scripts/check-css-tokens.mjs`.
    *
-   * WARN, NOT ERROR, AND DELIBERATELY SO. The point of this entry today is to
-   * make the population visible rather than to fail anybody's build on the
-   * first pass. Promote it the same way the others were promoted: clear the
-   * count, then flip it, in that order.
+   * IT WENT IN AT WARN AND IS AN ERROR ONE BLOCK LATER, which is the whole
+   * lifecycle in two commits: make the population visible, find that it is two
+   * values in one file rather than a migration, give those values a home, flip
+   * it. The warn step was not a concession, it was how the 28 got counted.
    *
    * `src/lib/email` IS SCOPED OUT BY CONFIG AND NOT BY DISABLE COMMENTS, and
    * that is the one exemption in this file that is a whole directory.
@@ -217,9 +224,9 @@ const config = [
    * ------------------------------------------------------------------ */
   {
     files: ["src/lib/**/*.{ts,tsx}"],
-    ignores: ["src/lib/email/**/*.{ts,tsx}"],
+    ignores: ["src/lib/email/**/*.{ts,tsx}", "src/lib/theme/chrome.ts"],
     plugins: { nf },
-    rules: { "nf/no-raw-colour": "warn" },
+    rules: { "nf/no-raw-colour": "error" },
   },
 
   /*

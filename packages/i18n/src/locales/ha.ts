@@ -213,7 +213,7 @@ export const ha: Dictionary = {
       office: "Ofisoshi",
       land: "Filaye",
       count: "{count} a jeri",
-      none: "Za a buɗe nan ba da jimawa ba",
+      none: "Babu jeri tukuna",
     },
     oneAccount: {
       overline: "Duka, a wuri guda",
@@ -482,7 +482,7 @@ export const ha: Dictionary = {
     },
     accountTitle: "Wannan na asusunka ne",
     accountBodySignedOut: "Abin da ka zo nema ana ajiye shi a asusunka, don haka yana bin ka zuwa kowace na'ura kuma yana yanke shawarar abin da za mu fara nuna maka.",
-    accountBodyUnconfigured: "Asusun zai fara aiki da zarar makullan dandalin sun iso. Abin da ka zo nema ana ajiye shi a asusunka, don haka yana bin ka zuwa kowace na'ura.",
+    accountBodyUnconfigured: "Ba za mu iya kaiwa ga asusu yanzu ba. Abin da ka zo nema ana ajiye shi a asusunka, don haka yana bin ka zuwa kowace na'ura.",
     question: "Me ka zo nema?",
     note: "Wannan yana canza abin da muke fara nunawa kawai. Duk wani bincike ko tacewa da kai ka saita koyaushe shi ne ya fi ƙarfi.",
     noteFirstRun: " Kana iya canza shi daga baya a cikin Saiti.",
@@ -541,7 +541,7 @@ export const ha: Dictionary = {
       screenSubtitle: "Najeriya, sannan jiharka, sannan ƙaramar hukumarka",
       accountTitle: "Wannan na asusunka ne",
       accountBodyUnconfigured:
-        "Asusun zai fara aiki da zarar makullan dandalin sun iso. Ana ajiye jiharka, ƙaramar hukumarka da sana'arka a asusunka, don haka suna bin ka zuwa kowace na'ura.",
+        "Ba za mu iya kaiwa ga asusu yanzu ba. Ana ajiye jiharka, ƙaramar hukumarka da sana'arka a asusunka, don haka suna bin ka zuwa kowace na'ura.",
       accountBodySignedOut:
         "Ana ajiye jiharka, ƙaramar hukumarka da sana'arka a asusunka, don haka suna bin ka zuwa kowace na'ura kuma su ne ke yanke shawarar wuraren da shafin gida zai buɗe a kai.",
       statesUnavailable:
@@ -673,7 +673,7 @@ export const ha: Dictionary = {
       label: "Asusu",
       saved: "An ajiye a asusunka",
       unconfiguredNote:
-        "Asusun zai fara aiki da zarar makullan dandalin sun iso. Duk abin da ka saita a nan ana ajiye shi a wannan na'urar har sai lokacin.",
+        "Ba za mu iya kaiwa ga asusu yanzu ba. Duk abin da ka saita a nan ana ajiye shi a wannan na'urar.",
       signedIn: "Ka shiga",
       notSignedIn: "Ba ka shiga ba",
       signedOutSub: "Shiga don ajiye bayananka da saitunanka a asusunka maimakon wannan na'urar.",
@@ -909,9 +909,9 @@ export const ha: Dictionary = {
       noneBody:
         "Ba ka nemi zama wakili ba tukuna. Yana ɗaukar kusan minti goma, kuma kana buƙatar shaidar hoto ɗaya.",
       startApplication: "Nemi zama wakili",
-      unconfiguredTitle: "Ba a buɗe neman ba a nan tukuna",
+      unconfiguredTitle: "Ba za mu iya kaiwa ga takardar neman ka yanzu ba",
       unconfiguredBody:
-        "Wannan shafin zai nuna takardar neman ka ta gaskiya lokacin da makullan dandamali suka iso. Babu abin da ka aika da zai ɓace.",
+        "Wannan daga gare mu ne, ba daga gare ka ba. Babu abin da ka aika da ya ɓace. Sake gwadawa nan da wasu mintuna.",
       reviewedOn: "An yanke shawara a",
       reviewerNote: "Abin da mai dubawa ya ce",
     },
@@ -948,9 +948,9 @@ export const ha: Dictionary = {
       notAgentTitle: "Ba ka saka gida ba tukuna",
       notAgentBody:
         "Wannan wurin aiki zai cika lokacin da ka sami gida a Vallo. Nema yana ɗaukar kusan minti biyu kuma mutum yana karanta kowace buƙata.",
-      unconfiguredTitle: "Ba a haɗa wurin aiki ba tukuna",
+      unconfiguredTitle: "Ba za mu iya kaiwa ga wurin aiki yanzu ba",
       unconfiguredBody:
-        "Wannan dandalin bai riƙe makullansa ba, don haka babu abin karantawa a nan. Sauran abubuwan Vallo suna aiki.",
+        "Wannan daga gare mu ne, ba daga gare ka ba, don haka babu abin karantawa a nan sai mun gyara shi. Sauran abubuwan Vallo suna aiki.",
       applyCta: "Nemi ka saka gida",
     },
   },
@@ -971,7 +971,7 @@ export const ha: Dictionary = {
         submit: "Aikawa",
       },
       unconfiguredNotice:
-        "Bugawa zai fara aiki daidai lokacin da mabuɗan dandalin suka iso. Ci gaba: duk abin da ka rubuta yana ajiye a wannan na'urar, zai jira ka.",
+        "Ba za mu iya kaiwa ga bugawa yanzu ba. Ci gaba: duk abin da ka rubuta yana ajiye a wannan na'urar, zai jira ka.",
       savedAt: "An ajiye da {time}",
       saving: "Ana ajiyewa",
       next: "Na gaba",
@@ -1040,7 +1040,7 @@ export const ha: Dictionary = {
         "Ba mu iya shirya wannan hoton lafiya ba, don haka ba a loda shi ba. Ka gwada wani hoto.",
       uploadFailed: "Wannan hoton bai gama lodawa ba. Don Allah ka sake gwadawa.",
       needsKeys:
-        "Hotuna za su loda idan mabuɗan dandalin suka iso. Duk sauran abin da ka rubuta na ajiye.",
+        "Ba za mu iya loda hotuna yanzu ba. Duk sauran abin da ka rubuta na ajiye.",
       needsTitle: "Ka sa take a mataki na ɗaya tukuna, sannan hotunanka za su haɗu da wannan jeri.",
     },
 
@@ -1135,7 +1135,7 @@ export const ha: Dictionary = {
       },
       needsTitle: "Ka sa take a mataki na ɗaya tukuna, sannan za mu iya aika wannan jeri don nazari.",
       needsKeys:
-        "Aikawa don nazari zai fara aiki daidai lokacin da mabuɗan dandalin suka iso. Aikinka na ajiye a wannan na'urar.",
+        "Ba za mu iya aika wannan don nazari yanzu ba. Aikinka na ajiye a wannan na'urar.",
     },
 
     gate: {
@@ -1195,7 +1195,7 @@ export const ha: Dictionary = {
       lede: "Duk kadarar da kake da ita a Vallo, da inda kowacce ta tsaya.",
       start: "Fara jeri",
       unconfigured:
-        "Jerinka zai bayyana nan daidai lokacin da mabuɗan dandalin suka iso. Kana iya fara gina ɗaya yanzu: mai jeri yana ajiye aikinka a wannan na'urar har sai lokacin.",
+        "Ba za mu iya kaiwa ga jerinka yanzu ba. Ba a rasa komai ba, kuma kana iya fara gina ɗaya: mai jeri yana ajiye aikinka a wannan na'urar.",
       emptyTitle: "Babu jeri tukuna",
       emptyBody:
         "Kadarar farko tana ɗaukar kusan minti goma, mafi yawansa hotuna. Ka fara duk lokacin da ka shirya: ana ajiye daftari yayin da kake tafiya.",
@@ -1273,7 +1273,7 @@ export const ha: Dictionary = {
     title: "Ajiye",
     lede: "Kowane buƙata da kowane zama a kan kadarorinka.",
     unconfigured:
-      "Buƙatunka da zamanka za su bayyana a nan da zarar maɓallan dandalin suka iso. Babu abin da ya ɓace a tsakani.",
+      "Ba za mu iya kaiwa ga buƙatunka da zamanka yanzu ba. Ba a rasa komai ba.",
     tabsLabel: "Rukunan ajiye",
     waitingOn: "{count} suna jiran ka",
     waitingOnOne: "Ɗaya yana jiran ka",
@@ -1362,7 +1362,7 @@ export const ha: Dictionary = {
   agentEarnings: {
     title: "Samun kudi",
     lede: "Abin da ya shiga daga zamanka, kai tsaye daga littafin lissafi.",
-    unconfigured: "Kuɗin da ka samu zai bayyana a nan da zarar maɓallan dandalin suka iso.",
+    unconfigured: "Ba za mu iya kaiwa ga kuɗin da ka samu yanzu ba. Ba a rasa komai ba.",
     unavailable:
       "Ba mu iya karanta littafin lissafi yanzu ba, don haka ba a nuna wani adadi maimakon nuna wanda ba daidai ba. Sake buɗe shafin cikin ɗan lokaci.",
     totals: {
@@ -1399,7 +1399,7 @@ export const ha: Dictionary = {
     title: "Bincike",
     lede: "Abin da kadarorinka suka yi da gaske, an ƙidaya shi daga tarihinka.",
     unconfigured:
-      "Adadinka za su bayyana a nan da zarar maɓallan dandalin suka iso. Babu abin da ya ɓace a tsakani.",
+      "Ba za mu iya kaiwa ga adadinka yanzu ba. Ba a rasa komai ba.",
     unavailable:
       "Ba mu iya karanta wannan yanzu ba, don haka ba a nuna komai maimakon nuna adadi mara daidai.",
     emptyTitle: "Babu abin da za a auna tukuna",

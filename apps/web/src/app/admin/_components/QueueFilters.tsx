@@ -125,6 +125,7 @@ export function QueueFilters({
   statuses,
   common,
   searchable = true,
+  dateable = true,
   searchLabel,
   searchPlaceholder,
 }: {
@@ -156,6 +157,19 @@ export function QueueFilters({
    * work, so the frame is not all-or-nothing.
    */
   searchable?: boolean;
+  /**
+   * False where a date range could not narrow this queue truthfully.
+   *
+   * The same rule as `searchable`, for the same reason. `/admin/stops` is the
+   * case: the desk lists AGENTS, and the only date on the screen belongs to a
+   * stop, which is a row on another table that most of the listed agents do not
+   * have. A From and a To drawn there would either do nothing or quietly empty
+   * the half of the list that has never been stopped, and an operator has no
+   * way to tell which. A control that cannot narrow is not a neutral extra: it
+   * is the console claiming an ability it does not have, on the screen where
+   * somebody is deciding whether to take a person's livelihood down.
+   */
+  dateable?: boolean;
   /** Only where the queue's own noun genuinely beats "Search this queue". */
   searchLabel?: string;
   searchPlaceholder?: string;
@@ -183,24 +197,28 @@ export function QueueFilters({
             happened on Tuesday". Two native date inputs rather than a picker:
             they are keyboard-reachable, they are localised by the browser, and
             they are the one control a console does not need to invent. */}
-        <label className="min-w-0">
-          <span className="nf-label">{f.from}</span>
-          <input
-            type="date"
-            name="from"
-            defaultValue={query.from ?? ""}
-            className="nf-field mt-inline-tight w-full"
-          />
-        </label>
-        <label className="min-w-0">
-          <span className="nf-label">{f.to}</span>
-          <input
-            type="date"
-            name="to"
-            defaultValue={query.to ?? ""}
-            className="nf-field mt-inline-tight w-full"
-          />
-        </label>
+        {dateable && (
+          <>
+            <label className="min-w-0">
+              <span className="nf-label">{f.from}</span>
+              <input
+                type="date"
+                name="from"
+                defaultValue={query.from ?? ""}
+                className="nf-field mt-inline-tight w-full"
+              />
+            </label>
+            <label className="min-w-0">
+              <span className="nf-label">{f.to}</span>
+              <input
+                type="date"
+                name="to"
+                defaultValue={query.to ?? ""}
+                className="nf-field mt-inline-tight w-full"
+              />
+            </label>
+          </>
+        )}
 
         {/* The status travels with the search so a submit does not silently
             drop the chip the operator already chose. */}

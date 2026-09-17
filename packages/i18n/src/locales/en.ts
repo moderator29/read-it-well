@@ -316,7 +316,7 @@ export const en = {
       /* "{count} listed" reads as a fact. A market with nothing in it says so
          in words rather than printing a zero dressed as a figure. */
       count: "{count} listed",
-      none: "Opening soon",
+      none: "Nothing listed yet",
     },
     /*
      * What the account DOES, as against what it holds. Every line is built and
@@ -1214,9 +1214,9 @@ export const en = {
       noneBody:
         "You have not applied to become an agent yet. It takes about ten minutes and you need one photo ID.",
       startApplication: "Apply to become an agent",
-      unconfiguredTitle: "Applications are not open here yet",
+      unconfiguredTitle: "We cannot reach your application right now",
       unconfiguredBody:
-        "This page shows your real application the moment the platform keys land. Nothing you have submitted is lost in the meantime.",
+        "This is on our side, not yours. Nothing you have submitted is lost. Try again in a few minutes.",
       reviewedOn: "Decided on",
       reviewerNote: "What the reviewer said",
     },
@@ -1255,9 +1255,9 @@ export const en = {
       notAgentTitle: "You are not listing yet",
       notAgentBody:
         "This workspace fills in the moment you have a place on Vallo. Applying takes about two minutes and a person reads every application.",
-      unconfiguredTitle: "The workspace is not connected yet",
+      unconfiguredTitle: "We cannot reach the workspace right now",
       unconfiguredBody:
-        "This platform is not holding its keys, so there is nothing to read here. Everything else on Vallo still works.",
+        "This is on our side, not yours, and there is nothing to read here until it is fixed. Everything else on Vallo still works.",
       applyCta: "Apply to list",
     },
   },
@@ -1349,7 +1349,7 @@ export const en = {
       notPrepared:
         "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
       uploadFailed: "That photo did not finish uploading. Please try it again.",
-      needsKeys: "Photos upload once the platform keys land. Everything else you have typed is saved.",
+      needsKeys: "We cannot upload photos right now. Everything else you have typed is saved.",
       needsTitle: "Add a title on step one first, then your photos attach to this listing.",
     },
 
@@ -1509,7 +1509,7 @@ export const en = {
       lede: "Every property you have on Vallo, and where each one stands.",
       start: "Start a listing",
       unconfigured:
-        "Your listings appear here the moment the platform keys land. You can start building one now: the wizard keeps your work on this device until then.",
+        "We cannot reach your listings right now. Nothing has been lost, and you can still start one: the wizard keeps your work on this device.",
       emptyTitle: "No listings yet",
       emptyBody:
         "Your first property takes about ten minutes, most of it photos. Start whenever you are ready: drafts are saved as you go.",
@@ -1597,7 +1597,7 @@ export const en = {
     title: "Bookings",
     lede: "Every request and every stay across your properties.",
     unconfigured:
-      "Your requests and stays appear here the moment the platform keys land. Nothing is lost in the meantime.",
+      "We cannot reach your requests and stays right now. Nothing has been lost.",
     tabsLabel: "Booking groups",
     waitingOn: "{count} waiting on you",
     waitingOnOne: "1 waiting on you",
@@ -1694,7 +1694,7 @@ export const en = {
   agentEarnings: {
     title: "Earnings",
     lede: "What has settled from your stays, taken straight from the ledger.",
-    unconfigured: "Your earnings appear here the moment the platform keys land.",
+    unconfigured: "We cannot reach your earnings right now. Nothing has been lost.",
     unavailable:
       "We could not read the ledger just now, so no figure is shown rather than a wrong one. Reload in a moment.",
     totals: {
@@ -1734,7 +1734,7 @@ export const en = {
     title: "Analytics",
     lede: "What your properties have actually done, counted from your own records.",
     unconfigured:
-      "Your figures appear here the moment the platform keys land. Nothing is lost in the meantime.",
+      "We cannot reach your figures right now. Nothing has been lost.",
     unavailable: "We could not read this just now, so nothing is shown rather than a wrong figure.",
     emptyTitle: "Nothing to measure yet",
     emptyBody:

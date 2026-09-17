@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getStopsDesk } from "@/lib/admin/suspension-queries";
-import { adminUi } from "../_components/ui";
+import { getStopsDesk, STOPS_STATUSES } from "@/lib/admin/suspension-queries";
+import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
+import { adminUi, type AdminUi } from "../_components/ui";
+import {
+  QueueFilters,
+  QueuePager,
+  queueNoMatch,
+  readQueueQuery,
+  type QueueStatusOption,
+} from "../_components/QueueFilters";
 import { StopsDesk } from "./StopsDesk";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,6 +19,20 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const dynamic = "force-dynamic";
+
+/**
+ * The two chips, from the pair the query itself filters on.
+ *
+ * `STOPS_STATUSES` lives beside the read rather than here, so the chip row and
+ * the `in` clause cannot drift apart. The words come from `ui.statusLabel`,
+ * which is where every other status word in this console comes from.
+ */
+function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
+  return STOPS_STATUSES.map((value) => ({ value, label: ui.statusLabel(value) }));
+}
+
+const LEDE =
+  "Agents taken off the platform, and everything a stop took down. A stop is not a deletion: their listings come back where they were the moment it is lifted, and confirmed stays are never cancelled.";
 
 /**
  * Stops: taking an agent off the platform, and putting them back.
@@ -25,34 +47,95 @@ export const dynamic = "force-dynamic";
  * removes nothing, because the thing that actually prevents a mistake is seeing
  * what will happen, which is on the card. The reason field is the real gate,
  * and it is required.
+ *
+ * ---------------------------------------------------------------------------
+ * AND IT HAD NO WAY TO FIND ANYBODY.
+ *
+ * Two lists of every approved agent on the platform, ordered by name, with no
+ * search, no filter and no pager, on the screen whose entire job is "find one
+ * person and decide about them". Twelve of the console's nineteen destinations
+ * had the shared queue frame and this was not one of them. F2-055.
+ *
+ * The narrowing is in the query, on the first read, before the four reads that
+ * fan out from it. See `getStopsDesk`.
+ *
+ * NO DATE RANGE HERE. The only date on this screen belongs to a stop, and most
+ * of the agents listed have never had one, so From and To would narrow nothing
+ * or silently empty half the desk. `dateable={false}` says so rather than
+ * drawing two controls that do not work.
  */
-export default async function AdminStopsPage() {
+export default async function AdminStopsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const ui = adminUi(t, locale);
+  const common = t.admin.common;
 
-  const read = await getStopsDesk();
+  const query = readQueueQuery(await searchParams);
+  const read = await getStopsDesk({
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
+  });
 
   if (read.state !== "ready") {
     return (
       <div className="nf-console">
-        <ui.QueueHeader
-          title={t.admin.nav.stops.label}
-          lede="Agents taken off the platform, and everything a stop took down."
-        />
+        <ui.QueueHeader title={t.admin.nav.stops.label} lede={LEDE} />
         <ui.QueueUnavailable />
       </div>
     );
   }
 
+  const shown = read.stopped.length + read.trading.length;
+  /* Page two of a desk that has run out is a RESULT, not "nobody has ever been
+     here", so the offset counts towards the narrowed reading exactly as it does
+     on the other queues. */
+  const narrowed = read.narrowed || (query.offset ?? 0) > 0;
+  const noMatch = queueNoMatch(common);
+
   return (
     <div className="nf-console">
       <ui.QueueHeader
         title={t.admin.nav.stops.label}
-        lede="Agents taken off the platform, and everything a stop took down. A stop is not a deletion: their listings come back where they were the moment it is lifted, and confirmed stays are never cancelled."
+        lede={LEDE}
         count={read.stopped.length}
       />
-      <StopsDesk stopped={read.stopped} trading={read.trading} />
+
+      <QueueFilters
+        base="/admin/stops"
+        query={query}
+        common={common}
+        statuses={statusFilters(ui)}
+        dateable={false}
+        searchLabel="Find an agent"
+        searchPlaceholder="Agent name"
+      />
+
+      {shown === 0 ? (
+        <ui.QueueEmpty
+          title={narrowed ? noMatch.title : "No agents to show"}
+          body={
+            narrowed
+              ? noMatch.body
+              : "Nobody has been approved to trade yet, so there is nobody to stop and nobody to put back."
+          }
+          everHadRows={narrowed}
+        />
+      ) : (
+        <StopsDesk stopped={read.stopped} trading={read.trading} />
+      )}
+
+      <QueuePager
+        base="/admin/stops"
+        query={query}
+        pageSize={QUEUE_PAGE_SIZE}
+        full={read.hasMore}
+        count={shown}
+      />
     </div>
   );
 }

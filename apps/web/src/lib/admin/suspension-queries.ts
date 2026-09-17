@@ -1,6 +1,13 @@
 import "server-only";
 
 import { requireAdmin } from "./guard";
+import {
+  isNarrowed,
+  pageRange,
+  pickStatus,
+  takePage,
+  type AdminQueueFilter,
+} from "./queue-filter";
 
 /**
  * Read side of the stops desk.
@@ -64,7 +71,27 @@ export type AgentStanding = {
 
 export type StopsRead =
   | { state: "unavailable" }
-  | { state: "ready"; stopped: AgentStanding[]; trading: AgentStanding[] };
+  | {
+      state: "ready";
+      stopped: AgentStanding[];
+      trading: AgentStanding[];
+      /** True when a search or a status chip is narrowing this read. */
+      narrowed: boolean;
+      /** True when the agent read came back full, so there is another page. */
+      hasMore: boolean;
+    };
+
+/**
+ * The two statuses this desk deals in.
+ *
+ * `agents.status` is `agent_application_status`, which holds seven values, and
+ * five of them belong to the application pipeline rather than to trading. The
+ * desk has always read only these two; naming them here means the status chips
+ * on the page are built from the same pair the query filters on, so a chip
+ * cannot offer a value this read would then drop on the floor.
+ */
+export const STOPS_STATUSES = ["APPROVED", "SUSPENDED"] as const;
+export type StopsStatus = (typeof STOPS_STATUSES)[number];
 
 /**
  * The statuses a stop takes down, matching `withdrawable` in
@@ -101,20 +128,63 @@ function readEntries(value: unknown): WithdrawnEntry[] {
   return out;
 }
 
-export async function getStopsDesk(): Promise<StopsRead> {
+/**
+ * The stops desk, narrowed in the query.
+ *
+ * ---------------------------------------------------------------------------
+ * THIS READ USED TO PULL EVERY APPROVED AGENT ON THE PLATFORM, EVERY TIME.
+ *
+ * `.in("status", [...]).order("display_name")` with no limit, and then four
+ * more reads keyed on every id that came back: their suspensions, the listings
+ * those suspensions took down, a live-listing count, and a profile lookup for
+ * every signer. At the seventeen agents this platform holds today that is one
+ * screen. At five thousand it is five thousand ids in four `in` clauses, and
+ * the screen an operator opens during an incident is the one that stops
+ * answering.
+ *
+ * The search, the status and the page are all on the FIRST read now, so
+ * everything downstream fans out from one page of agents rather than from all
+ * of them. That ordering is the whole point and it is easy to get backwards:
+ * narrowing after the fan-out would have been four lines shorter and would have
+ * fixed nothing, which is the same fault `/admin/bookings` was carrying when it
+ * filtered rows it had already fetched.
+ *
+ * NO DATE RANGE, and the page does not draw one. See `dateable` on
+ * `QueueFilters`: the only date here belongs to a stop, and most of the agents
+ * on this screen have never had one.
+ */
+export async function getStopsDesk(filter?: AdminQueueFilter): Promise<StopsRead> {
   const access = await requireAdmin();
   if (access.state !== "admin") return { state: "unavailable" };
 
+  const term = (filter?.q ?? "").trim();
+  const status = pickStatus(STOPS_STATUSES, filter?.status);
+  const narrowed = isNarrowed(filter);
+
   try {
-    const { data: agents, error: agentError } = await access.supabase
+    const { from, to } = pageRange(filter);
+    let agentSelect = access.supabase
       .from("agents")
       .select("id, user_id, display_name, status")
-      .in("status", ["APPROVED", "SUSPENDED"])
-      .order("display_name");
+      /* The chip narrows within the two the desk deals in; with no chip it is
+         still both, never the other five. */
+      .in("status", status ? [status] : [...STOPS_STATUSES]);
+    /* The name is the only thing an operator has. `%` on both sides because
+       they are as likely to have been given a surname as a first name, and
+       PostgREST escapes the value, so a term containing a `%` searches for a
+       literal one rather than widening the match. */
+    if (term.length > 0) agentSelect = agentSelect.ilike("display_name", `%${term}%`);
+
+    const { data: agents, error: agentError } = await agentSelect
+      .order("display_name")
+      .range(from, to);
     if (agentError) return { state: "unavailable" };
 
-    const agentRows = agents ?? [];
-    if (agentRows.length === 0) return { state: "ready", stopped: [], trading: [] };
+    const page = takePage(agents ?? []);
+    const agentRows = page.rows;
+    if (agentRows.length === 0) {
+      return { state: "ready", stopped: [], trading: [], narrowed, hasMore: false };
+    }
 
     const agentIds = agentRows.map((a) => a.id);
 
@@ -224,6 +294,8 @@ export async function getStopsDesk(): Promise<StopsRead> {
 
     return {
       state: "ready",
+      narrowed,
+      hasMore: page.full,
       stopped: standing.filter((a) => a.status === "SUSPENDED"),
       // A trading agent with no history at all is not work and not a record, so
       // the second list stays the list of agents somebody might need to stop

@@ -40,6 +40,19 @@ const THE_STRINGS_THAT_SHIPPED = [
   "Notifications switch on shortly.",
   "Messaging is nearly here, so come back soon.",
   "Accounts switch on shortly.",
+  /*
+   * And the same promise as it shipped in the other three languages, which is
+   * where five of these survived a rewrite of their English original. Pinned
+   * verbatim: if somebody edits a pattern and these stop matching, the guard
+   * has quietly gone back to covering one language out of four.
+   */
+  "Owó tí o rí máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé.",
+  "Àwọn àkàǹtì yóò ṣí ní kété tí àwọn kọ́kọ́rọ́ pátákò bá dé.",
+  "Kuɗin da ka samu zai bayyana a nan da zarar maɓallan dandalin suka iso.",
+  "Hotuna za su loda idan mabuɗan dandalin suka iso.",
+  "Wannan shafin zai nuna takardar neman ka lokacin da makullan dandamali suka iso.",
+  "Ego gị ga-apụta ebe a ozugbo igodo nke ikpo okwu rutere.",
+  "Foto ga-ebugo ozugbo igodo ikpo okwu rutere.",
 ];
 
 describe("the banned copy vocabulary", () => {
@@ -123,18 +136,24 @@ describe("reading a source file the way a reader sees it", () => {
  * nobody keeps.
  */
 /*
- * WHAT THIS SWEEP DOES NOT READ, SAID OUT LOUD SO IT IS A GAP AND NOT A CLAIM.
+ * THE DICTIONARY IS WALKED TOO, AND THAT IS THE HALF THAT WAS ACTUALLY ROTTING.
  *
- * `packages/i18n/src/locales/*.ts` is not walked. Seven live strings in `en.ts`
- * are still in the banned family today - `none: "Opening soon"` on the markets
- * strip, and six that promise something "the moment the platform keys land" -
- * and the dictionary belongs to another owner, so the copy fix and the guard
- * have to land together or one of them breaks the build. The paths are listed
- * in the sprint report. The moment those seven are rewritten, add
- * `../../packages/i18n/src` to the walk below and the ban covers the words in
- * all four languages as well as the words in the app.
+ * `packages/i18n/src` is in the walk. Nine strings in `en.ts` were still in the
+ * banned family and are not any more, and behind each of them stood three
+ * translations carrying the same promise: 55 strings in total, across four
+ * files. Five of the English ones had ALREADY been rewritten in an earlier
+ * pass and their Yoruba, Hausa and Igbo twins had not, which is the whole
+ * argument for walking the locales rather than trusting that a copy fix
+ * travels. It does not travel. Nobody reads the file it fails to travel to.
  */
 const EXEMPT = new Set(["lib/copy/banned-phrases.ts", "lib/copy/banned-phrases.test.ts"]);
+
+/** A path a reader can find, whichever of the two trees it came from. */
+function label(path: string): string {
+  return path.startsWith(SRC)
+    ? relative(SRC, path)
+    : `packages/i18n/src/${relative(DICTIONARY, path)}`;
+}
 
 function sourceFiles(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -150,13 +169,20 @@ function sourceFiles(dir: string, found: string[] = []): string[] {
   return found;
 }
 
-describe("no screen in this product promises a date it cannot keep", () => {
-  const files = sourceFiles(SRC).filter(
-    (path) => !EXEMPT.has(relative(SRC, path).split("\\").join("/")),
-  );
+/** The four locale files, which ship the same screens in the other three languages. */
+const DICTIONARY = join(process.cwd(), "..", "..", "packages", "i18n", "src");
 
-  it("reads a believable number of files", () => {
+describe("no screen in this product promises a date it cannot keep", () => {
+  const files = [
+    ...sourceFiles(SRC).filter((path) => !EXEMPT.has(relative(SRC, path).split("\\").join("/"))),
+    ...sourceFiles(DICTIONARY),
+  ];
+
+  it("reads a believable number of files, the dictionary among them", () => {
     expect(files.length).toBeGreaterThan(200);
+    expect(files.some((path) => path.endsWith("locales/yo.ts"))).toBe(true);
+    expect(files.some((path) => path.endsWith("locales/ha.ts"))).toBe(true);
+    expect(files.some((path) => path.endsWith("locales/ig.ts"))).toBe(true);
   });
 
   it("finds no banned schedule promise in any of them", () => {
@@ -166,7 +192,7 @@ describe("no screen in this product promises a date it cannot keep", () => {
       lines.forEach((text, index) => {
         const phrase = firstBannedPhrase(text);
         if (phrase) {
-          offences.push(`${relative(SRC, path)}:${index + 1}  [${phrase}]  ${text.trim()}`);
+          offences.push(`${label(path)}:${index + 1}  [${phrase}]  ${text.trim()}`);
         }
       });
     }

@@ -212,7 +212,7 @@ export const yo: Dictionary = {
       office: "Ọ́fíìsì",
       land: "Ilẹ̀",
       count: "{count} lórí àkọsílẹ̀",
-      none: "Ṣíṣílẹ̀ láìpẹ́",
+      none: "Kò sí àtòjọ síbẹ̀",
     },
     oneAccount: {
       overline: "Gbogbo rẹ̀, ní ibì kan",
@@ -481,7 +481,7 @@ export const yo: Dictionary = {
     },
     accountTitle: "Èyí jẹ́ ti àkàǹtì rẹ",
     accountBodySignedOut: "Ohun tí o wá fún ni a fi pamọ́ sí àkàǹtì rẹ, kí ó lè tẹ̀lé ọ sí gbogbo ẹ̀rọ, kí ó sì pinnu ohun tí a ó kọ́kọ́ fi hàn ọ́.",
-    accountBodyUnconfigured: "Àwọn àkàǹtì yóò ṣí ní kété tí àwọn kọ́kọ́rọ́ pátákò bá dé. Ohun tí o wá fún ni a fi pamọ́ sí àkàǹtì rẹ, kí ó lè tẹ̀lé ọ sí gbogbo ẹ̀rọ.",
+    accountBodyUnconfigured: "A kò lè dé ọ̀dọ̀ àwọn àkàǹtì báyìí. Ohun tí o wá fún ni a fi pamọ́ sí àkàǹtì rẹ, kí ó lè tẹ̀lé ọ sí gbogbo ẹ̀rọ.",
     question: "Kí ni o wá fún?",
     note: "Èyí kàn ń yí ohun tí a kọ́kọ́ fi hàn padà. Ìwádìí tàbí ìtọ́jú tí ìwọ fúnra rẹ ṣe ni ó máa borí nígbà gbogbo.",
     noteFirstRun: " O lè yí i padà lẹ́yìn náà nínú Ètò.",
@@ -540,7 +540,7 @@ export const yo: Dictionary = {
       screenSubtitle: "Nàìjíríà, lẹ́yìn náà ìpínlẹ̀ rẹ, lẹ́yìn náà ìjọba ìbílẹ̀ rẹ",
       accountTitle: "Èyí jẹ́ ti àkàǹtì rẹ",
       accountBodyUnconfigured:
-        "Àwọn àkàǹtì yóò ṣí ní kété tí àwọn kọ́kọ́rọ́ pátákò bá dé. Ìpínlẹ̀, ìjọba ìbílẹ̀ àti iṣẹ́ rẹ ni a fi pamọ́ sí àkàǹtì rẹ, kí wọ́n lè tẹ̀lé ọ sí gbogbo ẹ̀rọ.",
+        "A kò lè dé ọ̀dọ̀ àwọn àkàǹtì báyìí. Ìpínlẹ̀, ìjọba ìbílẹ̀ àti iṣẹ́ rẹ ni a fi pamọ́ sí àkàǹtì rẹ, kí wọ́n lè tẹ̀lé ọ sí gbogbo ẹ̀rọ.",
       accountBodySignedOut:
         "Ìpínlẹ̀, ìjọba ìbílẹ̀ àti iṣẹ́ rẹ ni a fi pamọ́ sí àkàǹtì rẹ, kí wọ́n lè tẹ̀lé ọ sí gbogbo ẹ̀rọ, kí wọ́n sì pinnu àwọn ibi tí ojú ilé yóò ṣí sí.",
       statesUnavailable:
@@ -672,7 +672,7 @@ export const yo: Dictionary = {
       label: "Àkàǹtì",
       saved: "A ti fi pamọ́ sí àkàǹtì rẹ",
       unconfiguredNote:
-        "Àwọn àkàǹtì yóò ṣí ní kété tí àwọn kọ́kọ́rọ́ pátákò bá dé. Gbogbo ohun tí o ṣètò níbí ni a fi pamọ́ sórí ẹ̀rọ yìí títí di ìgbà náà.",
+        "A kò lè dé ọ̀dọ̀ àwọn àkàǹtì báyìí. Gbogbo ohun tí o ṣètò níbí ni a fi pamọ́ sórí ẹ̀rọ yìí.",
       signedIn: "O ti wọlé",
       notSignedIn: "O kò tíì wọlé",
       signedOutSub: "Wọlé kí profáìlì àti àwọn ètò rẹ lè wà pẹ̀lú àkàǹtì rẹ dípò ẹ̀rọ yìí.",
@@ -911,9 +911,9 @@ export const yo: Dictionary = {
       noneBody:
         "O kò tí ì bẹ̀rẹ̀ ìbéèrè láti di aṣojú. Ó máa gba nǹkan bí ìṣẹ́jú mẹ́wàá, o sì nílò ìwé ìdánimọ̀ kan.",
       startApplication: "Bẹ̀rẹ̀ ìbéèrè aṣojú",
-      unconfiguredTitle: "Ìbéèrè kò tíì ṣí síbí",
+      unconfiguredTitle: "A kò lè dé ọ̀dọ̀ ìbéèrè rẹ báyìí",
       unconfiguredBody:
-        "Ojú-ìwé yìí máa fi ìbéèrè rẹ gidi hàn ní kété tí àwọn kọ́kọ́rọ́ pèpéle bá dé. Kò sí ohun tí o ti fi ránṣẹ́ tí yóò sọnù.",
+        "Ọ̀dọ̀ wa ni ìṣòro yìí ti wá, kì í ṣe ọ̀dọ̀ rẹ. Kò sí ohun tí o ti fi ránṣẹ́ tí ó sọnù. Gbìyànjú lẹ́ẹ̀kan sí i láàrin ìṣẹ́jú díẹ̀.",
       reviewedOn: "Ìpinnu ní",
       reviewerNote: "Ohun tí olùyẹ̀wò sọ",
     },
@@ -950,9 +950,9 @@ export const yo: Dictionary = {
       notAgentTitle: "O kò tíì ta ilé kankan",
       notAgentBody:
         "Ibi iṣẹ́ yìí máa kún nígbà tí o bá ní ilé lórí Vallo. Ìbéèrè náà gba nǹkan bí ìṣẹ́jú méjì, ẹnìyàn sì ń ka gbogbo ìbéèrè.",
-      unconfiguredTitle: "Ibi iṣẹ́ náà kò tíì so pọ̀",
+      unconfiguredTitle: "A kò lè dé ọ̀dọ̀ ibi iṣẹ́ náà báyìí",
       unconfiguredBody:
-        "Ẹ̀rọ yìí kò dì kọ́kọ́rọ́ rẹ̀ mú, nítorí náà kò sí ohun tí a lè kà níbí. Gbogbo ohun mìíràn lórí Vallo ṣì ń ṣiṣẹ́.",
+        "Ọ̀dọ̀ wa ni ìṣòro yìí ti wá, kì í ṣe ọ̀dọ̀ rẹ, nítorí náà kò sí ohun tí a lè kà níbí títí a ó fi tún un ṣe. Gbogbo ohun mìíràn lórí Vallo ṣì ń ṣiṣẹ́.",
       applyCta: "Bèèrè láti ta ilé",
     },
   },
@@ -973,7 +973,7 @@ export const yo: Dictionary = {
         submit: "Fífiránṣẹ́",
       },
       unconfiguredNotice:
-        "Ìtẹ̀jáde máa ṣiṣẹ́ ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Tẹ̀síwájú: gbogbo ohun tí o kọ wà ní ìpamọ́ sórí ẹ̀rọ yìí, ó sì máa dúró de ọ.",
+        "A kò lè dé ọ̀dọ̀ ìtẹ̀jáde báyìí. Tẹ̀síwájú: gbogbo ohun tí o kọ wà ní ìpamọ́ sórí ẹ̀rọ yìí, ó sì máa dúró de ọ.",
       savedAt: "A fi pamọ́ ní {time}",
       saving: "Ń fi pamọ́",
       next: "Tókàn",
@@ -1042,7 +1042,7 @@ export const yo: Dictionary = {
         "A kò lè múra àwòrán náà láìséwu, nítorí náà a kò gbé e sókè. Gbìyànjú àwòrán mìíràn.",
       uploadFailed: "Àwòrán náà kò parí ìgbésókè. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
       needsKeys:
-        "Àwòrán máa gbéra sókè ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Gbogbo ohun mìíràn tí o ti kọ wà ní ìpamọ́.",
+        "A kò lè gbé àwòrán sókè báyìí. Gbogbo ohun mìíràn tí o ti kọ wà ní ìpamọ́.",
       needsTitle:
         "Kọ àkọlé ní ìgbésẹ̀ kìíní kọ́kọ́, lẹ́yìn náà àwọn àwòrán rẹ máa so mọ́ àtòjọ yìí.",
     },
@@ -1140,7 +1140,7 @@ export const yo: Dictionary = {
       needsTitle:
         "Kọ àkọlé ní ìgbésẹ̀ kìíní kọ́kọ́, lẹ́yìn náà a lè fi àtòjọ yìí ránṣẹ́ fún àtúnyẹ̀wò.",
       needsKeys:
-        "Fífiránṣẹ́ fún àtúnyẹ̀wò máa ṣiṣẹ́ ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Iṣẹ́ rẹ wà ní ìpamọ́ sórí ẹ̀rọ yìí.",
+        "A kò lè fi èyí ránṣẹ́ fún àtúnyẹ̀wò báyìí. Iṣẹ́ rẹ wà ní ìpamọ́ sórí ẹ̀rọ yìí.",
     },
 
     gate: {
@@ -1201,7 +1201,7 @@ export const yo: Dictionary = {
       lede: "Gbogbo ohun ìní tí o ní lórí Vallo, àti ipò tí ọ̀kọ̀ọ̀kan wà.",
       start: "Bẹ̀rẹ̀ àtòjọ",
       unconfigured:
-        "Àtòjọ rẹ máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. O lè bẹ̀rẹ̀ ìkọ́ ọ̀kan báyìí: ẹ̀rọ àtòjọ máa fi iṣẹ́ rẹ pamọ́ sórí ẹ̀rọ yìí títí ìgbà náà.",
+        "A kò lè dé ọ̀dọ̀ àwọn àtòjọ rẹ báyìí. Kò sí ohun tí ó sọnù, o sì lè bẹ̀rẹ̀ ọ̀kan: ẹ̀rọ àtòjọ máa fi iṣẹ́ rẹ pamọ́ sórí ẹ̀rọ yìí.",
       emptyTitle: "Kò sí àtòjọ síbẹ̀",
       emptyBody:
         "Ohun ìní àkọ́kọ́ rẹ gba nǹkan bí ìṣẹ́jú mẹ́wàá, àwòrán ni ó pọ̀ jù nínú rẹ̀. Bẹ̀rẹ̀ nígbàkigbà tí o ṣetán: a ń fi àkọ̀wé pamọ́ bí o ti ń lọ.",
@@ -1279,7 +1279,7 @@ export const yo: Dictionary = {
     title: "Ìfiléke",
     lede: "Gbogbo ìbéèrè àti gbogbo ìbùgbé lórí àwọn ohun ìní rẹ.",
     unconfigured:
-      "Àwọn ìbéèrè àti ìbùgbé rẹ máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Kò sí ohun tí ó sọnù láàrin ìgbà náà.",
+      "A kò lè dé ọ̀dọ̀ àwọn ìbéèrè àti ìbùgbé rẹ báyìí. Kò sí ohun tí ó sọnù.",
     tabsLabel: "Àwọn ẹgbẹ́ ìfiléke",
     waitingOn: "{count} ń dúró dè ọ́",
     waitingOnOne: "Ọ̀kan ń dúró dè ọ́",
@@ -1368,7 +1368,7 @@ export const yo: Dictionary = {
   agentEarnings: {
     title: "Owó tí o rí",
     lede: "Ohun tí ó ti wọlé láti àwọn ìbùgbé rẹ, tààrà láti inú ìwé ìṣírò.",
-    unconfigured: "Owó tí o rí máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé.",
+    unconfigured: "A kò lè dé ọ̀dọ̀ owó tí o rí báyìí. Kò sí ohun tí ó sọnù.",
     unavailable:
       "A kò lè kà ìwé ìṣírò náà báyìí, nítorí náà a kò fi iye kan hàn dípò kí a fi èyí tí kò tọ́ hàn. Tún ojú-ìwé yìí kó ní ìṣẹ́jú kan.",
     totals: {
@@ -1404,7 +1404,7 @@ export const yo: Dictionary = {
     title: "Ìṣirò",
     lede: "Ohun tí àwọn ohun ìní rẹ ṣe ní tòótọ́, tí a kà láti inú àkọsílẹ̀ tìrẹ.",
     unconfigured:
-      "Àwọn iye rẹ máa hàn níbí ní kété tí àwọn kọ́kọ́rọ́ pátákó bá dé. Kò sí ohun tí ó sọnù láàrin ìgbà náà.",
+      "A kò lè dé ọ̀dọ̀ àwọn iye rẹ báyìí. Kò sí ohun tí ó sọnù.",
     unavailable:
       "A kò lè kà èyí báyìí, nítorí náà a kò fi ohunkóhun hàn dípò kí a fi iye tí kò tọ́ hàn.",
     emptyTitle: "Kò sí ohun tí a lè díwọ̀n síbẹ̀",

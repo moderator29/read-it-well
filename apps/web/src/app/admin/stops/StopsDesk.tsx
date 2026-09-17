@@ -368,12 +368,6 @@ export function StopsDesk({
     FormData
   >(liftAgentStop, null);
 
-  const [search, setSearch] = useState("");
-  const needle = search.trim().toLowerCase();
-  const shown = needle
-    ? trading.filter((a) => a.displayName.toLowerCase().includes(needle))
-    : trading;
-
   return (
     <div className="space-y-section-tight">
       <section aria-label="Stopped">
@@ -442,26 +436,27 @@ export function StopsDesk({
           why, in your words.
         </p>
 
-        <label className="mt-heading block">
-          <span className="sr-only">Find an agent by name</span>
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Find an agent by name"
-            className="nf-field"
-          />
-        </label>
+        {/*
+          THE SECOND SEARCH BOX IS GONE, AND IT HAD TO GO.
 
-        {shown.length === 0 ? (
+          This held its own `useState` search and filtered `trading` in the
+          browser. That is the fault the console spent this sprint removing from
+          `/admin/bookings`: narrowing the rows that were already fetched. It
+          was harmless while the read returned every approved agent, and it
+          stopped being harmless the moment that read became one page of forty,
+          because a box promising "find an agent by name" would then have
+          searched the forty on screen and said nothing about the rest.
+
+          The search is in the address bar now, on `QueueFilters` above, and it
+          is an `ilike` inside Postgres. One box, and it reads the whole table.
+        */}
+        {trading.length === 0 ? (
           <p className="mt-heading nf-body-sm text-[var(--nf-content-muted)]">
-            {trading.length === 0
-              ? "No agent is approved yet, so there is nobody who could be stopped."
-              : `No agent's name matches "${search.trim()}". Clear the box to see all ${trading.length}.`}
+            No agent is approved yet, so there is nobody who could be stopped.
           </p>
         ) : (
           <ul className="mt-heading space-y-row">
-            {shown.map((agent) => (
+            {trading.map((agent) => (
               <TradingCard
                 key={agent.agentId}
                 agent={agent}
