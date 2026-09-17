@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { CHROME_COLOUR } from "@/lib/theme/chrome";
 
 /**
  * Web app manifest, served by Next at `/manifest.webmanifest`.
@@ -19,7 +20,9 @@ import type { MetadataRoute } from "next";
  * Dark is the default theme, so the splash background is navy, never white.
  */
 
-const NAVY = "#010118";
+/* The splash and install colour is the chrome colour, from its one home. It
+   used to be written out here as a third copy of the same hex. */
+const NAVY = CHROME_COLOUR.dark;
 
 export default function manifest(): MetadataRoute.Manifest {
   return {

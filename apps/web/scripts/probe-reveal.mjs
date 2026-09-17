@@ -14,7 +14,6 @@ const browser = await chromium.launch({ executablePath: EXE });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await page.goto("http://localhost:3000/", { waitUntil: "networkidle" });
 
-const total = await page.evaluate(() => document.querySelectorAll("[data-reveal], .nf-reveal").length);
 const height = await page.evaluate(() => document.body.scrollHeight);
 for (let y = 0; y < height; y += 600) {
   await page.evaluate((v) => window.scrollTo(0, v), y);

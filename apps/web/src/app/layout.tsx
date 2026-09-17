@@ -9,6 +9,7 @@ import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import "./globals.css";
 import { siteUrl } from "@/lib/site";
+import { CHROME_COLOUR } from "@/lib/theme/chrome";
 
 /*
  * The fonts are declared in `css/fonts.css` and served from `public/fonts`,
@@ -172,19 +173,15 @@ export const viewport: Viewport = {
    * before-paint script below, and `applyThemeColour` in the settings store
    * when somebody moves the setting.
    *
-   * THIS IS `CHROME_COLOUR.dark` IN `lib/native/theme.ts` AND IT MUST STAY
-   * EQUAL TO IT, along with the `StatusBar` block in `capacitor.config.ts`.
-   * It is written out here rather than imported because this is server-rendered
-   * metadata with no CSS context, and because that file's own note is the
-   * record of why these two values are literals at all.
-   *
-   * It is deliberately NOT `--nf-surface-canvas`. That was tried and measured
-   * and it is the wrong colour: the canvas is #000010 in dark, but the browser
-   * chrome sits above the TOP of the page and the top of the page is the sticky
-   * glass header, which samples #090919. This value sits between them and is
-   * closer to the header, which is the thing the chrome actually abuts.
+   * IT READS `CHROME_COLOUR.dark` RATHER THAN RESTATING IT. This was the third
+   * of four places the same hex was written out by hand, beside the manifest,
+   * the before-paint script below and the Capacitor `StatusBar` block. All four
+   * are serialised where no CSS has run, so none of them can hold a token, and
+   * four literals with no stylesheet between them drift with nothing to report
+   * it. `lib/theme/chrome.ts` is the one home, and it carries the measurement
+   * showing why this value is not `--nf-surface-canvas`.
    */
-  themeColor: "#010118",
+  themeColor: CHROME_COLOUR.dark,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -252,7 +249,7 @@ export default async function RootLayout({
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches)){document.documentElement.dataset.theme='light';var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content','#F4F5F7')}}catch(e){}",
+              `try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches)){document.documentElement.dataset.theme='light';var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content','${CHROME_COLOUR.light}')}}catch(e){}`,
           }}
         />
         {/*

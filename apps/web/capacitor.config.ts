@@ -82,7 +82,13 @@ const config: CapacitorConfig = {
   ios: {
     /* The shell is dark because the brand is dark, and the default is white.
        Without this the gap above the web view flashes white on every launch
-       and on every rubber band scroll past the top of a page. */
+       and on every rubber band scroll past the top of a page.
+
+       THIS VALUE HAS A HOME AND IT IS `src/lib/theme/chrome`. It is written out
+       here, in three places in this file, because this config is read by the
+       Capacitor CLI rather than by the app, so it cannot rely on the path alias
+       that resolves `@/`. If the chrome colour moves, these three move with it,
+       and that note is at the definition too. */
     backgroundColor: "#010118",
     /* Links that are not ours open in the system browser rather than replacing
        the application. See `src/lib/native/external-links.ts` for why that
@@ -103,15 +109,18 @@ const config: CapacitorConfig = {
        */
       launchAutoHide: false,
       /* Matches `background_color` in the web manifest and the iOS shell above,
-         so install, splash and first paint are one continuous colour. */
+         so install, splash and first paint are one continuous colour. The
+         manifest reads `CHROME_COLOUR.dark` now; see the note on the iOS
+         `backgroundColor` above for why this one is still written out. */
       backgroundColor: "#010118",
       androidSplashResourceName: "splash",
       showSpinner: false,
     },
     StatusBar: {
       /* Dark is the default theme and the operating system does not override
-         it. The bar is repainted at runtime when somebody chooses the paper
-         theme; this is only the value it starts at. */
+         it. The bar is repainted at runtime by `applyThemeColour` when somebody
+         chooses the paper theme; this is only the value it starts at, and it is
+         `CHROME_COLOUR.dark` written out for the reason above. */
       style: "DARK",
       backgroundColor: "#010118",
       overlaysWebView: false,

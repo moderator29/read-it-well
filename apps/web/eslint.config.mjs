@@ -143,12 +143,33 @@ const config = [
    * rather than describing an aspiration, and the next raw hex fails the
    * build on the branch that introduces it.
    *
-   * WARN under src/app. Eleven files there carry twenty-four violations, and
-   * they belong to routes rather than to the design system. Shipping them as
-   * errors would mean `npm run lint` fails on a clean checkout, which is the
-   * first step towards the config being deleted; the same reasoning the React
-   * Compiler rules above are held at warn for. Promote to error once those
-   * twenty-four reach zero.
+   * WARN under src/app. It was eleven files and twenty-four violations; it is
+   * now THREE, and all three are the same kind of value, which is why the
+   * promotion has not happened yet and what has to happen first.
+   *
+   *   src/app/layout.tsx:187   themeColor: "#010118"
+   *   src/app/layout.tsx:255   "#F4F5F7" inside the before-paint theme script
+   *   src/app/manifest.ts:22   NAVY, the PWA background and theme colour
+   *
+   * NONE OF THE THREE CAN BE A TOKEN, and that is not a migration excuse. All
+   * three are serialised into places where no CSS has run: a `<meta>` tag, a
+   * JSON manifest, and an inline script that executes before the stylesheet in
+   * order to prevent a flash of the wrong theme. A `var()` there resolves to
+   * nothing.
+   *
+   * THEY ARE ALSO THE SAME TWO VALUES AS `src/lib/native/theme.ts`, which is
+   * the finding rather than the lint. `CHROME_COLOUR` there already holds
+   * `#010118` and `#F4F5F7` for exactly this job, under a measurement
+   * explaining why the chrome is NOT `--nf-surface-canvas`: the bar abuts the
+   * top of the page, the top of the page is the sticky glass header, the canvas
+   * computes to #000010, the header samples #090919, and #010118 sits between
+   * them and nearer the header. That measurement is written out twice, here and
+   * in `layout.tsx`, and the value appears at four sites in three files.
+   *
+   * So the promotion is not blocked on a disable comment. It is blocked on
+   * `layout.tsx` and `manifest.ts` reading the constant that already exists,
+   * after which this reaches zero and flips to error. Those files belong to
+   * another queue and the routing is in the block-twelve report.
    * ------------------------------------------------------------------ */
   {
     files: ["src/design-system/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
@@ -157,6 +178,46 @@ const config = [
   },
   {
     files: ["src/app/**/*.{ts,tsx}"],
+    plugins: { nf },
+    rules: { "nf/no-raw-colour": "warn" },
+  },
+  /*
+   * ------------------------------------------------------------------
+   * `src/lib` HAD NEVER BEEN LOOKED AT BY THIS RULE, AND IT HOLDS MORE RAW
+   * COLOUR THAN THE REST OF `src` PUT TOGETHER.
+   *
+   * The three blocks above cover `src/design-system`, `src/components` and
+   * `src/app`. Nothing covered `src/lib`, so 28 literals there have never been
+   * reported, which is not a migration that stalled: it is a population nobody
+   * has counted. A rule that is enforced on three directories out of four is a
+   * habit rather than a rule, which is the same argument that put the layer-1
+   * check into `.tsx` files in `scripts/check-css-tokens.mjs`.
+   *
+   * WARN, NOT ERROR, AND DELIBERATELY SO. The point of this entry today is to
+   * make the population visible rather than to fail anybody's build on the
+   * first pass. Promote it the same way the others were promoted: clear the
+   * count, then flip it, in that order.
+   *
+   * `src/lib/email` IS SCOPED OUT BY CONFIG AND NOT BY DISABLE COMMENTS, and
+   * that is the one exemption in this file that is a whole directory.
+   * `lib/email/theme.ts` is to email what `packages/design-tokens` is to the
+   * web: the layer where the literals are DEFINED, with the token each one was
+   * resolved from named beside it. Email has to carry literal hex inline on the
+   * element, because Gmail's web client strips `:root` custom property
+   * declarations, Outlook's Word engine never supported them, and a `var()`
+   * with no fallback resolves to nothing, which paints text the same colour as
+   * its background. So the literals there are not a migration that has not
+   * happened; they are the correct answer, they are already tested for parity
+   * against `tokens.css` in `lib/email/shell.test.ts`, and eighteen per-line
+   * disables in a definition file would say the opposite of what is true.
+   *
+   * The same reasoning is why `packages/design-tokens` is not linted for
+   * literals either. A definition layer is exempt by what it IS; every other
+   * exemption in this repository is a single line with its reason on it.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/lib/**/*.{ts,tsx}"],
+    ignores: ["src/lib/email/**/*.{ts,tsx}"],
     plugins: { nf },
     rules: { "nf/no-raw-colour": "warn" },
   },

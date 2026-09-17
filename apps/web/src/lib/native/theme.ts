@@ -32,35 +32,22 @@
  * attribute means dark, which is the same rule the before-paint script obeys.
  */
 
-export type AppTheme = "dark" | "light";
+export type { AppTheme } from "@/lib/theme/chrome";
+import type { AppTheme } from "@/lib/theme/chrome";
 
 /**
- * What colour the chrome above and around the page should be, per theme.
+ * The chrome colour and the theme type both live in `lib/theme/chrome`, which
+ * carries no `"use client"` directive, and this file re-exports them so that
+ * existing readers do not move.
  *
- * THESE TWO VALUES ARE MIRRORED IN TWO OTHER PLACES AND ALL THREE MUST MOVE
- * TOGETHER: `viewport.themeColor` in `src/app/layout.tsx`, which paints the
- * browser chrome on the web, and the `StatusBar` block in
- * `capacitor.config.ts`, which decides the colour the bar starts at before any
- * JavaScript has run. This is also what `applyThemeColour` writes into the
- * `theme-color` meta at runtime, so the web chrome and the native bar are one
- * decision rather than two.
- *
- * THEY ARE LITERALS RATHER THAN A READ OF `--nf-surface-canvas`, AND THAT IS
- * NOW MEASURED RATHER THAN ASSERTED. The native plugin wants a hex string and
- * the token resolves through `color-mix` in places, which was the original
- * argument. The stronger one is that the canvas is the wrong colour: the bar
- * and the chrome abut the TOP of the page, and the top of the page is the
- * sticky glass header. Sampled at 390 in dark, the canvas computes to #000010,
- * the header's fill samples #090919, and #010118 sits between them and nearer
- * the header. Somebody chose this value correctly and wrote down only that it
- * matched, so the next person to reach for the obvious token would have moved
- * the chrome 9 units away from the thing it touches. In light the two answers
- * coincide, which is why only the dark value looks arbitrary.
+ * THEY MOVED OUT BECAUSE OF WHO NEEDS THEM. `viewport.themeColor` is
+ * server-serialised metadata and `manifest.ts` is a server route, and neither
+ * should have to import a module that owns a `MutationObserver` to read two
+ * strings. The argument for why these are literals, and the measurement
+ * showing why the value is not `--nf-surface-canvas`, are both there, at the
+ * definition, rather than restated here where they would drift.
  */
-export const CHROME_COLOUR: Record<AppTheme, string> = {
-  dark: "#010118",
-  light: "#F4F5F7",
-};
+export { CHROME_COLOUR } from "@/lib/theme/chrome";
 
 /** The theme currently painted, read from the root element. */
 export function currentTheme(): AppTheme {
