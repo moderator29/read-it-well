@@ -5,6 +5,7 @@ import {
   isNarrowed,
   lagosDayEnd,
   lagosDayStart,
+  orSafe,
   type AdminQueueFilter,
 } from "./queue-filter";
 
@@ -133,9 +134,12 @@ export async function getModerationQueue(
 
   const term = (filter?.q ?? "").trim();
   const narrowed = isNarrowed(filter);
-  /* PostgREST escapes the value, so a term containing a `%` searches for a
-     literal one rather than matching everything. */
+  /* `%` is safe: PostgREST treats the value of an `ilike` as data, so a term
+     containing one searches for a literal `%` rather than matching everything.
+     A COMMA IS NOT, inside `.or()`, which is why `orLike` exists beside this.
+     See `orSafe` in `queue-filter` for what that grammar does with one. */
   const like = `%${term}%`;
+  const orLike = orSafe(like);
 
   let postSelect = db
     .from("posts")
@@ -158,12 +162,12 @@ export async function getModerationQueue(
     postSelect = postSelect.ilike("body", like);
     /* A story's words are split across two columns and a moderator does not
        know or care which one held the phrase they were told about. */
-    storySelect = storySelect.or(`headline.ilike.${like},standfirst.ilike.${like}`);
+    storySelect = storySelect.or(`headline.ilike.${orLike},standfirst.ilike.${orLike}`);
     commentSelect = commentSelect.ilike("body", like);
     /* The handle is searchable here and only here, because it is the only one
        of the four rows whose subject IS the person rather than something they
        wrote once. */
-    bioSelect = bioSelect.or(`bio.ilike.${like},handle.ilike.${like}`);
+    bioSelect = bioSelect.or(`bio.ilike.${orLike},handle.ilike.${orLike}`);
   }
 
   /* The date each table actually stamps. Three of them are written once and one

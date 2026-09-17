@@ -9,6 +9,7 @@ import "server-only";
  */
 
 import { requireAdmin } from "../admin/guard";
+import { orSafe } from "../admin/queue-filter";
 import { Constants } from "../supabase/database.types";
 import {
   lagosDayEnd,
@@ -112,7 +113,7 @@ export async function getSocialQueue(filter?: AdminQueueFilter): Promise<SocialQ
     const { data: matched } = await db
       .from("areas")
       .select("id")
-      .or(`name.ilike.%${term}%,city.ilike.%${term}%`)
+      .or(`name.ilike.${orSafe(`%${term}%`)},city.ilike.${orSafe(`%${term}%`)}`)
       .limit(200);
     areaMatches = (matched ?? []).map((row) => row.id);
     if (areaMatches.length === 0) return EMPTY;

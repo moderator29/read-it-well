@@ -108,3 +108,47 @@ export function isNarrowed(filter: AdminQueueFilter | undefined): boolean {
     (filter.q && filter.q.trim().length > 0) || filter.status || filter.from || filter.to,
   );
 }
+
+/**
+ * A search term, safe to interpolate into a PostgREST `.or()` expression.
+ *
+ * ---------------------------------------------------------------------------
+ * `.ilike(col, value)` AND `.or(expression)` DO NOT ESCAPE THE SAME THINGS, and
+ * the difference is invisible at the call site.
+ *
+ * `.ilike("body", "%lagos, ikeja%")` hands the value over as its own argument,
+ * so the client encodes it and a comma is just a comma. `.or()` hands over a
+ * whole FILTER EXPRESSION, and that grammar is comma-delimited: the client has
+ * no way to know which characters in the string you meant as data. So an
+ * interpolated value ends the condition wherever the operator happened to type
+ * a comma.
+ *
+ * Proven by building the query and reading its URL rather than by argument.
+ * Term `lagos, ikeja` produced:
+ *
+ *   or=(headline.ilike.%lagos,+ikeja%,standfirst.ilike.%lagos,+ikeja%)
+ *
+ * which PostgREST reads as four conditions, two of them (`+ikeja%`) not
+ * conditions at all. The moderator gets an error, not results, and the term
+ * that does it is an ordinary one: "lagos, ikeja" is how a person types two
+ * places.
+ *
+ * WORSE, AND THE REASON THIS IS A FUNCTION RATHER THAN A NOTE. The grammar's
+ * grouping characters go through too. Term `x)or(id.gt.0` produced:
+ *
+ *   or=(headline.ilike.%x)or(id.gt.0%,...)
+ *
+ * The `)` closes the group early. That is a user-supplied string changing the
+ * SHAPE of the query rather than its values. Every caller here is behind
+ * `requireAdmin()` and RLS still applies, so this is not a way into data, and a
+ * console whose filters can be restructured by what somebody pastes into a
+ * search box is still a console that cannot be trusted to have shown you
+ * everything.
+ *
+ * The fix is PostgREST's own answer: wrap the value in double quotes, and
+ * escape backslashes and inner double quotes so the quoting cannot itself be
+ * closed early. Order matters, backslashes first.
+ */
+export function orSafe(value: string): string {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}

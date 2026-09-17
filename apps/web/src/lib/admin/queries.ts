@@ -7,6 +7,7 @@ import { requireAdmin } from "./guard";
 import {
   lagosDayEnd,
   lagosDayStart,
+  orSafe,
   pageRange,
   pickStatus,
   takePage,
@@ -659,7 +660,7 @@ export async function getAgentApplications(
     ): T => {
       let next = builder;
       if (term.length > 0) {
-        next = next.or(`full_name.ilike.%${term}%,business_name.ilike.%${term}%`);
+        next = next.or(`full_name.ilike.${orSafe(`%${term}%`)},business_name.ilike.${orSafe(`%${term}%`)}`);
       }
       if (filter?.from) next = next.gte("created_at", lagosDayStart(filter.from));
       if (filter?.to) next = next.lte("created_at", lagosDayEnd(filter.to));
@@ -959,7 +960,7 @@ export async function getListingSubmissions(
       builder: T,
     ): T => {
       let next = builder;
-      if (term.length > 0) next = next.or(`title.ilike.%${term}%,city.ilike.%${term}%`);
+      if (term.length > 0) next = next.or(`title.ilike.${orSafe(`%${term}%`)},city.ilike.${orSafe(`%${term}%`)}`);
       if (filter?.from) next = next.gte("created_at", lagosDayStart(filter.from));
       if (filter?.to) next = next.lte("created_at", lagosDayEnd(filter.to));
       return next;
@@ -1041,7 +1042,7 @@ export async function getSupportTickets(
         "id, reference, name, email, topic, body, status, user_id, created_at, updated_at, support_ticket_messages ( id )",
       );
     if (term.length > 0) {
-      select = select.or(`reference.ilike.%${term}%,email.ilike.%${term}%`);
+      select = select.or(`reference.ilike.${orSafe(`%${term}%`)},email.ilike.${orSafe(`%${term}%`)}`);
     }
     if (status) select = select.eq("status", status);
     if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));

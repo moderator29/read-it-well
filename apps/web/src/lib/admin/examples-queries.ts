@@ -6,6 +6,7 @@ import { requireAdmin } from "./guard";
 import {
   lagosDayEnd,
   lagosDayStart,
+  orSafe,
   pageRange,
   pickStatus,
   takePage,
@@ -156,7 +157,7 @@ export async function getExamplesConsole(
 
   try {
     let select = access.supabase.from("listings").select(EXAMPLE_COLUMNS).eq("is_demo", true);
-    if (term.length > 0) select = select.or(`title.ilike.%${term}%,city.ilike.%${term}%`);
+    if (term.length > 0) select = select.or(`title.ilike.${orSafe(`%${term}%`)},city.ilike.${orSafe(`%${term}%`)}`);
     if (status) select = select.eq("status", status);
     if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
     if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
