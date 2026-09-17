@@ -261,7 +261,18 @@ for (const file of filesUnder(join(ROOT, "src"), [".ts", ".tsx"])) {
 const failures = [];
 const unresolved = [];
 const mistyped = [];
-let rawColours = 0;
+/*
+ * THE RAW-COLOUR CHECK USED TO REPORT A COUNT AND NOT A PLACE.
+ *
+ * It was `rawColours += [...matchAll].length` and the report said "3
+ * literal(s)" with nothing else, which sends the reader to grep the whole of
+ * `src/app` for a hex. The other three checks all name a file and a line, and
+ * this one asks the most work of whoever has to act on it, because a literal is
+ * the easiest of the four to have introduced by accident and the hardest to
+ * find by eye. Found by running all four checks against a probe and reading
+ * what each one actually printed, rather than that each one fired.
+ */
+const rawColours = [];
 
 /*
  * Which properties can take which shape.
@@ -341,7 +352,11 @@ for (const dir of ROOTS) {
       }
     });
 
-    rawColours += [...source.matchAll(RAW_COLOUR)].length;
+    source.split("\n").forEach((line, index) => {
+      for (const hit of line.matchAll(RAW_COLOUR)) {
+        rawColours.push(`${where}:${index + 1}  ${hit[0]}`);
+      }
+    });
   }
 }
 
@@ -422,7 +437,7 @@ if (mistyped.length > 0) {
   console.error(`\n${mistyped.length} mistyped reference(s).\n`);
 }
 
-if (rawColours > 0) {
+if (rawColours.length > 0) {
   failed = true;
   console.error(
     "\nRaw colour literal in a stylesheet under src/app. Every one of them\n" +
@@ -432,9 +447,10 @@ if (rawColours > 0) {
       "theme blocks.\n" +
       "\nIf what you want is a colour over a PHOTOGRAPH, the --nf-*-on-media\n" +
       "family is deliberately theme-independent and is almost certainly what you\n" +
-      "are reaching for.\n" +
-      `\n${rawColours} literal(s).\n`,
+      "are reaching for.\n",
   );
+  for (const entry of rawColours) console.error(`  ${entry}`);
+  console.error(`\n${rawColours.length} literal(s).\n`);
 }
 
 if (failed) process.exit(1);

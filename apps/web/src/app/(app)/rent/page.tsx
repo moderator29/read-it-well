@@ -86,7 +86,7 @@ export default async function RentPage({
           className="mt-md"
         />
 
-        <nav aria-label="Rent by city" className="nf-scroll-x -mx-5 mt-md md:-mx-8">
+        <nav aria-label="Rent by city" className="nf-scroll-x -mx-gutter mt-md">
           <ul className="flex gap-xs px-lg md:px-xl">
             {CITIES.map((city) => {
               const active = q?.trim().toLowerCase() === city.toLowerCase();

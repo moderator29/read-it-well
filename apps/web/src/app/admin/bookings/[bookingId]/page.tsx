@@ -99,7 +99,9 @@ export default async function AdminBookingPage({
             />
           )}
         </div>
-        <h1 className="nf-h1 mt-xs text-[1.5rem] sm:text-[1.75rem]">{stay.listingTitle}</h1>
+        {/* `.nf-h1` alone, same as the console dashboard: the class was here and
+            two literals were cancelling the clamp it exists for. */}
+        <h1 className="nf-h1 mt-xs">{stay.listingTitle}</h1>
         <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           {place.length > 0 ? `${place} · ` : ""}
           {fill(copy.bookedWhen, { when: ui.when(stay.createdAt) })}

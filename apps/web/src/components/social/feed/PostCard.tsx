@@ -355,7 +355,7 @@ export function PostCard({
   const body = (
     <>
       {post.repostedBy ? (
-        <p className="mb-xs flex items-center gap-xs text-[0.72rem] font-semibold text-[var(--nf-content-muted)]">
+        <p className="mb-xs flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
           <PostGlyph name="repost" size={14} />
           Reposted by {post.repostedBy}
         </p>
@@ -363,11 +363,11 @@ export function PostCard({
 
       <div className="flex items-center gap-xs">
         {isSystem ? (
-          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm py-2xs text-[0.66rem] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
+          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm py-2xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
             Vallo
           </span>
         ) : isBot ? (
-          <span className="inline-flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-sm py-2xs text-[0.7rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="inline-flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-sm py-2xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
             Vallo AI
           </span>
         ) : (
@@ -388,12 +388,12 @@ export function PostCard({
                 per cent, and over a white card on paper it lands in the purple
                 range. The brand carries no purple. */}
             {post.author?.isAgent ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
+              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
                 Agent
               </span>
             ) : null}
             {post.author?.moderatorOf ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-xs py-3xs text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
+              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
                 Mod
               </span>
             ) : null}
@@ -410,7 +410,7 @@ export function PostCard({
             belongs beside the other things you can do to somebody's post. */}
         <button
           type="button"
-          className="nf-post__act -me-1 ms-auto shrink-0"
+          className="nf-post__act -me-2xs ms-auto shrink-0"
           aria-label="More actions"
           aria-haspopup="dialog"
           onClick={onMenu}
@@ -489,7 +489,7 @@ export function PostCard({
       {post.areaName && post.areaSlug && !isSystem ? (
         <Link
           href={`/around/${post.areaSlug}`}
-          className="mt-sm inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm text-[0.68rem] font-semibold text-[var(--nf-content-muted)]"
+          className="mt-sm inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
         >
           Around {post.areaName}
         </Link>
@@ -509,7 +509,7 @@ export function PostCard({
       ) : null}
 
       {post.sourceNote ? (
-        <p className="mt-xs text-[0.72rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {post.sourceNote}
         </p>
       ) : null}
@@ -608,7 +608,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
       <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
         <p className="nf-numeric text-[var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
           {listing.priceLabel}{" "}
-          <span className="text-[0.72rem] font-medium tracking-normal text-[var(--nf-content-muted)]">
+          <span className="text-[var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-content-muted)]">
             {listing.periodLabel}
           </span>
         </p>

@@ -121,7 +121,7 @@ export function AdminRail({
                         work-waiting count means: cyan is this product's
                         attention colour by rule.
                       */
-                      <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
+                      <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
                         {count}
                       </span>
                     )}
@@ -180,7 +180,7 @@ export function AdminTabs({
     */
     <nav
       aria-label={navLabel}
-      className="-mx-4 border-b border-[var(--nf-border-subtle)] px-md py-xs lg:hidden"
+      className="-mx-md border-b border-[var(--nf-border-subtle)] px-md py-xs lg:hidden"
     >
       <button
         type="button"
@@ -199,7 +199,7 @@ export function AdminTabs({
              colour, so a shut control still answers "is there work". Cyan
              rather than brand blue for the same reason the rail's badge is:
              a work-waiting count means attention, not brand. */
-          <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[0.6875rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
             {waiting}
           </span>
         )}

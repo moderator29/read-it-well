@@ -225,7 +225,7 @@ export function StoryComposer({
         <button
           type="button"
           onClick={() => fileInput.current?.click()}
-          className="-mt-3 self-start text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
+          className="-mt-sm self-start text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
         >
           Choose a different picture
         </button>

@@ -177,7 +177,7 @@ export function PeopleList({
                     {name}
                   </Link>
                   {person.isAgent ? (
-                    <span className="inline-flex shrink-0 items-center gap-2xs rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
+                    <span className="inline-flex shrink-0 items-center gap-2xs rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
                       <UiIcon name="verified" size={11} />
                       Agent
                     </span>

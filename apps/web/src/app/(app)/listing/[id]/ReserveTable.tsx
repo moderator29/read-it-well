@@ -128,7 +128,7 @@ export function ReserveTable({
         <div
           role="group"
           aria-labelledby={dateId}
-          className="-mx-1 mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
+          className="-mx-2xs mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
         >
           {days.map((iso) => {
             const active = iso === date;
@@ -158,7 +158,7 @@ export function ReserveTable({
         <div
           role="group"
           aria-labelledby={timeId}
-          className="-mx-1 mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
+          className="-mx-2xs mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
         >
           {SLOTS.map((slot) => {
             const active = slot === time;

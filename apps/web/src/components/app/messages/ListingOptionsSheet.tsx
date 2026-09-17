@@ -53,7 +53,7 @@ export function ListingOptionsSheet({
         )
       }
     >
-      <div className="-mt-2 mb-md flex items-start justify-between gap-md">
+      <div className="-mt-xs mb-md flex items-start justify-between gap-md">
         <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {agentName}
         </p>

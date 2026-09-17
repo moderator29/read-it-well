@@ -276,7 +276,7 @@ export default async function AdminSocialPage({
                       {area.name}
                     </Link>
                     {area.status === "PAUSED" ? (
-                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[10px] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
                         Paused
                       </span>
                     ) : null}

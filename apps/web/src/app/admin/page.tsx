@@ -49,7 +49,15 @@ export default async function AdminOverviewPage() {
     <div className="mx-auto max-w-5xl">
       <header className="mb-md flex items-start justify-between gap-sm">
         <div>
-          <h1 className="nf-h1 text-[1.5rem] sm:text-[1.75rem]">{o.title}</h1>
+          {/* `.nf-h1` ALONE. This carried the class AND then overrode its size with
+              two literals, so the clamp the class exists for was cancelled and all
+              `.nf-h1` still contributed was its weight, leading and display face.
+              That is the two-ladders-at-once problem the rule names, in its purest
+              form: a reader of this line cannot tell which ladder the heading is on.
+              `--nf-text-h1` is `clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem)`, so the phone
+              size is unchanged at 24px and the desktop size grows to 40px where the
+              literal held it at 28px. */}
+          <h1 className="nf-h1">{o.title}</h1>
           <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {o.lede}
           </p>

@@ -334,6 +334,30 @@
   /*
    * Elevation ladder consumption. One class per rung. Raising a surface is a
    * rung change, never a bespoke hover shadow written at the call site.
+   *
+   * THE RULE WAS RIGHT AND THE CLASSES COULD NOT BE USED TO OBEY IT.
+   *
+   * Every one of these six had zero call sites while `var(--nf-elev-N)` was read
+   * all over the product, and the reason was in the declarations rather than in
+   * anybody's habits: each class also set a `background` and a `border-radius`.
+   * `.nf-elev-1` meant "rung 1 AND `--nf-surface-primary` AND `--nf-radius-lg`",
+   * and `.nf-elev-3` meant "rung 3 AND `--nf-surface-elevated` AND a sheet's
+   * top-only 2xl corners". A card, a sheet, a menu and a popover all arrive
+   * knowing their own fill and their own corner, so not one of them could take
+   * the class without fighting it. The ladder published an API that its own
+   * consumers were structurally unable to call, and so all thirteen of them
+   * wrote the token pair out by hand, which is what L-67 is a list of.
+   *
+   * A RUNG IS A SHADOW PAIR AND A BORDER COLOUR. That is the whole of what
+   * changes when a surface rises: the light it catches on its top edge, the
+   * shadow it casts, and how hard its own outline reads at that height. Its
+   * colour and its shape are what the object IS, at every height, and belong to
+   * the object. So they are gone from here, and `box-shadow: var(--nf-elev-2-rim),
+   * var(--nf-elev-2)` at a call site becomes `class="nf-elev-2"`.
+   *
+   * The three `--nf-elev-*` custom properties stay as the mechanism, because
+   * they are what lets `--hoverable` change rung by redeclaring three variables
+   * rather than restating a shadow.
    */
   .nf-elev-1,
   .nf-elev-2,
@@ -348,37 +372,33 @@
     --nf-elev-shadow: var(--nf-elev-1);
     --nf-elev-rim: var(--nf-elev-1-rim);
     --nf-elev-border: var(--nf-elev-1-border);
-    background: var(--nf-surface-primary);
-    border-radius: var(--nf-radius-lg);
   }
   .nf-elev-2 {
     --nf-elev-shadow: var(--nf-elev-2);
     --nf-elev-rim: var(--nf-elev-2-rim);
     --nf-elev-border: var(--nf-elev-2-border);
-    background: var(--nf-surface-elevated);
-    border-radius: var(--nf-radius-lg);
   }
   .nf-elev-3 {
     --nf-elev-shadow: var(--nf-elev-3);
     --nf-elev-rim: var(--nf-elev-3-rim);
     --nf-elev-border: var(--nf-elev-3-border);
-    background: var(--nf-surface-elevated);
-    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
   }
   .nf-elev-4 {
     --nf-elev-shadow: var(--nf-elev-4);
     --nf-elev-rim: var(--nf-elev-4-rim);
     --nf-elev-border: var(--nf-elev-4-border);
-    background: var(--nf-surface-raised);
-    border-radius: var(--nf-radius-2xl);
   }
   .nf-elev-5 {
     --nf-elev-shadow: var(--nf-elev-5);
     --nf-elev-rim: var(--nf-elev-5-rim);
     --nf-elev-border: var(--nf-elev-5-border);
-    background: var(--nf-surface-raised);
-    border-radius: var(--nf-radius-xl);
   }
+  /*
+   * `--hoverable` is rung 1 rising to rung 2 on a pointer, and it is one rung
+   * only on purpose: a surface that lifts two rungs on hover is not answering a
+   * pointer, it is jumping. It redeclares the three variables rather than
+   * restating a shadow, which is the reason those variables exist.
+   */
   @media (hover: hover) {
     .nf-elev-1.nf-elev--hoverable:hover {
       --nf-elev-shadow: var(--nf-elev-2);
@@ -386,6 +406,10 @@
       --nf-elev-border: var(--nf-elev-2-border);
     }
   }
+  /* Restored verbatim while the rules above were rewritten. The global floor in
+     animation.css would cover this anyway, with `!important` and outside every
+     layer, but a local statement of intent is not the global floor's job and
+     deleting it in passing would have been a silent change of mind. */
   @media (prefers-reduced-motion: reduce) {
     .nf-elev-1,
     .nf-elev-2,
@@ -395,7 +419,6 @@
       transition: none;
     }
   }
-
   /*
    * `.nf-stride` STOOD HERE AND IS GONE.
    *

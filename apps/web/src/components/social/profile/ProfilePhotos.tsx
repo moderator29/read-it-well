@@ -208,7 +208,7 @@ export function ProfilePhotos({
           onClick={() => avatarInput.current?.click()}
           disabled={busy !== null}
           aria-label="Change your photo"
-          className="nf-social-avatar -mt-9 cursor-pointer"
+          className="nf-social-avatar -mt-xl cursor-pointer"
         >
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element

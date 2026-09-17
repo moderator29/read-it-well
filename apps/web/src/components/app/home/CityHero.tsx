@@ -189,7 +189,7 @@ export function CityHero({
                 {cityLabel || "Nigeria"}
               </p>
             </div>
-            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-sm py-2xs text-[0.6875rem] font-semibold text-[var(--nf-content-on-media-accent)]">
+            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-sm py-2xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-on-media-accent)]">
               {areas.length} {areas.length === 1 ? "place" : "places"}
             </span>
           </div>
@@ -212,7 +212,7 @@ export function CityHero({
                   <span className="nf-map-pin-breathe absolute inset-[-6px] rounded-full bg-[var(--nf-halo-on-media)] blur-[6px]" />
                   <span className="relative block h-2.5 w-2.5 rounded-full bg-[var(--nf-content-on-media)] shadow-[var(--nf-glow-on-media)]" />
                 </span>
-                <span className="whitespace-nowrap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-xs py-[3px] text-[0.625rem] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
+                <span className="whitespace-nowrap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-xs py-3xs text-[var(--nf-text-overline)] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
                   {pin.area.name}
                   <span className="nf-numeric ml-2xs text-[var(--nf-content-on-media-accent)]">
                     {pin.area.postCount}
@@ -236,7 +236,7 @@ export function CityHero({
 
       {/* The real navigation, and the honest home for a place with no pin. */}
       {areas.length > 0 && (
-        <ul className="nf-scroll-x -mx-5 mt-sm flex snap-x gap-xs px-lg pb-2xs scroll-pl-5 sm:mx-0 sm:flex-wrap sm:px-0">
+        <ul className="nf-scroll-x -mx-gutter mt-sm flex snap-x gap-xs px-gutter pb-2xs scroll-pl-gutter sm:mx-0 sm:flex-wrap sm:px-0">
           {areas.map((area) => (
             <li key={area.id} className="shrink-0 snap-start">
               <Link href={`/around/${area.slug}`} className="nf-chip gap-2xs">

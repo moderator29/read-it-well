@@ -309,7 +309,7 @@ export function ChoicePicker({
                   filtered.map((group) => (
                     <section key={group.category || "all"} className="pt-md first:pt-xs">
                       {group.category && (
-                        <h3 className="nf-overline sticky top-0 z-10 -mx-5 bg-[var(--nf-surface-primary)] px-lg py-xs">
+                        <h3 className="nf-overline sticky top-0 z-10 -mx-lg bg-[var(--nf-surface-primary)] px-lg py-xs">
                           {group.category}
                         </h3>
                       )}

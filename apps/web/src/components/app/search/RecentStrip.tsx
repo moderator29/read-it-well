@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
   clearRecentListings,
   clearRecentSearches,
-  readRecentListings,
-  readRecentSearches,
-  type RecentListing,
-  type RecentSearch,
+  recentListingsServerSnapshot,
+  recentListingsSnapshot,
+  recentSearchesServerSnapshot,
+  recentSearchesSnapshot,
+  subscribeRecent,
 } from "@/lib/search/memory";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -52,7 +53,7 @@ function Row({
           {clearLabel}
         </button>
       </div>
-      <div className="nf-scroll-x -mx-5 mt-xs md:-mx-8">
+      <div className="nf-scroll-x -mx-gutter mt-xs">
         <ul className="flex gap-xs px-lg md:px-xl">{children}</ul>
       </div>
     </div>
@@ -60,18 +61,39 @@ function Row({
 }
 
 export function RecentStrip() {
-  /* `null` means "not read yet", which is not the same as "read and empty".
-     Only the second one is allowed to decide that there is nothing to show. */
-  const [searches, setSearches] = useState<RecentSearch[] | null>(null);
-  const [listings, setListings] = useState<RecentListing[] | null>(null);
+  /*
+   * SUBSCRIBED, NOT READ ONCE AT MOUNT.
+   *
+   * This held both lists in `useState`, initialised to `null` for "not read
+   * yet", and filled them in a mount effect. Two things were wrong with it. It
+   * was `set-state-in-effect`, which is the small one. The real one is that the
+   * strip and the search form are on the same screen: running a search calls
+   * `rememberSearch`, and this strip went on showing the list from before it,
+   * with nothing able to tell it otherwise until the next full mount.
+   *
+   * The `null` state goes away with the effect rather than being preserved,
+   * because the two snapshots already say the same thing more directly: the
+   * server has no storage and returns an empty list, so the strip renders
+   * nothing until the client's first commit, which is exactly what `null` was
+   * arranging by hand.
+   *
+   * The clear handlers no longer set state either. `clearRecentSearches` writes
+   * through `memory.ts`, which notifies, so the strip re-reads for the same
+   * reason it re-reads after a search.
+   */
+  const searches = useSyncExternalStore(
+    subscribeRecent,
+    recentSearchesSnapshot,
+    recentSearchesServerSnapshot,
+  );
+  const listings = useSyncExternalStore(
+    subscribeRecent,
+    recentListingsSnapshot,
+    recentListingsServerSnapshot,
+  );
 
-  useEffect(() => {
-    setSearches(readRecentSearches());
-    setListings(readRecentListings());
-  }, []);
-
-  const hasSearches = searches !== null && searches.length > 0;
-  const hasListings = listings !== null && listings.length > 0;
+  const hasSearches = searches.length > 0;
+  const hasListings = listings.length > 0;
   if (!hasSearches && !hasListings) return null;
 
   return (
@@ -80,10 +102,7 @@ export function RecentStrip() {
         <Row
           title="Recent searches"
           clearLabel="Clear"
-          onClear={() => {
-            clearRecentSearches();
-            setSearches([]);
-          }}
+          onClear={clearRecentSearches}
         >
           {searches.map((entry) => (
             <li key={entry.href} className="shrink-0">
@@ -105,10 +124,7 @@ export function RecentStrip() {
         <Row
           title="Recently viewed"
           clearLabel="Clear"
-          onClear={() => {
-            clearRecentListings();
-            setListings([]);
-          }}
+          onClear={clearRecentListings}
         >
           {listings.map((entry) => (
             <li key={entry.id} className="shrink-0">

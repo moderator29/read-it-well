@@ -18,14 +18,14 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export default function LoadingListing() {
   return (
     <LoadingShell label="Loading this place" className="mx-auto w-full max-w-5xl">
-      <div className="relative -mx-5 -mt-8 sm:-mt-10 md:-mx-8">
+      <div className="relative -mx-gutter -mt-xl sm:-mt-2xl">
         <Skeleton
           radius="none"
           className="aspect-[4/5] w-full sm:aspect-[16/9] lg:aspect-[2/1]"
         />
       </div>
 
-      <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-lg pb-lg pt-lg sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-xl md:-mx-8 md:px-xl">
+      <div className="nf-glass nf-glass--strong relative z-10 -mx-gutter -mt-xl rounded-t-[1.75rem] border-x-0 border-b-0 px-gutter pb-lg pt-lg sm:-mt-2xl sm:rounded-t-[2.25rem] sm:pb-xl sm:pt-xl">
         <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
           <div className="min-w-0">
             {/* Status row, title, location, then the hero price. */}

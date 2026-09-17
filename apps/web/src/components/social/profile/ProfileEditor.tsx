@@ -137,6 +137,13 @@ export function ProfileEditor({
             required
             aria-invalid={fieldError("handle") ? true : undefined}
             aria-describedby={`${handleId}-help`}
+            /* LEFT OFF THE SCALE ON PURPOSE. 1.9rem clears the "@" drawn inside
+               the field, so it is a function of that glyph's advance width in
+               this typeface, not a rhythm between two pieces of content. The
+               nearest rungs are 24px and 32px; the first puts the caret on top
+               of the @ and the second leaves a visible gap after it. If the
+               brand face ever changes this needs re-measuring, which a rung
+               would hide rather than help. */
             className="nf-field pl-[1.9rem]"
             placeholder="yourname"
           />

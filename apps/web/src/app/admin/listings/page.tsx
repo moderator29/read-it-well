@@ -145,7 +145,7 @@ function ListingCard({
       )}
 
       {listing.photos.length > 0 && (
-        <div className="nf-scroll-x -mx-1 mt-sm px-2xs">
+        <div className="nf-scroll-x -mx-2xs mt-sm px-2xs">
           <ul className="flex w-max gap-xs">
             {listing.photos.map((photo, index) => (
               <li key={photo}>

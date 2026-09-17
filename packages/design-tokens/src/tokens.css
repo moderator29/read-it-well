@@ -243,13 +243,29 @@
      (deep navy-black, dark neon blue, electric blue glow) and a stray orange
      or cyan accent reads as a different product. Personal is the electric
      mid, Agent the bright glow, Admin the deep neon. */
-  /* Two of the three currently have no consumer: `--nf-mode-agent` is read 15
+  /* Two of the three currently have no consumer: `--nf-mode-agent` is read 14
      times and personal and admin nowhere, because the agent surfaces are the
      only ones that have been given a mode accent so far. They stay as a SET -
      a family that cannot express two of the three modes it names is worse than
      one nobody has finished using - and they were kept once before on the
      strength of a JS mirror that has since been deleted, so this note is now
-     the whole of the reason. */
+     the whole of the reason.
+     *
+     * THIS HAS NOW BEEN RE-OPENED TWICE BY A CENSUS OF UNREFERENCED TOKENS AND
+     * CLOSED TWICE ON THE SAME ARGUMENT, so it gets a way of ending rather than
+     * a third round. The daylight block is the strongest evidence for keeping
+     * them and it is worth reading before deciding: it spreads all three
+     * deliberately because the night values collapse within 1.4:1 of each other
+     * on white, which is somebody designing for three modes rather than
+     * describing one.
+     *
+     * WHAT WOULD SETTLE IT. The set is right if a personal or admin surface ever
+     * takes its accent FROM HERE. It is wrong the moment one of them ships an
+     * accent that is not one of these three, because that is the product saying
+     * the family did not fit; at that point this collapses to a single
+     * `--nf-agent-accent` and the two orphans go. Either way the question is
+     * answered by the next surface that needs an accent, not by counting
+     * references again. Counting is what keeps producing the same finding. */
   --nf-mode-personal: var(--nf-electric-500);
   --nf-mode-agent: var(--nf-electric-400);
   --nf-mode-admin: var(--nf-electric-700);
@@ -803,13 +819,18 @@
   --nf-wash-on-inverse: rgb(18 21 26 / 0.13);
 
   /*
-   * The top rim of a bar that is dark in BOTH themes, so the rim is white in
-   * both and this is not a wash. The dock is canvas-tinted glass at night and
-   * `--nf-surface-inverse` in daylight, and it is the same near-black object
-   * either way; `--nf-wash-2` would have handed it an ink highlight on paper,
-   * which on a near-black bar is no highlight at all.
+   * `--nf-rim-on-inverse` STOOD HERE AND ITS ONLY CONSUMER WAS NEVER RENDERED.
+   *
+   * It was the top rim of the desktop dock: white at 6 per cent, correct in both
+   * themes because the dock is a near-black object in both. The reasoning was
+   * sound and the dock is not in the product. `.nf-dock` and `.nf-dock__btn` had
+   * no call site anywhere in the component tree, so this token was defined,
+   * themed, argued for in six lines and read by one rule that never painted.
+   *
+   * Left as a note rather than silently removed because the NEXT bar that is
+   * dark on paper will want exactly this value, and the reasoning above is worth
+   * more than the declaration was. `chrome.css` has the account of the dock.
    */
-  --nf-rim-on-inverse: rgb(255 255 255 / 0.06);
 
   --nf-content-on-paper: rgb(18 21 26);
   --nf-content-on-paper-secondary: rgb(18 21 26 / 0.82);
@@ -1648,7 +1669,12 @@
    *
    *   .nf-sheet            overlays.css   the surface, on the closed rule
    *   .nf-sheet-backdrop   overlays.css   the dim, on the closed rule
-   *   .nf-onboarding       motion.css     one-way, it only ever leaves
+   *
+   * THERE WERE THREE AND `.nf-onboarding` WAS THE THIRD. It was the product's
+   * only one-way exit, and it turned out to be eleven rules for a component that
+   * does not exist; see the note where it stood in `motion.css`. A list like this
+   * one is a claim about the rest of the tree and it goes stale the moment a
+   * consumer is deleted, so it is worth checking with a grep rather than read.
    *
    * The mechanism for the two-way pair is the state the transition is going TO:
    * a transition uses the timing function declared on the element in its TARGET

@@ -71,6 +71,7 @@ function writeList<T>(key: string, entries: T[]): void {
     /* Private browsing, or a full quota. Both are survivable: the feature is
        a convenience and the page is complete without it. */
   }
+  notifyRecent();
 }
 
 function clearKey(key: string): void {
@@ -80,6 +81,111 @@ function clearKey(key: string): void {
   } catch {
     /* As above. */
   }
+  /* Outside the `try`, on purpose. A clear that threw still has to tell the
+     strip to re-read: what it reads back is then whatever is really there,
+     which is the honest answer either way. */
+  notifyRecent();
+}
+
+/* ------------------------------------------------- the strip's subscription */
+
+/**
+ * What the recent strip subscribes to, so it stops guessing at mount.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THIS IS HERE AND NOT IN THE COMPONENT.
+ *
+ * `RecentStrip` read both lists in a mount effect and pushed them into state.
+ * That is `react-hooks/set-state-in-effect`, and more to the point it meant the
+ * strip could only ever show what was in storage at the moment it mounted. On
+ * `/search` the strip and the search form are on the same screen: a search run
+ * from that form calls `rememberSearch`, and the strip above it went on showing
+ * the list from before, with no way to be told.
+ *
+ * A store needs the writes to notify, and the writes are here. That is the whole
+ * reason this lives beside `writeList` rather than in a component module: a
+ * subscription whose publisher does not know about it is a subscription that
+ * only works across tabs, which is the half-working control this codebase keeps
+ * finding and taking out.
+ *
+ * ---------------------------------------------------------------------------
+ * THE SNAPSHOTS ARE CACHED ON THE RAW STRING, WHICH IS NOT AN OPTIMISATION.
+ *
+ * `useSyncExternalStore` compares snapshots by identity, so a reader that parses
+ * JSON into a fresh array on every call re-renders for ever. Each list caches
+ * its parsed value against the raw text it was parsed from, and rebuilds only
+ * when that text moves.
+ */
+const recentListeners = new Set<() => void>();
+
+function notifyRecent(): void {
+  for (const listener of recentListeners) listener();
+}
+
+/** Both lists come back empty on the server, which is what there is to show. */
+const NO_SEARCHES: RecentSearch[] = [];
+const NO_LISTINGS: RecentListing[] = [];
+
+function rawOf(key: string): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return window.localStorage.getItem(key) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+let searchesRaw: string | null = null;
+let searchesValue: RecentSearch[] = NO_SEARCHES;
+
+export function recentSearchesSnapshot(): RecentSearch[] {
+  const raw = rawOf(RECENT_SEARCHES_KEY);
+  if (raw !== searchesRaw) {
+    searchesRaw = raw;
+    searchesValue = readRecentSearches();
+  }
+  return searchesValue;
+}
+
+let listingsRaw: string | null = null;
+let listingsValue: RecentListing[] = NO_LISTINGS;
+
+export function recentListingsSnapshot(): RecentListing[] {
+  const raw = rawOf(RECENT_LISTINGS_KEY);
+  if (raw !== listingsRaw) {
+    listingsRaw = raw;
+    listingsValue = readRecentListings();
+  }
+  return listingsValue;
+}
+
+export function recentSearchesServerSnapshot(): RecentSearch[] {
+  return NO_SEARCHES;
+}
+
+export function recentListingsServerSnapshot(): RecentListing[] {
+  return NO_LISTINGS;
+}
+
+export function subscribeRecent(onChange: () => void): () => void {
+  recentListeners.add(onChange);
+  /* The cross-tab half. `storage` fires only on OTHER documents of this origin,
+     so it and the listener set above answer two different questions and both are
+     needed. A null key is a whole-origin clear and counts as a change to both. */
+  const onStorage = (event: StorageEvent) => {
+    if (
+      event.key === null ||
+      event.key === RECENT_SEARCHES_KEY ||
+      event.key === RECENT_LISTINGS_KEY
+    ) {
+      onChange();
+    }
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    recentListeners.delete(onChange);
+    window.removeEventListener("storage", onStorage);
+  };
 }
 
 /* ------------------------------------------------------- recent searches */

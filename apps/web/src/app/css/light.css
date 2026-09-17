@@ -170,24 +170,22 @@
     box-shadow: var(--nf-elev-1);
   }
   /*
-   * 3D icon tiles in daylight: the dark glass slab becomes a soft pastel
-   * tile of the glyph's own colour family, with a tinted hairline, so the
-   * 3D objects sit on clean coloured chips exactly like the best light
-   * platform iconography. The object's own material is untouched.
+   * THE 3D ICON TILES STOOD HERE, FOUR DAYLIGHT RULES, AND THERE IS NO 3D ICON.
+   *
+   * `.nf-icon3d` with `__tile`, `__ring`, `__spec` and `__bloom`: a pastel
+   * daylight treatment keyed off an `--i3d-core` custom property, turning the
+   * night theme's dark glass slab into a coloured chip. None of the five class
+   * names is written anywhere in the component tree, and `--i3d-core` is set by
+   * nothing either, so every one of these four rules was falling through to its
+   * `var(--i3d-core, var(--nf-brand-accent))` fallback on elements that do not
+   * exist.
+   *
+   * This is the only daylight-ONLY dead component found in the sweep, which is
+   * its own small lesson: a theme override is written once and then never looked
+   * at again by anybody working in the default theme, so it outlives the thing
+   * it overrides by longer than ordinary rules do.
    */
-  :root[data-theme="light"] .nf-icon3d .nf-icon3d__tile {
-    fill: color-mix(in oklab, var(--i3d-core, var(--nf-brand-accent)) 10%, var(--nf-surface-primary));
-  }
-  :root[data-theme="light"] .nf-icon3d .nf-icon3d__ring {
-    stroke: color-mix(in oklab, var(--i3d-core, var(--nf-brand-accent)) 35%, var(--nf-surface-primary));
-    stroke-opacity: 0.9;
-  }
-  :root[data-theme="light"] .nf-icon3d .nf-icon3d__spec {
-    opacity: 0.55;
-  }
-  :root[data-theme="light"] .nf-icon3d .nf-icon3d__bloom {
-    opacity: 0.35;
-  }
+
   /*
    * THE HEADER SIGN UP OVERRIDE IS GONE.
    *
@@ -484,11 +482,9 @@
     }
   }
 
-  /* Active map pin: brand hairline and a clean lift, no neon halo. */
-  :root[data-theme="light"] .nf-map-pin--active {
-    border-color: var(--nf-brand-primary);
-    box-shadow: var(--nf-elev-2);
-  }
+  /* The daylight active map pin went with `.nf-map-pin` itself; see the note in
+     map.css. The class was the Leaflet divIcon era and the pin is a React
+     button drawn at its call site now. */
 
   /* The wallet card's cyan conic sheen and white grid texture are gone rather
      than hidden here. Daylight was switching off two decorative layers that
@@ -517,20 +513,12 @@
       inset 0 2px 8px var(--nf-shade-2),
       inset 0 0 0 1px var(--nf-border-subtle);
   }
-  :root[data-theme="light"] .nf-action-circle__ring {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
-  }
-  @media (hover: hover) {
-    :root[data-theme="light"] .nf-action-circle:hover .nf-action-circle__ring {
-      border-color: var(--nf-brand-edge);
-      box-shadow: var(--nf-elev-2);
-    }
-  }
-  :root[data-theme="light"] .nf-action-circle__ring--solid {
-    box-shadow: 0 8px 20px -6px var(--nf-glow-3);
-  }
+  /* The daylight treatment for `.nf-action-circle` stood here, four rules of it,
+     and went with the component: see the note where it stood in chips.css. It is
+     the second daylight-only survivor found in this sweep, after `.nf-icon3d`,
+     and the pattern is the same both times: the night rules and the day rules
+     for one component live in different files, so deleting the component in one
+     file leaves the other half with nothing to override and nothing to say so. */
 }
 
 /*

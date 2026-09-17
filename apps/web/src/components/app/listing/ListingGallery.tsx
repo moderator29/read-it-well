@@ -103,13 +103,31 @@ export function ListingGallery({
       aria-label={`${title} photos`}
       data-testid="listing-gallery"
       /*
-       * Full bleed at every breakpoint. `-mx-5 md:-mx-8` cancels the shell's own
-       * inline padding, and `-mt-8 sm:-mt-10` cancels its top padding so the
-       * media starts at the very top of the content area. Once the shell stops
-       * welding its 64px header onto this route the same rule puts the hero
-       * under the status bar with no further change here.
+       * Full bleed at every breakpoint, and the cancel now takes the SAME VALUE
+       * as the thing it cancels.
+       *
+       * This was `-mx-5 md:-mx-8`: the page gutter's old fixed pair, written out
+       * by hand. The gutter is `--nf-pad-shell`, which has been
+       * `clamp(1.5rem, 0.9rem + 2vw, 2.5rem)` for some time - 24px on a phone,
+       * 40px on a wide screen - so those two numbers agreed with it at no width
+       * at all. At 390px the bleed fell 4px short of the edge on each side and
+       * left a sliver of page showing down both sides of the photograph; around
+       * 768px it overhung by about 2px, which is a horizontal scrollbar on a
+       * screen that should not have one.
+       *
+       * `-mx-gutter` is that clamp negated, so it cancels exactly at every width
+       * and the `md:` step goes away: the clamp already does the responsive
+       * part. See `/home` and `/search`, which were converted first.
+       *
+       * The vertical pair cancels the shell's top padding so the media starts at
+       * the very top of the content area. `-mt-xl` is the 32px it was.
+       * `sm:-mt-2xl` is 48 where it was 40, which is 8px more of the photograph
+       * covered above 640px and the one part of this change that needs eyes.
+       *
+       * Once the shell stops welding its 64px header onto this route the same
+       * rule puts the hero under the status bar with no further change here.
        */
-      className="relative -mx-5 -mt-8 md:-mx-8 sm:-mt-10"
+      className="relative -mx-gutter -mt-xl sm:-mt-2xl"
     >
       <div
         ref={track}

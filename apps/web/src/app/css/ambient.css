@@ -388,64 +388,23 @@
       0 0 18px var(--nf-glow-2);
   }
 
-  /* Decorative floating icon field behind hero content. */
-  .nf-icon-field {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-  }
   /*
-   * THE OPACITY HERE IS A TRAP AND IT IS WHY THE HERO NO LONGER USES THIS.
+   * THE FLOATING ICON FIELD STOOD HERE, SIX RULES, AND IT HAD ALREADY BEEN
+   * SWITCHED OFF TWICE WITHOUT ANYBODY CHECKING WHETHER IT EXISTED.
    *
-   * `opacity` creates an isolated stacking group. The clay artwork carried
-   * `mix-blend-mode: multiply` so its white studio plate could be removed
-   * against the canvas; inside an opacity group the multiply happened against
-   * the group's own backdrop instead, and the whole thing then composited at
-   * half strength. What landed was a grey translucent SQUARE with a murky
-   * object in it, rather than an object floating on the canvas.
+   * `.nf-icon-field` and its spans: a decorative field of icons drifting behind
+   * hero content, at 9, 10 and 12 seconds on staggered negative delays. Its own
+   * comment recorded that the animation had been removed because the class "went
+   * unused when a larger render covered the same area", and a reduced-motion
+   * block below it carried an `!important` to stop motion that was already
+   * `animation: none`.
    *
-   * THE BLEND MODE IS GONE FROM THE PRODUCT, so the specific bug above cannot
-   * recur and the old advice here - "turn multiply off on the night theme" -
-   * named a mechanism that no longer exists. Past tense throughout for that
-   * reason.
-   *
-   * THE TRAP IS NOT GONE, which is why this note is not deleted with it. An
-   * `opacity` below 1 still creates an isolated group, and the glass objects
-   * still have a partial-alpha interior that composites against whatever is
-   * behind them. Halving that alpha again inside a group would thin them the
-   * same way, just without a square around it. If this class is used again,
-   * take the object to full opacity at a smaller size.
+   * So this had been visited at least twice by somebody who knew it was unused,
+   * and each time the answer was to quieten it rather than to ask whether the
+   * class was rendered at all. It is not: `.nf-icon-field` appears nowhere in the
+   * component tree. Two rounds of careful restraint spent on six rules that could
+   * never run, which is the cost of quietening a thing instead of removing it.
    */
-  /*
-   * No animation, and no call sites either - the comment above already records
-   * that this class went unused when a larger render covered the same area. The
-   * spans kept a 9 second float, and their `:nth-child(2n)` siblings a 12
-   * second one on a negative delay, for elements the component tree does not
-   * render. See the ambient budget note in glass.css.
-   */
-  .nf-icon-field > span {
-    position: absolute;
-    opacity: 0.5;
-    filter: saturate(1.1);
-    animation: none;
-  }
-  .nf-icon-field > span:nth-child(2n) {
-    animation-duration: 12s;
-    animation-delay: -4s;
-  }
-  .nf-icon-field > span:nth-child(3n) {
-    animation-duration: 10s;
-    animation-delay: -7s;
-  }
-
-  /* `.nf-card--live` and `.nf-breathe` were in this list and neither animates
-     any more, so only the floating field is left to switch off. */
-  @media (prefers-reduced-motion: reduce) {
-    .nf-icon-field > span {
-      animation: none !important;
-    }
-  }
 
   /*
    * The aurora field behind the hero. Pure CSS, no image payload, and it is the

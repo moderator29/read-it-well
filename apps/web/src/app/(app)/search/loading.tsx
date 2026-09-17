@@ -16,7 +16,7 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export default function LoadingSearch() {
   return (
     <LoadingShell label="Loading search results">
-      <div className="nf-glass -mx-5 -mt-4 border-b border-[var(--nf-border-subtle)] px-lg py-sm md:-mx-8 md:px-xl">
+      <div className="nf-glass -mx-gutter -mt-group border-b border-[var(--nf-border-subtle)] px-gutter py-row">
         <div className="mx-auto flex max-w-3xl items-center gap-xs">
           <Skeleton height="3.5rem" radius="lg" />
           <Skeleton width="3.5rem" height="3.5rem" radius="md" className="shrink-0" />

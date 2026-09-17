@@ -29,7 +29,7 @@ export default function LoadingRent() {
       </div>
 
       {/* The city rail: full-bleed on phones, exactly as the real nav is. */}
-      <div className="-mx-5 mt-md flex gap-xs overflow-hidden px-lg md:-mx-8 md:px-xl">
+      <div className="-mx-gutter mt-md flex gap-xs overflow-hidden px-gutter">
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} width="7rem" height="2.75rem" radius="pill" className="shrink-0" />
         ))}

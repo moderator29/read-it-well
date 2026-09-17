@@ -443,81 +443,29 @@
 
 
   /*
-   * The desktop dock: a small floating capsule of quick-access icons, fixed
-   * to the bottom centre on `lg` and up. Same dark glass material as the
-   * mobile tab bar, at a fraction of the footprint, since the rail already
-   * carries full navigation here and this is reach, not a second menu.
+   * THE DESKTOP DOCK STOOD HERE, SIXTEEN RULES OF IT, AND NOTHING RENDERED IT.
+   *
+   * `.nf-dock` and `.nf-dock__btn` had a resting style, a no-backdrop-filter
+   * fallback, a hover, an `aria-current` state, a reduced-motion answer and
+   * four daylight overrides of their own. Not one of the two class names
+   * appeared anywhere in the component tree. What `MobileTabBar.tsx` writes is
+   * `nf-dockrow` and `nf-dock-island`, which are different classes and are
+   * alive; a substring search for "nf-dock" finds them and reads as proof the
+   * dock is used, which is most likely how this survived.
+   *
+   * It was costing more than sixteen rules. `--nf-rim-on-inverse` existed for
+   * this and nothing else, so a token and its note went with it. The brand tint
+   * ladder was migrated through `.nf-dock__btn[aria-current]` an hour before
+   * this was found, which is work done on code that cannot run. And the daylight
+   * block carried a bespoke inverse-surface treatment that somebody would
+   * eventually have had to reason about.
+   *
+   * Found by census rather than by reading: every `.nf-*` class defined under
+   * `app/css/**` checked against every literal string in the component tree, 54
+   * of 232 with no occurrence at all. A dead rule is invisible to review, to
+   * types, to tests and to lint, and it is not free, because it is indexed,
+   * shipped, and read by the next person as though it described the product.
    */
-  .nf-dock {
-    align-items: center;
-    gap: var(--nf-gap-inline-tight);
-    padding: var(--nf-gap-inline);
-    border-radius: var(--nf-radius-control);
-    /* Canvas tint rather than a white wash: this floats over scrolling
-       content. See the note on `.nf-glass--chrome` in glass.css. */
-    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
-    border: 1px solid var(--nf-border-subtle);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(170%);
-    box-shadow:
-      0 12px 32px -10px var(--nf-shade-3),
-      /* The rim, not a wash: this bar is dark in daylight too. See the note
-         beside --nf-rim-on-inverse. */
-      inset 0 1px 0 var(--nf-rim-on-inverse);
-  }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .nf-dock {
-      background: var(--nf-surface-elevated);
-    }
-  }
-  .nf-dock__btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--nf-radius-control);
-    color: var(--nf-content-secondary);
-    transition:
-      color var(--nf-duration-fast) var(--nf-ease-standard),
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  @media (hover: hover) {
-    .nf-dock__btn:hover {
-      color: var(--nf-content-primary);
-      background: var(--nf-wash-2);
-      transform: translateY(-1px);
-    }
-  }
-  .nf-dock__btn[aria-current="page"] {
-    color: var(--nf-brand-secondary);
-    /* Rung 2, exactly where it already was. The nav item you are on is the
-       clearest case of a surface the platform has singled out. */
-    background: var(--nf-brand-tint-2);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-dock__btn:hover {
-      transform: none;
-    }
-  }
-  :root[data-theme="light"] .nf-dock {
-    background: var(--nf-surface-inverse);
-    border-color: var(--nf-surface-inverse);
-  }
-  :root[data-theme="light"] .nf-dock__btn {
-    color: var(--nf-content-on-inverse);
-  }
-  @media (hover: hover) {
-    :root[data-theme="light"] .nf-dock__btn:hover {
-      color: var(--nf-content-on-brand);
-      background: var(--nf-wash-on-inverse);
-    }
-  }
-  :root[data-theme="light"] .nf-dock__btn[aria-current="page"] {
-    color: var(--nf-brand-secondary);
-    background: var(--nf-wash-on-inverse);
-  }
 
   /*
    * ------------------------------------------------------- THE SITE BAR

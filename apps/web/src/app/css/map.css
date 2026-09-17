@@ -9,50 +9,31 @@
 
   /* ------------------------------------------------------------- live map */
 
-  /* Price pins on the live map. Rendered by Leaflet divIcons. */
-  .nf-map-pin {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    transform: translate(-50%, -100%);
-    padding: var(--nf-space-2xs) var(--nf-space-sm);
-    /* A capsule, not a circle. `--nf-radius-circle` is 50 per cent, which on a
-       wide short box draws an ellipse rather than a pill: this label is a price
-       on a map and it was being given curved SIDES. */
-    border-radius: var(--nf-radius-pill);
-    background: var(--nf-surface-pin);
-    border: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 50%, transparent);
-    /* The ground here is deliberately dark in both themes, like the media
-       overlays, so the ink is the on-media one rather than the on-brand one. */
-    color: var(--nf-content-on-media);
-    font-weight: 700;
-    font-size: 0.75rem;
-    line-height: 1.25;
-    white-space: nowrap;
-    box-shadow:
-      0 6px 18px var(--nf-shade-3),
-      0 0 14px var(--nf-glow-2);
-    cursor: pointer;
-  }
-  .nf-map-pin i {
-    font-style: normal;
-    font-weight: 500;
-    font-size: 0.625rem;
-    color: var(--nf-content-on-media-muted);
-  }
-  .nf-map-pin--active {
-    border-color: var(--nf-brand-secondary);
-    box-shadow: 0 0 20px var(--nf-glow-4);
-  }
-  :root[data-theme="light"] .nf-map-pin {
-    background: var(--nf-surface-primary);
-    color: var(--nf-content-primary);
-    border-color: var(--nf-wash-5);
-    box-shadow: 0 6px 18px var(--nf-wash-5);
-  }
-  :root[data-theme="light"] .nf-map-pin i {
-    color: var(--nf-content-muted);
-  }
+  /*
+   * THE LEAFLET PIN STOOD HERE, SIX RULES, AND THIS FILE ALREADY SAID IT WAS
+   * GONE SIX LINES FURTHER DOWN.
+   *
+   * `.nf-map-pin`, `.nf-map-pin i`, `--active` and two daylight overrides,
+   * introduced by the comment "Price pins on the live map. Rendered by Leaflet
+   * divIcons." The very next block begins "Marks are ordinary React buttons
+   * projected onto the frame every frame (see MapCanvas), NOT Leaflet divIcons".
+   * Both statements were in this file at once and the second one is true.
+   *
+   * The pin now lives at its call site in `MapCanvas.tsx`, drawn in utilities:
+   * a pill radius, the gutter padding, bold overline type and a focus ring.
+   * So there were two implementations of one pin, one of them unreachable, and
+   * the unreachable one was the one with the design system's reasoning in it,
+   * including the note about why a price label takes `--nf-radius-pill` and not
+   * `--nf-radius-circle`. That argument is preserved here because the call site
+   * gets it right today by coincidence rather than by having read it:
+   *
+   *   `--nf-radius-circle` is 50 per cent, which on a wide short box draws an
+   *   ELLIPSE and not a capsule. A price on a map is a wide short box.
+   *
+   * `.nf-map-pin-drop` and `.nf-map-pin-breathe` below are different classes,
+   * are written by `MapCanvas.tsx` and `CityHero.tsx`, and are alive. A
+   * substring search for "nf-map-pin" finds them.
+   */
 
   /*
    * The living city. Marks are ordinary React buttons projected onto the

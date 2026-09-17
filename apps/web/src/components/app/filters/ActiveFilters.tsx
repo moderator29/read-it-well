@@ -225,7 +225,7 @@ export function ActiveFilters({
   if (chips.length === 0) return null;
 
   return (
-    <div className="nf-scroll-x -mx-5 mt-sm md:-mx-8">
+    <div className="nf-scroll-x -mx-gutter mt-sm">
       <ul
         aria-label="Active filters"
         data-testid="active-filters"

@@ -413,27 +413,15 @@
   }
 
   /*
-   * Hero figure: the huge tabular number a screen is built around (a wallet
-   * balance, a price, a countdown). One display size, always tabular, always
-   * tight tracking so digits read as one mass rather than loose type.
+   * `.nf-hero-figure` AND `__unit` STOOD HERE AND NOTHING RENDERED THEM.
+   *
+   * The huge tabular number a screen is meant to be built around, at
+   * `clamp(2.75rem, 11vw, 4.25rem)` in weight 800 with tabular figures. Neither
+   * class name appears in the component tree. It also carried the only
+   * hand-rolled fluid type size left outside the scale, which is a second
+   * reason it should not come back in this form: a display number is a rung of
+   * the type ladder or it is a new rung, never a clamp written at one call site.
    */
-  .nf-hero-figure {
-    display: flex;
-    align-items: baseline;
-    gap: var(--nf-gap-inline);
-    font-size: clamp(2.75rem, 11vw, 4.25rem);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1;
-    color: var(--nf-content-primary);
-  }
-  .nf-hero-figure__unit {
-    font-size: 0.32em;
-    font-weight: 700;
-    color: var(--nf-content-muted);
-  }
 
   /*
    * Colour-coded tag pill for a compact identifier a card wants to surface as
@@ -488,95 +476,37 @@
       inset 0 0 0 1px var(--nf-wash-1);
   }
 
-  /* Stat card chart: the line carries a faint glow at night, flattens to a
-     plain stroke on paper so it never smears against a white card. */
-  .nf-statchart polyline {
-    filter: drop-shadow(0 0 4px var(--nf-glow-3));
-  }
-  :root[data-theme="light"] .nf-statchart polyline {
-    filter: none;
-  }
+  /* `.nf-statchart` stood here: a night glow on a chart polyline and a daylight
+     rule turning it off. No call site for the class in the component tree. */
 
   /*
-   * Circular icon action button: the Scan / Send / Receive row, two or three
-   * primary actions given equal weight as icon-first, label-under controls
-   * instead of a row of rectangular pills.
+   * THE CIRCULAR ACTION ROW STOOD HERE, FOURTEEN RULES, AND NOTHING RENDERS IT.
+   *
+   * `.nf-action-circle`, `__ring`, `__ring--solid` and `__label`: the
+   * Scan / Send / Receive row, icon-first with the label under, a ring that
+   * answered hover and press, a solid variant and a reduced-motion answer. Four
+   * class names, none of them written anywhere in the component tree.
+   *
+   * It is the largest of the dead components by rule count after the dock, and
+   * the most plausible to want back, so what it WAS is worth recording: a row of
+   * equal-weight primary actions drawn as circles rather than as a row of pills.
+   * If the wallet ever wants that row, it is a component with a ring that reacts
+   * to a press, and it belongs beside `.nf-icon-btn` rather than here.
    */
-  .nf-action-circle {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--nf-gap-inline);
-    background: none;
-    border: none;
-    padding: var(--nf-space-0);
-    color: var(--nf-content-secondary);
-    cursor: pointer;
-  }
-  .nf-action-circle__ring {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    border-radius: var(--nf-radius-circle);
-    color: var(--nf-content-primary);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: 0 0 10px var(--nf-glow-1), inset 0 0 10px var(--nf-glow-wash);
-    transition:
-      transform var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-action-circle__ring--solid {
-    border-color: transparent;
-    background: var(--nf-gradient-brand);
-    color: var(--nf-content-on-brand);
-    box-shadow: 0 10px 24px -8px var(--nf-glow-4);
-  }
-  @media (hover: hover) {
-    .nf-action-circle:hover .nf-action-circle__ring {
-      transform: translateY(-2px);
-      border-color: var(--nf-glow-brand-rim);
-      box-shadow: 0 0 18px var(--nf-glow-3), inset 0 0 14px var(--nf-glow-1);
-    }
-  }
-  .nf-action-circle:active .nf-action-circle__ring {
-    transform: scale(var(--nf-press-scale-sm));
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-action-circle:hover .nf-action-circle__ring {
-      transform: none;
-    }
-  }
-  .nf-action-circle__label {
-    font-size: var(--nf-text-overline);
-    font-weight: 600;
-    color: var(--nf-content-secondary);
-  }
 
   /*
-   * Three-tier bottom action bar: a ghost icon circle, a ghost pill and a
-   * solid pill sharing one row, safe-area aware. The row itself carries no
-   * material of its own; it is a layout convention over the existing button
-   * primitives so it drops into any sticky footer.
+   * `.nf-action-bar` AND `__fill` STOOD HERE. `.nf-action-bar-pinned`, BELOW, IS
+   * ALIVE AND IS A DIFFERENT CLASS.
+   *
+   * That is the trap this pair sat in and it is worth naming, because it is how
+   * three of the dead components in this sweep survived review: a substring
+   * search for "nf-action-bar" finds `ActionBar.tsx` writing
+   * `nf-action-bar-pinned` and reads as proof the base class is used. It is not.
+   * `-pinned` is a whole class name, not a modifier of this one, and it brings
+   * its own material. The same shape hid `.nf-dock` behind `nf-dock-island` and
+   * `.nf-map-pin` behind `nf-map-pin-breathe`.
    */
-  .nf-action-bar {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-  }
-  .nf-action-bar__fill {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
 
-  /*
-   * The pinned variant used by <ActionBar>. Rounds nothing, spans the viewport,
-   * drops its side and bottom borders, and absorbs the home-indicator inset so
-   * the CTA never sits on top of it.
-   */
   .nf-action-bar-pinned {
     border-inline: 0;
     border-bottom: 0;
@@ -614,9 +544,9 @@
   .nf-safe-top {
     padding-top: env(safe-area-inset-top, 0px);
   }
-  .nf-safe-top-inset {
-    top: env(safe-area-inset-top, 0px);
-  }
+  /* `.nf-safe-top-inset` stood here, for a full-bleed overlay whose CONTENT
+     needs the notch cleared while its background stays edge to edge. No call
+     site. `.nf-safe-top` above it is alive in five places. */
 
   /*
    * THE MOMENT SCREEN STOOD HERE. NINETY LINES, AND IT IS ALL GONE.

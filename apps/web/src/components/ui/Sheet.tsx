@@ -4,6 +4,21 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode, RefObject } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
+/*
+ * THIS IMPORT POINTS THE WRONG WAY AND IT IS DELIBERATE FOR NOW.
+ *
+ * `components/ui` is the primitive layer and `components/app` is the product
+ * built on top of it. Every dependency between the two runs app -> ui today;
+ * this is the first line in the tree that runs the other way, and a primitive
+ * that reaches up into the product is how a UI kit stops being one.
+ *
+ * The hook itself is right and the fifth hand-rolled copy of it was worse than
+ * a backwards import, so this takes the hook now. `client-mount.ts` belongs in
+ * `lib/ui/`, beside `use-overlay.ts` which this file already reads from: same
+ * shape, same neutrality, and it is a move plus five one-line import changes,
+ * in files that are not this queue's. Flagged rather than done.
+ */
+import { useClientMount } from "@/components/app/client-mount";
 
 /**
  * The bottom sheet.
@@ -111,7 +126,6 @@ export function Sheet({
   const titleId = useId();
   const sheetRef = useRef<HTMLDivElement | null>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   // Drag state is a ref, not state: it changes every pointermove and must not
   // drive a React render per frame.
@@ -137,23 +151,27 @@ export function Sheet({
   const [entered, setEntered] = useState(false);
 
   /*
-   * The client latch for `createPortal`, and the one `setState` in an effect
-   * here that is CORRECT AS WRITTEN rather than awaiting a fix.
+   * The client latch for `createPortal`, and it was the FIFTH hand-rolled copy.
    *
    * `createPortal` needs `document.body`, which does not exist while rendering
    * on the server, so this component must return `null` on the server AND on
    * the first client render - if the two disagree, React throws a hydration
-   * mismatch on the most-used overlay in the product. That is precisely what
-   * "have I committed on the client yet" means, and there is no render-time
-   * expression for it: any value derivable during render is derivable on the
-   * server too, which is the thing that must not happen.
+   * mismatch on the most-used overlay in the product.
    *
-   * So the rule is right in general and wrong here, and the disable carries the
-   * reason on the line rather than in a config entry, which is this codebase's
-   * stated escape hatch for all three `nf/` rules as well.
+   * This stood here as `useState(false)` plus `useEffect(() => setMounted(true))`
+   * under an `eslint-disable` for `react-hooks/set-state-in-effect`, with a long
+   * argument that the rule was right in general and wrong here. The argument was
+   * sound about the REQUIREMENT and wrong about the only way to meet it:
+   * `useSyncExternalStore` asks exactly this question through the channel React
+   * provides for it, with no state to set, no second render scheduled and no
+   * disable comment to maintain. Four other components had already moved.
+   *
+   * The disable is gone with the code it excused, which is the point worth
+   * keeping: a well-argued suppression is still a suppression, and four files
+   * agreeing on a better answer is stronger evidence than any argument written
+   * beside the worse one.
    */
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- portal client latch; see above.
-  useEffect(() => setMounted(true), []);
+  const mounted = useClientMount();
 
   /*
    * RESETTING ON `open` HAPPENS DURING RENDER NOW, NOT IN TWO EFFECTS.

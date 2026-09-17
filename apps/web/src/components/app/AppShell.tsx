@@ -137,14 +137,23 @@ export function AppShell({
    * header and NOTHING else.
    *
    * It used to drop the page gutter too, and that was wrong twice over. The
-   * hero and the content sheet both reach the edges with `-mx-5 md:-mx-8`,
-   * which is written to CANCEL the gutter, not to live without one - so with
-   * the gutter gone they overshot by 20px on each side. Measured at 393px: the
-   * back control sat at x=-8, the save control and the photo counter at x=401,
-   * and the sheet's own `px-5` put the title at exactly x=0 with no margin on
-   * either side. The same mistake on the vertical: the hero's `-mt-8` cancels
-   * the shell's `py-8`, so with no top padding it climbed 32px under the
-   * status bar. The gutter stays; only the header goes.
+   * hero and the content sheet both reach the edges with a negative inline
+   * margin, which is written to CANCEL the gutter, not to live without one - so
+   * with the gutter gone they overshot by 20px on each side. Measured at 393px:
+   * the back control sat at x=-8, the save control and the photo counter at
+   * x=401, and the sheet's own inline padding put the title at exactly x=0 with
+   * no margin on either side. The same mistake on the vertical: the hero's
+   * negative top margin cancels the shell's top padding, so with none to cancel
+   * it climbed 32px under the status bar. The gutter stays; only the header
+   * goes.
+   *
+   * THE CLASSES IN THAT ACCOUNT HAVE CHANGED AND THE ACCOUNT HAS NOT. It read
+   * `-mx-5 md:-mx-8` and `px-5`, which were the gutter's old FIXED pair written
+   * out by hand. The gutter has been a clamp for some time, so those numbers
+   * agreed with it at no width at all; the call sites are `-mx-gutter` and
+   * `px-gutter` now, which is the same value negated and therefore cannot drift
+   * from it again. The 20px figure above is the measurement as it was taken and
+   * is left as it was taken.
    */
   const edgeToEdge = /^\/listing\/[^/]+$/.test(active);
 

@@ -685,7 +685,7 @@ export default async function ListingDetailPage({
           except the booking panel, which is a discrete object rather than a
           section, and which is the only raised surface on the screen.
         */}
-        <div className="nf-glass nf-glass--strong relative z-10 -mx-5 -mt-8 rounded-t-[1.75rem] border-x-0 border-b-0 px-lg pb-lg pt-xl sm:-mt-10 sm:rounded-t-[2.25rem] sm:px-lg sm:pb-xl sm:pt-xl md:-mx-8 md:px-xl">
+        <div className="nf-glass nf-glass--strong relative z-10 -mx-gutter -mt-xl rounded-t-[1.75rem] border-x-0 border-b-0 px-gutter pb-lg pt-xl sm:-mt-2xl sm:rounded-t-[2.25rem] sm:pb-xl sm:pt-xl">
           <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
             {/* --------------------------------------------- main column */}
             <div className="min-w-0">
@@ -731,6 +731,15 @@ export default async function ListingDetailPage({
                       second thing read after the photograph and the price is the
                       thing being decided on: a headline set within a few points of
                       the price competes with it. */}
+                  {/* LEFT ON LITERALS, AND THE REASON IS THE TYPEFACE, NOT THE SIZE.
+                    `--nf-text-h1` is `clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem)`, which
+                    matches this pair at a phone almost exactly, so the size argument
+                    for moving is strong. But `.nf-h1` also sets
+                    `font-family: var(--nf-font-display)`, and this heading is
+                    currently in the body face. Moving it changes the typeface of the
+                    listing title, which is the largest piece of text on the screen a
+                    renter decides from, and that is a design decision rather than a
+                    scale one. Flagged in the sprint report for a render. */}
                   <h1 className="mt-row text-[1.5rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--nf-content-primary)] sm:text-[2rem]">
                     {listing.title}
                   </h1>

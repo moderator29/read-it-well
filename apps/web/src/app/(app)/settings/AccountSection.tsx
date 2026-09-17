@@ -200,7 +200,13 @@ function DeleteDrawer({ t, onClose }: { t: Dictionary; onClose: () => void }) {
               <ul className="mt-sm space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {[copy.losesProfile, copy.losesContent, copy.keepsBookings].map((line) => (
                   <li key={line} className="flex gap-sm">
-                    <span aria-hidden="true" className="mt-[0.55rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
+                    {/* `mt-xs` and not `mt-[0.55rem]`. The eyeballed value was 8.8px, aiming
+                        the dot at the cap height of the line beside it; the 8px rung puts
+                        it 0.8px higher, which is less than the dot's own antialiasing. A
+                        number nobody can compare with the number at the next call site is
+                        the thing the scale exists to stop, and 0.8px is not worth keeping
+                        one. */}
+                    <span aria-hidden="true" className="mt-xs h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-error)]" />
                     {line}
                   </li>
                 ))}

@@ -63,10 +63,14 @@
 :root[data-save-data="on"] .nf-ambient::after,
 :root[data-save-data="on"] .nf-aurora,
 :root[data-save-data="on"] .nf-grid-veil,
-:root[data-save-data="on"] .nf-grain,
-:root[data-save-data="on"] .nf-icon-field {
+:root[data-save-data="on"] .nf-grain {
   display: none;
 }
+/* `.nf-icon-field` was on this list and the class is gone; see ambient.css. A
+   save-data rule naming a class that does not exist is the quietest kind of
+   dead code there is, because the only way it could ever be noticed is by
+   somebody turning save-data on and looking for something that was never
+   there. */
 
 /*
  * The city card on the home screen, 2.1MB of it. `!important` because the

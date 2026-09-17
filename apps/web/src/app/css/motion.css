@@ -113,72 +113,28 @@
   }
 
   /*
-   * The guided flight: a brief full-screen onboarding over story-world.png
-   * on first visit (see components/site/Onboarding.tsx for the honest,
-   * localStorage-gated, reduced-motion-skipping trigger). It reuses the
-   * paper stage the artwork was actually rendered on, so text sits on real
-   * ink rather than the page's own theme colour, which would print
-   * near-white on this ground under the dark default.
+   * THE GUIDED FLIGHT STOOD HERE, ELEVEN RULES AND A KEYFRAME, AND THERE IS NO
+   * COMPONENT.
+   *
+   * `.nf-onboarding`, `--leaving`, `-frame`, `-skip` and `-image`: a full-screen
+   * first-visit sequence over `story-world.png`, with a paper ground so the type
+   * sat on real ink, a 5.2 second pan, a hover on the skip control and a
+   * reduced-motion answer for both halves. None of the five class names appears
+   * anywhere in the component tree.
+   *
+   * THE COMMENT NAMED ITS OWN TRIGGER AND THE FILE DOES NOT EXIST. It said "see
+   * components/site/Onboarding.tsx for the honest, localStorage-gated,
+   * reduced-motion-skipping trigger". There is no `Onboarding.tsx` anywhere
+   * under `src`. That reference is why this read as live for so long: a
+   * cross-reference to a named file is the strongest evidence a reader gets that
+   * a rule is wired up, and nothing checks that the file is there.
+   *
+   * IT ALSO TOOK ONE OF THE THREE CONSUMERS OF `--nf-ease-exit` WITH IT. That
+   * token's note in `tokens.css` lists this class as the product's only one-way
+   * exit transition; the note has been corrected to two consumers, both in
+   * `overlays.css`. A token's consumer list is a claim about the tree and it
+   * goes stale the moment a consumer is deleted.
    */
-  /*
-   * The onboarding flight only ever LEAVES - it is at `opacity: 1` on mount and
-   * `--leaving` takes it to 0 - so this is a one-way transition and it takes the
-   * exit curve outright, with no second declaration needed. See the note on
-   * `.nf-sheet-backdrop` in overlays.css for why anything that goes away
-   * accelerates rather than decelerating.
-   */
-  .nf-onboarding {
-    color: var(--nf-content-on-paper);
-    opacity: 1;
-    transition: opacity var(--nf-duration-base) var(--nf-ease-exit);
-  }
-  .nf-onboarding .nf-overline {
-    color: var(--nf-content-on-paper-muted);
-  }
-  .nf-onboarding--leaving {
-    opacity: 0;
-  }
-  .nf-onboarding-frame {
-    filter: drop-shadow(0 24px 48px var(--nf-shadow-on-paper));
-  }
-  .nf-onboarding-skip {
-    /* 58 by 38 before this line. The first control a new visitor ever meets. */
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: var(--nf-gap-inline) var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width-strong) solid var(--nf-border-on-paper);
-    background: var(--nf-surface-on-paper);
-    backdrop-filter: blur(6px);
-    color: var(--nf-content-on-paper-secondary);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  @media (hover: hover) {
-    .nf-onboarding-skip:hover {
-      background: var(--nf-surface-on-paper-hover);
-    }
-  }
-  /* The camera move: a slow pull back from a close crop of the world mark to
-     the full scene, so the flight opens on a detail and reveals the whole
-     promise as it settles. */
-  .nf-onboarding-image {
-    animation: nf-onboarding-pan 5.2s var(--nf-ease-standard) both;
-  }
-  @keyframes nf-onboarding-pan {
-    0% { transform: scale(1.22) translate3d(1.5%, 1%, 0); }
-    100% { transform: scale(1) translate3d(0, 0, 0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-onboarding-image {
-      animation: none;
-    }
-    .nf-onboarding {
-      transition: none;
-    }
-  }
 
   /*
    * The agent verification ceremony. The status icon assembles itself, a

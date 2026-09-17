@@ -63,6 +63,28 @@ const STATE_TONE: Record<InspectionState, StatusTone> = {
   WITHDRAWN: "neutral",
 };
 
+
+/**
+ * The indent that puts a row's controls under its text, and it was 4px short.
+ *
+ * Each row is `nf-role-mark`, then `gap-sm`, then the text column. The controls
+ * sit below in their own full-width div, so lining them up under the title means
+ * clearing exactly those two things: `.nf-role-mark` is 2.75rem in
+ * `app/css/controls.css` and the gap is the 12px rung, which is 56px.
+ *
+ * It was `pl-[3.25rem]` - 52px - written out at three call sites. Somebody
+ * measured a 2.5rem mark, or estimated it. Every chip row on this screen sat
+ * four pixels to the left of the title it belongs under, which is the kind of
+ * thing nobody reports and everybody feels.
+ *
+ * Written as the SUM rather than as the total, so if either half moves this
+ * follows it instead of drifting again. One constant rather than three copies,
+ * for the same reason. It still trips `nf/no-raw-spacing`, and it should: the
+ * rule cannot know this is derived from two other values. That is what this
+ * note is for.
+ */
+const CONTROL_INDENT = "pl-[calc(2.75rem+var(--spacing-sm))]";
+
 function whenLine(value: string, locale: Locale): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -187,7 +209,7 @@ function InspectionRow({
         confirmed viewing needs nothing done to it, so it says so and stops.
       */}
       {yourMove && side === "lister" && (
-        <div className="flex flex-wrap gap-xs pl-[3.25rem]">
+        <div className={`flex flex-wrap gap-xs ${CONTROL_INDENT}`}>
           <Button
             size="sm"
             variant="primary"
@@ -211,7 +233,7 @@ function InspectionRow({
       )}
 
       {yourMove && side === "requester" && inspection.state === "PROPOSED" && (
-        <div className="flex flex-wrap gap-xs pl-[3.25rem]">
+        <div className={`flex flex-wrap gap-xs ${CONTROL_INDENT}`}>
           <Button
             size="sm"
             variant="primary"
@@ -234,7 +256,7 @@ function InspectionRow({
       {/* A confirmed viewing can be marked as done by either side, because
           either of them might be the one holding the phone afterwards. */}
       {inspection.state === "CONFIRMED" && (
-        <div className="flex flex-wrap items-center gap-xs pl-[3.25rem]">
+        <div className={`flex flex-wrap items-center gap-xs ${CONTROL_INDENT}`}>
           <Button
             size="sm"
             variant="secondary"
