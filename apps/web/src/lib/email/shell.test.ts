@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
+import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
 
 import { EVERY_MESSAGE, coveredBuilders } from "./fixtures";
 import * as theme from "./theme";
@@ -290,7 +291,7 @@ describe("the copy rules hold in the markup that ships", () => {
     // "demo", "sample", "preview" and "not live" are banned by spec. "example"
     // is the agreed word. This runs against the shipped markup including its
     // comments, because a comment ships too.
-    expect(html).not.toMatch(/\b(demo|sample|preview|not live|coming soon|lorem)\b/i);
+    expect(firstBannedPhrase(html, BANNED_IN_EXAMPLE_COPY)).toBeNull();
   });
 
   it.each(EVERY_HTML)("$name makes no legal or financial promise", ({ html }) => {

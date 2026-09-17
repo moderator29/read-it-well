@@ -87,7 +87,7 @@ export function AgentMobileNav({
         {/* Panel */}
         <div
           className={[
-            "absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 pt-5 shadow-[var(--nf-shadow-float)] transition-transform duration-300 ease-out",
+            "absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 pt-5 shadow-[var(--nf-elev-4)] transition-transform duration-300 ease-out",
             open ? "translate-x-0" : "-translate-x-full",
           ].join(" ")}
           style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}

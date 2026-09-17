@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
 import { FULL_REFUND_HOURS } from "../trust/cancellation";
 import { SUPPORT_FAQ, faqAnswerById, findFaqAnswer, findFaqEntry, searchFaq } from "./faq";
 
@@ -31,7 +32,7 @@ describe("the store itself", () => {
     const emDash = String.fromCharCode(0x2014);
     for (const entry of SUPPORT_FAQ) {
       expect(entry.answer, entry.id).not.toContain(emDash);
-      expect(entry.answer.toLowerCase(), entry.id).not.toMatch(/\bdemo\b|\bsample\b|\bpreview\b/);
+      expect(firstBannedPhrase(entry.answer, BANNED_IN_EXAMPLE_COPY), entry.id).toBeNull();
     }
   });
 

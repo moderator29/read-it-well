@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
 
 import {
   EXAMPLE_STATEMENT,
@@ -202,8 +203,8 @@ describe("the social card and the robots directive", () => {
   it("labels the tab as an example without using a banned word", () => {
     const title = String(listingMetadata(example(), ORIGIN).title);
     expect(title).toContain("Example listing");
-    expect(title).not.toMatch(/\b(demo|sample|preview|not live)\b/i);
-    expect(EXAMPLE_STATEMENT).not.toMatch(/\b(demo|sample|preview|not live)\b/i);
+    expect(firstBannedPhrase(title, BANNED_IN_EXAMPLE_COPY)).toBeNull();
+    expect(firstBannedPhrase(EXAMPLE_STATEMENT, BANNED_IN_EXAMPLE_COPY)).toBeNull();
   });
 
   it("answers something for a listing that does not exist", () => {

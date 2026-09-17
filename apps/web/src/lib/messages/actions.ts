@@ -41,8 +41,15 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const PAUSED_MESSAGE = "Messaging is paused for maintenance. Please try again in a little while.";
 
+/*
+ * "Messaging opens for this listing the moment it goes live on the platform.
+ * Save it and check back soon" was two false statements in one sentence. An
+ * example listing never goes live, so "check back soon" is a date nobody can
+ * keep, and it is the banned "coming soon" wearing a different coat. See
+ * F2-003. The reader gets the fact and the one step that works instead.
+ */
 const SEED_LISTING_MESSAGE =
-  "Messaging opens for this listing the moment it goes live on the platform. Save it and check back soon.";
+  "This is an example listing, so there is no agent to write to. Open a real listing from search and message the agent from there.";
 
 const UNKNOWN_LISTING_MESSAGE =
   "We could not find this listing. It may no longer be available. Explore other places from search.";

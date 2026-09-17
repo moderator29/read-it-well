@@ -105,7 +105,7 @@ export function MapDock({
         style={{
           transform: drag ? `translate3d(0, ${drag}px, 0)` : undefined,
           transition: drag ? "none" : "transform var(--nf-duration-fast) var(--nf-ease-standard)",
-          boxShadow: "var(--nf-shadow-lifted)",
+          boxShadow: "var(--nf-elev-2)",
         }}
         className="nf-card relative touch-pan-y overflow-hidden p-0"
       >

@@ -76,7 +76,7 @@ export function ModeSwitcher({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[19rem] rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] p-3 shadow-[var(--nf-shadow-float)]">
+        <div className="absolute right-0 top-full z-50 mt-2 w-[19rem] rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] p-3 shadow-[var(--nf-elev-4)]">
           <p className="px-1 pb-2 pt-1">
             <span className="block text-[0.9375rem] font-semibold">{t.agent.mode.chooseTitle}</span>
             <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">

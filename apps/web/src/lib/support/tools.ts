@@ -157,7 +157,7 @@ export const SUPPORT_TOOLS = [
   {
     name: "my_bookings",
     description:
-      "Read the signed-in caller's own bookings: status, dates, listing, total, what they have actually paid, any refund already decided, and what they can do next on each one. Use it whenever they ask about their trip, their dates, their booking or their money on a booking. Returns unavailable when nobody is signed in.",
+      "Read the signed-in caller's own bookings: status, dates, listing, total, what they have actually paid, any refund already decided, and what they can do next on each one. Use it whenever they ask about their stay, their dates, their booking or their money on a booking. Returns unavailable when nobody is signed in.",
     input_schema: {
       type: "object",
       properties: {},
@@ -711,7 +711,7 @@ async function runBookingPolicy(session: SignedIn, input: unknown): Promise<Tool
     return {
       result: {
         found: false,
-        note: "No booking with that id belongs to this person. Ask them to confirm which trip they mean; never describe a booking you have not read.",
+        note: "No booking with that id belongs to this person. Ask them to confirm which stay they mean; never describe a booking you have not read.",
       },
       actions: [BOOKINGS_ACTION],
     };
@@ -762,7 +762,7 @@ async function runBookingPolicy(session: SignedIn, input: unknown): Promise<Tool
         whatHappens: booking.cancelInApp
           ? "Nothing has been paid, so this is a hold on the calendar and nothing more. Cancelling it from Bookings releases the dates immediately, costs nothing, and there is no refund to work out because no money moved."
           : "Nothing has been paid, so there is no money to return. The stay has started or is past, so it can no longer be called off from the app and a person has to look at it.",
-        where: "Bookings, then the trip, then Cancel booking.",
+        where: "Bookings, then the stay, then Cancel booking.",
         schedule: scheduleNote,
       },
       actions: [BOOKINGS_ACTION],

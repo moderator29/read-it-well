@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { getAgentReviews } from "@/lib/agent/reviews-queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Unreachable } from "@/components/app/Unreachable";
 import { ListingPitch } from "../list/ListingPitch";
 import { ReviewsWorkspace, type ReviewsFilter } from "./ReviewsWorkspace";
 
@@ -49,18 +48,20 @@ export default async function Page({
   if (context.state === "unconfigured") {
     return (
       <AgentShell t={t} locale={locale} active="/agent/reviews" profile={null}>
-        <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="reviews" fill />
-          </span>
-          <h1 className="nf-h2 mt-5">{t.agent.nav.reviews}</h1>
-          <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
-            Guest reviews of your stays appear here the moment the platform keys land.
-          </p>
-          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-6">
-            {t.agent.nav.dashboard}
-          </Link>
-        </div>
+        {/* "Guest reviews of your stays appear here the moment the platform
+            keys land" stood here: a schedule nobody can keep, wrapped around a
+            deployment detail an agent has no use for. This branch is a failure
+            state, not a pre-launch one, and `Unreachable` is the one answer the
+            product gives to it. See F2-003. */}
+        {/* The heading stays. `EmptyState` sets its title as a paragraph,
+            deliberately, so the branch needs its own h1 or this route has no
+            heading at all for anybody reading it by landmark. */}
+        <h1 className="nf-h1">{t.agent.nav.reviews}</h1>
+        <Unreachable
+          noun="reviews"
+          icon="reviews"
+          action={{ label: t.agent.nav.dashboard, href: "/agent/dashboard" }}
+        />
       </AgentShell>
     );
   }
@@ -70,9 +71,9 @@ export default async function Page({
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/reviews" profile={profile}>
-      <div className="mb-6">
+      <div className="mb-block">
         <h1 className="nf-h1">{t.agent.nav.reviews}</h1>
-        <p className="mt-1 text-[var(--nf-content-secondary)]">
+        <p className="mt-3xs text-[var(--nf-content-secondary)]">
           {read.state === "ready" && read.summary.unanswered > 0
             ? `${read.summary.unanswered} ${
                 read.summary.unanswered === 1 ? "review is" : "reviews are"
@@ -89,20 +90,14 @@ export default async function Page({
           locale={locale}
         />
       ) : (
-        <div className="nf-card p-8 text-center">
-          <span className="mx-auto block h-16 w-16">
-            <BrandIcon name="reviews" fill />
-          </span>
-          <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">
-            Reviews are unavailable for a moment
-          </p>
-          <p className="mx-auto mt-1 max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
-            Nothing has been lost and no review was missed. Please try again shortly.
-          </p>
-          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-4">
-            {t.agent.nav.dashboard}
-          </Link>
-        </div>
+        /* The second hand-rolled unreachable state in this file, off the
+           spacing scale and off the type scale, saying a different sentence
+           about the same situation. One component answers it. */
+        <Unreachable
+          noun="reviews"
+          icon="reviews"
+          action={{ label: t.agent.nav.dashboard, href: "/agent/dashboard" }}
+        />
       )}
     </AgentShell>
   );

@@ -56,8 +56,14 @@ const AVATAR_FAILED_MESSAGE =
 const AVATAR_FOREIGN_PATH_MESSAGE =
   "That photo was not uploaded to your own folder. Choose the photo again.";
 
+/*
+ * "Account deletion completes the moment the platform keys land" was a
+ * schedule this product cannot keep, and it named our own deployment while
+ * naming it. What the reader needs is what has happened to their account and
+ * the one route that still works. See F2-003.
+ */
 const DELETE_GATED_MESSAGE =
-  `Account deletion completes the moment the platform keys land, and nothing has been deleted today. Email ${SUPPORT_EMAIL} and the team will remove your account by hand.`;
+  `We cannot delete your account from here right now, and nothing has been deleted today. Email ${SUPPORT_EMAIL} and the team will remove your account by hand.`;
 
 const DELETE_FAILED_MESSAGE =
   `We could not complete the deletion just now. Your account is untouched. Try again shortly, or email ${SUPPORT_EMAIL}.`;

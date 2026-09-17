@@ -57,8 +57,14 @@ const PAUSED_MESSAGE = "Bookings are paused for maintenance. Please try again in
 
 const DATES_TAKEN_MESSAGE = "Those dates were just taken. Pick different dates.";
 
+/*
+ * "This stay opens for booking as soon as live inventory lands. Save it and
+ * check back soon" promised a date for a property that does not exist. An
+ * example listing never opens, and "check back soon" is the banned "coming
+ * soon" in other words. See F2-003.
+ */
 const SEED_LISTING_MESSAGE =
-  "This stay opens for booking as soon as live inventory lands. Save it and check back soon.";
+  "This is an example listing, so there are no dates to book. Open a real listing from search to book a stay.";
 
 const RENTAL_MESSAGE =
   "This home is rented on a tenancy, not per night. Message the agent to arrange an inspection.";

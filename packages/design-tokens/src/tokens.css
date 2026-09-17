@@ -1232,27 +1232,24 @@
    * `var(--nf-elev-4)` now, value for value, with the reason written at the head
    * of that file.
    *
-   * WHAT STILL BLOCKS DELETION, counted against the tree today:
-   *   components/app/search/MapCanvas.tsx:59,60   LIFT and CARD_LIFT constants
-   *   components/app/search/MapDock.tsx:108        1 lifted
-   *   components/agent/AgentMobileNav.tsx:90       1 float
-   *   components/agent/ModeSwitcher.tsx:79         1 float
+   * THE LIST IS EMPTY AND THE THREE LINES ARE GONE.
    *
-   * Five references in four files, all of them components and none of them this
-   * queue's. `--nf-shadow-card` and `--nf-shadow-lifted` are held up by
-   * `MapCanvas.tsx` alone.
+   * The last five were components: the `LIFT` and `CARD_LIFT` constants in the
+   * map canvas, the dock's inline lift, and a float each on the agent mobile
+   * nav and the mode switcher. All five are `--nf-elev-1`, `--nf-elev-2` and
+   * `--nf-elev-4` now, value for value, with no rim added, because a rename
+   * that moves pixels is a rename nobody can review.
    *
-   * DELETE THESE THREE LINES THE DAY THAT LIST IS EMPTY, AND NOT ONE DAY EARLY.
-   * They are aliases, so nothing warns when one goes: the consumer is left with
+   * THE ORDER MATTERED AND IS WORTH KEEPING. These were aliases, so nothing
+   * warns when one goes: delete the line first and the consumer is left with a
    * `var()` naming a token that does not exist, the declaration is invalid at
-   * computed-value time, and the shadow silently stops painting. That is
-   * instance 1 of the family documented in `apps/web/scripts/check-css-tokens.mjs`,
-   * and the check that catches it has never been able to see a `.tsx` file's
-   * inline styles, which is where four of these five live.
+   * computed-value time, and the shadow silently stops painting. Call sites
+   * first, then the name, and the name only once the list is empty. That is
+   * instance 1 of the family documented at the head of
+   * `apps/web/scripts/check-css-tokens.mjs`, and the check that catches it
+   * still cannot see a `.tsx` file's inline styles, which is where four of
+   * those five lived.
    * ------------------------------------------------------------------ */
-  --nf-shadow-card: var(--nf-elev-1);
-  --nf-shadow-lifted: var(--nf-elev-2);
-  --nf-shadow-float: var(--nf-elev-4);
   --nf-glow-brand: 0 0 0 1px color-mix(in oklab, var(--nf-electric-500) 35%, transparent),
                    0 12px 40px -8px color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
   --nf-glow-accent: 0 12px 40px -10px color-mix(in oklab, var(--nf-electric-400) 45%, transparent);
@@ -2609,9 +2606,6 @@
   --nf-elev-5-border: rgb(18 21 26 / 0.18);
 
   /* Legacy aliases, kept until every call site moves to the ladder above. */
-  --nf-shadow-card: var(--nf-elev-1);
-  --nf-shadow-lifted: var(--nf-elev-2);
-  --nf-shadow-float: var(--nf-elev-4);
 
   /* Flat neutral canvas. Daylight switches the blooms off with `display: none`
      on the spans, in light.css; the three `none` tokens that used to sit here

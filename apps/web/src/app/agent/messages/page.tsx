@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { getAgentInbox } from "@/lib/agent/messages-queries";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Unreachable } from "@/components/app/Unreachable";
 import { ListingPitch } from "../list/ListingPitch";
 import { AgentInbox, type InboxFilter } from "./AgentInbox";
 
@@ -52,18 +51,20 @@ export default async function Page({
   if (context.state === "unconfigured") {
     return (
       <AgentShell t={t} locale={locale} active="/agent/messages" profile={null}>
-        <div className="mx-auto max-w-md py-10 text-center">
-          <span className="mx-auto block h-20 w-20">
-            <BrandIcon name="chat-duo" fill />
-          </span>
-          <h1 className="nf-h2 mt-5">{t.agent.nav.messages}</h1>
-          <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
-            Guest enquiries appear here the moment the platform keys land.
-          </p>
-          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-6">
-            {t.agent.nav.dashboard}
-          </Link>
-        </div>
+        {/* "Guest enquiries appear here the moment the platform keys land"
+            stood here. It named a date nobody can name and it named our
+            deployment while doing it. This branch is what an agent meets when
+            the inbox cannot be read at all, which is a fault, not a launch.
+            See F2-003. */}
+        {/* The heading stays. `EmptyState` sets its title as a paragraph,
+            deliberately, so the branch needs its own h1 or this route has no
+            heading at all for anybody reading it by landmark. */}
+        <h1 className="nf-h1">{t.agent.nav.messages}</h1>
+        <Unreachable
+          noun="inbox"
+          icon="chat-duo"
+          action={{ label: t.agent.nav.dashboard, href: "/agent/dashboard" }}
+        />
       </AgentShell>
     );
   }
@@ -73,13 +74,13 @@ export default async function Page({
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/messages" profile={profile}>
-      <div className="mb-6">
+      <div className="mb-block">
         <h1 className="nf-h1">{t.agent.nav.messages}</h1>
-        <p className="mt-1 text-[var(--nf-content-secondary)]">
+        <p className="mt-3xs text-[var(--nf-content-secondary)]">
           {read.state === "ready" && read.inbox.waitingCount > 0
             ? `${read.inbox.waitingCount} ${
                 read.inbox.waitingCount === 1 ? "enquiry is" : "enquiries are"
-              } waiting on your reply. Guests book the hosts who answer.`
+              } waiting on your reply. Guests book the agents who answer.`
             : "Every guest enquiry about your listings, oldest wait first."}
         </p>
       </div>
@@ -87,21 +88,14 @@ export default async function Page({
       {read.state === "ready" ? (
         <AgentInbox inbox={read.inbox} filter={filter} />
       ) : (
-        <div className="nf-card p-8 text-center">
-          <span className="mx-auto block h-16 w-16">
-            <BrandIcon name="chat-duo" fill />
-          </span>
-          <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">
-            Enquiries are unavailable for a moment
-          </p>
-          <p className="mx-auto mt-1 max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
-            Nothing has been lost and no guest message was missed. Please try
-            again shortly.
-          </p>
-          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-4">
-            {t.agent.nav.dashboard}
-          </Link>
-        </div>
+        /* The same state, hand-rolled a second time in one file with different
+           words, different spacing and a different type size. `Unreachable` is
+           the product's one answer to "we could not read it". */
+        <Unreachable
+          noun="inbox"
+          icon="chat-duo"
+          action={{ label: t.agent.nav.dashboard, href: "/agent/dashboard" }}
+        />
       )}
     </AgentShell>
   );

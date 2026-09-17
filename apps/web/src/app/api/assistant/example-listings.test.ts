@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
 
 /*
  * THE ASSISTANT IS A PUBLICATION SURFACE, AND IT WAS THE ONE NOBODY LISTED.
@@ -78,6 +79,6 @@ describe("the assistant cannot recommend a property that does not exist", () => 
     // the agreed word and the note above uses it.
     const note = /The only properties matching this search[^"]*/.exec(ROUTE)?.[0] ?? "";
     expect(note.length).toBeGreaterThan(0);
-    expect(note).not.toMatch(/\b(demo|sample|preview|not live)\b/i);
+    expect(firstBannedPhrase(note, BANNED_IN_EXAMPLE_COPY)).toBeNull();
   });
 });

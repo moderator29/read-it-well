@@ -56,8 +56,8 @@ const MAX_MARKS = 80;
  * the deep one. Applied inline because a bare custom property in an arbitrary
  * Tailwind shadow is ambiguous with a shadow colour.
  */
-const LIFT = "var(--nf-shadow-lifted)";
-const CARD_LIFT = "var(--nf-shadow-card)";
+const LIFT = "var(--nf-elev-2)";
+const CARD_LIFT = "var(--nf-elev-1)";
 
 /** Space kept clear at the foot of the frame for the docked card. */
 const DOCK_ROOM = 96;

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { EXAMPLE_STATEMENT } from "@/lib/listings/syndication";
+import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
 
 /**
  * THE DISCLOSURE, GUARDED BY SOURCE.
@@ -37,8 +38,16 @@ const CARD_RENDERERS = [
   "components/app/search/MapDock.tsx",
 ] as const;
 
-/** Banned by `agent-identity.spec.mjs`. "example" is the agreed word. */
-const BANNED = ["demo", "sample", "preview", "not live"] as const;
+/*
+ * Banned by `agent-identity.spec.mjs` and by `PRODUCT.md` section 7. "example"
+ * is the agreed word.
+ *
+ * The list used to be typed out here, and in four other specs, and every one of
+ * the five was a private copy that agreed with the others by luck. It is one
+ * list now, in `lib/copy/banned-phrases`, widened with the schedule promises
+ * that walked past all five. See F2-003.
+ */
+const BANNED = BANNED_IN_EXAMPLE_COPY;
 
 describe("the example listing disclosure", () => {
   it("renders the one shared sentence rather than a copy of it", () => {
@@ -49,9 +58,7 @@ describe("the example listing disclosure", () => {
 
   it("uses the agreed word and none of the banned ones", () => {
     expect(EXAMPLE_STATEMENT.toLowerCase()).toContain("example");
-    for (const word of BANNED) {
-      expect(EXAMPLE_STATEMENT.toLowerCase()).not.toContain(word);
-    }
+    expect(firstBannedPhrase(EXAMPLE_STATEMENT, BANNED)).toBeNull();
   });
 
   it("is not behind a hover, a toggle or a collapsed region", () => {

@@ -40,49 +40,6 @@ export const KIND_ICON: Record<WalletEntryKind, BrandIconName> = {
   escrow_refund: "payment-received",
 };
 
-/**
- * The English names, which are now the fallback rather than the answer.
- *
- * See `walletWords` at the foot of this file for why they are still written
- * here at all.
- */
-const KIND_LABEL_EN: Record<WalletEntryKind, string> = {
-  deposit: "Deposit",
-  withdrawal: "Withdrawal",
-  payment: "Payment",
-  refund: "Refund",
-  transfer_in: "Transfer received",
-  transfer_out: "Transfer sent",
-  /*
-     A HOLD IS DESCRIBED, NOT NAMED AFTER A MECHANISM WE DO NOT OPERATE.
-     These read "Held in escrow", "Escrow released" and "Escrow refunded", and
-     `lib/legal/terms.tsx` says in bold that Vallo does not hold your money in
-     escrow. See the note at the head of `BalanceBreakdownSheet`. The three
-     kinds are unreachable today - `escrows` holds zero rows and nothing routes
-     a payment into it - and if one ever renders it will say where the money is
-     without claiming who is holding it. */
-  escrow_hold: "On hold",
-  escrow_release: "Hold released",
-  escrow_refund: "Hold returned",
-};
-
-/**
- * What an unsettled movement is called, as a person would say it.
- *
- * The ledger rendered `entry.status.toLowerCase()`, so a row read "pending",
- * "failed" or "reversed" in lower-case English.
- *
- * PENDING says what is happening AND what to expect, because pending is the
- * most anxious state in this product and a single word answers neither
- * question.
- */
-const STATUS_LABEL_EN: Record<WalletEntryStatus, string> = {
-  PENDING: "Going through",
-  COMPLETED: "Done",
-  FAILED: "Did not go through",
-  REVERSED: "Reversed",
-};
-
 /* ----------------------------------------------------------------- the words */
 
 /**
@@ -95,53 +52,38 @@ const STATUS_LABEL_EN: Record<WalletEntryStatus, string> = {
  * by three surfaces: the statement, the recent strip on the wallet home, and
  * the receipt somebody sends to a landlord. A Yorùbá, Hausa or Igbo reader got
  * "Withdrawal", "Transfer sent", "Going through" and "Did not go through" in
- * English on their own money history. The platform ships in four languages and
- * the money surface is the last place to leave untranslated.
+ * English on their own money history, and the ledger's status pill printed
+ * `entry.status.toLowerCase()`, which is the raw database enum. The platform
+ * ships in four languages and the money surface is the last place to leave
+ * untranslated. F2-008.
  *
  * WHY A FUNCTION AND NOT A DICTIONARY READ AT EACH CALL SITE. Three surfaces
  * name the same thirteen values; three private lookups is exactly how a deposit
  * ends up called one thing on the ledger and another on its own receipt, which
  * is the fault this file was extracted to stop. One function, three callers.
  *
- * WHY IT FALLS BACK RATHER THAN DEMANDING THE KEYS. `packages/i18n` belongs to
- * another owner and the keys are not there yet, so this reads them if they
- * exist and uses the English above if they do not. The alternative was to wait,
- * which leaves the call sites hard-coded and the fix un-landed, or to add the
- * keys across four locale files that are not this owner's to edit. The shape
- * below is the contract: the moment `wallet.entryKind` and `wallet.entryStatus`
- * land in the dictionary, every wallet surface speaks four languages with no
- * further change here. The exact keys are listed in the sprint report.
+ * ---------------------------------------------------------------------------
+ * THE ENGLISH FALLBACK IS GONE, AND ITS GOING IS THE POINT.
  *
- * The cast is deliberately narrow: it widens `Dictionary` by exactly the two
- * optional branches being looked for, so a typo in a key name is still a type
- * error once the keys exist, and nothing else about the dictionary is loosened.
+ * This file carried its own `KIND_LABEL_EN` and `STATUS_LABEL_EN` and merged
+ * the dictionary over them key by key, because `packages/i18n` belongs to
+ * another owner and the keys did not exist yet. They exist now, in all four
+ * locales, so the merge has become the one thing it was never meant to be: a
+ * second English copy of thirteen strings that nothing keeps in step with the
+ * dictionary, and a silent catch for a key deleted by accident. A missing key
+ * would have rendered English on a Hausa phone and nothing would have said so.
+ *
+ * `Dictionary` is `typeof en`, so `wallet.entryKind` and `wallet.entryStatus`
+ * are required and exhaustively typed. Deleting a locale's key, or adding a
+ * tenth `WalletEntryKind` without a word for it, is now a compile error in this
+ * file rather than an English word on somebody's statement.
  */
-type WalletWordKeys = {
-  wallet?: {
-    entryKind?: Partial<Record<WalletEntryKind, string>>;
-    entryStatus?: Partial<Record<WalletEntryStatus, string>>;
-  };
-};
-
 export type WalletWords = {
   kind: Record<WalletEntryKind, string>;
   status: Record<WalletEntryStatus, string>;
 };
 
 export function walletWords(locale: Locale): WalletWords {
-  const words = (getDictionary(locale) as unknown as WalletWordKeys).wallet;
-
-  const kind = { ...KIND_LABEL_EN };
-  for (const key of Object.keys(kind) as WalletEntryKind[]) {
-    const translated = words?.entryKind?.[key];
-    if (translated) kind[key] = translated;
-  }
-
-  const status = { ...STATUS_LABEL_EN };
-  for (const key of Object.keys(status) as WalletEntryStatus[]) {
-    const translated = words?.entryStatus?.[key];
-    if (translated) status[key] = translated;
-  }
-
-  return { kind, status };
+  const { entryKind, entryStatus } = getDictionary(locale).wallet;
+  return { kind: entryKind, status: entryStatus };
 }

@@ -849,17 +849,28 @@ if (duplicates.length > 0) {
  * prose is one somebody deletes rather than obeys, and that rule is older than
  * this check.
  *
- * IT CAN BECOME FATAL, AND HERE IS THE CONDITION. The two correct kinds only
+ * IT IS FATAL NOW, AND THE CONDITION BELOW IS WHY. The two correct kinds only
  * need an extensioned path because we habitually write one. Name the DIRECTORY,
  * or drop the extension, when you are recalling a file or predicting one:
  * "arrived from `components/app/assistant/`" says the same thing and cannot be
  * mistaken for a live reference by a reader either. Write a full path with an
  * extension only when you are asserting that the file is there to be opened.
- * Once the tree is clean under that convention, move this into the block above
- * and let it fail. Every path in the design-system queue's own files already
- * follows it.
+ * THE CONDITION WAS "once the tree is clean under that convention", and it was
+ * met three references later: the design system's own files were converted the
+ * day the check was written, and the last three, two stale and one forward, were
+ * cleared by their owner in the block after. So this fails now. A check held at
+ * report-only past the point where it is clean is a check nobody will ever
+ * promote, because there is never a better moment than the one where the count
+ * is zero.
+ *
+ * The convention it enforces is written up in
+ * `packages/design-tokens/README.md` under "Writing about a file in a comment",
+ * with the table of four kinds. If this fires on a comment that is recalling or
+ * predicting a file, the fix is to name the directory or drop the extension,
+ * not to add the path to an exception list.
  */
 if (missingPaths.length > 0) {
+  failed = true;
   console.error(
     "\nA COMMENT NAMES A SOURCE FILE THAT DOES NOT EXIST. Read each one: this\n" +
       "check cannot tell an assertion from a recollection, and the note above it\n" +
@@ -870,7 +881,7 @@ if (missingPaths.length > 0) {
       "honest trigger', neither X ever written.\n",
   );
   for (const entry of missingPaths) console.error(`  ${entry}`);
-  console.error(`\n${missingPaths.length} unresolved path(s) in comments, reported only.\n`);
+  console.error(`\n${missingPaths.length} unresolved path(s) in comments.\n`);
 }
 
 if (componentFailures.length > 0) {
@@ -956,6 +967,6 @@ if (failed) process.exit(1);
 console.log(
   "css tokens: clean - 0 layer-1 references in stylesheets, 0 in components, " +
     "0 raw colour literals, 0 unresolved var() references, 0 var() references " +
-    "of the wrong type, 0 duplicate declarations, and every partial parses. " +
-    "Seven enforced, plus the comment-path report.",
+    "of the wrong type, 0 duplicate declarations, 0 comment paths that do not " +
+    "resolve, and every partial parses. All eight are enforced.",
 );
