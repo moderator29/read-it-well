@@ -35,11 +35,11 @@ export function ResetPasswordForm({ t }: { t: Dictionary }) {
   return (
     <div className="w-full">
       <h1 className="nf-h2 text-center">{t.auth.newPasswordTitle}</h1>
-      <p className="mb-6 mt-1.5 text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mb-6 mt-xs text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
         {t.auth.newPasswordLead}
       </p>
 
-      <form action={formAction} className="space-y-3.5 text-left" noValidate>
+      <form action={formAction} className="space-y-md text-left" noValidate>
         <PasswordField
           t={t}
           id="password"
@@ -65,7 +65,7 @@ export function ResetPasswordForm({ t }: { t: Dictionary }) {
         {state.message && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
           >
             {state.message}{" "}
             <Link href="/forgot-password" className="font-semibold underline underline-offset-4">

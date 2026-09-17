@@ -24,7 +24,7 @@ export default function LoadingAgentListings() {
       <ul className="space-y-sm">
         {Array.from({ length: 4 }, (_, i) => (
           <li key={i} className="nf-card overflow-hidden p-0">
-            <div className="flex gap-md p-3.5">
+            <div className="flex gap-md p-md">
               <Skeleton width="5.25rem" height="5.25rem" radius="md" className="shrink-0" />
               <div className="min-w-0 flex-1">
                 <Skeleton width="4.5rem" height="1.25rem" radius="pill" />

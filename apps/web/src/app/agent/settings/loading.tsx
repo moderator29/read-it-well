@@ -14,7 +14,7 @@ export default function LoadingAgentSettings() {
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="nf-card p-md">
             <Skeleton width="40%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-2.5" width="62%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-sm" width="62%" height="0.875rem" radius="sm" />
           </div>
         ))}
       </div>

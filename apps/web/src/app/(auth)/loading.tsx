@@ -26,11 +26,11 @@ export default function LoadingAuth() {
     <LoadingShell label="Loading" className="w-full">
       {/* The heading pair, centred, at the real sizes. */}
       <Skeleton width="11rem" height="1.75rem" radius="sm" className="mx-auto" />
-      <Skeleton width="14rem" height="1rem" radius="sm" className="mx-auto mt-2.5" />
+      <Skeleton width="14rem" height="1rem" radius="sm" className="mx-auto mt-sm" />
 
       {/* The controls. Three rows at the auth row height, which is what both
           the choice screen and the email forms resolve to. */}
-      <div className="mt-6 space-y-2.5">
+      <div className="mt-6 space-y-sm">
         {Array.from({ length: 3 }, (_, i) => (
           <Skeleton key={i} height="3.25rem" radius="lg" />
         ))}

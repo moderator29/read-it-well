@@ -115,7 +115,7 @@ function ReservationCard({
         : "warning";
 
   return (
-    <li className="nf-card p-md sm:p-5">
+    <li className="nf-card p-md sm:p-panel">
       <div className="flex flex-wrap items-center gap-xs">
         <StatusPill tone={tone}>
           {reservation.status === "PENDING"
@@ -134,7 +134,7 @@ function ReservationCard({
       </p>
 
       <p className="mt-2xs flex flex-wrap items-center gap-x-sm gap-y-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
-        <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-xs">
           <UiIcon name="user" size={16} className="opacity-70" aria-hidden />
           {reservation.guestName}
         </span>

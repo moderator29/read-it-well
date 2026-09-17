@@ -34,7 +34,7 @@ export function FormGroup({
 }) {
   return (
     <section className="border-t border-[var(--nf-border-subtle)] pt-5 first:border-t-0 first:pt-0 [&+section]:mt-7">
-      <div className="mb-3.5 flex items-baseline justify-between gap-3">
+      <div className="mb-md flex items-baseline justify-between gap-3">
         <h2 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
           {title}
         </h2>
@@ -47,7 +47,7 @@ export function FormGroup({
           {note}
         </p>
       )}
-      <div className="space-y-3.5">{children}</div>
+      <div className="space-y-md">{children}</div>
     </section>
   );
 }
@@ -73,7 +73,7 @@ function LabelRow({
       <label htmlFor={htmlFor} className="nf-label">
         {label}
       </label>
-      {optional && <span className="nf-chip mb-1.5 px-2 py-0.5 text-[0.625rem]">{optional}</span>}
+      {optional && <span className="nf-chip mb-xs px-2 py-0.5 text-[0.625rem]">{optional}</span>}
     </span>
   );
 }
@@ -81,7 +81,7 @@ function LabelRow({
 function FieldError({ id, error }: { id: string; error?: string }) {
   if (!error) return null;
   return (
-    <p id={id} role="alert" className="mt-1.5 text-[0.75rem] text-[var(--nf-state-error)]">
+    <p id={id} role="alert" className="mt-xs text-[0.75rem] text-[var(--nf-state-error)]">
       {error}
     </p>
   );
@@ -336,9 +336,9 @@ export function StrengthMeter({ password, t }: { password: string; t: Dictionary
   const colour = STRENGTH_COLOURS[score];
 
   return (
-    <div className="-mt-1.5">
+    <div className="-mt-xs">
       <div className="flex items-center gap-3">
-        <div className="flex flex-1 gap-1.5">
+        <div className="flex flex-1 gap-xs">
           {([1, 2, 3, 4] as const).map((segment) => (
             <span
               key={segment}

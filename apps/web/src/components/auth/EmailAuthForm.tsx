@@ -124,20 +124,20 @@ export function EmailAuthForm({
           "back" to somebody who arrived here on a deep link. */}
       <Link
         href={isSignUp ? "/sign-up" : "/sign-in"}
-        className="nf-tap -ml-1 mb-3 inline-flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
+        className="nf-tap -ml-1 mb-3 inline-flex items-center gap-xs text-[0.8125rem] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="arrow-left" size={16} />
         {t.auth.otherWays}
       </Link>
 
       <h1 className="nf-h2 text-center">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
-      <p className="mb-6 mt-1.5 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+      <p className="mb-6 mt-xs text-center text-[0.875rem] text-[var(--nf-content-muted)]">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
       <form
         action={formAction}
-        className={isSignUp ? "text-left" : "space-y-3.5 text-left"}
+        className={isSignUp ? "text-left" : "space-y-md text-left"}
         noValidate
       >
         {/* Where the middleware was sending them before it asked them to sign
@@ -283,7 +283,7 @@ export function EmailAuthForm({
         {state.message && (
           <p
             role="alert"
-            className="mt-4 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+            className="mt-4 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
           >
             {state.message}
           </p>

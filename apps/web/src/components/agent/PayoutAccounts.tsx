@@ -118,7 +118,7 @@ export function PayoutAccounts({
           </p>
         </div>
       ) : (
-        <div className="nf-card mt-md p-md sm:p-5">
+        <div className="nf-card mt-md p-md sm:p-panel">
           <h3 className="nf-overline text-[var(--nf-content-muted)]">Add an account</h3>
 
           <div className="mt-sm grid gap-sm">
@@ -133,7 +133,7 @@ export function PayoutAccounts({
                 id="payout-bank"
                 value={bankCode}
                 onChange={(e) => setBankCode(e.target.value)}
-                className="nf-field mt-1.5 w-full"
+                className="nf-field mt-xs w-full"
               >
                 <option value="">Choose your bank</option>
                 {banks.map((bank) => (
@@ -160,7 +160,7 @@ export function PayoutAccounts({
                 onChange={(e) => setAccountNumber(digitsOnly(e.target.value))}
                 placeholder="0123 456 789"
                 aria-describedby="payout-number-hint"
-                className="nf-numeric nf-field mt-1.5 w-full tracking-[0.08em]"
+                className="nf-numeric nf-field mt-xs w-full tracking-[0.08em]"
               />
               <p id="payout-number-hint" className="mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
                 Ten digits. We show the account name before anything is saved.
@@ -187,7 +187,7 @@ export function PayoutAccounts({
               <input type="hidden" name="accountNumber" value={digitsOnly(accountNumber)} />
               <input type="hidden" name="accountName" value={confirmed} />
 
-              <p className="flex items-start gap-2.5 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
+              <p className="flex items-start gap-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
                 <UiIcon
                   name="verified"
                   size={20}

@@ -223,6 +223,61 @@ describe("retiring the examples", () => {
   });
 });
 
+describe("a payment status arriving from jsonb", () => {
+  /*
+   * `transactions.status` is a FOUR-value enum crossing an untyped jsonb
+   * envelope, and this reader used to end `?? "PENDING"`. That default is the
+   * one answer that is never safe: a row whose status could not be read became,
+   * on screen, indistinguishable from a payment that really is pending, on the
+   * desk that exists to find money which is not where it should be.
+   *
+   * The cases below are the ones a cast would have waved through. Each is a
+   * shape jsonb can genuinely produce: a value the enum does not hold, a value
+   * of the wrong type, a missing key, and the lower-case spelling that a hand
+   * written comparison eventually meets.
+   */
+  const unsettledRow = (status: unknown) => ({
+    status: "ok",
+    stale_minutes: 30,
+    overdrawn: [],
+    stale_holds: [],
+    unsettled: [
+      { id: "t1", provider: "paystack", amount_minor: 500000, created_at: "2026-08-01T00:00:00Z", ...(status === undefined ? {} : { status }) },
+    ],
+  });
+
+  it("keeps every value the enum really holds", async () => {
+    for (const value of ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED"]) {
+      adminAnswering(unsettledRow(value));
+      const read = await getPaymentHealth();
+      expect(read.state).toBe("ok");
+      if (read.state !== "ok") return;
+      expect(read.data.unsettled[0]?.status, value).toBe(value);
+    }
+  });
+
+  it("says nothing rather than guessing, for anything else", async () => {
+    for (const value of ["SETTLED", "pending", "", 7, null, true, undefined]) {
+      adminAnswering(unsettledRow(value));
+      const read = await getPaymentHealth();
+      expect(read.state).toBe("ok");
+      if (read.state !== "ok") return;
+      expect(read.data.unsettled[0]?.status, String(value)).toBeNull();
+    }
+  });
+
+  it("still shows the row, because dropping it would hide money", async () => {
+    adminAnswering(unsettledRow("SETTLED"));
+    const read = await getPaymentHealth();
+    expect(read.state).toBe("ok");
+    if (read.state !== "ok") return;
+    /* The amount is the reason the row cannot simply be discarded: it is a real
+       unsettled payment whose status we could not name, not a phantom. */
+    expect(read.data.unsettled).toHaveLength(1);
+    expect(read.data.unsettled[0]?.amountMinor).toBe(500000);
+  });
+});
+
 describe("money arriving from jsonb", () => {
   /*
    * Kobo is an integer end to end. A float, a string or a value past 2^53 is

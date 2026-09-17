@@ -18,7 +18,7 @@ export default function LoadingAgentEarnings() {
       <div className="space-y-lg">
         <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="nf-card flex flex-col gap-xs p-3.5 sm:gap-2.5 sm:p-md">
+            <div key={i} className="nf-card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
               <Skeleton width="2.25rem" height="2.25rem" radius="md" className="sm:hidden" />
               <Skeleton width="2.5rem" height="2.5rem" radius="md" className="hidden sm:block" />
               <Skeleton width="75%" height="0.75rem" radius="sm" />
@@ -28,7 +28,7 @@ export default function LoadingAgentEarnings() {
         </div>
 
         {/* The ledger. Header row plus rows at the table's real rhythm. */}
-        <div className="nf-card p-md sm:p-5">
+        <div className="nf-card p-md sm:p-panel">
           <Skeleton width="10rem" height="1.125rem" radius="sm" />
           <div className="mt-md space-y-sm">
             <Skeleton height="0.75rem" radius="sm" />

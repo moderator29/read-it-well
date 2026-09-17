@@ -38,7 +38,7 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
               {thread.counterpartName}
             </p>
             {thread.listingTitle && (
-              <p className="mt-2xs flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs flex items-center gap-xs text-[0.78rem] text-[var(--nf-content-muted)]">
                 <UiIcon name="location" size={12} className="shrink-0" />
                 <span className="truncate">{thread.listingTitle}</span>
               </p>
@@ -54,12 +54,12 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
           </span>
         </div>
 
-        <p className="mt-2.5 line-clamp-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm line-clamp-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {thread.lastMessage}
         </p>
 
         {thread.waitingOnYou && (
-          <p className="mt-2.5 flex items-center gap-1.5 text-[0.75rem] font-semibold text-[var(--nf-state-warning)]">
+          <p className="mt-sm flex items-center gap-xs text-[0.75rem] font-semibold text-[var(--nf-state-warning)]">
             <UiIcon name="bell" size={12} className="shrink-0" />
             {waitLabel(thread.waitingHours)}
           </p>
@@ -110,7 +110,7 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="chat-duo" fill />
           </span>
-          <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">
+          <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             {filter === "waiting" ? "Nobody is waiting on you" : "No enquiries yet"}
           </p>
           <p className="mx-auto mt-2xs max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">

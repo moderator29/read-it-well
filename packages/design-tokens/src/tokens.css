@@ -1736,6 +1736,52 @@
    * two bands using this pattern had drifted to p-7 sm:p-8 and p-6 sm:p-7,
    * which is four numbers for one job on one page.
    */
+  /*
+   * THE WORKSPACE PANEL, 20px, AND IT IS THE ONE VALUE THE SCALE WAS MISSING.
+   *
+   * 227 spacing utilities in the product sit between two rungs. 176 of them are
+   * at 6, 10, 14 and 20 pixels, which are EXACTLY the midpoints of every gap at
+   * the bottom of the scale: the product independently invented the middle of
+   * each one. Mounted side by side in the gallery and looked at, at 390 and 2x:
+   *
+   *    6px between  4 and  8   NOT visible
+   *   10px between  8 and 12   NOT visible
+   *   14px between 12 and 16   NOT visible
+   *   20px between 16 and 24   VISIBLE, clearly
+   *
+   * A 2px step on a card is below the threshold of notice, so 115 of the 176
+   * moved to the nearest rung and cost nothing. 20px is the exception and the
+   * reason is arithmetic rather than luck: 16 to 24 is the only DOUBLED gap in
+   * the ladder, every other step at that end is 4px, so it is the one place a
+   * missing value is 4px from both neighbours instead of 2.
+   *
+   * WHY A ROLE AND NOT A RUNG. The t-shirt ladder cannot take an insertion: 16
+   * is `md` and 24 is `lg`, and there is no name between them that is not a
+   * renumbering of everything above or below. Adding all four midpoints would
+   * have given 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, which is Tailwind's linear
+   * scale rebuilt, and the lint rule's own message says neighbouring steps on a
+   * linear scale are indistinguishable. Roles insert freely, so the answer was
+   * always going to be a role; the only question was which role.
+   *
+   * WHY `panel` AND NOT A FOURTH CARD SIZE. The card roles are sm(16), the base
+   * (24) and lg(32 to 64), and 20 would have to be `card-md`, where `md` between
+   * `sm` and the unsuffixed base reads as the middle of three when it is the
+   * second of four. So it is named for the object instead. Every one of the 18
+   * sites is a workspace panel: a settings block, a verification rung, an
+   * analytics section, a payout row, an earnings summary. Repeated elements,
+   * several per screen, carrying figures and rows rather than prose, which is
+   * exactly why they cannot afford the ordinary card's 24.
+   *
+   * FLAT, NOT A CLAMP, and the call sites argue for a clamp. Ten of the eighteen
+   * write `p-md sm:p-5`, a step from 16 to 20 at 640px, which this file
+   * elsewhere calls the thing a clamp exists to replace. A `clamp(1rem, 0.61rem
+   * + 1.6vw, 1.25rem)` reproduces that pair continuously and deviates from it by
+   * at most 1.76px in the middle, which is under the 2px the gallery just showed
+   * is invisible. It is still not this change: a rename that also moves pixels
+   * cannot be reviewed as a rename. The clamp is the obvious follow-up and it
+   * wants its own commit and its own look.
+   */
+  --nf-pad-panel: 1.25rem;                 /* 20, a workspace panel */
   --nf-pad-cell: var(--nf-space-xl);       /* 32 */
   --nf-pad-row-block: var(--nf-space-sm);
   --nf-pad-row-inline: var(--nf-space-md);

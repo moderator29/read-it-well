@@ -47,7 +47,7 @@ export function AuthChoices({
   return (
     <div className="w-full">
       <h1 className="nf-h2 text-center">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
-      <p className="mt-1.5 text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-center text-[0.875rem] text-[var(--nf-content-muted)]">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
@@ -68,7 +68,7 @@ export function AuthChoices({
         in, with no ceremony announcing alternatives that do not exist.
       */}
 
-      <div className="space-y-2.5">
+      <div className="space-y-sm">
         {/* The destination has to travel with the link, or the chain breaks at
             this hop: the person reaches the email form and the form has
             forgotten where they were going. */}

@@ -43,7 +43,7 @@ function Tile({
   value: React.ReactNode;
 }) {
   return (
-    <div className="nf-card flex flex-col gap-xs p-3.5 sm:gap-2.5 sm:p-md">
+    <div className="nf-card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
       <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
         <BrandIcon name={icon} fill />
       </span>
@@ -138,7 +138,7 @@ export function EarningsWorkspace({
         />
       </div>
 
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-panel">
         <h2 className="nf-h3">{t.byMonth}</h2>
 
         {/* Phone: stacked cards, so nothing scrolls sideways. */}
@@ -208,7 +208,7 @@ export function EarningsWorkspace({
         </div>
       </section>
 
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-panel">
         <h2 className="nf-h3">{t.howTitle}</h2>
         <p className="mt-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.howBody}

@@ -209,7 +209,7 @@ function ConfirmSheet({
         </p>
       )}
       {unmet.length > 0 && (
-        <ul className="mt-xs space-y-1.5">
+        <ul className="mt-xs space-y-xs">
           {unmet.map((message) => (
             <li
               key={message}
@@ -253,7 +253,7 @@ function UndoStrip({
 
   return (
     <li className="nf-card overflow-hidden p-0" data-testid="draft-undo">
-      <div className="flex items-center justify-between gap-md p-3.5" role="status">
+      <div className="flex items-center justify-between gap-md p-md" role="status">
         <span className="min-w-0 leading-tight">
           <span className="block text-[0.875rem] font-semibold">{t.workspace.undo.removed}</span>
           <span className="block truncate text-[0.78rem] text-[var(--nf-content-muted)]">
@@ -301,7 +301,7 @@ function ListingRow({
 
   return (
     <li className="nf-card overflow-hidden p-0">
-      <div className="flex gap-4.5 p-3.5">
+      <div className="flex gap-4.5 p-md">
         <span
           className="relative block h-[5.25rem] w-[5.25rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
           style={{ background: "var(--nf-surface-raised)" }}
@@ -327,7 +327,7 @@ function ListingRow({
           </div>
 
           {(listing.area || listing.city) && (
-            <p className="mt-2xs flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs flex items-center gap-xs text-[0.78rem] text-[var(--nf-content-muted)]">
               <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">
                 {[listing.area, listing.city].filter(Boolean).join(", ")}
@@ -335,7 +335,7 @@ function ListingRow({
             </p>
           )}
 
-          <p className="mt-xs flex items-baseline gap-1.5">
+          <p className="mt-xs flex items-baseline gap-xs">
             <span className="nf-numeric text-[0.9375rem] font-bold">
               {listing.priceMinor > 0
                 ? formatMoneyGlance(listing.priceMinor, locale)
@@ -355,12 +355,12 @@ function ListingRow({
       </div>
 
       {listing.reviewNotes && (
-        <p className="border-t border-[var(--nf-border-subtle)] px-3.5 py-2.5 text-[0.75rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="border-t border-[var(--nf-border-subtle)] px-md py-sm text-[0.75rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {listing.reviewNotes}
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-md gap-y-xs border-t border-[var(--nf-border-subtle)] px-3.5 py-sm">
+      <div className="flex flex-wrap items-center gap-x-md gap-y-xs border-t border-[var(--nf-border-subtle)] px-md py-sm">
         {editable && (
           <Link
             href={`/agent/list?id=${listing.id}`}
@@ -416,7 +416,7 @@ function ListingRow({
       {error && (
         <p
           role="alert"
-          className="border-t border-[var(--nf-border-subtle)] px-3.5 py-2.5 text-[0.75rem] text-[var(--nf-state-error)]"
+          className="border-t border-[var(--nf-border-subtle)] px-md py-sm text-[0.75rem] text-[var(--nf-state-error)]"
         >
           {error}
         </p>

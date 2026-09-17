@@ -64,7 +64,7 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
         const failed = decision?.status === "failed";
 
         return (
-          <li key={rung.kind} className="nf-card p-md sm:p-5">
+          <li key={rung.kind} className="nf-card p-md sm:p-panel">
             <div className="flex flex-wrap items-center gap-xs">
               <span className="text-[0.75rem] font-semibold tabular-nums text-[var(--nf-content-muted)]">
                 {rung.step}
@@ -129,7 +129,7 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
 function Standing({ tier }: { tier: VerificationTier }) {
   const next = nextRung(tier);
   return (
-    <div className="nf-card p-5">
+    <div className="nf-card p-panel">
       <p className="text-[0.8125rem] text-[var(--nf-content-secondary)]">
         Your standing
       </p>
@@ -209,7 +209,7 @@ export default async function Page() {
         /* An honest absence rather than an empty ladder. Drawing four "not
            checked yet" rungs from a failed read would tell an agent who has
            passed three that they have passed none. */
-        <p className="nf-card p-5 text-[0.875rem] text-[var(--nf-content-secondary)]">
+        <p className="nf-card p-panel text-[0.875rem] text-[var(--nf-content-secondary)]">
           Your checks could not be loaded just now. Nothing has changed, and
           reloading usually settles it.
         </p>

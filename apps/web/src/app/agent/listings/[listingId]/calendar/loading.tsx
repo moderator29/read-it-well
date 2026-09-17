@@ -18,7 +18,7 @@ export default function LoadingCalendar() {
           <Skeleton width="9rem" height="1.25rem" radius="sm" />
           <Skeleton width="6rem" height="2.75rem" radius="pill" />
         </div>
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-7 gap-xs">
           {Array.from({ length: 42 }, (_, i) => (
             <Skeleton key={i} height="2.75rem" radius="md" />
           ))}

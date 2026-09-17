@@ -60,7 +60,7 @@ export function StatCard({
   return (
     <div
       className={[
-        "nf-card flex flex-col gap-xs p-3.5 sm:flex-row sm:items-start sm:gap-md sm:p-md",
+        "nf-card flex flex-col gap-xs p-md sm:flex-row sm:items-start sm:gap-md sm:p-md",
         className ?? "",
       ].join(" ")}
     >
@@ -75,7 +75,7 @@ export function StatCard({
           {value}
         </p>
         {hasDelta && (
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-3xs text-[0.75rem] leading-snug">
+        <p className="mt-xs flex flex-wrap items-center gap-x-xs gap-y-3xs text-[0.75rem] leading-snug">
           <span
             className="nf-numeric inline-flex items-center gap-2xs font-semibold"
             style={{ color: up ? "var(--nf-state-success)" : "var(--nf-state-error)" }}

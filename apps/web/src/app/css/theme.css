@@ -75,6 +75,11 @@
   --spacing-card: var(--nf-pad-card);
   --spacing-card-lg: var(--nf-pad-card-lg);
   --spacing-card-sm: var(--nf-pad-card-sm);
+  /* `p-panel`: 20px, the workspace panel. Checked against the `max-w-*` list at
+     the foot of this file and against the container namespace: there is no
+     container called `panel`, so this adds `p-panel` without silently turning
+     any width utility into a spacing value. */
+  --spacing-panel: var(--nf-pad-panel);
   --spacing-cell: var(--nf-pad-cell);
   /* `pl-affordance` / `pr-affordance`: the inset a field needs when a control
      is sitting inside it. Checked against the max-w list at the bottom of this

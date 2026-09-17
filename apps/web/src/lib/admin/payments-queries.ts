@@ -2,6 +2,10 @@ import "server-only";
 
 import type { AdminRead } from "./money-queries";
 import { requireAdmin } from "./guard";
+import { Constants, type Database } from "../supabase/database.types";
+
+/** One value of `public.transaction_status`. */
+export type TransactionStatus = Database["public"]["Enums"]["transaction_status"];
 
 /**
  * Payment and wallet health: the three questions an operator cannot answer.
@@ -60,7 +64,16 @@ export type UnsettledPayment = {
   providerRef: string | null;
   amountMinor: number;
   currency: string | null;
-  status: string;
+  /**
+   * One value of `transaction_status`, or null when the row did not carry a
+   * recognisable one.
+   *
+   * NOT `string`, and not defaulted. See `transactionStatus` below: a status
+   * this reader cannot name is rendered as "not recorded" rather than guessed
+   * at, because the guess was `"PENDING"` and it was indistinguishable on
+   * screen from a payment that really is pending.
+   */
+  status: TransactionStatus | null;
   bookingId: string | null;
   createdAt: string;
 };
@@ -110,6 +123,42 @@ function minor(row: Record<string, unknown>, key: string): number {
   return typeof value === "number" && Number.isSafeInteger(value) ? value : 0;
 }
 
+/**
+ * A `transaction_status`, or null.
+ *
+ * ---------------------------------------------------------------------------
+ * THIS WAS `text(row, "status") ?? "PENDING"`, AND THE DEFAULT WAS THE FAULT.
+ *
+ * `transactions.status` is a four-value enum arriving through an untyped jsonb
+ * envelope, so the reader has to decide what an unrecognised value means. It
+ * decided "PENDING", which is the one answer that is never safe: a row whose
+ * status could not be read became, on screen, indistinguishable from a payment
+ * that really is pending, on the desk whose entire job is finding money that
+ * is not where it should be.
+ *
+ * WHY NULL AND NOT A CAST. Asserting the enum across a JSON boundary is a claim
+ * rather than a check: the value has genuinely not been proved by anything at
+ * that point. Null is the honest third answer, and it is what the two parsers
+ * above already do - `text` refuses an empty string, `minor` refuses anything
+ * that is not a safe integer, rather than approximating either.
+ *
+ * WHY THE ROW IS STILL SHOWN. It is a real unsettled payment with a real
+ * amount. Dropping it would hide money, which is worse than showing it with its
+ * status unnamed. The chip renders "not recorded" in neutral, which reads as
+ * something to look into rather than as a confident wrong answer.
+ *
+ * The allowed list is the generated `Constants`, never an array written here:
+ * a hand-written list is what does not notice when the enum gains a value.
+ */
+function transactionStatus(
+  row: Record<string, unknown>,
+  key: string,
+): TransactionStatus | null {
+  const value = row[key];
+  if (typeof value !== "string") return null;
+  return Constants.public.Enums.transaction_status.find((s) => s === value) ?? null;
+}
+
 export async function getPaymentHealth(
   staleMinutes: number = STALE_HOLD_MINUTES,
 ): Promise<AdminRead<PaymentHealth>> {
@@ -155,7 +204,7 @@ export async function getPaymentHealth(
       providerRef: text(row, "provider_ref"),
       amountMinor: minor(row, "amount_minor"),
       currency: text(row, "currency"),
-      status: text(row, "status") ?? "PENDING",
+      status: transactionStatus(row, "status"),
       bookingId: text(row, "booking_id"),
       createdAt: text(row, "created_at") ?? "",
     }));

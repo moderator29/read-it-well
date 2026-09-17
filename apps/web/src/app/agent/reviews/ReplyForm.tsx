@@ -49,13 +49,13 @@ export function ReplyForm({
 
   if (saved && !editing) {
     return (
-      <div className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-3.5">
-        <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
+      <div className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-md">
+        <p className="flex items-center gap-xs text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
           <UiIcon name="chat-bubble" size={12} className="shrink-0" />
           Your reply
           {savedWhen && <span className="font-normal normal-case tracking-normal">{savedWhen}</span>}
         </p>
-        <p className="mt-1.5 whitespace-pre-line text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs whitespace-pre-line text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {saved}
         </p>
         <div className="mt-sm flex flex-wrap gap-xs">
@@ -108,7 +108,7 @@ export function ReplyForm({
         defaultValue={saved ?? ""}
         placeholder="Thank them, answer the point they raised, and say what you have changed."
       />
-      <div className="mt-2.5 flex flex-wrap gap-xs">
+      <div className="mt-sm flex flex-wrap gap-xs">
         <Button type="submit" variant="primary" size="sm" loading={pending}>
           {pending ? "Saving..." : saved ? "Save changes" : "Post reply"}
         </Button>

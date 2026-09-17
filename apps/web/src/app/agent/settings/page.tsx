@@ -89,7 +89,7 @@ export default async function Page() {
             variant="host"
           />
         ) : (
-          <div className="nf-card p-5">
+          <div className="nf-card p-panel">
             <p className="nf-overline">Notifications</p>
             <p className="mt-xs text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               We could not read your preferences just now. Nothing has changed, and
@@ -99,11 +99,11 @@ export default async function Page() {
         )}
 
         {/* -------------------------------------------------------- payout */}
-        <div className="nf-card p-5">
+        <div className="nf-card p-panel">
           <p className="nf-overline">Where your earnings go</p>
           {preferred ? (
             <>
-              <p className="mt-2.5 flex items-center gap-xs text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <p className="mt-sm flex items-center gap-xs text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 <UiIcon name="verified" size={16} className="shrink-0 text-[var(--nf-state-success)]" />
                 {preferred.bankName}
               </p>
@@ -113,14 +113,14 @@ export default async function Page() {
               <p className="mt-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
                 {preferred.accountName}
               </p>
-              <p className="mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              <p className="mt-sm text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
                 {accounts.length === 1
                   ? "This is the account your payouts are sent to."
                   : `Your payouts go here. You have ${accounts.length} accounts on file.`}
               </p>
             </>
           ) : (
-            <p className="mt-2.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               You have not told us where to send your earnings yet. Nothing can be
               paid out until you do, and it takes about a minute.
             </p>
@@ -131,9 +131,9 @@ export default async function Page() {
         </div>
 
         {/* ------------------------------------------------------ identity */}
-        <div className="nf-card p-5">
+        <div className="nf-card p-panel">
           <p className="nf-overline">Your host identity</p>
-          <p className="mt-2.5 flex flex-wrap items-center gap-x-xs gap-y-2xs text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="mt-sm flex flex-wrap items-center gap-x-xs gap-y-2xs text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
             {agent.displayName}
             {agent.verified && (
               <span className="nf-badge nf-badge--brand">
@@ -142,7 +142,7 @@ export default async function Page() {
               </span>
             )}
           </p>
-          <dl className="mt-sm grid gap-1.5 border-t border-[var(--nf-border-subtle)] pt-sm text-[0.875rem]">
+          <dl className="mt-sm grid gap-xs border-t border-[var(--nf-border-subtle)] pt-sm text-[0.875rem]">
             <div className="flex items-center justify-between gap-sm">
               <dt className="text-[var(--nf-content-muted)]">Account type</dt>
               <dd className="text-[var(--nf-content-secondary)]">
@@ -175,9 +175,9 @@ export default async function Page() {
         </div>
 
         {/* ------------------------------------------------------ the rest */}
-        <div className="nf-card p-5">
+        <div className="nf-card p-panel">
           <p className="nf-overline">Everything else</p>
-          <p className="mt-2.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Theme, language, privacy, security and account deletion are one account
             wide, so they live on your Vallo settings page rather than being kept
             in two places.

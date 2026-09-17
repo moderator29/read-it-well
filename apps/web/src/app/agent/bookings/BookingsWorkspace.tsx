@@ -241,7 +241,7 @@ function BookingCard({
 
   return (
     <li className="nf-card overflow-hidden p-0">
-      <div className="p-3.5 sm:p-md">
+      <div className="p-md sm:p-md">
         <div className="flex items-start justify-between gap-xs">
           <div className="min-w-0">
             {/*
@@ -261,7 +261,7 @@ function BookingCard({
             <h3 className="text-[0.9375rem] font-semibold [overflow-wrap:anywhere]">
               {booking.guestName}
             </h3>
-            <p className="mt-3xs flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+            <p className="mt-3xs flex items-center gap-xs text-[0.8125rem] text-[var(--nf-content-secondary)]">
               <UiIcon name="house" size={12} className="shrink-0" />
               <span className="truncate">{booking.listingTitle}</span>
             </p>
@@ -274,7 +274,7 @@ function BookingCard({
           </StatusPill>
         </div>
 
-        <p className="mt-sm flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+        <p className="mt-sm flex items-center gap-xs text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
           <UiIcon name="calendar-booking" size={16} className="shrink-0" />
           {fill(t.card.dates, {
             from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
@@ -283,7 +283,7 @@ function BookingCard({
           <span className="text-[var(--nf-content-muted)]">&middot; {nightsLabel}</span>
         </p>
 
-        <p className="mt-1.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+        <p className="mt-xs flex items-center gap-xs text-[0.8125rem] text-[var(--nf-content-secondary)]">
           <UiIcon name="user" size={16} className="shrink-0" />
           {guestsLabel}
           {/* The breakdown only earns its place when it says something the
@@ -301,7 +301,7 @@ function BookingCard({
         {booking.arrivingName && (
           <p
             data-testid="host-booking-arriving"
-            className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]"
+            className="mt-xs flex flex-wrap items-center gap-x-xs text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]"
           >
             <UiIcon name="verified" size={16} className="shrink-0" />
             {fill(t.card.arriving, { name: booking.arrivingName })}
@@ -329,7 +329,7 @@ function BookingCard({
 
         {booking.status !== "CANCELLED" && !pending && (
           <p
-            className="mt-xs flex items-center gap-1.5 text-[0.75rem] font-medium"
+            className="mt-xs flex items-center gap-xs text-[0.75rem] font-medium"
             style={{
               color:
                 booking.settlement === "settled"
@@ -343,8 +343,8 @@ function BookingCard({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-3.5 py-sm">
-        <p className="flex items-baseline gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-md py-sm">
+        <p className="flex items-baseline gap-xs">
           <span className="nf-numeric text-[0.9375rem] font-bold">
             {formatMoney(booking.totalMinor, locale)}
           </span>

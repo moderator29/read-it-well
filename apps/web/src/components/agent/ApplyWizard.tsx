@@ -407,7 +407,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                 onClick={() => i <= step && setStep(i)}
                 disabled={i > step}
                 aria-current={current ? "step" : undefined}
-                className="flex min-h-11 w-full flex-col items-center justify-center gap-1.5"
+                className="flex min-h-11 w-full flex-col items-center justify-center gap-xs"
                 title={title}
               >
                 <span
@@ -431,7 +431,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         {stepTitles[step]}
       </p>
 
-      <form action={formAction} className="nf-card p-5 sm:p-xl">
+      <form action={formAction} className="nf-card p-panel sm:p-xl">
         {/* Keep every step in the DOM so all fields reach the server action;
             only the active step is shown. */}
 
@@ -564,7 +564,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
           <Legend title={a.review.title} sub={a.review.body} />
           <dl className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
             {TEXT_FIELDS.filter((f) => values[f]).map((f) => (
-              <div key={f} className="flex items-center justify-between gap-md px-md py-2.5 text-[0.8125rem]">
+              <div key={f} className="flex items-center justify-between gap-md px-md py-sm text-[0.8125rem]">
                 <dt className="text-[var(--nf-content-muted)]">{a.fields[f as keyof typeof a.fields] ?? f}</dt>
                 <dd className="font-medium [overflow-wrap:anywhere]">{values[f]}</dd>
               </div>
@@ -608,7 +608,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
           {state.message && (
             <p
               role="alert"
-              className="rounded-[var(--nf-radius-md)] border px-3.5 py-2.5 text-[0.8125rem]"
+              className="rounded-[var(--nf-radius-md)] border px-md py-sm text-[0.8125rem]"
               style={
                 state.ok
                   ? {
@@ -783,7 +783,7 @@ function UploadZone({
              one, so the file itself is the label in both cases. */
           <>
             {slot.isPdf && (
-              <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-1.5 py-3xs text-[0.625rem] font-bold tracking-wide text-[var(--nf-content-secondary)]">
+              <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[0.625rem] font-bold tracking-wide text-[var(--nf-content-secondary)]">
                 PDF
               </span>
             )}

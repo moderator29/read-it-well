@@ -240,18 +240,29 @@ export default async function AdminPaymentsPage() {
                 <TR key={payment.id}>
                   <TD>
                     {/*
-                      NOT A TERNARY OVER A FOUR-VALUE ENUM. This read
-                      `status === "FAILED" ? "Failed" : "Pending"` for both the
-                      word and the colour, so every value that is not FAILED
-                      collapsed into "Pending" in the pending colour. On a
-                      column that also holds REFUNDED that is a false statement
-                      about money, on the desk whose whole job is finding false
-                      statements about money, and it is English besides. The
-                      word comes from the column's own vocabulary and the tone
-                      from `toneForStatus`, which already maps all four. F2-060.
+                      NOT A TERNARY OVER A FOUR-VALUE ENUM.
+
+                      This read `status === "FAILED" ? "Failed" : "Pending"` for
+                      both the word and the colour, so every value that is not
+                      FAILED collapsed into one word in one colour.
+
+                      WHAT THAT WAS AND WAS NOT, STATED ACCURATELY. It was not a
+                      live falsehood: `admin_payment_health` selects
+                      `status in ('PENDING','FAILED')`, so only two of the four
+                      ever reach this row today. It was a binary written over a
+                      thing that is not binary, which becomes a false statement
+                      about money the day somebody widens that `in` list, on the
+                      desk whose whole job is finding false statements about
+                      money. And it was English on a four-language platform.
+
+                      The word comes from the column's own vocabulary and the
+                      tone from `toneForStatus`, which maps all four. A status
+                      the reader could not name is null rather than "PENDING",
+                      and renders as "not recorded" in neutral: see
+                      `transactionStatus` in `payments-queries`. F2-060.
                     */}
                     <ui.StatusChip
-                      status={payment.status}
+                      status={payment.status ?? ""}
                       label={ui.columnLabel("transactionStatus", payment.status)}
                     />
                   </TD>

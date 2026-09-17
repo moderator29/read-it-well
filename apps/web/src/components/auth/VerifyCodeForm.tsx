@@ -147,7 +147,7 @@ export function VerifyCodeForm({
         {state.message && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
           >
             {state.message}
           </p>

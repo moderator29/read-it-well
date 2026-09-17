@@ -21,7 +21,7 @@ export default function LoadingAgentBookings() {
       <ul className="space-y-sm">
         {Array.from({ length: 4 }, (_, i) => (
           <li key={i} className="nf-card overflow-hidden p-0">
-            <div className="p-3.5 sm:p-md">
+            <div className="p-md sm:p-md">
               <div className="flex items-start justify-between gap-xs">
                 <div className="min-w-0 flex-1">
                   <Skeleton width="40%" height="0.9375rem" radius="sm" />

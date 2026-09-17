@@ -42,8 +42,48 @@ const out = await page.evaluate((classes) => {
     measured[cls] = getComputedStyle(el).zIndex;
     el.remove();
   }
-  return { ladder, measured };
+  /*
+   * THE SANITY CASE. Two controls whose answers are known before the page
+   * loads, so a broken probe fails loudly instead of printing a confident
+   * table about the product.
+   *
+   * It exists because four instruments in this directory have been wrong in
+   * exactly this way: a value read through `getComputedStyle` that turned out to
+   * be the probe's mistake rather than the product's. The rule both queues now
+   * work to is that a measurement is not believed until something whose answer
+   * is already known has passed through the same code path.
+   *
+   *   a bare div          must compute `z-index: auto`. If this says a number,
+   *                       the element is inheriting from a rule that matches
+   *                       everything, and every reading below is suspect.
+   *   an inline 424242    must come back as "424242". If it does not, the read
+   *                       is not reaching the element at all, which is what
+   *                       happens when a probe appends to a detached node or
+   *                       measures before layout.
+   */
+  const control = document.createElement("div");
+  document.body.appendChild(control);
+  const bare = getComputedStyle(control).zIndex;
+  control.style.zIndex = "424242";
+  const forced = getComputedStyle(control).zIndex;
+  control.remove();
+
+  return { ladder, measured, sanity: { bare, forced } };
 }, CLASSES);
+
+if (out.sanity.bare !== "auto" || out.sanity.forced !== "424242") {
+  console.error(
+    "\nTHIS PROBE IS BROKEN, NOT THE PRODUCT. Sanity case failed:\n" +
+      `  a bare div computed z-index "${out.sanity.bare}", expected "auto"\n` +
+      `  a div set to 424242 computed "${out.sanity.forced}", expected "424242"\n\n` +
+      "The first means something is matching every element and every number\n" +
+      "below is inherited rather than measured. The second means the read is not\n" +
+      "reaching the element: the usual causes are appending to a detached node,\n" +
+      "or measuring before the page has laid out. Fix the probe before reading a\n" +
+      "single line of what follows.\n",
+  );
+  process.exit(1);
+}
 
 console.log("LADDER");
 for (const [k, v] of Object.entries(out.ladder)) console.log(`  --nf-z-${k}: ${v || "(EMPTY)"}`);

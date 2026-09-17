@@ -41,7 +41,7 @@ export default function AuthError({
   return (
     <div className="text-center">
       <h1 className="nf-h3">This screen did not load</h1>
-      <p className="mt-2.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         Something on our side stopped part way through. Nothing was submitted, no
         account was created or changed, and your details are safe. Trying again
         usually settles it.

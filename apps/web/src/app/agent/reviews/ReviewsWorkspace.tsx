@@ -41,7 +41,7 @@ function Stars({ rating }: { rating: number }) {
 function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Locale }) {
   const most = Math.max(1, ...summary.distribution);
   return (
-    <div className="nf-card p-5">
+    <div className="nf-card p-panel">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-sm">
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="reviews" fill />
@@ -56,7 +56,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
         </p>
       </div>
 
-      <ul className="mt-md grid gap-1.5 border-t border-[var(--nf-border-subtle)] pt-md">
+      <ul className="mt-md grid gap-xs border-t border-[var(--nf-border-subtle)] pt-md">
         {[5, 4, 3, 2, 1].map((star) => {
           const count = summary.distribution[star - 1] ?? 0;
           return (
@@ -91,7 +91,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
 function ReviewCard({ review }: { review: AgentReview }) {
   return (
     <li className="nf-card p-md">
-      <div className="flex flex-wrap items-center justify-between gap-x-sm gap-y-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-sm gap-y-xs">
         <p className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
           <Stars rating={review.rating} />
           <span className="sr-only">{review.rating} out of 5.</span>
@@ -107,18 +107,18 @@ function ReviewCard({ review }: { review: AgentReview }) {
 
       <Link
         href={`/listing/${review.listingId}`}
-        className="mt-1.5 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
+        className="mt-xs flex items-center gap-xs text-[0.78rem] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="location" size={12} className="shrink-0" />
         <span className="truncate">{review.listingTitle}</span>
       </Link>
 
       {review.body ? (
-        <p className="mt-2.5 whitespace-pre-line text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm whitespace-pre-line text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {review.body}
         </p>
       ) : (
-        <p className="mt-2.5 text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
           This guest rated the stay and did not write anything.
         </p>
       )}
@@ -156,7 +156,7 @@ export function ReviewsWorkspace({
         <span className="mx-auto block h-16 w-16">
           <BrandIcon name="reviews" fill />
         </span>
-        <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
+        <p className="mt-md font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
         <p className="mx-auto mt-2xs max-w-[42ch] text-[0.875rem] text-[var(--nf-content-muted)]">
           A guest can review a stay once they have checked out and paid. The first
           one lands here, and you get the chance to answer it in public.
@@ -190,7 +190,7 @@ export function ReviewsWorkspace({
               {chip.label}
               {/* The count stays locale-formatted, so `count` is not used here:
                   that prop renders the raw number. */}
-              <span className="nf-numeric ml-1.5 opacity-70">
+              <span className="nf-numeric ml-xs opacity-70">
                 {formatNumber(chip.count, locale)}
               </span>
             </Chip>
@@ -209,7 +209,7 @@ export function ReviewsWorkspace({
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="listing-review" fill />
           </span>
-          <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">
+          <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             Every review has your answer
           </p>
           <p className="mx-auto mt-2xs max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">

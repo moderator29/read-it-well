@@ -23,7 +23,7 @@ export default function LoadingAgentAnalytics() {
         {/* Four headline tiles, at the tile's own rhythm. */}
         <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="nf-card flex flex-col gap-xs p-3.5 sm:gap-2.5 sm:p-md">
+            <div key={i} className="nf-card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
               <Skeleton width="2.25rem" height="2.25rem" radius="md" className="sm:hidden" />
               <Skeleton width="2.5rem" height="2.5rem" radius="md" className="hidden sm:block" />
               <Skeleton width="75%" height="0.75rem" radius="sm" />
@@ -33,7 +33,7 @@ export default function LoadingAgentAnalytics() {
         </div>
 
         {/* The settled trend. One heading, one line of context, one plot. */}
-        <div className="nf-card p-md sm:p-5">
+        <div className="nf-card p-md sm:p-panel">
           <Skeleton width="11rem" height="1.125rem" radius="sm" />
           <Skeleton className="mt-xs" width="80%" height="0.8125rem" radius="sm" />
           <Skeleton className="mt-md" height="9rem" radius="md" />
@@ -41,10 +41,10 @@ export default function LoadingAgentAnalytics() {
 
         {/* Requests, then the calendar, then the property table. */}
         {[5, 4, 6].map((rows, i) => (
-          <div key={i} className="nf-card p-md sm:p-5">
+          <div key={i} className="nf-card p-md sm:p-panel">
             <Skeleton width="9rem" height="1.125rem" radius="sm" />
             <Skeleton className="mt-xs" width="65%" height="0.8125rem" radius="sm" />
-            <div className="mt-md space-y-2.5">
+            <div className="mt-md space-y-sm">
               {Array.from({ length: rows }, (_, row) => (
                 <Skeleton key={row} height="1.5rem" radius="sm" />
               ))}

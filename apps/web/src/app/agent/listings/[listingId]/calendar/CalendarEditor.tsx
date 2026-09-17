@@ -257,7 +257,7 @@ export function CalendarEditor({
 
 function Key({ className, label }: { className: string; label: string }) {
   return (
-    <li className="flex items-center gap-1.5">
+    <li className="flex items-center gap-xs">
       <span className={`block h-3 w-3 rounded-[3px] ${className}`} aria-hidden="true" />
       {label}
     </li>

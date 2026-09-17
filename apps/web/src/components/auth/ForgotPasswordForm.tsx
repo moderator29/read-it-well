@@ -34,14 +34,14 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
     <div className="w-full">
       <Link
         href="/sign-in"
-        className="nf-tap -ml-1 mb-3 inline-flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
+        className="nf-tap -ml-1 mb-3 inline-flex items-center gap-xs text-[0.8125rem] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="arrow-left" size={16} />
         {t.common.signIn}
       </Link>
 
       <h1 className="nf-h2 text-center">{t.auth.resetTitle}</h1>
-      <p className="mb-6 mt-1.5 text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mb-6 mt-xs text-center text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
         {sent ? t.auth.resetSentLead : t.auth.resetLead}
       </p>
 
@@ -49,7 +49,7 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
         <>
           <p
             role="status"
-            className="nf-card px-4 py-3.5 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+            className="nf-card px-4 py-md text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
           >
             {state.message}
           </p>
@@ -73,7 +73,7 @@ export function ForgotPasswordForm({ t }: { t: Dictionary }) {
           {state.message && (
             <p
               role="alert"
-              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {state.message}
             </p>

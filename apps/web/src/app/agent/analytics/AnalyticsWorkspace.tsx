@@ -83,7 +83,7 @@ function Tile({
   note?: string;
 }) {
   return (
-    <div className="nf-card flex flex-col gap-xs p-3.5 sm:gap-2.5 sm:p-md">
+    <div className="nf-card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
       <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
         <BrandIcon name={icon} fill />
       </span>
@@ -129,7 +129,7 @@ function Unknown({ label }: { label: string }) {
 function Unavailable({ children }: { children: string }) {
   return (
     <p
-      className="rounded-[var(--nf-radius-md)] p-3.5 text-[0.8125rem] font-medium leading-relaxed"
+      className="rounded-[var(--nf-radius-md)] p-md text-[0.8125rem] font-medium leading-relaxed"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
       role="status"
     >
@@ -148,10 +148,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="nf-card p-md sm:p-5">
+    <section className="nf-card p-md sm:p-panel">
       <h2 className="nf-h3">{title}</h2>
       {blurb ? (
-        <p className="mt-1.5 max-w-[68ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs max-w-[68ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {blurb}
         </p>
       ) : null}
@@ -236,7 +236,7 @@ function SettledTrend({
         ))}
       </ol>
 
-      <p aria-hidden="true" className="mt-1.5 flex gap-2xs sm:gap-xs">
+      <p aria-hidden="true" className="mt-xs flex gap-2xs sm:gap-xs">
         {points.map((point) => (
           <span
             key={point.key}
@@ -339,11 +339,11 @@ function RequestsPanel({
             a host the second when the first happened is a false statement
             about their own conduct. */}
         {!outcomes.answerTimingReadable ? (
-          <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {t.requests.answerUnavailable}
           </p>
         ) : outcomes.medianAnswerHours === null ? (
-          <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {t.requests.answerNone}
           </p>
         ) : (
@@ -359,7 +359,7 @@ function RequestsPanel({
                     count: formatNumber(outcomes.medianAnswerHours, locale),
                   })}
             </p>
-            <p className="mt-1.5 max-w-[46ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs max-w-[46ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
               {outcomes.answered === 1
                 ? t.requests.answerBodyOne
                 : fill(t.requests.answerBody, { count: formatNumber(outcomes.answered, locale) })}
@@ -759,9 +759,9 @@ export function AnalyticsWorkspace({
         one, and it is also the only reason a host will trust the numbers that
         ARE here.
       */}
-      <section className="nf-card p-md sm:p-5">
+      <section className="nf-card p-md sm:p-panel">
         <h2 className="nf-h3">{t.notCounted.title}</h2>
-        <ul className="mt-sm space-y-2.5">
+        <ul className="mt-sm space-y-sm">
           {[t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (
             <li
               key={line}

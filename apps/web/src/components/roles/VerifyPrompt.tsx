@@ -65,7 +65,7 @@ export function VerifyPrompt({
         */}
         <Link
           href={href}
-          className="mt-2.5 inline-flex items-center gap-1 text-[0.875rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-sm inline-flex items-center gap-1 text-[0.875rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           {ACTION}
           <UiIcon name="arrow-right" size="sm" />
