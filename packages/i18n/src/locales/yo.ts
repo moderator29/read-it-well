@@ -1492,6 +1492,37 @@ export const yo: Dictionary = {
   },
 
 
+  verification: {
+    status: {
+      pendingPill: "Ń ṣàyẹ̀wò",
+      pendingTitle: "À ń ṣàyẹ̀wò àwọn ìwé rẹ",
+      pendingBody:
+        "Ènìyàn ni ó ń ka gbogbo ohun tí a fi ránṣẹ́ pẹ̀lú ọwọ́. Ọ̀pọ̀ ìpinnu máa dé láàrin ọjọ́ iṣẹ́ kan, a sì máa fi ìméèlì sọ fún ọ bákan náà. O lè máa kọ àtòjọ sílẹ̀ nígbà tí o ń dúró.",
+      submittedPrefix: "A fi ránṣẹ́",
+
+      approvedPill: "A ti fọwọ́sí",
+      approvedTitle: "A ti fọwọ́sí ọ",
+      approvedBody:
+        "Àwọn àtòjọ rẹ lè wá sí ìmọ́lẹ̀ báyìí, àmì ìfọwọ́sí náà sì hàn lórí ojú-ìwé rẹ àti lẹ́gbẹ̀ẹ́ orúkọ rẹ nínú gbogbo ìjíròrò.",
+
+      rejectedPill: "A kò fọwọ́sí",
+      rejectedTitle: "A kò lè fọwọ́sí èyí",
+      retry: "Fi ránṣẹ́ lẹ́ẹ̀kan sí i",
+
+      moreInfoPill: "Ó wà ní ọwọ́ rẹ",
+      moreInfoTitle: "A nílò ohun kan sí i lọ́wọ́ rẹ",
+      moreInfoContinue: "Fi ohun tí a bèèrè ránṣẹ́",
+
+      suspendedPill: "A ti dá dúró",
+      suspendedTitle: "A ti dá àkàǹtì yìí dúró",
+      suspendedFix:
+        "Kò sí ohun tí o fi ránṣẹ́ níbí tí yóò tú èyí, nítorí ìpinnu nípa àkàǹtì náà ni, kì í ṣe nípa ìwé kan. Bá ẹgbẹ́ wa sọ̀rọ̀, wọn yóò sọ ohun tí yóò gbà fún ọ.",
+      getHelp: "Bá ẹgbẹ́ wa sọ̀rọ̀",
+
+      fixLabel: "Ohun tí o lè ṣe:",
+    },
+  },
+
   wallet: {
     entryKind: {
       deposit: "Ìfikún owó",

@@ -186,13 +186,13 @@ export default async function AdminReportsPage({
       />
 
       {rows.length === 0 ? (
-        /* A narrowed empty queue is a RESULT and keeps the ordinary treatment;
-           an unnarrowed one on a table that has never held a row is not good
-           news and must not be drawn as a clearance. */
+        /* Neither of these is a clearance. Narrowed, it is the result of the
+           operator's own filter; unnarrowed, this table has never held a row.
+           The emerald tick belongs to neither. See `QueueEmpty`. */
         <ui.QueueEmpty
           title={narrowed ? noMatch.title : copy.emptyTitle}
           body={narrowed ? noMatch.body : copy.emptyBody}
-          everHadRows={narrowed}
+          state={narrowed ? "no-match" : "never"}
         />
       ) : (
         <>

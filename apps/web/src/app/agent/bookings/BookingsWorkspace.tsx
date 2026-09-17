@@ -104,7 +104,7 @@ function DecisionSheet({
       }}
       title={copy.title}
       footer={
-        <div className="flex gap-4">
+        <div className="flex gap-md">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.actions.back}
           </Button>
@@ -126,12 +126,12 @@ function DecisionSheet({
       <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {copy.body}
       </p>
-      <p className="mt-3 truncate text-[0.8125rem] font-semibold">
+      <p className="mt-sm truncate text-[0.8125rem] font-semibold">
         {state.booking.guestName} &middot; {state.booking.listingTitle}
       </p>
 
       {state.kind === "decline" && (
-        <div className="mt-4">
+        <div className="mt-md">
           {/*
             The reason field carried `aria-invalid` and showed nothing for it.
             `.nf-field` paints its border with a border-box gradient, so the
@@ -152,7 +152,7 @@ function DecisionSheet({
             onChange={(e) => setReason(e.target.value)}
           />
 
-          <p className="mb-2 mt-3 text-[0.75rem] font-medium text-[var(--nf-content-muted)]">
+          <p className="mb-xs mt-sm text-[0.75rem] font-medium text-[var(--nf-content-muted)]">
             {t.decline.suggestionsLabel}
           </p>
           {/*
@@ -180,7 +180,7 @@ function DecisionSheet({
 
       {error && (
         <p
-          className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
+          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[0.8125rem] font-medium"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -241,8 +241,8 @@ function BookingCard({
 
   return (
     <li className="nf-card overflow-hidden p-0">
-      <div className="p-3.5 sm:p-4">
-        <div className="flex items-start justify-between gap-2">
+      <div className="p-3.5 sm:p-md">
+        <div className="flex items-start justify-between gap-xs">
           <div className="min-w-0">
             {/*
               F2-065. THE GUEST'S NAME WAS TRUNCATED ON THE SCREEN WHERE AN
@@ -261,7 +261,7 @@ function BookingCard({
             <h3 className="text-[0.9375rem] font-semibold [overflow-wrap:anywhere]">
               {booking.guestName}
             </h3>
-            <p className="mt-0.5 flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+            <p className="mt-3xs flex items-center gap-1.5 text-[0.8125rem] text-[var(--nf-content-secondary)]">
               <UiIcon name="house" size={12} className="shrink-0" />
               <span className="truncate">{booking.listingTitle}</span>
             </p>
@@ -274,7 +274,7 @@ function BookingCard({
           </StatusPill>
         </div>
 
-        <p className="mt-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
+        <p className="mt-sm flex items-center gap-1.5 text-[0.8125rem] font-medium text-[var(--nf-content-secondary)]">
           <UiIcon name="calendar-booking" size={16} className="shrink-0" />
           {fill(t.card.dates, {
             from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
@@ -313,13 +313,13 @@ function BookingCard({
           </p>
         )}
 
-        <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
           {fill(t.card.requested, { date: formatDate(new Date(booking.createdAt), locale) })}
         </p>
 
         {pending && (
           <p
-            className="mt-2 text-[0.75rem] font-semibold"
+            className="mt-xs text-[0.75rem] font-semibold"
             style={{ color: "var(--nf-state-warning)" }}
           >
             {waitingLabel}
@@ -329,7 +329,7 @@ function BookingCard({
 
         {booking.status !== "CANCELLED" && !pending && (
           <p
-            className="mt-2 flex items-center gap-1.5 text-[0.75rem] font-medium"
+            className="mt-xs flex items-center gap-1.5 text-[0.75rem] font-medium"
             style={{
               color:
                 booking.settlement === "settled"
@@ -343,7 +343,7 @@ function BookingCard({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--nf-border-subtle)] px-3.5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-3.5 py-sm">
         <p className="flex items-baseline gap-1.5">
           <span className="nf-numeric text-[0.9375rem] font-bold">
             {formatMoney(booking.totalMinor, locale)}
@@ -351,7 +351,7 @@ function BookingCard({
           <span className="text-[0.75rem] text-[var(--nf-content-muted)]">{t.card.total}</span>
         </p>
         {pending && (
-          <span className="flex items-center gap-3">
+          <span className="flex items-center gap-sm">
             <Button variant="secondary" size="sm" onClick={() => onDecide("decline", booking)}>
               {t.actions.decline}
             </Button>
@@ -393,7 +393,7 @@ export function BookingsWorkspace({
   return (
     <div>
       {board.requests.length > 0 && (
-        <p className="nf-badge nf-badge--warning mb-4 inline-flex">
+        <p className="nf-badge nf-badge--warning mb-md inline-flex">
           {board.requests.length === 1
             ? t.waitingOnOne
             : fill(t.waitingOn, { count: board.requests.length })}
@@ -403,7 +403,7 @@ export function BookingsWorkspace({
       <div
         role="tablist"
         aria-label={t.tabsLabel}
-        className="flex gap-2 overflow-x-auto pb-1"
+        className="flex gap-xs overflow-x-auto pb-2xs"
       >
         {TAB_KEYS.map((key) => (
           <button
@@ -432,14 +432,14 @@ export function BookingsWorkspace({
         role="tabpanel"
         id={`bookings-panel-${active}`}
         aria-labelledby={`bookings-tab-${active}`}
-        className="mt-4"
+        className="mt-md"
       >
-        <p className="mb-3 text-[0.8125rem] text-[var(--nf-content-muted)]">
+        <p className="mb-sm text-[0.8125rem] text-[var(--nf-content-muted)]">
           {fill(groupCopy.blurb, { hours: HOLD_WINDOW_HOURS })}
         </p>
 
         {rows.length > 0 ? (
-          <ul className="space-y-3">
+          <ul className="space-y-sm">
             {rows.map((booking) => (
               <BookingCard
                 key={booking.id}
@@ -451,7 +451,7 @@ export function BookingsWorkspace({
             ))}
           </ul>
         ) : (
-          <div className="flex flex-col items-center gap-4 py-10 text-center sm:py-14">
+          <div className="flex flex-col items-center gap-md py-10 text-center sm:py-14">
             <span className="block h-20 w-20">
               <BrandIcon name="calendar-check" fill />
             </span>

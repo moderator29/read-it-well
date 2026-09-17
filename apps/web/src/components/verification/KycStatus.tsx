@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { getDictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { KYC_STATUS_WORDS } from "@/components/app/untranslated";
 
 /**
  * Where a submission stands, and what to do about it.
@@ -82,22 +82,37 @@ export type KycStatusView =
  */
 export const KYC_RESUBMIT_HREF = "/verification?resubmit=1";
 
-export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
+export function KycStatus({
+  status,
+  locale,
+  retryHref = KYC_RESUBMIT_HREF,
+}: {
   status: KycStatusView;
+  /**
+   * The reader's language.
+   *
+   * Read here rather than threaded down as eighteen props, which is the same
+   * call `TransactionsSection` makes for the same reason: `getDictionary` is a
+   * lookup in a static object, so there is nothing to save by passing the words
+   * in, and one caller passing one locale cannot get half of this screen into a
+   * different language than the other half.
+   */
+  locale: Locale;
   retryHref?: string;
 }) {
+  const w = getDictionary(locale).verification.status;
   if (status.state === "pending") {
     return (
       <Panel
         tone="warning"
-        pill={PENDING_PILL}
+        pill={w.pendingPill}
         icon="calendar-booking"
-        title={PENDING_TITLE}
-        body={PENDING_BODY}
+        title={w.pendingTitle}
+        body={w.pendingBody}
       >
         {status.submittedAt && (
           <p className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-            {SUBMITTED_PREFIX} {status.submittedAt}
+            {w.submittedPrefix} {status.submittedAt}
           </p>
         )}
       </Panel>
@@ -108,10 +123,10 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
     return (
       <Panel
         tone="success"
-        pill={APPROVED_PILL}
+        pill={w.approvedPill}
         icon="verified"
-        title={APPROVED_TITLE}
-        body={APPROVED_BODY}
+        title={w.approvedTitle}
+        body={w.approvedBody}
       />
     );
   }
@@ -131,20 +146,20 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
       */
       <Panel
         tone="warning"
-        pill={MORE_INFO_PILL}
+        pill={w.moreInfoPill}
         icon="info"
-        title={MORE_INFO_TITLE}
+        title={w.moreInfoTitle}
         body={status.request}
       >
         <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          <span className="font-semibold text-[var(--nf-content-primary)]">{FIX_LABEL} </span>
+          <span className="font-semibold text-[var(--nf-content-primary)]">{w.fixLabel} </span>
           {status.fix}
         </p>
         <Link
           href={retryHref}
           className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
-          {CONTINUE}
+          {w.moreInfoContinue}
           <UiIcon name="arrow-right" size="sm" />
         </Link>
       </Panel>
@@ -164,20 +179,20 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
       */
       <Panel
         tone="danger"
-        pill={SUSPENDED_PILL}
+        pill={w.suspendedPill}
         icon="shield-stop"
-        title={SUSPENDED_TITLE}
+        title={w.suspendedTitle}
         body={status.reason}
       >
         <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          <span className="font-semibold text-[var(--nf-content-primary)]">{FIX_LABEL} </span>
-          {SUSPENDED_FIX}
+          <span className="font-semibold text-[var(--nf-content-primary)]">{w.fixLabel} </span>
+          {w.suspendedFix}
         </p>
         <Link
           href="/help"
           className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
-          {GET_HELP}
+          {w.getHelp}
           <UiIcon name="arrow-right" size="sm" />
         </Link>
       </Panel>
@@ -187,9 +202,9 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
   return (
     <Panel
       tone="danger"
-      pill={REJECTED_PILL}
+      pill={w.rejectedPill}
       icon="shield-stop"
-      title={REJECTED_TITLE}
+      title={w.rejectedTitle}
       body={status.reason}
     >
       {/*
@@ -198,14 +213,14 @@ export function KycStatus({ status, retryHref = KYC_RESUBMIT_HREF }: {
         recoverable has to be immediately underneath and cannot be small print.
       */}
       <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-        <span className="font-semibold text-[var(--nf-content-primary)]">{FIX_LABEL} </span>
+        <span className="font-semibold text-[var(--nf-content-primary)]">{w.fixLabel} </span>
         {status.fix}
       </p>
       <Link
         href={retryHref}
         className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
-        {RETRY}
+        {w.retry}
         <UiIcon name="arrow-right" size="sm" />
       </Link>
     </Panel>
@@ -252,31 +267,4 @@ function Panel({
   );
 }
 
-/*
- * Every string on this screen, staged in `components/app/untranslated.ts`.
- *
- * It was fifteen `const`s at the foot of this file, which is why the most-read
- * screen in the supply-side funnel was the last one entirely in English: copy
- * that looks like part of a component does not look like copy. The destination
- * is `t.verification.status.*`.
- */
-const {
-  pendingPill: PENDING_PILL,
-  pendingTitle: PENDING_TITLE,
-  pendingBody: PENDING_BODY,
-  submittedPrefix: SUBMITTED_PREFIX,
-  approvedPill: APPROVED_PILL,
-  approvedTitle: APPROVED_TITLE,
-  approvedBody: APPROVED_BODY,
-  rejectedPill: REJECTED_PILL,
-  rejectedTitle: REJECTED_TITLE,
-  retry: RETRY,
-  moreInfoPill: MORE_INFO_PILL,
-  moreInfoTitle: MORE_INFO_TITLE,
-  moreInfoContinue: CONTINUE,
-  suspendedPill: SUSPENDED_PILL,
-  suspendedTitle: SUSPENDED_TITLE,
-  suspendedFix: SUSPENDED_FIX,
-  getHelp: GET_HELP,
-  fixLabel: FIX_LABEL,
-} = KYC_STATUS_WORDS;
+

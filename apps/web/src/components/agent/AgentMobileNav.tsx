@@ -54,7 +54,7 @@ export function AgentMobileNav({
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={t.a11y.openMenu}
-        className="nf-tap -ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] lg:hidden"
+        className="nf-tap -ml-2xs grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] lg:hidden"
       >
         {/* The panel toggle, matching Personal Mode. Three stacked lines say
             "a list is behind this" and say it identically whatever opens; this
@@ -87,12 +87,12 @@ export function AgentMobileNav({
         {/* Panel */}
         <div
           className={[
-            "absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 pt-5 shadow-[var(--nf-elev-4)] transition-transform duration-300 ease-out",
+            "absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-md pt-5 shadow-[var(--nf-elev-4)] transition-transform duration-300 ease-out",
             open ? "translate-x-0" : "-translate-x-full",
           ].join(" ")}
           style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
         >
-          <div className="mb-2 flex items-center justify-between px-1">
+          <div className="mb-xs flex items-center justify-between px-2xs">
             <Link href="/" aria-label={t.a11y.logoHome} onClick={close}>
               <Logo size={44} wordSize={22} />
             </Link>
@@ -100,13 +100,13 @@ export function AgentMobileNav({
               type="button"
               onClick={close}
               aria-label={t.a11y.closeMenu}
-              className="-mr-1 grid h-10 w-10 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
+              className="-mr-2xs grid h-10 w-10 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
             >
               <UiIcon name="close" size="sm" />
             </button>
           </div>
 
-          <AgentModePill label={t.agent.mode.agent} className="mb-5 ml-1" />
+          <AgentModePill label={t.agent.mode.agent} className="mb-5 ml-2xs" />
 
           <NavTree
             sections={buildAgentNav(t, unreadMessages)}
@@ -116,7 +116,7 @@ export function AgentMobileNav({
             onNavigate={close}
           />
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-md space-y-xs">
             <AgentIdentityCard
               profile={profile}
               verifiedLabel={t.agent.mode.verifiedAgent}

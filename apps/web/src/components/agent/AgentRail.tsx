@@ -36,7 +36,7 @@ export function AgentRail({
       className="nf-nav nf-nav--rail"
       aria-label={t.agent.mode.workspaceLabel}
     >
-      <div className="nf-nav__head flex-col items-start gap-2">
+      <div className="nf-nav__head flex-col items-start gap-xs">
         <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
           <Logo size={42} wordSize={21} />
         </Link>
@@ -51,7 +51,7 @@ export function AgentRail({
       />
 
       {/* Identity card plus switch back to Personal Mode. */}
-      <div className="mt-4 space-y-2">
+      <div className="mt-md space-y-xs">
         <AgentIdentityCard
           profile={profile}
           verifiedLabel={t.agent.mode.verifiedAgent}

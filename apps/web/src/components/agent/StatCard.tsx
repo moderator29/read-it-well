@@ -60,7 +60,7 @@ export function StatCard({
   return (
     <div
       className={[
-        "nf-card flex flex-col gap-2 p-3.5 sm:flex-row sm:items-start sm:gap-4 sm:p-4",
+        "nf-card flex flex-col gap-xs p-3.5 sm:flex-row sm:items-start sm:gap-md sm:p-md",
         className ?? "",
       ].join(" ")}
     >
@@ -71,13 +71,13 @@ export function StatCard({
         <p className="text-[0.75rem] font-medium leading-snug text-[var(--nf-content-muted)]">
           {label}
         </p>
-        <p className="nf-numeric mt-1 text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)] sm:text-[1.375rem]">
+        <p className="nf-numeric mt-2xs text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)] sm:text-[1.375rem]">
           {value}
         </p>
         {hasDelta && (
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.75rem] leading-snug">
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-3xs text-[0.75rem] leading-snug">
           <span
-            className="nf-numeric inline-flex items-center gap-1 font-semibold"
+            className="nf-numeric inline-flex items-center gap-2xs font-semibold"
             style={{ color: up ? "var(--nf-state-success)" : "var(--nf-state-error)" }}
           >
             <UiIcon name={up ? "arrow-up" : "arrow-down"} size="xs" />

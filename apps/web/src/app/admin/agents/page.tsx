@@ -375,7 +375,15 @@ export default async function AdminAgentsPage({
       />
 
       {waiting.length === 0 && decided.length === 0 && narrowed ? (
-        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} />
+        /* A SEARCH THAT MATCHED NOTHING IS NOT A CLEARANCE. This drew the
+           emerald tick, so "all clear" was shown over a queue that may hold
+           hundreds of rows, none of them matching. The third state says what
+           this actually is: the result of the operator's own filter. */
+        <ui.QueueEmpty
+          title={common.noMatchTitle}
+          body={common.noMatchBody}
+          state="no-match"
+        />
       ) : waiting.length === 0 ? (
         /* Narrowed, this section says nothing at all: "nothing is waiting" is
            false to somebody who has just asked to see the decided ones, and the

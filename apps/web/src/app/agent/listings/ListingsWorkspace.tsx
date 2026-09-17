@@ -169,7 +169,7 @@ function ConfirmSheet({
       }}
       title={copy.title}
       footer={
-        <div className="flex gap-4">
+        <div className="flex gap-md">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             {t.workspace.sheets.keep}
           </Button>
@@ -194,11 +194,11 @@ function ConfirmSheet({
       <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {copy.body}
       </p>
-      <p className="mt-3 truncate text-[0.8125rem] font-semibold">{state.listing.title}</p>
+      <p className="mt-sm truncate text-[0.8125rem] font-semibold">{state.listing.title}</p>
 
       {error && (
         <p
-          className="mt-3 rounded-[var(--nf-radius-md)] p-3 text-[0.8125rem] font-medium"
+          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[0.8125rem] font-medium"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -209,13 +209,13 @@ function ConfirmSheet({
         </p>
       )}
       {unmet.length > 0 && (
-        <ul className="mt-2 space-y-1.5">
+        <ul className="mt-xs space-y-1.5">
           {unmet.map((message) => (
             <li
               key={message}
-              className="flex items-start gap-2 text-[0.75rem] text-[var(--nf-content-secondary)]"
+              className="flex items-start gap-xs text-[0.75rem] text-[var(--nf-content-secondary)]"
             >
-              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-warning)]" />
+              <span className="mt-2xs h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-warning)]" />
               {message}
             </li>
           ))}
@@ -253,7 +253,7 @@ function UndoStrip({
 
   return (
     <li className="nf-card overflow-hidden p-0" data-testid="draft-undo">
-      <div className="flex items-center justify-between gap-4 p-3.5" role="status">
+      <div className="flex items-center justify-between gap-md p-3.5" role="status">
         <span className="min-w-0 leading-tight">
           <span className="block text-[0.875rem] font-semibold">{t.workspace.undo.removed}</span>
           <span className="block truncate text-[0.78rem] text-[var(--nf-content-muted)]">
@@ -319,7 +319,7 @@ function ListingRow({
         </span>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start justify-between gap-xs">
             <h3 className="truncate text-[0.9375rem] font-semibold">{listing.title}</h3>
             <StatusPill tone={toneForStatus(listing.status)} className="shrink-0">
               {t.workspace.status[listing.status]}
@@ -327,7 +327,7 @@ function ListingRow({
           </div>
 
           {(listing.area || listing.city) && (
-            <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
               <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">
                 {[listing.area, listing.city].filter(Boolean).join(", ")}
@@ -335,7 +335,7 @@ function ListingRow({
             </p>
           )}
 
-          <p className="mt-2 flex items-baseline gap-1.5">
+          <p className="mt-xs flex items-baseline gap-1.5">
             <span className="nf-numeric text-[0.9375rem] font-bold">
               {listing.priceMinor > 0
                 ? formatMoneyGlance(listing.priceMinor, locale)
@@ -346,7 +346,7 @@ function ListingRow({
             </span>
           </p>
 
-          <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
             {listing.photoCount === 1
               ? t.workspace.photoCountOne
               : fill(t.workspace.photoCount, { count: listing.photoCount })}
@@ -360,11 +360,11 @@ function ListingRow({
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--nf-border-subtle)] px-3.5 py-3">
+      <div className="flex flex-wrap items-center gap-x-md gap-y-xs border-t border-[var(--nf-border-subtle)] px-3.5 py-sm">
         {editable && (
           <Link
             href={`/agent/list?id=${listing.id}`}
-            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-link)]"
+            className="flex items-center gap-2xs text-[0.8125rem] font-semibold text-[var(--nf-content-link)]"
           >
             {t.workspace.actions.edit}
             <UiIcon name="arrow-right" size={16} />
@@ -374,7 +374,7 @@ function ListingRow({
             calendar appears exactly where a guest could otherwise book. */}
         <Link
           href={`/agent/listings/${listing.id}/calendar`}
-          className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
+          className="flex items-center gap-2xs text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
         >
           <UiIcon name="calendar-booking" size={16} />
           Calendar
@@ -515,10 +515,10 @@ export function ListingsWorkspace({
           <UiIcon name="house" size={32} />
         </span>
         <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
-        <p className="mx-auto mt-2 max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-xs max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">
           {t.workspace.emptyBody}
         </p>
-        <ButtonLink href="/agent/list" variant="primary" className="mt-6">
+        <ButtonLink href="/agent/list" variant="primary" className="mt-lg">
           {t.workspace.start}
         </ButtonLink>
       </div>
@@ -536,14 +536,14 @@ export function ListingsWorkspace({
         const count = rows.filter((l) => !pending.includes(l.id)).length;
         return (
           <section key={group.key}>
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-xs">
               <h2 className="nf-h3">{heading.title}</h2>
               <span className="nf-count-badge">{count}</span>
             </span>
-            <p className="mb-3 mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="mb-sm mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
               {heading.blurb}
             </p>
-            <ul className="space-y-3">
+            <ul className="space-y-sm">
               {rows.map((listing) =>
                 pending.includes(listing.id) ? (
                   <UndoStrip

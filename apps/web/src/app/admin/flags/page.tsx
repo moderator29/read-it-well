@@ -239,7 +239,7 @@ export default async function AdminFlagsPage({
         <ui.QueueEmpty
           title={narrowed ? noMatch.title : copy.emptyTitle}
           body={narrowed ? noMatch.body : copy.emptyBody}
-          everHadRows={narrowed}
+          state={narrowed ? "no-match" : "never"}
         />
       ) : open.length === 0 ? null : (
         <ul className="nf-queue-list">

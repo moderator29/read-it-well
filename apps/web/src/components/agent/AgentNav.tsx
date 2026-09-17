@@ -29,7 +29,7 @@ export function AgentModePill({ label, className }: { label: string; className?:
   return (
     <span
       className={[
-        "inline-flex w-fit items-center gap-1.5 rounded-[var(--nf-radius-control)] px-2.5 py-1 text-[0.6875rem] font-bold",
+        "inline-flex w-fit items-center gap-1.5 rounded-[var(--nf-radius-control)] px-2.5 py-2xs text-[0.6875rem] font-bold",
         className ?? "",
       ].join(" ")}
       style={{
@@ -66,7 +66,7 @@ export function AgentIdentityCard({
 }) {
   if (!profile) {
     return (
-      <div className="nf-card flex items-center gap-4 p-3">
+      <div className="nf-card flex items-center gap-md p-sm">
         <span
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-muted)]"
           aria-hidden="true"
@@ -81,7 +81,7 @@ export function AgentIdentityCard({
           </span>
           <Link
             href="/sign-in"
-            className="mt-0.5 inline-block text-[0.75rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="mt-3xs inline-block text-[0.75rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {signInLabel}
           </Link>
@@ -91,7 +91,7 @@ export function AgentIdentityCard({
   }
 
   return (
-    <div className="nf-card flex items-center gap-4 p-3">
+    <div className="nf-card flex items-center gap-md p-sm">
       <span
         className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)]"
         style={{ background: "var(--nf-gradient-agent)" }}
@@ -108,7 +108,7 @@ export function AgentIdentityCard({
           {profile.displayName}
         </span>
         {profile.verified && (
-          <span className="mt-0.5 inline-flex items-center gap-1 text-[0.75rem] text-[var(--nf-state-success)]">
+          <span className="mt-3xs inline-flex items-center gap-2xs text-[0.75rem] text-[var(--nf-state-success)]">
             <UiIcon name="verified" size={12} />
             {verifiedLabel}
           </span>

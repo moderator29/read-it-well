@@ -214,9 +214,10 @@ export default async function AdminBookingsPage({
           }
           body={board.data.searched || queueNarrowed(query) ? copy.noMatchBody : copy.emptyBody}
           /* `bookings` has never held a row, so an unnarrowed empty queue here
-             is "nothing has ever arrived", not "you have cleared everything".
-             A narrowed one IS a result and keeps the ordinary treatment. */
-          everHadRows={board.data.searched || queueNarrowed(query)}
+             is "nothing has ever arrived", not "you have cleared everything". A
+             narrowed one is the result of a search, which is a third thing
+             again, and neither of them has earned a tick. */
+          state={board.data.searched || queueNarrowed(query) ? "no-match" : "never"}
         />
       ) : (
         <>

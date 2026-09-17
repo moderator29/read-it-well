@@ -56,10 +56,10 @@ export default async function Page() {
             <BrandIcon name="wallet-secure" fill />
           </span>
           <h1 className="nf-h2 mt-5">{t.agentEarnings.title}</h1>
-          <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentEarnings.unconfigured}
           </p>
-          <ButtonLink href="/agent/dashboard" variant="secondary" className="mt-6">
+          <ButtonLink href="/agent/dashboard" variant="secondary" className="mt-lg">
             {t.agent.nav.dashboard}
           </ButtonLink>
         </div>
@@ -77,9 +77,9 @@ export default async function Page() {
       active="/agent/earnings"
       profile={agentProfileFrom(context.agent)}
     >
-      <div className="mb-6">
+      <div className="mb-lg">
         <h1 className="nf-h1">{t.agentEarnings.title}</h1>
-        <p className="mt-1 text-[var(--nf-content-secondary)]">{t.agentEarnings.lede}</p>
+        <p className="mt-2xs text-[var(--nf-content-secondary)]">{t.agentEarnings.lede}</p>
       </div>
 
       <EarningsWorkspace t={t.agentEarnings} earnings={earnings} locale={locale} />

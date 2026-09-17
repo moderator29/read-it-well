@@ -65,7 +65,7 @@ function Decision({ reservationId }: { reservationId: string }) {
 
   if (state?.ok) {
     return (
-      <p className="mt-3 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[0.8125rem] text-[var(--nf-content-secondary)]">
         Answered. The guest can see it.
       </p>
     );
@@ -73,7 +73,7 @@ function Decision({ reservationId }: { reservationId: string }) {
 
   return (
     <>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-sm flex flex-wrap gap-xs">
         {/* Two forms rather than one with two submit values, so that a decision
             cannot be changed by a stray Enter key landing on the wrong button. */}
         <form action={formAction}>
@@ -92,7 +92,7 @@ function Decision({ reservationId }: { reservationId: string }) {
         </form>
       </div>
       {state && !state.ok && (
-        <p role="alert" className="mt-2 text-[0.8125rem] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[0.8125rem] text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}
@@ -115,8 +115,8 @@ function ReservationCard({
         : "warning";
 
   return (
-    <li className="nf-card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <li className="nf-card p-md sm:p-5">
+      <div className="flex flex-wrap items-center gap-xs">
         <StatusPill tone={tone}>
           {reservation.status === "PENDING"
             ? "Waiting on you"
@@ -129,11 +129,11 @@ function ReservationCard({
         </span>
       </div>
 
-      <p className="mt-2 text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+      <p className="mt-xs text-[1rem] font-semibold text-[var(--nf-content-primary)]">
         {whenLabel(reservation.reservedFor)}
       </p>
 
-      <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.875rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs flex flex-wrap items-center gap-x-sm gap-y-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
         <span className="inline-flex items-center gap-1.5">
           <UiIcon name="user" size={16} className="opacity-70" aria-hidden />
           {reservation.guestName}
@@ -147,7 +147,7 @@ function ReservationCard({
       {/* Shown to the host in full, never truncated. A note is where an allergy
           goes, and a shortened allergy is worse than none. */}
       {reservation.note && (
-        <p className="mt-2 rounded-lg bg-[var(--nf-surface-raised)] px-3 py-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs rounded-lg bg-[var(--nf-surface-raised)] px-sm py-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {reservation.note}
         </p>
       )}
@@ -169,19 +169,19 @@ function Section({
   decidable: boolean;
 }) {
   return (
-    <section className="mt-6">
+    <section className="mt-lg">
       <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
         {title}
         {reservations.length > 0 && (
-          <span className="ml-2 text-[0.8125rem] font-normal tabular-nums text-[var(--nf-content-muted)]">
+          <span className="ml-xs text-[0.8125rem] font-normal tabular-nums text-[var(--nf-content-muted)]">
             {reservations.length}
           </span>
         )}
       </h3>
       {reservations.length === 0 ? (
-        <p className="mt-2 text-[0.875rem] text-[var(--nf-content-muted)]">{empty}</p>
+        <p className="mt-xs text-[0.875rem] text-[var(--nf-content-muted)]">{empty}</p>
       ) : (
-        <ul className="mt-3 flex flex-col gap-3">
+        <ul className="mt-sm flex flex-col gap-sm">
           {reservations.map((reservation) => (
             <ReservationCard
               key={reservation.id}
@@ -203,7 +203,7 @@ export function ReservationsBoard({ board }: { board: HostReservationBoard }) {
   return (
     <div className="mt-10">
       <h2 className="text-[1.125rem] font-bold text-[var(--nf-content-primary)]">Tables</h2>
-      <p className="mt-1 text-[0.875rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
         Requests at your restaurants. Nothing is held for a guest until you accept it.
       </p>
 

@@ -44,10 +44,10 @@ export default async function Page() {
       <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
         <div className="mx-auto max-w-md py-10 text-center">
           <h1 className="nf-h2">{t.agentListings.workspace.title}</h1>
-          <p className="mx-auto mt-3 max-w-[40ch] text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-sm max-w-[40ch] text-[var(--nf-content-secondary)]">
             {t.agentListings.workspace.unconfigured}
           </p>
-          <ButtonLink href="/agent/list" variant="primary" className="mt-6">
+          <ButtonLink href="/agent/list" variant="primary" className="mt-lg">
             {t.agentListings.workspace.start}
           </ButtonLink>
         </div>
@@ -64,10 +64,10 @@ export default async function Page() {
       active="/agent/listings"
       profile={agentProfileFrom(context.agent)}
     >
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-lg flex flex-wrap items-end justify-between gap-md">
         <div>
           <h1 className="nf-h1">{t.agentListings.workspace.title}</h1>
-          <p className="mt-1 text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs text-[var(--nf-content-secondary)]">
             {t.agentListings.workspace.lede}
           </p>
         </div>

@@ -15,21 +15,21 @@ export default function LoadingAgentListings() {
       <AgentTitleSkeleton />
 
       {/* The status filter rail above the list. */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-md flex gap-xs">
         {Array.from({ length: 4 }, (_, i) => (
           <Skeleton key={i} width="6rem" height="2.75rem" radius="pill" />
         ))}
       </div>
 
-      <ul className="space-y-3">
+      <ul className="space-y-sm">
         {Array.from({ length: 4 }, (_, i) => (
           <li key={i} className="nf-card overflow-hidden p-0">
-            <div className="flex gap-4 p-3.5">
+            <div className="flex gap-md p-3.5">
               <Skeleton width="5.25rem" height="5.25rem" radius="md" className="shrink-0" />
               <div className="min-w-0 flex-1">
                 <Skeleton width="4.5rem" height="1.25rem" radius="pill" />
-                <Skeleton className="mt-2" width="70%" height="1rem" radius="sm" />
-                <Skeleton className="mt-2" width="45%" height="0.8125rem" radius="sm" />
+                <Skeleton className="mt-xs" width="70%" height="1rem" radius="sm" />
+                <Skeleton className="mt-xs" width="45%" height="0.8125rem" radius="sm" />
               </div>
             </div>
           </li>

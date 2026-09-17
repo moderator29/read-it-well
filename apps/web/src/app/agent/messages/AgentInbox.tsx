@@ -30,21 +30,21 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
     <li>
       <Link
         href={`/messages/${thread.id}`}
-        className="nf-card block p-4 transition-colors hover:border-[var(--nf-border-strong)]"
+        className="nf-card block p-md transition-colors hover:border-[var(--nf-border-strong)]"
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-sm">
           <div className="min-w-0 leading-tight">
             <p className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
               {thread.counterpartName}
             </p>
             {thread.listingTitle && (
-              <p className="mt-1 flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs flex items-center gap-1.5 text-[0.78rem] text-[var(--nf-content-muted)]">
                 <UiIcon name="location" size={12} className="shrink-0" />
                 <span className="truncate">{thread.listingTitle}</span>
               </p>
             )}
           </div>
-          <span className="flex shrink-0 items-center gap-2">
+          <span className="flex shrink-0 items-center gap-xs">
             {thread.unread > 0 && (
               <span className="nf-numeric nf-badge nf-badge--brand">{thread.unread}</span>
             )}
@@ -100,31 +100,31 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
       </nav>
 
       {threads.length > 0 ? (
-        <ul className="mt-4 grid gap-3">
+        <ul className="mt-md grid gap-sm">
           {threads.map((thread) => (
             <ThreadRow key={thread.id} thread={thread} />
           ))}
         </ul>
       ) : (
-        <div className="nf-card mt-4 p-8 text-center">
+        <div className="nf-card mt-md p-xl text-center">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="chat-duo" fill />
           </span>
           <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">
             {filter === "waiting" ? "Nobody is waiting on you" : "No enquiries yet"}
           </p>
-          <p className="mx-auto mt-1 max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
             {filter === "waiting"
               ? "Every enquiry has had your reply. That is exactly how a guest decides to book."
               : "When a guest messages you about one of your listings, the thread lands here."}
           </p>
           {filter === "waiting" && inbox.threads.length > 0 && (
-            <Link href="/agent/messages?filter=all" className="nf-btn nf-btn--glass mt-4">
+            <Link href="/agent/messages?filter=all" className="nf-btn nf-btn--glass mt-md">
               See all enquiries
             </Link>
           )}
           {inbox.threads.length === 0 && (
-            <Link href="/agent/listings" className="nf-btn nf-btn--primary mt-4">
+            <Link href="/agent/listings" className="nf-btn nf-btn--primary mt-md">
               My listings
             </Link>
           )}

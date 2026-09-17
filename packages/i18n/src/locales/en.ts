@@ -1841,6 +1841,63 @@ export const en = {
    * hold money in escrow, and a ledger row contradicting the contract is the
    * fault F2-001 was about.
    */
+  /**
+   * THE APPLICANT'S OWN VERIFICATION SCREEN, WHICH WAS THE LAST ONE ENTIRELY IN
+   * ENGLISH.
+   *
+   * `components/verification/KycStatus.tsx` had these as fifteen `const`s at the
+   * foot of its own file, then as a staged block in
+   * `components/app/untranslated.ts`. Both were the same fault wearing different
+   * clothes: copy that looks like part of a component does not look like copy,
+   * so the most-read screen in the supply-side funnel was the one nobody
+   * noticed was untranslated. An agent applying to trade on a Nigerian
+   * marketplace met their own verification status in English whatever language
+   * they had chosen.
+   *
+   * THE REJECTION AND THE REQUEST ARE THE TWO THAT MATTER. Both are read by
+   * somebody who has been stopped from earning, and both carry the reviewer's
+   * own words underneath them, so the frame has to be plain enough that the
+   * reader does not have to work out whether the platform or the reviewer is
+   * speaking.
+   *
+   * `suspendedFix` says what will NOT work before it says what will, on purpose:
+   * somebody whose account is stopped will otherwise spend an afternoon
+   * resubmitting documents that cannot lift a suspension.
+   *
+   * `fixLabel` is a label followed by a sentence. It keeps its colon in English
+   * and a translation is free to drop one where the script does not want it.
+   */
+  verification: {
+    status: {
+      pendingPill: "In review",
+      pendingTitle: "We are checking your documents",
+      pendingBody:
+        "A person reads every submission by hand. Most decisions come back within one working day, and we email you either way. You can keep drafting listings while you wait.",
+      submittedPrefix: "Sent",
+
+      approvedPill: "Verified",
+      approvedTitle: "You are verified",
+      approvedBody:
+        "Your listings can go live, and the verified mark now shows on your profile and beside your name in every conversation.",
+
+      rejectedPill: "Not approved",
+      rejectedTitle: "We could not verify this",
+      retry: "Send it again",
+
+      moreInfoPill: "Over to you",
+      moreInfoTitle: "We need one more thing from you",
+      moreInfoContinue: "Send what was asked for",
+
+      suspendedPill: "Stopped",
+      suspendedTitle: "This account is stopped",
+      suspendedFix:
+        "Nothing you send here will lift this, because it is a decision about the account rather than about a document. Talk to our team and they will tell you what it would take.",
+      getHelp: "Talk to our team",
+
+      fixLabel: "What to do:",
+    },
+  },
+
   wallet: {
     entryKind: {
       deposit: "Deposit",

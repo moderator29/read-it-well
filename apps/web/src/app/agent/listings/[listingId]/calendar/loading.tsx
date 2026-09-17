@@ -13,8 +13,8 @@ export default function LoadingCalendar() {
   return (
     <AgentScreenSkeleton label="Loading the calendar">
       <AgentTitleSkeleton />
-      <div className="nf-card p-4">
-        <div className="mb-3 flex items-center justify-between">
+      <div className="nf-card p-md">
+        <div className="mb-sm flex items-center justify-between">
           <Skeleton width="9rem" height="1.25rem" radius="sm" />
           <Skeleton width="6rem" height="2.75rem" radius="pill" />
         </div>

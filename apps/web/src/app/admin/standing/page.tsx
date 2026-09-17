@@ -123,7 +123,7 @@ export default async function AdminStandingPage({
               ? noMatch.body
               : "Every badge on the platform so far was awarded by a trigger. The moment somebody grants one from this desk, it and the name against it appear here."
           }
-          everHadRows={narrowed}
+          state={narrowed ? "no-match" : "never"}
         />
       ) : (
         <StandingDesk grants={read.grants} manualBadges={read.manualBadges} />

@@ -57,15 +57,15 @@ export const dynamic = "force-dynamic";
  */
 function Ladder({ ladder }: { ladder: OwnLadder }) {
   return (
-    <ol className="mt-6 flex flex-col gap-3">
+    <ol className="mt-lg flex flex-col gap-sm">
       {VERIFICATION_ORDER.map((rung) => {
         const decision = ladder.rungs[rung.kind];
         const reached = ladder.tier >= rung.step;
         const failed = decision?.status === "failed";
 
         return (
-          <li key={rung.kind} className="nf-card p-4 sm:p-5">
-            <div className="flex flex-wrap items-center gap-2">
+          <li key={rung.kind} className="nf-card p-md sm:p-5">
+            <div className="flex flex-wrap items-center gap-xs">
               <span className="text-[0.75rem] font-semibold tabular-nums text-[var(--nf-content-muted)]">
                 {rung.step}
               </span>
@@ -85,13 +85,13 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
               )}
             </div>
 
-            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               {rung.meaning}
             </p>
 
             {/* Named concretely so a host can go and get it, which is the whole
                 point of publishing the ladder rather than describing it. */}
-            <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mt-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
               <span className="font-semibold">What we look at:</span> {rung.evidence}
             </p>
 
@@ -100,7 +100,7 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
                 locked door. */}
             {decision?.note && (
               <p
-                className={`mt-3 rounded-lg px-3 py-2 text-[0.8125rem] leading-relaxed ${
+                className={`mt-sm rounded-lg px-sm py-xs text-[0.8125rem] leading-relaxed ${
                   failed
                     ? "bg-[var(--nf-state-error-surface)] text-[var(--nf-content-primary)]"
                     : "bg-[var(--nf-surface-raised)] text-[var(--nf-content-secondary)]"
@@ -114,7 +114,7 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
               /* Tier says this rung is behind them but no row records it. That
                  is a real state: the tier is recomputed by trigger and a row can
                  be removed. Said plainly rather than papered over. */
-              <p className="mt-2 text-[0.8125rem] text-[var(--nf-content-muted)]">
+              <p className="mt-xs text-[0.8125rem] text-[var(--nf-content-muted)]">
                 Counted towards your standing, with no decision recorded against
                 it.
               </p>
@@ -133,14 +133,14 @@ function Standing({ tier }: { tier: VerificationTier }) {
       <p className="text-[0.8125rem] text-[var(--nf-content-secondary)]">
         Your standing
       </p>
-      <p className="mt-1 text-[1.375rem] font-bold leading-tight text-[var(--nf-content-primary)]">
+      <p className="mt-2xs text-[1.375rem] font-bold leading-tight text-[var(--nf-content-primary)]">
         {TIER_NAME[tier]}
       </p>
-      <p className="mt-1 text-[0.8125rem] tabular-nums text-[var(--nf-content-muted)]">
+      <p className="mt-2xs text-[0.8125rem] tabular-nums text-[var(--nf-content-muted)]">
         {tier} of {VERIFICATION_ORDER.length} checks passed
       </p>
 
-      <p className="mt-3 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {next
           ? `Next up is ${next.label.toLowerCase()}. ${next.evidence}`
           : "Every check on the ladder is passed. There is nothing further to send."}
@@ -151,7 +151,7 @@ function Standing({ tier }: { tier: VerificationTier }) {
           decision somebody records after reading it. Messaging support is the
           real next step, so it is the one offered. */}
       {next && (
-        <ButtonLink href="/support" variant="secondary" full className="mt-4">
+        <ButtonLink href="/support" variant="secondary" full className="mt-md">
           Ask about this check
         </ButtonLink>
       )}
@@ -180,7 +180,7 @@ export default async function Page() {
             <BrandIcon name="shield-check" fill />
           </span>
           <h1 className="nf-h2 mt-5">{t.agent.nav.verification}</h1>
-          <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentBookings.unconfigured}
           </p>
         </div>
@@ -197,9 +197,9 @@ export default async function Page() {
       active="/agent/verification"
       profile={agentProfileFrom(context.agent)}
     >
-      <div className="mb-6">
+      <div className="mb-lg">
         <h1 className="nf-h1">{t.agent.nav.verification}</h1>
-        <p className="mt-1 max-w-[60ch] text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs max-w-[60ch] text-[var(--nf-content-secondary)]">
           Four checks, in order. Each one you pass is shown to guests on every
           listing you have, and none of them is a fee.
         </p>
@@ -214,7 +214,7 @@ export default async function Page() {
           reloading usually settles it.
         </p>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+        <div className="grid gap-lg lg:grid-cols-[1fr_20rem]">
           <div className="lg:order-2">
             <Standing tier={read.ladder.tier} />
           </div>

@@ -44,7 +44,7 @@ export function ModeSwitcher({
         type="button"
         disabled={pending}
         onClick={() => choose(other)}
-        className="flex w-full items-center gap-2.5 rounded-[var(--nf-radius-md)] px-3 py-2.5 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] disabled:opacity-60"
+        className="flex w-full items-center gap-2.5 rounded-[var(--nf-radius-md)] px-sm py-2.5 text-[0.875rem] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] disabled:opacity-60"
       >
         <BrandIcon name={other === "agent" ? "homes-sparkle" : "user-check"} size={24} />
         <span className="flex-1 text-left leading-tight">
@@ -76,14 +76,14 @@ export function ModeSwitcher({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[19rem] rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] p-3 shadow-[var(--nf-elev-4)]">
-          <p className="px-1 pb-2 pt-1">
+        <div className="absolute right-0 top-full z-50 mt-xs w-[19rem] rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] p-sm shadow-[var(--nf-elev-4)]">
+          <p className="px-2xs pb-xs pt-2xs">
             <span className="block text-[0.9375rem] font-semibold">{t.agent.mode.chooseTitle}</span>
             <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
               {t.agent.mode.chooseSub}
             </span>
           </p>
-          <ul className="space-y-2">
+          <ul className="space-y-xs">
             {options.map((o) => (
               <li key={o.mode}>
                 <button
@@ -92,7 +92,7 @@ export function ModeSwitcher({
                   onClick={() => choose(o.mode)}
                   aria-current={o.mode === current ? "true" : undefined}
                   className={[
-                    "flex w-full items-center gap-3 rounded-[var(--nf-radius-lg)] border p-3 text-left transition-colors disabled:opacity-60",
+                    "flex w-full items-center gap-sm rounded-[var(--nf-radius-lg)] border p-sm text-left transition-colors disabled:opacity-60",
                     o.mode === current
                       ? "border-[var(--nf-border-brand)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)]"
                       : "border-[var(--nf-border-subtle)] hover:border-[var(--nf-border-default)]",

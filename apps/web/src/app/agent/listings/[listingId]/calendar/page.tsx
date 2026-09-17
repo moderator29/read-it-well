@@ -67,10 +67,10 @@ export default async function Page({
             <BrandIcon name="calendar-clock" fill />
           </span>
           <h1 className="nf-h2 mt-5">{copy.title}</h1>
-          <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {copy.body}
           </p>
-          <Link href="/agent/listings" className="nf-btn nf-btn--glass mt-6">
+          <Link href="/agent/listings" className="nf-btn nf-btn--glass mt-lg">
             My listings
           </Link>
         </div>
@@ -83,15 +83,15 @@ export default async function Page({
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
-      <div className="mb-6">
+      <div className="mb-lg">
         <Link
           href="/agent/listings"
           className="text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
         >
           My listings
         </Link>
-        <h1 className="nf-h1 mt-1">Calendar</h1>
-        <p className="mt-1 text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h1 mt-2xs">Calendar</h1>
+        <p className="mt-2xs text-[var(--nf-content-secondary)]">
           {read.subject.title}. Close nights you cannot host, and reopen them
           whenever you like.
         </p>

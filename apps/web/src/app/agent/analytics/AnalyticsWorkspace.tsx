@@ -83,7 +83,7 @@ function Tile({
   note?: string;
 }) {
   return (
-    <div className="nf-card flex flex-col gap-2 p-3.5 sm:gap-2.5 sm:p-4">
+    <div className="nf-card flex flex-col gap-xs p-3.5 sm:gap-2.5 sm:p-md">
       <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
         <BrandIcon name={icon} fill />
       </span>
@@ -91,9 +91,9 @@ function Tile({
         <p className="text-[0.75rem] font-medium leading-snug text-[var(--nf-content-muted)]">
           {label}
         </p>
-        <p className="mt-0.5 leading-tight">{value}</p>
+        <p className="mt-3xs leading-tight">{value}</p>
         {note ? (
-          <p className="mt-1 text-[0.6875rem] leading-snug text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[0.6875rem] leading-snug text-[var(--nf-content-muted)]">
             {note}
           </p>
         ) : null}
@@ -148,14 +148,14 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="nf-card p-4 sm:p-5">
+    <section className="nf-card p-md sm:p-5">
       <h2 className="nf-h3">{title}</h2>
       {blurb ? (
         <p className="mt-1.5 max-w-[68ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {blurb}
         </p>
       ) : null}
-      <div className="mt-4">{children}</div>
+      <div className="mt-md">{children}</div>
     </section>
   );
 }
@@ -214,7 +214,7 @@ function SettledTrend({
 
   return (
     <div>
-      <ol className="flex h-36 gap-1 border-b border-[var(--nf-border-subtle)] sm:h-44 sm:gap-2">
+      <ol className="flex h-36 gap-2xs border-b border-[var(--nf-border-subtle)] sm:h-44 sm:gap-xs">
         {points.map((point) => (
           <li key={point.key} className="flex min-w-0 flex-1 items-end">
             {/* The only accessible rendering of the value. A bar has no text,
@@ -236,7 +236,7 @@ function SettledTrend({
         ))}
       </ol>
 
-      <p aria-hidden="true" className="mt-1.5 flex gap-1 sm:gap-2">
+      <p aria-hidden="true" className="mt-1.5 flex gap-2xs sm:gap-xs">
         {points.map((point) => (
           <span
             key={point.key}
@@ -250,7 +250,7 @@ function SettledTrend({
       {/* The scale, stated. Bars with no axis are a shape rather than a
           measurement, and this is the cheapest honest axis: name the tallest
           one and every other bar can be read against it. */}
-      <p className="mt-3 text-[0.8125rem] text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[0.8125rem] text-[var(--nf-content-secondary)]">
         {t.trend.peak}: <span className="font-semibold">{monthLabel(best, locale, "long")}</span>
         {", "}
         <Amount
@@ -285,7 +285,7 @@ function OutcomeRow({
   alarm?: boolean;
 }) {
   return (
-    <li className="flex items-baseline justify-between gap-4 border-b border-[var(--nf-border-subtle)] py-2 last:border-b-0">
+    <li className="flex items-baseline justify-between gap-md border-b border-[var(--nf-border-subtle)] py-xs last:border-b-0">
       <span className="text-[0.8125rem] text-[var(--nf-content-secondary)]">{label}</span>
       <Figure
         value={count}
@@ -352,7 +352,7 @@ function RequestsPanel({
                 is written differently in the four languages this ships in, and
                 the two strings that already say it correctly live on the
                 bookings card, so they are reused rather than retranslated. */}
-            <p className="nf-numeric mt-1 text-[1.25rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+            <p className="nf-numeric mt-2xs text-[1.25rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
               {outcomes.medianAnswerHours === 1
                 ? hours.one
                 : fill(hours.other, {
@@ -371,7 +371,7 @@ function RequestsPanel({
             lapsed does not need a paragraph about a failure mode they have
             never had. */}
         {outcomes.lapsed > 0 ? (
-          <p className="mt-4 max-w-[46ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-md max-w-[46ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
             {fill(t.requests.lapsedNote, { hours: HOLD_WINDOW_HOURS })}
           </p>
         ) : null}
@@ -412,7 +412,7 @@ function CalendarPanel({
           progressbar announcing a bare percentage would say "twenty per cent"
           with no subject. */}
       <Progress
-        className="mt-3"
+        className="mt-sm"
         value={calendar.bookedNights}
         max={calendar.offeredNights}
         label={t.calendar.booked}
@@ -424,7 +424,7 @@ function CalendarPanel({
         locale={locale}
       />
 
-      <ul className="mt-3 grid grid-cols-3 gap-3">
+      <ul className="mt-sm grid grid-cols-3 gap-sm">
         <li>
           <p className="text-[0.6875rem] text-[var(--nf-content-muted)]">{t.calendar.booked}</p>
           <Figure
@@ -452,7 +452,7 @@ function CalendarPanel({
       </ul>
 
       {calendar.blockedNights > 0 ? (
-        <p className="mt-3 max-w-[62ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm max-w-[62ch] text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.calendar.blockedNote}
         </p>
       ) : null}
@@ -502,13 +502,13 @@ function ListingsPanel({
         Both branches read the identical rows, so the two renderings can never
         disagree about a number.
       */}
-      <ul className="space-y-3 sm:hidden">
+      <ul className="space-y-sm sm:hidden">
         {rows.map((row) => (
           <li
             key={row.listingId}
-            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3"
+            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm"
           >
-            <div className="flex items-baseline justify-between gap-3">
+            <div className="flex items-baseline justify-between gap-sm">
               <p className="min-w-0 flex-1 text-[0.875rem] font-semibold">{row.title}</p>
               <Amount
                 minorUnits={row.settledShareMinor}
@@ -516,7 +516,7 @@ function ListingsPanel({
                 className="text-[0.875rem] font-bold"
               />
             </div>
-            <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
               {statusLabels[row.status]}
               {" · "}
               {t.listings.columnRequests} {formatNumber(row.requests, locale)}
@@ -531,7 +531,7 @@ function ListingsPanel({
                 </>
               )}
             </p>
-            <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
               {ratingCell(t, row, locale)}
             </p>
           </li>
@@ -628,7 +628,7 @@ export function AnalyticsWorkspace({
 
   if (nothingHappenedYet) {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-10 text-center sm:py-14">
+      <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
         <span className="block h-20 w-20">
           <BrandIcon name="report-stats" fill />
         </span>
@@ -644,8 +644,8 @@ export function AnalyticsWorkspace({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="space-y-lg">
+      <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
         <Tile
           icon="wallet-secure"
           label={t.headline.settled}
@@ -759,9 +759,9 @@ export function AnalyticsWorkspace({
         one, and it is also the only reason a host will trust the numbers that
         ARE here.
       */}
-      <section className="nf-card p-4 sm:p-5">
+      <section className="nf-card p-md sm:p-5">
         <h2 className="nf-h3">{t.notCounted.title}</h2>
-        <ul className="mt-3 space-y-2.5">
+        <ul className="mt-sm space-y-2.5">
           {[t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (
             <li
               key={line}

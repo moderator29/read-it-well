@@ -104,10 +104,11 @@ export default async function AdminModerationPage({
               ? noMatch.body
               : "When the scanner stops a post, a story, a comment or a bio, it lands here and its author is told it is being checked."
           }
-          /* A narrowed empty queue is a RESULT. An unnarrowed one on this queue
-             is genuinely "nothing has arrived", so it keeps the honest state
-             rather than the tick that congratulates somebody. */
-          everHadRows={queue.narrowed}
+          /* Three states, not two. Narrowed, this is the result of the
+             operator's own filter and is drawn as one; unnarrowed, nothing has
+             ever been held here. Neither is a clearance, so neither gets the
+             tick. See `QueueEmpty`. */
+          state={queue.narrowed ? "no-match" : "never"}
         />
       ) : null}
 

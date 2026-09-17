@@ -1497,6 +1497,37 @@ export const ig: Dictionary = {
   },
 
 
+  verification: {
+    status: {
+      pendingPill: "Na-enyocha",
+      pendingTitle: "Anyị na-enyocha akwụkwọ gị",
+      pendingBody:
+        "Mmadụ na-agụ ihe ọ bụla e zigara n'aka. Ọtụtụ mkpebi na-alọta n'ime otu ụbọchị ọrụ, anyị na-ezitekwara gị email ma ọ bụrụhaala. Ị nwere ike ịnọgide na-edozi ndepụta ka ị na-echere.",
+      submittedPrefix: "E zigara",
+
+      approvedPill: "Enyochala",
+      approvedTitle: "Enyochala gị",
+      approvedBody:
+        "Ndepụta gị nwere ike ịpụta ugbu a, akara nkwenye na-egosikwa na profaịlụ gị na n'akụkụ aha gị na mkparịta ụka ọ bụla.",
+
+      rejectedPill: "Anabataghị ya",
+      rejectedTitle: "Anyị enweghị ike ikwenye nke a",
+      retry: "Zipụ ya ọzọ",
+
+      moreInfoPill: "Ọ dị gị n'aka",
+      moreInfoTitle: "Anyị chọrọ otu ihe ọzọ n'aka gị",
+      moreInfoContinue: "Zipụ ihe a chọrọ",
+
+      suspendedPill: "Akwụsịrị ya",
+      suspendedTitle: "Akwụsịrị akaụntụ a",
+      suspendedFix:
+        "Ọ dịghị ihe ị ga-ezite ebe a nke ga-ewepụ nke a, n'ihi na ọ bụ mkpebi gbasara akaụntụ ahụ, ọ bụghị gbasara akwụkwọ. Gwa ndị otu anyị okwu, ha ga-agwa gị ihe ọ ga-ewe.",
+      getHelp: "Gwa ndị otu anyị okwu",
+
+      fixLabel: "Ihe ị ga-eme:",
+    },
+  },
+
   wallet: {
     entryKind: {
       deposit: "Ntinye ego",

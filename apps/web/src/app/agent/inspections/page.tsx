@@ -63,7 +63,7 @@ export default async function AgentInspectionsPage() {
     >
       <div className="nf-console">
         <h1 className="nf-h1">Inspections</h1>
-        <p className={`mt-1 ${TYPE.bodyLg}`}>
+        <p className={`mt-2xs ${TYPE.bodyLg}`}>
           Somebody wanting to see a property is the closest thing to a deal this platform has.
           Both of you see the same state on the same request.
         </p>
@@ -71,7 +71,7 @@ export default async function AgentInspectionsPage() {
         {list.readFailed ? (
           /* The wallet's rule, applied here: an empty list and an unreadable
              one look identical and mean opposite things. */
-          <p className={`mt-8 ${TYPE.body}`}>
+          <p className={`mt-xl ${TYPE.body}`}>
             We could not load your inspections just now, so this is not showing you an empty
             list that might not be true. Nothing has been lost. Try again in a moment.
           </p>
@@ -87,7 +87,7 @@ export default async function AgentInspectionsPage() {
             }
           />
         ) : (
-          <Stack className="mt-8">
+          <Stack className="mt-xl">
             {open.length > 0 && (
               <Section
                 title="Waiting on somebody"

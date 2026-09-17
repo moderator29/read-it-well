@@ -16,22 +16,22 @@ export default function LoadingAgentBookings() {
     <AgentScreenSkeleton label="Loading your bookings">
       <AgentTitleSkeleton />
 
-      <Skeleton className="mb-4" width="18rem" height="2.75rem" radius="pill" />
+      <Skeleton className="mb-md" width="18rem" height="2.75rem" radius="pill" />
 
-      <ul className="space-y-3">
+      <ul className="space-y-sm">
         {Array.from({ length: 4 }, (_, i) => (
           <li key={i} className="nf-card overflow-hidden p-0">
-            <div className="p-3.5 sm:p-4">
-              <div className="flex items-start justify-between gap-2">
+            <div className="p-3.5 sm:p-md">
+              <div className="flex items-start justify-between gap-xs">
                 <div className="min-w-0 flex-1">
                   <Skeleton width="40%" height="0.9375rem" radius="sm" />
-                  <Skeleton className="mt-2" width="65%" height="0.8125rem" radius="sm" />
+                  <Skeleton className="mt-xs" width="65%" height="0.8125rem" radius="sm" />
                 </div>
                 <Skeleton width="5rem" height="1.25rem" radius="pill" className="shrink-0" />
               </div>
               {/* The dates row and the accept / decline pair beneath it. */}
-              <Skeleton className="mt-3" width="55%" height="0.8125rem" radius="sm" />
-              <div className="mt-4 flex gap-3">
+              <Skeleton className="mt-sm" width="55%" height="0.8125rem" radius="sm" />
+              <div className="mt-md flex gap-sm">
                 <Skeleton height="2.75rem" radius="pill" />
                 <Skeleton height="2.75rem" radius="pill" />
               </div>

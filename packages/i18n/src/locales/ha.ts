@@ -1487,6 +1487,37 @@ export const ha: Dictionary = {
   },
 
 
+  verification: {
+    status: {
+      pendingPill: "Ana dubawa",
+      pendingTitle: "Muna duba takardunka",
+      pendingBody:
+        "Mutum ne ke karanta duk abin da aka aika da hannu. Yawancin shawarwari suna dawowa cikin kwana ɗaya na aiki, muna kuma aika maka imel ko ta yaya. Kana iya ci gaba da shirya jeri yayin da kake jira.",
+      submittedPrefix: "An aika",
+
+      approvedPill: "An tabbatar",
+      approvedTitle: "An tabbatar da kai",
+      approvedBody:
+        "Jerinka na iya fita yanzu, alamar tabbatarwa kuma tana bayyana a shafinka da kuma kusa da sunanka a kowace tattaunawa.",
+
+      rejectedPill: "Ba a amince ba",
+      rejectedTitle: "Ba mu iya tabbatar da wannan ba",
+      retry: "Sake aikawa",
+
+      moreInfoPill: "Yanzu naka ne",
+      moreInfoTitle: "Muna buƙatar abu ɗaya kuma daga gare ka",
+      moreInfoContinue: "Aika abin da aka nema",
+
+      suspendedPill: "An dakatar",
+      suspendedTitle: "An dakatar da wannan asusun",
+      suspendedFix:
+        "Babu abin da za ka aika a nan da zai ɗauke wannan, domin shawara ce game da asusun ba game da takarda ba. Ka yi magana da ƙungiyarmu, za su gaya maka abin da ake buƙata.",
+      getHelp: "Yi magana da ƙungiyarmu",
+
+      fixLabel: "Abin da za ka yi:",
+    },
+  },
+
   wallet: {
     entryKind: {
       deposit: "Ajiyar kuɗi",

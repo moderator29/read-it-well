@@ -55,10 +55,10 @@ export default async function Page() {
             <BrandIcon name="doc-shield" fill />
           </span>
           <h1 className="nf-h2 mt-5">{t.agent.nav.settings}</h1>
-          <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             We cannot reach your preferences right now.
           </p>
-          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-6">
+          <Link href="/agent/dashboard" className="nf-btn nf-btn--glass mt-lg">
             {t.agent.nav.dashboard}
           </Link>
         </div>
@@ -73,14 +73,14 @@ export default async function Page() {
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/settings" profile={agentProfileFrom(agent)}>
-      <div className="mb-6">
+      <div className="mb-lg">
         <h1 className="nf-h1">{t.agent.nav.settings}</h1>
-        <p className="mt-1 text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[var(--nf-content-secondary)]">
           What reaches you, where your money lands, and the name guests see.
         </p>
       </div>
 
-      <div className="mx-auto max-w-2xl space-y-4">
+      <div className="mx-auto max-w-2xl space-y-md">
         {/* ------------------------------------------------ notifications */}
         {account.state === "signed-in" ? (
           <AccountNotificationsCard
@@ -91,7 +91,7 @@ export default async function Page() {
         ) : (
           <div className="nf-card p-5">
             <p className="nf-overline">Notifications</p>
-            <p className="mt-2 text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
               We could not read your preferences just now. Nothing has changed, and
               you are still receiving everything you were receiving before.
             </p>
@@ -103,14 +103,14 @@ export default async function Page() {
           <p className="nf-overline">Where your earnings go</p>
           {preferred ? (
             <>
-              <p className="mt-2.5 flex items-center gap-2 text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <p className="mt-2.5 flex items-center gap-xs text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 <UiIcon name="verified" size={16} className="shrink-0 text-[var(--nf-state-success)]" />
                 {preferred.bankName}
               </p>
-              <p className="nf-numeric mt-1 text-[0.875rem] text-[var(--nf-content-secondary)]">
+              <p className="nf-numeric mt-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
                 {groupNuban(preferred.accountNumber)}
               </p>
-              <p className="mt-1 text-[0.875rem] text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
                 {preferred.accountName}
               </p>
               <p className="mt-2.5 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
@@ -125,7 +125,7 @@ export default async function Page() {
               paid out until you do, and it takes about a minute.
             </p>
           )}
-          <Link href="/agent/earnings" className="nf-btn nf-btn--glass nf-btn--sm mt-4">
+          <Link href="/agent/earnings" className="nf-btn nf-btn--glass nf-btn--sm mt-md">
             {preferred ? "Manage payout accounts" : "Add a payout account"}
           </Link>
         </div>
@@ -133,7 +133,7 @@ export default async function Page() {
         {/* ------------------------------------------------------ identity */}
         <div className="nf-card p-5">
           <p className="nf-overline">Your host identity</p>
-          <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="mt-2.5 flex flex-wrap items-center gap-x-xs gap-y-2xs text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
             {agent.displayName}
             {agent.verified && (
               <span className="nf-badge nf-badge--brand">
@@ -142,14 +142,14 @@ export default async function Page() {
               </span>
             )}
           </p>
-          <dl className="mt-3 grid gap-1.5 border-t border-[var(--nf-border-subtle)] pt-3 text-[0.875rem]">
-            <div className="flex items-center justify-between gap-3">
+          <dl className="mt-sm grid gap-1.5 border-t border-[var(--nf-border-subtle)] pt-sm text-[0.875rem]">
+            <div className="flex items-center justify-between gap-sm">
               <dt className="text-[var(--nf-content-muted)]">Account type</dt>
               <dd className="text-[var(--nf-content-secondary)]">
                 {agent.type === "business" ? "Business" : "Individual"}
               </dd>
             </div>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-sm">
               <dt className="text-[var(--nf-content-muted)]">Status</dt>
               {/*
                 This printed the raw enum, so an agent read APPROVED in
@@ -164,12 +164,12 @@ export default async function Page() {
               </dd>
             </div>
           </dl>
-          <p className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-sm text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
             This is the name Vallo checked and the name on every one of your
             listings, so it is not something to change on your own. Write to
             support and we will change it with you.
           </p>
-          <Link href="/contact" className="nf-btn nf-btn--ghost nf-btn--sm mt-3">
+          <Link href="/contact" className="nf-btn nf-btn--ghost nf-btn--sm mt-sm">
             Ask support to change it
           </Link>
         </div>
@@ -182,7 +182,7 @@ export default async function Page() {
             wide, so they live on your Vallo settings page rather than being kept
             in two places.
           </p>
-          <Link href="/settings" className="nf-btn nf-btn--glass nf-btn--sm mt-4">
+          <Link href="/settings" className="nf-btn nf-btn--glass nf-btn--sm mt-md">
             Open account settings
           </Link>
         </div>

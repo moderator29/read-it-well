@@ -123,7 +123,7 @@ export default async function AdminStopsPage({
               ? noMatch.body
               : "Nobody has been approved to trade yet, so there is nobody to stop and nobody to put back."
           }
-          everHadRows={narrowed}
+          state={narrowed ? "no-match" : "never"}
         />
       ) : (
         <StopsDesk stopped={read.stopped} trading={read.trading} />

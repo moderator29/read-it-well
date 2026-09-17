@@ -102,27 +102,27 @@ export function CalendarEditor({
 
   return (
     <div>
-      <ul className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.75rem] text-[var(--nf-content-muted)]">
+      <ul className="mb-md flex flex-wrap items-center gap-x-md gap-y-xs text-[0.75rem] text-[var(--nf-content-muted)]">
         <Key className="bg-[var(--nf-surface-raised)]" label="Open" />
         <Key className="bg-[var(--nf-brand-primary)]" label="Closed by you" />
         <Key className="bg-[var(--nf-state-success)]" label="Booked" />
       </ul>
 
-      <div className="grid gap-6">
+      <div className="grid gap-lg">
         {months.map((month) => (
           <section key={`${month.year}-${month.month}`}>
-            <h2 className="nf-overline mb-2 text-[var(--nf-content-muted)]">
+            <h2 className="nf-overline mb-xs text-[var(--nf-content-muted)]">
               {new Date(Date.UTC(month.year, month.month, 1)).toLocaleDateString("en-GB", {
                 month: "long",
                 year: "numeric",
                 timeZone: "UTC",
               })}
             </h2>
-            <div className="grid grid-cols-7 gap-1" role="grid">
+            <div className="grid grid-cols-7 gap-2xs" role="grid">
               {WEEKDAYS.map((day) => (
                 <span
                   key={day}
-                  className="pb-1 text-center text-[0.6875rem] font-medium text-[var(--nf-content-muted)]"
+                  className="pb-2xs text-center text-[0.6875rem] font-medium text-[var(--nf-content-muted)]"
                 >
                   {day}
                 </span>
@@ -187,15 +187,15 @@ export function CalendarEditor({
       {/* The action bar only appears once a run is chosen, so the surface is
           quiet until there is something to do with it. */}
       {from && to && (
-        <div className="nf-card sticky bottom-4 mt-6 p-4">
+        <div className="nf-card sticky bottom-4 mt-lg p-md">
           <p className="text-[0.875rem] font-medium text-[var(--nf-content-primary)]">
             {selectedCount} {selectedCount === 1 ? "night" : "nights"} selected
           </p>
-          <p className="nf-numeric mt-0.5 text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="nf-numeric mt-3xs text-[0.75rem] text-[var(--nf-content-muted)]">
             {from} to {to}
           </p>
 
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="mt-sm grid gap-xs sm:grid-cols-2">
             <form action={blockAction}>
               <input type="hidden" name="listingId" value={subject.listingId} />
               <input type="hidden" name="from" value={from} />
@@ -228,7 +228,7 @@ export function CalendarEditor({
               setAnchor(null);
               setEnd(null);
             }}
-            className="mt-2 w-full text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+            className="mt-xs w-full text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
             Clear selection
           </button>
@@ -236,7 +236,7 @@ export function CalendarEditor({
           {error && (
             <p
               role="alert"
-              className="mt-3 text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {error}
             </p>
@@ -245,8 +245,8 @@ export function CalendarEditor({
       )}
 
       {!from && (
-        <p className="mt-6 flex items-start gap-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          <UiIcon name="calendar-booking" size={16} className="mt-0.5 shrink-0" />
+        <p className="mt-lg flex items-start gap-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <UiIcon name="calendar-booking" size={16} className="mt-3xs shrink-0" />
           Tap a night to start, then tap another to finish the run. A night with
           a booking on it is locked, because a guest is already coming.
         </p>

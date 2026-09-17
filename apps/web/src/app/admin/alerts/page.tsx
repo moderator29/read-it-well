@@ -172,7 +172,7 @@ export default async function AdminAlertsPage({
         <ui.QueueEmpty
           title={narrowed ? noMatch.title : copy.emptyTitle}
           body={narrowed ? noMatch.body : copy.emptyBody}
-          everHadRows={narrowed}
+          state={narrowed ? "no-match" : "never"}
         />
       ) : (
         <>

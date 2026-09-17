@@ -42,7 +42,7 @@ export async function AgentShell({
 
       <main id="main" className="min-w-0 flex-1">
         <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-          <div className="flex h-header-sm items-center gap-2 px-3 sm:h-header sm:gap-4 sm:px-5 md:px-8">
+          <div className="flex h-header-sm items-center gap-xs px-sm sm:h-header sm:gap-md sm:px-5 md:px-xl">
             {/* The way back, always top left: previous screen when there is
                 one in this session, otherwise personal home. */}
             <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
@@ -80,7 +80,7 @@ export async function AgentShell({
           </div>
         </header>
 
-        <div className="px-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-6 sm:px-5 md:px-8 md:pt-7 lg:pb-10">
+        <div className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10">
           {children}
         </div>
       </main>

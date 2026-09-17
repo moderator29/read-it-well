@@ -23,7 +23,7 @@ export type ReviewsFilter = "unanswered" | "all";
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="flex items-center gap-0.5" aria-hidden="true">
+    <span className="flex items-center gap-3xs" aria-hidden="true">
       {Array.from({ length: 5 }, (_, i) => (
         <UiIcon
           key={i}
@@ -42,11 +42,11 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
   const most = Math.max(1, ...summary.distribution);
   return (
     <div className="nf-card p-5">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-sm">
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="reviews" fill />
         </span>
-        <p className="flex items-baseline gap-2">
+        <p className="flex items-baseline gap-xs">
           <span className="nf-numeric text-[1.75rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {formatRating(summary.average, locale)}
           </span>
@@ -56,11 +56,11 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
         </p>
       </div>
 
-      <ul className="mt-4 grid gap-1.5 border-t border-[var(--nf-border-subtle)] pt-4">
+      <ul className="mt-md grid gap-1.5 border-t border-[var(--nf-border-subtle)] pt-md">
         {[5, 4, 3, 2, 1].map((star) => {
           const count = summary.distribution[star - 1] ?? 0;
           return (
-            <li key={star} className="flex items-center gap-3">
+            <li key={star} className="flex items-center gap-sm">
               <span className="nf-numeric w-3 shrink-0 text-[0.78rem] text-[var(--nf-content-muted)]">
                 {star}
               </span>
@@ -90,9 +90,9 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
 
 function ReviewCard({ review }: { review: AgentReview }) {
   return (
-    <li className="nf-card p-4">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+    <li className="nf-card p-md">
+      <div className="flex flex-wrap items-center justify-between gap-x-sm gap-y-1.5">
+        <p className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
           <Stars rating={review.rating} />
           <span className="sr-only">{review.rating} out of 5.</span>
           <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
@@ -152,16 +152,16 @@ export function ReviewsWorkspace({
 
   if (summary.total === 0) {
     return (
-      <div className="nf-card p-8 text-center">
+      <div className="nf-card p-xl text-center">
         <span className="mx-auto block h-16 w-16">
           <BrandIcon name="reviews" fill />
         </span>
         <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
-        <p className="mx-auto mt-1 max-w-[42ch] text-[0.875rem] text-[var(--nf-content-muted)]">
+        <p className="mx-auto mt-2xs max-w-[42ch] text-[0.875rem] text-[var(--nf-content-muted)]">
           A guest can review a stay once they have checked out and paid. The first
           one lands here, and you get the chance to answer it in public.
         </p>
-        <Link href="/agent/listings" className="nf-btn nf-btn--glass mt-4">
+        <Link href="/agent/listings" className="nf-btn nf-btn--glass mt-md">
           Your listings
         </Link>
       </div>
@@ -199,24 +199,24 @@ export function ReviewsWorkspace({
       </nav>
 
       {shown.length > 0 ? (
-        <ul className="mt-4 grid gap-3">
+        <ul className="mt-md grid gap-sm">
           {shown.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}
         </ul>
       ) : (
-        <div className="nf-card mt-4 p-8 text-center">
+        <div className="nf-card mt-md p-xl text-center">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="listing-review" fill />
           </span>
           <p className="mt-3.5 font-semibold text-[var(--nf-content-primary)]">
             Every review has your answer
           </p>
-          <p className="mx-auto mt-1 max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
             A host who answers reads as a host who cares, and that is what the next
             guest is looking for on the page.
           </p>
-          <Link href="/agent/reviews?filter=all" className="nf-btn nf-btn--glass mt-4">
+          <Link href="/agent/reviews?filter=all" className="nf-btn nf-btn--glass mt-md">
             See all reviews
           </Link>
         </div>

@@ -392,9 +392,9 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
            bar reuses the wording that is already on the screen rather than
            inventing an English sentence in a four-locale flow. */
         label={`${step + 1} / ${stepTitles.length}: ${stepTitles[step]}`}
-        className="mb-3"
+        className="mb-sm"
       />
-      <ol className="mb-2 flex items-start sm:mb-8" aria-label={a.title}>
+      <ol className="mb-xs flex items-start sm:mb-xl" aria-label={a.title}>
         {stepTitles.map((title, i) => {
           const done = i < step;
           const current = i === step;
@@ -431,7 +431,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         {stepTitles[step]}
       </p>
 
-      <form action={formAction} className="nf-card p-5 sm:p-8">
+      <form action={formAction} className="nf-card p-5 sm:p-xl">
         {/* Keep every step in the DOM so all fields reach the server action;
             only the active step is shown. */}
 
@@ -440,7 +440,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         <input type="hidden" name="documents" value={JSON.stringify(manifest)} />
 
         {/* Step 1: Personal */}
-        <fieldset hidden={step !== 0} className="space-y-4">
+        <fieldset hidden={step !== 0} className="space-y-md">
           <Legend title={a.steps.personal} />
           <div>
             <span className="nf-label">{a.agentType}</span>
@@ -459,7 +459,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                 {agentType === "individual" ? a.individualDesc : a.businessDesc}
               </p>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-md">
                 {(["individual", "business"] as AgentType[]).map((tp) => (
                   <button
                     type="button"
@@ -467,7 +467,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                     onClick={() => setAgentType(tp)}
                     aria-pressed={agentType === tp}
                     className={[
-                      "rounded-[var(--nf-radius-lg)] border p-3 text-left transition-colors",
+                      "rounded-[var(--nf-radius-lg)] border p-sm text-left transition-colors",
                       agentType === tp
                         ? "border-[var(--nf-border-brand)] bg-[color-mix(in_oklab,var(--nf-mode-agent)_14%,transparent)]"
                         : "border-[var(--nf-border-subtle)] hover:border-[var(--nf-border-default)]",
@@ -505,7 +505,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </fieldset>
 
         {/* Step 2: Identity */}
-        <fieldset hidden={step !== 1} className="space-y-4">
+        <fieldset hidden={step !== 1} className="space-y-md">
           <Legend title={a.steps.identity} />
           <SelectField name="idType" label={a.fields.idType} value={values} set={set} err={err}
             options={["NIN", "BVN", "Passport", "Driver's Licence", "Voter's Card"]} />
@@ -513,7 +513,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </fieldset>
 
         {/* Step 3: Business / Location */}
-        <fieldset hidden={step !== 2} className="space-y-4">
+        <fieldset hidden={step !== 2} className="space-y-md">
           <Legend title={a.steps.business} />
           {agentType === "business" && (
             <div className="grid gap-5 sm:grid-cols-2">
@@ -529,7 +529,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </fieldset>
 
         {/* Step 4: Documents */}
-        <fieldset hidden={step !== 3} className="space-y-4">
+        <fieldset hidden={step !== 3} className="space-y-md">
           <Legend title={a.documents.title} sub={a.documents.body} />
           <div className="grid gap-5 sm:grid-cols-2">
             <UploadZone id="idFront" label={a.documents.idFront} hint={a.documents.chooseFile} slot={docs.idFront} onFile={onFile} />
@@ -550,7 +550,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </fieldset>
 
         {/* Step 5: Payout */}
-        <fieldset hidden={step !== 4} className="space-y-4">
+        <fieldset hidden={step !== 4} className="space-y-md">
           <Legend title={a.steps.payout} />
           <SelectField name="bankName" label={a.fields.bankName} value={values} set={set} err={err} options={[...NIGERIAN_BANKS]} />
           <div className="grid gap-5 sm:grid-cols-2">
@@ -560,11 +560,11 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </fieldset>
 
         {/* Step 6: Review */}
-        <fieldset hidden={step !== last} className="space-y-4">
+        <fieldset hidden={step !== last} className="space-y-md">
           <Legend title={a.review.title} sub={a.review.body} />
           <dl className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
             {TEXT_FIELDS.filter((f) => values[f]).map((f) => (
-              <div key={f} className="flex items-center justify-between gap-4 px-4 py-2.5 text-[0.8125rem]">
+              <div key={f} className="flex items-center justify-between gap-md px-md py-2.5 text-[0.8125rem]">
                 <dt className="text-[var(--nf-content-muted)]">{a.fields[f as keyof typeof a.fields] ?? f}</dt>
                 <dd className="font-medium [overflow-wrap:anywhere]">{values[f]}</dd>
               </div>
@@ -590,7 +590,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
             checked={agreed}
             onCheckedChange={setAgreed}
             label={a.fields.agreeTerms}
-            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-3"
+            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
           />
           {err?.agreeTerms && (
             <p role="alert" className="text-[0.75rem] text-[var(--nf-state-error)]">{err.agreeTerms}</p>
@@ -629,7 +629,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </fieldset>
 
         {/* Nav */}
-        <div className="mt-7 flex items-center justify-between gap-4">
+        <div className="mt-7 flex items-center justify-between gap-md">
           <Button
             variant="secondary"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
@@ -670,16 +670,16 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </div>
       </form>
 
-      <p className="mt-3 text-center text-[0.75rem] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
+      <p className="mt-sm text-center text-[0.75rem] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
     </div>
   );
 }
 
 function Legend({ title, sub }: { title: string; sub?: string }) {
   return (
-    <div className="mb-2">
+    <div className="mb-xs">
       <h2 className="nf-h3">{title}</h2>
-      {sub && <p className="mt-1 text-[0.8125rem] text-[var(--nf-content-muted)]">{sub}</p>}
+      {sub && <p className="mt-2xs text-[0.8125rem] text-[var(--nf-content-muted)]">{sub}</p>}
     </div>
   );
 }
@@ -767,7 +767,7 @@ function UploadZone({
         htmlFor={id}
         aria-busy={slot?.uploading ? true : undefined}
         className={[
-          "relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[var(--nf-radius-lg)] border border-dashed bg-[var(--nf-surface-inset)] text-center transition-colors",
+          "relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-xs overflow-hidden rounded-[var(--nf-radius-lg)] border border-dashed bg-[var(--nf-surface-inset)] text-center transition-colors",
           slot?.error
             ? "border-[var(--nf-state-error)]"
             : done
@@ -783,18 +783,18 @@ function UploadZone({
              one, so the file itself is the label in both cases. */
           <>
             {slot.isPdf && (
-              <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-1.5 py-0.5 text-[0.625rem] font-bold tracking-wide text-[var(--nf-content-secondary)]">
+              <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-1.5 py-3xs text-[0.625rem] font-bold tracking-wide text-[var(--nf-content-secondary)]">
                 PDF
               </span>
             )}
-            <span className="max-w-full truncate px-3 text-[0.6875rem] text-[var(--nf-content-secondary)]">
+            <span className="max-w-full truncate px-sm text-[0.6875rem] text-[var(--nf-content-secondary)]">
               {slot.fileName}
             </span>
           </>
         ) : (
           <>
             <UiIcon name="sparkle" size={28} className="text-[var(--nf-content-muted)]" />
-            <span className="px-3 text-[0.6875rem] text-[var(--nf-content-muted)]">{hint}</span>
+            <span className="px-sm text-[0.6875rem] text-[var(--nf-content-muted)]">{hint}</span>
           </>
         )}
 
@@ -804,14 +804,14 @@ function UploadZone({
           </span>
         )}
         {done && !slot?.uploading && (
-          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-2 py-0.5 text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-xs py-3xs text-[0.625rem] font-bold text-[var(--nf-content-on-brand)]">
             <UiIcon name="verified" size={12} />
             Uploaded
           </span>
         )}
       </label>
       {slot?.error && (
-        <p role="alert" className="mt-1 text-[0.6875rem] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-2xs text-[0.6875rem] text-[var(--nf-state-error)]">
           {slot.error}
         </p>
       )}

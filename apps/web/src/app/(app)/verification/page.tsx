@@ -45,6 +45,7 @@ export default async function VerificationPage({
 }: {
   searchParams: Promise<{ resubmit?: string | string[] }>;
 }) {
+  const locale = await getLocale();
   const context = await getAgentContext();
   const ladder = await getOwnLadder(context);
   const params = await searchParams;
@@ -170,7 +171,7 @@ export default async function VerificationPage({
       {status ? (
         <>
           <PageHeader title="Verification" />
-          <KycStatus status={status} />
+          <KycStatus status={status} locale={locale} />
         </>
       ) : (
         <KycFlow submit={submitVerification} />

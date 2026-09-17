@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+import { QUEUE_EMPTY_MARK, queueEmptyKind, type QueueEmptyKind } from "./queue-empty";
 import { fill, type AdminCommon } from "./copy";
 
 /**
@@ -70,6 +71,7 @@ const SUCCESS_INK: CSSProperties = { color: "var(--nf-state-success)" };
 
 /** Nothing has happened here. Not good news, not bad news, not a state. */
 const NEUTRAL_INK: CSSProperties = { color: "var(--nf-content-muted)" };
+
 
 const DANGER_INK: CSSProperties = { color: "var(--nf-state-error)" };
 
@@ -400,24 +402,55 @@ export function adminUi(t: Dictionary, locale: Locale) {
    * `everHadRows` defaults to true so the nineteen call sites that have not
    * been told which state they are in keep the behaviour they had, and a page
    * that can answer the question opts into the honest one.
+   *
+   * ---------------------------------------------------------------------------
+   * AND THERE ARE THREE, BECAUSE A SEARCH THAT MATCHED NOTHING IS NEITHER.
+   *
+   * Six pages render this with `common.noMatchTitle` when a filter matches no
+   * rows, and it drew the emerald tick: "all clear" over a queue that may hold
+   * hundreds, none of them dismissed. `everHadRows` was the wrong lever for it
+   * and a third value was the wrong shape too, because a boolean cannot carry
+   * three answers. So the state is named.
+   *
+   *   cleared    rows arrived and somebody dealt with them. Emerald, a tick.
+   *              The only one of the three that is good news, and the only one
+   *              that has to be earned.
+   *   never      nothing has ever arrived here. Neutral, a clock. Not a
+   *              failure and not an achievement.
+   *   no-match   the filter above matched nothing. Neutral, a magnifier,
+   *              because what the operator is looking at is the RESULT OF
+   *              THEIR OWN QUERY and the queue behind it is untouched.
+   *
+   * `everHadRows` stays as the boolean it was so the call sites that pass it
+   * keep working and mean what they said, and `state` overrides it where a page
+   * knows better. Two ways in, one set of three answers.
    */
   function QueueEmpty({
     title,
     body,
     everHadRows = true,
+    state,
   }: {
     title: string;
     body: string;
     /** False when this table has never held a row for this queue. */
     everHadRows?: boolean;
+    /**
+     * Which of the three this is, where the page can say.
+     *
+     * Overrides `everHadRows`. Pass `"no-match"` whenever the empty list is the
+     * answer to a filter rather than a fact about the queue.
+     */
+    state?: QueueEmptyKind;
   }) {
+    const mark = QUEUE_EMPTY_MARK[queueEmptyKind(state, everHadRows)];
     return (
       <div className="nf-card p-card-lg text-center">
         <span
           className="mx-auto flex justify-center"
-          style={everHadRows ? SUCCESS_INK : NEUTRAL_INK}
+          style={mark.success ? SUCCESS_INK : NEUTRAL_INK}
         >
-          <UiIcon name={everHadRows ? "verified" : "history"} size={40} />
+          <UiIcon name={mark.icon} size={40} />
         </span>
         <p className="nf-h4 mt-group">{title}</p>
         <p className="nf-body mx-auto mt-row max-w-[48ch] text-content-2">{body}</p>

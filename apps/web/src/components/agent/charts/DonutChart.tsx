@@ -32,7 +32,7 @@ export function DonutChart({
   });
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+    <div className="flex flex-wrap items-center justify-center gap-x-lg gap-y-md">
       <svg viewBox="0 0 140 140" className="h-32 w-32 shrink-0" role="img" aria-label={`${centerLabel}: ${centerValue}`}>
         <g transform="rotate(-90 70 70)">
           <circle cx="70" cy="70" r={r} fill="none" stroke="var(--nf-border-subtle)" strokeWidth="14" />
@@ -59,11 +59,11 @@ export function DonutChart({
         </text>
       </svg>
 
-      <ul className="min-w-0 flex-1 basis-48 space-y-2">
+      <ul className="min-w-0 flex-1 basis-48 space-y-xs">
         {segments.map((s) => {
           const pct = Math.round((s.count / total) * 100);
           return (
-            <li key={s.label} className="flex items-center gap-2 text-[0.8125rem]">
+            <li key={s.label} className="flex items-center gap-xs text-[0.8125rem]">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.hue }} aria-hidden="true" />
               <span className="min-w-0 flex-1 truncate text-[var(--nf-content-secondary)]">{s.label}</span>
               <span className="nf-numeric shrink-0 font-semibold text-[var(--nf-content-primary)]">

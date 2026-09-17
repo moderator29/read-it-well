@@ -36,7 +36,7 @@ export async function AgentComingSoon({
 
   return (
     <AgentShell t={t} locale={locale} active={active} profile={profile}>
-      <div className="mx-auto max-w-lg py-10 text-center sm:py-16">
+      <div className="mx-auto max-w-lg py-10 text-center sm:py-3xl">
         <div className="relative mx-auto grid h-24 w-24 place-items-center sm:h-28 sm:w-28">
           <span
             aria-hidden="true"
@@ -62,13 +62,13 @@ export async function AgentComingSoon({
         <span className="nf-tag-pill nf-tag-pill--neutral mx-auto mt-5 inline-flex">
           Not built yet
         </span>
-        <h1 className="nf-h2 mt-3">{title}</h1>
-        <p className="mx-auto mt-3 max-w-[42ch] text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h2 mt-sm">{title}</h1>
+        <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
           The navigation is final, so this destination is reserved rather than missing.
           Nothing you can do today happens here, and everything that does is on the
           dashboard.
         </p>
-        <ButtonLink href="/agent/dashboard" variant="secondary" className="mt-6">
+        <ButtonLink href="/agent/dashboard" variant="secondary" className="mt-lg">
           {t.agent.nav.dashboard}
         </ButtonLink>
       </div>

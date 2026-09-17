@@ -1,40 +1,44 @@
 /**
- * Every string in this owner's scope that a translator has not seen yet.
+ * What is left of a staging post that is being dismantled.
  *
  * ---------------------------------------------------------------------------
- * WHY ONE FILE RATHER THAN THREE.
+ * ONE OF THE THREE BLOCKS HAS GONE, AND THAT IS THE POINT OF THE FILE.
  *
- * These blocks belong to three unrelated surfaces: the escrow desk, the
- * identity review queue and the verification screen an applicant reads. They
- * are gathered here for exactly one reason, which is that translating them is
- * one job and hunting them is three. The alternative - a `const` beside each
- * consumer, as they were - is how a platform that ships in four languages ends
- * up with a screen that is English on Tuesdays: nobody can answer "what is left"
- * without reading every file.
+ * This held three: the escrow states, the identity document kinds, and every
+ * string on the applicant's own verification screen. The last of those was the
+ * one that mattered most and it is gone: `t.verification.status` exists in all
+ * four locales and `components/verification/KycStatus.tsx` reads it directly, so
+ * an agent applying to trade on a Nigerian marketplace no longer meets their own
+ * verification status in English whatever language they chose.
+ *
+ * It was staged here because `packages/i18n` was another owner's file. It is not
+ * any more, so the remaining two blocks are next rather than permanent, and
+ * their destinations are named on each one.
  *
  * ---------------------------------------------------------------------------
  * WHAT MAKES THIS A STAGING POST AND NOT A SECOND DICTIONARY.
  *
- * It is written to be deleted. Every block below names the dictionary path it
- * is going to, the consumers read it through a lookup that checks the
- * dictionary FIRST, and the day the keys land in all four locales this file
- * stops being consulted without a call site changing. `ADMIN_COLUMN_WORDS` in
- * `app/admin/_components/copy.ts` is the same arrangement, staged a sprint
- * earlier, and is deliberately left where it is rather than moved here: it is
- * already wired and moving working code to tidy a report is not a fix.
+ * It is written to be deleted. Each block names the dictionary path it is going
+ * to, and each consumer reads it through a lookup that checks the dictionary
+ * FIRST, so the day its keys land the block stops being consulted without a
+ * call site changing.
+ *
+ * `ADMIN_COLUMN_WORDS` in `app/admin/_components/copy.ts` was the same
+ * arrangement and its keys landed, so it was deleted rather than moved here.
+ * That is the shape every block in this file is meant to take on its way out.
  *
  * Nothing new should be added here. A new string goes in the dictionary.
  *
  * ---------------------------------------------------------------------------
- * WHY THESE THREE WERE THE LAST ONES.
+ * WHY THESE LOOKED LIKE THEY DID NOT NEED TRANSLATING, WHICH IS THE LESSON.
  *
- * Each had a reason to look like it did not need translating, and each reason
- * was wrong. The escrow states looked like database values, and they are not:
- * "Agreed, not funded" is a sentence somebody wrote. The document kinds looked
- * like a developer's enum, and an operator reads them all day. And `KycStatus`
- * looked like a component rather than copy, because its strings are constants
- * at the bottom of the file rather than props - so it is the most-read screen
- * in the supply-side funnel and the only one still entirely in English.
+ * The escrow states looked like database values, and they are not: "Agreed, not
+ * funded" is a sentence somebody wrote. The document kinds looked like a
+ * developer's enum, and an operator reads them all day. And the verification
+ * strings looked like part of a component rather than copy, because they were
+ * fifteen `const`s at the foot of their own file, which is exactly why the
+ * most-read screen in the supply-side funnel was the last one still entirely in
+ * English.
  */
 
 import type { Database } from "@/lib/supabase/database.types";
@@ -109,50 +113,3 @@ export const KYC_DOCUMENT_SUBTYPE_WORDS: Record<string, string> = {
   tax_certificate: "Tax certificate",
   business_address_proof: "Proof of business address",
 };
-
-/* ------------------------------------------ the applicant's own status screen */
-
-/**
- * `components/verification/KycStatus.tsx`, in full.
- *
- * Destination: `t.verification.status.*`.
- *
- * THE REJECTION AND THE REQUEST ARE THE TWO THAT MATTER. Both are read by
- * somebody who has been stopped from earning, and both carry the reviewer's own
- * words underneath them, so the frame around those words has to be plain enough
- * that the reader does not have to work out whether the platform or the
- * reviewer is speaking. `fixLabel` is a label followed by a sentence, so it
- * keeps its colon in English and may not want one in another script.
- *
- * `suspendedFix` says what will NOT work before it says what will, on purpose:
- * somebody whose account is stopped will otherwise spend an afternoon
- * resubmitting documents that cannot lift a suspension.
- */
-export const KYC_STATUS_WORDS = {
-  pendingPill: "In review",
-  pendingTitle: "We are checking your documents",
-  pendingBody:
-    "A person reads every submission by hand. Most decisions come back within one working day, and we email you either way. You can keep drafting listings while you wait.",
-  submittedPrefix: "Sent",
-
-  approvedPill: "Verified",
-  approvedTitle: "You are verified",
-  approvedBody:
-    "Your listings can go live, and the verified mark now shows on your profile and beside your name in every conversation.",
-
-  rejectedPill: "Not approved",
-  rejectedTitle: "We could not verify this",
-  retry: "Send it again",
-
-  moreInfoPill: "Over to you",
-  moreInfoTitle: "We need one more thing from you",
-  moreInfoContinue: "Send what was asked for",
-
-  suspendedPill: "Stopped",
-  suspendedTitle: "This account is stopped",
-  suspendedFix:
-    "Nothing you send here will lift this, because it is a decision about the account rather than about a document. Talk to our team and they will tell you what it would take.",
-  getHelp: "Talk to our team",
-
-  fixLabel: "What to do:",
-} as const;

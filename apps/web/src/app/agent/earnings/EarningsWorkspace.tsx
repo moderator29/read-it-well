@@ -43,13 +43,13 @@ function Tile({
   value: React.ReactNode;
 }) {
   return (
-    <div className="nf-card flex flex-col gap-2 p-3.5 sm:gap-2.5 sm:p-4">
+    <div className="nf-card flex flex-col gap-xs p-3.5 sm:gap-2.5 sm:p-md">
       <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
         <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0">
         <p className="leading-snug text-[0.75rem] font-medium text-[var(--nf-content-muted)]">{label}</p>
-        <p className="mt-0.5 leading-tight">{value}</p>
+        <p className="mt-3xs leading-tight">{value}</p>
       </div>
     </div>
   );
@@ -71,7 +71,7 @@ export function EarningsWorkspace({
   if (!earnings.readable) {
     return (
       <p
-        className="rounded-[var(--nf-radius-md)] p-4 text-[0.875rem] font-medium leading-relaxed"
+        className="rounded-[var(--nf-radius-md)] p-md text-[0.875rem] font-medium leading-relaxed"
         style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
         role="alert"
       >
@@ -82,7 +82,7 @@ export function EarningsWorkspace({
 
   if (earnings.months.length === 0) {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-10 text-center sm:py-14">
+      <div className="mx-auto flex max-w-md flex-col items-center gap-md py-10 text-center sm:py-14">
         <span className="block h-20 w-20">
           <BrandIcon name="wallet-secure" fill />
         </span>
@@ -100,8 +100,8 @@ export function EarningsWorkspace({
   const thisMonthMinor = earnings.currentMonth?.agentShareMinor ?? 0;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="space-y-lg">
+      <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
         <Tile
           icon="wallet-secure"
           label={t.totals.yourShare}
@@ -138,17 +138,17 @@ export function EarningsWorkspace({
         />
       </div>
 
-      <section className="nf-card p-4 sm:p-5">
+      <section className="nf-card p-md sm:p-5">
         <h2 className="nf-h3">{t.byMonth}</h2>
 
         {/* Phone: stacked cards, so nothing scrolls sideways. */}
-        <ul className="mt-3 space-y-3 sm:hidden">
+        <ul className="mt-sm space-y-sm sm:hidden">
           {earnings.months.map((month) => (
             <li
               key={month.key}
-              className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-3"
+              className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm"
             >
-              <div className="flex items-baseline justify-between gap-4">
+              <div className="flex items-baseline justify-between gap-md">
                 <p className="text-[0.875rem] font-semibold">{monthLabel(month.year, month.month, locale)}</p>
                 <Amount
                   minorUnits={month.agentShareMinor}
@@ -156,7 +156,7 @@ export function EarningsWorkspace({
                   className="text-[0.875rem] font-bold"
                 />
               </div>
-              <p className="mt-1 text-[0.75rem] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
                 {month.stays === 1 ? t.staysOne : fill(t.stays, { count: month.stays })}
                 {" · "}
                 {t.monthGross} <Amount minorUnits={month.grossMinor} locale={locale} />
@@ -178,7 +178,7 @@ export function EarningsWorkspace({
           up by place value and does not is worse than one that never claimed
           to.
         */}
-        <div className="mt-3 hidden sm:block">
+        <div className="mt-sm hidden sm:block">
           <Table caption={t.byMonth} density="compact">
             <THead>
               <TR>
@@ -208,9 +208,9 @@ export function EarningsWorkspace({
         </div>
       </section>
 
-      <section className="nf-card p-4 sm:p-5">
+      <section className="nf-card p-md sm:p-5">
         <h2 className="nf-h3">{t.howTitle}</h2>
-        <p className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.howBody}
         </p>
       </section>

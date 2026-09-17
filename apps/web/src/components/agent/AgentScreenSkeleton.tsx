@@ -35,10 +35,10 @@ export function AgentScreenSkeleton({
       {/* The rail: present from lg up, exactly as `AgentRail` is. */}
       <aside
         aria-hidden="true"
-        className="sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-4 py-5 lg:flex"
+        className="sticky top-0 hidden h-dvh w-[var(--nf-rail-width)] shrink-0 flex-col border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-md py-5 lg:flex"
       >
         <Skeleton className="mb-5" width="8.5rem" height="2.375rem" radius="md" />
-        <div className="space-y-2">
+        <div className="space-y-xs">
           {Array.from({ length: 7 }, (_, i) => (
             <Skeleton key={i} height="2.75rem" radius="md" />
           ))}
@@ -50,7 +50,7 @@ export function AgentScreenSkeleton({
             or not the page beneath it has arrived, and drawing a grey slab in
             its place would be a bigger change than leaving it empty. */}
         <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-          <div className="flex h-header-sm items-center gap-2 px-3 sm:h-header sm:gap-4 sm:px-5 md:px-8">
+          <div className="flex h-header-sm items-center gap-xs px-sm sm:h-header sm:gap-md sm:px-5 md:px-xl">
             <Skeleton circle width="2.25rem" className="shrink-0 sm:hidden" />
             <Skeleton circle width="2.5rem" className="hidden shrink-0 sm:block" />
             <Skeleton width="9rem" height="1rem" radius="sm" className="max-w-[40%]" />
@@ -59,7 +59,7 @@ export function AgentScreenSkeleton({
 
         <LoadingShell
           label={label}
-          className="px-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-6 sm:px-5 md:px-8 md:pt-7 lg:pb-10"
+          className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10"
         >
           {children}
         </LoadingShell>
@@ -71,10 +71,10 @@ export function AgentScreenSkeleton({
 /** The `mb-6` title + lede block every agent workspace opens with. */
 export function AgentTitleSkeleton() {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-lg flex flex-wrap items-end justify-between gap-md">
       <div>
         <Skeleton width="12rem" height="1.75rem" radius="sm" />
-        <Skeleton className="mt-2" width="20rem" height="0.9375rem" radius="sm" />
+        <Skeleton className="mt-xs" width="20rem" height="0.9375rem" radius="sm" />
       </div>
       <Skeleton width="9rem" height="3rem" radius="pill" />
     </div>

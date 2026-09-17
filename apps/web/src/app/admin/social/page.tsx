@@ -5,6 +5,7 @@ import { getSocialQueue } from "@/lib/social/admin-queries";
 import { AreaDecision, ModeratorDecision, PauseToggle } from "./SocialDecisions";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { adminUi } from "../_components/ui";
 import {
   QueueFilters,
   queueNarrowed,
@@ -85,7 +86,9 @@ export default async function AdminSocialPage({
   const params = await searchParams;
   const query = readQueueQuery(params);
   const narrowed = queueNarrowed(query);
-  const t = getDictionary(await getLocale());
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const ui = adminUi(t, locale);
   const common = t.admin.common;
   const queue = await getSocialQueue({
     ...(query.q ? { q: query.q } : {}),
@@ -114,12 +117,15 @@ export default async function AdminSocialPage({
       />
 
       {narrowed && nothing && (
-        <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-          <span className="block font-semibold text-[var(--nf-content-primary)]">
-            {common.noMatchTitle}
-          </span>
-          <span className="mt-2xs block">{common.noMatchBody}</span>
-        </p>
+        /* The seventh no-match panel, and the one that was hand-rolled: a card
+           with a bold span above a muted one, which is a fourth empty-state
+           grammar in a console that has one. Same component and same third
+           state as the other six now. */
+        <ui.QueueEmpty
+          title={common.noMatchTitle}
+          body={common.noMatchBody}
+          state="no-match"
+        />
       )}
 
       <section>
