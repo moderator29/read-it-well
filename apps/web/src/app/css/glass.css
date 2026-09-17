@@ -651,9 +651,9 @@
    *
    *   ambient, and the budget for these is ONE:
    *     nf-drift-a         the canvas bloom          <- the one
-   *     nf-float           .nf-icon-field spans
-   *     nf-scene-live      .nf-hero-scene
-   *     nf-drift           .nf-drift
+   *     nf-float           .nf-icon-field spans      <- class deleted
+   *     nf-scene-live      .nf-hero-scene            <- class deleted
+   *     nf-drift           .nf-drift                 <- class deleted
    *     nf-gallery-pan     .nf-gallery-kenburns
    *     nf-art-breathe     .nf-story-art
    *     nf-map-pin-breathe every idle pin on the map
@@ -663,12 +663,13 @@
    * the page, and the file has already said so twice while six other loops went
    * on running underneath.
    *
-   * THREE OF THE SIX WERE ON CLASSES NOTHING RENDERS. `.nf-icon-field`,
-   * `.nf-hero-scene` and `.nf-drift` have zero call sites in the component tree
-   * between them - checked by grep across every `.tsx` - so they were infinite
-   * animations declared for elements that do not exist. That is not a
-   * performance cost today; it is the trap, because the day somebody uses the
-   * class they inherit a loop nobody chose.
+   * THREE OF THE SIX WERE ON CLASSES NOTHING RENDERS, AND ALL THREE CLASSES ARE
+   * NOW DELETED. `.nf-icon-field`, `.nf-hero-scene` and `.nf-drift` had zero call
+   * sites between them, so they were infinite animations declared for elements
+   * that do not exist. Setting them to `animation: none` was the right first
+   * move and the wrong last one: it removed the cost and left the trap, which is
+   * that the day somebody uses the class they inherit a loop nobody chose. The
+   * classes are gone, so the trap is gone with them.
    *
    * The pattern is the one `.nf-float` in animation.css already set: the CLASS
    * survives, because call sites and other rules depend on its positioning and
@@ -988,7 +989,7 @@
   .nf-confirm-dim {
     position: fixed;
     inset: 0;
-    z-index: 60;
+    z-index: var(--nf-z-overlay);
     pointer-events: none;
     background: color-mix(in oklab, var(--nf-canvas-base) 30%, transparent);
     animation: nf-confirm-dim var(--nf-duration-cinematic) var(--nf-ease-standard) both;

@@ -364,7 +364,7 @@ function ListingRow({
         {editable && (
           <Link
             href={`/agent/list?id=${listing.id}`}
-            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-electric-300)]"
+            className="flex items-center gap-1 text-[0.8125rem] font-semibold text-[var(--nf-content-link)]"
           >
             {t.workspace.actions.edit}
             <UiIcon name="arrow-right" size={16} />
@@ -510,7 +510,7 @@ export function ListingsWorkspace({
       <div className="mx-auto max-w-md py-10 text-center">
         <span
           className="mx-auto grid h-16 w-16 place-items-center rounded-[var(--nf-radius-lg)]"
-          style={{ background: "var(--nf-surface-raised)", color: "var(--nf-electric-300)" }}
+          style={{ background: "var(--nf-surface-raised)", color: "var(--nf-brand-quiet)" }}
         >
           <UiIcon name="house" size={32} />
         </span>

@@ -232,7 +232,10 @@ html {
   position: absolute;
   left: -9999px;
   top: 0;
-  z-index: 999;
+  /* The one thing that must beat everything, which is what `--nf-z-top` is
+     reserved for. It was the literal 999 and it was the only 999 in the
+     product, which is the same decision without the name on it. */
+  z-index: var(--nf-z-top);
   padding: var(--nf-space-sm) var(--nf-space-md);
   background: var(--nf-brand-primary);
   color: var(--nf-content-on-brand);

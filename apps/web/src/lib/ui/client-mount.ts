@@ -6,6 +6,24 @@ import { useSyncExternalStore } from "react";
  * False on the server and during hydration, true from the first client commit.
  *
  * ---------------------------------------------------------------------------
+ * WHY IT LIVES IN `lib/ui` AND NOT IN `components/app`.
+ *
+ * It was in `components/app/client-mount.ts`, which was right while every
+ * consumer was a product component. The fifth consumer is `components/ui/Sheet`,
+ * and `components/ui` is the PRIMITIVE layer that `components/app` is built on
+ * top of: every dependency between those two directories runs app -> ui, and an
+ * import the other way was the only line in the tree that did not. A primitive
+ * reaching up into the product is how a UI kit stops being one, because the kit
+ * can no longer be lifted out or reasoned about without the product around it.
+ *
+ * `lib/ui` is where the neutral hooks already live - `use-overlay.ts`,
+ * `data-saver.ts`, `history.ts`, `undo-window.ts` - and `Sheet.tsx` already
+ * reads `use-overlay` from here, so this is the shelf it belonged on.
+ *
+ * The move is a rename plus five one-line import changes. Nothing about the
+ * hook itself changed.
+ *
+ * ---------------------------------------------------------------------------
  * WHY THIS EXISTS AT ALL.
  *
  * `createPortal(panel, document.body)` cannot run where there is no document,

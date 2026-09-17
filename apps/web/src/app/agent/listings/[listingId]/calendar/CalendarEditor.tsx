@@ -170,7 +170,7 @@ export function CalendarEditor({
                         "bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]",
                       mode === "free" &&
                         "bg-[var(--nf-surface-raised)] text-[var(--nf-content-primary)] hover:opacity-80",
-                      inRange && "ring-2 ring-[var(--nf-electric-300)]",
+                      inRange && "ring-2 ring-[var(--nf-brand-quiet)]",
                     ]
                       .filter(Boolean)
                       .join(" ")}

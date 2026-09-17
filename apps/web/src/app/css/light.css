@@ -261,9 +261,9 @@
   :root[data-theme="light"] .nf-grid-veil {
     display: none;
   }
-  :root[data-theme="light"] .nf-hero-scene {
-    opacity: 0.85;
-  }
+  /* The daylight opacity for `.nf-hero-scene` went with the class. Third
+     daylight-only remnant in this file this sprint, after `.nf-icon3d` and
+     `.nf-action-circle`. */
   /*
    * `.nf-logo-on-dark` AND `.nf-logo-on-light` STOOD HERE AND ARE GONE.
    *

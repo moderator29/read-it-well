@@ -6,7 +6,7 @@ import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
-import { useClientMount } from "@/components/app/client-mount";
+import { useClientMount } from "@/lib/ui/client-mount";
 import {
   applyReduceMotion,
   applyTextSize,

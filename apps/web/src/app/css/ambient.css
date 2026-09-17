@@ -296,7 +296,29 @@
   .nf-grain {
     position: fixed;
     inset: 0;
-    z-index: 70;
+    /*
+     * ONE BELOW THE FIRST OVERLAY, WHICH IS A DECISION NOW AND WAS AN ACCIDENT.
+     *
+     * This was `z-index: 70`, a number with nothing behind it, and at 70 a
+     * full-viewport film grain was painting OVER the settings sheet at 61, that
+     * sheet's scrim at 60, the confirmation dim at 60 and the floating action
+     * button at 60, while passing UNDER the bottom sheet at 81 and its backdrop
+     * at 80. So the settings sheet was textured and the bottom sheet was not,
+     * for no reason anybody had chosen, and a canvas texture was sitting on top
+     * of four interactive overlays.
+     *
+     * Grain belongs to the PAGE. It is a film over the whole document including
+     * the sticky chrome, because the chrome is part of the frame you are looking
+     * through, and it belongs under anything that opens on top of the document,
+     * because a dialog is not part of the film. That boundary is exactly the
+     * line between `--nf-z-sticky` and `--nf-z-overlay`, so this states itself
+     * as one below the first overlay rather than as a number in the gap.
+     *
+     * It moves from 70 to 59. At 0.05 opacity under an `overlay` blend the
+     * visible difference is small and I have not seen it; what changes for
+     * certain is which layers it is allowed to reach.
+     */
+    z-index: calc(var(--nf-z-overlay) - 1);
     pointer-events: none;
     opacity: 0.05;
     mix-blend-mode: overlay;

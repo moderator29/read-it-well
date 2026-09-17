@@ -56,7 +56,7 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
           Our Data Protection Officer is {DATA_PROTECTION_OFFICER}. Questions about this
           policy, about the data we hold about you, or any request to exercise the rights
           in section 8, should go to{" "}
-          <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+          <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">
             {SUPPORT_LABEL}
           </a>
           , with Privacy as the subject. Requests sent that way reach the Data Protection
@@ -215,7 +215,7 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
               would have gone nowhere while the sender believed they had
               asked. */}
           To exercise any of these rights, write to us through{" "}
-          <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+          <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">
             {SUPPORT_LABEL}
           </a>
           . We respond within the timelines the NDPA sets. If you are not satisfied with

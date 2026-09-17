@@ -460,7 +460,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <p>
         How we handle personal data is described in our{" "}
-        <Link href="/privacy" className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+        <Link href="/privacy" className="font-semibold text-[var(--nf-content-link)] hover:underline">
           Privacy policy
         </Link>
         , which is written for the Nigeria Data Protection Act 2023 and forms part of
@@ -495,7 +495,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <p>
         Questions about these terms go to{" "}
-        <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-electric-300)] hover:underline">
+        <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">
           {SUPPORT_LABEL}
         </a>
         . We reply within one business day.

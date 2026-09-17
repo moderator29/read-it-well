@@ -16,7 +16,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
-import { useClientMount } from "@/components/app/client-mount";
+import { useClientMount } from "@/lib/ui/client-mount";
 
 /**
  * The listing lightbox.

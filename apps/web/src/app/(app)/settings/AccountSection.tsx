@@ -11,7 +11,7 @@ import { deleteAccountAction, signOut } from "@/lib/profile/actions";
 import { DELETE_CONFIRM_PHRASE } from "@/lib/profile/schema";
 import type { Dictionary } from "@vallo/i18n";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { useClientMount } from "@/components/app/client-mount";
+import { useClientMount } from "@/lib/ui/client-mount";
 
 /**
  * The account block: who you are signed in as, sign out, and deletion.

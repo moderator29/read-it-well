@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { TextField } from "@/components/ui/Field";
 import { Switch } from "@/components/ui/Switch";
-import { useClientMount } from "@/components/app/client-mount";
+import { useClientMount } from "@/lib/ui/client-mount";
 
 /**
  * The filter control and its drawer.

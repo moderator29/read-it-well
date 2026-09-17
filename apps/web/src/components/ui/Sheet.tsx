@@ -4,21 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode, RefObject } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
-/*
- * THIS IMPORT POINTS THE WRONG WAY AND IT IS DELIBERATE FOR NOW.
- *
- * `components/ui` is the primitive layer and `components/app` is the product
- * built on top of it. Every dependency between the two runs app -> ui today;
- * this is the first line in the tree that runs the other way, and a primitive
- * that reaches up into the product is how a UI kit stops being one.
- *
- * The hook itself is right and the fifth hand-rolled copy of it was worse than
- * a backwards import, so this takes the hook now. `client-mount.ts` belongs in
- * `lib/ui/`, beside `use-overlay.ts` which this file already reads from: same
- * shape, same neutrality, and it is a move plus five one-line import changes,
- * in files that are not this queue's. Flagged rather than done.
- */
-import { useClientMount } from "@/components/app/client-mount";
+import { useClientMount } from "@/lib/ui/client-mount";
 
 /**
  * The bottom sheet.

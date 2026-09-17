@@ -137,24 +137,22 @@
    */
 
   /*
-   * The agent verification ceremony. The status icon assembles itself, a
-   * quick scale up from small with a slight rotate settling flat, the one
-   * time a browser renders this application as just approved (see
-   * app/agents/status/StatusIcon.tsx for the honest, one-shot trigger).
+   * THE VERIFICATION CEREMONY STOOD HERE AND ITS TRIGGER FILE DOES NOT EXIST.
+   *
+   * `.nf-status-assemble`, its keyframe and its reduced-motion answer: the agent
+   * status icon assembling itself once, "the one time a browser renders this
+   * application as just approved (see app/agents/status/StatusIcon.tsx for the
+   * honest, one-shot trigger)". There is no `StatusIcon.tsx` anywhere under
+   * `src`, and the class appears in no component.
+   *
+   * SECOND TIME IN TWO BLOCKS, IN THIS FILE, WITH THE SAME WORDING. The guided
+   * flight pointed at `components/site/Onboarding.tsx` in the same phrase - "for
+   * the honest, ... trigger" - and that file does not exist either. Two dead
+   * animations, both vouched for by a named component, both written by somebody
+   * describing the thing they were about to build. A cross-reference is the
+   * strongest evidence a reader gets that a rule is wired up, it is worth
+   * nothing on its own, and nothing in this repository checks it.
    */
-  .nf-status-assemble {
-    animation: nf-status-assemble var(--nf-duration-deliberate) var(--nf-ease-spring) both;
-  }
-  @keyframes nf-status-assemble {
-    0% { opacity: 0; transform: scale(0.7) rotate(-8deg); }
-    70% { opacity: 1; transform: scale(1.05) rotate(2deg); }
-    100% { opacity: 1; transform: scale(1) rotate(0deg); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-status-assemble {
-      animation: none;
-    }
-  }
 
   /*
    * THE TILE SHEEN IS GONE, AND SO IS THE PROP THAT STAGGERED IT.
@@ -345,21 +343,12 @@
     }
   }
 
-  /*
-   * Scroll-linked hero. The villa grows and its glow deepens across the first
-   * viewport, so page motion drives the artwork instead of the artwork just
-   * looping beside it. Falls back to the ambient drift where scroll timelines
-   * are unavailable.
-   */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .nf-hero-scene {
-        animation: nf-hero-scroll linear both;
-        animation-timeline: view();
-        animation-range: entry 0% cover 70%;
-      }
-    }
-  }
+  /* A `view()` scroll timeline drove `.nf-hero-scene` from here, with an
+     `@supports` guard and a reduced-motion guard around it. It went with the
+     class: a scroll-linked animation is the most expensive kind to keep alive
+     for an element that does not exist, because it is also the kind a reader is
+     least likely to test. */
+
   @keyframes nf-hero-scroll {
     from {
       transform: translate3d(0, 0, 0) scale(1);
@@ -421,32 +410,31 @@
   }
 
   /*
-   * The hero scene drifts, and the FILTER half of it is gone.
+   * `.nf-hero-scene` STOOD HERE AND IT WAS FIXED THREE TIMES BEFORE ANYBODY
+   * ASKED WHETHER IT EXISTED.
    *
-   * The keyframe animated `saturate()` and `brightness()` alongside the
-   * transform. Transform and opacity are handed to the compositor; `filter` is
-   * not, so every frame of this forced a repaint of a full-width layer for a
-   * five per cent shift in saturation nobody has ever noticed. Transform only,
-   * and slower: 30 seconds and one per cent.
+   * The history is in the file, in order. First the keyframe animated
+   * `saturate()` and `brightness()` alongside the transform, and the filter half
+   * was removed because `filter` is not handed to the compositor and every frame
+   * forced a repaint of a full-width layer for a five per cent saturation shift.
+   * Then the transform half was slowed to thirty seconds and one per cent. Then
+   * it was set to `animation: none` under a note recording that the class has no
+   * call sites.
+   *
+   * Three careful, correct optimisations, each one written up, on a class the
+   * component tree has never rendered. The rules are gone now: this one, the
+   * resting style in animation.css, a `view()` scroll timeline with its own
+   * `@supports` and reduced-motion guards, the daylight opacity in light.css and
+   * the save-data entry in data-saver.css. Five rules in four files for one
+   * class that nothing renders.
+   *
+   * The pattern is worth more than the deletion. When a rule keeps coming back
+   * for tuning, the cheapest question is not "how do I make this cheaper", it is
+   * "what renders this".
    */
-  /*
-   * `.nf-hero-scene` HAS NO CALL SITES, and it was running a 30 second infinite
-   * drift for them. The filter half of this was removed in an earlier pass for
-   * costing a full-layer repaint per frame; the transform half survived, on a
-   * class the component tree never uses.
-   */
-  .nf-hero-scene {
-    /* No animation. See the ambient budget note in glass.css. */
-    animation: none;
-  }
-  @keyframes nf-scene-live {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(0, -8px, 0) scale(1.01); }
-  }
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-story-art,
-    .nf-hero-scene {
+    .nf-story-art {
       animation: none !important;
     }
   }
@@ -674,27 +662,18 @@
     }
   }
 
-  /*
-   * Slow ambient drift for decorative objects sitting inside sections - which
-   * is the description of a loop that exists for its own sake, and it has no
-   * call sites either. Two of the three dead ambient classes are in this file.
-   */
-  .nf-drift {
-    /* No animation. See the ambient budget note in glass.css. */
-    animation: none;
-  }
-  @keyframes nf-drift {
-    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-    50% { transform: translate3d(0, -10px, 0) rotate(-1.2deg); }
-  }
+  /* `.nf-drift` and its keyframe stood here. The comment already said it was
+     "a loop that exists for its own sake" with no call sites, and it had already
+     been set to `animation: none` rather than removed. Quietening a thing twice
+     instead of deleting it once is the pattern this sweep keeps finding; see the
+     floating icon field in ambient.css for the same story in six rules. */
 
   @media (prefers-reduced-motion: reduce) {
     .nf-enter,
     .nf-enter-scale,
     .nf-parallax-soft,
     .nf-words > span,
-    .nf-rule-draw,
-    .nf-drift {
+    .nf-rule-draw {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;

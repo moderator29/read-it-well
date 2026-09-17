@@ -54,7 +54,22 @@
   --nf-royal-500: #2B3FE0;
   --nf-royal-600: #2130C0;
   --nf-royal-700: #1A2596;
-  --nf-electric-300: #5C7CFF;
+  /*
+   * `--nf-electric-300` STOOD HERE AND IT WAS NEVER A PALETTE RUNG.
+   *
+   * It is `--nf-brand-quiet` in layer 2 now. Of the 27 rungs in these ramps it
+   * was the only one redefined in the daylight block, #5C7CFF at night and
+   * #0C2FE8 on paper, which means it was not a raw colour at all: it was a
+   * decision about what "the quiet brand ink" should be on each ground, wearing
+   * a palette name. ADR-002 puts that in layer 2 and the arithmetic agrees, 1
+   * of 27.
+   *
+   * The cost of the disguise was that five semantic tokens - the focus ring,
+   * link ink, star rating, verified status and `--nf-brand-secondary` - all
+   * resolved through a name that says "raw palette", and anybody reading
+   * `#5C7CFF` at the top of this file believed a value that is false in half
+   * the product.
+   */
   --nf-electric-400: #0C39EF;
   --nf-electric-500: #0010E0;
   --nf-electric-600: #0010D0;
@@ -122,6 +137,20 @@
   /* Brand */
   --nf-brand-primary: var(--nf-electric-500);
   --nf-brand-primary-strong: var(--nf-electric-600);
+  /*
+   * THE QUIET BRAND INK, and it used to be `--nf-electric-300` in layer 1.
+   *
+   * It is the brand at reading weight: what a link, a focus ring, a star rating,
+   * a verified badge and `--nf-brand-secondary` all resolve to. It is not the
+   * brand PRIMARY, which is a fill, and the difference is the whole reason this
+   * has its own name: one of them is a surface and the other is ink.
+   *
+   * Themed, which is what disqualified it from layer 1: on the night canvas the
+   * quiet ink has to be LIGHTER than the brand fill to read, and on white paper
+   * it has to be DARKER. #5C7CFF and #0C2FE8 are not two shades of one decision,
+   * they are the same decision answered twice.
+   */
+  --nf-brand-quiet: #5C7CFF;
   /*
    * THE BRAND TINT, AND THE ANSWER TO "PROPOSE A LADDER" IS THAT THERE IS NO
    * LADDER TO PROPOSE. THERE IS ONE RUNG AND IT WAS ALREADY HERE.
@@ -235,7 +264,7 @@
    * finding both and remembering which was which.
    */
   --nf-selection-bg: var(--nf-brand-tint-4);
-  --nf-brand-secondary: var(--nf-electric-300);
+  --nf-brand-secondary: var(--nf-brand-quiet);
   --nf-brand-accent: var(--nf-electric-400);
 
   /* Mode accents. All three stay inside the sampled blue family: the modes
@@ -626,7 +655,7 @@
   --nf-state-warning: var(--nf-cyan-400);
   --nf-state-error: var(--nf-rose-400);
   --nf-state-info: var(--nf-sky-400);
-  --nf-rating: var(--nf-electric-300);
+  --nf-rating: var(--nf-brand-quiet);
 
   /* Focus
    *
@@ -637,11 +666,11 @@
    * had been that way since dark became the default. WCAG 2.2 asks for 3:1
    * against whatever surrounds the indicator.
    *
-   * --nf-electric-300 is the member of the same family that clears it in both
+   * --nf-brand-quiet is the member of the same family that clears it in both
    * themes: #5C7CFF is about 5.4:1 on the night canvas, and daylight already
    * swaps that token for #0C2FE8, about 11:1 on paper. Same blue family, no
    * new hue, visible in both. */
-  --nf-focus-ring: var(--nf-electric-300);
+  --nf-focus-ring: var(--nf-brand-quiet);
   --nf-focus-ring-width: 2px;
   --nf-focus-ring-offset: 2px;
 
@@ -650,14 +679,14 @@
    * An inline text link, and the "see all", "clear", "sign in" affordances
    * that behave as one. It is its own role for the same reason the focus ring
    * is: it is TYPE, so it has to clear 4.5:1 at body size in both themes,
-   * which --nf-brand-primary does not do at night. It rides --nf-electric-300
+   * which --nf-brand-primary does not do at night. It rides --nf-brand-quiet
    * exactly as the ring, the rating and the verified ink do, so all four move
    * together with the one daylight override that token already carries.
    *
    * It exists because forty-odd link-coloured spans across the component tree
    * were reaching straight into layer 1 for want of a name, which is the
    * single most common ADR-002 violation in the codebase. */
-  --nf-content-link: var(--nf-electric-300);
+  --nf-content-link: var(--nf-brand-quiet);
 
   /* State surfaces, for chips and badges */
   --nf-state-success-surface: color-mix(in oklab, var(--nf-emerald-400) 15%, transparent);
@@ -684,9 +713,9 @@
    * wears the brand rather than the success colour. That also frees emerald to
    * mean one thing only.
    *
-   * The verified ink is --nf-electric-300 rather than --nf-brand-primary: the
+   * The verified ink is --nf-brand-quiet rather than --nf-brand-primary: the
    * primary is a deep blue that does not hold up as small bold text on the
-   * night canvas, and electric-300 already carries a daylight override. */
+   * night canvas, and the quiet ink already carries a daylight override. */
   --nf-status-pending: var(--nf-state-warning);
   --nf-status-pending-surface: var(--nf-state-warning-surface);
   /*
@@ -705,7 +734,7 @@
   --nf-status-approved-surface: var(--nf-state-success-surface);
   --nf-status-rejected: var(--nf-state-error);
   --nf-status-rejected-surface: var(--nf-state-error-surface);
-  --nf-status-verified: var(--nf-electric-300);
+  --nf-status-verified: var(--nf-brand-quiet);
   --nf-status-verified-surface: var(--nf-brand-tint-2);
 
   /* ---------------------------------------------------------------------
@@ -850,7 +879,7 @@
   /* The story stage: a near-black panel that is the same panel in both themes,
      because a paper product carries its dark brand on it. Its hairline is
      theme-independent for the same reason and cannot read `--nf-brand-secondary`
-     to get there: that token resolves through `--nf-electric-300`, which daylight
+     to get there: that token resolves through `--nf-brand-quiet`, which daylight
      re-answers with a deeper blue, so the one border on the platform that sits on
      a fixed dark ground would have been the one border that changed with the
      theme. This is the night value, stated once. */
@@ -1945,6 +1974,61 @@
    * A layout token nothing reads is a comment with a colon in it.
    * ------------------------------------------------------------------ */
   --nf-rail-width: 264px;
+
+  /* ---------------------------------------------------------------------
+   * THE STACKING LADDER. Seven rungs, and there were twenty values.
+   *
+   * Counted across the product: 33 `z-index` declarations in the stylesheets at
+   * 15 distinct values, and 47 more written in components through Tailwind at 5
+   * more. Twenty stacking decisions, no token, and two vocabularies that never
+   * met - the component tree topped out at 50 while the stylesheets began their
+   * overlay range at 60, so nobody working in one could see the other.
+   *
+   * WHAT THAT COST, and it is not hypothetical. Three pairs of unrelated things
+   * held the same value, which means DOM order decided which one won:
+   *
+   *   80   the social sheet        ===  the bottom sheet's backdrop
+   *   70   the social toast        ===  the film grain
+   *   60   the settings scrim  ===  the confirmation dim  ===  the floating action button
+   *
+   * A floating action button at the same height as two modal scrims is a coin
+   * toss about whether the page can be tapped while a dialog is open.
+   *
+   * WHAT A RUNG MEANS, because a number nobody can name is a number everybody
+   * invents:
+   *
+   *   canvas    the ground, its blooms, anything painted behind the page
+   *   content   raised content within the page
+   *   sticky    chrome fixed to an edge: headers, tab bars, rails
+   *   overlay   things that open over the page: menus, popovers, scrims
+   *   modal     things that take the page over: sheets, drawers, dialogs
+   *   toast     things that appear over a modal and speak
+   *   top       the skip link, and nothing else. It has to beat everything or
+   *             it is not a skip link.
+   *
+   * `sticky` IS 50 BECAUSE THE COMPONENT TREE ALREADY SAYS 50. 47 Tailwind
+   * `z-*` uses, of which `z-50` is the sticky chrome and `z-10`/`z-20` are local
+   * ordering. The ladder ratifies what the product does rather than moving 47
+   * call sites to agree with a number chosen here, which is the difference
+   * between a scale people adopt and one they route around.
+   *
+   * GAPS OF TEN, ON PURPOSE. A sheet needs to sit above its own backdrop, and
+   * writing `calc(var(--nf-z-modal) + 1)` says that relationship out loud where
+   * `81` said nothing. Ten is room for that without room for a new tier.
+   *
+   * WHAT IS NOT ON THE LADDER: 0, 1, 2, -1 and -2. Those are LOCAL ordering
+   * inside one component, almost always a pseudo-element placed behind its own
+   * parent's text, and they compete with nothing. A token for them would invite
+   * somebody to reach for a global rung to solve a local problem, which is how
+   * the 60s and 70s filled up.
+   * ------------------------------------------------------------------ */
+  --nf-z-canvas: 0;
+  --nf-z-content: 1;
+  --nf-z-sticky: 50;
+  --nf-z-overlay: 60;
+  --nf-z-modal: 80;
+  --nf-z-toast: 90;
+  --nf-z-top: 999;
   /*
    * TWO HEADER HEIGHTS, AND THEY ARE THE NUMBERS THE HEADER ACTUALLY RENDERS.
    *
@@ -2437,7 +2521,7 @@
    * surfaces keep deriving from the bright raw palette, so chips stay light
    * tints under the darker ink.
    */
-  --nf-electric-300: #0C2FE8;
+  --nf-brand-quiet: #0C2FE8;
   /* Daylight needs no lift: these two stops measure 7.4:1 and 10.6:1 on paper,
      where the night theme's lifted stops would land at 2.5:1. The token is
      overridden here rather than the class being overridden in globals.css, so
@@ -2517,7 +2601,7 @@
   --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning-accent) 14%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 12%, transparent);
   --nf-state-info-surface: color-mix(in oklab, var(--nf-state-info) 12%, transparent);
-  /* Rating rides --nf-electric-300, so it follows this deeper blue on paper
+  /* Rating rides --nf-brand-quiet, so it follows this deeper blue on paper
      without needing its own daylight value. */
 
   /*

@@ -1,4 +1,123 @@
 /**
+ * ===========================================================================
+ * THE SILENT FAULT FAMILY, AND WHY FIVE CHECKS LIVE IN ONE SCRIPT.
+ * ===========================================================================
+ *
+ * This file exists because of one shape of bug, and the shape is worth naming
+ * before the checks are read, because it is the only reason any of them are
+ * here and it will outlive all of them.
+ *
+ * THE FAMILY: something in the repository ASSERTS a fact about the repository,
+ * the fact is false, and nothing fails. No error, no warning, no failing test,
+ * no visual difference a reviewer would look for. The assertion is believed
+ * precisely because it is written down, and the more carefully it is written
+ * the longer it survives.
+ *
+ * It is not a CSS problem. Every instance below was found in a different
+ * mechanism, by a different kind of search, and only one of the five is about
+ * stylesheets at all.
+ *
+ * ---------------------------------------------------------------------------
+ * THE SIX INSTANCES FOUND SO FAR, IN THE ORDER THEY TURNED UP.
+ *
+ * 1. A DECLARATION NAMING A TOKEN THAT DOES NOT EXIST.
+ *    `.nf-feedtabs` wrote `var(--nf-surface-glass)` and `var(--nf-blur-sm)`.
+ *    Neither name has ever been defined. An unresolved `var()` with no fallback
+ *    makes the WHOLE declaration invalid at computed-value time, so the track
+ *    painted nothing, under a comment describing the track it painted.
+ *    CAUGHT BY A MACHINE: yes, check 4 below.
+ *
+ * 2. A DECLARATION NAMING A TOKEN OF THE WRONG TYPE.
+ *    `.nf-rows-sheet` wrote `background: var(--nf-elev-3)`. That token is a
+ *    three-layer box-shadow. The name is real and correctly spelled, so check 4
+ *    passed it, and the declaration was still dropped in silence: the settings
+ *    sheet had a border, a radius, a shadow, an entrance animation and no fill,
+ *    with the page showing through it. Confirmed in a browser afterwards at
+ *    `rgba(0, 0, 0, 0)`.
+ *    CAUGHT BY A MACHINE: yes, check 5 below, which exists because of it.
+ *
+ * 3. A CUSTOM PROPERTY DECLARED TWICE IN ONE RULE, THE LIVE COPY BEING WRONG.
+ *    Five `--nf-media-*` tokens appeared twice in the same `:root`, seventeen
+ *    lines apart, under a character-for-character copy of the same thirteen-line
+ *    comment, with all five values different. The later copy wins, so a retune
+ *    that the file's own prose describes ("every part of the building below has
+ *    been lifted to match") had never once rendered.
+ *    CAUGHT BY A MACHINE: yes, and it is twenty lines. Walk brace depth,
+ *    collect `--*` declarations per block, report any name declared twice. Run
+ *    once over `tokens.css` and all of `app/css`, it found this and nothing
+ *    else. NOT YET A STANDING CHECK. It should be.
+ *
+ * 4. A COMMENT DESCRIBING A MECHANISM THE CODE NO LONGER HAS.
+ *    Three comments stated in the present tense that brand objects carry
+ *    `mix-blend-mode: multiply`. The blend mode had been deleted; only the prose
+ *    survived. One of them gave ADVICE built on it: "use the approach in
+ *    `.nf-page-scene`, which turns multiply off on the night theme".
+ *    I reported one of these to my own coordinator as live code, in a report
+ *    about this exact fault. Reading a comment and reporting it as behaviour is
+ *    the failure mode, and knowing about the family does not protect you.
+ *    CAUGHT BY A MACHINE: no, and probably never. A comment is prose. What
+ *    helps is a convention: write history in the PAST tense and current
+ *    behaviour in the present, so tense alone tells a reader which it is.
+ *
+ * 5. A CROSS-REFERENCE TO A FILE THAT DOES NOT EXIST.
+ *    `.nf-onboarding` was introduced by "see components/site/Onboarding.tsx for
+ *    the honest, localStorage-gated, reduced-motion-skipping trigger", and
+ *    `.nf-status-assemble` by "see app/agents/status/StatusIcon.tsx for the
+ *    honest, one-shot trigger". Neither file exists anywhere under `src`. Both
+ *    were eleven and four rules of dead CSS, and both read as obviously live,
+ *    because a named component is the strongest evidence a reader gets that a
+ *    rule is wired up.
+ *    CAUGHT BY A MACHINE: yes, easily, and nothing does it. Extract paths that
+ *    look like source files from comments and stat them. Roughly thirty lines.
+ *    NOT YET A STANDING CHECK. It should be.
+ *
+ * 6. TWO BLOCKS IN ONE FILE DESCRIBING THE SAME THING IN CONTRADICTORY TERMS.
+ *    `map.css` introduced `.nf-map-pin` with "Price pins on the live map.
+ *    Rendered by Leaflet divIcons." Six lines later the next block begins
+ *    "Marks are ordinary React buttons projected onto the frame every frame,
+ *    NOT Leaflet divIcons". Both were true statements about different eras and
+ *    only one was true about the present.
+ *    CAUGHT BY A MACHINE: no. This one needs a reader, and it is the argument
+ *    for reading a whole file before editing part of it.
+ *
+ * ---------------------------------------------------------------------------
+ * WHAT THE FAMILY TEACHES, WHICH IS THE TRANSFERABLE PART.
+ *
+ * SILENCE IS NOT EVIDENCE. Every one of the six produced exactly the signal a
+ * correct repository produces: nothing. The absence of a failure is only
+ * information if something was capable of failing.
+ *
+ * A GUARD IS AN ASSERTION TOO, SO CHECK ITS OUTPUT AND NOT ITS EXISTENCE. The
+ * first draft of check 5 passed the very bug it was written for, because the
+ * shadow it was looking for begins `0 2px 4px` and the pattern demanded a unit
+ * on the first length. The check was green and the sheet was still transparent.
+ * Separately, `withoutComments` deleted comment blocks outright, so every line
+ * number this script had ever printed was wrong, by up to 187 lines. Separately
+ * again, the raw-colour check reported a COUNT and no location for its whole
+ * life. And the first run of check 2 returned nine violations of which two were
+ * prose. None of those four would have been found by asking "does the guard
+ * fire". All four were found by reading what it printed.
+ *
+ * THEREFORE: run every new guard against the fault that motivated it, expect
+ * the failure, and read the report rather than the exit code.
+ *
+ * SEARCH ON WORD BOUNDARIES, NOT SUBSTRINGS. A census of unused CSS classes
+ * found 54 of 232 with no call site, and three of the dead ones had survived
+ * review because a substring search finds a living neighbour: `nf-dock` finds
+ * `nf-dock-island`, `nf-action-bar` finds `nf-action-bar-pinned`, `nf-map-pin`
+ * finds `nf-map-pin-breathe`. In each case the live thing is a whole class name
+ * and not a modifier of the dead one, and in each case a reviewer checking "is
+ * this used" would have got a yes.
+ *
+ * QUIETENING IS NOT REMOVING. Four dead things in this tree had been optimised,
+ * slowed, or set to `animation: none` by somebody who had noticed they were
+ * unused and fixed the cost instead of the existence. `.nf-hero-scene` was
+ * tuned three separate times, each one written up, on a class nothing renders.
+ * When a rule keeps coming back for tuning, the cheap question is not "how do I
+ * make this cheaper", it is "what renders this".
+ *
+ * ---------------------------------------------------------------------------
+ *
  * Layer-1 guard, raw-literal guard and unresolved-token guard for the
  * stylesheets.
  *
@@ -7,9 +126,19 @@
  * and `globals.css` states in its own header that nothing below it may
  * introduce a raw colour. Nothing had ever checked that claim.
  *
- * THREE CHECKS. The first two are about where a value came from. The third is
- * about whether a value exists at all, and it is here rather than in ESLint for
- * a reason given in full below.
+ * SIX CHECKS NOW, AND THEY GREW ONE AT A TIME OUT OF THE FAMILY ABOVE.
+ *
+ *   1  a stylesheet reading a layer-1 palette token       ADR-002
+ *   2  a COMPONENT reading one, which nothing could see   ADR-002
+ *   3  a raw colour literal in a stylesheet
+ *   4  a var() naming a token that does not exist         instance 1
+ *   5  a var() naming a token of the wrong type           instance 2
+ *   6  does the whole stylesheet still parse              the worst failure
+ *
+ * 1, 2 and 3 are about where a value came from. 4 and 5 are about whether the
+ * value can be used at all. 6 is about whether the product boots. All six are
+ * here rather than in ESLint for the reason given in full below: ESLint cannot
+ * see CSS.
  *
  * ---------------------------------------------------------------------------
  * 1. A LAYER-1 PALETTE TOKEN read from a stylesheet that is not the token file.
@@ -134,7 +263,7 @@
  * cause. This sweep would have caught the deletions the same day.
  */
 
-import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, existsSync, writeFileSync, rmSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -259,6 +388,7 @@ for (const file of filesUnder(join(ROOT, "src"), [".ts", ".tsx"])) {
 /* ------------------------------------------------------------ the checks */
 
 const failures = [];
+const componentFailures = [];
 const unresolved = [];
 const mistyped = [];
 /*
@@ -361,6 +491,69 @@ for (const dir of ROOTS) {
 }
 
 /*
+ * LAYER 1 READ FROM A COMPONENT, which no guard in this repository could see
+ * until today.
+ *
+ * The check above has always run over stylesheets only. `nf/no-raw-colour`
+ * catches a literal in a component and has nothing to say about a token name.
+ * So ADR-002 was enforced in CSS and unenforced in TSX, which is where most of
+ * the product's colour decisions are actually written, and seven components had
+ * been reading the raw ramps directly for long enough that one of them carries a
+ * comment saying so: `app/agent/list/ListingWizard.tsx` notes that reading
+ * `--nf-electric-300` "is the one thing ADR-002 forbids". Somebody knew, wrote
+ * it down beside the code, and nothing turned that into a failing check.
+ *
+ * It was found as a side effect of proposing a rename, not by looking. That is
+ * the argument for the check rather than for fixing the seven: a rule enforced
+ * on one file type and not the other is not a rule, it is a habit that holds
+ * wherever somebody happens to be looking.
+ *
+ * ONLY `var(--nf-x)` COUNTS, not the bare name. This codebase explains itself by
+ * quoting the token it replaced, so a name inside a backtick is evidence of an
+ * argument rather than of a reference, and a check that punished that would be
+ * switched off within a week. The same reasoning is why the three `nf/` lint
+ * rules walk the AST instead of the source.
+ *
+ * AND COMMENTS HAD TO BE STRIPPED, WHICH THE FIRST RUN OF THIS CHECK PROVED
+ * RATHER THAN THE FIRST DRAFT PREDICTING IT. The paragraph above was written
+ * before the check ran and it says a name in a comment is not a reference. It
+ * was not enough: this file's comments quote the FULL `var(--nf-cyan-400)` form
+ * while explaining a token chain, because that is how you write down what a
+ * token resolves to. Nine violations came back and two were prose, in
+ * `admin/_components/ui.tsx` and `components/app/ResultSheet.tsx`, both of them
+ * notes arguing that `--nf-state-warning` and `--nf-status-pending` are the same
+ * value under two names.
+ *
+ * 22 per cent noise on the first run of a check whose whole purpose is to be
+ * believed. It was caught by reading what the check PRINTED rather than
+ * confirming that it printed something, which is the one habit this file is
+ * worth reading for.
+ *
+ * The stripping is deliberately conservative: block comments, and lines whose
+ * first non-space character is `//` or `*`. It will not catch a `var()` in a
+ * trailing comment after code on the same line. That is rare, and the failure
+ * mode is a visible false positive that the reader can see is prose, which is
+ * the right way round for a check to be wrong.
+ */
+function withoutJsComments(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, (block) => "\n".repeat((block.match(/\n/g) ?? []).length))
+    .split("\n")
+    .map((line) => (/^\s*(\/\/|\*)/.test(line) ? "" : line))
+    .join("\n");
+}
+
+for (const file of filesUnder(join(ROOT, "src"), [".ts", ".tsx"])) {
+  const source = withoutJsComments(readFileSync(file, "utf8"));
+  const where = relative(ROOT, file);
+  source.split("\n").forEach((line, index) => {
+    for (const hit of line.matchAll(/var\(\s*(--nf-(?:ink|mist|royal|electric|cyan|crimson|emerald|rose|sky)-\d{2,3})\s*[,)]/g)) {
+      componentFailures.push(`${where}:${index + 1}  var(${hit[1]})`);
+    }
+  });
+}
+
+/*
  * The token package's own two surfaces. Fatal without exception: this IS the
  * design system, and a token that resolves to nothing here is wrong everywhere
  * downstream at once. `index.ts` is scanned WITHOUT stripping comments, because
@@ -379,9 +572,89 @@ for (const file of filesUnder(TOKENS, [".css", ".ts"])) {
   });
 }
 
+/*
+ * CHECK SIX: DOES THE WHOLE STYLESHEET STILL PARSE, FROM THE ENTRY POINT.
+ *
+ * I WROTE THIS BECAUSE I BROKE IT. Deleting a dead rule from `motion.css` left
+ * an orphaned keyframe body behind - a `{ ... }` with no selector in front of
+ * it - and `globals.css` runs every partial through one PostCSS pass, so a
+ * syntax error in any one of the 24 takes down EVERY ROUTE with a 500. Not the
+ * pages that use the partial. All of them. It is the most severe failure mode
+ * anything in this directory can produce and it was invisible to all five
+ * checks above, to tsc, to eslint and to the test suite, because none of them
+ * parse CSS.
+ *
+ * FROM THE ENTRY POINT, not file by file. I had been parsing each partial on
+ * its own after editing it, which is what caught this one in the end, but a
+ * per-file pass cannot see an unclosed brace that swallows the next file, and
+ * it only runs over the files somebody remembered to list. Following
+ * `globals.css`'s own `@import` graph tests what the product actually compiles.
+ *
+ * `@import "tailwindcss"` and the token package are resolved by the bundler and
+ * not by us, so only the relative partials are followed; those are the ones this
+ * queue writes.
+ *
+ * IT DEGRADES TO A SKIP. `lightningcss` is here because Next depends on it, not
+ * because this script does. If it cannot be loaded the check says so and passes,
+ * because a check that fails on a clean checkout is a check somebody deletes
+ * rather than obeys, and this file's own header has said that since it was
+ * written.
+ */
+let parseError = null;
+try {
+  const { bundle } = await import("lightningcss");
+  const entry = join(ROOT, "src/app/globals.css");
+  const graph = readFileSync(entry, "utf8")
+    .split("\n")
+    .flatMap((line) => [...line.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map((m) => m[1]));
+  const shim = join(ROOT, "src/app", ".parse-check.css");
+  writeFileSync(shim, graph.map((f) => `@import "${f}";`).join("\n"));
+  try {
+    bundle({ filename: shim, minify: false });
+    console.log(`css parse: ${graph.length} partials bundle cleanly from globals.css.`);
+  } finally {
+    rmSync(shim, { force: true });
+  }
+} catch (error) {
+  if (error?.code === "ERR_MODULE_NOT_FOUND") {
+    console.log("css parse: skipped, lightningcss not available.");
+  } else {
+    parseError = error;
+  }
+}
+
 /* ------------------------------------------------------------ the report */
 
 let failed = false;
+
+/*
+ * The parse result is REPORTED here rather than where it is produced, and that
+ * ordering is not cosmetic: `failed` is declared below the checks and the first
+ * draft of this block sat above it, so the moment the check actually caught a
+ * syntax error it threw `ReferenceError: Cannot access 'failed' before
+ * initialization` instead of printing the failure. A guard that crashes on the
+ * fault it was written for is worse than no guard, because the stack trace it
+ * prints is about this file rather than about the stylesheet.
+ *
+ * Found, again, by reintroducing the fault and reading the output. Three
+ * separate checks in this file have now been wrong on their first run and every
+ * one was caught the same way.
+ */
+if (parseError) {
+  failed = true;
+  console.error(
+    "\nA STYLESHEET DOES NOT PARSE, and this is the one failure here that takes\n" +
+      "the whole product down. `globals.css` runs all its partials through one\n" +
+      "PostCSS pass, so a syntax error in any of them 500s EVERY route, not the\n" +
+      "pages that use it. Nothing else in this repository parses CSS: not tsc,\n" +
+      "not eslint, not the tests, and not the five checks above.\n\n" +
+      "The usual cause is an edit that removed a rule and left its body, or a\n" +
+      "comment closed in the wrong place.\n",
+  );
+  console.error(`  ${parseError.fileName ?? "?"}:${parseError.loc?.line ?? "?"}  ${parseError.message}`);
+  console.error("");
+}
+
 
 if (failures.length > 0) {
   failed = true;
@@ -393,6 +666,26 @@ if (failures.length > 0) {
   );
   for (const failure of failures) console.error(`  ${failure}`);
   console.error(`\n${failures.length} violation(s).\n`);
+}
+
+if (componentFailures.length > 0) {
+  failed = true;
+  console.error(
+    "\nA COMPONENT reading a layer-1 palette token (ADR-002). Same rule as the\n" +
+      "check above and the same reasoning: the raw ramps exist so the semantic\n" +
+      "layer has somewhere to resolve to. A component that reads one is pinned to\n" +
+      "a colour rather than to a role, so it cannot follow the theme and cannot\n" +
+      "follow a retune of the ramp.\n\n" +
+      "This check is new. It is not new behaviour: these have been here for as\n" +
+      "long as the files have, invisible because the layer-1 rule was enforced in\n" +
+      "stylesheets and nowhere else.\n\n" +
+      "Reach for the semantic token that names what the colour is DOING.\n" +
+      "Link or action text is `--nf-content-link`. A focus ring is\n" +
+      "`--nf-focus-ring`. The brand at reading weight, when it is genuinely none\n" +
+      "of the named roles, is `--nf-brand-quiet`.\n",
+  );
+  for (const entry of componentFailures) console.error(`  ${entry}`);
+  console.error(`\n${componentFailures.length} component violation(s).\n`);
 }
 
 if (unresolved.length > 0) {
@@ -456,7 +749,7 @@ if (rawColours.length > 0) {
 if (failed) process.exit(1);
 
 console.log(
-  "css tokens: every stylesheet under src/app is clean - 0 layer-1 references, " +
+  "css tokens: clean - 0 layer-1 references in stylesheets, 0 in components, " +
     "0 raw colour literals, 0 unresolved var() references, 0 var() references " +
-    "of the wrong type. All four are enforced.",
+    "of the wrong type, and every partial parses. All six are enforced.",
 );

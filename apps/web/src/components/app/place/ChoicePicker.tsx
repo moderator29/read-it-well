@@ -8,7 +8,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
 import type { Dictionary } from "@vallo/i18n";
-import { useClientMount } from "@/components/app/client-mount";
+import { useClientMount } from "@/lib/ui/client-mount";
 
 /**
  * One choice out of a very long list, without a very long list.
