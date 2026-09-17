@@ -1667,6 +1667,12 @@ export const yo: Dictionary = {
           escrow_release: "A ti tú ìdádúró",
           escrow_refund: "A ti dá ìdádúró padà",
         },
+        transactionStatus: {
+          SUCCESSFUL: "Ó ti parí",
+          PENDING: "Kò tíì parí",
+          FAILED: "Kò yọrí sí rere",
+          REFUNDED: "A ti dá owó padà",
+        },
         kycReview: {
           pending: "A kò tíì yẹ̀ ẹ́ wò",
           approved: "A ti fọwọ́sí",

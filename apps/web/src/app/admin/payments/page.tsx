@@ -239,9 +239,20 @@ export default async function AdminPaymentsPage() {
               {unsettled.map((payment) => (
                 <TR key={payment.id}>
                   <TD>
+                    {/*
+                      NOT A TERNARY OVER A FOUR-VALUE ENUM. This read
+                      `status === "FAILED" ? "Failed" : "Pending"` for both the
+                      word and the colour, so every value that is not FAILED
+                      collapsed into "Pending" in the pending colour. On a
+                      column that also holds REFUNDED that is a false statement
+                      about money, on the desk whose whole job is finding false
+                      statements about money, and it is English besides. The
+                      word comes from the column's own vocabulary and the tone
+                      from `toneForStatus`, which already maps all four. F2-060.
+                    */}
                     <ui.StatusChip
-                      label={payment.status === "FAILED" ? "Failed" : "Pending"}
-                      tone={payment.status === "FAILED" ? "danger" : "warning"}
+                      status={payment.status}
+                      label={ui.columnLabel("transactionStatus", payment.status)}
                     />
                   </TD>
                   <TD className="font-semibold text-[var(--nf-content-primary)] [overflow-wrap:anywhere] [user-select:all]">

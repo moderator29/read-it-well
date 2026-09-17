@@ -1671,6 +1671,12 @@ export const ig: Dictionary = {
           escrow_release: "A hapụla njide",
           escrow_refund: "Enyeghachiri njide",
         },
+        transactionStatus: {
+          SUCCESSFUL: "Akwụsịla ya",
+          PENDING: "Akwụsibeghị ya",
+          FAILED: "Ọ gaghị",
+          REFUNDED: "Enyeghachiri ego",
+        },
         kycReview: {
           pending: "Enyochabeghị ya",
           approved: "Akwadoro ya",

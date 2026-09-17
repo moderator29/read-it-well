@@ -2070,6 +2070,23 @@ export const en = {
           escrow_release: "Hold released",
           escrow_refund: "Hold returned",
         },
+        /*
+         * `transactions.status`, the provider's side of a payment.
+         *
+         * A SEPARATE vocabulary from `walletEntryStatus`, which is the ledger's
+         * side, even though the words land close together: a transaction can be
+         * REFUNDED, which a wallet entry cannot, and a wallet entry can be
+         * REVERSED, which a transaction cannot. `/admin/payments` was collapsing
+         * all four into a ternary, so a REFUNDED row on the payment health desk
+         * read "Pending" in the pending colour, which is a false statement about
+         * money on the screen that exists to find false statements about money.
+         */
+        transactionStatus: {
+          SUCCESSFUL: "Settled",
+          PENDING: "Not settled yet",
+          FAILED: "Failed",
+          REFUNDED: "Refunded",
+        },
         kycReview: {
           pending: "Not reviewed yet",
           approved: "Approved",

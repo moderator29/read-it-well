@@ -1020,6 +1020,64 @@
    * drop shadow.
    *
    * ===================================================================
+   * EACH THEME CARRIES A DEAD FIVE-RUNG LADDER BESIDE A LIVE ONE, AND THEY
+   * ARE MIRROR IMAGES. MEASURED FROM RENDERED PIXELS.
+   * ===================================================================
+   *
+   * `scripts/probe-elevation-rendered.mjs` mounts the five rungs on the real
+   * canvas, screenshots it and samples the composited pixels. Luminance drop
+   * under each tile, and the rim's luminance step at the top edge:
+   *
+   *                  DARK                        LIGHT
+   *   rung     shadow        rim          shadow        rim
+   *     1     0.00008      0.01589        0.05808     0.00000
+   *     2     0.00018      0.02716        0.16010     0.00000
+   *     3     upward       0.04340        upward      0.00000
+   *     4     0.00022      0.05877        0.24205     0.00000
+   *     5     0.00022      0.07896        0.24710     0.00000
+   *
+   * THE DARK SHADOW LADDER DOES NOTHING. The night canvas measures 0.0004 in
+   * luminance and the deepest of the five rungs darkens it by 0.00022. Black at
+   * 62 per cent over near-black is near-black: the contrast ratio a shadow
+   * achieves against this canvas is 1.003 at rung 1 and 1.005 at rung 5, which
+   * is the same number five times. Rungs 4 and 5 are IDENTICAL to five decimal
+   * places. Five carefully tuned values, and the strongest is 70 times weaker
+   * than the rim's smallest step.
+   *
+   * THE LIGHT RIM LADDER DOES NOTHING EITHER, and it is worse because it is
+   * exact. Every rung's rim is white at 0.9 or 1.0, and every light card is
+   * `--nf-surface-primary`, which is #FFFFFF. White on white is 0.00000, five
+   * times, and four of the five tokens hold the identical value 1. A top
+   * highlight is a real cue on a dark surface and there is no such thing as a
+   * highlight on paper: what a raised object has on white is a shadow, which is
+   * the half that works here.
+   *
+   * SO ELEVATION IS CARRIED BY DIFFERENT CHANNELS IN THE TWO THEMES, and that
+   * is not a bug to fix but the physics of the two grounds. It does mean the
+   * ladder is maintained twice over at double the width it needs: ten dark
+   * values of which five are inert, ten light values of which five are inert.
+   * Both dead halves are left in place for now, because deleting them is a
+   * design decision about whether a theme may omit a channel, and the numbers
+   * above are what that decision should be made on.
+   *
+   * WHAT IS NOT WRONG, and was reported as wrong. An earlier probe summed alpha
+   * times spread per rung and found rung 5 below rung 4 in light. That measure
+   * has the axis backwards: an object further from a surface casts a shadow that
+   * is LARGER, SOFTER and FAINTER, so alpha falls as height rises and a
+   * physically correct ladder looks non-monotonic under a sum of ink. Measured
+   * as reach, the distance at which the penumbra falls below two per cent, both
+   * themes are monotonic across the four downward rungs: 16 < 38 < 95.5 < 100 in
+   * dark and 12 < 29.5 < 72.5 < 76.5 in light. See
+   * `scripts/probe-elevation-profile.mjs` for the model and the argument.
+   *
+   * RUNG 3 IS NOT ON THIS LADDER AND MUST NEVER BE COMPARED TO ITS NEIGHBOURS.
+   * Its shadow points UP in both themes, because it is the bottom sheet's rung,
+   * a sheet is anchored to the bottom edge of the screen, and the only surface
+   * it can cast onto is the page above it. A shadow under a sheet falls off the
+   * screen. Any probe that ranks it against rungs 2 and 4 is measuring an upward
+   * shadow with a downward ruler.
+   *
+   * ===================================================================
    * THERE IS ONE DEPTH MODEL NOW. THERE WERE FOUR AND THEY DISAGREED.
    * ===================================================================
    *

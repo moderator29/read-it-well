@@ -1661,6 +1661,12 @@ export const ha: Dictionary = {
           escrow_release: "An sako riƙon",
           escrow_refund: "An mayar da riƙon",
         },
+        transactionStatus: {
+          SUCCESSFUL: "An kammala",
+          PENDING: "Ba a kammala ba tukuna",
+          FAILED: "Bai yi nasara ba",
+          REFUNDED: "An mayar da kuɗin",
+        },
         kycReview: {
           pending: "Ba a duba ba tukuna",
           approved: "An amince",

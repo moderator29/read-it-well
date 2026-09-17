@@ -41,6 +41,14 @@ const THE_STRINGS_THAT_SHIPPED = [
   "Messaging is nearly here, so come back soon.",
   "Accounts switch on shortly.",
   /*
+   * F1-095's other half, which no pattern caught until the shape was banned
+   * rather than the sentence. The string was already out of the tree, so the
+   * sweep was green either way and the hole was invisible.
+   */
+  "People switch on shortly. The platform keys are not in place yet.",
+  "The platform keys are not in place yet, so there is nothing to show.",
+  "We are waiting on the payment keys.",
+  /*
    * And the same promise as it shipped in the other three languages, which is
    * where five of these survived a rewrite of their English original. Pinned
    * verbatim: if somebody edits a pattern and these stop matching, the guard
@@ -146,7 +154,31 @@ describe("reading a source file the way a reader sees it", () => {
  * argument for walking the locales rather than trusting that a copy fix
  * travels. It does not travel. Nobody reads the file it fails to travel to.
  */
-const EXEMPT = new Set(["lib/copy/banned-phrases.ts", "lib/copy/banned-phrases.test.ts"]);
+const EXEMPT = new Set([
+  "lib/copy/banned-phrases.ts",
+  "lib/copy/banned-phrases.test.ts",
+  /*
+   * THE RECOVERY DESK, WHERE NAMING THE VARIABLE IS THE POINT.
+   *
+   * Widening the keys pattern caught three live strings here on its first run,
+   * and they are the one place in the product where this is right rather than
+   * wrong. `recovery-actions.ts` is the console's money recovery desk: every
+   * action in it is behind `requireAdmin()`, and it exists so that the next
+   * unposted credit can be fixed "without an engineer, a shell and a service
+   * key", in its own words. "Set SUPABASE_SERVICE_ROLE_KEY and try again" is
+   * addressed to the person who can do exactly that.
+   *
+   * THE BAN IS ABOUT AUDIENCE, NOT VOCABULARY. F2-023 and F1-095 are both about
+   * our deployment made a CUSTOMER's problem. An operator being told which
+   * variable is missing is being given the fix.
+   *
+   * WHAT THIS COSTS, SAID OUT LOUD: the exemption is the whole file, so a
+   * schedule promise written in it would not be caught either. That is the
+   * price of a file-level exemption and it is worth naming, because the next
+   * person to add a sentence here has no other way to know.
+   */
+  "lib/wallet/recovery-actions.ts",
+]);
 
 /** A path a reader can find, whichever of the two trees it came from. */
 function label(path: string): string {

@@ -2,8 +2,13 @@
 
 import { useRef, useState } from "react";
 
+import { getDictionary } from "@vallo/i18n";
+
 import { Sheet } from "@/components/ui/Sheet";
 import { EmptyActions } from "@/components/app/EmptyActions";
+import { WaitNotice } from "@/components/app/wallet/MoneyWait";
+import { adminUi } from "@/app/admin/_components/ui";
+import { QUEUE_EMPTY_MARK } from "@/app/admin/_components/queue-empty";
 
 /**
  * The fixtures. Deliberately boring copy: this is for looking at the MATERIAL,
@@ -11,6 +16,37 @@ import { EmptyActions } from "@/components/app/EmptyActions";
  * rim is missing on rung three.
  */
 const ELEVATION = ["nf-elev-1", "nf-elev-2", "nf-elev-3", "nf-elev-4", "nf-elev-5"];
+/*
+ * THE FOUR SPACING VALUES THE PRODUCT KEEPS INVENTING, beside the rungs they
+ * sit between. Mounted because the decision about them is a decision about
+ * whether a 2px difference in padding is visible, and that cannot be settled in
+ * a report. 227 off-scale occurrences remain across the product and these four
+ * are 176 of them.
+ *
+ * Each row is the value as written, the rung below it and the rung above it, at
+ * the same width, so the question on screen is the only one that matters: can
+ * you tell the middle one from its neighbours.
+ */
+const OFF_SCALE = [
+  /*
+   * THE FOUR RAW STEPS BELOW ARE THE SPECIMENS, NOT DECISIONS, which is why each
+   * carries its own disable rather than the file carrying one. `nf/no-raw-spacing`
+   * is right to see them and wrong about what they are: this panel exists to show
+   * a reader what `p-1.5` looks like beside the rungs it sits between, and
+   * migrating them to the scale would delete the thing being demonstrated. Same
+   * shape as `pointer-coarse:text-[16px]` in components/ui/Field.tsx, where 16 is
+   * mobile Safari's zoom threshold rather than a rung.
+   */
+  // eslint-disable-next-line nf/no-raw-spacing -- the specimen being displayed, not a spacing decision.
+  { px: 6, uses: 46, lo: "p-2xs", loPx: 4, hi: "p-xs", hiPx: 8, raw: "p-1.5" },
+  // eslint-disable-next-line nf/no-raw-spacing -- the specimen being displayed, not a spacing decision.
+  { px: 10, uses: 39, lo: "p-xs", loPx: 8, hi: "p-sm", hiPx: 12, raw: "p-2.5" },
+  // eslint-disable-next-line nf/no-raw-spacing -- the specimen being displayed, not a spacing decision.
+  { px: 14, uses: 30, lo: "p-sm", loPx: 12, hi: "p-md", hiPx: 16, raw: "p-3.5" },
+  // eslint-disable-next-line nf/no-raw-spacing -- the specimen being displayed, not a spacing decision.
+  { px: 20, uses: 61, lo: "p-md", loPx: 16, hi: "p-lg", hiPx: 24, raw: "p-5" },
+];
+
 const GLASS = [
   { cls: "nf-glass nf-glass--thin", label: "thin" },
   { cls: "nf-glass", label: "glass" },
@@ -32,6 +68,10 @@ function Section({ title, note, children }: { title: string; note: string; child
 export function GalleryBoard() {
   const [sheet, setSheet] = useState<null | "plain" | "detents" | "focus">(null);
   const amountRef = useRef<HTMLInputElement | null>(null);
+  /* English, because the gallery is for looking at the material and a reviewer
+     reading four languages at once is reading none of them. The locale is a
+     prop everywhere it matters, so switching this line switches the board. */
+  const ui = adminUi(getDictionary("en"), "en");
 
   return (
     <main className="nf-shell py-section">
@@ -100,6 +140,83 @@ export function GalleryBoard() {
             primary={{ label: "Add money", href: "#" }}
             secondary={{ label: "How the wallet works", href: "#" }}
           />
+        </div>
+      </Section>
+
+      <Section
+        title="An empty queue, all three of them"
+        note="THE THING TO LOOK AT IS WHETHER THESE READ AS THREE THINGS AT A GLANCE. A test can prove they are three different identifiers; it cannot prove they are three different marks. Only one of the three is allowed to be good news: cleared is emerald with a tick, and the other two are neutral, because a queue nothing ever arrived at and a filter that matched nothing are both facts about nothing rather than achievements. Read them at 390 in dark, then in light."
+      >
+        <div className="grid gap-group md:grid-cols-3">
+          {(
+            [
+              ["cleared", "Nothing is waiting", "Every application that has arrived has been decided."],
+              ["never", "No application has arrived", "The first person to apply appears here."],
+              ["no-match", "Nothing matched", "No row matches that filter. The queue behind it is unchanged."],
+            ] as const
+          ).map(([state, title, body]) => (
+            <div key={state}>
+              <p className="nf-overline mb-inline-tight">
+                {state} · {QUEUE_EMPTY_MARK[state].icon}
+              </p>
+              <ui.QueueEmpty title={title} body={body} state={state} />
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section
+        title="A money call that is taking too long"
+        note="The two states of the clock on withdraw and transfer. At ten seconds the quiet line; at twenty-five the terminal panel. IT OFFERS NO RETRY ON PURPOSE, because neither action takes an idempotency key, so a second submit is a second movement of real money: the long version of that reasoning is on withdraw in lib/wallet/actions.ts. Read the two sentences as somebody who has just asked us to send money to their bank and has been watching a spinner: they assert something about a request that is still in flight, and that is the thing to check."
+      >
+        <div className="grid gap-group md:grid-cols-2">
+          <div className="nf-card p-card">
+            <p className="nf-overline mb-inline-tight">slow, withdrawal</p>
+            <WaitNotice wait="slow" movement="withdrawal" onDone={() => undefined} />
+          </div>
+          <div className="nf-card p-card">
+            <p className="nf-overline mb-inline-tight">stalled, withdrawal</p>
+            <WaitNotice wait="stalled" movement="withdrawal" onDone={() => undefined} />
+          </div>
+          <div className="nf-card p-card">
+            <p className="nf-overline mb-inline-tight">slow, transfer</p>
+            <WaitNotice wait="slow" movement="transfer" onDone={() => undefined} />
+          </div>
+          <div className="nf-card p-card">
+            <p className="nf-overline mb-inline-tight">stalled, transfer</p>
+            <WaitNotice wait="stalled" movement="transfer" onDone={() => undefined} />
+          </div>
+        </div>
+      </Section>
+
+      <Section
+        title="The four spacing values with no rung"
+        note="227 spacing utilities in the product sit between two rungs, and these four are 176 of them. Each row shows the value as written between the rung below and the rung above, on the same box at the same width. The question is not whether the scale is tidy, it is whether you can see the middle box differ from the two beside it: if you cannot, 176 call sites should move to the nearest rung and the scale stays six steps at the bottom; if you can, the scale is too coarse there and the product has been telling us so 176 times. The 20px row is the one to look at hardest, because 39 of its 61 uses are card padding and it sits in the only doubled gap in the ladder, 16 to 24."
+      >
+        <div className="flex flex-col gap-group">
+          {OFF_SCALE.map((r) => (
+            <div key={r.px}>
+              <p className="nf-overline mb-inline-tight">
+                {r.px}px, {r.uses} uses, between {r.loPx} and {r.hiPx}
+              </p>
+              <div className="flex flex-wrap items-start gap-inline">
+                {[
+                  { label: `${r.lo} (${r.loPx})`, cls: r.lo },
+                  { label: `${r.raw} (${r.px})`, cls: r.raw },
+                  { label: `${r.hi} (${r.hiPx})`, cls: r.hi },
+                ].map((box) => (
+                  <div key={box.label} className="text-center">
+                    <div className={`nf-card ${box.cls}`}>
+                      <div className="h-8 w-16 rounded-[var(--nf-radius-sm)] bg-[var(--nf-brand-tint-2)]" />
+                    </div>
+                    <p className="mt-inline-tight text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                      {box.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </Section>
 

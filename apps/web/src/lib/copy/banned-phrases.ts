@@ -66,7 +66,30 @@ export const SCHEDULE_PROMISES: { label: string; pattern: RegExp }[] = [
    * "once the payment keys land". It is both a schedule and infrastructure
    * jargon, which is the pair F2-003 was filed about.
    */
+  /*
+   * Our own deployment, told to a reader, in any of the shapes it has taken.
+   *
+   * `keys land` was the only one for a sprint, because it was the only one left
+   * in the tree. F1-095 quotes a second that nothing would have caught: "The
+   * platform keys are not in place yet", on `/u`, which says exactly the same
+   * thing with a different verb and a "yet" doing the schedule's work. It was
+   * already gone when the guard was written, so the guard was built to the
+   * strings that survived rather than to the strings the finding named, which is
+   * how a pattern ends up with a hole nobody can see.
+   *
+   * A GUARD WITH A KNOWN HOLE IS WORSE THAN ONE WITHOUT, because the hole is
+   * invisible to whoever inherits it: they read a green sweep and conclude the
+   * product does not say this. So the shape is banned rather than the sentence.
+   * Keys that land, keys that arrive, keys that are not in place, keys we are
+   * waiting on, keys nobody has added: all of them are the same fact, which is
+   * that a reader has been handed our infrastructure to worry about.
+   */
   { label: "keys land", pattern: /\bkeys?\s+land\b/i },
+  {
+    label: "the platform keys are <anything>",
+    pattern:
+      /\b(platform|payment|paystack|api)\s+keys?\b|\bkeys?\s+(are|is|have|has|were|was)\s+(not\s+)?(in\s+place|added|set|configured|missing|arrived|there)\b/i,
+  },
   { label: "launches soon", pattern: /\blaunch(es|ing)?\s+soon\b/i },
   { label: "available soon", pattern: /\b(available|live|here|ready)\s+soon\b/i },
   { label: "goes live soon", pattern: /\bgoes?\s+live\s+soon\b/i },
