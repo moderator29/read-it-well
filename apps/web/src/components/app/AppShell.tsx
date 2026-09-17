@@ -364,7 +364,7 @@ export function AppShell({
               button and the wordmark start on the same vertical as the content
               under them. It used to be px-4 stepping to px-5 then px-8, which
               is three values none of which matched the shell's own. */}
-          <div className="flex h-[64px] items-center gap-md px-gutter">
+          <div className="flex h-header-sm items-center gap-md px-gutter sm:h-header">
             {/* Phones lead with the side navigation, exactly like the desktop left rail. */}
             <button
               type="button"

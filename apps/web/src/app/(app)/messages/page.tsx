@@ -22,9 +22,10 @@ export const metadata: Metadata = { title: "Inbox" };
  * **It used to show a stranger somebody else's inbox.** Falling through to
  * `getMessageRepository()` served three invented conversations with named
  * agents about real listings, through this exact component, with no label
- * anywhere on the page. `lib/agent/repository.ts` had already decided the
- * principle when it deleted its own seeded agent: identity is the one thing a
- * "designed figures" label cannot rescue. So the fixture is deleted rather than
+ * anywhere on the page. The agent repository had already decided the principle
+ * when it deleted its own seeded agent, back in August: identity is the one
+ * thing a "designed figures" label cannot rescue. That file is itself gone now,
+ * which is why this says what it decided rather than where to read it. So the fixture is deleted rather than
  * labelled, and what a signed-out reader gets is the truth plus the two ways
  * in.
  *

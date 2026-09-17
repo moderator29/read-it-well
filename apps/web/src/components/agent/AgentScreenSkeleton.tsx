@@ -18,8 +18,10 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
  * height, same content padding.
  *
  * This is a stand-in, not the shell, and it should be deleted the day
- * `AgentShell` moves into `app/agent/layout.tsx` - which is the real fix, and is
- * an edit to existing files rather than a new one.
+ * `AgentShell` becomes the layout under `app/agent/` - which is the real fix,
+ * and is an edit to existing files rather than a new one. Named as a directory
+ * rather than as a file on purpose: a full path with an extension asserts the
+ * file is there to be opened, and this one is a prediction.
  */
 export function AgentScreenSkeleton({
   label,
@@ -48,7 +50,7 @@ export function AgentScreenSkeleton({
             or not the page beneath it has arrived, and drawing a grey slab in
             its place would be a bigger change than leaving it empty. */}
         <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
-          <div className="flex h-[60px] items-center gap-2 px-3 sm:h-[64px] sm:gap-4 sm:px-5 md:px-8">
+          <div className="flex h-header-sm items-center gap-2 px-3 sm:h-header sm:gap-4 sm:px-5 md:px-8">
             <Skeleton circle width="2.25rem" className="shrink-0 sm:hidden" />
             <Skeleton circle width="2.5rem" className="hidden shrink-0 sm:block" />
             <Skeleton width="9rem" height="1rem" radius="sm" className="max-w-[40%]" />

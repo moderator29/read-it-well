@@ -27,9 +27,10 @@ import type {
  * written, attributed to them, in a conversation with somebody who does not
  * exist.
  *
- * `lib/agent/repository.ts` had already settled this question when it deleted
- * its own seeded agent: **identity is the one thing a "designed figures" label
- * cannot rescue.** The agent dashboard survives with invented numbers because a
+ * The agent repository had already settled this question in August when it
+ * deleted its own seeded agent: **identity is the one thing a "designed
+ * figures" label cannot rescue.** That file has since been deleted itself, so
+ * this records the decision rather than pointing at a place to read it. The agent dashboard survives with invented numbers because a
  * revenue figure is not a person, and it says "Designed figures" above them
  * anyway. A label under invented conversations from a named individual would
  * not have made them honest, it would have made them a labelled lie about
