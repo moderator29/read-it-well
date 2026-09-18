@@ -152,8 +152,8 @@ the raised engineering tier.
 **US$6,380 already spent** by the founder and CTO from personal resources since
 early 2025. Not a debt of the company and not being reclaimed.
 
-Payment accounts before the company account exists: Access Bank 1602526794, OPay
-7050743084, both Omojuni Oluwaseyifunmi Ebenezer. The budget document tells
+Payment accounts before the company account exists are held in the budget
+artifact with the agreement, not in this repository. The budget document tells
 Samuel to confirm by voice before every transfer.
 
 ### Solicitor engagement
