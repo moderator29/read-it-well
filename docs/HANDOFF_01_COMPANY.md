@@ -36,10 +36,18 @@ obligation requires a change in the product, this handoff **specifies** it and
 2020. The application was submitted to the Corporate Affairs Commission on
 **14 September 2026**.
 
+**INCORPORATED 18 SEPTEMBER 2026.** The certificate of incorporation and the
+certified memorandum and articles were issued on 18 September 2026 after two
+queries were resolved (PSC reconciliation; objects recouched and the combined
+means-of-identification PDF uploaded). The company exists.
+
 | | |
 | --- | --- |
 | Registered name | VALLO SPACES LTD |
 | Platform brand | **Vallo** |
+| **RC number** | **9870413** |
+| **Tax Identification Number** | **2623712661609** (printed on the certificate; TIN is harmonised, no separate FIRS registration needed) |
+| Incorporated | 18 September 2026, under CAMA 2020 |
 | CAC application ID | 12485150 |
 | Name reservation code | 17893407603, valid 60 days from approval |
 | Share capital | ₦1,000,000, in 1,000,000 ordinary shares of ₦1 |
