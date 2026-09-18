@@ -146,12 +146,12 @@ export function buildNav({
       items: stays
         ? [
             { href: "/stays", label: t.nav.stays, icon: "bed" },
-            { href: "/stays/search", label: t.nav.exploreStays, icon: "compass" },
+            { href: "/stays/search", label: t.nav.search, icon: "search" },
             { href: "/around", label: t.nav.feed, icon: "feed" },
           ]
         : [
             { href: "/home", label: t.nav.home, icon: "home" },
-            { href: "/search", label: t.nav.explore, icon: "compass" },
+            { href: "/search", label: t.nav.search, icon: "search" },
             /* `grid` meant "Around" and nothing about a grid of four squares says
                feed, place or neighbourhood: it was the one destination in the set
                a person could not guess from its glyph. `feed` exists now. */
@@ -191,6 +191,9 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
+        /* Crypto is a side-nav feature by the founder's ruling
+           (DESIGN_DIRECTION section 3.4): market data, display only. */
+        { href: "/crypto", label: t.nav.crypto, icon: "bolt" },
         /*
          * THE ASSISTANT ROW IS BACK, BY REQUEST.
          *

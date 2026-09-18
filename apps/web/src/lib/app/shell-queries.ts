@@ -29,6 +29,10 @@ import { resolveSession } from "../actions/session";
 export type ShellIdentity = {
   /** First name where we have one, otherwise a neutral label. Never a fiction. */
   userName: string;
+  /** The @handle from the social profile, for the drawer. Empty when none. */
+  userHandle: string;
+  /** Reserved for the human-checked tick; nothing sets it yet. */
+  verified: boolean;
   /** Unread notifications for this caller. Zero renders no badge at all. */
   unreadNotifications: number;
   /** The person's own photo, or an empty string when they have not set one. */
@@ -43,6 +47,8 @@ export type ShellIdentity = {
 
 const GUEST: ShellIdentity = {
   userName: "Guest",
+  userHandle: "",
+  verified: false,
   unreadNotifications: 0,
   avatarUrl: "",
   signedIn: false,
@@ -67,11 +73,17 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
     const session = await resolveSession();
     if (session.state !== "signed-in") return GUEST;
 
-    const [profileResult, unreadResult, agentResult, roleResult] = await Promise.all([
+    const [profileResult, socialResult, unreadResult, agentResult, roleResult] = await Promise.all([
       session.supabase
         .from("profiles")
         .select("first_name, nickname, display_name, avatar_url")
         .eq("id", session.user.id)
+        .maybeSingle(),
+      /* The handle lives on the social profile, which is select-own. */
+      session.supabase
+        .from("social_profiles")
+        .select("handle")
+        .eq("user_id", session.user.id)
         .maybeSingle(),
       session.supabase
         .from("notifications")
@@ -102,6 +114,8 @@ export const getShellIdentity = cache(async function getShellIdentity(): Promise
 
     return {
       userName: name,
+      userHandle: socialResult.error ? "" : (socialResult.data?.handle ?? ""),
+      verified: false,
       unreadNotifications: unreadResult.error ? 0 : (unreadResult.count ?? 0),
       avatarUrl: profile?.avatar_url ?? "",
       signedIn: true,

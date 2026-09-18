@@ -47,8 +47,24 @@
     animation: nf-drawer-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
 
+  /* The drawer render opens from the LEFT, the app dimmed to its right. */
+  @keyframes nf-drawer-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  .nf-drawer--left {
+    border-right: 1px solid var(--nf-elev-4-border);
+    border-radius: 0 var(--nf-radius-2xl) var(--nf-radius-2xl) 0;
+    animation: nf-drawer-in-left var(--nf-duration-slow) var(--nf-ease-spring) both;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .nf-drawer--right {
+    .nf-drawer--right,
+    .nf-drawer--left {
       animation: none;
     }
   }

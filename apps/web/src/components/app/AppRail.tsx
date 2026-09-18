@@ -45,6 +45,7 @@ export function AppRail({
   active = "/home",
   activeType = null,
   userName,
+  userHandle = "",
   avatarUrl = "",
   unreadNotifications = 0,
   isAgent = false,
@@ -55,62 +56,42 @@ export function AppRail({
   onClose,
 }: {
   t: Dictionary;
-  /** Which side the shell is painted as; decides the nav model and the coin. */
   side?: Side;
-  /** The current pathname, with no query on it. */
   active?: string;
-  /** The current `type` search parameter, which is what separates the five. */
   activeType?: string | null;
   userName: string;
+  userHandle?: string;
   avatarUrl?: string;
   unreadNotifications?: number;
   isAgent?: boolean;
   isAdmin?: boolean;
   signedIn?: boolean;
-  /** `rail` is the sticky desktop column; `drawer` is the phone slide-in. */
   variant?: "rail" | "drawer";
-  /** The drawer closes itself when a row is followed. */
   onNavigate?: () => void;
-  /**
-   * Shuts the drawer without going anywhere.
-   *
-   * Separate from `onNavigate` even though both currently close the panel:
-   * one is a side effect of leaving, the other is the whole action. The
-   * desktop rail passes neither, which is what keeps the close button out
-   * of a panel that is never open or shut.
-   */
   onClose?: () => void;
 }) {
   const sections = useMemo(
     () => buildNav({ t, side, unreadNotifications, isAgent, isAdmin, signedIn }),
     [t, side, unreadNotifications, isAgent, isAdmin, signedIn],
   );
+  const drawer = variant === "drawer";
+
   return (
     <aside
-      className={variant === "rail" ? "nf-nav nf-nav--rail" : "nf-nav nf-nav--drawer"}
+      className={drawer ? "nf-nav nf-nav--drawer" : "nf-nav nf-nav--rail"}
       aria-label={t.nav.primaryLabel}
     >
       {/*
-        The workspace header, which the reference leads with: who this is, and
-        the control that closes the panel.
-
-        THAT SECOND HALF WAS A COMMENT AND NOTHING ELSE. This head has claimed
-        to carry a close button since it was written and has only ever rendered
-        the wordmark, so an open drawer on a phone offered no visible way out:
-        the backdrop is an unlabelled transparent button that reads as the
-        dimmed app rather than a target, and Escape is not a key a phone has.
-
-        The button belongs to the drawer, which owns the open state, so the
-        drawer passes the handler and the desktop rail passes none - a sticky
-        column that is always there has nothing to close.
+        The head. On the desktop rail it is the wordmark; the drawer render
+        leads with the person instead, so there the head carries only the
+        close control and the user block below is the first thing read.
       */}
       <div className="nf-nav__head">
-        <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
-          {/* 42/19, up from 34/17, in step with the shell header. The mark has a
-              real alpha channel now, so it is a mark rather than a square crop
-              and it holds at a size a chrome rail can carry. */}
-          <Logo size={42} wordSize={19} responsive />
-        </Link>
+        {!drawer && (
+          <Link href="/" aria-label={t.a11y.logoHome} className="nf-nav__brand">
+            <Logo size={42} wordSize={19} responsive />
+          </Link>
+        )}
         {onClose && (
           <button
             type="button"
@@ -124,7 +105,13 @@ export function AppRail({
       </div>
 
       {signedIn && (
-        <Link href="/profile" onClick={onNavigate} className="nf-nav__who">
+        /*
+          THE USER BLOCK, per the drawer render: the avatar in a glowing ring,
+          the name, the handle, and a "View profile" glass capsule. One link
+          because it is one destination; the capsule is the visible affordance
+          and the whole block is its tap target.
+        */
+        <Link href="/profile" onClick={onNavigate} className={drawer ? "nf-nav__who nf-nav__who--card" : "nf-nav__who"}>
           <span className="nf-nav__avatar" aria-hidden="true">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -133,8 +120,17 @@ export function AppRail({
               userName.slice(0, 1).toUpperCase()
             )}
           </span>
-          <span className="nf-nav__whoname">{userName}</span>
-          <UiIcon name="chevron-right" size={12} className="nf-nav__whochev" />
+          <span className="nf-nav__whobody">
+            <span className="nf-nav__whoname">{userName}</span>
+            {drawer && userHandle && <span className="nf-nav__whohandle">@{userHandle}</span>}
+            {drawer && (
+              <span className="nf-nav__whocta">
+                {t.nav.viewProfile}
+                <UiIcon name="arrow-right" size={12} />
+              </span>
+            )}
+          </span>
+          {!drawer && <UiIcon name="chevron-right" size={12} className="nf-nav__whochev" />}
         </Link>
       )}
 
@@ -147,32 +143,13 @@ export function AppRail({
       />
 
       {/*
-        LIGHT AND DARK LIVES IN THE NAVIGATION, AND THE APP CHROME CARRIES
-        NOTHING.
-
-        It has now been in three places and this is the right one. It began as a
-        permanent control in the app header on every screen, moved into Settings
-        because a choice most people make once should not occupy the chrome
-        forever, and briefly came back to the header because four taps into
-        Settings is too far for something people flip by reaction to the room
-        they are sitting in.
-
-        The navigation resolves that: one tap from the rail on desktop, one tap
-        from the drawer on a phone, and nothing hanging off the top of any
-        screen. It sits at the FOOT of the panel, below the destinations,
-        because it is a preference rather than a place - the only control here
-        that changes how the product looks instead of where you are.
-
-        The Settings entry stays. Both write `data-theme` on the root element
-        through the same key, so the two can never disagree.
+        THE FOOT: the coin, then the theme row. The two controls in the
+        navigation that change how the product looks rather than where you
+        are, and the coin is the bigger question: it turns the whole app over
+        to its other side. The drawer render makes it the star, a glass card
+        with the coin in a lit ring; see `SideSwitch` and `SideFlip`.
       */}
       <div className="nf-nav__foot">
-        {/*
-          THE COIN, above the theme row. The only two controls in the
-          navigation that change how the product looks rather than where you
-          are, and the coin is the bigger of the two questions: it turns the
-          whole app over to its other side. See `SideSwitch` and `SideFlip`.
-        */}
         <SideSwitch t={t} onNavigate={onNavigate} />
         <ThemeToggle variant="row" />
       </div>

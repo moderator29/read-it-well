@@ -437,8 +437,150 @@
     transform: scale(var(--nf-press-scale-sm));
   }
   .nf-tab__icon {
+    position: relative;
     display: flex;
     flex-shrink: 0;
+  }
+  /*
+    THE LABEL RETURNS. The renders write a word under every glyph and the
+    founder chose the five-slot bar with words. Eleven pixels on the caption
+    face, the glyph above it, the active slot at the brand ink with a soft
+    glow, the way the feed render lights Home.
+  */
+  .nf-tab__link {
+    flex-direction: column;
+    gap: 0.125rem;
+    height: 3.5rem;
+  }
+  .nf-tab__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .nf-tab__link[aria-current="page"],
+  .nf-tab__link[data-on] {
+    color: var(--nf-brand-secondary);
+    text-shadow: 0 0 12px var(--nf-glow-2);
+  }
+  .nf-tab__link[aria-current="page"] .nf-tab__icon,
+  .nf-tab__link[data-on] .nf-tab__icon {
+    filter: drop-shadow(0 0 6px var(--nf-glow-3));
+  }
+  .nf-tab__mark {
+    position: absolute;
+    top: -0.125rem;
+    right: -0.25rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid var(--nf-surface-canvas);
+    background: var(--nf-status-pending);
+  }
+  /* The bar itself: the renders draw one rounded glass slab with a bright
+     top rim and a brand glow bleeding from its base, not a capsule. */
+  .nf-tabbar {
+    border-radius: var(--nf-radius-2xl);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      0 0 0 1px var(--nf-brand-edge-soft),
+      0 10px 40px -12px var(--nf-glow-3),
+      var(--nf-glass-shadow-lifted);
+  }
+  .nf-tabbar__pill {
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-brand-tint-2);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-2);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-tabbar__pill {
+      transition: none;
+    }
+  }
+
+  /* ------------------------------------------------------ the app header */
+  /*
+    Hamburger, lockup, bell, avatar, on every in-app page (DESIGN_DIRECTION
+    section 3.2). The round glass buttons are the renders' header controls:
+    a 40px glass square with the rim, the glyph at the content ink, the
+    unread dot in the attention cyan at the bell's shoulder.
+  */
+  .nf-app-header__btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+    color: var(--nf-content-primary);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-app-header__btn:hover {
+    background: var(--nf-glass-fill);
+  }
+  .nf-app-header__btn:active {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+  .nf-app-header__btn:focus-visible,
+  .nf-app-header__avatar:focus-visible,
+  .nf-app-header__brand:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-app-header__dot {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid var(--nf-surface-canvas);
+    background: var(--nf-status-pending);
+  }
+  .nf-app-header__avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 0.875rem;
+    font-weight: 700;
+    box-shadow:
+      0 0 0 2px var(--nf-surface-canvas),
+      0 0 0 3px var(--nf-brand-edge),
+      0 0 14px var(--nf-glow-2);
+  }
+  .nf-app-header__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-app-header__brand {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    border-radius: var(--nf-radius-sm);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-app-header__btn {
+      transition: none;
+    }
+    .nf-app-header__btn:active {
+      transform: none;
+    }
   }
 
 

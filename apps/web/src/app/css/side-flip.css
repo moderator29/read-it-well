@@ -302,40 +302,63 @@
     align-items: center;
     gap: 0.875rem;
     width: 100%;
-    min-height: 3.25rem;
-    padding: 0.5rem 0.625rem;
-    border-radius: var(--nf-radius-md);
+    min-height: 5rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: var(--nf-radius-xl);
+    border: 1px solid var(--nf-brand-edge);
+    background:
+      linear-gradient(var(--nf-light-angle), var(--nf-brand-tint-2), var(--nf-brand-tint-1) 60%, transparent),
+      var(--nf-glass-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 28px -6px var(--nf-glow-3);
     color: var(--nf-content-secondary);
     text-align: left;
     transition:
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      color var(--nf-duration-fast) var(--nf-ease-standard);
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-side-switch:hover:not(:disabled) {
-    background: var(--nf-glass-fill-thin);
-    color: var(--nf-content-primary);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      0 0 36px -4px var(--nf-glow-4);
+  }
+  .nf-side-switch:active:not(:disabled) {
+    transform: scale(0.985);
   }
   .nf-side-switch:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: -2px;
+    outline-offset: 2px;
   }
   .nf-side-switch:disabled {
     cursor: progress;
   }
-  .nf-side-switch__coin {
-    position: relative;
+  /* The lit ring around the coin: the render's circle with a bright rim and
+     a soft bloom, the coin itself a glass disc holding the other side's mark. */
+  .nf-side-switch__ring {
     display: grid;
     place-items: center;
     flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--nf-radius-pill);
-    background: var(--nf-glass-fill);
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1.5px solid var(--nf-brand-edge-strong);
+    background: radial-gradient(circle at 50% 40%, var(--nf-brand-tint-3), transparent 72%);
     box-shadow:
-      inset 0 0 0 1px var(--nf-border-subtle),
-      0 0 18px color-mix(in oklab, var(--nf-side-accent) 28%, transparent);
+      0 0 0 4px var(--nf-glow-1),
+      0 0 22px var(--nf-glow-3);
+    perspective: 400px;
+  }
+  .nf-side-switch__coin {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-glass-fill-strong);
+    box-shadow: inset 0 0 0 1px var(--nf-glass-rim);
     transform-style: preserve-3d;
-    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
   }
   .nf-side-switch:hover:not(:disabled) .nf-side-switch__coin {
     transform: rotateY(28deg);
@@ -344,10 +367,19 @@
     transform: rotateY(calc(var(--nf-flip-dir, 1) * 540deg));
     transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
   }
+  .nf-side-switch__over {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--nf-brand-secondary);
+  }
   .nf-side-switch__label {
     display: block;
-    font-size: 1rem;
-    font-weight: 600;
+    margin-top: 0.125rem;
+    font-size: 1.0625rem;
+    font-weight: 700;
     line-height: 1.2;
     color: var(--nf-content-primary);
   }
@@ -355,17 +387,20 @@
     display: block;
     margin-top: 0.125rem;
     font-size: 0.8125rem;
+    line-height: 1.3;
     color: var(--nf-content-muted);
   }
   .nf-side-switch__chev {
     flex: none;
-    color: var(--nf-content-muted);
+    color: var(--nf-brand-secondary);
     transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-side-switch:hover:not(:disabled) .nf-side-switch__chev {
     transform: translateX(2px);
   }
   @media (prefers-reduced-motion: reduce) {
+    .nf-side-switch,
+    .nf-side-switch:active:not(:disabled),
     .nf-side-switch__coin,
     .nf-side-switch:hover:not(:disabled) .nf-side-switch__coin,
     .nf-side-switch[data-spinning] .nf-side-switch__coin {

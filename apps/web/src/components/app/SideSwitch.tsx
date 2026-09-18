@@ -29,7 +29,6 @@ export function SideSwitch({
   onNavigate,
 }: {
   t: Dictionary;
-  /** The drawer closes itself when the flip starts. */
   onNavigate?: () => void;
 }) {
   const { flip, pending, side } = useSideFlip();
@@ -49,6 +48,14 @@ export function SideSwitch({
   }, [pending]);
 
   return (
+    /*
+      THE FLIP COIN CARD, per the drawer render: a glass card lit at the edge,
+      the coin in a glowing ring on the left, the overline FLIP COIN, the
+      destination as the title, one line of what is on the other side, a
+      chevron. The coin carries the OTHER side's mark, because the control is
+      a door and a door shows where it leads. Hover teases the edge, press
+      spins it through the same physics as the viewport.
+    */
     <button
       ref={button}
       type="button"
@@ -63,18 +70,21 @@ export function SideSwitch({
         flip(other);
       }}
     >
-      <span className="nf-side-switch__coin" aria-hidden="true">
-        <BrandIcon name={other === "stays" ? "hotel" : "keys-home"} size={28} />
+      <span className="nf-side-switch__ring" aria-hidden="true">
+        <span className="nf-side-switch__coin">
+          <BrandIcon name={other === "stays" ? "hotel" : "keys-home"} size={30} />
+        </span>
       </span>
       <span className="min-w-0 flex-1">
+        <span className="nf-side-switch__over">{t.side.flipCoin}</span>
         <span className="nf-side-switch__label">
           {other === "stays" ? t.side.switchToStays : t.side.switchToProperty}
         </span>
         <span className="nf-side-switch__sub">
-          {other === "stays" ? t.side.staysSub : t.side.propertySub}
+          {other === "stays" ? t.side.staysSubShort : t.side.propertySubShort}
         </span>
       </span>
-      <UiIcon name="chevron-right" size={16} className="nf-side-switch__chev" />
+      <UiIcon name="chevron-right" size={18} className="nf-side-switch__chev" />
     </button>
   );
 }

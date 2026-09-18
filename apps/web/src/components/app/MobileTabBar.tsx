@@ -106,6 +106,20 @@ export const TAB_BAR_ROUTES = [
    */
   "/stays/search",
   "/stays",
+  /* The renders carry the dock on settings, saved, the inbox, notifications,
+     the ledgers and the crypto surface too (BUILD_06, chrome ruling 1). A
+     thread is immersive and a listing carries its own pinned bar, so those
+     stay off the list. */
+  "/settings",
+  "/saved",
+  "/messages",
+  "/notifications",
+  "/bookings",
+  "/trips",
+  "/inspections",
+  "/crypto",
+  "/restaurants",
+  "/assistant",
   /*
    * `/saved` IS GONE FROM THIS LIST, and its presence was the exact bug the
    * paragraph above claims to have fixed. No tab and no island points at
@@ -211,168 +225,118 @@ export function MobileTabBar({
   active = "/home",
   unreadNotifications = 0,
   signedIn = false,
+  drawerOpen = false,
+  onMore,
 }: {
   t: Dictionary;
-  /** Which side's four destinations the capsule carries. */
   side?: Side;
   active?: string;
-  /**
-   * Unread notifications for this caller. The dock carries no Notifications
-   * destination of its own, so the marker sits on the island, which is where
-   * the rail's remaining destinations live. A dot rather than a number: at this
-   * size a numeral is unreadable, and the job here is only to say "something is
-   * in there".
-   */
   unreadNotifications?: number;
-  /** No session means no inbox, no profile, and an island that opens the door. */
   signedIn?: boolean;
+  /** Whether the side drawer the More slot opens is currently open. */
+  drawerOpen?: boolean;
+  /** Opens the side drawer. The More slot is a button, not a destination. */
+  onMore?: () => void;
 }) {
   /*
-   * FOUR, ALWAYS, and the fourth is the wallet.
-   *
-   * The bar used to show a guest three tabs on the grounds that gated
-   * destinations waste a guest's taps. The founder overruled it with the
-   * reference bar in hand: the capsule shows the real shape of the product to
-   * everyone, four destinations, and for a guest the wallet tap lands on the
-   * door with the destination kept, which is this platform's standing pattern
-   * for every gated link. Messages lost its slot to the wallet and keeps its
-   * three other ways in (home, the rail, the drawer); money is the spine of
-   * this product and it belongs on the bar.
-   */
-  /*
-   * The same four slots on both sides. The Stays side swaps the two
-   * discovery destinations for its own roots; Feed and Wallet are shared,
-   * because the feed is one feed and the wallet is one wallet. The pill
-   * arithmetic, the island and `AutoHideDock` are untouched by the side.
-   */
+    FIVE SLOTS, by the founder's ruling (DESIGN_DIRECTION section 3.1): Home
+    (Stays on the other side), Search, Feed, More, Profile. More opens the
+    drawer, so it is the one slot that is a button rather than a link. The
+    labels are back: the renders write them under every glyph, and a five-slot
+    bar with words is what the founder chose.
+  */
   const tabs: Tab[] =
     side === "stays"
       ? [
           { href: "/stays", label: t.nav.stays, icon: "bed" },
-          { href: "/stays/search", label: t.nav.exploreStays, icon: "compass" },
+          { href: "/stays/search", label: t.nav.search, icon: "search" },
           { href: "/around", label: t.nav.feed, icon: "feed" },
-          { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
         ]
       : [
           { href: "/home", label: t.nav.home, icon: "home" },
-          { href: "/search", label: t.nav.explore, icon: "compass" },
+          { href: "/search", label: t.nav.search, icon: "search" },
           { href: "/around", label: t.nav.feed, icon: "feed" },
-          { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
         ];
 
-  /*
-   * Which tab the pill sits behind, resolved through the ROOT of the route
-   * rather than the route itself, so `/wallet/transactions` lights the wallet.
-   * Matching the full pathname was half of the parked-pill bug: the other half
-   * was `/saved` being on the route list at all, and both are gone.
-   *
-   * -1 is still handled rather than assumed away. `/profile` is a tab root and
-   * the ISLAND rather than a tab owns it, so a reader on `/profile/application`
-   * legitimately has no tab lit, and the pill hides instead of parking on Home
-   * and claiming a destination the reader is not on.
-   */
-  const root = tabRootFor(active);
-  const activeIndex = tabs.findIndex((tab) => tab.href === root);
-
   /* Profile for a member, the way in for a guest. One slot, two honest jobs. */
-  const island: Tab = signedIn
+  const profile: Tab = signedIn
     ? { href: "/profile", label: t.nav.profile, icon: "user" }
     : { href: "/sign-up", label: t.common.signUp, icon: "user" };
-  const islandActive = island.href === root;
-  /* The island is the way through to notifications on a phone. */
+
+  const root = tabRootFor(active);
+  /* Slot order: three links, More, Profile. The travelling pill counts More
+     as a slot so the geometry is one fifth per slot. */
+  const slots = [...tabs, null, profile];
+  const activeIndex = drawerOpen ? 3 : slots.findIndex((tab) => tab !== null && tab.href === root);
+
+  /* The profile slot is the way through to notifications on a phone. */
   const marked = signedIn && unreadNotifications > 0;
 
   return (
     <AutoHideDock
-      /*
-       * The route rather than a key. A key remounts the dock on every
-       * navigation, which put it back on screen and also destroyed the pill
-       * mid-journey; `AutoHideDock` resets itself from this instead.
-       */
       route={active}
       label={t.nav.primaryLabel}
-      /*
-       * `max(0.9rem, env(...))` looked safe but collapsed the dock's own margin
-       * on exactly the devices that need it: on a notched iPhone the bottom
-       * inset is 34px, so max() returned the inset and the dock landed flush on
-       * the home indicator with zero visual gap. Adding the inset to the margin
-       * keeps real air below it on every device.
-       */
       className="nf-dockrow fixed inset-x-4 bottom-[calc(0.35rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
       <ul
         className="nf-tabbar"
         style={
           {
-            "--nf-tab-count": tabs.length,
+            "--nf-tab-count": slots.length,
             "--nf-tab-i": Math.max(activeIndex, 0),
           } as React.CSSProperties
         }
       >
-        {/*
-          The travelling pill. An `<li>` rather than a bare span because the
-          children of a list have to be list items, and `aria-hidden` plus an
-          empty box keeps it out of the accessibility tree entirely: it is the
-          drawing of a state that `aria-current` already announces.
-        */}
+        {/* The travelling pill: the drawing of a state `aria-current` already
+            announces, so it is hidden from the tree. */}
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
-        {tabs.map((tab) => {
-          const isActive = tab.href === root;
-
+        {slots.map((tab, index) => {
+          if (tab === null) {
+            return (
+              <li key="more" className="nf-tab">
+                <button
+                  type="button"
+                  className="nf-tab__link"
+                  aria-haspopup="dialog"
+                  aria-expanded={drawerOpen}
+                  aria-label={t.nav.more}
+                  onClick={onMore}
+                  data-on={drawerOpen || undefined}
+                >
+                  <span className="nf-tab__icon">
+                    <UiIcon name="menu" size="md" />
+                  </span>
+                  <span className="nf-tab__label">{t.nav.more}</span>
+                </button>
+              </li>
+            );
+          }
+          const isActive = !drawerOpen && tab.href === root;
+          const isProfile = index === slots.length - 1;
           return (
             <li key={tab.href} className="nf-tab">
               <Link
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
-                aria-label={tab.label}
+                aria-label={
+                  isProfile && marked
+                    ? t.a11y.unreadOn
+                        .replace("{label}", tab.label)
+                        .replace("{count}", String(unreadNotifications))
+                    : tab.label
+                }
                 className="nf-tab__link"
               >
-                {/* Icon only. The name lives in aria-label above; see the
-                    labels note at the top of this file. */}
                 <span className="nf-tab__icon">
-                  <UiIcon name={tab.icon} size="lg" filled={isActive} />
+                  <UiIcon name={tab.icon} size="md" filled={isActive} />
+                  {isProfile && marked && <span aria-hidden="true" className="nf-tab__mark" />}
                 </span>
+                <span className="nf-tab__label">{tab.label}</span>
               </Link>
             </li>
           );
         })}
       </ul>
-
-      {/*
-        The detached island. Its own material, its own blur, its own shadow.
-      */}
-      <Link
-        href={island.href}
-        aria-current={islandActive ? "page" : undefined}
-        /* One dictionary sentence with both slots, not a translated noun with
-           an English tail welded on. */
-        aria-label={
-          marked
-            ? t.a11y.unreadOn
-                .replace("{label}", island.label)
-                .replace("{count}", String(unreadNotifications))
-            : island.label
-        }
-        className={["nf-dock-island relative", islandActive ? "" : "opacity-90"]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        <UiIcon name={island.icon} size="lg" filled={islandActive} />
-        {marked && (
-          <span
-            aria-hidden="true"
-            /* Cyan, not brand blue. The marker was the same hue as the island
-               it sits on, on the one control that carries the unread state on a
-               phone, so the thing it exists to announce was the hardest thing
-               in the bar to see. Attention is cyan on this platform.
-
-               `--nf-status-pending` rather than `--nf-state-warning`: they are
-               the same value, and one of the two names says what this dot
-               means. The console's queue badges take the same token. */
-            className="absolute right-2.5 top-2.5 block h-2.5 w-2.5 rounded-full border-2 border-[var(--nf-surface-canvas)] bg-[var(--nf-status-pending)]"
-          />
-        )}
-      </Link>
     </AutoHideDock>
   );
 }

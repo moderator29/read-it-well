@@ -180,6 +180,125 @@
     flex: none;
     color: var(--nf-content-muted);
   }
+  .nf-nav__whobody {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+  }
+  /*
+    THE DRAWER'S USER BLOCK, per the drawer render: a glass card, the avatar
+    in a lit ring at 72px, the name at the title face, the handle quiet, and a
+    "View profile" capsule outlined in the brand edge. The rail keeps the
+    compact row above; only the drawer wears the card.
+  */
+  .nf-nav__who--card {
+    gap: 1rem;
+    margin: 0 0.25rem 1rem;
+    padding: 1.25rem 1rem;
+    border-radius: var(--nf-radius-xl);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background:
+      linear-gradient(var(--nf-light-angle), var(--nf-brand-tint-1), transparent 70%),
+      var(--nf-glass-fill-thin);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 24px -8px var(--nf-glow-2);
+  }
+  .nf-nav__who--card .nf-nav__avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+    font-size: 1.5rem;
+    box-shadow:
+      0 0 0 2px var(--nf-surface-primary),
+      0 0 0 4px var(--nf-brand-edge),
+      0 0 22px var(--nf-glow-3);
+  }
+  .nf-nav__who--card .nf-nav__whoname {
+    font-size: 1.125rem;
+    font-weight: 700;
+    white-space: normal;
+  }
+  .nf-nav__whohandle {
+    font-size: 0.8125rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-nav__whocta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    padding: 0.3125rem 0.75rem;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-nav__who--card:hover .nf-nav__whocta {
+    background: var(--nf-brand-tint-2);
+  }
+  /* The drawer's rows are taller and its active row is the filled brand
+     slab with the glow the render draws. */
+  .nf-nav--drawer .nf-nav__row {
+    min-height: 3.5rem;
+    padding-inline: 1rem;
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-nav--drawer .nf-nav__row--on {
+    background: linear-gradient(var(--nf-light-angle), var(--nf-brand-primary), var(--nf-brand-accent));
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 22px -4px var(--nf-glow-3);
+  }
+  .nf-nav--drawer .nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-content-on-brand);
+  }
+  .nf-nav--drawer .nf-nav__row::after {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-inline-start: 0.25rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    opacity: 0.55;
+  }
+  .nf-nav--drawer .nf-nav__glyph {
+    color: var(--nf-brand-secondary);
+  }
+  /* The drawer scrolls as one surface, the render's way: the list is not a
+     clipped well with the foot pinned under it, the coin follows the rows. */
+  .nf-nav--drawer {
+    height: auto;
+    min-height: 100%;
+  }
+  .nf-nav--drawer .nf-nav__scroll {
+    flex: none;
+    overflow: visible;
+  }
+  .nf-nav--drawer .nf-nav__section:first-child > .nf-nav__heading {
+    display: none;
+  }
+  .nf-nav--drawer .nf-nav__foot {
+    border-top: 0;
+    padding-top: 0.75rem;
+  }
+  .nf-nav--drawer .nf-nav__foot .nf-nav__row {
+    margin-top: 0.5rem;
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+    min-height: 3.25rem;
+  }
+  .nf-nav--drawer .nf-nav__foot .nf-nav__row::after {
+    content: none;
+  }
 
   /* ------------------------------------------------------------ the lists */
 

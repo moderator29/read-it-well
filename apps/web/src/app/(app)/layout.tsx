@@ -31,7 +31,7 @@ export default async function AppLayout({
    * first paint of every shared route agree between server and client: no
    * hydration flash, no second render to correct the accent.
    */
-  const [side, { userName, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin }] =
+  const [side, { userName, userHandle, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin }] =
     await Promise.all([getSide(), getShellIdentity()]);
 
   return (
@@ -39,6 +39,7 @@ export default async function AppLayout({
       t={t}
       side={side}
       userName={userName}
+      userHandle={userHandle}
       unreadNotifications={unreadNotifications}
       avatarUrl={avatarUrl}
       signedIn={signedIn}
