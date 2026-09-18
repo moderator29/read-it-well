@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
@@ -174,18 +175,20 @@ export function RentalFace({
     <section
       aria-label={sentence || settled || undefined}
       data-testid="thread-rental-face"
-      className="nf-card mb-row rounded-[var(--nf-radius-lg)] p-card-sm"
+      className="nf-context-card"
     >
-      <div className="flex items-start gap-row">
+      <div className="flex w-full items-start gap-row">
+        {/* The same lit mark the context card above carries, so the face
+            reads as the second row of one object rather than a second box. */}
         <span
           aria-hidden="true"
-          className={`mt-3xs shrink-0 ${
+          className={`nf-context-card__mark grid place-items-center ${
             state === "CONFIRMED"
               ? "text-[var(--nf-state-success)]"
               : "text-[var(--nf-brand-secondary)]"
           }`}
         >
-          <UiIcon name={state === "CONFIRMED" ? "verified" : "calendar-booking"} size={ICON.row} />
+          <UiIcon name={state === "CONFIRMED" ? "verified" : "calendar-booking"} size={ICON.section} />
         </span>
 
         <div className="min-w-0 flex-1">
@@ -236,6 +239,23 @@ export function RentalFace({
 
           {state === "CONFIRMED" && (
             <div className="mt-row flex flex-wrap gap-xs">
+              {/*
+                THE ENTRY TO PAYING THE RENT, once the viewing is agreed.
+                `/rent/pay/<inspectionId>` is the in-product rent step (BB's
+                route, ledger section 2.1); it carries the inspection so the
+                charge is tied to the viewing that earned it. The requester
+                is the one who pays, so only that side sees it.
+              */}
+              {role === "requester" && (
+                <Link
+                  href={`/rent/pay/${inspection.id}`}
+                  className="nf-btn nf-btn--primary nf-btn--sm"
+                  data-testid="thread-rent-pay"
+                >
+                  {copy.payRent}
+                  <UiIcon name="chevron-right" size={16} />
+                </Link>
+              )}
               <Button size="sm" variant="secondary" disabled={pending} onClick={() => setClosing(true)}>
                 {copy.markInspected}
               </Button>

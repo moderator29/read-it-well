@@ -275,17 +275,20 @@ export function adminUi(t: Dictionary, locale: Locale) {
     lede: string;
     count?: number;
   }) {
+    /* The register's headline (278CC66A): the display title, the count as
+       a brand badge beside it, the sub-line under. Same props as before, so
+       every desk inherits the frame without a call-site change. */
     return (
-      <header className="mb-heading">
+      <header className="nf-admin-head">
         <div className="flex flex-wrap items-center gap-inline">
-          <h1 className="nf-h1">{title}</h1>
+          <h1 className="nf-admin-head__title">{title}</h1>
           {typeof count === "number" && count > 0 && (
             <span className="nf-badge nf-badge--brand nf-numeric">
               {fill(c.waiting, { count })}
             </span>
           )}
         </div>
-        <p className="nf-lede mt-row max-w-[68ch]">{lede}</p>
+        <p className="nf-admin-head__sub">{lede}</p>
       </header>
     );
   }

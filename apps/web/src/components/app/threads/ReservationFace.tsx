@@ -78,11 +78,11 @@ export function ReservationFace({
     <section
       aria-label={reservationLine(reservation, locale, copy)}
       data-testid="thread-reservation-face"
-      className="nf-card mb-row rounded-[var(--nf-radius-lg)] p-card-sm"
+      className="nf-context-card mb-row flex-col items-stretch"
     >
       <div className="flex items-center gap-row">
-        <span aria-hidden="true" className="shrink-0 text-[var(--nf-brand-secondary)]">
-          <UiIcon name="utensils" size={ICON.row} />
+        <span aria-hidden="true" className="nf-context-card__mark grid place-items-center text-[var(--nf-brand-secondary)]">
+          <UiIcon name="utensils" size={ICON.section} />
         </span>
         <div className="min-w-0 flex-1">
           <p className={TYPE.rowTitle}>{reservationLine(reservation, locale, copy)}</p>

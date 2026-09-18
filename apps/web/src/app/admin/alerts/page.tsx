@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getRiskAlerts, type AlertView } from "@/lib/admin/queries";
+import { getInventoryDriftAlerts, getRiskAlerts, type AlertView } from "@/lib/admin/queries";
 import { AlertResolve } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
@@ -129,13 +129,16 @@ export default async function AdminAlertsPage({
      no way to ask for the open ones from a particular week. */
   const params = await searchParams;
   const query = readQueueQuery(params);
-  const alerts = await getRiskAlerts({
-    ...(query.q ? { q: query.q } : {}),
-    ...(query.status ? { status: query.status } : {}),
-    ...(query.from ? { from: query.from } : {}),
-    ...(query.to ? { to: query.to } : {}),
-    ...(query.offset ? { offset: query.offset } : {}),
-  });
+  const [alerts, drift] = await Promise.all([
+    getRiskAlerts({
+      ...(query.q ? { q: query.q } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.from ? { from: query.from } : {}),
+      ...(query.to ? { to: query.to } : {}),
+      ...(query.offset ? { offset: query.offset } : {}),
+    }),
+    getInventoryDriftAlerts(),
+  ]);
 
   if (alerts.state !== "ok") {
     return (
@@ -160,6 +163,86 @@ export default async function AdminAlertsPage({
   return (
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
+
+      {/*
+        INVENTORY DRIFT, FIRST AND WHATEVER THE QUEUE IS NARROWED TO.
+
+        The nightly sweep files a row here for every room-night the calendar
+        and the bookings disagree about. It is the one alert kind that gets
+        worse by the hour, because every hour it sits another guest can book
+        a night that is not there, so it is surfaced above the general queue
+        with the ids the sweep wrote and the same resolve control, which
+        writes the audit log. Resolving says a person looked; it does not
+        move inventory, and the copy says so.
+      */}
+      {drift.state !== "ok" ? (
+        <ui.Section
+          title="Inventory drift"
+          hint="The nightly sweep's findings could not be read just now. The general queue below may still hold them."
+        >
+          <ui.QueueUnavailable />
+        </ui.Section>
+      ) : drift.data.open.length > 0 ? (
+        <ui.Section
+          title={`Inventory drift · ${drift.data.open.length} open`}
+          hint="Room-nights where the calendar and the bookings disagree, from the nightly sweep. Oldest first. Resolving records that a person put the calendar right; it does not change inventory by itself."
+        >
+          <ul className="nf-queue-list">
+            {drift.data.open.map((alert) => (
+              <li key={alert.id} className="nf-card p-md sm:p-lg">
+                <div className="flex flex-wrap items-center gap-xs">
+                  <ui.StatusChip label="Inventory drift" tone="warning" />
+                  <ui.StatusChip
+                    label={fill(copy.severityChip, { level: copy.severity[alert.severity] })}
+                    tone={SEVERITY_TONE[alert.severity]}
+                  />
+                  <ui.StatusChip
+                    {...dueChip(alert.createdAt, gradeForSeverity(alert.severity), common)}
+                  />
+                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    {ui.when(alert.createdAt)}
+                  </span>
+                </div>
+                <h3 className="mt-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                  {alert.title}
+                </h3>
+                {alert.description && (
+                  <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                    {alert.description}
+                  </p>
+                )}
+                {/* BOTH IDS, UNCLIPPED: the alert's own, which the audit line
+                    carries, and the entity the sweep named, which is what an
+                    operator opens to put the calendar right. */}
+                <dl className="mt-xs grid gap-2xs text-[var(--nf-text-caption)]">
+                  <div className="flex flex-wrap gap-x-sm">
+                    <dt className="text-[var(--nf-content-muted)]">Alert</dt>
+                    <dd className="font-mono text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+                      {alert.id}
+                    </dd>
+                  </div>
+                  {alert.entityId && (
+                    <div className="flex flex-wrap gap-x-sm">
+                      <dt className="text-[var(--nf-content-muted)]">Names</dt>
+                      <dd className="font-mono text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+                        {alert.entityId}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+                <AlertResolve alertId={alert.id} copy={copy} common={common} />
+              </li>
+            ))}
+          </ul>
+        </ui.Section>
+      ) : (
+        <p className="nf-caption mb-block">
+          No inventory drift is open.
+          {drift.data.resolvedCount > 0
+            ? ` ${drift.data.resolvedCount} ${drift.data.resolvedCount === 1 ? "finding has" : "findings have"} been resolved before.`
+            : " The nightly sweep files a finding here the first time the calendar and the bookings disagree."}
+        </p>
+      )}
 
       <QueueFilters
         base="/admin/alerts"

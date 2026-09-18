@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Inspection } from "@/lib/inspections/types";
 import type { ThreadContext } from "@/lib/messages/live";
 import { BookingFace } from "./BookingFace";
@@ -17,8 +20,13 @@ import { ReservationFace } from "./ReservationFace";
  *
  * Three faces, three files, and the separation is structural rather than a
  * flag: a reservation thread cannot grow an inspection button because
- * `ReservationFace` never imports one. A listing thread with no live
- * inspection draws nothing here at all, because there is nothing to say.
+ * `ReservationFace` never imports one. All three now wear one material, the
+ * context card of 9E06F51C: a glass object with the mark on the left, the
+ * enquiry named, the property under it, and the face's own controls in a row.
+ *
+ * A listing thread always draws the context card (the rental enquiry, the
+ * property, a chevron to it); the inspection face sits under it only when
+ * there is a live inspection to answer.
  */
 export type ThreadRole = "host" | "guest";
 
@@ -27,6 +35,7 @@ export function ThreadContextBanner({
   inspection,
   role,
   counterpartName,
+  listing,
   copy,
   locale,
   onAccepted,
@@ -37,6 +46,8 @@ export function ThreadContextBanner({
   /** Host is the lister, the restaurant or the property; guest is the other side. */
   role: ThreadRole;
   counterpartName: string;
+  /** The property the thread is about, for the context card. */
+  listing: { id: string; title: string; area: string; city: string } | null;
   copy: Dictionary["threads"];
   locale: Locale;
   onAccepted: () => void;
@@ -65,16 +76,38 @@ export function ThreadContextBanner({
     );
   }
 
-  if (!inspection) return null;
   return (
-    <RentalFace
-      key={`${inspection.id}:${inspection.state}:${inspection.slotAt ?? ""}`}
-      inspection={inspection}
-      role={role === "host" ? "lister" : "requester"}
-      counterpartName={counterpartName}
-      copy={copy.rental}
-      locale={locale}
-      onAccepted={onAccepted}
-    />
+    <div className="mb-row flex flex-col gap-inline">
+      {listing && (
+        <Link
+          href={`/listing/${listing.id}`}
+          className="nf-context-card nf-card--interactive"
+          data-testid="thread-context-card"
+        >
+          <span className="nf-context-card__mark" aria-hidden="true">
+            <BrandIcon name="home-search" fill />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="nf-context-card__title">Rental enquiry</span>
+            <span className="nf-context-card__line">
+              <span className="truncate">{listing.title}</span>
+              {listing.area && <span>{listing.area}</span>}
+            </span>
+          </span>
+          <UiIcon name="chevron-right" size={20} className="nf-context-card__chev" />
+        </Link>
+      )}
+      {inspection && (
+        <RentalFace
+          key={`${inspection.id}:${inspection.state}:${inspection.slotAt ?? ""}`}
+          inspection={inspection}
+          role={role === "host" ? "lister" : "requester"}
+          counterpartName={counterpartName}
+          copy={copy.rental}
+          locale={locale}
+          onAccepted={onAccepted}
+        />
+      )}
+    </div>
   );
 }

@@ -58,7 +58,7 @@ export function BookingFace({
     <section
       aria-label={copy.label}
       data-testid="thread-booking-face"
-      className="nf-card mb-row rounded-[var(--nf-radius-lg)] p-card-sm"
+      className="nf-context-card mb-row flex-col items-stretch"
     >
       <p className="nf-overline">{copy.label}</p>
       <p className={`mt-inline-tight ${TYPE.rowTitle}`}>{booking.title}</p>

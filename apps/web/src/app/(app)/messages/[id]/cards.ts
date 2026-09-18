@@ -1,0 +1,174 @@
+import "server-only";
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
+import type { ChatCardData } from "@/components/app/messages/ChatCard";
+import { parseShare, type SharedRef } from "@/components/app/messages/share";
+import { getListingRepository } from "@/lib/listings/repository";
+import { PERIOD_SUFFIX } from "@/lib/listings/pricing";
+import type { Listing, ListingKind } from "@/lib/listings/types";
+import type { Database } from "@/lib/supabase/database.types";
+
+type Db = SupabaseClient<Database>;
+
+/**
+ * Expand the shares in a thread into the cards the bubbles draw.
+ *
+ * A share is a body the grammar in `components/app/messages/share.ts`
+ * recognises. This turns each one into card data by reading the thing it
+ * points at through the reader's own client, so a booking that is not theirs
+ * does not resolve (RLS answers) and the bubble falls back to the words and
+ * the path, which still open the thing for whoever may open it.
+ *
+ * Listings go through the listing repository so a seed catalogue entry and a
+ * database row both resolve, exactly as the listing page does it. Bookings
+ * are one select on the bookings table under RLS, joined to their listing.
+ *
+ * Money and dates are formatted here, once, so the card component never
+ * touches a formatter and can render on either side of the boundary.
+ */
+
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: "Requested",
+  CONFIRMED: "Confirmed",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No show",
+};
+
+/** The markets let by the year, so a missing period never prints "per night" on a flat. */
+const LONG_LET = new Set<ListingKind>(["rental", "shop", "office", "land"]);
+
+const DAY: Intl.DateTimeFormatOptions = {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "Africa/Lagos",
+};
+
+function dayLabel(iso: string, locale: Locale): string {
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T12:00:00+01:00`) : new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : formatDate(date, locale, DAY);
+}
+
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+function listingCard(listing: Listing, locale: Locale): ChatCardData {
+  /* The repository has already decided the headline: `priceMinor` and
+     `pricePeriod` for a letting or a stay, `salePriceMinor` for a sale. A
+     period is only printed where one exists. */
+  const sale = listing.intent === "sale";
+  const minor = sale ? (listing.salePriceMinor ?? listing.priceMinor) : listing.priceMinor;
+  const period = listing.pricePeriod ?? (LONG_LET.has(listing.kind) ? "year" : "night");
+  return {
+    kind: "listing",
+    id: listing.id,
+    title: listing.title,
+    area: listing.area,
+    city: listing.city,
+    photo: listing.photos[0] ?? null,
+    hue: listing.hue,
+    listingKind: listing.kind,
+    verified: listing.verified,
+    priceLabel: formatMoney(minor, locale),
+    periodLabel: sale ? "" : PERIOD_SUFFIX[period],
+    bedrooms: listing.bedrooms,
+    bathrooms: listing.bathrooms,
+    rating: listing.reviewCount > 0 ? listing.rating : null,
+  };
+}
+
+async function bookingCard(db: Db, id: string, locale: Locale): Promise<ChatCardData | null> {
+  const { data } = await db
+    .from("bookings")
+    .select(
+      "id, listing_id, status, check_in, check_out, nights, adults, children, total_minor, listings(id, title, area, city, bedrooms, bathrooms)",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (!data || !data.listings) return null;
+  const row = data.listings;
+  /* The repository already knows how to turn a row's kind and photos into
+     the shapes the frame draws; one read there keeps this file from growing
+     a second copy of the photo URL rule. */
+  const listing = await getListingRepository().byId(row.id);
+  const kind: ListingKind = listing?.kind ?? "shortlet";
+  const features = [
+    plural(row.bedrooms, "bedroom", "bedrooms"),
+    plural(row.bathrooms, "bathroom", "bathrooms"),
+  ];
+  const partyLines = [plural(data.adults, "adult", "adults")];
+  if (data.children > 0) partyLines.push(plural(data.children, "child", "children"));
+  return {
+    kind: "booking",
+    id: data.id,
+    listingId: row.id,
+    title: row.title,
+    area: row.area ?? "",
+    city: row.city ?? "",
+    photo: listing?.photos[0] ?? null,
+    hue: listing?.hue ?? 0,
+    listingKind: kind,
+    status: data.status,
+    statusLabel: STATUS_LABEL[data.status] ?? data.status,
+    checkInLabel: dayLabel(data.check_in, locale),
+    checkOutLabel: dayLabel(data.check_out, locale),
+    partyLines,
+    roomName: row.title,
+    features,
+    totalLabel: formatMoney(data.total_minor, locale),
+    nightsLabel: plural(data.nights, "night", "nights"),
+    rating: listing && listing.reviewCount > 0 ? listing.rating : null,
+  };
+}
+
+/** One card for one reference, or null when it does not resolve for this reader. */
+export async function resolveCard(
+  db: Db,
+  ref: SharedRef,
+  locale: Locale,
+): Promise<ChatCardData | null> {
+  try {
+    if (ref.kind === "listing") {
+      const listing = await getListingRepository().byId(ref.id);
+      return listing ? listingCard(listing, locale) : null;
+    }
+    return await bookingCard(db, ref.id, locale);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Every card in a list of message bodies, keyed by message id. Bodies that
+ * are not shares cost nothing; the same reference shared twice is read once.
+ */
+export async function resolveCards(
+  db: Db,
+  messages: { id: string; body: string }[],
+  locale: Locale,
+): Promise<Map<string, ChatCardData>> {
+  const refs = new Map<string, SharedRef>();
+  const wanted = new Map<string, string>();
+  for (const message of messages) {
+    const ref = parseShare(message.body);
+    if (!ref) continue;
+    const key = `${ref.kind}:${ref.id}`;
+    refs.set(key, ref);
+    wanted.set(message.id, key);
+  }
+  const resolved = new Map<string, ChatCardData | null>();
+  await Promise.all(
+    [...refs.entries()].map(async ([key, ref]) => {
+      resolved.set(key, await resolveCard(db, ref, locale));
+    }),
+  );
+  const out = new Map<string, ChatCardData>();
+  for (const [messageId, key] of wanted) {
+    const card = resolved.get(key);
+    if (card) out.set(messageId, card);
+  }
+  return out;
+}

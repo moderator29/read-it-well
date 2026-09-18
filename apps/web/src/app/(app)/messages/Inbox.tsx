@@ -12,6 +12,7 @@ import type { ThreadContextKind } from "@/lib/messages/db";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
+import { sharePreview } from "@/components/app/messages/share";
 
 /**
  * The Inbox.
@@ -67,46 +68,34 @@ const TABS: { key: Tab; label: string }[] = [
 
 function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
   const glyph = row.contextKind ? CONTEXT_GLYPH[row.contextKind] : undefined;
+  /* A shared card previews as its words, never as the path it carries. */
+  const preview = sharePreview(row.lastMessage) ?? row.lastMessage;
   return (
     <li>
-      <Link
-        href={`/messages/${row.id}`}
-        data-testid="inbox-row"
-        className="flex w-full items-center gap-md py-group transition-colors hover:bg-[var(--nf-glass-fill)]"
-      >
-        {/* ------------------------------------------------------ avatar
+      <Link href={`/messages/${row.id}`} data-testid="inbox-row" className="nf-inbox-row">
+        {/* The avatar in the thread family's lit ring, carrying the verified
+            mark: one mark per person per row, where the eye lands first. */}
+        <span className="nf-inbox-row__ring">
+          <VerifiedAvatar
+            name={row.counterpartName}
+            verified={row.counterpartVerified}
+            kind={row.counterpartKind}
+            size="md"
+          />
+        </span>
 
-            The verified mark rides the avatar now rather than sitting as a
-            12px tick beside the name. Two reasons. It is where every messaging
-            product puts it, so it is found without being looked for. And in a
-            list, the avatar is what the eye lands on: a mark on the name is
-            read after you have already decided whether to open the thread. */}
-        <VerifiedAvatar
-          name={row.counterpartName}
-          verified={row.counterpartVerified}
-          kind={row.counterpartKind}
-          size="md"
-        />
-
-        {/* -------------------------------------------------------- body */}
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="flex items-center gap-inline-tight">
-            <span className={`truncate ${TYPE.rowTitle}`}>{row.counterpartName}</span>
-            {/* The tick that used to be here is on the avatar. One mark per
-                person per row: two is how a badge stops being read. */}
-          </span>
-          {/* The property this thread is about. It is the reason the
-              conversation exists, so it is legible rather than micro-print. */}
+          <span className={`block truncate ${TYPE.rowTitle}`}>{row.counterpartName}</span>
           {row.listingTitle && (
-            <span className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.rowMeta}`}>
+            <span className={`mt-3xs flex items-center gap-inline-tight ${TYPE.caption} text-[var(--nf-brand-secondary)]`}>
               {glyph && row.contextKind && (
-                <UiIcon name={glyph} size={ICON.inline} className="shrink-0" label={row.contextKind} />
+                <UiIcon name={glyph} size={14} className="shrink-0" label={row.contextKind} />
               )}
               <span className="min-w-0 truncate">{row.listingTitle}</span>
             </span>
           )}
           <span
-            className={`nf-body mt-inline-tight block truncate leading-relaxed ${
+            className={`nf-body-sm mt-3xs block truncate ${
               typing
                 ? "font-semibold text-[var(--nf-brand-secondary)]"
                 : row.unread > 0
@@ -114,20 +103,18 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
                   : "text-[var(--nf-content-secondary)]"
             }`}
           >
-            {typing ? "Typing..." : row.lastMessage}
+            {typing ? "Typing..." : preview}
           </span>
         </span>
 
-        {/* --------------------------------------------- time and marker */}
-        <span className="flex shrink-0 flex-col items-end gap-inline self-stretch">
+        <span className="flex shrink-0 flex-col items-end gap-inline-tight self-stretch">
           <span className={`nf-numeric ${TYPE.caption}`}>{row.whenLabel}</span>
           {row.unread > 0 ? (
-            <span
-              aria-label={`${row.unread} unread`}
-              className="h-2.5 w-2.5 rounded-full bg-[var(--nf-brand-primary)]"
-            />
+            <span className="nf-inbox-row__count" aria-label={`${row.unread} unread`}>
+              {row.unread}
+            </span>
           ) : (
-            <span aria-hidden="true" className="h-2.5 w-2.5" />
+            <span aria-hidden="true" className="h-[1.375rem]" />
           )}
         </span>
       </Link>
@@ -376,7 +363,7 @@ export function Inbox({
         {shown.length > 0 ? (
           /* Hairline rows on the ground, not a card wrapping a divided list.
              One line between two conversations, nothing around either. */
-          <ul className="divide-y divide-[var(--nf-border-subtle)]">
+          <ul className="flex flex-col gap-3xs">
             {shown.map((row) => (
               <Row key={row.id} row={row} typing={typing.has(row.id)} />
             ))}

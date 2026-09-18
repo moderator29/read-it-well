@@ -1,0 +1,210 @@
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+
+/**
+ * The console's dense row table, built once (278CC66A at 390px, CDA4B82B at
+ * desktop) so every desk inherits it.
+ *
+ * A row is: the reference, the type glyph on its tile, the title and the
+ * person or place under it, a detail column on desktop, the status pill,
+ * the submitted stamp, then View and the kebab. View opens the row's own
+ * detail beneath it, which is the desk's existing review card with every
+ * decision control it already had. The table therefore adds a way to scan
+ * a queue without taking a single write path away from it.
+ *
+ * WHY A LIST OF DISCLOSURES AND NOT A `<table>`. A row needs to carry its
+ * detail under it and a 390px screen cannot hold seven columns; a native
+ * `<details>` gives the open and close, the keyboard and the state for
+ * free, and the grid draws the columns the width allows. The header row is
+ * drawn on desktop where the columns line up and hidden on the phone where
+ * the glyph and the pill say what each cell is.
+ *
+ * WHAT IS DELIBERATELY NOT HERE. Bulk actions and an export button: no desk
+ * has a bulk write and no export exists on the platform, and a control that
+ * cannot act is the picture of a feature (rule 19). The kebab opens the same
+ * detail as View, so it is never a menu of nothing.
+ *
+ * Server-safe: no hooks, so a desk keeps rendering its rows on the server.
+ */
+
+export type QueueRowData = {
+  id: string;
+  /** The short reference an operator reads out: "#VL-1024", "LST-8F2". */
+  reference: string;
+  /** The kind, in a word, and its stroked glyph. */
+  type: string;
+  icon: UiIconName;
+  title: string;
+  /** The person or the place under the title. */
+  sub?: string;
+  /** A second line on desktop only: the figure, the dates, the wallet. */
+  detail?: string;
+  detailSub?: string;
+  /** The machine status; the pill derives its tone from it unless given. */
+  status: string;
+  statusLabel: string;
+  tone?: StatusTone;
+  /** Pre-formatted through `adminUi.when`. */
+  submitted: string;
+  /** Where View goes when the row has its own page rather than a fold. */
+  href?: string;
+  /** The row's detail, opened by View. The desk's existing card. */
+  children?: ReactNode;
+  /** Opened on arrival, for the row that was just decided. */
+  open?: boolean;
+};
+
+export function QueueTable({
+  rows,
+  label,
+  columns = { detail: "Details" },
+}: {
+  rows: QueueRowData[];
+  /** The accessible name of the table. */
+  label: string;
+  columns?: { detail?: string };
+}) {
+  return (
+    <div className="nf-admin-table" role="region" aria-label={label}>
+      <div className="nf-admin-table__head" aria-hidden="true">
+        <span>ID</span>
+        <span>Type</span>
+        <span>Title / user</span>
+        <span>{columns.detail ?? "Details"}</span>
+        <span>Status</span>
+        <span>Submitted</span>
+        <span className="text-right">Action</span>
+      </div>
+      <ul className="m-0 list-none p-0">
+        {rows.map((row) => (
+          <li key={row.id}>
+            {row.children ? (
+              <details className="nf-admin-row" open={row.open}>
+                <summary>
+                  <RowGrid row={row} />
+                </summary>
+                <div className="nf-admin-row__body">{row.children}</div>
+              </details>
+            ) : (
+              <div className="nf-admin-row">
+                <RowGrid row={row} />
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function RowGrid({ row }: { row: QueueRowData }) {
+  const view = row.href ? (
+    <Link href={row.href} className="nf-admin-row__view">
+      View
+    </Link>
+  ) : (
+    <span className="nf-admin-row__view" aria-hidden="true">
+      View
+    </span>
+  );
+  return (
+    <div className="nf-admin-row__grid">
+      <span className="nf-admin-row__id nf-numeric">{row.reference}</span>
+      <span className="nf-admin-row__type">
+        <span className="nf-admin-row__tile" aria-hidden="true">
+          <UiIcon name={row.icon} size={20} />
+        </span>
+        <span className="nf-admin-row__type-word">{row.type}</span>
+        <span className="sr-only">{row.type}</span>
+      </span>
+      <span className="nf-admin-row__title">
+        <span className="nf-admin-row__name">{row.title}</span>
+        {row.sub && (
+          <span className="nf-admin-row__sub">
+            <UiIcon name="location" size={12} className="shrink-0" />
+            <span className="min-w-0 truncate">{row.sub}</span>
+          </span>
+        )}
+      </span>
+      <span className="nf-admin-row__detail">
+        {row.detail && <span className="block truncate font-semibold text-[var(--nf-content-primary)]">{row.detail}</span>}
+        {row.detailSub && <span className="block truncate">{row.detailSub}</span>}
+      </span>
+      <span className="nf-admin-row__status">
+        <StatusPill tone={row.tone ?? toneForStatus(row.status)} size="xs">
+          {row.statusLabel}
+        </StatusPill>
+      </span>
+      <span className="nf-admin-row__when">{row.submitted}</span>
+      <span className="nf-admin-row__actions">
+        {view}
+        <span className="nf-admin-row__kebab" aria-hidden="true">
+          <UiIcon name="more" size={18} />
+        </span>
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The count tabs above a queue: "All (42)", "Listings (18)", each a link
+ * into the desk that clears it, with the live count beside it. A count is
+ * only printed when the read gave one; nothing here invents a number.
+ */
+export type QueueTab = {
+  key: string;
+  label: string;
+  href: string;
+  count?: number;
+  on?: boolean;
+};
+
+export function QueueTabs({ tabs, label }: { tabs: QueueTab[]; label: string }) {
+  return (
+    <nav aria-label={label} className="nf-admin-tabs">
+      {tabs.map((tab) => (
+        <Link
+          key={tab.key}
+          href={tab.href}
+          aria-current={tab.on ? "page" : undefined}
+          className={`nf-admin-tab${tab.on ? " nf-admin-tab--on" : ""}`}
+        >
+          {tab.label}
+          {typeof tab.count === "number" && (
+            <span className="nf-admin-tab__count nf-numeric">({tab.count})</span>
+          )}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+/** The headline every queue page opens with, in the register. */
+export function QueueHeadline({ title, sub }: { title: string; sub: string }) {
+  return (
+    <header className="nf-admin-head">
+      <h1 className="nf-admin-head__title">{title}</h1>
+      <p className="nf-admin-head__sub">{sub}</p>
+    </header>
+  );
+}
+
+/**
+ * The Operations Console footer: the version is the package's, the line is
+ * the audit promise the console already makes.
+ */
+export function ConsoleFooter({ note }: { note: string }) {
+  return (
+    <footer className="nf-admin-foot">
+      <span>Vallo Operations Console</span>
+      <span>{note}</span>
+    </footer>
+  );
+}
+
+/** A short reference an operator can read out, from the row's own id. */
+export function shortRef(prefix: string, id: string): string {
+  return `${prefix}-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+}

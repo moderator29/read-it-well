@@ -1,9 +1,32 @@
 import type { Metadata } from "next";
 import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getMoneyConsole, type WalletEntryView } from "@/lib/admin/money-queries";
+import Link from "next/link";
+import {
+  getEscrowConsole,
+  getMoneyConsole,
+  getRefundConsole,
+  type RefundState,
+  type RefundView,
+  type WalletEntryView,
+} from "@/lib/admin/money-queries";
+import type { StatusTone } from "@/components/ui/StatusPill";
+import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
 import { adminUi } from "../_components/ui";
+import { EscrowRuling } from "../_components/MoneyDecisions";
 import { QueueFilters, readQueueQuery } from "../_components/QueueFilters";
+
+/**
+ * Where a refund's money is, in words and in a tone that survives greyscale.
+ * The word is the signal; the tone only agrees with it.
+ */
+const REFUND_STATE: Record<RefundState, { label: string; tone: StatusTone }> = {
+  credited: { label: "In the guest's wallet", tone: "success" },
+  not_settled: { label: "Credit not settled yet", tone: "info" },
+  failed: { label: "Credit failed", tone: "danger" },
+  not_credited: { label: "Recorded, no credit found", tone: "danger" },
+  nothing_owed: { label: "Nothing was owed", tone: "neutral" },
+};
 
 export const metadata: Metadata = {
   title: "Money",
@@ -62,7 +85,13 @@ export default async function AdminMoneyPage({
   };
   const narrowed = Boolean(query.q || query.from || query.to);
 
-  const read = await getMoneyConsole(query);
+  const [read, refunds, escrow] = await Promise.all([
+    getMoneyConsole(query),
+    getRefundConsole(query),
+    /* Disputes only. The escrow desk has its own page; this is the one
+       decision from it that is a refund question, made reachable here. */
+    getEscrowConsole({ status: "DISPUTED" }),
+  ]);
 
   if (read.state !== "ok") {
     return (
@@ -121,6 +150,50 @@ export default async function AdminMoneyPage({
           </span>
           <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {ui.when(entry.createdAt)}
+          </span>
+        </span>
+      </li>
+    );
+  }
+
+  function RefundRow({ refund }: { refund: RefundView }) {
+    const state = REFUND_STATE[refund.state];
+    return (
+      <li className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
+        <span className="min-w-0">
+          <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
+            {refund.guestName ?? "No display name"}
+            {" · "}
+            {refund.listingTitle ?? "A listing that is no longer there"}
+            {" · "}
+            {CANCELLATION_REASONS.find((r) => r.code === refund.reason)?.label ??
+              ui.columnLabel("cancellationReason", refund.reason)}
+          </span>
+          {/* THE REFERENCE IS NEVER CLIPPED. It is the string the guest quotes
+              and the wallet entry carries. Without one, the stay's id is what
+              an operator opens. */}
+          <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+            {refund.reference ?? refund.bookingId}
+          </span>
+          <Link
+            href={`/admin/bookings/${refund.bookingId}`}
+            className="mt-2xs inline-block text-[var(--nf-text-caption)] underline"
+          >
+            Open the stay
+          </Link>
+        </span>
+        <span className="flex shrink-0 flex-wrap items-baseline gap-sm">
+          <ui.StatusChip label={state.label} tone={state.tone} />
+          <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
+            {formatMoney(refund.refundMinor, locale)}
+          </span>
+          {refund.retainedMinor > 0 && (
+            <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              {formatMoney(refund.retainedMinor, locale)} kept
+            </span>
+          )}
+          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            {ui.when(refund.createdAt)}
           </span>
         </span>
       </li>
@@ -267,6 +340,121 @@ export default async function AdminMoneyPage({
           </ul>
         )}
       </section>
+
+      {/*
+        THE REFUND CONSOLE.
+
+        Two kinds of money go back to a person on this platform and both are
+        decided elsewhere: a stay's refund on the stay's own page, where the
+        published schedule works out the figure and the operator chooses only
+        why, and a disputed escrow on the escrow desk, where an operator rules
+        release or refund with a reason both sides read. This section is where
+        an operator answers "did the guest get it": every refund decided, with
+        the wallet entry's own status beside it, and the two decisions reachable
+        from here with their consequence in front of them. Nothing on this
+        section types an amount.
+      */}
+      <section className="nf-card mb-md p-md sm:p-lg">
+        <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+          Refunds
+        </h2>
+        <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          Every refund decided on the console, newest first, with where the money
+          is now. A stay is refunded from its own page under the published
+          schedule; open a stay from the Stays queue to decide one. The state
+          beside each row is the wallet entry&apos;s own status, not a guess.
+        </p>
+
+        {refunds.state !== "ok" ? (
+          <div className="mt-sm">
+            <ui.QueueUnavailable />
+          </div>
+        ) : (
+          <>
+            <div className="mt-sm">
+              <ui.StatRow>
+                <ui.Stat
+                  label="Returned"
+                  value={formatMoney(refunds.data.totals.refundedMinor, locale)}
+                  hint={`Across ${refunds.data.totals.count === 1 ? "1 refund" : `${refunds.data.totals.count} refunds`} on the platform`}
+                />
+                <ui.Stat
+                  label="Recorded without a credit"
+                  value={String(refunds.data.totals.notCredited)}
+                  hint="A refund owed with no wallet entry behind it needs an engineer"
+                  tone={refunds.data.totals.notCredited === 0 ? "success" : "danger"}
+                />
+              </ui.StatRow>
+            </div>
+
+            {refunds.data.rows.length === 0 ? (
+              narrowed ? null : (
+                <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+                  No refund has been decided yet.
+                </p>
+              )
+            ) : (
+              <ul className="mt-xs">
+                {refunds.data.rows.map((refund) => (
+                  <RefundRow key={refund.id} refund={refund} />
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </section>
+
+      {escrow.state === "ok" && escrow.data.disputes.length > 0 && (
+        <section className="nf-card mb-md p-md sm:p-lg">
+          <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+            Disputed holds waiting on a ruling
+          </h2>
+          <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+            Somebody objected and the money is held until a person rules. Release
+            pays the payee; refund returns it to the payer. Both people are sent
+            your ruling word for word, and the transition is in the audit log.
+            The full desk is at{" "}
+            <Link href="/admin/escrow" className="underline">
+              Escrow
+            </Link>
+            .
+          </p>
+          <ul className="mt-xs">
+            {escrow.data.disputes.map((dispute) => (
+              <li
+                key={dispute.id}
+                className="border-t border-[var(--nf-border-subtle)] py-sm"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs">
+                  <span className="min-w-0">
+                    <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
+                      {dispute.listingTitle ?? "A listing that is no longer there"}
+                      {" · "}
+                      {dispute.payerName ?? "the payer"} paid, {dispute.payeeName ?? "the payee"}{" "}
+                      waits
+                    </span>
+                    {dispute.disputeReason && (
+                      <span className="block text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+                        {dispute.disputeReason}
+                      </span>
+                    )}
+                  </span>
+                  <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
+                    {formatMoney(dispute.amountMinor, locale)}
+                  </span>
+                </div>
+                <EscrowRuling
+                  escrowId={dispute.id}
+                  amountMinor={dispute.amountMinor}
+                  locale={locale}
+                  payerName={dispute.payerName}
+                  payeeName={dispute.payeeName}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="nf-card p-md sm:p-lg">
         <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">

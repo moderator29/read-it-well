@@ -7,6 +7,7 @@ import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { ApplicationDecision, VerificationRungDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QueueTable, type QueueRowData } from "../_components/QueueTable";
 import {
   QueueFilters,
   queueNarrowed,
@@ -401,39 +402,68 @@ export default async function AdminAgentsPage({
           />
         )
       ) : (
-        <ul className="nf-queue-list">
-          {waiting.map((application) => (
-            <ApplicationCard
-              key={application.id}
-              application={application}
-              ladder={ladderFor(application.id)}
-              copy={copy}
-              verificationCopy={verificationCopy}
-              common={common}
-              ui={ui}
-            />
-          ))}
-        </ul>
+        <QueueTable
+          label="Agent applications"
+          rows={waiting.map((application) => ({
+            ...applicationRow(application, ui),
+            children: (
+              <ul className="nf-queue-list">
+                <ApplicationCard
+                  key={application.id}
+                  application={application}
+                  ladder={ladderFor(application.id)}
+                  copy={copy}
+                  verificationCopy={verificationCopy}
+                  common={common}
+                  ui={ui}
+                />
+              </ul>
+            ),
+          }))}
+        />
       )}
 
       {decided.length > 0 && (
         <section className="mt-xl">
           <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
-          <ul className="nf-queue-list">
-            {decided.map((application) => (
-              <ApplicationCard
-                key={application.id}
-                application={application}
-                ladder={ladderFor(application.id)}
-                copy={copy}
-                verificationCopy={verificationCopy}
-                common={common}
-                ui={ui}
-              />
-            ))}
-          </ul>
+          <QueueTable
+          label="Agent applications"
+          rows={decided.map((application) => ({
+            ...applicationRow(application, ui),
+            children: (
+              <ul className="nf-queue-list">
+                <ApplicationCard
+                    key={application.id}
+                    application={application}
+                    ladder={ladderFor(application.id)}
+                    copy={copy}
+                    verificationCopy={verificationCopy}
+                    common={common}
+                    ui={ui}
+                  />
+              </ul>
+            ),
+          }))}
+        />
         </section>
       )}
     </div>
   );
+}
+
+/** The dense row an application takes in the console table. */
+function applicationRow(application: ApplicationView, ui: AdminUi): QueueRowData {
+  return {
+    id: application.id,
+    reference: application.reference,
+    type: "Agent",
+    icon: "user",
+    title: application.fullName ?? application.businessName ?? application.reference,
+    sub: [application.city, application.stateCode].filter(Boolean).join(", "),
+    detail: application.type === "business" ? "Business agent" : "Individual agent",
+    detailSub: application.email ?? undefined,
+    status: application.status,
+    statusLabel: ui.statusLabel(application.status),
+    submitted: ui.when(application.submittedAt ?? application.createdAt),
+  };
 }

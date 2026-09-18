@@ -2,6 +2,1009 @@
   threads: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  The governing image is GOVERNING-chat-booking-card.png, the rental face is
+  9E06F51C. Two bubble materials and one card material carry the whole room:
+  theirs is a dark glass well with a brand hairline, mine is the CTA gradient
+  lit from the top, and a shared card is the strong glass rung with a lit edge.
+  Every colour is a layer-2 token, so the paper twin below only restates the
+  few values that the dark ladder cannot lower on its own.
 */
 @layer components {
+  /* ------------------------------------------------------------ the room */
+
+  /* The thread fills the viewport under the app header; the composer is the
+     one thing pinned, and the scroller takes the rest. */
+  .nf-thread {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+
+  /* ------------------------------------------------------------- header */
+
+  .nf-thread__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding-block: var(--nf-gap-inline);
+  }
+
+  /* The counterpart's avatar sits in a lit glass ring: a hairline of brand
+     ink, a soft bloom, and the surface behind it kept dark so the ring is
+     the light rather than the fill. */
+  .nf-thread__ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      0 0 14px var(--nf-glow-2),
+      inset 0 0 10px var(--nf-glow-wash);
+  }
+  .nf-thread__ring > * {
+    border-radius: inherit;
+  }
+
+  .nf-thread__title {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    font-family: var(--nf-font-display);
+    font-weight: 700;
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-thread__tick {
+    color: var(--nf-brand-secondary);
+    flex-shrink: 0;
+  }
+  .nf-thread__context {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-thread__place {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-thread__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    flex-shrink: 0;
+  }
+
+  /* -------------------------------------------------------- the scroller */
+
+  .nf-thread__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-group);
+    padding-block: var(--nf-gap-inline) var(--nf-gap-group);
+    /* The last bubble must clear the composer's shadow, never sit under it. */
+    scroll-padding-bottom: var(--nf-space-xl);
+  }
+
+  .nf-thread__safety {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-gap-inline-tight);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-align: center;
+  }
+
+  /* ---------------------------------------------------------- a message */
+
+  /* One row per message: avatar column, then the stack of meta and bubble.
+     Theirs sits left, mine sits right with the avatar on the outside. */
+  .nf-msg {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--nf-gap-inline-tight);
+    max-width: 100%;
+  }
+  .nf-msg--mine {
+    flex-direction: row-reverse;
+  }
+  .nf-msg__stack {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 84%;
+  }
+  .nf-msg--mine .nf-msg__stack {
+    align-items: flex-end;
+  }
+  /* A shared card wants the room: it takes the whole width the stack allows. */
+  .nf-msg__stack--wide {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* The small avatar beside a bubble, in a thinner ring than the header's. */
+  .nf-msg__avatar {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    box-shadow: 0 0 10px var(--nf-glow-1);
+    overflow: hidden;
+  }
+  .nf-msg__avatar > * {
+    border-radius: inherit;
+  }
+  /* The sender's label under my avatar on the rental face ("Vallo Agent"). */
+  .nf-msg__side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    flex-shrink: 0;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-brand-secondary);
+    white-space: nowrap;
+  }
+
+  /* Sender name and time ABOVE the bubble, as the render draws it. */
+  .nf-msg__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    margin-bottom: var(--nf-space-2xs);
+    padding-inline: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-msg__sender {
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* A role tag beside a name: Tenant, Agent, Host. A hairline pill, no fill,
+     so it labels the person without competing with the verified mark. */
+  .nf-role-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+    background: var(--nf-glass-fill-thin);
+  }
+
+  /* ------------------------------------------------------------ bubbles */
+
+  .nf-bubble {
+    position: relative;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    font-size: var(--nf-text-body);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  /* Theirs: a dark glass well with a brand hairline and a faint inner bloom.
+     The tail corner is the one nearest the avatar. */
+  .nf-bubble--theirs {
+    color: var(--nf-content-primary);
+    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-bottom-left-radius: var(--nf-radius-xs);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      inset 0 0 18px var(--nf-glow-wash),
+      0 0 12px var(--nf-glow-1);
+  }
+  /* Mine: the CTA gradient, lit at the top, with the bloom the render gives
+     the sent side. On-brand ink, never a raw white. */
+  .nf-bubble--mine {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-gradient-cta);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border-bottom-right-radius: var(--nf-radius-xs);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-2);
+  }
+  /* A message that did not send loses its fill, so the shape says it. */
+  .nf-bubble--failed {
+    color: var(--nf-content-primary);
+    background: transparent;
+    border: var(--nf-border-width) solid var(--nf-state-error);
+    box-shadow: none;
+  }
+  .nf-bubble--sending {
+    opacity: 0.7;
+  }
+  .nf-bubble__body {
+    white-space: pre-wrap;
+  }
+  /* Time and the read ticks, on the bubble's last line, right-aligned. */
+  .nf-bubble__foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.78;
+  }
+  .nf-bubble--theirs .nf-bubble__foot {
+    color: var(--nf-content-muted);
+    opacity: 1;
+  }
+  .nf-bubble__ticks {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .nf-bubble__ticks--read {
+    color: var(--nf-content-on-brand);
+  }
+  .nf-bubble__photo {
+    display: block;
+    width: 100%;
+    max-height: 16rem;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+    margin-bottom: var(--nf-space-xs);
+  }
+
+  /* The photo bundle inside a bubble: three thumbnails and a +n plate. */
+  .nf-photo-bundle {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
+    margin-bottom: var(--nf-space-xs);
+  }
+  .nf-photo-bundle__cell {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-inset);
+  }
+  .nf-photo-bundle__cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-photo-bundle__more {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--nf-overlay-media-strong);
+    color: var(--nf-content-on-media);
+    font-weight: 700;
+    font-size: var(--nf-text-body);
+  }
+
+  /* ------------------------------------------------------ the shared card */
+
+  /* A listing or a booking, shared into the chat. Strong glass, a lit brand
+     edge, and one bloom; it is the object of the conversation so it earns
+     the loudest surface in the room. */
+  .nf-chat-card {
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 22px var(--nf-glow-2);
+  }
+  .nf-chat-card__photo {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--nf-surface-inset);
+    overflow: hidden;
+  }
+  .nf-chat-card__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-chat-card__badge {
+    position: absolute;
+    top: var(--nf-space-sm);
+    right: var(--nf-space-sm);
+  }
+  .nf-chat-card__body {
+    padding: var(--nf-space-md);
+  }
+  .nf-chat-card__title {
+    font-family: var(--nf-font-display);
+    font-weight: 700;
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  /* Rating stars ship blue by rule 8. */
+  .nf-chat-card__stars {
+    display: flex;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-2xs);
+    color: var(--nf-rating);
+  }
+  .nf-chat-card__place {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  /* Check in, check out, guests: three cells with hairlines between them. */
+  .nf-chat-card__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: var(--nf-space-md);
+    padding-top: var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-chat-card__fact {
+    display: flex;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    padding-inline: var(--nf-space-xs);
+  }
+  .nf-chat-card__fact + .nf-chat-card__fact {
+    border-left: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-chat-card__fact:first-child {
+    padding-left: 0;
+  }
+  .nf-chat-card__fact-glyph {
+    color: var(--nf-brand-secondary);
+    flex-shrink: 0;
+    margin-top: var(--nf-space-3xs);
+  }
+  .nf-chat-card__fact-label {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-chat-card__fact-value {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-chat-card__fact-sub {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  /* The room row: thumbnail, name, features, price and the nights chip. */
+  .nf-chat-card__room {
+    display: flex;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-md);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-chat-card__thumb {
+    width: 5.5rem;
+    height: 4.5rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-inset);
+  }
+  .nf-chat-card__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-chat-card__room-name {
+    font-weight: 600;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-chat-card__features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-chat-card__features > span + span::before {
+    content: "\2022";
+    margin-right: var(--nf-space-2xs);
+    color: var(--nf-content-muted);
+  }
+  .nf-chat-card__price-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-2xs);
+  }
+  .nf-chat-card__price {
+    font-family: var(--nf-font-display);
+    font-weight: 700;
+    font-size: var(--nf-text-body-lg);
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-chat-card__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .nf-chat-card__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-md);
+  }
+  .nf-chat-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-chat-card__forward {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-xs);
+    border-radius: var(--nf-radius-control);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  /* ----------------------------------------------------- the context card */
+
+  /* The rental context card under the header (9E06F51C): a glass object with
+     the house glyph on a lit plate, the enquiry, the property, and a chevron
+     that goes to the property. */
+  .nf-context-card {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 16px var(--nf-glow-1);
+    color: inherit;
+  }
+  .nf-context-card__mark {
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+  }
+  .nf-context-card__title {
+    font-weight: 700;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-context-card__line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-context-card__line > span + span::before {
+    content: "\2022";
+    margin-right: var(--nf-space-2xs);
+    color: var(--nf-content-muted);
+  }
+  .nf-context-card__chev {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+  }
+  /* The face's own controls sit under the context line in one row. */
+  .nf-context-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+  }
+
+  /* ----------------------------------------------------------- composer */
+
+  .nf-composer {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    padding-top: var(--nf-gap-inline);
+    padding-bottom: max(var(--nf-space-xs), env(safe-area-inset-bottom));
+  }
+  /* The field is a glass well with the brand hairline, like the bubbles it
+     feeds; it stays 44px tall so the thumb has the target the buttons have. */
+  .nf-composer__field {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+  }
+  .nf-composer__field::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-composer__field:focus {
+    outline: none;
+    border-color: var(--nf-focus-ring);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 0 3px var(--nf-glow-2);
+  }
+  /* The send is the one filled control on the bar. */
+  .nf-composer__send {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-gradient-cta);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 14px var(--nf-glow-2);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-composer__send:disabled {
+    opacity: 0.45;
+    box-shadow: none;
+  }
+  .nf-composer__send:active:not(:disabled) {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+  .nf-composer__pending {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    padding-top: var(--nf-gap-inline);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+
+  /* ------------------------------------------------------------- inbox */
+
+  .nf-inbox-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    width: 100%;
+    padding: var(--nf-space-sm) var(--nf-space-xs);
+    border-radius: var(--nf-radius-lg);
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-inbox-row:hover {
+      background: var(--nf-glass-fill);
+    }
+  }
+  .nf-inbox-row__ring {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: 0 0 10px var(--nf-glow-1);
+    padding: 2px;
+  }
+  .nf-inbox-row__ring > * {
+    border-radius: inherit;
+  }
+  .nf-inbox-row__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.375rem;
+    height: 1.375rem;
+    padding-inline: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The share picker: a row per destination thread or item, glass on tap. */
+  .nf-share-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    width: 100%;
+    min-height: 3.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-lg);
+    text-align: left;
+    color: inherit;
+  }
+  @media (hover: hover) {
+    .nf-share-row:hover {
+      background: var(--nf-glass-fill);
+    }
+  }
+
+
+  /* ------------------------------------------------------ inspections */
+
+  /* F6A8A482. The screen opens on a headline with the second word lit, a
+     sub-line, and the glass house-with-a-tick at the right; then the listing
+     card, the three-cell facts row, the ladder, notes, and the two actions. */
+  .nf-insp-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-inline);
+    margin-bottom: var(--nf-gap-heading);
+  }
+  .nf-insp-hero__title {
+    font-family: var(--nf-font-display);
+    font-weight: 800;
+    font-size: var(--nf-text-h1);
+    line-height: 1.1;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-insp-hero__lit {
+    background: var(--nf-gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .nf-insp-hero__sub {
+    margin-top: var(--nf-space-xs);
+    max-width: 28ch;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+  }
+  .nf-insp-hero__mark {
+    width: 6.5rem;
+    height: 6.5rem;
+    flex-shrink: 0;
+    margin-top: calc(var(--nf-space-sm) * -1);
+    filter: drop-shadow(0 0 18px var(--nf-glow-2));
+  }
+
+  /* The listing card: photo left, status pill and facts right, chevron. */
+  .nf-insp-card {
+    display: flex;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+    color: inherit;
+  }
+  .nf-insp-card__photo {
+    position: relative;
+    width: 7.25rem;
+    flex-shrink: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+  }
+  .nf-insp-card__title {
+    margin-top: var(--nf-space-2xs);
+    font-family: var(--nf-font-display);
+    font-weight: 700;
+    font-size: var(--nf-text-body);
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-insp-card__line {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-insp-card__price {
+    margin-top: var(--nf-space-2xs);
+    font-family: var(--nf-font-display);
+    font-weight: 700;
+    font-size: var(--nf-text-body);
+    color: var(--nf-brand-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-insp-card__price small {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+
+  /* Date, the other party, the state: three cells with hairlines between. */
+  .nf-insp-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-sm) 0;
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+  }
+  .nf-insp-fact {
+    display: flex;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-insp-fact + .nf-insp-fact {
+    border-left: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-insp-fact__glyph {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-insp-fact__label {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-insp-fact__value {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+
+  /* The ladder: a glass panel, a heading row with the count and a bar, then
+     one row per step with its glyph tile and a ring or a filled tick. */
+  .nf-insp-ladder {
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+  }
+  .nf-insp-ladder__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-xs);
+  }
+  .nf-insp-ladder__title {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-weight: 700;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-insp-ladder__count {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-insp-ladder__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-insp-step {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-insp-step__tile {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-brand-secondary);
+    box-shadow: inset 0 0 10px var(--nf-glow-wash);
+  }
+  .nf-insp-step__name {
+    font-weight: 600;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-insp-step__detail {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  /* The ring: hollow until the step happened, filled emerald with a tick
+     once it did. Shape and colour, never colour alone. */
+  .nf-insp-step__ring {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-brand-edge);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-insp-step--done .nf-insp-step__ring {
+    border-color: var(--nf-state-success);
+    background: var(--nf-state-success);
+  }
+  .nf-insp-step--done .nf-insp-step__tile {
+    color: var(--nf-state-success);
+    border-color: color-mix(in oklab, var(--nf-state-success) 45%, transparent);
+  }
+
+  .nf-insp-notes {
+    display: flex;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+  }
+  .nf-insp-notes__body {
+    margin-top: var(--nf-space-2xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    white-space: pre-wrap;
+  }
+  .nf-insp-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+  }
+  /* A closed inspection folds to its summary row; the open one is expanded. */
+  .nf-insp-fold > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .nf-insp-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .nf-insp-fold[open] > summary .nf-insp-card__chev {
+    transform: rotate(90deg);
+  }
+  .nf-insp-card__chev {
+    flex-shrink: 0;
+    align-self: center;
+    color: var(--nf-content-muted);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-insp-card__chev {
+      transition: none;
+    }
+  }
+
+  /* ------------------------------------------------------ reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-composer__send,
+    .nf-inbox-row {
+      transition: none;
+    }
+  }
+}
+
+/* ------------------------------------------------------------ paper twin */
+
+/*
+  On paper the wells are the platform's light well (a grey wash), the mine
+  bubble keeps its blue because on-brand ink stays white, and the blooms come
+  down through the light glow ladder on their own. The card and the composer
+  well turn to the raised paper surface so the hairline reads as an edge and
+  not as a shadow.
+*/
+:root[data-theme="light"] .nf-bubble--theirs,
+:root[data-theme="light"] .nf-context-card,
+:root[data-theme="light"] .nf-chat-card,
+:root[data-theme="light"] .nf-composer__field,
+:root[data-theme="light"] .nf-thread__ring,
+:root[data-theme="light"] .nf-msg__avatar,
+:root[data-theme="light"] .nf-inbox-row__ring {
+  background: var(--nf-surface-on-paper);
+}
+:root[data-theme="light"] .nf-bubble--theirs {
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-chat-card,
+:root[data-theme="light"] .nf-context-card {
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-chat-card__room {
+  background: var(--nf-surface-raised);
+}
+:root[data-theme="light"] .nf-bubble--mine {
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-insp-card,
+:root[data-theme="light"] .nf-insp-facts,
+:root[data-theme="light"] .nf-insp-ladder,
+:root[data-theme="light"] .nf-insp-notes,
+:root[data-theme="light"] .nf-insp-step__tile {
+  background: var(--nf-surface-on-paper);
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-insp-step,
+:root[data-theme="light"] .nf-insp-notes__body {
+  background: var(--nf-surface-raised);
 }

@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { PageHeader } from "@/components/app/PageHeader";
 import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
 import { reservationLine } from "@/components/app/threads/ReservationFace";
 import type { Inspection } from "@/lib/inspections/types";
@@ -10,6 +11,9 @@ import type { ThreadContext } from "@/lib/messages/live";
 import { ICON } from "@/components/app/Screen";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
+import { bundlePhotos } from "@/components/app/messages/bundle";
+import { parseShare, shareHref, SHARE_LEAD } from "@/components/app/messages/share";
 import {
   attachImage,
   confirmInspection,
@@ -28,6 +32,7 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
+import { canGoBackInApp } from "@/lib/ui/history";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 
@@ -42,6 +47,15 @@ import { Button } from "@/components/ui/Button";
  * exactly as the seeded threads always have, with read and inspection state
  * in localStorage. Either way, a reload renders whatever the source of truth
  * holds; nothing here pretends.
+ *
+ * THE FACE IS GOVERNING-chat-booking-card.png. The header is the counterpart
+ * in a lit ring with the verified mark, the context line and the place, and
+ * two glass controls on the right; theirs is a dark glass bubble under the
+ * sender's name and time, mine is the blue bubble with the read ticks; a
+ * shared listing or booking is the full card; the composer is the attach
+ * control, the glass field and the blue send. The rental face (9E06F51C) adds
+ * role tags beside the names and the context card under the header, both
+ * drawn by `ThreadContextBanner`.
  */
 
 export type ThreadBubble = {
@@ -51,6 +65,13 @@ export type ThreadBubble = {
   timeLabel: string;
   imageUrl: string | null;
   state?: "sending" | "failed";
+  /**
+   * True once the other side has opened it. Carried by the row's `read_at`;
+   * only ever drawn on my own bubbles, and only as the second tick.
+   */
+  read?: boolean;
+  /** The card a share expands into, resolved by the page. Absent otherwise. */
+  card?: ChatCardData;
 };
 
 export type ThreadViewProps = {
@@ -82,6 +103,8 @@ export type ThreadViewProps = {
   role?: ThreadRole;
   threadCopy?: Dictionary["threads"];
   locale?: Locale;
+  /** Open the photo picker on arrival: the inspection screen's Add photos lands here. */
+  openAttach?: boolean;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -138,10 +161,48 @@ type RetryPayload = { kind: "text"; body: string } | { kind: "image"; file: File
 function retryLabel(message: { body?: string | null; imageUrl?: string | null }): string {
   const words = (message.body ?? "").trim();
   if (words.length > 0) {
-    const short = words.length > 40 ? `${words.slice(0, 40).trimEnd()}…` : words;
+    const short = words.length > 40 ? `${words.slice(0, 40).trimEnd()}...` : words;
     return `Retry sending: ${short}`;
   }
   return message.imageUrl ? "Retry sending your photo" : "Retry sending this message";
+}
+
+/**
+ * The read ticks. One tick is delivered (the platform holds it), two is read
+ * (the other side opened it). Drawn inline so the two states are one shape
+ * apart, which no glyph in the stroked set is.
+ */
+function Ticks({ read }: { read: boolean }) {
+  return (
+    <span
+      className={`nf-bubble__ticks${read ? " nf-bubble__ticks--read" : ""}`}
+      aria-label={read ? "Read" : "Delivered"}
+      role="img"
+    >
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true">
+        <path d="M1 6.5l3.2 3.2L10.5 3.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        {read && (
+          <path d="M7 6.5l3.2 3.2L16.5 3.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        )}
+      </svg>
+    </span>
+  );
+}
+
+/**
+ * The role a name carries on a context thread: the rental face labels the
+ * renter and the lister, a stay labels the guest and the host, a table the
+ * guest and the restaurant. A plain direct message labels nobody.
+ */
+function roleTags(context: ThreadContext | undefined, role: ThreadRole): { mine: string; theirs: string } | null {
+  if (!context) return null;
+  const pairs: Record<ThreadContext["kind"], [string, string]> = {
+    listing: ["Agent", "Tenant"],
+    booking: ["Host", "Guest"],
+    reservation: ["Restaurant", "Guest"],
+  };
+  const [host, guest] = pairs[context.kind];
+  return role === "host" ? { mine: host, theirs: guest } : { mine: guest, theirs: host };
 }
 
 export function ThreadView({
@@ -158,7 +219,9 @@ export function ThreadView({
   role = "guest",
   threadCopy,
   locale = "en",
+  openAttach = false,
 }: ThreadViewProps) {
+  const router = useRouter();
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
    * THE ACCEPT CEREMONY (pitch 13). When an inspection is accepted in the
@@ -193,6 +256,11 @@ export function ThreadView({
     }
   }, [live, conversationId]);
 
+  /* The inspection screen's "Add photos" arrives with the picker asked for. */
+  useEffect(() => {
+    if (openAttach) fileRef.current?.click();
+  }, [openAttach]);
+
   /* Keep the newest bubble in view as the thread grows. */
   useEffect(() => {
     const el = scrollerRef.current;
@@ -205,10 +273,6 @@ export function ThreadView({
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
   }, []);
 
-  /* Realtime arrivals for the open thread. Own sends are deduped by id (the
-     action result or an earlier event may have landed first); the other
-     side's messages append and are immediately marked read, since the thread
-     is on screen. */
   // "Someone is typing", the real signal: a broadcast on the thread's own
   // channel (see useThreadTyping), not a timer with nobody behind it. Seed
   // mode passes null, since there is no counterpart really present there.
@@ -217,6 +281,11 @@ export function ThreadView({
     meId,
   );
 
+  /* Realtime arrivals for the open thread. Own sends are deduped by id (the
+     action result or an earlier event may have landed first); the other
+     side's messages append and are immediately marked read, since the thread
+     is on screen. A share arriving live draws as its words and its path
+     until the next server render expands it, which is honest and opens. */
   useThreadRealtime(live ? conversationId : null, (row: LiveMessageRow) => {
     setItems((prev) => {
       if (prev.some((m) => m.id === row.id)) return prev;
@@ -407,79 +476,94 @@ export function ThreadView({
     sheetTriggerRef.current?.focus();
   }, []);
 
+  const back = () => {
+    if (canGoBackInApp()) router.back();
+    else router.push("/messages");
+  };
+
+  /* The header's context line: what this conversation is FOR, in two words,
+     under the name, the way the render writes "Hotel Booking". */
+  const contextLine =
+    context?.kind === "reservation" && context.reservation && threadCopy
+      ? reservationLine(context.reservation, locale, threadCopy.reservation)
+      : context?.kind === "booking"
+        ? "Stay booking"
+        : context?.kind === "listing" && listing
+          ? "Rental enquiry"
+          : "Direct message";
+  const place = listing ? [listing.area, listing.city].filter(Boolean).join(", ") : "";
+  const tags = roleTags(context, role);
+  const bundles = bundlePhotos(items);
+
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-3xl flex-col px-gutter pb-[max(1rem,env(safe-area-inset-bottom))] pt-row">
-      <PageHeader
-        title={counterpartName}
-        /* The property this thread is about, and now a way back to it. The
-           subtitle already carried the title so nobody has to open with "which
-           property"; it was inert, so the only route to the property itself was
-           the info button in the corner. */
-        /* A reservation thread's subtitle is the table, in Lagos time: "Fri 26
-           Sep, 8:00 pm, table for 4". The object owns the chat, so the chat
-           says the object. */
-        subtitle={
-          context?.kind === "reservation" && context.reservation && threadCopy
-            ? reservationLine(context.reservation, locale, threadCopy.reservation)
-            : (listing?.title ?? "Direct message")
-        }
-        subtitleHref={
-          context?.kind === "reservation"
-            ? undefined
-            : listing
-              ? `/listing/${listing.id}`
-              : undefined
-        }
-        fallback="/messages"
-        tone={inspected || ceremony ? "verified" : "default"}
-        /*
-          The counterpart's avatar, carrying their verified mark.
-
-          This slot used to hold a shield that appeared when an INSPECTION had
-          been confirmed, which is a fact about the booking rather than about
-          the person, and it looked exactly like a verification badge. Somebody
-          reading a thread saw a shield beside a stranger's name and had no way
-          to tell that it meant "you visited this flat" rather than "we checked
-          who this is". The inspection still tints the header row through
-          `tone`; the mark on the avatar is now only ever about identity.
-        */
-        leading={
-          <VerifiedAvatar
-            name={counterpartName}
-            verified={counterpartVerified}
-            size="sm"
-          />
-        }
-        actions={
-          listing ? (
-            <button
-              ref={sheetTriggerRef}
-              type="button"
-              aria-label="Listing and safety options"
-              aria-haspopup="dialog"
-              aria-expanded={sheetOpen}
-              onClick={() => setSheetOpen(true)}
-              className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10"
+    <div className="nf-thread mx-auto w-full max-w-3xl px-gutter">
+      {/* ------------------------------------------------------- header */}
+      <header
+        className={`nf-thread__head${inspected || ceremony ? " nf-page-header--verified" : ""}`}
+      >
+        <button type="button" aria-label="Back" onClick={back} className="nf-icon-btn">
+          <UiIcon name="arrow-left" size={ICON.inline} />
+        </button>
+        {/*
+          The counterpart's avatar, in the lit ring, carrying their verified
+          mark. The mark on the avatar is only ever about identity; the
+          inspection state tints the header row instead.
+        */}
+        <span className="nf-thread__ring">
+          <VerifiedAvatar name={counterpartName} verified={counterpartVerified} size="md" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h1 className="nf-thread__title">
+            <span className="min-w-0">{counterpartName}</span>
+            {counterpartVerified && (
+              <UiIcon name="verified" size={18} className="nf-thread__tick" label="Verified" />
+            )}
+          </h1>
+          <p className="nf-thread__context">{contextLine}</p>
+          {place && (
+            <p className="nf-thread__place">
+              <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+              <span className="truncate">{place}</span>
+            </p>
+          )}
+        </div>
+        <div className="nf-thread__actions">
+          {listing && (
+            <Link
+              href={`/listing/${listing.id}`}
+              aria-label="Open the property"
+              className="nf-icon-btn"
             >
-<UiIcon name="info" size="sm" />
-            </button>
-          ) : undefined
-        }
-      />
+              <UiIcon name="house" size={ICON.inline} />
+            </Link>
+          )}
+          <button
+            ref={sheetTriggerRef}
+            type="button"
+            aria-label="Conversation options"
+            aria-haspopup="dialog"
+            aria-expanded={sheetOpen}
+            onClick={() => setSheetOpen(true)}
+            className="nf-icon-btn"
+          >
+            <UiIcon name="more" size={ICON.inline} />
+          </button>
+        </div>
+      </header>
 
-      {listing && (
-        <ThreadOptionsSheet
-          open={sheetOpen}
-          listing={listing}
-          counterpartName={counterpartName}
-          inspected={inspected}
-          confirmedLabel={live ? "Inspection confirmed." : "Inspection confirmed on this device"}
-          busy={confirmBusy}
-          note={confirmNote}
-          onConfirmInspection={() => void handleConfirmInspection()}
-          onClose={closeSheet}
-        />
-      )}
+      <ThreadOptionsSheet
+        open={sheetOpen}
+        conversationId={conversationId}
+        listing={listing}
+        counterpartName={counterpartName}
+        inspected={inspected}
+        confirmedLabel={live ? "Inspection confirmed." : "Inspection confirmed on this device"}
+        busy={confirmBusy}
+        note={confirmNote}
+        canShare={live}
+        onConfirmInspection={() => void handleConfirmInspection()}
+        onClose={closeSheet}
+      />
 
       {/* ------------------------------------------------- context banner */}
       {context && threadCopy && (
@@ -488,6 +572,7 @@ export function ThreadView({
           inspection={inspection}
           role={role}
           counterpartName={counterpartName}
+          listing={listing}
           copy={threadCopy}
           locale={locale}
           onAccepted={() => setCeremony(true)}
@@ -497,177 +582,137 @@ export function ThreadView({
       {/* ------------------------------------------------------ chat thread */}
       <div
         ref={scrollerRef}
-        className="flex-1 space-y-lg overflow-y-auto pb-lg pr-2xs"
+        className="nf-thread__scroll"
         aria-live="polite"
         aria-label="Conversation"
       >
-        {/* 0.7rem, which is 11px, on the one line telling somebody to keep the
-            money inside the platform. That is the sentence that stops a person
-            being defrauded off-platform, and it was the smallest type on the
-            screen. Caption is the quietest tier that still reads. */}
-        <p className="flex items-center justify-center gap-inline nf-caption py-2xs text-center text-[var(--nf-content-muted)]">
-          <UiIcon name="verified" size={ICON.inline} />
+        <p className="nf-thread__safety">
+          <UiIcon name="verified" size={16} />
           Keep every chat and payment inside Vallo
         </p>
 
-        {items.map((m) =>
-          m.mine ? (
-            <div key={m.id} className="nf-msg-in--mine flex flex-col items-end">
-              {/*
-                The outgoing bubble is a BRAND FILL, so its text is
-                `--nf-content-on-brand` rather than a raw `text-white`. The two
-                resolve to the same white today, and that is exactly why the
-                literal survived: it looked right, so nothing caught that it was
-                a dark-only assumption written next to a colour that follows the
-                theme. The token is the contract, and it is the one that keeps
-                holding if the brand fill ever lightens.
-              */}
-              {/*
-                A MESSAGE THAT FAILED MUST NOT LOOK SENT.
-
-                `sending` dimmed the bubble to 70 per cent and `failed` changed
-                nothing about it at all, so a message the agent never received
-                was a full-strength brand-filled bubble identical to a delivered
-                one, with a small rose line underneath that a thumb scrolls
-                past. On a platform whose standing safety rule is "keep every
-                conversation inside Vallo", that is the one state that must be
-                unmistakable.
-
-                A failed bubble is OUTLINED rather than filled. The shape
-                changes, not just the hue, so it survives greyscale and a
-                glance, and the fill it loses is exactly the thing that was
-                saying "this went".
-              */}
-              <div
-                className={`max-w-[85%] rounded-2xl rounded-br-md px-md py-xs ${
-                  m.state === "failed"
-                    ? "border border-[var(--nf-state-error)] bg-transparent text-[var(--nf-content-primary)]"
-                    : "bg-[color-mix(in_oklab,var(--nf-brand-primary)_58%,var(--nf-brand-primary-strong))] text-[var(--nf-content-on-brand)]"
-                } ${m.state === "sending" ? "opacity-70" : ""}`}
-              >
-                {m.imageUrl && (
-                  /* Signed and object URLs cannot go through the optimiser. */
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.imageUrl}
-                    alt="Photo you attached"
-                    className="mb-xs aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
-                  />
-                )}
-                {m.body && <p className="nf-body">{m.body}</p>}
-                {/* Same rule as the bubble above: on a brand fill the text is
-                    the on-brand token, dimmed with opacity rather than with a
-                    `text-white/70` that cannot follow a theme. */}
-                <p
-                  className={`nf-numeric nf-caption mt-inline-tight text-right ${
-                    m.state === "failed"
-                      ? "text-[var(--nf-content-muted)]"
-                      : "text-[var(--nf-content-on-brand)] opacity-70"
-                  }`}
-                >
-                  {/*
-                    DELIVERED, AND DELIBERATELY NOT SEEN.
-
-                    There was no delivery state at all: the footer read
-                    "Sending" or a time, so a person who had messaged an agent
-                    about a flat had no idea whether the platform had the
-                    message or whether it had quietly failed on a bad
-                    connection. That is the gap between a chat and a form.
-
-                    SEEN IS NOT SHIPPED AND SHOULD NOT BE. Delivered is a fact
-                    about the system and costs nobody any privacy. Seen is a
-                    fact about a person, and on a platform where one agent may
-                    be holding twenty enquiries it manufactures an obligation to
-                    reply the moment they open anything, which makes agents
-                    slower to open messages rather than faster to answer them.
-                    Delivered, beside the existing "Sending" and "Not sent",
-                    answers the anxiety without the cost.
-
-                    It means what it says: the message is stored on the platform
-                    and is in the thread the agent reads. The optimistic bubble
-                    only drops its `sending` state when the server has adopted
-                    it, so the word is never shown for a message the platform
-                    does not hold.
-                  */}
-                  {m.state === "sending"
-                    ? "Sending"
-                    : m.state === "failed"
-                      ? m.timeLabel
-                      : `${m.timeLabel} · Delivered`}
-                </p>
-              </div>
-              {m.state === "failed" && (
-                <p className="mt-inline-tight flex items-center gap-xs nf-caption text-[var(--nf-state-error)]">
-                  Not sent.
-                  {/*
-                    THE RETRY CARRIES WHICH MESSAGE IT RETRIES.
-                    Visibly it does not need to: it sits under the bubble and
-                    the eye pairs them. To a screen reader it did, and did not
-                    have it. A thread where three sends failed announced three
-                    buttons all called "Retry", in a list, with nothing saying
-                    which was which - so the one reader who cannot see the
-                    pairing was the one reader who had to guess. The name is
-                    built from the message's own words, cut short because an
-                    accessible name is read out whole and a 900-character
-                    message is not a button label. An image has no words, so it
-                    says so rather than announcing an empty quotation.
-                  */}
-                  <button
-                    type="button"
-                    onClick={() => retry(m.id)}
-                    aria-label={retryLabel(m)}
-                    className="font-semibold underline underline-offset-2"
-                  >
-                    Retry
-                  </button>
-                </p>
+        {bundles.map(({ lead: m, items: run }) => {
+          const share = m.card ? null : parseShare(m.body);
+          const wide = Boolean(m.card);
+          return (
+            <div
+              key={m.id}
+              className={`nf-msg ${m.mine ? "nf-msg--mine nf-msg-in--mine" : "nf-msg-in--theirs"}`}
+            >
+              {m.mine ? (
+                <span className="nf-msg__side" aria-hidden="true">
+                  <span className="nf-msg__avatar">
+                    <UiIcon name="user" size={18} />
+                  </span>
+                  {tags && <span>{tags.mine}</span>}
+                </span>
+              ) : (
+                <span className="nf-msg__avatar" aria-hidden="true">
+                  {counterpartName.charAt(0)}
+                </span>
               )}
-            </div>
-          ) : (
-            <div key={m.id} className="nf-msg-in--theirs flex items-end gap-row">
-              <span
-                aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] nf-caption font-bold text-[var(--nf-brand-secondary)]"
-              >
-                {counterpartName.charAt(0)}
-              </span>
-              <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md px-md py-xs">
-                {m.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.imageUrl}
-                    alt={`Photo from ${counterpartName}`}
-                    className="mb-xs aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
-                  />
-                )}
-                {m.body && (
-                  <p className="nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
-                    {m.body}
+
+              <div className={`nf-msg__stack${wide ? " nf-msg__stack--wide" : ""}`}>
+                {!m.mine && (
+                  <p className="nf-msg__meta">
+                    <span className="nf-msg__sender">{counterpartName}</span>
+                    {tags && <span className="nf-role-tag">{tags.theirs}</span>}
+                    <span className="nf-numeric">{m.timeLabel}</span>
                   </p>
                 )}
-                {/* 0.65rem is 10px. A timestamp is allowed to be the quietest
-                    thing in the bubble; it is not allowed to be unreadable, and
-                    the outgoing bubble beside it already used caption. */}
-                <p className="nf-numeric nf-caption mt-inline-tight text-right text-[var(--nf-content-muted)]">
-                  {m.timeLabel}
-                </p>
+
+                {m.card ? (
+                  <ChatCard card={m.card} />
+                ) : (
+                  <div
+                    className={`nf-bubble ${
+                      m.state === "failed"
+                        ? "nf-bubble--failed"
+                        : m.mine
+                          ? "nf-bubble--mine"
+                          : "nf-bubble--theirs"
+                    }${m.state === "sending" ? " nf-bubble--sending" : ""}`}
+                  >
+                    {run.length > 1 ? (
+                      /* The bundle: three thumbnails and the count of the rest. */
+                      <div className="nf-photo-bundle" role="group" aria-label={`${run.length} photos`}>
+                        {run.slice(0, 3).map((p, i) => (
+                          <span key={p.id} className="nf-photo-bundle__cell">
+                            {/* Signed and object URLs cannot go through the optimiser. */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.imageUrl ?? ""} alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`} />
+                            {i === 2 && run.length > 3 && (
+                              <span className="nf-photo-bundle__more">+{run.length - 3}</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      m.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={m.imageUrl}
+                          alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
+                          className="nf-bubble__photo"
+                        />
+                      )
+                    )}
+                    {share ? (
+                      /* A share whose card did not resolve for this reader:
+                         the words and a link that opens the thing. */
+                      <p className="nf-bubble__body">
+                        {SHARE_LEAD[share.kind]}{" "}
+                        <Link href={shareHref(share)} className="font-semibold underline underline-offset-2">
+                          Open
+                        </Link>
+                      </p>
+                    ) : (
+                      m.body && run.length === 1 && <p className="nf-bubble__body">{m.body}</p>
+                    )}
+                    <p className="nf-bubble__foot">
+                      {/*
+                        Delivered is a fact about the system; read is the
+                        other side's `read_at`, which the row carries and
+                        which costs nobody a new obligation because it is
+                        the state the platform already keeps.
+                      */}
+                      {m.state === "sending" ? (
+                        <span>Sending</span>
+                      ) : (
+                        <span className="nf-numeric">{m.timeLabel}</span>
+                      )}
+                      {m.mine && !m.state && <Ticks read={Boolean(m.read)} />}
+                    </p>
+                  </div>
+                )}
+
+                {m.state === "failed" && (
+                  <p className="mt-inline-tight flex items-center gap-xs nf-caption text-[var(--nf-state-error)]">
+                    Not sent.
+                    <button
+                      type="button"
+                      onClick={() => retry(m.id)}
+                      aria-label={retryLabel(m)}
+                      className="font-semibold underline underline-offset-2"
+                    >
+                      Retry
+                    </button>
+                  </p>
+                )}
               </div>
             </div>
-          ),
-        )}
+          );
+        })}
 
         {/* "Someone is typing": three breathing dots in the same bubble shape
             a reply lands in, driven by the real broadcast above. */}
         {counterpartTyping && (
-          <div className="nf-msg-in--theirs flex items-end gap-row">
-            <span
-              aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] nf-caption font-bold text-[var(--nf-brand-secondary)]"
-            >
+          <div className="nf-msg nf-msg-in--theirs">
+            <span className="nf-msg__avatar" aria-hidden="true">
               {counterpartName.charAt(0)}
             </span>
             <div
-              className="nf-card flex items-center gap-inline-tight rounded-2xl rounded-bl-md px-md py-sm"
+              className="nf-bubble nf-bubble--theirs flex items-center gap-inline-tight"
               role="status"
               aria-label={`${counterpartName} is typing`}
             >
@@ -686,13 +731,8 @@ export function ThreadView({
 
       {/* ----------------------------------------------- safety education */}
       {educationOpen && (
-        <div
-          role="status"
-          className="nf-card mb-xs flex items-start gap-row border-t border-[var(--nf-border-subtle)] p-card-sm"
-        >
-          {/* 3xs is the optical rung: a glyph nudged onto the first line's
-              baseline, not an interval between two pieces of content. */}
-          <span className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" aria-hidden="true">
+        <div role="status" className="nf-context-card mb-xs">
+          <span className="shrink-0 text-[var(--nf-brand-secondary)]" aria-hidden="true">
             <UiIcon name="verified" size={ICON.inline} />
           </span>
           <p className="min-w-0 flex-1 nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
@@ -702,7 +742,7 @@ export function ThreadView({
             type="button"
             aria-label="Dismiss safety note"
             onClick={() => setEducationOpen(false)}
-            className="nf-icon-btn h-11 w-11 shrink-0"
+            className="nf-icon-btn shrink-0"
           >
             <UiIcon name="close" size={ICON.inline} />
           </button>
@@ -711,16 +751,14 @@ export function ThreadView({
 
       {/* --------------------------------------------------------- composer */}
       {pendingFile && (
-        <div className="flex items-center gap-row border-t border-[var(--nf-border-subtle)] pt-row">
+        <div className="nf-composer__pending">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={pendingFile.url}
             alt="Photo ready to send"
             className="h-14 w-14 rounded-xl object-cover"
           />
-          <p className="min-w-0 flex-1 nf-body-sm text-[var(--nf-content-muted)]">
-            Photo attached
-          </p>
+          <p className="min-w-0 flex-1 nf-body-sm text-[var(--nf-content-muted)]">Photo attached</p>
           <Button
             variant="ghost"
             size="sm"
@@ -739,9 +777,7 @@ export function ThreadView({
           e.preventDefault();
           send();
         }}
-        className={`flex items-center gap-row pt-row ${
-          pendingFile || educationOpen ? "" : "border-t border-[var(--nf-border-subtle)]"
-        }`}
+        className="nf-composer"
       >
         <input
           ref={fileRef}
@@ -756,9 +792,9 @@ export function ThreadView({
           type="button"
           aria-label="Attach a photo"
           onClick={() => fileRef.current?.click()}
-          className="nf-icon-btn h-11 w-11 shrink-0"
+          className="nf-icon-btn"
         >
-<UiIcon name="picture" size="sm" />
+          <UiIcon name="picture" size={ICON.inline} />
         </button>
         <label htmlFor="thread-input" className="sr-only">
           Message {counterpartName}
@@ -768,21 +804,19 @@ export function ThreadView({
           type="text"
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
-          placeholder={`Message ${counterpartName}`}
+          placeholder="Type a message"
           autoComplete="off"
           enterKeyHint="send"
-          className="nf-field min-w-0 flex-1"
+          className="nf-composer__field"
         />
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          iconOnly
           aria-label="Send message"
           disabled={!draft.trim() && !pendingFile}
-          className="shrink-0 rounded-full"
+          className="nf-composer__send"
         >
-          <UiIcon name="arrow-right" size={20} className="-rotate-90" />
-        </Button>
+          <UiIcon name="arrow-right" size={ICON.inline} className="-rotate-45" />
+        </button>
       </form>
     </div>
   );

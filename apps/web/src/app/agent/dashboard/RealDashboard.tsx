@@ -115,9 +115,9 @@ export function RealDashboard({
 
   return (
     <>
-      <div className="mb-block flex flex-wrap items-end justify-between gap-md">
+      <div className="nf-agent-head">
         <div>
-          <h1 className="nf-h1">{a.title}</h1>
+          <h1 className="nf-agent-head__title">{a.title}</h1>
           <p className={`mt-row ${TYPE.bodyLg}`}>{fill(d.standing, { name: displayName })}</p>
         </div>
         <ButtonLink href="/agent/list" variant="primary">

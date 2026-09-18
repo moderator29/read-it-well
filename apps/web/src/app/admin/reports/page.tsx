@@ -15,6 +15,7 @@ import { Constants } from "@/lib/supabase/database.types";
 import { ReportDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QueueTable, shortRef, type QueueRowData } from "../_components/QueueTable";
 import { gradeForReportCategory } from "@/lib/trust/standards";
 import { dueChip } from "../_components/due";
 
@@ -197,21 +198,33 @@ export default async function AdminReportsPage({
       ) : (
         <>
           {open.length > 0 && (
-            <ul className="nf-queue-list">
-              {open.map((report) => (
+            <QueueTable
+          label="Reports"
+          rows={open.map((report) => ({
+            ...reportRow(report, ui),
+            children: (
+              <ul className="nf-queue-list">
                 <ReportCard key={report.id} report={report} copy={copy} common={common} ui={ui} />
-              ))}
-            </ul>
+              </ul>
+            ),
+          }))}
+        />
           )}
 
           {closed.length > 0 && (
             <section className="mt-xl">
               <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyClosed}</h2>
+              <QueueTable
+          label="Reports"
+          rows={closed.map((report) => ({
+            ...reportRow(report, ui),
+            children: (
               <ul className="nf-queue-list">
-                {closed.map((report) => (
-                  <ReportCard key={report.id} report={report} copy={copy} common={common} ui={ui} />
-                ))}
+                <ReportCard key={report.id} report={report} copy={copy} common={common} ui={ui} />
               </ul>
+            ),
+          }))}
+        />
             </section>
           )}
         </>
@@ -226,4 +239,21 @@ export default async function AdminReportsPage({
       />
     </div>
   );
+}
+
+/** The dense row a report takes in the console table. */
+function reportRow(report: ReportView, ui: AdminUi): QueueRowData {
+  return {
+    id: report.id,
+    reference: shortRef("RPT", report.id),
+    type: "Report",
+    icon: "flag",
+    title: ui.columnLabel("category", report.category),
+    sub: report.reporterName,
+    detail: ui.columnLabel("targetType", report.targetType),
+    detailSub: report.reason,
+    status: report.status,
+    statusLabel: ui.statusLabel(report.status),
+    submitted: ui.when(report.createdAt),
+  };
 }

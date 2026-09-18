@@ -1,160 +1,248 @@
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { getQueueCounts } from "@/lib/admin/queries";
-import type { UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import {
+  getAgentApplications,
+  getListingSubmissions,
+  getMessageFlags,
+  getQueueCounts,
+  getReports,
+  getSupportTickets,
+} from "@/lib/admin/queries";
 import { adminUi } from "./_components/ui";
+import { QueueFilters, readQueueQuery } from "./_components/QueueFilters";
+import { QueueHeadline, QueueTable, QueueTabs, shortRef, type QueueRowData } from "./_components/QueueTable";
 
 export const dynamic = "force-dynamic";
 
 /**
- * The overview: where the work is, right now.
+ * The Admin Queue: where the work is, right now, as one table.
  *
- * Seven numbers, each one a live count from the table behind it and each one a
- * link into the queue that clears it. Nothing here is decorative; if a tile
- * reads zero, that queue really is empty.
+ * 278CC66A and CDA4B82B draw the console opening on a single queue across
+ * every kind of work, with count tabs above it. The platform has no unified
+ * queue table, so this is composed from the five readers that exist (listing
+ * submissions, agent applications, reports, support tickets and message
+ * flags), each read under the same admin gate the desks use, mapped onto one
+ * row shape and ordered newest first. Every count on a tab is the live
+ * count from `getQueueCounts`; every View goes to the desk that clears the
+ * row. Nothing is invented and nothing here can act on a row: the decision
+ * controls stay on the desks, which is where the audit log expects them.
+ *
+ * `?tab=` narrows to one kind; `?q=` runs the search each desk already has.
  */
-type Tile = {
-  key:
-    | "flags"
-    | "moderation"
-    | "alerts"
-    | "applications"
-    | "listings"
-    | "reports"
-    | "tickets";
-  href: string;
-  icon: UiIconName;
-};
 
-const TILES: Tile[] = [
-  { key: "flags", href: "/admin/flags", icon: "chat-bubble" },
-  { key: "moderation", href: "/admin/moderation", icon: "sliders" },
-  { key: "alerts", href: "/admin/alerts", icon: "bell" },
-  { key: "applications", href: "/admin/agents", icon: "user" },
-  { key: "listings", href: "/admin/listings", icon: "building-apartment" },
-  { key: "reports", href: "/admin/reports", icon: "search" },
-  { key: "tickets", href: "/admin/support", icon: "ticket" },
+type TabKey = "all" | "listings" | "applications" | "reports" | "tickets" | "flags";
+
+const TABS: { key: TabKey; label: string; href: string }[] = [
+  { key: "all", label: "All", href: "/admin" },
+  { key: "listings", label: "Listings", href: "/admin?tab=listings" },
+  { key: "applications", label: "Agents", href: "/admin?tab=applications" },
+  { key: "reports", label: "Reports", href: "/admin?tab=reports" },
+  { key: "tickets", label: "Support", href: "/admin?tab=tickets" },
+  { key: "flags", label: "Flags", href: "/admin?tab=flags" },
 ];
 
-export default async function AdminOverviewPage() {
+/** The other queues the table does not fold in yet, still one tap away. */
+const MORE: { key: string; icon: UiIconName; href: string }[] = [
+  { key: "moderation", icon: "sliders", href: "/admin/moderation" },
+  { key: "alerts", icon: "bell", href: "/admin/alerts" },
+];
+
+export default async function AdminOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const o = t.admin.overview;
   const ui = adminUi(t, locale);
-  const counts = await getQueueCounts();
+  const params = await searchParams;
+  const query = readQueueQuery(params);
+  const tabRaw = Array.isArray(params.tab) ? params.tab[0] : params.tab;
+  const tab: TabKey = TABS.some((entry) => entry.key === tabRaw) ? (tabRaw as TabKey) : "all";
+  const filter = query.q ? { q: query.q } : {};
+  const wants = (key: TabKey) => tab === "all" || tab === key;
+
+  const [counts, listings, applications, reports, tickets, flags] = await Promise.all([
+    getQueueCounts(),
+    wants("listings") ? getListingSubmissions(filter) : null,
+    wants("applications") ? getAgentApplications(filter) : null,
+    wants("reports") ? getReports(filter) : null,
+    wants("tickets") ? getSupportTickets(filter) : null,
+    wants("flags") ? getMessageFlags(filter) : null,
+  ]);
+
+  if (counts.state !== "ok") {
+    return (
+      <div className="nf-console">
+        <QueueHeadline title={o.title} sub={o.lede} />
+        <ui.QueueUnavailable />
+      </div>
+    );
+  }
+
+  const total =
+    counts.data.listings +
+    counts.data.applications +
+    counts.data.reports +
+    counts.data.tickets +
+    counts.data.flags;
+  const countFor: Record<TabKey, number> = {
+    all: total,
+    listings: counts.data.listings,
+    applications: counts.data.applications,
+    reports: counts.data.reports,
+    tickets: counts.data.tickets,
+    flags: counts.data.flags,
+  };
+
+  const rows: (QueueRowData & { at: string })[] = [];
+  if (listings?.state === "ok") {
+    for (const listing of [...listings.data.waiting, ...listings.data.decided]) {
+      rows.push({
+        id: `listing:${listing.id}`,
+        reference: shortRef("LST", listing.id),
+        type: "Listing",
+        icon: "house",
+        title: listing.title,
+        sub: [listing.area, listing.city].filter(Boolean).join(", "),
+        detail: t.admin.listings.propertyType[listing.propertyType],
+        detailSub: listing.agentName ?? undefined,
+        status: listing.status,
+        statusLabel: ui.statusLabel(listing.status),
+        submitted: ui.when(listing.submittedAt ?? listing.createdAt),
+        href: `/admin/listings?q=${encodeURIComponent(listing.title)}`,
+        at: listing.submittedAt ?? listing.createdAt,
+      });
+    }
+  }
+  if (applications?.state === "ok") {
+    for (const application of [...applications.data.waiting, ...applications.data.decided]) {
+      rows.push({
+        id: `application:${application.id}`,
+        reference: application.reference,
+        type: "Agent",
+        icon: "user",
+        title: application.fullName ?? application.businessName ?? application.reference,
+        sub: [application.city, application.stateCode].filter(Boolean).join(", "),
+        detail: application.type === "business" ? "Business agent" : "Individual agent",
+        detailSub: application.email ?? undefined,
+        status: application.status,
+        statusLabel: ui.statusLabel(application.status),
+        submitted: ui.when(application.submittedAt ?? application.createdAt),
+        href: `/admin/agents?q=${encodeURIComponent(application.reference)}`,
+        at: application.submittedAt ?? application.createdAt,
+      });
+    }
+  }
+  if (reports?.state === "ok") {
+    for (const report of reports.data.rows) {
+      rows.push({
+        id: `report:${report.id}`,
+        reference: shortRef("RPT", report.id),
+        type: "Report",
+        icon: "flag",
+        title: ui.columnLabel("category", report.category),
+        sub: report.reporterName,
+        detail: ui.columnLabel("targetType", report.targetType),
+        detailSub: report.reason,
+        status: report.status,
+        statusLabel: ui.statusLabel(report.status),
+        submitted: ui.when(report.createdAt),
+        href: `/admin/reports?q=${encodeURIComponent(report.reason.slice(0, 40))}`,
+        at: report.createdAt,
+      });
+    }
+  }
+  if (tickets?.state === "ok") {
+    for (const ticket of tickets.data.rows) {
+      rows.push({
+        id: `ticket:${ticket.id}`,
+        reference: ticket.reference,
+        type: "Support",
+        icon: "ticket",
+        title: ticket.topic ?? "General question",
+        sub: ticket.email,
+        detail: ticket.name,
+        detailSub: ticket.body,
+        status: ticket.status,
+        statusLabel: ui.statusLabel(ticket.status),
+        submitted: ui.when(ticket.createdAt),
+        href: `/admin/support?ticket=${ticket.id}`,
+        at: ticket.createdAt,
+      });
+    }
+  }
+  if (flags?.state === "ok") {
+    for (const flag of flags.data.rows) {
+      rows.push({
+        id: `flag:${flag.id}`,
+        reference: shortRef("FLG", flag.id),
+        type: "Message",
+        icon: "chat-bubble",
+        title: ui.columnLabel("reason", flag.reason),
+        sub: flag.matched,
+        detail: flag.body,
+        status: flag.status,
+        statusLabel: ui.statusLabel(flag.status),
+        submitted: ui.when(flag.createdAt),
+        href: `/admin/flags?q=${encodeURIComponent(flag.matched)}`,
+        at: flag.createdAt,
+      });
+    }
+  }
+  rows.sort((a, b) => b.at.localeCompare(a.at));
+  const shown = rows.slice(0, 40);
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <header className="mb-md flex items-start justify-between gap-sm">
-        <div>
-          {/* `.nf-h1` ALONE. This carried the class AND then overrode its size with
-              two literals, so the clamp the class exists for was cancelled and all
-              `.nf-h1` still contributed was its weight, leading and display face.
-              That is the two-ladders-at-once problem the rule names, in its purest
-              form: a reader of this line cannot tell which ladder the heading is on.
-              `--nf-text-h1` is `clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem)`, so the phone
-              size is unchanged at 24px and the desktop size grows to 40px where the
-              literal held it at 28px. */}
-          <h1 className="nf-h1">{o.title}</h1>
-          <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-            {o.lede}
-          </p>
-        </div>
-        {counts.state === "ok" && (
-          <span
-            className="nf-count-badge shrink-0"
-            title="Total open across every queue"
-          >
-            {TILES.reduce((sum, tile) => sum + (counts.data[tile.key] ?? 0), 0)}
-          </span>
-        )}
-      </header>
+    <div className="nf-console">
+      <QueueHeadline title="Admin queue" sub={o.lede} />
 
-      {counts.state !== "ok" ? (
-        <ui.QueueUnavailable />
+      <QueueTabs
+        label="Queues"
+        tabs={TABS.map((entry) => ({
+          key: entry.key,
+          label: entry.label,
+          href: query.q ? `${entry.href}${entry.href.includes("?") ? "&" : "?"}q=${encodeURIComponent(query.q)}` : entry.href,
+          count: countFor[entry.key],
+          on: entry.key === tab,
+        }))}
+      />
+
+      <QueueFilters base={tab === "all" ? "/admin" : `/admin?tab=${tab}`} query={query} common={t.admin.common} dateable={false} />
+
+      {shown.length === 0 ? (
+        <ui.QueueEmpty
+          title={query.q ? t.admin.common.noMatchTitle : "Nothing waiting across these queues"}
+          body={query.q ? t.admin.common.noMatchBody : "A listing submitted, an agent application, a report, a support ticket or a flagged message lands here the moment it arrives."}
+          state={query.q ? "no-match" : "never"}
+        />
       ) : (
-        <>
-          <ul className="nf-panel-sunken grid grid-cols-2 gap-md lg:grid-cols-3">
-            {TILES.map((tile) => {
-              const value = counts.data[tile.key] ?? 0;
-              const copy = o.tiles[tile.key];
-              return (
-                <li key={tile.key}>
-                  <Link
-                    href={tile.href}
-                    className="nf-card nf-card--interactive flex h-full flex-col gap-xs p-md sm:p-lg"
-                  >
-                    <span className="flex items-center justify-between gap-xs">
-                      <span className="flex items-center gap-xs text-[var(--nf-content-secondary)]">
-                        <UiIcon name={tile.icon} size={20} className="shrink-0" />
-                        <span className="text-[var(--nf-text-overline)] font-semibold uppercase tracking-wide">
-                          {copy.label}
-                        </span>
-                      </span>
-                      <span className={`nf-tag-pill ${value > 0 ? "" : "nf-tag-pill--success"}`}>
-                        {value > 0 ? "Open" : "Clear"}
-                      </span>
-                    </span>
-                    <span
-                      className="nf-numeric text-[2rem] font-bold leading-none sm:text-[2.25rem]"
-                      style={{
-                        color: value > 0 ? "var(--nf-content-primary)" : "var(--nf-content-muted)",
-                      }}
-                    >
-                      {value}
-                    </span>
-                    <span className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-                      {value > 0 ? copy.lede : o.queueClear}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          <section className="nf-card mt-md p-md sm:p-lg">
-            <h2 className="nf-h3">{o.how.title}</h2>
-            <ul className="mt-xs space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-              {[o.how.audit, o.how.notify, o.how.invisible].map((line) => (
-                <li key={line} className="flex gap-sm">
-                  <UiIcon
-                    name="verified"
-                    size={16}
-                    className="mt-3xs shrink-0 text-[var(--nf-state-success)]"
-                  />
-                  {line}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/admin/switches"
-              className="mt-sm inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-            >
-              {o.how.openSwitches}
-              <UiIcon name="arrow-right" size={16} />
-            </Link>
-          </section>
-
-          {/*
-            A "Why is the shelf empty?" panel used to sit here and it was a
-            ghost of an architecture this platform no longer has.
-
-            It offered to "run one live search against every partner feed" and
-            linked to `/api/admin/inventory`. There are no partner feeds: the
-            third-party inventory was taken out when Vallo became first-party
-            listings only, and that route went with it. Both links 404, so the
-            console's own overview was the one screen guaranteed to hand an
-            operator a dead end - and the copy above them described a supply
-            model somebody would then go looking for.
-
-            Deleted rather than repointed. Nothing behind it exists to point at,
-            and the honest replacement for a diagnostic with no subject is no
-            diagnostic.
-          */}
-        </>
+        <QueueTable rows={shown} label="Admin queue" />
       )}
+
+      <p className="nf-caption mt-inline">
+        Showing {shown.length} of the newest across {tab === "all" ? "five queues" : "this queue"}. Every View opens the desk that decides it.
+      </p>
+
+      {/* The queues the table does not fold in, still one tap away. */}
+      <ul className="mt-block flex flex-wrap gap-xs">
+        {MORE.map((entry) => {
+          const count = counts.data[entry.key as keyof typeof counts.data] ?? 0;
+          const copy = o.tiles[entry.key as keyof typeof o.tiles];
+          return (
+            <li key={entry.key}>
+              <Link href={entry.href} className="nf-admin-tab">
+                <UiIcon name={entry.icon} size={16} />
+                {copy.label}
+                <span className="nf-admin-tab__count nf-numeric">({count})</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { getListingSubmissions, type ListingReviewView } from "@/lib/admin/queri
 import { ListingDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QueueTable, shortRef, type QueueRowData } from "../_components/QueueTable";
 import {
   QueueFilters,
   queueNarrowed,
@@ -311,37 +312,66 @@ export default async function AdminListingsPage({
           />
         )
       ) : (
-        <ul className="nf-queue-list">
-          {waiting.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              copy={copy}
-              common={common}
-              ui={ui}
-              locale={locale}
-            />
-          ))}
-        </ul>
+        <QueueTable
+          label="Listing review"
+          rows={waiting.map((listing) => ({
+            ...listingRow(listing, ui),
+            children: (
+              <ul className="nf-queue-list">
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  copy={copy}
+                  common={common}
+                  ui={ui}
+                  locale={locale}
+                />
+              </ul>
+            ),
+          }))}
+        />
       )}
 
       {decided.length > 0 && (
         <section className="mt-xl">
           <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
-          <ul className="nf-queue-list">
-            {decided.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                copy={copy}
-                common={common}
-                ui={ui}
-                locale={locale}
-              />
-            ))}
-          </ul>
+          <QueueTable
+          label="Listing review"
+          rows={decided.map((listing) => ({
+            ...listingRow(listing, ui),
+            children: (
+              <ul className="nf-queue-list">
+                <ListingCard
+                    key={listing.id}
+                    listing={listing}
+                    copy={copy}
+                    common={common}
+                    ui={ui}
+                    locale={locale}
+                  />
+              </ul>
+            ),
+          }))}
+        />
         </section>
       )}
     </div>
   );
+}
+
+/** The dense row a listing takes in the console table. */
+function listingRow(listing: ListingReviewView, ui: AdminUi): QueueRowData {
+  return {
+    id: listing.id,
+    reference: shortRef("LST", listing.id),
+    type: "Listing",
+    icon: "house",
+    title: listing.title,
+    sub: [listing.area, listing.city].filter(Boolean).join(", "),
+    detail: `${listing.bedrooms} bed, ${listing.bathrooms} bath`,
+    detailSub: listing.agentName ?? undefined,
+    status: listing.status,
+    statusLabel: ui.statusLabel(listing.status),
+    submitted: ui.when(listing.submittedAt ?? listing.createdAt),
+  };
 }

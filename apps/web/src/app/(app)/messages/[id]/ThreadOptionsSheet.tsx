@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { MediaSkyline, mediaGround } from "@/components/app/MediaFrame";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -8,14 +9,14 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 
 /**
- * In-chat listing options sheet for the thread view.
+ * The conversation's options sheet, behind the kebab in the header.
  *
- * The verification step lives inside the conversation: the sheet shows the
- * listing, carries the canonical safety wording and the one action the
- * platform asks of guests before any money moves, confirming that the
- * property has actually been inspected. The container mechanics (drag handle,
- * detents, focus trap, focus restoration, Escape, backdrop and body scroll
- * lock) belong to `<Sheet>`.
+ * Three things live here and nothing else: the property this chat is about
+ * with the one action the platform asks of guests before any money moves
+ * (confirming the inspection really happened), the way to share a listing or
+ * a booking INTO this chat, and the canonical safety wording. The container
+ * mechanics (drag handle, detents, focus trap, focus restoration, Escape,
+ * backdrop and body scroll lock) belong to `<Sheet>`.
  */
 
 export type SheetListing = {
@@ -28,34 +29,23 @@ export type SheetListing = {
   hue: number;
 };
 
-/*
- * THE SEVENTH COPY OF THE HARD-CODED HUE ARRAY, NOW DELETED.
- *
- * Twelve raw hex literals lived here as a local "placeholder media hues,
- * matching the listing card treatment" table. It did not match it: the card
- * moved to `mediaGround` and its tokens some time ago, so this sheet was the
- * last surface still painting a fixed navy ramp. Being fixed, it stayed navy in
- * the light theme, where the rest of the sheet is white.
- *
- * `mediaGround(hue)` is the shared treatment. It keeps the hue meaningful - the
- * value still rotates the gradient angle, so two listings do not look identical
- * - while the colours themselves come from `--nf-media-ground-*` and follow the
- * theme.
- */
-
 export function ThreadOptionsSheet({
   open,
+  conversationId,
   listing,
   counterpartName,
   inspected,
   confirmedLabel,
   busy,
   note,
+  canShare,
   onConfirmInspection,
   onClose,
 }: {
   open: boolean;
-  listing: SheetListing;
+  conversationId: string;
+  /** Null on a direct message or a context thread with no listing attached. */
+  listing: SheetListing | null;
   counterpartName: string;
   inspected: boolean;
   /** The confirmed state line, e.g. "Inspection confirmed." */
@@ -63,42 +53,40 @@ export function ThreadOptionsSheet({
   busy: boolean;
   /** An honest status line when a confirmation attempt needs explaining. */
   note: string | null;
+  /** Sharing writes a real message, so it is only offered on a live thread. */
+  canShare: boolean;
   onConfirmInspection: () => void;
   onClose: () => void;
 }) {
-
   return (
     <Sheet
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
-      title="Listing and safety"
+      title="Conversation"
       footer={
-        <>
-          {inspected ? (
-            <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[var(--nf-text-caption)]">
-              <UiIcon name="verified" size={16} />
-              {confirmedLabel}
-            </p>
-          ) : (
-            <Button variant="primary" full onClick={onConfirmInspection} loading={busy}>
-              Confirm I have inspected this property
-            </Button>
-          )}
-
-          {note && (
-            <p role="status" className="mt-sm text-center text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-              {note}
-            </p>
-          )}
-        </>
+        listing ? (
+          <>
+            {inspected ? (
+              <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[var(--nf-text-caption)]">
+                <UiIcon name="verified" size={16} />
+                {confirmedLabel}
+              </p>
+            ) : (
+              <Button variant="primary" full onClick={onConfirmInspection} loading={busy}>
+                Confirm I have inspected this property
+              </Button>
+            )}
+            {note && (
+              <p role="status" className="mt-sm text-center text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+                {note}
+              </p>
+            )}
+          </>
+        ) : undefined
       }
     >
-      {/* `-mt-xs`, the second half of the negative-margin probe. See the note
-          on `AccountBody`'s tab strip. A failure here is 8px of extra air above
-          one line in a sheet: visible if you are looking, invisible if not,
-          which is exactly what a probe should risk. */}
       <div className="-mt-xs mb-md flex items-start justify-between gap-md">
         <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {counterpartName}
@@ -109,38 +97,57 @@ export function ThreadOptionsSheet({
       </div>
 
       {/* ------------------------------------------------ listing mini view */}
-      <div className="nf-card flex items-center gap-md p-sm">
-        <div
-          aria-hidden="true"
-          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
-          style={{ background: mediaGround(listing.hue) }}
-        >
-          {/* The platform's own media fallback, not a seventh copy of it.
-              This carried the skyline path inline with `fill="rgba(0,0,0,0.42)"`
-              hardcoded, which is a raw colour and a dark one: on a light theme
-              it punched a black silhouette through the sheet. `MediaSkyline`
-              draws the same path on `--nf-media-silhouette`, which is a depth
-              of the surface family in each theme. */}
-          <MediaSkyline hue={0} className="opacity-60" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
-          <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-            {[listing.area, listing.city].filter(Boolean).join(", ")}
-          </p>
-          <div className="mt-2xs flex flex-wrap gap-2xs">
-            {listing.verified ? (
-              <span className="nf-badge nf-badge--success">
-                <UiIcon name="verified" size={12} />
-                Verified listing
-              </span>
-            ) : (
-              <span className="nf-badge nf-badge--warning">Verification pending</span>
-            )}
-            {listing.approved && <span className="nf-badge nf-badge--brand">Approved</span>}
+      {listing && (
+        <Link href={`/listing/${listing.id}`} className="nf-card nf-card--interactive flex items-center gap-md p-sm">
+          <div
+            aria-hidden="true"
+            className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
+            style={{ background: mediaGround(listing.hue) }}
+          >
+            <MediaSkyline hue={0} className="opacity-60" />
           </div>
-        </div>
-      </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
+            <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              {[listing.area, listing.city].filter(Boolean).join(", ")}
+            </p>
+            <div className="mt-2xs flex flex-wrap gap-2xs">
+              {listing.verified ? (
+                <span className="nf-badge nf-badge--success">
+                  <UiIcon name="verified" size={12} />
+                  Verified listing
+                </span>
+              ) : (
+                <span className="nf-badge nf-badge--warning">Verification pending</span>
+              )}
+              {listing.approved && <span className="nf-badge nf-badge--brand">Approved</span>}
+            </div>
+          </div>
+          <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
+        </Link>
+      )}
+
+      {/* ------------------------------------------------------- sharing */}
+      {canShare && (
+        <Link
+          href={`/messages/share/into/${conversationId}`}
+          className="nf-share-row mt-md"
+          data-testid="thread-share-into"
+        >
+          <span className="h-11 w-11 shrink-0" aria-hidden="true">
+            <BrandIcon name="listing-search" fill />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block nf-body font-semibold text-[var(--nf-content-primary)]">
+              Share a listing or a booking here
+            </span>
+            <span className="block nf-caption text-[var(--nf-content-muted)]">
+              It arrives as a card {counterpartName} can open.
+            </span>
+          </span>
+          <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
+        </Link>
+      )}
 
       {/* --------------------------------------------- inspection and safety */}
       <div className="mt-md flex items-start gap-md">

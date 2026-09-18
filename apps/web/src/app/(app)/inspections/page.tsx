@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { InspectionRows } from "@/components/app/inspections/InspectionRows";
+import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import {
   readInspectionsForLister,
   readInspectionsForRequester,
 } from "@/lib/inspections/queries";
+import { readListingFacts } from "./facts";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -23,24 +23,26 @@ export async function generateMetadata(): Promise<Metadata> {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * /inspections: the Property side's diary of viewings.
+ * /inspections: the Property side's diary of viewings, in the anatomy of
+ * F6A8A482.
  *
- * The requester's view used to be a section buried on /bookings, and the
- * lister's lived behind the agent console. A person can be both: the flat they
- * rent and the one they let. This reads both lists for the caller, tags each
- * row with the side it was read from (which decides the controls and whose
- * move it is), and shows them as the two groups the founder asked for. OPEN
- * is anything still ahead of you; CLOSED is a record. "Inspected" is what a
- * COMPLETED row is called, because that is the word `InspectionRows` already
- * uses on every other surface.
+ * A person can be both sides of this table: the flat they rent and the one
+ * they let. This reads both lists for the caller, tags each row with the
+ * side it was read from (which decides the controls and whose move it is),
+ * and shows them as two groups. OPEN is anything still ahead of you; CLOSED
+ * is a record.
+ *
+ * Each inspection is one sheet: the scheduled listing card, the date and
+ * party and state row, the ladder, the notes, and the two actions. The first
+ * open one arrives expanded; the rest fold to their card so a diary of nine
+ * viewings is nine cards, not nine screens.
  *
  * Both reads come back with `readFailed` rather than throwing, and either one
  * failing makes the whole screen say so: a list that is half true is not a
  * list somebody can act on.
  *
  * `?changed=<id>` is how the thread banner hands over a row that was just
- * answered there (pitch 13): the row arrives with the platform's one
- * "something landed" nudge and nothing else on the page moves.
+ * answered there: that one arrives expanded instead of the first.
  */
 export default async function InspectionsPage({
   searchParams,
@@ -63,16 +65,18 @@ export default async function InspectionsPage({
     ...tagSide(asked.inspections, "requester"),
     ...tagSide(shown.inspections, "lister"),
   ]);
-  const sideOf = new Map([...groups.open, ...groups.closed].map((row) => [row.id, row.side]));
-  const sideFor = (row: { id: string }) => sideOf.get(row.id) ?? "requester";
-  const empty = groups.open.length === 0 && groups.closed.length === 0;
+  const all = [...groups.open, ...groups.closed];
+  const facts = await readListingFacts(
+    all.map((row) => row.listingId),
+    locale,
+  );
+  const empty = all.length === 0;
+  const expanded = changed ?? groups.open[0]?.id ?? null;
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="relative">
-        <PageScene art="calendar-home" />
-        <PageHeader title={copy.title} fallback="/home" />
-      </div>
+      <PageHeader title={copy.title} fallback="/home" />
+      <InspectionHero title="inspection" sub="Check the property, confirm the details, record how it went." />
 
       {readFailed ? (
         <Reveal>
@@ -96,28 +100,37 @@ export default async function InspectionsPage({
         </Reveal>
       ) : (
         <Reveal>
-          <p className={`mb-block ${TYPE.body}`}>{copy.lede}</p>
           <Stack>
             {groups.open.length > 0 && (
               <Section title={copy.openTitle} description={copy.openDescription}>
-                <InspectionRows
-                  inspections={groups.open}
-                  side="requester"
-                  sideFor={sideFor}
-                  highlightId={changed}
-                  locale={locale}
-                />
+                <div className="flex flex-col gap-row">
+                  {groups.open.map((row) => (
+                    <InspectionSheet
+                      key={row.id}
+                      inspection={row}
+                      side={row.side}
+                      facts={facts.get(row.listingId) ?? null}
+                      locale={locale}
+                      open={row.id === expanded}
+                    />
+                  ))}
+                </div>
               </Section>
             )}
             {groups.closed.length > 0 && (
               <Section title={copy.closedTitle} divided={groups.open.length > 0}>
-                <InspectionRows
-                  inspections={groups.closed}
-                  side="requester"
-                  sideFor={sideFor}
-                  highlightId={changed}
-                  locale={locale}
-                />
+                <div className="flex flex-col gap-row">
+                  {groups.closed.map((row) => (
+                    <InspectionSheet
+                      key={row.id}
+                      inspection={row}
+                      side={row.side}
+                      facts={facts.get(row.listingId) ?? null}
+                      locale={locale}
+                      open={row.id === expanded}
+                    />
+                  ))}
+                </div>
               </Section>
             )}
           </Stack>

@@ -427,13 +427,20 @@ function ListingRow({
 
 export function ListingsWorkspace({
   t,
-  listings,
+  listings: all,
   locale,
+  query = "",
 }: {
   t: WorkspaceCopy;
   listings: ListingSummary[];
   locale: Locale;
+  /** The top bar's search term. Narrows by title; empty shows everything. */
+  query?: string;
 }) {
+  /* The bar's search lands here with `?q=`, so it is a real narrowing and
+     not a field that does nothing. */
+  const term = query.trim().toLowerCase();
+  const listings = term ? all.filter((row) => row.title.toLowerCase().includes(term)) : all;
   const [sheet, setSheet] = useState<SheetState | null>(null);
 
   /* Drafts whose delete is scheduled but has not been sent, and the failure a

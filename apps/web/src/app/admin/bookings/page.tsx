@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import {
   BOOKING_STATUSES,
   getBookingBoard,
+  getReservationWaitingCount,
   type AdminBookingRow,
 } from "@/lib/admin/bookings-queries";
 import { fill, type AdminCopy } from "../_components/copy";
@@ -180,16 +181,42 @@ export default async function AdminBookingsPage({
   const params = await searchParams;
   const query = readQueueQuery(params);
 
-  const board = await getBookingBoard({
-    ...(query.q ? { q: query.q } : {}),
-    ...(query.status ? { status: query.status } : {}),
-    ...(query.from ? { from: query.from } : {}),
-    ...(query.to ? { to: query.to } : {}),
-  });
+  const [board, waitingTables] = await Promise.all([
+    getBookingBoard({
+      ...(query.q ? { q: query.q } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.from ? { from: query.from } : {}),
+      ...(query.to ? { to: query.to } : {}),
+    }),
+    getReservationWaitingCount(),
+  ]);
 
   return (
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
+
+      {/*
+        THE RESERVATION OVERSIGHT CHIP. Restaurant tables reuse the booking
+        enum but are a different loop with a different host board, so they
+        get their own queue a tap away rather than a fourth group here. The
+        count is open requests the restaurant has not answered, which is the
+        one number on that queue somebody is waiting on; an unreadable count
+        says so rather than printing zero.
+      */}
+      <nav aria-label="Related queues" className="mb-block">
+        <Link href="/admin/bookings/reservations" className="nf-chip inline-flex items-center gap-2xs">
+          Restaurant tables
+          {waitingTables.state === "ok" ? (
+            <span className="nf-numeric">
+              {waitingTables.data === 0
+                ? " · none waiting"
+                : ` · ${fill(t.admin.common.waiting, { count: waitingTables.data })}`}
+            </span>
+          ) : (
+            <span> · count unavailable</span>
+          )}
+        </Link>
+      </nav>
 
       <QueueFilters
         base="/admin/bookings"

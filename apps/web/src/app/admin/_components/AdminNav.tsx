@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip } from "@/components/ui/Chip";
@@ -78,10 +78,10 @@ export function AdminRail({
           key={group.key}
           role="group"
           {...(group.heading ? { "aria-labelledby": `admin-nav-${group.key}` } : null)}
-          className="mt-group first:mt-0"
+          className="mt-inline first:mt-0"
         >
           {group.heading && (
-            <p id={`admin-nav-${group.key}`} className="nf-overline mb-inline-tight px-sm">
+            <p id={`admin-nav-${group.key}`} className="nf-admin-nav__heading">
               {group.heading}
             </p>
           )}
@@ -94,12 +94,7 @@ export function AdminRail({
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={[
-                      "flex items-center gap-sm rounded-[var(--nf-radius-md)] px-sm py-sm text-[var(--nf-text-body-sm)] font-medium transition-colors",
-                      active
-                        ? "bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-content-primary)]"
-                        : "text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]",
-                    ].join(" ")}
+                    className={`nf-admin-nav__row${active ? " nf-admin-nav__row--on" : ""}`}
                   >
                     <UiIcon name={item.icon} size={20} className="shrink-0" />
                     {/* A destination's name does not clip. The rail is the
@@ -121,9 +116,7 @@ export function AdminRail({
                         work-waiting count means: cyan is this product's
                         attention colour by rule.
                       */
-                      <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
-                        {count}
-                      </span>
+                      <span className="nf-admin-nav__count">{count}</span>
                     )}
                   </Link>
                 </li>
@@ -133,6 +126,55 @@ export function AdminRail({
         </div>
       ))}
     </nav>
+  );
+}
+
+/**
+ * The console search in the glass bar, with the keyboard hint that is true:
+ * Command-K (Control-K elsewhere) focuses the field, Enter searches the
+ * queue the operator is standing on through that desk's own `?q=`. On the
+ * overview it searches the unified queue. No desk gains a search it did
+ * not have: a desk without one (verification) is left alone.
+ */
+export function ConsoleSearch({ label, placeholder }: { label: string; placeholder: string }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const input = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        input.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  /* The desk under the cursor: `/admin/listings/abc` searches `/admin/listings`. */
+  const segments = pathname.split("/").filter(Boolean);
+  const base = segments.length >= 2 ? `/${segments[0]}/${segments[1]}` : "/admin";
+
+  return (
+    <form
+      role="search"
+      className="nf-admin-bar__search"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const q = input.current?.value.trim() ?? "";
+        router.push(q ? `${base}?q=${encodeURIComponent(q)}` : base);
+      }}
+    >
+      <UiIcon name="search" size={18} className="nf-admin-bar__search-glyph" />
+      <label className="sr-only" htmlFor="admin-console-search">
+        {label}
+      </label>
+      <input id="admin-console-search" ref={input} type="search" placeholder={placeholder} />
+      <span className="nf-admin-kbd" aria-hidden="true">
+        <UiIcon name="key" size={10} />K
+      </span>
+    </form>
   );
 }
 

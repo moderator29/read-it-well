@@ -6,6 +6,7 @@ import { getMessageFlags, type FlagView, type PartyRole } from "@/lib/admin/quer
 import { FlagDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
+import { QueueTable, shortRef, type QueueRowData } from "../_components/QueueTable";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
   queueNoMatch,
@@ -242,35 +243,47 @@ export default async function AdminFlagsPage({
           state={narrowed ? "no-match" : "never"}
         />
       ) : open.length === 0 ? null : (
-        <ul className="nf-queue-list">
-          {open.map((flag) => (
-            <FlagCard
-              key={flag.id}
-              flag={flag}
-              copy={copy}
-              common={common}
-              ui={ui}
-              locale={locale}
-            />
-          ))}
-        </ul>
+        <QueueTable
+          label="Message flags"
+          rows={open.map((flag) => ({
+            ...flagRow(flag, ui),
+            children: (
+              <ul className="nf-queue-list">
+                <FlagCard
+                  key={flag.id}
+                  flag={flag}
+                  copy={copy}
+                  common={common}
+                  ui={ui}
+                  locale={locale}
+                />
+              </ul>
+            ),
+          }))}
+        />
       )}
 
       {reviewed.length > 0 && (
         <section className="mt-xl">
           <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyReviewed}</h2>
-          <ul className="nf-queue-list">
-            {reviewed.map((flag) => (
-              <FlagCard
-                key={flag.id}
-                flag={flag}
-                copy={copy}
-                common={common}
-                ui={ui}
-                locale={locale}
-              />
-            ))}
-          </ul>
+          <QueueTable
+          label="Message flags"
+          rows={reviewed.map((flag) => ({
+            ...flagRow(flag, ui),
+            children: (
+              <ul className="nf-queue-list">
+                <FlagCard
+                    key={flag.id}
+                    flag={flag}
+                    copy={copy}
+                    common={common}
+                    ui={ui}
+                    locale={locale}
+                  />
+              </ul>
+            ),
+          }))}
+        />
         </section>
       )}
 
@@ -283,4 +296,20 @@ export default async function AdminFlagsPage({
       />
     </div>
   );
+}
+
+/** The dense row a flag takes in the console table. */
+function flagRow(flag: FlagView, ui: AdminUi): QueueRowData {
+  return {
+    id: flag.id,
+    reference: shortRef("FLG", flag.id),
+    type: "Message",
+    icon: "chat-bubble",
+    title: ui.columnLabel("reason", flag.reason),
+    sub: flag.matched,
+    detail: flag.body,
+    status: flag.status,
+    statusLabel: ui.statusLabel(flag.status),
+    submitted: ui.when(flag.createdAt),
+  };
 }

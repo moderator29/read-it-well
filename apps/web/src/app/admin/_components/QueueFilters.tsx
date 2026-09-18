@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { AdminCommon } from "./copy";
 
 /**
@@ -178,99 +179,126 @@ export function QueueFilters({
   const f = common.filters;
 
   return (
-    <div className="mb-block">
-      <form method="get" action={base} className="flex flex-wrap items-end gap-row">
-        {searchable && (
-          <label className="min-w-0 flex-1">
-            <span className="nf-label">{searchLabel ?? common.searchLabel}</span>
-            <input
-              type="search"
-              name="q"
-              defaultValue={query.q ?? ""}
-              placeholder={searchPlaceholder ?? common.searchPlaceholder}
-              className="nf-field mt-inline-tight w-full"
-            />
-          </label>
-        )}
+    <div className="nf-admin-filters">
+      {/*
+        THE GLASS SEARCH WITH THE FILTER CONTROL (278CC66A). The search is
+        the field; the sliders control opens the date range beneath it, as
+        a native disclosure so the form stays a GET and the page a server
+        component. Apply and Clear live inside the disclosure with the
+        dates, because they are what the dates need.
+      */}
+      <form method="get" action={base}>
+        <details className="nf-admin-more" open={Boolean(query.from || query.to)}>
+          <summary className="nf-admin-search">
+            {searchable && (
+              <label className="nf-admin-search__field">
+                <span className="sr-only">{searchLabel ?? common.searchLabel}</span>
+                <UiIcon name="search" size={20} className="nf-admin-search__glyph" />
+                <input
+                  type="search"
+                  name="q"
+                  defaultValue={query.q ?? ""}
+                  placeholder={searchPlaceholder ?? common.searchPlaceholder}
+                />
+              </label>
+            )}
+            {dateable && (
+              <span className="nf-icon-btn" role="button" aria-label={`${f.from} / ${f.to}`}>
+                <UiIcon name="sliders" size={20} />
+              </span>
+            )}
+            {!dateable && (
+              <button type="submit" className="nf-icon-btn" aria-label={f.apply}>
+                <UiIcon name="arrow-right" size={20} />
+              </button>
+            )}
+          </summary>
 
-        {/* A DATE RANGE, because half of what an operator is asked is "what
-            happened on Tuesday". Two native date inputs rather than a picker:
-            they are keyboard-reachable, they are localised by the browser, and
-            they are the one control a console does not need to invent. */}
-        {dateable && (
-          <>
-            <label className="min-w-0">
-              <span className="nf-label">{f.from}</span>
-              <input
-                type="date"
-                name="from"
-                defaultValue={query.from ?? ""}
-                className="nf-field mt-inline-tight w-full"
-              />
-            </label>
-            <label className="min-w-0">
-              <span className="nf-label">{f.to}</span>
-              <input
-                type="date"
-                name="to"
-                defaultValue={query.to ?? ""}
-                className="nf-field mt-inline-tight w-full"
-              />
-            </label>
-          </>
-        )}
-
+          {/* A DATE RANGE, because half of what an operator is asked is "what
+              happened on Tuesday". Two native date inputs rather than a
+              picker: keyboard-reachable, localised by the browser, and the
+              one control a console does not need to invent. */}
+          {dateable && (
+            <div className="mt-xs flex w-full flex-wrap items-end gap-row">
+              <label className="min-w-0 flex-1">
+                <span className="nf-label">{f.from}</span>
+                <input type="date" name="from" defaultValue={query.from ?? ""} className="nf-field mt-inline-tight w-full" />
+              </label>
+              <label className="min-w-0 flex-1">
+                <span className="nf-label">{f.to}</span>
+                <input type="date" name="to" defaultValue={query.to ?? ""} className="nf-field mt-inline-tight w-full" />
+              </label>
+              <button type="submit" className="nf-btn nf-btn--primary nf-btn--md shrink-0">
+                {f.apply}
+              </button>
+              {narrowed && (
+                <Link href={base} className="nf-btn nf-btn--ghost nf-btn--md shrink-0">
+                  {f.clear}
+                </Link>
+              )}
+            </div>
+          )}
+        </details>
         {/* The status travels with the search so a submit does not silently
             drop the chip the operator already chose. */}
         {query.status && <input type="hidden" name="status" value={query.status} />}
-
-        <button type="submit" className="nf-chip nf-chip--active shrink-0">
-          {f.apply}
-        </button>
-        {narrowed && (
-          <Link href={base} className="nf-chip shrink-0">
-            {f.clear}
-          </Link>
-        )}
       </form>
 
-      {/* The status nav's own label and the four strings in `QueuePager` are
-          still English. `t.admin.common.filters` gained from, to, apply and
-          clear and has no key for these; they are named in the sprint report
-          for the next dictionary pass rather than invented here, because a
-          fifth private copy of console vocabulary is what this frame exists to
-          stop. */}
       {statuses && statuses.length > 0 && (
         /* Links rather than a control, for the same reason the search is a GET:
            a narrowed queue has to be a URL. `aria-current` is what tells a
-           screen reader which one is on, because a link whose meaning is "you
-           are here" is otherwise silent about it. Tapping the active chip
-           clears the status, which is the behaviour a segmented control has and
-           the one people try first. */
-        <nav aria-label="Filter by status" className="nf-scroll-x mt-row">
-          <ul className="flex items-center gap-inline-tight">
-            {statuses.map((option) => {
-              const on = query.status === option.value;
-              return (
-                <li key={option.value}>
-                  <Link
-                    href={queueHref(base, query, {
-                      status: on ? undefined : option.value,
-                      offset: undefined,
-                    })}
-                    aria-current={on ? "true" : undefined}
-                    className={`nf-chip whitespace-nowrap${on ? " nf-chip--active" : ""}`}
-                  >
-                    {option.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+           screen reader which one is on. "All" is the chip with no status;
+           tapping the active chip clears it. Each chip carries its state's
+           ink so the row reads as the render's, and colour is never alone:
+           the word is on every chip. */
+        <nav aria-label="Filter by status" className="nf-admin-status">
+          <span className="nf-admin-status__label">Status:</span>
+          <Link
+            href={queueHref(base, query, { status: undefined, offset: undefined })}
+            aria-current={query.status ? undefined : "true"}
+            className={`nf-admin-chip nf-admin-chip--all${query.status ? "" : " nf-admin-chip--on"}`}
+          >
+            All
+          </Link>
+          {statuses.map((option) => {
+            const on = query.status === option.value;
+            return (
+              <Link
+                key={option.value}
+                href={queueHref(base, query, {
+                  status: on ? undefined : option.value,
+                  offset: undefined,
+                })}
+                aria-current={on ? "true" : undefined}
+                className={`nf-admin-chip ${chipTone(option.value)}${on ? " nf-admin-chip--on" : ""}`}
+              >
+                {option.label}
+              </Link>
+            );
+          })}
         </nav>
+      )}
+      {narrowed && !dateable && (
+        <Link href={base} className="nf-btn nf-btn--ghost nf-btn--sm self-start">
+          {f.clear}
+        </Link>
       )}
     </div>
   );
+}
+
+/**
+ * Which of the four on-palette inks a status chip wears, from the machine
+ * value alone, so every desk's enum lands on the same four colours: cyan for
+ * waiting, blue for in review, emerald for approved, rose for refused.
+ */
+export function chipTone(value: string): string {
+  const v = value.trim().toUpperCase();
+  if (["PENDING", "OPEN", "SUBMITTED", "REQUESTED", "DRAFT", "PROPOSED"].includes(v)) return "nf-admin-chip--pending";
+  if (["UNDER_REVIEW", "REVIEWING", "MORE_INFO_REQUIRED", "PROVISIONAL"].includes(v)) return "nf-admin-chip--review";
+  if (["APPROVED", "PUBLISHED", "RESOLVED", "CONFIRMED", "COMPLETED", "CLEARED", "REVIEWED", "CLOSED", "ACTIVE"].includes(v)) return "nf-admin-chip--approved";
+  if (["REJECTED", "DISMISSED", "SUSPENDED", "CANCELLED", "FAILED", "REVERSED", "NO_SHOW", "BLOCKED"].includes(v)) return "nf-admin-chip--rejected";
+  return "";
 }
 
 /**
@@ -298,30 +326,52 @@ export function QueuePager({
 }) {
   const offset = query.offset ?? 0;
   if (offset === 0 && !full) return null;
+  const page = Math.floor(offset / pageSize) + 1;
 
   return (
-    <nav
-      aria-label="Queue pages"
-      className="mt-block flex flex-wrap items-center justify-between gap-row"
-    >
-      <p className="nf-caption">
-        Showing {count === 0 ? 0 : offset + 1} to {offset + count}
-      </p>
-      <div className="flex items-center gap-inline-tight">
+    <nav aria-label="Queue pages" className="nf-admin-pager">
+      <div className="nf-admin-pager__pages">
         {offset > 0 ? (
           <Link
             href={queueHref(base, query, { offset: Math.max(0, offset - pageSize) })}
-            className="nf-chip"
+            className="nf-admin-pager__page"
+            aria-label="Previous page"
           >
-            Previous
+            <UiIcon name="chevron-right" size={16} className="rotate-180" />
           </Link>
-        ) : null}
+        ) : (
+          <span className="nf-admin-pager__page" aria-disabled="true" aria-hidden="true">
+            <UiIcon name="chevron-right" size={16} className="rotate-180" />
+          </span>
+        )}
+        {/* The page that is on. No page count, because a cursor read does not
+            know how many there are and printing one would be a guess. */}
+        {page > 1 && (
+          <Link href={queueHref(base, query, { offset: undefined })} className="nf-admin-pager__page">
+            1
+          </Link>
+        )}
+        {page > 2 && <span className="nf-admin-pager__count">...</span>}
+        <span className="nf-admin-pager__page nf-admin-pager__page--on" aria-current="page">
+          {page}
+        </span>
         {full ? (
-          <Link href={queueHref(base, query, { offset: offset + pageSize })} className="nf-chip">
-            Next
+          <Link
+            href={queueHref(base, query, { offset: offset + pageSize })}
+            className="nf-admin-pager__page"
+            aria-label="Next page"
+          >
+            <UiIcon name="chevron-right" size={16} />
           </Link>
-        ) : null}
+        ) : (
+          <span className="nf-admin-pager__page" aria-disabled="true" aria-hidden="true">
+            <UiIcon name="chevron-right" size={16} />
+          </span>
+        )}
       </div>
+      <p className="nf-admin-pager__count">
+        Showing {count === 0 ? 0 : offset + 1} to {offset + count}
+      </p>
     </nav>
   );
 }

@@ -8,6 +8,7 @@ import { isFeatureEnabled } from "@/lib/flags";
 import { getThreadContext, loadThread, type ThreadContext } from "@/lib/messages/live";
 import { readOpenInspectionForConversation } from "@/lib/inspections/queries";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
+import { resolveCards } from "./cards";
 import { InboxEmpty } from "../Inbox";
 
 /**
@@ -68,12 +69,36 @@ export async function generateMetadata({
   return { title: "Conversation" };
 }
 
+/**
+ * Which of my messages the other side has opened.
+ *
+ * `loadThread` does not carry `read_at` (its file is the messaging worker's),
+ * so the ticks read it here: one bounded select under the caller's own RLS,
+ * ids only. The line for that worker is that `LiveThreadMessage` should
+ * carry `readAt` and this read goes away.
+ */
+async function readIds(
+  supabase: Parameters<typeof loadThread>[0],
+  conversationId: string,
+): Promise<Set<string>> {
+  const { data } = await supabase
+    .from("messages")
+    .select("id")
+    .eq("conversation_id", conversationId)
+    .not("read_at", "is", null)
+    .limit(200);
+  return new Set((data ?? []).map((row) => row.id));
+}
+
 export default async function ConversationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ attach?: string | string[] }>;
 }) {
   const { id } = await params;
+  const { attach } = await searchParams;
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
@@ -92,12 +117,15 @@ export default async function ConversationPage({
     if (!UUID_RE.test(id)) notFound();
     const locale = await getLocale();
     const t = getDictionary(locale);
-    const [thread, contextRead, role] = await Promise.all([
+    const [thread, contextRead, role, read] = await Promise.all([
       loadThread(session.supabase, session.user, id),
       getThreadContext(id),
       viewerRole(session.supabase, session.user.id, id),
+      readIds(session.supabase, id),
     ]);
     if (!thread) notFound();
+    /* The shared listings and bookings, expanded into cards for this reader. */
+    const cards = await resolveCards(session.supabase, thread.messages, locale);
     /*
      * The context decides the banner. A read that came back null (a race with
      * the thread being removed, or a kind the query could not resolve) is a
@@ -152,15 +180,19 @@ export default async function ConversationPage({
             : null
         }
         inspected={thread.inspected}
-        messages={thread.messages.map(
-          (m): ThreadBubble => ({
+        openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
+        messages={thread.messages.map((m): ThreadBubble => {
+          const card = cards.get(m.id);
+          return {
             id: m.id,
             mine: m.mine,
             body: m.body,
             timeLabel: m.timeLabel,
             imageUrl: m.imageUrl,
-          }),
-        )}
+            read: read.has(m.id),
+            ...(card ? { card } : {}),
+          };
+        })}
       />
     );
   }

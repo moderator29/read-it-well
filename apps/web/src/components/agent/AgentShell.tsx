@@ -37,7 +37,7 @@ export async function AgentShell({
   const unreadMessages = await getUnreadMessageCount();
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="nf-agent flex min-h-dvh">
       <AgentRail t={t} active={active} profile={profile} unreadMessages={unreadMessages} />
 
       <main id="main" className="min-w-0 flex-1">
@@ -62,19 +62,19 @@ export async function AgentShell({
               <AgentModePill label={t.agent.mode.agent} />
             </span>
 
-            <div className="relative flex min-w-0 flex-1 items-center">
-              <UiIcon
-                name="search"
-                size={20}
-                className="pointer-events-none absolute left-3 hidden text-[var(--nf-content-muted)] sm:block"
-              />
+            {/* The search is a real one: it lands on the listings workspace
+                with the term, which is the one place in the console that
+                already searches by title. */}
+            <form action="/agent/listings" method="get" role="search" className="nf-agent-bar__search">
+              <UiIcon name="search" size={18} className="nf-agent-bar__glyph" />
               <input
                 type="search"
+                name="q"
                 aria-label={t.common.search}
-                placeholder={`${t.common.search} ${t.agent.nav.bookings.toLowerCase()}, ${t.agent.nav.myListings.toLowerCase()}`}
-                className="nf-field hidden !py-2 pl-9 sm:block sm:max-w-md"
+                placeholder={`${t.common.search} ${t.agent.nav.myListings.toLowerCase()}`}
               />
-            </div>
+            </form>
+            <span className="flex-1 sm:hidden" />
 
             <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
           </div>

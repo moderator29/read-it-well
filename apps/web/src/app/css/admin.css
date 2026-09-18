@@ -2,6 +2,699 @@
   admin: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  The governing images are 278CC66A (the queue at 390px) and CDA4B82B (the
+  console at desktop). One frame, built once: a rail with counts, a glass bar
+  with the search and its shortcut hint, the headline and its sub-line, the
+  count tabs, the glass search with the filter control, the status chips in
+  the on-palette colours, the dense row table with a type glyph, a status
+  pill, the submitted stamp, View and the kebab, then the pager and the
+  Operations Console footer. Every desk inherits it through
+  `app/admin/_components`. Everything here is scoped under `.nf-admin`.
 */
 @layer components {
+  /* ------------------------------------------------------------ the frame */
+
+  .nf-admin {
+    display: flex;
+    min-height: 100dvh;
+    background: var(--nf-surface-canvas);
+  }
+
+  /* The rail: a glass column with the lockup, the bands, and the console
+     card at its foot. Desktop only; the phone carries the same map behind
+     the header's disclosure. */
+  .nf-admin-rail {
+    position: sticky;
+    top: 0;
+    display: none;
+    flex-direction: column;
+    height: 100dvh;
+    width: var(--nf-rail-width);
+    flex-shrink: 0;
+    padding: var(--nf-space-md);
+    border-right: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset -1px 0 0 var(--nf-glass-rim);
+  }
+  @media (min-width: 1024px) {
+    .nf-admin-rail {
+      display: flex;
+    }
+  }
+  .nf-admin-rail__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-md);
+    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+    margin-bottom: var(--nf-space-sm);
+  }
+  .nf-admin-rail__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  /* A rail row: glyph, label, count. The active row is a lit brand plate. */
+  .nf-admin-nav__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid transparent;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-admin-nav__row:hover {
+      background: var(--nf-glass-fill);
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-admin-nav__row--on {
+    color: var(--nf-content-primary);
+    background: var(--nf-brand-tint-2);
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 14px var(--nf-glow-1);
+  }
+  .nf-admin-nav__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.375rem;
+    padding-inline: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-nav__heading {
+    padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  /* The console card at the rail's foot: the glass mark, the name, the role. */
+  .nf-admin-rail__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-md);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+  }
+  .nf-admin-rail__foot-mark {
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+  }
+
+  /* The bar: the glass chrome with the search, the bell and the person. */
+  .nf-admin-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: var(--nf-header-height-sm);
+    padding-inline: var(--nf-pad-shell);
+  }
+  @media (min-width: 640px) {
+    .nf-admin-bar {
+      min-height: var(--nf-header-height);
+    }
+  }
+  .nf-admin-bar__search {
+    position: relative;
+    display: none;
+    flex: 1 1 auto;
+    max-width: 40rem;
+    align-items: center;
+  }
+  @media (min-width: 640px) {
+    .nf-admin-bar__search {
+      display: flex;
+    }
+  }
+  .nf-admin-bar__search input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) 4.5rem var(--nf-space-xs) 2.75rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-admin-bar__search input:focus {
+    outline: none;
+    border-color: var(--nf-focus-ring);
+    box-shadow: 0 0 0 3px var(--nf-glow-2);
+  }
+  .nf-admin-bar__search-glyph {
+    position: absolute;
+    left: var(--nf-space-sm);
+    color: var(--nf-content-muted);
+    pointer-events: none;
+  }
+  /* The keyboard hint: a small glass key cap, desktop only, and it is true:
+     the shortcut focuses the field. */
+  .nf-admin-kbd {
+    position: absolute;
+    right: var(--nf-space-xs);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px var(--nf-space-2xs);
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    pointer-events: none;
+  }
+  .nf-admin-bar__person {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-admin-bar__avatar {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    color: var(--nf-brand-secondary);
+    font-weight: 700;
+    font-size: var(--nf-text-caption);
+    box-shadow: 0 0 10px var(--nf-glow-1);
+  }
+
+  /* The console body and its footer line. */
+  .nf-admin-body {
+    padding: var(--nf-space-lg) var(--nf-pad-shell) calc(var(--nf-space-2xl) + env(safe-area-inset-bottom));
+  }
+  .nf-admin-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-2xl);
+    padding-top: var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------- the headline */
+
+  .nf-admin-head {
+    margin-bottom: var(--nf-gap-heading);
+  }
+  .nf-admin-head__title {
+    font-family: var(--nf-font-display);
+    font-weight: 800;
+    font-size: var(--nf-text-h1);
+    line-height: 1.1;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-head__sub {
+    margin-top: var(--nf-space-2xs);
+    max-width: 68ch;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+
+  /* The count tabs: a scrolling row of glass pills, the active one filled. */
+  .nf-admin-tabs {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-bottom: var(--nf-gap-inline);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .nf-admin-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-admin-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+  }
+  .nf-admin-tab--on {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-gradient-cta);
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 16px var(--nf-glow-2);
+  }
+  .nf-admin-tab__count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+  }
+
+  /* ---------------------------------------------------------- filters */
+
+  .nf-admin-filters {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+    margin-bottom: var(--nf-gap-inline);
+  }
+  .nf-admin-search {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-admin-search__field {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+  }
+  .nf-admin-search__field input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.75rem;
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+  }
+  .nf-admin-search__field input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-search__field input:focus {
+    outline: none;
+    border-color: var(--nf-focus-ring);
+    box-shadow: 0 0 0 3px var(--nf-glow-2);
+  }
+  .nf-admin-search__glyph {
+    position: absolute;
+    left: var(--nf-space-sm);
+    color: var(--nf-content-muted);
+    pointer-events: none;
+  }
+  /* The filter disclosure: the sliders control opens the date range. */
+  .nf-admin-more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-admin-more > summary {
+    list-style: none;
+  }
+  .nf-admin-more > summary::-webkit-details-marker {
+    display: none;
+  }
+  .nf-admin-status {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .nf-admin-status::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-admin-status__label {
+    flex-shrink: 0;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  /* A status chip: an outlined pill in the state's own ink and wash, the
+     four on-palette colours (blue, cyan, emerald, rose). "All" is brand. */
+  .nf-admin-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.5rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+    --nf-admin-chip-ink: var(--nf-brand-secondary);
+  }
+  .nf-admin-chip::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-admin-chip-ink);
+  }
+  .nf-admin-chip--all::before {
+    display: none;
+  }
+  .nf-admin-chip--pending {
+    --nf-admin-chip-ink: var(--nf-status-pending);
+  }
+  .nf-admin-chip--review {
+    --nf-admin-chip-ink: var(--nf-state-info);
+  }
+  .nf-admin-chip--approved {
+    --nf-admin-chip-ink: var(--nf-status-approved);
+  }
+  .nf-admin-chip--rejected {
+    --nf-admin-chip-ink: var(--nf-status-rejected);
+  }
+  .nf-admin-chip--on {
+    color: var(--nf-content-primary);
+    border-color: var(--nf-admin-chip-ink);
+    background: color-mix(in oklab, var(--nf-admin-chip-ink) 18%, transparent);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-admin-chip-ink) 30%, transparent);
+  }
+  .nf-admin-chip--all.nf-admin-chip--on {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-edge);
+  }
+
+  /* ------------------------------------------------------------ table */
+
+  /* The dense table is a list of rows on a grid, so a row can carry its
+     detail beneath it (a native disclosure) without breaking table
+     semantics that a 390px screen cannot hold anyway. */
+  .nf-admin-table {
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+    overflow: hidden;
+  }
+  .nf-admin-table__head,
+  .nf-admin-row__grid {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+  }
+  @media (min-width: 1024px) {
+    .nf-admin-table__head,
+    .nf-admin-row__grid {
+      grid-template-columns: 7rem 7.5rem minmax(0, 1fr) minmax(0, 1fr) 8.5rem 9rem 8rem;
+      padding: var(--nf-space-sm) var(--nf-space-md);
+    }
+  }
+  .nf-admin-table__head {
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-admin-row {
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-admin-row:first-of-type {
+    border-top: 0;
+  }
+  .nf-admin-row > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .nf-admin-row > summary::-webkit-details-marker {
+    display: none;
+  }
+  @media (hover: hover) {
+    .nf-admin-row > summary:hover {
+      background: var(--nf-glass-fill-thin);
+    }
+  }
+  .nf-admin-row__id {
+    display: none;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-row__type {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  /* The type glyph on a lit glass tile: the one place a glyph gets a plate
+     in the console, because the render's whole table reads by it. */
+  .nf-admin-row__tile {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-brand-secondary);
+    box-shadow: inset 0 0 10px var(--nf-glow-wash);
+  }
+  .nf-admin-row__type-word {
+    display: none;
+  }
+  .nf-admin-row__title {
+    min-width: 0;
+  }
+  .nf-admin-row__name {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-admin-row__sub {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-admin-row__detail {
+    display: none;
+    min-width: 0;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-row__status {
+    display: flex;
+    justify-content: flex-start;
+  }
+  .nf-admin-row__when {
+    display: none;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-row__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-admin-row__view {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding-inline: var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    box-shadow: 0 0 10px var(--nf-glow-1);
+  }
+  .nf-admin-row[open] .nf-admin-row__view {
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-admin-row__kebab {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-row__body {
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-md);
+    border-top: var(--nf-border-width) dashed var(--nf-border-subtle);
+  }
+  /* Desktop: every column shows and the phone-only stack unfolds. */
+  @media (min-width: 1024px) {
+    .nf-admin-row__id,
+    .nf-admin-row__type-word,
+    .nf-admin-row__detail,
+    .nf-admin-row__when {
+      display: block;
+    }
+    .nf-admin-row__type-word {
+      font-size: var(--nf-text-caption);
+      color: var(--nf-content-secondary);
+    }
+    .nf-admin-row__body {
+      padding-inline: var(--nf-space-md);
+    }
+  }
+  /* The phone hides the header row: the glyph and the pill say the columns. */
+  .nf-admin-table__head {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .nf-admin-table__head {
+      display: grid;
+    }
+  }
+
+  /* ------------------------------------------------------------ pager */
+
+  .nf-admin-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-gap-inline);
+  }
+  .nf-admin-pager__pages {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-admin-pager__page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding-inline: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-pager__page--on {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-edge);
+  }
+  .nf-admin-pager__page[aria-disabled="true"] {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .nf-admin-pager__count {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The desk cards inherit the well material so they sit in the frame. */
+  .nf-admin .nf-queue-list > .nf-card {
+    background: var(--nf-well-fill);
+    border-color: var(--nf-brand-edge-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-admin-nav__row {
+      transition: none;
+    }
+  }
+}
+
+/* ------------------------------------------------------------ paper twin */
+
+/*
+  On paper every well becomes the raised paper surface and the blooms come
+  down the light glow ladder on their own; the chips keep their inks, which
+  are already the deep daylight values. The filled tab and the active page
+  keep the brand fill because on-brand ink stays white.
+*/
+:root[data-theme="light"] .nf-admin-rail,
+:root[data-theme="light"] .nf-admin-rail__foot,
+:root[data-theme="light"] .nf-admin-bar__search input,
+:root[data-theme="light"] .nf-admin-search__field input,
+:root[data-theme="light"] .nf-admin-tab,
+:root[data-theme="light"] .nf-admin-chip,
+:root[data-theme="light"] .nf-admin-table,
+:root[data-theme="light"] .nf-admin-row__tile,
+:root[data-theme="light"] .nf-admin-row__view,
+:root[data-theme="light"] .nf-admin-pager__page,
+:root[data-theme="light"] .nf-admin .nf-queue-list > .nf-card {
+  background: var(--nf-surface-on-paper);
+}
+:root[data-theme="light"] .nf-admin-table,
+:root[data-theme="light"] .nf-admin-rail__foot {
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-admin-tab--on,
+:root[data-theme="light"] .nf-admin-pager__page--on {
+  background: var(--nf-brand-primary);
+}
+:root[data-theme="light"] .nf-admin-nav__row--on {
+  background: var(--nf-brand-tint-2);
+}
+:root[data-theme="light"] .nf-admin-row > summary:hover,
+:root[data-theme="light"] .nf-admin-table__head {
+  background: var(--nf-surface-raised);
 }

@@ -23,7 +23,13 @@ export async function generateMetadata(): Promise<Metadata> {
  * what renders is exactly what the database will let them manage. Actions live
  * in the client workspace and refresh this page after every state change.
  */
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
+  const { q } = await searchParams;
+  const query = Array.isArray(q) ? (q[0] ?? "") : (q ?? "");
   const locale = await getLocale();
   const t = getDictionary(locale);
   const context = await getAgentContext();
@@ -76,7 +82,7 @@ export default async function Page() {
         </ButtonLink>
       </div>
 
-      <ListingsWorkspace t={t.agentListings} listings={listings} locale={locale} />
+      <ListingsWorkspace t={t.agentListings} listings={listings} locale={locale} query={query} />
     </AgentShell>
   );
 }

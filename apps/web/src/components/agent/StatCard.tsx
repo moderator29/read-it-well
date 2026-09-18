@@ -58,34 +58,25 @@ export function StatCard({
   const hasDelta = typeof deltaPct === "number" && typeof deltaLabel === "string";
   const up = (deltaPct ?? 0) >= 0;
   return (
-    <div
-      className={[
-        "nf-card flex flex-col gap-xs p-md sm:flex-row sm:items-start sm:gap-md sm:p-md",
-        className ?? "",
-      ].join(" ")}
-    >
-      <span className="h-11 w-11 shrink-0 sm:h-[42px] sm:w-[42px]">
+    <div className={["nf-agent-stat", className ?? ""].join(" ")}>
+      <span className="nf-agent-stat__mark">
         <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0">
-        <p className="text-[0.75rem] font-medium leading-snug text-[var(--nf-content-muted)]">
-          {label}
-        </p>
-        <p className="nf-numeric mt-2xs text-[1.25rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)] sm:text-[1.375rem]">
-          {value}
-        </p>
+        <p className="nf-agent-stat__label">{label}</p>
+        <p className="nf-agent-stat__value nf-numeric">{value}</p>
         {hasDelta && (
-        <p className="mt-xs flex flex-wrap items-center gap-x-xs gap-y-3xs text-[0.75rem] leading-snug">
-          <span
-            className="nf-numeric inline-flex items-center gap-2xs font-semibold"
-            style={{ color: up ? "var(--nf-state-success)" : "var(--nf-state-error)" }}
-          >
-            <UiIcon name={up ? "arrow-up" : "arrow-down"} size="xs" />
-            {up ? "+" : ""}
-            {deltaPct}%
-          </span>
-          <span className="text-[var(--nf-content-muted)]">{deltaLabel}</span>
-        </p>
+          <p className="nf-agent-stat__delta">
+            <span
+              className="nf-numeric inline-flex items-center gap-2xs font-semibold"
+              style={{ color: up ? "var(--nf-state-success)" : "var(--nf-state-error)" }}
+            >
+              <UiIcon name={up ? "arrow-up" : "arrow-down"} size="xs" />
+              {up ? "+" : ""}
+              {deltaPct}%
+            </span>
+            <span>{deltaLabel}</span>
+          </p>
         )}
       </div>
     </div>

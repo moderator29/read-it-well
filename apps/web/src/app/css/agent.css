@@ -2,6 +2,296 @@
   agent: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  No governing image covers the agent console, the Host wizard or the
+  verification flow, so all three inherit the register: the same glass
+  wells, the same brand hairline and one bloom, the same lit tiles for
+  content glyphs, the pill controls where the renders show pills. Everything
+  is scoped under `.nf-agent` (the console shell) and `.nf-host` (the wizard
+  and the verification flow), so nothing here can reach another surface.
 */
 @layer components {
+  /* ------------------------------------------------------- the console */
+
+  .nf-agent {
+    background: var(--nf-surface-canvas);
+  }
+  /* The stat tile: a glass well with the object on a lit plate at the left,
+     the label, the figure, and the delta line. */
+  .nf-agent-stat {
+    display: flex;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+  }
+  .nf-agent-stat__mark {
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+  }
+  .nf-agent-stat__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-agent-stat__value {
+    margin-top: var(--nf-space-2xs);
+    font-family: var(--nf-font-display);
+    font-weight: 800;
+    font-size: var(--nf-text-h3);
+    line-height: 1;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-agent-stat__delta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* The workspace's own header row: the display title, the standing line,
+     and the primary action beside it. */
+  .nf-agent-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    margin-bottom: var(--nf-gap-block);
+  }
+  .nf-agent-head__title {
+    font-family: var(--nf-font-display);
+    font-weight: 800;
+    font-size: var(--nf-text-h1);
+    line-height: 1.1;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+
+  /* A panel of rows or a chart in the console: the well, one bloom. */
+  .nf-agent .nf-card,
+  .nf-agent-panel {
+    background: var(--nf-well-fill);
+    border-color: var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+  }
+  /* The top bar's search well, in the same material as the console's. */
+  .nf-agent-bar__search {
+    position: relative;
+    display: none;
+    flex: 1 1 auto;
+    align-items: center;
+    max-width: 28rem;
+  }
+  @media (min-width: 640px) {
+    .nf-agent-bar__search {
+      display: flex;
+    }
+  }
+  .nf-agent-bar__search input {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm) var(--nf-space-2xs) 2.5rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-agent-bar__search input:focus {
+    outline: none;
+    border-color: var(--nf-focus-ring);
+    box-shadow: 0 0 0 3px var(--nf-glow-2);
+  }
+  .nf-agent-bar__glyph {
+    position: absolute;
+    left: var(--nf-space-xs);
+    color: var(--nf-content-muted);
+    pointer-events: none;
+  }
+
+  /* ---------------------------------------------- the wizard and the flow */
+
+  .nf-host {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    background: var(--nf-surface-canvas);
+  }
+  .nf-host__body {
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
+    padding: var(--nf-space-md) var(--nf-pad-shell) calc(var(--nf-space-2xl) + env(safe-area-inset-bottom));
+  }
+  /* The step header: where you are, drawn as a segmented bar, the question
+     in display type, the one sentence under it. */
+  .nf-host-step__count {
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-host-step__title {
+    margin-top: var(--nf-space-md);
+    font-family: var(--nf-font-display);
+    font-weight: 800;
+    font-size: var(--nf-text-h2);
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-host-step__hint {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  /* A choice row: the glass object, the title and the meaning, a ring that
+     fills when chosen. The kyc flow's row shape, in the register. */
+  .nf-host-choice {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: 4rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    text-align: left;
+    color: inherit;
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-host-choice[aria-pressed="true"],
+  .nf-host-choice[aria-checked="true"] {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 16px var(--nf-glow-2);
+  }
+  .nf-host-choice__mark {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+  }
+  .nf-host-choice__ring {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-brand-edge);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-host-choice[aria-pressed="true"] .nf-host-choice__ring,
+  .nf-host-choice[aria-checked="true"] .nf-host-choice__ring {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+  }
+  /* A group of fields under a heading: the well, not a card in a card. */
+  .nf-host-group {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+  }
+  .nf-host-group__title {
+    font-weight: 700;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-host-group__note {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* The uploader's drop plate. */
+  .nf-host-drop {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: 3.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) dashed var(--nf-brand-edge);
+    background: var(--nf-glass-fill-thin);
+    color: var(--nf-content-secondary);
+    text-align: left;
+  }
+  .nf-host-drop--done {
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--nf-state-success) 55%, transparent);
+    color: var(--nf-content-primary);
+  }
+  /* The review list: what is present ticks, what is missing is named. */
+  .nf-host-missing {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) 0;
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-host-missing:first-child {
+    border-top: 0;
+  }
+  /* The wizard's foot: back and next, pinned under the step. */
+  .nf-host-foot {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xl);
+  }
+  .nf-host-foot > * {
+    flex: 1 1 auto;
+  }
+  /* The saved line: nothing typed is lost, said in one quiet line. */
+  .nf-host-saved {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-host-choice {
+      transition: none;
+    }
+  }
+}
+
+/* ------------------------------------------------------------ paper twin */
+
+:root[data-theme="light"] .nf-agent-stat,
+:root[data-theme="light"] .nf-agent .nf-card,
+:root[data-theme="light"] .nf-agent-panel,
+:root[data-theme="light"] .nf-agent-bar__search input,
+:root[data-theme="light"] .nf-host-choice,
+:root[data-theme="light"] .nf-host-group {
+  background: var(--nf-surface-on-paper);
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-host-drop {
+  background: var(--nf-surface-raised);
 }

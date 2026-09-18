@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getPaymentHealth, STALE_HOLD_MINUTES } from "@/lib/admin/payments-queries";
-import { adminUi } from "../_components/ui";
+import {
+  getPaymentHealth,
+  getSavedMethods,
+  STALE_HOLD_MINUTES,
+  type SavedMethods,
+} from "@/lib/admin/payments-queries";
+import { findAdminSubject, type SubjectLookup } from "@/lib/admin/queries";
+import { adminUi, type AdminUi } from "../_components/ui";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { SweepHolds } from "./SweepHolds";
+import { RemoveSavedMethod } from "./MethodLookup";
 
 export const metadata: Metadata = {
   title: "Payments",
@@ -40,12 +47,218 @@ export const dynamic = "force-dynamic";
  * /api/paystack/reconcile is what re-asks the provider, and duplicating that as
  * a button here would give two code paths permission to decide a payment landed.
  */
-export default async function AdminPaymentsPage() {
+/**
+ * The payment-method lookup panel.
+ *
+ * "Which card is on my account" and "take that bank account off, I lost the
+ * phone" are two of the commonest things support is asked, and until this
+ * panel an operator could answer neither without SQL. The search is a GET so
+ * the answer is a URL a colleague can open; the person is found by handle,
+ * address or id through the console's one subject lookup; the cards are
+ * shown as the processor filed them (brand, last four, expiry) and the
+ * accounts masked to their tail, because an operator never needs more than
+ * the tail to confirm "the one ending 4821" with the person on the phone.
+ */
+function LookupPanel({
+  term,
+  lookup,
+  methods,
+  ui,
+}: {
+  term: string;
+  lookup: Awaited<ReturnType<typeof findAdminSubject>> | null;
+  methods: Awaited<ReturnType<typeof getSavedMethods>> | null;
+  ui: AdminUi;
+}) {
+  return (
+    <ui.Section
+      title="Saved cards and bank accounts"
+      hint="Find a person by handle, email address or account id to see what they have saved to pay with or be paid to. Cards show what the processor filed, never a number. Accounts show their last four digits only."
+    >
+      <form method="get" action="/admin/payments" className="flex flex-wrap items-end gap-row">
+        <label className="min-w-0 flex-1">
+          <span className="nf-label">Handle, email or account id</span>
+          <input
+            type="search"
+            name="q"
+            defaultValue={term}
+            placeholder="@handle, name@example.com, or an id"
+            className="nf-field mt-inline-tight w-full"
+          />
+        </label>
+        <button type="submit" className="nf-chip nf-chip--active shrink-0">
+          Look up
+        </button>
+      </form>
+
+      {term.length > 0 && <LookupResult lookup={lookup} methods={methods} ui={ui} />}
+    </ui.Section>
+  );
+}
+
+function LookupResult({
+  lookup,
+  methods,
+  ui,
+}: {
+  lookup: Awaited<ReturnType<typeof findAdminSubject>> | null;
+  methods: Awaited<ReturnType<typeof getSavedMethods>> | null;
+  ui: AdminUi;
+}) {
+  if (!lookup || lookup.state !== "ok") {
+    return (
+      <div className="mt-sm">
+        <ui.QueueUnavailable />
+      </div>
+    );
+  }
+  const found: SubjectLookup | null = lookup.data;
+  if (found === null) {
+    return (
+      <p className="nf-body-sm mt-sm text-content-2">
+        That does not read as a handle, an email address or an account id. Check it and try again.
+      </p>
+    );
+  }
+  if (found.state === "email-unavailable") {
+    return (
+      <p className="nf-body-sm mt-sm text-content-2">
+        Looking a person up by email address is not switched on in this
+        deployment yet. Search by their handle or their account id instead.
+      </p>
+    );
+  }
+  if (found.state === "none") {
+    return (
+      <p className="nf-body-sm mt-sm text-content-2">
+        No account matches that {found.by === "email" ? "address" : found.by}.
+      </p>
+    );
+  }
+
+  const { subject } = found;
+  const saved: SavedMethods | null = methods && methods.state === "ok" ? methods.data : null;
+
+  return (
+    <div className="mt-sm">
+      <p className="nf-body font-semibold text-content">
+        {subject.displayName ?? "No display name"}
+        {subject.handle ? ` · @${subject.handle}` : ""}
+      </p>
+      {/* THE ID, UNCLIPPED: what an operator pastes into the money desk to
+          find this person's wallet. */}
+      <p className="font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+        {subject.userId}
+      </p>
+
+      {saved === null ? (
+        <div className="mt-sm">
+          <ui.QueueUnavailable />
+        </div>
+      ) : (
+        <>
+          <h3 className="nf-h4 mt-group">Saved cards</h3>
+          {saved.cards.length === 0 ? (
+            <p className="nf-body-sm mt-row text-content-2">No card has been saved on this account.</p>
+          ) : (
+            <ul className="nf-rows mt-row">
+              {saved.cards.map((card) => {
+                const brand = card.cardType
+                  ? card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)
+                  : "Card";
+                const describe = `${brand} ending ${card.last4 ?? "????"}`;
+                return (
+                  <li key={card.id} className="nf-row flex-wrap">
+                    <span className="min-w-0 flex-1">
+                      <span className="nf-body-sm block font-semibold text-content">
+                        {describe}
+                        {card.bank ? ` · ${card.bank}` : ""}
+                      </span>
+                      <span className="nf-caption block">
+                        {card.expMonth && card.expYear
+                          ? `Expires ${String(card.expMonth).padStart(2, "0")}/${card.expYear}`
+                          : "Expiry not on file"}
+                        {card.isDefault && !card.removedAt ? " · default" : ""}
+                        {!card.reusable ? " · processor says no longer chargeable" : ""}
+                        {" · saved "}
+                        {ui.when(card.createdAt)}
+                      </span>
+                    </span>
+                    {card.removedAt ? (
+                      <ui.StatusChip label={`Removed ${ui.when(card.removedAt)}`} tone="neutral" />
+                    ) : (
+                      <RemoveSavedMethod kind="card" id={card.id} describe={describe} />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <h3 className="nf-h4 mt-group">Bank accounts</h3>
+          {saved.accounts.length === 0 ? (
+            <p className="nf-body-sm mt-row text-content-2">
+              No bank account has been filed on this account.
+            </p>
+          ) : (
+            <ul className="nf-rows mt-row">
+              {saved.accounts.map((account) => {
+                const describe = `${account.bankName} ending ${account.accountNumberMasked.slice(-4)}`;
+                return (
+                  <li key={account.id} className="nf-row flex-wrap">
+                    <span className="min-w-0 flex-1">
+                      <span className="nf-body-sm block font-semibold text-content">
+                        {account.bankName}
+                        {" · "}
+                        <span className="nf-numeric">{account.accountNumberMasked}</span>
+                      </span>
+                      <span className="nf-caption block">
+                        {account.accountName}
+                        {account.isDefault && !account.removedAt ? " · default" : ""}
+                        {" · filed "}
+                        {ui.when(account.createdAt)}
+                      </span>
+                    </span>
+                    {account.removedAt ? (
+                      <ui.StatusChip
+                        label={`Removed ${ui.when(account.removedAt)}`}
+                        tone="neutral"
+                      />
+                    ) : (
+                      <RemoveSavedMethod kind="account" id={account.id} describe={describe} />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+export default async function AdminPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const ui = adminUi(t, locale);
 
-  const read = await getPaymentHealth(STALE_HOLD_MINUTES);
+  const params = await searchParams;
+  const rawTerm = params["q"];
+  const term = (Array.isArray(rawTerm) ? rawTerm[0] : rawTerm)?.trim() ?? "";
+
+  const [read, lookup] = await Promise.all([
+    getPaymentHealth(STALE_HOLD_MINUTES),
+    term.length > 0 ? findAdminSubject(term) : Promise.resolve(null),
+  ]);
+  const methods =
+    lookup && lookup.state === "ok" && lookup.data?.state === "found"
+      ? await getSavedMethods(lookup.data.subject.userId)
+      : null;
   /* The moment this page's rows were read, handed to the sweep control so its
      age arithmetic runs against the same clock the list was built from. */
   const asOf = new Date().toISOString();
@@ -280,6 +493,8 @@ export default async function AdminPaymentsPage() {
           </Table>
         </ui.Section>
       )}
+
+      <LookupPanel term={term} lookup={lookup} methods={methods} ui={ui} />
     </div>
   );
 }
