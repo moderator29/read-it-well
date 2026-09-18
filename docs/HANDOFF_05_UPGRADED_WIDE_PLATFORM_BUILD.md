@@ -254,7 +254,13 @@ nothing):**
     `recipient_code`, `payout_accounts` untouched plus its additive
     recipient_code). The `/settings/payments` surface: cards and bank
     accounts in the settings grammar, the withdraw sheet's confirmation
-    pattern everywhere, then "pay with saved card" on checkout and funding
+    pattern everywhere, then "pay with saved card" on checkout and funding.
+    **The wallet itself upgrades in the same stroke, on the founder's
+    word: send money and receive money graduate from sheets to full
+    pages**, each a complete surface (recipient, amount with the odometer,
+    consequence line, confirmation, receipt), and the add-bank-account
+    flow is clean end to end: pick bank, type the number, see the resolved
+    name, confirm, done, with every state honest
 
 **Phase D, stays for real:**
 13. The **Host onboarding wizard** completable in one sitting (MK-20,
@@ -463,18 +469,28 @@ against their live documentation, recorded in the ledger.
 
 ## 9. How this session runs
 
-**Fully autonomous, two agents maximum plus the lead**, on the
-sprint-proven contract: strict non-overlapping written file scopes; a
-finding outside your scope is a line in your report, not an edit; agents
-never run git; the lead re-audits and commits everything; nobody's success
-report is believed without verification; everybody restates HANDOFF_04
-section 13 before starting.
+**Fully autonomous, three agents plus the lead**, on the sprint-proven
+contract: strict non-overlapping written file scopes; a finding outside
+your scope is a line in your report, not an edit; agents never run git; the
+lead re-audits and commits everything; nobody's success report is believed
+without verification; everybody restates HANDOFF_04 section 13 before
+starting.
 
-The natural split for this scope: **one agent on the shell and surfaces**
-(phases A and D, the flip, the thread banners, the payments surface), **one
-agent on the spine** (phases B and C's migrations, actions and triggers),
-**the lead** on migrations-and-probes review, integration boundaries, admin,
-i18n and docs trail, and synthesis. Adjust by evidence, not preference.
+The split, per the founder's word: **the lead builds frontend hands-on
+beside one frontend agent** (phases A and D between them: the flip and
+shell to the lead as the signature work, surfaces, thread banners and the
+payments pages to the agent, scopes written file by file so they never
+collide), and **two agents on the backend spine** (one on migrations M1 to
+M9 with their probes, one on M10 to M13 plus actions, triggers and API
+structure). The lead also queues work: every agent always has its next
+scope written before its current one closes, so nobody idles and nothing
+overlaps. Adjust by evidence, not preference.
+
+**Budget discipline, because the founder's session limits are real:** read
+the research once and work from it, do not re-read what is already known;
+batch related edits; verify with the narrow command, not the whole suite,
+until a phase closes; keep reports short. Spend tokens on built pixels and
+proven migrations, not on narration.
 
 **The stop list, short and absolute:** merchant-of-record exposure or any
 float; spending money or new paid vendors; destructive database operations;
