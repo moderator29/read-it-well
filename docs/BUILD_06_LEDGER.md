@@ -130,14 +130,15 @@ only, inside its own namespace object, in all four locales, never
 reformatting the file. `app/(dev)/preview/<worker>/**` is each worker's
 own screenshot harness (section 5).
 
-**LEAD:** `components/app/{AppShell,AppRail,NavTree,nav-model,MobileTabBar,AutoHideDock,SideSwitch,SideSync,PageHeader,Screen,ScreenSkeleton}.tsx`,
+**LEAD:** `components/app/{AppShell,AppRail,NavTree,nav-model,MobileTabBar,AutoHideDock,SideSwitch,SideSync}.tsx`,
 `components/app/flip/**`, `app/side-nav.css`, `app/globals.css`,
-`app/css/{side-flip,chrome,theme,glass,light,base,buttons,chips,controls,motion,animation,ambient,utilities,typography,overlays,symbols,touch,data-saver,fonts}.css`,
-`app/layout.tsx`, `app/(app)/layout.tsx`, `middleware.ts`,
-`packages/design-tokens/**`, `packages/i18n/**` (structure), `scripts/**`,
-`apps/web/public/brand/**`, `lib/listings/scene-photographs.generated.ts`,
+`app/css/{side-flip,chrome,overlays,fonts}.css`, `design-system/brand/**`,
+`app/layout.tsx`, `app/(app)/layout.tsx`, `proxy.ts`, `lib/app/**`,
+`packages/i18n/**` (structure), `scripts/build-reference-plates.mjs`,
+`scripts/build-scene-manifest.mjs`, `scripts/verify-shots.mjs`,
+`apps/web/public/brand/{photos,scenes}/**`, `lib/listings/scene-photographs.generated.ts`,
 `supabase/migrations/pending/**`, `docs/**`, `RECOMMENDATIONS.md`,
-`app/(dev)/gallery/**`, `app/(dev)/preview/{layout,page}.tsx`,
+`app/(dev)/preview/{layout,page}.tsx`,
 `app/(dev)/preview/_fixtures/**`, `app/(dev)/preview/lead/**`.
 
 **F1 (chrome satellites, first run, auth, home, notifications, assistant):**
@@ -191,6 +192,64 @@ re-audits every closed frontend scope):** `app/(app)/wallet/**`,
 `app/(dev)/preview/e/**`. In re-audit mode E edits only inside the closed
 scope it is auditing, on the lead's written handoff line in section 3, and
 never two workers in one directory at once.
+
+### 2.0 The five bounded frontend workers (added on the founder's word, two works each, then they stop)
+
+The lead hands these paths out of its own scope. Each worker's changes are
+ADDITIVE: new variants, new rungs, new names; never a rename or a removal of a
+class, token or export that another worker is standing on.
+
+**G1 (the primitives):** `components/ui/**`,
+`components/app/{Screen,ScreenSkeleton,PageHeader}.tsx`,
+`app/css/{buttons,chips,controls}.css`, `app/(dev)/preview/g1/**`.
+Work 1: Button, Chip, Segmented, Field, Switch, StatusPill to the renders'
+control shapes (capsule chips and segments, the glass secondary button, the
+settings render's toggle, the on-palette status pills, the field with its
+glyph). Work 2: Sheet, Skeleton, Table, Progress, ActionBar, PageHeader and
+Screen to the register (the filter sheet's glass panel and grip, the pinned
+action bar with its glow, the admin table's dense rows).
+
+**G2 (the glass objects):** `assets/icons/**`, `assets/icon-pack/**`,
+`apps/web/public/brand/glass/**`, `design-system/icons/BrandIcon.tsx`,
+`scripts/{cut-icon-ground,icon-manifest,name-icon-objects,slice-icon-sheets,build-icon-vectors}.mjs`,
+`docs/ICON_SYSTEM.md`, `app/(dev)/preview/g2/**`. Work 1: crop from the
+reference renders every glass object the catalogue names as missing and that
+carries no baked text (the naira wallet, the hotel-with-palms stays mark, the
+coin, the calendar with grid, the shield-check, the headset, the sparkle, the
+location pin, the bell, the card, the bank), alpha-key them through the
+existing pipeline, file them with lowercase-hyphen names. Work 2: their light
+twins, the manifest, the BrandIcon names, the docs, and a preview sheet
+showing every new object on the four grounds.
+
+**G3 (tokens, glass, light, ambient):** `packages/design-tokens/**`,
+`app/css/{glass,light,theme,base,typography,motion,animation,ambient,utilities,symbols,touch,data-saver}.css`,
+`app/(dev)/gallery/**`. Work 1: the token amendments the direction asks for
+(the radius law amended with the capsule recorded, new glow rungs, glass
+depth rungs, the lit-rim recipe) with their light twins, and the gallery
+updated to show the register. Work 2: the ambient layer: an aurora variant
+on the `bg-blue-wave` plate behind app sections, the section glow
+discipline, reduced motion, and the one-ambient-per-viewport audit across
+the product as a report.
+
+**G4 (system pages and store posture):** `app/{not-found,error,loading}.tsx`,
+`app/(app)/error.tsx`, `app/offline/**`, `app/(app)/legal/**`,
+`app/manifest.ts`, `apps/web/public/pwa/**`,
+`scripts/{build-pwa-screenshots,build-native-icons,build-web-icons}.mjs`,
+`docs/MOBILE_READINESS.md`, `app/(dev)/preview/g4/**`; `capacitor.config.ts`
+read only (native identifiers are on the stop list). Work 1: the system
+pages (error, not found, offline, loading, the in-app legal reader) in the
+register. Work 2: the store posture: manifest colours and icons to the
+register, the PWA screenshot set regenerated from the new surfaces, the
+safe-area and Capacitor audit, MOBILE_READINESS rewritten to what is true.
+
+**G5 (emails and metadata):** `lib/email/**`,
+`scripts/{build-auth-emails,build-og-image}.mjs`, `AUTH_EMAILS.md`,
+`app/opengraph-image.png`, `app/{robots,sitemap}.ts` and `sitemap.test.ts`,
+`lib/listings/sitemap.ts`, `app/(dev)/preview/g5/**`. Work 1: the auth and
+transactional emails in the register (dark ground, the lockup, the glass
+card, the blue CTA, plain-text twins), rebuilt through the existing script.
+Work 2: the OG image on the villa plate with the lockup, per-route metadata
+sanity, the sitemap covering the stays and restaurants routes.
 
 **BA (B1 + B4, lifecycle jobs):** `app/api/cron/**` (new), `lib/cron/**`
 (new), `lib/bookings/lifecycle.ts` (new), `lib/bookings/lifecycle.test.ts`,
