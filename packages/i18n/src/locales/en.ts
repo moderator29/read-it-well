@@ -260,6 +260,11 @@ export const en = {
    * server module that only speaks English.
    */
   social: {
+    /** The location chip when the profile has no place, or nobody is signed in. */
+    locationEverywhere: "Everywhere on Vallo",
+    locationLabel: "Where this feed is read from",
+    changePlace: "Change where you are",
+    yourStory: "Your story",
     feedName: "Vallo feed",
     tabForYou: "For you",
     tabFollowing: "Following",
@@ -305,6 +310,13 @@ export const en = {
    * order welded on by concatenation.
    */
   socialProfile: {
+    /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
+    belongings: "Belongings",
+    myBookings: "My Bookings",
+    myBookingsSub: "View your property and stays bookings",
+    savedSub: "Your saved properties, hotels and places",
+    walletSub: "Manage your balance, cards and transactions",
+    inspectionsSub: "View your scheduled and past inspections",
     back: "Back",
     verified: "Verified agent",
     verifiedTitle: "A verified Vallo agent",
@@ -1027,6 +1039,30 @@ export const en = {
    * languages.
    */
   settings: {
+    /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
+    hub: {
+      lede: "Manage your account, preferences and payment methods.",
+      signInRow: "Sign in to Vallo",
+      signInRowSub: "Your preferences follow you to every device once you do.",
+      accountInfo: "Account Information",
+      accountInfoSub: "Name, email, phone number",
+      notificationsSub: "Push, email, in-app",
+      on: "On",
+      off: "Off",
+      privacy: "Privacy & Security",
+      privacySub: "Password, sign-in and devices",
+      appearanceSub: "Theme, text size, motion",
+      languageSub: "App language",
+      help: "Help & Support",
+      helpSub: "FAQs, contact us",
+      payments: "Payment Methods",
+      paymentsSub: "Manage your cards and bank accounts.",
+      add: "Add",
+      logOut: "Log Out",
+      loggingOut: "Signing out",
+      verified: "Verified",
+      devices: { one: "{count} device", other: "{count} devices" },
+    },
       searchPlaceholder: "Search settings",
       searchNoMatchTitle: "Nothing in settings matches that",
       searchNoMatchBody:
@@ -3391,6 +3427,7 @@ export const en = {
       water: "Where the water comes from",
       instant: "Instant book",
       verifiedOnly: "Verified only",
+      trust: "Booking and trust",
       location: "Location",
       locationPlaceholder: "Area, city or landmark",
       sortBy: "Sort by",
@@ -3421,6 +3458,7 @@ export const en = {
       message: "Message",
       share: "Share",
       calculateBreakdown: "Calculate breakdown",
+      breakdownShort: "Breakdown",
       bookInspection: "Book inspection",
       checkAvailability: "Check availability",
       seeAll: "See all",
@@ -3506,6 +3544,7 @@ export const en = {
     gainers: "Top gainers",
     losers: "Top losers",
     allCoins: "All coins",
+    seeAll: "See all",
     change24h: "24h",
     change7d: "7d",
     marketCap: "Market cap",
