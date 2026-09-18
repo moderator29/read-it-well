@@ -4,7 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
-import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
+/* One empty-state anatomy across /around and /u. See ./Notice. */
+import { Notice } from "../Notice";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
 import { ProfileShare } from "@/components/social/profile/ProfileShare";
 import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
@@ -186,7 +187,7 @@ export default async function SocialProfilePage({
       <PageHeader title={`@${handle}`} fallback="/home" />
 
       {view.state === "unconfigured" && (
-        <ProfileNotice
+        <Notice
           icon="user-check"
           title="We cannot reach profiles right now"
           body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
@@ -195,7 +196,7 @@ export default async function SocialProfilePage({
       )}
 
       {view.state === "malformed" && (
-        <ProfileNotice
+        <Notice
           icon="home-search"
           title="That is not a handle"
           body="A handle is 3 to 20 characters: letters, numbers and underscores, starting with a letter. Check the address and try again."
@@ -213,7 +214,7 @@ export default async function SocialProfilePage({
         unique index then refuses.
       */}
       {view.state === "claimable" && (
-        <ProfileNotice
+        <Notice
           icon="user-verified"
           title={
             view.official ? `@${handle} is a Vallo name` : `Nothing to show at @${handle}`

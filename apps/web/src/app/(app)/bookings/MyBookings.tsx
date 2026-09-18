@@ -1,18 +1,19 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { cancel } from "@/lib/bookings/actions";
-import type { ActionResult } from "@/lib/actions/envelope";
 import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { Segmented } from "@/components/ui/Segmented";
-import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+/* ONE cancel flow for the whole platform. It lived here as a private
+   function while /bookings was the only screen listing a stay; /trips lists
+   the same stays on its date spine and needs the same control, and two copies
+   of a sheet that releases somebody's dates is how one of them drifts. */
+import { CancelBookingSheet } from "@/components/app/bookings/CancelBookingSheet";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 
@@ -235,88 +236,6 @@ function BookingCard({
   );
 }
 
-/**
- * Confirm sheet for cancelling a stay. `<Sheet>` owns the portal, the drag
- * handle, the detents, the focus trap, focus restoration, Escape, the backdrop
- * and the body scroll lock. What is left here is the decision: the server
- * action, the refusal, and the success state. On success the router refreshes
- * and the server-rendered list becomes the single source of truth.
- */
-function CancelSheet({ booking, onClose }: { booking: BookingView; onClose: () => void }) {
-  const router = useRouter();
-  const [state, formAction, pending] = useActionState<ActionResult<null> | null, FormData>(
-    cancel,
-    null,
-  );
-
-  useEffect(() => {
-    if (state?.ok) router.refresh();
-  }, [state, router]);
-
-  const cancelled = Boolean(state?.ok);
-
-  return (
-    <Sheet
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose();
-      }}
-      title="Cancel this booking?"
-      /* The success state speaks for itself, exactly as before; the title stays
-         on as the sheet's accessible name. */
-      hideTitle={cancelled}
-      footer={
-        cancelled ? (
-          <Button variant="primary" full onClick={onClose}>
-            Done
-          </Button>
-        ) : (
-          <form action={formAction} className="grid gap-sm">
-            <input type="hidden" name="bookingId" value={booking.id} />
-            <Button type="submit" variant="primary" full loading={pending}>
-              Yes, cancel the booking
-            </Button>
-            <Button variant="secondary" full onClick={onClose}>
-              Keep my booking
-            </Button>
-          </form>
-        )
-      }
-    >
-      {cancelled ? (
-        <div className="text-center">
-          <p className="flex items-center justify-center gap-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
-            <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
-            Booking cancelled
-          </p>
-          <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-            {booking.title} for {booking.dateRange} is cancelled. The dates are free again.
-          </p>
-        </div>
-      ) : (
-        <>
-          <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-            {booking.title}, {booking.dateRange}. This releases your dates and cannot be
-            undone.
-          </p>
-
-          {state && !state.ok && (
-            /* A cancellation that was refused is a failure, and it was drawn
-               in the pending colour on a neutral surface, which is the same
-               defect the wallet's own banner had. */
-            <p
-              role="alert"
-              className="mt-row rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
-            >
-              {state.error}
-            </p>
-          )}
-        </>
-      )}
-    </Sheet>
-  );
-}
-
 export function MyBookings({
   groups,
   locale,
@@ -411,7 +330,9 @@ export function MyBookings({
         </div>
       )}
 
-      {cancelling && <CancelSheet booking={cancelling} onClose={() => setCancelling(null)} />}
+      {cancelling && (
+        <CancelBookingSheet booking={cancelling} onClose={() => setCancelling(null)} />
+      )}
     </div>
   );
 }

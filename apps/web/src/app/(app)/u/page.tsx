@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SocialPaused } from "@/components/social/SocialPaused";
-import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
+/* One empty-state anatomy across /around and /u. See ./Notice. */
+import { Notice } from "./Notice";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { AroundFab } from "@/components/social/AroundFab";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -50,7 +51,7 @@ export default async function PeoplePage({
     return (
       <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
         <PageHeader title="People" fallback="/around" />
-        <ProfileNotice
+        <Notice
           icon="user-check"
           title="We cannot reach profiles right now"
           body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
@@ -113,7 +114,7 @@ export default async function PeoplePage({
 
       {view.people.length === 0 ? (
         <div className="mt-md">
-          <ProfileNotice
+          <Notice
             icon="home-search"
             title={searching ? `Nobody here is called ${view.query}` : "Nobody has a page yet"}
             body={

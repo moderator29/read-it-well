@@ -14,6 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
+      accommodation_amenities: {
+        Row: {
+          accommodation_id: string
+          amenity_id: string
+        }
+        Insert: {
+          accommodation_id: string
+          amenity_id: string
+        }
+        Update: {
+          accommodation_id?: string
+          amenity_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_amenities_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_amenities_amenity_id_fkey"
+            columns: ["amenity_id"]
+            isOneToOne: false
+            referencedRelation: "amenities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accommodation_photos: {
+        Row: {
+          accommodation_id: string
+          created_at: string
+          id: string
+          position: number
+          storage_path: string
+        }
+        Insert: {
+          accommodation_id: string
+          created_at?: string
+          id?: string
+          position?: number
+          storage_path: string
+        }
+        Update: {
+          accommodation_id?: string
+          created_at?: string
+          id?: string
+          position?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_photos_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accommodations: {
+        Row: {
+          address: string | null
+          area: string | null
+          business_id: string
+          cancellation_policy_id: string | null
+          check_in_from: string | null
+          check_out_by: string | null
+          city: string | null
+          created_at: string
+          description: string | null
+          featured: boolean
+          fulfilment: Database["public"]["Enums"]["fulfilment_mode"]
+          house_rules: string | null
+          id: string
+          is_demo: boolean
+          latitude: number | null
+          location: unknown
+          longitude: number | null
+          name: string
+          published_at: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          slug: string
+          source: Database["public"]["Enums"]["source_kind"]
+          star_rating: number | null
+          state_code: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          area?: string | null
+          business_id: string
+          cancellation_policy_id?: string | null
+          check_in_from?: string | null
+          check_out_by?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          fulfilment?: Database["public"]["Enums"]["fulfilment_mode"]
+          house_rules?: string | null
+          id?: string
+          is_demo?: boolean
+          latitude?: number | null
+          location?: unknown
+          longitude?: number | null
+          name: string
+          published_at?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          slug: string
+          source?: Database["public"]["Enums"]["source_kind"]
+          star_rating?: number | null
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          area?: string | null
+          business_id?: string
+          cancellation_policy_id?: string | null
+          check_in_from?: string | null
+          check_out_by?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          fulfilment?: Database["public"]["Enums"]["fulfilment_mode"]
+          house_rules?: string | null
+          id?: string
+          is_demo?: boolean
+          latitude?: number | null
+          location?: unknown
+          longitude?: number | null
+          name?: string
+          published_at?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          slug?: string
+          source?: Database["public"]["Enums"]["source_kind"]
+          star_rating?: number | null
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodations_cancellation_policy_id_fkey"
+            columns: ["cancellation_policy_id"]
+            isOneToOne: false
+            referencedRelation: "cancellation_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodations_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       admin_bootstrap: {
         Row: {
           added_by: string | null
@@ -732,6 +912,51 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_accounts: {
+        Row: {
+          account_number: string
+          bank_code: string
+          bank_name: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_default: boolean
+          recipient_code: string | null
+          resolved_account_name: string
+          resolved_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          bank_code: string
+          bank_name: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_default?: boolean
+          recipient_code?: string | null
+          resolved_account_name: string
+          resolved_at: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          bank_code?: string
+          bank_name?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_default?: boolean
+          recipient_code?: string | null
+          resolved_account_name?: string
+          resolved_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           created_at: string
@@ -1025,37 +1250,301 @@ export type Database = {
         }
         Relationships: []
       }
+      business_documents: {
+        Row: {
+          business_id: string
+          id: string
+          kind: string
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          business_id: string
+          id?: string
+          kind: string
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          business_id?: string
+          id?: string
+          kind?: string
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_documents_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_verification_checks: {
+        Row: {
+          business_id: string
+          decided_at: string
+          id: string
+          note: string | null
+          reviewer_id: string | null
+          rung: string
+          status: string
+        }
+        Insert: {
+          business_id: string
+          decided_at?: string
+          id?: string
+          note?: string | null
+          reviewer_id?: string | null
+          rung: string
+          status: string
+        }
+        Update: {
+          business_id?: string
+          decided_at?: string
+          id?: string
+          note?: string | null
+          reviewer_id?: string | null
+          rung?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_verification_checks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      businesses: {
+        Row: {
+          address: string | null
+          agent_id: string | null
+          area: string | null
+          cac_number: string | null
+          city: string | null
+          consents: Json
+          created_at: string
+          description: string | null
+          email: string | null
+          host_type: string | null
+          hygiene_attested_at: string | null
+          id: string
+          is_demo: boolean
+          kind: Database["public"]["Enums"]["business_kind"]
+          latitude: number | null
+          licence_attested_at: string | null
+          location: unknown
+          longitude: number | null
+          name: string
+          owner_id: string | null
+          phone: string | null
+          published_at: string | null
+          registered_name: string | null
+          representative_name: string | null
+          representative_phone: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          slug: string
+          source: Database["public"]["Enums"]["source_kind"]
+          state_code: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          submitted_at: string | null
+          tin: string | null
+          updated_at: string
+          verification_tier: number
+          verified: boolean
+        }
+        Insert: {
+          address?: string | null
+          agent_id?: string | null
+          area?: string | null
+          cac_number?: string | null
+          city?: string | null
+          consents?: Json
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          host_type?: string | null
+          hygiene_attested_at?: string | null
+          id?: string
+          is_demo?: boolean
+          kind: Database["public"]["Enums"]["business_kind"]
+          latitude?: number | null
+          licence_attested_at?: string | null
+          location?: unknown
+          longitude?: number | null
+          name: string
+          owner_id?: string | null
+          phone?: string | null
+          published_at?: string | null
+          registered_name?: string | null
+          representative_name?: string | null
+          representative_phone?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          slug: string
+          source?: Database["public"]["Enums"]["source_kind"]
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          submitted_at?: string | null
+          tin?: string | null
+          updated_at?: string
+          verification_tier?: number
+          verified?: boolean
+        }
+        Update: {
+          address?: string | null
+          agent_id?: string | null
+          area?: string | null
+          cac_number?: string | null
+          city?: string | null
+          consents?: Json
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          host_type?: string | null
+          hygiene_attested_at?: string | null
+          id?: string
+          is_demo?: boolean
+          kind?: Database["public"]["Enums"]["business_kind"]
+          latitude?: number | null
+          licence_attested_at?: string | null
+          location?: unknown
+          longitude?: number | null
+          name?: string
+          owner_id?: string | null
+          phone?: string | null
+          published_at?: string | null
+          registered_name?: string | null
+          representative_name?: string | null
+          representative_phone?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          slug?: string
+          source?: Database["public"]["Enums"]["source_kind"]
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          submitted_at?: string | null
+          tin?: string | null
+          updated_at?: string
+          verification_tier?: number
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "businesses_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "businesses_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      cancellation_policies: {
+        Row: {
+          created_at: string
+          id: string
+          is_free_until_hours: number | null
+          name: string
+          refund_to: string
+          rules: Json
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_free_until_hours?: number | null
+          name: string
+          refund_to?: string
+          rules?: Json
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_free_until_hours?: number | null
+          name?: string
+          refund_to?: string
+          rules?: Json
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           agent_id: string
+          booking_id: string | null
+          context_kind: Database["public"]["Enums"]["thread_context"]
           created_at: string
           guest_id: string
           id: string
           last_message_at: string
           listing_id: string | null
+          reservation_id: string | null
         }
         Insert: {
           agent_id: string
+          booking_id?: string | null
+          context_kind?: Database["public"]["Enums"]["thread_context"]
           created_at?: string
           guest_id: string
           id?: string
           last_message_at?: string
           listing_id?: string | null
+          reservation_id?: string | null
         }
         Update: {
           agent_id?: string
+          booking_id?: string | null
+          context_kind?: Database["public"]["Enums"]["thread_context"]
           created_at?: string
           guest_id?: string
           id?: string
           last_message_at?: string
           listing_id?: string | null
+          reservation_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
             referencedColumns: ["id"]
           },
         ]
@@ -1441,6 +1930,7 @@ export type Database = {
           lister_note: string | null
           listing_id: string
           note: string | null
+          outcome: string | null
           requested_at: string
           requester_id: string
           responded_at: string | null
@@ -1456,6 +1946,7 @@ export type Database = {
           lister_note?: string | null
           listing_id: string
           note?: string | null
+          outcome?: string | null
           requested_at: string
           requester_id: string
           responded_at?: string | null
@@ -1471,6 +1962,7 @@ export type Database = {
           lister_note?: string | null
           listing_id?: string
           note?: string | null
+          outcome?: string | null
           requested_at?: string
           requester_id?: string
           responded_at?: string | null
@@ -1492,6 +1984,62 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      landmarks: {
+        Row: {
+          aliases: string[]
+          city: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["landmark_kind"]
+          latitude: number
+          location: unknown
+          longitude: number
+          name: string
+          slug: string
+          source: Database["public"]["Enums"]["source_kind"]
+          state_code: string
+          updated_at: string
+        }
+        Insert: {
+          aliases?: string[]
+          city: string
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["landmark_kind"]
+          latitude: number
+          location?: unknown
+          longitude: number
+          name: string
+          slug: string
+          source?: Database["public"]["Enums"]["source_kind"]
+          state_code: string
+          updated_at?: string
+        }
+        Update: {
+          aliases?: string[]
+          city?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["landmark_kind"]
+          latitude?: number
+          location?: unknown
+          longitude?: number
+          name?: string
+          slug?: string
+          source?: Database["public"]["Enums"]["source_kind"]
+          state_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landmarks_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -2125,6 +2673,69 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          authorization_code: string
+          bank: string | null
+          bin: string | null
+          card_type: string | null
+          channel: string | null
+          created_at: string
+          deleted_at: string | null
+          email_used: string
+          exp_month: number | null
+          exp_year: number | null
+          id: string
+          is_default: boolean
+          last4: string | null
+          provider: string
+          reusable: boolean
+          signature: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          authorization_code: string
+          bank?: string | null
+          bin?: string | null
+          card_type?: string | null
+          channel?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email_used: string
+          exp_month?: number | null
+          exp_year?: number | null
+          id?: string
+          is_default?: boolean
+          last4?: string | null
+          provider?: string
+          reusable: boolean
+          signature: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          authorization_code?: string
+          bank?: string | null
+          bin?: string | null
+          card_type?: string | null
+          channel?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email_used?: string
+          exp_month?: number | null
+          exp_year?: number | null
+          id?: string
+          is_default?: boolean
+          last4?: string | null
+          provider?: string
+          reusable?: boolean
+          signature?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payout_accounts: {
         Row: {
           account_name: string
@@ -2135,6 +2746,7 @@ export type Database = {
           created_at: string
           id: string
           is_default: boolean
+          recipient_code: string | null
           resolved_account_name: string | null
           resolved_at: string | null
         }
@@ -2147,6 +2759,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_default?: boolean
+          recipient_code?: string | null
           resolved_account_name?: string | null
           resolved_at?: string | null
         }
@@ -2159,6 +2772,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_default?: boolean
+          recipient_code?: string | null
           resolved_account_name?: string | null
           resolved_at?: string | null
         }
@@ -2555,6 +3169,35 @@ export type Database = {
           },
         ]
       }
+      rate_calendar: {
+        Row: {
+          closed: boolean
+          date: string
+          rate_minor: number | null
+          rate_plan_id: string
+        }
+        Insert: {
+          closed?: boolean
+          date: string
+          rate_minor?: number | null
+          rate_plan_id: string
+        }
+        Update: {
+          closed?: boolean
+          date?: string
+          rate_minor?: number | null
+          rate_plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_calendar_rate_plan_id_fkey"
+            columns: ["rate_plan_id"]
+            isOneToOne: false
+            referencedRelation: "rate_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limits: {
         Row: {
           bucket: string
@@ -2575,6 +3218,66 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      rate_plans: {
+        Row: {
+          active: boolean
+          cancellation_policy_id: string
+          created_at: string
+          currency: string
+          id: string
+          max_stay_nights: number | null
+          meal_plan: Database["public"]["Enums"]["meal_plan"]
+          min_stay_nights: number
+          name: string
+          rate_minor: number
+          room_type_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          cancellation_policy_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          max_stay_nights?: number | null
+          meal_plan?: Database["public"]["Enums"]["meal_plan"]
+          min_stay_nights?: number
+          name: string
+          rate_minor: number
+          room_type_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          cancellation_policy_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          max_stay_nights?: number | null
+          meal_plan?: Database["public"]["Enums"]["meal_plan"]
+          min_stay_nights?: number
+          name?: string
+          rate_minor?: number
+          room_type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_plans_cancellation_policy_id_fkey"
+            columns: ["cancellation_policy_id"]
+            isOneToOne: false
+            referencedRelation: "cancellation_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_plans_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "room_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reports: {
         Row: {
@@ -2617,10 +3320,11 @@ export type Database = {
       }
       reservations: {
         Row: {
+          business_id: string | null
           created_at: string
           guest_id: string
           id: string
-          listing_id: string
+          listing_id: string | null
           note: string | null
           party_size: number
           reserved_for: string
@@ -2629,10 +3333,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          business_id?: string | null
           created_at?: string
           guest_id: string
           id?: string
-          listing_id: string
+          listing_id?: string | null
           note?: string | null
           party_size: number
           reserved_for: string
@@ -2641,10 +3346,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          business_id?: string | null
           created_at?: string
           guest_id?: string
           id?: string
-          listing_id?: string
+          listing_id?: string | null
           note?: string | null
           party_size?: number
           reserved_for?: string
@@ -2654,10 +3360,64 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "reservations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reservations_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_profiles: {
+        Row: {
+          business_id: string
+          created_at: string
+          cuisines: string[]
+          dress_code: string | null
+          menu_url: string | null
+          outdoor: boolean
+          parking: boolean
+          power_backup: boolean
+          price_band: number | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          cuisines?: string[]
+          dress_code?: string | null
+          menu_url?: string | null
+          outdoor?: boolean
+          parking?: boolean
+          power_backup?: boolean
+          price_band?: number | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          cuisines?: string[]
+          dress_code?: string | null
+          menu_url?: string | null
+          outdoor?: boolean
+          parking?: boolean
+          power_backup?: boolean
+          price_band?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_profiles_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -2791,6 +3551,100 @@ export type Database = {
         }
         Relationships: []
       }
+      room_inventory: {
+        Row: {
+          date: string
+          room_type_id: string
+          units_booked: number
+          units_open: number
+          updated_at: string
+        }
+        Insert: {
+          date: string
+          room_type_id: string
+          units_booked?: number
+          units_open: number
+          updated_at?: string
+        }
+        Update: {
+          date?: string
+          room_type_id?: string
+          units_booked?: number
+          units_open?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_inventory_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "room_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_types: {
+        Row: {
+          accommodation_id: string
+          base_rate_minor: number
+          beds: Json
+          category: Database["public"]["Enums"]["room_category"]
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          is_demo: boolean
+          name: string
+          size_sqm: number | null
+          sleeps: number
+          status: Database["public"]["Enums"]["listing_status"]
+          units_total: number
+          updated_at: string
+        }
+        Insert: {
+          accommodation_id: string
+          base_rate_minor: number
+          beds?: Json
+          category: Database["public"]["Enums"]["room_category"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_demo?: boolean
+          name: string
+          size_sqm?: number | null
+          sleeps: number
+          status?: Database["public"]["Enums"]["listing_status"]
+          units_total: number
+          updated_at?: string
+        }
+        Update: {
+          accommodation_id?: string
+          base_rate_minor?: number
+          beds?: Json
+          category?: Database["public"]["Enums"]["room_category"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_demo?: boolean
+          name?: string
+          size_sqm?: number | null
+          sleeps?: number
+          status?: Database["public"]["Enums"]["listing_status"]
+          units_total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_types_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_items: {
         Row: {
           created_at: string
@@ -2816,6 +3670,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_places: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_kind: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_kind: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_kind?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       saved_searches: {
         Row: {
@@ -2843,6 +3718,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      service_windows: {
+        Row: {
+          business_id: string
+          closes: string
+          covers: number
+          created_at: string
+          id: string
+          last_seating: string
+          opens: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          business_id: string
+          closes: string
+          covers: number
+          created_at?: string
+          id?: string
+          last_seating: string
+          opens: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          business_id?: string
+          closes?: string
+          covers?: number
+          created_at?: string
+          id?: string
+          last_seating?: string
+          opens?: string
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_windows_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       social_profiles: {
         Row: {
@@ -3292,6 +4211,41 @@ export type Database = {
           },
         ]
       }
+      units: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          label: string
+          room_type_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          room_type_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          room_type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "room_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badges: {
         Row: {
           badge_code: string
@@ -3594,6 +4548,21 @@ export type Database = {
         }
         Returns: Json
       }
+      join_text_array: { Args: { items: string[] }; Returns: string }
+      landmarks_resolve: {
+        Args: { p_limit?: number; p_state?: string; p_term: string }
+        Returns: {
+          city: string
+          id: string
+          kind: Database["public"]["Enums"]["landmark_kind"]
+          latitude: number
+          longitude: number
+          name: string
+          score: number
+          slug: string
+          state_code: string
+        }[]
+      }
       listings_in_bounds: {
         Args: {
           p_bedrooms?: number
@@ -3673,6 +4642,25 @@ export type Database = {
       release_idempotency: {
         Args: { key: string; scope: string; subject: string }
         Returns: boolean
+      }
+      release_room_nights: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_room_type: string
+          p_rooms: number
+        }
+        Returns: number
+      }
+      reserve_room_nights: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_rate_plan?: string
+          p_room_type: string
+          p_rooms: number
+        }
+        Returns: number
       }
       review_kyc_document: {
         Args: { p_approve: boolean; p_document: string; p_reason: string }
@@ -3763,8 +4751,21 @@ export type Database = {
       area_status: "PROPOSED" | "ACTIVE" | "PAUSED" | "ARCHIVED" | "REJECTED"
       availability_status: "available" | "booked" | "unavailable"
       badge_audience: "AGENT" | "MEMBER"
-      booking_status: "PENDING" | "CONFIRMED" | "COMPLETED" | "NO_SHOW" | "CANCELLED"
+      booking_status:
+        | "PENDING"
+        | "CONFIRMED"
+        | "COMPLETED"
+        | "NO_SHOW"
+        | "CANCELLED"
       build_condition: "newly_built" | "renovated" | "old" | "off_plan"
+      business_kind:
+        | "hotel"
+        | "serviced_apartments"
+        | "guest_house"
+        | "resort"
+        | "shortlet_operator"
+        | "restaurant"
+        | "agency"
       document_review_status: "pending" | "approved" | "rejected"
       document_subtype:
         | "passport"
@@ -3795,6 +4796,7 @@ export type Database = {
       event_status: "DRAFT" | "LIVE" | "HELD" | "CANCELLED" | "REMOVED"
       event_venue_kind: "PUBLIC_VENUE" | "ESTATE_COMMON" | "ONLINE"
       fee_kind: "commission" | "listing_fee"
+      fulfilment_mode: "vallo" | "external_completion" | "partner_handoff"
       furnishing: "unfurnished" | "semi_furnished" | "fully_furnished"
       geopolitical_zone:
         | "north_central"
@@ -3817,6 +4819,19 @@ export type Database = {
         | "gazette"
         | "freehold"
         | "leasehold"
+      landmark_kind:
+        | "airport"
+        | "business_district"
+        | "market"
+        | "mall"
+        | "stadium"
+        | "beach"
+        | "park"
+        | "transport"
+        | "education"
+        | "hospital"
+        | "worship"
+        | "other"
       listing_intent: "rent" | "sale"
       listing_status:
         | "DRAFT"
@@ -3828,6 +4843,7 @@ export type Database = {
         | "REJECTED"
         | "SUSPENDED"
       locale: "en" | "yo" | "ha" | "ig"
+      meal_plan: "room_only" | "breakfast" | "half_board" | "full_board"
       message_flag_reason: "account_number" | "payment_keyword"
       message_flag_status: "open" | "reviewed"
       moderator_application_status:
@@ -3869,10 +4885,13 @@ export type Database = {
       rent_period: "month" | "quarter" | "year"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       revenue_source: "escrow_commission" | "listing_fee"
+      room_category: "single" | "double" | "twin" | "suite" | "family" | "dorm"
       sale_status: "available" | "under_offer" | "sold"
       signup_role: "renter" | "buyer" | "landlord" | "seller" | "agent"
       social_status: "LIVE" | "HELD" | "REMOVED"
+      source_kind: "first_party" | "partner" | "licensed_data"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
+      thread_context: "listing" | "reservation" | "booking"
       transaction_status: "SUCCESSFUL" | "PENDING" | "FAILED" | "REFUNDED"
       wallet_entry_direction: "credit" | "debit"
       wallet_entry_kind:
@@ -3907,12 +4926,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3936,11 +4955,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3961,11 +4980,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3986,11 +5005,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4003,11 +5022,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4038,8 +5057,23 @@ export const Constants = {
       area_status: ["PROPOSED", "ACTIVE", "PAUSED", "ARCHIVED", "REJECTED"],
       availability_status: ["available", "booked", "unavailable"],
       badge_audience: ["AGENT", "MEMBER"],
-      booking_status: ["PENDING", "CONFIRMED", "COMPLETED", "NO_SHOW", "CANCELLED"],
+      booking_status: [
+        "PENDING",
+        "CONFIRMED",
+        "COMPLETED",
+        "NO_SHOW",
+        "CANCELLED",
+      ],
       build_condition: ["newly_built", "renovated", "old", "off_plan"],
+      business_kind: [
+        "hotel",
+        "serviced_apartments",
+        "guest_house",
+        "resort",
+        "shortlet_operator",
+        "restaurant",
+        "agency",
+      ],
       document_review_status: ["pending", "approved", "rejected"],
       document_subtype: [
         "passport",
@@ -4073,6 +5107,7 @@ export const Constants = {
       event_status: ["DRAFT", "LIVE", "HELD", "CANCELLED", "REMOVED"],
       event_venue_kind: ["PUBLIC_VENUE", "ESTATE_COMMON", "ONLINE"],
       fee_kind: ["commission", "listing_fee"],
+      fulfilment_mode: ["vallo", "external_completion", "partner_handoff"],
       furnishing: ["unfurnished", "semi_furnished", "fully_furnished"],
       geopolitical_zone: [
         "north_central",
@@ -4098,6 +5133,20 @@ export const Constants = {
         "freehold",
         "leasehold",
       ],
+      landmark_kind: [
+        "airport",
+        "business_district",
+        "market",
+        "mall",
+        "stadium",
+        "beach",
+        "park",
+        "transport",
+        "education",
+        "hospital",
+        "worship",
+        "other",
+      ],
       listing_intent: ["rent", "sale"],
       listing_status: [
         "DRAFT",
@@ -4110,6 +5159,7 @@ export const Constants = {
         "SUSPENDED",
       ],
       locale: ["en", "yo", "ha", "ig"],
+      meal_plan: ["room_only", "breakfast", "half_board", "full_board"],
       message_flag_reason: ["account_number", "payment_keyword"],
       message_flag_status: ["open", "reviewed"],
       moderator_application_status: [
@@ -4155,10 +5205,13 @@ export const Constants = {
       rent_period: ["month", "quarter", "year"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       revenue_source: ["escrow_commission", "listing_fee"],
+      room_category: ["single", "double", "twin", "suite", "family", "dorm"],
       sale_status: ["available", "under_offer", "sold"],
       signup_role: ["renter", "buyer", "landlord", "seller", "agent"],
       social_status: ["LIVE", "HELD", "REMOVED"],
+      source_kind: ["first_party", "partner", "licensed_data"],
       support_ticket_status: ["open", "pending", "resolved", "closed"],
+      thread_context: ["listing", "reservation", "booking"],
       transaction_status: ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED"],
       wallet_entry_direction: ["credit", "debit"],
       wallet_entry_kind: [

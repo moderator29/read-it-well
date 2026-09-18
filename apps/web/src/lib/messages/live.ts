@@ -16,7 +16,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
-import { withThreadContext, type ThreadContextKind } from "./db";
+import type { ThreadContextKind } from "./db";
 import { lagosTimeLabel, lagosWhenLabel } from "./time";
 
 type Db = SupabaseClient<Database>;
@@ -139,10 +139,10 @@ export async function loadConversationSummaries(
      M10 shape check), so its title is reached through the transaction. One
      select, three embeds, and PostgREST leaves the two that do not apply
      null. */
-  const { data: conversations } = await withThreadContext(supabase)
+  const { data: conversations } = await supabase
     .from("conversations")
     .select(
-      "id, guest_id, agent_id, last_message_at, context_kind, listings(title), reservations(listings(title)), bookings(listings(title))",
+      "id, guest_id, agent_id, last_message_at, context_kind, listings(title), reservations!conversations_reservation_id_fkey(listings(title)), bookings!conversations_booking_id_fkey(listings(title))",
     )
     .order("last_message_at", { ascending: false })
     .limit(50);
@@ -253,7 +253,8 @@ export type ThreadContext = {
     reservedFor: string;
     partySize: number;
     note: string | null;
-    listingId: string;
+    /** Null for a reservation held against a business rather than a listing (M7). */
+    listingId: string | null;
     listingTitle: string | null;
   };
   booking?: {
@@ -291,9 +292,7 @@ export type ThreadContext = {
 export async function getThreadContext(conversationId: string): Promise<ThreadContext | null> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
-  const db = withThreadContext(session.supabase);
-
-  const { data: conversation } = await db
+  const { data: conversation } = await session.supabase
     .from("conversations")
     .select(
       "id, guest_id, agent_id, context_kind, listing_id, reservation_id, booking_id, listings(id, title, area, city)",

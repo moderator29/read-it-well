@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ProfileEditor } from "@/components/social/profile/ProfileEditor";
-import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
+/* One empty-state anatomy across /around and /u. See ./Notice. */
+import { Notice } from "../../Notice";
 import { ProfilePhotos } from "@/components/social/profile/ProfilePhotos";
 import { loadProfileEditor, normaliseHandle } from "@/lib/social/profiles-queries";
 import { SocialPaused } from "@/components/social/SocialPaused";
@@ -40,7 +41,7 @@ export default async function EditSocialProfilePage({
       />
 
       {editor.state === "unconfigured" && (
-        <ProfileNotice
+        <Notice
           icon="user-check"
           title="We cannot reach profiles right now"
           body="This is on our side, not yours. A handle cannot be claimed from here at the moment. Nothing you typed was lost, and the rest of the app works as normal."
@@ -49,7 +50,7 @@ export default async function EditSocialProfilePage({
       )}
 
       {editor.state === "signed-out" && (
-        <ProfileNotice
+        <Notice
           icon="user-check"
           title="Sign in to claim your handle"
           body={`@${handle} is claimed from your own account, so people know a name belongs to one person. Sign in and it takes about a minute.`}
@@ -59,7 +60,7 @@ export default async function EditSocialProfilePage({
       )}
 
       {editor.state === "taken" && (
-        <ProfileNotice
+        <Notice
           icon="shield-check"
           title={`@${handle} belongs to somebody else`}
           body="Handles are one to a person and they are never reassigned quietly. Pick another name and it is yours in one step."
@@ -69,7 +70,7 @@ export default async function EditSocialProfilePage({
       )}
 
       {editor.state === "not-yours" && (
-        <ProfileNotice
+        <Notice
           icon="user-verified"
           title="This is not your profile"
           body={`You already hold @${editor.ownHandle}. Edit that one, or visit @${handle} to see whose it is.`}

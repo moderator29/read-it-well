@@ -177,7 +177,7 @@ export function AppShell({
    * from it again. The 20px figure above is the measurement as it was taken and
    * is left as it was taken.
    */
-  const edgeToEdge = /^\/(listing|stay)\/[^/]+$/.test(active);
+  const edgeToEdge = /^\/(listing|stay|restaurant)\/[^/]+$/.test(active);
 
   /*
    * `pinsActionBar` USED TO BE DECLARED HERE and is gone with the desktop

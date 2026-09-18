@@ -4,7 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { getMyBookings } from "@/lib/bookings/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { MyBookings } from "../bookings/MyBookings";
+import { TripSpine } from "./TripSpine";
+import { lagosToday } from "./trip-spine";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 
@@ -13,12 +14,23 @@ export const metadata: Metadata = { title: "Trips" };
 /**
  * Trips: the Stays side's name for your stays and reservations, by date.
  *
- * `getMyBookings` already groups upcoming, completed and cancelled, and
- * `MyBookings` already renders reservations landing from a restaurant page,
- * so Trips is that surface re-homed under the URL that keeps the Stays shell.
- * The Property side keeps `/bookings` (which also carries inspections); this
- * page carries none, because an inspection is not a trip. The date spine and
- * the interleaving of stays with reservations land with the showcase.
+ * `getMyBookings` reads the account's stays; `TripSpine` puts them in the
+ * order they happen with a rule connecting them, today accented and the past
+ * one tap away (research pitch 12). The Property side keeps `/bookings`
+ * (which also carries inspections); this page carries none, because an
+ * inspection is not a trip.
+ *
+ * A TABLE IS A TRIP AND IS NOT ON THE SPINE YET. `trip-spine.ts` already
+ * orders both kinds together and the row already draws a table's glyph; what
+ * is missing is the READ. `lib/reservations` (another worker's scope) has
+ * `reserveTable`, `respondToReservation` and `cancelReservation` but no query
+ * of a person's own reservations. When one lands as
+ *
+ *     export async function getMyReservations(): Promise<ReservationView[]>
+ *
+ * this page maps each row to a `kind: "table"` entry with its `reserved_for`
+ * instant and hands it to `TripSpine` beside the stays; nothing else changes.
+ * Until then the spine says what it holds and claims nothing it does not.
  */
 export default async function TripsPage({
   searchParams,
@@ -64,7 +76,12 @@ export default async function TripsPage({
           }
         />
       ) : groups ? (
-        <MyBookings groups={groups} locale={locale} justBookedId={justBooked} />
+        <TripSpine
+          bookings={[...groups.upcoming, ...groups.completed, ...groups.cancelled]}
+          today={lagosToday()}
+          locale={locale}
+          justBookedId={justBooked}
+        />
       ) : null}
     </div>
   );
