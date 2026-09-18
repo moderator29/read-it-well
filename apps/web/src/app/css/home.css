@@ -2,6 +2,918 @@
   home: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  The governing image is the dimmed home behind the flip in
+  docs/design/references/GOVERNING-flip-mid-turn.png: the search field, the
+  four glass browse tiles, the verified photo cards stacked full width, and
+  the Popular Cities photo tiles; the location chip is the feed render's
+  (GOVERNING-feed-plus-bloom). Notifications and the assistant have no image
+  and inherit this register, so their rules live here too.
 */
 @layer components {
+  /* --------------------------------------------------------------- home */
+
+  /* The location chip: the feed header's bar, here under the greeting. */
+  .nf-home__loc {
+    display: flex;
+    width: 100%;
+    min-height: 3.25rem;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+    color: var(--nf-content-primary);
+    text-align: left;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 18px var(--nf-glow-wash);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-home__loc:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  @media (hover: hover) {
+    .nf-home__loc:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  .nf-home__loc-pin {
+    color: var(--nf-brand-secondary);
+    flex-shrink: 0;
+  }
+  .nf-home__loc-name {
+    min-width: 0;
+    flex: 1;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-home__loc-sub {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+  .nf-home__loc-chev {
+    color: var(--nf-content-muted);
+    flex-shrink: 0;
+  }
+
+  /* The search field: one glass well with the glyph in it and a submit
+     beside it, the height of the large button so the two agree. */
+  .nf-home__search {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 2px 6px var(--nf-shade-2),
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 20px var(--nf-glow-wash);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-home__search:focus-within {
+    border-color: var(--nf-brand-edge);
+  }
+  .nf-home__search-glyph {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-home__search:focus-within .nf-home__search-glyph {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-home__search-input {
+    min-width: 0;
+    flex: 1;
+    padding-block: var(--nf-space-sm);
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-home__search-input::placeholder {
+    color: var(--nf-content-muted);
+  }
+
+  /* The four browse tiles: glass squares, an object each, a label under. */
+  .nf-home__tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-home__tile {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    min-height: 4.75rem;
+    padding: var(--nf-space-sm) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    color: var(--nf-content-primary);
+    text-align: center;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      inset 0 0 0 1px var(--nf-glow-wash),
+      0 0 16px var(--nf-glow-wash);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-home__tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--nf-glass-specular);
+    pointer-events: none;
+  }
+  .nf-home__tile:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  @media (hover: hover) {
+    .nf-home__tile:hover {
+      border-color: var(--nf-brand-edge);
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim-thin),
+        0 0 22px var(--nf-glow-2);
+    }
+  }
+  .nf-home__tile-art {
+    display: block;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .nf-home__tile-label {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  /* Wider than a phone the tiles keep their proportion: the object grows
+     with the tile rather than floating small in a wide slab. */
+  @media (min-width: 640px) {
+    .nf-home__tiles {
+      gap: var(--nf-space-md);
+    }
+    .nf-home__tile {
+      min-height: 6.5rem;
+    }
+    .nf-home__tile-art {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+    .nf-home__tile-label {
+      font-size: var(--nf-text-body-sm);
+    }
+  }
+
+  /* A section head: the title left, the quiet link right, on one baseline. */
+  .nf-home__head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    margin-bottom: var(--nf-gap-heading);
+  }
+  .nf-home__more {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  /* The verified cards, stacked full width on a phone as the render shows,
+     a grid from the tablet up. The card itself is the catalogue's own. */
+  .nf-home__cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-md);
+  }
+  @media (min-width: 640px) {
+    .nf-home__cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--nf-space-xl);
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-home__cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Popular Cities: photo tiles with the name in the foot. */
+  .nf-home__cities {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-home__city {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: linear-gradient(180deg, var(--nf-media-ground-from), var(--nf-media-ground-to));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 16px var(--nf-glow-wash);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-home__city:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  .nf-home__city img {
+    object-fit: cover;
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-home__city:hover img {
+      transform: scale(1.04);
+    }
+  }
+  .nf-home__city::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nf-scrim-media);
+    pointer-events: none;
+  }
+  .nf-home__city-name {
+    position: absolute;
+    left: var(--nf-space-sm);
+    right: var(--nf-space-sm);
+    bottom: var(--nf-space-sm);
+    z-index: 1;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-on-media);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @media (min-width: 640px) {
+    .nf-home__cities {
+      gap: var(--nf-space-md);
+    }
+    .nf-home__city {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  /* The assistant card on home: the concierge object beside its promise. */
+  .nf-home__ai {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .nf-home__ai-art {
+    position: absolute;
+    right: calc(-1 * var(--nf-space-md));
+    top: calc(-1 * var(--nf-space-sm));
+    width: 7.5rem;
+    height: 7.5rem;
+    pointer-events: none;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 18px var(--nf-glow-2));
+  }
+  .nf-home__ai-body {
+    padding-right: var(--nf-space-3xl);
+  }
+  @media (min-width: 640px) {
+    .nf-home__ai-art {
+      right: var(--nf-space-md);
+      top: 50%;
+      translate: 0 -50%;
+      width: 9rem;
+      height: 9rem;
+    }
+    .nf-home__ai-body {
+      padding-right: 10rem;
+    }
+  }
+
+  /* ---------------------------------------------------------- daylight */
+  :root[data-theme="light"] .nf-home__loc,
+  :root[data-theme="light"] .nf-home__tile {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-home__tile::before {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-home__search {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: inset 0 1px 2px var(--nf-shade-1);
+  }
+  :root[data-theme="light"] .nf-home__search:focus-within {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 2px var(--nf-shade-1),
+      0 0 0 3px var(--nf-glow-1);
+  }
+  :root[data-theme="light"] .nf-home__city {
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-home__tile:hover,
+    :root[data-theme="light"] .nf-home__loc:hover {
+      border-color: var(--nf-brand-edge);
+      box-shadow: var(--nf-elev-2);
+    }
+  }
+}
+
+/*
+  notifications: no governing image; inherits the home register. Glass rows
+  in one card, a glyph tile on a rail at the left, the unread state carried
+  by a brand dot, the row's tint and the title's weight together, never by
+  colour alone.
+*/
+@layer components {
+  .nf-notif {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-lg);
+  }
+  .nf-notif__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-gap-row);
+    margin-bottom: var(--nf-gap-row);
+  }
+  .nf-notif__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding-inline: var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-2);
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-notif__list {
+    display: flex;
+    flex-direction: column;
+    padding: var(--nf-space-2xs);
+  }
+  .nf-notif__list > * + * {
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-notif__row {
+    display: flex;
+    width: 100%;
+    min-height: 4rem;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-lg);
+    color: var(--nf-content-primary);
+    text-align: left;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-notif__row:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  @media (hover: hover) {
+    .nf-notif__row:hover {
+      background: var(--nf-interactive-hover);
+    }
+  }
+  .nf-notif__row[data-unread="true"] {
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-notif__tile {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-muted);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 12px var(--nf-glow-wash);
+  }
+  .nf-notif__row[data-unread="true"] .nf-notif__tile {
+    color: var(--nf-brand-secondary);
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 16px var(--nf-glow-2);
+  }
+  .nf-notif__body {
+    min-width: 0;
+    flex: 1;
+  }
+  .nf-notif__title {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--nf-content-secondary);
+  }
+  .nf-notif__row[data-unread="true"] .nf-notif__title {
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-notif__text {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+  }
+  .nf-notif__meta {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--nf-space-xs);
+  }
+  .nf-notif__time {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-notif__dot {
+    display: block;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-secondary);
+    box-shadow: 0 0 10px var(--nf-glow-3);
+  }
+
+  :root[data-theme="light"] .nf-notif__tile {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-notif__row[data-unread="true"] .nf-notif__tile {
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-notif__dot {
+    box-shadow: none;
+  }
+}
+
+/*
+  assistant: to docs/design/references/BF49B814. The header pair under the
+  chrome, the bubbles (theirs glass left with the concierge object, mine
+  brand blue right with the time and the ticks), the inline listing cards
+  two up, the thinking pill, the suggestion chips and the sparkle composer.
+*/
+@layer components {
+  .nf-ai {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+  .nf-ai__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding-block: var(--nf-space-sm);
+  }
+  .nf-ai__lockup {
+    display: inline-flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-ai__lockup img {
+    filter: drop-shadow(0 0 10px var(--nf-glow-2));
+  }
+  .nf-ai__word {
+    display: block;
+    width: 4.5rem;
+    height: auto;
+  }
+  /* The name pair under the bar, aligned with the lockup's left edge. */
+  .nf-ai__ident {
+    padding-bottom: var(--nf-space-sm);
+  }
+  .nf-ai__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-ai__sub {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-ai__bar-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--nf-gap-inline);
+  }
+
+  .nf-ai__thread {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    overflow-y: auto;
+    padding-block: var(--nf-space-sm) var(--nf-space-lg);
+    border-top: 1px solid var(--nf-brand-edge-soft);
+  }
+
+  /* A turn: the avatar and the bubble on one baseline. */
+  .nf-ai__turn {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-ai__turn--mine {
+    justify-content: flex-end;
+  }
+  .nf-ai__avatar {
+    position: relative;
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 14px var(--nf-glow-2);
+  }
+  .nf-ai__avatar > * {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .nf-ai__me {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+  }
+  .nf-ai__me img {
+    object-fit: cover;
+  }
+
+  .nf-ai__bubble {
+    position: relative;
+    max-width: 84%;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .nf-ai__bubble--theirs {
+    border-bottom-left-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    color: var(--nf-content-primary);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 16px var(--nf-glow-wash);
+  }
+  .nf-ai__bubble--mine {
+    border-bottom-right-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-brand-tint-3);
+    color: var(--nf-content-primary);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 18px var(--nf-glow-2);
+  }
+  .nf-ai__stamp {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+    white-space: nowrap;
+  }
+  .nf-ai__bubble--mine .nf-ai__stamp {
+    color: var(--nf-content-secondary);
+  }
+  .nf-ai__ticks {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* The inline results: two up on a phone, the thread's own width. */
+  .nf-ai__results {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-ai__result {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 16px var(--nf-glow-wash);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-ai__result:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  .nf-ai__result-media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(180deg, var(--nf-media-ground-from), var(--nf-media-ground-to));
+  }
+  .nf-ai__result-media img {
+    object-fit: cover;
+  }
+  .nf-ai__result-save {
+    position: absolute;
+    right: var(--nf-space-xs);
+    top: var(--nf-space-xs);
+    z-index: 1;
+  }
+  .nf-ai__result-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-ai__result-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    line-height: 1.3;
+  }
+  .nf-ai__result-where {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-ai__result-price {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    color: var(--nf-brand-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-ai__result-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-2xs);
+    padding-top: var(--nf-space-xs);
+    border-top: 1px solid var(--nf-divider);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-ai__result-fact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    text-transform: capitalize;
+  }
+
+  /* The thinking state: the ring and the word, as one pill. */
+  .nf-ai__thinking {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-xs) var(--nf-space-md) var(--nf-space-xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    box-shadow: 0 0 16px var(--nf-glow-wash);
+  }
+  .nf-ai__ring {
+    position: relative;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: 3px solid var(--nf-brand-edge-strong);
+    border-top-color: var(--nf-content-primary);
+    box-shadow:
+      0 0 0 1px var(--nf-glow-2),
+      0 0 14px var(--nf-glow-3),
+      inset 0 0 8px var(--nf-glow-2);
+    animation: nf-ai-spin var(--nf-duration-cinematic) linear infinite;
+  }
+  @keyframes nf-ai-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-ai__ring {
+      animation: none;
+      border-top-color: var(--nf-brand-secondary);
+      border-right-color: var(--nf-brand-secondary);
+    }
+  }
+
+  /* Suggestion chips: rectangles with a glyph, on a rail above the composer. */
+  .nf-ai__chips {
+    display: flex;
+    gap: var(--nf-space-xs);
+    overflow-x: auto;
+    padding-block: var(--nf-space-sm);
+    scrollbar-width: none;
+  }
+  .nf-ai__chips::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-ai__chip {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    min-height: 3.25rem;
+    max-width: 14rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    line-height: 1.25;
+    text-align: left;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 12px var(--nf-glow-wash);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-ai__chip:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  @media (hover: hover) {
+    .nf-ai__chip:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  .nf-ai__chip > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* The composer: the sparkle in the well, the send button beside it. */
+  .nf-ai__composer {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding-top: var(--nf-space-xs);
+  }
+  .nf-ai__well {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    min-height: 3.5rem;
+    padding: var(--nf-space-2xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 2px 6px var(--nf-shade-2),
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 20px var(--nf-glow-wash);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-ai__well:focus-within {
+    border-color: var(--nf-brand-edge);
+  }
+  .nf-ai__well > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-ai__input {
+    min-width: 0;
+    flex: 1;
+    padding-block: var(--nf-space-sm);
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-ai__input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-ai__send {
+    width: 3.5rem;
+    height: 3.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-lg);
+  }
+
+  /* ---------------------------------------------------------- daylight */
+  :root[data-theme="light"] .nf-ai__bubble--theirs,
+  :root[data-theme="light"] .nf-ai__result,
+  :root[data-theme="light"] .nf-ai__thinking,
+  :root[data-theme="light"] .nf-ai__chip,
+  :root[data-theme="light"] .nf-ai__avatar {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-ai__bubble--mine {
+    background: var(--nf-brand-primary);
+    border-color: transparent;
+    color: var(--nf-content-on-brand);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-ai__bubble--mine .nf-ai__stamp,
+  :root[data-theme="light"] .nf-ai__bubble--mine .nf-ai__ticks {
+    color: var(--nf-content-on-brand);
+  }
+  :root[data-theme="light"] .nf-ai__well {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: inset 0 1px 2px var(--nf-shade-1);
+  }
+  :root[data-theme="light"] .nf-ai__well:focus-within {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 2px var(--nf-shade-1),
+      0 0 0 3px var(--nf-glow-1);
+  }
+  :root[data-theme="light"] .nf-ai__thread {
+    border-top-color: var(--nf-border-default);
+  }
+  /* On paper the brand fill and the quiet ink are the same blue, so the
+     ring's travelling arc needs its own tint to be seen moving. */
+  :root[data-theme="light"] .nf-ai__ring {
+    border-color: var(--nf-brand-tint-3);
+    border-top-color: var(--nf-brand-primary);
+    box-shadow: none;
+  }
 }

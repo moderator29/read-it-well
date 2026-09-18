@@ -6,6 +6,7 @@ import {
   readIntent,
   returnHref,
   withoutIntent,
+  emailFromQuery,
 } from "./auth-intent";
 
 /**
@@ -90,5 +91,20 @@ describe("isGatedAction", () => {
     expect(isGatedAction(null)).toBe(false);
     expect(isGatedAction("")).toBe(false);
     expect(isGatedAction("delete-account")).toBe(false);
+  });
+});
+
+describe("emailFromQuery", () => {
+  it("fills the field only with something shaped like an address", () => {
+    expect(emailFromQuery("seyi@example.com")).toBe("seyi@example.com");
+    expect(emailFromQuery("  seyi@example.com ")).toBe("seyi@example.com");
+  });
+
+  it("refuses anything else, so a query parameter cannot put words in the field", () => {
+    expect(emailFromQuery("not an address")).toBe("");
+    expect(emailFromQuery("")).toBe("");
+    expect(emailFromQuery(undefined)).toBe("");
+    expect(emailFromQuery(["a@b.co", "c@d.co"])).toBe("");
+    expect(emailFromQuery(`${"a".repeat(250)}@b.co`)).toBe("");
   });
 });

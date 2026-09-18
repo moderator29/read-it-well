@@ -33,13 +33,16 @@ export function EmailTakenNotice({
   t,
   error,
   check,
+  initialEmail = "",
 }: {
   t: Dictionary;
   error?: string | undefined;
   check: (email: string) => Promise<EmailStatus>;
+  /** The address typed on the chooser, so it is not typed twice. */
+  initialEmail?: string;
 }) {
   const [status, setStatus] = useState<EmailStatus>("unknown");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
 
   async function onBlur(value: string) {
     const address = value.trim();

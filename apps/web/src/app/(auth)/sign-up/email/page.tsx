@@ -4,6 +4,7 @@ import { getLocale } from "@/lib/locale";
 import { signUpWithEmail } from "@/lib/auth/actions";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { listStates } from "@/lib/places/queries";
+import { emailFromQuery } from "@/components/auth/auth-intent";
 
 export const metadata: Metadata = {
   title: "Create your account with email",
@@ -19,12 +20,21 @@ export const metadata: Metadata = {
 export default async function SignUpEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; email?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next, email } = await searchParams;
   const locale = await getLocale();
   const t = getDictionary(locale);
   const states = await listStates();
 
-  return <EmailAuthForm mode="sign-up" t={t} action={signUpWithEmail} states={states} next={next} />;
+  return (
+    <EmailAuthForm
+      mode="sign-up"
+      t={t}
+      action={signUpWithEmail}
+      states={states}
+      next={next}
+      initialEmail={emailFromQuery(email)}
+    />
+  );
 }

@@ -4,20 +4,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
-import { PageHeader } from "@/components/app/PageHeader";
+import { useRouter } from "next/navigation";
+import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { formatRating, type Locale } from "@vallo/i18n";
 import type {
   AssistantListingItem,
   AssistantStreamEvent,
   AssistantTurn,
 } from "@/lib/assistant/types";
+import { canGoBackInApp } from "@/lib/ui/history";
+import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import {
   AssistantSidebar,
   type Language,
   type Tone,
 } from "./AssistantSidebar";
+import { AssistantSettingsSheet } from "./AssistantSettingsSheet";
 import {
   clearStoredThreads,
   deriveTitle,
@@ -27,25 +31,34 @@ import {
   type Message,
   type Thread,
 } from "./threads";
-import { Button } from "@/components/ui/Button";
 
 /**
- * Vallo AI chat surface.
+ * Vallo AI, to its governing image (`docs/design/references/BF49B814`).
  *
- * A full assistant page in the shape people know from the big chat products:
- * a conversation column with pinned composer, plus its own side navigation.
- * On desktop the sidebar sits as a left column inside the page content; on
- * mobile it slides in from a history control in the page header. The sidebar
- * carries search, new chat, the persisted conversation history and the
- * assistant settings. Conversations live under `nf_ai_threads` on this
- * device and switching threads swaps the visible messages.
+ * The header pair under the chrome (the name and "Always here. Ask
+ * anything."), the thread as bubbles (mine brand blue on the right with the
+ * time and the ticks, the assistant's glass on the left with the concierge
+ * object beside it), the real catalogue results as two-up cards inside the
+ * thread, the thinking pill while the model works, the suggestion chips on a
+ * rail above the composer, and the composer with the sparkle in its well.
  *
- * Replies stream live from /api/assistant: text lands token by token in the
- * bubble, and when the concierge searches the catalogue the real results
- * render as tappable listing cards inside the thread. Sending again or
- * leaving the page aborts any in-flight stream. When the caller is signed in
- * the server returns a durable conversation id, kept on the thread as
- * `serverId` so future turns append to the same row.
+ * WHAT IS REAL, because every control on this screen does its thing:
+ *
+ *   Replies stream live from /api/assistant: text lands token by token in
+ *   the bubble, and when the concierge searches the catalogue the results
+ *   render as cards linking to the listing, each with a working save.
+ *   The chips send their question. The ticks appear on a message once the
+ *   assistant has answered it. The settings button opens the real settings
+ *   sheet (reply style, language, clear history). The history button opens
+ *   the drawer of past conversations, which live under `nf_ai_threads` on
+ *   this device. Sending again or leaving the page aborts any in-flight
+ *   stream. Signed in, the server returns a durable conversation id, kept on
+ *   the thread as `serverId` so future turns append to the same row.
+ *
+ * WHAT THE RENDER SHOWS THAT THIS DOES NOT INVENT: the result cards carry
+ * only what the route streams (title, city, kind, price, rating, photo), so
+ * there is no verified chip and no bed or bath count on them until the wire
+ * type carries those facts. A card that claimed them would be a picture.
  */
 
 const NETWORK_ERROR_MESSAGE =
@@ -54,32 +67,28 @@ const PACE_FALLBACK_MESSAGE =
   "You are moving faster than the assistant can think. Give it a few minutes and try again.";
 
 /*
- * THE THREE OPENING PROMPTS, AND WHY THESE THREE.
+ * THE OPENING PROMPTS, AND WHY THESE.
  *
- * They were "2 bedroom in Lekki under 300k", "Weekend beach resorts near
- * Lagos" and "Best jollof in Abuja". The second and third were run against the
- * whole catalogue and returned ZERO rows each: they are free-text moods this
- * platform has no inventory for, so two of the three things offered to a person
- * on their first turn were guaranteed to come back empty. An opening prompt
- * that cannot be answered teaches somebody the assistant does not work.
- *
- * "under 300k" was also quietly wrong for the rent market. A Lagos two bedroom
- * is priced per YEAR and 300,000 a year is below anything in the catalogue, so
- * the one plausible prompt was still a filter that matches nothing.
- *
- * These three ask what this platform, specifically, can answer: the move-in
- * total it computes, the power columns no competitor carries, and a real
- * budget in the unit rent is actually quoted in. They also teach the product's
- * own argument on the first turn, which a starter is the cheapest place in the
- * whole interface to do.
+ * Each asks what this platform, specifically, can answer: a real budget in
+ * the unit rent is actually quoted in, the move-in total it computes, the
+ * power columns no competitor carries, and the shortlet market. A starter
+ * that cannot be answered teaches somebody the assistant does not work, so
+ * nothing here is a mood the catalogue has no inventory for.
  */
-const STARTERS = [
-  "Two bedroom in Lekki under 5m a year",
-  "What will it cost me to move in?",
-  "Which places have a generator?",
+const STARTERS: { icon: UiIconName; text: string }[] = [
+  { icon: "search", text: "Two bedroom in Lekki under 5m a year" },
+  { icon: "wallet", text: "What will it cost me to move in?" },
+  { icon: "bolt", text: "Which places have a generator?" },
+  { icon: "calendar-booking", text: "Show me shortlets in Victoria Island" },
 ];
 
 const DRAWER_EXIT_MS = 240;
+
+const TIME = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Africa/Lagos",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 /** Turns a thread's visible messages into the wire history for the route. */
 function toTurns(messages: Message[]): AssistantTurn[] {
@@ -88,7 +97,22 @@ function toTurns(messages: Message[]): AssistantTurn[] {
     .map((m) => ({ role: m.role, content: m.text }));
 }
 
-export function AssistantChat({ locale }: { locale: Locale }) {
+export function AssistantChat({
+  locale,
+  viewer,
+  seed,
+}: {
+  locale: Locale;
+  /** The signed-in person, for the mark beside their own bubbles. Absent for a guest. */
+  viewer?: { initials: string; avatarUrl: string } | undefined;
+  /**
+   * Fixture conversations for the dev preview harness only. When present
+   * they replace the device's stored threads and are never written back, so
+   * a screenshot of a conversation costs nobody their real history.
+   */
+  seed?: { threads: Thread[]; thinking?: boolean };
+}) {
+  const router = useRouter();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -96,6 +120,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
   const [tone, setTone] = useState<Tone>("Concise");
   const [language, setLanguage] = useState<Language>("English");
   const [draft, setDraft] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // A question can arrive from anywhere on the platform via ?q=, e.g. the home
   // banner's quick-ask bar. It seeds the composer after mount, never auto-sends.
@@ -116,19 +141,21 @@ export function AssistantChat({ locale }: { locale: Locale }) {
   const abortRef = useRef<AbortController | null>(null);
   const streamSeq = useRef(0);
 
-  /* Restore saved conversations once on mount, then persist every change. */
+  /* Restore saved conversations once on mount, then persist every change.
+     A seeded preview restores the fixtures instead and persists nothing. */
   useEffect(() => {
-    const restored = loadThreads();
+    const restored = seed ? seed.threads : loadThreads();
     setThreads(restored);
     const latest = [...restored].sort((a, b) => b.updatedAt - a.updatedAt)[0];
     if (latest) setActiveId(latest.id);
+    if (seed?.thinking && latest) setStreamingThread(latest.id);
     setHydrated(true);
-  }, []);
+  }, [seed]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || seed) return;
     saveThreads(threads);
-  }, [threads, hydrated]);
+  }, [threads, hydrated, seed]);
 
   const active = activeId ? threads.find((t) => t.id === activeId) : undefined;
   const messages = active?.messages ?? [];
@@ -223,7 +250,10 @@ export function AssistantChat({ locale }: { locale: Locale }) {
           t.id === threadId
             ? {
                 ...t,
-                messages: [...t.messages, { id: assistantId, role: "assistant", text: "" }],
+                messages: [
+                  ...t.messages,
+                  { id: assistantId, role: "assistant", text: "", at: Date.now() },
+                ],
               }
             : t,
         ),
@@ -333,7 +363,7 @@ export function AssistantChat({ locale }: { locale: Locale }) {
       if (!text) return;
       setDraft("");
 
-      const userMessage: Message = { id: makeId(), role: "user", text };
+      const userMessage: Message = { id: makeId(), role: "user", text, at: Date.now() };
       let targetId: string;
       let history: AssistantTurn[];
       let serverId: string | undefined;
@@ -412,25 +442,24 @@ export function AssistantChat({ locale }: { locale: Locale }) {
     setStreamingThread(null);
     setThreads([]);
     setActiveId(null);
-    clearStoredThreads();
+    if (!seed) clearStoredThreads();
     closeHistory();
     inputRef.current?.focus();
   };
 
+  const back = () => {
+    if (canGoBackInApp()) router.back();
+    else router.push("/home");
+  };
+
   const empty = hydrated && messages.length === 0;
   const lastMessage = messages[messages.length - 1];
-  const showTyping =
+  const showThinking =
     streamingHere &&
     (!lastMessage ||
       lastMessage.role === "user" ||
       (lastMessage.text === "" && (lastMessage.listings?.length ?? 0) === 0));
 
-  /*
-   * No `idPrefix` any more. It existed only to keep the search input's id
-   * unique across the two mounts (the desktop column and the mobile drawer);
-   * `TextField` generates its own id with `useId`, which is unique per mount by
-   * construction rather than by a string the caller has to remember to vary.
-   */
   const sidebar = () => (
     <AssistantSidebar
       threads={threads}
@@ -447,22 +476,55 @@ export function AssistantChat({ locale }: { locale: Locale }) {
   );
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col px-md pb-[max(1rem,env(safe-area-inset-bottom))] pt-sm sm:px-lg lg:px-xl">
-      <PageHeader
-        title="Vallo AI"
-        subtitle="Beta"
-        actions={
+    <div className="nf-ai px-md pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-lg lg:px-xl">
+      {/* --------------------------------------------------------- header */}
+      {/* This route is immersive, so this bar is the whole chrome: back, the
+          lockup, history on a phone, settings; then the name pair beneath. */}
+      <div className="nf-ai__bar">
+        <button
+          type="button"
+          aria-label="Back"
+          onClick={back}
+          className="nf-icon-btn h-11 w-11 shrink-0"
+        >
+          <UiIcon name="arrow-left" size={20} />
+        </button>
+        <Link href="/home" aria-label="Vallo home" className="nf-ai__lockup nf-tap">
+          <LogoMark size={32} />
+          <Image
+            src="/brand/vallo-wordmark.png"
+            alt=""
+            width={72}
+            height={15}
+            priority
+            className="nf-ai__word"
+          />
+        </Link>
+        <div className="nf-ai__bar-actions">
           <button
             type="button"
             aria-label="Conversation history"
             aria-expanded={historyOpen}
             onClick={openHistory}
-            className="nf-icon-btn h-9 w-9 lg:hidden"
+            className="nf-icon-btn h-11 w-11 lg:hidden"
           >
-            <UiIcon name="history" size={17} />
+            <UiIcon name="history" size={20} />
           </button>
-        }
-      />
+          <button
+            type="button"
+            aria-label="Assistant settings"
+            aria-haspopup="dialog"
+            onClick={() => setSettingsOpen(true)}
+            className="nf-icon-btn h-11 w-11"
+          >
+            <UiIcon name="sliders" size={20} />
+          </button>
+        </div>
+      </div>
+      <div className="nf-ai__ident">
+        <h1 className="nf-ai__title">AI Assistant</h1>
+        <p className="nf-ai__sub">Always here. Ask anything.</p>
+      </div>
 
       <div className="flex min-h-0 flex-1 gap-lg">
         {/* --------------------------------------------- desktop sidebar */}
@@ -477,118 +539,133 @@ export function AssistantChat({ locale }: { locale: Locale }) {
         <section className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-1 flex-col lg:mx-0 lg:max-w-none">
           <div
             ref={scrollerRef}
-            className="flex-1 space-y-md overflow-y-auto pb-lg pr-2xs"
+            className="nf-ai__thread"
             aria-live="polite"
             aria-label="Conversation"
           >
             {empty && (
-              <div className="flex h-full flex-col items-center justify-center gap-md text-center">
-                <span className="block h-16 w-16 sm:h-16 sm:w-16">
-                  <BrandIcon name="bot-home" fill />
+              <div className="flex flex-1 flex-col items-center justify-center gap-md py-section-tight text-center">
+                <span className="block h-24 w-24">
+                  <BrandIcon name="bot" fill />
                 </span>
                 <div>
-                  <p className="text-[var(--nf-text-body-sm)] font-semibold">How can I help today?</p>
-                  <p className="mx-auto mt-2xs max-w-[36ch] text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-                    Ask about places to stay, eat and explore across Nigeria.
+                  <p className="nf-h3">How can I help today?</p>
+                  <p className="nf-body-sm mx-auto mt-2xs max-w-[36ch] text-[var(--nf-content-muted)]">
+                    Ask about places to rent, buy or stay in across Nigeria, and what moving in
+                    really costs.
                   </p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-xs">
-                  {STARTERS.map((s) => (
-                    <button key={s} type="button" onClick={() => send(s)} className="nf-chip">
-                      <UiIcon name="sparkle" size={16} />
-                      {s}
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
 
-            {messages.map((m) => {
+            {messages.map((m, index) => {
+              const stamp = m.at ? TIME.format(new Date(m.at)) : "";
               if (m.role === "user") {
+                /* The ticks say the assistant has answered this one: a reply
+                   follows it in the thread. Nothing here claims "read". */
+                const answered = messages.slice(index + 1).some((n) => n.role === "assistant");
                 return (
-                  <div key={m.id} className="nf-rise flex justify-end">
-                    <p className="max-w-[85%] rounded-2xl rounded-br-md bg-[var(--nf-brand-primary)] px-md py-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-on-brand)]">
+                  <div key={m.id} className="nf-rise nf-ai__turn nf-ai__turn--mine">
+                    <div className="nf-ai__bubble nf-ai__bubble--mine">
                       {m.text}
-                    </p>
+                      {(stamp || answered) && (
+                        <span className="nf-ai__stamp nf-numeric">
+                          {stamp}
+                          {answered && (
+                            <span className="nf-ai__ticks" aria-label="Answered">
+                              <UiIcon name="verified" size={12} />
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    {viewer && (
+                      <span className="nf-ai__me" aria-hidden="true">
+                        {viewer.avatarUrl ? (
+                          /* A storage URL signed for this reader, so next/image
+                             would only add a hop to a link that expires. */
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={viewer.avatarUrl} alt="" width={36} height={36} />
+                        ) : (
+                          viewer.initials
+                        )}
+                      </span>
+                    )}
                   </div>
                 );
               }
               // An assistant bubble appears once it has something to show.
               if (!m.text.trim() && (m.listings?.length ?? 0) === 0) return null;
-              // Still streaming into this exact bubble: the avatar's ring
-              // spins to signal active reasoning, real signal, no loop of
-              // its own once the turn finishes.
               const thisStreaming = streamingHere && m.id === lastMessage?.id;
               return (
-                <div key={m.id} className="nf-rise flex items-end gap-sm">
-                  <span
-                    className={`h-12 w-12 shrink-0 ${thisStreaming ? "nf-bot-thinking" : ""}`}
-                    aria-hidden="true"
-                  >
-                    <BrandIcon name="bot-home" fill />
-                  </span>
-                  <div className="nf-card max-w-[85%] rounded-2xl rounded-bl-md p-md">
-                    {m.text.trim() && (
-                      <p className="whitespace-pre-wrap text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                <div key={m.id} className="nf-rise flex flex-col gap-xs">
+                  {m.text.trim() && (
+                    <div className="nf-ai__turn">
+                      <span
+                        className={`nf-ai__avatar ${thisStreaming ? "nf-bot-thinking" : ""}`}
+                        aria-hidden="true"
+                      >
+                        <BrandIcon name="bot" size={28} />
+                      </span>
+                      <div className="nf-ai__bubble nf-ai__bubble--theirs">
                         {m.text}
-                      </p>
-                    )}
-                    {m.listings && m.listings.length > 0 && (
-                      <ul
-                        className="mt-sm space-y-xs [perspective:700px]"
-                        aria-label="Matching listings"
-                      >
-                        {m.listings.map((l, i) => (
-                          <li
-                            key={l.id}
-                            className="nf-listing-fold-in"
-                            style={{ "--i": i } as React.CSSProperties}
+                        {stamp && <span className="nf-ai__stamp nf-numeric">{stamp}</span>}
+                        {m.error && activeId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (activeId) retry(activeId, m.id);
+                            }}
+                            className="nf-btn nf-btn--glass nf-btn--sm mt-sm"
                           >
-                            <ThreadListingCard listing={l} locale={locale} />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {m.error && activeId && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        leadingIcon="arrow-right"
-                        className="mt-sm"
-                        onClick={() => {
-                          if (activeId) retry(activeId, m.id);
-                        }}
-                      >
-                        <UiIcon name="arrow-right" size={16} />
-                        Retry
-                      </Button>
-                    )}
-                  </div>
+                            <UiIcon name="arrow-right" size={16} />
+                            <span className="nf-btn__label">Retry</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {m.listings && m.listings.length > 0 && (
+                    <ul className="nf-ai__results" aria-label="Matching listings">
+                      {m.listings.map((l, i) => (
+                        <li
+                          key={l.id}
+                          className="nf-listing-fold-in min-w-0"
+                          style={{ "--i": i } as React.CSSProperties}
+                        >
+                          <ThreadListingCard listing={l} locale={locale} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               );
             })}
 
-            {showTyping && (
-              <div className="nf-rise flex items-end gap-sm">
-                <span className="nf-bot-thinking h-12 w-12 shrink-0" aria-hidden="true">
-                  <BrandIcon name="bot-home" fill />
+            {showThinking && (
+              <div className="nf-rise nf-ai__turn" aria-label="Vallo AI is thinking">
+                <span className="nf-ai__thinking">
+                  <span className="nf-ai__ring" aria-hidden="true" />
+                  Thinking...
                 </span>
-                <div
-                  className="nf-card rounded-2xl rounded-bl-md px-md py-md"
-                  aria-label="Vallo AI is typing"
-                >
-                  <span className="flex items-center gap-2xs" aria-hidden="true">
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="h-1.5 w-1.5 rounded-full bg-[var(--nf-content-muted)] motion-safe:animate-bounce"
-                        style={{ animationDelay: `${i * 140}ms` }}
-                      />
-                    ))}
-                  </span>
-                </div>
               </div>
             )}
+          </div>
+
+          {/* ---------------------------------------------- suggestions */}
+          <div className="nf-ai__chips" role="group" aria-label="Suggested questions">
+            {STARTERS.map((s) => (
+              <button
+                key={s.text}
+                type="button"
+                onClick={() => send(s.text)}
+                disabled={streamingHere}
+                className="nf-ai__chip nf-tap"
+              >
+                <UiIcon name={s.icon} size={20} />
+                {s.text}
+              </button>
+            ))}
           </div>
 
           {/* ----------------------------------------------------- composer */}
@@ -597,35 +674,47 @@ export function AssistantChat({ locale }: { locale: Locale }) {
               e.preventDefault();
               send(draft);
             }}
-            className="flex items-center gap-xs border-t border-[var(--nf-border-subtle)] pt-sm"
+            className="nf-ai__composer"
           >
             <label htmlFor="assistant-input" className="sr-only">
               Message Vallo AI
             </label>
-            <input
-              id="assistant-input"
-              ref={inputRef}
-              type="text"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Ask Vallo AI anything"
-              autoComplete="off"
-              enterKeyHint="send"
-              className="nf-field min-w-0 flex-1"
-            />
-            <Button
+            <div className="nf-ai__well nf-focus-well">
+              <UiIcon name="sparkle" size={20} />
+              <input
+                id="assistant-input"
+                ref={inputRef}
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Type your message"
+                autoComplete="off"
+                enterKeyHint="send"
+                className="nf-ai__input"
+              />
+            </div>
+            <button
               type="submit"
-              variant="primary"
-              iconOnly
               aria-label="Send message"
               disabled={!draft.trim()}
-              className="shrink-0 rounded-full"
+              className="nf-btn nf-btn--primary nf-btn--icon nf-ai__send"
             >
-              <UiIcon name="arrow-right" size={20} className="-rotate-90" />
-            </Button>
+              <UiIcon name="arrow-up" size={24} />
+            </button>
           </form>
         </section>
       </div>
+
+      <AssistantSettingsSheet
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        tone={tone}
+        language={language}
+        onToneChange={setTone}
+        onLanguageChange={setLanguage}
+        onClearAll={clearAll}
+        threadCount={threads.length}
+      />
 
       {/* ------------------------------------------------- mobile drawer */}
       {historyOpen && (
@@ -667,40 +756,43 @@ export function AssistantChat({ locale }: { locale: Locale }) {
 }
 
 /**
- * A real catalogue result inside the thread: thumbnail, title, city, price
- * and an arrow, the whole row tappable through to the listing page.
+ * A real catalogue result inside the thread, in the render's card anatomy:
+ * the photograph with a working save on it, the title, where it is, the
+ * price, and the facts the route actually streams.
  */
 function ThreadListingCard({ listing, locale }: { listing: AssistantListingItem; locale: Locale }) {
+  const save = useSaveControl(listing.id);
   return (
-    <Link
-      href={listing.href}
-      className="nf-card nf-card--interactive flex items-center gap-md rounded-xl p-sm"
-    >
-      <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[var(--nf-glass-fill)]">
+    <article className="nf-ai__result">
+      <div className="nf-ai__result-media">
         {listing.photo && (
-          <Image src={listing.photo} alt="" fill sizes="56px" className="object-cover" />
+          <Image src={listing.photo} alt="" fill sizes="(max-width: 640px) 45vw, 240px" />
         )}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
-          {listing.title}
-        </span>
-        <span className="mt-3xs flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <SaveButton
+          saved={save.saved}
+          pending={save.pending}
+          onToggle={save.toggle}
+          title={listing.title}
+          className="nf-ai__result-save h-9 w-9"
+        />
+      </div>
+      <Link href={listing.href} className="nf-ai__result-body">
+        <span className="nf-ai__result-title">{listing.title}</span>
+        <span className="nf-ai__result-where">
+          <UiIcon name="location" size={12} className="shrink-0" />
           <span className="truncate">{listing.city}</span>
-          <span className="nf-numeric flex shrink-0 items-center gap-3xs">
-            <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
-            {formatRating(listing.rating, locale)}
-          </span>
         </span>
-        <span className="nf-numeric mt-3xs block truncate text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
-          {listing.price}
+        <span className="nf-ai__result-price nf-numeric">{listing.price}</span>
+        <span className="nf-ai__result-facts">
+          <span className="nf-ai__result-fact">{listing.kind}</span>
+          {listing.rating > 0 && (
+            <span className="nf-ai__result-fact nf-numeric">
+              <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />
+              {formatRating(listing.rating, locale)}
+            </span>
+          )}
         </span>
-      </span>
-      <UiIcon
-        name="arrow-right"
-        size={16}
-        className="shrink-0 text-[var(--nf-content-muted)]"
-      />
-    </Link>
+      </Link>
+    </article>
   );
 }

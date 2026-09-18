@@ -1,24 +1,33 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
+import { startGoogleOAuth } from "@/lib/auth/actions";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
- * How you want to get in. One row, and nothing else on the screen.
+ * The door, to its governing image (`docs/design/references/55A56F21`).
  *
- * It was three. Google and Apple sat under email behind their own brand marks
- * and both were disabled, because neither provider is switched on and Vallo
- * does not offer third-party sign in. Two dead controls and an apology are
- * worse than an empty space, so all three are gone and email is simply the way
- * in.
+ * "Welcome back", the line under it, the email field with the envelope in
+ * it, Continue, the OR rule, Continue with Google, and the sign-up link. The
+ * sign-up screen is the same card with the words turned round.
  *
- * The choice and the form are two routes. This page offers the way in; email
- * opens `/sign-up/email` (or `/sign-in/email`) where the form has the screen to
- * itself and there is a way back. It means the browser's back button undoes the
- * choice, which an in-place expansion never could.
+ * EMAIL FIRST, AND THE FIELD IS REAL. The render puts the address on the
+ * first screen and the password on the next, which is the flow this platform
+ * already runs: the chooser here, the form at `/sign-in/email`. So the field
+ * is a form that posts the address forward as a query parameter, and the
+ * email screen opens with it filled in and the cursor on the password. The
+ * browser's back button still undoes the step, because it is still a route
+ * and not an in-place expansion.
  *
- * A server component: every control here is a link or a form posting to a
- * server action, so none of it needs to be shipped as JavaScript.
+ * GOOGLE IS DRAWN ONLY WHEN IT WORKS. `getProviderStates` says whether the
+ * dashboard has the provider on; a row that can only fail is the same defect
+ * as a Reserve button on a listing nobody can book, so with Google off the
+ * rule and the row are simply not there and email is the way in. The row
+ * posts to the real `startGoogleOAuth` action with the destination and the
+ * intent, exactly as the callback expects them.
+ *
+ * A server component: every control is a link or a form posting to a server
+ * action, so none of it needs to be shipped as JavaScript.
  */
 export function AuthChoices({
   mode,
@@ -43,83 +52,96 @@ export function AuthChoices({
   const isSignUp = mode === "sign-up";
   const configured = (id: ProviderId) => providers.find((p) => p.id === id)?.configured ?? false;
   const emailReady = configured("email");
+  const googleReady = configured("google");
+  const emailRoute = isSignUp ? "/sign-up/email" : "/sign-in/email";
 
   return (
     <div className="w-full">
-      <h1 className="nf-h2 text-center">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
-      <p className="mt-xs text-center text-[0.875rem] text-[var(--nf-content-muted)]">
-        {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
-      </p>
+      <h1 className="nf-auth__title">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
+      <p className="nf-auth__sub">{isSignUp ? t.auth.signUpSub : t.auth.signInSub}</p>
 
       {notice ? (
-        <p
-          role="status"
-          className="nf-card mt-4 px-4 py-3 text-center text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
-        >
+        <p role="status" className="nf-auth__notice">
           {notice}
         </p>
       ) : null}
 
       {/*
-        THE "OR CONTINUE WITH" RULE IS GONE WITH THE THINGS IT SEPARATED.
-
-        A divider labelled "or" between one option and nothing is a heading
-        over an empty room. Email is the only way in, so it is simply the way
-        in, with no ceremony announcing alternatives that do not exist.
+        The address travels as a GET. Nothing is submitted to an action here:
+        the email screen reads `email` off the URL to fill its field, and
+        `next` rides along so the chain to the person's original destination
+        does not break at this hop.
       */}
-
-      <div className="space-y-sm">
-        {/* The destination has to travel with the link, or the chain breaks at
-            this hop: the person reaches the email form and the form has
-            forgotten where they were going. */}
-        <Link
-          href={`${isSignUp ? "/sign-up/email" : "/sign-in/email"}${
-            next ? `?next=${encodeURIComponent(next)}` : ""
-          }`}
-          className="nf-auth-row"
-        >
-          <span className="nf-auth-row__mark nf-auth-row__mark--email">
-            {/* The last glyph in `ProviderMarks` was an envelope, so that file
-                is gone and this is the platform's. Deleting it took the final
-                third-party brand colours in the tree with it. */}
-            <UiIcon name="mail" size="xs" />
+      <form action={emailRoute} method="get" className="mt-lg" noValidate={false}>
+        {next ? <input type="hidden" name="next" value={next} /> : null}
+        <label htmlFor="auth-email" className="sr-only">
+          {t.auth.emailLabel}
+        </label>
+        <div className="nf-auth-field">
+          <span className="nf-auth-field__glyph" aria-hidden="true">
+            <UiIcon name="mail" size={20} />
           </span>
-          <span className="flex-1 text-left">{t.auth.continueWithEmail}</span>
-        </Link>
+          <input
+            id="auth-email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            inputMode="email"
+            placeholder={t.auth.emailLabel}
+            disabled={!emailReady}
+            className="nf-field"
+          />
+        </div>
 
-        {/*
-          GOOGLE AND APPLE SIGN IN ARE REMOVED.
-
-          Two rows posted to `startGoogleOAuth` and `startAppleOAuth` behind
-          Google's four-colour mark and Apple's, and both were dark by default:
-          neither provider is enabled, so the honest state of the screen was two
-          disabled buttons and a line of small print explaining that they did
-          not work. Vallo does not offer third-party sign in, so the buttons,
-          their brand marks, and the apology under them are all gone.
-
-          The server actions themselves are the lead's to retire, along with the
-          Supabase provider configuration. Nothing on this screen calls them.
-        */}
-        {!emailReady && (
-          <p className="pt-1 text-center text-[0.75rem] text-[var(--nf-content-muted)]">
-            {t.auth.providerUnavailable}
-          </p>
+        {emailReady ? (
+          <button type="submit" className="nf-btn nf-btn--primary nf-btn--lg nf-btn--full mt-sm">
+            <span className="nf-btn__label">{t.common.continue}</span>
+            <UiIcon name="arrow-right" size={20} />
+          </button>
+        ) : (
+          <p className="nf-auth__terms">{t.auth.providerUnavailable}</p>
         )}
-      </div>
+      </form>
 
-      <p className="mt-6 text-center text-[0.875rem] text-[var(--nf-content-secondary)]">
+      {googleReady && (
+        <>
+          <div className="nf-auth__rule" aria-hidden="true">
+            {t.auth.orDivider}
+          </div>
+          <form action={startGoogleOAuth}>
+            {next ? <input type="hidden" name="next" value={next} /> : null}
+            <input type="hidden" name="intent" value={mode} />
+            <button type="submit" className="nf-auth__door nf-tap">
+              {/* A typographic mark rather than the four-colour glyph: the
+                  palette holds one blue family and nothing in this tree draws
+                  a third party's colours. The word beside it says which door
+                  this is. */}
+              <span className="nf-auth__door-mark" aria-hidden="true">
+                G
+              </span>
+              {t.auth.continueWithGoogle}
+            </button>
+          </form>
+        </>
+      )}
+
+      <p className="nf-auth__swap">
         {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
-        <Link
-          href={isSignUp ? "/sign-in" : "/sign-up"}
-          className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-        >
+        <Link href={isSignUp ? "/sign-in" : "/sign-up"}>
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>
       </p>
 
-      <p className="mt-4 text-center text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {t.auth.termsNotice}
-      </p>
+      {/* The intro for a first visit, kept as a quiet door beside the
+          sign-up link rather than a toll before it. */}
+      {isSignUp && (
+        <p className="nf-auth__swap mt-xs">
+          <Link href="/start">{t.welcomeCards.label}</Link>
+        </p>
+      )}
+
+      <p className="nf-auth__terms">{t.auth.termsNotice}</p>
     </div>
   );
 }

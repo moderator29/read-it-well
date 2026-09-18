@@ -2,6 +2,783 @@
   auth: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  The governing image is docs/design/references/55A56F21 (sign-in): the app
+  icon and the wordmark stacked over the aurora plate, the slogan, a glass card
+  with a lit blue rim standing on a glass podium, and the podium's reflection
+  in the floor. Sign-up, forgot and reset password render inside the same card
+  so the family reads as one object. Everything here draws from the tokens;
+  the two values that had no rung (the podium's lens and the card's floor
+  reflection) are stated once as custom properties under the root class.
 */
 @layer components {
+  .nf-auth {
+    position: relative;
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: var(--nf-space-2xl) var(--nf-space-md);
+    padding-top: max(var(--nf-space-2xl), env(safe-area-inset-top, 0px));
+    padding-bottom: max(var(--nf-space-xl), env(safe-area-inset-bottom, 0px));
+    /* The podium's lens and the card's floor reflection. One value each,
+       named here rather than typed twice below. */
+    --nf-auth-podium-h: 1.5rem;
+    --nf-auth-podium-lens: radial-gradient(
+      ellipse at 50% 50%,
+      var(--nf-glow-3) 0%,
+      var(--nf-glow-1) 46%,
+      transparent 72%
+    );
+  }
+
+  /*
+   * The aurora plate: the reference photograph behind the whole screen, sized
+   * and compressed through next/image inside this box. The plate sits UNDER
+   * the CSS aurora so that on the day the file is not there the page is still
+   * the designed aurora rather than a hole, and the scrim keeps the middle of
+   * the frame dark enough for the card to read at any exposure.
+   */
+  .nf-auth__plate {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: var(--nf-surface-canvas);
+  }
+  .nf-auth__plate img {
+    object-fit: cover;
+    object-position: center;
+  }
+  .nf-auth__plate::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 55% at 50% 58%, var(--nf-overlay-media-soft), transparent 70%),
+      linear-gradient(180deg, var(--nf-overlay-media-soft) 0%, transparent 30%, transparent 70%, var(--nf-overlay-media) 100%);
+  }
+
+  .nf-auth__stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    max-width: 24rem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ---------------------------------------------------------------- brand */
+  .nf-auth__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+  }
+  .nf-auth__icon {
+    display: block;
+    width: 6rem;
+    height: 6rem;
+    border-radius: var(--nf-radius-squircle);
+    /* The tile carries its own lit edge; the halo underneath is what lifts it
+       off the plate the way the render does. */
+    filter: drop-shadow(0 0 22px var(--nf-glow-3));
+  }
+  .nf-auth__wordmark {
+    display: block;
+    width: 10.5rem;
+    height: auto;
+    margin-top: var(--nf-space-md);
+    filter: drop-shadow(0 0 14px var(--nf-glow-2));
+  }
+  .nf-auth__slogan {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    letter-spacing: var(--nf-tracking-overline);
+    color: var(--nf-content-secondary);
+  }
+
+  /* ----------------------------------------------------------------- card */
+  /*
+   * A glass card with a sharp electric rim, over the plate. The fill is the
+   * canvas at 62 per cent so the aurora shows through the blur; the rim is
+   * the brand edge rather than a grey hairline, which is what the whole
+   * frontend sweep is about; the outer bloom is one glow rung, not a bespoke
+   * shadow. The inner top catchlight rides the glass rim token.
+   */
+  .nf-auth__card {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    margin-top: var(--nf-space-xl);
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-radius-2xl);
+    /* The rim is the strong brand edge and it is SHARP: the render's card is
+       identified by one crisp electric line, not by a blur. The bloom sits
+       outside it at one glow rung so the line stays a line. */
+    border: var(--nf-border-width) solid var(--nf-glow-ink);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 58%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-brand-rim),
+      inset 0 0 0 1px var(--nf-glow-2),
+      inset 0 0 48px var(--nf-glow-1),
+      0 0 0 1px var(--nf-glow-2),
+      0 0 28px var(--nf-glow-3),
+      0 0 72px var(--nf-glow-2),
+      var(--nf-elev-3);
+  }
+  /* The specular sweep across the top-left, as on every glass object. */
+  .nf-auth__card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--nf-glass-specular);
+    pointer-events: none;
+  }
+
+  /* --------------------------------------------------------------- podium */
+  /*
+   * The disc the card stands on, and the card's reflection in the floor. Two
+   * pseudo elements on one box: the box itself is the lens, `::before` is the
+   * podium's lit ellipse, `::after` is the reflection fading downwards.
+   */
+  .nf-auth__podium {
+    position: relative;
+    width: 86%;
+    height: var(--nf-auth-podium-h);
+    margin-top: var(--nf-space-sm);
+    pointer-events: none;
+  }
+  .nf-auth__podium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-auth-podium-lens);
+    box-shadow:
+      inset 0 0 0 3px var(--nf-glow-1),
+      inset 0 1px 0 var(--nf-glow-3),
+      0 0 28px var(--nf-glow-2);
+  }
+  /* The reflection is a soft ellipse of light under the disc, with no edge
+     to see; a rectangle here read as a second panel. */
+  .nf-auth__podium::after {
+    content: "";
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    top: 40%;
+    height: 6rem;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(ellipse at 50% 0%, var(--nf-glow-2), transparent 68%);
+    filter: blur(6px);
+  }
+
+  .nf-auth__back {
+    margin-top: var(--nf-space-xl);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-underline-offset: 4px;
+  }
+  .nf-auth__back:hover {
+    color: var(--nf-content-secondary);
+    text-decoration: underline;
+  }
+
+  .nf-auth__lang {
+    position: absolute;
+    right: var(--nf-space-md);
+    top: max(var(--nf-space-md), env(safe-area-inset-top, 0px));
+    z-index: 2;
+  }
+  /*
+   * The language control is the site's own switcher (F2's component) and it
+   * arrives as a filled brand pill. On this screen the lockup owns the top,
+   * so under this root it is restyled to the quiet glass square the header
+   * controls use: glass fill, hairline, the same 44px target. Scoped here
+   * rather than in the component so no other screen changes.
+   */
+  .nf-auth__lang .nf-btn.nf-btn--primary {
+    min-height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+    font-weight: 600;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 10px var(--nf-glow-wash);
+  }
+  .nf-auth__lang .nf-btn.nf-btn--primary::after {
+    display: none;
+  }
+  @media (hover: hover) {
+    .nf-auth__lang .nf-btn.nf-btn--primary:hover:not(:disabled) {
+      border-color: var(--nf-brand-edge);
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim-thin),
+        0 0 14px var(--nf-glow-2);
+    }
+  }
+
+  /* ---------------------------------------------------------- the fields */
+  /*
+   * A field with a glyph inside it, to the render: the envelope sits in the
+   * well and the text starts after it. The well is the ordinary `.nf-field`
+   * so focus, error and daylight all come from the one control; only the
+   * inset and the glyph are added here.
+   */
+  .nf-auth-field {
+    position: relative;
+  }
+  .nf-auth-field > .nf-field {
+    padding-left: var(--nf-pad-field-affordance);
+  }
+  .nf-auth-field__glyph {
+    position: absolute;
+    left: var(--nf-space-md);
+    top: 50%;
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-muted);
+    pointer-events: none;
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-auth-field:focus-within .nf-auth-field__glyph {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* The rule between the two doors: two hairlines and one small word. */
+  .nf-auth__rule {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    margin-block: var(--nf-space-lg);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-auth__rule::before,
+  .nf-auth__rule::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--nf-brand-edge-soft), transparent);
+  }
+
+  /* The other door: a glass row with a typographic mark, in the register of
+     the email row it replaces. Height is the large button's. */
+  .nf-auth__door {
+    display: flex;
+    width: 100%;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-auth__door:active:not(:disabled) {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  @media (hover: hover) {
+    .nf-auth__door:hover:not(:disabled) {
+      border-color: var(--nf-brand-edge);
+      background: var(--nf-glass-fill);
+    }
+  }
+  .nf-auth__door-mark {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-primary);
+    color: var(--nf-content-inverse);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* The card's own heading pair, left aligned to the render. */
+  .nf-auth__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-auth__sub {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+
+  /* The link at the foot of the card: a sentence and a blue verb. */
+  .nf-auth__swap {
+    margin-top: var(--nf-space-lg);
+    text-align: center;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-auth__swap a {
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-underline-offset: 4px;
+  }
+  .nf-auth__swap a:hover {
+    text-decoration: underline;
+  }
+  .nf-auth__terms {
+    margin-top: var(--nf-space-md);
+    text-align: center;
+    font-size: var(--nf-text-overline);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+  .nf-auth__notice {
+    margin-top: var(--nf-space-md);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The stage settles rather than snapping in; reduced motion shows it whole. */
+  .nf-auth__brand,
+  .nf-auth__card,
+  .nf-auth__podium,
+  .nf-auth__back {
+    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-auth__card,
+  .nf-auth__podium {
+    animation-delay: 90ms;
+  }
+  .nf-auth__back {
+    animation-delay: 180ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-auth__brand,
+    .nf-auth__card,
+    .nf-auth__podium,
+    .nf-auth__back {
+      animation: none;
+    }
+    .nf-auth__door,
+    .nf-auth-field__glyph {
+      transition: none;
+    }
+  }
+
+  /* Wider than a phone the stage is the same object, centred, with more air. */
+  @media (min-width: 640px) {
+    .nf-auth {
+      padding-block: var(--nf-space-3xl);
+    }
+    .nf-auth__icon {
+      width: 7rem;
+      height: 7rem;
+    }
+    .nf-auth__wordmark {
+      width: 12rem;
+    }
+    .nf-auth__card {
+      padding: var(--nf-space-xl);
+    }
+  }
+
+  /* ---------------------------------------------------------- daylight */
+  /*
+   * The paper twin, designed rather than derived: the photograph and its
+   * scrim go, the page is the paper canvas, the card is flat white with a
+   * hairline and a soft shadow, and the podium is a quiet grey lens. The
+   * icon and wordmark are glass renders and keep their halo, as every glass
+   * object does on paper.
+   */
+  :root[data-theme="light"] .nf-auth__plate {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-auth__card {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-auth__card::before {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-auth__podium::before {
+    border-color: var(--nf-border-default);
+    background: radial-gradient(ellipse at 50% 50%, var(--nf-wash-4), transparent 70%);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-auth__podium::after {
+    background: linear-gradient(180deg, var(--nf-wash-3), transparent 90%);
+  }
+  :root[data-theme="light"] .nf-auth__door {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-auth__door-mark {
+    background: var(--nf-content-primary);
+    color: var(--nf-surface-primary);
+  }
+  :root[data-theme="light"] .nf-auth__lang .nf-btn.nf-btn--primary {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-auth__notice {
+    background: var(--nf-brand-tint-1);
+    border-color: var(--nf-border-default);
+  }
+  :root[data-theme="light"] .nf-auth__icon,
+  :root[data-theme="light"] .nf-auth__wordmark {
+    filter: drop-shadow(0 4px 14px var(--nf-glow-2));
+  }
+}
+
+/*
+  welcome: the first run, to docs/design/references/2A49E2F7 (two worlds and
+  the coin). Same family as auth, same partial, same two themes. The stage is
+  the lockup, the two-line headline, the two glass world cards with the coin
+  between them on a lit podium, the beat dots, the capsule Get Started (per
+  the amended radius law, BUILD_06 section 8) and Skip.
+*/
+@layer components {
+  .nf-welcome {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    max-width: 26rem;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .nf-welcome__lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-welcome__lockup img {
+    filter: drop-shadow(0 0 12px var(--nf-glow-2));
+  }
+  .nf-welcome__word {
+    display: block;
+    width: 5.25rem;
+    height: auto;
+  }
+
+  .nf-welcome__title {
+    margin-top: var(--nf-space-xl);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h0);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: var(--nf-tracking-display-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-welcome__title > span {
+    display: block;
+  }
+  .nf-welcome__body {
+    margin-top: var(--nf-space-md);
+    max-width: 30ch;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  /* ---------------------------------------------------------------- stage */
+  /*
+   * Two cards, the coin, the podium. A grid of three columns so the coin has
+   * its own lane and the cards never move when the coin tilts. The podium is
+   * a lit disc under the whole group, drawn once as a pseudo element.
+   */
+  .nf-welcome__stage {
+    position: relative;
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xl);
+    padding-bottom: var(--nf-space-2xl);
+    perspective: 900px;
+  }
+  .nf-welcome__stage::before {
+    content: "";
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    bottom: 0;
+    height: var(--nf-space-2xl);
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: radial-gradient(ellipse at 50% 50%, var(--nf-glow-2) 0%, var(--nf-glow-wash) 55%, transparent 74%);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-3),
+      inset 0 0 0 3px var(--nf-glow-1),
+      0 0 32px var(--nf-glow-2);
+    pointer-events: none;
+  }
+
+  .nf-welcome__world {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--nf-space-sm);
+    min-height: 13.5rem;
+    padding: var(--nf-space-md) var(--nf-space-sm);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 52%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-brand-rim),
+      inset 0 0 0 1px var(--nf-glow-1),
+      inset 0 -12px 28px var(--nf-glow-wash),
+      0 0 0 1px var(--nf-glow-1),
+      0 0 30px var(--nf-glow-2),
+      var(--nf-elev-2);
+  }
+  .nf-welcome__world::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--nf-glass-specular);
+    pointer-events: none;
+  }
+  .nf-welcome__world-art {
+    display: block;
+    width: 68%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+  }
+  .nf-welcome__world-art > * {
+    width: 100%;
+    height: auto;
+  }
+  .nf-welcome__world-name {
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-primary);
+  }
+  .nf-welcome__world-hint {
+    margin-top: calc(-1 * var(--nf-space-2xs));
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * The coin: a glass disc carrying the mark, tilted so its edge reads, with
+   * an orbit ring round it as the render draws. The one ambient motion on
+   * this screen is the coin's slow sway, transform only, and it stops under
+   * reduced motion with the coin resting at its designed tilt.
+   */
+  .nf-welcome__coin {
+    position: relative;
+    align-self: end;
+    width: 4.75rem;
+    height: 4.75rem;
+    margin-bottom: calc(-1 * var(--nf-space-lg));
+    display: grid;
+    place-items: center;
+    border-radius: var(--nf-radius-circle);
+    background:
+      radial-gradient(circle at 35% 30%, var(--nf-glow-4), transparent 58%),
+      var(--nf-brand-tint-3);
+    border: var(--nf-border-width-strong) solid var(--nf-glow-brand-rim);
+    box-shadow:
+      inset 0 0 0 4px var(--nf-glow-2),
+      inset 0 2px 0 var(--nf-glow-brand-rim),
+      0 0 30px var(--nf-glow-3);
+    transform: rotateY(-26deg);
+    transform-style: preserve-3d;
+    animation: nf-welcome-coin-sway 6s var(--nf-ease-standard) infinite alternate;
+  }
+  .nf-welcome__coin::after {
+    content: "";
+    position: absolute;
+    left: -34%;
+    right: -34%;
+    top: 58%;
+    height: 44%;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    box-shadow: 0 0 14px var(--nf-glow-2);
+    pointer-events: none;
+  }
+  @keyframes nf-welcome-coin-sway {
+    from {
+      transform: rotateY(-30deg);
+    }
+    to {
+      transform: rotateY(24deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-welcome__coin {
+      animation: none;
+    }
+  }
+
+  /* ---------------------------------------------------------------- foot */
+  .nf-welcome__dots {
+    display: flex;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-lg);
+  }
+  .nf-welcome__dot {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-welcome__dot > span {
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-border-strong);
+    transition:
+      width var(--nf-duration-base) var(--nf-ease-standard),
+      background-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-welcome__dot[aria-current="step"] > span {
+    width: 1.5rem;
+    background: var(--nf-brand-secondary);
+    box-shadow: 0 0 10px var(--nf-glow-3);
+  }
+
+  /* The capsule, by the founder's identical-to-images ruling (section 8). */
+  .nf-welcome__cta {
+    margin-top: var(--nf-space-md);
+    width: 100%;
+    border-radius: var(--nf-radius-pill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 26px var(--nf-glow-2);
+  }
+  .nf-welcome__skip {
+    margin-top: var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-welcome__skip:hover:not(:disabled) {
+    color: var(--nf-content-secondary);
+  }
+  .nf-welcome__error {
+    margin-top: var(--nf-space-md);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 45%, transparent);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-state-error);
+  }
+
+  /* The second beat: the question, in the same column, with the lockup kept. */
+  .nf-welcome__question {
+    width: 100%;
+    max-width: 32rem;
+    text-align: left;
+  }
+
+  .nf-welcome__beat {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-welcome__beat {
+      animation: none;
+    }
+    .nf-welcome__dot > span {
+      transition: none;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .nf-welcome__stage {
+      gap: var(--nf-space-md);
+    }
+    .nf-welcome__coin {
+      width: 5.25rem;
+      height: 5.25rem;
+    }
+  }
+
+  /* ---------------------------------------------------------- daylight */
+  :root[data-theme="light"] .nf-welcome__world {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-welcome__world::before {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-welcome__stage::before {
+    border-color: var(--nf-border-default);
+    background: radial-gradient(ellipse at 50% 50%, var(--nf-wash-4), transparent 70%);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-welcome__coin {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-welcome__coin::after {
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-welcome__cta {
+    box-shadow: 0 4px 14px var(--nf-glow-2);
+  }
 }

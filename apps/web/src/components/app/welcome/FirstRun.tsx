@@ -1,90 +1,221 @@
+"use client";
+
+import Image from "next/image";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
 import { LogoMark } from "@/design-system/brand/Logo";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
+import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { InterestChoices } from "./InterestChoices";
 import type { ComponentProps } from "react";
 
 /**
- * First run: one question, and one warning.
+ * First run, to its governing image (`docs/design/references/2A49E2F7`).
  *
- * IT WAS TWO BEATS AND IS NOW ONE. A three-card carousel introduced the
- * platform, then the question asked what the reader came for. The argument for
- * splitting them was sound - one is us talking and one is them answering, and a
- * form under a pitch makes the pitch feel like a toll - and it was an argument
- * about the wrong thing. The pitch itself had no business being here. Everybody
- * who reaches this screen has just completed a four-group sign-up form; they
- * decided several minutes ago.
+ * TWO BEATS. The first is the render: "Two worlds. One platform.", the
+ * Property and Stays glass cards with the coin between them, the beat dots,
+ * Get Started and Skip. It is the one screen that explains the product's
+ * whole shape, the two sides and the flip, to somebody who has just made an
+ * account and has not yet seen the coin in the drawer. The second beat is
+ * the one question the product can act on, which `InterestChoices` owns.
  *
- * This is also no longer a client component, because with the carousel gone
- * there is no state left to hold.
+ * WHAT EACH CONTROL WRITES, because a first-run screen with painted buttons
+ * is a picture of onboarding:
  *
- * Held in one client component rather than two routes on purpose. A second
- * route means a second gate, a second back button and a second way to arrive
- * out of order; this way the reader either has not seen the cards yet or has,
- * and the browser back button leaves first run entirely, which is what it
- * should do.
+ *   Get Started   records that the opener has been seen (`markWelcomeSeen`,
+ *                 quiet on failure, as its own note explains) and moves to
+ *                 the question; or, when the question has already been
+ *                 answered on another device, straight home.
+ *   Skip          records the opener AND skips the question in one press
+ *                 (`skipInterests` is the real skip, the one that never asks
+ *                 again), then replaces the route with home so the screen
+ *                 does not sit in the back stack.
+ *   The dots      are the beats, and the second is a button only after the
+ *                 first has been seen; the current one says so for a reader.
  *
- * Nothing is stored about the cards. Somebody who signs up, closes the tab
- * mid-way and comes back gets them once more, which is the right side to err
- * on: seeing three cards twice costs eight seconds, and never seeing the one
- * about not sending money off the platform costs a great deal more.
+ * NEVER THE "HOTEL" LETTERED ICON. The render bakes the word into the Stays
+ * object; the Stays card carries the glass hotel object from the pack, which
+ * says the same thing with no text in the pixels.
+ *
+ * Nothing here is saved about the beat itself beyond `welcomeSeen`. Somebody
+ * who closes the tab on the first beat sees it once more, which is the right
+ * side to err on: the opener costs four seconds and the question is the
+ * thing that decides what they see first.
  */
 export function FirstRun({
   t,
   interests,
   showCards,
+  asked = false,
 }: {
   t: Dictionary;
   /* The typed market keys, not loose strings: the choices component owns the
      union and this is only carrying it through. */
   interests: ComponentProps<typeof InterestChoices>["initial"];
-  /* False for anybody who has already been shown them. A returning sign-in
-     goes straight to the question, or past this screen entirely. */
+  /* False for anybody who has already been shown the opener. A returning
+     sign-in goes straight to the question, or past this screen entirely. */
   showCards: boolean;
+  /* True when the question has been answered or skipped already, so Get
+     Started has nowhere to go but home. */
+  asked?: boolean;
 }) {
-  /*
-   * THE THREE-CARD CAROUSEL IS GONE, AT THE OWNER'S INSTRUCTION.
-   *
-   * It was a full-bleed pitch shown to somebody who had just finished a
-   * four-group sign-up form. They have already decided; a carousel explaining
-   * what Vallo is arrives one screen too late to persuade anybody and one
-   * screen too early to be useful, and it stood between finishing sign-up and
-   * using the product.
-   *
-   * The copy was also out of date in the way the landing page was, and for the
-   * same reason: card one offered "hotels for the weekend, restaurants and
-   * experiences", three of which this platform no longer sells.
-   *
-   * ONE THING FROM IT SURVIVES, AND IT HAD TO. Card three carried the only
-   * safety sentence in the whole first run: never send money to anybody outside
-   * Vallo. That is the single most valuable thing we say to a new account, it
-   * is what the note above this component argued was worth showing twice, and
-   * deleting it with the carousel would have been the cosmetic change quietly
-   * removing the protective one. It sits under the question instead, where the
-   * person still reads it and nothing has to be swiped to reach it.
-   *
-   * `showCards` stays on the props for now rather than being threaded out of
-   * the page and the interests query in the same change; it is unused here and
-   * the call site passes it harmlessly.
-   */
-  void showCards;
+  const router = useRouter();
+  const w = t.welcomeCards.twoWorlds;
+  const askQuestion = !asked;
+  const [beat, setBeat] = useState<0 | 1>(showCards ? 0 : 1);
+  const [pending, start] = useTransition();
+  const [error, setError] = useState("");
+
+  const beats = askQuestion ? 2 : 1;
+
+  const getStarted = () => {
+    setError("");
+    start(async () => {
+      await markWelcomeSeen();
+      if (askQuestion) {
+        setBeat(1);
+        return;
+      }
+      router.replace("/home");
+      router.refresh();
+    });
+  };
+
+  const skip = () => {
+    setError("");
+    start(async () => {
+      const [, skipped] = await Promise.all([markWelcomeSeen(), skipInterests()]);
+      if (!skipped.ok) {
+        setError(skipped.error);
+        return;
+      }
+      router.replace("/home");
+      router.refresh();
+    });
+  };
 
   return (
-    <div className="relative z-10 w-full max-w-[32rem]">
-      <div className="nf-rise flex flex-col items-center text-center">
-        <LogoMark size={40} title="Vallo" />
-        <h1 className="nf-h2 mt-md">{t.interests.question}</h1>
-        <p className="mt-xs max-w-[26rem] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {t.interests.screenSubtitle}. {t.interests.note}
-        </p>
-        {/* The one line rescued from the carousel. See the note above. */}
-        <p className="mt-sm max-w-[26rem] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-          {t.welcomeCards.three.body}
-        </p>
-      </div>
+    <div className="nf-welcome" data-testid="first-run">
+      <span className="nf-welcome__lockup" aria-label="Vallo" role="img">
+        <LogoMark size={36} />
+        <Image
+          src="/brand/vallo-wordmark.png"
+          alt=""
+          width={84}
+          height={18}
+          priority
+          className="nf-welcome__word"
+        />
+      </span>
 
-      <div className="nf-rise mt-lg" style={{ animationDelay: "90ms" }}>
-        <InterestChoices initial={interests} t={t} />
-      </div>
+      {beat === 0 ? (
+        <div key="worlds" className="nf-welcome__beat">
+          <h1 className="nf-welcome__title">
+            <span>{w.titleA}</span>
+            <span className="nf-gradient-text">{w.titleB}</span>
+          </h1>
+          <p className="nf-welcome__body">{w.body}</p>
+
+          {/* The two worlds, named as the render names them; the hints ride
+              on the cards as their accessible description only, so the
+              composition stays the render's. */}
+          <div className="nf-welcome__stage" role="img" aria-label={`${w.property}: ${w.propertyHint}. ${w.stays}: ${w.staysHint}.`}>
+            <div className="nf-welcome__world">
+              <span className="nf-welcome__world-art">
+                <BrandIcon name="modern-house" size={112} priority />
+              </span>
+              <span className="nf-welcome__world-name">{w.property}</span>
+            </div>
+            <div className="nf-welcome__coin">
+              <LogoMark size={48} />
+            </div>
+            <div className="nf-welcome__world">
+              <span className="nf-welcome__world-art">
+                <BrandIcon name="hotel" size={112} priority />
+              </span>
+              <span className="nf-welcome__world-name">{w.stays}</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div key="question" className="nf-welcome__beat">
+          <div className="nf-rise text-center">
+            <h1 className="nf-h2 mt-xl">{t.interests.question}</h1>
+            <p className="nf-body-sm mx-auto mt-xs max-w-[26rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              {t.interests.screenSubtitle}. {t.interests.note}
+            </p>
+            {/* The one safety sentence a new account must read, kept from the
+                old three cards: never send money to anybody outside Vallo. */}
+            <p className="nf-caption mx-auto mt-sm max-w-[26rem] leading-relaxed text-[var(--nf-content-muted)]">
+              {t.welcomeCards.three.body}
+            </p>
+          </div>
+          <div className="nf-welcome__question mt-lg">
+            <InterestChoices initial={interests} t={t} />
+          </div>
+        </div>
+      )}
+
+      {beats > 1 && (
+        <div className="nf-welcome__dots" role="list" aria-label={t.welcomeCards.label}>
+          {Array.from({ length: beats }, (_, i) => {
+            const current = i === beat;
+            const label = w.step.replace("{n}", String(i + 1)).replace("{total}", String(beats));
+            /* The first beat is always reachable again; the second only once
+               the opener has been seen, which is what Get Started records. */
+            const reachable = i === 0 || beat === 1;
+            return (
+              <button
+                key={i}
+                type="button"
+                role="listitem"
+                aria-label={label}
+                aria-current={current ? "step" : undefined}
+                disabled={!reachable || pending}
+                onClick={() => setBeat(i === 0 ? 0 : 1)}
+                className="nf-welcome__dot nf-tap"
+              >
+                <span />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {beat === 0 && (
+        <>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            full
+            loading={pending}
+            onClick={getStarted}
+            data-testid="welcome-get-started"
+            className="nf-welcome__cta"
+          >
+            {w.getStarted}
+            <UiIcon name="arrow-right" size={24} />
+          </Button>
+          <button
+            type="button"
+            onClick={skip}
+            disabled={pending}
+            data-testid="welcome-skip-all"
+            className="nf-welcome__skip nf-tap"
+          >
+            {t.welcomeCards.skip}
+          </button>
+          {error && (
+            <p role="alert" className="nf-welcome__error">
+              {error}
+            </p>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -241,6 +241,7 @@ export function PasswordField({
   value,
   onChange,
   t,
+  autoFocus,
 }: {
   id: string;
   label: string;
@@ -250,6 +251,9 @@ export function PasswordField({
   value: string;
   onChange: (next: string) => void;
   t: Dictionary;
+  /** True when this is the one field left to fill, as on the email-first
+      sign-in where the address arrived from the screen before. */
+  autoFocus?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
   const errorId = `${id}-error`;
@@ -268,6 +272,7 @@ export function PasswordField({
           onChange={(e) => onChange(e.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
+          autoFocus={autoFocus}
           className="nf-field pr-12"
         />
         <button

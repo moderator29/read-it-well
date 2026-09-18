@@ -8,10 +8,10 @@ import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { lagosTimeLabel } from "@/lib/messages/time";
 import { useNotificationsRealtime, type LiveNotificationRow } from "@/lib/messages/useRealtime";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { EmptyState, ICON, SECTION_GAP, TYPE } from "@/components/app/Screen";
+import { EmptyState, TYPE } from "@/components/app/Screen";
 
 /**
- * The signed-in notifications inbox.
+ * The signed-in notifications inbox, in the home register.
  *
  * Server-loaded rows with realtime prepend for new arrivals. Reads are
  * optimistic: tapping an item or mark-all flips the local state instantly and
@@ -23,6 +23,12 @@ import { EmptyState, ICON, SECTION_GAP, TYPE } from "@/components/app/Screen";
  * person actually works to: everything unread, then everything else, each with
  * its own count. Day headings looked tidy and answered a question nobody was
  * asking, which was "what did I already deal with, and on which Tuesday".
+ *
+ * THE ROWS ARE GLASS ROWS IN ONE CARD, with the kind's glyph on a tile at the
+ * left, the way every list in the renders is drawn. Unread is said three
+ * ways at once, the row's tint, the title's weight and the dot, so colour is
+ * never the only signal; the tile lights with the row so the rail reads the
+ * state at a glance.
  *
  * Every sentence on this screen was written by a database trigger. Follows,
  * replies, mentions, likes, reposts, badges and every moderation transition
@@ -101,6 +107,7 @@ export function LiveNotifications({
   const header = (
     <PageHeader
       title="Notifications"
+      subtitle={unreadCount > 0 ? `${unreadCount} unread` : undefined}
       actions={
         unreadCount > 0 ? (
           <Button
@@ -146,68 +153,35 @@ export function LiveNotifications({
     <div>
       {header}
 
-      <div className={SECTION_GAP}>
+      <div className="nf-notif">
         {sections.map((section) => (
           <section key={section.label} aria-label={section.label}>
-            <div className="mb-heading flex items-baseline justify-between gap-row">
+            <div className="nf-notif__head">
               <h2 className={TYPE.sectionTitle}>{section.label}</h2>
-              <span className={`nf-numeric ${TYPE.caption}`}>{section.items.length}</span>
+              <span className="nf-notif__count nf-numeric" aria-label={`${section.items.length} in ${section.label}`}>
+                {section.items.length}
+              </span>
             </div>
-            <ul className="divide-y divide-[var(--nf-border-subtle)]">
+            <ul className="nf-card nf-notif__list">
               {section.items.map((n) => {
-                /* `py-group` on a 1rem title gives a row past 60px, comfortably
-                   over the 44px minimum. The old py-3.5 on 0.9rem text did
-                   not, and 3.5 is not a step on any scale. */
-                const rowClass =
-                  "flex w-full items-center gap-md py-group text-left transition-colors hover:bg-[var(--nf-glass-fill)]";
                 const inner = (
                   <>
-                    {/*
-                      THE GLYPH SITS ON THE SURFACE. It was inside a 44px
-                      tinted disc with a second brand dot riding its corner:
-                      a plate behind an icon, plus an ornament on the plate,
-                      repeated down the whole list. The kind is still legible
-                      at a glance because the glyph is bigger than the one it
-                      replaces, and the unread state is already stated by the
-                      dot on the right and by the weight of the title.
-                    */}
-                    <UiIcon
-                      name={iconFor(n.kind)}
-                      size={ICON.row}
-                      className={`shrink-0 ${
-                        n.read
-                          ? "text-[var(--nf-content-muted)]"
-                          : "text-[var(--nf-brand-secondary)]"
-                      }`}
-                    />
-
-                    <span className="min-w-0 flex-1 leading-tight">
-                      <span
-                        className={`nf-body block leading-snug ${
-                          n.read
-                            ? "font-medium text-[var(--nf-content-secondary)]"
-                            : "font-semibold text-[var(--nf-content-primary)]"
-                        }`}
-                      >
-                        {n.title}
-                      </span>
-                      {n.body && (
-                        <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{n.body}</span>
-                      )}
+                    <span className="nf-notif__tile" aria-hidden="true">
+                      <UiIcon name={iconFor(n.kind)} size={20} />
                     </span>
 
-                    <span className="flex shrink-0 flex-col items-end gap-inline">
-                      <span className={`nf-numeric ${TYPE.caption}`}>
-                        {lagosTimeLabel(n.createdAt)}
-                      </span>
+                    <span className="nf-notif__body">
+                      <span className="nf-notif__title">{n.title}</span>
+                      {n.body && <span className="nf-notif__text">{n.body}</span>}
+                    </span>
+
+                    <span className="nf-notif__meta">
+                      <span className="nf-notif__time nf-numeric">{lagosTimeLabel(n.createdAt)}</span>
                       {n.read ? (
                         <span aria-hidden="true" className="h-2.5 w-2.5" />
                       ) : (
                         <>
-                          <span
-                            aria-hidden="true"
-                            className="h-2.5 w-2.5 rounded-full bg-[var(--nf-brand-primary)]"
-                          />
+                          <span aria-hidden="true" className="nf-notif__dot" />
                           <span className="sr-only">Unread</span>
                         </>
                       )}
@@ -217,11 +191,21 @@ export function LiveNotifications({
                 return (
                   <li key={n.id}>
                     {n.href ? (
-                      <Link href={n.href} onClick={() => markOne(n.id)} className={rowClass}>
+                      <Link
+                        href={n.href}
+                        onClick={() => markOne(n.id)}
+                        className="nf-notif__row"
+                        data-unread={!n.read}
+                      >
                         {inner}
                       </Link>
                     ) : (
-                      <button type="button" onClick={() => markOne(n.id)} className={rowClass}>
+                      <button
+                        type="button"
+                        onClick={() => markOne(n.id)}
+                        className="nf-notif__row"
+                        data-unread={!n.read}
+                      >
                         {inner}
                       </button>
                     )}

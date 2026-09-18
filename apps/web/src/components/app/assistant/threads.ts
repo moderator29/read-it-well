@@ -20,6 +20,12 @@ export type Message = {
   listings?: AssistantListingItem[];
   /** The turn failed and the bubble should offer a retry. */
   error?: boolean;
+  /**
+   * When the turn was sent or first arrived, epoch milliseconds. The
+   * governing render stamps every bubble with its time; a message stored
+   * before this field existed has none and is simply drawn without one.
+   */
+  at?: number;
 };
 
 export type Thread = {

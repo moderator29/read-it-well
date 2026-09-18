@@ -41,6 +41,7 @@ export function EmailAuthForm({
   action,
   states = [],
   next,
+  initialEmail = "",
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
@@ -49,6 +50,13 @@ export function EmailAuthForm({
   states?: StateOption[];
   /** Where to land afterwards. Re-validated in the action, never trusted. */
   next?: string | undefined;
+  /**
+   * The address typed on the chooser, carried here as a query parameter so
+   * the email-first flow of the governing render holds: the first screen
+   * takes the address, this one takes the password, and nobody types their
+   * email twice. Anything not shaped like an address is ignored.
+   */
+  initialEmail?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
   /*
@@ -74,7 +82,9 @@ export function EmailAuthForm({
    * kept out of the generic bag deliberately, so that anything added later
    * which logs, serialises or inspects `values` cannot reach them.
    */
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(
+    initialEmail ? { email: initialEmail } : {},
+  );
   const bind = (field: string) => ({
     value: values[field] ?? "",
     onChange: (next: string) => setValues((v) => ({ ...v, [field]: next })),
@@ -130,8 +140,8 @@ export function EmailAuthForm({
         {t.auth.otherWays}
       </Link>
 
-      <h1 className="nf-h2 text-center">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
-      <p className="mb-6 mt-xs text-center text-[0.875rem] text-[var(--nf-content-muted)]">
+      <h1 className="nf-auth__title">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
+      <p className="nf-auth__sub mb-lg">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
 
@@ -193,6 +203,7 @@ export function EmailAuthForm({
                 t={t}
                 error={state.fieldErrors?.email}
                 check={signUpMethodForEmail}
+                initialEmail={initialEmail}
               />
               <PasswordField
                 t={t}
@@ -267,6 +278,8 @@ export function EmailAuthForm({
               autoComplete="email"
               error={state.fieldErrors?.email}
             />
+            {/* The address arrived from the chooser, so the cursor goes to
+                the one thing left to type. */}
             <PasswordField
               t={t}
               id="password"
@@ -276,6 +289,7 @@ export function EmailAuthForm({
               error={state.fieldErrors?.password}
               value={password}
               onChange={setPassword}
+              autoFocus={Boolean(initialEmail)}
             />
           </>
         )}
@@ -313,19 +327,14 @@ export function EmailAuthForm({
         )}
       </form>
 
-      <p className="mt-6 text-center text-[0.875rem] text-[var(--nf-content-secondary)]">
+      <p className="nf-auth__swap">
         {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
-        <Link
-          href={isSignUp ? "/sign-in" : "/sign-up"}
-          className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-        >
+        <Link href={isSignUp ? "/sign-in" : "/sign-up"}>
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>
       </p>
 
-      <p className="mt-4 text-center text-[0.75rem] leading-relaxed text-[var(--nf-content-muted)]">
-        {t.auth.termsNotice}
-      </p>
+      <p className="nf-auth__terms">{t.auth.termsNotice}</p>
     </div>
   );
 }

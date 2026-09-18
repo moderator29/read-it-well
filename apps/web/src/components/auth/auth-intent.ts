@@ -122,3 +122,18 @@ export function withoutIntent(pathname: string, search: string): string {
   const query = params.toString();
   return query ? `${pathname}?${query}` : pathname;
 }
+
+/**
+ * The address typed on the chooser, read back off the email screen's URL.
+ *
+ * The sign-in card takes the address first and the password second, per its
+ * governing render, and the address travels between the two screens as an
+ * ordinary query parameter for the same reasons `next` does. A query parameter
+ * is an input, so only something shaped like an address is allowed to fill
+ * the field, and the action validates it again on submit either way.
+ */
+export function emailFromQuery(raw: string | string[] | undefined): string {
+  const value = (typeof raw === "string" ? raw : "").trim();
+  if (value.length === 0 || value.length > 254) return "";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) ? value : "";
+}
