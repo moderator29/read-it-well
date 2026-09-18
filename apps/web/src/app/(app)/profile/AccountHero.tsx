@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BackChevron } from "@/components/social/profile/BackChevron";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
 import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
@@ -43,6 +45,14 @@ import { reencodeToJpeg } from "@/components/social/profile/reencode";
 
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 const AVATAR_MAX_EDGE = 512;
+
+/**
+ * The cover a person has not set yet: the founder's villa plate, compressed
+ * and sized through next/image. A photograph rather than the gradient band,
+ * because `50E032EA` opens on one and a page that looks finished before
+ * anybody has uploaded anything is the whole point of the profile.
+ */
+const COVER_PLATE = "/brand/photos/villa-pool-skyline-01.jpg";
 
 export type HeroIdentity = {
   handle: string;
@@ -184,46 +194,69 @@ export function AccountHero({
   return (
     <header data-testid="account-hero">
       {/* ------------------------------------------------------- the cover */}
-      <div className="nf-social-cover">
+      <div className="nf-social-cover nf-social-cover--profile">
         {cover ? (
           /* The bucket is public, so the CDN URL renders without a signed
-             request. next/image is skipped exactly as the social header does:
-             one image from a host that only exists once the platform keys
-             land. */
+             request. next/image is skipped for it exactly as the social header
+             does: one image from a host that only exists once the platform
+             keys land. The plate below IS optimised: it is ours. */
           // eslint-disable-next-line @next/next/no-img-element
           <img src={cover} alt="" className="nf-social-cover__photo" />
         ) : (
-          <div className="nf-social-cover__art" aria-hidden="true" />
+          <Image
+            src={COVER_PLATE}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 768px"
+            className="nf-social-cover__plate"
+          />
         )}
         <div className="nf-social-cover__scrim" aria-hidden="true" />
 
+        {/* Back at the top left, settings at the top right, both glass
+            squares riding on the photograph as the render draws them. */}
+        <div className="nf-social-float nf-social-float--start">
+          <BackChevron fallback="/home" />
+        </div>
+        <div className="nf-social-float nf-social-float--end">
+          <Link
+            href="/settings"
+            className="nf-social-round"
+            aria-label="Settings"
+            data-testid="account-settings-button"
+          >
+            <UiIcon name="settings-gear" size={20} />
+          </Link>
+        </div>
+
         {identity && (
-          <div className="nf-social-float nf-social-float--end">
+          <div className="nf-social-cover__change">
             <button
               type="button"
               onClick={() => coverInput.current?.click()}
               disabled={busy !== null}
-              className="nf-btn nf-btn--glass px-sm py-xs text-[var(--nf-text-overline)]"
+              className="nf-social-round nf-social-round--pill"
               data-testid="account-cover-button"
             >
-              <UiIcon name="sparkle" size={16} />
+              <UiIcon name="picture" size={16} />
               {busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
             </button>
           </div>
         )}
       </div>
 
-      {/* ----------------------------------------------------- the person */}
-      <div className="nf-social-identity">
+      {/* --------------------------------- the person, beside the picture */}
+      <div className="nf-profile-identity">
         <button
           type="button"
           onClick={() => avatarInput.current?.click()}
           disabled={busy !== null}
           aria-label={avatar ? "Change your photo" : "Add a photo of you"}
-          className="nf-social-avatar nf-social-avatar--ring cursor-pointer disabled:cursor-wait"
+          className="nf-profile-avatar"
           data-testid="account-avatar-button"
         >
-          <span className="nf-social-avatar__disc">
+          <span className="nf-profile-avatar__disc">
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={avatar} alt="" />
@@ -231,19 +264,22 @@ export function AccountHero({
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* The pencil sits on the avatar rather than beside it, so the thing
-              you tap and the thing that changes are the same object. */}
-          <span
-            aria-hidden="true"
-            className="absolute bottom-0 right-0 grid h-7 w-7 place-items-center rounded-full border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-secondary)]"
-          >
-            <UiIcon name={busy === "avatar" ? "sparkle" : "settings-gear"} size={12} />
-          </span>
+          {/* The mark at the foot of the ring: the verified shield on an
+              APPROVED agent, because that is the one state where a human was
+              checked; otherwise the quiet pencil saying the photo is a
+              control. */}
+          {identity?.isAgent ? (
+            <span className="nf-profile-avatar__badge" aria-hidden="true">
+              <UiIcon name="verified" size={16} filled />
+            </span>
+          ) : (
+            <span className="nf-profile-avatar__badge nf-profile-avatar__badge--quiet" aria-hidden="true">
+              <UiIcon name={busy === "avatar" ? "sparkle" : "settings-gear"} size={14} />
+            </span>
+          )}
         </button>
-      </div>
 
-      <div className="nf-social-namerow">
-        <div className="min-w-0">
+        <div className="nf-profile-text">
           <h1 className="nf-social-name">
             <span className="truncate-none">{shownName}</span>
             {identity?.isAgent ? (
@@ -251,8 +287,9 @@ export function AccountHero({
                 className="nf-social-verified"
                 title="A verified Vallo agent"
                 aria-label="Verified agent"
+                role="img"
               >
-                <UiIcon name="verified" size={16} />
+                <UiIcon name="verified" size={18} filled />
               </span>
             ) : null}
           </h1>
@@ -261,36 +298,29 @@ export function AccountHero({
           ) : (
             <p className="nf-social-handle">{email}</p>
           )}
+
+          {identity?.bio ? <p className="nf-social-bio">{identity.bio}</p> : null}
+
+          {/* Followers and Following, a rule between them, both real routes. */}
+          {identity ? (
+            <div className="nf-social-counts">
+              <Link href={`/u/${identity.handle}/followers`} className="nf-social-count">
+                <span className="nf-social-count__value nf-numeric">
+                  {formatCount(identity.followerCount)}
+                </span>
+                <span className="nf-social-count__label">Followers</span>
+              </Link>
+              <span className="nf-social-count__rule" aria-hidden="true" />
+              <Link href={`/u/${identity.handle}/following`} className="nf-social-count">
+                <span className="nf-social-count__value nf-numeric">
+                  {formatCount(identity.followingCount)}
+                </span>
+                <span className="nf-social-count__label">Following</span>
+              </Link>
+            </div>
+          ) : null}
         </div>
       </div>
-
-      {/* --------------------------------------------------------- counts */}
-      {identity ? (
-        <div className="nf-social-counts">
-          <Link href={`/u/${identity.handle}/followers`} className="nf-social-count">
-            <span className="nf-social-count__value nf-numeric">
-              {formatCount(identity.followerCount)}
-            </span>
-            <span className="nf-social-count__label">Followers</span>
-          </Link>
-          <span className="nf-social-count__rule" aria-hidden="true" />
-          <Link href={`/u/${identity.handle}/following`} className="nf-social-count">
-            <span className="nf-social-count__value nf-numeric">
-              {formatCount(identity.followingCount)}
-            </span>
-            <span className="nf-social-count__label">Following</span>
-          </Link>
-          <span className="nf-social-count__rule" aria-hidden="true" />
-          <Link href={`/u/${identity.handle}`} className="nf-social-count">
-            <span className="nf-social-count__value nf-numeric">
-              {formatCount(identity.postCount)}
-            </span>
-            <span className="nf-social-count__label">Posts</span>
-          </Link>
-        </div>
-      ) : null}
-
-      {identity?.bio ? <p className="nf-social-bio">{identity.bio}</p> : null}
 
       {(metaLine.place || metaLine.joined) && (
         <div className="nf-social-meta">
@@ -309,23 +339,11 @@ export function AccountHero({
         </div>
       )}
 
-      {/* --------------------------------------------------------- actions
-          SMALLER, AND THEY STOP STRETCHING.
-
-          Two full-height buttons at `flex-1` filled the width of a phone, so
-          the loudest pair of controls on somebody's own profile were the two
-          least urgent things they can do there. They are the compact size now
-          and sized to their words at every width: an action row is not a
-          toolbar, and a control that grows to fill a row is claiming an
-          importance it does not have. The 44pt tap floor is unaffected, which
-          is what `nf-btn--sm` exists to guarantee. */}
-      <div className="mt-block flex flex-wrap gap-inline">
+      {/* ------------------------------------------------------ the actions */}
+      <div className="nf-profile-actions">
         {identity ? (
           <>
-            <Link
-              href={`/u/${identity.handle}/edit`}
-              className="nf-btn nf-btn--sm nf-btn--glass"
-            >
+            <Link href={`/u/${identity.handle}/edit`} className="nf-btn nf-btn--sm nf-btn--glass">
               <UiIcon name="settings-gear" size={16} />
               Edit profile
             </Link>
@@ -351,11 +369,6 @@ export function AccountHero({
           public page and somewhere for what you write to live.
         </p>
       )}
-
-      <p className="mt-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-        Photos are re-encoded on your phone before they are uploaded, so the location tag a
-        camera writes never leaves it.
-      </p>
 
       {error && (
         <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">

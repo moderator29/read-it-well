@@ -1,7 +1,7 @@
 "use client";
 
 import { DEFAULT_LOCALE, type Locale } from "@vallo/i18n";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
 import { ReportSheet } from "../ReportSheet";
@@ -29,6 +29,9 @@ import {
   toggleRepost,
 } from "@/lib/social/posts-actions";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import type { FeedPage } from "@/lib/social/posts-queries";
+import type { ActionResult } from "@/lib/actions/envelope";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
 
 /**
@@ -39,6 +42,12 @@ import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
  * is a shrug rather than a sentence.
  */
 const DEFAULT_EMPTY_TITLE = "Nothing here yet";
+
+/** The words on the paging control. Client-side copy, beside the control. */
+const MORE_COPY = {
+  more: "Show more",
+  loading: "Loading more",
+} as const;
 
 /**
  * The feed.
@@ -64,8 +73,18 @@ export function Feed({
   emptyAction,
   emptyIcon = "chat-duo",
   district,
+  pageCursor = null,
+  loadMore,
 }: {
   initial: PostView[];
+  /**
+   * The cursor after the first page, or null when the timeline ended there.
+   * With `loadMore`, the feed reads the next page when the sentinel at its
+   * foot scrolls into view, and a Show more control does the same for anybody
+   * whose browser has no observer or who would rather tap.
+   */
+  pageCursor?: string | null;
+  loadMore?: (cursor: string) => Promise<ActionResult<FeedPage>>;
   /* Only the counts need it, but they are on every card, so it rides down from
      the server component that resolved it rather than each card guessing. */
   locale?: Locale;
@@ -163,8 +182,68 @@ export function Feed({
   const [lastInitial, setLastInitial] = useState(initial);
   if (initial !== lastInitial) {
     setLastInitial(initial);
-    setPosts(initial);
+    /* A refresh re-reads the FIRST page. The pages read after it are still
+       what the person scrolled through, so they are kept, minus anything the
+       fresh first page now carries, rather than thrown away by a like. */
+    const fresh = new Set(initial.map((post) => post.id));
+    const firstPage = new Set(lastInitial.map((post) => post.id));
+    setPosts([...initial, ...posts.filter((post) => !firstPage.has(post.id) && !fresh.has(post.id))]);
   }
+
+  /*
+   * Paging. The cursor is the last row's `created_at`; null means the end.
+   * One read in flight at a time, and a failed read leaves the control in
+   * place with the reason under it rather than pretending the feed ended.
+   */
+  const [cursor, setCursor] = useState<string | null>(pageCursor);
+  const [lastPageCursor, setLastPageCursor] = useState(pageCursor);
+  if (pageCursor !== lastPageCursor) {
+    setLastPageCursor(pageCursor);
+    /* Only reset when the first page is fresh AND nothing was loaded after
+       it: a refresh mid-scroll keeps the deeper cursor. */
+    if (posts.length <= initial.length) setCursor(pageCursor);
+  }
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const inFlight = useRef(false);
+
+  const readMore = useCallback(async () => {
+    if (!loadMore || !cursor || inFlight.current) return;
+    inFlight.current = true;
+    setLoadingMore(true);
+    setLoadError(null);
+    try {
+      const result = await loadMore(cursor);
+      if (!result.ok) {
+        setLoadError(result.error);
+        return;
+      }
+      const seen = new Set(posts.map((post) => post.id));
+      setPosts((all) => [...all, ...result.data.posts.filter((post) => !seen.has(post.id))]);
+      setCursor(result.data.ended ? null : result.data.cursor);
+    } catch {
+      setLoadError("More posts did not load. Check your connection and try again.");
+    } finally {
+      inFlight.current = false;
+      setLoadingMore(false);
+    }
+  }, [loadMore, cursor, posts]);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !loadMore || !cursor || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) void readMore();
+      },
+      /* Start the read a screen early, so the next page is usually there
+         before the thumb reaches the bottom. */
+      { rootMargin: "0px 0px 640px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [loadMore, cursor, readMore]);
 
   useEffect(() => {
     if (!notice) return;
@@ -492,6 +571,34 @@ export function Feed({
           */}
         </div>
         ))}
+
+        {loadMore && shown.length > 0 && chip !== "stories" && chip !== "reviews" ? (
+          <div className="nf-feed-more" data-testid="feed-more">
+            <div ref={sentinelRef} aria-hidden="true" className="nf-feed-more__sentinel" />
+            {cursor ? (
+              <button
+                type="button"
+                className="nf-btn nf-btn--glass nf-feed-more__button"
+                onClick={() => void readMore()}
+                disabled={loadingMore}
+                aria-busy={loadingMore}
+                data-testid="feed-load-more"
+              >
+                <UiIcon name="arrow-down" size={16} />
+                {loadingMore ? MORE_COPY.loading : MORE_COPY.more}
+              </button>
+            ) : null}
+            <p role="status" aria-live="polite" className="nf-feed-more__status">
+              {loadError
+                ? loadError
+                : loadingMore
+                  ? MORE_COPY.loading
+                  : cursor
+                    ? ""
+                    : POST_COPY.endOfSession}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {sheetFor ? (

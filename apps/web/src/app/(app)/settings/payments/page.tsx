@@ -4,11 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
-import { Cards } from "@/components/app/payments/Cards";
-import { BankAccounts } from "@/components/app/payments/BankAccounts";
+import { PaymentMethodsBlock } from "@/components/app/payments/PaymentMethodsBlock";
 import { resolveSession } from "@/lib/actions/session";
-import { listPaymentMethods } from "@/lib/payments/methods-actions";
-import { listBankAccounts } from "@/lib/payments/bank-accounts-actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -22,12 +19,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * /settings/payments: "Payment methods". Shared by both sides, because both
- * pay and both are paid. Two groups in the settings grammar: the cards you
- * pay with, and the bank accounts you are paid into.
- *
- * Both reads are server actions returning the envelope, so a failed read is
- * a `readFailed` flag on its group rather than an empty list pretending to be
- * the truth. Each group says so in its own words and the other still renders.
+ * pay and both are paid. The one block, on its own page with its lede; the
+ * same block sits in the settings home's slot.
  */
 export default async function PaymentsPage() {
   const [locale, session] = await Promise.all([getLocale(), resolveSession()]);
@@ -48,20 +41,12 @@ export default async function PaymentsPage() {
     );
   }
 
-  const [cards, accounts] = await Promise.all([listPaymentMethods(), listBankAccounts()]);
-
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title={copy.title} fallback="/settings" />
       <p className={`mb-block ${TYPE.body}`}>{copy.lede}</p>
-      <div className="space-y-block">
-        <Cards cards={cards.ok ? cards.data : []} readFailed={!cards.ok} copy={copy} />
-        <BankAccounts
-          accounts={accounts.ok ? accounts.data : []}
-          readFailed={!accounts.ok}
-          copy={copy}
-        />
-      </div>
+      <PaymentMethodsBlock />
+      <p className={`mt-row px-2xs ${TYPE.caption}`}>{copy.cardsNote}</p>
     </div>
   );
 }

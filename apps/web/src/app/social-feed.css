@@ -219,48 +219,6 @@
     -webkit-backdrop-filter: none;
   }
 
-  /*
-   * A listing. The photo runs to the edges and the card becomes a magazine
-   * plate rather than a text block with a picture in it, which is the whole
-   * difference between a property post and a status update.
-   */
-  .nf-post--listing {
-    padding: 0;
-    overflow: hidden;
-  }
-  .nf-post--listing > .nf-post__plate {
-    aspect-ratio: 16 / 10;
-    width: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .nf-post--listing > .nf-post__under {
-    padding: var(--nf-feed-pad);
-  }
-
-  /*
-   * A question. A leading rule in brand blue rather than a tint, so an Ask
-   * reads as a different kind of thing at a glance and still sits on the same
-   * material as everything else.
-   */
-  .nf-post--ask {
-    padding-left: calc(var(--nf-feed-pad) + 3px);
-  }
-  .nf-post--ask::before {
-    content: "";
-    position: absolute;
-    inset-block: 18px;
-    inset-inline-start: 0;
-    width: 3px;
-    border-start-end-radius: 3px;
-    border-end-end-radius: 3px;
-    background: linear-gradient(
-      180deg,
-      var(--nf-brand-secondary) 0%,
-      color-mix(in oklab, var(--nf-brand-primary) 40%, transparent) 100%
-    );
-  }
-
   /* ------------------------------------------------------------------
    * The action row
    * ------------------------------------------------------------------ */
@@ -338,20 +296,6 @@
   }
   .nf-post__act--fact:hover {
     color: var(--nf-content-muted);
-  }
-
-  /*
-   * The kind, in caps above the title. Small, wide and quiet: it says what sort
-   * of thing this is before the eye reaches the words, and the moment it
-   * competes with the title it has stopped doing its job.
-   */
-  .nf-post__kind {
-    margin-block-start: 12px;
-    font-size: 0.625rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--nf-brand-secondary);
   }
 
   /*
@@ -2112,221 +2056,6 @@
 
 
   /* ------------------------------------------------------------------
-   * The create ring.
-   *
-   * A ring rather than a list, because the things somebody can make here are
-   * siblings and a vertical menu quietly ranks them. The circle is a transform
-   * applied to buttons that are already in reading order, so the layout is
-   * radial and the interaction is not: tab still walks them one by one.
-   * ------------------------------------------------------------------ */
-  .nf-ring {
-    position: fixed;
-    inset: 0;
-    z-index: var(--nf-z-modal);
-    display: grid;
-    place-items: center;
-  }
-  .nf-ring__scrim {
-    position: absolute;
-    inset: 0;
-    /* Heavy enough that the page underneath reads as a texture rather than as
-       words. At 0.82 the sentence behind the ring was still legible through it,
-       which put two pieces of copy on top of each other and made the labels
-       hard to pick out. A modal that leaks readable text is not a modal. */
-    background: var(--nf-overlay-ring);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    cursor: default;
-  }
-  :root[data-theme="light"] .nf-ring__scrim {
-    background: var(--nf-overlay-ring);
-  }
-
-  .nf-ring__panel {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    /* 1.25rem rather than 1.5, so panel width stays under the viewport on a
-       360px phone as well as on the 390px one everything is verified at. */
-    padding: 1.25rem;
-  }
-
-  .nf-ring__ask {
-    max-inline-size: 18rem;
-    text-align: center;
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.3;
-    color: var(--nf-content-primary);
-  }
-
-  /*
-   * The wheel. Sized so six petals clear each other at 390px with room to
-   * breathe: the owner asked for neat and not jam-packed, and a ring that
-   * touches itself is the opposite of that.
-   */
-  .nf-ring__wheel {
-    position: relative;
-    /*
-     * The radius is an absolute length, and it has to be.
-     *
-     * A percentage inside `translate` resolves against the ELEMENT being
-     * translated, not against its container, so `translate(0, -37%)` moved each
-     * petal 37 per cent of its own height and piled all five on the centre.
-     * That is the same class of mistake as percentage padding resolving against
-     * the containing block, which this codebase has already been caught by once.
-     *
-     * Six petals sit 60 degrees apart on a flat-topped hexagon, so the pair
-     * that comes closest is separated vertically rather than horizontally:
-     * 8rem of radius puts about 111px between the centres of neighbouring
-     * rows, against 5.5rem by 6.5rem petals whose ink is about 96px tall. The
-     * two horizontal extremes reach 172px from the centre, which is inside the
-     * wheel's own half-width plus the panel's padding, so nothing spills off a
-     * 390px screen and there is no phantom horizontal scroll.
-     *
-     * The notes are all short enough to hold one line at this width for the
-     * same reason: a second line is 14px of height straight out of that gap.
-     */
-    --nf-ring-radius: min(8rem, 36vw);
-    inline-size: min(20.5rem, 86vw);
-    aspect-ratio: 1 / 1;
-    display: grid;
-    place-items: center;
-  }
-
-  /* The glowing centre. Electric blue, never the reference's violet. */
-  .nf-ring__core {
-    inline-size: 4.25rem;
-    block-size: 4.25rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-gradient-brand);
-    box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
-      0 0 60px -6px color-mix(in oklab, var(--nf-brand-primary) 85%, transparent),
-      0 0 120px -20px color-mix(in oklab, var(--nf-brand-accent) 90%, transparent);
-    animation: nf-ring-breathe 3.6s var(--nf-ease-standard) infinite;
-  }
-
-  @keyframes nf-ring-breathe {
-    0%,
-    100% {
-      transform: scale(1);
-      opacity: 0.92;
-    }
-    50% {
-      transform: scale(1.06);
-      opacity: 1;
-    }
-  }
-
-  .nf-ring__petal {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    inline-size: 5.5rem;
-    block-size: 6.5rem;
-    margin-inline-start: -2.75rem;
-    margin-block-start: -3.25rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    text-align: center;
-    /* Out along the angle, then unrotated so the label stays upright. */
-    transform: rotate(var(--nf-ring-angle))
-      translateY(calc(-1 * var(--nf-ring-radius) * 0.35))
-      rotate(calc(-1 * var(--nf-ring-angle)));
-    opacity: 0;
-    /*
-     * `--nf-duration-normal` does not exist and never did. The scale is
-     * instant / fast / base / slow / deliberate, and an unresolvable `var()`
-     * is invalid at computed-value time, which does NOT fall back to a
-     * default: it throws away the WHOLE declaration. So the transform line
-     * beside it died too, and the petals appeared fully placed instead of
-     * travelling out from the centre - the one animation this control exists
-     * for, dead since it was written, in the shorthand rather than in the
-     * property that named the missing token.
-     *
-     * `base` is the "normal" that was meant: the fade lands while the spring
-     * is still settling, so the petal arrives lit rather than blinking on
-     * after it stops.
-     */
-    transition:
-      transform var(--nf-duration-slow) var(--nf-ease-spring),
-      opacity var(--nf-duration-base) var(--nf-ease-standard);
-    transition-delay: var(--nf-ring-delay);
-  }
-  .nf-ring__wheel--in .nf-ring__petal {
-    transform: rotate(var(--nf-ring-angle))
-      translateY(calc(-1 * var(--nf-ring-radius)))
-      rotate(calc(-1 * var(--nf-ring-angle)));
-    opacity: 1;
-  }
-
-  .nf-ring__tile {
-    display: grid;
-    place-items: center;
-    inline-size: 54px;
-    block-size: 54px;
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-surface-raised);
-    border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-elev-4);
-    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-ring__petal:hover .nf-ring__tile,
-  .nf-ring__petal:focus-visible .nf-ring__tile {
-    border-color: var(--nf-border-brand);
-  }
-  /* Both bound to the petal's own width, or the note runs wider than the tile
-     and collides with the neighbour on the ring. */
-  .nf-ring__label {
-    inline-size: 100%;
-    font-size: var(--nf-text-caption);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
-  .nf-ring__note {
-    inline-size: 100%;
-    font-size: 0.6875rem;
-    line-height: 1.25;
-    color: var(--nf-content-muted);
-  }
-
-  .nf-ring__close {
-    display: grid;
-    place-items: center;
-    inline-size: 52px;
-    block-size: 52px;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-default);
-    background: var(--nf-surface-raised);
-    color: var(--nf-content-secondary);
-  }
-  .nf-ring__close:hover,
-  .nf-ring__close:focus-visible {
-    color: var(--nf-content-primary);
-    border-color: var(--nf-border-brand);
-  }
-
-  /* Nothing flies in, and nothing is left mid-flight. */
-  @media (prefers-reduced-motion: reduce) {
-    .nf-ring__core {
-      animation: none;
-    }
-    .nf-ring__petal {
-      opacity: 1;
-      transform: rotate(var(--nf-ring-angle))
-        translateY(calc(-1 * var(--nf-ring-radius)))
-        rotate(calc(-1 * var(--nf-ring-angle)));
-      transition: none;
-    }
-  }
-
-  /* ------------------------------------------------------------------
    * The action sheet behind a card's `…`.
    *
    * A bottom sheet with a grab handle rather than a popover, because each row
@@ -2556,96 +2285,6 @@
   }
   .nf-district__chip .nf-numeric {
     font-size: 0.7rem;
-    color: var(--nf-content-muted);
-  }
-
-  /* ------------------------------------------------------------------
-   * The dock.
-   *
-   * One control, at the corner a thumb reaches without moving the phone, and
-   * lifted clear of the floating tab bar rather than sitting on it. On a
-   * desktop the tab bar is gone and the rail owns the other side, so the same
-   * corner is still the right one and it simply drops to the edge.
-   * ------------------------------------------------------------------ */
-  .nf-fab {
-    position: fixed;
-    inset-inline-end: 1rem;
-    /* Clear of the tab bar: its own offset plus its height plus a gap. */
-    bottom: calc(5.5rem + env(safe-area-inset-bottom));
-    /* DOWN from 60, and down is the correction. At 60 this was level with two
-       modal scrims, so a floating action button could paint on top of a
-       dialog's dim by DOM order alone. A FAB is chrome: it belongs with the
-       sticky things it sits beside, under anything that opens over the page. */
-    z-index: var(--nf-z-sticky);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-  }
-
-  @media (min-width: 1024px) {
-    .nf-fab {
-      inset-inline-end: 1.5rem;
-      bottom: 1.5rem;
-    }
-  }
-
-  .nf-fab__button {
-    display: grid;
-    place-items: center;
-    inline-size: 56px;
-    block-size: 56px;
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-gradient-brand);
-    color: var(--nf-content-on-brand);
-    border: 1px solid var(--nf-border-brand);
-    box-shadow:
-      0 14px 34px -12px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent),
-      var(--nf-elev-4);
-    transition: transform var(--nf-duration-fast) var(--nf-ease-spring);
-  }
-  .nf-fab__button:active {
-    transform: scale(0.94);
-  }
-
-  .nf-fab__menu {
-    inline-size: min(17.5rem, calc(100vw - 2rem));
-    padding: 6px;
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-surface-raised);
-    border: 1px solid var(--nf-border-default);
-    box-shadow: var(--nf-elev-4);
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(160%);
-  }
-
-  .nf-fab__item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    inline-size: 100%;
-    min-block-size: 56px;
-    padding: 8px 11px;
-    border-radius: var(--nf-radius-md);
-    text-align: start;
-    color: var(--nf-content-primary);
-  }
-  .nf-fab__item:hover,
-  .nf-fab__item:focus-visible {
-    background: var(--nf-surface-inset);
-  }
-  .nf-fab__item-title {
-    display: block;
-    font-size: var(--nf-text-body);
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  .nf-fab__item-note {
-    display: block;
-    margin-block-start: 2px;
-    font-size: var(--nf-text-caption);
-    font-weight: 500;
-    line-height: 1.35;
     color: var(--nf-content-muted);
   }
 
@@ -3016,5 +2655,577 @@
     font-size: var(--nf-text-caption);
     line-height: 1.55;
     color: var(--nf-content-muted);
+  }
+}
+
+/*
+ * ===========================================================================
+ * THE FEED TO `GOVERNING-feed-plus-bloom.png`.
+ *
+ * Everything from the location chip down to the plus, in the order it is read.
+ * Layer two tokens only; the capsule shapes are the founder's identical-to-
+ * images ruling (ledger section 8) carried by `--nf-radius-pill`. Every rule
+ * with a night answer has a paper answer at the foot of the file.
+ * ===========================================================================
+ */
+@layer components {
+  /* ------------------------------------------------------------------
+   * The location chip. A glass field: pin, the place, a chevron.
+   * ------------------------------------------------------------------ */
+  .nf-feed-chip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    inline-size: 100%;
+    min-block-size: 52px;
+    padding-inline: 16px 14px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px -6px var(--nf-glow-2);
+    color: var(--nf-content-primary);
+    text-align: start;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-feed-chip:hover,
+  .nf-feed-chip[aria-expanded="true"] {
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 22px -4px var(--nf-glow-3);
+  }
+  .nf-feed-chip:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-feed-chip__pin {
+    flex-shrink: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-feed-chip__label {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .nf-feed-chip__chev {
+    flex-shrink: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-feed-chip__menu {
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    top: 58px;
+    inline-size: auto;
+  }
+  .nf-feed-chip__menu [aria-current="true"] {
+    color: var(--nf-brand-secondary);
+    font-weight: 700;
+  }
+
+  /* ------------------------------------------------------------------
+   * The story rings. A row that scrolls sideways under the chip.
+   * ------------------------------------------------------------------ */
+  .nf-story-ring {
+    /* Bleeds to the screen edge so the last ring is cut by the phone, which
+       is the only affordance a horizontal row has that there is more. */
+    margin-inline: -1.25rem;
+    margin-block: 14px 12px;
+  }
+  .nf-story-ring__row {
+    display: flex;
+    gap: 14px;
+    padding-inline: 1.25rem;
+    padding-block: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .nf-story-ring__row::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-story-ring__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    inline-size: 76px;
+    scroll-snap-align: start;
+    border-radius: var(--nf-radius-md);
+  }
+  .nf-story-ring__item:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  /*
+   * The ring, and the glow the render gives it. The gradient sits on the
+   * border box and the face on the padding box (ADR-012), lit from the upper
+   * left like every other ring on the platform, and the outer glow is the
+   * second rung so six of them in a row do not become a lamp.
+   */
+  .nf-story-ring__disc {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 68px;
+    block-size: 68px;
+    padding: 3px;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--nf-brand-accent) 95%, white) 0%,
+          var(--nf-brand-primary) 45%,
+          color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 100%
+        )
+        border-box;
+    box-shadow:
+      0 0 0 1px var(--nf-glow-1),
+      0 0 18px -2px var(--nf-glow-2);
+  }
+  .nf-story-ring__disc img,
+  .nf-story-ring__monogram {
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--nf-radius-circle);
+    object-fit: cover;
+  }
+  .nf-story-ring__monogram {
+    display: grid;
+    place-items: center;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .nf-story-ring__plus {
+    position: absolute;
+    inset-inline-end: -2px;
+    inset-block-end: -2px;
+    display: grid;
+    place-items: center;
+    inline-size: 24px;
+    block-size: 24px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    border: 2px solid var(--nf-surface-canvas);
+    box-shadow: 0 0 12px -2px var(--nf-glow-3);
+  }
+  .nf-story-ring__name {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------------
+   * For you / Following. One glass capsule, the live half filled.
+   * ------------------------------------------------------------------ */
+  .nf-feed-seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    margin-block-end: 14px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-feed-seg__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-block-size: 44px;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-feed-seg__link:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-feed-seg__link:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-feed-seg__link[aria-current="page"] {
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 22px -4px var(--nf-glow-3);
+  }
+
+  /* ------------------------------------------------------------------
+   * The card's head and body, as the render draws them.
+   * ------------------------------------------------------------------ */
+  .nf-post__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: 10px;
+  }
+  .nf-post__avatar {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 46px;
+    padding: 2px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--nf-brand-accent) 90%, white) 0%,
+          var(--nf-brand-primary) 55%,
+          color-mix(in oklab, var(--nf-brand-primary) 40%, transparent) 100%
+        )
+        border-box;
+    box-shadow: 0 0 14px -4px var(--nf-glow-2);
+  }
+  .nf-post__avatar img,
+  .nf-post__monogram {
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--nf-radius-circle);
+    object-fit: cover;
+  }
+  .nf-post__monogram {
+    display: grid;
+    place-items: center;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+  }
+  .nf-post__who {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-inline-size: 0;
+  }
+  .nf-post__nameline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-inline-size: 0;
+  }
+  .nf-post__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+  }
+  .nf-post__tick {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-post__role {
+    flex-shrink: 0;
+    padding: 1px 6px;
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--nf-content-muted);
+  }
+  .nf-post__handle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-post__when {
+    align-self: start;
+    padding-block-start: 3px;
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-post__kebab {
+    align-self: start;
+    margin-inline-end: -9px;
+    margin-block-start: -6px;
+  }
+  .nf-post__body {
+    margin-block-start: 12px;
+    min-inline-size: 0;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    color: var(--nf-content-primary);
+  }
+  .nf-post__body--system {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+  /* The row under the picture is open air in the render: no rule above it. */
+  .nf-post__actions {
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 0;
+  }
+
+  /* ------------------------------------------------------------------
+   * The next page.
+   * ------------------------------------------------------------------ */
+  .nf-feed-more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-block: 4px 8px;
+  }
+  .nf-feed-more__sentinel {
+    inline-size: 1px;
+    block-size: 1px;
+  }
+  .nf-feed-more__button {
+    min-inline-size: 11rem;
+  }
+  .nf-feed-more__status {
+    min-block-size: 1.25rem;
+    text-align: center;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE PLUS, AND THE BLOOM.
+   *
+   * A glass circle at the thumb's corner, lifted clear of the floating
+   * dock. The fan is three capsules positioned from the centre of the
+   * circle by a transform the spring in `components/social/bloom/physics.ts` writes every
+   * frame; the CSS holds their resting look and nothing about their travel,
+   * so reduced motion needs no second set of rules here.
+   * ------------------------------------------------------------------ */
+  .nf-bloom {
+    position: fixed;
+    inset-inline-end: 1rem;
+    /* Clear of the dock: its own offset plus its height plus a gap. */
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    /* Chrome while closed: under anything that opens over the page. */
+    z-index: var(--nf-z-sticky);
+    inline-size: 60px;
+    block-size: 60px;
+  }
+  /* Open, the fan and the scrim ride above the dock and the header together. */
+  .nf-bloom[data-open] {
+    z-index: calc(var(--nf-z-overlay) + 1);
+  }
+  @media (min-width: 1024px) {
+    .nf-bloom {
+      inset-inline-end: 1.5rem;
+      bottom: 1.5rem;
+    }
+  }
+  .nf-bloom__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: var(--nf-z-overlay);
+    cursor: default;
+    background: color-mix(in oklab, var(--nf-surface-canvas) 48%, transparent);
+    -webkit-backdrop-filter: blur(1.5px);
+    backdrop-filter: blur(1.5px);
+    animation: nf-bloom-dim var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  @keyframes nf-bloom-dim {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .nf-bloom__fab {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    inline-size: 60px;
+    block-size: 60px;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-on-brand);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-accent) 70%, white);
+    background:
+      radial-gradient(
+        120% 120% at 30% 25%,
+        color-mix(in oklab, var(--nf-brand-accent) 55%, white) 0%,
+        var(--nf-brand-primary) 48%,
+        var(--nf-brand-primary-strong) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      0 0 0 6px var(--nf-glow-wash),
+      0 0 28px -2px var(--nf-glow-3),
+      0 14px 34px -12px var(--nf-glow-4);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-spring),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-bloom__fab:active {
+    transform: scale(0.94);
+  }
+  .nf-bloom__fab:focus-visible {
+    outline: 2px solid var(--nf-content-on-brand);
+    outline-offset: 3px;
+  }
+  /* The plus stays a plus while the fan is out, as the governing image draws
+     it; its accessible name says Close. */
+  .nf-bloom__fan {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  /*
+   * A lozenge. Anchored by its centre on the centre of the plus so the
+   * transform the spring writes is a pure offset, then thrown to its slot.
+   * Glass with a luminous rim, the glyph and the word, in the size the
+   * render draws them.
+   */
+  .nf-bloom__item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -66px;
+    margin-top: -24px;
+    inline-size: 132px;
+    block-size: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-inline: 16px;
+    border-radius: var(--nf-radius-pill);
+    pointer-events: auto;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border: 1px solid var(--nf-brand-edge-strong);
+    background: color-mix(in oklab, var(--nf-surface-raised) 70%, var(--nf-brand-primary));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-strong),
+      0 0 0 1px var(--nf-glow-2),
+      0 0 26px -2px var(--nf-glow-3),
+      var(--nf-elev-4);
+    will-change: transform;
+    transform-origin: 50% 50%;
+  }
+  .nf-bloom__item:hover,
+  .nf-bloom__item:focus-visible {
+    background: color-mix(in oklab, var(--nf-surface-raised) 62%, var(--nf-brand-primary));
+    border-color: var(--nf-brand-edge-strong);
+  }
+  .nf-bloom__item:focus-visible {
+    outline: 2px solid var(--nf-brand-accent);
+    outline-offset: 3px;
+  }
+  .nf-bloom__item:active {
+    filter: brightness(1.1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-bloom__scrim,
+    .nf-bloom__fab {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * Paper. The same anatomy on white: glass becomes a white card with a
+   * hairline and a soft shadow; the brand fills and rings stay brand.
+   * ------------------------------------------------------------------ */
+  :root[data-theme="light"] .nf-feed-chip {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-feed-chip:hover,
+  :root[data-theme="light"] .nf-feed-chip[aria-expanded="true"] {
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-story-ring__disc {
+    background:
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
+      linear-gradient(135deg, var(--nf-brand-accent) 0%, var(--nf-brand-primary) 100%)
+        border-box;
+    box-shadow: 0 6px 16px -10px var(--nf-wash-7);
+  }
+  :root[data-theme="light"] .nf-story-ring__plus {
+    border-color: var(--nf-surface-primary);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-feed-seg {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-feed-seg__link[aria-current="page"] {
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-post__avatar {
+    background:
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
+      linear-gradient(135deg, var(--nf-brand-accent) 0%, var(--nf-brand-primary) 100%)
+        border-box;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-bloom__scrim {
+    background: color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent);
+  }
+  :root[data-theme="light"] .nf-bloom__fab {
+    box-shadow:
+      0 0 0 6px var(--nf-glow-wash),
+      0 10px 24px -10px var(--nf-glow-3);
+  }
+  :root[data-theme="light"] .nf-bloom__item {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-brand);
+    box-shadow:
+      0 0 0 1px var(--nf-glow-1),
+      var(--nf-elev-3);
+  }
+  :root[data-theme="light"] .nf-bloom__item:hover,
+  :root[data-theme="light"] .nf-bloom__item:focus-visible {
+    background: var(--nf-surface-inset);
   }
 }

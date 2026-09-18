@@ -101,6 +101,14 @@ export default async function ProfilePage() {
     wallet: t.nav.wallet,
     messages: t.nav.messages,
     settings: t.nav.settings,
+    belongings: t.socialProfile.belongings,
+    posts: t.socialProfile.posts,
+    myBookings: t.socialProfile.myBookings,
+    myBookingsSub: t.socialProfile.myBookingsSub,
+    savedSub: t.socialProfile.savedSub,
+    walletSub: t.socialProfile.walletSub,
+    inspections: t.nav.inspections,
+    inspectionsSub: t.socialProfile.inspectionsSub,
   };
 
   if (account.state !== "signed-in") {
@@ -159,22 +167,6 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl">
       {/*
-        SWITCHING WHAT YOU ARE HERE TO DO, on your own page.
-
-        One account holds all three roles and switching between them never asks
-        for a second one. The row opens a sheet; picking a role that is not set
-        up explains what it is and what setting it up involves rather than
-        dead-ending on a refusal screen, which is what the old two-option mode
-        dropdown did.
-      */}
-      <RoleSwitcher
-        roles={rolesView.roles}
-        current={rolesView.current}
-        variant="row"
-        className="mb-md"
-      />
-
-      {/*
         The calm verification prompt.
 
         Renders for a seller or an agent who has applied and not been verified,
@@ -229,6 +221,18 @@ export default async function ProfilePage() {
         handle={identity?.handle ?? null}
         hasBio={(identity?.bio.length ?? 0) > 0}
         locale={locale}
+        /*
+          SWITCHING WHAT YOU ARE HERE TO DO, as the last belongings row.
+
+          One account holds all three roles and switching between them never
+          asks for a second one. The row opens a sheet; picking a role that is
+          not set up explains what it is and what setting it up involves rather
+          than dead-ending on a refusal screen. It used to sit above the cover;
+          `50E032EA` draws it under the rows, which is where it is now.
+        */
+        roleSwitch={
+          <RoleSwitcher roles={rolesView.roles} current={rolesView.current} variant="row" />
+        }
       />
     </div>
   );

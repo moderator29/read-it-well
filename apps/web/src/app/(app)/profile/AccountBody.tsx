@@ -3,9 +3,12 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@vallo/i18n";
+import Link from "next/link";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { EmptyState } from "@/components/app/Screen";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
   RowButton,
   RowLink,
@@ -31,9 +34,9 @@ import type { ActionResult } from "@/lib/actions/envelope";
  * somebody with forty of something that they have none, which is the mistake
  * the social profile already learned once and wrote down.
  *
- * The tab strip is the social layer's own `nf-social-tab`, not a second one
- * built for this screen, so moving between your account and your page does not
- * change what a tab looks like halfway through.
+ * The tab strip is the social layer's own glass capsule (`nf-glass-seg`), the
+ * one the feed and the public page wear too, so moving between your account
+ * and your page does not change what a tab looks like halfway through.
  *
  * The rows replaced a grid of seven square tiles. The tiles looked tidy in a
  * mockup and read badly on a phone: seven equal boxes give equal weight to
@@ -54,9 +57,49 @@ export type AccountRowsCopy = {
   wallet: string;
   messages: string;
   settings: string;
+  /** The Belongings tab and its four rows, per `50E032EA`. */
+  belongings: string;
+  posts: string;
+  myBookings: string;
+  myBookingsSub: string;
+  savedSub: string;
+  walletSub: string;
+  inspections: string;
+  inspectionsSub: string;
 };
 
 type Tab = "account" | "posts";
+
+/**
+ * A belongings row: a glass card, a glass tile with the brand object, the
+ * title, the line under it, a chevron. The whole row is the link.
+ */
+function BelongingRow({
+  href,
+  icon,
+  title,
+  sub,
+  testId,
+}: {
+  href: string;
+  icon: BrandIconName;
+  title: string;
+  sub: string;
+  testId?: string;
+}) {
+  return (
+    <Link href={href} className="nf-card nf-belong__row" data-testid={testId}>
+      <span className="nf-belong__tile" aria-hidden="true">
+        <BrandIcon name={icon} size={40} />
+      </span>
+      <span className="nf-belong__body">
+        <span className="nf-belong__title">{title}</span>
+        <span className="nf-belong__sub">{sub}</span>
+      </span>
+      <UiIcon name="chevron-right" size={20} className="nf-belong__chev" />
+    </Link>
+  );
+}
 
 export function AccountBody({
   counts,
@@ -69,6 +112,7 @@ export function AccountBody({
   handle,
   hasBio,
   locale,
+  roleSwitch,
 }: {
   counts: AccountCounts;
   copy: AccountRowsCopy;
@@ -81,6 +125,9 @@ export function AccountBody({
   handle: string | null;
   /** Drives the owner's first useful action while the Posts tab is empty. */
   hasBio: boolean;
+  /** The Switch role row, built by the page so this stays a plain client
+      component: the existing `RoleSwitcher`, wearing the belongings card. */
+  roleSwitch?: React.ReactNode;
   /**
    * The locale, NOT a formatter.
    *
@@ -101,30 +148,21 @@ export function AccountBody({
   const [editing, setEditing] = useState(false);
   const formatCount = (value: number) => formatNumber(value, locale);
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "account", label: "Account" },
-    { key: "posts", label: "Posts" },
+  const tabs: { key: Tab; label: string; icon: "home" | "chat-bubble" }[] = [
+    { key: "account", label: copy.belongings, icon: "home" },
+    { key: "posts", label: copy.posts, icon: "chat-bubble" },
   ];
 
   return (
     <div className="mt-lg">
-      {/* The strip scrolls horizontally on purpose even at two tabs: it is the
-          same component shape as the public page, which has six, and a strip
-          that reflows at one width and scrolls at another is two components
-          pretending to be one. */}
+      {/* Belongings / Posts: the glass capsule the render draws, and the same
+          object the feed's For you / Following and the public page's tabs
+          wear, so a tab is one thing across the whole social layer. */}
       <div
         role="tablist"
         aria-label="Your account"
-        /* `-mx-md` AND NOT `-mx-4`, AND THIS ONE IS A PROBE.
-           Thirty-nine negative margins were left off the scale because nobody
-           here can run a build to confirm Tailwind v4 generates a negative
-           utility from a `--spacing-*` theme key. Two are converted first, this
-           and `ThreadOptionsSheet`'s `-mt-xs`, so the answer costs one build
-           rather than thirty-nine. If it does NOT resolve, this strip stops
-           bleeding into the gutter and sits inset by 16px on a phone, which is
-           visible at a glance and harmless meanwhile. `px-md` beside it is the
-           16px it cancels. */
-        className="-mx-md flex gap-2xs overflow-x-auto border-b border-[var(--nf-border-subtle)] px-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
+        className="nf-glass-seg"
+        style={{ "--nf-seg-count": tabs.length } as React.CSSProperties}
       >
         {tabs.map((entry) => (
           <button
@@ -135,9 +173,10 @@ export function AccountBody({
             aria-selected={tab === entry.key}
             aria-controls={`account-panel-${entry.key}`}
             onClick={() => setTab(entry.key)}
-            className="nf-social-tab"
+            className="nf-glass-seg__tab"
             data-testid={`account-tab-${entry.key}`}
           >
+            <UiIcon name={entry.icon} size={20} />
             {entry.label}
           </button>
         ))}
@@ -150,13 +189,43 @@ export function AccountBody({
           aria-labelledby="account-tab-account"
           className="space-y-lg pt-lg"
         >
+          {/* The four belongings, as drawn: bookings, saved, wallet,
+              inspections, then the role switch. Everything else a person has
+              here follows in the quieter groups under them, so nothing that
+              used to be reachable from this page has gone. */}
+          <div className="nf-belong" data-testid="belongings">
+            <BelongingRow
+              href="/bookings"
+              icon="calendar-check"
+              title={copy.myBookings}
+              sub={copy.myBookingsSub}
+              testId="row-bookings"
+            />
+            <BelongingRow href="/saved" icon="heart-home" title={copy.saved} sub={copy.savedSub} />
+            <BelongingRow href="/wallet" icon="wallet" title={copy.wallet} sub={copy.walletSub} />
+            <BelongingRow
+              href="/inspections"
+              icon="shield-check"
+              title={copy.inspections}
+              sub={copy.inspectionsSub}
+            />
+            {roleSwitch ? (
+              <div className="nf-card nf-belong__switch">{roleSwitch}</div>
+            ) : null}
+          </div>
+
           <SettingsGroup label="What you have here">
+            <RowLink
+              href="/reviews"
+              icon="star"
+              label="Reviews"
+              value={formatCount(counts.reviews)}
+            />
             <RowLink
               href="/bookings"
               icon="calendar-booking"
               label={copy.bookings}
               value={formatCount(counts.trips)}
-              testId="row-bookings"
             />
             <RowLink
               href="/saved"
@@ -164,21 +233,9 @@ export function AccountBody({
               label={copy.saved}
               value={formatCount(counts.saved)}
             />
-            <RowLink
-              href="/reviews"
-              icon="star"
-              label="Reviews"
-              value={formatCount(counts.reviews)}
-            />
           </SettingsGroup>
 
-          <SettingsGroup label="Money and messages">
-            <RowLink
-              href="/wallet"
-              icon="wallet"
-              label={copy.wallet}
-              sub="Balance and payments"
-            />
+          <SettingsGroup label="Messages">
             <RowLink
               href="/messages"
               icon="chat-bubble"
@@ -193,7 +250,10 @@ export function AccountBody({
             />
           </SettingsGroup>
 
-          <SettingsGroup label="You">
+          <SettingsGroup
+            label="You"
+            note="Photos are re-encoded on your phone before they are uploaded, so the location tag a camera writes never leaves it."
+          >
             <RowButton
               onClick={() => setEditing(true)}
               icon="user"

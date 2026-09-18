@@ -363,6 +363,305 @@
     box-shadow: 0 0 12px -2px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
   }
 
+  /* ------------------------------------------------------------------
+   * THE PROFILE TO `50E032EA`.
+   *
+   * A tall cover with a glass square at each top corner, the person's face in
+   * a glowing ring overlapping the cover's lower edge with the words beside
+   * it (not under it), the two counts with a rule between them, then the
+   * Belongings / Posts capsule and the rows. Both the account page and the
+   * public page wear these classes, so the seam between "me" and "them" is
+   * not felt.
+   * ------------------------------------------------------------------ */
+  .nf-social-cover--profile {
+    height: calc(var(--nf-social-bar) + 196px);
+    border-block-end: 0;
+  }
+  @media (min-width: 640px) {
+    .nf-social-cover--profile {
+      height: calc(var(--nf-social-bar) + 232px);
+    }
+  }
+  /* The photograph the cover carries when a person has set none: the
+     founder's villa plate through next/image, sized for the band. */
+  .nf-social-cover__plate {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    object-position: center 60%;
+  }
+  /* The change-cover control, at the foot of the band where the render has
+     no chrome, so the two corners stay the back and the settings squares. */
+  .nf-social-cover__change {
+    position: absolute;
+    inset-inline-end: 1.25rem;
+    inset-block-end: 0.75rem;
+    z-index: 2;
+  }
+  @media (min-width: 768px) {
+    .nf-social-cover__change {
+      inset-inline-end: 2rem;
+    }
+  }
+
+  .nf-profile-identity {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 16px;
+    align-items: start;
+    margin-block-start: -3.25rem;
+    position: relative;
+    z-index: 1;
+  }
+  /*
+   * The face. 128px on a phone with the ring lit from the upper left and a
+   * glow beneath it, which is the one lamp this screen is allowed: the
+   * person is what the page is about.
+   */
+  .nf-profile-avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 8rem;
+    block-size: 8rem;
+    padding: 4px;
+    border-radius: var(--nf-radius-circle);
+    border: 3px solid transparent;
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--nf-brand-accent) 95%, white) 0%,
+          var(--nf-brand-primary) 40%,
+          color-mix(in oklab, var(--nf-brand-primary) 45%, transparent) 100%
+        )
+        border-box;
+    box-shadow:
+      0 0 0 1px var(--nf-glow-1),
+      0 0 30px -4px var(--nf-glow-3),
+      0 18px 40px -18px var(--nf-overlay-media-deep);
+    cursor: pointer;
+  }
+  .nf-profile-avatar:disabled {
+    cursor: wait;
+  }
+  .nf-profile-avatar:focus-visible {
+    outline: 2px solid var(--nf-brand-accent);
+    outline-offset: 3px;
+  }
+  .nf-profile-avatar__disc {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--nf-radius-circle);
+    overflow: hidden;
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .nf-profile-avatar__disc img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  /* The mark at the foot of the ring. Only ever the verified shield on an
+     APPROVED agent, or the pencil that says the photo is a control. */
+  .nf-profile-avatar__badge {
+    position: absolute;
+    inset-inline-end: 4px;
+    inset-block-end: 4px;
+    display: grid;
+    place-items: center;
+    inline-size: 30px;
+    block-size: 30px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    border: 3px solid var(--nf-surface-canvas);
+    box-shadow: 0 0 14px -2px var(--nf-glow-3);
+  }
+  .nf-profile-avatar__badge--quiet {
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-secondary);
+    box-shadow: none;
+    border-color: var(--nf-border-subtle);
+  }
+  /* The words sit beside the face and start where the cover ends, so the
+     name is the first thing under the photograph. */
+  .nf-profile-text {
+    padding-block-start: 3.75rem;
+    min-inline-size: 0;
+  }
+  .nf-profile-text .nf-social-name {
+    font-size: 1.375rem;
+  }
+  .nf-profile-text .nf-social-handle {
+    margin-block-start: 0.1rem;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-profile-text .nf-social-bio {
+    margin-block-start: 0.5rem;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-profile-text .nf-social-counts {
+    margin-block-start: 0.875rem;
+    gap: 1rem;
+  }
+  .nf-profile-text .nf-social-count {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .nf-profile-text .nf-social-count__value {
+    font-size: 1.125rem;
+  }
+  .nf-profile-text .nf-social-count__rule {
+    block-size: 2.25rem;
+  }
+  .nf-profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 1rem;
+  }
+
+  /* ----------------------------------------------- the glass capsule tabs */
+
+  /*
+   * Belongings / Posts, and the public page's four. One glass capsule with
+   * the live segment filled in brand, the shape the render draws and the
+   * same one the feed's For you / Following wears, so a tab is one object
+   * across the whole social layer.
+   */
+  .nf-glass-seg {
+    display: grid;
+    grid-template-columns: repeat(var(--nf-seg-count, 2), minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-glass-seg__tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-inline-size: 0;
+    min-block-size: 46px;
+    padding-inline: 8px;
+    border: 0;
+    border-radius: var(--nf-radius-pill);
+    background: transparent;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    cursor: pointer;
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-glass-seg__tab:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-glass-seg__tab:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-glass-seg__tab[aria-selected="true"] {
+    background: var(--nf-gradient-brand);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 22px -4px var(--nf-glow-3);
+  }
+  .nf-glass-seg__tab .nf-social-tab__count {
+    margin-inline-start: 2px;
+  }
+
+  /* --------------------------------------------------- the belongings rows */
+
+  /*
+   * One glass card per row, a glass tile with the brand object, the title,
+   * the line under it and a chevron. Each is an ordinary link, 76px tall, so
+   * the whole row is the target.
+   */
+  .nf-belong {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .nf-belong__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-block-size: 76px;
+    padding: 12px 14px 12px 12px;
+    border-radius: var(--nf-radius-lg);
+    color: var(--nf-content-primary);
+    text-align: start;
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-belong__row:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  .nf-belong__row:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-belong__tile {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    inline-size: 56px;
+    block-size: 56px;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 16px -6px var(--nf-glow-2);
+  }
+  .nf-belong__body {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+  .nf-belong__title {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .nf-belong__sub {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+  }
+  .nf-belong__chev {
+    flex-shrink: 0;
+    color: var(--nf-content-secondary);
+  }
+  /* The role switch wears the card and keeps its own row inside it. */
+  .nf-belong__switch .nf-row-button {
+    min-block-size: 76px;
+    padding-inline: 12px 14px;
+    background: transparent;
+    border: 0;
+  }
+
   /* ------------------------------------------------------ the paper twin */
 
   /*
@@ -401,6 +700,31 @@
   }
 
   :root[data-theme="light"] .nf-social-tab[aria-selected="true"]::after {
+    box-shadow: none;
+  }
+
+  :root[data-theme="light"] .nf-profile-avatar {
+    background:
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
+      linear-gradient(135deg, var(--nf-brand-accent) 0%, var(--nf-brand-primary) 100%)
+        border-box;
+    box-shadow: 0 12px 28px -16px var(--nf-wash-7);
+  }
+  :root[data-theme="light"] .nf-profile-avatar__badge {
+    border-color: var(--nf-surface-primary);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-glass-seg {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-glass-seg__tab[aria-selected="true"] {
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-belong__tile {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
     box-shadow: none;
   }
 }

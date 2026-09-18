@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -56,6 +57,9 @@ import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profile
  * becomes a dash or a placeholder. A profile should never look like a form
  * somebody abandoned.
  */
+/** The cover for a page whose owner has set none: the founder's villa plate. */
+const COVER_PLATE = "/brand/photos/villa-pool-skyline-01.jpg";
+
 export function ProfileHeader({
   profile,
   isOwner,
@@ -107,31 +111,37 @@ export function ProfileHeader({
   return (
     <header data-testid="profile-header">
       {/* ------------------------------------------------------ the banner */}
-      <div className="nf-social-cover">
+      <div className="nf-social-cover nf-social-cover--profile">
         {profile.coverUrl ? (
           /* The bucket is public, so the CDN URL renders without a signed
-             request. next/image is skipped deliberately, exactly as the account
-             avatar does: one image from a host that only exists once the
-             platform keys land. */
+             request. next/image is skipped for it: one image from a host that
+             only exists once the platform keys land. The plate IS optimised. */
           // eslint-disable-next-line @next/next/no-img-element
           <img src={profile.coverUrl} alt="" className="nf-social-cover__photo" />
         ) : (
-          <div className="nf-social-cover__art" aria-hidden="true" />
+          <Image
+            src={COVER_PLATE}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 768px"
+            className="nf-social-cover__plate"
+          />
         )}
         <div className="nf-social-cover__scrim" aria-hidden="true" />
 
         <div className="nf-social-float nf-social-float--start">
-          <BackChevron fallback="/around" label={copy.back} labelled />
+          <BackChevron fallback="/around" label={copy.back} />
         </div>
         {share ? (
           <div className="nf-social-float nf-social-float--end">{share}</div>
         ) : null}
       </div>
 
-      {/* --------------------------------- the person, and what to do next */}
-      <div className="nf-social-identity">
-        <div className="nf-social-avatar nf-social-avatar--ring">
-          <span className="nf-social-avatar__disc">
+      {/* --------------------------------- the person, beside the picture */}
+      <div className="nf-profile-identity">
+        <div className="nf-profile-avatar">
+          <span className="nf-profile-avatar__disc">
             {profile.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profile.avatarUrl} alt={`${name}, profile photo`} />
@@ -139,30 +149,17 @@ export function ProfileHeader({
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* The dot says the account is real and reachable. It sits on the
-              avatar rather than beside the name because it is about the person,
-              not about the words. */}
-          <span
-            className={`nf-social-avatar__dot${profile.isAgent ? " nf-social-avatar__dot--agent" : ""}`}
-            aria-hidden="true"
-          />
+          {/* The mark at the foot of the ring: the verified shield on an
+              APPROVED agent, the one state where a human was checked. Nobody
+              else gets a mark there. */}
+          {profile.isAgent ? (
+            <span className="nf-profile-avatar__badge" aria-hidden="true">
+              <UiIcon name="verified" size={16} filled />
+            </span>
+          ) : null}
         </div>
 
-        <div className="nf-social-identity__actions">
-          {isOwner ? (
-            <Link href={`/u/${profile.handle}/edit`} className="nf-btn nf-btn--glass">
-              {copy.editProfile}
-            </Link>
-          ) : (
-            follow
-          )}
-          {menu}
-        </div>
-      </div>
-
-      {/* -------------------------------------------------------- the name */}
-      <div className="nf-social-namerow">
-        <div className="min-w-0">
+        <div className="nf-profile-text">
           <div className="nf-social-nameline">
             <h1 className="nf-social-name">
               <span className="truncate-none">{name}</span>
@@ -171,16 +168,12 @@ export function ProfileHeader({
                   className="nf-social-verified"
                   title={copy.verifiedTitle}
                   aria-label={copy.verified}
+                  role="img"
                 >
-                  <UiIcon name="verified" size={20} />
+                  <UiIcon name="verified" size={18} filled />
                 </span>
               ) : null}
             </h1>
-            {/*
-              The visible text is the abbreviation and the place; the accessible
-              name is the whole sentence. An abbreviation a screen reader spells
-              out letter by letter is not a badge, it is noise.
-            */}
             {mod ? (
               <span
                 className="nf-social-role"
@@ -208,7 +201,42 @@ export function ProfileHeader({
               </>
             ) : null}
           </p>
+
+          {profile.bio && <p className="nf-social-bio">{profile.bio}</p>}
+
+          {/*
+            Followers and Following, with a rule between them. Both lists exist
+            as routes, so both are links. Posts is the tab below rather than a
+            third number here, as the render draws it.
+          */}
+          <div className="nf-social-counts" data-testid="profile-counts">
+            <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
+              <span className="nf-social-count__value nf-numeric">
+                {formatNumber(profile.followerCount, locale)}
+              </span>
+              <span className="nf-social-count__label">{copy.followers}</span>
+            </Link>
+            <span className="nf-social-count__rule" aria-hidden="true" />
+            <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
+              <span className="nf-social-count__value nf-numeric">
+                {formatNumber(profile.followingCount, locale)}
+              </span>
+              <span className="nf-social-count__label">{copy.following}</span>
+            </Link>
+          </div>
         </div>
+      </div>
+
+      {/* ----------------------------------- what to do about them */}
+      <div className="nf-profile-actions">
+        {isOwner ? (
+          <Link href={`/u/${profile.handle}/edit`} className="nf-btn nf-btn--sm nf-btn--glass">
+            {copy.editProfile}
+          </Link>
+        ) : (
+          follow
+        )}
+        {menu}
       </div>
 
       {/* -------------------------------------------------- what they are */}
@@ -247,8 +275,6 @@ export function ProfileHeader({
         </div>
       )}
 
-      {profile.bio && <p className="nf-social-bio">{profile.bio}</p>}
-
       {profile.link && (
         <a
           href={profile.link}
@@ -283,38 +309,6 @@ export function ProfileHeader({
           ) : null}
         </div>
       )}
-
-      {/* ------------------------------------------------------ the counts */}
-      {/*
-        Three numbers the database maintains with triggers, not three numbers
-        this component added up. Followers and Following are links because both
-        lists exist as routes; Posts is plain text because there is no
-        `/u/[handle]/posts` list to point at. A number wearing an underline that
-        goes nowhere is a dead end, and this platform has a written rule against
-        those. The Posts TAB below is where that list lives.
-      */}
-      <div className="nf-social-counts" data-testid="profile-counts">
-        <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
-          <span className="nf-social-count__value nf-numeric">
-            {formatNumber(profile.followerCount, locale)}
-          </span>
-          <span className="nf-social-count__label">{copy.followers}</span>
-        </Link>
-        <span className="nf-social-count__rule" aria-hidden="true" />
-        <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
-          <span className="nf-social-count__value nf-numeric">
-            {formatNumber(profile.followingCount, locale)}
-          </span>
-          <span className="nf-social-count__label">{copy.following}</span>
-        </Link>
-        <span className="nf-social-count__rule" aria-hidden="true" />
-        <span className="nf-social-count nf-social-count--static">
-          <span className="nf-social-count__value nf-numeric">
-            {formatNumber(profile.postCount, locale)}
-          </span>
-          <span className="nf-social-count__label">{copy.posts}</span>
-        </span>
-      </div>
 
       {/* --------------------------------------------- agents only, ever */}
       {trust ? (

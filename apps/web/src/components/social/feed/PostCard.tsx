@@ -126,45 +126,23 @@ function compact(n: number, locale: Locale): string {
 
 function Avatar({ author }: { author: PostAuthor | null }) {
   const initial = (author?.displayLabel ?? author?.handle ?? "?").charAt(0).toUpperCase();
-  if (author?.avatarPath) {
-    /*
-     * A plain img, like every one of its seven siblings.
-     *
-     * This was `next/image`, and it was the only avatar on the platform that
-     * was: ProfileHeader, PeopleList, StoryViewer twice, CommentsSheet, AppRail
-     * and /u all draw the same avatar with a plain tag. Being the odd one out
-     * mattered once a real photo arrived, because `next/image` THROWS on a host
-     * that is not in `remotePatterns`, and a throw here is a 500 on the whole
-     * feed rather than a missing picture. Google alone serves avatars from lh3
-     * through lh6, so listing one shard would have left three that crash.
-     *
-     * There is nothing to optimise either: a 96px avatar from Google's CDN is
-     * already the right bytes, and routing it through the optimiser adds a
-     * round trip to serve the same image slightly later.
-     */
-    return (
-      /* The directive has to sit on the line ABOVE the element it excuses, and
-         it was sitting above the `return`, so it suppressed nothing and was
-         itself reported as unused: two warnings out of one misplaced comment,
-         and the `<img>` below went on being flagged. */
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={author.avatarPath}
-        alt=""
-        width={46}
-        height={46}
-        loading="lazy"
-        decoding="async"
-        className="size-[var(--nf-feed-avatar)] shrink-0 rounded-full object-cover ring-1 ring-[var(--nf-border-default)]"
-      />
-    );
-  }
   return (
-    <span
-      aria-hidden="true"
-      className="grid size-[var(--nf-feed-avatar)] shrink-0 place-items-center rounded-full bg-[image:var(--nf-gradient-brand)] text-[var(--nf-text-body)] font-bold text-[var(--nf-content-on-brand)] ring-1 ring-[var(--nf-border-default)]"
-    >
-      {initial}
+    /* The glass ring the render draws around every face: a thin luminous
+       border box with the photo cut inside it, lit from the upper left like
+       the rest of the material. */
+    <span className="nf-post__avatar" aria-hidden="true">
+      {author?.avatarPath ? (
+        /*
+         * A plain img, like every one of its siblings. `next/image` THROWS on
+         * a host that is not in `remotePatterns`, and a throw here is a 500 on
+         * the whole feed rather than a missing picture; Google alone serves
+         * avatars from four shards.
+         */
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={author.avatarPath} alt="" width={44} height={44} loading="lazy" decoding="async" />
+      ) : (
+        <span className="nf-post__monogram">{initial}</span>
+      )}
     </span>
   );
 }
@@ -195,7 +173,6 @@ function ActionRow({
   onReply,
   onRepost,
   onShare,
-  onSave,
 }: {
   post: PostView;
   locale: Locale;
@@ -203,22 +180,24 @@ function ActionRow({
   onReply: () => void;
   onRepost: () => void;
   onShare: () => void;
-  onSave: () => void;
 }) {
   return (
     <div className="nf-post__actions">
       {/*
         THE WRITE ACTIONS GATE, THE READ ONES DO NOT.
 
-        Like, reply, repost and save all write a row against an account, so a
-        guest tapping one is sent to sign up carrying the feed URL and the verb
-        and comes back to this post. Share and the view count do not write
-        anything and are left alone: a guest may share a post they are allowed
-        to read, and gating that would only stop the platform being passed on.
+        Like, reply and repost all write a row against an account, so a guest
+        tapping one is sent to sign up carrying the feed URL and the verb and
+        comes back to this post. Share writes nothing and is left alone: a
+        guest may share a post they are allowed to read.
 
-        The controls stay at full strength rather than being hidden or dimmed. A
-        feed with its actions greyed out reads as broken; a feed whose actions
-        invite you to join reads as a product.
+        The controls stay at full strength rather than being hidden or dimmed.
+        A feed with its actions greyed out reads as broken; a feed whose
+        actions invite you to join reads as a product.
+
+        Heart, repost, reply, then share on its own at the far end: the order
+        the governing image draws. Save lives in the kebab's sheet, and the
+        view count is a fact the sheet's surface does not need to carry.
       */}
       <AuthGate action="react">
         <button
@@ -230,16 +209,6 @@ function ActionRow({
           <UiIcon name="heart" filled={post.liked} />
           <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
           <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
-        </button>
-      </AuthGate>
-
-      <AuthGate action="post">
-        <button type="button" className="nf-post__act" onClick={onReply}>
-          <UiIcon name="chat-bubble" />
-          <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
-          <span className="sr-only">
-            {post.replyCount === 1 ? "reply" : "replies"}, reply to this
-          </span>
         </button>
       </AuthGate>
 
@@ -259,39 +228,24 @@ function ActionRow({
         </button>
       </AuthGate>
 
+      <AuthGate action="post">
+        <button type="button" className="nf-post__act" onClick={onReply}>
+          <UiIcon name="chat-bubble" />
+          <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
+          <span className="sr-only">
+            {post.replyCount === 1 ? "reply" : "replies"}, reply to this
+          </span>
+        </button>
+      </AuthGate>
+
       <button
         type="button"
-        className="nf-post__act"
+        className="nf-post__act ms-auto"
         onClick={onShare}
         aria-label="Share this post"
       >
         <UiIcon name="share" />
       </button>
-
-      <span
-        className="nf-post__act nf-post__act--fact"
-        title={`${formatNumber(post.viewCount, locale)} views`}
-      >
-        <UiIcon name="views" />
-        <span className="nf-numeric">{compact(post.viewCount, locale)}</span>
-        <span className="sr-only">views</span>
-      </span>
-
-      {/* `ms-auto` stays on the BUTTON, not on the gate. The gate renders as
-          `display: contents` when it renders at all and disappears entirely for
-          a signed-in caller, so a margin put on it would be a margin that
-          silently stops applying the moment somebody has an account. */}
-      <AuthGate action="save">
-        <button
-          type="button"
-          className="nf-post__act ms-auto"
-          aria-pressed={post.saved}
-          onClick={onSave}
-          aria-label={post.saved ? "Saved, remove it" : "Save this"}
-        >
-          <UiIcon name="bookmark" filled={post.saved} />
-        </button>
-      </AuthGate>
     </div>
   );
 }
@@ -303,7 +257,6 @@ export function PostCard({
   onReply,
   onRepost,
   onShare,
-  onSave,
   onMenu,
   editor,
 }: {
@@ -316,7 +269,9 @@ export function PostCard({
   onReply: () => void;
   onRepost: () => void;
   onShare: () => void;
-  onSave: () => void;
+  /** Accepted for the callers that wire it; saving lives in the kebab's sheet
+      now, which is where the row's bookmark went. */
+  onSave?: () => void;
   /** Opens the action sheet. The sheet itself belongs to the surface, so one
       sheet exists per screen rather than one per card. */
   onMenu: () => void;
@@ -346,8 +301,6 @@ export function PostCard({
     "nf-card nf-post nf-post--pressable",
     isSystem ? "nf-post--system" : "",
     isBot ? "nf-post--ai" : "",
-    post.kind === "ASK" ? "nf-post--ask" : "",
-    hasPlate ? "nf-post--listing" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -361,56 +314,74 @@ export function PostCard({
         </p>
       ) : null}
 
-      <div className="flex items-center gap-xs">
-        {isSystem ? (
-          <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm py-2xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.1em] text-[var(--nf-content-muted)]">
-            Vallo
-          </span>
-        ) : isBot ? (
-          <span className="inline-flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-sm py-2xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
-            Vallo AI
+      {/*
+        THE HEAD, AS THE RENDER DRAWS IT.
+
+        The face in its glass ring, then the name with the verified mark beside
+        it and the handle on the line under, then the time and the kebab at the
+        far end. The mark is the platform's verified shield, drawn only for an
+        APPROVED agent, because that is the one state on this platform where a
+        human was checked; nothing else earns it.
+      */}
+      <div className="nf-post__head">
+        {isSystem || isBot ? (
+          <span className="nf-post__avatar" aria-hidden="true">
+            <span className="nf-post__monogram">V</span>
           </span>
         ) : (
-          <>
-            <Link
-              href={post.author?.handle ? `/u/${post.author.handle}` : "#"}
-              className="truncate text-[var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]"
-            >
-              {post.author?.displayLabel ?? `@${post.author?.handle ?? "someone"}`}
-            </Link>
-            {post.author?.handle ? (
-              <span className="truncate text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-                @{post.author.handle}
-              </span>
-            ) : null}
-            {/* The agent chip is border and ink with no tint.
-                `--nf-brand-primary-soft` is a colour-mix of electric blue at 16
-                per cent, and over a white card on paper it lands in the purple
-                range. The brand carries no purple. */}
-            {post.author?.isAgent ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
-                Agent
-              </span>
-            ) : null}
-            {post.author?.moderatorOf ? (
-              <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
-                Mod
-              </span>
-            ) : null}
-          </>
+          <Avatar author={post.author} />
         )}
 
-        <span className="shrink-0 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-          &middot; {post.createdLabel}
+        <div className="nf-post__who">
+          {isSystem ? (
+            <span className="nf-post__name">Vallo</span>
+          ) : isBot ? (
+            <>
+              <span className="nf-post__name">Vallo AI</span>
+              <span className="nf-post__handle">The assistant</span>
+            </>
+          ) : (
+            <>
+              <span className="nf-post__nameline">
+                <Link
+                  href={post.author?.handle ? `/u/${post.author.handle}` : "#"}
+                  className="nf-post__name"
+                >
+                  {post.author?.displayLabel ?? `@${post.author?.handle ?? "someone"}`}
+                </Link>
+                {post.author?.isAgent ? (
+                  <span
+                    className="nf-post__tick"
+                    title="A verified Vallo agent"
+                    aria-label="Verified agent"
+                    role="img"
+                  >
+                    <UiIcon name="verified" size={16} filled />
+                  </span>
+                ) : null}
+                {post.author?.moderatorOf ? (
+                  <span className="nf-post__role" aria-label={`Looks after ${post.author.moderatorOf}`}>
+                    <span aria-hidden="true">Mod</span>
+                  </span>
+                ) : null}
+              </span>
+              {post.author?.handle ? (
+                <span className="nf-post__handle">@{post.author.handle}</span>
+              ) : null}
+            </>
+          )}
+        </div>
+
+        <span className="nf-post__when">
+          {post.createdLabel}
           {post.edited ? " · edited" : ""}
         </span>
 
         {/* The header carries the name, the time and this. Nothing else: the
-            bookmark that used to sit here moved into the menu, where saving
-            belongs beside the other things you can do to somebody's post. */}
+            bookmark that used to sit here lives in the sheet this opens. */}
         <button
           type="button"
-          className="nf-post__act -me-2xs ms-auto shrink-0"
+          className="nf-post__act nf-post__kebab"
           aria-label="More actions"
           aria-haspopup="dialog"
           onClick={onMenu}
@@ -418,10 +389,6 @@ export function PostCard({
           <UiIcon name="more" />
         </button>
       </div>
-
-      {post.kind === "ASK" || post.listing ? (
-        <p className="nf-post__kind">{post.listing ? "Apartment" : "Question"}</p>
-      ) : null}
 
       {post.replyingTo ? (
         <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -441,17 +408,14 @@ export function PostCard({
       {editor ? (
         <div className="mt-sm">{editor}</div>
       ) : post.body ? (
-        <div className={isSystem ? "mt-xs" : "mt-sm flex items-center gap-sm"}>
-          {isSystem || isBot ? null : <Avatar author={post.author} />}
-          <PostBody
-            text={post.body}
-            className={
-              isSystem
-                ? "text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
-                : "min-w-0 text-[var(--nf-text-body)] leading-[1.5] tracking-[-0.005em] text-[var(--nf-content-primary)]"
-            }
-          />
-        </div>
+        <PostBody
+          text={post.body}
+          className={
+            isSystem
+              ? "nf-post__body nf-post__body--system"
+              : "nf-post__body"
+          }
+        />
       ) : null}
 
       {/*
@@ -514,7 +478,19 @@ export function PostCard({
         </p>
       ) : null}
 
-      {post.listing && !hasPlate ? <ListingBlock listing={post.listing} /> : null}
+      {post.listing && hasPlate ? (
+        <div className="nf-post__media nf-post__media--1">
+          <Image
+            src={post.listing.photoUrl as string}
+            alt={post.listing.title}
+            width={800}
+            height={600}
+            sizes="(max-width: 768px) 100vw, 640px"
+          />
+        </div>
+      ) : null}
+
+      {post.listing ? <ListingBlock listing={post.listing} /> : null}
 
       {/*
         The row is on every card, a platform post included.
@@ -534,7 +510,6 @@ export function PostCard({
         onReply={onReply}
         onRepost={onRepost}
         onShare={onShare}
-        onSave={onSave}
       />
     </>
   );
@@ -571,24 +546,7 @@ export function PostCard({
           aria-label="Open post and replies"
         />
       )}
-      {hasPlate && post.listing ? (
-        <>
-          <Image
-            src={post.listing.photoUrl as string}
-            alt={post.listing.title}
-            width={800}
-            height={500}
-            className="nf-post__plate"
-          />
-          <div className="nf-post__under">
-            {body}
-            <ListingFacts listing={post.listing} />
-          </div>
-        </>
-      ) : (
-        body
-      )}
-
+      {body}
     </article>
   );
 }

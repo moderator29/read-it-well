@@ -152,7 +152,8 @@ export function ProfileTabs({
         role="tablist"
         aria-label={labels.tabsLabel.replace("{handle}", handle)}
         onKeyDown={onKeyDown}
-        className="nf-social-tabs"
+        className="nf-glass-seg"
+        style={{ "--nf-seg-count": tabs.length } as React.CSSProperties}
       >
         {tabs.map((key) => {
           const selected = key === tab;
@@ -181,7 +182,7 @@ export function ProfileTabs({
                */
               aria-controls={selected ? `nf-panel-${key}` : undefined}
               tabIndex={selected ? 0 : -1}
-              className="nf-social-tab"
+              className="nf-glass-seg__tab"
               onClick={() => select(key)}
             >
               {labels[LABEL_KEY[key]]}

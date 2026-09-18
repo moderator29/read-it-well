@@ -1,58 +1,66 @@
 import { resolveSession } from "@/lib/actions/session";
+import { getLocale } from "@/lib/locale";
+import { getMyBookings } from "@/lib/bookings/queries";
 import { listMyAreas } from "@/lib/social/areas-queries";
 import { isSocialEnabled } from "@/lib/social/flag";
-import { FabDock, type FabArea } from "./FabDock";
+import { CreateBloom, type BloomArea, type ReviewableStay } from "./bloom/CreateBloom";
 
 /**
- * The way to say something, from anywhere on the social layer.
+ * The way to make something, from anywhere on the social layer.
  *
- * Until now the only composer in the product sat inside one area page, which
- * meant the answer to "how do I post?" was "find the right place first, then
- * scroll to the top of it". That is a feature you have to be taught. A dock
- * that is on screen wherever the conversation is does not need teaching.
+ * A server component for one reason: the bloom opens with real lists rather
+ * than fetching them after the tap. It resolves the session, the places this
+ * person is actually in (for the composer's place picker), and the stays they
+ * may review right now (for the Review lozenge), and hands all three to
+ * `CreateBloom`, which is everything a person touches.
  *
- * Two things, because two is what there is: write something, or ask the
- * assistant. Not a menu of six.
- *
- * This resolves the session and the places somebody is actually in, so the
- * sheet opens with a real list rather than fetching one after the tap. It is a
- * server component for that reason alone; everything a person touches lives in
- * `FabDock`.
+ * Signed out, the bloom still renders and its actions lead to sign-in. It is
+ * absent only when the platform is unconfigured, because then there is
+ * genuinely nothing behind it, and when the social switch is off, because a
+ * create control whose every action then refuses is worse than none.
  */
 export async function AroundFab({
   currentAreaId,
 }: {
-  /** Preselected when the dock is opened from inside a place. */
+  /** Preselected when the bloom is opened from inside a place. */
   currentAreaId?: string;
 }) {
-  /* Off means gone, not disabled. A create control that opens a ring whose
-     every petal then refuses is a worse answer than no control, and the paused
-     page already says what happened. */
   if (!(await isSocialEnabled())) return null;
 
   const session = await resolveSession();
-
-  /* Signed out, the dock still renders and its actions lead to sign-in. A
-     control that disappears for the people who most need to know what this
-     product does is a control working against itself. Unconfigured is the one
-     case where it does not render: there is genuinely nothing behind it. */
   if (session.state === "unconfigured") return null;
 
   const signedIn = session.state === "signed-in";
-  const mine = signedIn ? await listMyAreas() : [];
+  const [mine, bookings] = signedIn
+    ? await Promise.all([listMyAreas(), getMyBookings(await getLocale())])
+    : [[], null];
 
-  /* Only places that are actually open. `posts_insert_self` refuses a post into
-     anything that is not ACTIVE, so offering a paused or still-proposed place
-     in the picker would be offering a refusal. */
-  const areas: FabArea[] = mine
+  /* Only places that are actually open. `posts_insert_self` refuses a post
+     into anything that is not ACTIVE, so offering a paused place would be
+     offering a refusal. */
+  const areas: BloomArea[] = mine
     .filter((area) => area.status === "ACTIVE")
     .map((area) => ({ id: area.id, name: area.name, city: area.city }));
 
+  /* `reviewable` mirrors `reviews_insert_own`, so the picker never offers a
+     stay the database would refuse. A dropped read is an empty list here: the
+     sheet then says nothing can be reviewed and points at the bookings list,
+     which says the true thing about the read in its own words. */
+  const reviewable: ReviewableStay[] =
+    bookings && bookings !== "unavailable"
+      ? bookings.completed
+          .filter((stay) => stay.reviewable)
+          .map((stay) => ({ bookingId: stay.id, title: stay.title, dateRange: stay.dateRange }))
+      : [];
+
   return (
-    <FabDock
+    <CreateBloom
       signedIn={signedIn}
       areas={areas}
-      currentAreaId={currentAreaId && areas.some((a) => a.id === currentAreaId) ? currentAreaId : undefined}
+      currentAreaId={
+        currentAreaId && areas.some((a) => a.id === currentAreaId) ? currentAreaId : undefined
+      }
+      reviewable={reviewable}
     />
   );
 }

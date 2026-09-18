@@ -604,3 +604,185 @@
     background: var(--nf-overlay-backdrop);
   }
 }
+
+/*
+ * ===========================================================================
+ * THE SETTINGS HOME TO `7F96BE6C`.
+ *
+ * The headline and its line, the profile row card, the hub rows with their
+ * glyph tiles and the value at the right, the payment methods block, Log Out.
+ * The rows are the same `.nf-srow` object as everywhere else; `.nf-hub` only
+ * gives each glyph the glass tile the render draws and lets the value carry an
+ * emerald tick for a state the platform actually checked.
+ * ===========================================================================
+ */
+@layer components {
+  .nf-hub-head {
+    margin-block: var(--nf-space-sm) var(--nf-space-lg);
+  }
+  .nf-hub-head__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--nf-content-primary);
+  }
+  .nf-hub-head__lede {
+    margin-block-start: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The person, in a card of their own: the face, the name with its mark,
+     the email, and the chevron to the profile. */
+  .nf-hub-profile {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 88px;
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-sm) var(--nf-space-sm);
+    border-radius: var(--nf-radius-xl);
+    color: var(--nf-content-primary);
+  }
+  .nf-hub-profile:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-hub-profile__avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 64px;
+    block-size: 64px;
+    padding: 2px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(
+          135deg,
+          color-mix(in oklab, var(--nf-brand-accent) 90%, white) 0%,
+          var(--nf-brand-primary) 55%,
+          color-mix(in oklab, var(--nf-brand-primary) 40%, transparent) 100%
+        )
+        border-box;
+    box-shadow: 0 0 16px -4px var(--nf-glow-2);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 700;
+    color: var(--nf-content-on-brand);
+  }
+  .nf-hub-profile__avatar img,
+  .nf-hub-profile__avatar > span {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--nf-radius-circle);
+    object-fit: cover;
+    background: var(--nf-gradient-brand);
+  }
+  .nf-hub-profile__text {
+    flex: 1 1 0;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .nf-hub-profile__name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--nf-text-body-lg);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .nf-hub-profile__email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-hub-profile__chev {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-hub-tick {
+    display: inline-grid;
+    place-items: center;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* Each glyph in a glass square, as drawn. */
+  .nf-hub .nf-srow__icon,
+  .nf-hub__tile {
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 12px -6px var(--nf-glow-2);
+    color: var(--nf-content-primary);
+  }
+  .nf-hub .nf-srow {
+    min-block-size: 68px;
+  }
+  /* The rule between rows starts after the tile, so the tiles read as one
+     rail. */
+  .nf-hub .nf-srow + .nf-srow::before {
+    inset-inline-start: calc(var(--nf-pad-row-inline) + 44px + var(--nf-gap-inline));
+  }
+
+  .nf-hub-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .nf-hub-value--ok {
+    color: var(--nf-state-success);
+    font-weight: 600;
+  }
+
+  /* The payment methods block: a card with the tile, the words and Add at
+     the right, then E's rows under a hairline. */
+  .nf-hub-pay {
+    border-radius: var(--nf-radius-xl);
+    padding: var(--nf-space-sm);
+  }
+  .nf-hub-pay__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-sm);
+  }
+  .nf-hub-pay__head .nf-srow__label {
+    font-weight: 700;
+  }
+  .nf-hub-pay__add {
+    flex: none;
+  }
+  .nf-hub-pay__body {
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+  .nf-hub-pay__body .nf-srow {
+    padding-inline: var(--nf-space-2xs);
+  }
+
+  :root[data-theme="light"] .nf-hub .nf-srow__icon,
+  :root[data-theme="light"] .nf-hub__tile {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-hub-profile__avatar {
+    background:
+      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
+      linear-gradient(135deg, var(--nf-brand-accent) 0%, var(--nf-brand-primary) 100%)
+        border-box;
+    box-shadow: none;
+  }
+}
