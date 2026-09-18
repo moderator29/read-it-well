@@ -87,7 +87,6 @@ import {
   withdrawSchema,
   withdrawToSavedAccountSchema,
 } from "./schema";
-import { withPaymentTables } from "../payments/db";
 import type { WalletSummary } from "./types";
 
 const WALLET_OFF_MESSAGE =
@@ -623,7 +622,7 @@ async function withdrawToSavedAccount(
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const { data: account, error: accountError } = await withPaymentTables(session.supabase)
+  const { data: account, error: accountError } = await session.supabase
     .from("bank_accounts")
     .select("id, bank_code, bank_name, account_number, resolved_account_name, recipient_code")
     .eq("id", parsed.data.bankAccountId)
@@ -733,7 +732,7 @@ async function withdrawToSavedAccount(
       // recipient_code, so a browser can never point an account at a
       // recipient it did not earn. Best effort; a missed cache is one extra
       // recipient next time, not a wrong payout.
-      await withPaymentTables(admin)
+      await admin
         .from("bank_accounts")
         .update({ recipient_code: recipientCode })
         .eq("id", account.id);

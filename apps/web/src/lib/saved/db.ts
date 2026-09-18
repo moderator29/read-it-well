@@ -1,12 +1,10 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 
 /**
- * public.saved_places (M13), typed here until `database.types.ts` is
- * regenerated. Same shape and same reason as lib/messages/db.ts.
+ * The shortlist's vocabulary. saved_places.entity_kind is text with a CHECK
+ * (M13 explains why it does not reference M9's enum), so the union lives here
+ * and mirrors the CHECK: the catalogue's three shelves.
  */
-
-/** Mirrors the CHECK on saved_places.entity_kind: the catalogue's three shelves. */
 export type SavedPlaceKind = "listing" | "accommodation" | "restaurant";
 
 export const SAVED_PLACE_KINDS: readonly SavedPlaceKind[] = [
@@ -15,27 +13,15 @@ export const SAVED_PLACE_KINDS: readonly SavedPlaceKind[] = [
   "restaurant",
 ] as const;
 
-export type SavedPlaceRow = {
-  user_id: string;
-  entity_kind: SavedPlaceKind;
-  entity_id: string;
-  created_at: string;
-};
+export type SavedPlaceRow = Database["public"]["Tables"]["saved_places"]["Row"];
 
-export type SavedPlacesTable = {
-  Row: SavedPlaceRow;
-  Insert: Omit<SavedPlaceRow, "created_at"> & { created_at?: string };
-  Update: Partial<SavedPlaceRow>;
-  Relationships: [];
-};
-
-export type SavedDatabase = Omit<Database, "public"> & {
-  public: Omit<Database["public"], "Tables"> & {
-    Tables: Database["public"]["Tables"] & { saved_places: SavedPlacesTable };
-  };
-};
-
-/** The same request-scoped client, aware of saved_places. */
-export function withSavedPlaces(client: SupabaseClient<Database>): SupabaseClient<SavedDatabase> {
-  return client as unknown as SupabaseClient<SavedDatabase>;
+/**
+ * The column is text under a CHECK, so the generated type is `string`. A row
+ * the database accepted is one of the three by construction; this narrows it
+ * for the type system and refuses, loudly, if the CHECK and this union ever
+ * drift apart.
+ */
+export function asSavedPlaceKind(value: string): SavedPlaceKind {
+  if ((SAVED_PLACE_KINDS as readonly string[]).includes(value)) return value as SavedPlaceKind;
+  throw new Error(`saved_places.entity_kind holds a kind this build does not know: ${value}`);
 }

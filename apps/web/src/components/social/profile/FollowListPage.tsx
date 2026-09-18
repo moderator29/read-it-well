@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
-import { ProfileNotice } from "./ProfileNotice";
+import { EmptyPanel } from "./EmptyPanel";
 import { PeopleList } from "./PeopleList";
 import { AroundFab } from "@/components/social/AroundFab";
 import { getFollowList, type FollowDirection } from "@/lib/social/follows-queries";
@@ -35,11 +35,11 @@ export async function FollowListPage({
     return (
       <div className="mx-auto max-w-2xl">
         <PageHeader title={heading} fallback={`/u/${handle}`} />
-        <ProfileNotice
+        <EmptyPanel
           icon="user-check"
           title="We cannot reach profiles right now"
           body="This is on our side, not yours. Nobody's followers can be read at the moment. Nothing has been lost, and the rest of the app works as normal."
-          primary={{ href: "/home", label: "Back to home" }}
+          action={{ href: "/home", label: "Back to home" }}
         />
       </div>
     );
@@ -56,11 +56,11 @@ export async function FollowListPage({
           and nothing in an exposed schema can tell those two apart. The copy is
           written so it does not have to.
         */}
-        <ProfileNotice
+        <EmptyPanel
           icon="home-search"
           title={`Nothing to show for @${handle}`}
           body="Either nobody holds this handle, or its owner is not reachable from your account. Either way there is no list of people here."
-          primary={{ href: "/around", label: "Go to Around" }}
+          action={{ href: "/around", label: "Go to Around" }}
           secondary={{ href: "/home", label: "Back to home" }}
         />
       </div>

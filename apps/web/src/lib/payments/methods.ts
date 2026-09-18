@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Json } from "../supabase/database.types";
-import { withPaymentTables, type PaymentMethodRow } from "./db";
+import type { PaymentMethodRow } from "./db";
 import { metadataObject, readAuthorization, type PaystackAuthorization } from "./paystack";
 
 /**
@@ -94,9 +94,8 @@ export async function savePaymentMethodFromCharge(
   if (!authorization || !authorization.reusable) return "skipped";
   if (!charge.email) return "skipped";
 
-  const db = withPaymentTables(admin);
   try {
-    const { data: existing, error: readError } = await db
+    const { data: existing, error: readError } = await admin
       .from("payment_methods")
       .select("id")
       .eq("user_id", charge.userId)
@@ -119,11 +118,11 @@ export async function savePaymentMethodFromCharge(
     };
 
     if (existing) {
-      const { error } = await db.from("payment_methods").update(facts).eq("id", existing.id);
+      const { error } = await admin.from("payment_methods").update(facts).eq("id", existing.id);
       return error ? "failed" : "updated";
     }
 
-    const { error } = await db.from("payment_methods").insert({
+    const { error } = await admin.from("payment_methods").insert({
       user_id: charge.userId,
       signature: authorization.signature,
       ...facts,

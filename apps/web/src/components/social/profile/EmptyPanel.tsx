@@ -35,11 +35,29 @@ export function EmptyPanel({
   title,
   body,
   action,
+  secondary,
 }: {
   icon: BrandIconName;
   title: string;
   body: string;
   action?: { href: string; label: string };
+  /**
+   * A quiet second way onward, for the states that honestly have one: a paused
+   * feature that still lets somebody search, a handle that is not a handle.
+   *
+   * It arrived with `ProfileNotice`, which this component replaced. That one
+   * drew an `.nf-card` around a 48px object, which is the shape `Screen.tsx`
+   * was written to end ("a bordered box around a message whose whole job is to
+   * say the box is empty"), so the product carried two empty-state anatomies
+   * one tap apart. Folding its last three callers in here and deleting it left
+   * ONE adapter over ONE anatomy, which is the only arrangement in which a
+   * second one cannot quietly come back.
+   *
+   * `action` gates the pair: a lone secondary would render a quiet ghost button
+   * as a screen's only way onward, which reads as the thing you are not meant
+   * to press.
+   */
+  secondary?: { href: string; label: string };
 }) {
   return (
     <EmptyState
@@ -52,7 +70,9 @@ export function EmptyPanel({
          390px an intrinsic-width button in a centred column reads as a chip
          somebody forgot to style. One shape, stacked and full width, wherever
          an empty state offers a way onward. */
-      action={action && <EmptyActions primary={action} />}
+      action={
+        action && <EmptyActions primary={action} {...(secondary ? { secondary } : {})} />
+      }
     />
   );
 }

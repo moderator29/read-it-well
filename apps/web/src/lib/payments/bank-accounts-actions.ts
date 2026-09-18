@@ -26,7 +26,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
-import { withPaymentTables, type BankAccountRow } from "./db";
+import type { BankAccountRow } from "./db";
 import {
   PaystackError,
   isPaystackConfigured,
@@ -181,7 +181,7 @@ export async function addBankAccount(input: {
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
-  const { data: created, error } = await withPaymentTables(session.supabase)
+  const { data: created, error } = await session.supabase
     .from("bank_accounts")
     .insert({
       user_id: session.user.id,
@@ -228,7 +228,7 @@ export async function setDefaultBankAccount(id: string): Promise<ActionResult<nu
   const parsed = validate(bankAccountIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { error, count } = await withPaymentTables(session.supabase)
+  const { error, count } = await session.supabase
     .from("bank_accounts")
     .update({ is_default: true }, { count: "exact" })
     .eq("id", parsed.data.id)
@@ -252,7 +252,7 @@ export async function removeBankAccount(id: string): Promise<ActionResult<null>>
   const parsed = validate(bankAccountIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { error, count } = await withPaymentTables(session.supabase)
+  const { error, count } = await session.supabase
     .from("bank_accounts")
     .update({ deleted_at: new Date().toISOString() }, { count: "exact" })
     .eq("id", parsed.data.id)
@@ -275,7 +275,7 @@ export async function listBankAccounts(): Promise<ActionResult<BankAccount[]>> {
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const { data, error } = await withPaymentTables(session.supabase)
+  const { data, error } = await session.supabase
     .from("bank_accounts")
     .select("*")
     .eq("user_id", session.user.id)

@@ -2579,4 +2579,22 @@ export const ig: Dictionary = {
       dorm: "Ọnụ ụlọ ekekọrịtara",
     },
   },
+
+  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+     English until a native reviewer rewrites them. */
+  restaurantPage: {
+    fallbackTitle: "Ụlọ oriri",
+    perHead: "maka onye ọ bụla, na-emekarị",
+    reserveTitle: "Debe tebụl",
+    reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
+    hoursTitle: "Oge mmeghe",
+    hoursUnknown:
+      "This restaurant has not published its hours on Vallo yet, so we do not show whether the kitchen is open right now rather than guess at it.",
+    hoursAsk: "Ask them directly and the answer stays in your messages.",
+    message: "Zigara ụlọ oriri ozi",
+    gettingThereTitle: "Otu esi eru ebe ahụ",
+    threadLine:
+      "Your reservation and everything said about it stay in one conversation, so the table you booked and the thread about it never disagree.",
+    loading: "Na-ebubata ụlọ oriri a",
+  },
 };

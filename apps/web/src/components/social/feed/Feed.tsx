@@ -95,17 +95,22 @@ export function Feed({
    * The heading over `emptyMessage`, and the way onward under it.
    *
    * -------------------------------------------------------------------------
-   * TWO EMPTY-STATE ANATOMIES ON TWO SCREENS OF THE SAME FEATURE.
+   * ONE EMPTY-STATE ANATOMY, AND IT TOOK TWO PASSES TO GET THERE.
    *
-   * `/u` draws an empty state as a mark, a heading and an action, through
-   * `ProfileNotice`. This one was a bordered paragraph in muted ink: no mark,
-   * no heading, and nothing at all to do next. The two sit one tap apart and
-   * were answering the same question in two shapes, and the shape with no
-   * action is the one that leaves somebody at a dead end.
+   * This was a bordered paragraph in muted ink: no mark, no heading, and
+   * nothing at all to do next, one tap from `/u`, which drew the same kind of
+   * message as a mark, a heading and an action. The shape with no action is
+   * the one that leaves somebody at a dead end, so this took the other.
    *
-   * `ProfileNotice` is the /u shape and it is what this uses now. Optional so
-   * the three profile call sites keep a heading that suits a profile rather
-   * than inheriting a feed's.
+   * The two shapes are now ONE. `EmptyPanel` is the single adapter over the
+   * platform's `EmptyState`, and every screen of this feature reaches it: the
+   * feed, the profile tabs, the follow lists, the paused state, the story
+   * composer and `/u`. The second anatomy, `ProfileNotice`, is deleted rather
+   * than left unused, because an unused component is a second anatomy waiting
+   * for its next call site.
+   *
+   * `emptyTitle` stays optional so the profile call sites keep a heading that
+   * suits a profile rather than inheriting a feed's.
    */
   emptyTitle?: string;
   emptyAction?: { href: string; label: string };

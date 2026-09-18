@@ -1491,6 +1491,105 @@ export type Database = {
         }
         Relationships: []
       }
+      catalogue_entries: {
+        Row: {
+          amenity_codes: string[]
+          area: string | null
+          city: string | null
+          cover_path: string | null
+          entity_id: string
+          entity_kind: Database["public"]["Enums"]["catalogue_entity_kind"]
+          featured: boolean
+          has_breakfast: boolean
+          has_free_cancellation: boolean
+          headline_price_minor: number | null
+          headline_price_period: string | null
+          id: string
+          is_demo: boolean
+          kind: string
+          latitude: number | null
+          location: unknown
+          longitude: number | null
+          max_sleeps: number | null
+          price_band: number | null
+          published_at: string | null
+          rating_avg: number | null
+          rating_count: number
+          room_categories: Database["public"]["Enums"]["room_category"][]
+          search: unknown
+          source: Database["public"]["Enums"]["source_kind"]
+          state_code: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at: string
+          verified: boolean
+        }
+        Insert: {
+          amenity_codes?: string[]
+          area?: string | null
+          city?: string | null
+          cover_path?: string | null
+          entity_id: string
+          entity_kind: Database["public"]["Enums"]["catalogue_entity_kind"]
+          featured?: boolean
+          has_breakfast?: boolean
+          has_free_cancellation?: boolean
+          headline_price_minor?: number | null
+          headline_price_period?: string | null
+          id?: string
+          is_demo?: boolean
+          kind: string
+          latitude?: number | null
+          location?: unknown
+          longitude?: number | null
+          max_sleeps?: number | null
+          price_band?: number | null
+          published_at?: string | null
+          rating_avg?: number | null
+          rating_count?: number
+          room_categories?: Database["public"]["Enums"]["room_category"][]
+          search?: unknown
+          source: Database["public"]["Enums"]["source_kind"]
+          state_code?: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at?: string
+          verified?: boolean
+        }
+        Update: {
+          amenity_codes?: string[]
+          area?: string | null
+          city?: string | null
+          cover_path?: string | null
+          entity_id?: string
+          entity_kind?: Database["public"]["Enums"]["catalogue_entity_kind"]
+          featured?: boolean
+          has_breakfast?: boolean
+          has_free_cancellation?: boolean
+          headline_price_minor?: number | null
+          headline_price_period?: string | null
+          id?: string
+          is_demo?: boolean
+          kind?: string
+          latitude?: number | null
+          location?: unknown
+          longitude?: number | null
+          max_sleeps?: number | null
+          price_band?: number | null
+          published_at?: string | null
+          rating_avg?: number | null
+          rating_count?: number
+          room_categories?: Database["public"]["Enums"]["room_category"][]
+          search?: unknown
+          source?: Database["public"]["Enums"]["source_kind"]
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          title?: string
+          updated_at?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           agent_id: string
@@ -4694,6 +4793,67 @@ export type Database = {
           wallet_id: string
         }[]
       }
+      stays_search: {
+        Args: {
+          p_amenities?: string[]
+          p_area?: string
+          p_breakfast?: boolean
+          p_check_in?: string
+          p_check_out?: string
+          p_city?: string
+          p_entity_kinds?: Database["public"]["Enums"]["catalogue_entity_kind"][]
+          p_free_cancellation?: boolean
+          p_guests?: number
+          p_lat?: number
+          p_limit?: number
+          p_lng?: number
+          p_max_price_minor?: number
+          p_min_price_minor?: number
+          p_min_rating?: number
+          p_offset?: number
+          p_q?: string
+          p_radius_m?: number
+          p_room_categories?: Database["public"]["Enums"]["room_category"][]
+          p_rooms?: number
+          p_sort?: string
+          p_state_code?: string
+          p_verified?: boolean
+        }
+        Returns: {
+          amenity_codes: string[]
+          area: string
+          city: string
+          cover_path: string
+          distance_m: number
+          entity_id: string
+          entity_kind: Database["public"]["Enums"]["catalogue_entity_kind"]
+          featured: boolean
+          has_breakfast: boolean
+          has_free_cancellation: boolean
+          headline_price_minor: number
+          headline_price_period: string
+          id: string
+          is_demo: boolean
+          kind: string
+          latitude: number
+          longitude: number
+          max_sleeps: number
+          nightly_minor: number
+          nights: number
+          price_band: number
+          rate_plan_id: string
+          rating_avg: number
+          rating_count: number
+          room_categories: Database["public"]["Enums"]["room_category"][]
+          room_type_id: string
+          source: Database["public"]["Enums"]["source_kind"]
+          state_code: string
+          title: string
+          total_count: number
+          total_minor: number
+          verified: boolean
+        }[]
+      }
       story_count: { Args: { p_author: string }; Returns: number }
       suspend_agent: {
         Args: {
@@ -4714,6 +4874,7 @@ export type Database = {
         }
         Returns: string
       }
+      unaccent_immutable: { Args: { input: string }; Returns: string }
       verification_is_required: { Args: { p_user: string }; Returns: boolean }
       verify_payout_account: {
         Args: {
@@ -4766,6 +4927,7 @@ export type Database = {
         | "shortlet_operator"
         | "restaurant"
         | "agency"
+      catalogue_entity_kind: "listing" | "accommodation" | "restaurant"
       document_review_status: "pending" | "approved" | "rejected"
       document_subtype:
         | "passport"
@@ -5074,6 +5236,7 @@ export const Constants = {
         "restaurant",
         "agency",
       ],
+      catalogue_entity_kind: ["listing", "accommodation", "restaurant"],
       document_review_status: ["pending", "approved", "rejected"],
       document_subtype: [
         "passport",

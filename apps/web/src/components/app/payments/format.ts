@@ -47,3 +47,22 @@ export function cardBrandLabel(cardType: string | null): string {
   if (BRANDS[key]) return BRANDS[key];
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
+
+/**
+ * The card a screen should offer first: the default when it can be charged,
+ * otherwise the first one that can. Null when none can, which is the caller's
+ * signal to render no saved-card option at all rather than an empty group.
+ *
+ * Pure, and here rather than beside the picker, because the picker is a client
+ * component and this project's vitest resolves React to the server build: a
+ * rule about which card is charged has to be testable without a renderer.
+ */
+export function preselectedCardId(
+  cards: { id: string; reusable: boolean; isDefault: boolean; expMonth: number | null; expYear: number | null }[],
+): string | null {
+  const usable = cards.filter(
+    (card) => card.reusable && !cardExpired(card.expMonth, card.expYear),
+  );
+  const preferred = usable.find((card) => card.isDefault) ?? usable[0];
+  return preferred?.id ?? null;
+}

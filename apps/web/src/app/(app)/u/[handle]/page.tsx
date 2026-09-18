@@ -4,8 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
-/* One empty-state anatomy across /around and /u. See ./Notice. */
-import { Notice } from "../Notice";
+/* ONE empty-state anatomy across the whole product. See EmptyPanel. */
+import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
 import { ProfileShare } from "@/components/social/profile/ProfileShare";
 import { ProfileTabs } from "@/components/social/profile/ProfileTabs";
@@ -187,20 +187,20 @@ export default async function SocialProfilePage({
       <PageHeader title={`@${handle}`} fallback="/home" />
 
       {view.state === "unconfigured" && (
-        <Notice
+        <EmptyPanel
           icon="user-check"
           title="We cannot reach profiles right now"
           body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
-          primary={{ href: "/home", label: "Back to home" }}
+          action={{ href: "/home", label: "Back to home" }}
         />
       )}
 
       {view.state === "malformed" && (
-        <Notice
+        <EmptyPanel
           icon="home-search"
           title="That is not a handle"
           body="A handle is 3 to 20 characters: letters, numbers and underscores, starting with a letter. Check the address and try again."
-          primary={{ href: "/home", label: "Back to home" }}
+          action={{ href: "/home", label: "Back to home" }}
           secondary={{ href: "/search", label: "Search stays" }}
         />
       )}
@@ -214,7 +214,7 @@ export default async function SocialProfilePage({
         unique index then refuses.
       */}
       {view.state === "claimable" && (
-        <Notice
+        <EmptyPanel
           icon="user-verified"
           title={
             view.official ? `@${handle} is a Vallo name` : `Nothing to show at @${handle}`
@@ -228,7 +228,7 @@ export default async function SocialProfilePage({
                   ? "Either nobody holds this handle, or its owner is not reachable from your account. You already have a page of your own, and a person keeps one handle at a time."
                   : "Nobody we can show you is at this handle. Sign in to claim it, or to see whose it is."
           }
-          primary={
+          action={
             view.official
               ? { href: "/around", label: "Go to Around" }
               : view.canClaim

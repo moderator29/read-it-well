@@ -3031,6 +3031,29 @@ export const en = {
       dorm: "Shared room",
     },
   },
+
+  /**
+   * /restaurant/[id]: the dedicated restaurant surface, where the reservation
+   * is the page. Added 18 September 2026 (Build 05, FE-11).
+   */
+  restaurantPage: {
+    fallbackTitle: "Restaurant",
+    perHead: "a head, typically",
+    reserveTitle: "Hold a table",
+    reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
+    hoursTitle: "Opening hours",
+    /* The hours we do not have, said plainly. Never a guessed "open now": a
+       badge this page cannot stand behind sends somebody across Lagos to a
+       locked door. */
+    hoursUnknown:
+      "This restaurant has not published its hours on Vallo yet, so we do not show whether the kitchen is open right now rather than guess at it.",
+    hoursAsk: "Ask them directly and the answer stays in your messages.",
+    message: "Message the restaurant",
+    gettingThereTitle: "Getting there",
+    threadLine:
+      "Your reservation and everything said about it stay in one conversation, so the table you booked and the thread about it never disagree.",
+    loading: "Loading this restaurant",
+  },
 };
 
 /**

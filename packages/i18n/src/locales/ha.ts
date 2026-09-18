@@ -2570,4 +2570,22 @@ export const ha: Dictionary = {
       dorm: "Ɗaki na haɗin gwiwa",
     },
   },
+
+  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+     English until a native reviewer rewrites them. */
+  restaurantPage: {
+    fallbackTitle: "Gidan cin abinci",
+    perHead: "ga kowane mutum, galibi",
+    reserveTitle: "Ajiye tebur",
+    reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
+    hoursTitle: "Lokutan buɗewa",
+    hoursUnknown:
+      "This restaurant has not published its hours on Vallo yet, so we do not show whether the kitchen is open right now rather than guess at it.",
+    hoursAsk: "Ask them directly and the answer stays in your messages.",
+    message: "Aika saƙo zuwa gidan cin abinci",
+    gettingThereTitle: "Yadda za a isa",
+    threadLine:
+      "Your reservation and everything said about it stay in one conversation, so the table you booked and the thread about it never disagree.",
+    loading: "Ana ɗora wannan gidan cin abinci",
+  },
 };

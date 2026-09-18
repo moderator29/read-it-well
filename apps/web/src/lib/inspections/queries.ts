@@ -3,7 +3,6 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
-import { withInspectionOutcome } from "./db";
 import { isOpen, type Inspection, type InspectionOutcome, type InspectionState } from "./types";
 
 /**
@@ -76,7 +75,7 @@ async function readSide(column: "lister_id" | "requester_id"): Promise<Inspectio
   if (session.state !== "signed-in") return EMPTY;
 
   try {
-    const { data, error } = await withInspectionOutcome(session.supabase)
+    const { data, error } = await session.supabase
       .from("inspection_requests")
       .select(COLUMNS)
       .eq(column, session.user.id)
@@ -202,7 +201,7 @@ export async function readOpenInspectionFor(listingId: string): Promise<Inspecti
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
   try {
-    const { data, error } = await withInspectionOutcome(session.supabase)
+    const { data, error } = await session.supabase
       .from("inspection_requests")
       .select(COLUMNS)
       .eq("listing_id", listingId)
@@ -254,7 +253,7 @@ export async function readOpenInspectionForConversation(
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
   try {
-    const { data, error } = await withInspectionOutcome(session.supabase)
+    const { data, error } = await session.supabase
       .from("inspection_requests")
       .select(COLUMNS)
       .eq("conversation_id", conversationId)

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SocialPaused } from "@/components/social/SocialPaused";
-/* One empty-state anatomy across /around and /u. See ./Notice. */
-import { Notice } from "./Notice";
+/* ONE empty-state anatomy across the whole product. See EmptyPanel. */
+import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { AroundFab } from "@/components/social/AroundFab";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -51,11 +51,11 @@ export default async function PeoplePage({
     return (
       <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
         <PageHeader title="People" fallback="/around" />
-        <Notice
+        <EmptyPanel
           icon="user-check"
           title="We cannot reach profiles right now"
           body="This is on our side, not yours. Nobody's page can be read from here at the moment. The rest of the app works as normal."
-          primary={{ href: "/around", label: "Go to Around" }}
+          action={{ href: "/around", label: "Go to Around" }}
         />
       </div>
     );
@@ -114,7 +114,7 @@ export default async function PeoplePage({
 
       {view.people.length === 0 ? (
         <div className="mt-md">
-          <Notice
+          <EmptyPanel
             icon="home-search"
             title={searching ? `Nobody here is called ${view.query}` : "Nobody has a page yet"}
             body={
@@ -122,7 +122,7 @@ export default async function PeoplePage({
                 ? "Nobody matched that name, handle, occupation or place. Try a shorter piece of it, or the handle itself."
                 : "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads."
             }
-            primary={{ href: "/around", label: "Go to Around" }}
+            action={{ href: "/around", label: "Go to Around" }}
             secondary={searching ? { href: "/u", label: "See everybody" } : undefined}
           />
         </div>

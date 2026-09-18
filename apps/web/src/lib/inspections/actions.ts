@@ -5,7 +5,6 @@ import { z } from "zod";
 import { resolveSession } from "../actions/session";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { startConversation } from "../messages/actions";
-import { withInspectionOutcome } from "./db";
 import { INSPECTION_OUTCOMES, type InspectionState } from "./types";
 
 /**
@@ -238,7 +237,7 @@ export async function closeInspection(input: unknown): Promise<ActionResult<null
   const session = await resolveSession();
   if (session.state !== "signed-in") return fail("Sign in to change this request.");
 
-  const { error } = await withInspectionOutcome(session.supabase)
+  const { error } = await session.supabase
     .from("inspection_requests")
     .update({
       state: parsed.data.state,

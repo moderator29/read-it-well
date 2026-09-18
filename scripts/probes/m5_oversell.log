@@ -1,0 +1,25 @@
+== probe started 2026-09-18T08:18:58Z
+== migration: 20260918081748_m05_room_inventory_and_reserve_room_nights.sql
+ PostgreSQL 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+NOTICE:  database "vallo_m5_oversell_probe" does not exist, skipping
+== function text: 147 lines, sha256 f7e8e0e245e53a3c
+== before: units_open=1 units_booked=0
+== running two sessions concurrently
+-- session A output:
+A: begin
+A: held nights=1
+A: sleeping 2s with the row locked
+
+A: committed
+-- session B output:
+B: begin (0.5s after A)
+psql:/tmp/tmp.nf9Hb8CZos/b.sql:3: ERROR:  Only 0 of 1 night(s) had 1 room(s) free. Nothing was held.
+HINT:  The nights that were free are released with this error; try other dates or fewer rooms.
+CONTEXT:  PL/pgSQL function private.reserve_room_nights(uuid,date,date,integer,uuid) line 75 at RAISE
+B: committed
+== after: units_open=1 units_booked=1
+== release restores
+released nights=1
+== after release: units_open=1 units_booked=0
+== scratch database dropped
+== RESULT: PASS. A held the last room, B was refused, units_booked never exceeded units_open.

@@ -62,7 +62,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListingRepository().byId(id);
-  if (!listing || listing.kind !== "restaurant") return { title: "Restaurant" };
+  if (!listing || listing.kind !== "restaurant") {
+    return { title: getDictionary(await getLocale()).restaurantPage.fallbackTitle };
+  }
   const where = [listing.area, listing.city].filter(Boolean).join(", ");
   return {
     title: where ? `${listing.title}, ${where}` : listing.title,
@@ -75,6 +77,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   const listing = await getListingRepository().byId(id);
+  const copy = t.restaurantPage;
 
   /* This route is for restaurants. Anything else is served by the surface built
      for it, so a stay or a flat that arrived here is not found rather than
@@ -111,15 +114,15 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
               currency={listing.currency}
               className="nf-h3 text-[var(--nf-content-primary)]"
             />
-            <span className={TYPE.rowMeta}>a head, typically</span>
+            <span className={TYPE.rowMeta}>{copy.perHead}</span>
           </p>
         )}
 
         <Stack className="mt-block">
           {/* THE RESERVATION, FIRST. Not a panel beside the description. */}
           <Section
-            title="Hold a table"
-            description="Pick a time and the restaurant answers. Nothing is charged to hold a table."
+            title={copy.reserveTitle}
+            description={copy.reserveBody}
           >
             <ReserveTable listingId={listing.id} messageHref={messageHref} />
           </Section>
@@ -131,22 +134,17 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             "Open now" pill this page cannot stand behind. It states what it
             knows and points at the person who does know.
           */}
-          <Section title="Opening hours">
+          <Section title={copy.hoursTitle}>
             <Surface>
-              <p className={TYPE.body}>
-                This restaurant has not published its hours on Vallo yet, so we do not show
-                whether the kitchen is open right now rather than guess at it.
-              </p>
-              <p className={`mt-row ${TYPE.rowMeta}`}>
-                Ask them directly and the answer stays in your messages.
-              </p>
+              <p className={TYPE.body}>{copy.hoursUnknown}</p>
+              <p className={`mt-row ${TYPE.rowMeta}`}>{copy.hoursAsk}</p>
               <ButtonLink href={messageHref} variant="secondary" className="mt-row">
-                Message the restaurant
+                {copy.message}
               </ButtonLink>
             </Surface>
           </Section>
 
-          <Section title="Getting there">
+          <Section title={copy.gettingThereTitle}>
             <Surface>
               {where && (
                 <p className={`flex items-start gap-inline-tight ${TYPE.body}`}>
@@ -154,10 +152,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
                   <span className="min-w-0">{where}</span>
                 </p>
               )}
-              <p className={`mt-row ${TYPE.rowMeta}`}>
-                Your reservation and everything said about it stay in one conversation, so the
-                table you booked and the thread about it never disagree.
-              </p>
+              <p className={`mt-row ${TYPE.rowMeta}`}>{copy.threadLine}</p>
               <Link
                 href="/restaurants"
                 className={`mt-row inline-flex items-center gap-inline-tight ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline`}

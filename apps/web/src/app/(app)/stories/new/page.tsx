@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { listMyAreas } from "@/lib/social/areas-queries";
 import { StoryComposer } from "@/components/social/story/StoryComposer";
-import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
+import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
 
@@ -26,11 +26,11 @@ export default async function NewStoryPage() {
     return (
       <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
         <PageHeader title="Write a story" fallback="/around" />
-        <ProfileNotice
+        <EmptyPanel
           icon="camera"
           title="We cannot reach stories right now"
           body="This is on our side, not yours. Nothing can be published from here at the moment. Nothing you have written has been lost, and the rest of the app works as normal."
-          primary={{ href: "/home", label: "Back to home" }}
+          action={{ href: "/home", label: "Back to home" }}
         />
       </div>
     );

@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/app/PageHeader";
-import { ProfileNotice } from "@/components/social/profile/ProfileNotice";
+import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { SOCIAL_OFF_BODY, SOCIAL_OFF_TITLE } from "@/lib/social/flag";
 
 /**
@@ -33,11 +33,11 @@ export function SocialPaused({
   return (
     <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader title={title} fallback={fallback} />
-      <ProfileNotice
+      <EmptyPanel
         icon="shield-check"
         title={SOCIAL_OFF_TITLE}
         body={SOCIAL_OFF_BODY}
-        primary={{ href: "/home", label: "Back to home" }}
+        action={{ href: "/home", label: "Back to home" }}
         secondary={{ href: "/search", label: "Search stays" }}
       />
     </div>

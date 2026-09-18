@@ -25,7 +25,6 @@ import { consume, subjectForUser } from "../security/rate-limit";
 import type { Json } from "../supabase/database.types";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
-import { withPaymentTables } from "./db";
 import { logMoney } from "./observability";
 import {
   PaystackError,
@@ -77,8 +76,7 @@ export async function chargeSavedCard(params: {
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const db = withPaymentTables(session.supabase);
-  const { data: method, error: readError } = await db
+  const { data: method, error: readError } = await session.supabase
     .from("payment_methods")
     .select("id, user_id, authorization_code, email_used, reusable, last4")
     .eq("id", params.methodId)
@@ -146,7 +144,7 @@ export async function chargeSavedCard(params: {
   // again. The service role writes it because `reusable` is not in the
   // owner's column grant, which is the point: a browser cannot flip it back.
   if (NOT_REUSABLE_RE.test(declined)) {
-    await withPaymentTables(admin)
+    await admin
       .from("payment_methods")
       .update({ reusable: false })
       .eq("id", method.id);

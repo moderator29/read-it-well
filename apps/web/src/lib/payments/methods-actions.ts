@@ -32,7 +32,6 @@ import { isFeatureEnabled } from "../flags";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
-import { withPaymentTables } from "./db";
 import { paymentMethodIdSchema, toPaymentMethod, type PaymentMethod } from "./methods";
 import { logMoney } from "./observability";
 import { PaystackError, initializeTransaction, isPaystackConfigured } from "./paystack";
@@ -74,7 +73,7 @@ export async function listPaymentMethods(): Promise<ActionResult<PaymentMethod[]
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const { data, error } = await withPaymentTables(session.supabase)
+  const { data, error } = await session.supabase
     .from("payment_methods")
     .select("*")
     .eq("user_id", session.user.id)
@@ -95,7 +94,7 @@ export async function setDefaultPaymentMethod(id: string): Promise<ActionResult<
   const parsed = validate(paymentMethodIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { error, count } = await withPaymentTables(session.supabase)
+  const { error, count } = await session.supabase
     .from("payment_methods")
     .update({ is_default: true }, { count: "exact" })
     .eq("id", parsed.data.id)
@@ -119,7 +118,7 @@ export async function removePaymentMethod(id: string): Promise<ActionResult<null
   const parsed = validate(paymentMethodIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { error, count } = await withPaymentTables(session.supabase)
+  const { error, count } = await session.supabase
     .from("payment_methods")
     .update({ deleted_at: new Date().toISOString() }, { count: "exact" })
     .eq("id", parsed.data.id)

@@ -24,7 +24,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
-import { SAVED_PLACE_KINDS, withSavedPlaces, type SavedPlaceKind } from "./db";
+import { SAVED_PLACE_KINDS, asSavedPlaceKind, type SavedPlaceKind } from "./db";
 
 const placeKeySchema = z.object({
   entityKind: z.enum(SAVED_PLACE_KINDS, { message: "That is not something we can save." }),
@@ -58,8 +58,7 @@ export async function savePlace(input: {
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const db = withSavedPlaces(session.supabase);
-  const { data, error } = await db
+  const { data, error } = await session.supabase
     .from("saved_places")
     .insert({
       user_id: session.user.id,
@@ -72,7 +71,7 @@ export async function savePlace(input: {
   if (error || !data) {
     // 23505: already saved in another tab. The intent is satisfied.
     if (error?.code === "23505") {
-      const { data: existing } = await db
+      const { data: existing } = await session.supabase
         .from("saved_places")
         .select("entity_kind, entity_id, created_at")
         .eq("user_id", session.user.id)
@@ -81,7 +80,7 @@ export async function savePlace(input: {
         .maybeSingle();
       if (existing) {
         return ok({
-          entityKind: existing.entity_kind,
+          entityKind: asSavedPlaceKind(existing.entity_kind),
           entityId: existing.entity_id,
           savedAt: existing.created_at,
         });
@@ -91,7 +90,11 @@ export async function savePlace(input: {
   }
 
   revalidatePath("/saved");
-  return ok({ entityKind: data.entity_kind, entityId: data.entity_id, savedAt: data.created_at });
+  return ok({
+    entityKind: asSavedPlaceKind(data.entity_kind),
+    entityId: data.entity_id,
+    savedAt: data.created_at,
+  });
 }
 
 /** Take a place off the shortlist. Removing what is not there is a no-op. */
@@ -106,7 +109,7 @@ export async function unsavePlace(input: {
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const { error } = await withSavedPlaces(session.supabase)
+  const { error } = await session.supabase
     .from("saved_places")
     .delete()
     .eq("user_id", session.user.id)
@@ -132,7 +135,7 @@ export async function listSavedPlaces(input?: {
   const session = await resolveSession();
   if (session.state !== "signed-in") return ok([]);
 
-  let query = withSavedPlaces(session.supabase)
+  let query = session.supabase
     .from("saved_places")
     .select("entity_kind, entity_id, created_at")
     .eq("user_id", session.user.id)
@@ -144,7 +147,7 @@ export async function listSavedPlaces(input?: {
   if (error) return fail("We could not load your shortlist just now. Please try again in a moment.");
   return ok(
     (data ?? []).map((row) => ({
-      entityKind: row.entity_kind,
+      entityKind: asSavedPlaceKind(row.entity_kind),
       entityId: row.entity_id,
       savedAt: row.created_at,
     })),

@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { SavedCardPicker } from "@/components/app/payments/SavedCardPicker";
+import { preselectedCardId } from "@/components/app/payments/format";
+import { savedCardMoment, type SavedCardPhase } from "@/components/app/payments/saved-card-copy";
+import type { PaymentMethod } from "@/lib/payments/methods";
+import type { ChargeSavedCardOutcome } from "@/lib/payments/charge-saved-card";
+import type { ActionResult } from "@/lib/actions/envelope";
 import { failureConsequence } from "./payment-copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
@@ -67,6 +73,8 @@ const GIVE_UP_MS = 25_000;
 
 type Phase =
   | { kind: "idle" }
+  | { kind: "saved-card-charging" }
+  | { kind: "saved-card-hosted"; authorizationUrl: string }
   | { kind: "card-starting" }
   | { kind: "card-redirecting" }
   | { kind: "wallet-paying" }
@@ -118,7 +126,39 @@ function Option({
   );
 }
 
-export function PayPanel({ view }: { view: CheckoutView }) {
+export function PayPanel({
+  view,
+  savedCards = [],
+  chargeSavedCard,
+}: {
+  view: CheckoutView;
+  /**
+   * The caller's reusable cards, read on the server by `listPaymentMethods`.
+   * Empty by default, so a page that does not pass them draws no saved-card
+   * option rather than an empty group.
+   */
+  savedCards?: PaymentMethod[];
+  /**
+   * THE ONE THING THIS SCREEN CANNOT DO FOR ITSELF, AND IT IS A PROP FOR A
+   * REASON.
+   *
+   * `lib/payments/charge-saved-card.ts` is deliberately NOT a server action:
+   * "a function that charges a chosen amount against a chosen reference must
+   * never be one". It is imported by the payment action that already decided
+   * what is owed and under which reference, and the action that owes this
+   * booking is `lib/bookings/checkout.ts`, where the payable guard, the
+   * idempotency wrapper and the booking reference already live and are all
+   * private to that module.
+   *
+   * So the button cannot be wired from here without re-implementing the money
+   * orchestration, which is the one thing never worth duplicating. When that
+   * module exports, say, `payWithSavedCard({ bookingId, methodId,
+   * idempotencyKey })`, the page passes it here and every state below is
+   * already built and tested. Until it does, no saved-card control renders at
+   * all: a pay button that cannot pay is worse than no button.
+   */
+  chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
+}) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
@@ -131,7 +171,21 @@ export function PayPanel({ view }: { view: CheckoutView }) {
   const walletKey = useMemo(() => newKey(), []);
   const timers = useRef<number[]>([]);
 
+  /* The saved card offered first: the default when it can be charged. Null
+     means nothing chargeable, so the whole option stays off the screen. */
+  const [chosenCard, setChosenCard] = useState<string | null>(() =>
+    preselectedCardId(savedCards),
+  );
+  const savedCardsOffered = Boolean(chargeSavedCard) && chosenCard !== null;
+  /* The sheet below reads the moment three times (state, verdict, consequence),
+     so the phase it reads is named once rather than reconstructed per call. */
+  const hostedPhase: SavedCardPhase =
+    phase.kind === "saved-card-hosted"
+      ? { kind: "needs_hosted", authorizationUrl: phase.authorizationUrl }
+      : { kind: "needs_hosted", authorizationUrl: "" };
+
   const busy =
+    phase.kind === "saved-card-charging" ||
     phase.kind === "card-starting" ||
     phase.kind === "card-redirecting" ||
     phase.kind === "wallet-paying";
@@ -156,6 +210,36 @@ export function PayPanel({ view }: { view: CheckoutView }) {
         setPhase({ kind: "stalled", method });
       }, GIVE_UP_MS),
     );
+  };
+
+  /**
+   * Charging the saved card, and the 3DS rule in one place.
+   *
+   * `chargeSavedCard` answers with `charged` or with `needs_hosted_checkout`,
+   * and the second is NOT a failure: the bank has asked to authenticate, the
+   * reference is the same one, and the only honest move is to say so and go
+   * there once. This never retries the saved card, because a loop of declined
+   * charges is how a card gets blocked and a person gets charged twice.
+   */
+  const payBySavedCard = async () => {
+    if (!chargeSavedCard || !chosenCard) return;
+    startClocks("card");
+    setPhase({ kind: "saved-card-charging" });
+    const result = await chargeSavedCard(chosenCard);
+    clearTimers();
+
+    if (!result.ok) {
+      setPhase({ kind: "error", message: result.error });
+      return;
+    }
+    if (result.data.kind === "needs_hosted_checkout") {
+      setPhase({ kind: "saved-card-hosted", authorizationUrl: result.data.authorizationUrl });
+      return;
+    }
+    /* Charged. The booking is settled server side, so the truth is on the
+       server and this asks for it rather than drawing an optimistic success. */
+    setPhase({ kind: "wallet-paid" });
+    router.refresh();
   };
 
   const payByCard = async () => {
@@ -204,6 +288,44 @@ export function PayPanel({ view }: { view: CheckoutView }) {
         How would you like to pay?
       </h2>
       <ul className="mt-block grid gap-row">
+        {/*
+          PAY WITH A SAVED CARD, ABOVE THE HOSTED REDIRECT.
+
+          It is first because it is the shortest path for somebody who has
+          already trusted us with a card: one tap against three fields and a
+          round trip to another domain. It renders only when there is a card
+          that can actually be charged AND a way to charge it; see the
+          `chargeSavedCard` prop for why the second half is not this file's to
+          supply. Nothing about a saved card ever appears in a third-party
+          lane, which does not exist yet and is forbidden them when it does.
+        */}
+        {savedCardsOffered && (
+          <Option
+            icon="card-lock"
+            title="Pay with a saved card"
+            body="The card you saved, charged straight away. Your card details still never touch Vallo."
+            action={
+              <div>
+                <SavedCardPicker
+                  cards={savedCards}
+                  value={chosenCard}
+                  onChange={setChosenCard}
+                  disabled={busy}
+                />
+                <Button
+                  variant="primary"
+                  full
+                  className="mt-row"
+                  onClick={payBySavedCard}
+                  disabled={busy || chosenCard === null}
+                  loading={phase.kind === "saved-card-charging"}
+                >
+                  Pay with this card
+                </Button>
+              </div>
+            }
+          />
+        )}
         {view.cardAvailable ? (
           <Option
             icon="card-lock"
@@ -401,7 +523,13 @@ export function PayPanel({ view }: { view: CheckoutView }) {
            and a person who dismisses this and taps Pay again is trying to pay
            twice. Nothing else in this component blocks. */
         blocking
-        verdict={phase.kind === "wallet-paying" ? "Paying from your wallet" : "Opening your payment page"}
+        verdict={
+          phase.kind === "wallet-paying"
+            ? "Paying from your wallet"
+            : phase.kind === "saved-card-charging"
+              ? savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict
+              : "Opening your payment page"
+        }
         fact={fact}
         locale={view.locale}
         consequence={
@@ -409,8 +537,42 @@ export function PayPanel({ view }: { view: CheckoutView }) {
             ? "This is taking longer than usual. Nothing has moved yet and nothing has been charged. Stay here."
             : phase.kind === "wallet-paying"
               ? "Nothing leaves your wallet until this completes."
-              : "Nothing has been charged yet."
+              : phase.kind === "saved-card-charging"
+                ? savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence
+                : "Nothing has been charged yet."
         }
+      />
+
+      {/*
+        THE BANK WANTS TO CHECK, AND THIS IS THE ONE STATE THAT MUST NOT READ
+        AS A FAILURE.
+
+        `review` rather than `failed`: cyan, with a mark that differs from
+        pending's, so it is told apart by shape and word rather than by hue. It
+        says nothing has been charged, because nothing has, and the only action
+        goes to the bank's own page under the SAME reference. There is no
+        "try again with the saved card" here by design.
+      */}
+      <ResultSheet
+        open={phase.kind === "saved-card-hosted"}
+        onOpenChange={() => setPhase({ kind: "idle" })}
+        state={savedCardMoment(hostedPhase, view.totalDisplay).state}
+        verdict={savedCardMoment(hostedPhase, view.totalDisplay).verdict}
+        fact={fact}
+        locale={view.locale}
+        consequence={savedCardMoment(hostedPhase, view.totalDisplay).consequence}
+        actions={[
+          {
+            label: "Continue to your bank",
+            onClick: () => {
+              if (phase.kind === "saved-card-hosted") {
+                window.location.assign(phase.authorizationUrl);
+              }
+            },
+            tone: "primary",
+          },
+          { label: "Pay another way", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+        ]}
       />
 
       <ResultSheet

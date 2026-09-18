@@ -4,58 +4,81 @@ import { getLocale } from "@/lib/locale";
 import { StayDetailView } from "./StayDetailView";
 import { readStayDates, toStaysSearchHref } from "@/components/app/stays/model";
 import type { StayDetail } from "./detail-model";
+import { getStayDetail } from "@/lib/stays/queries";
+import { accommodationPhotoUrl } from "@/lib/stays/photos";
 import ListingPage, { generateMetadata as listingMetadata } from "../../listing/[id]/page";
 
 type Params = Promise<{ id: string }>;
 type Search = Promise<Record<string, string | string[] | undefined>>;
 
 /**
- * The stay detail showcase.
+ * The business-grade record behind this URL, in the shape the showcase draws.
  *
- * `/stay/[id]` and `/listing/[id]` point at the same place from two URLs, and
- * the URL decides the shell: `sideOfPath` treats `/stay/` as Stays, so a hotel
- * opened from the Stays shelf, a shared link or a notification stays in the
- * Stays shell with its own navigation, dock and accent.
+ * `lib/stays/queries.ts` returns the rows as the database holds them, named
+ * after their own columns; this route's `detail-model.ts` is the view model
+ * the screen was built and tested against. The two are deliberately different
+ * and this function is the only place they meet, so neither side has to learn
+ * the other's vocabulary and a column rename cannot reach the markup.
  *
- * ---------------------------------------------------------------------------
- * TWO SHAPES, ONE URL, AND THE FALLBACK IS NOT A DEGRADED STATE.
- *
- * A place on this platform is either a business-grade ACCOMMODATION (M3 to M5:
- * room types, rate plans, photos, amenities, a cancellation policy) or a
- * catalogue LISTING, which is what every stay is today and what many will stay
- * as. Both are real. So this route asks for the accommodation and, when there
- * is not one, renders the listing page rather than an error: the catalogue is
- * real today and the business-grade rows arrive as hosts onboard.
- *
- * The listing branch DELEGATES to the listing page's own component rather than
- * copying it, so the two URLs cannot drift and the gallery, availability and
- * checkout on this path are the ones that have been shipping.
- *
- * ---------------------------------------------------------------------------
- * THE READ IS THE ONE THING NOT WIRED, AND IT IS NAMED RATHER THAN FAKED.
- *
- * `lib/stays/**` is another worker's scope and is empty at the time of
- * writing: there is no `getStayDetail`, and `lib/supabase/database.types.ts`
- * has not been regenerated for M1 to M9, so the accommodation tables cannot be
- * read in a typed way from anywhere yet. Rather than invent a signature for a
- * module that does not exist, or break the tree's typecheck on an import that
- * cannot resolve, the seam is this one function.
- *
- * WHAT LANDS IT, exactly: `lib/stays/queries.ts` exports
- *
- *     export async function getStayDetail(id: string): Promise<StayDetail | null>
- *
- * shaped as this route's own `detail-model.ts` describes (the columns are
- * already named after M1 to M5), and this function becomes one line:
- * `return getStayDetail(id)`. Nothing else on this page changes, and the
- * showcase below is already built and tested against that shape.
- *
- * Until then every visitor gets the catalogue listing, which is the honest
- * answer while no accommodation row exists, and nothing on screen claims a
- * business-grade record that is not there.
+ * Null means no accommodation row exists for this id, which is the honest
+ * answer while hosts are still onboarding: the route then delegates to the
+ * catalogue listing rather than drawing an error, so the two URLs never drift.
  */
-async function readStayDetail(_id: string): Promise<StayDetail | null> {
-  return null;
+async function readStayDetail(id: string): Promise<StayDetail | null> {
+  const detail = await getStayDetail(id);
+  if (!detail) return null;
+
+  const { accommodation } = detail;
+  return {
+    id: accommodation.id,
+    name: accommodation.name,
+    description: accommodation.description,
+    starRating: accommodation.star_rating,
+    city: accommodation.city,
+    area: accommodation.area,
+    checkInFrom: accommodation.check_in_from,
+    checkOutBy: accommodation.check_out_by,
+    houseRules: accommodation.house_rules,
+    /* Position decides the cover, exactly as it does for a listing. */
+    photos: [...detail.photos]
+      .sort((a, b) => a.position - b.position)
+      .map((photo) => ({ url: accommodationPhotoUrl(photo.storage_path), alt: null })),
+    /* The human label, never the code: "Air conditioning", not "ac". */
+    amenities: detail.amenities.map((amenity) => amenity.label),
+    roomTypes: detail.room_types.map((room) => ({
+      id: room.id,
+      name: room.name,
+      category: room.category,
+      description: room.description,
+      sleeps: room.sleeps,
+      baseRateMinor: room.base_rate_minor,
+      sizeSqm: room.size_sqm,
+      ratePlans: room.rate_plans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        mealPlan: plan.meal_plan,
+        rateMinor: plan.rate_minor,
+        minStayNights: plan.min_stay_nights,
+        maxStayNights: plan.max_stay_nights,
+        policy: plan.policy
+          ? {
+              id: plan.policy.id,
+              name: plan.policy.name,
+              summary: plan.policy.summary,
+              freeUntilHours: plan.policy.is_free_until_hours,
+            }
+          : null,
+      })),
+    })),
+    policy: detail.policy
+      ? {
+          id: detail.policy.id,
+          name: detail.policy.name,
+          summary: detail.policy.summary,
+          freeUntilHours: detail.policy.is_free_until_hours,
+        }
+      : null,
+  };
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {

@@ -16,7 +16,7 @@
  * rows arrive as hosts onboard.
  *
  * THE ARITHMETIC IS THE CHECKOUT'S. A nightly rate times nights, and nothing
- * else added on the way to the headline. `stayTotalMinor` in `./model.ts`
+ * else added on the way to the headline. `stayTotalMinor` in `components/app/stays/model.ts`
  * does the same for a catalogue listing, and `reserve()` does it again on the
  * server; three places, one sum, and a test here that says so.
  */

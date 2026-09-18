@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ProfileEditor } from "@/components/social/profile/ProfileEditor";
-/* One empty-state anatomy across /around and /u. See ./Notice. */
-import { Notice } from "../../Notice";
+/* ONE empty-state anatomy across the whole product. See EmptyPanel. */
+import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { ProfilePhotos } from "@/components/social/profile/ProfilePhotos";
 import { loadProfileEditor, normaliseHandle } from "@/lib/social/profiles-queries";
 import { SocialPaused } from "@/components/social/SocialPaused";
@@ -41,40 +41,40 @@ export default async function EditSocialProfilePage({
       />
 
       {editor.state === "unconfigured" && (
-        <Notice
+        <EmptyPanel
           icon="user-check"
           title="We cannot reach profiles right now"
           body="This is on our side, not yours. A handle cannot be claimed from here at the moment. Nothing you typed was lost, and the rest of the app works as normal."
-          primary={{ href: "/home", label: "Back to home" }}
+          action={{ href: "/home", label: "Back to home" }}
         />
       )}
 
       {editor.state === "signed-out" && (
-        <Notice
+        <EmptyPanel
           icon="user-check"
           title="Sign in to claim your handle"
           body={`@${handle} is claimed from your own account, so people know a name belongs to one person. Sign in and it takes about a minute.`}
-          primary={{ href: "/sign-in", label: "Sign in" }}
+          action={{ href: "/sign-in", label: "Sign in" }}
           secondary={{ href: `/u/${handle}`, label: "See the profile" }}
         />
       )}
 
       {editor.state === "taken" && (
-        <Notice
+        <EmptyPanel
           icon="shield-check"
           title={`@${handle} belongs to somebody else`}
           body="Handles are one to a person and they are never reassigned quietly. Pick another name and it is yours in one step."
-          primary={{ href: `/u/${handle}`, label: `Visit @${handle}` }}
+          action={{ href: `/u/${handle}`, label: `Visit @${handle}` }}
           secondary={{ href: "/profile", label: "Back to your account" }}
         />
       )}
 
       {editor.state === "not-yours" && (
-        <Notice
+        <EmptyPanel
           icon="user-verified"
           title="This is not your profile"
           body={`You already hold @${editor.ownHandle}. Edit that one, or visit @${handle} to see whose it is.`}
-          primary={{ href: `/u/${editor.ownHandle}/edit`, label: "Edit your profile" }}
+          action={{ href: `/u/${editor.ownHandle}/edit`, label: "Edit your profile" }}
           secondary={{ href: `/u/${handle}`, label: `Visit @${handle}` }}
         />
       )}

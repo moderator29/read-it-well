@@ -29,7 +29,6 @@ import { isFeatureEnabled } from "../flags";
 import { getListingRepository } from "../listings/repository";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { createAdminClient } from "../supabase/admin";
-import { withThreadContext } from "./db";
 import {
   attachImageSchema,
   confirmInspectionSchema,
@@ -242,7 +241,6 @@ async function startContextThread(
 
   if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
 
-  const db = withThreadContext(session.supabase);
   const column = kind === "reservation" ? "reservation_id" : "booking_id";
 
   // The transaction, under RLS. A row the caller is not a party to does not
@@ -289,7 +287,7 @@ async function startContextThread(
     return fail("This is your own booking, so there is nobody else to message.");
   }
 
-  const { data: existing, error: findError } = await db
+  const { data: existing, error: findError } = await session.supabase
     .from("conversations")
     .select("id")
     .eq(column, transactionId)
@@ -297,7 +295,7 @@ async function startContextThread(
   if (findError) return fail("Messaging is unavailable just now. Please try again shortly.");
   if (existing) return ok({ conversationId: existing.id });
 
-  const { data: created, error: insertError } = await db
+  const { data: created, error: insertError } = await session.supabase
     .from("conversations")
     .insert({
       guest_id: guestId,
@@ -313,7 +311,7 @@ async function startContextThread(
   if (insertError || !created) {
     if (insertError?.code === "23505") {
       // Lost the race to ourselves in another tab: the thread now exists.
-      const { data: raced } = await db
+      const { data: raced } = await session.supabase
         .from("conversations")
         .select("id")
         .eq(column, transactionId)

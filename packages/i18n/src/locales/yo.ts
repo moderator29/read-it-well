@@ -2590,4 +2590,22 @@ export const yo: Dictionary = {
       dorm: "Yàrá pínpín",
     },
   },
+
+  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+     English until a native reviewer rewrites them. */
+  restaurantPage: {
+    fallbackTitle: "Ilé oúnjẹ",
+    perHead: "fún ẹnì kọ̀ọ̀kan, ní gbogbogbò",
+    reserveTitle: "Fi tábìlì pamọ́",
+    reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
+    hoursTitle: "Àkókò ìṣiṣẹ́",
+    hoursUnknown:
+      "This restaurant has not published its hours on Vallo yet, so we do not show whether the kitchen is open right now rather than guess at it.",
+    hoursAsk: "Ask them directly and the answer stays in your messages.",
+    message: "Fi ọ̀rọ̀ ránṣẹ́ sí ilé oúnjẹ",
+    gettingThereTitle: "Bí o ṣe lè dé ibẹ̀",
+    threadLine:
+      "Your reservation and everything said about it stay in one conversation, so the table you booked and the thread about it never disagree.",
+    loading: "Ń gbé ilé oúnjẹ yìí wọlé",
+  },
 };
