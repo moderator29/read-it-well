@@ -30,6 +30,7 @@ export function PageHeader({
   actions,
   leading,
   tone = "default",
+  layout = "inline",
 }: {
   title: string;
   subtitle?: string;
@@ -60,6 +61,13 @@ export function PageHeader({
    * decorative loop. Default carries no tint.
    */
   tone?: "default" | "verified";
+  /**
+   * `inline` is the header every screen draws: back square, title, actions on
+   * one row. `stacked` is the renders' page top (Settings, Admin Queue): the
+   * back square and the actions on their own row, then the title at `nf-h1`
+   * with the subtitle as a lede beneath it. Same back flow, same names.
+   */
+  layout?: "inline" | "stacked";
 }) {
   const router = useRouter();
   /* The back control is the only thing on this header the component names
@@ -73,6 +81,52 @@ export function PageHeader({
     if (canGoBackInApp()) router.back();
     else router.push(fallback);
   };
+
+  /* The glass square the renders draw: the base square's brand edge and
+     well, with the rim highlight and the thin blur the modifier adds. */
+  const backButton = (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={back}
+      className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
+    >
+      <UiIcon name="arrow-left" size={ICON.inline} />
+    </button>
+  );
+
+  if (layout === "stacked") {
+    return (
+      <div className={`mb-heading ${tone === "verified" ? "nf-page-header--verified rounded-[var(--nf-radius-lg)]" : ""}`}>
+        <div className="flex items-center justify-between gap-md">
+          {backButton}
+          {actions ? <div className="flex shrink-0 items-center gap-inline">{actions}</div> : null}
+        </div>
+        <div className="mt-group flex items-start gap-md">
+          {leading}
+          <div className="min-w-0 flex-1">
+            <h1 className="nf-h1 text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">{title}</h1>
+            {subtitle &&
+              (subtitleHref ? (
+                <Link
+                  href={subtitleHref}
+                  className="nf-lede mt-inline flex items-center gap-inline-tight text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] hover:underline"
+                >
+                  <span className="min-w-0">{subtitle}</span>
+                  <UiIcon name="chevron-right" size={ICON.inline} className="shrink-0" />
+                </Link>
+              ) : (
+                /* The lede in the brand's quiet ink, which is how both renders
+                   set the line under the title. */
+                <p className="nf-lede mt-inline text-[var(--nf-brand-secondary)] [overflow-wrap:anywhere]">
+                  {subtitle}
+                </p>
+              ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -92,14 +146,7 @@ export function PageHeader({
         at the real target size costs nothing in loudness and removes the
         pseudo-element that was standing in for it.
       */}
-      <button
-        type="button"
-        aria-label={label}
-        onClick={back}
-        className="nf-icon-btn h-11 w-11 shrink-0"
-      >
-        <UiIcon name="arrow-left" size={ICON.inline} />
-      </button>
+      {backButton}
       {leading}
       <div className="min-w-0 flex-1">
         {/*

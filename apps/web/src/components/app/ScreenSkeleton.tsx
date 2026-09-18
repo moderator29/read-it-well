@@ -45,7 +45,26 @@ export function LoadingShell({
  * are the same size as the real ones - 36/40px round control, `nf-h2` title,
  * `mb-5 sm:mb-6` - so the title lands where the bar already was.
  */
-export function PageHeaderSkeleton({ subtitle = false }: { subtitle?: boolean }) {
+export function PageHeaderSkeleton({
+  subtitle = false,
+  layout = "inline",
+}: {
+  subtitle?: boolean;
+  /** Mirrors `PageHeader`'s `layout`: the stacked twin puts the square on its
+   *  own row and the title block, at `nf-h1` height, beneath it. */
+  layout?: "inline" | "stacked";
+}) {
+  if (layout === "stacked") {
+    return (
+      <div className="mb-heading">
+        <Skeleton glass width="2.75rem" height="2.75rem" radius="md" className="shrink-0" />
+        <div className="mt-group">
+          <Skeleton glass width="55%" height="2rem" radius="sm" />
+          {subtitle ? <Skeleton glass className="mt-inline" width="80%" height="1rem" radius="sm" /> : null}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="mb-md flex items-center gap-md sm:mb-lg">
       <Skeleton circle width="2.25rem" className="shrink-0 sm:hidden" />

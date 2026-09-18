@@ -55,9 +55,39 @@ const TONE_STYLE: Record<StatusTone, CSSProperties> = {
 const SIZE_CLASS = {
   xs: "px-xs py-3xs text-[var(--nf-text-overline)]",
   sm: "px-sm py-2xs text-[var(--nf-text-caption)]",
+  /* The admin render's queue pill: 28px tall at caption size, room for the
+     dot and two words (In Review, Completed) without the pill going oval. */
+  md: "px-sm py-xs text-[var(--nf-text-caption)]",
 } as const;
 
-const ICON_PX = { xs: 11, sm: 13 } as const;
+const ICON_PX = { xs: 11, sm: 13, md: 14 } as const;
+
+/**
+ * THE RENDERS' PILL IS OUTLINED, AND THE BASE PILL IS NOT.
+ *
+ * The admin queue draws every status as a tinted capsule with a hairline in
+ * its own colour and a lit dot at its leading edge: Pending cyan, In Review
+ * blue, Approved and Completed emerald, Rejected rose, Verified brand. The
+ * base pill is a tinted fill with no border and the six greyscale shapes, and
+ * twenty-seven call sites stand on it, so the render's look is two opt-in
+ * props rather than a new default: `outlined` for the hairline, `mark="dot"`
+ * for the lit dot. Colour is still never the only signal: the word is always
+ * there, and the outlined dot pill keeps the tone's ink on the word.
+ */
+const OUTLINED_STYLE: CSSProperties = {
+  border: "var(--nf-border-width) solid color-mix(in oklab, currentColor 45%, transparent)",
+  boxShadow: "inset 0 1px 0 color-mix(in oklab, currentColor 12%, transparent)",
+};
+
+const DOT_CLASS = { xs: "size-1.5", sm: "size-2", md: "size-2" } as const;
+
+/** The lit dot: a filled circle in the tone's ink with its own small bloom,
+ *  which is what the render draws inside every pill. */
+const DOT_STYLE: CSSProperties = {
+  background: "currentColor",
+  borderRadius: "var(--nf-radius-circle)",
+  boxShadow: "0 0 6px currentColor",
+};
 
 /**
  * THE MARK, AND IT WAS THE SAME DOT SIX TIMES UNDER A DOCSTRING THAT CLAIMED
@@ -102,7 +132,7 @@ const ICON_PX = { xs: 11, sm: 13 } as const;
  * be noticed - became the flattest thing on a light screen, mark and fill
  * included. A mark is not small bold text. See the note beside the token.
  */
-const MARK_CLASS = { xs: "size-2", sm: "size-2.5" } as const;
+const MARK_CLASS = { xs: "size-2", sm: "size-2.5", md: "size-2.5" } as const;
 
 const TONE_MARK: Record<StatusTone, CSSProperties> = {
   success: { background: "currentColor", borderRadius: "var(--nf-radius-circle)" },
@@ -131,13 +161,23 @@ export type StatusPillProps = {
    * something to separate, and it survives greyscale. See `TONE_MARK`.
    */
   icon?: UiIconName;
-  size?: "xs" | "sm";
+  size?: "xs" | "sm" | "md";
   /**
    * Announces changes to assistive technology as they happen. For a pill whose
    * value updates in place - a payment settling, a booking being accepted -
    * where a silent swap would otherwise go unnoticed.
    */
   live?: boolean;
+  /** The renders' hairline in the tone's own colour. Off by default. */
+  outlined?: boolean;
+  /**
+   * `shape` is the six greyscale-safe marks above. `dot` is the lit dot the
+   * admin render draws in every pill, the same in every tone; use it where the
+   * word beside it carries the meaning, which on the queue it always does.
+   */
+  mark?: "shape" | "dot";
+  /** The amended radius law: the render's status pills are capsules. */
+  shape?: "control" | "pill";
   className?: string;
   children: ReactNode;
 };
@@ -147,17 +187,29 @@ export function StatusPill({
   icon,
   size = "xs",
   live = false,
+  outlined = false,
+  mark = "shape",
+  shape = "control",
   className,
   children,
 }: StatusPillProps) {
   return (
     <span
       role={live ? "status" : undefined}
-      className={["nf-badge", SIZE_CLASS[size], className ?? ""].filter(Boolean).join(" ")}
-      style={TONE_STYLE[tone]}
+      className={[
+        "nf-badge",
+        SIZE_CLASS[size],
+        shape === "pill" ? "rounded-[var(--nf-radius-pill)]" : "",
+        className ?? "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={outlined ? { ...TONE_STYLE[tone], ...OUTLINED_STYLE } : TONE_STYLE[tone]}
     >
       {icon ? (
         <UiIcon name={icon} size={ICON_PX[size]} />
+      ) : mark === "dot" ? (
+        <span aria-hidden="true" className={`${DOT_CLASS[size]} shrink-0`} style={DOT_STYLE} />
       ) : (
         <span
           aria-hidden="true"
@@ -214,10 +266,20 @@ export function toneForStatus(status: string): StatusTone {
       return "warning";
 
     case "REVIEWING":
+    case "IN_REVIEW":
     case "IN_PROGRESS":
     case "PROCESSING":
     case "MORE_INFO_REQUIRED":
       return "info";
+
+    /*
+     * VERIFIED WEARS THE BRAND, NOT THE SUCCESS COLOUR. It is not a state a
+     * thing passed through; it is Vallo putting its own name to a person who
+     * was checked (rule 12), so it takes the brand tone the token file already
+     * reserves for it and leaves emerald meaning "finished, good" alone.
+     */
+    case "VERIFIED":
+      return "brand";
 
     case "CANCELLED":
     case "FAILED":

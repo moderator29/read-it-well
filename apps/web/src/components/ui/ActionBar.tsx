@@ -24,16 +24,31 @@ export function ActionBar({
    * have no tab bar to avoid.
    */
   aboveTabBar = false,
+  glow = false,
+  leading,
   className,
 }: {
   children: ReactNode;
   aboveTabBar?: boolean;
+  /**
+   * The listing render's bar: the top edge is the brand rim and the bar
+   * blooms upward into the content above it. Off by default; a screen
+   * matching a render switches it on.
+   */
+  glow?: boolean;
+  /**
+   * The block at the bar's leading edge, before the buttons: the render's
+   * price figure with its label beneath. `figure` is already formatted (money
+   * only ever through `formatMoney`); the bar never touches a number.
+   */
+  leading?: { figure: ReactNode; label?: string };
   className?: string;
 }) {
   return (
     <div
       className={[
         "nf-glass nf-glass--strong nf-action-bar-pinned",
+        glow ? "nf-action-bar-pinned--lit" : "",
         "fixed inset-x-0 bottom-0 z-50",
         className ?? "",
       ]
@@ -45,7 +60,17 @@ export function ActionBar({
           : undefined
       }
     >
-      <div className="nf-shell flex items-center gap-row px-gutter py-sm">{children}</div>
+      <div className="nf-shell flex items-center gap-row px-gutter py-sm">
+        {leading ? (
+          <div className="nf-action-bar__lead">
+            <span className="nf-action-bar__lead-figure">{leading.figure}</span>
+            {leading.label ? (
+              <span className="nf-action-bar__lead-label">{leading.label}</span>
+            ) : null}
+          </div>
+        ) : null}
+        {children}
+      </div>
     </div>
   );
 }

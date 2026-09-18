@@ -41,6 +41,12 @@ export type SkeletonProps = {
   radius?: SkeletonRadius;
   /** Avatars and icon slots. Forces a 1:1 box and a pill radius. */
   circle?: boolean;
+  /**
+   * The register's shimmer on glass: a glass plate with the hairline rather
+   * than the inset trough, for a loading state standing in for a glass card
+   * on the dark canvas. Same sweep, same reduced-motion stop.
+   */
+  glass?: boolean;
   className?: string;
   style?: CSSProperties;
 };
@@ -50,13 +56,16 @@ export function Skeleton({
   height,
   radius = "md",
   circle = false,
+  glass = false,
   className,
   style,
 }: SkeletonProps) {
   return (
     <span
       aria-hidden="true"
-      className={["block nf-skeleton", className ?? ""].filter(Boolean).join(" ")}
+      className={["block nf-skeleton", glass ? "nf-skeleton--glass" : "", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
       style={{
         width: circle ? (width ?? height) : (width ?? "100%"),
         height: circle ? (height ?? width) : height,

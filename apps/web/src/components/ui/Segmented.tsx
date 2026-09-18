@@ -39,17 +39,29 @@ export function Segmented<T extends string>({
    */
   semantics = "tabs",
   size = "md",
+  shape = "control",
   full,
   label,
   itemIdPrefix,
   panelIdPrefix,
   className,
 }: {
-  options: SegmentedOption<T>[];
+  /* `NoInfer` so T is read from `value` (the typed state) and the option
+     list is checked against it, rather than widening T to `string` from the
+     options and refusing a typed setter as the change handler. */
+  options: readonly SegmentedOption<NoInfer<T>>[];
   value: T;
-  onChange(next: T): void;
+  onChange: (next: NoInfer<T>) => void;
   semantics?: "tabs" | "radio";
   size?: "sm" | "md";
+  /**
+   * The amended radius law (ledger section 8). `control` is the raised
+   * neutral capsule on the inset track that every existing control draws;
+   * `pill` is the renders' glass rail with the FILLED brand segment and its
+   * glow: the feed's For You / Following and the search pill's Buy / Rent /
+   * Stay / Invest.
+   */
+  shape?: "control" | "pill";
   full?: boolean;
   /** Accessible name for the group. Required: an unlabelled group is a puzzle. */
   label: string;
@@ -121,6 +133,7 @@ export function Segmented<T extends string>({
     size === "sm"
       ? "h-9 px-sm text-[var(--nf-text-caption)]"
       : "h-11 px-md text-[var(--nf-text-body-sm)]";
+  const pill = shape === "pill";
 
   return (
     <div
@@ -130,6 +143,7 @@ export function Segmented<T extends string>({
       onKeyDown={onKeyDown}
       className={[
         "nf-segmented relative inline-flex items-center",
+        pill ? "nf-segmented--pill" : "",
         pad,
         full ? "flex w-full" : "",
         className ?? "",
@@ -169,8 +183,12 @@ export function Segmented<T extends string>({
               "nf-segmented__item relative z-1 inline-flex items-center justify-center gap-inline rounded-[var(--nf-radius-control)] font-semibold transition-colors",
               seg,
               full ? "flex-1" : "",
+              /* On the capsule the selected ink is on-brand and comes from the
+                 stylesheet, since the segment sits on the filled capsule. */
               selected
-                ? "text-[var(--nf-content-primary)]"
+                ? pill
+                  ? ""
+                  : "text-[var(--nf-content-primary)]"
                 : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
             ]
               .filter(Boolean)

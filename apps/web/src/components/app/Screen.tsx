@@ -411,19 +411,47 @@ export function Row({
 export function Surface({
   children,
   className,
+  tone = "card",
   "data-testid": testId,
 }: {
   children: ReactNode;
   className?: string;
+  /**
+   * `card` is the raised surface above. `glass` is the register's rows card
+   * (the settings and admin renders): the same object made of glass, with the
+   * brand hairline and the lit rim, for the one surface a screen is built
+   * around. Off by default; the card every screen draws is unchanged.
+   */
+  tone?: "card" | "glass";
   "data-testid"?: string;
 }) {
   return (
     <div
       data-testid={testId}
-      className={`nf-card rounded-[var(--nf-radius-xl)] p-card sm:p-cell ${className ?? ""}`}
+      className={`${
+        tone === "glass" ? "nf-glass nf-surface--glass" : "nf-card"
+      } rounded-[var(--nf-radius-xl)] p-card sm:p-cell ${className ?? ""}`}
     >
       {children}
     </div>
+  );
+}
+
+/**
+ * The glyph tile the renders draw at the leading edge of a row: a glass square
+ * holding a line glyph in the quiet brand ink (Account Information, Payment
+ * Methods, Log Out on the settings render). Decorative by definition, because
+ * the row's title names the thing; a second announcement would be noise.
+ *
+ * It is the ONE container an icon gets on the platform, and it is allowed
+ * because the renders draw it, on the founder's identical-to-images ruling;
+ * the note beside `ICON` above still holds everywhere the renders do not.
+ */
+export function RowGlyph({ icon, className }: { icon: UiIconName; className?: string }) {
+  return (
+    <span aria-hidden="true" className={`nf-row-glyph ${className ?? ""}`}>
+      <UiIcon name={icon} size={ICON.row} />
+    </span>
   );
 }
 

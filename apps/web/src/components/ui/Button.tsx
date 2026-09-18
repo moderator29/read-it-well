@@ -34,12 +34,28 @@ import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/
  * job, which is what the class name is for. Nothing on the platform passed
  * `variant="glass"`, so this removes a name rather than a button.
  */
+/*
+ * `glass` IS BACK, AND IT IS A DIFFERENT BUTTON FROM `secondary`.
+ *
+ * The note above records why the old alias went: two names for one class.
+ * The renders draw a second quiet button that `secondary` does not: Explore
+ * Stays beside Explore Properties, Contact Hotel beside View booking details,
+ * Reset beside Apply. Same glass, but with the BRAND edge and a lit rim, so
+ * it reads as part of the same lit object as the primary rather than as a
+ * neutral plate next to it. Two workers reached for `variant="glass"` before
+ * it existed, which is the clearest sign a vocabulary is missing a word.
+ */
 export type ButtonVariant =
   | "primary"
   | "secondary"
+  | "glass"
   | "ghost"
   | "danger"
   | "dangerQuiet";
+
+/** The amended radius law (ledger section 8): a rectangle by default, the
+ *  capsule where the governing render shows one. */
+export type ButtonShape = "control" | "pill";
 
 /**
  * 44 / 48 / 56px, down from 44 / 56 / 64.
@@ -54,6 +70,7 @@ export type ButtonSize = "sm" | "md" | "lg";
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary: "nf-btn--primary",
   secondary: "nf-btn--glass",
+  glass: "nf-btn--glass-brand",
   ghost: "nf-btn--ghost",
   danger: "nf-btn--danger",
   dangerQuiet: "nf-btn--danger-quiet",
@@ -90,6 +107,20 @@ type CommonProps = {
   leadingIcon?: UiIconName;
   trailingIcon?: UiIconName;
   /**
+   * The render's trailing arrow (Explore Properties, Learn more, Read more):
+   * an `arrow-right` in the trailing slot that nudges on hover. Sugar over
+   * `trailingIcon` so a caller cannot pick the wrong glyph for the job.
+   */
+  arrow?: boolean;
+  /**
+   * The soft bloom the renders' primaries carry at rest. Off by default,
+   * because the base primary treats its bloom as a state and every caller
+   * stands on that; a screen matching a render switches it on for the one
+   * action the render lights.
+   */
+  glow?: boolean;
+  shape?: ButtonShape;
+  /**
    * Square, glyph-only. Always pass `aria-label` alongside it - an icon-only
    * control with no label is invisible to a screen reader. That pairing is a
    * convention here rather than a type constraint; expressing it in the type
@@ -111,14 +142,18 @@ function buttonClass({
   size = "md",
   full,
   iconOnly,
+  glow,
+  shape = "control",
   className,
-}: Pick<CommonProps, "variant" | "size" | "full" | "iconOnly" | "className">) {
+}: Pick<CommonProps, "variant" | "size" | "full" | "iconOnly" | "glow" | "shape" | "className">) {
   return [
     "nf-btn",
     VARIANT_CLASS[variant],
     SIZE_CLASS[size],
     full ? "nf-btn--full" : "",
     iconOnly ? "nf-btn--icon" : "",
+    glow ? "nf-btn--lit" : "",
+    shape === "pill" ? "nf-btn--pill" : "",
     className ?? "",
   ]
     .filter(Boolean)
@@ -143,9 +178,10 @@ function Content({
   loading,
   leadingIcon,
   trailingIcon,
+  arrow,
   size,
   children,
-}: Pick<CommonProps, "loading" | "leadingIcon" | "trailingIcon" | "children"> & {
+}: Pick<CommonProps, "loading" | "leadingIcon" | "trailingIcon" | "arrow" | "children"> & {
   size: ButtonSize;
 }) {
   const icon = ICON_SIZE[size];
@@ -181,6 +217,11 @@ function Content({
         ),
       )}
       {trailingIcon && !loading ? <UiIcon name={trailingIcon} size={icon} /> : null}
+      {arrow && !trailingIcon && !loading ? (
+        <span className="nf-btn__arrow" aria-hidden="true">
+          <UiIcon name="arrow-right" size={icon} />
+        </span>
+      ) : null}
     </>
   );
 }
@@ -196,6 +237,9 @@ export const Button = forwardRef(function Button(
     loading = false,
     leadingIcon,
     trailingIcon,
+    arrow,
+    glow,
+    shape,
     iconOnly,
     haptic,
     className,
@@ -218,7 +262,7 @@ export const Button = forwardRef(function Button(
       {...rest}
       ref={ref}
       type={rest.type ?? "button"}
-      className={buttonClass({ variant, size, full, iconOnly, className })}
+      className={buttonClass({ variant, size, full, iconOnly, glow, shape, className })}
       disabled={disabled || loading}
       data-loading={loading || undefined}
       aria-busy={loading || undefined}
@@ -231,6 +275,7 @@ export const Button = forwardRef(function Button(
         loading={loading}
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
+        arrow={arrow}
         size={size}
       >
         {children}
@@ -255,6 +300,9 @@ export const ButtonLink = forwardRef(function ButtonLink(
     loading = false,
     leadingIcon,
     trailingIcon,
+    arrow,
+    glow,
+    shape,
     iconOnly,
     haptic,
     className,
@@ -269,7 +317,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
     <Link
       {...rest}
       ref={ref}
-      className={buttonClass({ variant, size, full, iconOnly, className })}
+      className={buttonClass({ variant, size, full, iconOnly, glow, shape, className })}
       data-loading={loading || undefined}
       onPointerDown={(event) => {
         pulse(wantsHaptic);
@@ -280,6 +328,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
         loading={loading}
         leadingIcon={leadingIcon}
         trailingIcon={trailingIcon}
+        arrow={arrow}
         size={size}
       >
         {children}

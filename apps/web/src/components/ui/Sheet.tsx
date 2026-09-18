@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import type { ReactNode, RefObject } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { useClientMount } from "@/lib/ui/client-mount";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The bottom sheet.
@@ -93,6 +95,9 @@ export function Sheet({
   hideTitle = false,
   initialFocus,
   footer,
+  closeLabel,
+  reset,
+  apply,
   children,
 }: {
   open: boolean;
@@ -100,6 +105,22 @@ export function Sheet({
   title: string;
   detents?: number[];
   hideTitle?: boolean;
+  /**
+   * THE FILTER SHEET'S ANATOMY, as three opt-in props. The search render
+   * draws a header row (title left, a glass close square right) and a footer
+   * row (Reset in glass beside Apply in the lit primary). Nothing renders
+   * unless asked, so the thirty-nine sheets standing on this file keep their
+   * look.
+   *
+   * `closeLabel` is the close control's accessible name and its on switch: a
+   * string rather than a boolean because an unlabelled X is invisible to a
+   * screen reader and this platform ships four locales.
+   */
+  closeLabel?: string;
+  /** The footer's quiet action. Label is the localised word. */
+  reset?: { label: string; onClick(): void; disabled?: boolean };
+  /** The footer's lit primary. `loading` keeps the label and shows the line. */
+  apply?: { label: string; onClick(): void; disabled?: boolean; loading?: boolean };
   /**
    * What the keyboard lands on when the sheet opens. Defaults to the first
    * focusable node, which is very often the wrong one. See the note on the
@@ -409,17 +430,64 @@ export function Sheet({
           onPointerCancel={onPointerUp}
           aria-hidden="true"
         />
-        <h2
-          id={titleId}
-          className={
-            hideTitle
-              ? "sr-only"
-              : "shrink-0 px-gutter pb-sm text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
-          }
-        >
-          {title}
-        </h2>
+        {closeLabel ? (
+          <div className="nf-sheet__head px-gutter">
+            <h2
+              id={titleId}
+              className={
+                hideTitle
+                  ? "sr-only"
+                  : "min-w-0 text-[var(--nf-text-h4)] font-bold tracking-tight text-[var(--nf-content-primary)]"
+              }
+            >
+              {title}
+            </h2>
+            <button
+              type="button"
+              aria-label={closeLabel}
+              onClick={() => onOpenChange(false)}
+              className="nf-icon-btn nf-icon-btn--glass"
+            >
+              <UiIcon name="close" size={20} />
+            </button>
+          </div>
+        ) : (
+          <h2
+            id={titleId}
+            className={
+              hideTitle
+                ? "sr-only"
+                : "shrink-0 px-gutter pb-sm text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
+            }
+          >
+            {title}
+          </h2>
+        )}
         <div className="nf-sheet__body px-gutter pb-lg">{children}</div>
+        {reset || apply ? (
+          <div className="nf-sheet__foot px-gutter">
+            {reset ? (
+              <Button variant="glass" size="lg" full disabled={reset.disabled} onClick={reset.onClick}>
+                {reset.label}
+              </Button>
+            ) : (
+              <span aria-hidden="true" />
+            )}
+            {apply ? (
+              <Button
+                variant="primary"
+                size="lg"
+                full
+                glow
+                disabled={apply.disabled}
+                loading={apply.loading}
+                onClick={apply.onClick}
+              >
+                {apply.label}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
         {footer ? <div className="shrink-0 px-gutter pb-md">{footer}</div> : null}
       </div>
     </>,

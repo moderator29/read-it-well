@@ -548,6 +548,120 @@
 
   /*
    * =====================================================================
+   * THE RENDERS' BUTTON SHAPES (Build 06, G1). ADDITIVE: every rule below
+   * is a new modifier class. Nothing above changes its default look.
+   *
+   * `.nf-btn--glass-brand`  the render's secondary: Explore Stays, Contact
+   *                         Hotel, Reset. Glass fill, BRAND edge, lit rim.
+   *                         `variant="glass"` in Button.tsx.
+   * `.nf-btn--lit`          the render's primary at rest carries a soft bloom
+   *                         (Explore Properties, Apply, Book Inspection).
+   *                         Opt-in through `glow`, because the base primary
+   *                         decided its bloom is a state and every caller
+   *                         stands on that.
+   * `.nf-btn--pill`         the capsule, per the amended radius law (ledger
+   *                         section 8): Get Started, Sign In, the welcome CTA.
+   * `.nf-btn__arrow`        the trailing arrow that nudges on hover.
+   * ===================================================================== */
+  .nf-btn--glass-brand {
+    color: var(--nf-content-primary);
+    background: var(--nf-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 12px var(--nf-glow-1),
+      var(--nf-elev-1);
+  }
+  /* The sheen is kept: glass with a brand edge is the one secondary that has
+     enough material under the rim for a highlight to be coming off it. */
+  @media (hover: hover) {
+    .nf-btn--glass-brand:hover:not(:disabled) {
+      background: var(--nf-glass-fill-strong);
+      border-color: var(--nf-brand-edge-strong);
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim-strong),
+        0 0 18px var(--nf-glow-2),
+        var(--nf-elev-1);
+    }
+  }
+  .nf-btn--glass-brand:active:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 14px var(--nf-glow-2);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nf-btn--glass-brand {
+      background: linear-gradient(180deg, var(--nf-surface-raised), var(--nf-surface-elevated));
+    }
+  }
+  /* Paper: an opaque white plate with the brand edge; the bloom becomes a
+     short brand-tinted shadow, the same terms daylight's primary already uses. */
+  :root[data-theme="light"] .nf-btn--glass-brand {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-brand-edge);
+    color: var(--nf-content-primary);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: 0 2px 10px var(--nf-glow-1);
+  }
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-btn--glass-brand:hover:not(:disabled) {
+      background: var(--nf-surface-primary);
+      border-color: var(--nf-brand-edge-strong);
+      box-shadow: 0 4px 14px var(--nf-glow-2);
+    }
+  }
+
+  /* The lit primary. Rung 2 at rest, rung 3 on hover, and the same inset rim
+     the base primary carries so the two read as one object with the light on. */
+  .nf-btn--primary.nf-btn--lit {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-2),
+      0 8px 24px -10px var(--nf-glow-3);
+  }
+  @media (hover: hover) {
+    .nf-btn--primary.nf-btn--lit:hover:not(:disabled) {
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim),
+        0 0 24px var(--nf-glow-3),
+        0 10px 28px -10px var(--nf-glow-4);
+    }
+  }
+  :root[data-theme="light"] .nf-btn--primary.nf-btn--lit {
+    border-color: transparent;
+    box-shadow: 0 6px 18px var(--nf-glow-3);
+  }
+
+  .nf-btn--pill {
+    border-radius: var(--nf-radius-pill);
+  }
+
+  /* The arrow nudges two pixels on hover and nowhere else: a hint of the
+     direction the press will take, and nothing when the finger is the pointer. */
+  .nf-btn__arrow {
+    display: inline-flex;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-btn:hover:not(:disabled) .nf-btn__arrow {
+      transform: translateX(2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn__arrow {
+      transition: none;
+    }
+    .nf-btn:hover:not(:disabled) .nf-btn__arrow {
+      transform: none;
+    }
+  }
+
+  /*
+   * =====================================================================
    * LOADING, DRAWN. `cursor: progress` WAS THE WHOLE OF IT.
    *
    * A loading button set the cursor and nothing else. The cursor is invisible on

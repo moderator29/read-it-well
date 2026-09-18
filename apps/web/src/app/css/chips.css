@@ -576,3 +576,346 @@
    * value and one gradient read it, rather than three gradients.
    */
 }
+
+/*
+ * =========================================================================
+ * THE RENDERS' CAPSULES AND THE REGISTER'S SURFACES (Build 06, G1).
+ *
+ * Everything in this block is a NEW class. Nothing above changes, because
+ * fourteen workers are standing on it. The chip keeps its rectangle by
+ * default; `.nf-chip--pill` is the capsule the amended radius law records
+ * (ledger section 8), and the rest are the register's surfaces that the
+ * Sheet, ActionBar, Table and Progress primitives now expose as props.
+ *
+ * Light rules live here, under `:root[data-theme="light"]`, at one class
+ * higher than light.css's `.nf-chip` rule so they win the tie that source
+ * order would otherwise hand to the later file.
+ * ========================================================================= */
+@layer components {
+  /* ---------------------------------------------------------- chip, pill */
+
+  /*
+   * The capsule chip: the landing's city chips, the search sheet's Buy / 2 Bed
+   * / More (3), the welcome CTA. Glass fill, a SOFT brand edge (a resting chip
+   * casts no light, so the edge is the only brand on it) and the lit rim, on
+   * the thin blur because a chip sits on a card, not over a page.
+   */
+  .nf-chip--pill {
+    border-radius: var(--nf-radius-pill);
+    padding-inline: var(--nf-space-md);
+    color: var(--nf-content-primary);
+    border-color: var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  @media (hover: hover) {
+    .nf-chip--pill:hover {
+      border-color: var(--nf-brand-edge);
+      background: var(--nf-glass-fill-strong);
+      box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    }
+  }
+  /*
+   * Selected: filled brand with the render's glow. The class is set by the
+   * component for every behaviour (filter, choice, link), because
+   * `aria-pressed` only exists on the toggle form and a selected radio or a
+   * current link chip must light the same way.
+   */
+  .nf-chip--pill.nf-chip--active,
+  .nf-chip--pill[aria-pressed="true"] {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 16px var(--nf-glow-3);
+  }
+  @media (hover: hover) {
+    .nf-chip--pill.nf-chip--active:hover,
+    .nf-chip--pill[aria-pressed="true"]:hover {
+      background: var(--nf-brand-primary);
+      border-color: var(--nf-glow-brand-rim);
+    }
+  }
+  /* The leading glyph: a glass object or a line glyph in the brand's quiet
+     ink, which is the ink the renders draw their chip glyphs in. */
+  .nf-chip__glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-chip--active .nf-chip__glyph,
+  .nf-chip[aria-pressed="true"] .nf-chip__glyph {
+    color: currentColor;
+  }
+  /* The trailing chevron of a dropdown chip, turning when the menu is open. */
+  .nf-chip__chevron {
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-inline-start: calc(var(--nf-gap-inline-tight) * -1);
+    opacity: 0.8;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-chip[aria-expanded="true"] .nf-chip__chevron {
+    transform: rotate(180deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-chip__chevron {
+      transition: none;
+    }
+  }
+  /* Paper: the capsule is a white plate with the brand hairline. Selected is
+     the same solid brand light.css already gives the rectangle. */
+  :root[data-theme="light"] .nf-chip.nf-chip--pill {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-brand-edge-soft);
+    color: var(--nf-content-primary);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-elev-1);
+  }
+  @media (hover: hover) {
+    :root[data-theme="light"] .nf-chip.nf-chip--pill:hover {
+      background: var(--nf-surface-primary);
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  :root[data-theme="light"] .nf-chip.nf-chip--pill.nf-chip--active,
+  :root[data-theme="light"] .nf-chip.nf-chip--pill[aria-pressed="true"] {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 4px 12px var(--nf-glow-3);
+  }
+
+  /* --------------------------------------------------- segmented, capsule */
+
+  /*
+   * The capsule rail: the feed's For You / Following and the search pill's
+   * Buy / Rent / Stay / Invest. One glass track with the soft brand edge, and
+   * the travelling segment is FILLED brand with the glow rather than a raised
+   * neutral plate, so the state is the loudest thing in the control.
+   */
+  .nf-segmented--pill {
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-segmented--pill .nf-segmented__capsule {
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 16px var(--nf-glow-3);
+  }
+  .nf-segmented--pill .nf-segmented__item {
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-segmented--pill .nf-segmented__item[aria-selected="true"],
+  .nf-segmented--pill .nf-segmented__item[aria-checked="true"] {
+    color: var(--nf-content-on-brand);
+  }
+  .nf-segmented--pill .nf-segmented__link {
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 16px var(--nf-glow-3);
+  }
+  :root[data-theme="light"] .nf-segmented--pill {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-segmented--pill .nf-segmented__capsule,
+  :root[data-theme="light"] .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
+    box-shadow: 0 4px 12px var(--nf-glow-2);
+  }
+
+  /* ------------------------------------------------- the sheet's anatomy */
+
+  /*
+   * The filter sheet's header and footer, as classes the Sheet primitive
+   * wears. The sheet's own material stays in overlays.css (the lead's); these
+   * are the two rows inside it: title with the glass close square, and the
+   * Reset / Apply pair pinned under the body with a scrim so the list
+   * dissolves into it rather than hitting a seam.
+   */
+  .nf-sheet__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-gap-row);
+    flex-shrink: 0;
+    padding-block: 0 var(--nf-space-sm);
+  }
+  .nf-sheet__foot {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-gap-row);
+    flex-shrink: 0;
+    padding-block: var(--nf-space-sm) var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-sheet__foot::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 100% 0;
+    height: 1.5rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--nf-surface-elevated) 70%, transparent) 0%,
+      transparent 100%
+    );
+  }
+
+  /* --------------------------------------------- the pinned bar, lit */
+
+  /*
+   * The listing render's bottom bar: the bar itself glows upward into the
+   * content above it, its top edge is the brand rim, and it holds a price
+   * block beside two buttons. The base `.nf-action-bar-pinned` is unchanged;
+   * this is the `glow` prop.
+   */
+  .nf-action-bar-pinned--lit {
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 -10px 36px -14px var(--nf-glow-3);
+  }
+  .nf-action-bar-pinned--lit::after {
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+      var(--nf-glow-wash) 40%,
+      transparent 100%
+    );
+  }
+  :root[data-theme="light"] .nf-action-bar-pinned--lit {
+    border-top-color: var(--nf-border-default);
+    box-shadow: 0 -6px 24px -12px var(--nf-glow-2);
+  }
+  :root[data-theme="light"] .nf-action-bar-pinned--lit::after {
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent) 0%,
+      transparent 100%
+    );
+  }
+  /* The price block at the bar's leading edge: figure on top, its label under. */
+  .nf-action-bar__lead {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1 1 auto;
+    line-height: 1.2;
+  }
+  .nf-action-bar__lead-figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .nf-action-bar__lead-label {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------ the table, in glass */
+
+  /*
+   * The admin render's queue: the table sits in a glass card with the brand
+   * hairline, its header row is a slightly stronger fill, its rows are
+   * separated by faint blue hairlines and the whole thing scrolls sideways
+   * inside the card rather than widening the page. `tone="glass"` on Table.
+   */
+  .nf-table--glass {
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      var(--nf-elev-1);
+  }
+  .nf-table--glass th {
+    background: color-mix(in oklab, var(--nf-surface-elevated) 92%, transparent);
+    border-bottom-color: var(--nf-brand-edge-soft);
+  }
+  .nf-table--glass td {
+    border-bottom-color: color-mix(in oklab, var(--nf-brand-edge-soft) 50%, transparent);
+  }
+  .nf-table--glass tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  /* The row's identifier column, in the quiet brand ink the render uses. */
+  .nf-table__id {
+    color: var(--nf-brand-secondary);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  /* The kebab column: as narrow as its button, never a stretched cell. */
+  .nf-table__kebab {
+    width: 1%;
+    white-space: nowrap;
+    padding-inline: var(--nf-space-2xs);
+  }
+  :root[data-theme="light"] .nf-table--glass {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-table--glass th {
+    background: var(--nf-surface-raised);
+    border-bottom-color: var(--nf-border-default);
+  }
+  :root[data-theme="light"] .nf-table--glass td {
+    border-bottom-color: var(--nf-border-subtle);
+  }
+
+  /* --------------------------------------------- progress, on glass */
+
+  /*
+   * The inspection checklist's bar: a sunken glass track with the hairline,
+   * and a fill that carries the glow at its leading edge so "how far" is lit.
+   * `material="glass"` on Progress.
+   */
+  .nf-progress--glass {
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 2px var(--nf-shade-2),
+      inset 0 0 0 1px var(--nf-border-subtle);
+  }
+  .nf-progress__fill--lit {
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 12px var(--nf-glow-3);
+  }
+  :root[data-theme="light"] .nf-progress--glass {
+    background: var(--nf-surface-inset);
+    box-shadow: inset 0 0 0 1px var(--nf-border-subtle);
+  }
+  :root[data-theme="light"] .nf-progress__fill--lit {
+    box-shadow: 0 2px 8px var(--nf-glow-2);
+  }
+}

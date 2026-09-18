@@ -54,10 +54,35 @@ export type ChipBehaviour = "filter" | "choice" | "link" | "static";
 /** 36px display-only / 44px interactive. No other chip heights exist. */
 export type ChipSize = "sm" | "md";
 
+/**
+ * The amended radius law (ledger section 8). `control` is the rectangle every
+ * existing rail draws; `pill` is the capsule the governing renders show for
+ * the city chips, the search sheet's filter row and the welcome CTA: glass
+ * fill, soft brand edge, and when selected a solid brand fill with the glow.
+ */
+export type ChipShape = "control" | "pill";
+
 type ChipCommonProps = {
   selected?: boolean;
   size?: ChipSize;
+  shape?: ChipShape;
   icon?: UiIconName;
+  /**
+   * A leading glyph that is not a `UiIcon`: a glass `BrandIcon`, a flag, a
+   * currency mark. Rendered in the chip's glyph slot at 18px in the quiet
+   * brand ink, which is how the renders draw the pin on "Lagos" and the bed on
+   * "2 Bed". `icon` still wins when both are given, because it is the older
+   * contract.
+   */
+  glyph?: ReactNode;
+  /**
+   * The trailing chevron of a chip that opens something (Buy, 2 Bed, More (3)
+   * on the search render). Pair it with `expanded` so the chevron turns and
+   * the button announces its state.
+   */
+  chevron?: boolean;
+  /** Sets `aria-expanded` on a filter chip that opens a menu or a sheet. */
+  expanded?: boolean;
   /** A tabular trailing count. Proportional digits visibly jitter as counts change. */
   count?: number;
   /**
@@ -138,11 +163,16 @@ const SELECTED_STYLE: CSSProperties = {
 function ChipInner({
   size,
   icon,
+  glyph,
+  chevron,
   count,
   thumbnail,
   selected,
   children,
-}: Pick<ChipCommonProps, "icon" | "count" | "thumbnail" | "selected" | "children"> & {
+}: Pick<
+  ChipCommonProps,
+  "icon" | "glyph" | "chevron" | "count" | "thumbnail" | "selected" | "children"
+> & {
   size: ChipSize;
 }) {
   return (
@@ -158,10 +188,19 @@ function ChipInner({
         />
       ) : icon ? (
         <UiIcon name={icon} size={ICON_PX[size]} filled={selected} />
+      ) : glyph ? (
+        <span className="nf-chip__glyph" aria-hidden="true">
+          {glyph}
+        </span>
       ) : null}
       <span className="whitespace-nowrap">{children}</span>
       {typeof count === "number" ? (
         <span className="nf-numeric text-[0.8em] opacity-70">{count}</span>
+      ) : null}
+      {chevron ? (
+        <span className="nf-chip__chevron" aria-hidden="true">
+          <UiIcon name="chevron-down" size={ICON_PX[size]} />
+        </span>
       ) : null}
     </>
   );
@@ -195,7 +234,11 @@ export function Chip(props: ChipProps) {
     prefetch,
     "data-testid": testId,
     size = "md",
+    shape = "control",
     icon,
+    glyph,
+    chevron,
+    expanded,
     count,
     thumbnail,
     onSelectedChange,
@@ -204,8 +247,16 @@ export function Chip(props: ChipProps) {
     children,
   } = props;
 
+  const pill = shape === "pill";
   const classes = [
     "nf-chip relative select-none",
+    pill ? "nf-chip--pill" : "",
+    /*
+     * The capsule's selected state is a CLASS, not the inline style below,
+     * so the stylesheet can add the glow and the brand edge, and so a selected
+     * radio or a current link chip lights the same way as a pressed toggle.
+     */
+    pill && selected ? "nf-chip--active" : "",
     HEIGHT[size],
     // A photo needs the leading padding pulled in or the pill reads as a chip
     // with a gap in front of it rather than a chip containing a photo.
@@ -216,9 +267,17 @@ export function Chip(props: ChipProps) {
     .filter(Boolean)
     .join(" ");
 
-  const style = selected ? SELECTED_STYLE : undefined;
+  const style = selected && !pill ? SELECTED_STYLE : undefined;
   const inner = (
-    <ChipInner size={size} icon={icon} count={count} thumbnail={thumbnail} selected={selected}>
+    <ChipInner
+      size={size}
+      icon={icon}
+      glyph={glyph}
+      chevron={chevron}
+      count={count}
+      thumbnail={thumbnail}
+      selected={selected}
+    >
       {children}
     </ChipInner>
   );
@@ -265,6 +324,7 @@ export function Chip(props: ChipProps) {
       role={choice ? "radio" : undefined}
       aria-checked={choice ? selected : undefined}
       aria-pressed={choice ? undefined : selected}
+      aria-expanded={expanded}
       /*
        * Roving tabindex: a radio group is one stop in the tab order and the
        * arrow keys move within it (handled by `ChipRow radiogroup`). A filter

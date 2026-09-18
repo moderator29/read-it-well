@@ -66,6 +66,12 @@ export type ProgressProps = {
   /** For work whose duration is unknown. Drops `aria-valuenow`, which is
    *  precisely how indeterminate progress is expressed. */
   indeterminate?: boolean;
+  /**
+   * `glass` is the inspection checklist's bar: a sunken glass track with the
+   * hairline and a fill lit at its leading edge. The default track is the
+   * content wash every existing bar draws.
+   */
+  material?: "default" | "glass";
   className?: string;
 };
 
@@ -79,8 +85,10 @@ export function Progress({
   tone = "brand",
   size = "md",
   indeterminate = false,
+  material = "default",
   className,
 }: ProgressProps) {
+  const glass = material === "glass";
   const safeMax = max > 0 ? max : 100;
   const clamped = Math.min(Math.max(value, 0), safeMax);
   const ratio = clamped / safeMax;
@@ -139,14 +147,20 @@ export function Progress({
            * asked for less motion.
            */
           indeterminate ? "nf-skeleton" : "",
+          glass && !indeterminate ? "nf-progress--glass" : "",
         ]
           .filter(Boolean)
           .join(" ")}
-        style={indeterminate ? undefined : TRACK}
+        style={indeterminate || glass ? undefined : TRACK}
       >
         {indeterminate ? null : (
           <span
-            className="block h-full rounded-[var(--nf-radius-pill)] transition-[width] motion-reduce:transition-none"
+            className={[
+              "block h-full rounded-[var(--nf-radius-pill)] transition-[width] motion-reduce:transition-none",
+              glass ? "nf-progress__fill--lit" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
             style={{
               width: `${pct}%`,
               background: TONE_FILL[tone],

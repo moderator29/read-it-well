@@ -41,7 +41,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  *   entire reason a ledger is a table.
  */
 
-export type TableDensity = "comfortable" | "compact";
+/** `dense` is the admin render's queue: caption-sized rows at the tightest
+ *  pad, ten rows to a phone screen with the sticky header above them. */
+export type TableDensity = "comfortable" | "compact" | "dense";
 export type CellAlign = "start" | "end";
 
 type TableContextValue = {
@@ -61,11 +63,19 @@ const HeadContext = createContext(false);
 const TH_PAD: Record<TableDensity, string> = {
   comfortable: "px-sm py-xs",
   compact: "px-sm py-2xs",
+  dense: "px-xs py-2xs",
 };
 
 const TD_PAD: Record<TableDensity, string> = {
   comfortable: "px-sm py-sm",
   compact: "px-sm py-xs",
+  dense: "px-xs py-xs",
+};
+
+const TABLE_TYPE: Record<TableDensity, string> = {
+  comfortable: "text-[var(--nf-text-body)]",
+  compact: "text-[var(--nf-text-body)]",
+  dense: "text-[var(--nf-text-caption)]",
 };
 
 const HAIRLINE = "border-b border-[var(--nf-border-subtle)]";
@@ -89,6 +99,12 @@ export type TableProps = {
    * `stickyHeader` actually stick. A CSS length or a number of pixels.
    */
   maxHeight?: number | string;
+  /**
+   * `glass` wraps the table in the admin render's card: the brand hairline,
+   * the glass fill, a stronger header row and faint blue hairlines between
+   * the rows. The default is the bare table every ledger already draws.
+   */
+  tone?: "default" | "glass";
   className?: string;
   children: ReactNode;
 };
@@ -100,13 +116,20 @@ export function Table({
   empty,
   stickyHeader = true,
   maxHeight,
+  tone = "default",
   className,
   children,
 }: TableProps) {
   return (
     <TableContext.Provider value={{ density, empty, stickyHeader }}>
       <div
-        className={["w-full overflow-x-auto", className ?? ""].filter(Boolean).join(" ")}
+        className={[
+          "w-full overflow-x-auto",
+          tone === "glass" ? "nf-table--glass" : "",
+          className ?? "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         style={{
           maxHeight,
           // A flick past the end of a wide table must not scroll the page
@@ -114,7 +137,7 @@ export function Table({
           overscrollBehaviorX: "contain",
         }}
       >
-        <table className="w-full border-separate border-spacing-0 text-left text-[var(--nf-text-body)]">
+        <table className={`w-full border-separate border-spacing-0 text-left ${TABLE_TYPE[density]}`}>
           <caption
             className={
               captionVisible
@@ -349,11 +372,17 @@ export type TDProps = {
    * one - it looks like it should line up, and does not.
    */
   align?: CellAlign;
+  /**
+   * `id` is the render's identifier column, in the quiet brand ink and
+   * tabular. `kebab` is the actions column: as narrow as its button and never
+   * a stretched cell. Put a `TableKebab` inside it.
+   */
+  role?: "id" | "kebab";
   className?: string;
   children: ReactNode;
-} & Omit<TdHTMLAttributes<HTMLTableCellElement>, "align" | "className" | "children">;
+} & Omit<TdHTMLAttributes<HTMLTableCellElement>, "align" | "className" | "children" | "role">;
 
-export function TD({ align = "start", className, children, ...rest }: TDProps) {
+export function TD({ align = "start", role, className, children, ...rest }: TDProps) {
   const { density } = useContext(TableContext);
 
   return (
@@ -364,6 +393,8 @@ export function TD({ align = "start", className, children, ...rest }: TDProps) {
         HAIRLINE,
         "align-middle text-[var(--nf-content-secondary)]",
         align === "end" ? "nf-numeric text-end" : "text-start",
+        role === "id" ? "nf-table__id" : "",
+        role === "kebab" ? "nf-table__kebab" : "",
         className ?? "",
       ]
         .filter(Boolean)
@@ -371,5 +402,40 @@ export function TD({ align = "start", className, children, ...rest }: TDProps) {
     >
       {children}
     </td>
+  );
+}
+
+/**
+ * The kebab: the render's three-dot row action. A 44px glass square drawn at
+ * 36px so ten dense rows still fit a phone screen; `.nf-icon-btn::before`
+ * grows the hit area back to the floor without moving a pixel of the paint.
+ * `label` is the accessible name, localised by the caller ("More actions for
+ * VL-1024"), because a glyph-only button with no name is invisible.
+ */
+export function TableKebab({
+  label,
+  onClick,
+  expanded,
+  className,
+}: {
+  label: string;
+  onClick?(): void;
+  /** Set when the button opens a menu, so it announces its state. */
+  expanded?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-expanded={expanded}
+      aria-haspopup={expanded === undefined ? undefined : "menu"}
+      onClick={onClick}
+      className={["nf-icon-btn nf-icon-btn--glass h-9 w-9", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <UiIcon name="more" size={16} />
+    </button>
   );
 }

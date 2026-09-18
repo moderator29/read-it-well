@@ -177,6 +177,15 @@ type ControlSize = "md" | "lg";
 const HEIGHT: Record<ControlSize, string> = { md: "h-12", lg: "h-14" };
 
 /**
+ * `default` is the form input on a card. `glass` is the renders' search well:
+ * dark glass, the soft brand hairline, the rim along its top, a glyph inside.
+ * The height is the caller's `size`; the render's search field is `lg`.
+ */
+export type FieldMaterial = "default" | "glass";
+/** The amended radius law (ledger section 8): the landing's search pill is a capsule. */
+export type FieldShape = "control" | "pill";
+
+/**
  * `pointer-coarse` is the whole point: mobile Safari zooms the viewport whenever
  * a focused control's font-size is under 16px, and the platform's body size is
  * 14px. Scoped to coarse pointers so the desktop type scale is untouched. This
@@ -225,15 +234,21 @@ function controlClass({
   size,
   leading,
   trailing,
+  material = "default",
+  shape = "control",
   className,
 }: {
   size: ControlSize;
   leading: boolean;
   trailing: boolean;
+  material?: FieldMaterial;
+  shape?: FieldShape;
   className?: string;
 }) {
   return [
     "nf-field block",
+    material === "glass" ? "nf-field--glass" : "",
+    shape === "pill" ? "nf-field--pill" : "",
     HEIGHT[size],
     FIELD_TYPE,
     "py-0",
@@ -261,6 +276,14 @@ export type TextFieldProps = Omit<
 > &
   Omit<FieldProps, "children"> & {
     leadingIcon?: UiIconName;
+    /**
+     * A leading glyph that is not a `UiIcon`: a glass `BrandIcon` in the well,
+     * the way the renders draw the search and the pin. `leadingIcon` wins when
+     * both are given, because it is the older contract.
+     */
+    glyph?: ReactNode;
+    material?: FieldMaterial;
+    shape?: FieldShape;
     /** An eye toggle, a unit, a filter opener. Sits where the clear button would. */
     trailing?: ReactNode;
     /**
@@ -286,6 +309,9 @@ export function TextField({
   hideLabel,
   className,
   leadingIcon,
+  glyph,
+  material,
+  shape,
   trailing,
   clearable,
   onClear,
@@ -341,6 +367,10 @@ export function TextField({
             <span className={`${SLOT} left-3.5`}>
               <UiIcon name={leadingIcon} size={20} />
             </span>
+          ) : glyph ? (
+            <span className="nf-field__glyph" aria-hidden="true">
+              {glyph}
+            </span>
           ) : null}
 
           <input
@@ -349,8 +379,10 @@ export function TextField({
             ref={ref}
             className={controlClass({
               size,
-              leading: Boolean(leadingIcon),
+              leading: Boolean(leadingIcon) || Boolean(glyph),
               trailing: showClear || Boolean(trailing),
+              material,
+              shape,
               className: inputClassName,
             })}
             style={error ? INVALID_STYLE : undefined}
@@ -388,6 +420,10 @@ export type SelectFieldProps = Omit<
 > &
   Omit<FieldProps, "children"> & {
     leadingIcon?: UiIconName;
+    /** See `TextFieldProps.glyph`. */
+    glyph?: ReactNode;
+    material?: FieldMaterial;
+    shape?: FieldShape;
     size?: ControlSize;
     selectClassName?: string;
   };
@@ -401,6 +437,9 @@ export function SelectField({
   hideLabel,
   className,
   leadingIcon,
+  glyph,
+  material,
+  shape,
   size = "md",
   selectClassName,
   children,
@@ -426,6 +465,10 @@ export function SelectField({
             <span className={`${SLOT} left-3.5`}>
               <UiIcon name={leadingIcon} size={20} />
             </span>
+          ) : glyph ? (
+            <span className="nf-field__glyph" aria-hidden="true">
+              {glyph}
+            </span>
           ) : null}
 
           <select
@@ -440,8 +483,10 @@ export function SelectField({
              */
             className={`${controlClass({
               size,
-              leading: Boolean(leadingIcon),
+              leading: Boolean(leadingIcon) || Boolean(glyph),
               trailing: true,
+              material,
+              shape,
               className: selectClassName,
             })} appearance-none`}
             style={error ? INVALID_STYLE : undefined}

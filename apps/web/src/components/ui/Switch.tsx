@@ -83,7 +83,14 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={[
-        "relative h-8 w-13 shrink-0 cursor-pointer rounded-[var(--nf-radius-control)] transition-colors motion-reduce:transition-none",
+        /*
+         * THE MATERIAL IS `.nf-switch` NOW (controls.css) AND IT WAS TWO
+         * TERNARIES OF INLINE STYLE. Same track, same knob, same bloom when on;
+         * what moved is where the paper twin lives, which is beside the night
+         * rule instead of nowhere. The radius is the capsule the settings render
+         * draws, per the amended radius law.
+         */
+        "nf-switch relative h-8 w-13 shrink-0 cursor-pointer rounded-[var(--nf-radius-pill)]",
         /*
          * The 44pt floor, as a pseudo element rather than a child span.
          *
@@ -105,16 +112,6 @@ export function Switch({
       ]
         .filter(Boolean)
         .join(" ")}
-      style={{
-        background: checked
-          ? "var(--nf-brand-primary)"
-          : "color-mix(in oklab, var(--nf-content-primary) 12%, transparent)",
-        boxShadow: checked
-          ? "0 0 16px -2px var(--nf-glow-3), inset 0 1px 2px color-mix(in oklab, var(--nf-surface-canvas) 45%, transparent)"
-          : "inset 0 1px 3px color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent)",
-        transitionDuration: "var(--nf-duration-base)",
-        transitionTimingFunction: "var(--nf-ease-standard)",
-      }}
     >
       {/*
         The thumb travels on a transform, never on `left`. `left` is a layout
@@ -128,11 +125,11 @@ export function Switch({
       */}
       <span
         aria-hidden="true"
-        className="absolute left-1 top-1/2 block size-6 -translate-y-1/2 rounded-[var(--nf-radius-pill)] transition-transform motion-reduce:transition-none"
+        className="nf-switch__thumb absolute left-1 top-1/2 block size-6 -translate-y-1/2 rounded-[var(--nf-radius-pill)] transition-transform motion-reduce:transition-none"
         style={{
-          background: "var(--nf-content-on-brand)",
-          boxShadow: "var(--nf-elev-1)",
-          transform: `translate(${checked ? "1.25rem" : "0"}, -50%)`,
+          /* 1.25rem of travel on a 52px track with a 24px knob and a 4px
+             inset each side, less the hairline the track now carries. */
+          transform: `translate(${checked ? "1.125rem" : "0"}, -50%)`,
           transitionDuration: "var(--nf-duration-base)",
           transitionTimingFunction: "var(--nf-ease-spring)",
         }}
