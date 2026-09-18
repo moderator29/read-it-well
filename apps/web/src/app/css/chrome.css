@@ -491,7 +491,10 @@
   }
   .nf-tabbar__pill {
     border-radius: var(--nf-radius-lg);
-    background: var(--nf-brand-tint-2);
+    /* The side's own depth of blue (seed 3): the moment the flip lands the
+       pill reads as the other side's, so the dock tells the same story as
+       the cover. Depth, never hue. */
+    background: color-mix(in oklab, var(--nf-side-accent) 22%, transparent);
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
       0 0 18px var(--nf-glow-2);
