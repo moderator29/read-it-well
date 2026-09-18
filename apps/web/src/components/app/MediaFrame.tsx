@@ -529,11 +529,21 @@ export function MediaFrame({
   kind,
   className,
   ghost = false,
+  sizes = "(max-width: 640px) 50vw, 33vw",
+  priority = false,
 }: {
   hue: number;
   index?: number;
   kind?: ListingKind;
   className?: string;
+  /**
+   * What `next/image` is told about the rendered width, so the optimiser
+   * serves a phone the phone's size and not the desktop hero's. The default
+   * is the two-up card; a hero or a thumbnail says its own.
+   */
+  sizes?: string;
+  /** The first hero on a page is above the fold and may preload. */
+  priority?: boolean;
   /**
    * Draw the scene as a quiet ghost behind something else.
    *
@@ -553,7 +563,7 @@ export function MediaFrame({
   const scene = SCENE_BY_KIND[kind ?? "home"];
   /* A dropped-in photograph for this scene wins over the stand-in. See the
      note above STAND_IN: the manifest is generated from what is on disk. */
-  const photo = SCENE_PHOTOGRAPHS[scene] ?? STAND_IN[scene];
+  const photo = scene === "land" ? null : (SCENE_PHOTOGRAPHS[scene] ?? STAND_IN[scene]);
   const at = Math.abs(hue + index) % CROPS.length;
 
   return (
@@ -568,7 +578,8 @@ export function MediaFrame({
             src={photo}
             alt=""
             fill
-            sizes="(max-width: 640px) 50vw, 33vw"
+            sizes={sizes}
+            priority={priority}
             style={{ objectFit: "cover", objectPosition: CROPS[at] }}
           />
           {/* A brand-tinted wash that varies with the hue, so a run of cards

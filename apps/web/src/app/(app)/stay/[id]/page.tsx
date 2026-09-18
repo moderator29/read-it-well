@@ -78,6 +78,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
           freeUntilHours: detail.policy.is_free_until_hours,
         }
       : null,
+    businessKind: detail.business.kind,
   };
 }
 
@@ -112,18 +113,6 @@ export default async function StayDetailPage({
   const t = getDictionary(locale);
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
 
-  /* THE FIRST-PARTY CHECKOUT, ALWAYS. This lane never borrows a step from the
-     third-party one: a room on Vallo is reserved and paid for on Vallo. */
-  const reserveHref = (roomTypeId: string, ratePlanId: string): string => {
-    const search = new URLSearchParams({ stay: detail.id, room: roomTypeId, rate: ratePlanId });
-    if (checkIn && checkOut) {
-      search.set("checkIn", checkIn);
-      search.set("checkOut", checkOut);
-    }
-    search.set("guests", String(guests));
-    return `/checkout?${search.toString()}`;
-  };
-
   return (
     <StayDetailView
       detail={detail}
@@ -133,8 +122,9 @@ export default async function StayDetailPage({
       guests={guests}
       locale={locale}
       copy={t.stayDetail}
+      t={t}
       datesHref={toStaysSearchHref({ checkIn, checkOut, guests })}
-      reserveHref={reserveHref}
+      reserve={{ stayId: detail.id, checkIn, checkOut, guests }}
     />
   );
 }

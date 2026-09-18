@@ -1,34 +1,59 @@
+import Image from "next/image";
+import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
-import { FactGrid, ICON, Section, Stack, Surface, TYPE, type Fact } from "@/components/app/Screen";
-import { RoomTypes } from "./RoomTypes";
-import { stayFromMinor, type StayDetail } from "./detail-model";
-
-/**
- * THE STAY, AS A SHOWCASE.
- *
- * Gallery edge to edge, exactly as the listing page draws it: `AppShell`
- * already treats `/stay/[id]` as an edge-to-edge route, so the hero meets
- * the screen with no gutter and the page's own padding starts underneath it.
- *
- * THE TOTAL IS THE HEADLINE. Not the nightly rate with the total in small
- * print underneath, which is the pattern that makes a person arrive at
- * checkout with a different number in their head to the one on the button.
- * Where dates are chosen the headline is what this stay costs, all in; where
- * they are not, the headline says so and offers the dates, because a total
- * with no dates behind it would be an invention.
- *
- * The policy is the policy's own sentence, from its `summary` column, shown
- * verbatim. The rooms are rows. The bar at the bottom carries the from-price
- * and the way in, and it never leaves the screen.
- */
+import { MediaFrame } from "@/components/app/MediaFrame";
+import { ICON, Section, Stack, TYPE } from "@/components/app/Screen";
+import { RoomTypes, type ReserveBase } from "./RoomTypes";
+import { ROOM_CATEGORY_KEY, roomFromMinor, stayFromMinor, type StayDetail } from "./detail-model";
 
 type StaysCopy = Dictionary["stayDetail"];
 
+const STAR_LABEL: Record<number, string> = { 1: "1 star", 2: "2 star", 3: "3 star", 4: "4 star", 5: "5 star" };
+
+const BUSINESS_OBJECT: Record<string, BrandIconName> = {
+  hotel: "hotel",
+  serviced_apartments: "serviced-apartment",
+  guest_house: "bungalow",
+  resort: "beach-house",
+  shortlet_operator: "shortlet",
+};
+
+const BUSINESS_LABEL: Record<string, string> = {
+  hotel: "Hotel",
+  serviced_apartments: "Serviced apartment",
+  guest_house: "Guest house",
+  resort: "Resort",
+  shortlet_operator: "Shortlet",
+};
+
+function dateLabel(iso: string | undefined, locale: Locale): string | null {
+  if (!iso) return null;
+  const parsed = new Date(`${iso}T12:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(parsed);
+}
+
+/**
+ * The stay detail, to BB0C2C85 and 84054CE9.
+ *
+ * The photo hero, the name with the nightly figure beside it, the check-in,
+ * check-out and guests row (each a link back to the date picker, since the
+ * dates ride the URL), the amenity tiles, About, the Property Type card,
+ * the room tiles, and Book This Stay to the rooms whose rates carry the
+ * real first-party checkout. A rating appears only with reviews behind it,
+ * and this read carries none, so none is drawn.
+ */
 export function StayDetailView({
   detail,
   nights,
@@ -37,8 +62,9 @@ export function StayDetailView({
   guests,
   locale,
   copy,
+  t,
   datesHref,
-  reserveHref,
+  reserve,
 }: {
   detail: StayDetail;
   nights: number | null;
@@ -47,25 +73,15 @@ export function StayDetailView({
   guests: number;
   locale: Locale;
   copy: StaysCopy;
-  /** Back to the stays search, dates and guests carried. */
+  t: Dictionary;
   datesHref: string;
-  reserveHref: (roomTypeId: string, ratePlanId: string) => string;
+  reserve: ReserveBase;
 }) {
   const from = stayFromMinor(detail, nights);
   const total = from !== null && nights !== null ? from * nights : null;
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
-
-  const facts: Fact[] = [
-    ...(detail.checkInFrom
-      ? [{ label: copy.checkIn, value: detail.checkInFrom.slice(0, 5), icon: "key" as const }]
-      : []),
-    ...(detail.checkOutBy
-      ? [{ label: copy.checkOut, value: detail.checkOutBy.slice(0, 5), icon: "history" as const }]
-      : []),
-    ...(detail.starRating
-      ? [{ label: copy.rating, value: `${detail.starRating}`, icon: "star" as const }]
-      : []),
-  ];
+  const catalogue = t.catalogue.stays;
+  const businessKind = detail.businessKind ?? "hotel";
 
   return (
     <div>
@@ -78,65 +94,149 @@ export function StayDetailView({
         backFallback="/stays"
       />
 
-      {/* The bar is fixed, so the page reserves its height rather than letting
-          it sit over the last section. */}
-      <div className="mx-auto max-w-2xl px-gutter pb-[calc(var(--nf-action-bar-height,4.5rem)+var(--spacing-block))] pt-block">
-        <h1 className="nf-h1 [text-wrap:balance]">{detail.name}</h1>
-        {where && (
-          <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
-            <UiIcon name="location" size={ICON.inline} className="shrink-0" />
-            {where}
-          </p>
-        )}
-
+      <div className="mx-auto max-w-2xl pb-[calc(var(--nf-action-bar-height,4.5rem)+var(--spacing-block))] pt-md">
         {/* ------------------------------------------------ the headline */}
-        <Surface className="mt-block">
-          {total !== null && nights !== null ? (
-            <>
-              <p className={TYPE.label}>
-                {copy.totalFor.replace("{count}", String(nights))}
+        <div className="nf-stay-card__head">
+          <div className="min-w-0">
+            <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
+            {where && (
+              <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
+                <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+                {where}
               </p>
-              <p className="nf-numeric mt-inline-tight">
-                <Amount
-                  minorUnits={total}
-                  locale={locale}
-                  showFraction
-                  className="nf-h0 tracking-tight text-[var(--nf-content-primary)]"
-                />
+            )}
+            {detail.starRating && (
+              <p className="nf-stay-card__rating mt-inline-tight">
+                <UiIcon name="star" size={14} filled />
+                {STAR_LABEL[detail.starRating] ?? `${detail.starRating} star`}
               </p>
-              <p className={`mt-inline ${TYPE.rowMeta}`}>
-                {copy.everythingIncluded}
-              </p>
-              <p className={`mt-row ${TYPE.rowMeta}`}>
-                {checkIn && checkOut ? `${checkIn} → ${checkOut} · ` : ""}
-                {copy.guests.replace("{count}", String(guests))}
-                {" · "}
-                <a
-                  href={datesHref}
-                  className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-                >
-                  {copy.changeDates}
-                </a>
-              </p>
-            </>
+            )}
+          </div>
+          {from !== null ? (
+            <p className="nf-stay-card__price" data-testid="stay-from">
+              <Amount
+                minorUnits={from}
+                locale={locale}
+                secondaryClassName="text-[0.6em] font-semibold opacity-70"
+              />
+              <span className="nf-stay-card__per">{catalogue.perNight}</span>
+            </p>
           ) : (
-            <>
-              <p className={TYPE.sectionTitle}>{copy.pickDatesTitle}</p>
-              <p className={`mt-inline ${TYPE.body}`}>{copy.pickDatesBody}</p>
-              <ButtonLink href={datesHref} variant="primary" className="mt-row">
-                {copy.pickDates}
-              </ButtonLink>
-            </>
+            <p className={`shrink-0 ${TYPE.rowMeta}`}>{copy.noRate}</p>
           )}
-        </Surface>
+        </div>
+
+        {/* --------------------------------------- dates and the party */}
+        <div className="nf-stay-facts mt-md" data-testid="stay-dates-row">
+          <Link href={datesHref} className="nf-stay-fact">
+            <UiIcon name="calendar-booking" size={ICON.inline} />
+            <span className="min-w-0">
+              <span className="nf-stay-fact__label">{catalogue.checkIn}</span>
+              <span className="nf-stay-fact__value">{dateLabel(checkIn, locale) ?? catalogue.pickDate}</span>
+            </span>
+            <UiIcon name="chevron-right" size={16} />
+          </Link>
+          <Link href={datesHref} className="nf-stay-fact">
+            <UiIcon name="calendar-booking" size={ICON.inline} />
+            <span className="min-w-0">
+              <span className="nf-stay-fact__label">{catalogue.checkOut}</span>
+              <span className="nf-stay-fact__value">{dateLabel(checkOut, locale) ?? catalogue.pickDate}</span>
+            </span>
+            <UiIcon name="chevron-right" size={16} />
+          </Link>
+          <Link href={datesHref} className="nf-stay-fact">
+            <UiIcon name="user" size={ICON.inline} />
+            <span className="min-w-0">
+              <span className="nf-stay-fact__label">{catalogue.guests}</span>
+              <span className="nf-stay-fact__value">{copy.guests.replace("{count}", String(guests))}</span>
+            </span>
+            <UiIcon name="chevron-right" size={16} />
+          </Link>
+          {total !== null && nights !== null && (
+            <div className="nf-stay-fact">
+              <UiIcon name="wallet" size={ICON.inline} />
+              <span className="min-w-0">
+                <span className="nf-stay-fact__label">{copy.totalFor.replace("{count}", String(nights))}</span>
+                <span className="nf-stay-fact__value nf-numeric">
+                  <Amount minorUnits={total} locale={locale} />
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
 
         <Stack className="mt-block">
-          {detail.description && (
-            <Section title={copy.aboutTitle}>
-              <p className={`${TYPE.body} leading-relaxed [overflow-wrap:anywhere]`}>
-                {detail.description}
-              </p>
+          {/* ------------------------------------------------ amenities */}
+          {detail.amenities.length > 0 && (
+            <Section title={copy.amenitiesTitle}>
+              <ul className="nf-amenity-grid">
+                {detail.amenities.map((amenity) => (
+                  <li key={amenity} className="nf-amenity-tile">
+                    <UiIcon name="verified" size={ICON.row} />
+                    <span>{amenity}</span>
+                  </li>
+                ))}
+              </ul>
             </Section>
+          )}
+
+          {/* ---------------------------------------------------- about */}
+          {detail.description && (
+            <Section title={catalogue.aboutThisStay}>
+              <div className="nf-detail-panel">
+                <p className={`${TYPE.body} leading-relaxed [overflow-wrap:anywhere]`}>{detail.description}</p>
+              </div>
+            </Section>
+          )}
+
+          {/* ---------------------------------------------- property type */}
+          <div className="nf-stay-type" data-testid="stay-type">
+            <span className="nf-stay-type__object" aria-hidden="true">
+              <BrandIcon name={BUSINESS_OBJECT[businessKind] ?? "hotel"} fill />
+            </span>
+            <span className="min-w-0">
+              <span className={`block ${TYPE.label}`}>{catalogue.propertyType}</span>
+              <span className={`block ${TYPE.rowTitle}`}>{BUSINESS_LABEL[businessKind] ?? "Hotel"}</span>
+              <span className={`mt-3xs block ${TYPE.rowMeta}`}>
+                {detail.roomTypes.length > 0
+                  ? `${detail.roomTypes.length} ${detail.roomTypes.length === 1 ? "room type" : "room types"}`
+                  : copy.noRoomsYet}
+                {detail.checkInFrom ? ` · ${copy.checkIn} ${detail.checkInFrom.slice(0, 5)}` : ""}
+                {detail.checkOutBy ? ` · ${copy.checkOut} ${detail.checkOutBy.slice(0, 5)}` : ""}
+              </span>
+            </span>
+          </div>
+
+          {/* ------------------------------------------------ room tiles */}
+          {detail.roomTypes.length > 0 && (
+            <ul className="nf-room-tiles" data-testid="room-tiles">
+              {detail.roomTypes.map((room, index) => {
+                const photo = detail.photos[index % Math.max(1, detail.photos.length)];
+                const rate = roomFromMinor(room, nights);
+                return (
+                  <li key={room.id}>
+                    <a href="#rooms" className="nf-room-tile">
+                      <span className="nf-room-tile__media block">
+                        <MediaFrame hue={index} index={index} kind="hotel" sizes="(max-width: 640px) 50vw, 25vw" />
+                        {photo && detail.photos.length > 0 && (
+                          <Image src={photo.url} alt="" fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
+                        )}
+                      </span>
+                      <span className="nf-room-tile__body">
+                        <UiIcon name="bed" size={16} />
+                        <span className="min-w-0">
+                          <span className="nf-room-tile__name">{copy.category[ROOM_CATEGORY_KEY[room.category]]}</span>
+                          <span className="nf-room-tile__value">
+                            {room.name}
+                            {rate !== null ? "" : ""}
+                          </span>
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
           )}
 
           <Section id="rooms" title={copy.roomsTitle} description={copy.roomsDescription} className="scroll-mt-28">
@@ -147,52 +247,27 @@ export function StayDetailView({
                 nights={nights}
                 locale={locale}
                 copy={copy}
-                reserveHref={reserveHref}
+                reserve={reserve}
               />
             ) : (
               <p className={TYPE.rowMeta}>{copy.noRoomsYet}</p>
             )}
           </Section>
 
-          {facts.length > 0 && (
-            <Section title={copy.theDetails}>
-              <FactGrid facts={facts} />
-            </Section>
-          )}
-
-          {detail.amenities.length > 0 && (
-            <Section title={copy.amenitiesTitle}>
-              <ul className="grid grid-cols-2 gap-y-row sm:grid-cols-3">
-                {detail.amenities.map((amenity) => (
-                  <li key={amenity} className={`flex items-center gap-inline-tight ${TYPE.body}`}>
-                    <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
-                    {amenity}
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
-
           {/* The policy, in its own words. A refund rule this screen rewrote
               is a refund rule nobody can be held to. */}
           {detail.policy && (
             <Section title={copy.policyTitle}>
-              <Surface>
+              <div className="nf-detail-panel">
                 <p className={TYPE.rowTitle}>{detail.policy.name}</p>
                 <p className={`mt-inline ${TYPE.body} leading-relaxed`}>{detail.policy.summary}</p>
                 {detail.policy.freeUntilHours !== null && (
                   <p className={`mt-row flex items-start gap-inline-tight ${TYPE.rowMeta}`}>
-                    <UiIcon
-                      name="verified"
-                      size={ICON.inline}
-                      className="mt-3xs shrink-0 text-[var(--nf-state-success)]"
-                    />
-                    <span className="min-w-0">
-                      {copy.freeUntil.replace("{hours}", String(detail.policy.freeUntilHours))}
-                    </span>
+                    <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
+                    <span className="min-w-0">{copy.freeUntil.replace("{hours}", String(detail.policy.freeUntilHours))}</span>
                   </p>
                 )}
-              </Surface>
+              </div>
             </Section>
           )}
 
@@ -208,18 +283,22 @@ export function StayDetailView({
         <div className="min-w-0 flex-1">
           {from !== null ? (
             <>
-              <p className={TYPE.label}>{total !== null ? copy.totalLabel : copy.from}</p>
-              <p className="nf-numeric nf-body font-semibold text-[var(--nf-content-primary)]">
-                <Amount minorUnits={total ?? from} locale={locale} />
-                {total === null && <span className={TYPE.caption}> {copy.perNight}</span>}
+              <p className="nf-detail-foot__figure nf-numeric">
+                <Amount
+                  minorUnits={total ?? from}
+                  locale={locale}
+                />
+              </p>
+              <p className="nf-detail-foot__caption">
+                {total !== null && nights !== null ? copy.totalFor.replace("{count}", String(nights)) : catalogue.perNight}
               </p>
             </>
           ) : (
             <p className={TYPE.rowMeta}>{copy.noRate}</p>
           )}
         </div>
-        <ButtonLink href="#rooms" variant="primary" size="lg" className="shrink-0">
-          {copy.seeRooms}
+        <ButtonLink href="#rooms" variant="primary" size="lg" leadingIcon="calendar-booking" className="shrink-0" data-testid="book-this-stay">
+          {catalogue.bookThisStay}
         </ButtonLink>
       </ActionBar>
     </div>

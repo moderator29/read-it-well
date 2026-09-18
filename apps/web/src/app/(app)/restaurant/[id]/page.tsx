@@ -10,6 +10,18 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
+import { getRestaurantDetail } from "@/lib/stays/queries";
+import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
+
+const WEEKDAY: Record<number, string> = {
+  0: "Sunday",
+  1: "Monday",
+  2: "Tuesday",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday",
+  6: "Saturday",
+};
 
 /**
  * A restaurant, on its own surface.
@@ -87,6 +99,12 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const where = [listing.area, listing.city].filter(Boolean).join(", ");
   const messageHref = `/messages/new?listing=${listing.id}`;
 
+  /* The hours, when the venue has published them through lib/stays
+     (service windows on the business-grade schema). A listing with none
+     keeps the honest line below rather than a guessed badge. */
+  const detail = await getRestaurantDetail(listing.id);
+  const hours = detail ? { openNow: detail.open_now, label: detail.hours_label } : null;
+
   return (
     <div>
       <ListingGallery
@@ -95,14 +113,27 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         hue={0}
         kind="restaurant"
         photos={listing.photos ?? []}
+        plates={RESTAURANT_PLATES as string[]}
         backFallback="/restaurants"
       />
 
       <div className="mx-auto max-w-2xl px-gutter pb-section pt-block">
-        <h1 className="nf-h1 [text-wrap:balance]">{listing.title}</h1>
+        <div className="flex flex-wrap items-center gap-xs">
+          <span className="nf-detail-tag nf-detail-tag--market">
+            <UiIcon name="utensils" size={14} />
+            {t.stays.restaurantsTitle}
+          </span>
+          {hours && (
+            <span className={`nf-reg-open ${hours.openNow ? "nf-reg-open--open" : "nf-reg-open--closed"}`} data-testid="open-now">
+              <UiIcon name="history" size={12} />
+              {hours.label}
+            </span>
+          )}
+        </div>
+        <h1 className="nf-h2 mt-row [text-wrap:balance]">{listing.title}</h1>
         {where && (
           <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
-            <UiIcon name="location" size={ICON.inline} className="shrink-0" />
+            <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
             {where}
           </p>
         )}
@@ -136,8 +167,23 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
           */}
           <Section title={copy.hoursTitle}>
             <Surface>
-              <p className={TYPE.body}>{copy.hoursUnknown}</p>
-              <p className={`mt-row ${TYPE.rowMeta}`}>{copy.hoursAsk}</p>
+              {detail && detail.windows.length > 0 ? (
+                <ul className="divide-y divide-[var(--nf-divider)]" data-testid="service-windows">
+                  {detail.windows.map((window) => (
+                    <li key={window.id} className={`flex items-center justify-between gap-sm py-xs ${TYPE.body}`}>
+                      <span className="font-medium text-[var(--nf-content-primary)]">{WEEKDAY[window.weekday] ?? window.weekday}</span>
+                      <span className="nf-numeric">
+                        {window.opens.slice(0, 5)} to {window.closes.slice(0, 5)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <>
+                  <p className={TYPE.body}>{copy.hoursUnknown}</p>
+                  <p className={`mt-row ${TYPE.rowMeta}`}>{copy.hoursAsk}</p>
+                </>
+              )}
               <ButtonLink href={messageHref} variant="secondary" className="mt-row">
                 {copy.message}
               </ButtonLink>

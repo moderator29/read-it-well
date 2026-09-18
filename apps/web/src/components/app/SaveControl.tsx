@@ -231,6 +231,7 @@ export function SaveButton({
   onToggle,
   title,
   className,
+  surface = "page",
 }: {
   saved: boolean;
   pending: boolean;
@@ -238,6 +239,8 @@ export function SaveButton({
   /** Named in the label so a screen reader hears which property this is. */
   title: string;
   className?: string;
+  /** On a photograph the heart is the glass square of the renders. */
+  surface?: "page" | "media";
 }) {
   return (
     <button
@@ -247,13 +250,15 @@ export function SaveButton({
       aria-pressed={saved}
       aria-label={saved ? `Remove ${title} from saved` : `Save ${title}`}
       data-testid="card-save"
-      className={["nf-icon-btn", className ?? ""].filter(Boolean).join(" ")}
+      className={[surface === "media" ? "nf-pcard__heart" : "nf-icon-btn", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
     >
       <UiIcon
         name="heart"
         size="sm"
         filled={saved}
-        className={saved ? "text-[var(--nf-brand-primary)]" : undefined}
+        className={saved && surface === "page" ? "text-[var(--nf-brand-primary)]" : undefined}
       />
     </button>
   );

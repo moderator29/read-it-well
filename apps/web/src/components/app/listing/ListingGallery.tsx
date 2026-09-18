@@ -40,12 +40,19 @@ export function ListingGallery({
   hue,
   kind,
   photos,
+  plates = [],
   initialSaved = false,
   backFallback = "/home",
 }: {
   listingId: string;
   title: string;
   hue: number;
+  /**
+   * Stand-in photography for a place with no photographs of its own: the
+   * category plates the lead filed (restaurant-01 and its siblings). Drawn
+   * in the hero, never counted as this place's photos, and labelled so.
+   */
+  plates?: string[];
   /**
    * Which market this is, so the frame drawn behind a missing photograph is a
    * drawing of THIS kind of place rather than the same city skyline every
@@ -68,8 +75,10 @@ export function ListingGallery({
   const [active, setActive] = useState(0);
   const [broken, setBroken] = useState<Record<number, true>>({});
 
-  // One pane per photo, and one honest pane when there is no photography yet.
-  const panes: (string | null)[] = photos.length > 0 ? photos : [null];
+  // One pane per photo; the stand-in plates when there is no photography
+  // yet, and one honest drawn pane when there is neither.
+  const standIn = photos.length === 0 && plates.length > 0;
+  const panes: (string | null)[] = photos.length > 0 ? photos : standIn ? plates : [null];
   const count = photos.length;
 
   const onScroll = useCallback(() => {
@@ -98,7 +107,15 @@ export function ListingGallery({
     else router.push(backFallback);
   }
 
+  /* The thumbnail strip of 7B5335E0: the first four frames and a "+n" tile
+     for the rest. Only with real photography; a strip of one scene plate
+     four times would be a picture of a feature. */
+  const THUMBS = 4;
+  const thumbs = photos.slice(0, THUMBS);
+  const thumbRemainder = photos.length - thumbs.length;
+
   return (
+    <>
     <section
       aria-label={`${title} photos`}
       data-testid="listing-gallery"
@@ -132,7 +149,7 @@ export function ListingGallery({
       <div
         ref={track}
         onScroll={onScroll}
-        className="nf-scroll-x flex aspect-[4/5] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
+        className="nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
       >
         {panes.map((photo, i) => (
           <div
@@ -214,13 +231,22 @@ export function ListingGallery({
         start above the overlap and keep the 0.25rem the dots always had on the
         counter.
       */}
+      {standIn && (
+        <p
+          data-testid="gallery-standin"
+          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-pill)] bg-[var(--nf-overlay-media-strong)] px-sm py-2xs text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-on-media-muted)] backdrop-blur-md sm:bottom-14 sm:right-4"
+        >
+          {t.catalogue.card.noPhotos}
+        </p>
+      )}
       {count > 0 && (
         <p
           data-testid="gallery-counter"
           className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-2xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md sm:bottom-14 sm:right-4"
         >
+          <UiIcon name="picture" size={14} className="mr-2xs inline-block align-[-2px]" />
           <span className="sr-only">Photo </span>
-          {Math.min(active + 1, count)} / {count}
+          {Math.min(active + 1, count)}/{count}
         </p>
       )}
 
@@ -264,5 +290,44 @@ export function ListingGallery({
         </>
       )}
     </section>
+    {photos.length > 1 && (
+      <ul className="nf-detail-thumbs nf-scroll-x" data-testid="gallery-thumbs" aria-label="Photos">
+        {thumbs.map((photo, i) => (
+          <li key={`thumb-${photo}-${i}`}>
+            <button
+              type="button"
+              onClick={() => go(i)}
+              aria-label={`Photo ${i + 1} of ${count}`}
+              aria-current={active === i ? "true" : undefined}
+              className={`nf-detail-thumb ${active === i ? "nf-detail-thumb--on" : ""}`}
+            >
+              {!broken[i] && (
+                <Image
+                  src={photo}
+                  alt=""
+                  fill
+                  sizes="84px"
+                  onError={() => setBroken((prev) => ({ ...prev, [i]: true }))}
+                  className="object-cover"
+                />
+              )}
+            </button>
+          </li>
+        ))}
+        {thumbRemainder > 0 && (
+          <li>
+            <button
+              type="button"
+              onClick={() => (viewer ? viewer.open(THUMBS) : go(THUMBS))}
+              aria-label={`View all ${count} photos`}
+              className="nf-detail-thumb nf-detail-thumb--more nf-numeric"
+            >
+              +{thumbRemainder}
+            </button>
+          </li>
+        )}
+      </ul>
+    )}
+    </>
   );
 }

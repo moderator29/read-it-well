@@ -37,21 +37,47 @@ import {
 
 type StaysCopy = Dictionary["stayDetail"];
 
+/** The checkout link's ingredients: the stay, the dates and the party. */
+export type ReserveBase = {
+  stayId: string;
+  checkIn?: string;
+  checkOut?: string;
+  guests: number;
+  /** The route the link lands on; the real checkout unless a harness says otherwise. */
+  basePath?: string;
+};
+
+/* THE FIRST-PARTY CHECKOUT, ALWAYS. This lane never borrows a step from the
+   third-party one: a room on Vallo is reserved and paid for on Vallo. */
+export function reserveHref(base: ReserveBase, roomTypeId: string, ratePlanId: string): string {
+  const search = new URLSearchParams({ stay: base.stayId, room: roomTypeId, rate: ratePlanId });
+  if (base.checkIn && base.checkOut) {
+    search.set("checkIn", base.checkIn);
+    search.set("checkOut", base.checkOut);
+  }
+  search.set("guests", String(base.guests));
+  return `${base.basePath ?? "/checkout"}?${search.toString()}`;
+}
+
 export function RoomTypes({
   detail,
   guests,
   nights,
   locale,
   copy,
-  reserveHref,
+  reserve,
 }: {
   detail: StayDetail;
   guests: number;
   nights: number | null;
   locale: Locale;
   copy: StaysCopy;
-  /** Builds the first-party checkout link for a chosen plan. */
-  reserveHref: (roomTypeId: string, ratePlanId: string) => string;
+  /**
+   * What the first-party checkout link is built from, as data: this is a
+   * client component under a server page, and a function cannot cross that
+   * line. The link itself is assembled here by `reserveHref`.
+   */
+  reserve: ReserveBase;
 }) {
   const [open, setOpen] = useState<StayRoomType | null>(null);
   const rooms = orderedRooms(detail, guests);
@@ -118,7 +144,7 @@ export function RoomTypes({
           nights={nights}
           locale={locale}
           copy={copy}
-          reserveHref={reserveHref}
+          reserve={reserve}
           onClose={() => setOpen(null)}
         />
       )}
@@ -140,14 +166,14 @@ function RatePlanSheet({
   nights,
   locale,
   copy,
-  reserveHref,
+  reserve,
   onClose,
 }: {
   room: StayRoomType;
   nights: number | null;
   locale: Locale;
   copy: StaysCopy;
-  reserveHref: (roomTypeId: string, ratePlanId: string) => string;
+  reserve: ReserveBase;
   onClose: () => void;
 }) {
   return (
@@ -165,7 +191,7 @@ function RatePlanSheet({
                 nights={nights}
                 locale={locale}
                 copy={copy}
-                href={reserveHref(room.id, plan.id)}
+                href={reserveHref(reserve, room.id, plan.id)}
               />
             </li>
           ))}

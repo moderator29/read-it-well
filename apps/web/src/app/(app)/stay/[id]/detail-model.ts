@@ -79,6 +79,8 @@ export type StayDetail = {
   amenities: string[];
   roomTypes: StayRoomType[];
   policy: StayCancellationPolicy | null;
+  /** The business behind the stay (hotel, resort, guest house), for the Property Type card. */
+  businessKind?: string;
 };
 
 /**

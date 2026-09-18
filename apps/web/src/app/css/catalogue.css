@@ -2,6 +2,1501 @@
   catalogue: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  Governing images: 3EB3E2A9 (results and the filter sheet), 9E8B56ED and
+  7B5335E0 (listing detail), 9F384CFE (move-in ledger), FD3DFE84 (stays home),
+  BB0C2C85 and 84054CE9 (stay detail). Every class here is prefixed by the
+  surface it belongs to, because `.nf-cat` is already the home screen's
+  category link (see explore.css) and one collision was enough.
 */
 @layer components {
+  /* ======================================================= the property card
+     3EB3E2A9: a photograph, Verified top-left, the heart top-right, the market
+     tag on the photo's foot, then title, place, price and the facts row. */
+  .nf-pcard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 0 1px color-mix(in oklab, var(--nf-glow-ink) 10%, transparent),
+      var(--nf-elev-1);
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard),
+      border-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-pcard:hover {
+      border-color: var(--nf-brand-edge);
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim),
+        0 0 22px var(--nf-glow-2),
+        var(--nf-elev-2);
+    }
+  }
+  .nf-pcard:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  .nf-pcard__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    overflow: hidden;
+    background: var(--nf-media-ground-to);
+  }
+  .nf-pcard--wide .nf-pcard__media {
+    aspect-ratio: 16 / 10;
+  }
+  .nf-pcard__photo {
+    position: absolute;
+    inset: 0;
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-pcard:hover .nf-pcard__photo {
+      transform: scale(1.04);
+    }
+  }
+  .nf-pcard__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-md);
+  }
+  @media (min-width: 40rem) {
+    .nf-pcard__body {
+      padding: var(--nf-space-md);
+    }
+  }
+  .nf-pcard__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+  }
+  .nf-pcard--wide .nf-pcard__title {
+    font-size: var(--nf-text-body-lg);
+  }
+  .nf-pcard__where {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-inline-tight);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-pcard__where > svg {
+    flex-shrink: 0;
+    margin-top: 0.0625rem;
+    color: var(--nf-brand-secondary);
+  }
+  /* The figure. Brand blue on the night theme, as every price in the renders
+     is, and the one thing on the card set in the display face. */
+  .nf-pcard__price {
+    margin-top: var(--nf-gap-inline-tight);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--nf-brand-secondary);
+    white-space: nowrap;
+  }
+  .nf-pcard__price-suffix {
+    margin-left: var(--nf-space-2xs);
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-pcard__sub {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-pcard__facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight) var(--nf-space-xs);
+    margin-top: var(--nf-gap-inline);
+    padding-top: var(--nf-gap-inline);
+    border-top: 1px solid var(--nf-divider);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pcard__fact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    white-space: nowrap;
+  }
+  .nf-pcard__fact > svg {
+    color: var(--nf-content-muted);
+  }
+
+  /* The marks on the photograph. Verified is the brand pill of the renders:
+     glass, brand edge, a soft glow; the market tag is the same pill at rest. */
+  .nf-pcard__mark {
+    position: absolute;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-overlay-media-strong));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    box-shadow: 0 0 14px var(--nf-glow-2);
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    line-height: 1;
+    color: var(--nf-content-on-media);
+    pointer-events: none;
+  }
+  .nf-pcard__mark--verified {
+    top: var(--nf-space-xs);
+    left: var(--nf-space-xs);
+  }
+  .nf-pcard__mark--market {
+    bottom: var(--nf-space-xs);
+    left: var(--nf-space-xs);
+    background: var(--nf-overlay-media-strong);
+    box-shadow: none;
+  }
+  /* The disclosure on an illustrative row. Cyan outline, never a fill, so it
+     cannot be mistaken for a promotion; it never appears with Verified. */
+  .nf-pcard__mark--example {
+    top: var(--nf-space-xs);
+    left: var(--nf-space-xs);
+    border-color: color-mix(in oklab, var(--nf-state-warning) 60%, transparent);
+    background: var(--nf-overlay-media-strong);
+    box-shadow: none;
+    color: var(--nf-state-warning);
+  }
+  .nf-pcard__controls {
+    position: absolute;
+    top: var(--nf-space-xs);
+    right: var(--nf-space-xs);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-pcard__heart {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-border-on-media);
+    background: var(--nf-overlay-media);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    color: var(--nf-content-on-media);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-pcard__heart:active {
+    transform: scale(0.9);
+  }
+  .nf-pcard__heart:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-content-on-media);
+    outline-offset: 2px;
+  }
+  .nf-pcard__heart[aria-pressed="true"] {
+    color: var(--nf-content-on-media-accent);
+  }
+  .nf-pcard__nophoto {
+    position: absolute;
+    right: var(--nf-space-xs);
+    bottom: var(--nf-space-xs);
+    z-index: 2;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-overlay-media-strong);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-on-media-muted);
+    pointer-events: none;
+  }
+  .nf-pcard__note {
+    position: absolute;
+    top: 3rem;
+    right: var(--nf-space-xs);
+    z-index: 3;
+    max-width: calc(100% - var(--nf-space-md));
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-border-on-media);
+    background: var(--nf-overlay-media-strong);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    color: var(--nf-content-on-media);
+  }
+
+  /* ============================================================= the shelf
+     The search screen: the glass field row, the capsule chip row, the count
+     line with its sort control. */
+  .nf-shelf-bar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    /* The bar starts where the header ends: the shell's own top padding is
+       cancelled the way its gutter is, with the same token negated. */
+    margin-top: calc(var(--nf-gap-section-tight) * -1);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: var(--nf-space-sm) var(--nf-pad-shell);
+    border-bottom: 1px solid var(--nf-border-subtle);
+  }
+  .nf-shelf-field {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    height: 3.25rem;
+    padding-inline: var(--nf-space-md) var(--nf-space-xs);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-shelf-field:focus-within {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 0 3px var(--nf-glow-1);
+  }
+  .nf-shelf-field > svg {
+    flex-shrink: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-shelf-field__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-shelf-field__input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-shelf-field__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+  .nf-shelf-field__go {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-shelf-field__go:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-shelf-square {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 16px var(--nf-glow-1);
+    color: var(--nf-brand-secondary);
+  }
+  /* The chip row. Capsules, by the amended radius law (ledger section 8):
+     the governing image shows capsules and the product ships them. */
+  .nf-shelf-chips {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+  }
+  .nf-shelf-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-shelf-chip > svg:first-child {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-shelf-chip > svg:last-child {
+    color: var(--nf-content-muted);
+  }
+  .nf-shelf-chip:active {
+    transform: scale(0.97);
+  }
+  .nf-shelf-chip:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-shelf-chip--on {
+    border-color: var(--nf-brand-edge-strong);
+    background: color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-canvas));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 16px var(--nf-glow-2);
+  }
+  .nf-shelf-count {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-md);
+  }
+  /* The sort control is a native disclosure, so an ordering stays a link a
+     back button can walk and no script has to open it. */
+  .nf-shelf-sort {
+    position: relative;
+  }
+  .nf-shelf-sort > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.5rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    cursor: pointer;
+    list-style: none;
+  }
+  .nf-shelf-sort > summary::-webkit-details-marker {
+    display: none;
+  }
+  .nf-shelf-sort > summary:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-shelf-sort__menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + var(--nf-space-2xs));
+    z-index: 20;
+    min-width: 12rem;
+    padding: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elev-3);
+  }
+  .nf-shelf-sort__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-shelf-sort__item[aria-current="true"] {
+    color: var(--nf-content-primary);
+    background: var(--nf-brand-tint-2);
+  }
+  @media (hover: hover) {
+    .nf-shelf-sort__item:hover {
+      background: var(--nf-brand-tint-1);
+      color: var(--nf-content-primary);
+    }
+  }
+
+  /* ====================================================== the filter sheet
+     3EB3E2A9's right-hand panel: a glass sheet with a grip, groups headed by
+     a title and a Clear link, rectangles for the choice sets, switches for
+     the amenities, two rows for location and sort, Reset and Apply. */
+  .nf-filters {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+  }
+  @media (min-width: 48rem) {
+    .nf-filters {
+      inset: auto 0 0 auto;
+      width: min(28rem, 100%);
+      height: 100%;
+      border-left: 1px solid var(--nf-brand-edge-soft);
+      box-shadow: var(--nf-elev-3);
+    }
+  }
+  .nf-filters__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-pad-shell);
+    padding-top: calc(var(--nf-space-sm) + env(safe-area-inset-top, 0px));
+    border-bottom: 1px solid var(--nf-border-subtle);
+  }
+  .nf-filters__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-filters__body {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--nf-space-md) var(--nf-pad-shell) var(--nf-space-xl);
+  }
+  .nf-filters__group + .nf-filters__group {
+    margin-top: var(--nf-space-lg);
+    padding-top: var(--nf-space-lg);
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-filters__group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    margin-bottom: var(--nf-space-sm);
+  }
+  .nf-filters__group-title {
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-filters__clear {
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-filters__clear:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-filters__hint {
+    margin-bottom: var(--nf-space-sm);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* The choice tiles: rectangles, as the image draws them, brand-filled and
+     glowing when chosen. */
+  .nf-filters__grid {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-filters__grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .nf-filters__grid--5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .nf-filters__tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-filters__tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (hover: hover) {
+    .nf-filters__tile:hover {
+      border-color: var(--nf-brand-edge);
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-filters__tile[aria-pressed="true"],
+  .nf-filters__tile[aria-checked="true"] {
+    border-color: var(--nf-brand-edge-strong);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 0 18px var(--nf-glow-3);
+  }
+  .nf-filters__range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-filters__switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    padding: var(--nf-space-2xs) 0;
+  }
+  .nf-filters__switch-label {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-filters__switch-label > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-filters__switch-hint {
+    display: block;
+    font-size: var(--nf-text-overline);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-filters__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 3.25rem;
+    padding: 0 var(--nf-space-sm) 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-filters__row > svg:first-child {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-filters__row-input {
+    flex: 1;
+    min-width: 0;
+    height: 3rem;
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-filters__row-input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-filters__row-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+  .nf-filters__row-select {
+    flex: 1;
+    min-width: 0;
+    height: 3rem;
+    background: transparent;
+    border: 0;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+    cursor: pointer;
+  }
+  .nf-filters__row-select > option {
+    color: var(--nf-content-inverse);
+  }
+  .nf-filters__row:focus-within {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 0 3px var(--nf-glow-1);
+  }
+  .nf-filters__row-label {
+    flex-shrink: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-filters__foot {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-sm) var(--nf-pad-shell);
+    padding-bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+
+  /* ======================================================== listing detail
+     9E8B56ED with 7B5335E0's thumbnail strip. */
+  .nf-detail-thumbs {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: var(--nf-space-sm) var(--nf-pad-shell) var(--nf-space-2xs);
+  }
+  .nf-detail-thumb {
+    position: relative;
+    display: block;
+    width: 5.25rem;
+    aspect-ratio: 4 / 3;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-media-ground-to);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-detail-thumb:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-detail-thumb--on {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow: 0 0 14px var(--nf-glow-2);
+  }
+  .nf-detail-thumb--more {
+    display: grid;
+    place-items: center;
+    border-color: var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-detail-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-detail-tag > svg {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-detail-tag--market {
+    border-color: var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-surface-canvas));
+    box-shadow: 0 0 14px var(--nf-glow-1);
+  }
+  .nf-detail-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 18px var(--nf-glow-2);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-detail-verified > svg {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-detail-price {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-detail-price__suffix {
+    margin-left: var(--nf-space-xs);
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--nf-brand-secondary);
+  }
+  /* The spec chips: bed, bath, size, parking, power, each a glass tile. */
+  .nf-spec-row {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+  }
+  .nf-spec-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    min-width: 6rem;
+    min-height: 4rem;
+    flex-shrink: 0;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-spec-tile > svg {
+    color: var(--nf-brand-secondary);
+  }
+  /* The move-in block: brand-tinted glass, the figure lit. */
+  .nf-detail-movein {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge);
+    background:
+      linear-gradient(135deg, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent), transparent 60%),
+      var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 28px var(--nf-glow-1);
+  }
+  @media (min-width: 40rem) {
+    .nf-detail-movein {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+  }
+  .nf-detail-movein__label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-detail-movein__figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--nf-content-primary);
+    text-shadow: 0 0 24px var(--nf-glow-2);
+  }
+  .nf-detail-movein__suffix {
+    margin-left: var(--nf-space-xs);
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-detail-movein__rooms {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-detail-movein__rooms > span:first-child {
+    display: block;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+  }
+  /* The section tabs. Anchors, so they are shareable and need no script. */
+  .nf-detail-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding-inline: var(--nf-pad-shell);
+    border-bottom: 1px solid var(--nf-divider);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+  }
+  .nf-detail-tabs > a {
+    position: relative;
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+  }
+  .nf-detail-tabs > a:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  .nf-detail-tabs > a[aria-current="true"] {
+    color: var(--nf-content-primary);
+  }
+  .nf-detail-tabs > a[aria-current="true"]::after {
+    content: "";
+    position: absolute;
+    inset: auto var(--nf-space-xs) 0;
+    height: 2px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-secondary);
+    box-shadow: 0 0 10px var(--nf-glow-3);
+  }
+  .nf-detail-panel {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-detail-panel__title {
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  /* Amenity tiles: the glass squares of the render, five across from `sm`. */
+  .nf-amenity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  @media (min-width: 40rem) {
+    .nf-amenity-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+  .nf-amenity-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    min-height: 5rem;
+    padding: var(--nf-space-sm) var(--nf-space-xs);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    color: var(--nf-content-primary);
+  }
+  .nf-amenity-tile > svg {
+    color: var(--nf-brand-secondary);
+    filter: drop-shadow(0 0 6px var(--nf-glow-2));
+  }
+  .nf-amenity-tile__object {
+    display: block;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  /* The agent card. */
+  .nf-agent-card {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-agent-card__avatar {
+    display: block;
+    width: 3.5rem;
+    height: 3.5rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow: 0 0 14px var(--nf-glow-1);
+  }
+  .nf-agent-card__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    color: var(--nf-content-on-brand);
+  }
+  /* The sticky footer's figure column. */
+  .nf-detail-foot__figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--nf-brand-secondary);
+    white-space: nowrap;
+  }
+  .nf-detail-foot__caption {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* ======================================================== move-in ledger
+     9F384CFE: the summary card, the breakdown rows with glass glyph tiles,
+     the lit total, the comparison card and the proceed control. */
+  .nf-ledger-card {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 24px var(--nf-glow-1);
+  }
+  .nf-ledger-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) 0;
+  }
+  .nf-ledger-row + .nf-ledger-row {
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-ledger-row__glyph {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-brand-secondary);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-ledger-row__label {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-ledger-row__hint {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-ledger-row__amount {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: var(--nf-text-body-lg);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+  }
+  .nf-ledger-total {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-md);
+    border-top: 1px solid var(--nf-brand-edge-soft);
+  }
+  .nf-ledger-total__figure {
+    margin-left: auto;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+    text-shadow: 0 0 22px var(--nf-glow-3);
+  }
+  .nf-ledger-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-ledger-compare {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--nf-space-sm);
+    align-items: center;
+  }
+  .nf-ledger-compare__verdict {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  /* ============================================================ stays home
+     FD3DFE84: the headline with the glass hotel object, the search field
+     with its filter glyph, the category tiles, the featured cards. */
+  .nf-stays-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 7.5rem;
+    align-items: center;
+    gap: var(--nf-space-md);
+  }
+  @media (min-width: 40rem) {
+    .nf-stays-hero {
+      grid-template-columns: minmax(0, 1fr) 10rem;
+    }
+  }
+  .nf-stays-hero__object {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    filter: drop-shadow(0 0 22px var(--nf-glow-2));
+  }
+  .nf-stays-tiles {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+  }
+  @media (min-width: 48rem) {
+    .nf-stays-tiles {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow: visible;
+    }
+  }
+  .nf-stays-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    width: 6.5rem;
+    min-height: 6.5rem;
+    flex-shrink: 0;
+    padding: var(--nf-space-sm) var(--nf-space-xs);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    color: var(--nf-content-primary);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  @media (min-width: 48rem) {
+    .nf-stays-tile {
+      width: auto;
+    }
+  }
+  .nf-stays-tile:active {
+    transform: scale(0.97);
+  }
+  .nf-stays-tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (hover: hover) {
+    .nf-stays-tile:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  .nf-stays-tile--on {
+    border-color: var(--nf-brand-edge-strong);
+    background: color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-canvas));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-2);
+  }
+  .nf-stays-tile__object {
+    display: block;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  /* The stay card body: name and place left, the nightly figure right, the
+     amenity chips under both. */
+  .nf-stay-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-stay-card__price {
+    flex-shrink: 0;
+    text-align: right;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    white-space: nowrap;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-stay-card__per {
+    display: block;
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-stay-card__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-stay-card__rating > svg {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-stay-card__chips {
+    display: flex;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-stay-card__chips::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-stay-card__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2rem;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--nf-content-secondary);
+  }
+  .nf-stay-card__chip > svg {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ========================================================== stay detail
+     BB0C2C85 and 84054CE9: the fact rows (check-in, check-out, guests) and
+     the room-type gallery tiles. */
+  .nf-stay-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+  }
+  .nf-stay-fact {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 3.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+  }
+  .nf-stay-fact > svg:first-child {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-stay-fact > svg:last-child {
+    flex-shrink: 0;
+    margin-left: auto;
+    color: var(--nf-content-muted);
+  }
+  .nf-stay-fact__label {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-stay-fact__value {
+    display: block;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-stay-type {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+  }
+  .nf-stay-type__object {
+    display: block;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+  }
+  .nf-room-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  @media (min-width: 40rem) {
+    .nf-room-tiles {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-room-tile {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    text-align: left;
+    color: var(--nf-content-primary);
+  }
+  .nf-room-tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-room-tile__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--nf-media-ground-to);
+  }
+  .nf-room-tile__body {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+  }
+  .nf-room-tile__body > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-room-tile__name {
+    display: block;
+    color: var(--nf-content-secondary);
+  }
+  .nf-room-tile__value {
+    display: block;
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+
+  /* ============================================================ the register
+     Shared by trips, restaurants, checkout, bookings and saved: the glass row
+     card with a glyph rail on its left. */
+  .nf-reg-card {
+    display: flex;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-reg-card__media {
+    position: relative;
+    width: 5rem;
+    height: 5rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-media-ground-to);
+  }
+  .nf-reg-open {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+  }
+  .nf-reg-open--open {
+    background: var(--nf-state-success-surface);
+    color: var(--nf-state-success);
+  }
+  .nf-reg-open--closed {
+    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+    color: var(--nf-content-secondary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-pcard,
+    .nf-pcard__photo,
+    .nf-pcard__heart,
+    .nf-shelf-chip,
+    .nf-filters__tile,
+    .nf-detail-thumb,
+    .nf-stays-tile {
+      transition: none;
+    }
+    .nf-pcard:active,
+    .nf-shelf-chip:active,
+    .nf-stays-tile:active {
+      transform: none;
+    }
+    @media (hover: hover) {
+      .nf-pcard:hover .nf-pcard__photo {
+        transform: none;
+      }
+    }
+  }
+
+  /* ========================================================= the paper twin
+     Same anatomy on daylight: white surfaces, hairline borders, the brand
+     blue for figures and marks, no blur over a solid canvas. */
+  :root[data-theme="light"] .nf-pcard,
+  :root[data-theme="light"] .nf-shelf-field,
+  :root[data-theme="light"] .nf-shelf-square,
+  :root[data-theme="light"] .nf-shelf-chip,
+  :root[data-theme="light"] .nf-shelf-sort > summary,
+  :root[data-theme="light"] .nf-filters__tile,
+  :root[data-theme="light"] .nf-filters__row,
+  :root[data-theme="light"] .nf-detail-tag,
+  :root[data-theme="light"] .nf-detail-verified,
+  :root[data-theme="light"] .nf-spec-tile,
+  :root[data-theme="light"] .nf-detail-movein__rooms,
+  :root[data-theme="light"] .nf-detail-panel,
+  :root[data-theme="light"] .nf-amenity-tile,
+  :root[data-theme="light"] .nf-agent-card,
+  :root[data-theme="light"] .nf-ledger-card,
+  :root[data-theme="light"] .nf-ledger-row__glyph,
+  :root[data-theme="light"] .nf-stays-tile,
+  :root[data-theme="light"] .nf-stay-card__chip,
+  :root[data-theme="light"] .nf-stay-facts,
+  :root[data-theme="light"] .nf-stay-fact,
+  :root[data-theme="light"] .nf-stay-type,
+  :root[data-theme="light"] .nf-room-tile,
+  :root[data-theme="light"] .nf-detail-thumb--more,
+  :root[data-theme="light"] .nf-reg-card {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-pcard__body,
+  :root[data-theme="light"] .nf-stay-facts {
+    background: var(--nf-surface-primary);
+  }
+  :root[data-theme="light"] .nf-shelf-chip--on,
+  :root[data-theme="light"] .nf-stays-tile--on,
+  :root[data-theme="light"] .nf-detail-tag--market {
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 4px 12px var(--nf-glow-3);
+  }
+  :root[data-theme="light"] .nf-shelf-chip--on > svg,
+  :root[data-theme="light"] .nf-detail-tag--market > svg,
+  :root[data-theme="light"] .nf-stays-tile--on {
+    color: var(--nf-content-on-brand);
+  }
+  :root[data-theme="light"] .nf-filters {
+    background: var(--nf-surface-canvas);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root[data-theme="light"] .nf-detail-tabs {
+    background: var(--nf-surface-canvas);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root[data-theme="light"] .nf-detail-movein {
+    background:
+      linear-gradient(135deg, var(--nf-brand-tint-2), transparent 60%),
+      var(--nf-surface-primary);
+    border-color: var(--nf-border-brand);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-detail-movein__figure,
+  :root[data-theme="light"] .nf-ledger-total__figure {
+    text-shadow: none;
+  }
+  :root[data-theme="light"] .nf-amenity-tile > svg {
+    filter: none;
+  }
+  :root[data-theme="light"] .nf-shelf-sort__menu {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+  }
+  :root[data-theme="light"] .nf-filters__row-select > option {
+    color: var(--nf-content-primary);
+  }
 }

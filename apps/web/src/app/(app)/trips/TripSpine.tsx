@@ -1,11 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import { Disclosure } from "@/components/app/Disclosure";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { BookingView } from "@/lib/bookings/queries";
+import type { ReservationView } from "@/lib/reservations/queries";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
 import { buildTripSpine, type TripEntry } from "./trip-spine";
 
@@ -27,10 +29,9 @@ import { buildTripSpine, type TripEntry } from "./trip-spine";
  * which is this platform's answer to a secondary block: nothing is lost and
  * the spine stays a list of what is ahead.
  *
- * A RESERVATION IS A TRIP AND IS NOT READ YET. `trip-spine.ts` already takes
- * both kinds and orders them together; `lib/reservations` has actions and a
- * schema but no read of a person's own tables, so today the spine carries
- * stays. The seam is in the page file, named there.
+ * A RESERVATION IS A TRIP. `trip-spine.ts` orders both kinds together, and
+ * the page reads the account's tables through `getMyReservations` and hands
+ * them in beside the stays.
  */
 
 type TripItem = TripEntry & {
@@ -47,13 +48,34 @@ type TripItem = TripEntry & {
   booking: BookingView | null;
 };
 
+/** The Lagos date and a short time, from a reservation's instant. */
+function lagosDate(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date(iso));
+}
+
+function tableWhen(iso: string, locale: Locale): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return iso;
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Africa/Lagos",
+  }).format(at);
+}
+
 export function TripSpine({
   bookings,
+  reservations = [],
   today,
   locale,
   justBookedId,
 }: {
   bookings: BookingView[];
+  /** The account's tables, from `getMyReservations`; each one is a trip. */
+  reservations?: ReservationView[];
   /** Today in Lagos, resolved by the page so the server and the spine agree. */
   today: string;
   locale: Locale;
@@ -63,7 +85,7 @@ export function TripSpine({
   const words = t.admin.common.status;
   const copy = t.stays;
 
-  const items: TripItem[] = bookings.map((booking) => ({
+  const stays: TripItem[] = bookings.map((booking) => ({
     id: booking.id,
     kind: "stay",
     on: booking.checkIn,
@@ -78,6 +100,31 @@ export function TripSpine({
     justBooked: booking.id === justBookedId,
     booking,
   }));
+
+  /* A table sits on the spine at its instant, beside the stays. It opens
+     its own thread when one exists, which is where the venue answers. */
+  const tables: TripItem[] = reservations.map((reservation) => ({
+    id: reservation.id,
+    kind: "table",
+    on: lagosDate(reservation.reservedFor),
+    at: reservation.reservedFor,
+    cancelled: reservation.status === "CANCELLED",
+    title: reservation.listingTitle,
+    where: reservation.location,
+    when: tableWhen(reservation.reservedFor, locale),
+    meta: plural(reservation.partySize, t.counts.guests, locale),
+    href: reservation.conversationId
+      ? `/messages/${reservation.conversationId}`
+      : reservation.listingId
+        ? `/restaurant/${reservation.listingId}`
+        : "/restaurants",
+    photo: null,
+    status: reservation.status,
+    justBooked: reservation.id === justBookedId,
+    booking: null,
+  }));
+
+  const items: TripItem[] = [...stays, ...tables];
 
   const spine = buildTripSpine(items, today);
   const tonight = new Set(spine.tonight);
@@ -182,8 +229,16 @@ function SpineRow({
         href={item.href}
         className="flex min-w-0 gap-md rounded-[var(--nf-radius-lg)] transition-colors hover:bg-[var(--nf-glass-fill)]"
       >
-        <span className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)]">
-          {item.photo && <Image src={item.photo} alt="" fill sizes="64px" className="object-cover" />}
+        <span className="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)]">
+          {item.photo ? (
+            <Image src={item.photo} alt="" fill sizes="64px" className="object-cover" />
+          ) : (
+            /* A table has no photograph of its own; the glass object says
+               what kind of trip this is rather than leaving a dark tile. */
+            <span className="block h-10 w-10" aria-hidden="true">
+              <BrandIcon name={item.kind === "table" ? "concierge-bell" : "hotel-room"} fill />
+            </span>
+          )}
         </span>
 
         <span className="min-w-0 flex-1 leading-tight">

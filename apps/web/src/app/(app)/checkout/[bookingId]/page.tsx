@@ -15,6 +15,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
 import { PaymentReturn } from "./PaymentReturn";
+import { chargeSavedCardFor } from "./saved-card-action";
+import { listPaymentMethods } from "@/lib/payments/methods-actions";
+import type { PaymentMethod } from "@/lib/payments/methods";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -122,6 +125,15 @@ export default async function CheckoutPage({
   }
 
   const view = read.view;
+
+  /* The saved-card lane. The cards are read here, on the server, and the
+     charge is bound to this booking and to one key minted per render, the
+     way the wallet and hosted-card paths mint theirs inside the panel. A
+     failed read offers no saved card rather than an empty group. */
+  const cardsRead = await listPaymentMethods();
+  const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
+  const savedCardKey = crypto.randomUUID();
+  const chargeSavedCard = chargeSavedCardFor.bind(null, bookingId, savedCardKey);
 
   /* The guest and night counts on the summary. They were a pair of English
      ternaries sitting directly above money that was already being formatted for
@@ -327,7 +339,7 @@ export default async function CheckoutPage({
             fired is content that sometimes does not exist.
           */}
           <div className="mt-block">
-            <PayPanel view={view} />
+            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} />
           </div>
         </>
       )}

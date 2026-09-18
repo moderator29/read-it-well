@@ -34,14 +34,17 @@ import { RentalPanel } from "./RentalPanel";
 import { ReserveTable } from "./ReserveTable";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
+import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
+import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
+import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
+import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
+import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
 import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
-import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { ListingTenure } from "@/components/app/listing/ListingTenure";
 import { readListingAccess } from "@/lib/listings/access-queries";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
-import { ListingHostPanel } from "@/components/app/listing/ListingHostPanel";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { ListingReviews } from "@/components/app/listing/ListingReviews";
 import {
@@ -56,7 +59,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
-import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
+import type { StatusTone } from "@/components/ui/StatusPill";
 import { Disclosure } from "@/components/app/Disclosure";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
 
@@ -457,14 +460,25 @@ export default async function ListingDetailPage({
    */
   const isExample = listing.isDemo;
 
+  /* The footer of 9E8B56ED on a tenancy: Calculate breakdown (the move-in
+     ledger) and Book inspection (the real request, in the panel below). A
+     stay keeps Check availability with the conversation beside it; a sale
+     and a table keep the conversation. */
   const stickyAction: StickyAction | null = isExample
     ? { label: "Browse real listings", href: "/search" }
     : isBookable
-      ? { label: "Check availability", href: "#reserve" }
-      : { label: "Message agent", href: messageHref };
+      ? { label: t.catalogue.detail.checkAvailability, href: "#reserve" }
+      : isRental
+        ? { label: t.catalogue.detail.bookInspection, href: "#reserve" }
+        : { label: "Message agent", href: messageHref };
 
-  const stickySecondary: StickyAction | null =
-    isExample || !isBookable ? null : { label: "Message agent", href: messageHref };
+  const stickySecondary: StickyAction | null = isExample
+    ? null
+    : isBookable
+      ? { label: "Message agent", href: messageHref }
+      : isRental
+        ? { label: t.catalogue.detail.calculateBreakdown, href: `/rent/move-in/${listing.id}` }
+        : null;
 
   /*
    * THE SAME DISCLOSURE WAS ON THIS PAGE THREE TIMES.
@@ -685,26 +699,34 @@ export default async function ListingDetailPage({
           except the booking panel, which is a discrete object rather than a
           section, and which is the only raised surface on the screen.
         */}
-        <div className="nf-glass nf-glass--strong relative z-10 -mx-gutter -mt-xl rounded-t-[1.75rem] border-x-0 border-b-0 px-gutter pb-lg pt-xl sm:-mt-2xl sm:rounded-t-[2.25rem] sm:pb-xl sm:pt-xl">
+        <div
+          className={`nf-glass nf-glass--strong relative z-10 -mx-gutter rounded-t-[1.75rem] border-x-0 border-b-0 px-gutter pb-lg sm:rounded-t-[2.25rem] sm:pb-xl ${
+            listing.photos.length > 1 ? "mt-sm pt-lg" : "-mt-xl pt-xl sm:-mt-2xl"
+          }`}
+        >
           <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
             {/* --------------------------------------------- main column */}
             <div className="min-w-0">
               <Stack>
-                {/* ------------------------------- 2 to 5. THE LEAD BLOCK */}
-                <Section className="nf-rise">
-                  {/*
-                    ONE LINE OF STATUS. The market on the left, the rating on
-                    the right, and nothing else. This row could previously carry
-                    five simultaneous pills; verification, Instant Book and the
-                    rest moved down to the trust marks under the price, where
-                    they are facts rather than competing states.
-                  */}
-                  <div className="flex flex-wrap items-center gap-sm">
-                    <StatusPill tone={market.tone} icon={market.icon} size="sm">
+                {/* ------------------------------- 2 to 5. THE LEAD BLOCK
+                    To 9E8B56ED and 7B5335E0: the market and kind tags, the
+                    title, the place with its pin, the figure with the
+                    Verified Listing pill beside it, the spec chips, the
+                    Move-in block on a tenancy, the first row of amenities. */}
+                <Section className="nf-rise scroll-mt-16" id="overview">
+                  <div className="flex flex-wrap items-center gap-xs">
+                    <span className="nf-detail-tag nf-detail-tag--market" data-testid="market-pill">
+                      <UiIcon name={market.icon} size={14} />
                       {market.label}
-                    </StatusPill>
+                    </span>
+                    <span className="nf-detail-tag">
+                      <UiIcon name="house" size={14} />
+                      {kind.charAt(0).toUpperCase() + kind.slice(1)}
+                    </span>
 
-                    {listing.rating > 0 && (
+                    {/* A rating only with the reviews behind it; a count only
+                        when the record carries one. Blue, never gold. */}
+                    {listing.rating > 0 && listing.reviewCount > 0 && (
                       <span className="nf-numeric ml-auto flex shrink-0 items-center gap-xs">
                         <UiIcon
                           name="star"
@@ -715,116 +737,128 @@ export default async function ListingDetailPage({
                         <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                           {formatRating(listing.rating, locale)}
                         </span>
-                        {/* The count renders only when the record carries one.
-                            A rating with no reviews shows the rating alone
-                            rather than a fabricated "(0)". */}
-                        {listing.reviewCount > 0 && (
-                          <span className={TYPE.rowMeta}>
-                            {formatNumber(listing.reviewCount, locale)} {t.common.reviews}
-                          </span>
-                        )}
+                        <span className={TYPE.rowMeta}>
+                          {formatNumber(listing.reviewCount, locale)} {t.common.reviews}
+                        </span>
                       </span>
                     )}
                   </div>
 
-                  {/* 24px on a phone, 32 from `sm`, down from 26 and 36. The title is the
-                      second thing read after the photograph and the price is the
-                      thing being decided on: a headline set within a few points of
-                      the price competes with it. */}
-                  {/* LEFT ON LITERALS, AND THE REASON IS THE TYPEFACE, NOT THE SIZE.
-                    `--nf-text-h1` is `clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem)`, which
-                    matches this pair at a phone almost exactly, so the size argument
-                    for moving is strong. But `.nf-h1` also sets
-                    `font-family: var(--nf-font-display)`, and this heading is
-                    currently in the body face. Moving it changes the typeface of the
-                    listing title, which is the largest piece of text on the screen a
-                    renter decides from, and that is a design decision rather than a
-                    scale one. Flagged in the sprint report for a render. */}
-                  <h1 className="mt-row text-[1.5rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--nf-content-primary)] sm:text-[2rem]">
-                    {listing.title}
-                  </h1>
+                  <h1 className="nf-h2 mt-row [overflow-wrap:anywhere]">{listing.title}</h1>
 
-                  <p className={`mt-inline-tight flex items-center gap-inline ${TYPE.body}`}>
-                    <UiIcon name="location" size={ICON.inline} className="shrink-0" />
+                  <a
+                    href="#location"
+                    className={`mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}
+                  >
+                    <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
                     <span className="min-w-0">{where}</span>
-                  </p>
+                    <UiIcon name="arrow-right" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+                  </a>
 
-                  {/*
-                    ABOVE THE PRICE, AND THAT POSITION IS THE POINT.
-                    A reader forms a belief about a property from its price. The
-                    disclosure has to land before that belief does, not after it
-                    in a footnote, so it sits between the location and the
-                    figure rather than at the end of the page.
-                  */}
+                  {/* Above the price, and that position is the point: the
+                      disclosure lands before the belief the figure forms. */}
                   {listing.isDemo && <ExampleNotice variant="page" className="mt-block" />}
 
-                  {/* The price is what this screen sells, so it is the hero
-                      figure. It never truncates: a clipped price states a wrong
-                      number, which is one of the two things the reference
-                      platforms do badly and we do not copy. */}
-                  {listing.priceMinor > 0 && (
-                    <p className="mt-block">
-                      <Amount
-                        minorUnits={listing.priceMinor}
-                        locale={locale}
-                        currency={listing.currency}
-                        suffix={perLabel}
-                        className={TYPE.display}
-                        secondaryClassName="text-[0.32em] font-semibold opacity-60"
-                      />
-                    </p>
-                  )}
+                  <div className="mt-md flex flex-wrap items-end justify-between gap-sm">
+                    {listing.priceMinor > 0 && (
+                      <p className="nf-detail-price" data-testid="detail-price">
+                        <Amount
+                          minorUnits={listing.priceMinor}
+                          locale={locale}
+                          currency={listing.currency}
+                          secondaryClassName="text-[0.5em] font-semibold opacity-70"
+                        />
+                        <span className="nf-detail-price__suffix">/ {perLabel.replace(/^per /, "")}</span>
+                      </p>
+                    )}
+                    {listing.verified && (
+                      <span className="nf-detail-verified" data-testid="verified-listing">
+                        <UiIcon name="verified" size={ICON.inline} />
+                        {t.catalogue.detail.verifiedListing}
+                      </span>
+                    )}
+                  </div>
 
-                  {/* The trust marks: icon and word, no container. */}
-                  {marks.length > 0 && (
+                  <div className="mt-md">
+                    <ListingSpecChips chips={specChips(listing, t, locale)} />
+                  </div>
+
+                  {/* The remaining trust marks: icon and word, no container. */}
+                  {marks.filter((mark) => mark.icon !== "verified").length > 0 && (
                     <ul className="mt-row flex flex-wrap items-center gap-x-lg gap-y-inline">
-                      {marks.map((mark) => (
-                        <li
-                          key={mark.label}
-                          className={`flex items-center gap-xs ${TYPE.body}`}
-                        >
-                          <UiIcon
-                            name={mark.icon}
-                            size={ICON.inline}
-                            className="shrink-0 text-[var(--nf-status-verified)]"
-                          />
-                          <span className="font-medium text-[var(--nf-content-secondary)]">
-                            {mark.label}
-                          </span>
-                        </li>
-                      ))}
+                      {marks
+                        .filter((mark) => mark.icon !== "verified")
+                        .map((mark) => (
+                          <li key={mark.label} className={`flex items-center gap-xs ${TYPE.body}`}>
+                            <UiIcon
+                              name={mark.icon}
+                              size={ICON.inline}
+                              className="shrink-0 text-[var(--nf-status-verified)]"
+                            />
+                            <span className="font-medium text-[var(--nf-content-secondary)]">
+                              {mark.label}
+                            </span>
+                          </li>
+                        ))}
                     </ul>
                   )}
 
-                  {/* Bed, bath and what the place carries, as one inline run. */}
-                  <div className="mt-md">
+                  {/* The Nigerian number, on a tenancy: the total to move in. */}
+                  {isRental && !isSale && (
+                    <div className="mt-md">
+                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                    </div>
+                  )}
+
+                  {listing.amenities.length > 0 && (
+                    <div className="mt-md">
+                      <ListingAmenityTiles
+                        amenities={listing.amenities}
+                        limit={5}
+                        moreHref="#amenities"
+                        moreLabel={t.catalogue.detail.more}
+                      />
+                    </div>
+                  )}
+                </Section>
+
+                <ListingSectionTabs
+                  tabs={[
+                    { id: "overview", label: t.catalogue.detail.overview },
+                    { id: "amenities", label: t.catalogue.detail.amenities },
+                    { id: "location", label: t.catalogue.detail.location },
+                    { id: "reviews", label: t.catalogue.detail.reviews },
+                  ]}
+                />
+
+                {/* ---------------------------------------- the description */}
+                <div className="nf-detail-panel">
+                  <h2 className="nf-detail-panel__title">{t.catalogue.detail.description}</h2>
+                  <div className="mt-row">
+                    <ListingAbout paragraphs={aboutParagraphs} />
+                  </div>
+                </div>
+
+                {/* ----------------------------- 6. THE NIGERIAN NUMBER */}
+                {isSale && (
+                  <Section title="What you would be buying" divided>
+                    <ListingTenure listing={listing} />
+                  </Section>
+                )}
+
+                {/* ------------------------------------------- amenities */}
+                <Section id="amenities" title={t.catalogue.detail.amenities} divided className="scroll-mt-16">
+                  {listing.amenities.length > 0 ? (
+                    <ListingAmenityTiles amenities={listing.amenities} />
+                  ) : (
                     <ListingAmenities
                       bedrooms={listing.bedrooms}
                       bathrooms={listing.bathrooms}
                       amenities={listing.amenities}
                       guests={isBookable ? (capacityOf(listing) ?? undefined) : undefined}
                     />
-                  </div>
+                  )}
                 </Section>
-
-                {/* ----------------------------- 6. THE NIGERIAN NUMBER */}
-                {/*
-                  On a rental, the total to move in. On a sale, the title.
-                  These are the two facts this market decides on and the two
-                  the page has never carried.
-                */}
-                {isSale ? (
-                  <Section title="What you would be buying" divided>
-                    <ListingTenure listing={listing} />
-                  </Section>
-                ) : (
-                  !isBookable &&
-                  !isRestaurant && (
-                    <Section title="Moving in" divided>
-                      <ListingMoveIn listing={listing} locale={locale} />
-                    </Section>
-                  )
-                )}
 
                 {/* ------------------------- 7. LIGHT, WATER AND THE GATE */}
                 {listing.utilities && (
@@ -885,14 +919,27 @@ export default async function ListingDetailPage({
                   </Reveal>
                 )}
 
-                {/* ------------------------------------------ host panel */}
+                {/* ------------------------------------------- location */}
+                <Section id="location" title={t.catalogue.detail.location} divided className="scroll-mt-16">
+                  <div className="nf-detail-panel">
+                    <p className={`flex items-start gap-inline ${TYPE.body}`}>
+                      <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
+                      <span className="min-w-0">{where}</span>
+                    </p>
+                    {!isExample && (
+                      <TravelTime
+                        listingId={listing.id}
+                        label={t.common.travelTime}
+                        workingLabel={t.common.loading}
+                      />
+                    )}
+                  </div>
+                </Section>
+
+                {/* ------------------------------------------ agent card */}
                 <Reveal>
-                  <Section title="Listed by" divided>
-                    <ListingHostPanel
-                      verified={listing.verified}
-                      t={t}
-                      messageHref={messageHref}
-                    />
+                  <Section title={t.catalogue.detail.agent} divided>
+                    <ListingAgentCard verified={listing.verified} t={t} messageHref={messageHref} />
                   </Section>
                 </Reveal>
 
@@ -901,7 +948,7 @@ export default async function ListingDetailPage({
                     testimonials, and suppresses a count that is zero. Both
                     behaviours are correct and are preserved exactly. */}
                 <Reveal>
-                  <Section title="Reviews" divided>
+                  <Section id="reviews" title={t.catalogue.detail.reviews} divided className="scroll-mt-16">
                     <ListingReviews
                       rating={listing.rating}
                       reviewCount={listing.reviewCount}
@@ -969,9 +1016,13 @@ export default async function ListingDetailPage({
           perLabel={perLabel}
           action={stickyAction}
           secondary={stickySecondary}
+          secondaryIcon={isRental && !isExample ? "document" : undefined}
           fallbackLabel={listing.title}
           moveInMinor={listing.moveInCostMinor}
           moveInStated={listing.moveInCostStated}
+          moveInLabel={t.catalogue.detail.moveInTotal}
+          moveInFromLabel={t.catalogue.detail.moveInFrom}
+          secondaryShortLabel={t.catalogue.detail.breakdownShort}
         />
       </div>
     </PhotoViewerProvider>

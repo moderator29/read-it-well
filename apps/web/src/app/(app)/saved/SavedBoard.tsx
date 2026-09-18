@@ -211,8 +211,11 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
           {rendered.map(({ id, item, state }) => (
             <li key={id}>
               {state === undefined && item ? (
-                <div className="relative">
+                <div className="flex h-full flex-col gap-xs">
                   {item.card}
+                  {/* Under the card, not over it: the card carries its own
+                      heart in the top-right corner now, and a second heart on
+                      the same corner was two controls for one thought. */}
                   <button
                     type="button"
                     onClick={() => unsave(item)}
@@ -220,9 +223,10 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
                     aria-pressed="true"
                     aria-label="Remove from saved"
                     data-testid="saved-heart"
-                    className="nf-glass absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] text-[var(--nf-brand-secondary)] transition-transform active:scale-90 disabled:opacity-60"
+                    className="nf-shelf-chip self-end disabled:opacity-60"
                   >
-                    <UiIcon name="heart" size={ICON.row} className="[&_path]:fill-current" />
+                    <UiIcon name="heart" size={ICON.inline} className="[&_path]:fill-current" />
+                    Remove
                   </button>
                 </div>
               ) : (

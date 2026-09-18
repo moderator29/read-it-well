@@ -54,6 +54,10 @@ export function ListingStickyBar({
   fallbackLabel,
   moveInMinor,
   moveInStated,
+  secondaryIcon,
+  moveInLabel,
+  moveInFromLabel,
+  secondaryShortLabel,
 }: {
   variant: "stay" | "rental" | "partner";
   priceMinor: number;
@@ -86,6 +90,14 @@ export function ListingStickyBar({
   moveInMinor?: number;
   /** False when the total is a floor summed from the parts, so it reads "from". */
   moveInStated?: boolean;
+  /** The glyph on the ghost half; the conversation bubble unless told otherwise. */
+  secondaryIcon?: "document" | "chat-bubble" | "arrow-right";
+  /** "Move-in total", from the caller's dictionary. */
+  moveInLabel?: string;
+  /** "Move-in from", for a total summed from the named parts. */
+  moveInFromLabel?: string;
+  /** The ghost half's one-word label on a phone, e.g. "Breakdown". */
+  secondaryShortLabel?: string;
 }) {
   // Only a stay has a date picker to read from; the hook is optional so the
   // same bar renders on rental and partner pages with no provider above it.
@@ -109,7 +121,9 @@ export function ListingStickyBar({
     quoting && stay
       ? t.reserve.totalForNights.replace("{nights}", plural(stay.nights, t.counts.nights, locale))
       : moveIn
-        ? "to move in"
+        ? moveInStated === true
+          ? (moveInLabel ?? "Move-in total")
+          : (moveInFromLabel ?? "Move-in from")
         : perLabel;
 
   const external = (a: StickyAction) =>
@@ -132,19 +146,7 @@ export function ListingStickyBar({
             <>
               {/* No `truncate` on a price: a clipped figure states a wrong
                   number. The bar's own layout gives this column the room. */}
-              <span data-testid="sticky-total" className="min-w-0">
-                {/* "from" sits before the figure rather than in the caption
-                    after it. The caption tried to carry it as "to move in, from
-                    the parts named" and at 390px, in a column the two buttons
-                    have already narrowed, that wrapped to four lines and made
-                    the bar taller than the decision on it. Four characters in
-                    front of the number say the same thing and the card says it
-                    the same way. */}
-                {moveIn && moveInStated !== true && (
-                  <span className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
-                    from{" "}
-                  </span>
-                )}
+              <span data-testid="sticky-total" className="nf-detail-foot__figure min-w-0">
                 <Amount
                   minorUnits={amount}
                   locale={locale}
@@ -156,7 +158,6 @@ export function ListingStickyBar({
                    * comparing against the listing below it.
                    */
                   glance
-                  className="text-[var(--nf-text-body-lg)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
                   /* A compacted figure's fraction is a SIGNIFICANT DIGIT, not
                      kobo: ₦6,750,000 splits into "₦6", ".8" and "m", and the
                      default muted tail draws that ".8" at 0.62em, so the bar
@@ -171,9 +172,7 @@ export function ListingStickyBar({
               {/* No `truncate`. A caption that reads "to move in, from the p..."
                   is a promise trimmed into a different promise, and this column
                   has the room to wrap. */}
-              <span className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
-                {caption}
-              </span>
+              <span className="nf-detail-foot__caption whitespace-nowrap leading-snug">{caption}</span>
             </>
           ) : (
             /* The property's name, on the bar a person acts from, and it was
@@ -210,20 +209,36 @@ export function ListingStickyBar({
           payment on a stay. A fourth combination would mean a new market, and a
           new market has to be described here anyway.
         */}
-        {secondary && (
+        {secondary && secondaryIcon === "document" ? (
+          /* The move-in ledger is a page anybody may read, so it does not
+             gate. A phone gets the short word and the glyph; the full label
+             returns from `sm`, and is the accessible name throughout. */
+          <ButtonLink
+            href={secondary.href}
+            variant="secondary"
+            size="sm"
+            leadingIcon="document"
+            aria-label={secondary.label}
+            className="shrink-0"
+            data-testid="sticky-breakdown"
+          >
+            <span className="nf-btn__label sm:hidden">{secondaryShortLabel ?? secondary.label}</span>
+            <span className="nf-btn__label hidden sm:inline">{secondary.label}</span>
+          </ButtonLink>
+        ) : secondary ? (
           <AuthGate action="message">
             <ButtonLink
               href={secondary.href}
               {...external(secondary)}
               variant="ghost"
-              leadingIcon={variant === "partner" ? "arrow-right" : "chat-bubble"}
+              leadingIcon={secondaryIcon ?? (variant === "partner" ? "arrow-right" : "chat-bubble")}
               aria-label={secondary.label}
               className="shrink-0"
             >
               <span className="nf-btn__label hidden sm:inline">{secondary.label}</span>
             </ButtonLink>
           </AuthGate>
-        )}
+        ) : null}
 
         {action && (
           <AuthGate action={variant === "rental" ? "inspect" : "pay"}>
@@ -231,7 +246,10 @@ export function ListingStickyBar({
               href={action.href}
               {...external(action)}
               variant="primary"
+              size={variant === "rental" ? "sm" : "md"}
+              leadingIcon={variant === "rental" ? "calendar-booking" : undefined}
               className="shrink-0"
+              data-testid="sticky-action"
             >
               {action.label}
             </ButtonLink>
