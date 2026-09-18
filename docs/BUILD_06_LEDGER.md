@@ -356,6 +356,9 @@ alerts, the refund console, the payment-method lookup panel.
 | --- | --- |
 | The ledger, the rules restated, the baseline, the partial stubs, the preview harness shell | `1656781` |
 | The founder's photography as product assets: twenty plates compressed and named under `public/brand/photos/`, the eight scene plates wired through the manifest | `1c97d71` |
+| The B0 audit verdict | `d9e313d` |
+| The chrome: five-slot labelled dock with More opening the drawer, the header with hamburger, lockup, bell and avatar on every in-app page, the drawer from the left as the designed surface, the coin card, the Crypto row, `Messages` as the row's name | `6e2e2ac` |
+| The flip's lit rim, glass back pane and mark-first cover; the lockup on the wordmark asset; the lead's preview pages | (next) |
 
 ---
 
@@ -382,6 +385,9 @@ from `apps/web` (F1 3101, F2 3102, F3 3103, F4 3104, F5 3105, E 3106, lead
 
 | Surface | Governing image | Shot | Verdict |
 | --- | --- | --- | --- |
+| Side drawer, open, signed in | `BCD39CA8` | `docs/design/proofs/lead/drawer-390-dark.png`, `-light.png` | Reads as the render: user card with lit avatar ring, handle, View profile capsule; glyph rail rows with chevrons, badge counts; WORKSPACE section; the FLIP COIN card with the coin in a lit ring; the theme row beneath. Differences by rule: no Home/Explore/Feed rows on the phone (they are the dock's, founder ruling 3), no VALLO SPACES LTD footer (rule 14), the theme row states its destination rather than a switch. |
+| Five-slot dock | feed, profile, wallet renders (bottom bar) | `docs/design/proofs/lead/dock-390-dark.png`, `-light.png` | One glass slab, brand rim and base glow, five glyph-and-word slots, active slot on a soft brand pill with a glow, unread dot on Profile. Five slots by the founder's ruling where the renders show four. |
+| Flip, mid-turn | `GOVERNING-flip-mid-turn.png` | `docs/design/proofs/lead/flip-mid-turn-390-dark.png` | The turning pane carries a bright rim and a two-rung bloom, the glass building mark is the cover's whole subject, the dimmed dock shows through the glass. The name, brand line and miniature stay beneath the mark for the first-flip ceremony and the wait; the render has the mark alone. |
 
 ---
 
