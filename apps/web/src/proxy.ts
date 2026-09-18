@@ -125,7 +125,7 @@ function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse
   return response;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   /*
    * One nonce per request, minted before anything else so that every exit below
    * shares it. It travels two ways at once and needs to: forward on the REQUEST

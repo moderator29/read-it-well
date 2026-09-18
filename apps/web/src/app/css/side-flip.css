@@ -419,6 +419,27 @@
     transform: rotateY(calc(var(--nf-flip-dir, 1) * 540deg));
     transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
   }
+  /* The desktop rail is 16rem wide: the same card, tightened so the title
+     holds one line beside the ring. */
+  .nf-nav--rail .nf-side-switch {
+    gap: 0.625rem;
+    padding: 0.625rem 0.75rem;
+    min-height: 4.5rem;
+  }
+  .nf-nav--rail .nf-side-switch__ring {
+    width: 3rem;
+    height: 3rem;
+  }
+  .nf-nav--rail .nf-side-switch__coin {
+    width: 2.375rem;
+    height: 2.375rem;
+  }
+  .nf-nav--rail .nf-side-switch__label {
+    font-size: 0.9375rem;
+  }
+  .nf-nav--rail .nf-side-switch__sub {
+    display: none;
+  }
   .nf-side-switch__over {
     display: block;
     font-size: 0.6875rem;
