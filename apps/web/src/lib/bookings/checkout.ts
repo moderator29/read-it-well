@@ -47,6 +47,7 @@ import {
   isPaystackConfigured,
   verifyTransaction,
 } from "../payments/paystack";
+import { chargeSavedCard, type ChargeSavedCardOutcome } from "../payments/charge-saved-card";
 import { bookingReference, isBookingReference } from "../payments/references";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
@@ -160,7 +161,9 @@ function describePaystackError(e: unknown, fallback: string): string {
 /* --------------------------------------------------------- shared guards */
 
 type Guarded =
-  | { ok: false; result: ActionResult<null> }
+  /* `never` rather than `null`, so a refusal is returnable from a path whose
+     success type is not nullable: the guard only ever puts a failure here. */
+  | { ok: false; result: ActionResult<never> }
   | {
       ok: true;
       booking: PayableBooking;
@@ -180,13 +183,13 @@ type Guarded =
  */
 async function guardPayable(bookingId: string): Promise<Guarded> {
   const session = await resolveSession();
-  if (session.state === "unconfigured") return { ok: false, result: fail(NOT_CONFIGURED_MESSAGE) };
-  if (session.state === "signed-out") return { ok: false, result: fail(SIGNED_OUT_MESSAGE) };
+  if (session.state === "unconfigured") return { ok: false, result: fail<never>(NOT_CONFIGURED_MESSAGE) };
+  if (session.state === "signed-out") return { ok: false, result: fail<never>(SIGNED_OUT_MESSAGE) };
 
-  if (!(await isFeatureEnabled("bookings"))) return { ok: false, result: fail(PAUSED_MESSAGE) };
+  if (!(await isFeatureEnabled("bookings"))) return { ok: false, result: fail<never>(PAUSED_MESSAGE) };
 
   const parsed = validate(cancelInputSchema, { bookingId });
-  if (!parsed.ok) return { ok: false, result: fail(parsed.error, parsed.fieldErrors) };
+  if (!parsed.ok) return { ok: false, result: fail<never>(parsed.error, parsed.fieldErrors) };
 
   const { data: booking, error } = await session.supabase
     .from("bookings")
@@ -194,9 +197,9 @@ async function guardPayable(bookingId: string): Promise<Guarded> {
     .eq("id", parsed.data.bookingId)
     .maybeSingle();
 
-  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
-  if (!booking) return { ok: false, result: fail(NOT_FOUND_MESSAGE) };
-  if (booking.status === "CANCELLED") return { ok: false, result: fail(CANCELLED_MESSAGE) };
+  if (error) return { ok: false, result: fail<never>(SERVICE_DOWN_MESSAGE) };
+  if (!booking) return { ok: false, result: fail<never>(NOT_FOUND_MESSAGE) };
+  if (booking.status === "CANCELLED") return { ok: false, result: fail<never>(CANCELLED_MESSAGE) };
   // CONFIRMED is deliberately payable. A request-to-book stay is confirmed by
   // the host accepting it, not by money arriving, so refusing CONFIRMED here
   // meant an accepted stay could never be paid on the platform at all: the
@@ -226,7 +229,7 @@ async function guardPayable(bookingId: string): Promise<Guarded> {
     .eq("booking_id", booking.id)
     .eq("status", "SUCCESSFUL")
     .limit(1);
-  if ((settled?.length ?? 0) > 0) return { ok: false, result: fail(ALREADY_PAID_MESSAGE) };
+  if ((settled?.length ?? 0) > 0) return { ok: false, result: fail<never>(ALREADY_PAID_MESSAGE) };
 
   const metadataName = session.user.user_metadata["full_name"] as string | undefined;
   const name = (metadataName ?? "").trim();
@@ -327,6 +330,102 @@ export async function startCardCheckout(
       shouldRecord: (result) => result.ok,
     },
     () => startCardCheckoutWork(guarded.booking, guarded.userId, guarded.email),
+  );
+
+  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  return run.result;
+}
+
+/* ------------------------------------------------------ saved card path */
+
+export type SavedCardInput = CheckoutInput & {
+  /** Which saved card. Its token never leaves the server. */
+  methodId: string;
+};
+
+async function payWithSavedCardWork(
+  booking: PayableBooking,
+  methodId: string,
+): Promise<ActionResult<ChargeSavedCardOutcome>> {
+  if (!isPaystackConfigured()) return fail(CARD_UNCONFIGURED_MESSAGE);
+
+  const admin = getAdminClient();
+  if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
+
+  const amountMinor = booking.total_minor;
+  const reference = bookingReference();
+
+  // The same attempt row the hosted path writes, under the same reference
+  // scheme, because a saved-card charge is just a charge with a reference:
+  // the webhook settles it with the identical code path and a replay collides
+  // on the same unique provider_ref.
+  const attempt = await admin.from("transactions").insert({
+    booking_id: booking.id,
+    provider: "paystack",
+    provider_ref: reference,
+    amount_minor: amountMinor,
+    currency: booking.currency,
+    status: "PENDING",
+  });
+  if (attempt.error) return fail(SERVICE_DOWN_MESSAGE);
+
+  const charged = await chargeSavedCard({
+    methodId,
+    amountMinor,
+    reference,
+    purpose: "booking_payment",
+    metadata: { booking_id: booking.id },
+    callbackUrl: `${await siteOrigin()}/checkout/${booking.id}?paid=1&reference=${reference}`,
+  });
+
+  if (!charged.ok) {
+    // Nothing was taken, so the attempt is dead and the booking is untouched.
+    try {
+      await markChargeFailed(admin, reference);
+    } catch {
+      // Reconciliation settles it against the processor's own records.
+    }
+    return charged;
+  }
+
+  if (charged.data.kind === "charged") {
+    /* The processor answered synchronously, so the guest should not have to
+       wait for a webhook to see their stay confirmed. This is the same
+       settlement the webhook calls, keyed on the same reference, so whichever
+       arrives first does the work and the second finds nothing left. */
+    await settleCardPayment(reference);
+  }
+
+  return charged;
+}
+
+/**
+ * Pay for a stay with a card already on the account.
+ *
+ * ONE ATTEMPT, NEVER A LOOP. charge_authorization cannot present a 3DS
+ * challenge, so a bank that insists on authenticating declines; the fallback
+ * is a hosted checkout under the SAME reference, handed back for the surface
+ * to open, and the saved card is never retried. That rule lives in
+ * `chargeSavedCard` so every caller inherits it.
+ *
+ * The idempotency guard is this module's own, under its own scope: a dropped
+ * connection and a second tap carrying the same key replay the first answer
+ * rather than charging a card twice for one stay.
+ */
+export async function payWithSavedCard(
+  input: SavedCardInput,
+): Promise<ActionResult<ChargeSavedCardOutcome>> {
+  const guarded = await guardPayable(input.bookingId);
+  if (!guarded.ok) return guarded.result;
+
+  const run = await withIdempotency<ActionResult<ChargeSavedCardOutcome>>(
+    {
+      scope: "booking.saved_card_payment",
+      key: input.idempotencyKey ?? null,
+      subject: subjectForUser(guarded.userId),
+      shouldRecord: (result) => result.ok,
+    },
+    () => payWithSavedCardWork(guarded.booking, input.methodId),
   );
 
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);

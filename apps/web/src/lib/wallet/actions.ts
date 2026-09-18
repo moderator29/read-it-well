@@ -80,9 +80,11 @@ import {
 } from "./ledger";
 import { callMoneyRpc, readMoneyStatus } from "./rpc";
 import { readStatement } from "./repository";
+import { chargeSavedCard } from "../payments/charge-saved-card";
 import {
   fundReferenceSchema,
   fundSchema,
+  fundWithSavedCardSchema,
   transferSchema,
   withdrawSchema,
   withdrawToSavedAccountSchema,
@@ -270,6 +272,88 @@ export async function fundWallet(
       ),
     );
   }
+}
+
+/* ------------------------------------------------- fund with a saved card */
+
+/**
+ * Top the wallet up with a card already on the account.
+ *
+ * fundWallet's sibling, and deliberately a separate export rather than a
+ * branch inside it: the hosted path is the one that has moved real money for
+ * months and it stays byte-identical. Everything that makes funding safe is
+ * shared, because it lives in the reference rather than in either function.
+ * The same `rm-fund-<uuid>` shape is generated here, so the webhook credits
+ * the ledger through the identical idempotent path, and a saved-card charge
+ * is just a charge with a reference.
+ *
+ * The 3DS honesty rule is `chargeSavedCard`'s: on a decline the person is
+ * handed a hosted checkout under the same reference, once, and the card is
+ * never retried.
+ */
+export async function fundWalletWithSavedCard(
+  _prev: ActionResult<FundStart | null>,
+  formData: FormData,
+): Promise<ActionResult<FundStart | null>> {
+  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF_MESSAGE);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const parsed = validate(fundWithSavedCardSchema, formDataToObject(formData));
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  if (!isPaystackConfigured()) return fail(FUNDING_UNCONFIGURED_MESSAGE);
+
+  /* Resolved and refused on BEFORE the charge, for the reason written out in
+     full in fundWallet: a charge nothing on our side can account for is how a
+     credit is lost. */
+  const admin = getAdminClient();
+  if (!admin) {
+    logMoney({
+      surface: "fund",
+      outcome: "unconfigured",
+      reason: "service_role_key_missing",
+      userId: session.user.id,
+    });
+    return fail(
+      "Funding is unavailable just now, so nothing was charged. This is our side, not yours, and it is already flagged. Please try again shortly.",
+    );
+  }
+
+  const reference = `${FUND_PREFIX}${randomUUID()}`;
+  const amountMinor = parsed.data.amount;
+
+  await recordMoneyAudit(admin, {
+    actor: { kind: "user", userId: session.user.id },
+    action: "wallet.funding.started",
+    reference,
+    amountMinor,
+    subjectUserId: session.user.id,
+    outcome: "started",
+    detail: { saved_card: true },
+  });
+
+  const charged = await chargeSavedCard({
+    methodId: parsed.data.methodId,
+    amountMinor,
+    reference,
+    purpose: "wallet_fund",
+    callbackUrl: `${await siteOrigin()}/wallet?funded=1&reference=${reference}`,
+  });
+  if (!charged.ok) return fail(charged.error, charged.fieldErrors);
+
+  if (charged.data.kind === "needs_hosted_checkout") {
+    return ok({ authorizationUrl: charged.data.authorizationUrl, reference });
+  }
+
+  /* Charged. The ledger is still the webhook's to write, exactly as it is for
+     the hosted path: this function has never credited a wallet and does not
+     start now. The verify fallback on /wallet settles it if the delivery is
+     late. */
+  revalidatePath("/wallet");
+  return ok({ authorizationUrl: "", reference });
 }
 
 /* --------------------------------------------------------------- withdraw */

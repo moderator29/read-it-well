@@ -72,6 +72,16 @@ export const fundSchema = z.object({
   amount: nairaAmountSchema,
 });
 
+/**
+ * Funding with a card already on the account. The amount obeys the same
+ * bounds as any other movement; the card is named by id and its token never
+ * reaches this schema or the browser.
+ */
+export const fundWithSavedCardSchema = z.object({
+  amount: nairaAmountSchema,
+  methodId: z.uuid("Choose a card from your list."),
+});
+
 export const withdrawSchema = z.object({
   amount: nairaAmountSchema,
   bankCode: z
