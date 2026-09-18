@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { SendFlow } from "@/components/app/wallet/SendFlow";
 import { getWalletForViewer } from "@/lib/wallet/repository";
 
@@ -17,17 +18,13 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * /wallet/send. Its own page with its own header, off the tab bar: a
  * movement of money is a task with a beginning and an end, and the wallet
- * home is where it returns to.
+ * home is where it returns to. The header carries the render's tagline and
+ * the glass transfer object in its actions slot, so the composition reads
+ * as the render's: title and line on the left, the object on the right.
  *
- * The balance is read here, on the server, and handed down as the ceiling the
- * compose step checks against. A wallet that could not be read gets no send
- * form at all, for the same reason the wallet home draws no figure then: a
- * send against a number we cannot stand behind is not a send we take.
- *
- * `?to=`, `?amount=` and `?note=` prefill the form. That is how a request
- * shared from /wallet/receive lands: the link opens this page with the
- * recipient and the amount already in place and nothing sent until the person
- * has read it and confirmed.
+ * The balance is read here, on the server, and handed down as the ceiling
+ * the compose step checks against. `?to=`, `?amount=` and `?note=` prefill
+ * the form: that is how a request shared from /wallet/receive lands.
  */
 export default async function WalletSendPage({
   searchParams,
@@ -44,7 +41,16 @@ export default async function WalletSendPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={copy.title} fallback="/wallet" />
+      <PageHeader
+        title={copy.title}
+        subtitle={copy.tagline}
+        fallback="/wallet"
+        actions={
+          <span className="nf-money-hero__object block" aria-hidden="true">
+            <BrandIcon name="transfer-arrow" fill priority />
+          </span>
+        }
+      />
 
       {!wallet.live ? (
         <EmptyState
@@ -66,17 +72,14 @@ export default async function WalletSendPage({
           }
         />
       ) : (
-        <>
-          <p className={`mb-block ${TYPE.body}`}>{copy.lede}</p>
-          <SendFlow
-            balanceMinor={wallet.balanceMinor}
-            locale={locale}
-            copy={copy}
-            initialEmail={typeof params.to === "string" ? params.to.slice(0, 254) : ""}
-            initialAmount={typeof params.amount === "string" ? params.amount.slice(0, 20) : ""}
-            initialNote={typeof params.note === "string" ? params.note.slice(0, 140) : ""}
-          />
-        </>
+        <SendFlow
+          balanceMinor={wallet.balanceMinor}
+          locale={locale}
+          copy={copy}
+          initialEmail={typeof params.to === "string" ? params.to.slice(0, 254) : ""}
+          initialAmount={typeof params.amount === "string" ? params.amount.slice(0, 20) : ""}
+          initialNote={typeof params.note === "string" ? params.note.slice(0, 140) : ""}
+        />
       )}
     </div>
   );

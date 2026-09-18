@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ReceiveCard } from "@/components/app/wallet/ReceiveCard";
 import { RecentActivity } from "@/components/app/wallet/RecentActivity";
 import { resolveSession } from "@/lib/actions/session";
@@ -19,17 +20,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /**
  * /wallet/receive. Your handle, the address money is sent to, a request to
- * share, and what has come in lately. Its own page off the tab bar, returning
- * to the wallet home.
+ * share, and what has come in lately. The send page's other half, in the
+ * same register: the header carries the tagline and the glass object.
  *
  * The email is the session's own, because that is the address
- * `transferToUser` resolves a recipient by. The handle comes from the social
- * identity read, which returns "unclaimed" as a state rather than an error,
- * and the card offers the claim instead of showing a blank.
- *
- * The incoming strip is the statement filtered to credits. It shares
- * `RecentActivity` with the wallet home so a movement is drawn the same way
- * on both, and it says so in its own heading.
+ * `transferToUser` resolves a recipient by. The handle comes from the
+ * social identity read, which returns "unclaimed" as a state rather than an
+ * error, and the card offers the claim instead of showing a blank.
  */
 export default async function WalletReceivePage() {
   const [locale, session, wallet, identity] = await Promise.all([
@@ -44,7 +41,16 @@ export default async function WalletReceivePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={copy.title} fallback="/wallet" />
+      <PageHeader
+        title={copy.title}
+        subtitle={copy.tagline}
+        fallback="/wallet"
+        actions={
+          <span className="nf-money-hero__object block" aria-hidden="true">
+            <BrandIcon name="payment-received" fill priority />
+          </span>
+        }
+      />
 
       {!wallet.live || email.length === 0 ? (
         <EmptyState
@@ -55,21 +61,21 @@ export default async function WalletReceivePage() {
         />
       ) : (
         <>
-          <p className={`mb-block ${TYPE.body}`}>{copy.lede}</p>
           <ReceiveCard
             email={email}
             handle={identity.state === "claimed" ? identity.identity.handle : null}
             locale={locale}
             copy={copy}
           />
-          {/* A statement that could not be read shows no strip at all, for the
-              wallet home's reason: an empty list under an unreadable ledger is
-              a second false statement dressed as an absence. */}
+          {/* A statement that could not be read shows no strip at all: an
+              empty list under an unreadable ledger is a second false
+              statement dressed as an absence. */}
           {!wallet.readFailed && (
-            <div className="mt-block">
+            <div className="mt-group">
               <RecentActivity
                 entries={wallet.entries.filter((entry) => entry.direction === "credit")}
                 locale={locale}
+                copy={t.wallet.home}
                 title={copy.recentTitle}
                 empty={copy.recentEmpty}
               />

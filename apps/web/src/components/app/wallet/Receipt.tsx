@@ -62,10 +62,12 @@ export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale 
       {/*
         The head is the one place the brand appears, and it appears because a
         receipt travels: this image ends up in a WhatsApp thread with no
-        surrounding app to say where it came from.
+        surrounding app to say where it came from. The mark sits on the same
+        circle the statement rows use, so the receipt and the row it came from
+        are recognisably the same movement.
       */}
       <div className="flex items-center gap-inline border-b border-[var(--nf-border-subtle)] p-card">
-        <span className="h-10 w-10 shrink-0">
+        <span className="nf-tx-tile" aria-hidden="true">
           <BrandIcon name={KIND_ICON[entry.kind]} fill />
         </span>
         <div className="min-w-0 flex-1">
@@ -73,22 +75,8 @@ export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale 
           <p className={TYPE.rowMeta}>Vallo wallet receipt</p>
         </div>
         <StatusPill tone={toneForStatus(entry.status)} className="shrink-0">
-          {/*
-            THE SHARED WORD, NOT A THIRD PRIVATE ONE.
-
-            This read `settled ? "Successful" : status === "PENDING" ? "Pending"
-            : entry.status`, which is two English literals and then a fall
-            through to the RAW COLUMN VALUE: a failed or reversed movement
-            printed "FAILED" and "REVERSED" in shouting capitals, on the
-            document somebody forwards to a landlord as proof. The file already
-            computed `words` two lines into the component and used it for the
-            kind, so the fix was imported and not applied to the status.
-
-            It also means the receipt and the statement now say the same word
-            about the same movement, which is the fault `./kinds` was extracted
-            to stop: "exactly how a deposit ends up called one thing on the
-            ledger and another on its own receipt".
-          */}
+          {/* The shared word, not a third private one: the receipt and the
+              statement say the same thing about the same movement. */}
           {words.status[entry.status]}
         </StatusPill>
       </div>
@@ -109,7 +97,9 @@ export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale 
         </p>
 
         {entry.status === "PENDING" && (
-          <p className="nf-body-sm mx-auto mt-row max-w-[44ch] leading-relaxed text-[var(--nf-state-warning)]">
+          /* Cyan, because nothing has failed: `--nf-status-pending` is the
+             token this product reserves for "still going through". */
+          <p className="nf-body-sm mx-auto mt-row max-w-[44ch] leading-relaxed text-[var(--nf-status-pending)]">
             This has left your balance and is with the bank. It is not confirmed
             yet, so keep this receipt until it settles.
           </p>

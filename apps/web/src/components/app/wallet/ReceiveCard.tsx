@@ -6,8 +6,8 @@ import type { Dictionary, Locale } from "@vallo/i18n";
 import { formatMoney } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ICON, Surface, TYPE } from "@/components/app/Screen";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { ICON, TYPE } from "@/components/app/Screen";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO, parseNairaToKobo } from "@/lib/wallet/schema";
 import { useClientMount } from "@/lib/ui/client-mount";
 import { RollingAmount } from "./RollingAmount";
@@ -15,17 +15,16 @@ import { RollingAmount } from "./RollingAmount";
 /**
  * RECEIVE: who you are, where money lands, and a request to share.
  *
+ * In the send register: glass sections with a glyph head each, the same
+ * anatomy as the send page's recipient and amount blocks, so the two halves
+ * of one movement read as one design.
+ *
  * A send on Vallo goes to the email on the recipient's account, so the one
  * fact a person needs in order to be paid is that email, said plainly. The
- * handle sits above it because it is how people know each other here; it is
- * not the address, and the card does not pretend it is.
- *
- * The request is a link into /wallet/send with the recipient and, if given,
- * the amount and note already in the form. Nothing is created on the server:
- * a request is a message between two people, and the money only moves when
- * the other person confirms it on their own screen. Web Share where the
- * browser has it, the clipboard otherwise, and the link itself is shown so
- * neither is the only way.
+ * request is a link into /wallet/send with the recipient and, if given, the
+ * amount and note already in the form. Nothing is created on the server: a
+ * request is a message between two people, and the money only moves when
+ * the other person confirms it on their own screen.
  */
 
 type ReceiveCopy = Dictionary["walletReceive"];
@@ -45,11 +44,8 @@ export function ReceiveCard({
   const [amountText, setAmountText] = useState("");
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState(false);
-  /* The page's own origin, read on the client once it has mounted. Rendering
-     the link on the server would need the host from a header, and a link
-     built from the wrong host is worse than a relative one shown late. The
-     mount latch is the platform's shared one, so server and first client
-     render agree and nothing mismatches on hydration. */
+  /* The page's own origin, read on the client once it has mounted, so the
+     server and first client render agree and nothing mismatches. */
   const mounted = useClientMount();
   const origin = mounted ? window.location.origin : "";
 
@@ -73,8 +69,7 @@ export function ReceiveCard({
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* Clipboard refused. The link is drawn `user-select: all` below, so
-         there is still a way to take it and nothing here needs to shout. */
+      /* Clipboard refused. The link is drawn `user-select: all` below. */
     }
   };
 
@@ -91,32 +86,40 @@ export function ReceiveCard({
   };
 
   return (
-    <div>
-      <Surface>
-        <p className={TYPE.label}>{copy.handleLabel}</p>
-        {handle ? (
-          <p className={`mt-inline-tight ${TYPE.sectionTitle}`}>@{handle}</p>
-        ) : (
-          <p className={`mt-inline-tight ${TYPE.rowTitle}`}>
-            {copy.noHandle}{" "}
-            <Link
-              href="/profile"
-              className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-            >
-              {copy.claimHandle}
-            </Link>
-          </p>
-        )}
+    <div className="space-y-group">
+      <section className="nf-card p-card-sm" aria-labelledby="nf-receive-identity">
+        <Head id="nf-receive-identity" icon="user" title={copy.identityTitle} sub={copy.identitySub} />
+        <dl className="mt-row">
+          <div className="flex items-baseline justify-between gap-md">
+            <dt className={TYPE.label}>{copy.handleLabel}</dt>
+            <dd className={`text-right ${TYPE.rowTitle}`}>
+              {handle ? (
+                `@${handle}`
+              ) : (
+                <>
+                  <span className="text-[var(--nf-content-muted)]">{copy.noHandle}</span>{" "}
+                  <Link
+                    href="/profile"
+                    className="font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+                  >
+                    {copy.claimHandle}
+                  </Link>
+                </>
+              )}
+            </dd>
+          </div>
+          <div className="mt-row border-t border-[var(--nf-divider)] pt-row">
+            <dt className={TYPE.label}>{copy.emailLabel}</dt>
+            <dd className={`mt-inline-tight ${TYPE.rowTitle} [overflow-wrap:anywhere] [user-select:all]`}>
+              {email}
+            </dd>
+          </div>
+        </dl>
+        <p className={`mt-row ${TYPE.rowMeta}`}>{copy.where.replace("{email}", email)}</p>
+      </section>
 
-        <p className={`mt-block ${TYPE.label}`}>{copy.emailLabel}</p>
-        <p className={`mt-inline-tight ${TYPE.rowTitle} [overflow-wrap:anywhere] [user-select:all]`}>
-          {email}
-        </p>
-        <p className={`mt-inline ${TYPE.rowMeta}`}>{copy.where.replace("{email}", email)}</p>
-      </Surface>
-
-      <Surface className="mt-group">
-        <p className={TYPE.sectionTitle}>{copy.requestTitle}</p>
+      <section className="nf-card p-card-sm" aria-labelledby="nf-receive-request">
+        <Head id="nf-receive-request" icon="share" title={copy.requestTitle} sub={copy.requestSub} />
 
         {amountGiven && (
           <p className="mt-row text-center">
@@ -185,7 +188,23 @@ export function ReceiveCard({
             {link}
           </span>
         </p>
-      </Surface>
+      </section>
+    </div>
+  );
+}
+
+function Head({ id, icon, title, sub }: { id: string; icon: UiIconName; title: string; sub: string }) {
+  return (
+    <div className="nf-money-sec__head">
+      <span className="nf-glyph-tile" aria-hidden="true">
+        <UiIcon name={icon} size={22} />
+      </span>
+      <div className="min-w-0">
+        <h2 id={id} className={TYPE.rowTitle}>
+          {title}
+        </h2>
+        <p className={TYPE.rowMeta}>{sub}</p>
+      </div>
     </div>
   );
 }

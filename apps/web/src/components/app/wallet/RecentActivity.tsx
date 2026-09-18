@@ -1,140 +1,76 @@
 import Link from "next/link";
-import type { Locale } from "@vallo/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import type { Dictionary, Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Amount } from "@/components/ui/Amount";
-import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { TYPE } from "@/components/app/Screen";
-import { KIND_ICON, walletWords } from "./kinds";
+import { walletWords } from "./kinds";
+import { EntryRow } from "./EntryRow";
 import type { WalletEntry } from "@/lib/wallet/types";
 
 /**
- * The last few movements, on the wallet home.
+ * The last few movements, on the wallet home, as the governing render draws
+ * them: one glass card, a heading with "See all", five rows.
  *
- * ---------------------------------------------------------------------------
- * WHAT THIS REPLACED AND WHY THE FULL LIST LEFT.
- *
- * The whole statement was rendered inline here, under the action deck, with
- * its filters. On a wallet with any use in it that is an unbounded list
- * directly below the two things somebody opens the wallet to do, so adding
- * money sat above a scroll they had to get past to reach anything else.
- *
- * Three rows and a way in. That is what a person wants at a glance - did the
- * money land, did the withdrawal go - and the full record with its filters is
- * one tap away on its own screen.
- *
- * THE COUNT IS THREE AND IT IS STATED, NOT INFERRED. `slice(0, 3)` with a "See
- * all" beside it is honest about being a preview. A list that silently showed
- * "some" of somebody's transactions would be the one screen where a person
- * cannot tell whether a payment is missing or merely below the fold.
+ * Five and a way in. The full record with its filters is one tap away on its
+ * own screen, and the count is stated on the link so a person can tell
+ * whether four movements or four hundred sit behind it. A list that silently
+ * showed "some" of somebody's transactions would be the one screen where a
+ * missing payment is indistinguishable from one below the fold.
  */
 
-const PREVIEW = 3;
+const PREVIEW = 5;
 
 export function RecentActivity({
   entries,
   locale,
-  title = "Recent",
+  copy,
+  title,
   empty,
 }: {
   entries: WalletEntry[];
   locale: Locale;
-  /** The strip's heading. The wallet home says "Recent"; the receive page
-      passes the entries that came in and names them so. */
+  copy: Dictionary["wallet"]["home"];
+  /** The card's heading. The wallet home says "Recent Transactions"; the
+      receive page passes the entries that came in and names them so. */
   title?: string;
-  /** What to say when there is nothing, where the default sentence is not true
-      of the slice being shown. */
+  /** What to say when there is nothing, where the default is not true of the
+      slice being shown. */
   empty?: string;
 }) {
   const recent = entries.slice(0, PREVIEW);
-  /* The kind names in the reader's own language, from the one place the three
-     wallet surfaces share. See `walletWords` in `./kinds`. */
   const words = walletWords(locale);
 
   return (
-    <section aria-labelledby="nf-wallet-recent">
-      <div className="mb-heading flex items-baseline justify-between gap-md">
-        <h2 id="nf-wallet-recent" className="nf-overline">
-          {title}
+    <section aria-labelledby="nf-wallet-recent" className="nf-card">
+      <div className="nf-tx-card__head">
+        <h2 id="nf-wallet-recent" className={TYPE.sectionTitle}>
+          {title ?? copy.recentTitle}
         </h2>
         {entries.length > 0 && (
           <Link
             href="/wallet/transactions"
-            className="nf-tap inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="nf-tap inline-flex shrink-0 items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
-            {/* The number is the reason to tap. "See all" alone does not say
-                whether there are four movements behind it or four hundred. */}
-            All {entries.length}
+            {copy.seeAll}
+            <span className="sr-only"> ({entries.length})</span>
             <UiIcon name="arrow-right" size={16} />
           </Link>
         )}
       </div>
 
       {recent.length > 0 ? (
-        <ul className="divide-y divide-[var(--nf-border-subtle)]">
+        <ul className="nf-tx-list mt-inline-tight">
           {recent.map((entry) => (
-            <li key={entry.id}>
-              <Link
-                href={`/wallet/transactions/${entry.id}`}
-                className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] py-row text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
-              >
-                <span className="block h-10 w-10 shrink-0">
-                  <BrandIcon name={KIND_ICON[entry.kind]} fill />
-                </span>
-                <span className="min-w-0 flex-1 leading-tight">
-                  <span className={`block truncate ${TYPE.rowTitle}`}>
-                    {entry.note ?? words.kind[entry.kind]}
-                  </span>
-                  <span className={`mt-inline-tight block truncate ${TYPE.rowMeta}`}>
-                    {words.kind[entry.kind]}
-                  </span>
-                </span>
-                <span className="nf-numeric shrink-0 text-right leading-tight">
-                  <span
-                    className={`block nf-body font-semibold ${
-                      entry.direction === "credit"
-                        ? "text-[var(--nf-state-success)]"
-                        : "text-[var(--nf-state-error)]"
-                    }`}
-                  >
-                    {entry.direction === "credit" ? "+" : "-"}
-                    <Amount
-                      minorUnits={entry.amountMinor}
-                      locale={locale}
-                      showFraction
-                      secondaryClassName="text-[0.62em] font-medium opacity-60"
-                    />
-                  </span>
-                  {entry.status !== "COMPLETED" && (
-                    <StatusPill
-                      tone={toneForStatus(entry.status)}
-                      className="mt-inline-tight"
-                    >
-                      {/* NOT `entry.status.toLowerCase()`, which is what stood
-                          here and what the docstring on `STATUS_LABEL_EN` in
-                          `./kinds` describes as the defect it was written to
-                          end. The statement screen was converted and this strip
-                          was not, so the same movement read "Going through" on
-                          `/wallet/transactions` and "pending" on the wallet
-                          home, one of them in English on a Hausa device. Three
-                          surfaces, one lookup, which is the whole argument for
-                          `walletWords` existing. */}
-                      {words.status[entry.status]}
-                    </StatusPill>
-                  )}
-                </span>
-              </Link>
-            </li>
+            <EntryRow
+              key={entry.id}
+              entry={entry}
+              locale={locale}
+              words={words}
+              completedLabel={copy.completed}
+            />
           ))}
         </ul>
       ) : (
-        /* Not the full `EmptyState`, deliberately. That draws a 112px object
-           and a headline, which is a lot of screen to say "nothing yet" in a
-           strip that is three rows tall when it has content. */
-        <p className={`py-row ${TYPE.rowMeta}`}>
-          {empty ??
-            "Nothing has moved through your wallet yet. Add money and it appears here."}
-        </p>
+        <p className={`px-card-sm pb-card-sm pt-row ${TYPE.rowMeta}`}>{empty ?? copy.recentEmpty}</p>
       )}
     </section>
   );

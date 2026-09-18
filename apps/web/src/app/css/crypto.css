@@ -1,7 +1,253 @@
 /*
-  crypto: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
+  crypto: the market surface's own partial. Owned by worker E per
+  docs/BUILD_06_LEDGER.md section 2. Light-theme rules live at the foot under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  The off-brand render (213F6F47) lends only its card and chart composition.
+  Its gold, orange and flame are ignored: price up is emerald, price down is
+  rose, and every accent is a depth of blue from the glow ladder.
 */
 @layer components {
+  /* ------------------------------------------------------------ overview */
+
+  /* A rail of coin cards, bleeding into the gutter like every other rail. */
+  .nf-coin-rail {
+    display: flex;
+    gap: var(--nf-gap-row);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding-inline: var(--nf-pad-shell);
+    padding-block: var(--nf-space-2xs);
+  }
+  .nf-coin-card {
+    display: flex;
+    width: 9.25rem;
+    flex-direction: column;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-pad-card-sm);
+    color: var(--nf-content-primary);
+    text-align: left;
+  }
+  .nf-coin-card:focus-visible,
+  .nf-coin-row:focus-visible,
+  .nf-pair-row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The coin image, or the glass coin when the feed sends none. Round, on a
+     brand-tinted plate so a white-background logo does not punch a hole. */
+  .nf-coin-img {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-coin-img--lg {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  .nf-coin-img > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-coin-img__fallback {
+    font-size: var(--nf-text-caption);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-coin-up {
+    color: var(--nf-state-success);
+  }
+  .nf-coin-down {
+    color: var(--nf-state-error);
+  }
+  .nf-coin-flat {
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------------------------------- list */
+
+  .nf-coin-list {
+    padding-inline: var(--nf-pad-card-sm);
+    padding-bottom: var(--nf-space-2xs);
+  }
+  .nf-coin-row,
+  .nf-pair-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding-block: var(--nf-pad-row-block);
+    text-align: left;
+    color: var(--nf-content-primary);
+    border-radius: var(--nf-radius-sm);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-coin-row + .nf-coin-row,
+  .nf-pair-row + .nf-pair-row {
+    border-top: 1px solid var(--nf-divider);
+  }
+  @media (hover: hover) {
+    .nf-coin-row:hover,
+    .nf-pair-row:hover {
+      background: var(--nf-glass-fill-thin);
+    }
+  }
+  .nf-coin-spark {
+    flex: none;
+    width: 4.5rem;
+    height: 1.75rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-coin-rank {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+  }
+
+  /* ------------------------------------------------------------ the chart */
+
+  .nf-crypto-chart {
+    position: relative;
+    width: 100%;
+    height: 11rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-crypto-chart svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .nf-crypto-chart__grid {
+    stroke: var(--nf-divider);
+  }
+  .nf-crypto-chart__line {
+    stroke: currentColor;
+    filter: drop-shadow(0 0 6px var(--nf-glow-3));
+  }
+  .nf-crypto-chart__axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--nf-gap-inline-tight);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* -------------------------------------------------------- stat tiles */
+
+  .nf-crypto-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-inline);
+  }
+  .nf-crypto-stat {
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+  }
+
+  /* -------------------------------------------------- the honest states */
+
+  /* Unconfigured, rate limited, upstream down. The mark sits on a soft disc
+     of light so the empty screen is designed rather than blank, and the
+     coin tiles beneath it are ghosted outlines: the shape of what arrives. */
+  .nf-crypto-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--nf-pad-card) var(--nf-pad-card-sm);
+    text-align: center;
+  }
+  .nf-crypto-state__mark {
+    position: relative;
+    width: 6rem;
+    height: 6rem;
+  }
+  .nf-crypto-state__mark::before {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(circle, var(--nf-glow-2) 0%, transparent 68%);
+  }
+  .nf-crypto-ghosts {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-gap-block);
+  }
+  .nf-crypto-ghost {
+    height: 4.5rem;
+    border-radius: var(--nf-radius-md);
+    border: 1px dashed var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+  }
+
+  /* ------------------------------------------------------- fund with crypto */
+
+  .nf-crypto-fund {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-pad-card-sm);
+  }
+  .nf-crypto-fund::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(60% 80% at 0% 50%, var(--nf-glow-1) 0%, transparent 60%);
+  }
+  .nf-crypto-fund__mark {
+    position: relative;
+    flex: none;
+    width: 4rem;
+    height: 4rem;
+    filter: drop-shadow(0 10px 20px var(--nf-glow-3));
+  }
+
+  /* -------------------------------------------------------------- daylight */
+
+  :root[data-theme="light"] .nf-coin-img,
+  :root[data-theme="light"] .nf-coin-rank,
+  :root[data-theme="light"] .nf-crypto-ghost {
+    background: var(--nf-brand-tint-1);
+    border-color: var(--nf-border-default);
+  }
+  :root[data-theme="light"] .nf-crypto-stat {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
+  }
+  :root[data-theme="light"] .nf-crypto-chart__line {
+    filter: none;
+  }
+  :root[data-theme="light"] .nf-crypto-state__mark::before,
+  :root[data-theme="light"] .nf-crypto-fund::before {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-crypto-fund__mark {
+    filter: drop-shadow(0 8px 14px var(--nf-glow-1));
+  }
 }

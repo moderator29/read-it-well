@@ -143,8 +143,11 @@ const STATE: Record<ResultState, { ink: string; mark: BrandIconName }> = {
   sent: { ink: "var(--nf-state-success)", mark: "payment-sent" },
   received: { ink: "var(--nf-state-success)", mark: "payment-received" },
   confirmed: { ink: "var(--nf-brand-primary)", mark: "seal-check" },
-  pending: { ink: "var(--nf-state-warning)", mark: "hourglass" },
-  review: { ink: "var(--nf-state-warning)", mark: "doc-review" },
+  /* `seal-pending` is the mark drawn for exactly this state (BRAND_MARKS
+     section 7); `hourglass`, its sibling, takes review, where a person is
+     waiting out a horizon somebody else holds. */
+  pending: { ink: "var(--nf-state-warning)", mark: "seal-pending" },
+  review: { ink: "var(--nf-state-warning)", mark: "hourglass" },
   failed: { ink: "var(--nf-state-error)", mark: "payment-failed" },
   expired: { ink: "var(--nf-content-muted)", mark: "clock-expired" },
 };
@@ -221,7 +224,11 @@ export function ResultSheet(props: ResultSheetProps) {
         {/* The mark. The emotional payload, and the one place in this product
             where an object should be large. No tile, no plate, no circle: the
             glass marks carry their own ground. */}
-        <span className="nf-result-mark block h-24 w-24 sm:h-28 sm:w-28">
+        <span
+          className={`nf-result-mark block h-24 w-24 sm:h-28 sm:w-28 ${
+            state === "failed" || state === "expired" ? "" : "nf-result-mark--lit"
+          }`}
+        >
           <BrandIcon name={mark ?? tone.mark} fill priority />
         </span>
 
@@ -394,7 +401,11 @@ export function ResultScreen({
       className="flex flex-col items-center px-lg py-section text-center"
       style={{ "--nf-result-ink": tone.ink } as React.CSSProperties}
     >
-      <span className="block h-20 w-20 sm:h-24 sm:w-24">
+      <span
+        className={`nf-result-mark block h-20 w-20 sm:h-24 sm:w-24 ${
+          bad || state === "expired" ? "" : "nf-result-mark--lit"
+        }`}
+      >
         <BrandIcon name={mark ?? tone.mark} fill />
       </span>
       {/*

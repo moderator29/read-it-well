@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
@@ -12,28 +13,17 @@ export const metadata: Metadata = { title: "Transactions" };
 /**
  * The full statement, on its own screen.
  *
- * ---------------------------------------------------------------------------
- * WHY IT MOVED OFF THE WALLET HOME.
- *
- * The history was rendered inline under the action deck, so the wallet page
- * was a balance, three buttons and then an unbounded list. On a wallet with
- * any use in it that pushes everything else off the screen, and it puts the
- * thing somebody opens the wallet to DO - add money, send money - above a
- * scroll they have to get past to reach the bottom of the page.
- *
- * The home keeps a short recent strip, which is what a person actually wants
- * at a glance, and the full record with its filters lives here, one tap away.
- * That is the shape every bank app on a Nigerian phone uses, and it is the
- * shape the owner asked for.
- *
- * The read is the SAME `getWalletForViewer` the home calls, so the two screens
- * cannot disagree about what is in the ledger, and the same three states are
- * honoured: signed out, unreadable, and real. In particular an unreadable
- * ledger shows no list at all - an empty history under a failed read says "no
- * transactions", which is a false statement dressed as an absence.
+ * The home keeps a short recent card, which is what a person wants at a
+ * glance, and the full record with its filters lives here, one tap away.
+ * The read is the SAME `getWalletForViewer` the home calls, so the two
+ * screens cannot disagree about what is in the ledger, and the same three
+ * states are honoured: signed out, unreadable, and real. An unreadable
+ * ledger shows no list at all: an empty history under a failed read says
+ * "no transactions", which is a false statement dressed as an absence.
  */
 export default async function WalletTransactionsPage() {
   const locale = await getLocale();
+  const t = getDictionary(locale);
   const wallet = await getWalletForViewer();
 
   return (
@@ -68,7 +58,12 @@ export default async function WalletTransactionsPage() {
         </Reveal>
       ) : (
         <Reveal>
-          <TransactionsSection entries={wallet.entries} locale={locale} heading={false} />
+          <TransactionsSection
+            entries={wallet.entries}
+            locale={locale}
+            copy={t.wallet.home}
+            heading={false}
+          />
         </Reveal>
       )}
     </div>

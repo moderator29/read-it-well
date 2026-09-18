@@ -1,207 +1,33 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
-import { RowButton, Sheet, SettingsGroup } from "@/components/app/account/rows";
-import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
+import { RowButton, Sheet } from "@/components/app/account/rows";
+import { ICON, TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
-import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NUBAN_LENGTH, digitsOnly, groupNuban } from "@/lib/agent/payout-schema";
-import {
-  addBankAccount,
-  listBanks,
-  removeBankAccount,
-  resolveBankAccount,
-  setDefaultBankAccount,
-  type BankAccount,
-} from "@/lib/payments/bank-accounts-actions";
-import { maskNumber } from "./format";
-
-/**
- * BANK ACCOUNTS, in the settings grammar, shared by every side that is paid.
- *
- * Rows of bank, "•••• 6789" and the name the bank gave back; a pill on the
- * one payouts go to; a chevron into a sheet with make-default and
- * remove-with-confirm. The add sheet keeps the agent screen's proven three
- * beats: pick the bank (with a search field, because the list is long), type
- * the ten digits grouped 0123 456 789, and confirm the name the bank returns
- * before anything is saved. The server resolves the account again on save,
- * so the name shown here is a courtesy and never the guard.
- *
- * Every state is honest: a bank list that failed to load says so and offers
- * a retry; a number that does not resolve says so in rose; a name the person
- * does not recognise has a way back to the number without saving anything.
- */
+import { addBankAccount, listBanks, resolveBankAccount } from "@/lib/payments/bank-accounts-actions";
 
 type PaymentsCopy = Dictionary["paymentsPage"];
 type Bank = { name: string; code: string };
 type Beat = "bank" | "number" | "confirm";
 
-export function BankAccounts({
-  accounts,
-  readFailed,
-  copy,
-}: {
-  accounts: BankAccount[];
-  readFailed: boolean;
-  copy: PaymentsCopy;
-}) {
-  const router = useRouter();
-  const [open, setOpen] = useState<BankAccount | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  function run(work: () => Promise<{ ok: boolean; error?: string }>, then?: () => void) {
-    setError(null);
-    startTransition(async () => {
-      const result = await work();
-      if (!result.ok) {
-        setError(result.error ?? copy.readFailed);
-        return;
-      }
-      then?.();
-      router.refresh();
-    });
-  }
-
-  const close = () => {
-    setOpen(null);
-    setConfirmRemove(false);
-  };
-
-  return (
-    <>
-      <SettingsGroup
-        label={copy.banksLabel}
-        note={
-          error && !open && !adding ? (
-            <span role="alert" className="text-[var(--nf-state-error)]">
-              {error}
-            </span>
-          ) : (
-            copy.banksNote
-          )
-        }
-      >
-        {readFailed ? (
-          <p className={`px-lg py-md ${TYPE.rowMeta}`} role="status">
-            {copy.readFailed}
-          </p>
-        ) : accounts.length === 0 ? (
-          <EmptyState
-            icon="wallet"
-            title={copy.accountsEmptyTitle}
-            body={copy.accountsEmptyBody}
-            className="py-block"
-            data-testid="payments-accounts-empty"
-          />
-        ) : (
-          accounts.map((account) => (
-            <RowButton
-              key={account.id}
-              icon="building-apartment"
-              label={`${account.bankName} ${maskNumber(account.accountNumber)}`}
-              sub={account.accountName}
-              value={
-                account.isDefault ? (
-                  <StatusPill tone="brand">{copy.defaultPayouts}</StatusPill>
-                ) : undefined
-              }
-              onClick={() => setOpen(account)}
-              testId="payments-account-row"
-            />
-          ))
-        )}
-        <RowButton
-          icon="plus"
-          label={copy.addAccount}
-          onClick={() => setAdding(true)}
-          disabled={pending}
-          chevron={false}
-          testId="payments-add-account"
-        />
-      </SettingsGroup>
-
-      <Sheet open={open !== null} onClose={close} title={copy.accountSheetTitle}>
-        {open && (
-          <div>
-            <div className="px-2xs">
-              <p className={TYPE.rowTitle}>
-                {open.bankName} {maskNumber(open.accountNumber)}
-              </p>
-              <p className={TYPE.rowMeta}>{open.accountName}</p>
-            </div>
-            <div className="mt-row">
-              {!open.isDefault && (
-                <RowButton
-                  icon="verified"
-                  label={copy.makeDefaultAccount}
-                  onClick={() => run(() => setDefaultBankAccount(open.id), close)}
-                  disabled={pending}
-                  chevron={false}
-                />
-              )}
-              {!confirmRemove ? (
-                <RowButton
-                  icon="trash"
-                  label={copy.removeAccount}
-                  danger
-                  onClick={() => setConfirmRemove(true)}
-                  disabled={pending}
-                  chevron={false}
-                />
-              ) : (
-                <div className="px-2xs pt-row">
-                  <p className={TYPE.body}>{copy.removeAccountBody}</p>
-                  <div className="mt-row flex flex-col gap-inline">
-                    <Button
-                      variant="danger"
-                      full
-                      loading={pending}
-                      onClick={() => run(() => removeBankAccount(open.id), close)}
-                    >
-                      {copy.removeAccountConfirm}
-                    </Button>
-                    <Button variant="ghost" full disabled={pending} onClick={() => setConfirmRemove(false)}>
-                      {copy.keep}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-            {error && (
-              <p role="alert" className={`mt-row px-2xs ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
-                {error}
-              </p>
-            )}
-          </div>
-        )}
-      </Sheet>
-
-      {adding && (
-        <AddAccountSheet
-          copy={copy}
-          onClose={() => setAdding(false)}
-          onSaved={() => {
-            setAdding(false);
-            router.refresh();
-          }}
-        />
-      )}
-    </>
-  );
-}
-
 /**
- * Three beats: bank, number, name. Mounted only while open, so every attempt
- * starts clean and nothing from a previous try can be saved by accident.
+ * Adding a bank account, in three beats: pick the bank (with a search
+ * field, because the list is long), type the ten digits grouped
+ * 0123 456 789, and confirm the name the bank returns before anything is
+ * saved. The server resolves the account again on save, so the name shown
+ * here is a courtesy and never the guard.
+ *
+ * Mounted only while open, so every attempt starts clean and nothing from a
+ * previous try can be saved by accident. Every state is honest: a bank list
+ * that failed to load says so and offers a retry; a number that does not
+ * resolve says so in rose; a name the person does not recognise has a way
+ * back to the number without saving anything.
  */
-function AddAccountSheet({
+export function AddBankAccountSheet({
   copy,
   onClose,
   onSaved,
