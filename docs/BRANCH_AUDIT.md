@@ -412,7 +412,7 @@ deletion done in the GitHub UI stays reversible with `git branch <name> <sha>`:
 | `integration/rentme-next` | `ba561381` | Delete. Superseded |
 | `primitives-wip` | `4eeed21a` | Delete. Superseded |
 | `claude/rentme-v2-platform-audit-xuvg0a` | `edc8def5` | Delete. All five commits reached main by cherry-pick; its PR #56 is closed |
-| `claude/zealous-brown-gn45mg` | `a9aced17` | **KEEP for now.** The active sprint session's branch, currently equal to main. Delete only after that session's close-out |
+| `claude/zealous-brown-gn45mg` | `a9aced17` | **Delete.** The founder retired the sprint session on 18 September; its head `a9aced17` is in main's history, and the sprint's unfinished items are absorbed into the HANDOFF_05 build. The fifteenth click |
 | `main` | moving | Keep. The only working branch |
 
 **How the founder deletes them, about sixty seconds:** open

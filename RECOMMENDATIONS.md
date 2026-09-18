@@ -61,12 +61,20 @@ build to the two-side platform (Property and Stays flipped by one control) and
 ruled the old partner-feed hybrid out of v1. `docs/HANDOFF_05` second edition
 is now the build brief, grounded in `docs/research/TWO_MODE_FRONTEND_RESEARCH.md`
 and `docs/research/TWO_MODE_BACKEND_RESEARCH.md`. Consequences for this
-register: `MK-33` to `MK-42` DEFER wholesale with the partner lane (nothing
-deleted, the vault waits); the first-party rows `MK-01` to `MK-32` and `MK-43`
-to `MK-68` stand, resequenced as migrations M1 to M13 in the backend research
-section 5.5. New work this ruling adds is tracked in HANDOFF_05 itself rather
-than as new MK rows: the side axis and flip, thread contexts, the inspections
+register: the first-party rows `MK-01` to `MK-32` and `MK-43` to `MK-68`
+stand, resequenced as migrations M1 to M13 in the backend research section
+5.5. New work this ruling adds is tracked in HANDOFF_05 itself rather than as
+new MK rows: the side axis and flip, thread contexts, the inspections
 close-out, `payment_methods` and user `bank_accounts`, and `saved_places`.
+
+**Amended the same day:** the founder refined the supply ruling: third-party
+partner inventory returns as HANDOFF_05 **Phase F**, built new-style with the
+"Third party" label and a minimal booking flow, so `MK-33` to `MK-42` are
+NOT deferred wholesale after all; they are Phase F, sequenced after the
+first-party core holds and dark until keys land. Grounding:
+`docs/research/HOST_ONBOARDING_RESEARCH.md` (the Host onboarding ladder, the
+two booking flows, the filter reconciliation with its four additive shelf
+fixes).
 
 ### 0.1 Status changes established since the register was written
 

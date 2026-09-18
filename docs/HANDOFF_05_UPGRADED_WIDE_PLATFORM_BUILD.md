@@ -5,10 +5,16 @@
 founder's direct ruling of 18 September 2026. The change of direction, in his
 own frame: not a hybrid app with hotels mixed into the property feed, but one
 product with **two complete sides** the user flips between. Same account, same
-wallet, same backend; two frontends. And his second ruling, quoted because it
-governs scope: *"I don't even think we need the old hybrid system, let's build
-the new one in new style."* First-party onboarding is the supply; the partner
-feed engine stays in the vault.
+wallet, same backend; two frontends. His supply ruling, refined later the same
+day: **first-party onboarding is the primary supply, built new style, and
+third-party inventory from the partner APIs returns beside it as a clearly
+labelled lane**: a small calm "Third party" tag on every API-sourced row, a
+deliberately minimal booking flow for those rows, and the full multi-step
+Vallo flow reserved for what is listed with us. The old hybrid UI is not
+restored; the lane is rebuilt new-style against the stays schema, with the
+vault as salvage. Stays operators who list with us are called **Hosts**
+(property-side listers stay Agents), and their onboarding is industry-grade:
+CAC, identity, resolved bank accounts, admin review.
 
 **Read this as a revival, still.** The money core is sound, the design system
 just went through two sprints, the research is done twice over. This is not
@@ -27,6 +33,9 @@ research files:
   full field detail; still authoritative where the two-mode files defer to it)
 - `docs/research/API_INVENTORY_RESEARCH.md` with `docs/API_INVENTORY.md`
   (integrations and costs)
+- `docs/research/HOST_ONBOARDING_RESEARCH.md` (how the industry onboards
+  properties, the Nigerian regulatory reality, the Vallo Host ladder, the two
+  booking flows specified, the filter set reconciled)
 
 `docs/HANDOFF_04_MARKETPLACE.md` remains the charter and its section 13 rules
 bind every worker in this build. Where the first edition of this file
@@ -41,7 +50,10 @@ sales, agents, inspections, the app that exists today, upgraded. The **Stays
 side**: hotels, serviced apartments, guest houses, resorts, shortlets, and
 restaurants. One account, one wallet, one messages inbox, one trust system,
 one backend. A person flips between the sides with one control and the whole
-app turns over. The slogan stands: **Real Estate reimagined!**
+app turns over. On the Stays shelf, what is listed with Vallo sits beside
+partner inventory that is honest about what it is, so a search for
+Lagos-with-dates answers with everything and never lies about anything. The
+slogan stands: **Real Estate reimagined!**
 
 The standard, unchanged and binding: **would a funded design team have
 shipped this.** Not "does it work".
@@ -50,14 +62,16 @@ shipped this.** Not "does it work".
 
 ## 1. First hour, no exceptions
 
-1. `git pull origin main`. Read the newest sprint ledger; if a parallel
-   session's sprint is still open, do not touch its owners' scopes until its
-   close-out
+1. `git pull origin main`. The parallel sprint session is retired on the
+   founder's word: read `docs/SPRINT_60_B.md`, fold its unfinished items into
+   this build's own plan, then move the ledger to `docs/archive/` marked
+   absorbed. This session is the only one running
 2. Read, in order: `docs/HANDOFF_04_MARKETPLACE.md` (charter and rules), the
    two `TWO_MODE_*` research files in full, then
    `docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md` sections 2 and 3 for
-   the schema field detail, `docs/API_INVENTORY.md`, `RECOMMENDATIONS.md`
-   section 0, then `docs/BRAND_MARKS.md`, `docs/HANDOFF_03_FRONTEND.md` and
+   the schema field detail, `docs/research/HOST_ONBOARDING_RESEARCH.md` in
+   full, `docs/API_INVENTORY.md`, `RECOMMENDATIONS.md` section 0, then
+   `docs/BRAND_MARKS.md`, `docs/HANDOFF_03_FRONTEND.md` and
    `docs/FRONTEND_REVAMP.md` for the visual law
 3. Run and record the baseline: `npm run typecheck`, `npm run lint`,
    `npm run test`, `npm run build`
@@ -160,15 +174,17 @@ side or me turning my phone back"*. Full choreography in
   withdrawals mint and discard a Paystack recipient every time.
 - **The one notify primitive** is `private.notify()` via AFTER triggers;
   every new notification in this build goes through it unchanged.
-- **Under "no old hybrid"**: the first-party stays core stands unchanged
-  from the marketplace research (businesses through cancellation_policies,
-  restaurants, landmarks, catalogue projection, Postgres-first search).
-  MK-33 to MK-42 defer wholesale. Simplifications are real: `source`
-  defaults `'first_party'` and provider columns are not created; fulfilment
-  fixes to `'vallo'`; v1 search has no dedupe pass, no provider race, no
-  kill-switch flags. The vault stays catalogued in HANDOFF_04 section 2;
-  restoration remains "a new migration, not a revert", later, on the
-  founder's word. ADR-015 becomes non-urgent: no partner row renders in v1.
+- **The supply posture**: the first-party stays core stands unchanged from
+  the marketplace research (businesses through cancellation_policies,
+  restaurants, landmarks, catalogue projection, Postgres-first search) and
+  ships FIRST. The partner lane (MK-33 to MK-42, the vault salvage) returns
+  as **Phase F**, after the first-party core holds: labelled third-party
+  rows, the minimal flow, Model 1 commission only. Until Phase F the
+  simplifications hold on the shipped code: `source` defaults
+  `'first_party'`, fulfilment defaults `'vallo'`, no dedupe pass and no
+  provider race in the first search; but the columns and enums are created
+  wide enough that Phase F is additive. ADR-015 commits the day the first
+  partner row can render, not before.
 - **PostGIS 3.3.7 is installed and live**; the search verdict (FTS +
   `pg_trgm` + PostGIS, no engine) stands.
 - **The is_demo law**: only `listings` and `agents` carry `is_demo` today
@@ -241,10 +257,18 @@ nothing):**
     pattern everywhere, then "pay with saved card" on checkout and funding
 
 **Phase D, stays for real:**
-13. Business onboarding wizard completable in one sitting (MK-20): the
-    filling areas the founder asked for, hotel and shortlet and guest house
-    and resort and serviced apartment and restaurant, photo galleries under
-    bucket limits, pin required at publish (MK-55)
+13. The **Host onboarding wizard** completable in one sitting (MK-20,
+    MK-25), built exactly to `HOST_ONBOARDING_RESEARCH.md` section 3: the
+    three branches (individual shortlet host, registered business,
+    restaurant), the ten steps as data on the `kyc.ts` pattern, CAC number
+    entry with format validation, identity documents to a private
+    `host-documents` bucket, resolve-before-save bank accounts, the three
+    separate consents, photos and the required pin (MK-55), then the
+    `admin/businesses` review queue and the four post-live verification
+    rungs (identity, registration, payout name match, on-site) on the
+    existing rung-as-row machinery. Go-live gates on completeness plus
+    admin approval; the slow checks gate the badge and payouts, never the
+    shelf
 14. Stay detail `/stay/[id]` as the showcase: gallery edge to edge, room
     types as rows, rate-plan sheet, dates and guests, the total as the
     headline, policy in plain words (MK-44, MK-46); `/trips` re-homing
@@ -282,10 +306,75 @@ path), section B money safety, `W-3`/`W-5`/`W-6` (the wallet is the
 financial heart of both sides), `N-4`, `M-1`, CI type generation
 (`A2-064`/`P-5`).
 
-**Deferred wholesale by the founder's ruling:** the partner lane (the first
-edition's Phase C, MK-33 to MK-42, `places_cache`, `partner_stay_intents`,
-source labels, provider health, the LiteAPI provider). Nothing is deleted;
-the vault waits.
+**Phase F, the third-party lane (after the first-party core holds, and
+dark until keys land):**
+21. Restore the inventory layer new-style per the salvage map: registry,
+    kill switches, the 2.5 second budget, `places_cache`,
+    `partner_stay_intents` and the prebook-revalidate route, everything
+    against the stays schema, zero keys required and zero visible change
+    (MK-33 to MK-36)
+22. The **"Third party" label** on every partner card and detail surface,
+    small and calm, plus the fulfilment-honest CTA, before any partner row
+    ever renders; the badge structurally impossible on partner rows
+    (MK-37, MK-38, MK-58); ADR-015 committed the same day
+23. The **minimal third-party flow** per `HOST_ONBOARDING_RESEARCH.md`
+    section 4.4: live price revalidated at open, what is included, the two
+    honesty moments ("provided and fulfilled by a Vallo travel partner";
+    "your money goes to them, not to your Vallo wallet"), one continue
+    action into the LiteAPI whitelabel checkout on a Vallo-branded
+    subdomain, wallet and saved cards never appearing in this flow,
+    commission recorded as referral revenue, the trips surface showing
+    "booked with partner" honestly and never faking a Vallo booking row
+24. Provider health in admin, freshness policy per source, the partner
+    image hosts decision executed (MK-39 to MK-41); the day-one checklist
+    when LiteAPI keys land: Lagos and Abuja coverage counts recorded before
+    any density claim in copy, confirmation-email identity verified,
+    whitelabel steps walked, refund mechanics recorded. Booking.com Demand
+    stays display-plus-honest-handoff unless the deeper Search-Look-Book
+    permission is ever contracted
+
+### 5.1 The Hosts
+
+Stays operators are **Hosts**; the word Partner is reserved for third-party
+API inventory so the two can never blur. The Host console grows at `/host/*`
+as the agent console's sibling, gated by `businesses.owner_id` under RLS and
+never by a cookie. The guest-facing verification ladder is four rungs shown
+as dated facts (a real person with ID; the business registered with CAC and
+matching; money flowing to an account in their own resolved name; somebody
+from Vallo stood in the property or saw it live), with licence and hygiene
+attestations rendered as dated facts beside it, never as the badge. CAC
+verification is manual admin review against the free CAC public search in
+v1, recorded as a rung with a date and reviewer; the Dojah or Smile ID
+business lookup upgrades it behind the `IdentityProvider` interface when
+contracted, and the CAC portal is never scraped. TIN is optional and never
+blocks. No NIHOTOUR gate exists.
+
+### 5.2 The two booking flows, the law
+
+**First-party (Vallo fulfils):** the full flow. Dates, guests and room with
+the total as the headline; guest details; pay by wallet, saved card or
+fresh checkout with the Host's business name on the pay sheet and honest
+settlement wording; confirmation with the policy restated; the booking
+timeline in its thread. **Third-party (partner fulfils):** the minimal flow
+of Phase F item 23, and nothing more. The two flows never borrow steps from
+each other: adding steps to third-party is dishonest friction, removing
+steps from first-party is a banned half implementation.
+
+### 5.3 The filter set
+
+The founder's search promise, all twelve filters: price, rating, location,
+room type, facilities, breakfast included, air conditioning, parking,
+Wi-Fi, verified property, free cancellation, distance from landmark. Eight
+have schema homes ready (ac, parking and wifi are already seeded amenity
+codes). Four additive fixes ship with M9's projection so the shelf can
+filter: `rating_avg` and `rating_count` on `catalogue_entries` maintained
+by the review triggers, a `room_types.category` enum beside the free-text
+name, a trigger-maintained `has_breakfast` shelf flag, and
+`cancellation_policies.is_free_until_hours` with a `has_free_cancellation`
+shelf flag. Detail table: `HOST_ONBOARDING_RESEARCH.md` section 5. The
+verified filter is structurally first-party-only. Every result shows the
+total price and what is included; nobody opens five hotel websites to find
+out.
 
 ---
 
@@ -322,9 +411,11 @@ this build:
 ## 7. Founder decisions
 
 **Assumed, already ruled by him or the charter:** the two-side architecture
-itself; no old hybrid in v1 (first-party supply only); Model 1 money posture
-(no new custody, no float); additive-only migrations; Postgres-first search;
-the badge never diluted.
+itself; first-party supply primacy with the labelled third-party lane as
+Phase F; the Third party label and the two-flow law; Hosts as the name;
+Model 1 money posture (no new custody, no float; Model 2 stays a gated
+decision); additive-only migrations; Postgres-first search; the badge never
+diluted and never on a partner row.
 
 **Waiting on his word:**
 
@@ -338,19 +429,29 @@ the badge never diluted.
 5. MapTiler key funded before launch (`M-1`)
 6. The `outcome` column on completed inspections: recommended, zero-cost to
    skip in v1 if he prefers
-7. Deferred with the partner lane, decide nothing now: LiteAPI keys,
-   whitelabel domain, partner photo hosts, Google Places, ADR-015's commit,
-   Amadeus (stays dead), Paystack DVA, KYC contracts, push identifiers
+7. **LiteAPI sandbox key, then the whitelabel subdomain** (e.g. a
+   book.vallo domain), when Phase F approaches; the lane builds dark
+   without them
+8. **Booking.com Demand application**: managed-partner paperwork takes
+   time, so start it early if he wants that inventory; display plus honest
+   handoff is the approved posture
+9. Partner hotel photos at Phase F: proxy through Vallo, or named CDN
+   hosts in CSP; the old wildcard stays closed either way
+10. Still parked, decide nothing now: Google Places, Amadeus (stays dead),
+    Paystack DVA, KYC contracts (Dojah or Smile ID business lookup upgrades
+    CAC verification when he contracts one), push identifiers
 
 ---
 
 ## 8. The APIs and what they cost
 
-The v1 needs **almost no new money**: PostGIS and FTS are in the database
-already paid for; Paystack is live and covers saved cards
+The first-party core needs **almost no new money**: PostGIS and FTS are in
+the database already paid for; Paystack is live and covers saved cards
 (`charge_authorization`) and transfers on existing rails; MapTiler is a
-licensing item; Resend and Supabase are in place. The partner-lane costs
-(LiteAPI, Booking.com, RateHawk) defer with the lane. The NEXT wave
+licensing item; Resend and Supabase are in place; CAC verification is free
+in v1 (the public search, human-reviewed). Phase F brings the partner-lane
+items (LiteAPI commission model, Booking.com contract, RateHawk) and they
+cost nothing until keys are requested. The NEXT wave
 (Termii SMS, Apple $99, KYC contracts, Paystack DVA) is unchanged in
 `docs/API_INVENTORY.md`; every figure still requires provider confirmation
 and the founder adds all keys personally. One new confirmation this build
@@ -380,8 +481,10 @@ float; spending money or new paid vendors; destructive database operations;
 git history rewriting; remote branch deletion beyond credentials; native app
 identifiers; anything touching `HANDOFF_01` legal ground; writing test rows
 to live tables (ask for the seeded account instead); relaxing
-`messages.sender_id`; reviving the partner lane; Amadeus. Everything else:
-decide, build, verify, record, keep going.
+`messages.sender_id`; rendering any partner row before the label and the
+fulfilment-honest CTA exist; putting the wallet or saved cards anywhere in
+the third-party flow; scraping the CAC portal or anything else; Amadeus.
+Everything else: decide, build, verify, record, keep going.
 
 **No half implementations, the banned sentences stand**, two new ones
 included: "two-mode added" with a toggle that just filters a feed, and
@@ -417,16 +520,20 @@ unless it is true; report what was skipped, unprompted.**
    Open and Closed, notifications on every transition
 5. `/settings/payments` shipped: saved cards and bank accounts end to end,
    webhook-fed, confirmation-patterned
-6. The stays onboarding wizard and the stay detail page shipped to the law;
-   restaurants reserving into their threads
+6. The Host onboarding wizard and its verification ladder shipped to the
+   law, CAC review running in the admin businesses queue; the stay detail
+   page as the showcase; restaurants reserving into their threads
 7. The consoles and admin queues operating on the QueueFilters frame
-8. `RECOMMENDATIONS.md` maintained as the one register: MK entries closed
+8. The third-party lane built new-style and dark: label and honest CTA
+   ready, kill switches off, zero keys, ready to light the day the founder
+   lands credentials, with the day-one checklist waiting
+9. `RECOMMENDATIONS.md` maintained as the one register: MK entries closed
    with commits as they land, old rows normalised inline
-9. **`docs/HANDOFF_06.md` for the next session**: what Vallo is now, what
-   was implemented and verified, every schema and API change, what remains
-   with file-level precision, credentials still missing, the rules carried
-   forward. An execution document, not a farewell note
-10. A close-out to the founder in his language: short, honest, nothing
+10. **`docs/HANDOFF_06.md` for the next session**: what Vallo is now, what
+    was implemented and verified, every schema and API change, what remains
+    with file-level precision, credentials still missing, the rules carried
+    forward. An execution document, not a farewell note
+11. A close-out to the founder in his language: short, honest, nothing
     padded, what needs his word listed plainly
 
 **The final outcome, read out loud before starting:** a person flips the
