@@ -14,4 +14,12 @@
 
 /** Scene name to public path, for scenes that have their own photograph. */
 export const SCENE_PHOTOGRAPHS: Readonly<Record<string, string>> = {
+  flats: "/brand/scenes/flats.jpg",
+  hotel: "/brand/scenes/hotel.jpg",
+  house: "/brand/scenes/house.jpg",
+  shop: "/brand/scenes/shop.jpg",
+  shortlet: "/brand/scenes/shortlet.jpg",
+  terrace: "/brand/scenes/terrace.jpg",
+  tower: "/brand/scenes/tower.jpg",
+  villa: "/brand/scenes/villa.jpg",
 };
