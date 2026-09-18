@@ -26,9 +26,19 @@ lists the off-brand details that must be translated rather than copied.
    impossibilities: garbled text, fake blur, inconsistent spacing, and
    occasional off-brand details flagged in the catalogue. The rules that
    OVERRIDE any render, always: one blue family (any warm hue in a render
-   becomes its blue-family equivalent), 14px rectangular controls (a pill
-   button in a render ships as our 14px rectangle), no text baked into
-   icons, real copy never lorem, honest data never invented counts. The
+   becomes its blue-family equivalent: gold rating stars ship blue, the
+   off-brand crypto render's gold and orange are ignored entirely and the
+   crypto surface is built in the register), no text baked into icons
+   (the "HOTEL"-lettered icon in three renders is never cropped or
+   copied), real copy never lorem (the garbled AI text in the landing
+   fullpage renders is never transcribed; write real copy in its place),
+   honest data never invented counts, and no logic errors copied (one
+   render pairs yearly rent with nightly date pickers; the market decides
+   the panel, as built). **Control shape follows the governing image, by
+   the founder's identical-to-images ruling**: where a render shows pill
+   chips and capsule buttons, ship them; where it shows rectangles, ship
+   rectangles; extend the radius tokens to carry both and record the
+   amendment of the old 14px control law in the ledger. The
    neon edge-glow around phone frames in the renders is presentation
    framing for the image, not UI chrome; do not draw a glowing border
    around the real viewport.
