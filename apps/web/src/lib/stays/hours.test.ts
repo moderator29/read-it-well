@@ -65,3 +65,18 @@ describe("openState", () => {
     expect(state.open_now).toBe(false);
   });
 });
+
+describe("isOpenNow and hoursForWeekday", () => {
+  it("answers yes inside a window and no once last seating has passed", async () => {
+    const { isOpenNow, hoursForWeekday } = await import("./hours");
+    expect(isOpenNow([FRIDAY_LUNCH, FRIDAY_DINNER], new Date("2026-09-18T18:30:00Z"))).toBe(true);
+    expect(isOpenNow([FRIDAY_DINNER], new Date("2026-09-18T20:45:00Z"))).toBe(false);
+    expect(hoursForWeekday([FRIDAY_LUNCH, FRIDAY_DINNER], 5)).toBe("12:00 to 16:00, 18:00 to 23:00");
+    expect(hoursForWeekday([FRIDAY_DINNER], 6)).toBe("Closed");
+  });
+
+  it("reads no windows for an id that is not a uuid, without touching a client", async () => {
+    const { readServiceWindows } = await import("./hours");
+    await expect(readServiceWindows("not-an-id")).resolves.toEqual([]);
+  });
+});

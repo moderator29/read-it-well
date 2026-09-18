@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { resolveSession } from "../actions/session";
+import { sendMessage, startReservationThread } from "../messages/actions";
 import { consume, subjectForUser } from "../security/rate-limit";
+import { reservationsClient, type ReservationStatus } from "./db";
 import { lagosInstant, reserveSchema, respondSchema, whyNotBookable } from "./schema";
 
 /**
@@ -18,18 +20,88 @@ import { lagosInstant, reserveSchema, respondSchema, whyNotBookable } from "./sc
  * caller would not inherit it.
  *
  * The database is the authority on what is valid. The trigger refuses a
- * reservation against anything that is not a published restaurant and refuses
- * a moment in the past, so those rules hold for the assistant's tool layer and
- * the admin console too. What this file adds is the sentence a person reads:
- * a check constraint says "violates check constraint reservations_party_size",
- * and nobody should ever be shown that.
+ * reservation against anything that is not a published restaurant, refuses
+ * an example restaurant (the b3 migration; every listing in the catalogue
+ * today is one), and refuses a moment in the past, so those rules hold for
+ * the assistant's tool layer and the admin console too. What this file adds
+ * is the sentence a person reads: a check constraint says "violates check
+ * constraint reservations_party_size", and nobody should ever be shown that.
+ *
+ * THE THREAD. A reservation is a thing two people talk about ("we are running
+ * twenty minutes late"), so the moment one exists its thread is opened
+ * through the messaging module's own `startReservationThread` (M10 context,
+ * party check in the database) and stamped back on the row as
+ * `conversation_id`. The guest's request, the venue's answer and a
+ * cancellation are then posted INTO that thread by whoever did them, through
+ * `sendMessage`, in their own voice: `messages.sender_id` stays NOT NULL and
+ * there are no system rows. The thread is a courtesy and the reservation is
+ * the record, so a thread that could not open never fails the reservation;
+ * the notify trigger has already told the other side either way.
  */
 
 /** A person may ask for a handful of tables in a few minutes, not a hundred. */
 const RESERVE_LIMIT = 6;
 const RESERVE_WINDOW_SECONDS = 300;
 
-type Reserved = { reservationId: string; status: "PENDING" };
+/**
+ * The trigger's own words for an example listing, matched on the one phrase
+ * every demo refusal carries. The message is honest about the fact and the
+ * one step that works; it never says "coming soon".
+ */
+const EXAMPLE_RESTAURANT_MESSAGE =
+  "This restaurant is an example of what the catalogue will hold, so no table can be held here. Open a real restaurant from search and ask there.";
+
+const REFUSED_MESSAGE = "That table could not be held. Check the date and time, and try again.";
+
+/** `conversationId` is optional so the existing form typing (reservation id and status) still fits. */
+type Reserved = { reservationId: string; status: "PENDING"; conversationId?: string | null };
+
+/** "Fri 18 Sep, 19:30", on the Lagos clock, for the words in the thread. */
+function lagosLabel(iso: string): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "the time you chose";
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Lagos",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(at);
+}
+
+function party(size: number): string {
+  return size === 1 ? "1 guest" : `${size} guests`;
+}
+
+/**
+ * Open (or find) the reservation's thread and say something in it. Best
+ * effort by design: the reservation already stands and the other side has
+ * already been notified, so a thread that will not open is reported as null,
+ * never as a failure of the thing the person actually did.
+ *
+ * SEAM (BC): a reservation with `business_id` set resolves no host today,
+ * because `startContextThread` in lib/messages/actions.ts walks
+ * reservations through listings(agent_id, agents(user_id)) only; the b3
+ * migration's party check already admits businesses.owner_id. Once BC's
+ * `startContextThread` resolves the host through `businesses.owner_id` for
+ * the business spine, this function needs no change: the same call opens
+ * the thread for both kinds and the stamp below lands on either row.
+ */
+async function speakInThread(
+  reservationId: string,
+  body: string,
+): Promise<string | null> {
+  try {
+    const thread = await startReservationThread({ reservationId });
+    if (!thread.ok) return null;
+    await sendMessage({ conversationId: thread.data.conversationId, body });
+    return thread.data.conversationId;
+  } catch {
+    return null;
+  }
+}
 
 export async function reserveTable(
   _previous: ActionResult<Reserved> | null,
@@ -55,6 +127,18 @@ export async function reserveTable(
   const problem = whyNotBookable(at);
   if (problem) return fail(problem, { time: problem });
 
+  const db = reservationsClient(session.supabase);
+
+  // The example check, before the limiter and before the write, so a person
+  // reading the catalogue is told the truth without spending a token or a
+  // round trip. The trigger refuses again underneath; this is the sentence.
+  const { data: listing } = await db
+    .from("listings")
+    .select("id, is_demo")
+    .eq("id", parsed.data.listingId)
+    .maybeSingle();
+  if (listing?.is_demo) return fail(EXAMPLE_RESTAURANT_MESSAGE);
+
   const verdict = await consume({
     bucket: "reservation_create",
     subject: subjectForUser(session.user.id),
@@ -66,7 +150,7 @@ export async function reserveTable(
   }
 
   const note = parsed.data.note?.trim();
-  const { data, error } = await session.supabase
+  const { data, error } = await db
     .from("reservations")
     .insert({
       listing_id: parsed.data.listingId,
@@ -84,19 +168,35 @@ export async function reserveTable(
     /* Told apart only where the difference changes what a person should do.
        23505 is the partial unique index, which means this exact table at this
        exact time is already theirs, and the useful answer is "you already have
-       it" rather than "something went wrong". Everything else, including every
-       message the trigger raises, is one honest refusal: the detail belongs in
-       a log, not in front of a guest. */
-    const code = (error as { code?: string } | null)?.code;
+       it" rather than "something went wrong". 23514 carrying the trigger's
+       "example" sentence is the demo refusal, said honestly. Everything else,
+       including every other message the trigger raises, is one honest
+       refusal: the detail belongs in a log, not in front of a guest. */
+    const code = (error as { code?: string; message?: string } | null)?.code;
+    const message = (error as { message?: string } | null)?.message ?? "";
     if (code === "23505") {
       return fail("You already have a table booked there at that time.");
     }
-    return fail("That table could not be held. Check the date and time, and try again.");
+    if (code === "23514" && /example/i.test(message)) {
+      return fail(EXAMPLE_RESTAURANT_MESSAGE);
+    }
+    return fail(REFUSED_MESSAGE);
+  }
+
+  // The thread: opened, spoken into, and stamped on the row. Each step is a
+  // courtesy the reservation does not depend on.
+  const opening =
+    `Table for ${party(parsed.data.partySize)} on ${lagosLabel(at.toISOString())}, please.` +
+    (note && note.length > 0 ? ` ${note}` : "");
+  const conversationId = await speakInThread(data.id, opening);
+  if (conversationId) {
+    await db.from("reservations").update({ conversation_id: conversationId }).eq("id", data.id);
   }
 
   revalidatePath(`/listing/${parsed.data.listingId}`);
   revalidatePath("/bookings");
-  return ok({ reservationId: data.id, status: "PENDING" });
+  revalidatePath("/trips");
+  return ok({ reservationId: data.id, status: "PENDING", conversationId });
 }
 
 /**
@@ -106,7 +206,7 @@ export async function reserveTable(
  * decision by a person, and the only place that knows a person just decided is
  * the call they made. The status guard is in the update itself: only a PENDING
  * row moves, so two taps on Accept write once and a decision cannot be reversed
- * by a stale tab.
+ * by a stale tab. The answer is then said in the thread, in the venue's voice.
  */
 export async function respondToReservation(
   _previous: ActionResult<null> | null,
@@ -120,7 +220,8 @@ export async function respondToReservation(
   const parsed = validate(respondSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { data, error } = await session.supabase
+  const db = reservationsClient(session.supabase);
+  const { data, error } = await db
     .from("reservations")
     .update({
       status: parsed.data.decision,
@@ -128,7 +229,7 @@ export async function respondToReservation(
     })
     .eq("id", parsed.data.reservationId)
     .eq("status", "PENDING")
-    .select("id")
+    .select("id, party_size, reserved_for, conversation_id")
     .maybeSingle();
 
   if (error) {
@@ -142,8 +243,20 @@ export async function respondToReservation(
     return fail("That reservation has already been answered.");
   }
 
+  const when = lagosLabel(data.reserved_for);
+  const body =
+    parsed.data.decision === "CONFIRMED"
+      ? `Confirmed: a table for ${party(data.party_size)} on ${when}. We look forward to seeing you.`
+      : `Sorry, we cannot seat ${party(data.party_size)} on ${when}. Message us here if another time would work.`;
+  const conversationId = await speakInThread(data.id, body);
+  if (conversationId && !data.conversation_id) {
+    await db.from("reservations").update({ conversation_id: conversationId }).eq("id", data.id);
+  }
+
   revalidatePath("/agent/bookings");
+  revalidatePath("/host/reservations");
   revalidatePath("/bookings");
+  revalidatePath("/trips");
   return ok(null);
 }
 
@@ -154,7 +267,8 @@ export async function respondToReservation(
  * they are scoped by different policies and mean different things. This one is
  * allowed at any status: somebody who cannot come should be able to say so
  * whether or not the restaurant has answered yet, and a confirmed table nobody
- * releases is a table the restaurant loses.
+ * releases is a table the restaurant loses. The word goes into the thread too,
+ * so the venue reads it where they read everything else about this table.
  */
 export async function cancelReservation(
   _previous: ActionResult<null> | null,
@@ -172,18 +286,29 @@ export async function cancelReservation(
     );
   }
 
-  const { data, error } = await session.supabase
+  const db = reservationsClient(session.supabase);
+  const cancelled: ReservationStatus = "CANCELLED";
+  const { data, error } = await db
     .from("reservations")
-    .update({ status: "CANCELLED", responded_at: new Date().toISOString() })
+    .update({ status: cancelled, responded_at: new Date().toISOString() })
     .eq("id", id)
     .eq("guest_id", session.user.id)
-    .neq("status", "CANCELLED")
-    .select("id")
+    .neq("status", cancelled)
+    .select("id, party_size, reserved_for, conversation_id")
     .maybeSingle();
 
   if (error) return fail("That could not be cancelled. Try again.");
   if (!data) return fail("That reservation is already cancelled.");
 
+  const conversationId = await speakInThread(
+    data.id,
+    `I need to cancel the table for ${party(data.party_size)} on ${lagosLabel(data.reserved_for)}. Sorry for the trouble.`,
+  );
+  if (conversationId && !data.conversation_id) {
+    await db.from("reservations").update({ conversation_id: conversationId }).eq("id", data.id);
+  }
+
   revalidatePath("/bookings");
+  revalidatePath("/trips");
   return ok(null);
 }

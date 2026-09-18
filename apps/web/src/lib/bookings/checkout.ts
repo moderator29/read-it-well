@@ -50,7 +50,8 @@ import {
 import { chargeSavedCard, type ChargeSavedCardOutcome } from "../payments/charge-saved-card";
 import { bookingReference, isBookingReference } from "../payments/references";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
-import { subjectForUser } from "../security/rate-limit";
+import { bookingPaymentSubject } from "./payment-subject";
+import { guardMoney } from "../security/money-limits";
 import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
 import { announceConfirmedStay } from "./arrival";
 import { cancelInputSchema } from "./schema";
@@ -157,6 +158,30 @@ function describePaystackError(e: unknown, fallback: string): string {
   }
   return fallback;
 }
+
+/* --------------------------------------------------- one guard per booking */
+
+/**
+ * ONE SCOPE AND ONE SUBJECT FOR EVERY WAY OF PAYING A BOOKING.
+ *
+ * Each path used to open its own scope under the payer's user id with a key
+ * the browser minted per attempt. That guards a double tap, and nothing else:
+ * two attempts on one booking that carried two keys (a wallet tap and a card
+ * tap racing, or two tabs) both passed `guardPayable`, because neither had
+ * settled yet when the other read, and both charged. The lead's B0 audit of
+ * 73e284e named it.
+ *
+ * The subject is now the BOOKING, and the three paths share one scope, so the
+ * idempotency claim is "somebody is paying this booking right now" whichever
+ * button was pressed. A second concurrent attempt on the same booking answers
+ * IN_FLIGHT rather than charging; a retry after a genuine failure still runs,
+ * because a failed answer is released rather than recorded (`shouldRecord`
+ * stays `result.ok`) and a different key claims afresh once the first has let
+ * go. The key is still the client's, so an honest replay of the same tap still
+ * replays the first answer rather than paying twice.
+ */
+const BOOKING_PAYMENT_SCOPE = "booking.payment";
+
 
 /* --------------------------------------------------------- shared guards */
 
@@ -322,11 +347,14 @@ export async function startCardCheckout(
   const guarded = await guardPayable(input.bookingId);
   if (!guarded.ok) return guarded.result;
 
+  const limit = await guardMoney("startCardCheckout", guarded.userId);
+  if (!limit.allowed) return fail(limit.message);
+
   const run = await withIdempotency<ActionResult<CardCheckout | null>>(
     {
-      scope: "booking.card_checkout",
+      scope: BOOKING_PAYMENT_SCOPE,
       key: input.idempotencyKey ?? null,
-      subject: subjectForUser(guarded.userId),
+      subject: bookingPaymentSubject(guarded.booking.id),
       shouldRecord: (result) => result.ok,
     },
     () => startCardCheckoutWork(guarded.booking, guarded.userId, guarded.email),
@@ -418,11 +446,14 @@ export async function payWithSavedCard(
   const guarded = await guardPayable(input.bookingId);
   if (!guarded.ok) return guarded.result;
 
+  const limit = await guardMoney("payWithSavedCard", guarded.userId);
+  if (!limit.allowed) return fail(limit.message);
+
   const run = await withIdempotency<ActionResult<ChargeSavedCardOutcome>>(
     {
-      scope: "booking.saved_card_payment",
+      scope: BOOKING_PAYMENT_SCOPE,
       key: input.idempotencyKey ?? null,
-      subject: subjectForUser(guarded.userId),
+      subject: bookingPaymentSubject(guarded.booking.id),
       shouldRecord: (result) => result.ok,
     },
     () => payWithSavedCardWork(guarded.booking, input.methodId),
@@ -563,11 +594,14 @@ export async function payWithWallet(
   const guarded = await guardPayable(input.bookingId);
   if (!guarded.ok) return guarded.result;
 
+  const limit = await guardMoney("payWithWallet", guarded.userId);
+  if (!limit.allowed) return fail(limit.message);
+
   const run = await withIdempotency<ActionResult<WalletPayment | null>>(
     {
-      scope: "booking.wallet_payment",
+      scope: BOOKING_PAYMENT_SCOPE,
       key: input.idempotencyKey ?? null,
-      subject: subjectForUser(guarded.userId),
+      subject: bookingPaymentSubject(guarded.booking.id),
       shouldRecord: (result) => result.ok,
     },
     () =>

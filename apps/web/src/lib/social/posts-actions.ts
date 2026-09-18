@@ -17,6 +17,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -39,6 +40,7 @@ import {
   reportProfileSchema,
 } from "./posts-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
+import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
 
 function paced(seconds: number): string {
   return `You have done that a few times already. Try again ${retryIn(seconds)}.`;
@@ -694,4 +696,73 @@ export async function unmuteTarget(input: {
   if (error) return fail(POST_FAILURE.down);
   revalidatePath("/around");
   return ok(null);
+}
+
+/* ------------------------------------------------------------ feed paging */
+
+/**
+ * Which timeline a page continues. The same three reads `/around` makes,
+ * named so the client cannot ask for one the page did not start with.
+ */
+export type FeedMode =
+  | { kind: "everywhere" }
+  | { kind: "joined" }
+  | { kind: "area"; areaId: string };
+
+const feedModeSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("everywhere") }),
+  z.object({ kind: z.literal("joined") }),
+  z.object({ kind: z.literal("area"), areaId: z.uuid() }),
+]);
+
+/** A created_at cursor is an ISO instant; anything else is not a cursor. */
+const feedCursorSchema = z.string().datetime({ offset: true });
+
+const ENDED: FeedPage = { posts: [], cursor: null, ended: true };
+
+/**
+ * The next page of a timeline, for a load-more control or a sentinel.
+ *
+ * The server cursors have existed since the feed was built and nothing ever
+ * consumed them, so every timeline rendered its first twenty posts and
+ * stopped. This is the missing half: hand back the `cursor` a page returned
+ * and get the rows before it, through the same three reads the page made,
+ * under the same RLS-bound client. A cursor that is not an instant, or a
+ * mode that names a place that is not a uuid, is refused as one honest
+ * sentence rather than passed to Postgres.
+ *
+ * "joined" resolves the viewer from the session rather than from the client,
+ * so nobody can page through another person's places: signed out it is an
+ * ended page, which is exactly what `getJoinedFeed` answers for a stranger.
+ */
+export async function loadMoreFeed(
+  cursor: string | null,
+  mode: FeedMode = { kind: "everywhere" },
+): Promise<ActionResult<FeedPage>> {
+  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
+
+  const parsedMode = validate(feedModeSchema, mode);
+  if (!parsedMode.ok) return fail("That timeline could not be identified. Reload the feed.");
+
+  // No cursor means the feed said it had ended, and the honest answer to
+  // "more?" is the same ended page, never a second copy of the first one.
+  if (cursor === null || cursor === undefined || cursor.length === 0) return ok(ENDED);
+  const parsedCursor = feedCursorSchema.safeParse(cursor);
+  if (!parsedCursor.success) return fail("That page could not be found. Reload the feed.");
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+
+  const at = parsedCursor.data;
+  const chosen = parsedMode.data;
+  try {
+    if (chosen.kind === "area") return ok(await getAreaFeed(chosen.areaId, at));
+    if (chosen.kind === "joined") {
+      if (session.state !== "signed-in") return ok(ENDED);
+      return ok(await getJoinedFeed(session.user.id, at));
+    }
+    return ok(await getEverywhereFeed(at));
+  } catch {
+    return fail("The next page did not load. Pull to refresh and try again.");
+  }
 }

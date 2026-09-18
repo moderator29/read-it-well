@@ -21,6 +21,22 @@ import type { Database } from "../supabase/database.types";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * The one column this module reads off `rent_payments`, typed by hand until
+ * the lead regenerates `database.types.ts` for the b3 migration. The same
+ * device `lib/rent/db.ts` uses; the cast is confined to this alias.
+ */
+type RentChargeReader = {
+  from: (table: "rent_payments") => {
+    select: (columns: "booking_id") => {
+      in: (
+        column: "booking_id",
+        values: string[],
+      ) => PromiseLike<{ data: { booking_id: string | null }[] | null; error: unknown }>;
+    };
+  };
+};
+
+/**
  * Dates a guest cannot pick for this listing: booked or blocked nights from
  * today forward. Empty when Supabase is not configured, when the id is a
  * catalogue entry rather than a platform listing, or on any read failure.
@@ -133,9 +149,34 @@ export async function getMyBookings(
    */
   if (error || !rows) return "unavailable";
 
+  /*
+   * A RENT CHARGE IS NOT A STAY, AND IT RIDES THE SAME TABLE.
+   *
+   * The rent payment step (lib/rent, the b3 migration) opens its charge as a
+   * one-night bookings row priced at the move-in total, because every money
+   * rail hangs off a booking. Rendered here it would read as a stay of one
+   * night at the price of a year, which is the yearly-rent-with-nightly-
+   * pickers error in a list. The `rent_payments` row is what says a booking
+   * is a tenancy charge, read under the tenant's own RLS, and those bookings
+   * are left out of the stays groups; the rent surfaces read them through
+   * `getMyRentCharges` instead.
+   */
+  const rentBookingIds = new Set<string>();
+  if (rows.length > 0) {
+    const { data: charges } = await (session.supabase as unknown as RentChargeReader)
+      .from("rent_payments")
+      .select("booking_id")
+      .in(
+        "booking_id",
+        rows.map((r) => r.id),
+      );
+    for (const c of charges ?? []) if (c.booking_id) rentBookingIds.add(c.booking_id);
+  }
+  const stays = rows.filter((r) => !rentBookingIds.has(r.id));
+
   // Display data: platform listing rows first, seed catalogue as the
   // fallback for titles and photography, a plain placeholder after that.
-  const listingIds = [...new Set(rows.map((r) => r.listing_id))];
+  const listingIds = [...new Set(stays.map((r) => r.listing_id))];
   const dbListings = new Map<string, { title: string; area: string | null; city: string | null }>();
   if (listingIds.length > 0) {
     const { data: listingRows } = await session.supabase
@@ -155,13 +196,13 @@ export async function getMyBookings(
   // RLS client only ever returns their own reviews, so this cannot leak another
   // guest's writing.
   const reviewedBookingIds = new Set<string>();
-  if (rows.length > 0) {
+  if (stays.length > 0) {
     const { data: reviewRows } = await session.supabase
       .from("reviews")
       .select("booking_id")
       .in(
         "booking_id",
-        rows.map((r) => r.id),
+        stays.map((r) => r.id),
       );
     for (const r of reviewRows ?? []) reviewedBookingIds.add(r.booking_id);
   }
@@ -178,14 +219,14 @@ export async function getMyBookings(
    * from people who are entitled to it every time the payments table blinked.
    */
   const paidBookingIds = new Set<string>();
-  if (rows.length > 0) {
+  if (stays.length > 0) {
     const { data: paidRows } = await session.supabase
       .from("transactions")
       .select("booking_id")
       .eq("status", "SUCCESSFUL")
       .in(
         "booking_id",
-        rows.map((r) => r.id),
+        stays.map((r) => r.id),
       );
     for (const r of paidRows ?? []) {
       if (r.booking_id) paidBookingIds.add(r.booking_id);
@@ -195,7 +236,7 @@ export async function getMyBookings(
   const today = lagosToday();
   const groups: BookingGroups = { upcoming: [], completed: [], cancelled: [] };
 
-  for (const row of rows) {
+  for (const row of stays) {
     const db = dbListings.get(row.listing_id);
     const seed = seedListings.get(row.listing_id);
     const view: BookingView = {
