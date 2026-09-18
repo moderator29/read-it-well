@@ -955,6 +955,68 @@
   --nf-glass-fill: rgb(255 255 255 / 0.075);
   --nf-glass-fill-strong: rgb(255 255 255 / 0.11);
 
+  /*
+   * THE RENDERS' CARD IS A PANE OF THE CANVAS WITH LIGHT LET IN, and this is
+   * the fill `.nf-glass--card` in glass.css paints. Build 06, DESIGN_DIRECTION
+   * section 1.2: extend the system deliberately where a render's geometry
+   * disagrees with a token.
+   *
+   * The governing renders stand every card on the night ground as a slab of
+   * slightly lighter navy. Not white at seven per cent, which is what the
+   * base glass fill is and which reads as frost; the canvas itself, a step
+   * lighter and a step bluer, so the surface can be seen before its border
+   * draws it. `.nf-card` mixes the canvas at 88 per cent for the same reason
+   * and stays exactly as it is: that is the calm container for a surface with
+   * no reference. The renders' card is a shade brighter than that pane, so
+   * this is the canvas with the bloom's deep ink mixed in, the blue the
+   * canvas bloom already decays through, at 92 per cent alpha so a little of
+   * the ambient ground still comes through it. Two names because the ink is
+   * a colour and the fill is that colour at an alpha, and a rim, a divider or
+   * a tile inside the card will want the solid one.
+   *
+   * The well is the opposite move: a trough cut INTO the surface for the
+   * composer, the email field, the search box. The renders draw it darker
+   * than the card it sits in, and `--nf-well-fill` already says that. It is
+   * aliased under the glass name so a well and a card are chosen from one
+   * ladder, and so that daylight can answer it in the same place it answers
+   * the card: a trough on paper is an inset grey, never a black hole.
+   */
+  --nf-glass-card-ink: color-mix(in oklab, var(--nf-surface-canvas) 72%, var(--nf-canvas-bloom-deep-ink));
+  --nf-glass-card-fill: color-mix(in oklab, var(--nf-glass-card-ink) 92%, transparent);
+  --nf-glass-well-fill: var(--nf-well-fill);
+  /*
+   * GLASS ON A PHOTOGRAPH, and it was the canvas hand-mixed at 58 and 70 per
+   * cent in eleven places.
+   *
+   * The white fills above are for glass over the canvas: a little white lifts
+   * a panel off a near-black ground. Over a PHOTOGRAPH they are wrong in both
+   * directions, because the plate behind the auth card, the welcome world
+   * cards, the home tiles and the assistant bubbles is bright and busy, and a
+   * white wash over it reads as fog while a plain white-at-alpha cannot hold
+   * the ink on it. What every one of those surfaces reached for instead was
+   * the CANVAS at an alpha, which is the chrome bar's argument from glass.css
+   * applied to a card: tint with the ground's own colour and the photograph
+   * softens INTO the product rather than away from it. `.nf-auth__card`
+   * wrote it at 58 per cent, the home tiles at 70, and the number was chosen
+   * eleven times with nothing to agree with.
+   *
+   * Two rungs, because the two numbers are two jobs and not a drift. 58 is a
+   * card you are meant to see the plate through: the sign-in card, where the
+   * aurora is the whole reason the screen is beautiful. 70 is a tile that has
+   * to carry a figure or a title over a photograph and needs the plate held
+   * back further to do it. `.nf-glass--plate` in glass.css pairs the first
+   * with the lit brand rim the renders draw on it; `--plate-strong` takes the
+   * second.
+   *
+   * Daylight answers with white rather than with the paper canvas, and higher:
+   * the photograph is the same photograph at noon and dark ink on it needs a
+   * near-opaque white pane, the same reasoning the daylight glass fills above
+   * follow. 80 and 90 sit a step above the base daylight fill at 86 and
+   * under the strong one at 95, which is where a card over a picture belongs.
+   */
+  --nf-glass-fill-plate: color-mix(in oklab, var(--nf-surface-canvas) 58%, transparent);
+  --nf-glass-fill-plate-strong: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+
   /* Blur ladder, matched to the fill ladder. */
   --nf-glass-blur-thin: 14px;
   --nf-glass-blur: 26px;
@@ -1394,6 +1456,63 @@
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
+  /* ---------------------------------------------------------------------
+   * THE RENDERS' LIGHT, AS THREE RECIPES. Build 06, DESIGN_DIRECTION 1.2.
+   *
+   * The governing renders draw the same three things on every floating
+   * surface, and until now each was assembled by hand at the call site from
+   * the ladders above: a bright highlight along the top edge, a soft brand
+   * bloom in the space behind the card, and on the two heaviest objects, the
+   * dock and the turning flip pane, an edge that itself glows. The ladders
+   * say how blue and how strong. They cannot say what a lit card IS, so the
+   * dock, the flip pane, the auth card and the coin each wrote their own
+   * stack of four or five shadow layers and no two agreed.
+   *
+   * These are SHADOW LISTS, like `--nf-glow-brand` above, not colours, because
+   * a highlight is an inset shadow and a bloom is an outer one, and a recipe
+   * that drops whole into `box-shadow` is the only kind a call site will
+   * reach for. The one new colour is the rim's ink, kept separate so a
+   * gradient rim (a highlight that fades in from the corners, which the
+   * renders also draw) can read the same value.
+   *
+   * THE RIM IS BLUE-WHITE, NOT WHITE. The glass rims above are white at 14 to
+   * 34 per cent, correct for a neutral material and the reason our cards read
+   * as frost where the renders' read as lit glass. The renders' top edge is
+   * white with the glow ink in it, near opaque, so it reads as brand light
+   * coming off the material rather than as a pencil line. 78 per cent white,
+   * the rest the glow ink, at 90 per cent alpha: brighter than the strongest
+   * glass rim by a distance, and still a 1px line.
+   *
+   * THE BLOOM IS TWO LAYERS AND THE OUTER ONE IS THE QUIET ONE. A single blue
+   * drop shadow under a card reads as a coloured shadow, which is a mistake
+   * somebody made in a paint program. Light spilling from behind an object
+   * is a tight halo at rung 3 close in and a wide, faint field at rung 1
+   * further out, and the second is what stops the first looking painted on.
+   * Both are negative-spread so they never show past the top edge, where the
+   * rim is doing the work.
+   *
+   * THE STRONG EDGE IS FOR TWO OBJECTS AND SHOULD STAY THAT WAY. The dock and
+   * the flip pane are the only surfaces the renders draw with a glowing
+   * outline, and they are the two objects a screen is built around. A card
+   * carrying this is a card shouting, which the glow scale's own note on rung
+   * 4 already forbids. It is the lit rim, a full-strength brand ring, a rung 3
+   * halo and a rung 2 field. There is no new colour under it: the ring is
+   * `--nf-brand-edge-strong` and the light is the ladder's.
+   *
+   * Every rung crosses into daylight through the ink under it and the light
+   * block answers all four, because a bloom is light thrown into the space
+   * around an object and on paper that is a smudge; see there.
+   * ------------------------------------------------------------------ */
+  --nf-rim-lit-ink: color-mix(in oklab, color-mix(in oklab, white 78%, var(--nf-glow-ink)) 90%, transparent);
+  --nf-rim-lit: inset 0 1px 0 var(--nf-rim-lit-ink);
+  --nf-bloom-card:
+    0 8px 28px -10px var(--nf-glow-3),
+    0 18px 56px -12px var(--nf-glow-1);
+  --nf-glow-edge-strong:
+    inset 0 1px 0 var(--nf-rim-lit-ink),
+    0 0 0 1px var(--nf-brand-edge-strong),
+    0 0 18px var(--nf-glow-3),
+    0 0 56px -8px var(--nf-glow-2);
   /*
    * THE STRIDES. The three rungs a lit edge is actually made of.
    *
@@ -1515,6 +1634,40 @@
    * design system's own six have been moved.
    * ------------------------------------------------------------------ */
   --nf-radius-control: var(--nf-radius-md);
+
+  /* ---------------------------------------------------------------------
+   * THE CONTROL LAW, AMENDED. BUILD_06_LEDGER section 8, on the founder's
+   * identical-to-images ruling.
+   *
+   * The note above records the owner asking for rectangles across the
+   * platform, and `--nf-radius-control` at 14px is that decision. It stands.
+   * What has changed is that the reference renders are now the law of the
+   * frontend, and the renders draw some controls as capsules: the city chips
+   * under the landing headline, the filter chips, the three bloom lozenges
+   * that fan out of the feed's + button, the For You / Following segment
+   * toggle, the Get Started button on welcome, the search pill itself. They
+   * also draw rectangles, in the same screens: the cards, the fields, the
+   * dock, the wallet's action tiles, the feature tiles. The renders are not
+   * undecided about it; the two shapes carry two jobs. A capsule is a thing
+   * you flick between or pick from a row of peers. A rectangle is a thing
+   * that holds content or takes input.
+   *
+   * So the amendment is a SECOND CONTROL ROLE rather than a change to the
+   * first, and it derives from the rung the way `--nf-radius-control` does:
+   * `--nf-radius-pill` is the primitive and this says what it is for. The
+   * rule for choosing: where a governing image shows a capsule, the control
+   * reads this; where it shows a rectangle, or where no image governs the
+   * surface, the control reads `--nf-radius-control`, because a surface with
+   * no reference inherits the register and the register's default control is
+   * still the rectangle. Nothing that already reads `--nf-radius-pill`
+   * directly (the range track, the loading bar, the dock's travelling pill,
+   * the dock's circle) needs to move: those are not controls choosing a
+   * shape, they are shapes.
+   *
+   * It is not themed and it is not 999px written twice. If the pill rung
+   * ever changes, both names follow it.
+   * ------------------------------------------------------------------ */
+  --nf-radius-control-pill: var(--nf-radius-pill);
 
   /* ---------------------------------------------------------------------
    * BORDER WIDTH. Two values, and neither of them is a half pixel.
@@ -2656,6 +2809,20 @@
   --nf-glass-fill-thin: rgb(255 255 255 / 0.72);
   --nf-glass-fill: rgb(255 255 255 / 0.86);
   --nf-glass-fill-strong: rgb(255 255 255 / 0.95);
+  /* The renders' card and well, on paper. A pane of the canvas is a white
+     card here, exactly as `.nf-card` resolves, and the ink it is mixed from
+     is the same white so nothing tints. The well is the inset grey every
+     other recessed thing on paper is made of; a black trough cut into a
+     white card reads as a hole punched in it, which is the note beside
+     `--nf-well-fill` in this block. */
+  --nf-glass-card-ink: var(--nf-surface-primary);
+  --nf-glass-card-fill: var(--nf-surface-primary);
+  --nf-glass-well-fill: var(--nf-surface-inset);
+  /* Glass on a photograph, on paper: white, and nearly opaque, because the
+     picture is the same picture at noon and the ink on the pane is dark. See
+     the night block. */
+  --nf-glass-fill-plate: color-mix(in oklab, var(--nf-surface-primary) 80%, transparent);
+  --nf-glass-fill-plate-strong: color-mix(in oklab, var(--nf-surface-primary) 90%, transparent);
   --nf-glass-border: rgb(18 21 26 / 0.10);
   --nf-glass-rim-thin: rgb(255 255 255 / 0.7);
   --nf-glass-rim: rgb(255 255 255 / 0.9);
@@ -2888,6 +3055,32 @@
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
+  /*
+   * THE THREE RECIPES ON PAPER. See the night block for what they are.
+   *
+   * The rim goes to pure white, which on a white card is nothing at all, and
+   * that is correct rather than a gap: the elevation ladder's own measurement
+   * above shows every daylight rim at 0.00000, because there is no such thing
+   * as a highlight on paper. The token still resolves so a rule that reads it
+   * survives the theme; it simply paints an edge the eye cannot find.
+   *
+   * The bloom and the strong edge follow `--nf-glow-brand` above: a bloom is
+   * light in the space behind an object and on white paper that is a blue
+   * smudge, so daylight keeps the RING, which carries the meaning, and swaps
+   * the field for a short brand-tinted shadow with the ladder's own hairline
+   * under it. The dock and the flip pane keep their outline at the same
+   * strength as at night, because an outline that fades on paper loses the
+   * object.
+   */
+  --nf-rim-lit-ink: #FFFFFF;
+  --nf-rim-lit: inset 0 1px 0 var(--nf-rim-lit-ink);
+  --nf-bloom-card:
+    0 1px 2px rgb(18 21 26 / 0.05),
+    0 8px 22px -8px var(--nf-glow-2);
+  --nf-glow-edge-strong:
+    inset 0 1px 0 var(--nf-rim-lit-ink),
+    0 0 0 1px var(--nf-brand-edge-strong),
+    0 6px 18px -6px var(--nf-glow-3);
   /*
    * Daylight runs quieter still. The same alpha that reads as a lit edge on
    * navy reads as a drawn border on white, because there is nothing for it to

@@ -1,0 +1,628 @@
+/*
+  system: the system pages (the error boundaries, not found, offline, the
+  root wait) and the in-app legal reader. Owned by G4 per
+  docs/BUILD_06_LEDGER.md section 2.0. Light-theme rules for this family live
+  here too, under :root[data-theme="light"], so the partial is the whole
+  surface.
+
+  THE GOVERNING IMAGE IS THE SIGN-IN RENDER, docs/design/references/55A56F21.
+  An error, a missing page and a dead network are the three moments the
+  product has nothing to show but itself, which is exactly what that render
+  is: the lockup over the aurora plate, one glass card with a sharp electric
+  rim standing on a lit podium, the podium's reflection in the floor. So the
+  three share one anatomy, `.nf-system`, and differ only in the card's
+  contents. The card and the podium follow `.nf-auth__card` and
+  `.nf-auth__podium` deliberately: the auth family and the system family are
+  the same object seen at two moments, and they must read as one.
+
+  Nothing here is a raw colour. Every value is a token or a mix of tokens;
+  the few rem literals are object sizes (the tile, the wordmark, the podium),
+  never spacing.
+*/
+@layer components {
+  /* ----------------------------------------------------------- the stage */
+  .nf-system {
+    position: relative;
+    display: flex;
+    min-height: 100dvh;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: var(--nf-space-2xl) var(--nf-space-md);
+    padding-top: max(var(--nf-space-2xl), env(safe-area-inset-top, 0px));
+    padding-bottom: max(var(--nf-space-xl), env(safe-area-inset-bottom, 0px));
+    text-align: center;
+    color: var(--nf-content-primary);
+  }
+  /*
+   * Inside the app shell the header and the dock stay put, so the moment
+   * fills the content area between them rather than the viewport. The shell
+   * wraps its children in the gutter; the negative inline margin lets the
+   * plate bleed to the screen edge the way the root version does. The header
+   * and dock heights come from their own tokens, so a change there moves
+   * this with it.
+   */
+  .nf-system--inset {
+    min-height: calc(100dvh - var(--nf-header-height-sm) - var(--nf-space-5xl) - var(--nf-space-2xl));
+    margin-inline: calc(-1 * var(--nf-pad-shell));
+    width: auto;
+    padding-top: var(--nf-space-xl);
+    padding-bottom: var(--nf-space-xl);
+  }
+
+  /*
+   * The aurora plate: the reference photograph behind the whole screen. It
+   * sits UNDER the CSS aurora so that when the file cannot load (which on the
+   * offline screen is the normal case on a first visit) the page is still the
+   * designed aurora rather than a hole, and the scrim keeps the middle of the
+   * frame dark enough for the card to read at any exposure.
+   */
+  .nf-system__plate {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: var(--nf-surface-canvas);
+  }
+  .nf-system__plate img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .nf-system__plate::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 55% at 50% 58%, var(--nf-overlay-media-soft), transparent 70%),
+      linear-gradient(180deg, var(--nf-overlay-media-soft) 0%, transparent 30%, transparent 70%, var(--nf-overlay-media) 100%);
+  }
+
+  .nf-system__stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    max-width: 24rem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ---------------------------------------------------------------- brand */
+  .nf-system__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    border-radius: var(--nf-radius-lg);
+  }
+  .nf-system__brand:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  /* The tile carries its own lit edge; the halo underneath is what lifts it
+     off the plate the way the render does. A step smaller than the door's,
+     because a system page is a moment, not the entrance. */
+  .nf-system__icon {
+    display: block;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: var(--nf-radius-squircle);
+    filter: drop-shadow(0 0 22px var(--nf-glow-3));
+  }
+  .nf-system__icon--sm {
+    width: 4rem;
+    height: 4rem;
+  }
+  .nf-system__wordmark {
+    display: block;
+    width: 9.5rem;
+    height: auto;
+    margin-top: var(--nf-space-md);
+    filter: drop-shadow(0 0 14px var(--nf-glow-2));
+  }
+
+  /* ----------------------------------------------------------------- card */
+  /*
+   * The glass card with the sharp electric rim, to the render and to
+   * `.nf-auth__card`: canvas at 58 per cent so the aurora shows through the
+   * blur, one crisp brand line for the edge, the bloom outside it at one glow
+   * rung so the line stays a line, and the specular sweep across the top.
+   */
+  .nf-system__card {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    margin-top: var(--nf-space-xl);
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-radius-2xl);
+    border: var(--nf-border-width) solid var(--nf-glow-brand-rim);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 58%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-brand-rim),
+      inset 0 0 0 1px var(--nf-glow-1),
+      inset 0 0 40px var(--nf-glow-wash),
+      0 0 0 1px var(--nf-glow-1),
+      0 0 40px var(--nf-glow-2),
+      var(--nf-elev-3);
+    text-align: center;
+  }
+  .nf-system__card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--nf-glass-specular);
+    pointer-events: none;
+  }
+
+  /* The big numeral on the missing page: the display face in the brand
+     gradient, tabular so 404 sits as one object. */
+  .nf-system__code {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-display);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: var(--nf-tracking-display);
+    font-variant-numeric: tabular-nums;
+    background: var(--nf-gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px var(--nf-glow-2));
+  }
+  .nf-system__overline {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-system__title {
+    margin-top: var(--nf-space-xs);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-system__body {
+    margin-top: var(--nf-space-sm);
+    margin-inline: auto;
+    max-width: var(--nf-measure-lede);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  /* The reference: the id support needs to find the matching server log.
+     Numeric, small, never the raw error. */
+  .nf-system__ref {
+    margin-top: var(--nf-space-md);
+    font-size: var(--nf-text-caption);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-muted);
+    word-break: break-all;
+  }
+  .nf-system__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-lg);
+  }
+  /* The live line under the actions on the offline screen. */
+  .nf-system__status {
+    margin-top: var(--nf-space-md);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * A field with a glyph inside it, to the render's email well: the well is
+   * the ordinary `.nf-field` so focus, error and daylight all come from the
+   * one control; only the inset and the glyph are added here.
+   */
+  .nf-system__search {
+    position: relative;
+    margin-top: var(--nf-space-lg);
+    text-align: left;
+  }
+  .nf-system__search > .nf-field {
+    padding-left: var(--nf-pad-field-affordance);
+  }
+  .nf-system__search-glyph {
+    position: absolute;
+    left: var(--nf-space-md);
+    top: 50%;
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-muted);
+    pointer-events: none;
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-system__search:focus-within .nf-system__search-glyph {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* --------------------------------------------------------------- podium */
+  .nf-system__podium {
+    position: relative;
+    width: 86%;
+    height: 1.5rem;
+    margin-top: var(--nf-space-sm);
+    pointer-events: none;
+  }
+  .nf-system__podium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: radial-gradient(ellipse at 50% 50%, var(--nf-glow-3) 0%, var(--nf-glow-1) 46%, transparent 72%);
+    box-shadow:
+      inset 0 0 0 3px var(--nf-glow-1),
+      inset 0 1px 0 var(--nf-glow-3),
+      0 0 28px var(--nf-glow-2);
+  }
+  .nf-system__podium::after {
+    content: "";
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    top: 40%;
+    height: 6rem;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(ellipse at 50% 0%, var(--nf-glow-2), transparent 68%);
+    filter: blur(6px);
+  }
+
+  /* The quiet line beneath the podium (what to check on the offline screen). */
+  .nf-system__aside {
+    margin-top: var(--nf-space-xl);
+    max-width: var(--nf-measure-lede);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* The stage settles rather than snapping in; reduced motion shows it whole. */
+  .nf-system__brand,
+  .nf-system__card,
+  .nf-system__podium,
+  .nf-system__aside {
+    animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  .nf-system__card,
+  .nf-system__podium {
+    animation-delay: 90ms;
+  }
+  .nf-system__aside {
+    animation-delay: 180ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-system__brand,
+    .nf-system__card,
+    .nf-system__podium,
+    .nf-system__aside {
+      animation: none;
+    }
+    .nf-system__search-glyph {
+      transition: none;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .nf-system {
+      padding-block: var(--nf-space-3xl);
+    }
+    .nf-system__icon {
+      width: 6.5rem;
+      height: 6.5rem;
+    }
+    .nf-system__icon--sm {
+      width: 4.5rem;
+      height: 4.5rem;
+    }
+    .nf-system__wordmark {
+      width: 11rem;
+    }
+    .nf-system__card {
+      padding: var(--nf-space-xl);
+    }
+    .nf-system__actions {
+      flex-direction: row;
+      justify-content: center;
+    }
+    .nf-system__actions > * {
+      flex: 1 1 0;
+    }
+  }
+
+  /* ----------------------------------------------------------- the wait */
+  /*
+   * The root loading state: the landing hero's shape drawn in the register.
+   * The one ambient is the living canvas the root layout already mounts, so
+   * nothing here paints a second one; the shimmer on the slabs is component
+   * motion and stops under reduced motion with the rest of `.nf-skeleton`.
+   */
+  .nf-wait {
+    position: relative;
+    z-index: 1;
+  }
+  .nf-wait__mark {
+    display: block;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--nf-radius-squircle);
+    filter: drop-shadow(0 0 16px var(--nf-glow-2));
+  }
+  .nf-wait__pill {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xl);
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-glass-border);
+    background: var(--nf-glass-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-elev-1);
+  }
+  .nf-wait__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-2xl);
+  }
+  @media (min-width: 1024px) {
+    .nf-wait__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--nf-space-md);
+    }
+  }
+
+  /* --------------------------------------------------------- legal reader */
+  /*
+   * A legal document read from inside the product: the page header with the
+   * back flow, the last-updated line, a glass table of contents, then the
+   * sections as measured prose on the canvas with hairlines between them.
+   * The prose is not boxed: a card around twelve sections of terms reads as
+   * a form to be filled in, and this is a text to be read.
+   */
+  .nf-legal__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-legal__meta time {
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-legal__toc {
+    position: relative;
+    isolation: isolate;
+    margin-top: var(--nf-space-lg);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-glass-border);
+    background: var(--nf-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-elev-1);
+  }
+  .nf-legal__toc::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--nf-glass-specular);
+    pointer-events: none;
+  }
+  .nf-legal__toc-title {
+    margin: 0 var(--nf-space-xs);
+  }
+  .nf-legal__toc ol {
+    list-style: none;
+    margin: var(--nf-space-xs) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  @media (min-width: 768px) {
+    .nf-legal__toc ol {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--nf-space-sm);
+    }
+  }
+  /* 44px rows, per the tap law. The number is set in the brand ink so the
+     list reads as a designed index rather than a browser default. */
+  .nf-legal__toc a {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-md);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-legal__toc a:active {
+    background: var(--nf-interactive-active);
+  }
+  @media (hover: hover) {
+    .nf-legal__toc a:hover {
+      background: var(--nf-interactive-hover);
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-legal__toc a:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-legal__num {
+    flex: none;
+    min-width: 1.75rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-legal__body {
+    margin-top: var(--nf-space-xl);
+  }
+  .nf-legal__section {
+    /* Anchored from the contents; clears the sticky header when jumped to. */
+    scroll-margin-top: calc(var(--nf-header-height-sm) + var(--nf-space-md));
+  }
+  .nf-legal__section + .nf-legal__section {
+    margin-top: var(--nf-space-xl);
+    padding-top: var(--nf-space-xl);
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-legal__heading {
+    display: flex;
+    align-items: baseline;
+    gap: var(--nf-space-sm);
+  }
+  .nf-legal__heading .nf-legal__num {
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-legal__prose {
+    margin-top: var(--nf-space-sm);
+    max-width: var(--nf-measure-body);
+    font-size: var(--nf-text-body);
+    line-height: 1.65;
+    color: var(--nf-content-secondary);
+  }
+  .nf-legal__prose > * + * {
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-legal__prose strong {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-legal__prose ul {
+    list-style: disc;
+    padding-left: var(--nf-space-lg);
+  }
+  .nf-legal__prose li + li {
+    margin-top: var(--nf-space-2xs);
+  }
+  .nf-legal__prose li::marker {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-legal__prose a {
+    color: var(--nf-content-link);
+    font-weight: 600;
+    text-underline-offset: 4px;
+  }
+  .nf-legal__prose a:hover {
+    text-decoration: underline;
+  }
+  .nf-legal__top {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    margin-top: var(--nf-space-md);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+    text-decoration: none;
+  }
+  .nf-legal__top:hover {
+    color: var(--nf-content-secondary);
+  }
+  .nf-legal__foot {
+    margin-top: var(--nf-space-2xl);
+    padding-top: var(--nf-space-lg);
+    border-top: 1px solid var(--nf-divider);
+    text-align: center;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-legal__foot a {
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-underline-offset: 4px;
+  }
+  .nf-legal__foot a:hover {
+    text-decoration: underline;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-legal__toc a {
+      transition: none;
+    }
+  }
+
+  /* ---------------------------------------------------------- daylight */
+  /*
+   * The paper twin, designed rather than derived: the photograph and its
+   * scrim go, the page is the paper canvas, the card is flat white with a
+   * hairline and a soft shadow, and the podium is a quiet grey lens. The
+   * tile and wordmark are glass renders and keep a soft halo, as every glass
+   * object does on paper.
+   */
+  :root[data-theme="light"] .nf-system__plate {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-system__card {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-system__card::before {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-system__podium::before {
+    border-color: var(--nf-border-default);
+    background: radial-gradient(ellipse at 50% 50%, var(--nf-wash-4), transparent 70%);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-system__podium::after {
+    background: linear-gradient(180deg, var(--nf-wash-3), transparent 90%);
+  }
+  :root[data-theme="light"] .nf-system__icon,
+  :root[data-theme="light"] .nf-system__wordmark,
+  :root[data-theme="light"] .nf-wait__mark {
+    filter: drop-shadow(0 4px 14px var(--nf-glow-2));
+  }
+  :root[data-theme="light"] .nf-system__code {
+    filter: none;
+  }
+  :root[data-theme="light"] .nf-wait__pill,
+  :root[data-theme="light"] .nf-legal__toc {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-legal__toc::before {
+    display: none;
+  }
+}

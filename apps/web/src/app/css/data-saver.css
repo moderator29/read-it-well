@@ -66,6 +66,17 @@
 :root[data-save-data="on"] .nf-grain {
   display: none;
 }
+/*
+ * The section glow goes with the other ambient light. It is one static
+ * gradient and costs almost nothing, but the reader has asked for less, and
+ * a headline reads the same without a bloom behind it. `.nf-aurora--plate` is
+ * already covered by `.nf-aurora` above: it is a modifier, not a second
+ * element, and the photograph it carries is the heaviest thing this rule set
+ * exists to stop.
+ */
+:root[data-save-data="on"] .nf-section-glow::before {
+  display: none;
+}
 /* `.nf-icon-field` was on this list and the class is gone; see ambient.css. A
    save-data rule naming a class that does not exist is the quietest kind of
    dead code there is, because the only way it could ever be noticed is by

@@ -512,4 +512,133 @@
     -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, var(--nf-mask-opaque) 25%, transparent 80%);
     opacity: 0.35;
   }
+
+  /*
+   * THE AURORA WITH ITS PHOTOGRAPH. Founder ruling 6 in DESIGN_DIRECTION
+   * (photography ships now) and G3's second work in BUILD_06_LEDGER 2.0.
+   *
+   * The sign-in render, `55A56F21` in the references folder, stands the auth
+   * card in front of a blue aurora that is a PLATE, a photograph of light, and
+   * not two blurred circles. The lead filed it as `/brand/photos/bg-blue-wave`
+   * in three files: the 1920 JPEG at 25KB, a 640 twin at 7KB and a WebP at
+   * 13KB. The auth layout and the welcome stage already mount the JPEG
+   * through next/image under the CSS aurora. This is the same plate for the
+   * surfaces that cannot mount an image element: a section of an app page, a
+   * stage, a sheet, anywhere a component asks for the atmosphere by class
+   * rather than by markup.
+   *
+   * IT IS A MODIFIER OF `.nf-aurora`, so it keeps the two blooms, it keeps
+   * `display: none` in daylight (L-110: the paper theme's light is in its
+   * ground and every ambient layer is off there), it keeps the save-data rule
+   * that removes the whole element, and it keeps the rule above that an
+   * aurora inside a card does not draw. One element gains a photograph and
+   * nothing new has to be remembered anywhere.
+   *
+   * THE MASK IS THE ONE THE CANVAS ALREADY USES. The mirrored artwork span in
+   * `.nf-ambient` dissolves through `--nf-mask-opaque`, `--nf-mask-mid` at 32
+   * per cent and transparent at 62, and those three stops are the platform's
+   * one answer to "how does a plate dissolve into the canvas". The direction
+   * is turned round, because this wave crowns a section rather than holding
+   * its foot, and the stops are the same so the two plates dissolve at the
+   * same rate wherever they meet.
+   *
+   * DIMMED TO THE REGISTER IN THE STACK, NOT WITH `opacity`. Opacity on the
+   * element would dim the two blooms with the plate, and the blooms are
+   * already at their tuned value. A veil of the canvas colour at 45 per cent
+   * over the image in the same background stack dims only the photograph,
+   * and dims it into the platform's own ground colour rather than towards
+   * black, which is what keeps it in the register instead of reading as a
+   * darkened JPEG. The veil is a local custom property so the number is
+   * written once.
+   *
+   * THREE FILES, CHOSEN BY THE BROWSER. `image-set()` offers the WebP by type
+   * and the JPEG as its fallback, and the plain `url()` declaration above it
+   * is for a browser with neither `image-set()` nor WebP. Below 640 the 640
+   * twin is served: it is a blurred field of light, and at a phone's two
+   * times scale a 640 plate is softer than the screen can show, which on THIS
+   * image is invisible and on the wire is 18KB saved per section. This is the
+   * sizing and compression next/image would do, done by hand once, because a
+   * CSS background cannot pass through the image optimiser; the stop list's
+   * "never ship an image asset without compression and sizing" is met by the
+   * files, and the loader is the thing it cannot have.
+   *
+   * `prefers-reduced-data` removes the photograph and leaves the CSS blooms,
+   * so the section keeps its atmosphere at zero bytes; save-data, which is
+   * the header rather than the preference, already removes the element in
+   * data-saver.css. And there is nothing here for `prefers-reduced-motion` to
+   * switch off: the aurora has not moved since its pulse came out, this adds
+   * nothing that moves, and the one ambient animation a viewport is allowed
+   * stays with the canvas bloom. Stated so nobody comes looking for the rule.
+   */
+  .nf-aurora--plate {
+    --nf-plate-veil: color-mix(in oklab, var(--nf-surface-canvas) 45%, transparent);
+    background-image:
+      linear-gradient(var(--nf-plate-veil), var(--nf-plate-veil)),
+      url("/brand/photos/bg-blue-wave.jpg");
+    background-image:
+      linear-gradient(var(--nf-plate-veil), var(--nf-plate-veil)),
+      image-set(
+        url("/brand/photos/bg-blue-wave.webp") type("image/webp"),
+        url("/brand/photos/bg-blue-wave.jpg") type("image/jpeg")
+      );
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    -webkit-mask-image: linear-gradient(to bottom, var(--nf-mask-opaque) 0%, var(--nf-mask-mid) 32%, transparent 62%);
+    mask-image: linear-gradient(to bottom, var(--nf-mask-opaque) 0%, var(--nf-mask-mid) 32%, transparent 62%);
+  }
+  @media (max-width: 640px) {
+    .nf-aurora--plate {
+      background-image:
+        linear-gradient(var(--nf-plate-veil), var(--nf-plate-veil)),
+        url("/brand/photos/bg-blue-wave-640.jpg");
+    }
+  }
+  @media (prefers-reduced-data: reduce) {
+    .nf-aurora--plate {
+      background-image: none;
+    }
+  }
+
+  /*
+   * THE SECTION GLOW. The renders put a soft brand bloom behind a headline
+   * (the wordmark on sign-in, "Everything you need in one platform", the
+   * wallet's balance) and behind nothing else in the section: light that
+   * says "start reading here". It was being reached for with the aurora,
+   * which is the page's light and is sized for a viewport, and the note above
+   * on an aurora inside a card is the account of what that cost.
+   *
+   * This is the section's light: one radial at rung 2, centred high, the
+   * width of the section and a little over half its height, on a
+   * pseudo-element under the content. No blur filter, because a radial
+   * gradient is already soft and a `filter` forces a repaint of the layer on
+   * every scroll frame; nothing sized in rem, because a section glow the size
+   * of a viewport is the aurora again.
+   *
+   * ONE PER HEADLINE AND NONE OF IT MOVES. It is static, so it spends none of
+   * the one-ambient-animation-per-viewport budget, and a page may carry
+   * several the way a page carries several headlines. The discipline is what
+   * it sits behind: a HEADLINE, never a card, a list or a button, because a
+   * bloom behind an object is that object's bloom and `--nf-bloom-card`
+   * already provides it. In daylight it is the wash rung, in light.css, for
+   * the reason the glow ladder's daylight note gives; save-data removes it
+   * with the rest of the ambient layer, in data-saver.css.
+   *
+   * `isolation: isolate` plus `z-index: -1` on the pseudo is the same move
+   * `.nf-glass::before` makes: the light sits above the section's own
+   * background and below every child, including a bare text node.
+   */
+  .nf-section-glow {
+    position: relative;
+    isolation: isolate;
+  }
+  .nf-section-glow::before {
+    content: "";
+    position: absolute;
+    inset: -20% 0 auto 0;
+    height: 70%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(ellipse 60% 55% at 50% 30%, var(--nf-glow-2) 0%, transparent 70%);
+  }
 }

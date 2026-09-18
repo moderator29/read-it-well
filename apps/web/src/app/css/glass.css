@@ -225,6 +225,136 @@
   }
 
   /*
+   * THE RENDERS' THREE GLASS OBJECTS. Build 06, DESIGN_DIRECTION section 1.2:
+   * where the render's geometry disagrees with a token, extend the system
+   * deliberately rather than hardcoding.
+   *
+   * The ladder above is a material ladder: thin, base, strong, each a fill, a
+   * blur, a rim and a rung, and it answers "how much glass". The reference
+   * renders ask a different question, which is "which object", and they draw
+   * three of them on nearly every screen: the CARD (a post, the booking card
+   * in a thread, the wallet's balance, the landing page's feature tiles), the
+   * TILE (the small square behind an icon: the wallet's Send, Receive, Top Up
+   * and Swap, the quick actions, the feature grid's glyph plates) and the WELL
+   * (the composer, the email field, the search box, the location chip's
+   * ground: a trough the reader types into). Each is a fixed composition of
+   * the ladder's parts plus the three recipes in tokens.css, and each was
+   * being assembled by hand at its call sites, differently.
+   *
+   * They are MODIFIERS OF `.nf-glass`, not new classes, so they inherit the
+   * four ingredients and the `::before` specular, the no-backdrop-filter
+   * fallback below and the daylight answer in light.css, and so a reviewer
+   * reading `nf-glass nf-glass--card` knows it is glass before knowing which
+   * glass. They set a radius, which the ladder's modifiers do not, because
+   * the renders' objects have a shape as well as a material and a card that
+   * had to be told its corner at every call site would be told it wrongly
+   * somewhere. A utility on the element still wins, as everywhere in this
+   * layer.
+   *
+   * WHAT THE CARD IS, read off `GOVERNING-feed-plus-bloom.png` and
+   * `GOVERNING-chat-booking-card.png` with the two open side by side:
+   *
+   *   fill     a pane of the canvas with light let in, `--nf-glass-card-fill`,
+   *            under a faint fall from the top so the pane reads as lit from
+   *            above rather than printed
+   *   rim      `--nf-rim-lit`, the blue-white top edge, on every card
+   *   border   `--nf-brand-edge`, a uniform electric hairline. Uniform on
+   *            purpose: the renders' cards are outlined evenly, and the
+   *            strides belong to `.nf-card`, which stays exactly as it is.
+   *            The two classes are two answers and both stay: `.nf-card` is
+   *            the calm container for a surface with no reference; this is
+   *            the lit one for a surface that has one
+   *   bloom    `--nf-bloom-card` behind it, which is what the renders mean by
+   *            floating
+   *   blur     the base rung, inherited. A card in a thread sits over a
+   *            photograph and a card in a feed over the canvas bloom, and the
+   *            renders' cards are drawn over both
+   *   radius   `--nf-radius-xl`, the corner `.nf-card` settled on
+   *
+   * The tile is the card at a smaller scale, with the thin rung's blur and
+   * shadow and no bloom of its own: a grid of eight tiles each throwing a
+   * bloom is a grid of eight lights, and the renders' tiles sit inside a card
+   * that is already lit. The well inverts the recipe: no blur, because a
+   * trough has nothing behind it; the well gradient for a fill; the shade
+   * ladder for an inner shadow; the soft brand edge, which is the renders'
+   * resting field before the focus ring arrives; and no specular, because a
+   * sheen across a trough is light coming off a surface that is not there.
+   *
+   * Prefix first, standard property last, as the long note above `.nf-glass`
+   * requires.
+   */
+  .nf-glass--card {
+    background:
+      linear-gradient(180deg, var(--nf-wash-2) 0%, transparent 46%),
+      var(--nf-glass-card-fill);
+    border-color: var(--nf-brand-edge);
+    border-radius: var(--nf-radius-xl);
+    box-shadow:
+      var(--nf-rim-lit),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-bloom-card);
+  }
+  .nf-glass--tile {
+    background:
+      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
+      var(--nf-glass-card-fill);
+    border-color: var(--nf-brand-edge-soft);
+    border-radius: var(--nf-radius-lg);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      var(--nf-rim-lit),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-thin);
+  }
+  .nf-glass--well {
+    background: var(--nf-glass-well-fill);
+    border-color: var(--nf-brand-edge-soft);
+    border-radius: var(--nf-radius-control);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow:
+      inset 0 1px 0 var(--nf-wash-1),
+      inset 0 2px 6px var(--nf-shade-2);
+  }
+  .nf-glass--well::before {
+    display: none;
+  }
+  /*
+   * GLASS ON A PHOTOGRAPH: the auth card's recipe, once. The sign-in render
+   * identifies its card by one crisp electric line with a bloom outside it,
+   * and `.nf-auth__card` wrote that as the canvas at 58 per cent, the strong
+   * blur, a `--nf-glow-brand-rim` border and top rim, a rung 1 ring inside
+   * and out, a wash inside and a rung 2 bloom outside; the welcome cards, the
+   * home tiles and the assistant bubbles then repeated most of it by hand.
+   * This is that stack as a modifier, with the fill on the two plate rungs
+   * from tokens.css and without an elevation rung, because how far a surface
+   * floats is the surface's own decision and the auth card adds rung 3
+   * itself. `--plate-strong` is the 70 per cent fill for a tile that has to
+   * carry a figure over a picture.
+   *
+   * The strong blur is restated for the reason the chrome bar restates it: a
+   * photograph is the one backdrop with real detail in it, and the base rung
+   * leaves the picture legible through the card, which is not glass, it is a
+   * window. Prefix first, standard property last.
+   */
+  .nf-glass--plate {
+    background: var(--nf-glass-fill-plate);
+    border-color: var(--nf-glow-brand-rim);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-brand-rim),
+      inset 0 0 0 1px var(--nf-glow-1),
+      inset 0 0 40px var(--nf-glow-wash),
+      0 0 0 1px var(--nf-glow-1),
+      0 0 40px var(--nf-glow-2);
+  }
+  .nf-glass--plate-strong {
+    background: var(--nf-glass-fill-plate-strong);
+  }
+
+  /*
    * Sticky chrome. The reference standard is "content visibly scrolls under the
    * nav behind a blur and a gradient scrim". The scrim is a separate strip
    * below the bar so the blur has a soft exit instead of a hard seam, and the
@@ -346,6 +476,12 @@
     .nf-glass--chrome,
     .nf-site-bar {
       background: var(--nf-surface-canvas);
+    }
+    /* The well is a trough and stays one without a blur: the solid surface
+       the rule above gives the other modifiers would turn it into a raised
+       panel, which is the opposite of what it is. */
+    .nf-glass--well {
+      background: var(--nf-glass-well-fill);
     }
     .nf-glass::before,
     .nf-site-bar::before {
