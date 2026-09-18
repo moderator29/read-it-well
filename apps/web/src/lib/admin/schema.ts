@@ -78,3 +78,48 @@ export const toggleFeatureFlagSchema = z.object({
   key: z.string().trim().min(1).max(64),
   enabled: z.boolean(),
 });
+
+/* ------------------------------------------------------------ B7 additions */
+
+/**
+ * What an operator may do to a restaurant reservation.
+ *
+ * `confirm` and `decline` are the host's two answers, taken on the host's
+ * behalf when a request has sat unanswered. `cancel` is the admin's own: a
+ * confirmed table called off by the platform, which is why it carries a
+ * reason the guest reads word for word.
+ */
+export const reservationDecisions = ["confirm", "decline", "cancel"] as const;
+export type ReservationDecision = (typeof reservationDecisions)[number];
+
+export const decideReservationSchema = z.object({
+  reservationId: uuid,
+  decision: z.enum(reservationDecisions),
+  /*
+   * Required for the two that take a table away, optional for confirming.
+   * Enforced again in the action, because a schema cannot see the decision
+   * while it validates the reason.
+   */
+  reason: z
+    .string()
+    .trim()
+    .max(500, "Keep the reason under 500 characters.")
+    .optional()
+    .or(z.literal("")),
+});
+
+/**
+ * Taking a saved card or a bank account off somebody's list for them.
+ *
+ * The reason is the whole record: the row is soft-deleted exactly as it would
+ * be if the person had done it themselves, so the audit line is the only
+ * thing that says a member of staff did it and why.
+ */
+export const removeSavedMethodSchema = z.object({
+  id: uuid,
+  reason: z
+    .string()
+    .trim()
+    .min(10, "Say who asked and how, in a sentence. This is the record.")
+    .max(500, "Keep the reason under 500 characters."),
+});

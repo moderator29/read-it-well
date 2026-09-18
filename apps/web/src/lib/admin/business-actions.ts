@@ -37,6 +37,7 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { createAdminClient } from "../supabase/admin";
 import type { Database } from "../supabase/database.types";
 import { writeAudit, type AuditDetail } from "./audit";
+import { BUSINESS_LADDER, BUSINESS_TIER_NAME, asBusinessTier } from "./business-ladder";
 import { BUSINESS_RUNGS } from "./business-queries";
 import { adminRefusal, requireAdmin } from "./guard";
 
@@ -379,20 +380,29 @@ export async function recordBusinessRung(input: {
     .maybeSingle();
   const now = after?.verification_tier ?? before;
 
-  // Only a change of level is worth interrupting somebody for. A rung that
-  // leaves them where they were is console housekeeping, not news.
+  /*
+   * THE OWNER HEARS ABOUT EVERY DECISION, not only a change of level. A
+   * passed rung that leaves the tier where it was (a registration check
+   * recorded before identity) is still a decision about their business that
+   * somebody took, and a failed one always carries the reviewer's words. The
+   * tier name is the ladder's own, so the notification and the status page
+   * say the same thing.
+   */
+  const label = BUSINESS_LADDER[rung].label;
+  const tierName = BUSINESS_TIER_NAME[asBusinessTier(now)];
   const notice =
-    now === before
-      ? null
-      : now > before
-        ? {
-            title: "Your verification level has gone up",
-            body: `The ${rung.replace("_", " ")} check passed. Guests can see how far your business has been checked.`,
-          }
-        : {
-            title: "Your verification level has changed",
-            body: `The ${rung.replace("_", " ")} check did not pass. ${note ?? ""}`.trim(),
-          };
+    status === "passed"
+      ? {
+          title: now > before ? "Your verification level has gone up" : `${label} check passed`,
+          body:
+            now > before
+              ? `The ${label.toLowerCase()} check passed. Your business is now ${tierName.toLowerCase()}, and guests can see how far it has been checked.`
+              : `The ${label.toLowerCase()} check passed. Your level stays ${tierName.toLowerCase()} until the checks below it pass too.`,
+        }
+      : {
+          title: `${label} check did not pass`,
+          body: `${note ?? ""} Your level is now ${tierName.toLowerCase()}. Answer the note from your host page and we will look again.`.trim(),
+        };
 
   await announce(access.user.id, business as BusinessRow, notice, {
     action: "business.verification_check",
@@ -409,4 +419,34 @@ export async function recordBusinessRung(input: {
 
   refreshConsole();
   return ok(null);
+}
+
+/*
+ * One action per rung, on the generic recorder, so a desk button and a test
+ * can name the rung they mean without passing a string the schema has to
+ * check. Each is the research's rung (sections 3.3 and 3.4): identity from
+ * the document on file, registration from the free CAC public search (or the
+ * address, for an individual host), payout from the resolved bank name
+ * beside the identity or business name, on site from a visit or a video call.
+ */
+type RungDecision = { businessId: string; status: "passed" | "failed"; note?: string };
+
+/** Rung 1: the representative's government ID, seen. */
+export async function recordIdentityCheck(input: RungDecision): Promise<ActionResult<null>> {
+  return recordBusinessRung({ ...input, rung: "identity" });
+}
+
+/** Rung 2: the CAC record matches, or for an individual host the address does. */
+export async function recordRegistrationCheck(input: RungDecision): Promise<ActionResult<null>> {
+  return recordBusinessRung({ ...input, rung: "registration" });
+}
+
+/** Rung 3: the resolved bank account name matches the person or the business. */
+export async function recordPayoutCheck(input: RungDecision): Promise<ActionResult<null>> {
+  return recordBusinessRung({ ...input, rung: "payout" });
+}
+
+/** Rung 4: somebody from Vallo has stood in the property or seen it live. */
+export async function recordOnSiteCheck(input: RungDecision): Promise<ActionResult<null>> {
+  return recordBusinessRung({ ...input, rung: "on_site" });
 }

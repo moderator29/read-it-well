@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
 import { requireAdmin } from "./guard";
 import {
@@ -598,4 +599,174 @@ async function displayNames(
     if (row.display_name) out.set(row.id, row.display_name);
   }
   return out;
+}
+
+/* ---------------------------------------------------------- refund console */
+
+/**
+ * Where a refund's money actually is. Exported for its test.
+ *
+ * `booking_refunds` records the decision; the money is a wallet entry the
+ * decision created, and the entry's own status is the only honest answer to
+ * "has the guest got it". A refund of nothing (a cancellation inside the
+ * schedule's last tier) is its own state rather than "failed", because
+ * nothing was owed.
+ */
+export type RefundState = "credited" | "not_settled" | "failed" | "not_credited" | "nothing_owed";
+
+export function refundState(
+  refundMinor: number,
+  entryStatus: Database["public"]["Enums"]["wallet_entry_status"] | null,
+): RefundState {
+  if (refundMinor <= 0) return "nothing_owed";
+  if (entryStatus === null) return "not_credited";
+  if (entryStatus === "COMPLETED") return "credited";
+  if (entryStatus === "PENDING") return "not_settled";
+  return "failed";
+}
+
+export type RefundView = {
+  id: string;
+  bookingId: string;
+  guestId: string;
+  guestName: string | null;
+  listingTitle: string | null;
+  paidMinor: number;
+  refundMinor: number;
+  retainedMinor: number;
+  reason: string;
+  note: string | null;
+  reference: string | null;
+  state: RefundState;
+  decidedByName: string | null;
+  createdAt: string;
+};
+
+export type RefundConsole = {
+  rows: RefundView[];
+  full: boolean;
+  /** Over every refund on the platform up to `SUMMARY_LIMIT`, never the page. */
+  totals: { refundedMinor: number; count: number; notCredited: number };
+};
+
+/**
+ * Every refund decided on the console, newest first, with where its money is.
+ *
+ * Reads go through the service role after the guard, as the stays board
+ * does, because `booking_refunds` publishes rows to the guest and the
+ * decider and an operator asking "what has gone back this week" needs all of
+ * them. The same `q` the rest of the money desk takes applies: a guest's
+ * name, a booking id, or the refund's wallet reference.
+ */
+export async function getRefundConsole(filter?: AdminQueueFilter): Promise<AdminRead<RefundConsole>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return UNAVAILABLE;
+
+  let admin: SupabaseClient<Database>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return UNAVAILABLE;
+  }
+
+  const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
+  const looksLikeId = UUID_RE.test(term);
+  const page = pageRange(filter);
+
+  try {
+    const everything = await admin
+      .from("booking_refunds")
+      .select("refund_minor, wallet_entry_id")
+      .limit(SUMMARY_LIMIT);
+    if (everything.error) return UNAVAILABLE;
+    const all = everything.data ?? [];
+    const totalsBase = {
+      refundedMinor: all.reduce((sum, r) => sum + r.refund_minor, 0),
+      count: all.length,
+      notCredited: all.filter((r) => r.refund_minor > 0 && r.wallet_entry_id === null).length,
+    };
+
+    let guestIds: string[] | null = null;
+    if (term.length > 0 && !looksLikeId) {
+      const { data: people, error } = await admin
+        .from("profiles")
+        .select("id")
+        .ilike("display_name", `%${term}%`)
+        .limit(60);
+      if (error) return UNAVAILABLE;
+      guestIds = (people ?? []).map((row) => row.id);
+    }
+
+    let select = admin
+      .from("booking_refunds")
+      .select(
+        "id, booking_id, guest_id, paid_minor, refund_minor, retained_minor, reason, note, wallet_reference, wallet_entry_id, decided_by, created_at",
+      );
+    if (term.length > 0) {
+      const clauses: string[] = [];
+      if (looksLikeId) {
+        clauses.push(`booking_id.eq.${term}`, `id.eq.${term}`);
+      } else {
+        clauses.push(`wallet_reference.ilike.%${term}%`);
+        const ids = (guestIds ?? []).slice(0, LEDGER_WALLET_FANOUT);
+        if (ids.length > 0) clauses.push(`guest_id.in.(${ids.join(",")})`);
+      }
+      select = select.or(clauses.join(","));
+    }
+    if (filter?.from) select = select.gte("created_at", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("created_at", lagosDayEnd(filter.to));
+
+    const { data, error } = await select
+      .order("created_at", { ascending: false })
+      .range(page.from, page.to);
+    if (error) return UNAVAILABLE;
+
+    const { rows, full } = takePage(data ?? []);
+
+    const entryIds = rows.map((r) => r.wallet_entry_id).filter((id): id is string => Boolean(id));
+    const bookingIds = [...new Set(rows.map((r) => r.booking_id))];
+    const [entriesRes, bookingsRes, names] = await Promise.all([
+      entryIds.length > 0
+        ? admin.from("wallet_entries").select("id, status").in("id", entryIds)
+        : Promise.resolve({ data: [] as { id: string; status: Database["public"]["Enums"]["wallet_entry_status"] }[] }),
+      bookingIds.length > 0
+        ? admin.from("bookings").select("id, listing_id, listings ( title )").in("id", bookingIds)
+        : Promise.resolve({ data: [] as { id: string; listing_id: string; listings: { title: string } | null }[] }),
+      displayNames(
+        admin,
+        rows.flatMap((r) => [r.guest_id, r.decided_by ?? ""]),
+      ),
+    ]);
+
+    const entryStatus = new Map<string, Database["public"]["Enums"]["wallet_entry_status"]>();
+    for (const entry of entriesRes.data ?? []) entryStatus.set(entry.id, entry.status);
+    const titles = new Map<string, string | null>();
+    for (const booking of bookingsRes.data ?? []) {
+      titles.set(booking.id, booking.listings?.title ?? null);
+    }
+
+    const views: RefundView[] = rows.map((r) => ({
+      id: r.id,
+      bookingId: r.booking_id,
+      guestId: r.guest_id,
+      guestName: names.get(r.guest_id) ?? null,
+      listingTitle: titles.get(r.booking_id) ?? null,
+      paidMinor: r.paid_minor,
+      refundMinor: r.refund_minor,
+      retainedMinor: r.retained_minor,
+      reason: r.reason,
+      note: r.note,
+      reference: r.wallet_reference,
+      state: refundState(
+        r.refund_minor,
+        r.wallet_entry_id ? (entryStatus.get(r.wallet_entry_id) ?? null) : null,
+      ),
+      decidedByName: r.decided_by ? (names.get(r.decided_by) ?? null) : null,
+      createdAt: r.created_at,
+    }));
+
+    return { state: "ok", data: { rows: views, full, totals: totalsBase } };
+  } catch {
+    return UNAVAILABLE;
+  }
 }

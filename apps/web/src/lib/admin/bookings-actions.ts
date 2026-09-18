@@ -48,7 +48,13 @@ import {
   type CancellationReason,
 } from "../trust/cancellation";
 import { writeAudit } from "./audit";
+import {
+  RESERVATION_ALREADY_ANSWERED,
+  reservationTransition,
+  type ReservationStatus,
+} from "./bookings-queries";
 import { adminRefusal, requireAdmin } from "./guard";
+import { decideReservationSchema, type ReservationDecision } from "./schema";
 
 const SERVICE_DOWN =
   "The console could not reach the platform data just now. Nothing was cancelled and no money moved. Please try again.";
@@ -327,4 +333,145 @@ export async function previewCancellation(input: {
     refundMinor: outcome.refundMinor,
     retainedMinor: outcome.retainedMinor,
   });
+}
+
+/* --------------------------------------------------------- reservations */
+
+const RESERVATION_GONE =
+  "That reservation is no longer there. Refresh the list to see the current state.";
+
+/** What the guest reads. Written from the decision, not picked from a list. */
+function reservationNotice(
+  decision: ReservationDecision,
+  placeName: string,
+  reason: string | null,
+): { title: string; body: string } {
+  if (decision === "confirm") {
+    return {
+      title: `Your table at ${placeName} is confirmed`,
+      body: "A member of the Vallo team confirmed it on the restaurant's behalf. Your booking has the time and the party size.",
+    };
+  }
+  if (decision === "decline") {
+    return {
+      title: `${placeName} could not take your table`,
+      body: `A member of the Vallo team answered on the restaurant's behalf.${reason ? ` They said: ${reason}` : ""} Nothing was charged.`,
+    };
+  }
+  return {
+    title: `Your table at ${placeName} was cancelled`,
+    body: `A member of the Vallo team cancelled it.${reason ? ` They said: ${reason}` : ""} Nothing was charged. We are sorry for the trouble.`,
+  };
+}
+
+/**
+ * Take a host's decision on their behalf, or call a table off with a reason.
+ *
+ * The write goes through the service role because the reservation policies
+ * are scoped to the guest and the host; the guard in front of it and the
+ * status guard inside the update (only the status we read moves) are what
+ * make that safe. The audit line and the guest's notification follow the
+ * committed write and are best effort, for the same reason every other
+ * decision on the console treats them so.
+ */
+export async function decideReservationAsAdmin(input: {
+  reservationId: string;
+  decision: ReservationDecision;
+  reason?: string;
+}): Promise<ActionResult<{ status: ReservationStatus }>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+
+  const parsed = validate(decideReservationSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { reservationId, decision } = parsed.data;
+  const reason = parsed.data.reason && parsed.data.reason.length > 0 ? parsed.data.reason : null;
+
+  if (decision !== "confirm" && (reason === null || reason.length < 10)) {
+    return fail("Say why, in a sentence. The guest reads it word for word.", {
+      reason: "A table taken away has to carry a reason.",
+    });
+  }
+
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return fail(SERVICE_DOWN);
+  }
+
+  const { data: row, error: readError } = await admin
+    .from("reservations")
+    .select("id, status, guest_id, listing_id, business_id, reserved_for")
+    .eq("id", reservationId)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN);
+  if (!row) return fail(RESERVATION_GONE);
+
+  const transition = reservationTransition(row.status, decision);
+  if ("refusal" in transition) return fail(transition.refusal);
+
+  const { data: moved, error: writeError } = await admin
+    .from("reservations")
+    .update({ status: transition.next, responded_at: new Date().toISOString() })
+    .eq("id", row.id)
+    .eq("status", row.status)
+    .select("id")
+    .maybeSingle();
+  if (writeError) return fail(SERVICE_DOWN);
+  if (!moved) return fail(RESERVATION_ALREADY_ANSWERED);
+
+  // Committed. Nothing below may turn the decision into an error.
+  try {
+    await writeAudit(admin, {
+      actorId: access.user.id,
+      action: `reservation.${decision}`,
+      entityType: "reservation",
+      entityId: row.id,
+      detail: {
+        previous_status: row.status,
+        status: transition.next,
+        reason,
+        reserved_for: row.reserved_for,
+      },
+    });
+
+    let placeName = "the restaurant";
+    if (row.business_id) {
+      const { data: business } = await admin
+        .from("businesses")
+        .select("name")
+        .eq("id", row.business_id)
+        .maybeSingle();
+      if (business?.name) placeName = business.name;
+    } else if (row.listing_id) {
+      const { data: listing } = await admin
+        .from("listings")
+        .select("title")
+        .eq("id", row.listing_id)
+        .maybeSingle();
+      if (listing?.title) placeName = listing.title;
+    }
+
+    if (transition.tells) {
+      const notice = reservationNotice(decision, placeName, reason);
+      await admin.from("notifications").insert({
+        user_id: row.guest_id,
+        kind: "booking",
+        title: notice.title,
+        body: notice.body,
+        href: "/trips",
+      });
+    }
+  } catch {
+    // Best effort: the decision stands and the row already says so.
+  }
+
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin/bookings/reservations");
+  revalidatePath("/trips");
+  revalidatePath("/bookings");
+  revalidatePath("/agent/bookings");
+
+  return ok({ status: transition.next });
 }

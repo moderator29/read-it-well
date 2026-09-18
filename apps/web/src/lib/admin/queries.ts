@@ -1141,3 +1141,209 @@ export async function getFeatureFlags(): Promise<AdminRead<SwitchView[]>> {
     return UNAVAILABLE;
   }
 }
+
+/** ------------------------------------------------------- inventory drift */
+
+/**
+ * Is this alert the nightly drift sweep's?
+ *
+ * `risk_alerts` carries no `kind` column. The alerts writer in `lib/alerts`
+ * (BC's, per the ledger's cron alerting contract) files a job's kind on
+ * `entity_type`, and this is the one place the console reads it back, so if
+ * the writer ever spells it differently this predicate is the whole of the
+ * change. The title fallback covers a row written by hand while the writer
+ * was still landing.
+ */
+export function isInventoryDriftAlert(row: {
+  entityType: string | null;
+  title: string;
+}): boolean {
+  if ((row.entityType ?? "").trim().toLowerCase() === "inventory_drift") return true;
+  return /\binventory\s+drift\b/i.test(row.title);
+}
+
+export type DriftAlerts = {
+  /** Open drift findings, oldest first: the one that has waited longest is first. */
+  open: AlertView[];
+  /** Everything else the sweep has ever filed, newest first, one page. */
+  resolvedCount: number;
+};
+
+const DRIFT_LIMIT = 40;
+
+/**
+ * The inventory drift findings, on their own, above the general queue.
+ *
+ * A drift row is a room-night the calendar and the bookings disagree about,
+ * and it is the one alert kind that gets worse by the hour: every hour it
+ * sits, another guest can book a night that is not there. So the alerts
+ * desk shows them first, with the ids the sweep wrote, whatever the general
+ * queue is narrowed to.
+ */
+export async function getInventoryDriftAlerts(): Promise<AdminRead<DriftAlerts>> {
+  const admin = await adminClient();
+  if (!admin) return UNAVAILABLE;
+
+  try {
+    const [openRes, resolvedRes] = await Promise.all([
+      admin
+        .from("risk_alerts")
+        .select(
+          "id, severity, status, title, description, entity_type, entity_id, created_at, resolved_at, resolved_by",
+        )
+        .eq("status", "open")
+        .or("entity_type.eq.inventory_drift,title.ilike.%inventory drift%")
+        .order("created_at", { ascending: true })
+        .limit(DRIFT_LIMIT),
+      admin
+        .from("risk_alerts")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "resolved")
+        .or("entity_type.eq.inventory_drift,title.ilike.%inventory drift%"),
+    ]);
+    if (openRes.error || resolvedRes.error) return UNAVAILABLE;
+
+    const open: AlertView[] = (openRes.data ?? [])
+      .map((row) => ({
+        id: row.id,
+        severity: row.severity,
+        status: row.status,
+        title: row.title,
+        description: row.description,
+        entityType: row.entity_type,
+        entityId: row.entity_id,
+        createdAt: row.created_at,
+        resolvedAt: row.resolved_at,
+        resolvedByName: null,
+      }))
+      .filter(isInventoryDriftAlert);
+
+    return { state: "ok", data: { open, resolvedCount: resolvedRes.count ?? 0 } };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+/** ----------------------------------------------------------- user lookup */
+
+/** How an operator identified a person. */
+export type SubjectLookupKind = "handle" | "email" | "id";
+
+export type AdminSubject = {
+  userId: string;
+  handle: string | null;
+  displayName: string | null;
+};
+
+export type SubjectLookup =
+  | { state: "found"; by: SubjectLookupKind; subject: AdminSubject }
+  | { state: "none"; by: SubjectLookupKind }
+  /*
+   * Email lookup needs `public.admin_user_id_by_email`, a B7 migration the
+   * lead applies. Until it is applied the console says so rather than
+   * answering "nobody has that address", which would be a lie about a person.
+   */
+  | { state: "email-unavailable" };
+
+/**
+ * What kind of thing the operator typed. Exported for its test.
+ *
+ * An `@` in the middle is an address; a leading `@` or a bare word is a
+ * handle; a uuid is an id. Handles are lower-cased the way the platform
+ * stores them, addresses the way GoTrue matches them.
+ */
+export function classifySubjectTerm(
+  raw: string,
+): { by: SubjectLookupKind; value: string } | null {
+  const term = raw.trim();
+  if (term.length === 0) return null;
+  if (UUID_RE.test(term)) return { by: "id", value: term.toLowerCase() };
+  if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(term)) return { by: "email", value: term.toLowerCase() };
+  const handle = term.replace(/^@/, "").toLowerCase();
+  if (/^[a-z0-9_.-]{2,40}$/.test(handle)) return { by: "handle", value: handle };
+  return null;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type RpcCaller = {
+  rpc: (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => PromiseLike<{ data: unknown; error: { message?: string | null; code?: string | null } | null }>;
+};
+
+/**
+ * A person, from a handle, an email address or an id.
+ *
+ * profiles carries no email by design, so an address resolves through the
+ * SECURITY DEFINER function the B7 migration adds, which re-proves the admin
+ * role at its own boundary and returns an id or nothing. Called with the
+ * operator's own client, so a revoked role is a refusal.
+ */
+export async function findAdminSubject(raw: string): Promise<AdminRead<SubjectLookup | null>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return UNAVAILABLE;
+
+  const classified = classifySubjectTerm(raw);
+  if (!classified) return { state: "ok", data: null };
+  const { by, value } = classified;
+
+  let admin: SupabaseClient<Database>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return UNAVAILABLE;
+  }
+
+  try {
+    let userId: string | null = null;
+
+    if (by === "id") {
+      userId = value;
+    } else if (by === "handle") {
+      const { data, error } = await admin
+        .from("social_profiles")
+        .select("user_id")
+        .eq("handle", value)
+        .maybeSingle();
+      if (error) return UNAVAILABLE;
+      userId = data?.user_id ?? null;
+    } else {
+      const caller = access.supabase as unknown as RpcCaller;
+      const { data, error } = await caller.rpc("admin_user_id_by_email", { p_email: value });
+      /* 42883 is "function does not exist": the migration has not been applied. */
+      if (error) {
+        if (error.code === "42883" || error.code === "PGRST202") {
+          return { state: "ok", data: { state: "email-unavailable" } };
+        }
+        return UNAVAILABLE;
+      }
+      userId = typeof data === "string" && UUID_RE.test(data) ? data : null;
+    }
+
+    if (!userId) return { state: "ok", data: { state: "none", by } };
+
+    const [profileRes, socialRes] = await Promise.all([
+      admin.from("profiles").select("id, display_name").eq("id", userId).maybeSingle(),
+      admin.from("social_profiles").select("handle").eq("user_id", userId).maybeSingle(),
+    ]);
+    if (profileRes.error) return UNAVAILABLE;
+    if (!profileRes.data) return { state: "ok", data: { state: "none", by } };
+
+    return {
+      state: "ok",
+      data: {
+        state: "found",
+        by,
+        subject: {
+          userId,
+          handle: socialRes.data?.handle ?? null,
+          displayName: profileRes.data.display_name,
+        },
+      },
+    };
+  } catch {
+    return UNAVAILABLE;
+  }
+}

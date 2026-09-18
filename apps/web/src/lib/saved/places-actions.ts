@@ -153,3 +153,33 @@ export async function listSavedPlaces(input?: {
     })),
   );
 }
+
+/*
+ * The Stays side, by name.
+ *
+ * A stay card and a restaurant card each carry one heart, and the component
+ * behind it should not have to know the catalogue's kind vocabulary to tap
+ * it. These are `savePlace` and `unsavePlace` with the kind fixed, so a
+ * caller cannot save a restaurant as an accommodation by passing the wrong
+ * string, and each still revalidates /saved through the function it wraps.
+ */
+
+/** Put an accommodation on the shortlist. */
+export async function saveStay(input: { accommodationId: string }): Promise<ActionResult<SavedPlace>> {
+  return savePlace({ entityKind: "accommodation", entityId: input.accommodationId });
+}
+
+/** Take an accommodation off the shortlist. */
+export async function unsaveStay(input: { accommodationId: string }): Promise<ActionResult<null>> {
+  return unsavePlace({ entityKind: "accommodation", entityId: input.accommodationId });
+}
+
+/** Put a restaurant on the shortlist. */
+export async function saveRestaurant(input: { restaurantId: string }): Promise<ActionResult<SavedPlace>> {
+  return savePlace({ entityKind: "restaurant", entityId: input.restaurantId });
+}
+
+/** Take a restaurant off the shortlist. */
+export async function unsaveRestaurant(input: { restaurantId: string }): Promise<ActionResult<null>> {
+  return unsavePlace({ entityKind: "restaurant", entityId: input.restaurantId });
+}

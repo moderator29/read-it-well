@@ -3,8 +3,8 @@
  *
  * `auth.sessions.user_agent` is whatever `User-Agent` header reached GoTrue on
  * the request that last touched the session, and on this platform that is not
- * always a browser. The token refresh runs in `src/middleware.ts`, server side,
- * so until the middleware started forwarding the visitor's own header every row
+ * always a browser. The token refresh runs in `src/proxy.ts`, server side,
+ * so until the proxy started forwarding the visitor's own header every row
  * in the table read `Vercel Edge Functions`. Those rows are real sessions and
  * their timestamps are true; the device column on them is the truth about our
  * server and says nothing about the reader's phone.

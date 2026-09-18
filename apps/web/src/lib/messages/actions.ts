@@ -30,6 +30,12 @@ import { getListingRepository } from "../listings/repository";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { createAdminClient } from "../supabase/admin";
 import {
+  BLOCKED_MESSAGE,
+  BLOCKED_THREAD_MESSAGE,
+  blockedBetween,
+  guardConversation,
+} from "./blocks";
+import {
   attachImageSchema,
   confirmInspectionSchema,
   markThreadReadSchema,
@@ -160,6 +166,12 @@ export async function startConversation(input: {
     );
   }
 
+  // Before the find as well as the create: reopening an old thread across a
+  // block is still writing to somebody who asked not to hear from you.
+  if (await blockedBetween(session.supabase, session.user.id, agentUserId)) {
+    return fail(BLOCKED_THREAD_MESSAGE);
+  }
+
   const { data: existing, error: findError } = await session.supabase
     .from("conversations")
     .select("id")
@@ -286,6 +298,9 @@ async function startContextThread(
   if (guestId === hostUserId) {
     return fail("This is your own booking, so there is nobody else to message.");
   }
+  if (await blockedBetween(session.supabase, session.user.id, session.user.id === guestId ? hostUserId : guestId)) {
+    return fail(BLOCKED_THREAD_MESSAGE);
+  }
 
   const { data: existing, error: findError } = await session.supabase
     .from("conversations")
@@ -357,7 +372,9 @@ export type SentMessage = {
 /**
  * Send a message. One insert under the sender's RLS client; the database
  * triggers bump the conversation, notify the other participant and run the
- * safety pipeline. Nothing else to do here.
+ * safety pipeline. The only thing done first is the block check, in words:
+ * the restrictive insert policy refuses the row anyway, but a person who has
+ * been blocked deserves a sentence rather than "did not send, tap retry".
  */
 export async function sendMessage(input: {
   conversationId: string;
@@ -371,6 +388,13 @@ export async function sendMessage(input: {
 
   const parsed = validate(sendMessageSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const guard = await guardConversation(session.supabase, session.user.id, parsed.data.conversationId);
+  if (!guard.ok) {
+    if (guard.reason === "blocked") return fail(BLOCKED_MESSAGE);
+    if (guard.reason === "not_yours") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+    return fail(SEND_FAILED_MESSAGE);
+  }
 
   const { data: row, error } = await session.supabase
     .from("messages")
@@ -425,6 +449,12 @@ export async function attachImage(input: {
 
   let messageId = data.messageId ?? null;
   if (!messageId) {
+    const guard = await guardConversation(session.supabase, session.user.id, data.conversationId);
+    if (!guard.ok) {
+      if (guard.reason === "blocked") return fail(BLOCKED_MESSAGE);
+      if (guard.reason === "not_yours") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+      return fail("Your photo did not send. Tap retry to send it again.");
+    }
     const { data: message, error: messageError } = await session.supabase
       .from("messages")
       .insert({

@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
-import { requireAdmin, ADMIN_FORBIDDEN_MESSAGE } from "./guard";
+import { createAdminClient } from "../supabase/admin";
+import { writeAudit } from "./audit";
+import { adminRefusal, requireAdmin, ADMIN_FORBIDDEN_MESSAGE } from "./guard";
+import { removeSavedMethodSchema } from "./schema";
 
 /**
  * Sweeping stuck withdrawal holds, which is a money movement and is treated as
@@ -153,4 +156,92 @@ export async function retireExampleListings(input: {
   } catch {
     return fail(SERVICE_DOWN);
   }
+}
+
+/* --------------------------------------- removing a saved method for someone */
+
+/**
+ * Take a saved card or a bank account off a person's list because they asked.
+ *
+ * The same soft delete the owner's own `removePaymentMethod` and
+ * `removeBankAccount` perform, through the service role because the row is
+ * not the operator's and the owner's policy would hide it. What makes that
+ * safe is everything around the write: the guard in front, a reason that
+ * names who asked and how, an audit line carrying the row id and the reason
+ * and nothing about the card or the account, and a notification to the owner
+ * so a removal they did not ask for is a removal they hear about.
+ */
+async function removeSavedMethod(
+  table: "payment_methods" | "bank_accounts",
+  input: { id: string; reason: string },
+): Promise<ActionResult<null>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+
+  const parsed = validate(removeSavedMethodSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return fail(SERVICE_DOWN);
+  }
+
+  const { data: row, error: readError } = await admin
+    .from(table)
+    .select("id, user_id, deleted_at")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN);
+  if (!row) return fail("That entry is no longer there. Search again to see the current list.");
+  if (row.deleted_at) return fail("That entry was already removed. Nothing was changed.");
+
+  const { error: writeError, count } = await admin
+    .from(table)
+    .update({ deleted_at: new Date().toISOString() }, { count: "exact" })
+    .eq("id", row.id)
+    .is("deleted_at", null);
+  if (writeError) return fail(SERVICE_DOWN);
+  if (count === 0) return fail("That entry was already removed. Nothing was changed.");
+
+  const isCard = table === "payment_methods";
+  try {
+    await writeAudit(admin, {
+      actorId: access.user.id,
+      action: isCard ? "payment_method.removed_by_admin" : "bank_account.removed_by_admin",
+      entityType: isCard ? "payment_method" : "bank_account",
+      entityId: row.id,
+      detail: { owner_id: row.user_id, reason: parsed.data.reason },
+    });
+    await admin.from("notifications").insert({
+      user_id: row.user_id,
+      kind: "wallet",
+      title: isCard ? "A saved card was removed" : "A bank account was removed",
+      body: isCard
+        ? "A member of the Vallo team removed a saved card from your account at your request. If you did not ask for this, reply to support straight away."
+        : "A member of the Vallo team removed a bank account from your account at your request. If you did not ask for this, reply to support straight away.",
+      href: "/settings/payments",
+    });
+  } catch {
+    // Best effort. The row is already gone from the person's list.
+  }
+
+  revalidatePath("/admin/payments");
+  revalidatePath("/settings/payments");
+  return ok(null);
+}
+
+export async function removePaymentMethodAsAdmin(input: {
+  id: string;
+  reason: string;
+}): Promise<ActionResult<null>> {
+  return removeSavedMethod("payment_methods", input);
+}
+
+export async function removeBankAccountAsAdmin(input: {
+  id: string;
+  reason: string;
+}): Promise<ActionResult<null>> {
+  return removeSavedMethod("bank_accounts", input);
 }

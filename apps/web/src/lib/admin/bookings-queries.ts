@@ -533,3 +533,273 @@ export async function getBookingDetail(
     return UNAVAILABLE;
   }
 }
+
+/* --------------------------------------------------------- reservations */
+
+/**
+ * Restaurant reservations, for the console's oversight of them.
+ *
+ * `reservations` reuses `booking_status`, so the chips are the same five and
+ * come from the same generated enum. A host answers a request from their own
+ * board; this read exists so an operator can see what is sitting unanswered
+ * and act on the host's behalf, or call off a confirmed table with a reason.
+ */
+
+export type ReservationStatus = BookingStatus;
+
+export type AdminReservationRow = {
+  id: string;
+  status: ReservationStatus;
+  /** The instant the table is for, ISO. Rendered in Lagos by the page. */
+  reservedFor: string;
+  partySize: number;
+  /** What the guest told the restaurant. Null when they said nothing. */
+  note: string | null;
+  guestId: string;
+  guestName: string | null;
+  /** The restaurant, whichever table it was filed against. */
+  placeName: string;
+  listingId: string | null;
+  businessId: string | null;
+  createdAt: string;
+  respondedAt: string | null;
+  /** True once the table's own time has passed, whatever its status. */
+  past: boolean;
+};
+
+export type AdminReservationBoard = {
+  /** PENDING and still ahead: the ones a host has not answered. Soonest first. */
+  requests: AdminReservationRow[];
+  /** CONFIRMED and still ahead. Soonest first. */
+  upcoming: AdminReservationRow[];
+  /** Everything whose moment has passed, and anything cancelled. Newest first. */
+  past: AdminReservationRow[];
+  /** True when the page came back full, so there is another. */
+  full: boolean;
+  /** Open requests across the whole table, never the filtered page. */
+  waiting: number;
+};
+
+export type ReservationBoardFilter = {
+  /** A whole reservation id, or part of a restaurant's name. */
+  q?: string;
+  status?: string;
+  /** Lagos calendar days, inclusive, against `reserved_for`: when the table is FOR. */
+  from?: string;
+  to?: string;
+  offset?: number;
+};
+
+const RESERVATION_COLUMNS =
+  "id, listing_id, business_id, guest_id, party_size, reserved_for, note, status, responded_at, created_at";
+
+/**
+ * Which bucket a reservation belongs in. Exported for its test.
+ *
+ * Status decides and the clock breaks the tie, exactly as the stays board
+ * does: a CANCELLED table is past whatever its time, and a PENDING request
+ * whose hour has gone by is past too, because there is nothing left to
+ * decide about it.
+ */
+export function reservationBucket(
+  status: ReservationStatus,
+  reservedFor: string,
+  nowMs: number,
+): "requests" | "upcoming" | "past" {
+  const at = Date.parse(reservedFor);
+  const ahead = Number.isFinite(at) && at > nowMs;
+  if (!ahead) return "past";
+  if (status === "PENDING") return "requests";
+  if (status === "CONFIRMED") return "upcoming";
+  return "past";
+}
+
+/** How many reservations the waiting count is read over. Stated, not assumed. */
+const WAITING_LIMIT = 2000;
+
+export async function getReservationBoard(
+  filter?: ReservationBoardFilter,
+): Promise<AdminRead<AdminReservationBoard>> {
+  const db = await adminClient();
+  if (!db) return UNAVAILABLE;
+
+  const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
+  const status = asBookingStatus(filter?.status);
+  const offset = filter?.offset && filter.offset > 0 ? filter.offset : 0;
+
+  try {
+    /*
+     * THE WAITING COUNT IS READ SEPARATELY AND FIRST, for the reason the escrow
+     * desk gives for its totals: a chip that says "3 waiting" must mean three
+     * across the platform, not three on the page the operator has narrowed to.
+     */
+    const waitingRead = await db
+      .from("reservations")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "PENDING")
+      .gt("reserved_for", new Date().toISOString())
+      .limit(WAITING_LIMIT);
+    if (waitingRead.error) return UNAVAILABLE;
+    const waiting = waitingRead.count ?? 0;
+
+    /* The search resolves places first, the way the stays board resolves
+       listings: two plain queries rather than a filter on an embed. */
+    let listingIds: string[] | null = null;
+    let businessIds: string[] | null = null;
+    if (term.length > 0 && !UUID_RE.test(term)) {
+      const [listingsRes, businessesRes] = await Promise.all([
+        db.from("listings").select("id").ilike("title", `%${term}%`).limit(60),
+        db.from("businesses").select("id").ilike("name", `%${term}%`).limit(60),
+      ]);
+      if (listingsRes.error || businessesRes.error) return UNAVAILABLE;
+      listingIds = (listingsRes.data ?? []).map((row) => row.id);
+      businessIds = (businessesRes.data ?? []).map((row) => row.id);
+      if (listingIds.length === 0 && businessIds.length === 0) {
+        return {
+          state: "ok",
+          data: { requests: [], upcoming: [], past: [], full: false, waiting },
+        };
+      }
+    }
+
+    let select = db.from("reservations").select(RESERVATION_COLUMNS);
+    if (term.length > 0 && UUID_RE.test(term)) select = select.eq("id", term);
+    if (listingIds || businessIds) {
+      const clauses: string[] = [];
+      if (listingIds && listingIds.length > 0) clauses.push(`listing_id.in.(${listingIds.join(",")})`);
+      if (businessIds && businessIds.length > 0)
+        clauses.push(`business_id.in.(${businessIds.join(",")})`);
+      select = select.or(clauses.join(","));
+    }
+    if (status) select = select.eq("status", status);
+    if (filter?.from) select = select.gte("reserved_for", lagosDayStart(filter.from));
+    if (filter?.to) select = select.lte("reserved_for", lagosDayEnd(filter.to));
+
+    const { data, error } = await select
+      .order("reserved_for", { ascending: false })
+      .range(offset, offset + BUCKET_LIMIT);
+    if (error) return UNAVAILABLE;
+
+    const page = (data ?? []).slice(0, BUCKET_LIMIT);
+    const full = (data ?? []).length > BUCKET_LIMIT;
+
+    const [names, listings, businesses] = await Promise.all([
+      namesFor(
+        db,
+        page.map((row) => row.guest_id),
+      ),
+      listingsFor(
+        db,
+        page.map((row) => row.listing_id).filter((id): id is string => Boolean(id)),
+      ),
+      businessNamesFor(
+        db,
+        page.map((row) => row.business_id).filter((id): id is string => Boolean(id)),
+      ),
+    ]);
+
+    const now = Date.now();
+    const rows: AdminReservationRow[] = page.map((row) => ({
+      id: row.id,
+      status: row.status,
+      reservedFor: row.reserved_for,
+      partySize: row.party_size,
+      note: row.note,
+      guestId: row.guest_id,
+      guestName: names.get(row.guest_id) ?? null,
+      placeName:
+        (row.business_id ? businesses.get(row.business_id) : undefined) ??
+        (row.listing_id ? listings.get(row.listing_id)?.title : undefined) ??
+        "This place is no longer listed",
+      listingId: row.listing_id,
+      businessId: row.business_id,
+      createdAt: row.created_at,
+      respondedAt: row.responded_at,
+      past: reservationBucket(row.status, row.reserved_for, now) === "past",
+    }));
+
+    const soonest = (a: AdminReservationRow, b: AdminReservationRow) =>
+      a.reservedFor.localeCompare(b.reservedFor);
+
+    return {
+      state: "ok",
+      data: {
+        requests: rows
+          .filter((row) => reservationBucket(row.status, row.reservedFor, now) === "requests")
+          .sort(soonest),
+        upcoming: rows
+          .filter((row) => reservationBucket(row.status, row.reservedFor, now) === "upcoming")
+          .sort(soonest),
+        past: rows.filter((row) => reservationBucket(row.status, row.reservedFor, now) === "past"),
+        full,
+        waiting,
+      },
+    };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+async function businessNamesFor(db: Db, ids: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const wanted = [...new Set(ids)];
+  if (wanted.length === 0) return out;
+  const { data } = await db.from("businesses").select("id, name").in("id", wanted);
+  for (const row of data ?? []) out.set(row.id, row.name);
+  return out;
+}
+
+/* ------------------------------------------------ reservation decisions */
+
+export const RESERVATION_ALREADY_CANCELLED =
+  "This table is already cancelled. Refresh to see who called it off.";
+export const RESERVATION_ALREADY_ANSWERED =
+  "This request has already been answered. Refresh to see the answer.";
+export const RESERVATION_OVER =
+  "This table's time has passed and it was recorded as over. There is nothing left to decide.";
+
+/**
+ * Where a reservation may go from where it is. Pure, so the rule can be read
+ * and tested in one place; the action in `bookings-actions.ts` applies it.
+ *
+ * The host's two answers apply only to a request nobody has answered. The
+ * admin's cancel applies to a request or a confirmed table, never to one
+ * already over or already cancelled: taking a table off a guest who has
+ * eaten helps nobody and reads as an accusation.
+ */
+export function reservationTransition(
+  status: ReservationStatus,
+  decision: "confirm" | "decline" | "cancel",
+): { next: ReservationStatus; tells: boolean } | { refusal: string } {
+  if (status === "CANCELLED") return { refusal: RESERVATION_ALREADY_CANCELLED };
+  if (status === "COMPLETED" || status === "NO_SHOW") return { refusal: RESERVATION_OVER };
+  if (decision === "confirm") {
+    if (status !== "PENDING") return { refusal: RESERVATION_ALREADY_ANSWERED };
+    return { next: "CONFIRMED", tells: true };
+  }
+  if (decision === "decline") {
+    if (status !== "PENDING") return { refusal: RESERVATION_ALREADY_ANSWERED };
+    return { next: "CANCELLED", tells: true };
+  }
+  return { next: "CANCELLED", tells: true };
+}
+
+/**
+ * Open requests still ahead of now, across the platform, for the chip on
+ * the stays board. One head-only count; the board itself is a page away.
+ */
+export async function getReservationWaitingCount(): Promise<AdminRead<number>> {
+  const db = await adminClient();
+  if (!db) return UNAVAILABLE;
+  try {
+    const { count, error } = await db
+      .from("reservations")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "PENDING")
+      .gt("reserved_for", new Date().toISOString());
+    if (error) return UNAVAILABLE;
+    return { state: "ok", data: count ?? 0 };
+  } catch {
+    return UNAVAILABLE;
+  }
+}

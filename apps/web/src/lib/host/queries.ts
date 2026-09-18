@@ -24,6 +24,15 @@ import {
   type HostType,
 } from "./onboarding";
 import type { Database } from "../supabase/database.types";
+import {
+  BUSINESS_TIER_NAME,
+  asBusinessTier,
+  ladderView,
+  nextRung,
+  type BusinessLadderRow,
+  type BusinessRung,
+  type BusinessTier,
+} from "../admin/business-ladder";
 
 type BusinessRow = Database["public"]["Tables"]["businesses"]["Row"];
 type ListingStatus = Database["public"]["Enums"]["listing_status"];
@@ -214,5 +223,75 @@ export async function getMyBusinesses(): Promise<MyBusiness[]> {
     }));
   } catch {
     return [];
+  }
+}
+
+/** The host's own ladder, as their status page shows it. */
+export type MyBusinessLadder = {
+  businessId: string;
+  name: string;
+  /** Rungs passed with no gap below, read from the row the trigger wrote. */
+  tier: BusinessTier;
+  tierName: string;
+  /** The badge, as the database derived it. */
+  verified: boolean;
+  rungs: BusinessLadderRow[];
+  /** The lowest rung not yet passed, or null when the ladder is complete. */
+  next: BusinessRung | null;
+};
+
+/**
+ * The trigger-computed tier, read back for the host who owns the business,
+ * with every rung's recorded decision beside it.
+ *
+ * Both reads go through the caller's own RLS-bound client:
+ * `businesses_owner_all` scopes the row, and
+ * `business_verification_checks_select_own` lets an owner read the rungs on
+ * their own business and nothing else. The tier is the row's own column,
+ * never recomputed here; `ladderView` only lays the rungs out in order and
+ * marks a passed rung above a gap as not yet counting, which is what
+ * `private.business_tier` decided too.
+ *
+ * Null when signed out, when the business is not the caller's, or when the
+ * read failed: a status page renders "nothing to show" from null and never a
+ * crash.
+ */
+export async function getMyBusinessLadder(businessId: string): Promise<MyBusinessLadder | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+
+  try {
+    const { data: business, error } = await session.supabase
+      .from("businesses")
+      .select("id, name, verification_tier, verified")
+      .eq("id", businessId)
+      .eq("owner_id", session.user.id)
+      .maybeSingle();
+    if (error || !business) return null;
+
+    const { data: checks } = await session.supabase
+      .from("business_verification_checks")
+      .select("rung, status, note, decided_at")
+      .eq("business_id", business.id);
+
+    const rows = (checks ?? []).map((check) => ({
+      rung: check.rung,
+      status: check.status,
+      note: check.note,
+      decidedAt: check.decided_at,
+    }));
+    const tier = asBusinessTier(business.verification_tier);
+
+    return {
+      businessId: business.id,
+      name: business.name,
+      tier,
+      tierName: BUSINESS_TIER_NAME[tier],
+      verified: business.verified,
+      rungs: ladderView(rows),
+      next: nextRung(rows),
+    };
+  } catch {
+    return null;
   }
 }

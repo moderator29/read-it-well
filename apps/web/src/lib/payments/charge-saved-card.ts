@@ -21,7 +21,7 @@ import "server-only";
 
 import { type ActionResult, fail, ok } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
-import { consume, subjectForUser } from "../security/rate-limit";
+import { guardMoney } from "../security/money-limits";
 import type { Json } from "../supabase/database.types";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
@@ -36,10 +36,6 @@ import {
 export type ChargeSavedCardOutcome =
   | { kind: "charged" }
   | { kind: "needs_hosted_checkout"; authorizationUrl: string };
-
-/** How many saved-card charges one person may attempt in ten minutes. Fails open. */
-const CHARGE_LIMIT = 10;
-const CHARGE_WINDOW_SECONDS = 10 * 60;
 
 const NOT_REUSABLE_RE = /not\s+reusable|reusable/i;
 
@@ -89,15 +85,11 @@ export async function chargeSavedCard(params: {
     return fail("That card can no longer be charged without you present. Pay by card instead and we will ask the bank directly.");
   }
 
-  const verdict = await consume({
-    bucket: "card_charge",
-    subject: subjectForUser(session.user.id),
-    limit: CHARGE_LIMIT,
-    windowSeconds: CHARGE_WINDOW_SECONDS,
-  });
-  if (!verdict.allowed) {
-    return fail(`That is a lot of card charges at once. Try again ${verdict.retryIn}.`);
-  }
+  /* The table row for this door lives in lib/security/money-limits.ts. It is
+     counted on top of the caller's own bucket, because this is the one place
+     a saved card is actually charged. Fails open. */
+  const limit = await guardMoney("chargeSavedCard", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
 
   const metadata: Record<string, Json> = {
     ...(params.metadata ?? {}),

@@ -8,6 +8,8 @@ import { failureReason, logMoney } from "@/lib/payments/observability";
 import { findUserByEmail, getAdminClient, recordFunding } from "@/lib/wallet/ledger";
 import { recordMoneyAudit, recordWebhookDelivery } from "@/lib/wallet/audit";
 import { isCryptoReference } from "@/lib/payments/references";
+import { recordAlert } from "@/lib/alerts";
+import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
 
 /**
  * Yellow Card webhook: the crypto on-ramp's word on what happened to money.
@@ -64,7 +66,21 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   if (!verifyWebhookSignature(raw, signature)) {
+    /* Failures per address, exactly as the Paystack route counts them: a
+       genuine retry is never limited, a sprayed URL is answered from cache. */
+    const spray = await countRouteFailure(ROUTE_FAILURE_LIMITS.webhookBadSignature, request.headers);
+    if (!spray.allowed) {
+      return NextResponse.json(
+        { received: false, reason: "too_many_failures" },
+        { status: 429, headers: { "retry-after": String(spray.retryAfterSeconds) } },
+      );
+    }
     logMoney({ surface: "fund", outcome: "rejected", reason: "yellowcard_bad_signature" });
+    await recordAlert({
+      kind: "webhook.yellowcard.signature_invalid",
+      severity: "warning",
+      detail: { http_status: 401 },
+    });
     return NextResponse.json({ received: false, reason: "unauthorised" }, { status: 401 });
   }
 
@@ -90,6 +106,12 @@ export async function POST(request: Request): Promise<NextResponse> {
       outcome: "rejected",
       reason: "yellowcard_foreign_reference",
       reference: event.reference,
+    });
+    await recordAlert({
+      kind: "webhook.yellowcard.unknown_reference",
+      severity: "warning",
+      detail: { reference: event.reference, status: event.status },
+      subjectId: event.reference,
     });
     return NextResponse.json({ received: true, acted: false }, { status: 200 });
   }
@@ -163,6 +185,12 @@ export async function POST(request: Request): Promise<NextResponse> {
         reason: "owner_unresolved",
         httpStatus: 500,
       });
+      await recordAlert({
+        kind: "webhook.yellowcard.settlement_failed",
+        severity: "critical",
+        detail: { reference: event.reference, reason: "owner_unresolved", amount_minor: event.amountMinor },
+        subjectId: event.reference,
+      });
       return NextResponse.json({ received: false, reason: "unattributable" }, { status: 500 });
     }
 
@@ -210,6 +238,16 @@ export async function POST(request: Request): Promise<NextResponse> {
       reason: `yellowcard_write_failed:${failureReason(error)}`,
       reference: event.reference,
       amountMinor: event.amountMinor,
+    });
+    await recordAlert({
+      kind: "webhook.yellowcard.settlement_failed",
+      severity: "critical",
+      detail: {
+        reference: event.reference,
+        reason: `write_failed:${failureReason(error)}`,
+        amount_minor: event.amountMinor,
+      },
+      subjectId: event.reference,
     });
     /* 500 so it is sent again. The credit is not written, and an acknowledged
        failure here is a lost deposit. */

@@ -1,0 +1,70 @@
+# CI on push (A2-141, T-1). Nothing ran automatically before this file.
+#
+# Three checks that need no secrets: typecheck, lint, test. They run from the
+# repository root so the workspaces resolve, on the Node line the app is
+# developed on, with the npm cache keyed on package-lock.json.
+#
+# The build is a separate job because it is the slow one and the one most
+# likely to need an environment later. Today `next build` passes without any
+# env (BUILD_06_LEDGER section 1 baseline), so it runs here with none; if it
+# ever needs a key, it gets a repository variable, never a secret in this file.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Typecheck, lint, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build

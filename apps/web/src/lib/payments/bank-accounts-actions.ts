@@ -26,6 +26,7 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { guardMoney } from "../security/money-limits";
 import type { BankAccountRow } from "./db";
 import {
   PaystackError,
@@ -129,6 +130,11 @@ export async function resolveBankAccount(input: {
   const parsed = validate(bankAccountInputSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
+  /* Every resolution is a paid call to Paystack, so it is counted even
+     though nothing is stored. */
+  const limit = await guardMoney("resolveBankAccount", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
   try {
     const resolved = await resolveAccountNumber(parsed.data.accountNumber, parsed.data.bankCode);
     return ok({ accountName: resolved.accountName });
@@ -159,6 +165,9 @@ export async function addBankAccount(input: {
 
   const parsed = validate(bankAccountInputSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const limit = await guardMoney("addBankAccount", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
 
   let bankName: string | null = null;
   try {

@@ -29,7 +29,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
-import { consume, subjectForUser } from "../security/rate-limit";
+import { guardMoney } from "../security/money-limits";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
 import { paymentMethodIdSchema, toPaymentMethod, type PaymentMethod } from "./methods";
@@ -53,9 +53,8 @@ const NOT_YOUR_CARD_MESSAGE =
  */
 const CARD_SETUP_AMOUNT_MINOR = 100_00;
 
-/** How many card setups one person may start in an hour. Fails open. */
-const CARD_SETUP_LIMIT = 5;
-const CARD_SETUP_WINDOW_SECONDS = 60 * 60;
+/* How many card setups one person may start in an hour is a row of the
+   table in lib/security/money-limits.ts ("card_setup"). Fails open. */
 
 /** Where callbacks land: explicit site URL first, else the request's origin. */
 async function siteOrigin(): Promise<string> {
@@ -174,15 +173,8 @@ export async function startCardSetup(): Promise<
     );
   }
 
-  const verdict = await consume({
-    bucket: "card_setup",
-    subject: subjectForUser(session.user.id),
-    limit: CARD_SETUP_LIMIT,
-    windowSeconds: CARD_SETUP_WINDOW_SECONDS,
-  });
-  if (!verdict.allowed) {
-    return fail(`You have started several card setups already. Try again ${verdict.retryIn}.`);
-  }
+  const limit = await guardMoney("startCardSetup", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
 
   const reference = `${FUND_PREFIX}${randomUUID()}`;
   const callbackUrl = `${await siteOrigin()}/wallet?funded=1&reference=${reference}`;

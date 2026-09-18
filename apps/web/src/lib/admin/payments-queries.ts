@@ -2,6 +2,7 @@ import "server-only";
 
 import type { AdminRead } from "./money-queries";
 import { requireAdmin } from "./guard";
+import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
 
 /** One value of `public.transaction_status`. */
@@ -229,6 +230,133 @@ export async function getPaymentHealth(
           shortfallMinor: overdrawn.reduce((sum, wallet) => sum - wallet.balanceMinor, 0),
           unsettledMinor: unsettled.reduce((sum, payment) => sum + payment.amountMinor, 0),
         },
+      },
+    };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+/* ------------------------------------------------- payment method lookup */
+
+/**
+ * A ten digit account number as the console shows it. Exported for its test.
+ *
+ * `bank_accounts.account_number` is stored whole because a withdrawal needs
+ * it whole; the console never needs more than the tail to let an operator
+ * confirm "the one ending 4821" with the person on the phone, so the tail is
+ * all that leaves this module. Anything shorter than four characters is
+ * masked entirely rather than shown.
+ */
+export function maskAccountNumber(accountNumber: string): string {
+  const digits = accountNumber.replace(/\s/g, "");
+  if (digits.length < 4) return "•".repeat(Math.max(digits.length, 4));
+  return `${"•".repeat(Math.max(digits.length - 4, 2))}${digits.slice(-4)}`;
+}
+
+/** One saved card, as the processor filed it. Never a card number. */
+export type AdminSavedCard = {
+  id: string;
+  cardType: string | null;
+  last4: string | null;
+  expMonth: number | null;
+  expYear: number | null;
+  bank: string | null;
+  reusable: boolean;
+  isDefault: boolean;
+  createdAt: string;
+  /** Set once removed. Kept on the list because support gets asked "which card was that". */
+  removedAt: string | null;
+};
+
+export type AdminBankAccount = {
+  id: string;
+  bankName: string;
+  /** Masked to its tail. The whole number never leaves the read layer. */
+  accountNumberMasked: string;
+  /** The bank's answer, never the person's typing. */
+  accountName: string;
+  isDefault: boolean;
+  createdAt: string;
+  removedAt: string | null;
+};
+
+export type SavedMethods = {
+  cards: AdminSavedCard[];
+  accounts: AdminBankAccount[];
+};
+
+/** How many rows either list shows, live and removed together. */
+const METHOD_LIMIT = 30;
+
+/**
+ * Everything a person has saved to pay with or be paid to, live and removed.
+ *
+ * Service role after the guard, because both tables publish rows only to
+ * their owner and this panel exists precisely for the day the owner cannot
+ * reach them. Removed rows are shown with their date rather than hidden: a
+ * card somebody removed last month is still the card a charge was made with.
+ */
+export async function getSavedMethods(userId: string): Promise<AdminRead<SavedMethods>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return UNAVAILABLE;
+
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return UNAVAILABLE;
+  }
+
+  try {
+    const [cardsRes, accountsRes] = await Promise.all([
+      admin
+        .from("payment_methods")
+        .select(
+          "id, card_type, last4, exp_month, exp_year, bank, reusable, is_default, created_at, deleted_at",
+        )
+        .eq("user_id", userId)
+        .order("deleted_at", { ascending: true, nullsFirst: true })
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(METHOD_LIMIT),
+      admin
+        .from("bank_accounts")
+        .select(
+          "id, bank_name, account_number, resolved_account_name, is_default, created_at, deleted_at",
+        )
+        .eq("user_id", userId)
+        .order("deleted_at", { ascending: true, nullsFirst: true })
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(METHOD_LIMIT),
+    ]);
+    if (cardsRes.error || accountsRes.error) return UNAVAILABLE;
+
+    return {
+      state: "ok",
+      data: {
+        cards: (cardsRes.data ?? []).map((row) => ({
+          id: row.id,
+          cardType: row.card_type,
+          last4: row.last4,
+          expMonth: row.exp_month,
+          expYear: row.exp_year,
+          bank: row.bank,
+          reusable: row.reusable,
+          isDefault: row.is_default,
+          createdAt: row.created_at,
+          removedAt: row.deleted_at,
+        })),
+        accounts: (accountsRes.data ?? []).map((row) => ({
+          id: row.id,
+          bankName: row.bank_name,
+          accountNumberMasked: maskAccountNumber(row.account_number),
+          accountName: row.resolved_account_name,
+          isDefault: row.is_default,
+          createdAt: row.created_at,
+          removedAt: row.deleted_at,
+        })),
       },
     };
   } catch {

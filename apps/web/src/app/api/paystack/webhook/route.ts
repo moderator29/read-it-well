@@ -27,6 +27,8 @@ import { contactForUser } from "@/lib/email/recipients";
 import { announceConfirmedStay } from "@/lib/bookings/arrival";
 import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement";
 import { savePaymentMethodFromCharge } from "@/lib/payments/methods";
+import { recordAlert } from "@/lib/alerts";
+import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
 import {
   BOOKING_PREFIX,
   FUND_PREFIX,
@@ -542,6 +544,36 @@ async function answer(
     });
   }
 
+  /*
+   * The desk hears about the two outcomes a log line alone would bury: a
+   * settlement that threw with money in an unknown state, and a well-signed
+   * delivery about a reference this platform never minted (a misrouted
+   * webhook, or somebody else's key pointed at our URL). Both fold into one
+   * open alert per reference for ten minutes, so a Paystack retry storm is
+   * one row, not five. Never throws, never changes the answer below.
+   */
+  if (v.outcome === "failed") {
+    await recordAlert({
+      kind: "webhook.paystack.settlement_failed",
+      severity: "critical",
+      detail: {
+        event: context.event,
+        reference: context.reference,
+        reason: v.reason,
+        http_status: v.httpStatus,
+        amount_minor: v.amountMinor ?? null,
+      },
+      subjectId: context.reference ?? undefined,
+    });
+  } else if (v.reason === "reference_not_ours") {
+    await recordAlert({
+      kind: "webhook.paystack.unknown_reference",
+      severity: "warning",
+      detail: { event: context.event, reference: context.reference, currency: context.currency },
+      subjectId: context.reference ?? undefined,
+    });
+  }
+
   return NextResponse.json(
     { received: v.httpStatus === 200, reason: v.reason },
     { status: v.httpStatus },
@@ -574,7 +606,25 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!verifyWebhookSignature(rawBody, signature)) {
     // Deliberately before any database work. An unauthenticated caller must not
     // be able to write rows into audit_log by posting nonsense at this URL.
+    //
+    // Failures are counted per address, never successes, so a genuine retry
+    // from Paystack is never limited while a sprayed URL is answered from the
+    // deny cache with no HMAC work, no log line and no alert after the first
+    // thirty. The alert itself is one row per ten minutes: the desk needs to
+    // know the URL is being probed, not to count the probes.
+    const spray = await countRouteFailure(ROUTE_FAILURE_LIMITS.webhookBadSignature, request.headers);
+    if (!spray.allowed) {
+      return NextResponse.json(
+        { received: false, reason: "too_many_failures" },
+        { status: 429, headers: { "retry-after": String(spray.retryAfterSeconds) } },
+      );
+    }
     logMoney({ surface: "webhook", outcome: "rejected", reason: "signature_invalid" });
+    await recordAlert({
+      kind: "webhook.paystack.signature_invalid",
+      severity: "warning",
+      detail: { http_status: 401 },
+    });
     return NextResponse.json({ received: false, reason: "signature_invalid" }, { status: 401 });
   }
 
@@ -609,6 +659,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       reason: "service_role_key_missing",
       event,
       reference,
+    });
+    // Cannot land without the same key. It logs the attempt and returns.
+    await recordAlert({
+      kind: "webhook.paystack.unconfigured",
+      severity: "critical",
+      detail: { event, reference, reason: "service_role_key_missing" },
+      subjectId: reference ?? undefined,
     });
     return NextResponse.json(
       { received: false, reason: "service_role_key_missing" },

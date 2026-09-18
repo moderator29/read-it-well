@@ -7,6 +7,9 @@ import {
   DEFAULT_SWEEP_HOURS,
   runMoneyReconciliation,
 } from "@/lib/wallet/reconciliation";
+import { recordAlert } from "@/lib/alerts";
+import { failureReason } from "@/lib/payments/observability";
+import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
 
 /**
  * The scheduled money reconciliation.
@@ -77,7 +80,22 @@ function authorised(request: Request): boolean {
 
 async function run(request: Request): Promise<NextResponse> {
   if (!authorised(request)) {
+    /* Failures per address, so a guessed secret is answered from the deny
+       cache after thirty tries and the desk hears about it once. */
+    const spray = await countRouteFailure(ROUTE_FAILURE_LIMITS.cronBadSecret, request.headers);
+    if (!spray.allowed) {
+      return NextResponse.json(
+        { ok: false, reason: "too_many_failures" },
+        { status: 429, headers: { "retry-after": String(spray.retryAfterSeconds) } },
+      );
+    }
     logMoney({ surface: "reconcile", outcome: "rejected", reason: "cron_secret_invalid" });
+    await recordAlert({
+      kind: "cron.reconcile.unauthorised",
+      severity: "warning",
+      detail: { http_status: 401 },
+      subjectId: "paystack-reconcile",
+    });
     return refused("unauthorised", 401);
   }
 
@@ -90,6 +108,12 @@ async function run(request: Request): Promise<NextResponse> {
       outcome: "unconfigured",
       reason: "service_role_key_missing",
     });
+    await recordAlert({
+      kind: "cron.reconcile.unconfigured",
+      severity: "critical",
+      detail: { reason: "service_role_key_missing" },
+      subjectId: "paystack-reconcile",
+    });
     return refused("service_role_key_missing", 503);
   }
 
@@ -101,7 +125,45 @@ async function run(request: Request): Promise<NextResponse> {
       ? Math.min(Math.trunc(hoursParam), MAX_HOURS)
       : DEFAULT_SWEEP_HOURS;
 
-  const report = await runMoneyReconciliation(admin, { hours, apply, actor: { kind: "sweep" } });
+  let report: Awaited<ReturnType<typeof runMoneyReconciliation>>;
+  try {
+    report = await runMoneyReconciliation(admin, { hours, apply, actor: { kind: "sweep" } });
+  } catch (error) {
+    /* A run that threw is the one outcome the scheduler's own log cannot
+       explain. 500 so it shows red there, and a critical alert so it shows
+       on the desk with the reason beside it. */
+    const reason = failureReason(error);
+    logMoney({ surface: "reconcile", outcome: "failed", reason: `run_threw:${reason}` });
+    await recordAlert({
+      kind: "cron.reconcile.failed",
+      severity: "critical",
+      detail: { hours, apply, reason },
+      subjectId: "paystack-reconcile",
+    });
+    return refused("run_failed", 500);
+  }
+
+  /*
+   * Every run records its outcome, not only the bad ones (A2-121): a job that
+   * has stopped firing is invisible unless its last "clean" row has a date on
+   * it. A run that needs a human is a warning with the counts in the detail.
+   */
+  await recordAlert({
+    kind: report.needsAttention ? "cron.reconcile.needs_attention" : "cron.reconcile.run",
+    severity: report.needsAttention ? "warning" : "info",
+    detail: {
+      hours,
+      apply,
+      charges_seen: report.charges.chargesSeen,
+      charges_ours: report.charges.chargesOurs,
+      gaps: report.charges.gaps.length,
+      recovered_minor: report.charges.recoveredMinor,
+      holds_examined: report.holds.examined,
+      released_minor: report.holds.releasedMinor,
+      overdrawn: report.overdrawn.length,
+    },
+    subjectId: "paystack-reconcile",
+  });
 
   await recordMoneyAudit(admin, {
     actor: { kind: "sweep" },

@@ -68,8 +68,17 @@ export const nairaAmountSchema = z
 
 const BANK_CODES = new Set(WALLET_BANKS.map((b) => b.code));
 
+/**
+ * One key per submit, minted by the surface. Optional so every existing form
+ * keeps working; when present, a dropped connection and a second tap replay
+ * the first answer instead of opening a second charge (the lead's B0 audit
+ * of 73e284e: a double submit charged twice under two references).
+ */
+const idempotencyKeySchema = z.string().trim().min(1).max(200).optional();
+
 export const fundSchema = z.object({
   amount: nairaAmountSchema,
+  idempotencyKey: idempotencyKeySchema,
 });
 
 /**
@@ -80,6 +89,7 @@ export const fundSchema = z.object({
 export const fundWithSavedCardSchema = z.object({
   amount: nairaAmountSchema,
   methodId: z.uuid("Choose a card from your list."),
+  idempotencyKey: idempotencyKeySchema,
 });
 
 export const withdrawSchema = z.object({

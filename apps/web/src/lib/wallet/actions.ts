@@ -65,6 +65,9 @@ import {
   YellowCardError,
 } from "../payments/yellowcard";
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
+import { guardMoney } from "../security/money-limits";
+import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
+import { subjectForUser } from "../security/rate-limit";
 import { bankByCode } from "./banks";
 import { recordMoneyAudit } from "./audit";
 import {
@@ -156,7 +159,7 @@ export type FundStart = {
  * back to /wallet?funded=1. The ledger is written only when the charge
  * succeeds, by the webhook or the verify fallback, never here.
  */
-export async function fundWallet(
+async function fundWalletWork(
   _prev: ActionResult<FundStart | null>,
   formData: FormData,
 ): Promise<ActionResult<FundStart | null>> {
@@ -170,6 +173,9 @@ export async function fundWallet(
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   if (!isPaystackConfigured()) return fail(FUNDING_UNCONFIGURED_MESSAGE);
+
+  const limit = await guardMoney("fundWallet", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
 
   /*
    * NO CHECKOUT WITHOUT A WAY TO ACCOUNT FOR IT.
@@ -291,7 +297,7 @@ export async function fundWallet(
  * handed a hosted checkout under the same reference, once, and the card is
  * never retried.
  */
-export async function fundWalletWithSavedCard(
+async function fundWalletWithSavedCardWork(
   _prev: ActionResult<FundStart | null>,
   formData: FormData,
 ): Promise<ActionResult<FundStart | null>> {
@@ -305,6 +311,9 @@ export async function fundWalletWithSavedCard(
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   if (!isPaystackConfigured()) return fail(FUNDING_UNCONFIGURED_MESSAGE);
+
+  const limit = await guardMoney("fundWalletWithSavedCard", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
 
   /* Resolved and refused on BEFORE the charge, for the reason written out in
      full in fundWallet: a charge nothing on our side can account for is how a
@@ -423,6 +432,9 @@ export async function withdraw(
   if (!isPaystackConfigured()) {
     return fail("We cannot send a withdrawal right now. Your balance is untouched.");
   }
+
+  const limit = await guardMoney("withdraw", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -703,6 +715,9 @@ async function withdrawToSavedAccount(
   if (!isPaystackConfigured()) {
     return fail("We cannot send a withdrawal right now. Your balance is untouched.");
   }
+
+  const limit = await guardMoney("withdraw", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -938,6 +953,9 @@ export async function transferToUser(
   const parsed = validate(transferSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
+  const limit = await guardMoney("transferToUser", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -1145,6 +1163,9 @@ export async function verifyFunding(
   if (!parsedReference.success) return fail(UNKNOWN_REFERENCE_MESSAGE);
 
   if (!isPaystackConfigured()) return fail(FUNDING_UNCONFIGURED_MESSAGE);
+
+  const limit = await guardMoney("verifyFunding", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -1320,6 +1341,9 @@ export async function startCryptoDeposit(
   const parsed = validate(fundSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
+  const limit = await guardMoney("startCryptoDeposit", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
   if (!isYellowCardConfigured()) {
     return fail(
       "Crypto top-ups are not switched on yet. Your balance is untouched and nothing was charged.",
@@ -1451,6 +1475,10 @@ export async function lookupAccountName(
   const digits = accountNumber.replace(/\D/g, "");
   if (digits.length !== 10) return { ok: false, reason: "" };
 
+  /* Paid per call at Paystack, so counted like the withdrawal it precedes. */
+  const limit = await guardMoney("resolveBankAccount", session.user.id);
+  if (!limit.allowed) return { ok: false, reason: limit.message };
+
   try {
     const resolved = await resolveAccountNumber(digits, bank.code);
     return { ok: true, accountName: resolved.accountName };
@@ -1460,4 +1488,53 @@ export async function lookupAccountName(
        the withdrawal gives the full message if they go on anyway. */
     return { ok: false, reason: "No account found with that number at this bank." };
   }
+}
+
+/* ------------------------------------------------ funding, once per submit */
+
+/**
+ * THE TWO FUNDING DOORS, GUARDED AGAINST A DOUBLE SUBMIT.
+ *
+ * `fundWallet` and `fundWalletWithSavedCard` each minted a fresh
+ * `rm-fund-<uuid>` per call and nothing remembered the first call, so a
+ * second tap on a dropped connection opened a second hosted checkout, or
+ * charged the saved card a second time, under a second reference (the
+ * lead's B0 audit of 73e284e). Both bodies are unchanged above; each is now
+ * reached through `withIdempotency` under one scope per door, keyed on the
+ * client-minted `idempotencyKey` the form carries. No key means the form has
+ * not been updated yet, and the guard steps aside exactly as it does
+ * everywhere else. Only an `ok` answer is recorded, so a refusal stays
+ * retryable. The money-limit guard inside each body still runs first on the
+ * fresh attempt and is what paces the person.
+ */
+async function fundIdempotently(
+  scope: string,
+  _prev: ActionResult<FundStart | null>,
+  formData: FormData,
+  work: (prev: ActionResult<FundStart | null>, formData: FormData) => Promise<ActionResult<FundStart | null>>,
+): Promise<ActionResult<FundStart | null>> {
+  const key = formDataToObject(formData)["idempotencyKey"] ?? null;
+  const session = await resolveSession();
+  if (session.state !== "signed-in" || !key) return work(_prev, formData);
+
+  const run = await withIdempotency<ActionResult<FundStart | null>>(
+    { scope, key, subject: subjectForUser(session.user.id), shouldRecord: (result) => result.ok },
+    () => work(_prev, formData),
+  );
+  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  return run.result;
+}
+
+export async function fundWallet(
+  _prev: ActionResult<FundStart | null>,
+  formData: FormData,
+): Promise<ActionResult<FundStart | null>> {
+  return fundIdempotently("wallet.fund", _prev, formData, fundWalletWork);
+}
+
+export async function fundWalletWithSavedCard(
+  _prev: ActionResult<FundStart | null>,
+  formData: FormData,
+): Promise<ActionResult<FundStart | null>> {
+  return fundIdempotently("wallet.fund_saved_card", _prev, formData, fundWalletWithSavedCardWork);
 }
