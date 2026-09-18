@@ -421,6 +421,7 @@ alerts, the refund console, the payment-method lookup panel.
 | `middleware.ts` becomes `proxy.ts` (Next 16), the rail's coin card tightened | `17556f4` |
 | The desktop screenshot harness `scripts/verify-desktop.mjs` | `fb4e182` |
 | The dock pill takes the side accent (seed 3) | `92da8b1` |
+| A missing translation can no longer break the build (the English fallback) | `776ba64` |
 | BA: the lifecycle jobs (`lib/cron`, `lib/bookings/lifecycle*`, four cron routes, `vercel.json`), b4 migrations applied, live probe passed; BB's b3 and b2 migrations applied, live probes passed; `database.types.ts` regenerated | `c838b57` |
 
 ---
@@ -534,6 +535,11 @@ not loss holes, and every charge is refundable through the processor.
    dock, the feature tiles).
 2. **The dev preview harness** (section 5), so that the look of every
    signed-in surface can be proven here rather than believed.
+3. **Translations fall back to English key by key** (`packages/i18n/src/locales/fallback.ts`):
+   Vercel failed on main at `fb4e182` because English had gained a
+   namespace the Hausa, Igbo and Yoruba files had not reached; the three
+   locales are now deep partials of the English shape filled at load, so a
+   copy gap is a task for a speaker and never a red deploy. `776ba64`.
 
 ---
 
