@@ -1,85 +1,67 @@
-import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ButtonLink } from "@/components/ui/Button";
-import { LogoMark } from "@/design-system/brand/Logo";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
+import { SystemMoment } from "./offline/SystemMoment";
 
 /**
- * 404.
+ * 404: the brand moment with a way to search.
  *
- * Says what happened and offers the next step, per the no dead ends rule.
+ * Same anatomy as the error boundary and the offline screen (the lockup over
+ * the aurora plate, the glass card on its podium), with the numeral in the
+ * brand gradient, a sentence that says what happened, and a search field
+ * that really searches: it is a plain GET form to `/search`, whose page
+ * reads `q` and answers it, so the way out of a dead link is the product's
+ * own front door rather than a decorative box.
  *
- * THE FLOATING OBJECT FIELD STOOD HERE AND IS GONE. Four brand objects
- * drifted at fixed percentage positions behind the column, and at phone
- * heights the bottom pair, parked at 18 and 24 per cent from the bottom, sat
- * directly under the action buttons: the page a stranger meets when something
- * has already gone wrong greeted them with artwork colliding with the way
- * out. The hero shed the same field for the same reason and its removal note
- * is in app/page.tsx history; a 404 needs the exit to be the most obvious
- * thing on it, and decoration that can touch the exit is not decoration.
- *
- * **"Back to home" means the home the reader actually has.** It pointed at
- * `/`, the landing page, which for a signed-in person is not home at all: it
- * is the page that explains the product to somebody who has never seen it, and
- * being dropped there mid-session reads as having been signed out. The owner
- * hit exactly this and said so. This renders on the server, so it can simply
- * ask, and a signed-in reader is offered `/home` instead.
- *
- * It used to be marked as deliberately static, which is what made the wrong
- * link look correct: a static page cannot know who is reading it. The cost of
- * asking is one session read on a page nobody is meant to reach often, and the
- * screen still renders in full if that read comes back with nothing.
+ * "Back to home" means the home the reader actually has. It pointed at `/`,
+ * the landing page, which for a signed-in person is not home at all. This
+ * renders on the server, so it can simply ask, and a signed-in reader is
+ * offered `/home` instead. The cost is one session read on a page nobody is
+ * meant to reach often, and the screen still renders in full if that read
+ * comes back with nothing.
  */
 export default async function NotFound() {
   const session = await resolveSession();
   const home = session.state === "signed-in" ? "/home" : "/";
   return (
-    <main
-      id="main"
-      className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-5 text-center"
-    >
-      <div className="nf-aurora" aria-hidden="true" />
+    <SystemMoment home={home}>
+      <p className="nf-system__code" aria-hidden="true">
+        404
+      </p>
+      <h1 className="nf-system__title">This page has checked out</h1>
+      <p className="nf-system__body">
+        The link may be out of date, or the page may have moved. Every place on
+        Vallo is still where it should be.
+      </p>
 
-      <div className="relative z-10">
-        <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
-          <LogoMark size={64} />
-        </Link>
-
-        <p className="nf-numeric nf-display nf-gradient-text mt-6 text-[clamp(5rem,18vw,9rem)]">
-          404
-        </p>
-
-        <h1 className="nf-h2 mt-2">This page has checked out</h1>
-        <p className="mx-auto mt-3 max-w-[44ch] text-[var(--nf-content-secondary)]">
-          The link may be out of date, or the page may have moved. Every place
-          on Vallo is still where it should be.
-        </p>
-
-        <div className="mx-auto mt-8 max-w-md">
-          <ButtonLink
-            href="/search"
-            variant="secondary"
-            full
-            className="justify-start rounded-[var(--nf-radius-control)] text-left"
-          >
-            <UiIcon name="search" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
-            {/* This said "hotels, food, experiences", which is the travel app
-                this product stopped being. The words are the product's own. */}
-            <span className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              Search rentals, homes, shortlets, land...
-            </span>
-          </ButtonLink>
+      <form action="/search" method="get" role="search">
+        <label htmlFor="nf-lost-search" className="sr-only">
+          Search property
+        </label>
+        <div className="nf-system__search">
+          <span className="nf-system__search-glyph" aria-hidden="true">
+            <UiIcon name="search" size={20} />
+          </span>
+          <input
+            id="nf-lost-search"
+            name="q"
+            type="search"
+            inputMode="search"
+            autoComplete="off"
+            enterKeyHint="search"
+            placeholder="Search homes, shortlets, land"
+            className="nf-field"
+          />
         </div>
-
-        <div className="mt-5 flex flex-wrap justify-center gap-4">
-          <ButtonLink href={home} variant="primary" size="lg">
+        <div className="nf-system__actions">
+          <Button type="submit" variant="primary" size="lg" full trailingIcon="arrow-right">
+            Search
+          </Button>
+          <ButtonLink href={home} variant="secondary" size="lg" full>
             Back to home
           </ButtonLink>
-          <ButtonLink href="/search" variant="secondary" size="lg" leadingIcon="sparkle">
-            Explore instead
-          </ButtonLink>
         </div>
-      </div>
-    </main>
+      </form>
+    </SystemMoment>
   );
 }

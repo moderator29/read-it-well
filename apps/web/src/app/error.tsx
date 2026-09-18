@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { LogoMark } from "@/design-system/brand/Logo";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { SystemMoment } from "./offline/SystemMoment";
 
 /**
- * Route level error boundary.
+ * Route level error boundary: the brand moment.
  *
- * Same family as the 404: calm, branded, and it never leaks the raw error to
- * the user. The digest is surfaced because it is the id support needs to find
- * the matching server log, which is the whole point of having one.
+ * The lockup over the aurora plate, one glass card, an honest sentence, the
+ * reference, and two ways on. Same anatomy as the sign-in render, because a
+ * crash is the one screen where the product has nothing to show but itself,
+ * and it should look like itself rather than like a browser.
+ *
+ * The raw error never reaches the screen. The digest is surfaced because it
+ * is the id support needs to find the matching server log, which is the
+ * whole point of having one.
  */
 export default function Error({
   error,
@@ -26,70 +29,31 @@ export default function Error({
   }, [error]);
 
   return (
-    <main
-      id="main"
-      className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-5 text-center"
-    >
-      <div className="nf-aurora" aria-hidden="true" />
+    /* The lockup links to `/home-or-landing`, not `/`. An error boundary is
+       a client component by requirement, so it cannot read a session and the
+       auth cookies are httpOnly by design. That route answers the question
+       on the server and sends the reader to whichever home is theirs. */
+    <SystemMoment home="/home-or-landing">
+      <p className="nf-system__overline">Something went wrong</p>
+      <h1 className="nf-system__title">This screen did not load</h1>
+      <p className="nf-system__body">
+        Something on our side stopped part way through. Nothing you were doing
+        was lost, and trying again usually settles it. If it keeps happening,
+        tell support and quote the reference.
+      </p>
 
-      {/* Floating decorative objects */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <span className="nf-float absolute left-[10%] top-[18%] block h-14 w-14 opacity-20 md:h-16 md:w-16">
-          <BrandIcon name="support-chat" fill />
-        </span>
-        {/*
-          F2-027's third error boundary, and the last padlock on a crash.
+      {error.digest && (
+        <p className="nf-system__ref">Reference {error.digest}</p>
+      )}
 
-          This drew `shield-lock` here. The `(app)` and `admin` boundaries both
-          had the same object and both lost it, for the reason written out in
-          `(app)/error.tsx`: a padlock shield on a screen that failed to load
-          tells somebody THEIR ACCOUNT IS LOCKED, which is far more alarming
-          than the truth and is not true. This one is decoration at 20 per cent
-          rather than the verdict mark, which makes it quieter and not
-          different: it is the only brand object on the screen besides the
-          support glyph, and what a reader takes from a crash page is the
-          shapes on it.
-
-          `alert-triangle` is what the other two boundaries settled on, so all
-          three now say the same thing with the same object.
-        */}
-        <span className="nf-float-slow absolute bottom-[20%] right-[10%] block h-14 w-14 opacity-20 md:h-16 md:w-16">
-          <BrandIcon name="alert-triangle" fill />
-        </span>
+      <div className="nf-system__actions">
+        <Button variant="primary" size="lg" full onClick={reset}>
+          Try again
+        </Button>
+        <ButtonLink href="/home-or-landing" variant="secondary" size="lg" full>
+          Back to home
+        </ButtonLink>
       </div>
-
-      <div className="relative z-10">
-        <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
-          <LogoMark size={56} />
-        </Link>
-
-        <div className="nf-card mx-auto mt-6 max-w-md p-9">
-          <h1 className="nf-h2">Something went wrong</h1>
-          <p className="mt-3 text-[var(--nf-content-secondary)]">
-            This is on us, not on you. Try again, and if it keeps happening let
-            support know.
-          </p>
-
-          {error.digest && (
-            <p className="nf-numeric mt-4 text-[0.75rem] text-[var(--nf-content-muted)]">
-              Reference {error.digest}
-            </p>
-          )}
-
-          <div className="mt-7 flex flex-wrap justify-center gap-4">
-            <Button variant="primary" onClick={reset}>
-              Try again
-            </Button>
-            {/* Not "/". An error boundary is a client component by requirement,
-                so it cannot read a session and the auth cookies are httpOnly by
-                design. This route answers the question on the server and sends
-                the reader to whichever home is actually theirs. */}
-            <ButtonLink href="/home-or-landing" variant="secondary">
-              Back to home
-            </ButtonLink>
-          </div>
-        </div>
-      </div>
-    </main>
+    </SystemMoment>
   );
 }

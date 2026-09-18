@@ -1,25 +1,34 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SUPPORT_HREF, SUPPORT_IS_EMAIL, SUPPORT_LABEL } from "@/lib/support-email";
+import "@/app/css/system.css";
 
 /**
- * A legal document, read from inside the product.
+ * A legal document, read from inside the product: a designed reading
+ * surface rather than a card of paragraphs.
  *
  * The same text as the marketing page and a different frame, which is the
- * whole point. Tapping Privacy in the side navigation used to hand a signed-in
- * person to `(site)/privacy`: a different shell, a different header, the
- * marketing rail, and no way back into the product except the browser's own
- * back button, which returned them to the marketing site rather than to the
- * booking they were halfway through reading.
+ * whole point. Tapping Privacy in the side navigation used to hand a
+ * signed-in person to `(site)/privacy`: a different shell, a different
+ * header, and no way back into the product except the browser's own back
+ * button. So the document comes to them. `PageHeader` carries the platform
+ * back flow already, so a person reading the refund rules from a checkout
+ * screen lands back on that checkout screen.
  *
- * So the document comes to them. `PageHeader` carries the platform back flow
- * already, which returns to the previous in-app screen when this session has
- * one and falls through to a sensible page when somebody arrived by deep link,
- * so a person reading the refund rules from a checkout screen lands back on
- * that checkout screen rather than on a landing page.
+ * THE ANATOMY. The header with its back control, the last-updated line, a
+ * glass table of contents (every section a 44px row with its number in the
+ * brand ink, anchored to the section), then the sections as measured prose
+ * on the canvas with hairlines between them and a quiet way back to the
+ * contents under each. The prose is not boxed: a card around twelve
+ * sections of terms reads as a form to be filled in, and this is a text to
+ * be read.
  *
- * The content itself lives in `lib/legal/`, imported by both routes, because a
- * legal text that says two different things in two places is not a legal text.
+ * The content itself lives in `lib/legal/`, imported by both routes, because
+ * a legal text that says two different things in two places is not a legal
+ * text. The registered name of the operator appears only inside that text,
+ * where the document is legal text (rule 14); everything this frame draws
+ * says Vallo.
  */
 export function LegalDocument({
   title,
@@ -38,43 +47,73 @@ export function LegalDocument({
   otherLabel: string;
 }) {
   return (
-    <div className="nf-shell pb-3xl pt-md">
+    <div className="mx-auto w-full max-w-3xl pb-3xl pt-md">
       <PageHeader title={title} subtitle={intro} fallback="/settings" />
 
-      <p className="nf-chip mt-md">Last updated: {updated}</p>
+      <p className="nf-legal__meta">
+        <span>Last updated</span>
+        <time>{updated}</time>
+      </p>
 
-      <div className="nf-card mt-lg p-lg sm:p-xl">
-        <div className="space-y-xl">
-          {sections.map((section) => (
-            <section key={section.title}>
-              <h2 className="nf-h3">{section.title}</h2>
-              <div className="mt-xs space-y-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-2xs [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-2xs [&_ul]:pl-lg">
-                {section.body}
-              </div>
-            </section>
+      <nav id="legal-contents" aria-labelledby="legal-contents-title" className="nf-legal__toc">
+        <p id="legal-contents-title" className="nf-overline nf-legal__toc-title">
+          Contents
+        </p>
+        <ol>
+          {sections.map((section, index) => (
+            <li key={section.title}>
+              <a href={`#${anchor(section.title)}`}>
+                <span className="nf-legal__num" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <span>{section.title}</span>
+              </a>
+            </li>
           ))}
-        </div>
+        </ol>
+      </nav>
+
+      <div className="nf-legal__body">
+        {sections.map((section, index) => (
+          <section
+            key={section.title}
+            id={anchor(section.title)}
+            aria-labelledby={`${anchor(section.title)}-title`}
+            className="nf-legal__section"
+          >
+            <h2 id={`${anchor(section.title)}-title`} className="nf-h3 nf-legal__heading">
+              <span className="nf-legal__num" aria-hidden="true">
+                {index + 1}
+              </span>
+              <span>{section.title}</span>
+            </h2>
+            <div className="nf-legal__prose">{section.body}</div>
+            <a href="#legal-contents" className="nf-legal__top nf-tap">
+              <UiIcon name="arrow-up" size={16} />
+              Contents
+            </a>
+          </section>
+        ))}
       </div>
 
       {/* Both links stay inside the product. Sending somebody to /terms from
           here would undo the entire reason this page exists. */}
-      <p className="mt-xl text-center text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-        See also our{" "}
-        <Link
-          href={otherHref}
-          className="font-semibold text-[var(--nf-content-link)] hover:underline"
-        >
-          {otherLabel}
-        </Link>
-        , or{" "}
-        <a
-          href={SUPPORT_HREF}
-          className="font-semibold text-[var(--nf-content-link)] hover:underline"
-        >
-          {SUPPORT_IS_EMAIL ? SUPPORT_LABEL : "the contact form"}
-        </a>{" "}
+      <p className="nf-legal__foot">
+        See also our <Link href={otherHref}>{otherLabel}</Link>, or{" "}
+        <a href={SUPPORT_HREF}>{SUPPORT_IS_EMAIL ? SUPPORT_LABEL : "the contact form"}</a>{" "}
         with any question.
       </p>
     </div>
+  );
+}
+
+/** A stable fragment id from a section title: lowercase, hyphenated, ASCII. */
+function anchor(title: string): string {
+  return (
+    "s-" +
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
   );
 }

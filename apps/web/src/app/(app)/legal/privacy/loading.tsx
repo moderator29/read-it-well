@@ -4,17 +4,30 @@ import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleto
 /**
  * The wait, on the privacy policy.
  *
- * The same text as the public page, inside the product shell. Long prose, so the placeholder is paragraphs rather than cards.
+ * Mirrors the reading surface: the header, the last-updated line, the
+ * contents card as a stack of rows, then the first sections as prose lines
+ * with a heading each, so the text lands where the boxes were.
  */
 export default function LoadingLegalPrivacy() {
   return (
-    <LoadingShell label="Loading the privacy policy" className="mx-auto w-full max-w-3xl">
-      <PageHeaderSkeleton />
-      <div className="space-y-sm">
-        {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="nf-card p-md">
-            <Skeleton width="35%" height="1.0625rem" radius="sm" />
-            <Skeleton className="mt-xs" width="95%" height="0.875rem" radius="sm" />
+    <LoadingShell label="Loading the privacy policy" className="mx-auto w-full max-w-3xl pb-3xl pt-md">
+      <PageHeaderSkeleton subtitle />
+      <Skeleton width="11rem" height="0.8125rem" radius="sm" className="mt-sm" />
+      <div className="nf-card mt-lg p-md">
+        <Skeleton width="4.5rem" height="0.75rem" radius="sm" />
+        <div className="mt-xs space-y-3xs">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Skeleton key={i} height="2.75rem" radius="md" />
+          ))}
+        </div>
+      </div>
+      <div className="mt-xl space-y-xl">
+        {Array.from({ length: 3 }, (_, i) => (
+          <div key={i}>
+            <Skeleton width="45%" height="1.125rem" radius="sm" />
+            <Skeleton className="mt-sm" width="100%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-xs" width="96%" height="0.875rem" radius="sm" />
+            <Skeleton className="mt-xs" width="72%" height="0.875rem" radius="sm" />
           </div>
         ))}
       </div>

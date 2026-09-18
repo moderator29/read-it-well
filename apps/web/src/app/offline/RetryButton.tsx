@@ -11,10 +11,10 @@ import { Button, ButtonLink } from "@/components/ui/Button";
  * asks the browser to try the connection again, which is what the user means
  * when they tap it.
  *
- * The label reflects reality: while the browser reports itself offline the
- * button says so and stays useful anyway, because a phone's online flag lies
- * often on Nigerian networks (an attached but dead mobile data session still
- * reads as online). It is never disabled for that reason.
+ * The status line reflects reality: while the browser reports itself offline
+ * the line says so and the button stays useful anyway, because a phone's
+ * online flag lies often on Nigerian networks (an attached but dead mobile
+ * data session still reads as online). It is never disabled for that reason.
  */
 export function RetryButton() {
   const [online, setOnline] = useState(true);
@@ -32,31 +32,29 @@ export function RetryButton() {
   }, []);
 
   return (
-    <div className="mt-7 flex flex-col items-center gap-4">
-      <Button
-        variant="primary"
-        size="lg"
-        full
-        loading={retrying}
-        onClick={() => {
-          setRetrying(true);
-          window.location.reload();
-        }}
-      >
-        Try again
-      </Button>
-      <ButtonLink href="/home" variant="secondary" full>
-        Back to home
-      </ButtonLink>
-      <p
-        className="text-[0.8125rem] text-[var(--nf-content-muted)]"
-        role="status"
-        aria-live="polite"
-      >
+    <>
+      <div className="nf-system__actions">
+        <Button
+          variant="primary"
+          size="lg"
+          full
+          loading={retrying}
+          onClick={() => {
+            setRetrying(true);
+            window.location.reload();
+          }}
+        >
+          Try again
+        </Button>
+        <ButtonLink href="/home" variant="secondary" size="lg" full>
+          Back to home
+        </ButtonLink>
+      </div>
+      <p className="nf-system__status" role="status" aria-live="polite">
         {online
           ? "Your phone reports a connection. Tap Try again."
           : "Your phone reports no connection right now."}
       </p>
-    </div>
+    </>
   );
 }

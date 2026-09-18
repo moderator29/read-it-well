@@ -1,236 +1,223 @@
 # Mobile readiness
 
-Written 2026-08-06. Everything below was checked against the repository rather
-than assumed, and the counts are reproducible with the commands quoted beside
-them.
+Rewritten 18 September 2026 in the Build 06 pass (G4, store posture). Every
+line below was checked against the tree on that day rather than carried over,
+and the counts are reproducible with the commands quoted beside them. The
+operating manual for building and signing the native shells is
+`docs/MOBILE.md`; this file is the state of readiness and the founder's
+checklist to the stores.
 
-The short version: this platform is already a serious mobile product, and it was
-a **Progressive Web App** only. Packaging it for the App Store and Google Play
-needed one architectural decision, and section 3 below is where that decision
-was priced.
-
-**The owner has since chosen, and Path A is built.** Capacitor 8 is installed,
-both native projects are generated, and the operating manual is
-`docs/MOBILE.md`. Section 2 is retained because it is still the reason the
-architecture is what it is, and section 3 is retained because Path C remains
-the better long-term answer for iOS.
-
-Updated 2026-08-07.
+The short version: the web product is a complete installable PWA with a
+designed offline shell and an install card; Capacitor 8 wraps it as a
+remote-origin shell with both native projects generated; **no native build
+has ever run**, no device has ever been tested, and everything between here
+and a store listing is account work, signing material and a machine with the
+native toolchains, all of which sit with the founder.
 
 ---
 
-## 1. What is already there
-
-None of this is aspiration. It is in the tree today.
+## 1. What is in the tree today
 
 | Piece | Where | State |
-|---|---|---|
-| Web app manifest | `apps/web/src/app/manifest.ts` | Typed route, brand navy, `display: standalone`, `start_url: /home`, portrait |
-| Launcher icons | `public/pwa/icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | Generated from the canonical cutout, maskable held inside the 80 per cent safe zone |
-| Offline shell | `public/sw.js`, `apps/web/src/app/offline/page.tsx` | Precached at install, serves the offline route on a failed navigation |
-| Service worker registration | `components/app/ServiceWorkerRegistrar.tsx` | Production only, after load |
-| Safe areas | `css/chips.css`, `css/chrome.css`, `css/overlays.css` | `safe-area-inset` honoured in the three places that sit against a device edge |
-| Mobile-first layout | Throughout | 390px is the design origin, not a breakpoint bolted on afterwards |
-| Reduced motion | Token collapse | Honoured platform-wide |
-| Self-hosted faces | `public/fonts` | Seven immutable woff2 files, `max-age=31536000`, preloaded per locale |
-
-An installed home-screen Vallo on a mid-range Android already behaves like an
-app: its own icon, its own splash colour, no browser chrome, and a designed
-answer when the network drops. For the audience this platform is built for,
-often on a metered data bundle, that is real reach rather than decoration.
-
----
-
-## 2. Why Capacitor cannot wrap this build today
-
-Capacitor packages a **static web bundle** from `webDir` into a native shell.
-The alternative it offers, `server.url`, does not package anything: it points a
-WebView at a hosted origin.
-
-This application cannot produce a static bundle. That is not a gap to close, it
-is what the product is:
-
-```
-grep -rln '"use server"' apps/web/src   # 40 files
-grep -rln 'from "next/headers"' apps/web/src   # 10 files
-```
-
-- **40 files declare server actions.** Every mutation on the platform speaks the
-  `ActionResult` envelope through a server action: booking, wallet, payment,
-  messaging, listing, moderation. `output: 'export'` refuses to build a project
-  containing one.
-- **`apps/web/src/middleware.ts` is the session lock.** It refreshes the
-  Supabase token on every navigation and holds the door on 22 product segments.
-  Static export runs no middleware, so a static bundle has no session layer and
-  no route protection.
-- **Every route is dynamically rendered already.** The root layout awaits
-  `getLocale()`, which reads `cookies()`. There is nothing to prerender.
-- **`next/image` optimisation is server-side**, with an allowlist in
-  `next.config.ts` covering Unsplash and the Supabase storage CDN.
-
-So the honest statement is: **the web build has no static output to package, and
-producing one would mean rebuilding the platform as a client-only application
-against a separate API.** That is a rewrite, not an integration, and the ONE LAW
-in `docs/HANDOFF.md` is the reason not to start one halfway.
-
-### The conflict worth naming
-
-`ROADMAP.md` Phase 6 records the mobile plan as **an Expo application sharing
-the token and i18n packages**. The Phase 3 instruction that prompted this
-document asks for **Capacitor**. Those are different answers to the same
-question and only the owner can settle which one stands. Nothing in this
-document assumes either; section 3 prices all three.
+| --- | --- | --- |
+| Web app manifest | `apps/web/src/app/manifest.ts` | Typed route. Name and short name `Vallo`; `theme_color` and `background_color` both read `CHROME_COLOUR.dark` from `lib/theme/chrome.ts`, the measured chrome colour of the dark canvas; `display: standalone`, `start_url: /home`, portrait; categories lifestyle, shopping, travel; three shortcuts (Search, Bookings, Wallet); four screenshots for the install card |
+| Launcher icons and favicon | `apps/web/public/pwa/*.png`, `apps/web/public/favicon.ico` | Generated by `node scripts/build-web-icons.mjs` from `public/brand/vallo-icon.png` (the glass tile) and `vallo-mark.png` (the mark alone, for 16 and 32). Maskable icon held inside the 72 per cent safe zone. Regenerated in this pass only where the source had changed; see section 7 |
+| Install card screenshots | `apps/web/public/pwa/shots/*.jpg` | Rendered from the running application by `node scripts/build-pwa-screenshots.mjs <origin>`: the landing, the property search and the Stays side at 390x844 at 2x, plus one wide shot, JPEG at quality 90 |
+| Offline shell | `apps/web/public/sw.js`, `apps/web/src/app/offline/` | The worker precaches `/offline`, `/pwa/icon-192.png` and the manifest at install and serves `/offline` on any failed navigation. No HTML is ever cached beyond that page; runtime caching is an allowlist of `/_next/static/`, `/brand/`, `/icons/` and `/pwa/`, with `api`, `admin`, `agent`, `wallet`, `messages`, `notifications` and `auth` blocked outright. Save-Data disables asset caching |
+| The offline screen itself | `apps/web/src/app/offline/page.tsx`, `SystemMoment.tsx`, `RetryButton.tsx` | The brand moment in the register: the tile and wordmark over the aurora plate, one glass card, the honest sentence, a real retry (a full reload) and a live status line that reads `navigator.onLine`. Plain `<img>` throughout, so nothing depends on the image optimiser |
+| Error and not-found pages | `apps/web/src/app/error.tsx`, `(app)/error.tsx`, `not-found.tsx` | Same anatomy as the offline screen; the reference on the error pages is the Next digest, never the raw error; the 404 carries a search form that posts to `/search` |
+| Service worker registration | `apps/web/src/components/app/ServiceWorkerRegistrar.tsx` | Production only, after load |
+| Capacitor configuration | `apps/web/capacitor.config.ts` | Capacitor 8.5 (`@capacitor/core`, `cli`, `android`, `ios`; plugins `app`, `browser`, `keyboard`, `splash-screen`, `status-bar`). Loads the live origin from `CAPACITOR_SERVER_URL` at sync time; falls back to `native-shell/` when unset. The application identifier is written in this file, in `android/app/build.gradle` and in the iOS project, all three agreeing, and it is on the stop list: nobody in a build session changes it |
+| Native projects | `apps/web/android/`, `apps/web/ios/` | Both generated. `versionCode 100000` and `versionName 0.1.0` on Android, `CURRENT_PROJECT_VERSION 100000` and `MARKETING_VERSION 0.1.0` on iOS, written by `npm run sync:versions` from `apps/web/package.json` (`0.1.0`) |
+| Native fallback shell | `apps/web/native-shell/index.html` | What the binary shows when the origin cannot be reached, and what it opens on when it was packaged without `CAPACITOR_SERVER_URL` |
+| Native icon and splash sources | `apps/web/assets/` | Generated by `node scripts/build-native-icons.mjs` from the same tile; fanned into the projects by `npx @capacitor/assets generate` (see `docs/MOBILE.md` for the two stray outputs that command leaves and that must be deleted) |
+| Native runtime integration | `apps/web/src/lib/native/` | Nine modules: `boot`, `platform`, `status-bar`, `theme`, `splash`, `keyboard`, `back-button`, `external-links`, `deep-links`. Status bar bound to the theme, splash dismissed on first paint, keyboard insets, hardware back, system-browser handoff for OAuth and payments |
+| Deep link association files | `apps/web/public/.well-known/assetlinks.json`, `apple-app-site-association` | Present and served. Both carry loud placeholders (`PLACEHOLDER_REPLACE_WITH_...`) where the Play signing fingerprint, the upload key fingerprint and the Apple Team ID go, so they fail verification rather than look plausible |
+| Safe areas | see section 2 | `env(safe-area-inset-*)` in 34 places across the stylesheets and components; every fixed or sticky element audited below |
+| Mobile-first layout | Throughout | 390px is the design origin; every surface is proven at 390 dark then light through `scripts/verify-shots.mjs` |
+| Reduced motion | Token collapse plus per-partial stops | Honoured platform-wide; the system pages settle in with `nf-rise` and show whole under `prefers-reduced-motion` |
+| PWA checks | `apps/web/tests/pwa.spec.mjs` | Asserts the manifest fields, the icon responses and the offline route against a running build |
 
 ---
 
-## 3. The three paths, priced honestly
+## 2. Safe-area audit (18 September 2026)
 
-### Path A. Capacitor as a remote-URL shell
+`grep -rn "safe-area-inset" apps/web/src` returns 34 lines; `nf-safe-top` is
+declared once in `app/css/chips.css` and used on seven headers. Every element
+that is `position: fixed` or `position: sticky` on a phone was then checked
+for whether it honours the inset on the edge it touches.
 
-`capacitor.config.ts` sets `server.url` to the production origin. The native
-project holds no application code, only the WebView, the icons and the
-permission declarations.
+**Honours the inset it needs**
 
-- **Cost:** small. Days, not weeks.
-- **Buys:** a real installable binary, push notification tokens, native share,
-  biometric unlock, a store listing.
-- **Costs you:** no offline beyond what the service worker already does, and it
-  cannot ship in the binary. More importantly, Apple's App Review guideline
-  4.2 ("minimum functionality") rejects thin web wrappers, and a shell that is
-  only a WebView pointed at a website is the textbook case. Google Play is far
-  more tolerant.
-- **Verdict:** viable for Play, genuinely risky for the App Store. Do not
-  present it to the owner as a solved store submission.
-- **CHOSEN AND BUILT.** The native capabilities in `apps/web/src/lib/native/`
-  are the argument against 4.2: hardware back, status bar bound to the theme,
-  keyboard insets, splash control, and the system-browser handoff that makes
-  Google sign-in possible at all inside a web view. They are an argument and
-  not a guarantee.
+| Element | Where | How |
+| --- | --- | --- |
+| Bottom dock | `components/app/MobileTabBar.tsx` | `bottom: calc(0.35rem + env(safe-area-inset-bottom))`; the content clearance token in `css/chrome.css` carries the same inset |
+| In-app header | `components/app/AppShell.tsx` | `nf-safe-top` (padding-top inset) |
+| Admin header, agent header, agent skeleton header, site header | `app/admin/layout.tsx`, `components/agent/AgentShell.tsx`, `AgentScreenSkeleton.tsx`, `components/site/SiteHeader.tsx` | `nf-safe-top` |
+| Side drawer, foot | `app/side-nav.css` | padding-bottom inset |
+| Agent mobile nav | `components/agent/AgentMobileNav.tsx` | padding-bottom inset |
+| Listing wizard's pinned bar | `app/agent/list/ListingWizard.tsx` | padding-bottom inset |
+| Pinned action bars (listing foot, checkout, rent pay, reserve) | `css/chips.css` `.nf-action-bar-pinned`, `(app)/listing/[id]/page.tsx`, both `PayPanel.tsx` | padding-bottom inset |
+| Bottom sheets | `css/overlays.css` `.nf-sheet`, `app/settings-rows.css` `.nf-rows-sheet`, `components/app/place/ChoicePicker.tsx` | padding-bottom inset |
+| Filter drawer | `css/catalogue.css` `.nf-filters__head` and `.nf-filters__foot` | top and bottom insets |
+| Thread composer | `css/threads.css` `.nf-composer` | padding-bottom inset |
+| Assistant chat | `components/app/assistant/AssistantChat.tsx` | padding-bottom inset |
+| Welcome cards | `components/app/welcome/WelcomeCards.tsx` | `nf-safe-top` and padding-bottom inset |
+| Social sheet, comments composer, actions sheet, toast, bloom | `app/social-feed.css` | padding-bottom or bottom offset inset |
+| Gallery and photo viewer controls | `components/app/listing/{ListingGallery,PhotoViewer,ListingActions}.tsx` | `nf-safe-top` |
+| Auth stage, system pages | `css/auth.css` `.nf-auth`, `css/system.css` `.nf-system` | top and bottom insets on the page padding |
 
-### Path B. Capacitor over a client-rendered twin
+**Lacks the inset, found and reported (each is another worker's file, so
+not edited here)**
 
-A second build target that renders the product client-side against the Supabase
-JS client directly, statically exported, packaged into the shell. The server
-actions become client calls guarded by RLS.
+| Element | Where | What is missing | Owner |
+| --- | --- | --- | --- |
+| Side drawer, head | `app/side-nav.css` (the drawer panel inside `AppShell`'s `fixed inset-0`) | No `safe-area-inset-top`: the user block sits under a notch on a full-bleed phone | Lead |
+| Report sheet | `components/app/ReportSheet.tsx` (`fixed inset-0 z-[80]`) | No bottom inset in the component or a shared sheet class | F4 |
+| Site mobile menu | `components/site/MobileMenu.tsx` (`fixed inset-0 z-[75]`) | No top or bottom inset | F2 |
+| Settings account sheet | `app/(app)/settings/AccountSection.tsx` (`fixed inset-0 z-[80]`) | No inset found in the component; not on `.nf-rows-sheet` | F4 |
+| Calendar editor's sticky save card | `app/agent/listings/[listingId]/calendar/CalendarEditor.tsx` (`sticky bottom-4`) | Bottom offset is a fixed 1rem with no inset | F5 |
+| Story viewer stage | `components/social/story/StoryViewer.tsx` | No `env()` in the component; its full-screen stage in `social-feed.css` was not verified either way | F4 |
 
-- **Cost:** very large. The 40 server actions carry validation, rate limiting,
-  idempotency and the ledger invariants. Moving that logic clientward moves it
-  where a user can edit it, and Master Rule 48 forbids trusting the frontend for
-  financial calculations. Each action would need a Supabase Edge Function or a
-  hosted route to keep its guarantees.
-- **Verdict:** technically achievable, and it is a quarter of work, not a
-  sprint. It also creates a second implementation of every flow, which is the
-  duplication the architecture rules exist to prevent.
+Click-away scrims (`fixed inset-0` with `cursor-default` in the profile menu,
+story viewer, comments sheet, district header and location chip), the flip
+stage, the confirm dim and the sheet backdrops need no inset: nothing inside
+them is read or tapped at the edge.
 
-### Path C. Expo, as `ROADMAP.md` already planned
+---
 
-A native application sharing `packages/design-tokens` and `packages/i18n`,
-talking to the same Supabase project and the same hosted server routes.
+## 3. What has NOT been verified, and why
 
-- **Cost:** large, but it is the cost the roadmap already budgeted, and it is
-  additive rather than duplicative: the shared packages mean the design system
-  and all four locales come across intact.
-- **Buys:** a genuinely native product that passes 4.2 without argument, real
-  push, real background behaviour, and no second copy of the web app.
-- **Verdict:** the recommendation, and it is what the repository already
-  decided before this instruction arrived.
+Read this before trusting section 1.
 
-**Recommended sequence:** ship the PWA properly now, since it is finished and
-costs nothing more. Take Path A to Google Play only if the owner wants a Play
-listing this quarter and accepts it is a wrapper. Build Path C for iOS.
-
-Nothing here is blocked on code. It is blocked on the owner picking one.
+- **No native build has ever run.** The sandbox proxy denies `dl.google.com`,
+  so neither the Android SDK nor the Android Gradle Plugin can be fetched, and
+  there is no macOS and no Xcode. `docs/MOBILE.md` section 6 lists what was
+  checked instead (both projects generate, `cap sync` succeeds, the Gradle
+  files parse, the plist and manifest are well formed).
+- **No device has ever run it.** Every mobile claim here is about code and a
+  390px viewport in headless Chromium, including the safe-area audit above,
+  which reads stylesheets rather than a notch.
+- **Push notifications are not wired.** Notifications are database rows
+  rendered in-product; nothing delivers to a device, and nothing asks for the
+  permission.
+- **Sign in with Google is not closed on native.** The OAuth handoff opens
+  the system browser correctly, but the return needs a verified universal
+  link or App Link, and both association files are waiting on the values in
+  section 6.
+- **Apple's App Review guideline 4.2.** The native integration in
+  `src/lib/native/` is the argument that the app is more than a web view. It
+  is an argument, not a guarantee, and the alternative (an Expo application
+  sharing the token and i18n packages) remains the safer long-term answer
+  for iOS. Nothing in the tree assumes either outcome.
+- **Store screenshots are not made.** The PWA install-card shots are
+  390x844 at 2x, which is not a store device size; the stores want their own
+  sizes per device class, taken from the shipped build.
 
 ---
 
 ## 4. Permission inventory
 
-Every permission the product can request, why it exists, and whether a native
-build would need to declare it. This is the list a store questionnaire asks for.
+What the product can request, why, and what the native projects declare.
 
-| Permission | Requested by | Why | Denial handling |
-|---|---|---|---|
-| Geolocation | `components/app/search/MapCanvas.tsx`, the locate-me control | Centres the map on the person searching | Falls back to the fitted viewport, and the control reports its own status through a live region |
-| Photo library / file read | `ProfilePhotos`, `StoryComposer`, `Composer`, `MessageThread`, `ApplyWizard` | Listing photos, avatars, agent verification documents, message attachments | A standard file input, so the platform never sees a denial, only an empty selection |
-| Camera | **Declared on iOS only**, `NSCameraUsageDescription` | No `getUserMedia` call exists anywhere, and the web still sends `camera=()`. This key is about a different mechanism: three file inputs carry `accept="image/*"`, iOS draws a "Take Photo or Video" row in its own picker for those, and iOS terminates an app that reaches the camera with no purpose string. The choice was a purpose string or a crash mid-upload | The picker is the operating system's own, so a refusal returns an empty selection |
-| Microphone | Not requested | Nothing records audio | n/a |
-| Notifications | Not requested in the browser today | Notifications are database rows rendered in-product. Web Push is not wired | n/a |
-| Contacts, calendar, background location | Never | Nothing needs them, and asking would be a store review question with no good answer | n/a |
+| Permission | Requested by | Why | Declared natively |
+| --- | --- | --- | --- |
+| Geolocation | `components/app/search/MapCanvas.tsx`, the locate-me control | Centres the map on the person searching; falls back to the fitted viewport, status announced in a live region | Android `ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION` capped at `maxSdkVersion="30"` (the reasoning is written in `AndroidManifest.xml`); iOS `NSLocationWhenInUseUsageDescription` |
+| Photo library / file read | The listing, profile, story, message and verification upload inputs | A standard file input; the platform only ever sees the files picked | iOS `NSPhotoLibraryUsageDescription` |
+| Camera | Nothing calls `getUserMedia`; the web sends `camera=()` | iOS draws a Take Photo row in its own picker for `accept="image/*"` inputs and terminates an app that reaches the camera with no purpose string | iOS `NSCameraUsageDescription` only |
+| Internet | Everything | | Android `INTERNET` |
+| Microphone, contacts, calendar, background location, notifications | Not requested | Nothing needs them | Not declared |
 
-The edge already declares the negative half of this in `next.config.ts`:
-
-```
-Permissions-Policy: camera=(), microphone=(), geolocation=(self), interest-cohort=()
-```
-
-Camera and microphone are switched off outright, geolocation is same-origin
-only, and the cohort opt-out is set. A native build should mirror exactly this
-list and add nothing to it.
+The edge declares the negative half in `next.config.ts`:
+`Permissions-Policy: camera=(), microphone=(), geolocation=(self), interest-cohort=()`.
+A native build mirrors this list and adds nothing.
 
 ---
 
 ## 5. Data inventory
 
-The privacy disclosure a store listing needs is not guesswork here, because
-every table is in `supabase/migrations/` and every one carries RLS. The
-categories that matter for a disclosure form:
+For the Data safety and App Privacy questionnaires. Every table is in
+`supabase/migrations/` and every one carries RLS.
 
 | Category | Where it lives | Leaves the platform? |
-|---|---|---|
-| Account identity, name, email, phone | `profiles`, Supabase `auth.users` | No |
-| Authentication tokens | HTTP-only cookies, rotated by the middleware | No |
-| Payment records | `payments`, the kobo ledger | Card details never touch the platform. Paystack holds them |
+| --- | --- | --- |
+| Account identity: name, email, phone | `profiles`, Supabase `auth.users` | No |
+| Authentication tokens | HTTP-only cookies, rotated on navigation | No |
+| Payment records | `payments`, the kobo ledger | Card details never touch the platform; Paystack holds them |
 | Wallet balances | Append-only ledger, balances derived | No |
-| Uploaded media | Supabase storage buckets, `social-media` and the private verification bucket | Verification documents are read only through short-lived signed URLs |
+| Uploaded media | Supabase storage buckets | Verification documents are read only through short-lived signed URLs |
 | Messages | `messages`, RLS-scoped to the thread | No |
-| Location | Listing coordinates only. A searcher's own position is used in the browser and never posted | No |
-| Analytics | None. There is no analytics vendor in this codebase | n/a |
-| Crash reporting | None wired | n/a |
+| Location | Listing coordinates only; a searcher's own position is used in the browser and never posted | No |
+| Analytics, crash reporting | None. No analytics or crash-reporting dependency is declared in `apps/web/package.json` | n/a |
 | Local storage | Theme choice (`nf_theme`), locale cookie, saved-item cache, search memory | No |
 
-**Worth the owner knowing:** there is no analytics and no crash reporting in
-this product at all. That makes the privacy disclosure short and honest, and it
-also means nobody will know why a release is failing in the field. Adding crash
-reporting is a real decision with a real privacy cost, and it should be made
-deliberately rather than discovered during a store review.
+Worth the founder knowing: with no crash reporting, nobody will know why a
+release fails in the field. Adding it is a real decision with a real privacy
+cost and belongs in the questionnaire the day it is made, not after.
 
 ---
 
-## 6. What a store submission still needs from the owner
+## 6. The founder's checklist to the stores
 
-None of these can be done from inside the repository.
+In order. Nothing here can be done from inside the repository, and nothing
+below invents a value: every identifier, key and fingerprint comes from the
+founder's own accounts.
 
-- [ ] Decide Path A, B or C in section 3. Everything else waits on this.
-- [ ] Apple Developer Program enrolment, and payment of the annual fee
-- [ ] Google Play Console registration, and the one-off fee
-- [ ] Code signing: an iOS distribution certificate and provisioning profiles, an Android upload keystore
-- [ ] Bundle identifiers reserved on both stores, for example `ng.rentme.app`
-- [ ] Codemagic (or another CI) account, connected to the repository, holding the signing material
-- [ ] Store screenshots at every required device size, and the marketing copy to go with them
-- [ ] The privacy policy URL, which exists in-product at `/privacy` and needs a public canonical address
-- [ ] Data safety and App Privacy questionnaires, answerable from section 5
+**Accounts and money**
+- [ ] Apple Developer Program enrolment (annual fee)
+- [ ] Google Play Console registration (one-off fee)
+- [ ] A CI account (Codemagic or equivalent) connected to the repository, or a Mac with Xcode and a machine with Android Studio
+
+**The production origin**
+- [ ] Decide the production domain and set it in Vercel
+- [ ] Export `CAPACITOR_SERVER_URL="https://<that origin>"` in every shell and CI job that runs `npx cap sync`; unset, the binary opens on the fallback shell and says so
+
+**Identifiers and signing**
+- [ ] Reserve, on both stores, exactly the application identifier written in `apps/web/capacitor.config.ts` (it must match `android/app/build.gradle` and the iOS project, and it cannot change after first submission)
+- [ ] Android: create the upload keystore and write `apps/web/android/keystore.properties` per `docs/MOBILE.md` section 4 (both are gitignored)
+- [ ] iOS: distribution certificate and provisioning profiles in the Apple Developer portal; nothing in the repository holds them
+- [ ] `apps/web/public/.well-known/assetlinks.json`: replace both placeholders with the Play app-signing SHA-256 (Play Console, Release, Setup, App signing) and the upload-key SHA-256 (`keytool -list -v`)
+- [ ] `apps/web/public/.well-known/apple-app-site-association`: replace the Team ID placeholder with the ten-character Apple Team ID
+- [ ] iOS Associated Domains: follow the three activation steps written inside `apps/web/ios/App/App/App.entitlements`
+
+**The build**
+- [ ] `npm install && npm run build` (the web build is still the source of truth)
+- [ ] `node scripts/build-native-icons.mjs`, then `npx @capacitor/assets generate` from `apps/web` with the four `#010118` background flags in `docs/MOBILE.md`, then delete `apps/web/icons/` and `apps/web/public/manifest.webmanifest`, which that command writes and this project must not serve
+- [ ] `npm run sync:versions` with `VALLO_BUILD` set (CI already provides `$PROJECT_BUILD_NUMBER` on Codemagic or `$GITHUB_RUN_NUMBER` on Actions); `npm run sync:versions -- --check` in CI
+- [ ] `CAPACITOR_SERVER_URL=... npx cap sync` from `apps/web`
+- [ ] Android: `./gradlew assembleRelease` on a machine with the SDK; confirm the R8-minified bundle opens
+- [ ] iOS: open `npx cap open ios`, confirm the hand-edited `project.pbxproj` opens in Xcode, archive
+
+**Device tests before the first upload (none has happened)**
+- [ ] Android 10 or 11 handset: the location permission prompt and the coarse-only rescue path
+- [ ] A notched phone in both themes: the drawer head, the report sheet and the site menu (section 2's open rows)
+- [ ] Airplane mode from a cold start: the fallback shell; from a warm session: the `/offline` screen and its retry
+- [ ] Sign in with Google on both platforms once the association files verify
+- [ ] A Paystack card payment and a wallet top-up returning to the app
+
+**The listings**
+- [ ] Store screenshots at every required device size, from the shipped build
+- [ ] Data safety (Play) and App Privacy (Apple) questionnaires, answered from section 5
 - [ ] Age rating questionnaires
-- [x] **`pg_cron` is enabled**, corrected 2026-08-09. Installed 2026-08-04, six active jobs. It blocks nothing
+- [ ] Review notes for Apple addressing guideline 4.2: name the native capabilities in `src/lib/native/` and what the app does that a bookmark cannot
+- [ ] The privacy policy URL: `/privacy` on the production origin
+
+**Brand asset**
+- [ ] A transparent re-render of the glass tile for the Android adaptive foreground layer; today the foreground is the opaque tile on navy, correct on every launcher and simply without parallax on the launchers that separate the layers
 
 ---
 
-## 7. What was NOT done, and why
+## 7. What this pass changed, and what it did not
 
-Superseded in part. This section described the state before Capacitor was
-installed. What still stands:
+Changed: the manifest's header comment, categories and screenshot list; the
+screenshot script's routes (the Stays side replaces the vanished markets
+anchor) and its theme key (`nf_theme`, the key the app reads); the system
+pages and the offline screen in the register; this document.
 
-- **No native build has ever run here.** The sandbox proxy denies
-  `dl.google.com`, so the Android SDK and the Android Gradle Plugin cannot be
-  fetched, and there is no macOS. `docs/MOBILE.md` section 6 lists precisely
-  what was verified and what was not, and it is the honest record.
-- **Push notifications are still not wired.** The notification layer exists as
-  database rows with triggers, which is the hard half. Delivery to a device is
-  a separate piece of work and it spends the one permission prompt a person
-  will ever grant, so it should ship with something worth saying.
-- **No device testing happened.** Every mobile claim is about code and
-  viewport, not about a handset. Layout is verified at 390px by the Playwright
-  specs.
-
-No longer true, and left here only so the change is legible: this section
-previously said no `capacitor.config.ts` was added and no `android/` or `ios/`
-project was generated. All three now exist.
+Not changed: no icon was regenerated, because the tile and mark sources were
+unchanged and a rebuild into a scratch folder reproduced the committed icons
+pixel for pixel (the byte streams differ only in PNG encoding); no native
+identifier, native project file or association file was touched; the two
+`sw.js` shell entries were not extended to the wordmark and the plate, which
+would be worth doing so the offline screen carries them on a cold cache
+(`public/sw.js` is outside this scope).

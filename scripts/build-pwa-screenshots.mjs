@@ -37,24 +37,26 @@ const CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
  * own canvas is the night one; a white screenshot in that context reads as a
  * different application.
  *
- * `anchor` is a CSS selector the shot scrolls to, NOT a pixel offset. The first
- * cut used a pixel offset and produced exactly what a pixel offset always
- * produces eventually: a card sliced in half at the top of the frame and a band
- * of empty canvas at the bottom, because the page had grown by a section since
- * the number was chosen. A selector survives the page being edited, which on
- * this landing page is weekly.
+ * `anchor`, when a shot carries one, is a CSS selector the shot scrolls to,
+ * NOT a pixel offset. The first cut used a pixel offset and produced exactly
+ * what a pixel offset always produces eventually: a card sliced in half at the
+ * top of the frame and a band of empty canvas at the bottom, because the page
+ * had grown by a section since the number was chosen. A selector survives the
+ * page being edited, and a missing selector refuses the shot rather than
+ * framing whatever the page happened to show. No shot in the current set
+ * needs one; the mechanism stays for the next one that does.
  */
 const SHOTS = [
   { file: "narrow-home.jpg", route: "/", width: 390, height: 844, form: "narrow" },
   { file: "narrow-search.jpg", route: "/search", width: 390, height: 844, form: "narrow" },
-  {
-    file: "narrow-markets.jpg",
-    route: "/",
-    width: 390,
-    height: 844,
-    anchor: "#nf-markets-title",
-    form: "narrow",
-  },
+  /*
+   * The Stays side replaced the markets band. `narrow-markets` scrolled the
+   * landing to `#nf-markets-title`, an anchor the rebuilt landing no longer
+   * carries, and the second world of the product had no screen on the card
+   * at all. The Stays home is the third thing a stranger meets and it is a
+   * route of its own, so no anchor is needed and nothing can be reframed.
+   */
+  { file: "narrow-stays.jpg", route: "/stays", width: 390, height: 844, form: "narrow" },
   { file: "wide-home.jpg", route: "/", width: 1280, height: 800, form: "wide" },
 ];
 
@@ -72,7 +74,11 @@ for (const shot of SHOTS) {
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("nf-theme", "dark");
+      /* `nf_theme`, with the underscore: the key the before-paint reader in
+         app/layout.tsx and scripts/verify-shots.mjs both use. This wrote
+         `nf-theme`, which nothing reads; the shots came out dark anyway only
+         because dark is the default. */
+      localStorage.setItem("nf_theme", "dark");
     } catch {
       /* private mode, and the default is dark anyway */
     }
