@@ -158,12 +158,44 @@ M15 business verification rungs and admin business actions.
 | Inspections whole: accept in the thread, `/inspections` Open and Closed, notifications, outcome | `a8fad5b` |
 | The wallet's send and receive as full pages; the old sheets deleted | `a8fad5b` |
 | `/settings/payments`: saved cards webhook-fed, bank accounts resolve-verified | `a8fad5b` |
+| `database.types.ts` regenerated for M1 to M15, catching two ambiguous embeds and a false non-null | `70c98d9` |
+| The stay detail showcase, room types, rate plans, the total as the headline, the refusal reason | `70c98d9` |
+| The trips date spine, today by shape and word, the past folded with its count | `70c98d9` |
+| One cancel flow shared by `/bookings` and `/trips`, the half implementation closed | `70c98d9` |
+| `/restaurant/[id]` as the reservation-first surface, refusing to guess open-now | `70c98d9` |
+| One empty-state anatomy between the feed and a profile | `70c98d9` |
 
 ---
 
 ## 5. Pitches taken into the build (small, on-system, reversible)
 
-(filled in as work lands)
+Each is on-system, reversible, and blocked no phase item. Seeds are
+`TWO_MODE_FRONTEND_RESEARCH.md` section 7 where one is cited.
+
+1. **The coin's edge tease and its press spin** (seed 1). The control performs
+   the same physics as the viewport, so the gesture is explained before it
+   happens.
+2. **The still miniature on the cover** (seed 2): three glass objects standing
+   for the incoming shelf. Brand, never data, so it cannot lie while it waits.
+3. **The cover's shimmer only while the network is behind the flip** (the
+   skeleton's own language), stopping the instant the page lands, so waiting
+   is honest and never theatrical.
+4. **The first-flip ceremony**, one beat longer with the side's name typing in,
+   bounded by localStorage with try/catch (seed 15).
+5. **The booking-steps timeline drawing its own rule** as steps complete
+   (seed 8), on the existing keyframe.
+6. **The trips date spine** (seed 12), with today marked by shape and by the
+   word, never by hue alone.
+7. **The accept ceremony**: the thread header tints through the existing
+   verified motion rather than inventing a second "something landed"
+   (seed 13).
+8. **The row that just changed pulses once** on `/inspections`, on the shipped
+   transaction-in motion.
+9. **The amount rolls as it is typed** on the wallet's send page, on the
+   existing odometer, with the balance after the send shown live (seed 5).
+10. **A rate plan that cannot take the chosen nights is drawn as refused with
+    its reason**, rather than hidden, so nobody is offered a price the booking
+    would reject.
 
 ---
 
