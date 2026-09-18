@@ -383,3 +383,49 @@ And **do not restart the history again.** The 7 August restart is why this audit
 needed to establish, from first principles, that ten branches were not holding
 six weeks of work hostage. A squash merge or a fresh orphan snapshot saves a
 little noise now and costs exactly this later.
+
+---
+
+## Cleanup attempt, 18 September 2026
+
+**The founder ordered the stale branches deleted.** This session recorded every
+head SHA below, then attempted the deletion, and the remote refused it exactly
+as it refused the previous session: the git credential this environment holds
+cannot delete remote branches. Nothing was deleted by this session.
+
+**Current head SHA of every branch at the moment of this audit**, so any
+deletion done in the GitHub UI stays reversible with `git branch <name> <sha>`:
+
+| Branch | Head | Verdict |
+| --- | --- | --- |
+| `claude/greeting-4np7sj` | `5b389e48` | Delete. Fully merged |
+| `claude/rentme-data-sourcing-arch-birz8q` | `4c5e35d6` | Delete. Fully merged |
+| `claude/rentme-polish-pass-p4808t` | `5157d397` | Delete. Fully merged |
+| `claude/master-autonomous-engineering-os-c4guqi` | `82de53e5` | Delete. No common ancestor with main, superseded |
+| `claude/platform-premium-ui-audit-vtpvtc` | `dd4bfc8c` | Delete. Superseded |
+| `claude/rentme-social-and-polish` | `a39411c7` | Delete. Superseded |
+| `claude/rentme-social-design-je796y` | `de313f8b` | Delete. Superseded |
+| `claude/rentme-loop-closure-pb0ird` | `45c1ad1e` | Delete. Superseded |
+| `claude/repo-cleanup-1spitz` | `06772da2` | Delete. Superseded |
+| `feat/naijafinds-brand-system` | `bb9d7c9b` | Delete. Brand system for a dead name |
+| `fix/main-social-regressions` | `72fd5272` | Delete. Superseded |
+| `integration/rentme-next` | `ba561381` | Delete. Superseded |
+| `primitives-wip` | `4eeed21a` | Delete. Superseded |
+| `claude/rentme-v2-platform-audit-xuvg0a` | `edc8def5` | Delete. All five commits reached main by cherry-pick; its PR #56 is closed |
+| `claude/zealous-brown-gn45mg` | `a9aced17` | **KEEP for now.** The active sprint session's branch, currently equal to main. Delete only after that session's close-out |
+| `main` | moving | Keep. The only working branch |
+
+**How the founder deletes them, about sixty seconds:** open
+`github.com/moderator29/read-it-well/branches`, and for each branch above
+marked Delete, click the bin icon on its row. GitHub keeps a Restore button on
+the page for a while afterwards, and the SHAs above are the permanent recovery
+record beyond that.
+
+**PR #56** was closed without merge on 18 September 2026: every commit on its
+head branch already reached `main` by cherry-pick on 15 September, and the PR
+showed conflicts against the newer copies of its own content.
+
+**Going forward, one working branch.** Sessions work on `main` directly per
+the founder's standing rule, and any temporary branch a session must create is
+merged and deleted in the same session that created it, with a name that
+describes the work rather than the tool.
