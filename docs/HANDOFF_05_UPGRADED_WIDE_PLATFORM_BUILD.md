@@ -54,6 +54,22 @@ the oversell gate proven, thread contexts, inspection notifications,
 checkout, host onboarding actions (M14/M15) and the admin business desk.
 `docs/BUILD_05_LEDGER.md` section 4 is the commit-tied record. What remains:
 
+**B0. The retired session's parting confession, inherited debts, do these
+first.** Its exact last words: (1) **the demo-reservation hole**: a table
+can still be requested at an example restaurant, because all 64 listings
+are demo rows and the demo-refusal trigger covers the business path but
+not the listing path; extend the refusal to the listing path so no
+transaction row can ever be written against a demo listing through
+`reserveTable`. (2) Restaurant reservations do not yet create their own
+message thread, so the built reservation face has nothing to occupy (this
+is B3's thread binding; treat it as confirmed missing, not suspected).
+(3) **The last backend agent's work was never audited end to end**: the
+final commit (saved-card charging in checkout and the admin business desk,
+`73e284e2`) typechecks, lints and passes tests, but nobody has read it.
+The lead READS that diff line by line before any work builds on it, and
+records the audit verdict in the ledger; it touches the money path, so
+this is not optional.
+
 **B1. The founder-gated pair.** The moment his word lands: apply M6
 (bookings.listing_id relaxation + the transition guard + booking_state_events
 in one migration) and the M8 landmark seed. Until then, keep both drafted and
