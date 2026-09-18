@@ -422,6 +422,8 @@ alerts, the refund console, the payment-method lookup panel.
 | The desktop screenshot harness `scripts/verify-desktop.mjs` | `fb4e182` |
 | The dock pill takes the side accent (seed 3) | `92da8b1` |
 | A missing translation can no longer break the build (the English fallback) | `776ba64` |
+| The fifteen workers' first stints, committed by the lead after the container restart killed every worker (the tree typechecked clean, linted clean, passed 1,895 tests and built): F1 `f82c4ff`, F2 `4598791`, F3 `c25d39c`, F4 `740b30f`, F5 `e7345ba`, E `9afca7f`, BB `dfbbd22`, BC `2ba1604`, BD `d20849c`, G1 `910708f`, G3 `d8b0c2a`, G4 `a8669a0`, G5 `1806c90`, the remainder `3b0f97f` | `f82c4ff`..`3b0f97f` |
+| BB's b3 and b2, BD's b7, BC's b5 blocks and BA's badge-sweep fix applied live; BC's revoke of `verification_is_required` parked in `pending/` (revokes are on the stop list) | (live) |
 | BA: the lifecycle jobs (`lib/cron`, `lib/bookings/lifecycle*`, four cron routes, `vercel.json`), b4 migrations applied, live probe passed; BB's b3 and b2 migrations applied, live probes passed; `database.types.ts` regenerated | `c838b57` |
 
 ---
@@ -494,6 +496,17 @@ Supabase MCP after reading every line, each probed as one rolled-back block
 - The sandbox's egress proxy refuses the Supabase host, so no dev server
   here renders live rows; every proof is on fixtures or the preview
   harness (F1's finding, confirmed by the empty `/stays` shelf).
+
+**The restart, 18 September 2026 late:** the session's worker process was
+restarted with all fifteen workers mid-flight; the nine reports not yet
+delivered (F4, F5, E, BC, BD, G1, G3, G4, G5) were lost and F2 and F3 were
+cut off. The tree on disk survived. The lead fixed the three things that
+kept it red (a `Segmented` inference that widened to string, a missing
+`agency` label in the Host wizard, a sync export from a "use server"
+module, a settings-search index without the language names), verified
+typecheck, lint, the css check, 1,895 tests and a production build, and
+committed each scope as its own commit. The nine workers were relaunched on
+continuation briefs; the five bounded workers had finished their two works.
 
 **B0, the audit of `73e284e` (saved-card charging in checkout and the admin
 business desk), read line by line by the lead before any work built on it.
