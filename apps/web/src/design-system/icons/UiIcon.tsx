@@ -598,7 +598,7 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
   moon: <path d="M20.2 13.6A8.4 8.4 0 0 1 10.4 3.8a8.4 8.4 0 1 0 9.8 9.8Z" />,
 
   /* Reveal a password. It was drawn inline in `components/auth/fields.tsx` at
-     strokeWidth 1.7 and again in `wallet/BalanceCard.tsx` at strokeWidth 2, as
+     strokeWidth 1.7 and again in `the wallet balance card (since rebuilt)` at strokeWidth 2, as
      two slightly different eyes doing the same job on two screens. */
   eye: (
     <>

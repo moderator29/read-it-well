@@ -86,6 +86,117 @@ Sizing convention: 20 to 24px inline in dense rows, 40 to 48px in feature
 cards and list rows, 64 to 96px in showcase and empty states, and larger only
 in hero or story panels.
 
+<!-- render-crops:start -->
+## Tier 1, continued: the 41 objects cropped from the reference renders
+
+**Added 18 September 2026 by G2, on the ruling in `docs/DESIGN_DIRECTION.md`
+section 3.5:** where a governing render uses a glass object the ten sheets do
+not carry, crop it from the render, key it through the existing pipeline, file
+it through the manifest under a lowercase-hyphen name, and use it, provided it
+carries no baked text. `BrandIcon` now lists 144 objects: the 103 sheet objects
+and these 41.
+
+**Where they live in the pipeline.** `RENDER_CROPS` in `scripts/icon-manifest.mjs`
+is the filing: each entry names the render under `docs/design/references/`,
+the box in that render's own pixels, the object's longer edge at source and what
+it is. `slice-icon-sheets.mjs` cuts the declared boxes into the pseudo-sheet
+`renders`, `cut-icon-ground.mjs` keys them, and `name-icon-objects.mjs`
+emits them at the pack's 256 edge like every other object. The three commands in
+`assets/README.md` rebuild them with the rest; nothing was dropped into
+`public/brand/glass` by hand.
+
+**How the key differs, and why.** A render's ground is not black. Under the
+wallet it is around rgb(0, 44, 128), under a settings tile rgb(0, 13, 52), and
+it is a gradient, so the sheet key would return the panel as a square wash with
+the object inside it. The cutter therefore fits a plane per channel to a thin
+ring at the edge of each box (twice: the second fit drops ring pixels the first
+fit shows to be object), subtracts it, and uses the result for ONE thing: how
+much of each pixel's brightest channel is object rather than ground. The render
+pixel is scaled by that fraction, all three channels by the same number, and
+keyed exactly as a sheet object is. The hue is the render's hue by
+construction. The first cut subtracted channel by channel instead and came back
+green and yellow, because the render's blue channel is already clipped at 255
+wherever an object is lit; that account is in the cutter's header, next to the
+one about luminance.
+
+**They are not all one size, and the size is recorded.** The wallet and the
+hotel are around 190 and 250 pixels at source and lose nothing at 256. The
+profile tiles are 84, the settings tiles 56, the landing rings and chips 36 to
+48, and those are upsampled to 256 and read soft at 96 on a 3x display. The
+`native` column below is the honest number: a `-ring` or a `-chip` belongs in
+a 24 to 48 slot, the tiles in 32 to 64, the wallet and the hotel anywhere up to
+an empty state.
+
+**Light theme.** None of the 41 has a light twin, because no render draws them
+on white and, as section 3 of `docs/BRAND_MARKS.md` established, no filter
+makes one. They take the same recipe as the other 80 untwinned objects: on
+paper `BrandIcon` paints the navy chip `--nf-icon-ground` behind them, and the
+tile-form objects (which arrive on their own glass tile, like the transaction
+marks) read as a tile on the chip. The preview at `/preview/g2` shows every
+one at 32, 48 and 96 on canvas, card, elevated and the glass card, in both
+themes; the proofs are `docs/design/proofs/g2/objects-390-dark.png` and
+`objects-390-light.png`.
+
+**What was looked at and left out, and why.** The HOTEL-lettered building on
+`2A49E2F7` (baked text, never cropped). The onboarding coin on the same render
+(its motion rings run under both flanking cards, so no clean box exists; the
+drawer's coin is the `flip-coin`). The Verve card on `7F96BE6C` (a real brand
+mark with lettering). The settings shield (a smaller drawing of
+`shield-check-tile`). The landing grid's Buy ring (the same house as the
+Properties stat, which is larger and is `home-ring`). The wallet render's
+fourth quick action, a person (the same glyph as `person-card`). The two
+fullpage chips that carry the Vallo bars mark (that is the logo, which has its
+own assets, not an object). The Verify, Experience and Manage rings of the
+How-it-works row (35 pixels at source on a 780-wide render; Verify duplicates
+`shield-ring`, the other two are a blur at that size). Nothing warm-tinted was
+found among the candidates; the gold stars on the stays render are in the
+listing cards, not in any object.
+
+| Name | Render | Box (left, top, size) | Native px | What it is |
+| --- | --- | --- | ---: | --- |
+| `wallet-naira` | `6AF37222` | 614, 226, 182x180 | 186 | The 3D glass wallet with the naira sign, from the balance card |
+| `send-plane-tile` | `6AF37222` | 209, 606, 64x64 | 52 | Paper plane on a rounded glass tile, the Send Money quick action |
+| `phone-tile` | `6AF37222` | 371, 606, 64x64 | 52 | Handset on a rounded glass tile, the airtime quick action |
+| `bill-tile` | `6AF37222` | 527, 606, 64x64 | 52 | Lined document on a rounded glass tile, the bills quick action |
+| `stays-hotel-palms` | `FD3DFE84` | 568, 198, 252x180 | 252 | The hotel block between two palms on a glass slab, the Stays side's mark |
+| `hotel-bed` | `FD3DFE84` | 241, 481, 54x54 | 42 | Double bed glyph, from the lit Hotels category tile (glyph only, above its caption) |
+| `apartment-block` | `FD3DFE84` | 366, 479, 56x56 | 40 | Apartment block glyph, from the Apartments category tile |
+| `palm-tree` | `FD3DFE84` | 489, 479, 56x56 | 38 | Palm glyph, from the Resorts category tile |
+| `guest-house` | `FD3DFE84` | 612, 479, 56x56 | 38 | House with door glyph, from the Guest Houses category tile |
+| `serviced-block` | `FD3DFE84` | 736, 479, 56x56 | 40 | Tower with wings glyph, from the Serviced Apartments category tile |
+| `flip-coin` | `BCD39CA8` | 222, 1132, 98x98 | 86 | The two-faced glass coin with the bars mark, from the drawer's Flip Coin card |
+| `calendar-grid` | `50E032EA` | 231, 657, 96x96 | 84 | Calendar with a six-dot grid on a glass tile, the My Bookings row |
+| `bookmark-ribbon` | `50E032EA` | 231, 781, 96x96 | 84 | Bookmark ribbon on a glass tile, the Saved row |
+| `wallet-tile` | `50E032EA` | 231, 906, 96x96 | 84 | Outline wallet on a glass tile, the Wallet row |
+| `shield-check-tile` | `50E032EA` | 231, 1031, 96x96 | 84 | Shield with a tick on a glass tile, the Inspections row |
+| `role-switch-tile` | `50E032EA` | 229, 1174, 84x84 | 70 | Person with a swap arrow on a glass tile, the Switch role row |
+| `person-card` | `7F96BE6C` | 226, 433, 68x68 | 56 | Person glyph on a glass tile, the Account Information row |
+| `bell-tile` | `7F96BE6C` | 226, 513, 68x68 | 56 | Bell glyph on a glass tile, the Notifications row |
+| `palette` | `7F96BE6C` | 226, 672, 68x68 | 56 | Painter's palette on a glass tile, the Appearance row |
+| `globe` | `7F96BE6C` | 226, 752, 68x68 | 56 | Globe on a glass tile, the Language row |
+| `headset` | `7F96BE6C` | 226, 832, 68x68 | 56 | Headset on a glass tile, the Help and Support row |
+| `card-tile` | `7F96BE6C` | 226, 926, 68x68 | 56 | Payment card on a glass tile, the Payment Methods header |
+| `bank-column` | `7F96BE6C` | 241, 1126, 64x64 | 52 | Bank portico on a glass tile, the bank account row |
+| `home-ring` | `GOVERNING-landing-desktop-hero` | 496, 689, 60x60 | 46 | House outline in a glowing ring, the Properties stat (also the grid's Buy) |
+| `people-ring` | `GOVERNING-landing-desktop-hero` | 711, 689, 60x60 | 46 | Two people in a glowing ring, the Agents stat |
+| `city-ring` | `GOVERNING-landing-desktop-hero` | 929, 689, 60x60 | 46 | Three towers in a glowing ring, the Cities stat |
+| `shield-ring` | `GOVERNING-landing-desktop-hero` | 1169, 689, 60x60 | 46 | Shield with a tick in a glowing ring, the Verified stat |
+| `key-ring` | `GOVERNING-landing-desktop-hero` | 721, 811, 48x48 | 36 | Key in a glowing ring, the grid's Rent |
+| `bed-ring` | `GOVERNING-landing-desktop-hero` | 890, 811, 48x48 | 36 | Bed in a glowing ring, the grid's Stays |
+| `chart-ring` | `GOVERNING-landing-desktop-hero` | 1061, 811, 48x48 | 36 | Rising line chart in a glowing ring, the grid's Invest |
+| `brain-ring` | `GOVERNING-landing-desktop-hero` | 1235, 811, 48x48 | 36 | Brain in a glowing ring, the grid's AI Assistant |
+| `wallet-ring` | `GOVERNING-landing-desktop-hero` | 550, 911, 48x48 | 36 | Wallet in a glowing ring, the grid's Wallet |
+| `calendar-ring` | `GOVERNING-landing-desktop-hero` | 721, 911, 48x48 | 36 | Calendar with a tick in a glowing ring, the grid's Bookings |
+| `chat-ring` | `GOVERNING-landing-desktop-hero` | 890, 911, 48x48 | 36 | Speech bubble in a glowing ring, the grid's Messaging |
+| `inspect-ring` | `GOVERNING-landing-desktop-hero` | 1061, 911, 48x48 | 36 | Shield-framed lens in a glowing ring, the grid's Inspections |
+| `manage-ring` | `GOVERNING-landing-desktop-hero` | 1240, 911, 48x48 | 36 | Gear cluster in a glowing ring, the grid's Management |
+| `brain-chip` | `GOVERNING-landing-desktop-fullpage` | 193, 473, 64x60 | 40 | Brain on a soft glass chip, the AI Powered feature |
+| `wallet-chip` | `GOVERNING-landing-desktop-fullpage` | 308, 473, 64x60 | 40 | Wallet on a soft glass chip, the Secure Wallet feature |
+| `globe-chip` | `GOVERNING-landing-desktop-fullpage` | 419, 473, 64x60 | 40 | Globe on a soft glass chip, the One Platform feature |
+| `building-chip` | `GOVERNING-landing-desktop-fullpage` | 641, 473, 64x60 | 40 | Building on a soft glass chip, the Property Management feature |
+| `search-ring` | `GOVERNING-landing-desktop-fullpage` | 38, 1033, 48x48 | 36 | Magnifier in a glowing ring, the Discover step |
+<!-- render-crops:end -->
+
 ## Tier 2: UiIcon, stroked glyphs (navigation and controls)
 
 `apps/web/src/design-system/icons/UiIcon.tsx`. A 24 grid, SF-quality stroked

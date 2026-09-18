@@ -45,6 +45,7 @@ import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import { RENDER_CROPS, RENDER_DIR, RENDER_SET } from "./icon-manifest.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SHEETS = path.join(ROOT, "assets/brand-sheets");
@@ -337,7 +338,15 @@ await mkdir(OUT, { recursive: true });
  * founder's generator: an 8-4-4-4-12 UUID.
  */
 const SHEET_NAME = /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\.png$/i;
-const files = (await readdir(SHEETS)).filter((f) => SHEET_NAME.test(f)).sort();
+/*
+ * `--only renders` skips the ten sheets and cuts the render boxes alone. The
+ * sheets do not change when a box in the manifest moves, and rescanning 1.5
+ * million pixels per sheet in JavaScript to reach the one set that did is what
+ * a box correction cost on a loaded machine. The sheets' slices are left as
+ * they are on disk; a full run is still the three plain commands.
+ */
+const onlyRenders = process.argv.includes("--only") && process.argv[process.argv.indexOf("--only") + 1] === RENDER_SET;
+const files = onlyRenders ? [] : (await readdir(SHEETS)).filter((f) => SHEET_NAME.test(f)).sort();
 
 const report = [];
 for (const file of files) {
@@ -349,5 +358,29 @@ for (const file of files) {
       (DECLARED_COLUMNS[file] ? `  (declared columns ${DECLARED_COLUMNS[file].join(",")})` : ""),
   );
 }
+/*
+ * The render crops. Not a sheet, so nothing is detected: each box is declared
+ * in `icon-manifest.mjs` in the render's own pixels and is cut exactly as
+ * declared, at source resolution, unsquared. Squaring happens in the cutter,
+ * AFTER the ground is keyed out, so the padding is transparent rather than a
+ * strip of somebody else's row: these boxes stop a few pixels short of a label
+ * or a neighbouring tile and there is no room to square them on the render.
+ */
+const renderDir = path.join(OUT, RENDER_SET);
+await mkdir(renderDir, { recursive: true });
+let renders = 0;
+for (const [name, crop] of Object.entries(RENDER_CROPS)) {
+  const n = String(renders + 1).padStart(2, "0");
+  const src = path.join(ROOT, RENDER_DIR, crop.render);
+  const meta = await sharp(src).metadata();
+  const { left, top, width, height } = crop.box;
+  if (left + width > meta.width || top + height > meta.height) {
+    throw new Error(`${name}: its box runs off ${crop.render} (${meta.width}x${meta.height}).`);
+  }
+  await sharp(src).extract(crop.box).png({ compressionLevel: 9 }).toFile(path.join(renderDir, `${n}.png`));
+  renders += 1;
+}
+console.log(`${RENDER_SET}   dark   ${String(renders).padStart(2)} objects  (declared boxes on the reference renders)`);
+
 await writeFile(path.join(OUT, "slice-report.json"), JSON.stringify(report, null, 1), "utf8");
-console.log(`\n${report.reduce((n, r) => n + r.count, 0)} objects written to assets/brand-sliced`);
+console.log(`\n${report.reduce((n, r) => n + r.count, 0) + renders} objects written to assets/brand-sliced`);

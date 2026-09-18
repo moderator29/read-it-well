@@ -265,6 +265,309 @@ export const CANONICAL = {
  */
 export const WITHHELD = new Set(["hotel-sign", "escrow-hold", "shield-lock-alt", "map-spot-alt"]);
 
+/**
+ * Objects cropped from the reference renders rather than sliced from a sheet.
+ *
+ * WHY A SECOND SOURCE EXISTS. `docs/DESIGN_DIRECTION.md` section 3.5 rules that
+ * where a governing render uses a glass object the ten sheets do not carry, the
+ * object is cropped from the render, keyed through this pipeline and filed here
+ * under a lowercase-hyphen name, provided it carries no baked text. This map is
+ * that filing. Each entry is the render's filename under
+ * `docs/design/references/`, the region in that render's own pixels, and what
+ * the object is, so the crop is reproducible by anyone with the render and
+ * nobody has to eyeball a rectangle twice.
+ *
+ * THE REGIONS ARE THE LARGEST CLEAN BOX THE RENDER OFFERS. Every box stops
+ * short of the nearest label, rim or neighbouring control. Where an object sits
+ * above its own caption (the stays category tiles) the box is the glyph alone.
+ * Nothing here contains a letter or a digit; the HOTEL-lettered building on
+ * `2A49E2F7` and the Verve card on `7F96BE6C` are deliberately absent, as is the
+ * onboarding coin whose motion rings run off the edge of both flanking cards.
+ *
+ * THESE ARE NOT ALL THE SAME SIZE, AND THE SIZE IS RECORDED HONESTLY. The wallet
+ * and the hotel are around 190 and 250 pixels at source and survive 256 with
+ * nothing lost. The profile tiles are about 84, the settings tiles about 56, the
+ * landing rings and chips 36 to 48. Those are upsampled to the pack's 256 edge
+ * by `name-icon-objects.mjs` and are soft at 96px on a 3x display. `native`
+ * says the longer edge of the object at source so a call site can choose: a
+ * ring drawn at 44 pixels belongs in a 24 to 48 slot, not in an empty state.
+ *
+ * THE RENDER GROUND IS NOT BLACK, which is why `cut-icon-ground.mjs` treats this
+ * set differently from the sheets. See the note there.
+ *
+ * Order matters: `SHEETS.renders` below is derived from the key order, and the
+ * slicer writes `01.png`, `02.png` in that order. Append, never reorder.
+ */
+export const RENDER_CROPS = {
+  /* 6AF37222: the wallet home. */
+  "wallet-naira": {
+    render: "6AF37222-1D2E-4200-AB23-E55A24AE5E4F.png",
+    box: { left: 614, top: 226, width: 182, height: 180 },
+    native: 186,
+    what: "The 3D glass wallet with the naira sign, from the balance card",
+  },
+  "send-plane-tile": {
+    render: "6AF37222-1D2E-4200-AB23-E55A24AE5E4F.png",
+    box: { left: 209, top: 606, width: 64, height: 64 },
+    native: 52,
+    what: "Paper plane on a rounded glass tile, the Send Money quick action",
+  },
+  "phone-tile": {
+    render: "6AF37222-1D2E-4200-AB23-E55A24AE5E4F.png",
+    box: { left: 371, top: 606, width: 64, height: 64 },
+    native: 52,
+    what: "Handset on a rounded glass tile, the airtime quick action",
+  },
+  "bill-tile": {
+    render: "6AF37222-1D2E-4200-AB23-E55A24AE5E4F.png",
+    box: { left: 527, top: 606, width: 64, height: 64 },
+    native: 52,
+    what: "Lined document on a rounded glass tile, the bills quick action",
+  },
+
+  /* FD3DFE84: the stays home. */
+  "stays-hotel-palms": {
+    render: "FD3DFE84-0D2F-4CC9-AEC7-5D438F97CD53.png",
+    box: { left: 568, top: 198, width: 252, height: 180 },
+    native: 252,
+    what: "The hotel block between two palms on a glass slab, the Stays side's mark",
+  },
+  "hotel-bed": {
+    render: "FD3DFE84-0D2F-4CC9-AEC7-5D438F97CD53.png",
+    box: { left: 241, top: 481, width: 54, height: 54 },
+    native: 42,
+    what: "Double bed glyph, from the lit Hotels category tile (glyph only, above its caption)",
+  },
+  "apartment-block": {
+    render: "FD3DFE84-0D2F-4CC9-AEC7-5D438F97CD53.png",
+    box: { left: 366, top: 479, width: 56, height: 56 },
+    native: 40,
+    what: "Apartment block glyph, from the Apartments category tile",
+  },
+  "palm-tree": {
+    render: "FD3DFE84-0D2F-4CC9-AEC7-5D438F97CD53.png",
+    box: { left: 489, top: 479, width: 56, height: 56 },
+    native: 38,
+    what: "Palm glyph, from the Resorts category tile",
+  },
+  "guest-house": {
+    render: "FD3DFE84-0D2F-4CC9-AEC7-5D438F97CD53.png",
+    box: { left: 612, top: 479, width: 56, height: 56 },
+    native: 38,
+    what: "House with door glyph, from the Guest Houses category tile",
+  },
+  "serviced-block": {
+    render: "FD3DFE84-0D2F-4CC9-AEC7-5D438F97CD53.png",
+    box: { left: 736, top: 479, width: 56, height: 56 },
+    native: 40,
+    what: "Tower with wings glyph, from the Serviced Apartments category tile",
+  },
+
+  /* BCD39CA8: the side drawer. */
+  "flip-coin": {
+    render: "BCD39CA8-E92F-4E72-B4BA-7203AA2F93E7.png",
+    box: { left: 222, top: 1132, width: 98, height: 98 },
+    native: 86,
+    what: "The two-faced glass coin with the bars mark, from the drawer's Flip Coin card",
+  },
+
+  /* 50E032EA: the profile. */
+  "calendar-grid": {
+    render: "50E032EA-4141-4237-88D5-01B3720D87B6.png",
+    box: { left: 231, top: 657, width: 96, height: 96 },
+    native: 84,
+    what: "Calendar with a six-dot grid on a glass tile, the My Bookings row",
+  },
+  "bookmark-ribbon": {
+    render: "50E032EA-4141-4237-88D5-01B3720D87B6.png",
+    box: { left: 231, top: 781, width: 96, height: 96 },
+    native: 84,
+    what: "Bookmark ribbon on a glass tile, the Saved row",
+  },
+  "wallet-tile": {
+    render: "50E032EA-4141-4237-88D5-01B3720D87B6.png",
+    box: { left: 231, top: 906, width: 96, height: 96 },
+    native: 84,
+    what: "Outline wallet on a glass tile, the Wallet row",
+  },
+  "shield-check-tile": {
+    render: "50E032EA-4141-4237-88D5-01B3720D87B6.png",
+    box: { left: 231, top: 1031, width: 96, height: 96 },
+    native: 84,
+    what: "Shield with a tick on a glass tile, the Inspections row",
+  },
+  "role-switch-tile": {
+    render: "50E032EA-4141-4237-88D5-01B3720D87B6.png",
+    box: { left: 229, top: 1174, width: 84, height: 84 },
+    native: 70,
+    what: "Person with a swap arrow on a glass tile, the Switch role row",
+  },
+
+  /* 7F96BE6C: settings. */
+  "person-card": {
+    render: "7F96BE6C-BF8C-4413-BD58-25531B27D549.png",
+    box: { left: 226, top: 433, width: 68, height: 68 },
+    native: 56,
+    what: "Person glyph on a glass tile, the Account Information row",
+  },
+  "bell-tile": {
+    render: "7F96BE6C-BF8C-4413-BD58-25531B27D549.png",
+    box: { left: 226, top: 513, width: 68, height: 68 },
+    native: 56,
+    what: "Bell glyph on a glass tile, the Notifications row",
+  },
+  "palette": {
+    render: "7F96BE6C-BF8C-4413-BD58-25531B27D549.png",
+    box: { left: 226, top: 672, width: 68, height: 68 },
+    native: 56,
+    what: "Painter's palette on a glass tile, the Appearance row",
+  },
+  "globe": {
+    render: "7F96BE6C-BF8C-4413-BD58-25531B27D549.png",
+    box: { left: 226, top: 752, width: 68, height: 68 },
+    native: 56,
+    what: "Globe on a glass tile, the Language row",
+  },
+  "headset": {
+    render: "7F96BE6C-BF8C-4413-BD58-25531B27D549.png",
+    box: { left: 226, top: 832, width: 68, height: 68 },
+    native: 56,
+    what: "Headset on a glass tile, the Help and Support row",
+  },
+  "card-tile": {
+    render: "7F96BE6C-BF8C-4413-BD58-25531B27D549.png",
+    box: { left: 226, top: 926, width: 68, height: 68 },
+    native: 56,
+    what: "Payment card on a glass tile, the Payment Methods header",
+  },
+  "bank-column": {
+    render: "7F96BE6C-BF8C-4413-BD58-25531B27D549.png",
+    box: { left: 241, top: 1126, width: 64, height: 64 },
+    native: 52,
+    what: "Bank portico on a glass tile, the bank account row",
+  },
+
+  /* GOVERNING-landing-desktop-hero: the four stats rings and the feature grid. */
+  "home-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 496, top: 689, width: 60, height: 60 },
+    native: 46,
+    what: "House outline in a glowing ring, the Properties stat (also the grid's Buy)",
+  },
+  "people-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 711, top: 689, width: 60, height: 60 },
+    native: 46,
+    what: "Two people in a glowing ring, the Agents stat",
+  },
+  "city-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 929, top: 689, width: 60, height: 60 },
+    native: 46,
+    what: "Three towers in a glowing ring, the Cities stat",
+  },
+  "shield-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 1169, top: 689, width: 60, height: 60 },
+    native: 46,
+    what: "Shield with a tick in a glowing ring, the Verified stat",
+  },
+  "key-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 721, top: 811, width: 48, height: 48 },
+    native: 36,
+    what: "Key in a glowing ring, the grid's Rent",
+  },
+  "bed-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 890, top: 811, width: 48, height: 48 },
+    native: 36,
+    what: "Bed in a glowing ring, the grid's Stays",
+  },
+  "chart-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 1061, top: 811, width: 48, height: 48 },
+    native: 36,
+    what: "Rising line chart in a glowing ring, the grid's Invest",
+  },
+  "brain-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 1235, top: 811, width: 48, height: 48 },
+    native: 36,
+    what: "Brain in a glowing ring, the grid's AI Assistant",
+  },
+  "wallet-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 550, top: 911, width: 48, height: 48 },
+    native: 36,
+    what: "Wallet in a glowing ring, the grid's Wallet",
+  },
+  "calendar-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 721, top: 911, width: 48, height: 48 },
+    native: 36,
+    what: "Calendar with a tick in a glowing ring, the grid's Bookings",
+  },
+  "chat-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 890, top: 911, width: 48, height: 48 },
+    native: 36,
+    what: "Speech bubble in a glowing ring, the grid's Messaging",
+  },
+  "inspect-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 1061, top: 911, width: 48, height: 48 },
+    native: 36,
+    what: "Shield-framed lens in a glowing ring, the grid's Inspections",
+  },
+  "manage-ring": {
+    render: "GOVERNING-landing-desktop-hero.png",
+    box: { left: 1240, top: 911, width: 48, height: 48 },
+    native: 36,
+    what: "Gear cluster in a glowing ring, the grid's Management",
+  },
+
+  /* GOVERNING-landing-desktop-fullpage: the feature chips and the Discover step. */
+  "brain-chip": {
+    render: "GOVERNING-landing-desktop-fullpage.png",
+    box: { left: 193, top: 473, width: 64, height: 60 },
+    native: 40,
+    what: "Brain on a soft glass chip, the AI Powered feature",
+  },
+  "wallet-chip": {
+    render: "GOVERNING-landing-desktop-fullpage.png",
+    box: { left: 308, top: 473, width: 64, height: 60 },
+    native: 40,
+    what: "Wallet on a soft glass chip, the Secure Wallet feature",
+  },
+  "globe-chip": {
+    render: "GOVERNING-landing-desktop-fullpage.png",
+    box: { left: 419, top: 473, width: 64, height: 60 },
+    native: 40,
+    what: "Globe on a soft glass chip, the One Platform feature",
+  },
+  "building-chip": {
+    render: "GOVERNING-landing-desktop-fullpage.png",
+    box: { left: 641, top: 473, width: 64, height: 60 },
+    native: 40,
+    what: "Building on a soft glass chip, the Property Management feature",
+  },
+  "search-ring": {
+    render: "GOVERNING-landing-desktop-fullpage.png",
+    box: { left: 38, top: 1033, width: 48, height: 48 },
+    native: 36,
+    what: "Magnifier in a glowing ring, the Discover step",
+  },
+};
+
+/** The pseudo-sheet the render crops are filed under, in the slicer and the cutter. */
+export const RENDER_SET = "renders";
+
+/** Where the reference renders live, relative to the repository root. */
+export const RENDER_DIR = "docs/design/references";
+
+SHEETS[RENDER_SET] = Object.keys(RENDER_CROPS);
+
 /** Sheets whose objects carry the light-theme artwork rather than the dark. */
 export const LIGHT_SHEET = "c0f67033";
 

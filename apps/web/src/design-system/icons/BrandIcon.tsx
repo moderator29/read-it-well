@@ -51,7 +51,7 @@ import Image from "next/image";
  */
 
 /**
- * The 103 objects that exist as files under `public/brand/glass`. This list is
+ * The 144 objects that exist as files under `public/brand/glass`. This list is
  * the artwork, not a wish: it is generated from the directory, so a name that
  * is here has a PNG and a name that is not cannot be typed.
  *
@@ -60,22 +60,49 @@ import Image from "next/image";
  * split stopped being true the moment the transaction marks arrived: a receipt
  * is neither. One order that a reader can search beats three groups that have
  * to be maintained.
+ *
+ * FORTY ONE OF THESE ARE CROPPED FROM THE REFERENCE RENDERS, not sliced from
+ * a sheet, on the direction's ruling that a glass object a governing render
+ * uses and the sheets lack is cropped, keyed and filed under a name. They are
+ * `RENDER_CROPS` in `scripts/icon-manifest.mjs`, which records the render and
+ * the region each came from, and `docs/ICON_SYSTEM.md` lists them. Two things
+ * to know at a call site. They are single objects with no light twin, so in
+ * daylight they take the navy chip like the other 80. And they are NOT all
+ * drawn at the same size: the wallet and the hotel are around 200 pixels at
+ * source, the tiles 56 to 84, the landing rings and chips 36 to 48, so a
+ * `-ring` or `-chip` belongs in a 24 to 48 slot and not in an empty state.
+ * The manifest's `native` field says which is which.
  */
 export const BRAND_ICONS = [
   "alert-triangle",
+  "apartment-block",
+  "bank-column",
   "beach-house",
+  "bed-ring",
   "bell-badge",
+  "bell-tile",
+  "bill-tile",
   "booking-instant",
+  "bookmark-ribbon",
   "bot",
+  "brain-chip",
+  "brain-ring",
+  "building-chip",
   "bungalow",
   "calendar-check",
   "calendar-clock",
+  "calendar-grid",
   "calendar-home",
+  "calendar-ring",
   "calendar-time",
   "camera",
   "card-lock",
+  "card-tile",
   "chart-growth",
+  "chart-ring",
   "chat-duo",
+  "chat-ring",
+  "city-ring",
   "clock-check",
   "clock-expired",
   "cluster-home",
@@ -91,21 +118,30 @@ export const BRAND_ICONS = [
   "doc-shield",
   "duplex",
   "farm-house",
+  "flip-coin",
   "gift",
   "gift-star",
+  "globe",
+  "globe-chip",
   "globe-pin",
+  "guest-house",
+  "headset",
   "heart-home",
   "home-check",
   "home-lock",
+  "home-ring",
   "home-search",
   "hotel",
+  "hotel-bed",
   "hotel-room",
   "hotel-star",
   "hourglass",
   "house-boat",
   "id-card-check",
   "info",
+  "inspect-ring",
   "key-cycle",
+  "key-ring",
   "keys-handover",
   "keys-home",
   "keys-tag",
@@ -116,6 +152,7 @@ export const BRAND_ICONS = [
   "loft",
   "luggage-check",
   "luggage-plane",
+  "manage-ring",
   "mansion",
   "map-route",
   "map-spot",
@@ -125,27 +162,39 @@ export const BRAND_ICONS = [
   "naira-coins",
   "naira-hand",
   "office-space",
+  "palette",
+  "palm-tree",
   "payment-failed",
   "payment-received",
   "payment-sent",
   "penthouse",
+  "people-ring",
+  "person-card",
+  "phone-tile",
   "pin-map",
   "progress-ring",
   "receipt-check",
   "report-stats",
   "reviews",
+  "role-switch-tile",
   "savings-pot",
   "seal-check",
   "seal-cross",
   "seal-pending",
   "search-home",
+  "search-ring",
+  "send-plane-tile",
   "serviced-apartment",
+  "serviced-block",
   "shared-apartment",
   "shield-check",
+  "shield-check-tile",
   "shield-home",
   "shield-lock",
+  "shield-ring",
   "shop-retail",
   "shortlet",
+  "stays-hotel-palms",
   "studio-apartment",
   "support-chat",
   "support-shield",
@@ -161,9 +210,13 @@ export const BRAND_ICONS = [
   "user-verified",
   "villa",
   "wallet",
+  "wallet-chip",
+  "wallet-naira",
   "wallet-out",
   "wallet-plus",
+  "wallet-ring",
   "wallet-secure",
+  "wallet-tile",
   "warehouse",
 ] as const;
 

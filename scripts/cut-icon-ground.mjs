@@ -114,6 +114,7 @@ import { mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import { RENDER_SET } from "./icon-manifest.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SLICED = path.join(ROOT, "assets/brand-sliced");
@@ -258,9 +259,188 @@ function dropEdgeStrays(rgba, w, h) {
   return dropped;
 }
 
-async function cutOne(src, dest, onLight) {
+/*
+ * THE RENDER CROPS ARE NOT ON BLACK, AND THAT IS THE ONLY THING DIFFERENT ABOUT
+ * THEM.
+ *
+ * An object cropped from a governing render sits on whatever the render put
+ * behind it: the wallet on the balance card's blue panel, the coin on the
+ * drawer's lit flip card, a settings tile on a navy row, and none of those is
+ * flat. Measured, the ground under the wallet is around rgb(0, 44, 128) and
+ * under a settings tile rgb(0, 13, 52), against the sheets' near-black. Keyed
+ * as they are, the sheet key returns the panel as a square wash of alpha with
+ * the object inside it, which is precisely the plate this pipeline exists to
+ * remove.
+ *
+ * The physics is the same as the sheets, with one more term. The render is
+ * still additive light: `pixel = object + ground`. On a sheet the ground is
+ * constant and small enough for the FLOOR to swallow. On a render it is a
+ * smooth gradient, so it is estimated and subtracted first, and THEN the same
+ * brightest-channel key runs on what is left, which is the object on black.
+ *
+ * The estimate is a plane per channel, `a + b*x + c*y`, fitted by least squares
+ * to the pixels in a thin ring around the crop's edge. A ring rather than the
+ * corners because a corner can land on a rim highlight; a plane rather than a
+ * constant because the panels carry a gradient and a constant leaves one edge
+ * washed and the other clipped. The ring is the part of the box that is ground
+ * by construction: each box in `icon-manifest.mjs` was drawn to stop just short
+ * of the object's neighbours, so its edge is the render's surface and not the
+ * object.
+ *
+ * What it costs: where an object's own bloom reaches the edge of its box, the
+ * ring reads slightly high and that much bloom is subtracted with the ground.
+ * Those are the largest crops with the most margin, so the loss is a few
+ * levels at the far end of a fifty-pixel ramp. It is the right trade against a
+ * square halo.
+ *
+ * The floor is lower than the sheets' because the field it existed for is gone.
+ *
+ * AND THE RESULT IS SQUARED HERE, NOT IN THE SLICER. A render box cannot be
+ * squared on the render: the tiles sit a few pixels from their captions. So
+ * the keyed object is centred on a transparent square with the same breathing
+ * room the sheet objects carry, and the padding is nothing rather than a strip
+ * of the row next door.
+ */
+const RENDER_FLOOR = 12;
+const RENDER_RING = 0.06;
+const RENDER_MARGIN = 0.1;
+
+/** A ring pixel this far above the first fit, on its brightest channel, is object and leaves the second fit. */
+const RENDER_RING_REJECT = 8;
+
+function solvePlane(pts) {
+  /* Normal equations for a + b*x + c*y, solved per channel by Cramer's rule. */
+  let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0, syy = 0;
+  const sv = [0, 0, 0], svx = [0, 0, 0], svy = [0, 0, 0];
+  for (const { x, y, v } of pts) {
+    n += 1; sx += x; sy += y; sxx += x * x; sxy += x * y; syy += y * y;
+    for (let k = 0; k < 3; k += 1) {
+      sv[k] += v[k]; svx[k] += v[k] * x; svy[k] += v[k] * y;
+    }
+  }
+  const det =
+    n * (sxx * syy - sxy * sxy) - sx * (sx * syy - sxy * sy) + sy * (sx * sxy - sxx * sy);
+  const planes = [];
+  for (let k = 0; k < 3; k += 1) {
+    if (n === 0) {
+      planes.push([0, 0, 0]);
+      continue;
+    }
+    if (Math.abs(det) < 1e-9) {
+      planes.push([sv[k] / n, 0, 0]);
+      continue;
+    }
+    const a =
+      (sv[k] * (sxx * syy - sxy * sxy) - sx * (svx[k] * syy - sxy * svy[k]) + sy * (svx[k] * sxy - sxx * svy[k])) / det;
+    const b =
+      (n * (svx[k] * syy - sxy * svy[k]) - sv[k] * (sx * syy - sxy * sy) + sy * (sx * svy[k] - svx[k] * sy)) / det;
+    const cc =
+      (n * (sxx * svy[k] - svx[k] * sxy) - sx * (sx * svy[k] - svx[k] * sy) + sv[k] * (sx * sxy - sxx * sy)) / det;
+    planes.push([a, b, cc]);
+  }
+  return planes;
+}
+
+const planeAt = (planes, x, y) => planes.map(([a, b, cc]) => a + b * x + cc * y);
+
+/*
+ * Two fits, not one. A ring drawn a few pixels inside a tight box sometimes
+ * crosses the object's own rim or bloom, and a least-squares plane pulled up by
+ * those pixels subtracts the object with the ground: the first cut of the
+ * landing chips came back as fragments for exactly this reason. So the ring is
+ * fitted once, every ring pixel that sits clearly above that plane on its
+ * brightest channel is treated as object and dropped, and the ground is fitted
+ * again on what remains.
+ */
+function fitGroundPlane(data, w, h, c) {
+  const ring = Math.max(2, Math.round(Math.min(w, h) * RENDER_RING));
+  const pts = [];
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      if (x >= ring && x < w - ring && y >= ring && y < h - ring) continue;
+      const p = (y * w + x) * c;
+      pts.push({ x, y, v: [data[p], data[p + 1], data[p + 2]] });
+    }
+  }
+  const first = solvePlane(pts);
+  const kept = pts.filter(({ x, y, v }) => {
+    const g = planeAt(first, x, y);
+    return Math.max(v[0] - g[0], v[1] - g[1], v[2] - g[2]) <= RENDER_RING_REJECT;
+  });
+  return kept.length >= pts.length * 0.25 ? solvePlane(kept) : first;
+}
+
+/*
+ * THE HUE COMES FROM THE RENDER AND ONLY THE MAGNITUDE FROM THE SUBTRACTION.
+ *
+ * The first cut of these objects subtracted the ground plane channel by channel
+ * and keyed what was left, and the coin ring came back yellow, the hotel bed
+ * green and every rim cyan. The reason is the same clipping the note at the
+ * top of this file describes, seen from the other side: wherever a render lit
+ * an object, its blue channel is already AT 255, so `object + ground` was
+ * clipped when the render was made. Subtracting a blue-heavy ground from a
+ * pixel whose blue could not rise takes blue away and leaves red and green
+ * standing, and the ratio between the channels, which is the hue, is gone.
+ *
+ * So the subtraction is used for one thing only: how much of the pixel's
+ * brightest channel is object rather than ground. The pixel is then scaled by
+ * that fraction, all three channels by the same number, so the hue is the
+ * render's hue by construction, and the scaled pixel is keyed exactly as a
+ * sheet object is. Nothing can clip, because the scale is at most one.
+ */
+function keyRender(data, w, h, c) {
+  const planes = fitGroundPlane(data, w, h, c);
+  const out = Buffer.alloc(w * h * 4);
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const p = (y * w + x) * c;
+      const q = (y * w + x) * 4;
+      const r = data[p], g = data[p + 1], b = data[p + 2];
+      const ground = planeAt(planes, x, y);
+      const brightestIn = Math.max(r, g, b);
+      const brightestFlat = Math.max(0, r - ground[0], g - ground[1], b - ground[2]);
+      const scale = brightestIn > 0 ? Math.min(1, brightestFlat / brightestIn) : 0;
+      const brightest = brightestIn * scale;
+      let a = (brightest - RENDER_FLOOR) / (CEIL - RENDER_FLOOR);
+      a = a <= 0 ? 0 : a >= 1 ? 1 : a;
+      if (a === 0) {
+        out[q] = 0; out[q + 1] = 0; out[q + 2] = 0; out[q + 3] = 0;
+        continue;
+      }
+      const aOut = Math.max(a, brightest / 255);
+      out[q] = Math.round((r * scale) / aOut);
+      out[q + 1] = Math.round((g * scale) / aOut);
+      out[q + 2] = Math.round((b * scale) / aOut);
+      out[q + 3] = Math.round(aOut * 255);
+    }
+  }
+  return out;
+}
+
+/** Centre an RGBA buffer on a transparent square with a margin on every side. */
+function squareWithMargin(rgba, w, h) {
+  const edge = Math.round(Math.max(w, h) * (1 + 2 * RENDER_MARGIN));
+  const out = Buffer.alloc(edge * edge * 4);
+  const ox = Math.floor((edge - w) / 2);
+  const oy = Math.floor((edge - h) / 2);
+  for (let y = 0; y < h; y += 1) {
+    rgba.copy(out, ((y + oy) * edge + ox) * 4, y * w * 4, (y + 1) * w * 4);
+  }
+  return { data: out, edge };
+}
+
+async function cutOne(src, dest, onLight, fromRender = false) {
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: w, height: h, channels: c } = info;
+  if (fromRender) {
+    const keyed = keyRender(data, w, h, c);
+    const dropped = dropEdgeStrays(keyed, w, h);
+    const { data: squared, edge } = squareWithMargin(keyed, w, h);
+    await sharp(squared, { raw: { width: edge, height: edge, channels: 4 } })
+      .png({ compressionLevel: 9 })
+      .toFile(dest);
+    return dropped;
+  }
   const rgba = onLight ? keyOnLight(data, w, h, c) : keyOnDark(data, w, h, c);
   const dropped = dropEdgeStrays(rgba, w, h);
   await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
@@ -270,24 +450,28 @@ async function cutOne(src, dest, onLight) {
 }
 
 await mkdir(OUT, { recursive: true });
+/* `--only renders` re-keys the render crops alone; see the same flag in the slicer. */
+const onlyRenders = process.argv.includes("--only") && process.argv[process.argv.indexOf("--only") + 1] === RENDER_SET;
 const sets = (await readdir(SLICED, { withFileTypes: true }))
   .filter((d) => d.isDirectory())
   .map((d) => d.name)
+  .filter((name) => !onlyRenders || name === RENDER_SET)
   .sort();
 
 let total = 0;
 for (const set of sets) {
   const onLight = LIGHT_SHEETS.has(set);
+  const fromRender = set === RENDER_SET;
   const dir = path.join(OUT, set);
   await mkdir(dir, { recursive: true });
   const files = (await readdir(path.join(SLICED, set))).filter((f) => f.endsWith(".png")).sort();
   let strays = 0;
   for (const f of files) {
-    strays += (await cutOne(path.join(SLICED, set, f), path.join(dir, f), onLight)) > 0 ? 1 : 0;
+    strays += (await cutOne(path.join(SLICED, set, f), path.join(dir, f), onLight, fromRender)) > 0 ? 1 : 0;
     total += 1;
   }
   console.log(
-    `${set}  ${onLight ? "light" : "dark "}  ${String(files.length).padStart(2)} cut` +
+    `${set.padEnd(8)}  ${onLight ? "light" : fromRender ? "rendr" : "dark "}  ${String(files.length).padStart(2)} cut` +
       (strays > 0 ? `  (${strays} carried an edge stray, now dropped)` : ""),
   );
 }
