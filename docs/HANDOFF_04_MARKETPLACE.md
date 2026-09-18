@@ -43,7 +43,7 @@ around it; the line itself does not get relitigated.
 2. Read, in order: `docs/HANDOFF_01_COMPANY.md`, `docs/HANDOFF_02_PLATFORM.md`,
    `docs/HANDOFF_03_FRONTEND.md`, `docs/PRODUCT.md`, `docs/HANDOFF.md`,
    `ARCHITECTURE_DECISIONS.md`, `RECOMMENDATIONS.md` (645 entries),
-   `docs/FRONTEND_REVAMP.md`, `docs/SPRINT_60.md`, the three reports in
+   `docs/FRONTEND_REVAMP.md`, `docs/SPRINT_60_B.md` (and `docs/archive/SPRINT_60.md`), the three reports in
    `docs/audit/`, and `docs/ICON_SYSTEM.md`
 3. **Check the newest sprint ledger on main.** A parallel session has been
    executing sprints (the last ledger read 51 of 60 mid-flight). If a ledger
@@ -80,6 +80,8 @@ deliberately removed, and every line of it is recoverable from git history.
 ### 2.2 The recoverable commits
 
 Read them with `git show <sha>`. Mine them; do not blindly revert them.
+Note that `08d2298f` is a root commit, so `git show` prints its entire
+snapshot; read its message and the inventory paths, not all 1,900 files.
 
 | Commit | What it holds |
 | --- | --- |
@@ -97,7 +99,11 @@ Read them with `git show <sha>`. Mine them; do not blindly revert them.
 - `apps/web/src/lib/listings/types.ts` kept `source` as a single valued field
   (`source?: "vallo"`) instead of deleting it, with a comment saying why. It
   widens back to a union without breaking a reader
-- `apps/web/src/lib/security/csp.ts` still whitelists the LiteAPI host
+- `apps/web/src/lib/security/csp.ts` no longer whitelists any LiteAPI host:
+  the image wildcard was deliberately closed after this section was first
+  written. Partner photos therefore need a deliberate decision, proxy or named
+  hosts, before any partner row renders (corrected 18 September against the
+  live file)
 - The provider pattern (registry, kill switches in `feature_flags`, timeout
   discipline, dedupe) is a design you re-instate, not re-invent
 
@@ -615,7 +621,8 @@ In the repository when this operation closes:
 7. The security sweep's findings, fixed or filed
 8. Repository hygiene done within its locked doors
 9. Documentation that matches the code it describes
-10. **`docs/HANDOFF_05_NEXT.md`: the next session's complete brief.** Two
+10. **`docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md`: the build
+    session's complete brief.** Two
     agents maximum for that session. It states what Vallo is now, what
     changed, what was implemented and verified, every schema and API change,
     what remains with file-level precision, known limitations, credentials

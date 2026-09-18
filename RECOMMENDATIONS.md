@@ -5,8 +5,11 @@ discarded: all 171 of its entries are carried into section 8 with their
 original identifiers, because code comments, migrations and both handoffs cite
 them by name and `P-1`, `N-1`, `W-1` and `E-1` have to keep resolving.
 
-Written 15 September 2026. It holds **645 entries**: 474 from the three-agent
-audit of 15 September, and 171 carried forward from the 9 August pass.
+Written 15 September 2026. It holds **713 entries**: 474 from the three-agent
+audit of 15 September, 171 carried forward from the 9 August pass, and 68
+marketplace entries (`MK-01` to `MK-68`) added by the consolidation of
+18 September in section 0, which also carries the authoritative status
+corrections for the sprint-landed work.
 
 Read `docs/PRODUCT.md` first. It says what the product is. This file says what
 is wrong with it and what to do next.
@@ -39,6 +42,150 @@ Legacy entries keep their original P0, P1 and P2 priorities rather than being
 remapped, so a reference to "P-1, a P0" still reads correctly.
 
 **Line numbers move. Symbol names do not.** Search for the name.
+
+---
+
+## 0. The marketplace consolidation, 18 September 2026
+
+**The platform's direction widened: Property, Stays, Restaurants, one
+marketplace.** `docs/HANDOFF_04_MARKETPLACE.md` is the charter and
+`docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md` is the build brief. This
+section consolidates the register against that direction, per the map in
+`docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md` section 4. **Where a row
+below in this file disagrees with this section, this section wins**; the build
+session normalises the old rows inline as it touches each area, and nothing is
+renumbered.
+
+### 0.1 Status changes established since the register was written
+
+Live-verified or sha-tied unless marked "per ledger", which is the sprint
+close-out's attestation and gets confirmed on first touch.
+
+| Entry | New status | Evidence |
+| --- | --- | --- |
+| `E-2` booking_status gains COMPLETED | DONE | Live enum now `PENDING, CONFIRMED, COMPLETED, NO_SHOW, CANCELLED`; `d5af1587` |
+| `F2-066` record that a stay happened | DONE in schema; confirm the console control | Live enum; SPRINT_60_B owner B |
+| `A3-001`, `A3-003`, `A3-005` confirmation system | DONE per ledger | `240cf357` ResultSheet on the whole money path |
+| `F2-055` admin queue frames | PARTLY DONE | `3044c2aa` ten queues framed; re-verify the count, the two ledgers disagree |
+| `A2-099` root scratch files | DONE | `8610d196` |
+| `A3-046` duplicate media tokens | DONE | `7c461569` |
+| `A3-110` ambient budget | DONE | `24749750` |
+| `A1-024` landing FAQ i18n | DONE | `ed57b601`, `efb97263` |
+| `F1-103` fourth icon namespace | DONE | `c287e586` |
+| `F2-025` MomentScreen | DONE to last call site removed; delete the component to close | `9e00a476` |
+| `F2-003` banned sentence | DONE per ledger | `a371c5cc` |
+| `F1-080`, `F1-082`, `F1-085` site claims | DONE per ledger | `62d2290e` |
+| `F1-084` marketplace stated as one | DONE per ledger | `4661d34a`, `d5af1587` |
+| `A3-127` stacked headers | DONE per ledger | `823a85c7` |
+| `A3-055` raw colour literals | Largely DONE, enforced at zero outside definition layers | `8980749c`, `db468d6a`, `855d8c75`; SPRINT_60_B corrected the count at source |
+| `A1-021` payouts-after-stay copy | Reshaped: enum half fixed, copy claim needs re-audit | Live enum |
+| New, retroactive | OPEN: record the PostgREST `.or()` comma-injection class | `cd53b8bf` fixed one instance in admin search |
+
+Still open and now load-bearing, explicitly not closed by any sprint:
+`A1-001` (the rent money path), `A1-002`, `G-1` to `G-3`, all of section B
+money safety (`A2-001` to `A2-133`), CI (`A2-141`, `T-1`), `A2-121` cron
+alerting, `N-4` OAuth removal, `M-1` MapTiler licence, and the seeded login.
+
+### 0.2 Rows the marketplace direction supersedes or reshapes
+
+| Entry | Verdict under the new direction |
+| --- | --- |
+| ADR-013 / `S-2` | Evolves, never violated: the badge rule survives untouched; inventory gains the labelled-source lane. ADR-015 records it (draft in HANDOFF_05), and the stale "there is not going to be another source" code comments get corrected the day a partner row renders |
+| `S-3` supply story | Superseded: the supply story is the stays model plus the onboarding consoles |
+| `P-7` listing_intent | Reshaped: stays and restaurants get their own tables; the enum stays two-valued for property and the projection's `entity_kind` carries the rest |
+| `P-4` / `A1-152` experience kind | Reshaped: `experience` leaves the union; future services arrive as `business_kind` |
+| `A1-009`, `A1-010` | Reshaped: real fields return on `rate_plans` and `sleeps`; the listing-side hacks retire |
+| `A1-013` experiences tile | Superseded by pillar navigation |
+| `E-1` to `E-7` escrow | Unchanged in force; Model 1 exists precisely so stays create no new custody. `A2-059` is superseded in direction: escrow does not extend to stays |
+| `W-3`, `W-5`, `W-6` wallet | Graduate from cleanup to prerequisites: the wallet is the financial heart of the marketplace |
+| `DEMO-1` to `DEMO-4` | Reshaped: the same is_demo discipline is designed into `businesses` and `accommodations` from day one |
+| `M-2` Leaflet stylesheet | WITHDRAWN stands, but re-measure: the map's promotion may reverse the calculus |
+| `A1-133`, `N-5` navigation | Superseded by the pillar IA re-cut; ADR-007 needs its third amendment |
+| `A1-078` tenancy record | Reshaped: design the tenancy object beside the one booking spine |
+
+Rows that became MORE important under Stays, unchanged in text but raised in
+order: `M-1`, `M-3`, `M-5` to `M-10`, `A1-127`, `A1-125`, `A1-014`, `A2-046`,
+`A2-047`, `W-2`, `A2-053`, `A2-121` to `A2-123`, `A2-136`/`EM-2`, `A2-139`,
+`A1-122`, `A1-080`, `A2-064`/`P-5`, `A2-102`, `A1-075`, `T-5`, `BE-6`,
+`A1-086`/`A1-088`, `V-2`, `A2-096`, `A1-064`.
+
+### 0.3 The marketplace register: MK-01 to MK-68
+
+Genuinely new work the marketplace requires. Evidence, field detail and the
+migration sequence live in `docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md`
+sections 2 and 3 and `docs/API_INVENTORY.md`; each row becomes a full
+seven-field entry as the build session opens it. All OPEN.
+
+| Id | What | Effort | Status |
+| --- | --- | --- | --- |
+| `MK-01` | `businesses` table, first-class `source_kind`, owner CHECK | M | OPEN |
+| `MK-02` | `accommodations` with per-row fulfilment mode and source sync trigger | M | OPEN |
+| `MK-03` | `room_types` with sleeps, beds shape, `units_total` | S | OPEN |
+| `MK-04` | `units` as the room-assignment seam, schema only in v1 | S | OPEN |
+| `MK-05` | `rate_plans` with meal plan, min and max stay, policy FK | M | OPEN |
+| `MK-06` | `rate_calendar` nightly overrides and plan-level closure | M | OPEN |
+| `MK-07` | `room_inventory` counters, one-statement locking reserve, oversell probe | L | OPEN |
+| `MK-08` | `cancellation_policies` with plain-words rendering | M | OPEN |
+| `MK-09` | Accommodation photos and amenities joins, bucket limits from day one | M | OPEN |
+| `MK-10` | `is_demo` discipline designed into the new tables before any example row | S | OPEN |
+| `MK-11` | `landmarks` table, curated Lagos and Abuja seed, alias trigram | M | OPEN |
+| `MK-12` | `bookings` extension: room-type bookings on the one spine, target-exclusivity CHECK | L | OPEN |
+| `MK-13` | `bookings_guard_transition` trigger and trigger-written state events | M | OPEN |
+| `MK-14` | Stay holds: TTL on PENDING room bookings, inventory-releasing sweep | M | OPEN |
+| `MK-15` | One multi-room multi-night pricing function shared by card and checkout | M | OPEN |
+| `MK-16` | Booking modification as cancel-plus-rebook in one transaction, policy priced | L | OPEN |
+| `MK-17` | NO_SHOW recording flow and its notification | S | OPEN |
+| `MK-18` | Guest capacity validation against `sleeps` at reserve time | S | OPEN |
+| `MK-19` | One receipt object across listing stays and room stays | M | OPEN |
+| `MK-20` | Business onboarding wizard completable in one sitting | L | OPEN |
+| `MK-21` | Host reservations queue on the QueueFilters frame | M | OPEN |
+| `MK-22` | Availability and calendar management surface | L | OPEN |
+| `MK-23` | Bulk and seasonal pricing tools writing `rate_calendar` | M | OPEN |
+| `MK-24` | Host revenue view over the existing ledger | M | OPEN |
+| `MK-25` | Business verification rungs without diluting the human badge | M | OPEN |
+| `MK-26` | Staff role seam: console access without shared accounts | S | OPEN |
+| `MK-27` | `restaurant_profiles` (cuisines, price band, menu link) | S | OPEN |
+| `MK-28` | `service_windows` and covers | S | OPEN |
+| `MK-29` | `reservations.business_id` branch, first-party-only law carried forward | M | OPEN |
+| `MK-30` | Reservation reminder notifications, day-of and hour-before | S | OPEN |
+| `MK-31` | Restaurant console: today's list, accept, decline, close a service | M | OPEN |
+| `MK-32` | Restaurant discovery with hours-aware open-now | M | OPEN |
+| `MK-33` | Restore `lib/inventory` per the salvage map against the new source model | L | OPEN |
+| `MK-34` | Re-insert `hybrid_hotels` and `hybrid_restaurants` flag rows, switchboard labels | S | OPEN |
+| `MK-35` | Re-create `places_cache` with TTL discipline | S | OPEN |
+| `MK-36` | Re-create `partner_stay_intents` and the prebook-at-tap route | M | OPEN |
+| `MK-37` | Source label component: calm, honest, never orange, card and detail | S | OPEN |
+| `MK-38` | Fulfilment-honest CTA on every partner surface | S | OPEN |
+| `MK-39` | Provider health admin page | M | OPEN |
+| `MK-40` | Freshness policy per source, stored and enforced | M | OPEN |
+| `MK-41` | Partner image hosts decision executed: proxy or named CDN list | M | OPEN |
+| `MK-42` | Referral commission recording and the reconciliation report | M | OPEN |
+| `MK-43` | Install `unaccent`; `catalogue_entries` projection with tsvector and triggers | L | OPEN |
+| `MK-44` | Date and guest search parameters end to end | M | OPEN |
+| `MK-45` | Availability-aware stay search, the nights-count HAVING join | L | OPEN |
+| `MK-46` | Range pricing in results: the total is the headline | M | OPEN |
+| `MK-47` | Ranking policy encoded once: first party first at equal relevance | S | OPEN |
+| `MK-48` | The merged shelf: stays, short lets, property for one query | L | OPEN |
+| `MK-49` | Saved searches grow stay semantics with P-6 | S | OPEN |
+| `MK-50` | Empty-result demand capture for stays | S | OPEN |
+| `MK-51` | Suggestion strip: states, areas, landmarks as you type | M | OPEN |
+| `MK-52` | `catalogue_in_bounds` with the bounds module's clamps as law | M | OPEN |
+| `MK-53` | `ST_DWithin` radius entry point with distance in results | M | OPEN |
+| `MK-54` | Distance-from-landmark sort and near-X chips | M | OPEN |
+| `MK-55` | Mandatory pin at publish for map-bearing entities at the APPROVED gate | S | OPEN |
+| `MK-56` | Area centroid backfill, areas as geography | S | OPEN |
+| `MK-57` | Server-side cluster computation by zoom tier | M | OPEN |
+| `MK-58` | Badge derivation for businesses; CHECK that partner rows cannot carry it | M | OPEN |
+| `MK-59` | Verified-stay reviews keyed to COMPLETED bookings on either spine | M | OPEN |
+| `MK-60` | Partner rating attribution fields, licence-aware display | S | OPEN |
+| `MK-61` | Host responses on stay reviews | S | OPEN |
+| `MK-62` | Marketplace abuse pass: fake hotels, review farming, availability manipulation, payout fraud | L | OPEN |
+| `MK-63` | Host payout path for stays on the existing ledger and payout accounts | M | OPEN |
+| `MK-64` | Refund-per-policy function pricing into `booking_refunds` | M | OPEN |
+| `MK-65` | Nightly inventory integrity sweep with drift alerting | M | OPEN |
+| `MK-66` | Cron and partner-job alerting as a prerequisite, not a wish | M | OPEN |
+| `MK-67` | Notification architecture consolidation before stays multiply the triggers | L | OPEN |
+| `MK-68` | Stays and restaurant vocabulary in all four locales, terminology table extended | M | OPEN |
 
 ---
 
