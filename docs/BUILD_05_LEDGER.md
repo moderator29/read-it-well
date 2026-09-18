@@ -144,7 +144,20 @@ M15 business verification rungs and admin business actions.
 
 ## 4. Landed (commit-tied, updated as it lands)
 
-(filled in as work lands)
+| What | Commit |
+| --- | --- |
+| Phase A: the side axis, `sideOfPath`, the pre-paint attribute, `--nf-side-accent` | `bb36563` |
+| Phase A: `SideFlip`, `SideCover`, `side-flip.css`, the coin, reduced motion, the lockout | `bb36563` |
+| Phase A: nav and dock by side, the six stays route shells with skeletons, middleware | `bb36563` |
+| Phase A: `/stays` and `/stays/search` over the existing catalogue, the total as the headline | `bb36563` |
+| "Trip" leaves the banned-synonym table on the founder's ruling | `bb36563` |
+| M1 to M5, M7, M8, M9 applied and probed | `a8fad5b` |
+| M10 to M15 applied and probed | `a8fad5b` |
+| M6 and the landmark seed DRAFTED, not applied, in `supabase/migrations/pending/` | `a8fad5b` |
+| The three thread faces on one messages engine, inspection tooling structurally rental-only | `a8fad5b` |
+| Inspections whole: accept in the thread, `/inspections` Open and Closed, notifications, outcome | `a8fad5b` |
+| The wallet's send and receive as full pages; the old sheets deleted | `a8fad5b` |
+| `/settings/payments`: saved cards webhook-fed, bank accounts resolve-verified | `a8fad5b` |
 
 ---
 
@@ -156,7 +169,20 @@ M15 business verification rungs and admin business actions.
 
 ## 6. Probes
 
-(filled in as migrations land)
+- **M5, the oversell gate, PASS.** Two concurrent sessions against a local
+  Postgres 16 cluster running the exact function text from the migration: A
+  held the last room and committed, B blocked on A's row lock, re-evaluated
+  the WHERE, touched zero rows and raised; `units_booked` never exceeded
+  `units_open`; release restored the night. Script and captured output:
+  `scripts/probes/m5_oversell.sh` and `m5_oversell.log`. Nothing above M5 was
+  treated as real until this held.
+- Every other migration was probed on the live project inside a transaction
+  that was rolled back: insert as a test user, read back under RLS, read as a
+  different user (must fail or return nothing), exercise the trigger. No probe
+  row was ever persisted to a live product table.
+- The flip was driven in headless Chromium at 390px and 1280px, in dark and
+  light, with and without reduced motion, in both directions, with the phase,
+  the URL, the cookie and the live region read at five points per flip.
 
 ---
 
