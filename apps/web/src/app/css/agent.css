@@ -1,0 +1,7 @@
+/*
+  agent: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
+  section 2. Light-theme rules for this family live here too, under
+  :root[data-theme="light"], so the partial is the whole surface.
+*/
+@layer components {
+}
