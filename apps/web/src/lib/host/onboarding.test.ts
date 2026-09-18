@@ -1,0 +1,185 @@
+import { describe, expect, it } from "vitest";
+import {
+  CAC_NUMBER_RE,
+  CONSENTS,
+  DOCUMENT_SPECS,
+  documentPathBelongsTo,
+  emptyHostDraft,
+  missingFrom,
+  progressLabel,
+  rejectFile,
+  stepsFor,
+  type HostDraft,
+} from "./onboarding";
+
+/**
+ * The host wizard's model, pinned.
+ *
+ * Two things here decide what a person SEES: how many steps they are told
+ * they have, and what the review screen prints as missing. Both branch on
+ * the host type, and a branch that quietly drops a step or a blocking rule is
+ * how a restaurant ends up on the shelf with no service window.
+ */
+function complete(over: Partial<HostDraft> = {}): HostDraft {
+  return {
+    ...emptyHostDraft(),
+    hostType: "individual",
+    kind: "shortlet_operator",
+    name: "Ada's Place",
+    phone: "+2348031234567",
+    address: "12 Admiralty Way",
+    city: "Lagos",
+    stateCode: "LA",
+    representativeName: "Ada Obi",
+    representativePhone: "+2348031234567",
+    documents: { identity: true },
+    accommodation: { id: "a", name: "Ada's Place", hasPin: true, photoCount: 3 },
+    roomTypeCount: 1,
+    ratePlanCount: 1,
+    hasBankAccount: true,
+    consents: {
+      accuracy: "2026-09-18T08:00:00Z",
+      terms: "2026-09-18T08:00:00Z",
+      processing: "2026-09-18T08:00:00Z",
+    },
+    ...over,
+  };
+}
+
+describe("stepsFor", () => {
+  it("shows the honest count before the branch is known", () => {
+    expect(stepsFor(null).map((s) => s.id)).toEqual([
+      "host-type",
+      "business",
+      "payout",
+      "consent",
+      "review",
+    ]);
+  });
+
+  it("gives an individual host the property steps and no registration", () => {
+    expect(stepsFor("individual").map((s) => s.id)).toEqual([
+      "host-type",
+      "business",
+      "representative",
+      "property",
+      "rooms",
+      "payout",
+      "consent",
+      "review",
+    ]);
+  });
+
+  it("gives a registered business one more step, the papers", () => {
+    const ids = stepsFor("business").map((s) => s.id);
+    expect(ids).toContain("registration");
+    expect(ids.length).toBe(stepsFor("individual").length + 1);
+  });
+
+  it("gives a restaurant service and seating instead of rooms", () => {
+    const ids = stepsFor("restaurant").map((s) => s.id);
+    expect(ids).toContain("service");
+    expect(ids).not.toContain("property");
+    expect(ids).not.toContain("rooms");
+    expect(ids).not.toContain("registration");
+  });
+
+  it("always ends with payout, consent and review", () => {
+    for (const type of ["individual", "business", "restaurant"] as const) {
+      expect(stepsFor(type).slice(-3).map((s) => s.id)).toEqual(["payout", "consent", "review"]);
+    }
+  });
+});
+
+describe("progressLabel", () => {
+  it("is one-based", () => {
+    expect(progressLabel(0, 8)).toBe("Step 1 of 8");
+  });
+});
+
+describe("missingFrom", () => {
+  it("asks for the host type first and nothing else", () => {
+    expect(missingFrom(emptyHostDraft())).toEqual(["What kind of host you are"]);
+  });
+
+  it("is empty for a complete individual host", () => {
+    expect(missingFrom(complete())).toEqual([]);
+  });
+
+  it("names the pin and the photos separately", () => {
+    const missing = missingFrom(
+      complete({ accommodation: { id: "a", name: "x", hasPin: false, photoCount: 0 } }),
+    );
+    expect(missing).toContain("The pin on the map");
+    expect(missing).toContain("At least one photo of the property");
+  });
+
+  it("demands the papers on the business branch only", () => {
+    const business = missingFrom(complete({ hostType: "business" }));
+    expect(business).toContain("Registered business name");
+    expect(business).toContain("CAC registration number");
+    expect(business).toContain(DOCUMENT_SPECS.registration.title);
+    expect(missingFrom(complete({ hostType: "individual" }))).not.toContain(
+      "CAC registration number",
+    );
+  });
+
+  it("demands a window, a price band and the hygiene attestation from a restaurant", () => {
+    const restaurant = missingFrom(
+      complete({
+        hostType: "restaurant",
+        kind: "restaurant",
+        accommodation: null,
+        roomTypeCount: 0,
+        ratePlanCount: 0,
+      }),
+    );
+    expect(restaurant).toEqual([
+      "A price band",
+      "At least one service window",
+      "The health permit attestation",
+    ]);
+  });
+
+  it("prints each missing consent by its own label, never one bundled line", () => {
+    const missing = missingFrom(complete({ consents: { accuracy: "2026-09-18T08:00:00Z" } }));
+    expect(missing).toEqual([CONSENTS[1]!.label, CONSENTS[2]!.label]);
+  });
+
+  it("blocks on the bank account, because the payout promise is structural", () => {
+    expect(missingFrom(complete({ hasBankAccount: false }))).toEqual([
+      "A bank account for payouts",
+    ]);
+  });
+});
+
+describe("CAC_NUMBER_RE", () => {
+  it("accepts the shapes people actually type", () => {
+    for (const value of ["RC1234567", "rc 1234567", "BN-123456", "1234567", "IT 12345"]) {
+      expect(CAC_NUMBER_RE.test(value)).toBe(true);
+    }
+  });
+
+  it("refuses letters in the number and too few digits", () => {
+    for (const value of ["RC12AB567", "RC123", "hello", ""]) {
+      expect(CAC_NUMBER_RE.test(value)).toBe(false);
+    }
+  });
+});
+
+describe("documentPathBelongsTo", () => {
+  it("accepts only the caller's own folder", () => {
+    expect(documentPathBelongsTo("u1", "u1/batch/id.jpg")).toBe(true);
+    expect(documentPathBelongsTo("u1", "u2/batch/id.jpg")).toBe(false);
+    expect(documentPathBelongsTo("u1", "u10/batch/id.jpg")).toBe(false);
+    expect(documentPathBelongsTo("u1", "")).toBe(false);
+  });
+});
+
+describe("rejectFile", () => {
+  it("names the limit before anything is uploaded", () => {
+    expect(rejectFile({ type: "image/jpeg", size: 1024 })).toBeNull();
+    expect(rejectFile({ type: "image/gif", size: 1024 })).toContain("JPG, PNG, WEBP, HEIC or PDF");
+    expect(rejectFile({ type: "image/jpeg", size: 9 * 1024 * 1024 })).toContain("8MB");
+  });
+});
