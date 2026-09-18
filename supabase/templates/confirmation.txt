@@ -1,0 +1,33 @@
+Vallo
+Confirm your email
+
+Confirm your email address
+--------------------------
+
+You are one step from a Vallo account. Confirm this address and you can
+search, message a lister and save the places you like.
+
+Confirm my email:
+{{ .ConfirmationURL }}
+
+Or enter this code: {{ .Token }}
+
+If the button does not work, copy this link into your browser:
+{{ .ConfirmationURL }}
+
+Worth knowing before you start
+- Every listing was put up by a real person on Vallo. Nothing is
+imported from an outside feed, so there is always somebody to message.
+- The rent is rarely the whole number. Caution deposit, agency, legal,
+agreement and service charge are normal here, so plan around the total
+move-in cost.
+- Keep chats and payments inside Vallo, and pay only after you have
+inspected a place in person.
+
+This confirmation was requested for {{ .Email }}. If it was not you,
+ignore this message. No account is activated and nothing further
+happens.
+
+Vallo. Real Estate reimagined!
+VALLO SPACES LTD, Abuja, Nigeria
+{{ .SiteURL }}

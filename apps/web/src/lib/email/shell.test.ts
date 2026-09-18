@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
+import { COMPANY_LEGAL_NAME } from "@/lib/legal/company";
 
 import { EVERY_MESSAGE, coveredBuilders } from "./fixtures";
 import * as theme from "./theme";
@@ -52,6 +53,8 @@ const AUTH_TEMPLATES = [
 const authHtml = AUTH_TEMPLATES.map((name) => ({
   name,
   html: readFileSync(join(TEMPLATE_DIR, name), "utf8"),
+  /** The plain-text twin, rendered from the same blocks. */
+  text: readFileSync(join(TEMPLATE_DIR, name.replace(/\.html$/, ".txt")), "utf8"),
 }));
 
 /** Every rendered piece of HTML this product sends, from both generators. */
@@ -127,28 +130,31 @@ describe("every rendered email survives a real mail client", () => {
     expect(theme.MAX_WIDTH).toBeLessThanOrEqual(600);
   });
 
-  it.each(EVERY_HTML)("$name declares both colour schemes", ({ html }) => {
-    // Without this Apple Mail and iOS apply their own inversion to a palette
-    // nobody designed, which turns a hand-built dark card into a third thing.
-    expect(html).toContain('name="color-scheme" content="light dark"');
-    expect(html).toContain('name="supported-color-schemes" content="light dark"');
+  it.each(EVERY_HTML)("$name declares the dark scheme and re-asserts it", ({ html }) => {
+    // `color-scheme: dark` is what stops Apple Mail and iOS inverting a
+    // palette nobody designed, and the media query is what holds the designed
+    // values against Gmail's own dark-mode pass.
+    expect(html).toContain('name="color-scheme" content="dark"');
+    expect(html).toContain('name="supported-color-schemes" content="dark"');
     expect(html).toContain("@media (prefers-color-scheme: dark)");
   });
 
-  it.each(EVERY_HTML)("$name is light in the layer every client honours", ({ html }) => {
+  it.each(EVERY_HTML)("$name is dark in the layer every client honours", ({ html }) => {
     /*
-     * The inline styles are the layer no client strips, and they must be the
-     * LIGHT palette. A dark email that half renders is black text on a black
-     * card, in exactly the message carrying a sign-in code. The dark values may
-     * appear only inside the <style> block.
+     * The inline styles are the layer no client strips, and they carry the
+     * register: the navy ground and the glass card, as inline styles AND as
+     * bgcolor attributes, which is the form Outlook's Word engine has honoured
+     * since 2007. A dark email that half renders is light text on a white
+     * ground, and painting the ground three times is what stops that.
      */
-    const beforeStyle = html.slice(0, html.indexOf("<style"));
     const afterStyle = html.slice(html.indexOf("</style>"));
-    expect(afterStyle).toContain(theme.LIGHT.base);
-    expect(afterStyle).toContain(theme.LIGHT.card);
-    expect(afterStyle).not.toContain(theme.DARK.base);
-    expect(afterStyle).not.toContain(theme.DARK.card);
-    expect(beforeStyle).not.toContain(theme.DARK.base);
+    expect(afterStyle).toContain(`bgcolor="${theme.DARK.ground}"`);
+    expect(afterStyle).toContain(`background:${theme.DARK.ground}`);
+    expect(afterStyle).toContain(`bgcolor="${theme.DARK.card}"`);
+    expect(afterStyle).toContain(`background:${theme.DARK.card}`);
+    // Every heading and body colour is inline beside the ground it sits on.
+    expect(afterStyle).toContain(`color:${theme.DARK.text}`);
+    expect(afterStyle).toContain(`color:${theme.DARK.body}`);
   });
 
   it.each(EVERY_HTML)("$name sets a deliberate inbox line", ({ html }) => {
@@ -165,27 +171,33 @@ describe("every rendered email survives a real mail client", () => {
 /* --------------------------------------------------------- images blocked */
 
 describe("every rendered email reads completely with images blocked", () => {
-  it.each(EVERY_HTML)("$name has one image, sized, and it carries no words", ({ html }) => {
+  it.each(EVERY_HTML)("$name carries the lockup, two sized images, and nothing else in a picture", ({ html }) => {
     const images = html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images).toHaveLength(1);
-    const [mark] = images;
+    expect(images).toHaveLength(2);
+    const [mark, wordmark] = images;
 
     /*
      * Explicit width and height so a blocked image reserves exactly its own box
      * rather than collapsing the lockup or, worse, expanding to a client's
      * default placeholder size and shoving the wordmark off the line.
      */
-    expect(mark).toMatch(/\bwidth="\d+"/);
-    expect(mark).toMatch(/\bheight="\d+"/);
+    for (const image of images) {
+      expect(image).toMatch(/\bwidth="\d+"/);
+      expect(image).toMatch(/\bheight="\d+"/);
+    }
 
     /*
-     * alt is EMPTY on purpose. The mark carries no words and the wordmark
-     * beside it is live text, so alt="Vallo" would render the brand twice for
-     * a reader with images off. A non-empty alt here is the signal that
-     * somebody has put copy inside a picture, which is unreadable in the half
-     * of inboxes that block images and unreadable to a screen reader always.
+     * The mark carries no words, so its alt is EMPTY. The wordmark IS the
+     * word, so its alt is the brand name and nothing more: with images off a
+     * reader sees "Vallo" once, in its place. Any other alt text is the signal
+     * that somebody has put copy inside a picture, which is unreadable in the
+     * half of inboxes that block images and unreadable to a screen reader
+     * always.
      */
+    expect(mark).toContain(theme.MARK_PATH);
     expect(mark).toContain('alt=""');
+    expect(wordmark).toContain(theme.WORDMARK_PATH);
+    expect(wordmark).toContain(`alt="${theme.WORDMARK_ALT}"`);
   });
 
   it.each(EVERY_HTML)("$name still shows the brand and the action as text", ({ name, html }) => {
@@ -219,7 +231,6 @@ describe("one palette, and the auth generator has not drifted from it", () => {
   const generator = readFileSync(GENERATOR, "utf8");
 
   const THEME_COLOURS = [
-    ...Object.values(theme.LIGHT),
     ...Object.values(theme.DARK),
     theme.GLOW,
     theme.ELECTRIC,
@@ -246,6 +257,27 @@ describe("one palette, and the auth generator has not drifted from it", () => {
     const sanctioned = new Set(THEME_COLOURS.map((hex) => hex.toUpperCase()));
     expect(declared.filter((hex) => !sanctioned.has(hex.toUpperCase()))).toEqual([]);
     expect(declared.length).toBeGreaterThan(10);
+  });
+
+  it("carries the slogan and the legal line the theme carries, in both generators", () => {
+    /*
+     * Rule 14: the brand is Vallo, and the company name appears only on legal
+     * surfaces. The foot of an email is one, so the legal line is allowed
+     * there and nowhere else in the message. It is mirrored by hand in the
+     * generator for the same dependency-free reason as the palette, and this
+     * is the check that keeps the three copies (company.ts, theme.ts, the
+     * script) one fact.
+     */
+    expect(theme.LEGAL_LINE.startsWith(COMPANY_LEGAL_NAME)).toBe(true);
+    expect(generator).toContain(`const LEGAL_LINE = "${theme.LEGAL_LINE}"`);
+    expect(generator).toContain(`const SIGN_OFF = "${theme.SIGN_OFF}"`);
+    for (const { name, html } of EVERY_HTML) {
+      expect(html, name).toContain(theme.LEGAL_LINE);
+      // The company is the footer's line and no other: a heading or a button
+      // that said VALLO SPACES LTD would be the legal name used as a brand.
+      expect(html.split(theme.LEGAL_LINE).length, name).toBe(2);
+      expect(html.replace(theme.LEGAL_LINE, ""), name).not.toContain(COMPANY_LEGAL_NAME);
+    }
   });
 
   it("keeps raw hex out of the shell and in the theme", () => {
@@ -343,18 +375,62 @@ describe("the five auth templates are what the generator produces", () => {
       stdio: "pipe",
     });
 
-    for (const name of AUTH_TEMPLATES) {
-      const committed = readFileSync(join(TEMPLATE_DIR, name), "utf8");
-      const fresh = readFileSync(join(out, name), "utf8");
-      expect(fresh, `${name} was hand edited, or the generator has moved on`).toBe(committed);
+    for (const html of AUTH_TEMPLATES) {
+      for (const name of [html, html.replace(/\.html$/, ".txt")]) {
+        const committed = readFileSync(join(TEMPLATE_DIR, name), "utf8");
+        const fresh = readFileSync(join(out, name), "utf8");
+        expect(fresh, `${name} was hand edited, or the generator has moved on`).toBe(committed);
+      }
     }
   });
 
-  it("emits exactly the five templates Supabase asks for", () => {
+  it("emits exactly the five templates Supabase asks for, each with a text twin", () => {
     const found = readdirSync(TEMPLATE_DIR)
       .filter((name) => name.endsWith(".html"))
       .sort();
     expect(found).toEqual([...AUTH_TEMPLATES].sort());
+    const twins = readdirSync(TEMPLATE_DIR)
+      .filter((name) => name.endsWith(".txt"))
+      .sort();
+    expect(twins).toEqual([...AUTH_TEMPLATES].map((name) => name.replace(/\.html$/, ".txt")).sort());
+  });
+
+  it.each(authHtml)("$name has a plain-text twin that says the same thing", ({ html, text }) => {
+    /*
+     * Rendered from the same block list as the HTML, so the two cannot drift.
+     * Not markup: a text part that is really HTML is worse than none, because
+     * a text-only client then shows tags. And the same way through: the
+     * button's link and the code are both there to type.
+     */
+    expect(text.trim().length).toBeGreaterThan(100);
+    expect(text).not.toMatch(/<[a-z!][^>]*>/i);
+    expect(text).toContain("{{ .ConfirmationURL }}");
+    expect(text).toContain("{{ .SiteURL }}");
+    expect(text).toContain(theme.SIGN_OFF);
+    expect(text).toContain(theme.LEGAL_LINE);
+    if (html.includes("{{ .Token }}")) expect(text).toContain("{{ .Token }}");
+    // The heading is the first line after the masthead in both renderings.
+    const heading = html.match(/<h1[^>]*>([^<]+)<\/h1>/)?.[1] ?? "";
+    expect(heading.length).toBeGreaterThan(0);
+    expect(text).toContain(heading);
+  });
+
+  it.each(authHtml)("$name carries the lockup and the blue CTA", ({ html }) => {
+    /*
+     * The register, per template: the mark and the wordmark hosted from the
+     * site Supabase is configured with, and one button in the brand blue with
+     * white text on it. The button is the message's one action; the fallback
+     * link below it is the same action in a form no client can strip.
+     */
+    expect(html).toContain(`{{ .SiteURL }}${theme.MARK_PATH}`);
+    expect(html).toContain(`{{ .SiteURL }}${theme.WORDMARK_PATH}`);
+    expect(html).toContain(`alt="${theme.WORDMARK_ALT}"`);
+    const button = html.match(
+      /<td align="center" style="border-radius:14px;background-color:(#[0-9A-F]{6});[^"]*mso-padding-alt:16px 34px;">\s*<a href="\{\{ \.ConfirmationURL \}\}"[^>]*color:#FFFFFF;[^>]*>([^<]+)<\/a>/,
+    );
+    expect(button).not.toBeNull();
+    expect(button?.[1]).toBe(theme.GLOW);
+    expect((button?.[2] ?? "").trim().length).toBeGreaterThan(0);
   });
 
   it.each(authHtml)("$name keeps every Supabase placeholder it needs", ({ name, html }) => {

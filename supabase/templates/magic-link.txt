@@ -1,0 +1,30 @@
+Vallo
+Sign in to Vallo
+
+Here is your sign-in link
+-------------------------
+
+No password needed. Open this and you are back into Vallo.
+
+Sign in to Vallo:
+{{ .ConfirmationURL }}
+
+Or enter this code: {{ .Token }}
+
+This link works once and expires shortly, so use it while it is fresh.
+It signs in the account for {{ .Email }} and no other.
+
+Nobody should ever ask you for this
+Vallo will never ask you for this link, this code or your password. Not
+by phone, not by message, not by email. If somebody does, they are not
+us.
+
+If the button does not work, copy this link into your browser:
+{{ .ConfirmationURL }}
+
+If you did not ask to sign in, ignore this message. The link expires on
+its own and nothing about your account changes.
+
+Vallo. Real Estate reimagined!
+VALLO SPACES LTD, Abuja, Nigeria
+{{ .SiteURL }}

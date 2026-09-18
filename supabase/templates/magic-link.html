@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="supported-color-schemes" content="light dark" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
     <title>Vallo</title>
     <style>
-      :root { color-scheme: light dark; supported-color-schemes: light dark; }
+      :root { color-scheme: dark; supported-color-schemes: dark; }
       @media (prefers-color-scheme: dark) {
         .rm-base   { background: #010118 !important; }
-        .rm-card   { background: #030327 !important; border-color: #101A55 !important; }
-        .rm-panel  { background: #060640 !important; border-color: #101A55 !important; }
+        .rm-card   { background: #000030 !important; border-color: #2743C4 !important; }
+        .rm-panel  { background: #000040 !important; border-color: #101A55 !important; }
         .rm-title  { color: #FFFFFF !important; }
         .rm-body   { color: #C6CDF2 !important; }
         .rm-muted  { color: #7C86C2 !important; }
@@ -20,12 +20,12 @@
       }
     </style>
   </head>
-  <body class="rm-base" style="margin:0;padding:0;width:100%;background:#F4F5FB;color:#3B4166;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <body class="rm-base" bgcolor="#010118" style="margin:0;padding:0;width:100%;background:#010118;color:#C6CDF2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
     <!-- The hidden inbox line. The trailing spacer entities stop a client
          pulling the first sentence of body copy in after it, so what the
          reader sees beside the subject is a line somebody wrote. -->
     <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">Your single-use Vallo sign-in link is ready.&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="rm-base" style="width:100%;background:#F4F5FB;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="rm-base" bgcolor="#010118" style="width:100%;background:#010118;">
       <tr>
         <td align="center" style="padding:36px 16px 44px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
@@ -38,49 +38,60 @@
             </tr>
 
             <tr>
-              <td class="rm-card" style="background:#FFFFFF;border:1px solid #DEE1F0;border-top:0;border-radius:0 0 20px 20px;padding:40px 40px 36px;">
+              <td class="rm-card" bgcolor="#000030" style="background:#000030;border:1px solid #2743C4;border-top:0;border-radius:0 0 20px 20px;padding:40px 40px 36px;">
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="vertical-align:middle;padding-right:12px;">
-                      <img src="{{ .SiteURL }}/brand/vallo-mark.png" width="40" height="40" alt="" style="display:block;width:40px;height:40px;border:0;outline:none;text-decoration:none;" />
+                    <td style="vertical-align:middle;padding-right:10px;">
+                      <img src="{{ .SiteURL }}/brand/vallo-mark.png" width="42" height="40" alt="" style="display:block;width:42px;height:40px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
-                      <span class="rm-brand" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:#0C39EF;">Vallo</span>
+                      <img src="{{ .SiteURL }}/brand/vallo-wordmark.png" width="118" height="26" alt="Vallo" class="rm-brand" style="display:block;width:118px;height:26px;border:0;outline:none;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.025em;color:#5C7CFF;" />
                     </td>
                   </tr>
                 </table>
                 <div style="height:26px;line-height:26px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
-                <p class="rm-muted" style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#666C8E;">Sign in to Vallo</p>
-                <h1 class="rm-title" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:#0A0A1F;">Here is your sign-in link</h1><p class="rm-body" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.65;color:#3B4166;">No password needed. Open this and you are back into Vallo.</p><div style="height:28px;line-height:28px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div><table role="presentation" cellpadding="0" cellspacing="0" style="margin:0;">
+                <p class="rm-muted" style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#7C86C2;">Sign in to Vallo</p>
+                <h1 class="rm-title" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:#FFFFFF;">Here is your sign-in link</h1>
+                <p class="rm-body" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.65;color:#C6CDF2;">No password needed. Open this and you are back into Vallo.</p>
+                <div style="height:28px;line-height:28px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0;">
                       <tr>
                         <td align="center" style="border-radius:14px;background-color:#0C39EF;background-image:linear-gradient(135deg,#0C39EF 0%,#0621E8 55%,#0010D0 100%);mso-padding-alt:16px 34px;">
                           <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:16px 34px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">Sign in to Vallo</a>
                         </td>
                       </tr>
-                    </table><div style="height:28px;line-height:28px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div><p class="rm-muted" style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#666C8E;">Or enter this code</p>
+                    </table>
+                <div style="height:28px;line-height:28px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
+                <p class="rm-muted" style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7C86C2;">Or enter this code</p>
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td align="center" class="rm-panel rm-title" style="background:#F7F8FD;border:1px solid #DEE1F0;border-radius:16px;padding:20px 16px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:#0A0A1F;">{{ .Token }}</td>
+                        <td align="center" class="rm-panel rm-title" bgcolor="#000040" style="background:#000040;border:1px solid #101A55;border-radius:16px;padding:20px 16px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:#FFFFFF;">{{ .Token }}</td>
                       </tr>
-                    </table><div style="height:24px;line-height:24px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div><p class="rm-body" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#3B4166;">This link works once and expires shortly, so use it while it is fresh. It signs in the account for {{ .Email }} and no other.</p><div style="height:24px;line-height:24px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+                    </table>
+                <div style="height:24px;line-height:24px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
+                <p class="rm-body" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#C6CDF2;">This link works once and expires shortly, so use it while it is fresh. It signs in the account for {{ .Email }} and no other.</p>
+                <div style="height:24px;line-height:24px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td class="rm-panel" style="background:#F7F8FD;border:1px solid #DEE1F0;border-left:3px solid #0C39EF;border-radius:16px;padding:18px 20px;">
-                          <p class="rm-title" style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;letter-spacing:-0.01em;color:#0A0A1F;">Nobody should ever ask you for this</p>
-                          <p class="rm-body" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#3B4166;">Vallo will never ask you for this link, this code or your password. Not by phone, not by message, not by email. If somebody does, they are not us.</p>
+                        <td class="rm-panel" bgcolor="#000040" style="background:#000040;border:1px solid #101A55;border-left:3px solid #0C39EF;border-radius:16px;padding:18px 20px;">
+                          <p class="rm-title" style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;letter-spacing:-0.01em;color:#FFFFFF;">Nobody should ever ask you for this</p>
+                          <p class="rm-body" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#C6CDF2;">Vallo will never ask you for this link, this code or your password. Not by phone, not by message, not by email. If somebody does, they are not us.</p>
                         </td>
                       </tr>
-                    </table><div style="height:24px;line-height:24px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div><p class="rm-muted" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#666C8E;">
+                    </table>
+                <div style="height:24px;line-height:24px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
+                <p class="rm-muted" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#7C86C2;">
                       If the button does not work, copy this link into your browser:<br />
-                      <a href="{{ .ConfirmationURL }}" target="_blank" class="rm-brand" style="color:#0C39EF;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a>
+                      <a href="{{ .ConfirmationURL }}" target="_blank" class="rm-brand" style="color:#5C7CFF;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a>
                     </p>
               </td>
             </tr>
 
-            <!-- The footer sits on the canvas OUTSIDE the card, so it reads as
+            <!-- The footer sits on the ground OUTSIDE the card, so it reads as
                  small print by position as well as by size. -->
             <tr>
               <td style="padding:26px 28px 0;">
-                <p class="rm-muted" style="margin:0 0 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#666C8E;">If you did not ask to sign in, ignore this message. The link expires on its own and nothing about your account changes.</p>
+                <p class="rm-muted" style="margin:0 0 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#7C86C2;">If you did not ask to sign in, ignore this message. The link expires on its own and nothing about your account changes.</p>
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td style="vertical-align:middle;padding-right:9px;">
@@ -89,10 +100,14 @@
                       </tr></table>
                     </td>
                     <td style="vertical-align:middle;">
-                      <p class="rm-muted" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;font-weight:600;color:#666C8E;">Vallo. Real Estate reimagined!</p>
+                      <p class="rm-muted" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;font-weight:600;color:#7C86C2;">Vallo. Real Estate reimagined!</p>
                     </td>
                   </tr>
                 </table>
+                <!-- The legal line. The brand is Vallo everywhere a person
+                     reads; the company appears only where the law asks who
+                     sent this, which is here. -->
+                <p class="rm-muted" style="margin:10px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#7C86C2;">VALLO SPACES LTD, Abuja, Nigeria</p>
               </td>
             </tr>
 

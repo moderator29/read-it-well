@@ -11,6 +11,7 @@ import {
   withdrawalOutcome,
 } from "./messages";
 import { greetingName, hello, money } from "./render";
+import { LEGAL_LINE, MARK_PATH, SIGN_OFF, WORDMARK_ALT, WORDMARK_PATH } from "./theme";
 
 /**
  * The invariants that hold for every message, checked against every message.
@@ -99,21 +100,30 @@ describe("every message in the catalogue", () => {
     expect(emoji.test(message.text)).toBe(false);
   });
 
-  it.each(EVERY_MESSAGE)("$name is light and dark aware", ({ message }) => {
-    expect(message.html).toContain('name="color-scheme" content="light dark"');
+  it.each(EVERY_MESSAGE)("$name is dark in the register and says so", ({ message }) => {
+    expect(message.html).toContain('name="color-scheme" content="dark"');
     expect(message.html).toContain("@media (prefers-color-scheme: dark)");
   });
 
-  it.each(EVERY_MESSAGE)("$name puts no words inside an image", ({ message }) => {
+  it.each(EVERY_MESSAGE)("$name carries the lockup and puts no other words inside an image", ({ message }) => {
     /*
-     * The only <img> in the shell is the logo mark, and its alt is empty
-     * because the wordmark beside it is live text. Any image carrying copy
-     * would need alt text, so an img with a non-empty alt is the signal that
-     * somebody has put words in a picture.
+     * The two images in the shell are the lockup: the glass mark, decorative,
+     * alt empty; the wordmark, whose alt is the brand name and nothing more.
+     * Any image carrying copy would need alt text of its own, so an img with
+     * any other alt is the signal that somebody has put words in a picture.
      */
     const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    for (const img of images) {
-      expect(img).toContain('alt=""');
+    expect(images).toHaveLength(2);
+    expect(images[0]).toContain(MARK_PATH);
+    expect(images[0]).toContain('alt=""');
+    expect(images[1]).toContain(WORDMARK_PATH);
+    expect(images[1]).toContain(`alt="${WORDMARK_ALT}"`);
+  });
+
+  it.each(EVERY_MESSAGE)("$name closes with the sign-off and the legal line, in both renderings", ({ message }) => {
+    for (const part of [message.html, message.text]) {
+      expect(part).toContain(SIGN_OFF);
+      expect(part).toContain(LEGAL_LINE);
     }
   });
 });

@@ -1,0 +1,27 @@
+Vallo
+Password reset
+
+Set a new password
+------------------
+
+Somebody asked to reset the password on this account. If that was you,
+choose a new one and you are back in.
+
+Choose a new password:
+{{ .ConfirmationURL }}
+
+Or enter this code: {{ .Token }}
+
+If this was not you
+There is nothing to do. Your current password still works, this link
+expires by itself, and your account stays exactly as it is.
+
+If the button does not work, copy this link into your browser:
+{{ .ConfirmationURL }}
+
+This reset was requested for {{ .Email }}. The link can only be used
+once.
+
+Vallo. Real Estate reimagined!
+VALLO SPACES LTD, Abuja, Nigeria
+{{ .SiteURL }}

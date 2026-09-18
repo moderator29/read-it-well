@@ -7,12 +7,18 @@ import {
   GLOW,
   GRADIENT,
   GRADIENT_CAP,
-  LIGHT,
-  LOGO_SIZE,
+  LEGAL_LINE,
+  MARK_HEIGHT,
+  MARK_PATH,
+  MARK_WIDTH,
   MAX_WIDTH,
   PAD_X,
   SIGN_OFF,
   SKY,
+  WORDMARK_ALT,
+  WORDMARK_HEIGHT,
+  WORDMARK_PATH,
+  WORDMARK_WIDTH,
 } from "./theme";
 import { BRAND_ORIGIN } from "@/lib/brand-domain";
 
@@ -35,30 +41,29 @@ import { BRAND_ORIGIN } from "@/lib/brand-domain";
  * emails carry a verification code and a wallet receipt, landing in spam is
  * not a cosmetic failure.
  *
- * LIGHT AND DARK.
+ * DARK, IN THE REGISTER.
  *
- * This shell used to be dark only: `color-scheme: dark`, a navy canvas, and
- * light text baked into inline styles. In a light-mode inbox that is a black
- * rectangle sitting among white ones, and in the clients that force their own
- * inversion it becomes an unpredictable third thing.
+ * The product is dark by default and the operating system does not override
+ * it, so the email is too: the navy ground, the glass card with its lit rim,
+ * the blue button and the lockup of the sign-in render, built the only way
+ * email allows. Table layout, every colour inline on the element it paints,
+ * the ground repeated as a `bgcolor` attribute for Outlook's Word engine, and
+ * the brand navy as a SOLID colour because no mail client renders a backdrop
+ * blur. `theme.ts` explains why this is safe where a half-dark email is not.
  *
- * So the HTML is now light by default and dark by preference. The mechanics
- * are the ones email actually supports rather than the ones a browser would
- * use. Inline styles carry the light palette, because inline is the only thing
- * every client honours. A `<style>` block in the head carries a
- * `prefers-color-scheme: dark` override, and every rule in it is `!important`,
- * because a stylesheet rule cannot otherwise beat an inline attribute. Clients
- * that strip `<style>` (older Outlook, some webmail) get the light version,
- * which is a complete and correct email rather than a degraded one.
+ * The one `<style>` block carries nothing the message depends on. It declares
+ * `color-scheme: dark`, which tells Apple Mail and iOS not to invert a palette
+ * they did not design, and it re-asserts the same palette under
+ * `prefers-color-scheme: dark` with `!important`, which is what stops Gmail's
+ * own dark-mode pass recolouring the card. Strip the block and the email is
+ * still the same email.
  *
- * `color-scheme: light dark` tells Apple Mail and iOS not to invert anything
- * themselves, which is what stops a hand-built dark palette being inverted
- * back into a light one that nobody designed.
- *
- * NO TEXT IN IMAGES, ANYWHERE. The only image in the shell is the logo mark,
- * and it carries no words: the wordmark beside it is live text. An image with
- * copy baked into it is unreadable with images off, which is the default in a
- * large share of inboxes, and it is unreadable to a screen reader always.
+ * NO WORDS IN IMAGES BEYOND THE BRAND'S OWN. The shell carries two images and
+ * both are the lockup: the glass mark, decorative, alt empty; and the
+ * wordmark, whose alt is the brand name, so with images off the reader sees
+ * "Vallo" once, in its place. Every other word is live text. Copy baked into
+ * a picture is unreadable with images off, which is the default in a large
+ * share of inboxes, and unreadable to a screen reader always.
  *
  * NO EMOJI as section markers, headings or bullets. They render as tofu in
  * some clients, as a colour glyph the design did not choose in others, and
@@ -236,10 +241,10 @@ function htmlBlock(block: Block): string {
     case "heading":
       // font-family is repeated on the h1 because several clients reset heading
       // fonts to a serif default and inheritance from body does not save it.
-      return `<h1 class="rm-title" style="margin:0 0 16px;font-family:${FONT_SANS};font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:${LIGHT.text};">${escapeHtml(block.text)}</h1>`;
+      return `<h1 class="rm-title" style="margin:0 0 16px;font-family:${FONT_SANS};font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:${DARK.text};">${escapeHtml(block.text)}</h1>`;
 
     case "paragraph":
-      return `<p class="rm-body" style="margin:0 0 20px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${LIGHT.body};">${escapeHtml(block.text)}</p>`;
+      return `<p class="rm-body" style="margin:0 0 20px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${DARK.body};">${escapeHtml(block.text)}</p>`;
 
     case "bullets": {
       const items = block.items
@@ -248,7 +253,7 @@ function htmlBlock(block: Block): string {
             `<li style="margin:0 0 10px;padding-left:2px;">${escapeHtml(item)}</li>`,
         )
         .join("\n                    ");
-      return `<ul class="rm-body" style="margin:0 0 22px;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${LIGHT.body};">
+      return `<ul class="rm-body" style="margin:0 0 22px;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${DARK.body};">
                     ${items}
                   </ul>`;
     }
@@ -259,14 +264,14 @@ function htmlBlock(block: Block): string {
       // against the border.
       const cells = block.rows
         .map((row, index) => {
-          const top = index === 0 ? "0" : `1px solid ${LIGHT.edge}`;
-          const valueColour = row.strong ? LIGHT.text : LIGHT.body;
+          const top = index === 0 ? "0" : `1px solid ${DARK.edge}`;
+          const valueColour = row.strong ? DARK.text : DARK.body;
           const valueWeight = row.strong ? "700" : "500";
           const valueClass = row.strong ? "rm-title" : "rm-body";
           // The label column is held at 40% so a long value wraps inside its
           // own cell instead of squeezing the label to one word per line.
           return `<tr>
-                          <td width="40%" class="rm-muted rm-rule" style="width:40%;padding:13px 12px 13px 0;border-top:${top};font-family:${FONT_SANS};font-size:13px;line-height:1.5;vertical-align:top;color:${LIGHT.muted};">${escapeHtml(row.label)}</td>
+                          <td width="40%" class="rm-muted rm-rule" style="width:40%;padding:13px 12px 13px 0;border-top:${top};font-family:${FONT_SANS};font-size:13px;line-height:1.5;vertical-align:top;color:${DARK.muted};">${escapeHtml(row.label)}</td>
                           <td align="right" class="${valueClass} rm-rule" style="padding:13px 0;border-top:${top};font-family:${FONT_SANS};font-size:15px;line-height:1.5;font-weight:${valueWeight};vertical-align:top;color:${valueColour};">${escapeHtml(row.value)}</td>
                         </tr>`;
         })
@@ -274,7 +279,7 @@ function htmlBlock(block: Block): string {
 
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                     <tr>
-                      <td class="rm-panel" style="background:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:16px;padding:6px 22px;">
+                      <td class="rm-panel" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-radius:16px;padding:6px 22px;">
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                           ${cells}
                         </table>
@@ -315,12 +320,12 @@ function htmlBlock(block: Block): string {
       // notices without being able to say why.
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                     <tr>
-                      <td align="center" class="rm-panel rm-title" style="background:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${LIGHT.text};">${escapeHtml(block.value)}</td>
+                      <td align="center" class="rm-panel rm-title" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${DARK.text};">${escapeHtml(block.value)}</td>
                     </tr>
                   </table>`;
 
     case "note":
-      return `<p class="rm-muted" style="margin:22px 0 0;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${LIGHT.muted};">${escapeHtml(block.text)}</p>`;
+      return `<p class="rm-muted" style="margin:22px 0 0;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${DARK.muted};">${escapeHtml(block.text)}</p>`;
   }
 }
 
@@ -391,18 +396,20 @@ export type Composed = {
 };
 
 /**
- * The dark override.
+ * The re-assertion block.
  *
- * Every declaration is `!important` because it has to beat an inline style
- * attribute, and there is no other way round that in email. Classes rather
- * than element selectors, so a client that supports the media query but has
- * rewritten the markup still matches.
+ * The inline layer already IS this palette. The block exists for the one
+ * client that repaints dark emails on its own initiative: Gmail's dark-mode
+ * pass lightens backgrounds and darkens text it judges too similar, and a
+ * `prefers-color-scheme: dark` rule with `!important` is the documented way to
+ * hold the designed values. Classes rather than element selectors, so a client
+ * that supports the media query but has rewritten the markup still matches.
  */
 const DARK_STYLE = `
-      :root { color-scheme: light dark; supported-color-schemes: light dark; }
+      :root { color-scheme: dark; supported-color-schemes: dark; }
       @media (prefers-color-scheme: dark) {
-        .rm-base   { background: ${DARK.base} !important; }
-        .rm-card   { background: ${DARK.card} !important; border-color: ${DARK.edge} !important; }
+        .rm-base   { background: ${DARK.ground} !important; }
+        .rm-card   { background: ${DARK.card} !important; border-color: ${DARK.rim} !important; }
         .rm-panel  { background: ${DARK.panel} !important; border-color: ${DARK.edge} !important; }
         .rm-title  { color: ${DARK.text} !important; }
         .rm-body   { color: ${DARK.body} !important; }
@@ -427,7 +434,7 @@ export function compose(options: ComposeOptions): Composed {
   const footer = footerLines
     .map(
       (line) =>
-        `<p class="rm-muted" style="margin:0 0 8px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${LIGHT.muted};">${escapeHtml(line)}</p>`,
+        `<p class="rm-muted" style="margin:0 0 8px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${DARK.muted};">${escapeHtml(line)}</p>`,
     )
     .join("\n                ");
 
@@ -436,18 +443,18 @@ export function compose(options: ComposeOptions): Composed {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="supported-color-schemes" content="light dark" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
     <title>Vallo</title>
     <style>${DARK_STYLE}
     </style>
   </head>
-  <body class="rm-base" style="margin:0;padding:0;width:100%;background:${LIGHT.base};color:${LIGHT.body};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
+  <body class="rm-base" bgcolor="${DARK.ground}" style="margin:0;padding:0;width:100%;background:${DARK.ground};color:${DARK.body};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
     <!-- The hidden inbox line. The trailing spacer entities stop a client
          pulling the first sentence of body copy in after it, so what the
          reader sees beside the subject is a line somebody wrote. -->
     <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(options.preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" style="width:100%;background:${LIGHT.base};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" bgcolor="${DARK.ground}" style="width:100%;background:${DARK.ground};">
       <tr>
         <td align="center" style="padding:36px 16px 44px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:${MAX_WIDTH}px;width:100%;">
@@ -456,19 +463,19 @@ export function compose(options: ComposeOptions): Composed {
                  Outlook keeps a solid electric blue instead of nothing. -->
             <tr><td style="height:4px;line-height:4px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_CAP};border-radius:20px 20px 0 0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
             <tr>
-              <td class="rm-card" style="background:${LIGHT.card};border:1px solid ${LIGHT.edge};border-top:0;border-radius:0 0 20px 20px;padding:${PAD_X}px ${PAD_X}px 36px;">
-                <!-- The lockup. The mark is an image and carries NO words, so
-                     its alt is deliberately empty: the wordmark beside it is
-                     live text. With images blocked a reader sees "Vallo" once,
-                     in brand blue, rather than "Vallo Vallo" or a broken
-                     image icon where the brand should be. -->
+              <td class="rm-card" bgcolor="${DARK.card}" style="background:${DARK.card};border:1px solid ${DARK.rim};border-top:0;border-radius:0 0 20px 20px;padding:${PAD_X}px ${PAD_X}px 36px;">
+                <!-- The lockup: the glass mark and the wordmark, both hosted
+                     from the site origin. The mark carries no words and its
+                     alt is empty; the wordmark IS the word and its alt is the
+                     brand name, so with images blocked a reader sees "Vallo"
+                     once, in its place. -->
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="vertical-align:middle;padding-right:12px;">
-                      <img src="${siteUrl()}/brand/vallo-mark.png" width="${LOGO_SIZE}" height="${LOGO_SIZE}" alt="" style="display:block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border:0;outline:none;text-decoration:none;" />
+                    <td style="vertical-align:middle;padding-right:10px;">
+                      <img src="${siteUrl()}${MARK_PATH}" width="${MARK_WIDTH}" height="${MARK_HEIGHT}" alt="" style="display:block;width:${MARK_WIDTH}px;height:${MARK_HEIGHT}px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
-                      <span class="rm-brand" style="font-family:${FONT_SANS};font-size:23px;line-height:28px;font-weight:700;letter-spacing:-0.025em;color:${GLOW};">Vallo</span>
+                      <img src="${siteUrl()}${WORDMARK_PATH}" width="${WORDMARK_WIDTH}" height="${WORDMARK_HEIGHT}" alt="${WORDMARK_ALT}" class="rm-brand" style="display:block;width:${WORDMARK_WIDTH}px;height:${WORDMARK_HEIGHT}px;border:0;outline:none;text-decoration:none;font-family:${FONT_SANS};font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.025em;color:${SKY};" />
                     </td>
                   </tr>
                 </table>
@@ -489,10 +496,14 @@ export function compose(options: ComposeOptions): Composed {
                       </tr></table>
                     </td>
                     <td style="vertical-align:middle;">
-                      <p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:20px;font-weight:600;color:${LIGHT.muted};">${SIGN_OFF}</p>
+                      <p class="rm-muted" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:20px;font-weight:600;color:${DARK.muted};">${SIGN_OFF}</p>
                     </td>
                   </tr>
                 </table>
+                <!-- The legal line. The brand is Vallo everywhere a person
+                     reads; the company appears only where the law asks who
+                     sent this, which is here. -->
+                <p class="rm-muted" style="margin:10px 0 0;font-family:${FONT_SANS};font-size:12px;line-height:18px;color:${DARK.muted};">${LEGAL_LINE}</p>
               </td>
             </tr>
           </table>
@@ -519,6 +530,7 @@ export function compose(options: ComposeOptions): Composed {
       "",
       ...(footerLines.length > 0 ? [footerLines.map((l) => wrap(l)).join("\n"), ""] : []),
       SIGN_OFF,
+      LEGAL_LINE,
       siteUrl(),
     ].join("\n") + "\n";
 
