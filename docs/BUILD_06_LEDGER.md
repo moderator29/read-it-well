@@ -354,7 +354,8 @@ alerts, the refund console, the payment-method lookup panel.
 
 | What | Commit |
 | --- | --- |
-| The ledger, the rules restated, the baseline | pending |
+| The ledger, the rules restated, the baseline, the partial stubs, the preview harness shell | `1656781` |
+| The founder's photography as product assets: twenty plates compressed and named under `public/brand/photos/`, the eight scene plates wired through the manifest | `1c97d71` |
 
 ---
 
@@ -387,7 +388,32 @@ from `apps/web` (F1 3101, F2 3102, F3 3103, F4 3104, F5 3105, E 3106, lead
 ## 7. Probes and audits
 
 **B0, the audit of `73e284e` (saved-card charging in checkout and the admin
-business desk):** pending, recorded below before any work builds on it.
+business desk), read line by line by the lead before any work built on it.
+Verdict: SOUND ON THE MONEY, INCOMPLETE ON THE WIRING, two idempotency
+holes.** What holds: `chargeSavedCard` reads the card under the owner's RLS
+and refuses another person's card, refuses a non-integer or non-positive
+amount, is rate limited (10 per 10 minutes), never retries a decline, marks a
+not-reusable card through the service role so a browser cannot flip it back,
+audits both outcomes and falls back once to the hosted checkout under the
+same reference. `payWithSavedCard` reuses `guardPayable` (already-paid check,
+cancelled check, feature flag) and writes the same PENDING attempt row the
+hosted path writes, so the webhook settles both identically and a replay
+collides on `provider_ref`. The admin desk's five decisions run under the
+admin's own session (m02 and m03 carry `*_admin_all` policies, so the RLS
+posture is right), write `audit_log` and notify the owner; `publishAccommodation`
+refuses without a pin, a photo and a rate. What does not hold: (1) the
+commit message says the checkout screen was built against this shape, but
+`checkout/[bookingId]/page.tsx` renders `<PayPanel view={view} />` with no
+`savedCards` and no `chargeSavedCard`, so the saved-card path is unreachable
+from the product (handed to F3); (2) `fundWalletWithSavedCard` has no UI
+caller (handed to E) and, like `fundWallet`, no idempotency wrapper, so a
+double submit charges twice (handed to BC); (3) `payWithSavedCard` opens a
+new idempotency scope keyed on a per-attempt client key, so two concurrent
+attempts on one booking both pass the guard and both charge; a per-booking
+in-flight subject is needed (handed to BC); (4) `publishAccommodation`
+ignores the error of the follow-on `businesses` update (minor, BC's file).
+No money moved wrongly in any path read; the holes are double-charge holes,
+not loss holes, and every charge is refundable through the processor.
 
 ---
 
