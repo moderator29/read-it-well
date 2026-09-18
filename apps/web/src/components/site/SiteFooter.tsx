@@ -1,77 +1,58 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { Logo } from "@/design-system/brand/Logo";
+import { NewsletterForm } from "./NewsletterForm";
 
 /**
- * Site footer.
+ * Site footer, to the governing fullpage image.
  *
- * Sits directly on the canvas with hairlines rather than in a card, the calm
- * close to every marketing page: brand block, four link columns, then the
- * copyright line. Columns collapse to two-up on phones so the footer stays
- * tight without becoming a scroll of stacked lists.
+ * Brand block with the legal name and one line about the company, four link
+ * columns, the "stay connected" column with the email field, then the legal
+ * line. VALLO SPACES LTD appears here and in the copyright because a footer's
+ * legal line is a legal surface; it appears nowhere else on the page.
  *
- * THREE THINGS CAME OFF IT.
- *
- * A "VERIFIED LISTINGS" BADGE, a shield glyph in the brand blue with an
- * absolute claim beside it, sitting under the wordmark as the last thing a
- * reader met on every page of the site. It is our version of the "100 percent
- * verified" banner both reference platforms lead with, and it is the same
- * problem: verification here is a queue somebody is standing in, and one bad
- * listing turns a badge like that into evidence against us. The claim we can
- * actually make is made properly, as a sentence, in the Why band.
- *
- * A LANGUAGE STRIP of four pills reading EN, YO, HA, IG. The language
- * SWITCHER is in the header and in the phone panel and it actually changes the
- * language. Four pills that only announce the languages exist is a fact
- * restated as decoration, next to the control that does something about it.
- *
- * A "MADE FOR AFRICA" PILL, which is an adjective with a flag on it.
- *
- * The PRODUCT column was also wrong rather than merely decorative. It listed
- * Hotels, Apartments, Restaurants and Experiences, which are the categories
- * this platform stopped having: the hero row, the product home and the search
- * filters all deal in Rent, Buy, Shortlets, Land and Commercial. A footer
- * pointing at four `?type=` values the rest of the site no longer uses is four
- * links to an empty result set.
+ * No social icons. The render shows five; the company has no published
+ * handles, and five glyphs linking to nothing is the kind of picture of a
+ * feature this platform does not ship.
  */
-
 export function SiteFooter({ t }: { t: Dictionary }) {
+  const f = t.landing.footer;
+  const face = t.landing.face;
   const columns = [
     {
-      title: t.landing.footer.product,
+      title: f.product,
       links: [
-        { href: "/search?intent=rent", label: t.nav.rent },
-        { href: "/search?intent=sale", label: t.nav.buy },
-        { href: "/search?type=shortlet", label: t.nav.shortlets },
-        { href: "/search?type=land", label: t.nav.land },
-        { href: "/search?type=office", label: t.nav.commercial },
+        { href: "/", label: face.footer.home },
+        { href: "/search", label: face.nav.properties },
+        { href: "/stays", label: face.nav.stays },
+        { href: "/assistant", label: face.footer.ai },
+        { href: "/wallet", label: face.footer.wallet },
       ],
     },
     {
-      title: t.landing.footer.company,
+      title: f.company,
       links: [
-        { href: "/about", label: t.landing.footer.about },
-        { href: "/careers", label: t.landing.footer.careers },
-        { href: "/agents", label: t.landing.footer.becomeAgent },
+        { href: "/about", label: f.about },
+        { href: "/careers", label: f.careers },
+        { href: "/agents", label: f.becomeAgent },
+        { href: "/contact", label: f.contact },
       ],
     },
     {
-      title: t.landing.footer.support,
+      title: f.support,
       links: [
-        { href: "/help", label: t.landing.footer.help },
-        /* The header and the landing page have pointed at /docs the whole
-           time. The footer is where somebody looks for it second, and the
-           label is the same translated key the header already uses, so the
-           two can never end up calling it different things. */
-        { href: "/docs", label: t.landing.footer.docs },
-        { href: "/contact", label: t.landing.footer.contact },
+        { href: "/help", label: f.help },
+        { href: "/docs", label: f.docs },
+        { href: "/safety", label: face.footer.safety },
+        { href: "/standards", label: face.footer.standards },
+        { href: "/cancellations", label: face.footer.cancellations },
       ],
     },
     {
-      title: t.landing.footer.legal,
+      title: f.legal,
       links: [
-        { href: "/privacy", label: t.landing.footer.privacy },
-        { href: "/terms", label: t.landing.footer.terms },
+        { href: "/privacy", label: f.privacy },
+        { href: "/terms", label: f.terms },
       ],
     },
   ];
@@ -79,46 +60,28 @@ export function SiteFooter({ t }: { t: Dictionary }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="nf-hairline mt-section bg-[var(--nf-surface-primary)]">
+    <footer className="nf-site-footer">
       <div className="nf-shell pt-section pb-block">
-        {/* Brand block and link columns */}
-        <div className="grid grid-cols-2 gap-x-block gap-y-block md:grid-cols-[1.6fr_repeat(4,1fr)]">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" aria-label="Vallo home" className="nf-tap inline-flex">
-              <Logo size={52} wordSize={22} />
+        <div className="nf-site-footer-grid">
+          <div className="nf-site-footer-brand">
+            <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap inline-flex">
+              <Logo size={44} wordSize={20} />
             </Link>
-            {/*
-              ONE LINE UNDER THE LOGO, NOT TWO.
-              This stacked `footer.tagline` over `vision.title`: two taglines,
-              28 and 34 characters wide, in two sizes, saying two different
-              things about the company in the same breath. `vision.title` is the
-              heading of the vision band further up the page, borrowed, so the
-              footer was also quoting a section the reader had just passed.
-              `footer.tagline` now says what Vallo is and that is the whole job.
-            */}
-            <p className="nf-body-sm mt-heading max-w-measure-lede font-medium text-[var(--nf-content-secondary)]">
-              {t.landing.footer.tagline}
+            <p className="nf-overline mt-heading text-[var(--nf-content-primary)]">
+              {face.footer.legalName}
+            </p>
+            <p className="nf-body-sm mt-inline max-w-measure-lede text-[var(--nf-content-secondary)]">
+              {face.footer.legalLine}
             </p>
           </div>
 
           {columns.map((col) => (
             <nav key={col.title} aria-label={col.title}>
-              <h2 className="nf-overline mb-row">{col.title}</h2>
-              {/*
-                No `space-y` here on purpose. These links painted at 17px, well
-                under the 44px floor, and the gap between them was margin
-                rather than target: a thumb aiming at Privacy could land
-                between Privacy and Terms and hit neither. The rows now carry
-                their own height, so the spacing IS the target rather than
-                sitting beside it.
-              */}
+              <h2 className="nf-overline mb-row text-[var(--nf-brand-secondary)]">{col.title}</h2>
               <ul>
                 {col.links.map((l) => (
-                  <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      className="nf-body-sm flex min-h-11 items-center text-[var(--nf-content-secondary)] transition-colors duration-[var(--nf-duration-fast)] hover:text-[var(--nf-content-primary)]"
-                    >
+                  <li key={l.href}>
+                    <Link href={l.href} className="nf-site-footer-link">
                       {l.label}
                     </Link>
                   </li>
@@ -126,14 +89,36 @@ export function SiteFooter({ t }: { t: Dictionary }) {
               </ul>
             </nav>
           ))}
+
+          <div className="nf-site-footer-connect">
+            <h2 className="nf-overline mb-row text-[var(--nf-brand-secondary)]">
+              {face.footer.stayConnected}
+            </h2>
+            <p className="nf-body-sm mb-group text-[var(--nf-content-secondary)]">
+              {face.footer.newsletterBody}
+            </p>
+            <NewsletterForm
+              label={face.footer.emailLabel}
+              placeholder={face.footer.emailPlaceholder}
+              submit={face.footer.subscribe}
+              note={face.footer.newsletterNote}
+              done={face.footer.subscribed}
+            />
+          </div>
         </div>
 
-        {/* Copyright line */}
-        <div className="nf-hairline nf-caption mt-section-tight flex flex-col gap-inline pt-heading sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            <span className="nf-numeric">{year}</span> Vallo. {t.landing.footer.rights}
+        <div className="nf-site-footer-legal">
+          <p className="nf-caption">
+            &copy; <span className="nf-numeric">{year}</span> {face.footer.legalName}. {f.rights}
           </p>
-          <p className="font-medium">{t.landing.slogan}</p>
+          <p className="nf-caption flex flex-wrap gap-group">
+            <Link href="/terms" className="nf-site-footer-link">
+              {f.terms}
+            </Link>
+            <Link href="/privacy" className="nf-site-footer-link">
+              {f.privacy}
+            </Link>
+          </p>
         </div>
       </div>
     </footer>

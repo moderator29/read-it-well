@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import {
   NO_FEES_LINE,
   RESPONSE_COMMITMENTS,
@@ -96,25 +96,16 @@ const CONSEQUENCES: { title: string; body: string }[] = [
 
 export default function StandardsPage() {
   return (
-    <div className="nf-shell py-section">
+    <>
+      <SiteHead
+        plate="villa-exterior-sunset"
+        icon="shield-home"
+        chip="Trust and safety"
+        title="What we do not allow, and how quickly we answer"
+        lede="These are the standards every person on Vallo agrees to, the way we enforce them, and the response times we hold ourselves to. If we miss one, tell us and quote your reference."
+      />
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* ---------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="shield-home" fill />
-            </span>
-            Trust and safety
-          </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
-            What we do not allow, and how quickly we answer
-          </h1>
-          <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            These are the standards every person on Vallo agrees to, the way we
-            enforce them, and the response times we hold ourselves to. If we miss
-            one, tell us and quote your reference.
-          </p>
-        </div>
 
         {/* ------------------------------------------- response times first */}
         <section className="mt-section" aria-labelledby="response-times">
@@ -296,5 +287,6 @@ export default function StandardsPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }

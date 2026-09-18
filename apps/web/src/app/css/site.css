@@ -2,6 +2,277 @@
   site: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  The marketing shell (header and footer, on every public page) and the
+  register the content pages inherit from the landing: a photo plate behind
+  the page head, the same glass, the same glow, the same rhythm.
 */
 @layer components {
+  /* ------------------------------------------------------- the footer */
+
+  .nf-site-footer {
+    position: relative;
+    margin-top: var(--nf-gap-section);
+    background: var(--nf-surface-canvas);
+    border-top: 1px solid var(--nf-brand-edge-soft);
+  }
+  /* The lit horizon the render draws along the top of its footer: one
+     line of brand light and a soft bloom under it, nothing animated. */
+  .nf-site-footer::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 12rem;
+    pointer-events: none;
+    background: radial-gradient(60% 100% at 50% 0%, var(--nf-glow-1) 0%, transparent 70%);
+  }
+  .nf-site-footer > * {
+    position: relative;
+  }
+  .nf-site-footer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-block) var(--nf-gap-group);
+  }
+  @media (min-width: 768px) {
+    .nf-site-footer-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-site-footer-grid {
+      grid-template-columns: 1.5fr repeat(4, minmax(0, 0.8fr)) 1.5fr;
+    }
+  }
+  .nf-site-footer-brand,
+  .nf-site-footer-connect {
+    grid-column: span 2;
+  }
+  @media (min-width: 768px) {
+    .nf-site-footer-connect {
+      grid-column: span 4;
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-site-footer-brand,
+    .nf-site-footer-connect {
+      grid-column: span 1;
+    }
+  }
+  .nf-site-footer-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-site-footer-link:hover {
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-site-footer-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-site-footer-legal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-gap-section-tight);
+    padding-top: var(--nf-gap-heading);
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+  @media (min-width: 640px) {
+    .nf-site-footer-legal {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  /* The email field: one glass capsule with the round submit inside it. */
+  .nf-site-newsletter-field {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-space-2xs);
+    padding-inline-start: var(--nf-space-md);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-glass-fill);
+    border: 1px solid var(--nf-glass-border);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-site-newsletter-field:focus-within {
+    border-color: var(--nf-brand-edge);
+  }
+  .nf-site-newsletter-field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 2.5rem;
+    background: transparent;
+    border: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-site-newsletter-field input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-site-newsletter-field input:focus-visible {
+    outline: none;
+  }
+  .nf-site-newsletter-field button {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-on-brand);
+    background: var(--nf-gradient-cta);
+    box-shadow: 0 0 14px var(--nf-glow-2);
+  }
+  .nf-site-newsletter-field button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .nf-site-newsletter-field button:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* -------------------------------------------- the content page head */
+
+  /*
+   * Every (site) page opens on a plate: a photograph behind the title with
+   * the canvas growing out of its foot, the same treatment as the landing
+   * hero at a third of the height. The page picks the plate; the register
+   * is here.
+   */
+  .nf-site-head {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--nf-space-2xl) var(--nf-space-xl);
+    text-align: center;
+    color: var(--nf-landing-fg);
+  }
+  .nf-site-head-aurora {
+    z-index: -2;
+  }
+  @media (min-width: 64rem) {
+    .nf-site-head {
+      padding-block: var(--nf-space-4xl) var(--nf-space-3xl);
+    }
+    .nf-site-head-aurora {
+      display: none;
+    }
+  }
+  /* A fitted band under the copy on the phone; the backdrop from 64rem. */
+  .nf-site-head-plate {
+    position: relative;
+    height: 13rem;
+    margin-top: var(--nf-gap-block);
+    overflow: hidden;
+    border-radius: var(--nf-radius-2xl);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow: var(--nf-landing-glow-ring), var(--nf-elev-2);
+  }
+  .nf-site-head-plate img {
+    object-fit: cover;
+    object-position: 50% 55%;
+  }
+  @media (min-width: 64rem) {
+    .nf-site-head-plate {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      height: auto;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .nf-site-head-plate::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--nf-landing-ink) 72%, transparent) 0%,
+          color-mix(in oklab, var(--nf-landing-ink) 48%, transparent) 55%,
+          var(--nf-surface-canvas) 100%
+        );
+    }
+  }
+  .nf-site-head .nf-chip {
+    color: var(--nf-landing-fg);
+    background: var(--nf-landing-control);
+    border-color: var(--nf-landing-hairline);
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-site-head-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-gap-heading);
+  }
+  .nf-site-head--start .nf-site-head-body {
+    align-items: flex-start;
+    text-align: start;
+  }
+  .nf-site-head-title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h0);
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-display);
+    color: var(--nf-landing-fg);
+  }
+  .nf-site-head-lede {
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.55;
+    color: var(--nf-landing-fg-2);
+  }
+
+  /* The content pages' cards take the landing's lit band treatment so the
+     two halves read as one site. */
+  .nf-site .nf-card {
+    border-radius: var(--nf-radius-xl);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-1),
+      0 0 0 1px var(--nf-brand-edge-soft),
+      0 0 28px var(--nf-glow-1);
+  }
+
+  /* -------------------------------------------------------- daylight */
+
+  :root[data-theme="light"] .nf-site-footer {
+    border-top-color: var(--nf-border-subtle);
+  }
+  :root[data-theme="light"] .nf-site-footer::before {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-site-newsletter-field {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-site-newsletter-field button {
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-site .nf-card {
+    box-shadow: var(--nf-elev-1);
+  }
+  /* The head keeps its photograph in daylight, like the landing hero; only
+     the foot of the scrim changes colour, which the canvas token does. */
+  :root[data-theme="light"] .nf-site-head .nf-chip {
+    color: var(--nf-landing-fg);
+    background: var(--nf-landing-control);
+    border-color: var(--nf-landing-hairline);
+  }
 }

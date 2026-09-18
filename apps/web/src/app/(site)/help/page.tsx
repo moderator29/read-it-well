@@ -1,5 +1,6 @@
 import { SUPPORT_SENTENCE } from "@/lib/support-email";
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { SupportChat } from "@/components/app/account/SupportChat";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -171,22 +172,16 @@ const FAQS: Faq[] = [
 
 export default function HelpPage() {
   return (
-    <div className="nf-shell py-section">
+    <>
+      <SiteHead
+        plate="living-room-dusk"
+        icon="support-chat"
+        chip="Help centre"
+        title="How can we help?"
+        lede="Straight answers about booking, payments, refunds, listing and verification. Search below, or browse by topic."
+      />
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* -------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="support-chat" fill />
-            </span>
-            Help centre
-          </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">How can we help?</h1>
-          <p className="mx-auto mt-group max-w-[50ch] text-[var(--nf-content-secondary)]">
-            Straight answers about booking, payments, refunds, listing and
-            verification. Search below, or browse by topic.
-          </p>
-        </div>
 
         {/* ------------------------------------------------ trust surfaces */}
         <nav
@@ -235,5 +230,6 @@ export default function HelpPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

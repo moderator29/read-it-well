@@ -1,5 +1,6 @@
 import { CHAPTER_INDEX } from "./chapters";
 import { DocsSidebar } from "./DocsSidebar";
+import { SiteHead } from "@/components/site/SiteHead";
 
 /**
  * The documentation frame.
@@ -20,11 +21,22 @@ import { DocsSidebar } from "./DocsSidebar";
  */
 export default function DocsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="nf-shell py-section-tight">
-      <div className="mx-auto flex max-w-6xl flex-col gap-heading lg:flex-row lg:items-start lg:gap-block">
-        <DocsSidebar items={CHAPTER_INDEX} />
-        <div className="min-w-0 flex-1">{children}</div>
+    <>
+      {/* The plate carries the family name as a paragraph: every chapter under
+          it, and the index, keeps its own h1. */}
+      <SiteHead
+        plate="bg-blue-wave"
+        icon="listing-review"
+        chip="Documentation"
+        title="How Vallo works, in full"
+        heading="p"
+      />
+      <div className="nf-shell pb-section">
+        <div className="mx-auto flex max-w-6xl flex-col gap-heading lg:flex-row lg:items-start lg:gap-block">
+          <DocsSidebar items={CHAPTER_INDEX} />
+          <div className="min-w-0 flex-1">{children}</div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

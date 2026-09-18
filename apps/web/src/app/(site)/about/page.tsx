@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
@@ -64,29 +65,18 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="nf-shell py-section">
+    <>
+      {/* The about page says what the company does; the slogan lives beside
+          the logo, not here. See PRODUCT.md section 7. */}
+      <SiteHead
+        plate="skyline-bridge-dusk"
+        icon="house-sparkle"
+        chip="About Vallo"
+        title="Rent, buy or sell property, with the fear taken out."
+        lede="Vallo is Nigeria's all-in-one property marketplace: homes to rent or buy, shortlets and hotels, shops, offices and land, with a naira wallet and the areas around them. Every listing was put up by a real person we have checked, and the whole product works in the languages Nigerians actually speak."
+      />
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* -------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="house-sparkle" fill />
-            </span>
-            About Vallo
-          </span>
-          {/* The about page says what the company does; the slogan lives beside
-              the logo, not here. See PRODUCT.md section 7. */}
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[24ch]">
-            Rent, buy or sell property, with the fear taken out.
-          </h1>
-          <p className="mx-auto mt-group max-w-[56ch] text-[var(--nf-content-secondary)]">
-            Vallo is Nigeria&apos;s all-in-one property marketplace: homes to rent or
-            buy, shortlets and hotels, shops, offices and land, with a naira wallet
-            and the areas around them. Every listing was put up by a real person we
-            have checked, and the whole product works in the languages Nigerians
-            actually speak.
-          </p>
-        </div>
 
         {/* ----------------------------------------------------- mission */}
         <Reveal as="section" className="mt-section">
@@ -186,5 +176,6 @@ export default function AboutPage() {
         </Reveal>
       </div>
     </div>
+    </>
   );
 }

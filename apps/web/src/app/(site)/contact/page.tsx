@@ -1,5 +1,6 @@
 import { SUPPORT_EMAIL, SUPPORT_IS_EMAIL } from "@/lib/support-email";
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -45,22 +46,16 @@ export default async function ContactPage({
   const defaultTopic = topicFrom((await searchParams).topic);
 
   return (
-    <div className="nf-shell py-section">
+    <>
+      <SiteHead
+        plate="living-room-day"
+        icon="chat"
+        chip="Contact us"
+        title="Talk to a human"
+        lede="Whether it is a booking, a payment, a listing or something odd you spotted, the fastest route to a fix is below."
+      />
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* -------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="chat" fill />
-            </span>
-            Contact us
-          </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">Talk to a human</h1>
-          <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            Whether it is a booking, a payment, a listing or something odd you spotted,
-            the fastest route to a fix is below.
-          </p>
-        </div>
 
         {/* ------------------------------------------------ the promise */}
         <Reveal as="section" className="mt-section">
@@ -187,5 +182,6 @@ export default async function ContactPage({
         </Reveal>
       </div>
     </div>
+    </>
   );
 }

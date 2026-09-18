@@ -1,113 +1,102 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { LogoMark } from "@/design-system/brand/Logo";
+import { Logo } from "@/design-system/brand/Logo";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
+import { NavScrollState } from "./NavScrollState";
+import { SiteNavLinks } from "./SiteNavLinks";
 import { ThemeToggle } from "./ThemeToggle";
 
 /**
- * Marketing header.
+ * Marketing header, to the governing landing image.
  *
- * FIVE LINKS BECAME THREE, AND TWO PRIMARY BUTTONS BECAME ONE.
+ * Left: the lockup (mark and wordmark, as the render shows it). Centre, from
+ * lg up: Home / Properties / Stays / AI / More. Right: the search glyph in a
+ * glass square, Sign In as a glass button, Get Started as the one primary,
+ * and on phones the panel opener. Theme and language live under More on
+ * desktop and inside the phone panel, so the bar carries exactly what the
+ * render carries and both controls stay one tap away.
  *
- * The rail was Home, Docs, Help, Privacy, Terms. Home is the wordmark two
- * centimetres to its left, so it was the same destination twice on one row.
- * Privacy and Terms are the two documents nobody has ever navigated to from a
- * header: they belong in the footer, they are already in the footer, and
- * putting them up here spends a third of a stranger's first read on legal
- * boilerplate. What is left is the three things a stranger actually wants:
- * what is on it, how it works, and where to get help.
- *
- * The right-hand side carried Sign in AND Sign up, both `variant="primary"`,
- * both filled, adjacent. Two filled buttons touching is a coin toss rather than
- * an invitation. Sign up keeps the fill because it is what this page is for;
- * Sign in becomes a quiet link, which is also the truthful hierarchy, since
- * somebody who already has an account is not who a marketing page is written
- * for.
- *
- * The links are the same list the phone panel gets, so the two cannot drift.
+ * `variant="landing"` makes the bar transparent over the hero photograph
+ * until the page scrolls (see landing.css and NavScrollState). The content
+ * pages never pass it and keep the chrome glass from the first pixel.
  */
-export function SiteHeader({ t, locale }: { t: Dictionary; locale: Locale }) {
+export function SiteHeader({
+  t,
+  locale,
+  variant,
+}: {
+  t: Dictionary;
+  locale: Locale;
+  variant?: "landing";
+}) {
+  const nav = t.landing.face.nav;
   const links = [
-    { href: "/search", label: t.nav.explore },
-    { href: "/docs", label: t.landing.footer.docs },
-    { href: "/help", label: t.landing.footer.help },
+    { href: "/", label: nav.home },
+    { href: "/search", label: nav.properties },
+    { href: "/stays", label: nav.stays },
+    { href: "/assistant", label: nav.ai },
   ];
+  const more = [
+    { href: "/about", label: nav.about },
+    { href: "/help", label: nav.help },
+    { href: "/docs", label: nav.docs },
+    { href: "/contact", label: nav.contact },
+    { href: "/careers", label: nav.careers },
+  ];
+  const id = "nf-site-nav";
 
   return (
-    <header className="sticky top-0 z-50">
+    <header id={id} className="nf-site-nav sticky top-0 z-50" data-variant={variant}>
+      {variant === "landing" && <NavScrollState target={id} />}
       <div className="nf-site-bar nf-safe-top">
-        {/*
-          L-119. THE HEADER'S HEIGHT WAS TWO ARBITRARY VALUES AND A TOKEN THAT
-          DISAGREED WITH BOTH.
-          This wrote h-[60px] and sm:h-[72px] while `--nf-header-height` said
-          76px, a height nothing in the product ever painted. It survived
-          because nothing read it, which is how a value gets invented for a
-          token, and it became load-bearing the moment `motion.css` pointed
-          `scroll-margin-top` at it: anchored headings were then clearing 88px
-          of a bar that is 60px on a phone, pushing most of a line of body text
-          off the top of the screen.
-
-          The token pair now holds the numbers this element actually renders,
-          and this element reads them, so there is one place to change a header
-          height and the anchor offset follows it.
-        */}
-        <div className="nf-shell flex h-header-sm items-center gap-group sm:h-header sm:gap-heading">
-          {/* THE MARK ALONE, NO WORDMARK BESIDE IT. The founder asked for the
-              logo by itself on the landing header, and with the containerless
-              mark it is right: the mark IS the name now, the way the best
-              consumer brands wear theirs, and losing the word bought back the
-              room to wear it bigger. The accessible name is unchanged. */}
+        <div className="nf-shell flex h-header-sm items-center gap-group sm:h-header lg:gap-block">
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-tap shrink-0">
-            <LogoMark size={64} responsive title="Vallo" priority />
+            <Logo size={44} wordSize={22} responsive priority />
           </Link>
 
-          {/*
-            The rail sits beside the wordmark rather than floating in the middle
-            of the bar. `justify-between` on three groups pushed it to the
-            optical centre, where it read as a third thing competing with the
-            brand and the actions; hung off the logo it reads as belonging to
-            it, and the whole right-hand side becomes one block of controls.
-          */}
-          <nav aria-label={t.nav.primaryLabel} className="hidden items-center lg:flex">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                prefetch
-                className="nf-body-sm rounded-[var(--nf-radius-sm)] px-row py-inline font-medium text-[var(--nf-content-secondary)] transition-colors duration-[var(--nf-duration-fast)] hover:bg-[var(--nf-interactive-hover)] hover:text-[var(--nf-content-primary)]"
-              >
-                {l.label}
-              </Link>
-            ))}
+          <nav
+            aria-label={t.nav.primaryLabel}
+            className="ms-auto hidden items-center gap-inline-tight lg:flex"
+          >
+            <SiteNavLinks
+              links={links}
+              more={more}
+              moreLabel={nav.more}
+              extras={
+                <>
+                  <ThemeToggle />
+                  <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
+                </>
+              }
+            />
           </nav>
 
-          <div className="ms-auto flex items-center gap-inline sm:gap-row">
-            {/* Theme and language sit together because they are the same kind
-                of control: how this page is presented to you, decided by you. */}
-            <div className="hidden items-center gap-inline-tight sm:flex">
-              <ThemeToggle />
-              <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-            </div>
+          <div className="ms-auto flex items-center gap-inline lg:ms-0">
             <Link
-              href="/sign-in"
+              href="/search"
               prefetch
-              className="nf-link-quiet nf-tap nf-body-sm hidden sm:inline-flex"
+              aria-label={nav.search}
+              className="nf-site-nav-glass nf-site-nav-glass--icon hidden sm:inline-flex"
             >
-              {t.common.signIn}
+              <UiIcon name="search" size={18} aria-hidden />
+            </Link>
+            <Link href="/sign-in" prefetch className="nf-site-nav-glass hidden sm:inline-flex">
+              {nav.signIn}
             </Link>
             {/* /start, not /sign-up: two intro screens explaining what Vallo
                 is, with Skip on both. See (auth)/start/StartCarousel.tsx. */}
             <ButtonLink href="/start" variant="primary" size="sm">
-              {t.common.signUp}
+              {nav.getStarted}
             </ButtonLink>
             <MobileMenu
-              links={links}
+              links={[...links, ...more]}
               locale={locale}
               languageLabel={t.a11y.languageSwitcher}
-              signIn={t.common.signIn}
-              signUp={t.common.signUp}
+              signIn={nav.signIn}
+              signUp={nav.getStarted}
               openLabel={t.a11y.openMenu}
               closeLabel={t.a11y.closeMenu}
             />

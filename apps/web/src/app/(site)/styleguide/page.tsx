@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
@@ -128,17 +129,16 @@ const ICONS: UiIconName[] = [
 
 export default function StyleguidePage() {
   return (
-    <div className="nf-shell py-section">
-      <header className="max-w-[62ch]">
-        <span className="nf-overline">Internal</span>
-        <h1 className="nf-h1 mt-row">Styleguide</h1>
-        <p className="mt-group text-[1.0625rem] leading-relaxed text-[var(--nf-content-secondary)]">
-          Every swatch here paints its own token rather than a copied value, so
-          this page cannot drift from the sheet it documents. Switch the theme
-          and it all moves with you, which is the point: these are the same
-          values the product runs on, not a picture of them.
-        </p>
-      </header>
+    <>
+    <SiteHead
+      plate="bg-blue-wave"
+      icon="report-stats"
+      chip="Internal"
+      title="Styleguide"
+      lede="Every swatch here paints its own token rather than a copied value, so this page cannot drift from the sheet it documents. Switch the theme and it all moves with you, which is the point: these are the same values the product runs on, not a picture of them."
+      align="start"
+    />
+    <div className="nf-shell pb-section">
 
       <Section
         title="Surfaces"
@@ -370,5 +370,6 @@ export default function StyleguidePage() {
         </div>
       </Section>
     </div>
+    </>
   );
 }

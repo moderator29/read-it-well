@@ -2,6 +2,1451 @@
   landing: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
   section 2. Light-theme rules for this family live here too, under
   :root[data-theme="light"], so the partial is the whole surface.
+
+  The landing is the one surface with its own desktop governing image
+  (docs/design/references/GOVERNING-landing-desktop-hero.png and
+  GOVERNING-landing-desktop-fullpage.png), so it is the one surface built
+  desktop first and derived down to 390px rather than the other way round.
+  Everything below is scoped under `.nf-landing`; the few values that are not
+  already on the token scale are defined as local custom properties on that
+  root so the lead can promote them in one move.
 */
 @layer components {
+  .nf-landing,
+  .nf-site {
+    /*
+     * Local rungs. The hero headline sits above `--nf-text-display` because the
+     * render's "Real Estate" is a poster line, not a page heading; the pill and
+     * the floating card carry their own measures because nothing on the scale
+     * describes "a search bar floating over a photograph". Reported to the lead
+     * for promotion.
+     */
+    --nf-landing-title: clamp(2.75rem, 1.6rem + 4.9vw, 5.5rem);
+    --nf-landing-pill-max: 47.5rem;
+    --nf-landing-card-w: 15.5rem;
+    --nf-landing-hero-h: min(100svh, 56rem);
+    --nf-landing-hero-h-desktop: clamp(40rem, 78svh, 46rem);
+    --nf-landing-glow-ring: 0 0 0 1px var(--nf-brand-edge-soft), 0 0 28px var(--nf-glow-2);
+    /*
+     * ON THE PHOTOGRAPH, THE THEME DOES NOT CHANGE. A dusk plate is dark in
+     * daylight too, so everything that sits on one (the hero copy, the city
+     * capsules, the pill, the floating card, the category tiles, the drawn
+     * phone) is inked from these, which never flip. `--nf-surface-pin` is the
+     * one deep ink the token file keeps identical in both themes, and the
+     * white is `--nf-content-on-brand`, white in both. The `on-media` fills
+     * in tokens.css turn white on paper, which is right for a bright photo
+     * and wrong for this one; they are not used here.
+     */
+    --nf-landing-ink: var(--nf-surface-pin);
+    --nf-landing-on-ink: var(--nf-content-on-brand);
+    --nf-landing-on-ink-secondary: color-mix(in oklab, var(--nf-content-on-brand) 84%, transparent);
+    --nf-landing-on-ink-muted: color-mix(in oklab, var(--nf-content-on-brand) 70%, transparent);
+    --nf-landing-hairline-on-ink: color-mix(in oklab, var(--nf-content-on-brand) 14%, transparent);
+    --nf-landing-control-on-ink: color-mix(in oklab, var(--nf-landing-ink) 55%, transparent);
+    --nf-landing-control-on-ink-strong: color-mix(in oklab, var(--nf-landing-ink) 78%, transparent);
+    /*
+     * WHAT THE HERO COPY SITS ON CHANGES AT 64REM. Below it the copy is on
+     * the canvas (a phone never gets a photograph behind text, the founder's
+     * ruling), so it takes the theme's own ink and is right on paper too.
+     * From 64rem the copy is on the photograph and takes the ink tokens
+     * above. Every hero-copy rule reads these, never a colour directly.
+     */
+    --nf-landing-fg: var(--nf-content-primary);
+    --nf-landing-fg-2: var(--nf-content-secondary);
+    --nf-landing-fg-3: var(--nf-content-muted);
+    --nf-landing-accent: var(--nf-brand-secondary);
+    --nf-landing-hairline: var(--nf-glass-border);
+    --nf-landing-control: var(--nf-glass-fill);
+    --nf-landing-control-strong: var(--nf-glass-fill-strong);
+    --nf-landing-pane: color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
+    --nf-landing-tile-fill: color-mix(in oklab, var(--nf-surface-canvas) 72%, transparent);
+    --nf-landing-band-fill: color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent);
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+  }
+  @media (min-width: 64rem) {
+    .nf-landing,
+    .nf-site {
+      --nf-landing-fg: var(--nf-landing-on-ink);
+      --nf-landing-fg-2: var(--nf-landing-on-ink-secondary);
+      --nf-landing-fg-3: var(--nf-landing-on-ink-muted);
+      --nf-landing-accent: var(--nf-content-on-media-accent);
+      --nf-landing-hairline: var(--nf-landing-hairline-on-ink);
+      --nf-landing-control: var(--nf-landing-control-on-ink);
+      --nf-landing-control-strong: var(--nf-landing-control-on-ink-strong);
+      --nf-landing-pane: color-mix(in oklab, var(--nf-landing-ink) 78%, transparent);
+    }
+  }
+
+  /* ------------------------------------------------------------ the nav */
+
+  /*
+   * The bar is transparent while the hero photograph is under it and becomes
+   * the chrome glass the moment the page scrolls. `NavScrollState` writes
+   * `data-scrolled`; the marketing pages that have no photograph never carry
+   * `data-variant="landing"` and keep the glass from the first pixel.
+   */
+  .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-bar {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-bar::before,
+  .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-bar::after {
+    display: none;
+  }
+  .nf-site-nav .nf-site-bar {
+    transition:
+      background var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+
+  .nf-site-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 2.75rem;
+    padding: var(--nf-gap-inline) var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-site-nav-link[aria-current="page"] {
+    color: var(--nf-brand-secondary);
+  }
+  /* The underline under Home in the render: a short rule in the brand ink. */
+  .nf-site-nav-link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset: auto var(--nf-space-sm) 0.25rem;
+    height: 2px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-secondary);
+  }
+  @media (hover: hover) {
+    .nf-site-nav-link:hover {
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-site-nav-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The glass square controls in the nav: the search glyph and Sign In. */
+  .nf-site-nav-glass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-gap-inline);
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    background: var(--nf-glass-fill);
+    border: 1px solid var(--nf-glass-border);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-site-nav-glass--icon {
+    padding: 0;
+    width: 2.75rem;
+  }
+  @media (hover: hover) {
+    .nf-site-nav-glass:hover {
+      background: var(--nf-glass-fill-strong);
+      border-color: var(--nf-brand-edge-soft);
+    }
+  }
+  .nf-site-nav-glass:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The More menu. A popover under the link, in the glass. */
+  .nf-site-nav-menu {
+    position: absolute;
+    top: calc(100% + var(--nf-gap-inline));
+    left: 0;
+    min-width: 13rem;
+    padding: var(--nf-gap-inline);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-glass-fill-strong);
+    border: 1px solid var(--nf-glass-border);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-elev-3);
+    z-index: 2;
+  }
+  .nf-site-nav-menu a {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  @media (hover: hover) {
+    .nf-site-nav-menu a:hover {
+      background: var(--nf-interactive-hover);
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-site-nav-menu a:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  /* The display controls at the foot of the More menu, above a hairline. */
+  .nf-site-nav-menu-extras {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-gap-inline);
+    padding: var(--nf-gap-inline) var(--nf-space-sm) var(--nf-space-2xs);
+    border-top: 1px solid var(--nf-glass-border);
+  }
+  .nf-site-nav-more[aria-expanded="true"] > svg {
+    transform: rotate(180deg);
+  }
+  .nf-site-nav-more > svg {
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  /* ----------------------------------------------------------- the hero */
+
+  /*
+   * The photograph is the section. The nav sits over its top edge (the header
+   * is sticky and the hero pulls up under it by the header's own height), the
+   * copy sits on the calm left third, and the search pill hangs off the bottom
+   * edge so the stats band below can tuck under it.
+   */
+  .nf-landing-hero {
+    position: relative;
+    isolation: isolate;
+    margin-top: calc(-1 * var(--nf-header-height-sm));
+    padding-top: var(--nf-header-height-sm);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .nf-landing-hero-aurora {
+    z-index: -2;
+  }
+  @media (min-width: 64rem) {
+    .nf-landing-hero-aurora {
+      display: none;
+    }
+  }
+  @media (min-width: 640px) {
+    .nf-landing-hero {
+      margin-top: calc(-1 * var(--nf-header-height));
+      padding-top: var(--nf-header-height);
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-hero {
+      min-height: var(--nf-landing-hero-h-desktop);
+      /* Room under the pill for the stats band to tuck up into the plate. */
+      padding-bottom: var(--nf-space-3xl);
+    }
+  }
+  /*
+   * THE PLATE IS A BAND ON THE PHONE AND THE BACKDROP FROM 64REM.
+   *
+   * One image element. Under 64rem it is a block in the flow: full width
+   * inside the gutters, rounded, 240px tall, the frame centred on the house
+   * so the whole villa reads with sky above it, never scaled past its own
+   * crop. From 64rem it leaves the flow and covers the hero, and the scrims
+   * in `::after` darken the left third for the copy and grow the canvas out
+   * of its foot.
+   */
+  .nf-landing-hero-plate {
+    position: relative;
+    height: 15rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-2xl);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow: var(--nf-landing-glow-ring), var(--nf-elev-3);
+  }
+  .nf-landing-hero-plate img {
+    object-fit: cover;
+    object-position: 50% 42%;
+  }
+  .nf-landing-hero-plate::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 55%,
+      color-mix(in oklab, var(--nf-landing-ink) 55%, transparent) 100%
+    );
+  }
+  @media (min-width: 64rem) {
+    .nf-landing-hero-plate {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      height: auto;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .nf-landing-hero-plate img {
+      object-position: 50% 50%;
+    }
+  }
+  /*
+   * The desktop scrims. The first darkens the left third so white copy is
+   * legible on every crop; the second is the floor, so the page's own canvas
+   * grows out of the bottom of the photograph rather than meeting it at a
+   * hard line. Under 64rem the band carries its own small foot scrim above.
+   */
+  /* (The phone band scrim is on `.nf-landing-hero-plate::after` above.) */
+  @media (min-width: 1024px) {
+    .nf-landing-hero-plate::after {
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--nf-landing-ink) 45%, transparent) 0%,
+          transparent 22%
+        ),
+        linear-gradient(
+          90deg,
+          color-mix(in oklab, var(--nf-landing-ink) 70%, transparent) 0%,
+          color-mix(in oklab, var(--nf-landing-ink) 20%, transparent) 38%,
+          transparent 56%
+        ),
+        linear-gradient(
+          180deg,
+          transparent 70%,
+          color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent) 90%,
+          var(--nf-surface-canvas) 100%
+        );
+    }
+  }
+
+  .nf-landing-hero-body {
+    position: relative;
+    flex: 1 1 auto;
+    display: grid;
+    align-content: center;
+    gap: var(--nf-gap-block);
+    padding-block: var(--nf-space-xl) var(--nf-space-2xl);
+  }
+  /* The card overlaps the band's foot on the phone, as it does on desktop. */
+  @media (max-width: 63.999rem) {
+    .nf-landing-hero-body > .nf-landing-float-wrap {
+      margin-top: calc(-1 * var(--nf-space-3xl) - var(--nf-space-md));
+      margin-inline-start: auto;
+      margin-inline-end: var(--nf-space-md);
+      width: min(100%, var(--nf-landing-card-w));
+      position: relative;
+      z-index: 1;
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-hero-body {
+      grid-template-columns: minmax(0, 33rem) 1fr;
+      align-items: center;
+      padding-block: var(--nf-space-xl) var(--nf-space-2xl);
+    }
+  }
+
+  .nf-landing-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-gap-inline);
+    font-size: var(--nf-text-overline);
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--nf-landing-accent);
+  }
+  .nf-landing-crumbs li + li::before {
+    content: "/";
+    margin-inline-end: var(--nf-gap-inline);
+    color: var(--nf-landing-fg-3);
+  }
+
+  .nf-landing-title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-landing-title);
+    line-height: 0.98;
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-display);
+    color: var(--nf-landing-fg);
+  }
+  .nf-landing-title > span {
+    display: block;
+  }
+  .nf-landing-title .nf-gradient-text {
+    /* The word "reimagined." carries the brand ramp and a soft bloom under it,
+       which is what makes it read as lit rather than printed. */
+    filter: drop-shadow(0 0 22px var(--nf-glow-2));
+  }
+  .nf-landing-sub {
+    max-width: 36ch;
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.55;
+    color: var(--nf-landing-fg-2);
+  }
+
+  /* City chips: capsules, per ledger section 8, on the canvas under 64rem
+     and on the photograph from it. */
+  .nf-landing-city {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-landing-fg);
+    background: var(--nf-landing-control);
+    border: 1px solid var(--nf-landing-hairline);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-landing-city > svg {
+    color: var(--nf-landing-accent);
+  }
+  @media (hover: hover) {
+    .nf-landing-city:hover {
+      border-color: var(--nf-brand-edge);
+      background: var(--nf-landing-control-strong);
+    }
+  }
+  .nf-landing-city:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ------------------------------------------------ the floating card */
+
+  .nf-landing-float {
+    position: relative;
+    width: 100%;
+    max-width: var(--nf-landing-card-w);
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-lg);
+    background: color-mix(in oklab, var(--nf-landing-ink) 70%, transparent);
+    border: 1px solid var(--nf-brand-edge-soft);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-landing-glow-ring),
+      var(--nf-elev-3);
+    color: var(--nf-landing-on-ink);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-float-wrap {
+      justify-self: end;
+      align-self: end;
+      margin-inline-end: var(--nf-space-xl);
+    }
+  }
+  .nf-landing-float-media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-radius-md);
+  }
+  .nf-landing-float-media img {
+    object-fit: cover;
+  }
+  .nf-landing-float-badge {
+    position: absolute;
+    top: var(--nf-gap-inline);
+    left: var(--nf-gap-inline);
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 1.75rem;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 14px var(--nf-glow-2);
+  }
+  .nf-landing-float-badge--quiet {
+    background: var(--nf-landing-control-on-ink-strong);
+    color: var(--nf-landing-on-ink);
+    box-shadow: none;
+    border: 1px solid var(--nf-landing-hairline-on-ink);
+  }
+  .nf-landing-float-save {
+    position: absolute;
+    top: var(--nf-gap-inline);
+    right: var(--nf-gap-inline);
+    z-index: 1;
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-landing-on-ink);
+  }
+  .nf-landing-float-save > span {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-landing-control-on-ink);
+    border: 1px solid var(--nf-landing-hairline-on-ink);
+  }
+  .nf-landing-float-save:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -4px;
+  }
+  .nf-landing-float-body {
+    padding: var(--nf-space-sm) var(--nf-space-xs) var(--nf-space-xs);
+  }
+  .nf-landing-float-title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-landing-on-ink);
+  }
+  .nf-landing-float-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-space-2xs);
+  }
+  .nf-landing-float-place {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-width: 0;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-landing-on-ink-muted);
+  }
+  .nf-landing-float-price {
+    flex: none;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    color: var(--nf-landing-on-ink);
+  }
+  .nf-landing-pager {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-landing-on-ink-secondary);
+  }
+  .nf-landing-pager button {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-landing-on-ink);
+  }
+  .nf-landing-pager button > span {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-landing-control-on-ink);
+    border: 1px solid var(--nf-landing-hairline-on-ink);
+  }
+  .nf-landing-pager button:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -4px;
+  }
+
+  /* ---------------------------------------------------- the search pill */
+
+  .nf-landing-pill-wrap {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: var(--nf-landing-pill-max);
+    margin-inline: auto;
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-pill-wrap {
+      margin-top: calc(-1 * var(--nf-space-xl));
+    }
+  }
+  /* The stats band rides up over the foot of the photograph on desktop. */
+  @media (min-width: 1024px) {
+    .nf-landing-stats-wrap {
+      margin-top: calc(-1 * var(--nf-space-2xl));
+      position: relative;
+      z-index: 1;
+    }
+  }
+  .nf-landing-pill {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-gap-inline);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-landing-pane);
+    border: 1px solid var(--nf-brand-edge-soft);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-landing-glow-ring),
+      var(--nf-elev-4);
+  }
+  @media (min-width: 640px) {
+    .nf-landing-pill {
+      flex-direction: row;
+      align-items: center;
+      border-radius: var(--nf-radius-pill);
+    }
+  }
+  .nf-landing-pill-field {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    min-width: 0;
+    min-height: 3rem;
+    padding-inline: var(--nf-space-sm);
+    color: var(--nf-landing-fg-3);
+  }
+  .nf-landing-pill-field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-landing-fg);
+  }
+  .nf-landing-pill-field input::placeholder {
+    color: var(--nf-landing-fg-3);
+  }
+  .nf-landing-pill-field input:focus-visible {
+    outline: none;
+  }
+  .nf-landing-pill-field:focus-within {
+    color: var(--nf-landing-fg);
+  }
+  .nf-landing-pill-segments {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-landing-control);
+    border: 1px solid var(--nf-landing-hairline);
+  }
+  @media (min-width: 640px) {
+    .nf-landing-pill-segments {
+      flex: none;
+      display: flex;
+    }
+  }
+  .nf-landing-pill-seg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 2.5rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-landing-fg-2);
+    transition:
+      background var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-landing-pill-seg[aria-checked="true"] {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-gradient-cta);
+    box-shadow: 0 0 16px var(--nf-glow-2);
+  }
+  .nf-landing-pill-seg:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-landing-pill-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+  }
+  .nf-landing-pill-actions > a,
+  .nf-landing-pill-actions > button {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-landing-fg);
+    background: transparent;
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-landing-pill-actions > button[type="submit"] {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+  }
+  @media (hover: hover) {
+    .nf-landing-pill-actions > a:hover {
+      background: var(--nf-landing-control);
+    }
+  }
+  .nf-landing-pill-actions > a:focus-visible,
+  .nf-landing-pill-actions > button:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The phone keeps the submit reachable at full width under the segments. */
+  @media (max-width: 639px) {
+    .nf-landing-pill-actions {
+      justify-content: space-between;
+      padding-inline: var(--nf-space-2xs);
+    }
+    .nf-landing-pill-actions > button[type="submit"] {
+      flex: 1 1 auto;
+      width: auto;
+      border-radius: var(--nf-radius-pill);
+      font-size: var(--nf-text-body-sm);
+      font-weight: 650;
+    }
+  }
+
+  /* --------------------------------------------------- the stats band */
+
+  .nf-landing-stats {
+    display: grid;
+    gap: var(--nf-gap-group);
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-landing-band-fill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-1),
+      var(--nf-landing-glow-ring);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-stats {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 2.4fr);
+      align-items: center;
+    }
+  }
+  .nf-landing-stats-lead {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-group);
+  }
+  .nf-landing-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-row);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-landing-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    min-height: 4.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-landing-tile-fill);
+    border: 1px solid var(--nf-glass-border);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+  }
+  .nf-landing-stat-figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-landing-stat-label {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* The glass circle every content object sits in from here down. */
+  .nf-landing-orb {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    padding: 0.4rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-glass-fill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+  }
+  .nf-landing-orb--lg {
+    width: 4rem;
+    height: 4rem;
+    padding: 0.5rem;
+  }
+  .nf-landing-orb--stroke {
+    padding: 0;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------- the feature grid */
+
+  .nf-landing-split {
+    display: grid;
+    gap: var(--nf-gap-block);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-split {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2.6fr);
+      align-items: center;
+    }
+    .nf-landing-split--even {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    }
+  }
+  .nf-landing-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-row);
+  }
+  @media (min-width: 640px) {
+    .nf-landing-tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-tiles {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+  .nf-landing-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-gap-row);
+    min-height: 7rem;
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-landing-tile-fill);
+    border: 1px solid var(--nf-glass-border);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-landing-tile:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  @media (hover: hover) {
+    .nf-landing-tile:hover {
+      border-color: var(--nf-brand-edge);
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim),
+        0 0 24px var(--nf-glow-1);
+    }
+  }
+  .nf-landing-tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-landing-tile-title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-landing-tile-sub {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* ----------------------------------------------- the feature chips */
+
+  .nf-landing-chiprow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-row);
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-landing-band-fill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-1),
+      var(--nf-landing-glow-ring);
+  }
+  @media (min-width: 640px) {
+    .nf-landing-chiprow {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-chiprow {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      padding: var(--nf-pad-card);
+    }
+  }
+  .nf-landing-chipcell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-md) var(--nf-space-xs);
+    text-align: center;
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-chipcell + .nf-landing-chipcell {
+      border-inline-start: 1px solid var(--nf-glass-border);
+    }
+  }
+
+  /* ---------------------------------------------- the community band */
+
+  .nf-landing-figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-gap-block);
+  }
+  .nf-landing-figure {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-inline-tight);
+  }
+  .nf-landing-figure > strong {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-landing-figure > span {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  .nf-landing-stack {
+    position: relative;
+    display: grid;
+    gap: var(--nf-gap-row);
+  }
+  .nf-landing-stack-photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xl);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow: var(--nf-landing-glow-ring), var(--nf-elev-3);
+    aspect-ratio: 4 / 3;
+  }
+  .nf-landing-stack-photo img {
+    object-fit: cover;
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-stack {
+      display: block;
+      min-height: 30rem;
+    }
+    .nf-landing-stack-photo--main {
+      position: absolute;
+      inset: 0 12% 12% 8%;
+      aspect-ratio: auto;
+    }
+    .nf-landing-stack-photo--side {
+      position: absolute;
+      top: 8%;
+      right: 0;
+      width: 30%;
+      aspect-ratio: 1;
+    }
+    .nf-landing-stack-card--a {
+      position: absolute;
+      left: 0;
+      bottom: 10%;
+      width: 15.5rem;
+    }
+    .nf-landing-stack-card--b {
+      position: absolute;
+      right: 4%;
+      bottom: 0;
+      width: 16rem;
+    }
+  }
+  .nf-landing-stack-card {
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-lg);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    border: 1px solid var(--nf-brand-edge-soft);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-landing-glow-ring),
+      var(--nf-elev-3);
+  }
+  .nf-landing-stack-card .nf-landing-float-title,
+  .nf-landing-stack-card .nf-landing-float-price {
+    color: var(--nf-content-primary);
+  }
+  .nf-landing-stack-card .nf-landing-float-place {
+    color: var(--nf-content-muted);
+  }
+  .nf-landing-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 1.75rem;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+  }
+  .nf-landing-tag--third {
+    /* Partner inventory is labelled, never dressed as first party: the tag
+       is a quiet outline, the opposite treatment to the verified fill. */
+    color: var(--nf-content-primary);
+    background: transparent;
+    border: 1px solid var(--nf-brand-edge);
+  }
+
+  /* --------------------------------------------------- how it works */
+
+  .nf-landing-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-block) var(--nf-gap-group);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-landing-step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-row);
+  }
+  .nf-landing-step-num {
+    display: inline-grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--nf-radius-circle);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+  }
+  /* The hairline that runs behind the four orbs on desktop. */
+  @media (min-width: 1024px) {
+    .nf-landing-steps {
+      position: relative;
+    }
+    .nf-landing-steps::before {
+      content: "";
+      position: absolute;
+      top: 2rem;
+      left: 12%;
+      right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--nf-brand-edge), transparent);
+    }
+    .nf-landing-step .nf-landing-orb {
+      position: relative;
+      z-index: 1;
+      background: var(--nf-surface-canvas);
+    }
+  }
+
+  /* ------------------------------------------------ category tiles */
+
+  .nf-landing-cats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-row);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-cats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--nf-gap-group);
+    }
+  }
+  .nf-landing-cat {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    aspect-ratio: 1;
+    overflow: hidden;
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow: var(--nf-landing-glow-ring);
+    color: var(--nf-landing-on-ink);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-landing-cat:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  @media (hover: hover) {
+    .nf-landing-cat:hover {
+      border-color: var(--nf-brand-edge-strong);
+    }
+    .nf-landing-cat:hover img {
+      transform: scale(1.04);
+    }
+  }
+  .nf-landing-cat:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-landing-cat img {
+    object-fit: cover;
+    transition: transform var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-landing-cat::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nf-scrim-media);
+    pointer-events: none;
+  }
+  .nf-landing-cat-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-landing-cat-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-landing-control-on-ink);
+    border: 1px solid var(--nf-landing-hairline-on-ink);
+    color: var(--nf-landing-on-ink);
+  }
+  .nf-landing-cat-title {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+  }
+  .nf-landing-cat-count {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-landing-on-ink-muted);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-landing-cat img {
+      transition: none;
+    }
+    .nf-landing-cat:hover img {
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------------- the stays band */
+
+  .nf-landing-band {
+    display: grid;
+    gap: var(--nf-gap-block);
+    overflow: hidden;
+    border-radius: var(--nf-radius-2xl);
+    background: var(--nf-landing-band-fill);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glow-1),
+      var(--nf-landing-glow-ring);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-band {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    }
+  }
+  .nf-landing-band-photo {
+    position: relative;
+    min-height: 16rem;
+    aspect-ratio: 16 / 10;
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-band-photo {
+      aspect-ratio: auto;
+      min-height: 100%;
+    }
+  }
+  .nf-landing-band-photo img {
+    object-fit: cover;
+  }
+  .nf-landing-band-body {
+    display: grid;
+    gap: var(--nf-gap-block);
+    padding: var(--nf-pad-card) var(--nf-pad-card) var(--nf-pad-card-lg);
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-band-body {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      align-items: center;
+      padding: var(--nf-pad-card-lg);
+    }
+  }
+  .nf-landing-list {
+    display: grid;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-landing-list a {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    min-height: 2.75rem;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-landing-list a > span:first-child {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-brand-secondary);
+    background: var(--nf-glass-fill);
+    border: 1px solid var(--nf-brand-edge-soft);
+  }
+  @media (hover: hover) {
+    .nf-landing-list a:hover {
+      color: var(--nf-content-primary);
+    }
+  }
+  .nf-landing-list a:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-sm);
+  }
+
+  /* ---------------------------------------------------- the app band */
+
+  .nf-landing-app {
+    display: grid;
+    gap: var(--nf-gap-block);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .nf-landing-app {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+    }
+  }
+  .nf-landing-store {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    min-height: 3.25rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-glass-fill);
+    border: 1px solid var(--nf-glass-border);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    color: var(--nf-content-primary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-landing-store > span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+  .nf-landing-store small {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-landing-store strong {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+  }
+  @media (hover: hover) {
+    .nf-landing-store:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
+  .nf-landing-store:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* A phone, drawn. Not a device frame from a render: a rounded glass slab
+     with the portrait villa inside it and a listing card floating on it. */
+  .nf-landing-phone {
+    position: relative;
+    width: min(100%, 15rem);
+    margin-inline: auto;
+    aspect-ratio: 9 / 18.5;
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-2xl);
+    background: var(--nf-surface-primary);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 0 1px var(--nf-brand-edge-soft),
+      0 0 60px var(--nf-glow-2),
+      var(--nf-elev-4);
+  }
+  .nf-landing-phone-screen {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: calc(var(--nf-radius-2xl) - var(--nf-space-xs));
+  }
+  .nf-landing-phone-screen img {
+    object-fit: cover;
+  }
+  .nf-landing-phone-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nf-scrim-media);
+  }
+  .nf-landing-phone-card {
+    position: absolute;
+    left: var(--nf-space-sm);
+    right: var(--nf-space-sm);
+    bottom: var(--nf-space-md);
+    z-index: 1;
+  }
+  .nf-landing-checks {
+    display: grid;
+    gap: var(--nf-gap-row);
+  }
+  .nf-landing-checks li {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-landing-checks li > svg {
+    flex: none;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* -------------------------------------------------- reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-site-nav .nf-site-bar,
+    .nf-landing-tile,
+    .nf-landing-cat,
+    .nf-landing-pill-seg {
+      transition: none;
+    }
+  }
+
+  /* -------------------------------------------------------- daylight */
+
+  /*
+   * The hero keeps its photograph in daylight because a photograph is a
+   * photograph; its copy is on media and stays white. Everything under the
+   * fold turns to paper: white panes, neutral hairlines, the brand only on
+   * figures, active states and the CTA.
+   */
+  :root[data-theme="light"] .nf-landing {
+    --nf-landing-glow-ring: 0 0 0 1px var(--nf-border-subtle);
+    --nf-landing-tile-fill: var(--nf-surface-primary);
+    --nf-landing-band-fill: var(--nf-surface-primary);
+  }
+  :root[data-theme="light"] .nf-landing-stats,
+  :root[data-theme="light"] .nf-landing-chiprow,
+  :root[data-theme="light"] .nf-landing-band,
+  :root[data-theme="light"] .nf-landing-stack-card {
+    border-color: var(--nf-border-subtle);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-landing-stat,
+  :root[data-theme="light"] .nf-landing-tile {
+    background: var(--nf-surface-raised);
+    border-color: var(--nf-border-subtle);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-landing-orb {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-subtle);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-landing-list a > span:first-child,
+  :root[data-theme="light"] .nf-landing-store {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-subtle);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-landing-stack-card {
+    background: var(--nf-surface-primary);
+  }
+  :root[data-theme="light"] .nf-landing-stack-photo,
+  :root[data-theme="light"] .nf-landing-cat {
+    border-color: var(--nf-border-subtle);
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-landing-phone {
+    border-color: var(--nf-border-default);
+    box-shadow: var(--nf-elev-3);
+  }
+  :root[data-theme="light"] .nf-landing-steps::before {
+    background: linear-gradient(90deg, transparent, var(--nf-border-default), transparent);
+  }
+  /* The floating card, the pill and the city chips are on the photograph in
+     both themes, so they keep the night material; only the nav follows the
+     paper once scrolled, which the shared chrome rule already does. The one
+     shared control that would flip is the glass CTA, so it is held here. */
+  @media (min-width: 64rem) {
+    :root[data-theme="light"] .nf-landing-hero .nf-btn--glass {
+      color: var(--nf-landing-on-ink);
+      background: var(--nf-landing-control-on-ink);
+      border-color: var(--nf-landing-hairline-on-ink);
+    }
+  }
+  :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-link,
+  :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-glass {
+    color: var(--nf-landing-on-ink);
+  }
+  :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-glass {
+    background: var(--nf-landing-control-on-ink);
+    border-color: var(--nf-glass-border);
+  }
 }

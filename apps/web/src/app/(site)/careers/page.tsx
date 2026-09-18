@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -53,26 +54,16 @@ export default function CareersPage() {
   ];
 
   return (
-    <div className="nf-shell py-section">
+    <>
+      <SiteHead
+        plate="tower-entrance-dusk"
+        icon="reviews"
+        chip="Careers at Vallo"
+        title="Build Nigeria's property marketplace"
+        lede="We are a small team building the place Nigerians rent, buy, stay and list: homes, hotels, shops, offices and land, a naira wallet, and four languages. Every listing is put up by a verified person. If that sounds like your kind of problem, we want to hear from you."
+      />
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* -------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="reviews" fill />
-            </span>
-            Careers at Vallo
-          </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
-            Build Nigeria&apos;s property marketplace
-          </h1>
-          <p className="mx-auto mt-group max-w-[54ch] text-[var(--nf-content-secondary)]">
-            We are a small team building the place Nigerians rent, buy, stay and
-            list: homes, hotels, shops, offices and land, a naira wallet, and four
-            languages. Every listing is put up by a verified person. If that sounds
-            like your kind of problem, we want to hear from you.
-          </p>
-        </div>
 
         {/* ----------------------------------------------- how we work */}
         <Reveal as="section" className="mt-section">
@@ -176,5 +167,6 @@ export default function CareersPage() {
         </Reveal>
       </div>
     </div>
+    </>
   );
 }

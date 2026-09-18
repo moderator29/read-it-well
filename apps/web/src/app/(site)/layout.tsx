@@ -22,7 +22,7 @@ export default async function SiteLayout({
     <>
       <SiteHeader t={t} locale={locale} />
 
-      <main id="main" className="relative overflow-hidden">
+      <main id="main" className="nf-site relative overflow-hidden">
         <div className="nf-aurora" aria-hidden="true" />
         <div className="nf-grid-veil" aria-hidden="true" />
         <div className="relative z-10">{children}</div>

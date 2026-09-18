@@ -31,13 +31,7 @@ export default function DocsHomePage() {
     <div>
       {/* ------------------------------------------------------------ hero */}
       <div className="nf-rise">
-        <span className="nf-chip">
-          <span className="inline-grid h-4 w-4 place-items-center">
-            <BrandIcon name="listing-review" fill />
-          </span>
-          Documentation
-        </span>
-        <h1 className="nf-h1 mt-heading max-w-[18ch]">How Vallo works, in full</h1>
+        <h1 className="nf-h1 max-w-[18ch]">Every part of the platform, written out</h1>
         <p className="mt-group max-w-[62ch] text-[var(--nf-content-secondary)]">
           Every part of the platform written out plainly: how to find a place, what the
           light and water rows on a listing actually tell you, how a booking holds your

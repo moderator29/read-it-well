@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { PRIVACY_SECTIONS as sections } from "@/lib/legal/privacy";
 
 export const metadata: Metadata = {
@@ -19,23 +19,18 @@ export const metadata: Metadata = {
  */
 export default function PrivacyPage() {
   return (
-    <div className="nf-shell py-section">
+    <>
+      <SiteHead
+        plate="skyline-waterfront-dusk"
+        icon="shield-lock"
+        chip="Legal"
+        title="Privacy policy"
+        lede="How Vallo collects, uses and protects your personal data, and the rights the Nigeria Data Protection Act 2023 gives you over it."
+      >
+        <p className="nf-chip">Last updated: 28 July 2026</p>
+      </SiteHead>
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* -------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="shield-lock" fill />
-            </span>
-            Legal
-          </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[16ch]">Privacy policy</h1>
-          <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            How Vallo collects, uses and protects your personal data, and the
-            rights the Nigeria Data Protection Act 2023 gives you over it.
-          </p>
-          <p className="nf-chip mx-auto mt-heading">Last updated: 28 July 2026</p>
-        </div>
 
         {/* ---------------------------------------------------- document */}
         <div className="nf-card nf-rise mt-block p-card-lg" style={{ animationDelay: "100ms" }}>
@@ -65,5 +60,6 @@ export default function PrivacyPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }

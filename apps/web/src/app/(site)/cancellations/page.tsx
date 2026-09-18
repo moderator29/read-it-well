@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
@@ -27,26 +27,16 @@ export const metadata: Metadata = {
 
 export default function CancellationPolicyPage() {
   return (
-    <div className="nf-shell py-section">
+    <>
+      <SiteHead
+        plate="bedroom-02"
+        icon="calendar-clock"
+        chip="Cancellations"
+        title="One cancellation policy, on every stay"
+        lede="Not one policy per agent. The same three steps apply to every stay booked and paid for on Vallo, so you never have to work out which rules you agreed to. A tenancy, a sale or a lease is settled in the agreement you sign with the agent and is not covered by the schedule below."
+      />
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* ---------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="calendar-clock" fill />
-            </span>
-            Cancellations
-          </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
-            One cancellation policy, on every stay
-          </h1>
-          <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            Not one policy per agent. The same three steps apply to every stay booked
-            and paid for on Vallo, so you never have to work out which rules you agreed
-            to. A tenancy, a sale or a lease is settled in the agreement you sign with
-            the agent and is not covered by the schedule below.
-          </p>
-        </div>
 
         {/* ------------------------------------------------- the timeline */}
         <section className="mt-section" aria-labelledby="the-schedule">
@@ -178,5 +168,6 @@ export default function CancellationPolicyPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }

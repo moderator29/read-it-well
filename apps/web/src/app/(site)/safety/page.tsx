@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -68,25 +69,16 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
 
 export default function SafetyCentrePage() {
   return (
-    <div className="nf-shell py-section">
+    <>
+      <SiteHead
+        plate="villa-exterior-gate"
+        icon="shield-check"
+        chip="Safety centre"
+        title="Nobody on Vallo should ever ask you to pay outside it"
+        lede="How payments work here, how inspections work, what we will never ask you for, and what to do the moment somebody asks you for money off the platform."
+      />
+    <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
-        {/* ---------------------------------------------------------- hero */}
-        <div className="nf-rise text-center">
-          <span className="nf-chip mx-auto">
-            <span className="inline-grid h-4 w-4 place-items-center">
-              <BrandIcon name="shield-check" fill />
-            </span>
-            Safety centre
-          </span>
-          <h1 className="nf-h1 mx-auto mt-heading max-w-[18ch]">
-            Nobody on Vallo should ever ask you to pay outside it
-          </h1>
-          <p className="mx-auto mt-group max-w-[52ch] text-[var(--nf-content-secondary)]">
-            How payments work here, how inspections work, what we will never ask
-            you for, and what to do the moment somebody asks you for money off
-            the platform.
-          </p>
-        </div>
 
         {/* ------------------------------------------------- the one rule */}
         <section className="nf-card mt-section p-card" aria-labelledby="one-rule">
@@ -312,5 +304,6 @@ export default function SafetyCentrePage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
