@@ -85,7 +85,9 @@ import {
   fundSchema,
   transferSchema,
   withdrawSchema,
+  withdrawToSavedAccountSchema,
 } from "./schema";
+import { withPaymentTables } from "../payments/db";
 import type { WalletSummary } from "./types";
 
 const WALLET_OFF_MESSAGE =
@@ -324,6 +326,13 @@ export async function withdraw(
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  /* An account already on file takes its own path (M12). The typed-in path
+     below is the one that shipped and is left exactly as it was. */
+  const savedAccountId = formData.get("bankAccountId");
+  if (typeof savedAccountId === "string" && savedAccountId.trim().length > 0) {
+    return withdrawToSavedAccount(session, formData);
+  }
 
   const parsed = validate(withdrawSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
@@ -580,6 +589,215 @@ export async function withdraw(
 
   revalidatePath("/wallet");
   return ok({ amountMinor, reference, bankName: bank.name, accountLast4 });
+}
+
+/* ----------------------------------------------- withdraw to saved account */
+
+/**
+ * Withdraw to an account on file.
+ *
+ * The same hold-then-transfer shape as the typed-in path, with two
+ * differences that are the point of having the table. The name on the payout
+ * instruction is the one the bank gave when the account was filed
+ * (resolved_account_name, NOT NULL), so there is nothing to re-resolve and
+ * nothing a form could tamper with. And the Paystack recipient is minted
+ * ONCE: the code is cached on the row by the service role after the first
+ * transfer, so the next withdrawal reuses it instead of creating another
+ * recipient record at the processor.
+ *
+ * Only the atomic hold exists on this path. The unlocked fallback the older
+ * path still carries was written for the days before
+ * public.hold_wallet_withdrawal landed; a new path has no reason to inherit
+ * it, so a missing function is an honest refusal here.
+ */
+async function withdrawToSavedAccount(
+  session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
+  formData: FormData,
+): Promise<ActionResult<WithdrawReceipt | null>> {
+  const parsed = validate(withdrawToSavedAccountSchema, formDataToObject(formData));
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  if (!isPaystackConfigured()) {
+    return fail("We cannot send a withdrawal right now. Your balance is untouched.");
+  }
+  const admin = getAdminClient();
+  if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
+
+  const { data: account, error: accountError } = await withPaymentTables(session.supabase)
+    .from("bank_accounts")
+    .select("id, bank_code, bank_name, account_number, resolved_account_name, recipient_code")
+    .eq("id", parsed.data.bankAccountId)
+    .eq("user_id", session.user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (accountError) {
+    return fail("We could not read that account just now. Your balance is untouched.");
+  }
+  if (!account) {
+    return fail("That account is not on your list. Choose one from your saved accounts.", {
+      bankAccountId: "Choose an account from your list.",
+    });
+  }
+
+  const amountMinor = parsed.data.amount;
+  const accountLast4 = account.account_number.slice(-4);
+  const reference = `${WITHDRAW_PREFIX}${randomUUID()}`;
+
+  const holdMetadata = {
+    note: `Withdrawal to ${account.bank_name} ****${accountLast4}`,
+    bank_code: account.bank_code,
+    bank_name: account.bank_name,
+    account_last4: accountLast4,
+    account_name: account.resolved_account_name,
+    bank_account_id: account.id,
+  };
+
+  const held = await callMoneyRpc(
+    admin,
+    "withdraw",
+    "hold_wallet_withdrawal",
+    {
+      owner_user: session.user.id,
+      amount: amountMinor,
+      hold_reference: reference,
+      hold_metadata: holdMetadata,
+    },
+    { reference, amountMinor, userId: session.user.id },
+  );
+
+  if (held.outcome !== "ok") {
+    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+  }
+  const status = readMoneyStatus(held.data);
+  if (status.status === "insufficient") {
+    const available = status.availableMinor ?? 0;
+    logMoney({
+      surface: "withdraw",
+      outcome: "rejected",
+      reason: "insufficient_balance",
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    return fail(
+      `Your available balance is ${nairaExact(available)}, so this withdrawal of ${nairaExact(amountMinor)} cannot go through.`,
+      { amount: "There is not enough in your wallet for this amount." },
+    );
+  }
+  if (status.status !== "ok" && status.status !== "duplicate") {
+    logMoney({
+      surface: "withdraw",
+      outcome: "rejected",
+      reason: `rpc_status:${status.status}`,
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+  }
+  logMoney({
+    surface: "withdraw",
+    outcome: "posted",
+    reason: "hold_placed",
+    reference,
+    amountMinor,
+    userId: session.user.id,
+    ...(status.walletId ? { walletId: status.walletId } : {}),
+  });
+  await recordMoneyAudit(admin, {
+    actor: { kind: "user", userId: session.user.id },
+    action: "wallet.withdrawal.hold_placed",
+    reference,
+    amountMinor,
+    subjectUserId: session.user.id,
+    walletId: status.walletId,
+    outcome: status.status,
+    detail: {
+      bank_code: account.bank_code,
+      account_last4: accountLast4,
+      bank_account_id: account.id,
+      atomic: true,
+    },
+  });
+
+  try {
+    let recipientCode = account.recipient_code;
+    if (!recipientCode) {
+      const recipient = await createTransferRecipient({
+        name: account.resolved_account_name,
+        accountNumber: account.account_number,
+        bankCode: account.bank_code,
+      });
+      recipientCode = recipient.recipientCode;
+      // Cached by the service role: the owner's column grant does not include
+      // recipient_code, so a browser can never point an account at a
+      // recipient it did not earn. Best effort; a missed cache is one extra
+      // recipient next time, not a wrong payout.
+      await withPaymentTables(admin)
+        .from("bank_accounts")
+        .update({ recipient_code: recipientCode })
+        .eq("id", account.id);
+    }
+    await initiateTransfer({
+      amountMinor,
+      recipientCode,
+      reference,
+      reason: "Vallo wallet withdrawal",
+    });
+  } catch (e) {
+    let markedFailed = false;
+    try {
+      await setEntryStatus(admin, reference, "FAILED", {
+        failure: e instanceof PaystackError ? e.message : "Transfer initiation failed.",
+      });
+      markedFailed = true;
+    } catch {
+      // The hold stays PENDING and sweepStaleWithdrawalHolds releases it once
+      // Paystack confirms no transfer exists under this reference.
+    }
+
+    logMoney({
+      surface: "withdraw",
+      outcome: markedFailed ? "rejected" : "failed",
+      reason: markedFailed ? "transfer_not_started_hold_released" : "transfer_not_started_hold_stuck",
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "wallet.withdrawal.not_started",
+      reference,
+      amountMinor,
+      subjectUserId: session.user.id,
+      outcome: markedFailed ? "FAILED" : "still_pending",
+      detail: { bank_code: account.bank_code, account_last4: accountLast4, bank_account_id: account.id },
+    });
+
+    if (markedFailed) {
+      await bestEffortEmail(async () => {
+        const owner = await contactForSelf(session.supabase, session.user, "wallet");
+        if (!owner) return;
+        const message = withdrawalFailed({
+          ownerName: owner.name,
+          amountMinor,
+          bankName: account.bank_name,
+          accountLast4,
+        });
+        await sendMessage(owner.email, message);
+      });
+    }
+
+    return fail(
+      describePaystackError(
+        e,
+        "The withdrawal could not be started, so it was cancelled and your balance is untouched.",
+      ),
+    );
+  }
+
+  revalidatePath("/wallet");
+  return ok({ amountMinor, reference, bankName: account.bank_name, accountLast4 });
 }
 
 /* ------------------------------------------------------------------- p2p */

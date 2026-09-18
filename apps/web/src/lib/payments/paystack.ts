@@ -313,6 +313,125 @@ export async function listSuccessfulCharges(params: {
   return out;
 }
 
+/* ----------------------------------------------------------- authorizations */
+
+/**
+ * The reusable-card token Paystack hands back after a successful charge.
+ *
+ * Token material and display facts only. There is no card number anywhere in
+ * this shape and there never will be: Paystack tokenises, and the platform
+ * stores what the processor gives it and nothing it does not.
+ */
+export type PaystackAuthorization = {
+  authorizationCode: string;
+  signature: string;
+  cardType: string | null;
+  last4: string | null;
+  expMonth: number | null;
+  expYear: number | null;
+  bin: string | null;
+  bank: string | null;
+  channel: string | null;
+  reusable: boolean;
+};
+
+function textOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function smallIntOrNull(value: unknown): number | null {
+  if (typeof value === "number" && Number.isSafeInteger(value)) return value;
+  if (typeof value === "string" && /^\d{1,4}$/.test(value.trim())) return Number(value.trim());
+  return null;
+}
+
+/**
+ * The authorization object as it arrives on a webhook, a verify response or a
+ * charge_authorization response, read defensively: Paystack has changed the
+ * shape of these payloads before and a missing field must never throw inside
+ * a webhook. Null when the two facts that make a row possible (the code and
+ * the signature) are absent.
+ */
+export function readAuthorization(raw: unknown): PaystackAuthorization | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const a = raw as Record<string, unknown>;
+  const authorizationCode = textOrNull(a["authorization_code"]);
+  const signature = textOrNull(a["signature"]);
+  if (!authorizationCode || !signature) return null;
+  return {
+    authorizationCode,
+    signature,
+    cardType: textOrNull(a["card_type"]),
+    last4: textOrNull(a["last4"]),
+    expMonth: smallIntOrNull(a["exp_month"]),
+    expYear: smallIntOrNull(a["exp_year"]),
+    bin: textOrNull(a["bin"]),
+    bank: textOrNull(a["bank"]),
+    channel: textOrNull(a["channel"]),
+    reusable: a["reusable"] === true,
+  };
+}
+
+export type ChargedAuthorization = {
+  /** Paystack's word for the attempt: success, failed, pending, and so on. */
+  status: string;
+  reference: string;
+  /** Integer kobo. */
+  amountMinor: number;
+  gatewayResponse: string | null;
+  authorization: PaystackAuthorization | null;
+};
+
+/**
+ * Charge a saved card: POST /transaction/charge_authorization.
+ *
+ * Server-side only, integer kobo, a fresh platform reference, and THE SAME
+ * EMAIL the authorization was minted under, which is why payment_methods
+ * carries email_used. There is no 3DS challenge on this path: when the bank
+ * insists on authenticating, or the token has gone stale, Paystack declines,
+ * and the caller falls back to a hosted checkout rather than retrying.
+ *
+ * A status:false envelope becomes a PaystackError as everywhere else. A
+ * status:true envelope whose data.status is not "success" is a decline the
+ * processor recorded, and is returned rather than thrown so the caller can
+ * read gateway_response and decide.
+ */
+export async function chargeAuthorization(params: {
+  authorizationCode: string;
+  email: string;
+  amountMinor: number;
+  reference: string;
+  metadata?: Record<string, unknown>;
+}): Promise<ChargedAuthorization> {
+  if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
+    throw new PaystackError("The amount must be a positive integer number of kobo.");
+  }
+  const data = await request<{
+    status: string;
+    reference: string;
+    amount: number;
+    gateway_response?: string | null;
+    authorization?: unknown;
+  }>("/transaction/charge_authorization", {
+    method: "POST",
+    body: {
+      authorization_code: params.authorizationCode,
+      email: params.email,
+      amount: params.amountMinor,
+      currency: "NGN",
+      reference: params.reference,
+      ...(params.metadata ? { metadata: params.metadata } : {}),
+    },
+  });
+  return {
+    status: typeof data.status === "string" ? data.status : "unknown",
+    reference: data.reference,
+    amountMinor: Number.isSafeInteger(data.amount) ? data.amount : params.amountMinor,
+    gatewayResponse: data.gateway_response ?? null,
+    authorization: readAuthorization(data.authorization),
+  };
+}
+
 /* ---------------------------------------------------------------- webhooks */
 
 /**

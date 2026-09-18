@@ -12,11 +12,9 @@ import {
   fundWallet,
   lookupAccountName,
   startCryptoDeposit,
-  transferToUser,
   withdraw,
   type CryptoStart,
   type FundStart,
-  type TransferReceipt,
   type WithdrawReceipt,
 } from "@/lib/wallet/actions";
 import { WALLET_BANKS } from "@/lib/wallet/banks";
@@ -28,19 +26,25 @@ import { Chip, ChipRow } from "@/components/ui/Chip";
 import { useMoneyWait, WaitNotice } from "@/components/app/wallet/MoneyWait";
 
 /**
- * Wallet action deck: Add money, Withdraw, Transfer, and crypto when it is
- * configured.
+ * Wallet action deck: Add money, Withdraw, Send, Receive, and crypto when it
+ * is configured.
  *
- * Each tile opens a full-page drawer
- * (Master Rule: full-page drawers, never partial) holding a real form wired
- * to the wallet server actions. Amounts are typed in naira and become integer
- * kobo on the server, once, inside the schema; the client never does money
- * arithmetic. Funding hands the browser to Paystack's hosted checkout;
- * withdrawals and transfers show their receipt and re-read the statement so
- * the balance card and history reflect the new truth immediately.
+ * Add money, Withdraw and Crypto open a full-page drawer holding a real form
+ * wired to the wallet server actions. Amounts are typed in naira and become
+ * integer kobo on the server, once, inside the schema; the client never does
+ * money arithmetic. Funding hands the browser to Paystack's hosted checkout;
+ * a withdrawal shows its receipt and re-reads the statement so the balance
+ * card and history reflect the new truth immediately.
+ *
+ * SEND AND RECEIVE ARE PAGES, NOT SHEETS. The transfer form that lived here
+ * as a drawer is /wallet/send now, with the room a movement of money deserves
+ * (the amount rolling as it is typed, a confirm step, the ledger's own
+ * receipt), and /wallet/receive is its other half. The two buttons below are
+ * links; the drawer code they replaced is deleted rather than left as a
+ * second door, and `transferToUser` itself is untouched.
  */
 
-type DeckKey = "fund" | "crypto" | "withdraw" | "transfer";
+type DeckKey = "fund" | "crypto" | "withdraw";
 
 const TILES: {
   key: DeckKey;
@@ -79,13 +83,12 @@ const TILES: {
     title: "Top up with crypto",
     hint: "Pay in crypto and your wallet is credited in naira. Yellow Card handles the exchange and settles to us; nothing about a coin or a rate touches your balance.",
   },
-  {
-    key: "transfer",
-    label: "Transfer",
-    icon: "transfer-arrow",
-    title: "Transfer to another user",
-    hint: "Send money to another Vallo user by email. It lands instantly.",
-  },
+];
+
+/** The two movements that are pages of their own. Links, never drawers. */
+const PAGES: { href: string; label: string }[] = [
+  { href: "/wallet/send", label: "Send" },
+  { href: "/wallet/receive", label: "Receive" },
 ];
 
 export function WalletDeck({
@@ -157,9 +160,12 @@ export function WalletDeck({
           Crypto shared a row and Transfer sat alone beside an empty cell -
           a hole in the middle of the wallet's controls. Two stays two.
         */}
+        {/* Withdraw, Send, Receive, and Crypto when it is on: three in a row,
+            or two by two when there are four, so no cell is ever left empty
+            beside a lone button. */}
         <div
           className={`mt-row grid gap-row ${
-            tiles.length - 1 >= 3 ? "grid-cols-3" : "grid-cols-2"
+            tiles.length - 1 + PAGES.length === 3 ? "grid-cols-3" : "grid-cols-2"
           }`}
         >
           {tiles.slice(1).map((tile) => (
@@ -173,6 +179,11 @@ export function WalletDeck({
             >
               {tile.label}
             </Button>
+          ))}
+          {PAGES.map((page) => (
+            <ButtonLink key={page.href} href={page.href} variant="secondary" size="lg">
+              {page.label}
+            </ButtonLink>
           ))}
         </div>
       </div>
@@ -189,14 +200,6 @@ export function WalletDeck({
           {tile.key === "crypto" && <CryptoForm locale={locale} />}
           {tile.key === "withdraw" && (
             <WithdrawForm
-              locale={locale}
-              balanceMinor={balanceMinor}
-              live={live}
-              onDone={() => setOpen(null)}
-            />
-          )}
-          {tile.key === "transfer" && (
-            <TransferForm
               locale={locale}
               balanceMinor={balanceMinor}
               live={live}
@@ -275,7 +278,6 @@ function WalletDrawer({
 
 const FUND_INITIAL: ActionResult<FundStart | null> = { ok: false, error: "" };
 const WITHDRAW_INITIAL: ActionResult<WithdrawReceipt | null> = { ok: false, error: "" };
-const TRANSFER_INITIAL: ActionResult<TransferReceipt | null> = { ok: false, error: "" };
 const CRYPTO_INITIAL: ActionResult<CryptoStart | null> = { ok: false, error: "" };
 
 /*
@@ -551,80 +553,6 @@ function WithdrawForm({
         Withdraw
       </Button>
       <WaitNotice wait={wait} movement="withdrawal" onDone={onDone} />
-      <ErrorNotice state={state} />
-    </form>
-  );
-}
-
-function TransferForm({
-  locale,
-  balanceMinor,
-  live,
-  onDone,
-}: {
-  locale: Locale;
-  balanceMinor: number;
-  live: boolean;
-  /** Closes the drawer onto the wallet, where the movement now sits. */
-  onDone: () => void;
-}) {
-  const [state, formAction, pending] = useActionState(transferToUser, TRANSFER_INITIAL);
-  const wait = useMoneyWait(pending);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (state.ok && state.data) router.refresh();
-  }, [state, router]);
-
-  if (state.ok && state.data) {
-    return (
-      <div role="status" aria-live="polite" className="py-inline text-center">
-        <p>
-          <Amount
-            minorUnits={state.data.amountMinor}
-            locale={locale}
-            showFraction
-            className="text-[1.4rem] font-bold tracking-tight"
-          />
-        </p>
-        <p className="nf-body mt-inline-tight font-semibold">
-          Sent to {state.data.recipientName}
-        </p>
-        <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
-          Their wallet has it already, and both sides of the movement are in your history.
-        </p>
-        <Reference value={state.data.reference} />
-        <ReceiptActions onDone={onDone} />
-      </div>
-    );
-  }
-
-  return (
-    <form action={formAction} noValidate className="space-y-row">
-      {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
-      <TextField
-        label="Recipient email"
-        name="recipientEmail"
-        type="email"
-        autoComplete="off"
-        placeholder="name@example.com"
-        error={fieldError(state, "recipientEmail")}
-      />
-      <AmountField error={fieldError(state, "amount")} locale={locale} />
-      <TextField
-        label="Note"
-        optionalText="(optional)"
-        name="note"
-        type="text"
-        autoComplete="off"
-        maxLength={140}
-        placeholder="What is it for?"
-        error={fieldError(state, "note")}
-      />
-      <Button type="submit" variant="primary" full className="mt-inline-tight" loading={pending}>
-        Send transfer
-      </Button>
-      <WaitNotice wait={wait} movement="transfer" onDone={onDone} />
       <ErrorNotice state={state} />
     </form>
   );

@@ -33,12 +33,12 @@ export default function LoadingWallet() {
         <Skeleton className="mt-inline" width="45%" height="0.8125rem" radius="sm" />
       </div>
 
-      {/* Add money, then withdraw and transfer, at the real 56px control
+      {/* Add money, then withdraw, send and receive, at the real 56px control
           height rather than the 48px this used to reserve. */}
       <div className="mt-group">
         <Skeleton height="3.5rem" radius="lg" />
-        <div className="mt-row grid grid-cols-2 gap-row">
-          {Array.from({ length: 2 }, (_, i) => (
+        <div className="mt-row grid grid-cols-3 gap-row">
+          {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} height="3.5rem" radius="lg" />
           ))}
         </div>

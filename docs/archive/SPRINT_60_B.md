@@ -1,4 +1,11 @@
-# The second sixty
+# The second sixty (ABSORBED)
+
+**Absorbed into `docs/BUILD_05_LEDGER.md` on 18 September 2026.** The parallel
+sprint session is retired on the founder's word. Unfinished items 8, 50, 51 and
+52 are folded into the two-side build's frontend queue; items 54 to 57 and 60
+remain blocked on the founder and are restated in HANDOFF_06. Item 22 ("Trips
+leaves the product") is superseded by HANDOFF_05 section 2, where Trips is the
+Stays side's name for its bookings surface. This file governs nothing.
 
 **What is left in `docs/FRONTEND_REVAMP.md`, ranked again by what a person
 actually sees.** Same three owners, same non-overlapping scopes, same rule that

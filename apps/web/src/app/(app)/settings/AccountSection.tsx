@@ -67,6 +67,18 @@ export function AccountSection({
         ) : undefined
       }
     >
+      {/* Payment methods: the cards you pay with and the accounts you are
+          paid into, a screen of their own. Both sides pay and both are paid,
+          so it lives under Account rather than under either console. */}
+      {state === "signed-in" && (
+        <RowLink
+          href="/settings/payments"
+          icon="wallet"
+          label={t.paymentsPage.settingsRow}
+          sub={t.paymentsPage.settingsRowSub}
+          testId="settings-payments-row"
+        />
+      )}
       <RowValue
         icon="user"
         label={state === "signed-in" ? copy.signedIn : copy.notSignedIn}

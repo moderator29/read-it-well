@@ -1,0 +1,152 @@
+"use server";
+
+/**
+ * The shortlist across both sides: save a stay, a table or a listing.
+ *
+ * public.saved_places is keyed on the catalogue entity kind, so one row shape
+ * serves the Property side (listing) and the Stays side (accommodation,
+ * restaurant). Every write runs under the account's own RLS-bound client, so
+ * the database decides whose shortlist it is. There is no toggle here on
+ * purpose: the two sides render their hearts from a list they already hold,
+ * so save and unsave are separate, idempotent intents, and a double tap or a
+ * stale tab cannot flip a save the wrong way.
+ *
+ * The entity id carries no foreign key (M13 explains why), so a save against
+ * a retired entity simply resolves to nothing at read time. The caller
+ * resolves ids to cards through the catalogue; this module only knows keys.
+ */
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { fail, ok, validate, type ActionResult } from "../actions/envelope";
+import {
+  NOT_CONFIGURED_MESSAGE,
+  SIGNED_OUT_MESSAGE,
+  resolveSession,
+} from "../actions/session";
+import { SAVED_PLACE_KINDS, withSavedPlaces, type SavedPlaceKind } from "./db";
+
+const placeKeySchema = z.object({
+  entityKind: z.enum(SAVED_PLACE_KINDS, { message: "That is not something we can save." }),
+  entityId: z.uuid("This place could not be identified."),
+});
+
+const listSchema = z.object({
+  entityKind: z.enum(SAVED_PLACE_KINDS).optional(),
+});
+
+const SAVE_DOWN_MESSAGE =
+  "We could not update your shortlist just now. Please try again in a moment.";
+
+/** One saved key. The caller resolves it to a card. */
+export type SavedPlace = {
+  entityKind: SavedPlaceKind;
+  entityId: string;
+  /** ISO instant. */
+  savedAt: string;
+};
+
+/** Put a place on the shortlist. Saying it twice is one save. */
+export async function savePlace(input: {
+  entityKind: SavedPlaceKind;
+  entityId: string;
+}): Promise<ActionResult<SavedPlace>> {
+  const parsed = validate(placeKeySchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const db = withSavedPlaces(session.supabase);
+  const { data, error } = await db
+    .from("saved_places")
+    .insert({
+      user_id: session.user.id,
+      entity_kind: parsed.data.entityKind,
+      entity_id: parsed.data.entityId,
+    })
+    .select("entity_kind, entity_id, created_at")
+    .single();
+
+  if (error || !data) {
+    // 23505: already saved in another tab. The intent is satisfied.
+    if (error?.code === "23505") {
+      const { data: existing } = await db
+        .from("saved_places")
+        .select("entity_kind, entity_id, created_at")
+        .eq("user_id", session.user.id)
+        .eq("entity_kind", parsed.data.entityKind)
+        .eq("entity_id", parsed.data.entityId)
+        .maybeSingle();
+      if (existing) {
+        return ok({
+          entityKind: existing.entity_kind,
+          entityId: existing.entity_id,
+          savedAt: existing.created_at,
+        });
+      }
+    }
+    return fail(SAVE_DOWN_MESSAGE);
+  }
+
+  revalidatePath("/saved");
+  return ok({ entityKind: data.entity_kind, entityId: data.entity_id, savedAt: data.created_at });
+}
+
+/** Take a place off the shortlist. Removing what is not there is a no-op. */
+export async function unsavePlace(input: {
+  entityKind: SavedPlaceKind;
+  entityId: string;
+}): Promise<ActionResult<null>> {
+  const parsed = validate(placeKeySchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const { error } = await withSavedPlaces(session.supabase)
+    .from("saved_places")
+    .delete()
+    .eq("user_id", session.user.id)
+    .eq("entity_kind", parsed.data.entityKind)
+    .eq("entity_id", parsed.data.entityId);
+  if (error) return fail(SAVE_DOWN_MESSAGE);
+
+  revalidatePath("/saved");
+  return ok(null);
+}
+
+/**
+ * The account's saved places, newest first, optionally one kind. Empty when
+ * signed out or unconfigured rather than an error: a shortlist is a section
+ * of a screen with other things on it.
+ */
+export async function listSavedPlaces(input?: {
+  entityKind?: SavedPlaceKind;
+}): Promise<ActionResult<SavedPlace[]>> {
+  const parsed = validate(listSchema, input ?? {});
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return ok([]);
+
+  let query = withSavedPlaces(session.supabase)
+    .from("saved_places")
+    .select("entity_kind, entity_id, created_at")
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (parsed.data.entityKind) query = query.eq("entity_kind", parsed.data.entityKind);
+
+  const { data, error } = await query;
+  if (error) return fail("We could not load your shortlist just now. Please try again in a moment.");
+  return ok(
+    (data ?? []).map((row) => ({
+      entityKind: row.entity_kind,
+      entityId: row.entity_id,
+      savedAt: row.created_at,
+    })),
+  );
+}

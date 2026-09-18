@@ -26,6 +26,7 @@ import { walletFunded, withdrawalFailed } from "@/lib/email/messages";
 import { contactForUser } from "@/lib/email/recipients";
 import { announceConfirmedStay } from "@/lib/bookings/arrival";
 import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement";
+import { savePaymentMethodFromCharge } from "@/lib/payments/methods";
 import {
   BOOKING_PREFIX,
   FUND_PREFIX,
@@ -102,6 +103,8 @@ type WebhookEvent = {
     paid_at?: string | null;
     customer?: { email?: string | null } | null;
     metadata?: unknown;
+    /** The reusable-card token, when the charge produced one. Read defensively. */
+    authorization?: unknown;
   };
 };
 
@@ -126,6 +129,46 @@ function verdict(
   extra?: Omit<Verdict, "outcome" | "reason" | "httpStatus">,
 ): Verdict {
   return { outcome, reason, httpStatus, ...(extra ?? {}) };
+}
+
+/* ----------------------------------------------------------- saved cards */
+
+/**
+ * File the card a charge was paid with, when the charge asked for it.
+ *
+ * Runs on every charge.success this platform owns, after the payer is known.
+ * The rule is in lib/payments/methods.ts: metadata.save_card must be true
+ * (the boolean, or the string the stringified-metadata quirk makes of it)
+ * AND Paystack must say the authorization is reusable, and the row is
+ * written by the service role from the processor's own payload. Nothing a
+ * client sends can reach this insert.
+ *
+ * Best effort, and audited when it did anything. A card that could not be
+ * filed is a missing convenience; the money has already been accounted for
+ * by the time this runs and a 500 here would only make Paystack replay a
+ * credit the ledger has already refused as a duplicate.
+ */
+async function fileCardIfAsked(
+  admin: AdminClient,
+  data: NonNullable<WebhookEvent["data"]>,
+  userId: string,
+  reference: string,
+): Promise<void> {
+  const outcome = await savePaymentMethodFromCharge(admin, {
+    userId,
+    email: data.customer?.email ?? null,
+    metadata: data.metadata,
+    authorization: data.authorization,
+  });
+  if (outcome === "skipped") return;
+  await recordMoneyAudit(admin, {
+    actor: { kind: "webhook" },
+    action: `payment_method.${outcome}`,
+    reference,
+    subjectUserId: userId,
+    outcome,
+    detail: { source: "webhook" },
+  });
 }
 
 /* --------------------------------------------------------------- funding */
@@ -214,6 +257,11 @@ async function handleFundingChargeSuccess(
     return verdict("failed", `owner_unresolved:${owner.how}`, 200, { amountMinor });
   }
 
+  // The card, if the checkout asked for it to be kept. Before the ledger
+  // write so a replayed delivery, which the ledger refuses as a duplicate,
+  // still refreshes the token; the save is keyed and idempotent on its own.
+  await fileCardIfAsked(admin, data, owner.userId, reference);
+
   const posted = await recordFunding(admin, {
     userId: owner.userId,
     amountMinor,
@@ -286,6 +334,13 @@ async function handleBookingChargeSuccess(
   const metadata = metadataObject(data.metadata);
   const metaBookingId = metadata["booking_id"];
   const fallbackBookingId = typeof metaBookingId === "string" ? metaBookingId : null;
+
+  // A booking checkout that asked to keep the card names its payer in
+  // metadata; without that there is nobody to file the card against.
+  const payerId = metadata["user_id"];
+  if (typeof payerId === "string" && payerId.length > 0) {
+    await fileCardIfAsked(admin, data, payerId, reference);
+  }
 
   const settlement = await settleBookingCharge(admin, {
     reference,

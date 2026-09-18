@@ -102,6 +102,17 @@ export const withdrawSchema = z.object({
    */
 });
 
+/**
+ * Withdrawing to an account already on file (public.bank_accounts, M12). The
+ * account carries its own resolved name, bank and number, so the form sends
+ * only which one. Additive beside withdrawSchema: the typed-in path is
+ * untouched.
+ */
+export const withdrawToSavedAccountSchema = z.object({
+  amount: nairaAmountSchema,
+  bankAccountId: z.uuid("Choose an account from your list."),
+});
+
 export const transferSchema = z.object({
   recipientEmail: z
     .string()

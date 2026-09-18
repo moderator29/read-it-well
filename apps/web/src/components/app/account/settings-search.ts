@@ -119,6 +119,13 @@ export function settingsSections(t: Dictionary): SettingsSection[] {
     section("settings-data", t.settings.data.label, t.settings.data),
     section("settings-account", t.settings.account.label, t.settings.account, t.settings.delete),
     /*
+     * Payment methods is a ROW inside the account card and a page of its own
+     * at `/settings/payments`, so its words are indexed under the card that
+     * carries the door. Somebody searching "card" or "bank" has to land on the
+     * card holding the control, exactly as with language and interests above.
+     */
+    section("settings-account", t.paymentsPage.title, t.paymentsPage),
+    /*
      * Help and support is the one section whose words are not in the
      * dictionary: `components/app/account/SupportChat.tsx` writes "Help and
      * support" and its subtitle in English literals. Those two terms are named

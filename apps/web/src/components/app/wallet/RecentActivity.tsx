@@ -34,9 +34,17 @@ const PREVIEW = 3;
 export function RecentActivity({
   entries,
   locale,
+  title = "Recent",
+  empty,
 }: {
   entries: WalletEntry[];
   locale: Locale;
+  /** The strip's heading. The wallet home says "Recent"; the receive page
+      passes the entries that came in and names them so. */
+  title?: string;
+  /** What to say when there is nothing, where the default sentence is not true
+      of the slice being shown. */
+  empty?: string;
 }) {
   const recent = entries.slice(0, PREVIEW);
   /* The kind names in the reader's own language, from the one place the three
@@ -47,7 +55,7 @@ export function RecentActivity({
     <section aria-labelledby="nf-wallet-recent">
       <div className="mb-heading flex items-baseline justify-between gap-md">
         <h2 id="nf-wallet-recent" className="nf-overline">
-          Recent
+          {title}
         </h2>
         {entries.length > 0 && (
           <Link
@@ -124,8 +132,8 @@ export function RecentActivity({
            and a headline, which is a lot of screen to say "nothing yet" in a
            strip that is three rows tall when it has content. */
         <p className={`py-row ${TYPE.rowMeta}`}>
-          Nothing has moved through your wallet yet. Add money and it appears
-          here.
+          {empty ??
+            "Nothing has moved through your wallet yet. Add money and it appears here."}
         </p>
       )}
     </section>
