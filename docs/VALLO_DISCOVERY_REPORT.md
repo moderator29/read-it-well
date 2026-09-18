@@ -189,14 +189,23 @@ invisible from the Stays side.
 ## 13. Wallet, 14. Savings, 15. Payments
 
 DISCOVERY_B sections 2 and 3 hold the full money map. Snapshot headlines:
-the wallet is append-only-ledger real with derived balances; send and
-receive graduated to full pages this week; **"savings" as a product does
-not exist** (pots are the nearest object); saved cards
-(`payment_methods`, webhook-fed) and user bank accounts with
-resolve-verified names landed this week at `/settings/payments`; the agent
-`payout_accounts` system now coexists with user `bank_accounts` and
-nothing reconciles the two; escrow is promised nowhere in copy and the
-`escrow-hold` icon is structurally withheld; fee rates are all zero.
+the wallet is append-only-ledger real with derived balances, unique-
+reference idempotency, an HMAC-verified semantic-status webhook and hourly
+cron reconciliation; send and receive graduated to full pages this week.
+**Savings means savings pots, and the feature is shipped code lying
+dormant**: `lib/wallet/pots.ts` and `PotsSection` exist but the two pot
+migrations were never applied live, so no `wallet_pots` table exists and
+the surface is invisible. Saved cards (`payment_methods`, webhook-only
+inserts) and user bank accounts with resolve-verified names landed this
+week at `/settings/payments`, **but `chargeSavedCard` has no caller yet**:
+paying with a saved card is not wired into checkout or funding. The agent
+`payout_accounts` system coexists with user `bank_accounts` and nothing
+reconciles the two. Escrow is a complete BACKEND ONLY machine with zero
+callers, deliberately unreachable; terms and the balance sheet both
+disclaim holding (the old contradiction is resolved in the honest
+direction) and the `escrow-hold` icon is structurally withheld. Fee rates
+are all zero; fund, withdraw and transfer carry no rate limits and
+nothing alerts on money failures.
 
 ## 16. Messaging, 17. Notifications
 
@@ -263,10 +272,13 @@ deletion flow status).
 DISCOVERY_B section 8 (architecture level, no secrets): full email flow
 with verify codes and honest expired-link states, OAuth chooser, session
 handling, middleware gates, rate limiting inventory, zod coverage, webhook
-signature verification, RLS posture over 75 tables, and the areas
-requiring hardening. 2FA does not exist. Client error observability is
-`console.error` (Sentry named as future): the redesign will have no field
-data on real breakage.
+signature verification, RLS posture over the now 94 live tables, and the
+areas requiring hardening. Auth is email plus six-digit codes only (OAuth
+present but switched off by owner decision); 2FA does not exist, for users
+or admins. Blocks are enforced only in the social layer, not in messaging.
+Client error observability is `console.error` (Sentry named as future):
+the redesign will have no field data on real breakage. No CI, no
+alerting on the eight cron jobs, no analytics anywhere.
 
 ## 29. Privacy and data collection
 
@@ -326,7 +338,12 @@ Section 3 above plus DISCOVERY_B section 1. Costed plan:
 4. Two bank-account systems, no reconciliation surface.
 5. No client error reporting; no analytics product anywhere.
 6. Map tiles on a non-commercial licence until the MapTiler key lands.
-7. M6 founder-gated: room-level bookings cannot exist until it lands.
+7. M6 founder-gated: room-level bookings cannot exist and bookings has no
+   transition-guard trigger until it lands.
+8. Savings pots: shipped code, unapplied migrations, invisible feature.
+9. `chargeSavedCard` uncalled: saved cards exist but cannot pay yet.
+10. Money paths carry no rate limits; nothing alerts on cron or webhook
+    failures.
 
 ## 36. UX gaps (top of the list)
 
