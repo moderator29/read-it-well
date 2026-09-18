@@ -70,9 +70,41 @@
     inset: 0;
     overflow: hidden;
     backface-visibility: hidden;
-    border-radius: var(--nf-radius-xl);
-    box-shadow: var(--nf-elev-4);
+    border-radius: var(--nf-radius-2xl);
+    /*
+      THE GLOWING EDGE, per GOVERNING-flip-mid-turn.png: the turning pane is a
+      slab of glass with a bright rim that catches the light along its edge
+      and a bloom bleeding off it. Three rungs of the glow scale stacked, the
+      brand rim at the surface, so the card reads as lit rather than shadowed.
+      The elevation shadow stays underneath for depth.
+    */
+    box-shadow:
+      0 0 0 1.5px var(--nf-glow-brand-rim),
+      0 0 24px var(--nf-glow-3),
+      0 0 90px var(--nf-glow-2),
+      var(--nf-elev-4);
     background: var(--nf-surface-canvas);
+  }
+  /* The lit edge itself: a highlight that runs along the pane's leading
+     side, brightest mid-turn where the render has it. */
+  .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(
+      calc(90deg + var(--nf-flip-dir) * 12deg),
+      var(--nf-glow-3) 0%,
+      transparent 8%,
+      transparent 92%,
+      var(--nf-glow-3) 100%
+    );
+    opacity: 0;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-flip-stage[data-phase="turn"] .nf-flip-face::after {
+    opacity: 1;
   }
   .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face--front {
     display: block;
@@ -80,6 +112,13 @@
   }
   .nf-flip-face--back {
     transform: rotateY(180deg);
+  }
+  /* The incoming pane is glass in the render: the dimmed page shows through
+     it faintly. The front face stays opaque, it is the page itself. */
+  .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face--back.nf-flip-cover {
+    background: color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong));
+    backdrop-filter: blur(var(--nf-glass-blur-strong));
   }
 
   /* 1. Press: the lift. */
@@ -148,9 +187,15 @@
     inset: 0;
     background:
       radial-gradient(
-        60% 42% at 50% 38%,
-        color-mix(in oklab, var(--nf-side-accent) 34%, transparent) 0%,
-        transparent 70%
+        48% 34% at 50% 44%,
+        color-mix(in oklab, var(--nf-side-accent) 46%, transparent) 0%,
+        color-mix(in oklab, var(--nf-side-accent) 16%, transparent) 40%,
+        transparent 72%
+      ),
+      radial-gradient(
+        120% 80% at 50% 110%,
+        color-mix(in oklab, var(--nf-side-accent) 22%, transparent) 0%,
+        transparent 60%
       );
     pointer-events: none;
   }
@@ -171,15 +216,22 @@
    * came round, which showed a glow with nothing in it. Only the miniature
    * staggers, and only on the back face; the fixed twin replays nothing.
    */
+  /* The mark is the whole cover in the render: the glass building standing
+     in the middle of the pane, lit from within. Two shadows stacked, the
+     near one tight and bright, the far one wide and soft. */
   .nf-flip-cover__mark {
-    filter: drop-shadow(0 0 32px color-mix(in oklab, var(--nf-side-accent) 55%, transparent));
+    filter:
+      drop-shadow(0 0 14px color-mix(in oklab, var(--nf-side-accent) 80%, transparent))
+      drop-shadow(0 0 48px color-mix(in oklab, var(--nf-side-accent) 50%, transparent));
+    transform: scale(1.25);
   }
   .nf-flip-cover__brand {
-    margin-top: var(--nf-gap-block);
-    opacity: 0.8;
+    margin-top: var(--nf-gap-section-tight);
+    opacity: 0.55;
   }
   .nf-flip-cover__name {
     margin-top: var(--nf-gap-inline);
+    text-shadow: 0 0 24px var(--nf-glow-3);
   }
   .nf-flip-cover__line {
     margin-top: var(--nf-gap-inline);

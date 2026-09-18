@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const PAGES = ["drawer", "dock", "header"];
+const PAGES = ["drawer", "dock", "flip"];
 
 export default function LeadPreviewIndex() {
   return (

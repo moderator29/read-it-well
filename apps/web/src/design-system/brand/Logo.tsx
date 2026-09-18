@@ -126,10 +126,24 @@ export function Logo({
   return (
     <span className={`nf-logo ${className ?? ""}`}>
       <LogoMark size={size} responsive={responsive} title="Vallo" priority={priority} />
+      {/*
+        THE WORDMARK IS THE ASSET, not set type. Every render carries the
+        chrome-blue VALLO beside the mark, and the repository has held that
+        exact wordmark since the brand landed; the header was drawing the name
+        in Poppins instead. The mark carries the accessible name, so this is
+        decoration to a reader and the picture to everyone else.
+      */}
       <span className="nf-logo__text">
-        <span className="nf-logo__word" style={{ fontSize: wordFontSize }}>
-          Vallo
-        </span>
+        <Image
+          src="/brand/vallo-wordmark.png"
+          alt=""
+          aria-hidden="true"
+          width={758}
+          height={167}
+          priority={priority}
+          className="nf-logo__word"
+          style={{ height: wordFontSize, width: "auto" }}
+        />
       </span>
     </span>
   );
