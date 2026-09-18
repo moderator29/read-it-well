@@ -1,0 +1,131 @@
+import { describe, expect, it, vi } from "vitest";
+import { bearerMatches } from "./auth";
+import { executeCronJob, type CronDeps } from "./run";
+import type { CronRunRecord } from "./report";
+import type { AdminClient } from "./rpc";
+
+/**
+ * The wrapper every job runs through, driven branch by branch with its
+ * dependencies handed in. What is pinned: a wrong secret never reaches the
+ * job; a missing service client is a 503 and a reported failure, never a
+ * green 200; a job that throws is a 500 with the reason, reported; a clean
+ * run and an attention run are both 200 with the verdict, reported once each;
+ * and the report always carries the job name so the audit line and the alert
+ * can be found again.
+ */
+
+const NOW = Date.parse("2026-09-18T12:00:00Z");
+
+/** The client is never touched by these tests; the job receives it and that is all. */
+const FAKE_ADMIN = {} as AdminClient;
+
+function deps(overrides: Partial<CronDeps> = {}): CronDeps & { reports: CronRunRecord[] } {
+  const reports: CronRunRecord[] = [];
+  let tick = 0;
+  return {
+    refused: null,
+    admin: FAKE_ADMIN,
+    report: async (_admin, record) => {
+      reports.push(record);
+    },
+    now: () => NOW + 25 * tick++,
+    reports,
+    ...overrides,
+  };
+}
+
+describe("the bearer guard", () => {
+  it("matches only the exact bearer, in constant time, and refuses an unset secret", () => {
+    expect(bearerMatches("Bearer s3cret", "s3cret")).toBe(true);
+    expect(bearerMatches("Bearer s3cret ", "s3cret")).toBe(false);
+    expect(bearerMatches("Bearer s3cre", "s3cret")).toBe(false);
+    expect(bearerMatches("s3cret", "s3cret")).toBe(false);
+    expect(bearerMatches("Basic s3cret", "s3cret")).toBe(false);
+    expect(bearerMatches(null, "s3cret")).toBe(false);
+    expect(bearerMatches("Bearer ", "s3cret")).toBe(false);
+    expect(bearerMatches("Bearer anything", "")).toBe(false);
+  });
+});
+
+describe("executeCronJob", () => {
+  it("refuses a bad secret before the job runs and reports nothing", async () => {
+    const job = vi.fn(async () => ({ outcome: "ok" as const, counts: {}, detail: {}, alert: null }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const d = deps({ refused: { retryAfterSeconds: 0 } });
+    const outcome = await executeCronJob("hold-sweep", job, d);
+    warn.mockRestore();
+    expect(outcome.status).toBe(401);
+    expect(outcome.body).toMatchObject({ ok: false, job: "hold-sweep", reason: "unauthorised" });
+    expect(job).not.toHaveBeenCalled();
+    expect(d.reports).toEqual([]);
+  });
+
+  it("answers a sprayer with 429 and a retry-after", async () => {
+    const job = vi.fn(async () => ({ outcome: "ok" as const, counts: {}, detail: {}, alert: null }));
+    const outcome = await executeCronJob("hold-sweep", job, deps({ refused: { retryAfterSeconds: 90 } }));
+    expect(outcome.status).toBe(429);
+    expect(outcome.retryAfterSeconds).toBe(90);
+    expect(outcome.body).toMatchObject({ ok: false, reason: "too_many_failures" });
+    expect(job).not.toHaveBeenCalled();
+  });
+
+  it("is a 503 and a reported failure when there is no service client", async () => {
+    const job = vi.fn(async () => ({ outcome: "ok" as const, counts: {}, detail: {}, alert: null }));
+    const d = deps({ admin: null });
+    const outcome = await executeCronJob("complete-stays", job, d);
+    expect(outcome.status).toBe(503);
+    expect(outcome.body).toMatchObject({ ok: false, reason: "service_role_key_missing" });
+    expect(job).not.toHaveBeenCalled();
+    expect(d.reports).toEqual([
+      { job: "complete-stays", outcome: "failed", durationMs: 0, reason: "service_role_key_missing" },
+    ]);
+  });
+
+  it("turns a thrown job into a 500 with the reason, reported once", async () => {
+    const job = async () => {
+      throw new Error("expire_booking_holds: function does not exist");
+    };
+    const d = deps();
+    const outcome = await executeCronJob("hold-sweep", job, d);
+    expect(outcome.status).toBe(500);
+    expect(outcome.body).toMatchObject({
+      ok: false,
+      job: "hold-sweep",
+      reason: "expire_booking_holds: function does not exist",
+    });
+    expect(d.reports).toHaveLength(1);
+    expect(d.reports[0]).toMatchObject({ job: "hold-sweep", outcome: "failed", durationMs: 25 });
+  });
+
+  it("answers a clean run with the verdict and reports it with the counts", async () => {
+    const job = async (admin: AdminClient) => {
+      expect(admin).toBe(FAKE_ADMIN);
+      return { outcome: "ok" as const, counts: { released: 2 }, detail: { released: ["a", "b"] }, alert: null };
+    };
+    const d = deps();
+    const outcome = await executeCronJob("hold-sweep", job, d);
+    expect(outcome.status).toBe(200);
+    expect(outcome.body).toEqual({
+      ok: true,
+      job: "hold-sweep",
+      outcome: "ok",
+      startedAt: "2026-09-18T12:00:00.000Z",
+      durationMs: 25,
+      counts: { released: 2 },
+      detail: { released: ["a", "b"] },
+    });
+    expect(d.reports).toEqual([
+      { job: "hold-sweep", outcome: "ok", durationMs: 25, counts: { released: 2 }, alert: null },
+    ]);
+  });
+
+  it("passes an attention verdict's alert through to the reporter", async () => {
+    const alert = { kind: "cron.inventory_drift.found", severity: "critical" as const, detail: { row_count: 1 } };
+    const job = async () => ({ outcome: "attention" as const, counts: { room_nights: 1 }, detail: {}, alert });
+    const d = deps();
+    const outcome = await executeCronJob("inventory-drift", job, d);
+    expect(outcome.status).toBe(200);
+    expect(outcome.body).toMatchObject({ ok: true, outcome: "attention" });
+    expect(d.reports[0]).toMatchObject({ job: "inventory-drift", outcome: "attention", alert });
+  });
+});

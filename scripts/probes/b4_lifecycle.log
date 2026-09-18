@@ -1,0 +1,36 @@
+== probe started 2026-09-18T22:38:47Z
+== migrations: 20260918151000_b4_booking_lifecycle_sweeps.sql, 20260918151100_b4_inventory_drift_and_cron_watch.sql
+ PostgreSQL 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+NOTICE:  database "vallo_b4_lifecycle_probe" does not exist, skipping
+== lifecycle text: 286 lines, sha256 448dd21928fe621f
+== drift text: 204 lines, sha256 b53dcf7ab27d1642
+== running the cases
+-- expire_booking_holds: {"released": ["00000000-0000-4000-8000-0000000000d1"], "ttl_hours": 48, "paid_pending": ["00000000-0000-4000-8000-0000000000d2"]}
+-- complete_ended_stays: {"today": "2026-09-18", "completed": ["00000000-0000-4000-8000-0000000000e1"], "unpaid_ended": ["00000000-0000-4000-8000-0000000000e2"]}
+-- no show N1 by host: {"outcome": "recorded", "booking_id": "00000000-0000-4000-8000-0000000000f1"}
+-- no show N1 again: {"outcome": "already"}
+-- no show N3 too early: {"outcome": "not_arrived"}
+-- no show N4 by admin: {"outcome": "recorded", "booking_id": "00000000-0000-4000-8000-0000000000f4"}
+-- no show on a PENDING (H3): {"status": "PENDING", "outcome": "not_confirmed"}
+-- no show on a missing id: {"outcome": "missing"}
+psql:/tmp/tmp.1CvVJs62gn/run.sql:22: NOTICE:  PASS: a stranger is refused (42501)
+-- inventory_drift: {"today": "2026-09-18", "room_spine": false, "room_nights": [{"date": "2026-09-23", "kind": "room_night", "live_rooms": 0, "room_type_id": "00000000-0000-4000-8000-0000000000aa", "units_booked": 1}], "orphan_nights": [{"date": "2026-10-28", "kind": "orphan_night", "listing_id": "00000000-0000-4000-8000-0000000000c1"}], "missing_nights": [{"date": "2026-09-19", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000f3", "listing_id": "00000000-0000-4000-8000-0000000000c1"}, {"date": "2026-10-08", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000d2", "listing_id": "00000000-0000-4000-8000-0000000000c1"}, {"date": "2026-10-18", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000d3", "listing_id": "00000000-0000-4000-8000-0000000000c1"}]}
+-- cron_job_failures: {"failures": [], "available": false}
+-- expire again: {"released": [], "ttl_hours": 48, "paid_pending": ["00000000-0000-4000-8000-0000000000d2"]}
+-- complete again: {"today": "2026-09-18", "completed": [], "unpaid_ended": ["00000000-0000-4000-8000-0000000000e2"]}
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS H1: stale unpaid hold released, event written, night freed, hand-closed night kept, guest told
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS H2: paid PENDING booking untouched and reported
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS H3: fresh hold kept
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS C1: paid ended stay completed, event written, both sides told once
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS C2/C3: unpaid ended stay reported not moved; stay ending today kept for the host
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS N1: host no show recorded once, nights ahead freed, past night kept, guest told
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS N4: admin override recorded and the host told once
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS N3: a no show before arrival day is refused
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS D1/D2/D3: orphan night, missing night and sold room night reported, nothing corrected
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS cron watch: answers available=false where the table is absent
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS idempotence: second runs move nothing and write nothing
+psql:/tmp/tmp.1CvVJs62gn/run.sql:134: NOTICE:  PASS wrapper: private.release_stale_booking_holds() still returns an integer
+-- inventory_drift after M6 columns: {"today": "2026-09-18", "room_spine": true, "room_nights": [{"date": "2026-09-23", "kind": "room_night", "live_rooms": 0, "room_type_id": "00000000-0000-4000-8000-0000000000aa", "units_booked": 1}, {"date": "2026-09-24", "kind": "room_night", "live_rooms": 2, "room_type_id": "00000000-0000-4000-8000-0000000000aa", "units_booked": 0}], "orphan_nights": [{"date": "2026-10-28", "kind": "orphan_night", "listing_id": "00000000-0000-4000-8000-0000000000c1"}], "missing_nights": [{"date": "2026-09-19", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000f3", "listing_id": "00000000-0000-4000-8000-0000000000c1"}, {"date": "2026-09-24", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000e6", "listing_id": "00000000-0000-4000-8000-0000000000c1"}, {"date": "2026-09-25", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000e6", "listing_id": "00000000-0000-4000-8000-0000000000c1"}, {"date": "2026-10-08", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000d2", "listing_id": "00000000-0000-4000-8000-0000000000c1"}, {"date": "2026-10-18", "kind": "missing_night", "booking_id": "00000000-0000-4000-8000-0000000000d3", "listing_id": "00000000-0000-4000-8000-0000000000c1"}]}
+psql:/tmp/tmp.1CvVJs62gn/run.sql:161: NOTICE:  PASS D4: with M6 columns present the live count is compared, the matching night is quiet
+== scratch database dropped
+== RESULT: PASS. Every case asserted; see the PASS lines above.

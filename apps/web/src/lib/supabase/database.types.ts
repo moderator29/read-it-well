@@ -3378,6 +3378,94 @@ export type Database = {
           },
         ]
       }
+      rent_payments: {
+        Row: {
+          agency_minor: number | null
+          agreement_minor: number | null
+          booking_id: string
+          caution_minor: number | null
+          created_at: string
+          currency: string
+          id: string
+          inspection_id: string
+          legal_minor: number | null
+          lister_id: string
+          listing_id: string
+          move_in: string
+          rent_minor: number | null
+          rent_period: Database["public"]["Enums"]["rent_period"]
+          service_minor: number | null
+          tenant_id: string
+          total_minor: number
+          total_stated: boolean
+          updated_at: string
+        }
+        Insert: {
+          agency_minor?: number | null
+          agreement_minor?: number | null
+          booking_id: string
+          caution_minor?: number | null
+          created_at?: string
+          currency?: string
+          id?: string
+          inspection_id: string
+          legal_minor?: number | null
+          lister_id: string
+          listing_id: string
+          move_in: string
+          rent_minor?: number | null
+          rent_period?: Database["public"]["Enums"]["rent_period"]
+          service_minor?: number | null
+          tenant_id: string
+          total_minor: number
+          total_stated?: boolean
+          updated_at?: string
+        }
+        Update: {
+          agency_minor?: number | null
+          agreement_minor?: number | null
+          booking_id?: string
+          caution_minor?: number | null
+          created_at?: string
+          currency?: string
+          id?: string
+          inspection_id?: string
+          legal_minor?: number | null
+          lister_id?: string
+          listing_id?: string
+          move_in?: string
+          rent_minor?: number | null
+          rent_period?: Database["public"]["Enums"]["rent_period"]
+          service_minor?: number | null
+          tenant_id?: string
+          total_minor?: number
+          total_stated?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rent_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_payments_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: true
+            referencedRelation: "inspection_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_payments_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           category: string | null
@@ -3420,6 +3508,7 @@ export type Database = {
       reservations: {
         Row: {
           business_id: string | null
+          conversation_id: string | null
           created_at: string
           guest_id: string
           id: string
@@ -3433,6 +3522,7 @@ export type Database = {
         }
         Insert: {
           business_id?: string | null
+          conversation_id?: string | null
           created_at?: string
           guest_id: string
           id?: string
@@ -3446,6 +3536,7 @@ export type Database = {
         }
         Update: {
           business_id?: string | null
+          conversation_id?: string | null
           created_at?: string
           guest_id?: string
           id?: string
@@ -3463,6 +3554,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
           {
@@ -4537,6 +4635,7 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_ended_stays: { Args: { p_limit?: number }; Returns: Json }
       consume_rate_limit: {
         Args: {
           bucket: string
@@ -4545,6 +4644,10 @@ export type Database = {
           window_seconds: number
         }
         Returns: boolean
+      }
+      cron_job_failures: {
+        Args: { p_limit?: number; p_since?: string }
+        Returns: Json
       }
       current_agent_id: { Args: never; Returns: string }
       end_other_sessions: { Args: never; Returns: Json }
@@ -4617,6 +4720,10 @@ export type Database = {
         Returns: Json
       }
       escrow_request_release: { Args: { p_escrow: string }; Returns: Json }
+      expire_booking_holds: {
+        Args: { p_limit?: number; p_ttl?: string }
+        Returns: Json
+      }
       expire_stale_withdrawal_holds: {
         Args: { older_than_minutes?: number }
         Returns: Json
@@ -4647,6 +4754,7 @@ export type Database = {
         }
         Returns: Json
       }
+      inventory_drift: { Args: { p_limit?: number }; Returns: Json }
       join_text_array: { Args: { items: string[] }; Returns: string }
       landmarks_resolve: {
         Args: { p_limit?: number; p_state?: string; p_term: string }
@@ -4702,6 +4810,10 @@ export type Database = {
           user_agent: string
         }[]
       }
+      open_rent_charge: {
+        Args: { p_inspection: string; p_move_in: string; p_tenant: string }
+        Returns: Json
+      }
       pay_booking_from_wallet: {
         Args: {
           payer: string
@@ -4718,6 +4830,10 @@ export type Database = {
           listings: number
           states: number
         }[]
+      }
+      record_booking_no_show: {
+        Args: { p_actor: string; p_booking: string; p_note?: string }
+        Returns: Json
       }
       record_idempotency_result: {
         Args: { key: string; result: Json; scope: string; subject: string }
