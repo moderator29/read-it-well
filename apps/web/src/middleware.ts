@@ -72,6 +72,13 @@ const PRODUCT_SEGMENTS = new Set([
      somebody's post. There is nothing to read here anonymously. */
   "stories",
   "wallet",
+  /* The Stays side's own-data surfaces: your stays and reservations, and the
+     Host console. Browsing (/stays, /stay, /restaurants, /restaurant) stays
+     open, exactly like /search and /listing on the Property side. */
+  "trips",
+  "host",
+  /* The Property side's inspections page: every row on it is the reader's. */
+  "inspections",
   // The consoles. These have their own role checks on top; this only decides
   // whether an anonymous visitor gets as far as being told they lack a role.
   "admin",

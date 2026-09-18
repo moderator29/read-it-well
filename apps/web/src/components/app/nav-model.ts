@@ -1,5 +1,6 @@
 import type { Dictionary } from "@vallo/i18n";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
+import type { Side } from "@/lib/side.constants";
 
 /**
  * The side navigation, as data.
@@ -104,17 +105,27 @@ export type NavSection = {
 
 export function buildNav({
   t,
+  side = "property",
   unreadNotifications,
   isAgent,
   isAdmin,
   signedIn,
 }: {
   t: Dictionary;
+  /**
+   * Which side the shell is on. Property returns the model exactly as it was;
+   * Stays returns its own: Stays, Explore stays, Feed, then Account with
+   * Trips replacing Bookings, then Settings. The workspaces (Agent Mode, the
+   * console) belong to the Property side and render only there; the Stays
+   * business console arrives later as a `/host/*` sibling with its own gate.
+   */
+  side?: Side;
   unreadNotifications: number;
   isAgent: boolean;
   isAdmin: boolean;
   signedIn: boolean;
 }): NavSection[] {
+  const stays = side === "stays";
   const sections: NavSection[] = [
     {
       heading: null,
@@ -126,16 +137,26 @@ export function buildNav({
        *
        * Open to a signed-out visitor, all three, because a marketplace nobody
        * can see cannot be found. Acting is what gates, not looking.
+       *
+       * On the Stays side the first two are the Stays roots (`/stays`,
+       * `/stays/search`); `/home` and `/search` stay the Property roots so
+       * every existing link keeps its meaning. Feed is shared.
        */
       hideWhenDocked: true,
-      items: [
-        { href: "/home", label: t.nav.home, icon: "home" },
-        { href: "/search", label: t.nav.explore, icon: "compass" },
-        /* `grid` meant "Around" and nothing about a grid of four squares says
-           feed, place or neighbourhood: it was the one destination in the set
-           a person could not guess from its glyph. `feed` exists now. */
-        { href: "/around", label: t.nav.feed, icon: "feed" },
-      ],
+      items: stays
+        ? [
+            { href: "/stays", label: t.nav.stays, icon: "bed" },
+            { href: "/stays/search", label: t.nav.exploreStays, icon: "compass" },
+            { href: "/around", label: t.nav.feed, icon: "feed" },
+          ]
+        : [
+            { href: "/home", label: t.nav.home, icon: "home" },
+            { href: "/search", label: t.nav.explore, icon: "compass" },
+            /* `grid` meant "Around" and nothing about a grid of four squares says
+               feed, place or neighbourhood: it was the one destination in the set
+               a person could not guess from its glyph. `feed` exists now. */
+            { href: "/around", label: t.nav.feed, icon: "feed" },
+          ],
     },
   ];
 
@@ -151,7 +172,16 @@ export function buildNav({
     sections.push({
       heading: t.nav.accountLabel,
       items: [
-        { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" },
+        /* Trips is the Stays side's name for the same idea: your stays and
+           reservations, by date. On Property the row stays Bookings and gains
+           Inspections beside it, because an inspection is the Property side's
+           own transaction and it finally has a page of its own. */
+        ...(stays
+          ? [{ href: "/trips", label: t.nav.trips, icon: "ticket" } as NavNode]
+          : [
+              { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" } as NavNode,
+              { href: "/inspections", label: t.nav.inspections, icon: "eye" } as NavNode,
+            ]),
         { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
         {
           href: "/notifications",
@@ -197,7 +227,10 @@ export function buildNav({
    */
   const workspaces: NavNode[] = [];
 
-  if (isAgent) {
+  /* Agent mode is Property's workspace. On the Stays side the shell simply
+     has no agent surface, exactly as a personal-mode shell has none today;
+     the mode cookie is left alone and the row returns on the flip back. */
+  if (isAgent && !stays) {
     workspaces.push({
       href: "/agent/dashboard",
       label: t.nav.agentMode,
@@ -205,7 +238,7 @@ export function buildNav({
     });
   }
 
-  if (isAdmin) {
+  if (isAdmin && !stays) {
     workspaces.push({ href: "/admin", label: t.nav.consoleLabel, icon: "shield-stop" });
   }
 
@@ -261,7 +294,7 @@ export function buildNav({
    * on the other side of this row is a verification ladder, not a job title,
    * and the icon should say what the flow actually is.
    */
-  if (signedIn && !isAgent) {
+  if (signedIn && !isAgent && !stays) {
     tail.push({ href: "/profile/setup", label: t.nav.becomeAgent, icon: "verified" });
   }
 

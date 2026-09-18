@@ -13,8 +13,10 @@ import "server-only";
  */
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
+import { withThreadContext, type ThreadContextKind } from "./db";
 import { lagosTimeLabel, lagosWhenLabel } from "./time";
 
 type Db = SupabaseClient<Database>;
@@ -50,6 +52,12 @@ export type LiveConversationSummary = {
   counterpartKind: "agent" | "member";
   /** True when the counterpart is a verified agent. */
   counterpartVerified: boolean;
+  /**
+   * What the thread is about, for the small context glyph on the row. A
+   * rental enquiry, a restaurant table, or a stay. Every thread before M10 is
+   * a listing thread.
+   */
+  contextKind: ThreadContextKind;
 };
 
 export type LiveThreadMessage = {
@@ -127,9 +135,15 @@ export async function loadConversationSummaries(
   supabase: Db,
   user: User,
 ): Promise<LiveConversationSummary[]> {
-  const { data: conversations } = await supabase
+  /* A reservation or booking thread carries no listing_id of its own (the
+     M10 shape check), so its title is reached through the transaction. One
+     select, three embeds, and PostgREST leaves the two that do not apply
+     null. */
+  const { data: conversations } = await withThreadContext(supabase)
     .from("conversations")
-    .select("id, guest_id, agent_id, last_message_at, listings(title)")
+    .select(
+      "id, guest_id, agent_id, last_message_at, context_kind, listings(title), reservations(listings(title)), bookings(listings(title))",
+    )
     .order("last_message_at", { ascending: false })
     .limit(50);
   if (!conversations || conversations.length === 0) return [];
@@ -188,7 +202,11 @@ export async function loadConversationSummaries(
     return {
       id: c.id,
       counterpartName: identity?.name ?? FALLBACK_NAME,
-      listingTitle: c.listings?.title ?? null,
+      listingTitle:
+        c.listings?.title ??
+        c.reservations?.listings?.title ??
+        c.bookings?.listings?.title ??
+        null,
       lastMessage: last?.body ?? "No messages yet",
       whenLabel: lagosWhenLabel(last?.at ?? c.last_message_at),
       unread: unreadByConversation.get(c.id) ?? 0,
@@ -202,8 +220,159 @@ export async function loadConversationSummaries(
       isRequest: !spokenIn.has(c.id) && c.guest_id !== user.id,
       counterpartKind: identity?.isAgent ? "agent" : "member",
       counterpartVerified: identity?.verified ?? false,
+      contextKind: c.context_kind,
     };
   });
+}
+
+/* ------------------------------------------------------------ thread context */
+
+type BookingStatus = Database["public"]["Enums"]["booking_status"];
+
+/**
+ * What a thread is about, for the banner above the messages.
+ *
+ * One shape with optional halves rather than a discriminated union, because
+ * the banner renders whichever half is present and the thread page should
+ * not have to narrow before it can read `kind`. Exactly one of `listing`,
+ * `reservation` or `booking` is set for a thread that has a context at all; a
+ * general listing thread with no listing sets none of them.
+ */
+export type ThreadContext = {
+  kind: ThreadContextKind;
+  listing?: {
+    id: string;
+    title: string;
+    area: string;
+    city: string;
+  };
+  reservation?: {
+    id: string;
+    state: BookingStatus;
+    /** ISO instant. */
+    reservedFor: string;
+    partySize: number;
+    note: string | null;
+    listingId: string;
+    listingTitle: string | null;
+  };
+  booking?: {
+    id: string;
+    status: BookingStatus;
+    /** ISO date. */
+    checkIn: string;
+    /** ISO date. */
+    checkOut: string;
+    title: string;
+    nights: number;
+    /** Integer kobo. */
+    totalMinor: number;
+    listingId: string;
+  };
+  /**
+   * The booking's step events, oldest first, from booking_state_events. A
+   * step is not a message (research section 3.4): the thread page interleaves
+   * these with the human messages by timestamp at render time.
+   */
+  stateEvents?: Array<{ at: string; from: BookingStatus | null; to: BookingStatus }>;
+};
+
+/**
+ * The context of one thread the caller is a party to, or null when the
+ * thread is not theirs, does not exist, or cannot be read.
+ *
+ * Membership is RLS's answer and is re-checked explicitly, as loadThread
+ * does, because an admin can read conversations they are not in. The
+ * transaction halves are read through the caller's own client too:
+ * reservations and bookings both carry guest and host select policies, so a
+ * party to the thread is a party to the transaction by construction (the M10
+ * trigger made it so on insert).
+ */
+export async function getThreadContext(conversationId: string): Promise<ThreadContext | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  const db = withThreadContext(session.supabase);
+
+  const { data: conversation } = await db
+    .from("conversations")
+    .select(
+      "id, guest_id, agent_id, context_kind, listing_id, reservation_id, booking_id, listings(id, title, area, city)",
+    )
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (!conversation) return null;
+  const me = session.user.id;
+  if (conversation.guest_id !== me && conversation.agent_id !== me) return null;
+
+  if (conversation.context_kind === "reservation" && conversation.reservation_id) {
+    const { data: reservation } = await session.supabase
+      .from("reservations")
+      .select("id, status, reserved_for, party_size, note, listing_id, listings(title)")
+      .eq("id", conversation.reservation_id)
+      .maybeSingle();
+    if (!reservation) return { kind: "reservation" };
+    return {
+      kind: "reservation",
+      reservation: {
+        id: reservation.id,
+        state: reservation.status,
+        reservedFor: reservation.reserved_for,
+        partySize: reservation.party_size,
+        note: reservation.note,
+        listingId: reservation.listing_id,
+        listingTitle: reservation.listings?.title ?? null,
+      },
+    };
+  }
+
+  if (conversation.context_kind === "booking" && conversation.booking_id) {
+    const [{ data: booking }, { data: events }] = await Promise.all([
+      session.supabase
+        .from("bookings")
+        .select("id, status, check_in, check_out, nights, total_minor, listing_id, listings(title)")
+        .eq("id", conversation.booking_id)
+        .maybeSingle(),
+      session.supabase
+        .from("booking_state_events")
+        .select("created_at, from_status, to_status")
+        .eq("booking_id", conversation.booking_id)
+        .order("created_at", { ascending: true })
+        .limit(50),
+    ]);
+    if (!booking) return { kind: "booking" };
+    return {
+      kind: "booking",
+      booking: {
+        id: booking.id,
+        status: booking.status,
+        checkIn: booking.check_in,
+        checkOut: booking.check_out,
+        title: booking.listings?.title ?? "Your stay",
+        nights: booking.nights,
+        totalMinor: booking.total_minor,
+        listingId: booking.listing_id,
+      },
+      stateEvents: (events ?? []).map((event) => ({
+        at: event.created_at,
+        from: event.from_status,
+        to: event.to_status,
+      })),
+    };
+  }
+
+  return {
+    kind: "listing",
+    ...(conversation.listings
+      ? {
+          listing: {
+            id: conversation.listings.id,
+            title: conversation.listings.title,
+            area: conversation.listings.area ?? "",
+            city: conversation.listings.city ?? "",
+          },
+        }
+      : {}),
+  };
 }
 
 /**

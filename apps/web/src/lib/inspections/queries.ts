@@ -3,7 +3,8 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
-import { isOpen, type Inspection, type InspectionState } from "./types";
+import { withInspectionOutcome } from "./db";
+import { isOpen, type Inspection, type InspectionOutcome, type InspectionState } from "./types";
 
 /**
  * READING INSPECTIONS, FROM BOTH SIDES.
@@ -51,10 +52,14 @@ type Row = {
   lister_note: string | null;
   created_at: string;
   responded_at: string | null;
+  outcome: InspectionOutcome | null;
 };
 
 const COLUMNS =
-  "id, listing_id, requester_id, lister_id, conversation_id, state, requested_at, slot_at, note, lister_note, created_at, responded_at";
+  "id, listing_id, requester_id, lister_id, conversation_id, state, requested_at, slot_at, note, lister_note, created_at, responded_at, outcome";
+
+/** The states in which a request is still alive: somebody's move, or scheduled. */
+const LIVE_STATES: readonly InspectionState[] = ["REQUESTED", "PROPOSED", "CONFIRMED"];
 
 /** What a lister has been asked to show. */
 export async function readInspectionsForLister(): Promise<InspectionList> {
@@ -71,7 +76,7 @@ async function readSide(column: "lister_id" | "requester_id"): Promise<Inspectio
   if (session.state !== "signed-in") return EMPTY;
 
   try {
-    const { data, error } = await session.supabase
+    const { data, error } = await withInspectionOutcome(session.supabase)
       .from("inspection_requests")
       .select(COLUMNS)
       .eq(column, session.user.id)
@@ -114,6 +119,7 @@ async function readSide(column: "lister_id" | "requester_id"): Promise<Inspectio
       conversationId: row.conversation_id,
       counterpartName:
         names.get(column === "lister_id" ? row.requester_id : row.lister_id) ?? null,
+      outcome: row.outcome,
     }));
 
     inspections.sort((a, b) => {
@@ -196,12 +202,12 @@ export async function readOpenInspectionFor(listingId: string): Promise<Inspecti
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
   try {
-    const { data, error } = await session.supabase
+    const { data, error } = await withInspectionOutcome(session.supabase)
       .from("inspection_requests")
       .select(COLUMNS)
       .eq("listing_id", listingId)
       .eq("requester_id", session.user.id)
-      .in("state", ["REQUESTED", "PROPOSED", "CONFIRMED"])
+      .in("state", [...LIVE_STATES])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -222,10 +228,66 @@ export async function readOpenInspectionFor(listingId: string): Promise<Inspecti
       respondedAt: row.responded_at,
       conversationId: row.conversation_id,
       counterpartName: null,
+      outcome: row.outcome,
     };
   } catch {
     /* The listing page renders whatever happens here. Not knowing whether
        there is an existing request is survivable; failing the page is not. */
+    return null;
+  }
+}
+
+/**
+ * The live inspection attached to a conversation, from either side.
+ *
+ * The thread page asks this so it can draw the inspection card above the
+ * messages: the lister's three answers, the requester's accept, all wired to
+ * the existing actions. There is one row and one state machine, so the thread
+ * and the inspections page cannot disagree. RLS already limits the answer to
+ * a party; the `eq` narrows, it does not enforce. Null when there is nothing
+ * live here, and null when the read fails, for the same reason
+ * readOpenInspectionFor gives: a thread page must render.
+ */
+export async function readOpenInspectionForConversation(
+  conversationId: string,
+): Promise<Inspection | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  try {
+    const { data, error } = await withInspectionOutcome(session.supabase)
+      .from("inspection_requests")
+      .select(COLUMNS)
+      .eq("conversation_id", conversationId)
+      .in("state", [...LIVE_STATES])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+
+    const row = data as Row;
+    const titles = await readListingTitles(session.supabase, [row.listing_id]);
+    const names = await readDisplayNames(session.supabase, [
+      row.requester_id === session.user.id ? row.lister_id : row.requester_id,
+    ]);
+    return {
+      id: row.id,
+      listingId: row.listing_id,
+      listingTitle: titles.get(row.listing_id) ?? null,
+      state: row.state,
+      requestedAt: row.requested_at,
+      slotAt: row.slot_at,
+      note: row.note,
+      listerNote: row.lister_note,
+      createdAt: row.created_at,
+      respondedAt: row.responded_at,
+      conversationId: row.conversation_id,
+      counterpartName:
+        names.get(row.requester_id === session.user.id ? row.lister_id : row.requester_id) ??
+        null,
+      outcome: row.outcome,
+    };
+  } catch {
     return null;
   }
 }

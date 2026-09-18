@@ -38,6 +38,37 @@ export function isOpen(state: InspectionState): boolean {
 }
 
 /**
+ * The states a person would call CLOSED: it happened, it was refused, or it
+ * was pulled. Terminal in the database too, which is what makes this the
+ * honest user-facing bucket rather than a guess. The complement, REQUESTED,
+ * PROPOSED and CONFIRMED, is what the inspections page calls Open, and inside
+ * it `isOpen` still answers the narrower question of whose move it is.
+ */
+export const CLOSED_STATES: readonly InspectionState[] = [
+  "DECLINED",
+  "COMPLETED",
+  "WITHDRAWN",
+] as const;
+
+export function isClosed(state: InspectionState): boolean {
+  return CLOSED_STATES.includes(state);
+}
+
+/**
+ * Why a COMPLETED inspection is complete. A reason on the state, not a
+ * seventh state: `deal_done` is the founder's "closed = deal done" without
+ * forking every `Record<InspectionState, ...>` in the components. Mirrors the
+ * CHECK on `inspection_requests.outcome`.
+ */
+export type InspectionOutcome = "inspected" | "deal_done" | "no_deal";
+
+export const INSPECTION_OUTCOMES: readonly InspectionOutcome[] = [
+  "inspected",
+  "deal_done",
+  "no_deal",
+] as const;
+
+/**
  * WHOSE MOVE IT IS, which is the single most useful thing to state on a row.
  *
  * A list of requests where every row says only its state makes the reader work
@@ -73,4 +104,10 @@ export type Inspection = {
   conversationId: string | null;
   /** The other party's display name, when the projection could resolve one. */
   counterpartName: string | null;
+  /**
+   * Set only on COMPLETED, and only if somebody said why. Optional on the
+   * type because the components build fixtures of this shape and none of
+   * them has an opinion about it; every read in lib/inspections fills it.
+   */
+  outcome?: InspectionOutcome | null;
 };

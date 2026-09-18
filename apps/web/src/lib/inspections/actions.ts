@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { resolveSession } from "../actions/session";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
-import type { InspectionState } from "./types";
+import { startConversation } from "../messages/actions";
+import { withInspectionOutcome } from "./db";
+import { INSPECTION_OUTCOMES, type InspectionState } from "./types";
 
 /**
  * MOVING AN INSPECTION.
@@ -92,8 +94,27 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
     return fail("We could not send that request. Try again in a moment.");
   }
 
+  /*
+   * The thread the request lives beside. Find-or-create the guest to agent
+   * conversation about this listing, then stamp its id on the request, so the
+   * thread page can draw the inspection card and accept from inside it. The
+   * request is already filed and is the thing that matters; the thread is
+   * best effort. Messaging paused, the daily new-thread limit reached, a
+   * flaky stamp: none of those may cost somebody the request they just made,
+   * so every failure here is swallowed and the row simply carries no thread.
+   */
+  const thread = await startConversation({ listingId: parsed.data.listingId });
+  if (thread.ok) {
+    await session.supabase
+      .from("inspection_requests")
+      .update({ conversation_id: thread.data.conversationId })
+      .eq("id", data.id);
+  }
+
   revalidatePath(`/listing/${parsed.data.listingId}`);
   revalidatePath("/bookings");
+  revalidatePath("/inspections");
+  if (thread.ok) revalidatePath(`/messages/${thread.data.conversationId}`);
   return ok({ id: data.id });
 }
 
@@ -155,6 +176,7 @@ export async function answerInspection(input: unknown): Promise<ActionResult<nul
 
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
+  revalidatePath("/inspections");
   revalidatePath(`/listing/${existing.data.listing_id}`);
   return ok(null);
 }
@@ -184,13 +206,23 @@ export async function acceptProposedTime(input: unknown): Promise<ActionResult<n
   if (error) return fail(refusalMessage(error.message));
 
   revalidatePath("/bookings");
+  revalidatePath("/inspections");
   return ok(null);
 }
 
-const closeSchema = z.object({
-  id: z.string().uuid(),
-  state: z.enum(["WITHDRAWN", "COMPLETED"]),
-});
+const closeSchema = z
+  .object({
+    id: z.string().uuid(),
+    state: z.enum(["WITHDRAWN", "COMPLETED"]),
+    /* Why it is complete. Optional, and only meaningful on COMPLETED: the
+       database refuses it anywhere else, and so does this schema, so the
+       person sees the field light up rather than a refusal after the fact. */
+    outcome: z.enum(INSPECTION_OUTCOMES).optional(),
+  })
+  .refine((value) => value.outcome === undefined || value.state === "COMPLETED", {
+    message: "An outcome only goes with a completed inspection.",
+    path: ["outcome"],
+  });
 
 /**
  * Pulling out, or saying it happened.
@@ -206,14 +238,18 @@ export async function closeInspection(input: unknown): Promise<ActionResult<null
   const session = await resolveSession();
   if (session.state !== "signed-in") return fail("Sign in to change this request.");
 
-  const { error } = await session.supabase
+  const { error } = await withInspectionOutcome(session.supabase)
     .from("inspection_requests")
-    .update({ state: parsed.data.state })
+    .update({
+      state: parsed.data.state,
+      ...(parsed.data.outcome ? { outcome: parsed.data.outcome } : {}),
+    })
     .eq("id", parsed.data.id);
 
   if (error) return fail(refusalMessage(error.message));
 
   revalidatePath("/bookings");
+  revalidatePath("/inspections");
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
   return ok(null);
@@ -234,6 +270,9 @@ function refusalMessage(raw: string): string {
   }
   if (raw.includes("illegal inspection transition")) {
     return "That is not something you can do to this request now. Refresh and look again.";
+  }
+  if (raw.includes("outcome is recorded when it is completed")) {
+    return "An outcome is recorded when the inspection is marked complete, and not changed afterwards.";
   }
   return "We could not save that. Try again in a moment.";
 }

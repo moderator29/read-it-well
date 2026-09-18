@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Dictionary, Locale } from "@vallo/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
+import { reservationLine } from "@/components/app/threads/ReservationFace";
+import type { Inspection } from "@/lib/inspections/types";
+import type { ThreadContext } from "@/lib/messages/live";
 import { ICON } from "@/components/app/Screen";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -65,6 +70,18 @@ export type ThreadViewProps = {
   listing: SheetListing | null;
   inspected: boolean;
   messages: ThreadBubble[];
+  /**
+   * What the conversation is FOR, resolved server-side, and the one thing that
+   * changes what is drawn between the header and the bubbles. See
+   * `ThreadContextBanner`. Absent in seed mode, where there is no context.
+   */
+  context?: ThreadContext;
+  /** The live inspection on a listing thread, or null. Resolved by the page. */
+  inspection?: Inspection | null;
+  /** Host is the lister, the restaurant or the property; guest is the other side. */
+  role?: ThreadRole;
+  threadCopy?: Dictionary["threads"];
+  locale?: Locale;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -136,8 +153,21 @@ export function ThreadView({
   listing,
   inspected: inspectedInitial,
   messages,
+  context,
+  inspection = null,
+  role = "guest",
+  threadCopy,
+  locale = "en",
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
+  /*
+   * THE ACCEPT CEREMONY (pitch 13). When an inspection is accepted in the
+   * banner below, the header tints once through the existing
+   * `nf-page-header--verified` motion, which is the platform's one "a real
+   * state change landed on this page" tint. Nothing new is invented and
+   * reduced motion stills it in the stylesheet.
+   */
+  const [ceremony, setCeremony] = useState(false);
   const [draft, setDraft] = useState("");
   const [pendingFile, setPendingFile] = useState<{ file: File; url: string } | null>(null);
   const [educationOpen, setEducationOpen] = useState(false);
@@ -385,10 +415,23 @@ export function ThreadView({
            subtitle already carried the title so nobody has to open with "which
            property"; it was inert, so the only route to the property itself was
            the info button in the corner. */
-        subtitle={listing?.title ?? "Direct message"}
-        subtitleHref={listing ? `/listing/${listing.id}` : undefined}
+        /* A reservation thread's subtitle is the table, in Lagos time: "Fri 26
+           Sep, 8:00 pm, table for 4". The object owns the chat, so the chat
+           says the object. */
+        subtitle={
+          context?.kind === "reservation" && context.reservation && threadCopy
+            ? reservationLine(context.reservation, locale, threadCopy.reservation)
+            : (listing?.title ?? "Direct message")
+        }
+        subtitleHref={
+          context?.kind === "reservation"
+            ? undefined
+            : listing
+              ? `/listing/${listing.id}`
+              : undefined
+        }
         fallback="/messages"
-        tone={inspected ? "verified" : "default"}
+        tone={inspected || ceremony ? "verified" : "default"}
         /*
           The counterpart's avatar, carrying their verified mark.
 
@@ -435,6 +478,19 @@ export function ThreadView({
           note={confirmNote}
           onConfirmInspection={() => void handleConfirmInspection()}
           onClose={closeSheet}
+        />
+      )}
+
+      {/* ------------------------------------------------- context banner */}
+      {context && threadCopy && (
+        <ThreadContextBanner
+          context={context}
+          inspection={inspection}
+          role={role}
+          counterpartName={counterpartName}
+          copy={threadCopy}
+          locale={locale}
+          onAccepted={() => setCeremony(true)}
         />
       )}
 

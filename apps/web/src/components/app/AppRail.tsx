@@ -8,9 +8,11 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { buildNav } from "./nav-model";
 import { NavTree } from "./NavTree";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
+import { SideSwitch } from "./SideSwitch";
+import type { Side } from "@/lib/side.constants";
 
 /**
- * Personal Mode navigation.
+ * The consumer navigation, for both sides.
  *
  * One component for the sticky desktop rail and the phone drawer, reading one
  * model, so the two cannot drift (Master Rule 17). The destinations are still
@@ -39,6 +41,7 @@ import { ThemeToggle } from "@/components/site/ThemeToggle";
 
 export function AppRail({
   t,
+  side = "property",
   active = "/home",
   activeType = null,
   userName,
@@ -52,6 +55,8 @@ export function AppRail({
   onClose,
 }: {
   t: Dictionary;
+  /** Which side the shell is painted as; decides the nav model and the coin. */
+  side?: Side;
   /** The current pathname, with no query on it. */
   active?: string;
   /** The current `type` search parameter, which is what separates the five. */
@@ -77,8 +82,8 @@ export function AppRail({
   onClose?: () => void;
 }) {
   const sections = useMemo(
-    () => buildNav({ t, unreadNotifications, isAgent, isAdmin, signedIn }),
-    [t, unreadNotifications, isAgent, isAdmin, signedIn],
+    () => buildNav({ t, side, unreadNotifications, isAgent, isAdmin, signedIn }),
+    [t, side, unreadNotifications, isAgent, isAdmin, signedIn],
   );
   return (
     <aside
@@ -162,6 +167,13 @@ export function AppRail({
         through the same key, so the two can never disagree.
       */}
       <div className="nf-nav__foot">
+        {/*
+          THE COIN, above the theme row. The only two controls in the
+          navigation that change how the product looks rather than where you
+          are, and the coin is the bigger of the two questions: it turns the
+          whole app over to its other side. See `SideSwitch` and `SideFlip`.
+        */}
+        <SideSwitch t={t} onNavigate={onNavigate} />
         <ThemeToggle variant="row" />
       </div>
     </aside>

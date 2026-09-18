@@ -299,6 +299,18 @@
   --nf-mode-agent: var(--nf-electric-400);
   --nf-mode-admin: var(--nf-electric-700);
 
+  /*
+   * THE SIDE ACCENT, and the note above is settled: this is the surface that
+   * takes its accent from the family. The product has two sides, Property and
+   * Stays, flipped by one control. They are told apart by depth, never by
+   * hue: Property keeps the electric mid, Stays takes the bright glow, so the
+   * Stays shell reads warmer and more lit while staying unmistakably one blue
+   * product. `[data-side]` is set on <html> before paint by the same inline
+   * script pattern the theme uses, and on the shell root by AppShell, so
+   * nothing chrome-coloured ever flashes the wrong side.
+   */
+  --nf-side-accent: var(--nf-mode-personal);
+
   /* Surfaces. Brand navy. Depth is carried by rim and border, not shadow. */
   --nf-surface-canvas: #000010;
   --nf-surface-primary: var(--nf-ink-900);
@@ -2437,6 +2449,7 @@
   --nf-mode-personal: #0C2FE8;
   --nf-mode-agent: #2450FF;
   --nf-mode-admin: #0010A0;
+  --nf-side-accent: var(--nf-mode-personal);
 
   /* Daylight CTA is a near-flat vivid brand blue, never near-black navy. */
   --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 100%);
@@ -2935,4 +2948,13 @@
     --nf-press-scale: 1;
     --nf-press-scale-lg: 1;
   }
+}
+
+/*
+ * The Stays side, in both themes: one rung brighter in the same family. Read
+ * the note beside `--nf-side-accent`. Scoped on the attribute rather than a
+ * class so the pre-paint script and the shell can both set it.
+ */
+[data-side="stays"] {
+  --nf-side-accent: var(--nf-mode-agent);
 }

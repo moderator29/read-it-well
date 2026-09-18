@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { markInboxRead } from "@/lib/messages/actions";
 import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
+import type { ThreadContextKind } from "@/lib/messages/db";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
@@ -41,6 +42,19 @@ export type InboxRow = {
   isRequest: boolean;
   counterpartKind: "agent" | "member";
   counterpartVerified: boolean;
+  /**
+   * What the thread is for. A listing thread carries no glyph, because it is
+   * the ordinary case; a table or a stay carries a small one beside its
+   * subject line so the inbox stays one list on both sides while a row still
+   * says which kind of thing it is about. `UiIcon` tier only: a glass object
+   * in a list row is exactly the thing the surface language forbids.
+   */
+  contextKind?: ThreadContextKind;
+};
+
+const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
+  reservation: "utensils",
+  booking: "building-hotel",
 };
 
 type Tab = "all" | "primary" | "requests";
@@ -52,6 +66,7 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
+  const glyph = row.contextKind ? CONTEXT_GLYPH[row.contextKind] : undefined;
   return (
     <li>
       <Link
@@ -83,7 +98,12 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
           {/* The property this thread is about. It is the reason the
               conversation exists, so it is legible rather than micro-print. */}
           {row.listingTitle && (
-            <span className={`mt-inline-tight block truncate ${TYPE.rowMeta}`}>{row.listingTitle}</span>
+            <span className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.rowMeta}`}>
+              {glyph && row.contextKind && (
+                <UiIcon name={glyph} size={ICON.inline} className="shrink-0" label={row.contextKind} />
+              )}
+              <span className="min-w-0 truncate">{row.listingTitle}</span>
+            </span>
           )}
           <span
             className={`nf-body mt-inline-tight block truncate leading-relaxed ${

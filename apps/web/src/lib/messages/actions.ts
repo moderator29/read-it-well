@@ -29,12 +29,15 @@ import { isFeatureEnabled } from "../flags";
 import { getListingRepository } from "../listings/repository";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { createAdminClient } from "../supabase/admin";
+import { withThreadContext } from "./db";
 import {
   attachImageSchema,
   confirmInspectionSchema,
   markThreadReadSchema,
   sendMessageSchema,
+  startBookingThreadSchema,
   startConversationSchema,
+  startReservationThreadSchema,
 } from "./schema";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -201,6 +204,148 @@ export async function startConversation(input: {
   }
 
   return ok({ conversationId: created.id });
+}
+
+/* ------------------------------------------------------------ context threads */
+
+const CONTEXT_THREAD_DOWN_MESSAGE =
+  "We could not open this conversation just now. Please try again.";
+
+const NOT_YOUR_TRANSACTION_MESSAGE =
+  "That is not on your account, so there is no conversation to open. Check your trips to see the ones that are.";
+
+/**
+ * Find or create the thread attached to one reservation or one booking.
+ *
+ * The transaction object is read through the caller's own client, so only a
+ * guest or the host of that reservation or booking resolves it at all. The
+ * counterpart is then resolved exactly as startConversation does it: the
+ * host's user id sits behind agents RLS, so a guest's embedded read comes back
+ * empty and the service role finishes the lookup; the host reads their own
+ * agents row and the guest id is on the transaction. Nothing is written until
+ * both parties are known, and the database's party-validation trigger checks
+ * them again on the insert, so a wrong pair can never land.
+ *
+ * The partial unique index on the transaction id makes find-or-create
+ * race-safe: a concurrent insert surfaces as 23505 and the existing thread is
+ * returned instead. There is deliberately no daily limiter here: a thread
+ * keyed to a transaction the caller already holds cannot be used to scrape
+ * anybody, so it bypasses the listing-thread throttle by construction.
+ */
+async function startContextThread(
+  kind: "reservation" | "booking",
+  transactionId: string,
+): Promise<ActionResult<{ conversationId: string }>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
+
+  const db = withThreadContext(session.supabase);
+  const column = kind === "reservation" ? "reservation_id" : "booking_id";
+
+  // The transaction, under RLS. A row the caller is not a party to does not
+  // come back, and that is the whole authorisation.
+  const read =
+    kind === "reservation"
+      ? await session.supabase
+          .from("reservations")
+          .select("id, guest_id, listing_id, listings(agent_id, agents(user_id))")
+          .eq("id", transactionId)
+          .maybeSingle()
+      : await session.supabase
+          .from("bookings")
+          .select("id, guest_id, listing_id, listings(agent_id, agents(user_id))")
+          .eq("id", transactionId)
+          .maybeSingle();
+  if (read.error) return fail(CONTEXT_THREAD_DOWN_MESSAGE);
+  const transaction = read.data;
+  if (!transaction) return fail(NOT_YOUR_TRANSACTION_MESSAGE);
+
+  let hostUserId: string | null = transaction.listings?.agents?.user_id ?? null;
+  if (!hostUserId && transaction.listings?.agent_id) {
+    try {
+      const admin = createAdminClient();
+      const { data: agent } = await admin
+        .from("agents")
+        .select("user_id")
+        .eq("id", transaction.listings.agent_id)
+        .maybeSingle();
+      hostUserId = agent?.user_id ?? null;
+    } catch {
+      hostUserId = null;
+    }
+  }
+  if (!hostUserId) {
+    return fail("The host is not reachable right now. Please try again shortly.");
+  }
+
+  const guestId = transaction.guest_id;
+  if (session.user.id !== guestId && session.user.id !== hostUserId) {
+    return fail(NOT_YOUR_TRANSACTION_MESSAGE);
+  }
+  if (guestId === hostUserId) {
+    return fail("This is your own booking, so there is nobody else to message.");
+  }
+
+  const { data: existing, error: findError } = await db
+    .from("conversations")
+    .select("id")
+    .eq(column, transactionId)
+    .maybeSingle();
+  if (findError) return fail("Messaging is unavailable just now. Please try again shortly.");
+  if (existing) return ok({ conversationId: existing.id });
+
+  const { data: created, error: insertError } = await db
+    .from("conversations")
+    .insert({
+      guest_id: guestId,
+      agent_id: hostUserId,
+      context_kind: kind,
+      ...(kind === "reservation"
+        ? { reservation_id: transactionId }
+        : { booking_id: transactionId }),
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !created) {
+    if (insertError?.code === "23505") {
+      // Lost the race to ourselves in another tab: the thread now exists.
+      const { data: raced } = await db
+        .from("conversations")
+        .select("id")
+        .eq(column, transactionId)
+        .maybeSingle();
+      if (raced) return ok({ conversationId: raced.id });
+    }
+    // 23514 is the party-validation trigger or the shape check: the database
+    // disagreed about who this transaction belongs to, which cannot happen
+    // through this action but is refused honestly if it does.
+    if (insertError?.code === "23514") return fail(NOT_YOUR_TRANSACTION_MESSAGE);
+    return fail(CONTEXT_THREAD_DOWN_MESSAGE);
+  }
+
+  return ok({ conversationId: created.id });
+}
+
+/** Find or create the thread attached to one restaurant reservation. */
+export async function startReservationThread(input: {
+  reservationId: string;
+}): Promise<ActionResult<{ conversationId: string }>> {
+  const parsed = validate(startReservationThreadSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return startContextThread("reservation", parsed.data.reservationId);
+}
+
+/** Find or create the thread attached to one stay booking. */
+export async function startBookingThread(input: {
+  bookingId: string;
+}): Promise<ActionResult<{ conversationId: string }>> {
+  const parsed = validate(startBookingThreadSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return startContextThread("booking", parsed.data.bookingId);
 }
 
 /** What a successful send hands back for the optimistic bubble to adopt. */

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { isOpen, OPEN_STATES, waitingOn, type InspectionState } from "./types";
+import {
+  CLOSED_STATES,
+  INSPECTION_OUTCOMES,
+  isClosed,
+  isOpen,
+  OPEN_STATES,
+  waitingOn,
+  type InspectionState,
+} from "./types";
 
 /**
  * The inspection vocabulary, tested directly.
@@ -23,6 +31,37 @@ const ALL: InspectionState[] = [
   "COMPLETED",
   "WITHDRAWN",
 ];
+
+describe("isClosed", () => {
+  it("names exactly the three terminal states", () => {
+    expect(ALL.filter(isClosed)).toEqual(["DECLINED", "COMPLETED", "WITHDRAWN"]);
+  });
+
+  it("agrees with CLOSED_STATES", () => {
+    for (const state of ALL) {
+      expect(isClosed(state)).toBe(CLOSED_STATES.includes(state));
+    }
+  });
+
+  it("partitions the states with the live set: nothing is both, nothing is neither", () => {
+    const live: InspectionState[] = ["REQUESTED", "PROPOSED", "CONFIRMED"];
+    for (const state of ALL) {
+      expect(isClosed(state)).toBe(!live.includes(state));
+    }
+  });
+
+  it("never calls an open state closed", () => {
+    for (const state of ALL.filter(isOpen)) {
+      expect(isClosed(state)).toBe(false);
+    }
+  });
+});
+
+describe("INSPECTION_OUTCOMES", () => {
+  it("mirrors the database check, in order", () => {
+    expect([...INSPECTION_OUTCOMES]).toEqual(["inspected", "deal_done", "no_deal"]);
+  });
+});
 
 describe("isOpen", () => {
   it("counts exactly the two states somebody still has to act on", () => {

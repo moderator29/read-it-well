@@ -10,9 +10,12 @@ import { MobileTabBar, isImmersiveRoute, isTabRoot, showsTabBar } from "./Mobile
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
+import { sideOfPath, SIDE_HOME, type Side } from "@/lib/side.constants";
+import { SideFlip } from "./flip/SideFlip";
+import { SideSync } from "./SideSync";
 
 /**
- * Personal Mode shell.
+ * The consumer shell, for both sides.
  *
  * The single wrapper for every consumer page, so the navigation is identical
  * everywhere rather than living on the home route alone. On `lg` and up the
@@ -54,6 +57,7 @@ import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
  */
 export function AppShell({
   t,
+  side = "property",
   /*
    * `locale` USED TO BE A PROP HERE and is gone with the language switcher.
    * The header carried a permanent `LanguageSwitcher` on every app screen for a
@@ -69,6 +73,12 @@ export function AppShell({
   children,
 }: {
   t: Dictionary;
+  /**
+   * The side the cookie says, resolved by the server layout. The EFFECTIVE
+   * side is computed below from the path, because a side-owned URL always
+   * wins: a hotel link opens in Stays whatever the cookie says.
+   */
+  side?: Side;
   userName: string;
   /** Real unread notification count, resolved on the server by the layout. */
   unreadNotifications?: number;
@@ -88,6 +98,18 @@ export function AppShell({
      the query is ignored, so /search?q=Lekki still lights Explore. */
   const activeType = useSearchParams().get("type");
   const [drawer, setDrawer] = useState(false);
+
+  /*
+   * TWO SIDES, ONE SHELL.
+   *
+   * Vallo is one product with two faces: Property (rentals, sales, agents,
+   * inspections) and Stays (hotels, shortlets, restaurants). The cookie
+   * decides the shell for every shared route; a side-owned URL forces its
+   * side through `sideOfPath`. Everything below that keys off the side (the
+   * nav model, the dock's four destinations, the accent) reads this one
+   * value, and the flip in `SideFlip` is how it changes.
+   */
+  const effectiveSide: Side = sideOfPath(active) ?? side;
 
   /*
    * Immersive surfaces.
@@ -155,7 +177,7 @@ export function AppShell({
    * from it again. The 20px figure above is the measurement as it was taken and
    * is left as it was taken.
    */
-  const edgeToEdge = /^\/listing\/[^/]+$/.test(active);
+  const edgeToEdge = /^\/(listing|stay)\/[^/]+$/.test(active);
 
   /*
    * `pinsActionBar` USED TO BE DECLARED HERE and is gone with the desktop
@@ -261,9 +283,12 @@ export function AppShell({
      * definition of "may this person act", and it is here.
      */
     <AuthGateProvider signedIn={signedIn}>
-    <div className="flex min-h-dvh">
+    <SideFlip side={effectiveSide} t={t}>
+    <SideSync side={effectiveSide} />
+    <div className="flex min-h-dvh" data-side={effectiveSide}>
       <AppRail
         t={t}
+        side={effectiveSide}
         active={active}
         activeType={activeType}
         userName={userName}
@@ -314,6 +339,7 @@ export function AppShell({
           <div className="nf-drawer nf-drawer--right absolute inset-y-0 right-0 overflow-y-auto">
             <AppRail
               t={t}
+              side={effectiveSide}
               active={active}
               activeType={activeType}
               userName={userName}
@@ -399,7 +425,7 @@ export function AppShell({
                 to be a chip reading "Lagos, Nigeria" for everybody, including
                 the person in Kano. Where somebody actually is now belongs to
                 home, where it is read from their own profile. */}
-            <Link href="/home" aria-label={t.a11y.logoHome} className="nf-tap shrink-0 lg:hidden">
+            <Link href={SIDE_HOME[effectiveSide]} aria-label={t.a11y.logoHome} className="nf-tap shrink-0 lg:hidden">
               {/* 42/19, up from 34/17. The owner asked for the mark to be more
                   visible everywhere, and the asset now carries a real alpha
                   channel, so it is a mark rather than a square and it can
@@ -483,12 +509,14 @@ export function AppShell({
       {!immersive && showsTabBar(active) && (
         <MobileTabBar
           t={t}
+          side={effectiveSide}
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
         />
       )}
     </div>
+    </SideFlip>
     </AuthGateProvider>
   );
 }

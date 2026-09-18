@@ -64,6 +64,7 @@ export default async function InboxPage() {
       isRequest: c.isRequest,
       counterpartKind: c.counterpartKind,
       counterpartVerified: c.counterpartVerified,
+      contextKind: c.contextKind,
     }));
 
     return (

@@ -55,6 +55,11 @@
 @import "./css/base.css";
 @import "./css/glass.css";
 @import "./css/motion.css";
+/*
+ * The flip and the coin that starts it. Sits right after motion.css because
+ * it is component motion of the same family; nothing in it is declared twice.
+ */
+@import "./css/side-flip.css";
 @import "./css/map.css";
 @import "./css/typography.css";
 @import "./css/buttons.css";

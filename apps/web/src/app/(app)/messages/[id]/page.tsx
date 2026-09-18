@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
-import { loadThread } from "@/lib/messages/live";
+import { getThreadContext, loadThread, type ThreadContext } from "@/lib/messages/live";
+import { readOpenInspectionForConversation } from "@/lib/inspections/queries";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { InboxEmpty } from "../Inbox";
 
@@ -29,6 +32,29 @@ import { InboxEmpty } from "../Inbox";
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Which end of the conversation the viewer is.
+ *
+ * `agent_id` is the lister on a listing thread, the restaurant on a
+ * reservation thread and the property on a booking thread; `guest_id` is the
+ * other side. Neither `loadThread` nor `getThreadContext` says which one the
+ * caller is, so this asks the row directly under the caller's own RLS. Both
+ * of those readers already select the two columns; the line for the lead is
+ * that either could return `viewerRole` and this read goes away.
+ */
+async function viewerRole(
+  supabase: Parameters<typeof loadThread>[0],
+  me: string,
+  conversationId: string,
+): Promise<"host" | "guest"> {
+  const { data } = await supabase
+    .from("conversations")
+    .select("agent_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+  return data?.agent_id === me ? "host" : "guest";
+}
 
 export async function generateMetadata({
   params,
@@ -64,14 +90,35 @@ export default async function ConversationPage({
     }
 
     if (!UUID_RE.test(id)) notFound();
-    const thread = await loadThread(session.supabase, session.user, id);
+    const locale = await getLocale();
+    const t = getDictionary(locale);
+    const [thread, contextRead, role] = await Promise.all([
+      loadThread(session.supabase, session.user, id),
+      getThreadContext(id),
+      viewerRole(session.supabase, session.user.id, id),
+    ]);
     if (!thread) notFound();
+    /*
+     * The context decides the banner. A read that came back null (a race with
+     * the thread being removed, or a kind the query could not resolve) is a
+     * plain listing thread with no banner rather than a broken one.
+     */
+    const context: ThreadContext = contextRead ?? { kind: "listing" };
+    /* Only a listing thread can carry a live inspection; the other faces never
+       ask, structurally. */
+    const inspection =
+      context.kind === "listing" ? await readOpenInspectionForConversation(id) : null;
 
     return (
       <ThreadView
         live
         conversationId={thread.conversationId}
         meId={thread.meId}
+        context={context}
+        inspection={inspection}
+        role={role}
+        threadCopy={t.threads}
+        locale={locale}
         /*
           THE COUNTERPART'S VERIFIED STATE, AND WHERE IT HAS TO COME FROM.
 

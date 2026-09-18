@@ -1,0 +1,376 @@
+/*
+ * The flip, and the coin that starts it.
+ *
+ * A partial of globals.css. Lands in the same change as `SideFlip.tsx` and
+ * `SideSwitch.tsx`, which trigger every rule here: the post mortems in
+ * motion.css are about animations that shipped without a component, and this
+ * file is not the fourth.
+ *
+ * Every duration and curve is a token, so the reduced-motion collapse in the
+ * token sheet flattens these too; the `[data-reduced]` branch below removes
+ * the rotation and the scale outright, because a 1ms rotation still rotates.
+ */
+@layer components {
+  /* ------------------------------------------------------------ the stage */
+
+  /*
+   * Idle, the stage is nothing: no transform, no containing block, no cost.
+   * The front face is a plain wrapper and the dock, the sticky header and the
+   * drawer all behave exactly as they did before this file existed.
+   */
+  .nf-flip-stage {
+    --nf-flip-dir: 1;
+    position: relative;
+  }
+  .nf-flip-face--front {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  .nf-flip-face--front > * {
+    flex: 1;
+  }
+
+  /*
+   * In flight, the stage pins to the viewport and becomes the perspective
+   * camera. The backdrop under the lifted card darkens on the press curve, so
+   * the living canvas behind it reads as the table the coin is turning on.
+   */
+  .nf-flip-stage:not([data-phase="idle"]) {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    overflow: hidden;
+    perspective: 1200px;
+    perspective-origin: 50% 50%;
+  }
+  .nf-flip-stage:not([data-phase="idle"])::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nf-overlay-backdrop);
+    opacity: 0;
+    animation: nf-flip-backdrop var(--nf-duration-fast) var(--nf-ease-press) forwards;
+  }
+  @keyframes nf-flip-backdrop {
+    to { opacity: 1; }
+  }
+
+  /* -------------------------------------------------------------- the card */
+
+  .nf-flip-stage:not([data-phase="idle"]) .nf-flip-card {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    backface-visibility: hidden;
+    border-radius: var(--nf-radius-xl);
+    box-shadow: var(--nf-elev-4);
+    background: var(--nf-surface-canvas);
+  }
+  .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face--front {
+    display: block;
+    min-height: 0;
+  }
+  .nf-flip-face--back {
+    transform: rotateY(180deg);
+  }
+
+  /* 1. Press: the lift. */
+  .nf-flip-stage[data-phase="lift"] .nf-flip-card {
+    transform: scale(0.94);
+  }
+
+  /* 2. Turn: the deliberate rotation on the entrance curve. Direction encodes
+     the geography: Property to Stays turns one way, Stays to Property turns
+     back, so the two sides are two faces of one object. */
+  .nf-flip-stage[data-phase="turn"] .nf-flip-card {
+    transform: scale(0.94) rotateY(calc(var(--nf-flip-dir) * 180deg));
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+  }
+
+  /* 3. Hold and reveal: the card snaps back to identity behind the fixed
+     cover, with no transition, so the real page is standing ready underneath
+     the moment the cover lifts. */
+  .nf-flip-stage[data-phase="hold"] .nf-flip-card,
+  .nf-flip-stage[data-phase="reveal"] .nf-flip-card {
+    transform: none;
+    transition: none;
+  }
+  .nf-flip-stage[data-phase="hold"] .nf-flip-face--front,
+  .nf-flip-stage[data-phase="reveal"] .nf-flip-face--front {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* ------------------------------------------------------------- the shield */
+
+  /* Input is shielded from press to settle. The front face is also `inert`,
+     which is what keeps focus and the accessibility tree out of a page that
+     is mid-turn; this catches pointer events on the stage itself. */
+  .nf-flip-shield {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    cursor: progress;
+  }
+
+  /* -------------------------------------------------------------- the cover */
+
+  .nf-flip-cover {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+  }
+  .nf-flip-cover--fixed {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-exit);
+  }
+  .nf-flip-stage[data-phase="reveal"] .nf-flip-cover--fixed {
+    opacity: 0;
+  }
+
+  /* One glow, the incoming side's accent, sitting where the mark sits. Static,
+     no loop: the only thing that moves on the cover is the miniature while a
+     slow network keeps it on screen. */
+  .nf-flip-cover__glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        60% 42% at 50% 38%,
+        color-mix(in oklab, var(--nf-side-accent) 34%, transparent) 0%,
+        transparent 70%
+      );
+    pointer-events: none;
+  }
+  .nf-flip-cover__body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-inline: var(--nf-pad-shell);
+    max-width: 32rem;
+  }
+  /*
+   * NO OPACITY ENTRANCE ON THE BODY. The rotation is the entrance: the back
+   * face is revealed at ninety degrees with everything already in place. An
+   * earlier draft faded the body in from zero, and under the main-thread
+   * load of the route refresh that fade could still be at zero when the face
+   * came round, which showed a glow with nothing in it. Only the miniature
+   * staggers, and only on the back face; the fixed twin replays nothing.
+   */
+  .nf-flip-cover__mark {
+    filter: drop-shadow(0 0 32px color-mix(in oklab, var(--nf-side-accent) 55%, transparent));
+  }
+  .nf-flip-cover__brand {
+    margin-top: var(--nf-gap-block);
+    opacity: 0.8;
+  }
+  .nf-flip-cover__name {
+    margin-top: var(--nf-gap-inline);
+  }
+  .nf-flip-cover__line {
+    margin-top: var(--nf-gap-inline);
+    color: var(--nf-content-secondary);
+    max-width: 28rem;
+  }
+
+  /* The first-flip ceremony: the side's name types in, eight steps, one
+     `--nf-duration-slow`. Bounded by localStorage; runs once per device. */
+  .nf-flip-cover__name[data-ceremony] {
+    animation: nf-flip-type var(--nf-duration-slow) steps(8, end) both;
+    animation-delay: var(--nf-duration-fast);
+  }
+  @keyframes nf-flip-type {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+
+  /* The miniature: three glass objects that stand for the incoming shelf. A
+     brand still, never data. */
+  .nf-flip-cover__miniature {
+    display: flex;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-gap-block);
+    list-style: none;
+    padding: 0;
+  }
+  .nf-flip-cover__miniature > li {
+    display: grid;
+    place-items: center;
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-glass-fill-thin);
+    box-shadow: inset 0 0 0 1px var(--nf-border-subtle);
+    animation: nf-flip-mini-in var(--nf-duration-slow) var(--nf-ease-spring) both;
+    animation-delay: calc(var(--nf-duration-fast) + var(--nf-flip-mini-i, 0) * 60ms);
+  }
+  @keyframes nf-flip-mini-in {
+    from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.9); }
+    to { opacity: 1; transform: none; }
+  }
+  /* Only while the network is behind the flip: the three objects breathe in
+     turn, the skeleton's language, and stop the moment the page lands. */
+  .nf-flip-cover__miniature[data-shimmer] > li {
+    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) infinite;
+    animation-delay: calc(var(--nf-flip-mini-i, 0) * 200ms);
+  }
+  @keyframes nf-flip-mini-breathe {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+
+  .nf-flip-cover[data-settled] .nf-flip-cover__name[data-ceremony],
+  .nf-flip-cover[data-settled] .nf-flip-cover__miniature > li {
+    animation: none;
+    clip-path: none;
+  }
+  .nf-flip-cover[data-settled] .nf-flip-cover__miniature[data-shimmer] > li {
+    animation: nf-flip-mini-breathe 1.2s var(--nf-ease-standard) infinite;
+    animation-delay: calc(var(--nf-flip-mini-i, 0) * 200ms);
+  }
+
+  /* ---------------------------------------------------------- reduced motion */
+
+  /*
+   * No rotation, no scale, no lift. The cover crossfades over the app, holds,
+   * and crossfades out. The lockout, the announcement and the ceiling are
+   * identical; only the physics is gone.
+   */
+  .nf-flip-stage[data-reduced] .nf-flip-card,
+  .nf-flip-stage[data-reduced][data-phase="lift"] .nf-flip-card,
+  .nf-flip-stage[data-reduced][data-phase="turn"] .nf-flip-card {
+    transform: none;
+    transition: none;
+  }
+  .nf-flip-stage[data-reduced] .nf-flip-face {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .nf-flip-stage[data-reduced] .nf-flip-face--back {
+    transform: none;
+    opacity: 0;
+    transition: opacity var(--nf-duration-fast) linear;
+  }
+  .nf-flip-stage[data-reduced][data-phase="turn"] .nf-flip-face--back {
+    opacity: 1;
+  }
+  .nf-flip-stage[data-reduced] .nf-flip-cover__miniature > li,
+  .nf-flip-stage[data-reduced] .nf-flip-cover__name[data-ceremony] {
+    animation: none;
+    clip-path: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-flip-cover__miniature[data-shimmer] > li {
+      animation: none;
+      opacity: 0.8;
+    }
+    .nf-flip-stage:not([data-phase="idle"])::before {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* ------------------------------------------------------------- the coin */
+
+  /*
+   * The switch control in the nav foot, above ThemeToggle. A full-width row:
+   * a circular two-faced token on the left showing the OTHER side's glass
+   * mark, the label, and a one-line sub. Not the ModeSwitcher, not the
+   * RoleSwitcher, not a settings Switch: three controls, three questions,
+   * three shapes.
+   *
+   * Idle, the token presents its edge on hover (a small rotateY tease,
+   * transform-only); on press it spins in place as the viewport flip begins,
+   * so the control and the app visibly perform the same physics.
+   */
+  .nf-side-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-secondary);
+    text-align: left;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-side-switch:hover:not(:disabled) {
+    background: var(--nf-glass-fill-thin);
+    color: var(--nf-content-primary);
+  }
+  .nf-side-switch:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  .nf-side-switch:disabled {
+    cursor: progress;
+  }
+  .nf-side-switch__coin {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-glass-fill);
+    box-shadow:
+      inset 0 0 0 1px var(--nf-border-subtle),
+      0 0 18px color-mix(in oklab, var(--nf-side-accent) 28%, transparent);
+    transform-style: preserve-3d;
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  .nf-side-switch:hover:not(:disabled) .nf-side-switch__coin {
+    transform: rotateY(28deg);
+  }
+  .nf-side-switch[data-spinning] .nf-side-switch__coin {
+    transform: rotateY(calc(var(--nf-flip-dir, 1) * 540deg));
+    transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+  }
+  .nf-side-switch__label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+  }
+  .nf-side-switch__sub {
+    display: block;
+    margin-top: 0.125rem;
+    font-size: 0.8125rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-side-switch__chev {
+    flex: none;
+    color: var(--nf-content-muted);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-side-switch:hover:not(:disabled) .nf-side-switch__chev {
+    transform: translateX(2px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-side-switch__coin,
+    .nf-side-switch:hover:not(:disabled) .nf-side-switch__coin,
+    .nf-side-switch[data-spinning] .nf-side-switch__coin {
+      transform: none;
+      transition: none;
+    }
+  }
+}

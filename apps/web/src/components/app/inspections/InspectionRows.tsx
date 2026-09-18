@@ -97,11 +97,26 @@ function whenLine(value: string, locale: Locale): string {
 export function InspectionRows({
   inspections,
   side,
+  sideFor,
+  highlightId,
   locale,
 }: {
   inspections: Inspection[];
   /** Which end of the request this screen is. Changes the controls only. */
   side: "lister" | "requester";
+  /**
+   * Per-row override of `side`, for the one screen where a person is both.
+   *
+   * `/inspections` merges what somebody asked to see with what they were asked
+   * to show, so the side is a fact about the ROW there rather than about the
+   * screen. Everywhere else the screen decides and this is left out.
+   */
+  sideFor?: (inspection: Inspection) => "lister" | "requester";
+  /**
+   * The row whose state just changed somewhere else (the thread banner, say),
+   * which arrives with `nf-tx-in` so the eye lands on it. One row, once.
+   */
+  highlightId?: string | null;
   locale: Locale;
 }) {
   return (
@@ -110,7 +125,8 @@ export function InspectionRows({
         <InspectionRow
           key={inspection.id}
           inspection={inspection}
-          side={side}
+          side={sideFor ? sideFor(inspection) : side}
+          highlighted={highlightId === inspection.id}
           locale={locale}
         />
       ))}
@@ -121,16 +137,30 @@ export function InspectionRows({
 function InspectionRow({
   inspection,
   side,
+  highlighted = false,
   locale,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
+  highlighted?: boolean;
   locale: Locale;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [proposing, setProposing] = useState(false);
+  /*
+   * THE ROW THAT JUST CHANGED ARRIVES, ONCE.
+   *
+   * After an answer lands the router re-reads the list and the row comes back
+   * with its new state. `nf-tx-in` is the wallet's "something landed" nudge and
+   * motion.css asks that nobody invent a second one, so it is reused here: the
+   * row slides in a few pixels and settles, and reduced motion turns it off in
+   * the stylesheet rather than here. `highlighted` is the same thing driven
+   * from outside, for a change made in the thread and seen on this list.
+   */
+  const [justChanged, setJustChanged] = useState(false);
+  const entrance = highlighted || justChanged ? "nf-tx-in" : "";
 
   const waiting = waitingOn(inspection.state);
   const yourMove = waiting === side;
@@ -149,12 +179,13 @@ function InspectionRow({
         setError(result.error ?? "That did not go through.");
         return;
       }
+      setJustChanged(true);
       router.refresh();
     });
   }
 
   return (
-    <Row className="flex-col items-stretch gap-xs py-md">
+    <Row className={`flex-col items-stretch gap-xs py-md ${entrance}`}>
       <div className="flex w-full items-start gap-sm">
         <span className="nf-role-mark mt-3xs shrink-0" aria-hidden="true">
           <UiIcon name="calendar-booking" size={ICON.row} />

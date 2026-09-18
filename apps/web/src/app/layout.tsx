@@ -253,6 +253,26 @@ export default async function RootLayout({
           }}
         />
         {/*
+          THE SIDE, BEFORE PAINT, the same way as the theme.
+
+          Vallo has two sides, Property and Stays, and the shell's accent, its
+          navigation and its dock all key off which one is active. The side is
+          the `nf_side` cookie, which the server layout already reads, but
+          chrome-coloured surfaces are painted from CSS custom properties
+          scoped on `[data-side]`, and the attribute has to be on <html>
+          before the first frame or the Stays accent flashes Property blue on
+          every load. Only the attribute is set here; `sideOfPath` in the
+          shell still wins over the cookie for a side-owned URL, and the
+          reconciler writes the cookie back the moment the shell mounts.
+        */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var s=document.cookie.match(/(?:^|; )nf_side=([^;]*)/);var v=s&&s[1];var p=location.pathname;if(/^\\/(stays|stay|restaurants|restaurant|trips|host)(\\/|$)/.test(p))v='stays';else if(/^\\/(home|search|agent|listing|rent|inspections|bookings)(\\/|$)/.test(p))v='property';if(v==='stays')document.documentElement.dataset.side='stays'}catch(e){}",
+          }}
+        />
+        {/*
           The other half of the data-saver signal (inbox item 246).
 
           `Save-Data: on` is a header and only Chromium sends it, and only when

@@ -18,6 +18,23 @@ export const startConversationSchema = z.object({
 
 export type StartConversationInput = z.infer<typeof startConversationSchema>;
 
+/*
+ * The two context threads. Each is keyed to a transaction object the caller
+ * already holds, so the id is a plain uuid: there is no seed catalogue shape
+ * to be honest about, and no listing to resolve.
+ */
+export const startReservationThreadSchema = z.object({
+  reservationId: z.uuid("This reservation could not be identified."),
+});
+
+export type StartReservationThreadInput = z.infer<typeof startReservationThreadSchema>;
+
+export const startBookingThreadSchema = z.object({
+  bookingId: z.uuid("This booking could not be identified."),
+});
+
+export type StartBookingThreadInput = z.infer<typeof startBookingThreadSchema>;
+
 export const sendMessageSchema = z.object({
   conversationId: z.uuid("This conversation could not be identified."),
   body: z

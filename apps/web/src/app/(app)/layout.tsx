@@ -1,10 +1,11 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getShellIdentity } from "@/lib/app/shell-queries";
+import { getSide } from "@/lib/side";
 import { AppShell } from "@/components/app/AppShell";
 
 /**
- * Personal Mode layout.
+ * The consumer layout, for both sides.
  *
  * Wraps every consumer route in `AppShell` so the rail and tab bar are present
  * on all of them, not just home. This is a route group, so it adds the chrome
@@ -23,12 +24,20 @@ export default async function AppLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const { userName, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin } =
-    await getShellIdentity();
+  /*
+   * The side (Property or Stays) is a cookie, read once here and handed to the
+   * shell, which computes the EFFECTIVE side from the path so a side-owned URL
+   * always wins. Passing the cookie value from the server is what makes the
+   * first paint of every shared route agree between server and client: no
+   * hydration flash, no second render to correct the accent.
+   */
+  const [side, { userName, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin }] =
+    await Promise.all([getSide(), getShellIdentity()]);
 
   return (
     <AppShell
       t={t}
+      side={side}
       userName={userName}
       unreadNotifications={unreadNotifications}
       avatarUrl={avatarUrl}

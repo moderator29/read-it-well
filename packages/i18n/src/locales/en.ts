@@ -120,7 +120,73 @@ export const en = {
     priceOnRequest: "Price on request",
   },
 
+  /*
+   * The side switch and the flip. "{side}" is filled with the side's name.
+   */
+  side: {
+    propertyName: "Property",
+    staysName: "Stays",
+    switchToStays: "Switch to Stays",
+    switchToProperty: "Switch to Property",
+    staysSub: "Hotels, shortlets and restaurants",
+    propertySub: "Rentals, sales and agents",
+    switching: "Switching to {side}",
+    coverStaysLine: "Hotels, apartments, resorts and tables, booked with the wallet you already have.",
+    coverPropertyLine: "Rentals, sales, agents and inspections, on the account you already have.",
+    flipped: "Now on {side}",
+  },
+  /* The Stays side: home, search, restaurants and trips. */
+  stays: {
+    heroTitle: "Where to next?",
+    heroLine: "Hotels, shortlets, serviced apartments and tables, paid with the wallet you already have.",
+    where: "Where",
+    wherePlaceholder: "City, area or landmark",
+    checkIn: "Check in",
+    checkOut: "Check out",
+    guests: "Guests",
+    search: "Find stays",
+    hotels: "Hotels",
+    shortlets: "Shortlets",
+    serviced: "Serviced",
+    resorts: "Resorts",
+    guestHouses: "Guest houses",
+    restaurants: "Restaurants",
+    featured: "Stays people are booking",
+    tables: "Tables worth the drive",
+    seeAll: "See all",
+    resultsTitle: "Stays",
+    resultsCount: "{count} places",
+    resultsForDates: "{count} places for {nights} nights",
+    totalForNights: "Total for {nights} nights",
+    perNight: "per night",
+    sleeps: "Sleeps {count}",
+    shelfEmptyTitle: "No stays listed yet",
+    shelfEmptyBody: "Hosts list hotels, shortlets and apartments on Vallo themselves. When they do, they appear here.",
+    emptyTitle: "Nothing here for those dates yet",
+    emptyBody: "Try another area or widen the dates. New stays are listed by real hosts every week.",
+    clearDates: "Clear dates",
+    restaurantsTitle: "Restaurants",
+    restaurantsLine: "Book a table on Vallo. The restaurant confirms, and the conversation lives inside the reservation.",
+    restaurantsEmptyTitle: "No restaurants listed here yet",
+    restaurantsEmptyBody: "Restaurants come onto Vallo through their owners. When one near you lists, it appears here.",
+    tripsTitle: "Trips",
+    tripsLine: "Your stays and reservations, by date.",
+    tripsEmptyTitle: "No trips yet",
+    tripsEmptyBody: "Book a stay or a table and it lands here with its confirmation and its conversation.",
+    findStay: "Find a stay",
+    sortRecommended: "Recommended",
+    sortPriceAsc: "Price, low to high",
+    sortPriceDesc: "Price, high to low",
+    sortRating: "Top rated",
+    sortLabel: "Sort",
+  },
   nav: {
+    /* The two sides. Added 18 September 2026 with the flip; Trips is the
+       Stays side's name for its bookings surface (HANDOFF_05 section 2). */
+    stays: "Stays",
+    exploreStays: "Explore stays",
+    trips: "Trips",
+    inspections: "Inspections",
     home: "Home",
     hotels: "Hotels",
     apartments: "Apartments",
@@ -2697,6 +2763,156 @@ export const en = {
      */
     notificationsUnread: "Notifications, {count} unread",
     unreadOn: "{label}, {count} unread notifications",
+  },
+
+  /**
+   * /inspections: every viewing this person asked for or was asked to show.
+   * Added 18 September 2026 (Build 05, FE-1).
+   */
+  inspectionsPage: {
+    title: "Inspections",
+    lede: "Every viewing you asked for or were asked to show. Both of you see the same state on the same request.",
+    openTitle: "Open",
+    openDescription: "Your move first, then what is booked in, then what is waiting on them.",
+    closedTitle: "Closed",
+    readFailed:
+      "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
+    emptyTitle: "Nothing booked to see yet",
+    emptyBody:
+      "Ask to view a property from its page and it lands here, with the answer beside it the moment it comes.",
+    emptyAction: "Find a place",
+    loading: "Loading your inspections",
+  },
+
+  /**
+   * The context banner at the top of a conversation. One sentence about the
+   * thing the chat is for, and the one or two controls that belong to it.
+   * Added 18 September 2026 (Build 05, FE-1).
+   */
+  threads: {
+    rental: {
+      waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
+      waitingOnThem: "Waiting on {name} to answer.",
+      offeredToYou: "{name} offered another time.",
+      offeredByYou: "You offered another time. Waiting on {name}.",
+      confirmedFor: "Confirmed for {when}.",
+      askedFor: "Asked for {when}.",
+      accept: "Accept",
+      offerAnother: "Offer another time",
+      decline: "Decline",
+      acceptTime: "Accept this time",
+      withdraw: "Withdraw",
+      markInspected: "Mark as inspected",
+      accepted: "Accepted. The viewing is confirmed on both sides.",
+      inspected: "Marked as inspected.",
+      withdrawn: "Withdrawn.",
+      declined: "Declined.",
+      declineTitle: "Decline this request?",
+      declineBody: "They will see that you declined. The chat stays open, so you can still explain.",
+      declineConfirm: "Yes, decline",
+      keep: "Keep it",
+      proposeTitle: "Offer another time",
+      proposeBody: "They can take it in one tap. The time they asked for stays on the record.",
+      proposeWhen: "When you can do it",
+      proposeNote: "A line for them, if you want one",
+      proposeSend: "Send this time",
+      outcomeTitle: "How did it go?",
+      outcomeInspected: "I inspected it",
+      outcomeDealDone: "Inspected, and we have a deal",
+      outcomeNoDeal: "Inspected, no deal",
+      outcomeSave: "Save",
+    },
+    reservation: {
+      tableFor: "table for {count}",
+      cancel: "Cancel reservation",
+      cancelTitle: "Cancel this table?",
+      cancelBody: "The restaurant will see it as cancelled straight away. You can always book again.",
+      cancelConfirm: "Yes, cancel it",
+      keep: "Keep it",
+      cancelled: "Cancelled.",
+      status: {
+        PENDING: "Requested",
+        CONFIRMED: "Confirmed",
+        CANCELLED: "Cancelled",
+        COMPLETED: "Completed",
+        NO_SHOW: "No show",
+      },
+    },
+    booking: {
+      label: "Your stay",
+      reserved: "Reserved",
+      paid: "Paid",
+      arrival: "Arrival day",
+      completed: "Completed",
+      cancelled: "This stay was cancelled.",
+    },
+  },
+
+  /**
+   * /wallet/send: a whole page for sending to another Vallo wallet.
+   * Added 18 September 2026 (Build 05, FE-2).
+   */
+  walletSend: {
+    title: "Send money",
+    lede: "To another Vallo wallet, by the email on their account. It lands the moment you confirm.",
+    recipientLabel: "Their email",
+    recipientHint: "The email they use on Vallo.",
+    amountLabel: "Amount (₦)",
+    noteLabel: "Note",
+    noteOptional: "(optional)",
+    notePlaceholder: "What is it for?",
+    balanceNow: "Available now",
+    balanceAfter: "After this send",
+    notEnough: "That is more than you have.",
+    consequence: "Leaves your wallet the moment you confirm. It cannot be recalled.",
+    continueLabel: "Continue",
+    back: "Back",
+    confirmTitle: "Check and confirm",
+    to: "To {email}",
+    send: "Send",
+    sendingTitle: "Sending",
+    sendingBody: "This usually takes a few seconds. If it takes longer, your money has not moved and nothing is lost.",
+    sentTitle: "Sent",
+    sentTo: "Sent to {name}",
+    sentBody: "Their wallet has it already, and both sides of the movement are in your history.",
+    reference: "Reference",
+    seeHistory: "See it in your history",
+    backToWallet: "Back to wallet",
+    failedTitle: "That did not go through",
+    loading: "Loading send",
+    signInTitle: "Sign in to send money",
+    signInBody: "Sending comes from your own wallet, so it needs your account.",
+    unreadableTitle: "Your balance could not be loaded",
+    unreadableBody: "We will not take a send against a figure we cannot stand behind. Nothing has moved. Try again in a moment.",
+  },
+
+  /**
+   * /wallet/receive: your handle, your address, a request to share.
+   * Added 18 September 2026 (Build 05, FE-2).
+   */
+  walletReceive: {
+    title: "Receive money",
+    lede: "Anyone on Vallo can send to you from their wallet. Share a request or just your email.",
+    handleLabel: "Your Vallo handle",
+    noHandle: "No handle yet",
+    claimHandle: "Claim one on your profile",
+    emailLabel: "Send to this email",
+    where: "Money sent to {email} lands in this wallet the moment it is sent, and shows in your history straight away.",
+    requestTitle: "Ask for a payment",
+    amountLabel: "Amount (₦)",
+    amountOptional: "(optional)",
+    noteLabel: "Note",
+    notePlaceholder: "What is it for?",
+    share: "Share request",
+    copy: "Copy link",
+    copied: "Link copied",
+    shareText: "Send me {amount} on Vallo: {link}",
+    shareTextNoAmount: "Send me money on Vallo: {link}",
+    recentTitle: "Recently received",
+    recentEmpty: "Nothing has come in yet. Share a request and it lands here.",
+    loading: "Loading receive",
+    signInTitle: "Sign in to receive money",
+    signInBody: "Your address for receiving is tied to your account, so it needs you signed in.",
   },
 };
 

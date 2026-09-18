@@ -125,6 +125,7 @@ export function ListingCard({
   t,
   index,
   intent,
+  side = "property",
 }: {
   listing: Listing;
   locale: Locale;
@@ -144,10 +145,19 @@ export function ListingCard({
    * to stay different.
    */
   intent?: PropertyType[];
+  /**
+   * Which side's detail page the card opens.
+   *
+   * `/listing/[id]` and `/stay/[id]` serve the same row, but the URL decides
+   * the shell: a card tapped on the Stays shelf must open in the Stays shell,
+   * and `sideOfPath` treats `/listing/` as Property. The stays surfaces pass
+   * `"stays"`; everything else keeps the property route it always had.
+   */
+  side?: "property" | "stays";
 }) {
   const router = useRouter();
   const photo = listing.photos[0];
-  const href = `/listing/${listing.id}`;
+  const href = `${side === "stays" ? "/stay" : "/listing"}/${listing.id}`;
 
   /*
    * PREFETCH ON PRESS-DOWN. `/listing/[id]` is a dynamic route, so Next's

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AutoHideDock } from "./AutoHideDock";
 import type { Dictionary } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import type { Side } from "@/lib/side.constants";
 
 /**
  * The bottom tab bar.
@@ -97,6 +98,14 @@ export const TAB_BAR_ROUTES = [
   "/search",
   "/wallet",
   "/profile",
+  /*
+   * THE STAYS ROOTS. `/stays/search` is listed BEFORE `/stays` on purpose:
+   * `tabRootFor` prefix-matches in order, and Explore stays is its own tab,
+   * not a page under Stays. Listing them the other way round would light the
+   * Stays tab on the search screen and park the pill one destination early.
+   */
+  "/stays/search",
+  "/stays",
   /*
    * `/saved` IS GONE FROM THIS LIST, and its presence was the exact bug the
    * paragraph above claims to have fixed. No tab and no island points at
@@ -198,11 +207,14 @@ export function isTabRoot(pathname: string): boolean {
 
 export function MobileTabBar({
   t,
+  side = "property",
   active = "/home",
   unreadNotifications = 0,
   signedIn = false,
 }: {
   t: Dictionary;
+  /** Which side's four destinations the capsule carries. */
+  side?: Side;
   active?: string;
   /**
    * Unread notifications for this caller. The dock carries no Notifications
@@ -227,12 +239,26 @@ export function MobileTabBar({
    * three other ways in (home, the rail, the drawer); money is the spine of
    * this product and it belongs on the bar.
    */
-  const tabs: Tab[] = [
-    { href: "/home", label: t.nav.home, icon: "home" },
-    { href: "/search", label: t.nav.explore, icon: "compass" },
-    { href: "/around", label: t.nav.feed, icon: "feed" },
-    { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
-  ];
+  /*
+   * The same four slots on both sides. The Stays side swaps the two
+   * discovery destinations for its own roots; Feed and Wallet are shared,
+   * because the feed is one feed and the wallet is one wallet. The pill
+   * arithmetic, the island and `AutoHideDock` are untouched by the side.
+   */
+  const tabs: Tab[] =
+    side === "stays"
+      ? [
+          { href: "/stays", label: t.nav.stays, icon: "bed" },
+          { href: "/stays/search", label: t.nav.exploreStays, icon: "compass" },
+          { href: "/around", label: t.nav.feed, icon: "feed" },
+          { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
+        ]
+      : [
+          { href: "/home", label: t.nav.home, icon: "home" },
+          { href: "/search", label: t.nav.explore, icon: "compass" },
+          { href: "/around", label: t.nav.feed, icon: "feed" },
+          { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
+        ];
 
   /*
    * Which tab the pill sits behind, resolved through the ROOT of the route
