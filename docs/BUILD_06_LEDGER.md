@@ -417,7 +417,11 @@ alerts, the refund console, the payment-method lookup panel.
 | The founder's photography as product assets: twenty plates compressed and named under `public/brand/photos/`, the eight scene plates wired through the manifest | `1c97d71` |
 | The B0 audit verdict | `d9e313d` |
 | The chrome: five-slot labelled dock with More opening the drawer, the header with hamburger, lockup, bell and avatar on every in-app page, the drawer from the left as the designed surface, the coin card, the Crypto row, `Messages` as the row's name | `6e2e2ac` |
-| The flip's lit rim, glass back pane and mark-first cover; the lockup on the wordmark asset; the lead's preview pages | (next) |
+| The flip's lit rim, glass back pane and mark-first cover; the lockup on the wordmark asset; the lead's preview pages | `9fd7af3` |
+| `middleware.ts` becomes `proxy.ts` (Next 16), the rail's coin card tightened | `17556f4` |
+| The desktop screenshot harness `scripts/verify-desktop.mjs` | `fb4e182` |
+| The dock pill takes the side accent (seed 3) | `92da8b1` |
+| BA: the lifecycle jobs (`lib/cron`, `lib/bookings/lifecycle*`, four cron routes, `vercel.json`), b4 migrations applied, live probe passed; BB's b3 and b2 migrations applied, live probes passed; `database.types.ts` regenerated | `c838b57` |
 
 ---
 
@@ -451,6 +455,39 @@ from `apps/web` (F1 3101, F2 3102, F3 3103, F4 3104, F5 3105, E 3106, lead
 ---
 
 ## 7. Probes and audits
+
+**Live migrations, 18 September 2026, applied by the lead through the
+Supabase MCP after reading every line, each probed as one rolled-back block
+(a `DO` block that raises `ALL PASS` at its end, so nothing persists):**
+- `b4_booking_lifecycle_sweeps` and `b4_inventory_drift_and_cron_watch`:
+  PASS on every assertion of `scripts/probes/b4_lifecycle_live.sql` (holds
+  released and the hand-closed night kept, paid PENDING untouched, ended
+  paid stay COMPLETED with both sides told once, unpaid and same-day stays
+  kept, no-show by host and by admin with the event, the nights ahead
+  reopened and the guest told, a stranger refused with 42501, drift
+  reported and never corrected, `cron.job_run_details` readable, second
+  runs idempotent). `room_spine=false` (M6 not applied). One pg_cron failure
+  in the last 25 hours: `rentme-nightly-badges` dies on the example lister
+  (handed to BA).
+- `b3_no_table_at_an_example_a_thread_per_table_and_the_rent_charge`: PASS
+  (a table at an example listing refused with 'This listing is an example',
+  a listing with a table cannot become an example, the thread stamps back
+  and a stranger's thread is refused, a table at an example business
+  refused, `open_rent_charge` ok then exists then not_accepted, total
+  150,000,000 kobo from the stated parts, the lister told 'Rent payment
+  started' and never 'New booking request', RLS reads tenant 1 lister 1
+  third 0, on CONFIRMED 'Rent paid' and 'Rent received' and never
+  'Booking confirmed').
+- `b2_example_stays_and_the_example_shelf_gets_its_photographs`: applied;
+  live counts 7 example businesses, 5 accommodations, 11 room types, 22
+  rate plans, 1,980 calendar rows, 990 inventory rows, 19 accommodation
+  photos, 61 listings with 228 photographs, 22 service windows, 0 example
+  rows verified. `stays_search` dated for two guests answers 5 rows with
+  room and plan; breakfast 5, free cancellation 5, pool 2, suite 3,
+  restaurants 2, verified 0, all as BB predicted.
+- The sandbox's egress proxy refuses the Supabase host, so no dev server
+  here renders live rows; every proof is on fixtures or the preview
+  harness (F1's finding, confirmed by the empty `/stays` shelf).
 
 **B0, the audit of `73e284e` (saved-card charging in checkout and the admin
 business desk), read line by line by the lead before any work built on it.
