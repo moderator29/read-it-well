@@ -1907,3 +1907,59 @@ the entire screen is the avatar.
 surface at 390 dark: the menu button, Sign in, Sign up, the search field, the
 filter button, all three filter chips, "List your place" and now the dock are
 every one a rounded rectangle, and there is no capsule on the frame.
+
+### 13.6 THE CHROME, MEASURED, AND THE HEADER WAS ALREADY RIGHT
+
+The founder's point three asked for the header and the dock to match the
+reference exactly: the same bar fill, the same hairline, the same glass depth,
+the same glow on the icon buttons, the same spacing rhythm.
+
+The desktop hero cannot answer that. It has no bottom dock and its header
+floats over a photograph, so neither can be read from it. So
+`scripts/design/sample-reference.mjs` now takes `--chrome` and reads
+`founder/GOVERNING-home-markets-target.png` instead, which draws the header,
+the dock, the tiles and the chips against the product's own ground.
+
+**THE HEADER HAS NO BAR AND NO HAIRLINE, and the numbers are unambiguous.**
+
+| sampled | value |
+| --- | --- |
+| canvas beside the lockup | `#000312` |
+| any bar fill behind the lockup row | `#000311` |
+| the hairline under the header | `#000312` |
+
+Three samples, one colour. There is no bar and there is no line; the header
+simply sits on the page. Ours already does exactly this: measured on a
+production build, `.nf-app-header` computes a transparent background and the
+pixels one, two and eight pixels below it are identical to the ones inside it.
+R1's A38 was closed properly and this confirms it rather than taking its word.
+
+**THE DOCK EDGE WAS A QUARTER TOO BRIGHT.** Reference top border `#012E78`,
+ours `#003C94`. Same hue, measurably brighter. Working it back through the
+mix, the ground is `#000612` and the glow ink is `#0069FE`, so the reference
+is that ink at about forty per cent and ours was it at fifty, which is the
+full `--nf-brand-edge` rung. It now takes `--nf-brand-edge-soft` at
+thirty-five, which lands just under the reference instead of a quarter over
+it, and which is a rung that already exists rather than a fourth invented to
+hit one number.
+
+**AND THE FINDING THAT MATTERS MOST FOR THE REST OF THE SWEEP: THE REFERENCE
+DOES NOT USE ONE EDGE EVERYWHERE.** Its market tiles measure `#1A5CA5`, far
+brighter than the dock's `#012E78`. A card and a bar are not the same object
+and the reference treats them differently. So "match the border brightness" is
+a per-surface reading and never one global number, and anybody who tunes
+`--nf-brand-edge` to satisfy one surface will break another.
+
+The rest of the chrome reference, recorded because five workers are sweeping
+against it tonight: dock bar fill `#000C2E`, active slot ink `#0257FD`,
+resting slot ink `#001237`; market tile fill `#000C27` with border `#1A5CA5`
+and a BRIGHT `#0785FD` plate behind its glyph, which is the founder's
+"make the icon containers the branding colour" measured; search field border
+`#002E7A` with a `#3C7CFC` rounded-square submit; city chip fill `#030C23`
+with border `#002051`; the invest band fill `#000E32`.
+
+**THE DOCK'S LIGHT DIES WITHIN TEN PIXELS.** Walking upward from its top edge:
+`#00296F` at the edge, `#010B2A` five pixels up, `#000A27` at ten, and it has
+settled by fifteen. That is the same tight, contained register as the primary
+button's twenty pixels, and it is what the founder means by glass rather than
+neon.

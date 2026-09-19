@@ -291,7 +291,28 @@
      * at the full `--nf-brand-edge` - so the soft rung is wrong. Merged here,
      * both decisions kept, and the dock's own lift stays underneath.
      */
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    /*
+     * `--nf-brand-edge-soft`, AND THE NUMBER COMES OFF THE REFERENCE.
+     *
+     * `founder/GOVERNING-home-markets-target.png` is the only image that
+     * draws this dock, and `scripts/design/sample-reference.mjs --chrome`
+     * reads its top border at `#012E78`. Ours measured `#003C94` on a
+     * production build: the same hue and about a quarter brighter.
+     *
+     * Working it back through the mix: the ground is `#000612` and the glow
+     * ink is `#0069FE`, so `#012E78` is that ink at roughly forty per cent
+     * and `#003C94` is it at fifty, which is what the full `--nf-brand-edge`
+     * rung is. The soft rung is thirty-five, which lands just under the
+     * reference rather than a quarter over it, and it is a rung that already
+     * exists rather than a fourth one invented to hit one number.
+     *
+     * WORTH KNOWING FOR THE REST OF THE SWEEP: the reference does NOT use one
+     * edge everywhere. Its market tiles measure `#1A5CA5`, far brighter than
+     * this dock. A card and a bar are not the same object and the reference
+     * treats them differently, so "match the border brightness" is per
+     * surface and never one global number.
+     */
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     /*
      * `--nf-radius-xl`, NOT `--nf-radius-2xl`, AND THE REASONING ABOVE WAS
      * RIGHT WHILE THE NUMBER WAS WRONG.

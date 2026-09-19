@@ -24,13 +24,65 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const REPO = resolve(new URL("../..", import.meta.url).pathname);
-const IMAGE = resolve(REPO, "docs/design/references/GOVERNING-landing-desktop-hero.png");
-const W = 1536;
-const H = 1024;
+
+/*
+ * TWO REFERENCES, because they answer different questions.
+ *
+ * The desktop hero is the colour and glow authority: it is the image the
+ * founder had open when he ruled, and its buttons, chips and containers are
+ * what the tokens are set from.
+ *
+ * The phone home target is the CHROME authority. The desktop image has no
+ * bottom dock and its header floats over a photograph, so neither can be
+ * measured from it. The phone image draws the header, the dock, the market
+ * tiles and the city chips against the product's own ground, which is the
+ * only place those can be read honestly.
+ *
+ *   node scripts/design/sample-reference.mjs            the hero
+ *   node scripts/design/sample-reference.mjs --chrome   the phone home
+ */
+const CHROME = process.argv.includes("--chrome");
+const IMAGE = CHROME
+  ? resolve(REPO, "docs/design/references/founder/GOVERNING-home-markets-target.png")
+  : resolve(REPO, "docs/design/references/GOVERNING-landing-desktop-hero.png");
+const W = CHROME ? 1024 : 1536;
+const H = CHROME ? 1536 : 1024;
 const f = (x, y) => [x / W, y / H];
 
+/*
+ * THE PHONE HOME POINTS. Read off `GOVERNING-home-markets-target.png`, which
+ * is 1024x1536 and draws a phone inside a lit frame on a photographic
+ * background, so every coordinate here is INSIDE the screen and none of them
+ * is on the frame or the wallpaper.
+ *
+ * What this image settles that the hero cannot: the header has no bar of its
+ * own and no hairline, it simply sits on the canvas; the dock is a rounded
+ * rectangle with visibly straight ends; the market tiles are the product's
+ * own card at rest; and the only circle on the entire screen is the avatar.
+ */
+const CHROME_POINTS = [
+  ["canvas: the screen ground beside the lockup", ...f(560, 120), 7],
+  ["header: any bar fill behind the lockup row", ...f(600, 120), 7],
+  ["header: the hairline under the header, if there is one", ...f(512, 160), 2],
+  ["header: the avatar's ring", ...f(796, 96), 2],
+  ["search field: fill", ...f(420, 397), 7],
+  ["search field: top border", ...f(512, 371), 2],
+  ["search submit: the rounded square fill", ...f(798, 397), 6],
+  ["market tile: fill", ...f(300, 530), 7],
+  ["market tile: top border", ...f(293, 455), 2],
+  ["market tile: the glyph plate behind the icon", ...f(246, 505), 5],
+  ["band: the invest card fill", ...f(300, 1150), 7],
+  ["band: its top border", ...f(516, 1002), 2],
+  ["city chip: fill", ...f(300, 1320), 5],
+  ["city chip: top border", ...f(268, 1291), 2],
+  ["dock: the bar fill", ...f(300, 1450), 7],
+  ["dock: its top border", ...f(512, 1376), 2],
+  ["dock: the active slot ink", ...f(267, 1410), 3],
+  ["dock: a resting slot ink", ...f(397, 1412), 3],
+];
+
 /** [name, fractionX, fractionY, boxSize] */
-const POINTS = [
+const HERO_POINTS = [
   ["canvas: the page ground below the fold", ...f(40, 1010), 9],
   ["header: the bar's own fill, over the photo", ...f(700, 18), 5],
   ["primary button: fill, left end of the gradient", ...f(186, 417), 5],
@@ -53,6 +105,8 @@ const POINTS = [
   ["listing card: fill", ...f(1300, 410), 5],
 ];
 
+const POINTS = CHROME ? CHROME_POINTS : HERO_POINTS;
+
 /*
  * THE GLOW, measured as a falloff rather than as one number.
  *
@@ -61,13 +115,23 @@ const POINTS = [
  * printing the series says exactly how far the light carries and how fast it
  * dies, which is what a box-shadow has to reproduce.
  */
-const FALLOFF = {
-  label: "primary button, rightward from its edge at y=417",
-  y: 417,
-  from: 360,
-  to: 430,
-  step: 5,
-};
+const FALLOFF = CHROME
+  ? {
+      label: "the dock's top edge, upward from y=1376 into the page above it",
+      x: 512,
+      vertical: true,
+      y: 1376,
+      from: 1376,
+      to: 1330,
+      step: 5,
+    }
+  : {
+      label: "primary button, rightward from its edge at y=417",
+      y: 417,
+      from: 360,
+      to: 430,
+      step: 5,
+    };
 
 const browser = await chromium.launch({
   executablePath: "/opt/pw-browsers/chromium",
@@ -117,9 +181,16 @@ const result = await page.evaluate(
     });
 
     const series = [];
-    for (let x = falloff.from; x <= falloff.to; x += falloff.step) {
-      const rgb = box(Math.round(x * sx), Math.round(falloff.y * sy), 3);
-      series.push({ x, hex: hex(rgb), rgb });
+    if (falloff.vertical) {
+      for (let y = falloff.from; y >= falloff.to; y -= falloff.step) {
+        const rgb = box(Math.round(falloff.x * sx), Math.round(y * sy), 3);
+        series.push({ x: y, hex: hex(rgb), rgb });
+      }
+    } else {
+      for (let x = falloff.from; x <= falloff.to; x += falloff.step) {
+        const rgb = box(Math.round(x * sx), Math.round(falloff.y * sy), 3);
+        series.push({ x, hex: hex(rgb), rgb });
+      }
     }
     return { size: [img.naturalWidth, img.naturalHeight], sampled, series };
   },
