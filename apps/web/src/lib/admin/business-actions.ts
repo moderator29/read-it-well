@@ -280,12 +280,17 @@ export async function publishAccommodation(input: {
   if (updateError) return fail(SERVICE_DOWN);
 
   // The business goes live with its first published property, so a host does
-  // not have to be told to do a second thing they cannot do.
+  // not have to be told to do a second thing they cannot do. The property is
+  // already published by this point, so a failure here is not a failure of
+  // the decision: it is written into the audit line (the lead's B0 audit,
+  // item 4) and the admin is told the one thing left to do.
+  let businessPublished: boolean | null = null;
   if (business.status === "APPROVED") {
-    await access.supabase
+    const { error: businessError } = await access.supabase
       .from("businesses")
       .update({ status: "PUBLISHED", published_at: now })
       .eq("id", business.id);
+    businessPublished = !businessError;
   }
 
   await announce(
@@ -302,9 +307,18 @@ export async function publishAccommodation(input: {
         accommodation_name: property.name,
         business_name: business.name,
         photo_count: property.accommodation_photos.length,
+        business_published: businessPublished,
       },
     },
   );
+
+  if (businessPublished === false) {
+    refreshConsole();
+    revalidatePath("/stays");
+    return fail(
+      "The property is published, but the business could not be marked live at the same time. Open the business and publish it from there.",
+    );
+  }
 
   refreshConsole();
   revalidatePath("/stays");
