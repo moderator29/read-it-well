@@ -116,10 +116,52 @@
    * and that is the cost of matching the reference rather than an oversight.
    */
   --nf-electric-300: #0069FE;
-  --nf-electric-400: #0C39EF;
-  --nf-electric-500: #0010E0;
-  --nf-electric-600: #0010D0;
-  --nf-electric-700: #000F98;
+  /*
+   * THE REST OF THE RAMP, ROTATED ONTO THE MEASURED HUE ON 19 SEPTEMBER,
+   * BECAUSE THE RETUNE ABOVE ONLY MOVED ONE RUNG AND THAT LEFT THE PRODUCT
+   * TWO-TONED.
+   *
+   * `--nf-electric-300` was measured off the governing reference and landed at
+   * hue 215.2. The other four rungs were never touched and sat at 228.1,
+   * 235.7, 235.4 and 234.1, so the ramp was not a ramp: it was the measured
+   * brand at the top and the retired violet underneath it. And the violet
+   * rungs are the ones that get DRAWN. `--nf-electric-400` is
+   * `--nf-brand-accent` and `--nf-mode-agent`, `--nf-electric-500` is
+   * `--nf-border-brand`, `--nf-glow-brand` and `--nf-mode-personal`,
+   * `--nf-electric-600` is `--nf-brand-primary-strong`, `--nf-electric-700` is
+   * `--nf-mode-admin`. So the fill said one blue and its own border, its own
+   * glow and its own accent said another, thirteen to twenty degrees away.
+   * That is what the founder keeps seeing and calling "a different product".
+   *
+   * WAS        HUE     NOW        HUE     CONTRAST ON #000612
+   * #0C39EF    228.1   #0C6AEF    215.2   2.75:1 -> 4.18:1
+   * #0010E0    235.7   #005DE0    215.1   2.08:1 -> 3.52:1
+   * #0010D0    235.4   #0056D0    215.2   1.92:1 -> 3.13:1
+   * #000F98    234.1   #003F98    215.1   1.47:1 -> 2.09:1
+   *
+   * EVERY ONE IS A PURE HUE ROTATION: saturation and lightness are untouched
+   * to the decimal, so nothing here is a new colour, it is the same ink
+   * standing in its own family. On the night canvas every rung's contrast goes
+   * UP, because rotating from violet toward the measured blue raises the green
+   * channel. The night theme therefore pays nothing for this.
+   *
+   * DAYLIGHT DOES PAY, AND IT IS HANDLED WHERE DAYLIGHT LIVES. The same
+   * rotation against #F4F5F7 paper LOWERS contrast for exactly the same
+   * reason, so the light theme's literals are not rotated in place: each one
+   * is rotated to 215.2 and then stepped down in lightness until it measures
+   * what it measured before, to two decimals. See the light block.
+   *
+   * WHAT IS DELIBERATELY NOT ROTATED. The `--nf-ink-*` ramp and `--nf-mist-*`
+   * are the NEUTRAL ramp: near-blacks and near-whites that read as grey and
+   * carry the body text, and moving them would recolour every paragraph in
+   * the product to fix an accent problem. `--nf-royal-*` has no consumer, as
+   * the note below says, and an unconsumed palette draws nothing. If royal
+   * ever gains a consumer it should be rotated first.
+   */
+  --nf-electric-400: #0C6AEF;
+  --nf-electric-500: #005DE0;
+  --nf-electric-600: #0056D0;
+  --nf-electric-700: #003F98;
   --nf-cyan-400: #00C8FF;
   --nf-cyan-500: #06B6D4;
   /*
@@ -194,10 +236,35 @@
    *
    * Themed, which is what disqualified it from layer 1: on the night canvas the
    * quiet ink has to be LIGHTER than the brand fill to read, and on white paper
-   * it has to be DARKER. #5C7CFF and #0C2FE8 are not two shades of one decision,
+   * it has to be DARKER. #5C9FFF and #094DAF are not two shades of one decision,
    * they are the same decision answered twice.
+   *
+   * IT WAS #5C7CFF UNTIL 19 SEPTEMBER, AND THAT WAS A RETUNE THAT DID NOT
+   * FINISH. Section 13.2 moved --nf-brand-primary from #0010E0 to the measured
+   * #0069FE and did not move this, so the product's quiet ink was still the
+   * light sibling of a primary that no longer existed. The arithmetic says so
+   * without anybody having to have an opinion about it: #0069FE is hue 215.2,
+   * #5C7CFF was hue 228.2. THIRTEEN DEGREES OF VIOLET AWAY FROM ITS OWN
+   * FAMILY, on every price on every card, every link, every star rating, every
+   * verified badge and every focus ring in the product. V1 caught it by
+   * cropping the governing images at 6x and measuring the accent glyphs, which
+   * read hue 197 and 199; ours read 231.
+   *
+   * THE CORRECTION IS A PURE HUE ROTATION AND NOTHING ELSE. Saturation stays
+   * at 100% and lightness stays at 68%, so this is the same ink standing in
+   * its own family rather than a new colour. It costs nothing and it pays:
+   * contrast on the night canvas goes UP, from 5.59:1 to 7.66:1, because the
+   * green channel rises.
+   *
+   * WHY IT STOPS AT 215 AND NOT AT THE REFERENCE'S 197. The images measure
+   * cyan-leaning, and rule 8 reserves bright cyan for PENDING and attention.
+   * An accent that drifts into the pending hue would make a price look like a
+   * state. So it goes to the family and stops there, which is a 13 degree
+   * correction toward the reference rather than the full 31. Recorded rather
+   * than hidden: if the founder wants the reference's literal cyan, that is a
+   * ruling about rule 8 and not about this token.
    */
-  --nf-brand-quiet: #5C7CFF;
+  --nf-brand-quiet: #5C9FFF;
   /*
    * THE BRAND TINT, AND THE ANSWER TO "PROPOSE A LADDER" IS THAT THERE IS NO
    * LADDER TO PROPOSE. THERE IS ONE RUNG AND IT WAS ALREADY HERE.
@@ -575,7 +642,7 @@
      the same either way but the ink on the control is not. */
   --nf-surface-control-on-media: rgb(0 0 0 / 0.45);
   --nf-surface-control-on-media-strong: rgb(0 0 0 / 0.62);
-  --nf-content-on-media-accent: #B4C6FF;
+  --nf-content-on-media-accent: #B4D3FF;
   --nf-scrim-artwork: linear-gradient(
     180deg,
     rgb(1 1 24 / 0.82) 0%,
@@ -961,7 +1028,7 @@
      canvas, so it sits between the brand's deep end and the navy ground. Named
      rather than moved onto the ramp, because moving it changes a hue nobody
      has looked at in a browser since. */
-  --nf-canvas-bloom-deep-ink: #1230B3;
+  --nf-canvas-bloom-deep-ink: #1255B3;
 
   /* The story stage: a near-black panel that is the same panel in both themes,
      because a paper product carries its dark brand on it. Its hairline is
@@ -1357,8 +1424,8 @@
    * product resolve `var()` and `currentColor` in a stop without any mirror at
    * all.
    */
-  --nf-gradient-brand: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
-  --nf-gradient-cta: linear-gradient(180deg, #0C39EF 0%, #0010E0 50%, #000F98 100%);
+  --nf-gradient-brand: linear-gradient(135deg, #5C9FFF 0%, var(--nf-electric-400) 100%);
+  --nf-gradient-cta: linear-gradient(180deg, #0C6AEF 0%, #005DE0 50%, #003F98 100%);
   /*
    * The same gradient, lifted until every stop is readable AS TEXT.
    *
@@ -1387,8 +1454,8 @@
    * background; a probe that stopped at body scored everything against
    * rgba(0,0,0,0) and made this look like it passed.
    */
-  --nf-gradient-text: linear-gradient(135deg, #7C95FF 0%, #4B6DFF 52%, #3D66FF 100%);
-  --nf-gradient-agent: linear-gradient(135deg, #5C7CFF 0%, var(--nf-electric-400) 100%);
+  --nf-gradient-text: linear-gradient(135deg, #7CB2FF 0%, #4B95FF 52%, #3D8DFF 100%);
+  --nf-gradient-agent: linear-gradient(135deg, #5C9FFF 0%, var(--nf-electric-400) 100%);
   --nf-gradient-surface: linear-gradient(180deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0.012) 100%);
 
   /* ---------------------------------------------------------------------
@@ -2717,8 +2784,8 @@
   --nf-content-inverse: #FFFFFF;
 
   /* Vivid brand blue that holds contrast on paper. */
-  --nf-brand-primary: #0C2FE8;
-  --nf-brand-primary-strong: #0010D0;
+  --nf-brand-primary: #094BA9;
+  --nf-brand-primary-strong: #003A8C;
   /*
    * The accent was the one brand token with no daylight answer. It stayed on
    * --nf-electric-400 (#0C39EF), which is fine as a fill but is used through
@@ -2727,7 +2794,7 @@
    * Daylight takes the vivid brand blue, which is the same family one step
    * brighter and is what every other accent role here already resolves to.
    */
-  --nf-brand-accent: #0C2FE8;
+  --nf-brand-accent: #094BA9;
 
   /*
    * Mode accents on paper. Personal, agent and admin are told apart by depth
@@ -2736,13 +2803,13 @@
    * 1.4:1 of one another there, so the three modes were indistinguishable in
    * daylight. These keep the same ordering, spread far enough apart to read.
    */
-  --nf-mode-personal: #0C2FE8;
-  --nf-mode-agent: #2450FF;
-  --nf-mode-admin: #0010A0;
+  --nf-mode-personal: #094BA9;
+  --nf-mode-agent: #005DE2;
+  --nf-mode-admin: #002C6B;
   --nf-side-accent: var(--nf-mode-personal);
 
   /* Daylight CTA is a near-flat vivid brand blue, never near-black navy. */
-  --nf-gradient-cta: linear-gradient(180deg, #2450FF 0%, #0C39EF 100%);
+  --nf-gradient-cta: linear-gradient(180deg, #005DE2 0%, #0950B6 100%);
 
   --nf-border-subtle: rgb(18 21 26 / 0.08);
   --nf-border-default: rgb(18 21 26 / 0.13);
@@ -3053,12 +3120,32 @@
    * surfaces keep deriving from the bright raw palette, so chips stay light
    * tints under the darker ink.
    */
-  --nf-brand-quiet: #0C2FE8;
+  /*
+   * THE SAME HUE CORRECTION AS THE NIGHT VALUE, AND HERE IT COSTS SOMETHING,
+   * SO THE LIGHTNESS PAYS FOR IT.
+   *
+   * #0C2FE8 was hue 230.5, the paper sibling of the retired #0010E0 primary,
+   * thirteen degrees of violet away from the #0069FE family at hue 215.2. The
+   * night value fixes with a pure hue rotation because its contrast improves.
+   * This one does not: rotating #0C2FE8 to 215 with its saturation and
+   * lightness untouched gives #0C67E8, and that measures 4.63:1 on the #F4F5F7
+   * paper, down from 7.44:1. Barely AA, where the ink a person reads links and
+   * prices in was comfortably AAA. A hue fix that quietly spends a third of
+   * the contrast is not a fix. (Both figures measured here against #F4F5F7,
+   * the actual paper canvas; the 7.4:1 named a few lines below is a different
+   * token's gradient and is not the same number.)
+   *
+   * So the hue goes to the family and the lightness steps down from 47.8% to
+   * 36% to buy the contrast back: #094DAF, hue 215.4, 7.15:1 on paper. Within
+   * three tenths of where it was, and now a deeper member of the family the
+   * fill actually belongs to rather than of the one it used to.
+   */
+  --nf-brand-quiet: #094DAF;
   /* Daylight needs no lift: these two stops measure 7.4:1 and 10.6:1 on paper,
      where the night theme's lifted stops would land at 2.5:1. The token is
      overridden here rather than the class being overridden in globals.css, so
      there is one place the gradient's ink is decided. */
-  --nf-gradient-text: linear-gradient(135deg, #0C39EF 0%, #0010D0 100%);
+  --nf-gradient-text: linear-gradient(135deg, #0950B6 0%, #003A8C 100%);
   /* 5.36:1 on white, 4.85:1 on its own tint. Was #0B8A5C, which measured
      4.37:1 on white and dropped to 3.79:1 once the badge tint sat under it. */
   --nf-state-success: #0A7A51;
@@ -3263,8 +3350,8 @@
    * every stop steps down until white on the LIGHTEST point of the gradient
    * clears 4.5:1. The lightest stop below is #2450FF at 5.73:1.
    */
-  --nf-gradient-brand: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
-  --nf-gradient-agent: linear-gradient(135deg, #2450FF 0%, #0010D0 100%);
+  --nf-gradient-brand: linear-gradient(135deg, #005DE2 0%, #003A8C 100%);
+  --nf-gradient-agent: linear-gradient(135deg, #005DE2 0%, #003A8C 100%);
 }
 
 /*
