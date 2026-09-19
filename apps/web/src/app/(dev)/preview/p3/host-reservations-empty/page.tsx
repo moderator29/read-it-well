@@ -2,7 +2,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
 import { HostTablesBody } from "@/app/host/reservations/page";
-import { EMPTY_TABLE_BOARD } from "@/app/host/reservations/board";
+import { P3_EMPTY_BOARD } from "../fixtures";
 
 /**
  * The state a venue is actually in on the day it signs: nothing has ever
@@ -16,7 +16,7 @@ export default async function PreviewHostReservationsEmpty() {
   const t = getDictionary(await getLocale());
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
-      <HostTablesBody board={EMPTY_TABLE_BOARD} />
+      <HostTablesBody board={P3_EMPTY_BOARD} />
     </HostShell>
   );
 }

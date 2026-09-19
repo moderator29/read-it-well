@@ -273,9 +273,16 @@ export function ListingGallery({
           data-testid="gallery-standin"
           /* Not interactive, but it is a media CHIP carrying words, and the
              photo counter twelve lines below is the same chip at the same corner
-             already on the control radius. A capsule beside a rectangle in one
-             file is the confusion the shape law removes. */
-          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium backdrop-blur-md sm:bottom-14 sm:right-4"
+             on the same rung. A capsule beside a rectangle in one file is the
+             confusion the shape law removes.
+
+             THE RUNG IS `--nf-radius-sm`, NOT THE CONTROL ROLE, AND THAT IS
+             THE WHOLE OF THE CORRECTION. Both chips draw 27 to 28px tall, so
+             14px of corner clamps to half the height and the browser paints a
+             capsule from source text that says rectangle (ledger 13.5: the
+             ruling is about the RATIO, never the token name). 10px on 28px
+             leaves the straight edge the governing images draw. */
+          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-sm)] bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           {t.catalogue.card.noPhotos}
         </p>
@@ -283,7 +290,9 @@ export function ListingGallery({
       {count > 0 && (
         <p
           data-testid="gallery-counter"
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] nf-media-chip px-sm py-2xs font-semibold backdrop-blur-md sm:bottom-14 sm:right-4"
+          /* `--nf-radius-sm`, the same 28px-plate ratio as the stand-in chip
+             above it. See the note there. */
+          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-sm)] bg-[var(--nf-overlay-media-strong)] nf-media-chip px-sm py-2xs font-semibold backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           <UiIcon name="picture" size={14} className="mr-2xs inline-block align-[-2px]" />
           <span className="sr-only">Photo </span>

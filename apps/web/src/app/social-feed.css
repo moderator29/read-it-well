@@ -514,7 +514,18 @@
     place-items: center;
     inline-size: 26px;
     block-size: 26px;
-    border-radius: var(--nf-radius-control);
+    /*
+     * A CIRCLE, SAID OUT LOUD. This read `--nf-radius-control`, which is 14
+     * on a 26px square, so twice the radius is more than the whole side and
+     * it drew a perfect circle while its source text said "control". That is
+     * the trap in ledger 13.5 stated the other way round: the token name
+     * claimed a rectangle and the number drew a disc, so nobody reading the
+     * file could see what shipped. It IS a circle and it is allowed to be
+     * one: a bare icon-only control with no word on it, the ruling's second
+     * exception, the same species as the nav search glyph. The token now says
+     * so, so the next reader is judging the decision rather than the name.
+     */
+    border-radius: var(--nf-radius-circle);
     color: var(--nf-content-on-brand);
     background: var(--nf-overlay-media-strong);
     border: 1px solid var(--nf-border-on-media);
@@ -1025,7 +1036,23 @@
     align-items: center;
     gap: 0.3rem;
     padding: 0.2rem 0.55rem;
-    border-radius: var(--nf-radius-control);
+    /*
+     * 25px TALL, SO THE CONTROL RUNG DREW A CAPSULE. Measured on a production
+     * build at 390: 62.8 x 25.4 with `--nf-radius-control` at 14, and twice
+     * 14 is 28, which is more than the height, so the two corners met in the
+     * middle and this badge shipped with semicircular ends while its source
+     * text said "control". Ledger 13.5: the ruling is about the RATIO, never
+     * about the token name, and the tenth rule cannot see this.
+     *
+     * `--nf-radius-sm` is the rung 13.1 names for a chip under about 32px,
+     * and on THIS height it is still 10 of 25, which is most of the way back
+     * to the same shape. `--nf-radius-xs` is 6 of 25, and 6 on 25 is the
+     * ratio the governing renders actually draw their small badges at: the
+     * Default and Verified chips in `7F96BE6C` measure about 8 on 30 and 10
+     * on 36. Same shape language, one rung further down, because the object
+     * is one rung smaller.
+     */
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-border-brand);
     color: var(--nf-brand-secondary);
     font-size: 0.6875rem;
@@ -1053,7 +1080,14 @@
     gap: 6px;
     min-block-size: 30px;
     padding-inline: 11px;
-    border-radius: var(--nf-radius-control);
+    /*
+     * 30px TALL, WHICH IS UNDER THE 32 THAT 13.1 DRAWS THE LINE AT. At the
+     * control rung this measured 62.2 x 30 with a 14px corner: 28 of 30, two
+     * pixels of straight edge down each side, which at 390 is a capsule to
+     * every eye that is not a ruler. `--nf-radius-sm` is the rung the ruling
+     * names for exactly this size and it leaves 10 pixels of flat.
+     */
+    border-radius: var(--nf-radius-sm);
     /* Lit brand edge, not a grey hairline (R1 A5). */
     border: 1px solid var(--nf-brand-edge);
     box-shadow: var(--nf-glow-edge);
@@ -1539,7 +1573,16 @@
     align-items: center;
     block-size: 22px;
     padding-inline: 9px;
-    border-radius: var(--nf-radius-control);
+    /*
+     * 22px TALL AND IT WAS A CAPSULE. Measured 58.5 x 22 on a production
+     * build with `--nf-radius-control` at 14: twice the radius is 28 against
+     * a 22px height, so the ends were fully semicircular and the word STORY
+     * sat in a lozenge. The same trap as the dock in ledger 13.5, three rungs
+     * smaller. `--nf-radius-sm` would be 20 of 22 and no better; `-xs` is 6
+     * of 22 and leaves ten pixels of straight edge, which is the ratio the
+     * governing renders draw a small badge at.
+     */
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     font-size: 0.625rem;
@@ -1668,7 +1711,12 @@
     place-items: center;
     block-size: 24px;
     padding-inline: 8px;
-    border-radius: var(--nf-radius-control);
+    /*
+     * 24px TALL AND IT WAS A CAPSULE, measured 35.5 x 24 with a 14px corner.
+     * It carries "+12", which is text, so the shape law reaches it. Same
+     * ratio reasoning as `.nf-story-chip` above.
+     */
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-wash-on-media-2);
     color: var(--nf-content-on-media);
     font-size: 0.7rem;
@@ -3011,7 +3059,33 @@
     outline-offset: 2px;
   }
   .nf-feed-seg__link[aria-current="page"] {
-    background: var(--nf-gradient-brand);
+    /*
+     * THE BRAND PRIMARY, FLAT, BECAUSE THE GOVERNING IMAGE IS FLAT.
+     *
+     * Sampled off `GOVERNING-feed-plus-bloom.png`, the live half of this exact
+     * control reads `#0c5cfc`: one flat azure, a few degrees of hue off
+     * `--nf-brand-primary` at `#0069FE`, with a light lift along the top edge
+     * and no diagonal travel in it at all. This rule painted
+     * `--nf-gradient-brand`, a 135 degree two-colour ramp, so the control was
+     * the wrong SHAPE of colour before any argument about which blue. The
+     * inset rim two lines below already draws the lift the render has, so flat
+     * brand primary is both the correct token and the closer picture. White on
+     * it is the 5:1 the ruling accepted as the cost of matching the reference,
+     * in both themes.
+     *
+     * AND THE RAMP WAS ALSO THE WRONG BLUE WHEN THIS WAS WRITTEN, which is
+     * recorded because the proofs in `docs/design/proofs/v4/` still show it.
+     * Measured on a production server, `--nf-gradient-brand` resolved to
+     * `#5C7CFF` to `#0C39EF`, both at about 228 degrees of hue against the
+     * render's 220 and this token's 215, and `#0C39EF` is what ledger 13.2's
+     * own table lists as the BEFORE value of the glow ink corrected to
+     * `#0069FE`: the measured sweep moved `--nf-electric-300` and left the
+     * ramp behind it. The lead's later tranche corrected the rest of the ramp
+     * the same evening, so `--nf-gradient-brand` now travels `#5C9FFF` to
+     * `#0C6AEF` and both of those are at 215 with the rest of the family. The
+     * root cause is closed; this rule stays flat because the render is flat.
+     */
+    background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
@@ -3094,7 +3168,15 @@
   .nf-post__role {
     flex-shrink: 0;
     padding: 1px 6px;
-    border-radius: var(--nf-radius-control);
+    /*
+     * 19px TALL, THE WORST OF THE FIVE. Measured 46 x 19 with the control
+     * rung's 14px corner, so twice the radius was half again the height and
+     * this badge was a hard capsule sitting beside a verified tick in every
+     * post head. `--nf-radius-sm` cannot fix it either: 10 doubled is 20,
+     * still more than 19. `-xs` is 6 of 19 and leaves seven pixels of flat.
+     * The clearest proof in this file that a shape ruling is about the ratio.
+     */
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-border-subtle);
     font-size: var(--nf-text-overline);
     font-weight: 700;

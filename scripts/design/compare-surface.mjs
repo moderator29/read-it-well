@@ -78,11 +78,20 @@ const SURFACES = {
       },
       {
         name: "dock: the active slot ink",
-        selector: '.nf-tab__link[aria-current] .nf-tab__icon',
+        selector: ".nf-tab__link[aria-current] .nf-tab__icon",
         at: { fx: 0.5, fy: 0.5 },
         box: 3,
         want: "#0257FD",
         from: "chrome reference, dock: the active slot ink",
+        tol: 24,
+      },
+      {
+        name: "dock: a resting slot ink",
+        selector: ".nf-tab__link:not([aria-current]) .nf-tab__icon",
+        at: { fx: 0.5, fy: 0.5 },
+        box: 3,
+        want: "#001237",
+        from: "chrome reference, dock: a resting slot ink",
         tol: 24,
       },
       {
@@ -105,6 +114,168 @@ const SURFACES = {
        * founder ruled on.
        */
       { name: "dock: the bar", selector: ".nf-tabbar", maxRatio: 0.45 },
+      { name: "dock: the travelling pill", selector: ".nf-tabbar__pill", maxRatio: 0.45 },
+      { name: "dock: a slot", selector: ".nf-tab__link", maxRatio: 0.45 },
+      { name: "dock: the context island", selector: ".nf-dock-island", maxRatio: 0.45 },
+    ],
+  },
+
+  /*
+   * R1 SECOND PASS, the header. `founder/GOVERNING-home-markets-target.png`
+   * draws NO bar behind the lockup row and NO hairline under it: its sample at
+   * the lockup row reads #000311 against a canvas of #000312, a difference of
+   * one on one channel, which is the reference saying "there is nothing here".
+   */
+  chrome: {
+    url: "/preview/f1/chrome",
+    viewport: PHONE,
+    note: "the app header and the five-slot dock, signed in, Home active",
+    checks: [
+      {
+        name: "header: any bar fill of its own",
+        /* fx 0.70, not 0.50. A scan across this header at 390 shows the
+           lockup, the bell and the avatar lighting most of the row; 0.60
+           through 0.75 is the only run of empty ground in it, and an empty
+           spot is the only place "is there a bar here" can be asked. */
+        name2: null,
+        selector: ".nf-app-header",
+        at: { fx: 0.70, fy: 0.5 },
+        box: 5,
+        want: "#000311",
+        from: "chrome reference, header: any bar fill behind the lockup row (there is none)",
+        tol: 8,
+      },
+      {
+        name: "canvas: the ground the header sits on",
+        /* The control for the check above. If the header row and the page
+           below it read the same, the header draws no bar of its own; if they
+           differ, it does. Comparing the header against the reference alone
+           cannot tell those apart. */
+        selector: "main",
+        at: { fx: 0.70, fy: 0.55 },
+        box: 5,
+        want: "#000312",
+        from: "chrome reference, canvas: the screen ground beside the lockup",
+        tol: 8,
+      },
+      {
+        name: "header: a hairline under it, if any",
+        selector: ".nf-app-header",
+        at: "bottom-border",
+        box: 2,
+        want: "#000312",
+        from: "chrome reference, header: the hairline under the header (there is none)",
+        tol: 10,
+      },
+    ],
+    shapes: [
+      { name: "header: the hamburger", selector: ".nf-app-header__btn", maxRatio: 0.45 },
+      { name: "header: the avatar (exempt, recorded)", selector: ".nf-app-header__avatar", maxRatio: 1 },
+      { name: "dock: the bar", selector: ".nf-tabbar", maxRatio: 0.45 },
+      { name: "dock: the context island", selector: ".nf-dock-island", maxRatio: 0.45 },
+    ],
+  },
+
+  /*
+   * R1 SECOND PASS. The in-app home at 390, which is the surface
+   * `founder/GOVERNING-home-markets-target.png` actually draws, and the only
+   * place the header, the dock, the market tiles, the search field and the
+   * city chips can be read against the product's own ground.
+   *
+   * NOT `/preview/f1/home`. `app/(dev)/preview/layout.tsx` calls `notFound()`
+   * when `NODE_ENV === "production"`, and `next start` is production, so every
+   * preview route 404s on the only server the founder accepts a proof from.
+   * `/home` renders signed out (its layout passes `signedIn` through rather
+   * than redirecting), so it is the route that can actually be measured.
+   *
+   * Every `want` below is a hex `sample-reference.mjs --chrome` read out of
+   * that PNG, re-run by R1 rather than copied from prose.
+   */
+  home: {
+    url: "/preview/f1/home",
+    viewport: PHONE,
+    note: "the in-app home body: search field, market tiles, city chips, canvas",
+    checks: [
+      {
+        name: "canvas: the screen ground",
+        selector: ".nf-home",
+        at: { fx: 0.5, fy: 0.002 },
+        box: 5,
+        want: "#000312",
+        from: "chrome reference, canvas: the screen ground beside the lockup",
+        tol: 8,
+      },
+      {
+        name: "search field: top border",
+        selector: ".nf-home__search",
+        at: "top-border",
+        box: 2,
+        want: "#002E7A",
+        from: "chrome reference, search field: top border",
+        tol: 14,
+      },
+      {
+        name: "search submit: the rounded square fill",
+        selector: ".nf-home__search-go",
+        at: { fx: 0.5, fy: 0.22 },
+        box: 3,
+        want: "#3C7CFC",
+        from: "chrome reference, search submit: the rounded square fill",
+        tol: 20,
+      },
+      {
+        name: "market tile: fill",
+        selector: ".nf-home__market",
+        at: { fx: 0.78, fy: 0.16 },
+        box: 5,
+        want: "#000C27",
+        from: "chrome reference, market tile: fill",
+        tol: 10,
+      },
+      {
+        name: "market tile: top border",
+        selector: ".nf-home__market",
+        at: "top-border",
+        box: 2,
+        want: "#1A5CA5",
+        from: "chrome reference, market tile: top border",
+        tol: 16,
+      },
+      {
+        name: "market tile: the plate behind the glyph",
+        selector: ".nf-home__market-art .nf-brand-icon-ground",
+        at: { fx: 0.5, fy: 0.5 },
+        box: 3,
+        want: "#0785FD",
+        from: "chrome reference, market tile: the glyph plate behind the icon",
+        tol: 24,
+      },
+      {
+        name: "city chip: fill",
+        selector: ".nf-home__city",
+        at: { fx: 0.5, fy: 0.9 },
+        box: 4,
+        want: "#030C23",
+        from: "chrome reference, city chip: fill",
+        tol: 10,
+      },
+      {
+        name: "city chip: top border",
+        selector: ".nf-home__city",
+        at: "top-border",
+        box: 2,
+        want: "#002051",
+        from: "chrome reference, city chip: top border",
+        tol: 14,
+      },
+    ],
+    shapes: [
+      { name: "market tile", selector: ".nf-home__market", maxRatio: 0.45 },
+      { name: "city chip", selector: ".nf-home__city", maxRatio: 0.45 },
+      { name: "the location chip", selector: ".nf-home__loc", maxRatio: 0.45 },
+      { name: "search field", selector: ".nf-home__search", maxRatio: 0.45 },
+      { name: "search submit", selector: ".nf-home__search-go", maxRatio: 0.45 },
+      { name: "market tile: the glyph plate", selector: ".nf-home__market-art .nf-brand-icon-ground", maxRatio: 0.45 },
     ],
   },
 };
@@ -189,14 +360,32 @@ async function openSurface(url, viewport) {
    * silent no-op without a compositor, which is why this passes `instant`.
    */
   await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: "instant" }));
-  await page.waitForTimeout(900);
-  const stuck = await page.evaluate(() =>
-    [...document.querySelectorAll(".nf-reveal")].filter((el) => {
-      const r = el.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > window.innerHeight) return false;
-      return Number(getComputedStyle(el).opacity) < 0.5;
-    }).length,
-  );
+  /*
+   * THE 900ms WAS A FIXED WAIT AND IT MADE THE GUARD THE FLAKIEST THING HERE.
+   *
+   * The guard itself is right: a band at opacity 0 means every sample under it
+   * reads the ground. But on a loaded box the landing's second Reveal takes
+   * about three seconds to run, so a single 900ms wait threw on a page that
+   * was merely slow, and four sweeps in a row died on a route with nothing
+   * wrong with it. Measured on /: one band under 0.5 at 1s, none at 3s.
+   *
+   * So it POLLS to a deadline instead. A page that settles is measured; a page
+   * that genuinely never reveals still throws, which is the case the guard
+   * exists for. R1.
+   */
+  let stuck = 0;
+  const deadline = Date.now() + 12_000;
+  for (;;) {
+    await page.waitForTimeout(400);
+    stuck = await page.evaluate(() =>
+      [...document.querySelectorAll(".nf-reveal")].filter((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) return false;
+        return Number(getComputedStyle(el).opacity) < 0.5;
+      }).length,
+    );
+    if (stuck === 0 || Date.now() > deadline) break;
+  }
   if (stuck > 0) {
     throw new Error(
       `${url}: ${stuck} on-screen reveal band(s) still at opacity < 0.5. The page did not finish, so no sample from it counts.`,
@@ -264,9 +453,24 @@ if (SHAPE_SWEEP) {
             if (r.width < 8 || r.height < 8) continue;
             const cs = getComputedStyle(el);
             if (cs.visibility === "hidden" || cs.display === "none") continue;
-            const radius = parseFloat(cs.borderTopLeftRadius) || 0;
+            /*
+             * A PERCENTAGE RADIUS IS NOT A PIXEL RADIUS, and `parseFloat` does
+             * not know that. `border-radius: 26%` computes as the string
+             * "26%", and parseFloat gives 26, which this then divided by a
+             * 28px side and called 0.93: a capsule that does not exist. The
+             * real figure is 26 per cent of 28, which is 7.3px and a ratio of
+             * 0.26. `--nf-radius-squircle` is 26% and `--nf-radius-circle` is
+             * 50%, so every icon plate and every avatar in the product was
+             * being measured this way. It reports both ways: a percentage on a
+             * small element invents a breach, and on a large one it hides one.
+             * R1, measured on the home market tile's glyph plate.
+             */
             const short = Math.min(r.width, r.height);
             if (short <= 0) continue;
+            const rawRadius = cs.borderTopLeftRadius;
+            const radius = rawRadius.includes("%")
+              ? ((parseFloat(rawRadius) || 0) / 100) * short
+              : parseFloat(rawRadius) || 0;
             const ratio = radius / short;
             if (ratio < warnAt) continue;
             /* Text-bearing is the thing the law turns on, and it is asked of
@@ -363,6 +567,12 @@ for (const check of surface.checks) {
   if (check.at === "top-border") {
     x = rect.x + rect.w / 2;
     y = rect.y + 0.5;
+  } else if (check.at === "bottom-border") {
+    /* The last row of the element's own box. A header that draws no hairline
+       reads as whatever is behind it; one that draws a hairline reads as the
+       hairline, which is the whole question the reference settles. */
+    x = rect.x + rect.w / 2;
+    y = rect.y + rect.h - 0.5;
   } else {
     x = rect.x + rect.w * check.at.fx;
     y = rect.y + rect.h * check.at.fy;
@@ -379,8 +589,11 @@ for (const s of surface.shapes ?? []) {
     const el = document.querySelector(sel);
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
-    return { radius, short: Math.min(r.width, r.height) };
+    /* Percentages, for the reason spelled out in the sweep above. */
+    const raw = getComputedStyle(el).borderTopLeftRadius;
+    const short = Math.min(r.width, r.height);
+    const radius = raw.includes("%") ? ((parseFloat(raw) || 0) / 100) * short : parseFloat(raw) || 0;
+    return { radius, short };
   }, s.selector);
   if (!drawn) { shapes.push({ ...s, ratio: null, pass: false }); continue; }
   const ratio = drawn.short > 0 ? drawn.radius / drawn.short : 0;

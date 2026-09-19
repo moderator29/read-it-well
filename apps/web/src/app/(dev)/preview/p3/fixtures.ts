@@ -171,3 +171,21 @@ export const P3_PHOTOS = [
   { id: "00000000-0000-4000-8000-0000000p3061", url: "/brand/photos/restaurant-02-lounge.jpg" },
   { id: "00000000-0000-4000-8000-0000000p3062", url: "/brand/photos/restaurant-03-bar.jpg" },
 ];
+
+/**
+ * The board on the day a venue signs: nothing has ever arrived.
+ *
+ * Stated here rather than imported from `@/app/host/reservations/board`,
+ * which is where the same constant lives for the route. That module opens with
+ * `import "server-only"` and pulls in the admin client and the reader behind
+ * it, and importing it as a VALUE from a preview page took the whole route to
+ * a 404 on the dev server while the identical page next door, which imports
+ * only fixtures, rendered. The harness pages stay clear of the read path
+ * entirely, which is the rule the rest of this file already follows.
+ */
+export const P3_EMPTY_BOARD: HostTableBoard = {
+  requests: [],
+  upcoming: [],
+  past: [],
+  total: 0,
+};

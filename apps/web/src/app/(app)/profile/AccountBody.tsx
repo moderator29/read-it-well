@@ -89,11 +89,17 @@ function BelongingRow({
 }) {
   return (
     <Link href={href} className="nf-card nf-belong__row" data-testid={testId}>
-      {/* The glass object, smaller than the tile that grounds it. A rendered
-          object carries its own light, so at 40 inside 52 it filled the tile
-          and the column read as four pictures rather than four rows. */}
+      {/*
+        THE OBJECT IS THE TILE'S SIZE, AND THE ROW DREW TWO TILES UNTIL IT WAS.
+        Every object named below draws its own rounded-square glass ground, and
+        `.nf-belong__tile` draws one too, with the shared lit edge. At 32 inside
+        44 the two did not coincide, so each row shipped a bright square with a
+        second dimmer square nested in it. `50E032EA` draws ONE tile per row.
+        At the tile's own size the artwork's ground lands under the row's lit
+        edge and the two read as the single object the render draws.
+      */}
       <span className="nf-belong__tile" aria-hidden="true">
-        <BrandIcon name={icon} size={32} />
+        <BrandIcon name={icon} size={44} />
       </span>
       <span className="nf-belong__body">
         <span className="nf-belong__title">{title}</span>
@@ -195,23 +201,54 @@ export function AccountBody({
           aria-labelledby="account-tab-account"
           className="space-y-lg pt-lg"
         >
-          {/* The four belongings, as drawn: bookings, saved, wallet,
-              inspections, then the role switch. Everything else a person has
-              here follows in the quieter groups under them, so nothing that
-              used to be reachable from this page has gone. */}
+          {/*
+            The four belongings, as drawn: bookings, saved, wallet,
+            inspections, then the role switch. Everything else a person has
+            here follows in the quieter groups under them, so nothing that
+            used to be reachable from this page has gone.
+
+            THE FOUR OBJECTS ARE THE RENDER'S FOUR, AND THEY WERE NOT BEFORE.
+            `50E032EA` draws every one of these rows as a white line drawing
+            inside a quiet glass tile: a calendar, a BOOKMARK, a wallet, a
+            ticked shield, and a person-with-a-mark on the role switch under
+            them. This column carried `calendar-check`, `heart-home`, `wallet`
+            and `shield-check`, which are the pack's SOLID modelled objects:
+            one family, so rule 5 held, but a hotter and more saturated family
+            than the render's, and four bright blue objects where the image
+            has four quiet ones. The pack already holds the render's own four
+            under `calendar-grid`, `bookmark-ribbon`, `wallet-tile` and
+            `shield-check-tile`, so this is a name change rather than new
+            artwork, and it is the same finding the settings hub closed under
+            A13: the tier was never mixed in code, the ARTWORK was the wrong
+            family.
+
+            Saved takes the bookmark and not the heart because the render
+            draws a bookmark in this row. The dock keeps its heart, which is
+            also what the render's dock draws.
+          */}
           <div className="nf-belong" data-testid="belongings">
             <BelongingRow
               href="/bookings"
-              icon="calendar-check"
+              icon="calendar-grid"
               title={copy.myBookings}
               sub={copy.myBookingsSub}
               testId="row-bookings"
             />
-            <BelongingRow href="/saved" icon="heart-home" title={copy.saved} sub={copy.savedSub} />
-            <BelongingRow href="/wallet" icon="wallet" title={copy.wallet} sub={copy.walletSub} />
+            <BelongingRow
+              href="/saved"
+              icon="bookmark-ribbon"
+              title={copy.saved}
+              sub={copy.savedSub}
+            />
+            <BelongingRow
+              href="/wallet"
+              icon="wallet-tile"
+              title={copy.wallet}
+              sub={copy.walletSub}
+            />
             <BelongingRow
               href="/inspections"
-              icon="shield-check"
+              icon="shield-check-tile"
               title={copy.inspections}
               sub={copy.inspectionsSub}
             />

@@ -117,25 +117,49 @@ function ProfileRow({
  * pack under the names the render draws, person and bell and shield and
  * palette and globe and headset, so not one of them is an approximation.
  *
- * Smaller than the stroked glyphs they replace. A rendered object carries its
- * own ground and its own light, so it reads at a size a line drawing would
- * disappear at; drawn at the stroked tier's 24 it fills the tile and the rail
- * turns into a column of pictures.
+ * A rendered object carries its own ground and its own light, so it reads at a
+ * size a line drawing would disappear at.
  *
- * WHAT THE FIRST SCREENSHOT OF THIS SCREEN SHOWED, recorded here because it
- * is a real weakness and not a resolved one: the six objects do not read as
- * one family at this size. `bell-badge` and `shield-lock` carry deep glass
- * and catch the light; `person-card`, `palette`, `globe` and `headset` are
- * flatter pieces of artwork and read almost as line drawings beside them, so
- * the rail looks like two tiers in one column, which rule 5 forbids. None of
- * the six has a light twin either, so on paper all six take the pack's navy
- * chip and the group becomes six dark squares punched into a white card.
- * Neither is fixable from this scope: the artwork is G2's and the chip is the
- * icon ground in the lead's layer. It is filed rather than papered over, and
- * the stroked tier is not the answer because the set has no palette, no globe
- * and no headset, so switching would approximate three of the six.
+ * AND R1's A13 IS CLOSED HERE, WITH THE PACK OPEN BESIDE THE RENDER.
+ *
+ * A13 read "settings mixes icon tiers in one column". The premise is wrong in
+ * code and it was right about the picture, which is why it kept coming back.
+ * All six are `BrandIcon` at one size through one function; no tier is mixed
+ * and rule 5 is not broken by anything written here. What differed was the
+ * ARTWORK. Four of the six, `person-card`, `palette`, `globe` and `headset`,
+ * are a white line drawing inside a quiet rounded-square glass tile, which is
+ * exactly what `7F96BE6C` draws in all six of its rows. The other two were
+ * `bell-badge` and `shield-lock`, which are solid modelled objects with no
+ * tile at all: saturated, hot, and half again as bright as their four
+ * neighbours, so the column read as two tiers although it was made of one.
+ *
+ * The fix needed no new artwork. The pack already holds `bell-tile` and
+ * `shield-check-tile`, drawn in the tiled line family the other four belong
+ * to and matching the render's bell and its ticked shield one for one. Two
+ * names, and the column is one family and the render's family.
+ *
+ * `bell-badge` ALSO CARRIED A BAKED COUNT. Its artwork has a "3" painted into
+ * the badge, and it sat on the notifications row of a shipping settings
+ * screen where the real number is whatever the person has. Rule 15 forbids an
+ * invented count and the third edition's stop list forbids letting a render's
+ * baked detail into the product. `bell-tile` has no number on it. That is a
+ * second reason this swap is not a preference.
+ *
+ * WHAT IS STILL NOT FIXED HERE, unpapered: none of the six has a light twin,
+ * so on paper all six take the pack's navy chip and the group becomes six
+ * dark squares punched into a white card. That is the icon ground in the
+ * lead's layer and is reported, not worked around.
+ *
+ * THE SIZE IS THE TILE'S SIZE, AND THAT IS WHY IT MOVED FROM 24 TO 38.
+ * Every one of these objects draws its own tile, and the row draws a tile
+ * too (`.nf-hub .nf-srow__icon`, 38px with the shared lit edge). At 24 inside
+ * 38 the two tiles did not coincide, so every row shipped a bright square
+ * with a second dimmer square nested inside it, which the render has none of:
+ * `7F96BE6C` draws ONE tile about 36px carrying one line glyph about 20px.
+ * Drawn at the tile's own size the artwork's ground lands under the row's
+ * lit edge and the pair read as the single object the render draws.
  */
-const HUB_GLYPH = 24;
+const HUB_GLYPH = 38;
 
 function HubGlyph({ name }: { name: BrandIconName }) {
   return <BrandIcon name={name} size={HUB_GLYPH} />;
@@ -224,7 +248,7 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           testId="hub-account"
         />
         <RowSwitch
-          glyph={<HubGlyph name="bell-badge" />}
+          glyph={<HubGlyph name="bell-tile" />}
           label={t.settings.notifications.label}
           sub={hub.notificationsSub}
           value={notifyOn ? hub.on : hub.off}
@@ -235,7 +259,7 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
         />
         <RowLink
           href="/settings/privacy"
-          glyph={<HubGlyph name="shield-lock" />}
+          glyph={<HubGlyph name="shield-check-tile" />}
           label={hub.privacy}
           sub={hub.privacySub}
           value={

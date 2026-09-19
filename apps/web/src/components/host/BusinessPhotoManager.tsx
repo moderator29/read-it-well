@@ -140,8 +140,17 @@ export function BusinessPhotoManager({
                 <span className="nf-overline block">
                   {index === 0 ? "Cover" : `Photograph ${index + 1}`}
                 </span>
+                {/* GLASS, NOT GHOST. A ghost button is transparent and
+                    borderless by design, so under a photograph and beside a
+                    bold overline it read as a caption rather than a control:
+                    at 390 in dark the words "Take down" sat under the picture
+                    looking like its title. The quiet glass edge is the least
+                    that makes it legible as something to press, and it is not
+                    the rose destructive treatment, because three rose buttons
+                    in a grid of three photographs shout at an owner tidying
+                    their own pictures. */}
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
                   full
                   disabled={removing || busy}

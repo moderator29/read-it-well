@@ -25,6 +25,25 @@ export default async function NotFound() {
   const home = session.state === "signed-in" ? "/home" : "/";
   return (
     <SystemMoment home={home}>
+      {/*
+       * A MARKER FOR THE SCREENSHOT HARNESS, AND IT IS HERE BECAUSE THE
+       * OBVIOUS CHECK DOES NOT WORK.
+       *
+       * `notFound()` called from a layout during streaming answers HTTP 200
+       * with this body, which three workers confirmed independently tonight
+       * while the preview harness was shut. So `verify-shots.mjs` checking the
+       * status code is necessary and NOT sufficient: it cannot tell this page
+       * from a surface, and neither can any of its other assertions. This page
+       * sets `data-theme` from the same inline script, loads the same
+       * stylesheet and has no Reveal bands to get stuck, so it passes every
+       * one of them perfectly. Workers wrote eight PNGs of this screen and
+       * nearly filed them as proof that a surface had been swept.
+       *
+       * One attribute settles it, and it is on the page itself rather than
+       * guessed at from a class name, because a class can be renamed by
+       * somebody with no idea a harness depends on it.
+       */}
+      <span data-nf-not-found="1" hidden />
       <p className="nf-system__code" aria-hidden="true">
         404
       </p>

@@ -315,12 +315,39 @@
     backdrop-filter: blur(var(--nf-glass-blur-thin));
   }
 
+  /*
+   * `--nf-radius-xs`, AND THE RUNG BELOW THE ONE THE SHAPE LAW NAMES, BECAUSE
+   * THE SHAPE LAW IS A RATIO AND NOT A LOOKUP TABLE.
+   *
+   * This asked for `--nf-radius-control`, which is 14px, under a correct
+   * reading of the founder's ruling. Measured on a live page, `.nf-badge`
+   * draws between 19px and 26.6px tall, so twice the radius exceeded the
+   * height and EVERY status chip in the product drew semicircular ends. That
+   * is "Waiting on you" on the dashboard, "Live" and "Under review" on
+   * listings, "Passed" on verification, "In review" on the admin queue,
+   * "Founding host" on the standing desk, and the same class wherever else it
+   * is used. `check-css-tokens.mjs` rule 10 passed all of them, correctly, and
+   * no grep could ever have found them, because the source text was right.
+   *
+   * The founder's own clarification named `sm` for a chip under about 32px,
+   * and it was written with a 28px chip in front of him. On a 19px badge `sm`
+   * at 10px is still half the height and draws the capsule straight back. So
+   * the rule carries down one more rung below about 24px: `--nf-radius-xs` at
+   * 6px, which leaves 7px of straight edge on the shortest badge these
+   * surfaces draw. `278CC66A` draws all four of its status chips exactly that
+   * way, as small rounded rectangles with a clear straight side.
+   *
+   * V5 found this and scoped it under `.nf-agent`, `.nf-host` and `.nf-admin`,
+   * which was the right thing for a worker to do with a class it does not own.
+   * It is fixed at the root here instead, because the landing, the cards and
+   * the profile draw the same class and were still drawing capsules.
+   */
   .nf-badge {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-space-2xs) var(--nf-gap-inline);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -445,7 +472,33 @@
       0 0 0 3px var(--nf-surface-canvas);
   }
 
-  /* Small circular count badge riding next to a section header ("Messages 3"). */
+  /*
+   * THE COUNT BADGE, AND THE LEAD'S RULING ON IT, BECAUSE THE PRODUCT CARRIED
+   * THREE ANSWERS AND THEY CONTRADICTED EACH OTHER IN WRITING.
+   *
+   * `threads.css` argued in a considered comment that an unread count stays
+   * round. `admin.css` argued the opposite in its own comment. This file did a
+   * third thing. All three were reasoned and they cannot all be right, so V5
+   * put it up rather than pick one, which was correct.
+   *
+   * THE RULING IS THE RECTANGLE, and the argument is the two-digit case. This
+   * was `--nf-radius-circle` on a box 22px tall with a 22px MINIMUM width that
+   * grows sideways with its content. So it drew a circle at one digit and an
+   * ELLIPSE at two, which is a capsule, which is the shape the founder ruled
+   * out. A badge whose shape changes when the number reaches ten is not a
+   * decision, it is two decisions taken by the content.
+   *
+   * And the exemption list settles the rest. It names a dot, a spinner, a
+   * progress ring, an avatar ring and a story ring, and every one of them is a
+   * shape that carries NO text. A count badge carries a numeral, and a numeral
+   * is text. The law reaches it.
+   *
+   * So it is `--nf-radius-xs` like every other small text plate, it is one
+   * shape at one digit and at three, and `threads.css`, `admin.css` and
+   * `check-css-tokens.mjs` are brought onto this answer rather than left to
+   * disagree. The font size next to it was a raw literal outside the type
+   * scale and is now the overline token it was approximating.
+   */
   .nf-count-badge {
     display: inline-flex;
     align-items: center;
@@ -453,8 +506,8 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding: var(--nf-space-0) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-circle);
-    font-size: 0.6875rem;
+    border-radius: var(--nf-radius-xs);
+    font-size: var(--nf-text-overline);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     color: var(--nf-brand-secondary);

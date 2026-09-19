@@ -214,7 +214,21 @@
 
      ROUNDED RECTANGLE, on the founder's shape law of 19 September. It carries
      a word, and the governing hero draws its Verified mark on the card as a
-     rounded rectangle, not a capsule. There is not one capsule in that image. */
+     rounded rectangle, not a capsule. There is not one capsule in that image.
+
+     `--nf-radius-xs`, AND THE NOTE ABOVE WAS RIGHT WHILE THE TOKEN WAS WRONG.
+     This plate reads 18px tall on the card, and `--nf-radius-control` is 14px,
+     so twice the radius is more than the whole height: the browser clamped it
+     to 9px and drew the exact capsule the note is arguing against. It is the
+     dock's fault again (ledger 13.5) - A SHAPE RULING IS ABOUT THE RATIO,
+     NEVER ABOUT THE TOKEN NAME - and neither rule ten nor a grep can see it,
+     because the source text was already correct.
+
+     Measured off `founder/GOVERNING-home-markets-target.png` and
+     `founder/GOVERNING-search-filters-target.png` rather than guessed: the
+     Verified badge and the For Rent tag both carry a corner about a THIRD of
+     their height. 6px on an 18px plate is 0.67 of the clamp, which leaves the
+     straight edge the reference draws. */
   .nf-pcard__mark {
     position: absolute;
     z-index: 2;
@@ -222,7 +236,7 @@
     align-items: center;
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-brand-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-overlay-media-strong));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
@@ -287,14 +301,19 @@
     color: var(--nf-content-on-media-accent);
   }
   /* Carries a word, so it is a rounded rectangle like every other lettered
-     plate on this platform (the founder's shape law, 19 September). */
+     plate on this platform (the founder's shape law, 19 September).
+
+     On `--nf-radius-xs` for the reason the Verified mark above is: this plate
+     draws 21px tall on a card and 23px on a restaurant shelf row, and 14px of
+     corner on either clamps to a capsule. The rung, not the role name, is
+     what a plate this short needs. */
   .nf-pcard__nophoto {
     position: absolute;
     right: var(--nf-space-2xs);
     bottom: var(--nf-space-2xs);
     z-index: 2;
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-overlay-media-strong);
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     color: var(--nf-content-on-media-muted);
@@ -406,6 +425,30 @@
     gap: var(--nf-space-xs);
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    /*
+     * SCROLL PADDING, AND THIS IS A FAULT NO SOURCE READING COULD HAVE FOUND.
+     *
+     * The bleed above is the standard trick: pull the row out to the frame by
+     * the shell gutter, then pad it back by the same amount, so the first item
+     * rests on the gutter and the last can still scroll past it. The source is
+     * correct and it is not what the browser drew.
+     *
+     * `.nf-scroll-x` sets `scroll-snap-type: x proximity` and gives every child
+     * `scroll-snap-align: start`, and a snap position aligns a child's start
+     * edge to the SCROLLPORT's start edge, which ignores this padding unless
+     * `scroll-padding` says otherwise. So on load the rail snapped itself
+     * forward by exactly one gutter - measured at `scrollLeft: 24` against
+     * `padding-left: 24px` - and the first chip came to rest flush against the
+     * phone's edge with its left corners on the frame line, while the search
+     * field directly above it sat on the gutter. Two different left edges on
+     * one bar.
+     *
+     * It is the ratio trap in another costume: every declaration reads right,
+     * rule ten is silent because there is nothing wrong to read, and only a
+     * measurement of the running page shows it. Found by reading `scrollLeft`
+     * off a production server, not by reading this file.
+     */
+    scroll-padding-inline: var(--nf-pad-shell);
   }
   .nf-shelf-chip {
     position: relative;
@@ -1089,6 +1132,9 @@
     gap: var(--nf-space-2xs);
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    /* Snapped its own gutter away on load, the same way `.nf-shelf-chips`
+       did. The note there has the mechanism. */
+    scroll-padding-inline: var(--nf-pad-shell);
   }
   .nf-amenity-grid {
     display: grid;
@@ -1341,6 +1387,9 @@
     margin-inline: calc(var(--nf-pad-shell) * -1);
     margin-top: var(--nf-space-md);
     padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    /* Snapped its own gutter away on load, the same way `.nf-shelf-chips`
+       did. The note there has the mechanism. */
+    scroll-padding-inline: var(--nf-pad-shell);
   }
   .nf-detail-capsule {
     display: inline-flex;
@@ -2017,13 +2066,17 @@
     border-radius: var(--nf-radius-md);
     background: var(--nf-media-ground-to);
   }
-  /* Open or Closed, in words, so a rounded rectangle (the founder's law). */
+  /* Open or Closed, in words, so a rounded rectangle (the founder's law).
+
+     `--nf-radius-xs`, because the words sit on a 23px plate and 14px of
+     corner on 23px of height is a capsule however the token is named. Same
+     ratio the Verified mark takes above. */
   .nf-reg-open {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
     font-weight: 650;
   }

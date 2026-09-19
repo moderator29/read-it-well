@@ -6,9 +6,12 @@
   No governing image covers the agent console, the Host wizard or the
   verification flow, so all three inherit the register: the same glass
   wells, the same brand hairline and one bloom, the same lit tiles for
-  content glyphs, the pill controls where the renders show pills. Everything
-  is scoped under `.nf-agent` (the console shell) and `.nf-host` (the wizard
-  and the verification flow), so nothing here can reach another surface.
+  content glyphs, and THE REGISTER'S CONTROL IS THE ROUNDED RECTANGLE. This
+  line used to end "the pill controls where the renders show pills", which is
+  the section 8 amendment the founder withdrew at its root in ledger 13.4, so
+  it is corrected here rather than left to be restated. Everything is scoped
+  under `.nf-agent` (the console shell) and `.nf-host` (the wizard and the
+  verification flow), so nothing here can reach another surface.
 
   The register now includes the founder's container ruling: every edge is
   lit glass, which is `--nf-brand-edge` for the hairline, `--nf-rim-lit` for
@@ -17,6 +20,52 @@
   the object was taking the width the label needs.
 */
 @layer components {
+  /*
+   * THE STATUS CHIP AND THE COUNT ARE ROUNDED RECTANGLES IN HERE, AND THE
+   * REASON IS THE RATIO RATHER THAN THE TOKEN NAME.
+   *
+   * `.nf-badge` and `.nf-count-badge` are the shared primitives in
+   * `app/css/chips.css`, which belongs to the primitives worker. `.nf-badge`
+   * asks for `--nf-radius-control`, which is 14px, and it is drawn on this
+   * surface between 19px and 26.6px tall, measured on a live page rather than
+   * guessed. Twice the radius is more than the height, so the corners meet in
+   * the middle and every status chip in this console drew SEMICIRCULAR ENDS
+   * while its source text said "control radius" and every check passed. It is
+   * the dock's fault exactly (ledger 13.5): a shape ruling is about the ratio,
+   * never about the token name, and only a picture catches it.
+   * `.nf-count-badge` is worse, asking for `--nf-radius-circle` on a box with
+   * a 22px floor that grows sideways, so it draws a circle at one digit and an
+   * ellipse at two.
+   *
+   * `GOVERNING-landing-desktop-hero.png` draws its one badge, the listing
+   * card's Verified mark, as a small rounded rectangle, and `278CC66A` draws
+   * all four of its status chips the same way with a clear straight edge down
+   * each side.
+   *
+   * THE RUNG IS `--nf-radius-xs`, 6px, AND NOT `--nf-radius-sm`, WHICH IS THE
+   * RATIO RULE APPLIED ONE STEP FURTHER RATHER THAN A DEPARTURE FROM IT. The
+   * founder's clarification puts a chip under about 32px on `--nf-radius-sm`,
+   * 10px, and that clarification was written about a 28px chip. These badges
+   * are 19px at the `xs` size, so 10px is still half the height and still
+   * draws the capsule: the first pass of this rule set `sm` and the probe
+   * measured 19px against 10px and said capsule again, which is the same trap
+   * a third time in one night. 6px leaves 7px of straight edge on the
+   * shortest of them and reads as the reference's chip at every size this
+   * surface draws.
+   *
+   * SCOPED HERE RATHER THAN CHANGED AT THE SOURCE, per the ledger's shared
+   * class rule in section 2: a worker who needs a change to a shared class
+   * defines it inside its own partial under its surface's root and reports it.
+   * Reported for `chips.css` so the lead can promote it to every surface,
+   * because this is a product-wide capsule and not an agent console one.
+   */
+  .nf-agent .nf-badge,
+  .nf-agent .nf-count-badge,
+  .nf-host .nf-badge,
+  .nf-host .nf-count-badge {
+    border-radius: var(--nf-radius-xs);
+  }
+
   /* ------------------------------------------------------- the console */
 
   .nf-agent {
@@ -252,6 +301,33 @@
     background: var(--nf-brand-primary);
     border-color: var(--nf-brand-primary);
   }
+  /*
+   * THE HOST'S CARDS ARE LIT CONTAINERS TOO, AND TWO SURFACES WERE MISSING IT.
+   *
+   * `.nf-agent .nf-card` and `.nf-admin .nf-card` both carry the founder's
+   * container ruling. `.nf-host .nf-card` did not exist, so every surface in
+   * this family that draws its container through the shared `Screen` primitives
+   * rather than through `.nf-host-group` came out dull: `/host/transfer`, whose
+   * offer panels are `RowList boxed`, and `/host/reservations`, whose tables are
+   * `nf-card p-card`. Measured on a live page, both had a TRANSPARENT border and
+   * a catchlight at 0.1 against the console's 0.9. Both routes were written
+   * after the container ruling landed and neither had a preview, which is
+   * exactly how a surface misses a sweep.
+   *
+   * THE RECIPE IS `.nf-host-group`'S, COPIED RATHER THAN INVENTED, and that is
+   * deliberate under the lead's bulletin: no reference image covers the host
+   * family, so this matches the nearest container that is already reviewed and
+   * already twinned on paper, which is this family's own group well four rules
+   * below. No shared token is retuned and no new rung is introduced.
+   */
+  .nf-host .nf-card {
+    background: var(--nf-well-fill);
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-1);
+  }
+
   /* A group of fields under a heading: the well, not a card in a card. */
   .nf-host-group {
     padding: var(--nf-space-md);
@@ -339,6 +415,7 @@
 :root[data-theme="light"] .nf-agent-bar__search input,
 :root[data-theme="light"] .nf-agent-bar__lang .nf-btn--primary,
 :root[data-theme="light"] .nf-host-choice,
+:root[data-theme="light"] .nf-host .nf-card,
 :root[data-theme="light"] .nf-host-group {
   background: var(--nf-surface-on-paper);
   box-shadow: var(--nf-shadow-on-paper);

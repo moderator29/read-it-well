@@ -93,11 +93,70 @@ for (const route of routes) {
   const page = await context.newPage();
   const url = base + (route.startsWith("/") ? route : "/" + route);
   try {
-    await page.goto(url, { waitUntil: "load", timeout: 45000 });
+    const response = await page.goto(url, { waitUntil: "load", timeout: 45000 });
+
+    /*
+     * THE FOURTH CHECK, AND IT IS THE MOST EMBARRASSING ONE IN THIS FILE.
+     *
+     * This harness never looked at the HTTP status. When the preview routes
+     * were 404ing under `next start`, because the harness layout gated on
+     * NODE_ENV and Turbopack inlines that at build time, it wrote four PNGs of
+     * the 404 PAGE and reported them as verified shots. And it was right to,
+     * by its own rules: the 404 page sets `data-theme` from the same inline
+     * script, loads the same stylesheet, and has no `Reveal` bands to get
+     * stuck, so all three assertions below pass on it perfectly. A worker
+     * nearly filed those as proof that a surface had been swept.
+     *
+     * That is the fifth distinct way this machine has produced a confident
+     * lie in one day, and it is the worst of them, because the other four
+     * produced a shot that LOOKED wrong. This one produces a shot that looks
+     * like a tidy empty screen.
+     *
+     * A status check is one line and it goes FIRST, before any assertion that
+     * could be satisfied by an error page. Anything that is not a 2xx is not a
+     * surface, whatever it renders.
+     */
+    const status = response?.status() ?? 0;
+    if (status < 200 || status > 299) {
+      console.error(
+        `FAIL ${route}: the server answered ${status || "nothing"}, so this is an error page and not the surface. No file written.`,
+      );
+      failures += 1;
+      await page.close();
+      continue;
+    }
+
+    /*
+     * AND THE STATUS CHECK ABOVE IS NOT ENOUGH, WHICH IS THE WHOLE TRAP.
+     *
+     * `notFound()` called from a layout during streaming answers HTTP 200 with
+     * the not-found BODY. Three workers hit that independently tonight while
+     * the preview harness was shut, and between them wrote eight PNGs of the
+     * "This page has checked out" screen. Every assertion in this file passed
+     * on every one of them, because that page is a real page of ours: same
+     * inline theme script, same stylesheet, no Reveal bands to get stuck.
+     *
+     * `app/not-found.tsx` carries `data-nf-not-found` for exactly this. An
+     * attribute on the page rather than a class name sniffed from the outside,
+     * because a class gets renamed by somebody who has never read this file.
+     */
+    const isNotFound = await page.evaluate(
+      () => document.querySelector("[data-nf-not-found]") !== null,
+    );
+    if (isNotFound) {
+      console.error(
+        `FAIL ${route}: the server answered ${status} but served the not-found page. That is a route that does not exist, or a gate that refused, and it is not a surface. No file written.`,
+      );
+      failures += 1;
+      await page.close();
+      continue;
+    }
+
     await page.waitForTimeout(2500);
 
     // Prove the shot is worth looking at before writing a file that claims it
-    // is. Two checks, and both exist because they each let a useless screenshot
+    // is. Three more checks after the status one above, and every one of them
+    // exists because it once let a useless screenshot
     // through and be treated as verification.
     const state = await page.evaluate(() => ({
       theme: document.documentElement.dataset.theme ?? "dark",

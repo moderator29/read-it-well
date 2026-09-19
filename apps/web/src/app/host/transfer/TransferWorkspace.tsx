@@ -90,7 +90,16 @@ export function TransferWorkspace({
               ? "There is no business on this account."
               : trading === 0
                 ? "Nothing here is trading, so none of it is holding anything up."
-                : `${trading} of your ${businesses.length === 1 ? "business is" : "businesses are"} still trading. A business a stranger can book cannot be left with nobody behind it, so it has to move or close before an account can be deleted.`}
+                : /*
+                     THE VERB AGREES WITH `trading`, NOT WITH `businesses.length`,
+                     and it used to agree with the wrong one. Two businesses with
+                     one of them trading read "1 of your businesses are still
+                     trading", which is the first sentence on a screen somebody
+                     reaches while closing their account. The subject of the
+                     sentence is the number that is trading; the plural of the
+                     set it is drawn from is the possessive and is separate.
+                  */
+                  `${trading} of your ${businesses.length === 1 ? "business" : "businesses"} ${trading === 1 ? "is" : "are"} still trading. A business a stranger can book cannot be left with nobody behind it, so it has to move or close before an account can be deleted.`}
           </p>
         </div>
       </div>

@@ -103,13 +103,29 @@
     /*
       THE SHAPE LAW, and this badge carries text. The founder's ruling of
       19 September closes the amended control law: anything that carries TEXT
-      is a rounded rectangle on `--nf-radius-control`, and only a genuinely
-      icon-only round control (an avatar, a bare glyph button) stays circular.
-      The governing hero draws the one badge it has, the listing card's
-      Verified mark, as a rounded rectangle, so a count wearing a capsule was
-      the odd shape on the surface rather than the consistent one.
+      is a rounded rectangle, and only a genuinely icon-only round control (an
+      avatar, a bare glyph button) stays circular. The governing hero draws the
+      one badge it has, the listing card's Verified mark, as a rounded
+      rectangle, and `278CC66A` draws its four status chips the same way, so a
+      count wearing a capsule was the odd shape on the surface rather than the
+      consistent one.
+
+      THE RUNG WAS WRONG AND THE ARGUMENT WAS RIGHT, which is the dock's fault
+      exactly (ledger 13.5). This badge is 1.375rem, 22px, tall. It carried
+      `--nf-radius-control`, 14px, so twice the radius was 28px against a 22px
+      height: the corners met in the middle and it drew the capsule the comment
+      above is arguing against, reached by the token the comment chose. Rule
+      ten could not see it, because the source text was correct, and no grep
+      could either. It was caught by measuring the live page.
+      THE RUNG IS `--nf-radius-xs`, 6px, AND `--nf-radius-sm` WAS TRIED FIRST
+      AND MEASURED. 10px against a 22px box leaves two pixels of straight edge
+      on each side, which is a capsule with a rounding error rather than a
+      rectangle; 6px leaves ten, and ten is what the eye reads as a corner. The
+      founder's clarification names `sm` for a chip under about 32px and it was
+      written about a 28px chip, so this is that same ratio rule carried one
+      rung further rather than a departure from it.
     */
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-overline);
@@ -823,6 +839,37 @@
       var(--nf-rim-lit),
       0 0 18px var(--nf-glow-1),
       var(--nf-bloom-card);
+  }
+  /*
+   * THE STATUS CHIP IS A SMALL ROUNDED RECTANGLE, AND `278CC66A` IS THE
+   * AUTHORITY FOR IT.
+   *
+   * The governing admin queue draws Pending, In Review, Approved and Rejected
+   * as small rounded rectangles with a clear straight edge down each side, and
+   * it draws no circular count anywhere: its counts live inside the tab label,
+   * "All (42)". The shared `.nf-badge` in `app/css/chips.css` asks for
+   * `--nf-radius-control`, 14px, and this console draws it between 19px and
+   * 26.6px tall, measured on a live page. Twice the radius is more than the
+   * height, so every status chip on every desk drew semicircular ends: the On
+   * and Off marks on the switch desk, the queue's In review and Approved, the
+   * frame's "18 waiting", the standing desk's Founding host. Rule ten cannot
+   * see it, because the source text reads "control radius" and is correct, and
+   * neither can a grep. Only a picture, or a measurement, catches it.
+   *
+   * THE RUNG IS `--nf-radius-xs`, 6px. The founder's clarification puts a chip
+   * under about 32px on `--nf-radius-sm`, 10px, and it was written about a
+   * 28px chip. The `xs` badge here measures 19px, so 10px is still half the
+   * height and still draws the capsule; this rule was written at `sm` first
+   * and the probe caught it. 6px leaves a straight edge on the shortest badge
+   * the console draws and keeps the reference's proportion on the tallest.
+   *
+   * Scoped here rather than changed at the source per the ledger's shared
+   * class rule in section 2, and reported for `chips.css` because the capsule
+   * reaches every surface in the product and not only this one.
+   */
+  .nf-admin .nf-badge,
+  .nf-admin .nf-count-badge {
+    border-radius: var(--nf-radius-xs);
   }
   /*
    * THE FLAGGED METRIC TILE'S RULE IS A RULE, NOT A CRESCENT.

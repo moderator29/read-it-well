@@ -183,6 +183,43 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
     scroll-snap-type: x proximity;
+    /*
+     * THE SNAP LINE HAS TO BE TOLD ABOUT THE RAIL'S OWN PADDING, AND THIS IS
+     * THE ONE LINE THAT LETS A RAIL SAY SO.
+     *
+     * V1 measured this on a production build and it is exact: a snap position
+     * aligns a child's start edge to the SCROLLPORT's start edge, and it
+     * ignores the container's padding entirely unless `scroll-padding` says
+     * otherwise. So the standard bleed-then-pad rail, which pulls itself out to
+     * the phone edge with a negative margin and pads its content back to the
+     * gutter, snaps its own left gutter away the instant it settles. Measured:
+     * `scrollLeft` 24 against `padding-left` 24px on every padded rail, and 0
+     * on every rail whose padding is 0.
+     *
+     * What that looks like is the first filter chip resting hard against the
+     * edge of the phone while the search field directly above it sits on the
+     * gutter. Two different left edges on one bar, correct in the source, undone
+     * at runtime, and invisible to every gate we own. Four rails on the
+     * discovery surfaces alone were doing it.
+     *
+     * DEFAULT ZERO, because a rail that does NOT pad itself must not be given a
+     * snap inset: that would leave a gap where the reference has none. So a
+     * padded rail sets `--nf-rail-snap-pad` to the SAME token it pads with, and
+     * an unpadded one says nothing and is unaffected. Where the padding comes
+     * from a utility class in the markup rather than from a stylesheet, use
+     * `.nf-scroll-x--gutter` below, which sets both from one token so the pair
+     * cannot drift apart.
+     */
+    scroll-padding-inline: var(--nf-rail-snap-pad, 0px);
+  }
+  /*
+   * A BLEED RAIL THAT CANNOT GET IT WRONG. One class sets the padding and the
+   * snap inset from the same token, which is the whole point: every hand-rolled
+   * version of this pair in the tree set the first and forgot the second.
+   */
+  .nf-scroll-x--gutter {
+    padding-inline: var(--nf-pad-shell);
+    --nf-rail-snap-pad: var(--nf-pad-shell);
   }
   .nf-scroll-x::-webkit-scrollbar {
     display: none;

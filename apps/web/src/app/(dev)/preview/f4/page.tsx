@@ -8,6 +8,7 @@ const PAGES = [
   "story-new",
   "place",
   "profile",
+  "public-profile",
   "edit-profile",
   "notifications",
   "settings",

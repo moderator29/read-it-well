@@ -42,6 +42,47 @@ const SHELL: Record<AvatarSize, string> = {
   lg: "h-12 w-12 text-[1.0625rem]",
 };
 
+/**
+ * THE WRAPPER NOW STATES ITS OWN BOX, AND THAT IS TWO VISIBLE FAULTS CLOSED.
+ *
+ * The wrapper used to carry no size and be left to take its shell's. It did
+ * not. Measured on the live inbox at 390 dark, the wrapper came back 32x44
+ * around a 44x44 shell: its intrinsic width collapsed to 32px and the avatar
+ * simply overflowed it. Both things hanging off that box then went wrong.
+ *
+ * THE RING WENT OVAL AGAIN. `.nf-inbox-row__ring` is a grid sized by this
+ * element, so a 32x44 item made a 38x50 ring, and a 50 per cent radius on a
+ * box half again as tall as it is wide draws an ELLIPSE. There is already a
+ * note in `threads.css` about this ring having been an oval on every row it
+ * ever drew, fixed there with `align-self: center` and `aspect-ratio: 1`.
+ * That fix was right about the stretch and could not reach this, because the
+ * width was never coming from the row: four ovals down the inbox and three
+ * more on the share picker, in the shots.
+ *
+ * THE VERIFIED MARK LANDED IN THE MIDDLE OF THE FACE. The badge is positioned
+ * `-bottom-0.5 -right-0.5` against this box, so a box 12px narrower than the
+ * avatar put the one mark that says a human was checked at roughly seven
+ * o'clock ON the photograph instead of on its bottom-right corner. Both
+ * governing thread references draw their avatars as clean circles with the
+ * corner mark clear of the face.
+ *
+ * Stating the box here rather than patching the ring fixes it once for every
+ * call site, including the thread header's own ring, and keeps the badge's
+ * anchor and the shell the same square by construction.
+ *
+ * IT IS STATED IN PIXELS FROM `PIXELS`, NOT IN A SPACING UTILITY, and that is
+ * the second half of the finding. Adding `h-11 w-11` to this span first, the
+ * same pair the shell already wears, did NOT fix it: measured again on the
+ * live share picker, the shell resolved `w-11` to 44px and this span resolved
+ * the identical class on the identical inherited `--spacing` of `.25rem` to
+ * 32px, so the wrapper stayed 32x44 and the ring stayed an oval. Whatever is
+ * eating the utility on this one box, a definite length is not eatable: with
+ * an explicit width the wrapper measures 44 and the ring measures 50x50, a
+ * true circle. `PIXELS` is already the file's single source for these three
+ * sizes and is already trusted for the image's `width`/`height`, so the box
+ * and the fetched candidate cannot drift apart.
+ */
+
 /** The badge scales with the avatar, never below 14px where the tick fails. */
 const BADGE: Record<AvatarSize, string> = {
   sm: "h-4 w-4",
@@ -94,7 +135,10 @@ export function VerifiedAvatar({
   className?: string;
 }) {
   return (
-    <span className={`relative inline-block shrink-0 ${className ?? ""}`}>
+    <span
+      className={`relative inline-block shrink-0 ${className ?? ""}`}
+      style={{ width: PIXELS[size], height: PIXELS[size] }}
+    >
       <span
         aria-hidden="true"
         className={`flex items-center justify-center overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] font-bold text-[var(--nf-content-primary)] ${SHELL[size]}`}

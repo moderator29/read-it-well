@@ -275,12 +275,28 @@
    * capsule left among them reads as a rule somebody forgot rather than a
    * rule somebody took. If the founder wants the inert labels kept round it
    * is one token here and two in the card below.
+   *
+   * AND THE RECTANGLE IT ASKED FOR WAS STILL DRAWING A CAPSULE (section 13.5).
+   * The rule above said `--nf-radius-control`, which is the right NAME and the
+   * wrong NUMBER: measured on the live rental face the tag is 58x20, and 14px
+   * of corner on a 20px box is more than half its height, so the two corners
+   * met in the middle and "Tenant" shipped as the stadium the comment spends a
+   * paragraph arguing against. Rule ten cannot see it, because the source text
+   * reads correctly; only the picture beside
+   * `GOVERNING-thread-rental-enquiry.jpg` does, and the render draws that tag
+   * with visibly straight top and bottom edges.
+   *
+   * `--nf-radius-sm` is 10px and would land exactly on half of 20, which is
+   * the same capsule reached one rung lower, so this takes `--nf-radius-xs`
+   * (6px): 12px of corner on a 20px box leaves a clear straight edge, and it
+   * is the smallest rung of the same shape language the 28px chips took in
+   * 13.1. The ratio decides this, never the token's name.
    */
   .nf-role-tag {
     display: inline-flex;
     align-items: center;
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     font-size: var(--nf-text-overline);
     font-weight: 600;
@@ -288,6 +304,37 @@
     color: var(--nf-content-secondary);
     background: var(--nf-well-fill);
     box-shadow: var(--nf-rim-lit);
+  }
+
+  /*
+   * EVERY BADGE ON THESE SURFACES WAS A CAPSULE, AND THE DEFECT IS NOT HERE.
+   *
+   * `.nf-badge` in `chips.css` sets `--nf-radius-control`, 14px. Measured on
+   * live pages at 390 dark: the thread header's Verified is 80x27, the chat
+   * card's Confirmed 103x27, the share picker's Verified 80x27 and the
+   * inspection sheet's Scheduled 93x23. Twice 14 is 28, which is more than
+   * every one of those heights, so all four drew semicircular ends. It is
+   * 13.5's trap exactly: the token's NAME is the control rung and its NUMBER
+   * is a capsule at this size, rule ten reads the source as correct, and only
+   * the picture beside the reference shows it. `GOVERNING-chat-booking-card.png`
+   * draws Confirmed and `GOVERNING-thread-rental-enquiry.jpg` draws Verified
+   * as small rounded rectangles with straight top and bottom edges.
+   *
+   * THE ONE-LINE FIX IS IN `chips.css` AND THAT FILE IS NOT THIS WORKER'S, so
+   * this corrects the badges on the surfaces this stint owns and the platform
+   * fix is reported rather than reached for. `--nf-radius-sm` is 10px, which
+   * is 13.1's own rung for a chip under about 32px and leaves a straight edge
+   * on a 23px box. When `chips.css` takes the same rung this block becomes a
+   * no-op and can go.
+   */
+  .nf-thread__place .nf-badge,
+  .nf-chat-card .nf-badge,
+  .nf-context-card .nf-badge,
+  .nf-inbox-row .nf-badge,
+  .nf-share-row .nf-badge,
+  .nf-insp-card .nf-badge,
+  .nf-insp-fact .nf-badge {
+    border-radius: var(--nf-radius-sm);
   }
 
   /* ------------------------------------------------------------ bubbles */
@@ -322,9 +369,27 @@
    * that is already cut would be the same gesture drawn twice (10.2: resolve
    * the render, do not copy the confusion).
    */
+  /*
+   * AND IT WAS FIXED AT HALF STRENGTH, which the picture shows and the words
+   * above do not. Moving off `--nf-well-fill` onto the tint ladder was the
+   * right move and rung 1 is 14 per cent, which over the canvas resolves near
+   * `#001433`. Sampling `GOVERNING-thread-hotel-booking.jpg` with the canvas
+   * reader the palette was set from, the counterpart's two bubbles measure
+   * `#001458` and `#001F7A` against a `#01081B` ground: the blue channel is
+   * 88 and 122 where ours is 51. Ours was no longer a black box, and it was
+   * still half the blue the founder is holding the screen up against, which
+   * is the difference between matching the reference and gesturing at it.
+   *
+   * Rung 3 is 28 per cent, near `#002054`, which lands on the dimmer of the
+   * reference's two bubbles. The sent side is untouched and stays the CTA
+   * gradient, so the step between the two sides is if anything clearer than
+   * it was. Same finding, same evidence and the same rung as the assistant's
+   * own incoming bubble in `home.css`, so the product's two chat surfaces now
+   * answer the question the same way.
+   */
   .nf-bubble--theirs {
     color: var(--nf-content-primary);
-    background: var(--nf-brand-tint-1);
+    background: var(--nf-brand-tint-3);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     border-bottom-left-radius: var(--nf-radius-xs);
     box-shadow:
@@ -465,12 +530,23 @@
    * stadium behind a rounded rectangle and showed the mismatch at both ends.
    * `GOVERNING-chat-booking-card.png` draws Confirmed as one rounded
    * rectangle, and now so does this.
+   *
+   * AND THEN BOTH OF THEM WERE STILL CAPSULES. Matching the plate to the
+   * badge was the right move and it left them matching at the wrong shape.
+   * Measured on a production server this plate is 103x27, and
+   * `--nf-radius-control` is 14px, so twice the radius clears the height and
+   * the plate drew semicircular ends with the badge drawing them again
+   * inside it. The badge takes `--nf-radius-sm` in the block further up this
+   * file; the plate moves with it, because the note above is right that these
+   * two are one object and a stadium behind a rectangle is the fault it was
+   * written to close. 10px on a 27px box leaves the straight edge the render
+   * draws.
    */
   .nf-chat-card__badge {
     position: absolute;
     top: var(--nf-space-sm);
     right: var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-sm);
     background: var(--nf-overlay-media-strong);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
@@ -600,13 +676,27 @@
     color: var(--nf-content-primary);
     font-variant-numeric: tabular-nums;
   }
-  /* The chip beside the price: 3 Nights, or the rental period. A chip, and
-     the shape law names chips, so a rounded rectangle. */
+  /*
+   * The chip beside the price: 3 Nights, or the rental period. A chip, and
+   * the shape law names chips, so a rounded rectangle.
+   *
+   * IT WAS NAMED A RECTANGLE AND DRAWN AS A CAPSULE, which is 13.5's trap and
+   * not a second opinion about the shape. Measured on the live booking card
+   * the chip is 63x23 and on the share picker 64x23, and `--nf-radius-control`
+   * is 14px, so twice the radius is more than the whole height and the ends
+   * came out semicircular. `GOVERNING-chat-booking-card.png` draws "3 Nights"
+   * with straight top and bottom edges and small corners.
+   *
+   * `--nf-radius-sm` is 10px, so 20px of corner on a 23px box, which leaves a
+   * straight edge down each end. That is 13.1's own clarification applied
+   * where it was written to be applied: a chip under about 32px takes the
+   * small rung, because the control rung turns back into a capsule there.
+   */
   .nf-chat-card__chip {
     display: inline-flex;
     align-items: center;
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-sm);
     background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
     font-size: var(--nf-text-overline);
@@ -867,16 +957,30 @@
     border-radius: inherit;
   }
   /*
-   * THE UNREAD COUNT STAYS ROUND, and that is a decision and not an oversight.
+   * THE UNREAD COUNT WAS RULED ROUND HERE AND THE LEAD HAS OVERTURNED IT.
+   * The argument is kept rather than deleted, because it was a good one and
+   * the next person will make it again.
    *
-   * It is not a control: it is a number painted inside `.nf-inbox-row`, which
-   * is the control, and it carries `aria-label` rather than a press. It is the
-   * same family as the story ring's plus badge and the notification dot, which
-   * the shape law exempts by name. `--nf-radius-pill` rather than
-   * `--nf-radius-circle` because it is 22px tall with a floor of 22px WIDE and
-   * grows sideways at two digits: 50% would draw an ellipse the moment the
-   * count reached 10, which is the exact fault the inbox ring above has
-   * already been through.
+   * IT SAID: this is not a control, it is a number painted inside
+   * `.nf-inbox-row`, which is the control; it carries an `aria-label` rather
+   * than a press; and it is the same family as the story ring's plus badge and
+   * the notification dot, which the shape law exempts by name. It chose
+   * `--nf-radius-pill` over `--nf-radius-circle` deliberately, because the box
+   * is 22px tall with a 22px MINIMUM width that grows sideways, and 50% would
+   * have drawn an ellipse the moment the count reached ten.
+   *
+   * WHAT DECIDES IT AGAINST: the exemption list names a dot, a spinner, a
+   * progress ring, an avatar ring and a story ring, and every one of those
+   * carries NO TEXT. This carries a numeral, and a numeral is text. The law
+   * reaches it. And the paragraph above had already found the real fault
+   * without naming it: a shape that has to be chosen differently at one digit
+   * and at two is not one decision, it is the content making the decision.
+   * `--nf-radius-pill` on a box that grows sideways IS the ellipse, drawn
+   * deliberately rather than by accident.
+   *
+   * The product carried three answers to this question in three files, each
+   * reasoned, each different. It now carries one: a count badge is a small
+   * text plate on `--nf-radius-xs`, the same at one digit and at three.
    */
   .nf-inbox-row__count {
     display: inline-flex;
@@ -885,7 +989,7 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding-inline: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-overline);

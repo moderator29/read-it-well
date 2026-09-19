@@ -257,14 +257,33 @@ export function AdminTabs({
              the larger number has the answer in the tooltip and the screen
              reader has it in the label.
           */
-          /* KEPT ROUND under the shape law. A count badge is not a control:
-             nothing is pressed here, the disclosure around it is the control and
-             it is a rectangle. Sibling of the reaction dot, which the ruling
-             names as correct. */
+          /*
+             SQUARED OFF, AND THE ARGUMENT THAT KEPT IT ROUND IS RECORDED HERE
+             SO NOBODY MAKES IT TWICE.
+
+             It read: a count badge is not a control, nothing is pressed here,
+             the disclosure around it is the control and it is a rectangle, so
+             this is a sibling of the reaction dot which the ruling names as
+             correct. That is a fair reading of the exemption list and it loses
+             to the picture. `278CC66A` is the governing image for this console
+             and there is no circular count on it: its counts sit inside the tab
+             label, "All (42)", and the only round thing on the whole screen is
+             the avatar. Measured on a live page this badge is 20px tall at a
+             9999px radius, so it drew a cyan capsule in the console header, the
+             single loudest object above the fold, beside tabs that are rounded
+             rectangles. The rung is `--nf-radius-xs`, 6px: this badge is 20px
+             tall and `--nf-radius-sm`, 10px, is exactly half of that, so `sm`
+             draws the same capsule back. The founder's rung of `sm` for a chip
+             under about 32px (ledger 13.1) was written about a 28px chip, and
+             this is the ratio rule carried one step further.
+
+             A dot stays round because a dot carries no word. This carries a
+             number, which is a word made of digits.
+          */
           <span
             title={`${waiting} waiting across the console`}
             aria-label={`${waiting} waiting across the console`}
-            className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]"
+            className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-[var(--nf-radius-xs)] bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]"
           >
             {waiting}
           </span>

@@ -529,6 +529,35 @@ export async function recordBusinessRung(input: {
 
   const before = business.verification_tier;
 
+  /*
+   * THE IDENTITY RUNG IS THE BADGE, SO THE SERVER ASKS FOR THE EVIDENCE TOO.
+   *
+   * `businesses.verified` is derived by trigger from this one rung and nothing
+   * else, so a passed identity rung is the only thing in the product that can
+   * produce a verified mark. The desk already refuses to offer the control
+   * while no identity document is on file, and until now that refusal lived
+   * ONLY in the browser: the action itself would have recorded the rung, and a
+   * badge no human check earned is exactly what rule 12 exists to prevent.
+   * The screen and the server now say the same thing, in the same words.
+   *
+   * It gates `passed` only. A FAILED identity check with nothing uploaded is a
+   * true and useful record: it is how a reviewer says the document never came.
+   */
+  if (rung === "identity" && status === "passed") {
+    const { data: papers, error: papersError } = await access.supabase
+      .from("business_documents")
+      .select("id")
+      .eq("business_id", business.id)
+      .eq("kind", "identity")
+      .limit(1);
+    if (papersError) return fail(SERVICE_DOWN);
+    if ((papers ?? []).length === 0) {
+      return fail(
+        "No identity document is on file, so there is nothing to check a person against. This rung is what the verified mark is derived from, and it cannot be recorded on nothing.",
+      );
+    }
+  }
+
   const { error: writeError } = await access.supabase
     .from("business_verification_checks")
     .upsert(

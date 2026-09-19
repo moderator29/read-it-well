@@ -623,7 +623,15 @@
     outline-offset: 2px;
   }
   .nf-glass-seg__tab[aria-selected="true"] {
-    background: var(--nf-gradient-brand);
+    /*
+     * FLAT BRAND PRIMARY, for the reason written out in full at
+     * `.nf-feed-seg__link[aria-current="page"]` in `social-feed.css`:
+     * `50E032EA` draws the live Belongings half as one flat azure, the same
+     * colour its twin draws For You with in `GOVERNING-feed-plus-bloom.png`,
+     * and this rule painted a 135 degree ramp. The lift along the top edge is
+     * the inset rim below, not a diagonal.
+     */
+    background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
@@ -686,6 +694,21 @@
     outline: 2px solid var(--nf-brand-primary);
     outline-offset: 2px;
   }
+  /*
+   * THE TILE IS THE OBJECT'S OWN, exactly as on the settings hub, and this
+   * rule drew a second one for the same reason and with the same result.
+   *
+   * It carried `--nf-brand-edge` and `--nf-glow-edge` so the tile wore the
+   * shared lit edge like the row around it. Every object in this column is a
+   * pack asset drawn AS a tile, so each row shipped two concentric rounded
+   * squares with a gap between them, and `50E032EA` draws one. The full
+   * reasoning, including why scaling the object up cannot close the gap, is
+   * written out once at `.nf-hub .nf-srow__icon` in `settings-rows.css`.
+   *
+   * The slot stays 44, which is what the render's belongings tile measures
+   * against its row, and the object is drawn at 44 so its own ground lands
+   * where this border used to be.
+   */
   .nf-belong__tile {
     display: grid;
     place-items: center;
@@ -693,11 +716,6 @@
     inline-size: 44px;
     block-size: 44px;
     border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    /* The shared lit edge, same as the row it sits in and the settings tile
-       it is a sibling of. One recipe, three places that need it. */
-    box-shadow: var(--nf-glow-edge);
   }
   .nf-belong__body {
     flex: 1 1 auto;

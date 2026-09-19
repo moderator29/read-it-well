@@ -733,21 +733,41 @@
   }
 
   /*
-   * Each glyph in a glass square, as drawn, at 38 and not 42.
+   * Each glyph in a glass square, as drawn, at 38 and not 42. Four pixels off
+   * each side is four pixels back for the words, and the words are what was
+   * wrapping.
    *
-   * The tile carries the shared lit edge rather than a rim and a glow written
-   * here: `--nf-glow-edge` is the composition the cards and tiles already
-   * wear, and a settings tile is the smallest object on the screen that is
-   * still a container. Four pixels off each side is four pixels back for the
-   * words, and the words are what was wrapping.
+   * THE TILE IS THE OBJECT'S OWN, AND THIS RULE DREW A SECOND ONE.
+   *
+   * It used to carry `--nf-brand-edge` and `--nf-glow-edge` here, on the
+   * argument that a settings tile is the smallest object on the screen that is
+   * still a container and should wear the shared lit edge like the cards. The
+   * argument is sound and the picture says it was wrong, which is the only way
+   * this could have been caught: every object in this column is a pack asset
+   * drawn AS a tile, a white line glyph on a rounded-square glass ground, so
+   * with a bordered tile around it each row shipped two concentric rounded
+   * squares with a gap between them. Photographed at two and a half times on a
+   * production server the two rings are unmistakable, and `7F96BE6C` has ONE
+   * tile per row.
+   *
+   * Scaling the object up until the two coincided was tried and does not work:
+   * the tiled objects fill between 69 and 78 per cent of their PNG box
+   * depending on how much glow each one bleeds, so there is no single number,
+   * and the numbers that close the gap push each object's glow outside the
+   * border that is meant to contain it.
+   *
+   * So the row keeps the slot and the object keeps the tile. Sized to the slot
+   * the artwork's own ground lands exactly where the border used to be, its
+   * own lit edge does the work `--nf-glow-edge` was doing, and the column is
+   * one tile per row as the render draws it. The `color` stays because the
+   * signed-out row puts a stroked `UiIcon` in this slot and that one does need
+   * an ink; it has no tile of its own and no tile is drawn for it either, which
+   * matches the render, where the only thing in the slot is the glyph.
    */
   .nf-hub .nf-srow__icon {
     inline-size: 38px;
     block-size: 38px;
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-glow-edge);
     color: var(--nf-content-primary);
   }
   /*
@@ -908,11 +928,22 @@
   :root[data-theme="light"] .nf-hub-head__lede {
     color: var(--nf-content-secondary);
   }
-  :root[data-theme="light"] .nf-hub .nf-srow__icon {
-    background: var(--nf-surface-inset);
-    border-color: var(--nf-border-default);
-    box-shadow: none;
-  }
+  /*
+   * THE LIGHT TWIN OF THE HUB TILE IS GONE WITH THE TILE.
+   *
+   * It restated the dark rule's chrome in paper terms: an inset plate, a
+   * neutral border and no glow. That rule no longer draws chrome in either
+   * theme, because the object in the slot brings its own tile and a second one
+   * around it drew two concentric squares (see `.nf-hub .nf-srow__icon`
+   * above). A paper plate behind a tiled object is the same fault in reverse:
+   * it would show only in the corners the artwork leaves transparent.
+   *
+   * WHAT THIS DOES NOT FIX, and it is not made worse by going: none of the six
+   * objects has a light twin, so on paper each one still takes the pack's navy
+   * chip and the column reads as six dark squares on a white card. That is the
+   * icon ground in the lead's layer, it was true before this rule went, and it
+   * is reported rather than papered over here.
+   */
   :root[data-theme="light"] .nf-hub-profile__avatar {
     background:
       linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
