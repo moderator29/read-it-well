@@ -219,7 +219,7 @@ export function QueueFilters({
               picker: keyboard-reachable, localised by the browser, and the
               one control a console does not need to invent. */}
           {dateable && (
-            <div className="mt-xs flex w-full flex-wrap items-end gap-row">
+            <div className="nf-admin-more__body">
               <label className="min-w-0 flex-1">
                 <span className="nf-label">{f.from}</span>
                 <input type="date" name="from" defaultValue={query.from ?? ""} className="nf-field mt-inline-tight w-full" />

@@ -335,19 +335,25 @@
     color: var(--nf-content-muted);
     pointer-events: none;
   }
-  /* The filter disclosure: the sliders control opens the date range. */
+  /* The filter disclosure: the sliders control opens the date range. Shut,
+     it is the search field and the control alone (278CC66A draws no frame
+     around them); open, the dates sit on a quiet plate beneath. */
   .nf-admin-more {
+    display: block;
+  }
+  .nf-admin-more > summary {
+    list-style: none;
+  }
+  .nf-admin-more__body {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
     gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-md);
     border: var(--nf-border-width) solid var(--nf-border-subtle);
     background: var(--nf-glass-fill-thin);
-  }
-  .nf-admin-more > summary {
-    list-style: none;
   }
   .nf-admin-more > summary::-webkit-details-marker {
     display: none;
@@ -434,19 +440,60 @@
       0 0 18px var(--nf-glow-1);
     overflow: hidden;
   }
+  /* The phone row is two lines on a grid: the tile, then the title over
+     its meta line (reference, status pill, stamp), then View and the kebab.
+     A title never breaks mid-word to make room for a pill. Desktop is the
+     render's seven columns, and the meta wrapper dissolves into them. */
   .nf-admin-table__head,
   .nf-admin-row__grid {
     display: grid;
-    grid-template-columns: 3.25rem minmax(0, 1fr) auto auto;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "type title actions"
+      "type meta actions";
+    align-items: center;
+    column-gap: var(--nf-space-xs);
+    row-gap: var(--nf-space-2xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+  }
+  .nf-admin-row__type {
+    grid-area: type;
+  }
+  .nf-admin-row__title {
+    grid-area: title;
+  }
+  .nf-admin-row__meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--nf-space-xs);
-    padding: var(--nf-space-xs) var(--nf-space-sm);
+    min-width: 0;
+  }
+  .nf-admin-row__actions {
+    grid-area: actions;
+  }
+  .nf-admin-row__detail {
+    grid-area: detail;
   }
   @media (min-width: 1024px) {
     .nf-admin-table__head,
     .nf-admin-row__grid {
       grid-template-columns: 7rem 7.5rem minmax(0, 1fr) minmax(0, 1fr) 8.5rem 9rem 8rem;
+      grid-template-areas: "id type title detail status when actions";
       padding: var(--nf-space-sm) var(--nf-space-md);
+    }
+    .nf-admin-row__meta {
+      display: contents;
+    }
+    .nf-admin-row__id {
+      grid-area: id;
+    }
+    .nf-admin-row__status {
+      grid-area: status;
+    }
+    .nf-admin-row__when {
+      grid-area: when;
     }
   }
   .nf-admin-table__head {
@@ -477,8 +524,8 @@
     }
   }
   .nf-admin-row__id {
-    display: none;
-    font-size: var(--nf-text-caption);
+    display: block;
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     color: var(--nf-content-secondary);
     font-variant-numeric: tabular-nums;
@@ -498,6 +545,7 @@
     place-items: center;
     width: 2.5rem;
     height: 2.5rem;
+    align-self: start;
     flex-shrink: 0;
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
@@ -538,7 +586,7 @@
     justify-content: flex-start;
   }
   .nf-admin-row__when {
-    display: none;
+    display: block;
     font-size: var(--nf-text-overline);
     color: var(--nf-content-secondary);
     font-variant-numeric: tabular-nums;
@@ -589,6 +637,9 @@
     .nf-admin-row__type-word {
       font-size: var(--nf-text-caption);
       color: var(--nf-content-secondary);
+    }
+    .nf-admin-row__id {
+      font-size: var(--nf-text-caption);
     }
     .nf-admin-row__body {
       padding-inline: var(--nf-space-md);

@@ -111,7 +111,6 @@ function RowGrid({ row }: { row: QueueRowData }) {
   );
   return (
     <div className="nf-admin-row__grid">
-      <span className="nf-admin-row__id nf-numeric">{row.reference}</span>
       <span className="nf-admin-row__type">
         <span className="nf-admin-row__tile" aria-hidden="true">
           <UiIcon name={row.icon} size={20} />
@@ -132,12 +131,18 @@ function RowGrid({ row }: { row: QueueRowData }) {
         {row.detail && <span className="block truncate font-semibold text-[var(--nf-content-primary)]">{row.detail}</span>}
         {row.detailSub && <span className="block truncate">{row.detailSub}</span>}
       </span>
-      <span className="nf-admin-row__status">
-        <StatusPill tone={row.tone ?? toneForStatus(row.status)} size="xs">
-          {row.statusLabel}
-        </StatusPill>
+      {/* The reference, the pill and the stamp: one meta line under the
+          title on a phone, three of the render's columns on desktop (the
+          wrapper is `display: contents` there). */}
+      <span className="nf-admin-row__meta">
+        <span className="nf-admin-row__id nf-numeric">{row.reference}</span>
+        <span className="nf-admin-row__status">
+          <StatusPill tone={row.tone ?? toneForStatus(row.status)} size="xs">
+            {row.statusLabel}
+          </StatusPill>
+        </span>
+        <span className="nf-admin-row__when">{row.submitted}</span>
       </span>
-      <span className="nf-admin-row__when">{row.submitted}</span>
       <span className="nf-admin-row__actions">
         {view}
         <span className="nf-admin-row__kebab" aria-hidden="true">

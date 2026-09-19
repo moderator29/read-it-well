@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { BackButton } from "@/components/site/BackButton";
-import { Logo, LogoMark } from "@/design-system/brand/Logo";
+import { Logo } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { requireAdmin } from "@/lib/admin/guard";
@@ -83,7 +83,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <div className="nf-admin-bar">
             <BackButton fallback="/home" className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
-              <LogoMark size={30} />
+              <Logo size={30} wordSize={16} />
             </Link>
             <ConsoleSearch label={t.admin.common.searchLabel} placeholder={t.admin.common.searchPlaceholder} />
             <span className="flex-1 lg:hidden" />

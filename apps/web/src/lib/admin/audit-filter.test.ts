@@ -5,6 +5,7 @@ import {
   actionLabel,
   auditIdExpression,
   auditTextExpression,
+  entityTypeIcon,
   entityTypeLabel,
   pickAuditEntityType,
   planAuditQuery,
@@ -73,5 +74,13 @@ describe("labels", () => {
   it("keeps the chip list distinct", () => {
     const values = AUDIT_ENTITY_TYPES.map((type) => type.value);
     expect(new Set(values).size).toBe(values.length);
+  });
+
+  it("gives every target type a tile glyph and a plain mark to a stranger", () => {
+    for (const type of AUDIT_ENTITY_TYPES) {
+      expect(entityTypeIcon(type.value)).toBe(type.icon);
+      expect(type.icon.length).toBeGreaterThan(0);
+    }
+    expect(entityTypeIcon("something_new")).toBe("info");
   });
 });

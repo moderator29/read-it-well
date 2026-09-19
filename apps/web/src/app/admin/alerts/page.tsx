@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getInventoryDriftAlerts, getRiskAlerts, type AlertView } from "@/lib/admin/queries";
-import { AlertResolve } from "../_components/AdminActions";
-import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
-import { adminUi, type AdminUi } from "../_components/ui";
+import { getInventoryDriftAlerts, getRiskAlerts } from "@/lib/admin/queries";
+import { adminUi } from "../_components/ui";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
   queueNoMatch,
@@ -12,14 +10,8 @@ import {
   QueuePager,
   queueNarrowed,
   readQueueQuery,
-  type QueueStatusOption,
 } from "../_components/QueueFilters";
-import { Constants } from "@/lib/supabase/database.types";
-/* `Tone` moved out of the admin console and into the shared StatusPill when
-   the four copies of it were collapsed into one. Same type, one home. */
-import type { StatusTone } from "@/components/ui/StatusPill";
-import { gradeForSeverity } from "@/lib/trust/standards";
-import { dueChip } from "../_components/due";
+import { AlertCard, alertStatusFilters, DriftCard, driftSectionCopy } from "./AlertCards";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -28,91 +20,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-const SEVERITY_TONE: Record<AlertView["severity"], StatusTone> = {
-  low: "neutral",
-  medium: "warning",
-  high: "danger",
-};
-
 /**
  * Risk alerts: the cases that outlive a single flag.
  *
  * An escalated message flag opens one, and anything else the platform judges
  * worth a human look lands here too. An alert stays open until somebody says
- * what was done about it, which is why resolving asks for a note.
- *
- * Two things the queue now says out loud. First, the clock: /standards prints
- * four hours for anything about paying off-platform, one day for the rest, and
- * an open row here carries that same commitment computed from the same module,
- * so a published promise and the shift working it cannot drift apart. Second,
- * the name: a resolved alert says who resolved it, because "resolved" with
- * nobody against it is how accountability quietly disappears.
+ * what was done about it, which is why resolving asks for a note. The cards
+ * are in `AlertCards.tsx`, shared with the preview harness so what is
+ * screenshotted is what the desk draws.
  */
-function AlertCard({
-  alert,
-  copy,
-  common,
-  ui,
-}: {
-  alert: AlertView;
-  copy: AdminCopy["alerts"];
-  common: AdminCommon;
-  ui: AdminUi;
-}) {
-  return (
-    <li className="nf-card p-md sm:p-lg">
-      <div className="flex flex-wrap items-center gap-xs">
-        <ui.StatusChip status={alert.status} />
-        <ui.StatusChip
-          label={fill(copy.severityChip, { level: copy.severity[alert.severity] })}
-          tone={SEVERITY_TONE[alert.severity]}
-        />
-        {alert.status === "open" && (
-          <ui.StatusChip
-            {...dueChip(alert.createdAt, gradeForSeverity(alert.severity), common)}
-          />
-        )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-          {ui.when(alert.createdAt)}
-        </span>
-      </div>
-
-      <h3 className="mt-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        {alert.title}
-      </h3>
-      {alert.description && (
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {alert.description}
-        </p>
-      )}
-
-      {alert.entityType && (
-        <p className="mt-xs break-words text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-          {fill(copy.attachedTo, { type: alert.entityType, id: alert.entityId ?? "" }).trim()}
-        </p>
-      )}
-
-      {alert.status === "open" ? (
-        <AlertResolve alertId={alert.id} copy={copy} common={common} />
-      ) : (
-        <p className="mt-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-          {fill(copy.resolvedWhen, { when: ui.when(alert.resolvedAt) })}{" "}
-          {fill(common.resolvedBy, { who: alert.resolvedByName ?? common.someone })}.{" "}
-          {common.noteInAuditLog}
-        </p>
-      )}
-    </li>
-  );
-}
-
-/** `alert_status` is `open, resolved`, read from the generated enum. */
-function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
-  return Constants.public.Enums.alert_status.map((value) => ({
-    value,
-    label: ui.statusLabel(value),
-  }));
-}
-
 export default async function AdminAlertsPage({
   searchParams,
 }: {
@@ -183,55 +99,10 @@ export default async function AdminAlertsPage({
           <ui.QueueUnavailable />
         </ui.Section>
       ) : drift.data.open.length > 0 ? (
-        <ui.Section
-          title={`Inventory drift · ${drift.data.open.length} open`}
-          hint="Room-nights where the calendar and the bookings disagree, from the nightly sweep. Oldest first. Resolving records that a person put the calendar right; it does not change inventory by itself."
-        >
+        <ui.Section {...driftSectionCopy(drift.data.open.length)}>
           <ul className="nf-queue-list">
             {drift.data.open.map((alert) => (
-              <li key={alert.id} className="nf-card p-md sm:p-lg">
-                <div className="flex flex-wrap items-center gap-xs">
-                  <ui.StatusChip label="Inventory drift" tone="warning" />
-                  <ui.StatusChip
-                    label={fill(copy.severityChip, { level: copy.severity[alert.severity] })}
-                    tone={SEVERITY_TONE[alert.severity]}
-                  />
-                  <ui.StatusChip
-                    {...dueChip(alert.createdAt, gradeForSeverity(alert.severity), common)}
-                  />
-                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                    {ui.when(alert.createdAt)}
-                  </span>
-                </div>
-                <h3 className="mt-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-                  {alert.title}
-                </h3>
-                {alert.description && (
-                  <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-                    {alert.description}
-                  </p>
-                )}
-                {/* BOTH IDS, UNCLIPPED: the alert's own, which the audit line
-                    carries, and the entity the sweep named, which is what an
-                    operator opens to put the calendar right. */}
-                <dl className="mt-xs grid gap-2xs text-[var(--nf-text-caption)]">
-                  <div className="flex flex-wrap gap-x-sm">
-                    <dt className="text-[var(--nf-content-muted)]">Alert</dt>
-                    <dd className="font-mono text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
-                      {alert.id}
-                    </dd>
-                  </div>
-                  {alert.entityId && (
-                    <div className="flex flex-wrap gap-x-sm">
-                      <dt className="text-[var(--nf-content-muted)]">Names</dt>
-                      <dd className="font-mono text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
-                        {alert.entityId}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-                <AlertResolve alertId={alert.id} copy={copy} common={common} />
-              </li>
+              <DriftCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />
             ))}
           </ul>
         </ui.Section>
@@ -248,7 +119,7 @@ export default async function AdminAlertsPage({
         base="/admin/alerts"
         query={query}
         common={common}
-        statuses={statusFilters(ui)}
+        statuses={alertStatusFilters(ui)}
       />
 
       {rows.length === 0 ? (

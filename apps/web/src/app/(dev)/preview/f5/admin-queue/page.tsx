@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { Logo, LogoMark } from "@/design-system/brand/Logo";
+import { Logo } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AdminRail, AdminTabs, ConsoleSearch } from "@/app/admin/_components/AdminNav";
@@ -67,7 +67,7 @@ export default async function PreviewAdminQueue() {
               <UiIcon name="arrow-left" size={20} />
             </span>
             <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
-              <LogoMark size={30} />
+              <Logo size={30} wordSize={16} />
             </Link>
             <ConsoleSearch label={t.admin.common.searchLabel} placeholder={t.admin.common.searchPlaceholder} />
             <span className="flex-1 lg:hidden" />

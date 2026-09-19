@@ -1,36 +1,24 @@
 import Link from "next/link";
-import { getDictionary } from "@vallo/i18n";
-import { getLocale } from "@/lib/locale";
+import type { ReactNode } from "react";
+import type { Dictionary } from "@vallo/i18n";
 import { Logo, LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AdminRail, AdminTabs, ConsoleSearch } from "@/app/admin/_components/AdminNav";
-import { QueueFilters, QueuePager } from "@/app/admin/_components/QueueFilters";
-import { ConsoleFooter, QueueTabs } from "@/app/admin/_components/QueueTable";
-import { adminUi } from "@/app/admin/_components/ui";
-import { AUDIT_COPY, AuditList, auditTabs } from "@/app/admin/audit/AuditList";
-import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
-import { PERSON } from "../../_fixtures/people";
-import { AUDIT_ROWS } from "../fixtures";
+import { ConsoleFooter } from "@/app/admin/_components/QueueTable";
+import { PERSON } from "../_fixtures/people";
 
 /**
- * The audit desk on the console frame (278CC66A at 390px), from fixture
- * rows. The real layout gates on `requireAdmin` and the real page reads
- * `audit_log` through the service role, neither of which this sandbox has,
- * so the chrome is repeated here from the same pieces F5's admin-queue
- * preview uses and the rows come from `../fixtures`. The list itself is the
- * desk's own `AuditList`, so what is screenshotted is what the desk draws.
+ * The console frame (278CC66A at 390px) around one of BD's desks, repeated
+ * from the same pieces F5's admin-queue preview and BC's audit preview use.
+ * The real `app/admin/layout.tsx` gates on `requireAdmin`, which this
+ * sandbox cannot satisfy, so the chrome is drawn here around fixture rows.
+ * Never the proof of a write; only the proof of the look.
  */
-export const dynamic = "force-dynamic";
 
-const BASE = "/preview/bc/audit";
 const COUNTS = { listings: 18, applications: 5, reports: 3, tickets: 3, flags: 6, moderation: 2, alerts: 4 };
 
-export default async function PreviewAudit() {
-  const locale = await getLocale();
-  const t = getDictionary(locale);
-  const ui = adminUi(t, locale);
-
+export function ConsoleFrame({ t, children }: { t: Dictionary; children: ReactNode }) {
   return (
     <div className="nf-admin">
       <aside className="nf-admin-rail" aria-label={t.admin.console.navLabel}>
@@ -85,20 +73,7 @@ export default async function PreviewAudit() {
         </header>
 
         <div className="nf-admin-body">
-          <div className="nf-console">
-            <ui.QueueHeader title={AUDIT_COPY.title} lede={AUDIT_COPY.lede} />
-            <QueueTabs label={AUDIT_COPY.tabsLabel} tabs={auditTabs(BASE, {})} />
-            <QueueFilters
-              base={BASE}
-              query={{}}
-              common={t.admin.common}
-              statuses={[]}
-              searchLabel={AUDIT_COPY.searchLabel}
-              searchPlaceholder={AUDIT_COPY.searchPlaceholder}
-            />
-            <AuditList rows={AUDIT_ROWS} ui={ui} base={BASE} />
-            <QueuePager base={BASE} query={{}} pageSize={QUEUE_PAGE_SIZE} full count={AUDIT_ROWS.length} />
-          </div>
+          <div className="nf-console">{children}</div>
           <ConsoleFooter note={t.admin.console.auditNote} />
         </div>
       </main>

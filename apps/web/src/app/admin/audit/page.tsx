@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAuditLog } from "@/lib/admin/audit-queries";
-import { AUDIT_ENTITY_TYPES } from "@/lib/admin/audit-filter";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
   queueNoMatch,
@@ -10,10 +9,10 @@ import {
   QueuePager,
   queueNarrowed,
   readQueueQuery,
-  type QueueStatusOption,
 } from "../_components/QueueFilters";
+import { QueueTabs } from "../_components/QueueTable";
 import { adminUi } from "../_components/ui";
-import { AUDIT_COPY as COPY, AuditList } from "./AuditList";
+import { AUDIT_COPY as COPY, AuditList, auditTabs } from "./AuditList";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: COPY.title, robots: { index: false, follow: false } };
@@ -21,15 +20,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-function typeFilters(): readonly QueueStatusOption[] {
-  return AUDIT_ENTITY_TYPES.map((type) => ({ value: type.value, label: type.label }));
-}
-
 /**
  * The audit log, on the console's one queue frame: the header, the
- * QueueFilters search with the target-type chips and the day range, the
- * dense rows from `AuditList`, the pager. The layout above this page has
- * already decided the reader is staff.
+ * target-type tabs, the QueueFilters search and day range, the dense rows
+ * from `AuditList`, the pager. The layout above this page has already
+ * decided the reader is staff.
  */
 export default async function AdminAuditPage({
   searchParams,
@@ -68,11 +63,13 @@ export default async function AdminAuditPage({
     <div className="nf-console">
       <ui.QueueHeader title={COPY.title} lede={COPY.lede} />
 
+      <QueueTabs label={COPY.tabsLabel} tabs={auditTabs(COPY.base, query)} />
+
       <QueueFilters
         base={COPY.base}
         query={query}
         common={common}
-        statuses={typeFilters()}
+        statuses={[]}
         searchLabel={COPY.searchLabel}
         searchPlaceholder={COPY.searchPlaceholder}
       />

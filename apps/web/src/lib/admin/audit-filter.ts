@@ -21,6 +21,7 @@
  * status: the queue answers with everything and the chip shows unselected.
  */
 
+import type { UiIconName } from "../../design-system/icons/UiIcon";
 import {
   QUEUE_PAGE_SIZE,
   lagosDayEnd,
@@ -32,27 +33,38 @@ import {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Every `entity_type` a writer in this codebase uses, with a word for it. */
+/**
+ * Every `entity_type` a writer in this codebase uses, with a word for it and
+ * the glyph its row wears on the console table's tile (278CC66A reads by the
+ * tile before the word). The icon is a type-only import, so this file stays
+ * pure and testable; a wrong name fails the typecheck, not the desk.
+ */
 export const AUDIT_ENTITY_TYPES = [
-  { value: "wallet_entry", label: "Money" },
-  { value: "paystack_webhook", label: "Webhook delivery" },
-  { value: "booking", label: "Booking" },
-  { value: "listing", label: "Listing" },
-  { value: "business", label: "Business" },
-  { value: "agent", label: "Agent" },
-  { value: "agent_application", label: "Agent application" },
-  { value: "report", label: "Report" },
-  { value: "risk_alert", label: "Alert" },
-  { value: "message", label: "Message" },
-  { value: "message_flag", label: "Message flag" },
-  { value: "support_ticket", label: "Support ticket" },
-  { value: "user_badge", label: "Badge" },
-  { value: "area", label: "Area" },
-  { value: "area_moderator_application", label: "Area moderator" },
-  { value: "local_government", label: "Local government" },
-  { value: "occupation", label: "Occupation" },
-  { value: "feature_flag", label: "Switch" },
-] as const;
+  { value: "wallet_entry", label: "Money", icon: "wallet" },
+  { value: "paystack_webhook", label: "Webhook delivery", icon: "link" },
+  { value: "booking", label: "Booking", icon: "calendar-booking" },
+  { value: "listing", label: "Listing", icon: "house" },
+  { value: "business", label: "Business", icon: "building-hotel" },
+  { value: "agent", label: "Agent", icon: "user" },
+  { value: "agent_application", label: "Agent application", icon: "document" },
+  { value: "report", label: "Report", icon: "flag" },
+  { value: "risk_alert", label: "Alert", icon: "bell" },
+  { value: "message", label: "Message", icon: "chat-bubble" },
+  { value: "message_flag", label: "Message flag", icon: "flag" },
+  { value: "support_ticket", label: "Support ticket", icon: "ticket" },
+  { value: "user_badge", label: "Badge", icon: "verified" },
+  { value: "area", label: "Area", icon: "map" },
+  { value: "area_moderator_application", label: "Area moderator", icon: "document" },
+  { value: "local_government", label: "Local government", icon: "location" },
+  { value: "occupation", label: "Occupation", icon: "document" },
+  { value: "feature_flag", label: "Switch", icon: "sliders" },
+] as const satisfies readonly { value: string; label: string; icon: UiIconName }[];
+
+/** The tile glyph for a target type; a type this list has never met gets the plain mark. */
+export function entityTypeIcon(value: string): UiIconName {
+  const hit = AUDIT_ENTITY_TYPES.find((type) => type.value === value);
+  return hit ? hit.icon : "info";
+}
 
 export type AuditEntityType = (typeof AUDIT_ENTITY_TYPES)[number]["value"];
 
