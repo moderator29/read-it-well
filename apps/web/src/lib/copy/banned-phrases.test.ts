@@ -120,8 +120,8 @@ describe("reading a source file the way a reader sees it", () => {
   });
 
   it("does not mistake a URL or a regular expression for a comment", () => {
-    const source = 'const u = "https://vallo.ng/help"; const re = [/\\bhttps?:\\/\\//i];\nconst after = "coming soon";';
-    expect(withoutComments(source)).toContain("https://vallo.ng/help");
+    const source = 'const u = "https://vallospaces.com/help"; const re = [/\\bhttps?:\\/\\//i];\nconst after = "coming soon";';
+    expect(withoutComments(source)).toContain("https://vallospaces.com/help");
     expect(firstBannedPhrase(withoutComments(source))).toBe("coming soon");
   });
 

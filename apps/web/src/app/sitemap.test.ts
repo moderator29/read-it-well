@@ -69,13 +69,13 @@ beforeEach(() => {
 
 describe("the sitemap builder", () => {
   it("carries every public page on both sides and no product page", () => {
-    const urls = buildSitemap("https://vallo.ng", []).map((entry) => entry.url);
+    const urls = buildSitemap("https://vallospaces.com", []).map((entry) => entry.url);
 
-    expect(urls).toContain("https://vallo.ng");
-    expect(urls).toContain("https://vallo.ng/search");
-    expect(urls).toContain("https://vallo.ng/stays");
-    expect(urls).toContain("https://vallo.ng/stays/search");
-    expect(urls).toContain("https://vallo.ng/restaurants");
+    expect(urls).toContain("https://vallospaces.com");
+    expect(urls).toContain("https://vallospaces.com/search");
+    expect(urls).toContain("https://vallospaces.com/stays");
+    expect(urls).toContain("https://vallospaces.com/stays/search");
+    expect(urls).toContain("https://vallospaces.com/restaurants");
     for (const page of PUBLIC_PAGES) {
       expect(urls.length).toBeGreaterThan(0);
       expect(page.path.startsWith("/")).toBe(true);
@@ -99,44 +99,44 @@ describe("the sitemap builder", () => {
   });
 
   it("drops an example listing and keeps a real one", () => {
-    const urls = buildSitemap("https://vallo.ng", [
+    const urls = buildSitemap("https://vallospaces.com", [
       { id: "real-1", isDemo: false },
       { id: "example-1", isDemo: true },
     ]).map((entry) => entry.url);
 
-    expect(urls).toContain("https://vallo.ng/listing/real-1");
-    expect(urls).not.toContain("https://vallo.ng/listing/example-1");
+    expect(urls).toContain("https://vallospaces.com/listing/real-1");
+    expect(urls).not.toContain("https://vallospaces.com/listing/example-1");
   });
 
   it("lists a published stay and drops an example one", () => {
-    const urls = buildSitemap("https://vallo.ng", [], {
+    const urls = buildSitemap("https://vallospaces.com", [], {
       stays: [
         { id: "stay-1", isDemo: false, updatedAt: "2026-09-01T00:00:00Z" },
         { id: "stay-example", isDemo: true },
       ],
     }).map((entry) => entry.url);
 
-    expect(urls).toContain("https://vallo.ng/stay/stay-1");
-    expect(urls).not.toContain("https://vallo.ng/stay/stay-example");
+    expect(urls).toContain("https://vallospaces.com/stay/stay-1");
+    expect(urls).not.toContain("https://vallospaces.com/stay/stay-example");
   });
 
   it("knows how to list a restaurant, behind the same gate", () => {
-    const urls = buildSitemap("https://vallo.ng", [], {
+    const urls = buildSitemap("https://vallospaces.com", [], {
       restaurants: [
         { id: "rest-1", isDemo: false },
         { id: "rest-example", isDemo: true },
       ],
     }).map((entry) => entry.url);
 
-    expect(urls).toContain("https://vallo.ng/restaurant/rest-1");
-    expect(urls).not.toContain("https://vallo.ng/restaurant/rest-example");
+    expect(urls).toContain("https://vallospaces.com/restaurant/rest-1");
+    expect(urls).not.toContain("https://vallospaces.com/restaurant/rest-example");
   });
 
   it("does not double the slash on an origin that ends in one", () => {
-    const urls = buildSitemap("https://vallo.ng/", [{ id: "real-1", isDemo: false }]).map(
+    const urls = buildSitemap("https://vallospaces.com/", [{ id: "real-1", isDemo: false }]).map(
       (entry) => entry.url,
     );
-    expect(urls).toContain("https://vallo.ng/listing/real-1");
+    expect(urls).toContain("https://vallospaces.com/listing/real-1");
     expect(urls.some((url) => url.includes("//listing"))).toBe(false);
   });
 });

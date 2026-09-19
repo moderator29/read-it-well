@@ -35,7 +35,7 @@ describe("recent recipients", () => {
   it("draws initials and a short name", () => {
     expect(recipientInitials("Tunde Adebayo")).toBe("TA");
     expect(recipientInitials("chidinma")).toBe("CH");
-    expect(recipientInitials("ada@vallo.ng")).toBe("AD");
+    expect(recipientInitials("ada@vallospaces.com")).toBe("AD");
     expect(recipientShortName("Tunde Adebayo")).toBe("Tunde A.");
     expect(recipientShortName("Sola")).toBe("Sola");
   });

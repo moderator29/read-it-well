@@ -28,7 +28,7 @@ vi.mock("@/lib/crypto/coingecko", async (importOriginal) => {
 const { GET } = await import("./route");
 
 function get(query = ""): Request {
-  return new Request(`https://vallo.ng/api/crypto/markets${query}`);
+  return new Request(`https://vallospaces.com/api/crypto/markets${query}`);
 }
 
 describe("GET /api/crypto/markets", () => {

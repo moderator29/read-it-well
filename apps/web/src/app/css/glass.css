@@ -1125,11 +1125,42 @@
     flex: none;
     padding: 9%;
     aspect-ratio: 1;
-    border: 1px solid var(--nf-glass-border);
+    border: 1px solid var(--nf-brand-edge);
     border-radius: var(--nf-radius-squircle);
-    background: var(--nf-glass-fill);
-    box-shadow: var(--nf-elev-1-rim), var(--nf-elev-1);
+    background: var(--nf-brand-tint-1);
+    box-shadow: var(--nf-glow-edge);
   }
+
+  /*
+   * THE PLATE IS BRANDED, NOT GREY. R1's finding A5, and the single biggest
+   * reason the product did not read as its renders.
+   *
+   * This rule used to resolve to `--nf-glass-border` (white at 11 per cent),
+   * `--nf-glass-fill` (white at 7.5 per cent) and `--nf-elev-1-rim` (white at
+   * 12 per cent). Not one brand value in the plate that sits behind every
+   * glass object in every list row, which is precisely the plate the founder
+   * photographed and ruled on twice: "the outer containers of the icon logo is
+   * black ours make it the branding color too", and then "the resting glow bro
+   * it needed in the inner containers of icons platform icons".
+   *
+   * R1 counted the damage on screen: eleven of fourteen filter chips, Contact
+   * host, Mark as inspected, Explore Stays and the city chips, six settings
+   * rows, three of four wallet balance actions, every View and kebab on the
+   * admin queue, and the Reply button on a post. A screen carrying one lit
+   * primary and eleven grey boxes reads as a prototype with one finished
+   * control, whatever the rest of it does.
+   *
+   * `--nf-glow-edge` is the rung between a hairline and `--nf-glow-edge-strong`:
+   * an inset lit rim, a brand outline, a close bloom and a far one. Its light
+   * twin keeps the outline and drops the light, because paper does not glow.
+   * So this is one substitution, correct in both themes, and it reaches every
+   * icon plate on profile, settings, bookings, rent, move-in and the rows.
+   *
+   * WHAT THIS DOES NOT REACH, and is being handled separately: control edges
+   * that set `--nf-glass-border` in `controls.css`, `chips.css` and the
+   * landing-local classes. Those are a per-hit judgement (a divider keeps the
+   * hairline, a control does not) and they are F1's.
+   */
 
   /*
    * Event states.

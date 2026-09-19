@@ -23,7 +23,7 @@ vi.mock("@/lib/crypto/geckoterminal", async (importOriginal) => {
 const { GET } = await import("./route");
 
 function get(query = ""): Request {
-  return new Request(`https://vallo.ng/api/crypto/pairs${query}`);
+  return new Request(`https://vallospaces.com/api/crypto/pairs${query}`);
 }
 
 describe("GET /api/crypto/pairs", () => {

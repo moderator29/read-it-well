@@ -94,9 +94,9 @@ describe("what those two produce for an example listing", () => {
   const example = listing({ isDemo: true });
 
   it("is a noindex page with no structured data and a card naming nothing", () => {
-    expect(listingStructuredData(example, "https://vallo.ng")).toBeNull();
+    expect(listingStructuredData(example, "https://vallospaces.com")).toBeNull();
 
-    const meta = listingMetadata(example, "https://vallo.ng");
+    const meta = listingMetadata(example, "https://vallospaces.com");
     expect(meta.robots).toEqual({ index: false, follow: false });
     expect(JSON.stringify([meta.openGraph, meta.twitter])).not.toContain(example.title);
   });

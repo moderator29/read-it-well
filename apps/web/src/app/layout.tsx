@@ -68,17 +68,26 @@ export const metadata: Metadata = {
    * template must not strip it: metadata titles pass through as written.
    *
    * The description says what the product IS, in PRODUCT.md's words, rather
-   * than listing categories. The line it replaced described "homes, hotels,
+   * than listing categories. An earlier line described "homes, hotels,
    * restaurants and experiences", which was the travel app this stopped being,
-   * and promised "verified listings" while the catalogue holds zero.
+   * and promised "verified listings" while the catalogue holds zero. The line
+   * that replaced it then swung the other way and described property only, on
+   * a product that had grown a second side. It now names both, and names
+   * nothing that has no shipped surface.
    */
   title: {
     default: "Vallo. Real Estate reimagined!",
     template: "%s | Vallo",
   },
   description:
-    "Rent, buy or sell property across Nigeria. Every place on Vallo was listed by a real person, with the light, the water and the gate answered, and the move-in total printed in full.",
+    "One app, two sides. Property: rent, buy or sell across Nigeria, from agents a person has checked, with the light, the water and the gate answered and the move-in total printed in full. Vallo Stays: hotels, apartments, guest houses, resorts and restaurant tables, on the same account and the same naira wallet.",
   applicationName: "Vallo",
+  /*
+   * BOTH SIDES, because the list carried nine property words and not one
+   * word for the half of the product that sells nights (content truth sweep,
+   * 19 September). Every term below is a market this platform actually
+   * serves; nothing is here for the volume.
+   */
   keywords: [
     "Nigeria",
     "rent",
@@ -87,6 +96,11 @@ export const metadata: Metadata = {
     "apartments",
     "shortlet",
     "land",
+    "hotels",
+    "guest houses",
+    "serviced apartments",
+    "restaurants",
+    "Vallo Stays",
     "Lagos",
     "Abuja",
     "Port Harcourt",
@@ -101,7 +115,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Vallo. Real Estate reimagined!",
     description:
-      "Rent, buy or sell property across Nigeria, listed by real people, with the move-in total printed in full.",
+      "Rent, buy or sell property across Nigeria, and book hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
     siteName: "Vallo",
     locale: "en_NG",
     type: "website",
@@ -110,7 +124,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Vallo. Real Estate reimagined!",
     description:
-      "Rent, buy or sell property across Nigeria, listed by real people, with the move-in total printed in full.",
+      "Rent, buy or sell property across Nigeria, and book hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
   },
   robots: { index: true, follow: true },
 
@@ -245,8 +259,25 @@ export default async function RootLayout({
           "light" is light. "system" follows the OS, and it is something someone
           has to go into Settings and ask for.
         */}
+        {/*
+          `suppressHydrationWarning` on all three before-paint scripts, and it
+          is the sanctioned suppression rather than a silenced bug.
+
+          React deliberately does not serialise `nonce` to the client: the
+          server renders `nonce="uXXrY..."` and the client tree carries
+          `nonce=""`, so the two can never agree and every route logged a
+          hydration mismatch on these three elements. R1 caught it in the dev
+          log and then found it staring out of a shipped proof, as the "2
+          Issues" badge in `docs/design/proofs/f5/inbox-390-dark.png`.
+
+          The cost of leaving it was not the warning, it was that a permanent
+          false positive hides the real hydration bugs behind it. The
+          `suppressHydrationWarning` already on <html> does not reach
+          descendants, so each script needs its own.
+        */}
         <script
           nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html:
               `try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches)){document.documentElement.dataset.theme='light';var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content','${CHROME_COLOUR.light}')}}catch(e){}`,
@@ -267,6 +298,7 @@ export default async function RootLayout({
         */}
         <script
           nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html:
               "try{var s=document.cookie.match(/(?:^|; )nf_side=([^;]*)/);var v=s&&s[1];var p=location.pathname;if(/^\\/(stays|stay|restaurants|restaurant|trips|host)(\\/|$)/.test(p))v='stays';else if(/^\\/(home|search|agent|listing|rent|inspections|bookings)(\\/|$)/.test(p))v='property';if(v==='stays')document.documentElement.dataset.side='stays'}catch(e){}",
@@ -288,6 +320,7 @@ export default async function RootLayout({
         */}
         <script
           nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html:
               "try{var c=navigator.connection;if(c&&(c.saveData||/^(slow-)?2g$/.test(c.effectiveType||'')))document.documentElement.dataset.saveData='on'}catch(e){}",

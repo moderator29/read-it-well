@@ -645,7 +645,7 @@ Webhook paths that exist in code today: `/api/paystack/webhook`,
 `/api/yellowcard/webhook`, `/api/auth/email-hook`, `/api/csp-report`.
 Callback that exists: the Paystack checkout return to
 `/checkout/[bookingId]` (verified server-side, never trusted from the
-browser). All URLs below are relative to `https://vallo.ng`.
+browser). All URLs below are relative to `https://vallospaces.com`.
 
 | Env var (placeholder) | Scope | For | Webhook/callback to register |
 | --- | --- | --- | --- |

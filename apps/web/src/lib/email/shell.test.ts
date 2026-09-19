@@ -349,12 +349,61 @@ describe("the copy rules hold in the markup that ships", () => {
 
   it.each(EVERY_HTML)("$name advertises no inventory this platform lacks", ({ html }) => {
     /*
-     * The restaurant and hotel reservation loops exist in the schema and hold
-     * zero rows. An email naming them is advertising something nobody can book,
-     * which is the same class of harm as naming a property that does not exist:
-     * an inbox has no corrective.
+     * NARROWED ON 19 SEPTEMBER, AND WHY, BECAUSE LOOSENING A GUARD NEEDS A
+     * REASON WRITTEN DOWN.
+     *
+     * This assertion used to ban the bare words `restaurant` and `hotel`, on
+     * the stated premise that "the restaurant and hotel reservation loops
+     * exist in the schema and hold zero rows". That premise was checked
+     * against the live database and it is false: `accommodations` holds 5
+     * published rows and `room_types` 11, `restaurant_profiles` holds 2, and
+     * `businesses` 7. The catalogue is example stock, every row flagged
+     * `is_demo` -- but so are all 64 rows of `listings`, and this same email
+     * has always been free to say Vallo is for renting and buying. Banning one
+     * side's nouns while the other side's ran unchallenged was not a content
+     * truth rule, it was an accident of which half got written first.
+     *
+     * What the founder's content truth sweep actually forbids is a CLAIM: a
+     * count nobody can stand behind, or an assertion that a specific thing is
+     * bookable right now. Naming what the product is for is not a claim.
+     * "Vallo Stays is hotels, apartments, guest houses, resorts and restaurant
+     * tables" is a true sentence about a built product, and leaving it out of
+     * the first email anybody receives is what made a reader invited to book a
+     * room read a footer that did not know their half of the platform existed.
+     *
+     * So the ban is now on the harm rather than on the nouns.
      */
-    expect(html).not.toMatch(/\b(restaurants?|hotels?|experiences)\b/i);
+
+    /*
+     * Money is struck out before the count rule runs, and `stays` is not in
+     * the noun list. Both are deliberate. "₦25,000 stays in your Vallo wallet"
+     * is a true sentence in the withdrawal-failed email, and a naive count
+     * rule reads it as "25,000 stays", an inventory boast. A real figure
+     * followed by a verb is not a claim about stock, so the amounts come out
+     * first and the verb-shaped noun stays out of the list.
+     */
+    const withoutMoney = html.replace(/₦[\d,]+(\.\d+)?/g, "");
+
+    // 1. No quantity. An invented or unstandable count is the classic inbox
+    //    lie, and an inbox has no corrective once it has landed.
+    expect(withoutMoney).not.toMatch(
+      /\b(thousands|hundreds|millions|dozens|countless|\d[\d,]*\+?)\s+(of\s+)?(listings?|homes?|propert(y|ies)|hotels?|restaurants?|rooms?|tables?|agents?|members?|users?)\b/i,
+    );
+
+    // 2. No availability promise. "Book a table tonight" asserts stock this
+    //    product cannot vouch for in any particular city on any particular day.
+    expect(html).not.toMatch(
+      /\b(book|reserve|find|get)\s+(a\s+|your\s+)?(table|room|hotel|stay|apartment|shortlet)\b[^.<]{0,40}\b(tonight|today|now|instantly|in minutes|right away)\b/i,
+    );
+
+    // 3. No superlative inventory framing.
+    expect(html).not.toMatch(
+      /\b(every|all the|the best|widest|largest|biggest)\s+(hotels?|restaurants?|propert(y|ies)|listings?|homes?)\s+in\b/i,
+    );
+
+    // 4. Experiences stay banned outright. Unlike stays and tables there is no
+    //    experiences product here at all: no table, no route, no screen.
+    expect(html).not.toMatch(/\bexperiences?\b/i);
   });
 });
 

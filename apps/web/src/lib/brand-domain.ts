@@ -29,16 +29,24 @@
  *   2. A default that has to exist before any request does, such as the email
  *      sender when `EMAIL_FROM` is unset.
  *
- * THE VALUE IS A PLACEHOLDER UNTIL THE FOUNDER CONFIRMS IT.
+ * THE VALUE IS CONFIRMED. The founder confirmed `vallospaces.com` on 19
+ * September: he owns it, it is already serving, and it matches VALLO SPACES
+ * LTD. `vallospaces.com` was never registered and is dropped entirely.
  *
- * `vallo.ng` follows the `.ng` that the previous domain used and matches a
- * Nigerian company, but nobody has confirmed that it is registered or that it
- * is the domain Vercel will serve. It is written here, once, precisely so that
- * confirming it is a one line change rather than another sweep.
+ * This constant was written as a deliberate one line placeholder waiting for
+ * exactly that confirmation, so that confirming it would be one edit rather
+ * than another sweep. It was, and the sweep it saved was real: the value
+ * reaches the Android manifest, the iOS entitlements, the metadata base, the
+ * sitemap, the canonical and OG urls, every deep link host check, the share
+ * notices, the legal documents and the test fixtures. Deep links verify by
+ * EXACT HOST, so a wrong value here is not a cosmetic error: it makes every
+ * shared Vallo link open a browser instead of the app, silently and
+ * permanently, and nothing warns anybody. `brand-domain.test.ts` now fails if
+ * any of those files ever drift from this line again.
  */
 
 /** The public domain, without a scheme and without a trailing slash. */
-export const BRAND_DOMAIN = "vallo.ng";
+export const BRAND_DOMAIN = "vallospaces.com";
 
 /** The public origin. Use `siteUrl()` for anything a browser will follow. */
 export const BRAND_ORIGIN = `https://${BRAND_DOMAIN}`;

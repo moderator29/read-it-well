@@ -23,7 +23,7 @@ vi.mock("@/lib/crypto/coingecko", async (importOriginal) => {
 const { GET } = await import("./route");
 
 function call(id: string, query = "") {
-  return GET(new Request(`https://vallo.ng/api/crypto/coins/${id}${query}`), {
+  return GET(new Request(`https://vallospaces.com/api/crypto/coins/${id}${query}`), {
     params: Promise.resolve({ id }),
   });
 }

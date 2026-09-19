@@ -90,8 +90,9 @@
                 a file that was never filled in fails verification loudly rather
                 than looking plausible.
 
-                Hosts are `vallo.ng` and `www.vallo.ng` because that is the
-                domain this repository defaults to everywhere, in
+                Hosts are `vallospaces.com` and `www.vallospaces.com`
+                because that is the domain this repository defaults to
+                everywhere, in
                 `src/lib/email/render.ts` and in the profile share copy. If the
                 owner sets `NEXT_PUBLIC_SITE_URL` to anything else, these two
                 lines have to change with it, because a verified host is an
@@ -107,6 +108,39 @@
                 them into the application mid-flow would break the very
                 transaction it interrupted.
 
+                WHY EACH PREFIX IS IN OR OUT, because this list was wrong once
+                and the way it was wrong was invisible. Until R3's F-02 this
+                filter listed the Property side and the social layer and NOT ONE
+                Stays path, so every hotel, shortlet and restaurant link fell
+                through to a browser. The side law in
+                `src/lib/side.constants.ts` forces the Stays shell for
+                `/stay`, `/stays`, `/restaurant` and `/restaurants`, and it is
+                correct; it simply never ran, because the operating system had
+                already decided the URL was not ours. A product whose signature
+                interaction is the flip between two sides cannot have one of
+                those sides unreachable from a shared link.
+
+                IN, because somebody forwards them: `/listing/` and `/stay/`
+                (the two detail pages, one per side), `/restaurant/`,
+                `/stays/` and `/restaurants/` (the shelves and their searches,
+                which is how a group decides where to stay), `/around/`, `/u/`,
+                `/post/` and `/stories/` (the social addresses the product
+                prints to people as their own).
+
+                OUT, and each for a stated reason rather than by omission:
+                `/trips` and `/bookings` are signed-in own-data surfaces, so a
+                forwarded link can only ever land its reader on a sign-in wall
+                inside the app, which is a worse first meeting than a browser
+                tab; `/home` and `/search` are the Property roots, which the
+                app opens on anyway; `/checkout/`, `/wallet` and `/auth/` are
+                the return paths named above.
+
+                The bare roots `/stays` and `/restaurants` without a trailing
+                slash are not listed, matching `/home` and `/search`: a shelf
+                root is not an address anybody forwards, and `pathPrefix` has
+                no word boundary, so `/stays` would also claim any future path
+                that merely begins with those letters.
+
                 Worth knowing before this is switched on: `/listing/`, `/u/`,
                 `/post/`, `/stories/` and `/around/` are all protected product
                 segments in `src/middleware.ts`. A signed-out person following a
@@ -119,9 +153,13 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="vallo.ng" />
-                <data android:scheme="https" android:host="www.vallo.ng" />
+                <data android:scheme="https" android:host="vallospaces.com" />
+                <data android:scheme="https" android:host="www.vallospaces.com" />
                 <data android:pathPrefix="/listing/" />
+                <data android:pathPrefix="/stay/" />
+                <data android:pathPrefix="/stays/" />
+                <data android:pathPrefix="/restaurant/" />
+                <data android:pathPrefix="/restaurants/" />
                 <data android:pathPrefix="/around/" />
                 <data android:pathPrefix="/u/" />
                 <data android:pathPrefix="/post/" />

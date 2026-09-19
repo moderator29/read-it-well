@@ -36,7 +36,7 @@ export const SUPPORT_HREF: string = SUPPORT_EMAIL ? `mailto:${SUPPORT_EMAIL}` : 
 /**
  * What the link says.
  *
- * Reads as a sentence either way: "write to support@vallo.ng" and "write to
+ * Reads as a sentence either way: "write to support@vallospaces.com" and "write to
  * us through the contact form" both work where they are used, so no caller has
  * to branch on which world it is in.
  */
@@ -48,7 +48,7 @@ export const SUPPORT_LABEL: string = SUPPORT_EMAIL ?? "the contact form";
  */
 export const SUPPORT_SENTENCE: string = SUPPORT_EMAIL
   ? `email ${SUPPORT_EMAIL}`
-  : "open the contact form at vallo.ng/contact";
+  : "open the contact form at vallospaces.com/contact";
 
 /**
  * Kept as a named export because five surfaces already import it, and because

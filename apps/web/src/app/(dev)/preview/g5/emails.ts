@@ -41,7 +41,7 @@ const AUTH: readonly { slug: string; label: string; subject: string }[] = [
 function fillAuth(source: string): string {
   return source
     .replace(/\{\{ \.SiteURL \}\}/g, "")
-    .replace(/\{\{ \.ConfirmationURL \}\}/g, "https://vallo.ng/auth/confirm?token_hash=example")
+    .replace(/\{\{ \.ConfirmationURL \}\}/g, "https://vallospaces.com/auth/confirm?token_hash=example")
     .replace(/\{\{ \.Token \}\}/g, "482913")
     .replace(/\{\{ \.NewEmail \}\}/g, "ada.obi@example.com")
     .replace(/\{\{ \.Email \}\}/g, "ada@example.com");

@@ -41,7 +41,7 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     name: "passwordReset",
     message: messages.passwordReset({
       name: "Ada",
-      resetUrl: "https://vallo.ng/auth/reset?token=abc",
+      resetUrl: "https://vallospaces.com/auth/reset?token=abc",
       expiresInMinutes: 30,
     }),
   },

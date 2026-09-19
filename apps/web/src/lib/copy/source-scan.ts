@@ -15,7 +15,7 @@
  *
  * WHY A SCANNER AND NOT A REGEX. `source.replace(/\/\*[\s\S]*?\*\//g, "")` is
  * the obvious version and it is wrong in both directions here. It deletes the
- * middle of `"https://vallo.ng/*"` inside a string, and it cannot see that the
+ * middle of `"https://vallospaces.com/*"` inside a string, and it cannot see that the
  * `//` in `/\bhttps?:\/\//i` is inside a regular expression rather than the
  * start of a line comment. Both shapes are live in `payment-copy.ts` and in
  * the CSP route. A five-state walk is longer and it is right.

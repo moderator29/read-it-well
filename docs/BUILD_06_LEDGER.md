@@ -657,6 +657,21 @@ currency style clamps it up and turned ₦45k into ₦45.0k.
    on his word.
 4. Inherited from BUILD_05: the four `private` tables the advisor flags;
    MapTiler key before launch; LiteAPI and Booking.com for Phase F.
+5. THE NATIVE BUNDLE IDENTIFIER, and the window closes at first submission.
+   It is `ng.vallo.app` in `build.gradle` (namespace and applicationId), the
+   Java package path `java/ng/vallo/app/`, `strings.xml`, `capacitor.config.ts`,
+   `project.pbxproj`, `assetlinks.json` and the AASA `appIDs`. It is derived
+   from `vallo.ng`, a domain that was never registered and has now been
+   dropped. A reverse-DNS bundle id needs no domain ownership, so it works
+   exactly as it is and nothing is broken today. But it is PERMANENT ONCE THE
+   APP RECORD IS CREATED in App Store Connect or Play Console, and this
+   session cannot see whether those records exist. If they do not yet, the
+   consistent identifier is `com.vallospaces.app` and changing it now costs
+   one afternoon. If they do, changing it is impossible on Play and means a
+   new app on the store. So: has the app record been created yet? Nothing
+   was changed unasked, because guessing wrong either breaks a signing and
+   provisioning setup already in place or leaves the wrong name on the store
+   for ever.
 
 ---
 
@@ -763,3 +778,166 @@ scope"), `npx eslint src`, `node scripts/check-css-tokens.mjs`,
 it took production down for twenty minutes in this build (section 7.0).
 A "use server" module may export async functions and nothing else, not even
 a type re-export; any worker touching one says so in its report.
+
+---
+
+## 11. The lead's own cycle of 19 September, evening
+
+### 11.1 THE PROBE TOOL CANNOT SEE RLS, AND EVERY EARLIER PROBE THAT CLAIMED IT DID IS SUSPECT
+
+The Supabase MCP `execute_sql` tool runs as `supabase_read_only_user`, and
+that role carries `rolbypassrls = true`. This was read off the database, not
+inferred:
+
+```sql
+select current_user, (select rolbypassrls from pg_roles where rolname = current_user);
+-- supabase_read_only_user | true
+```
+
+So a cross-user read run through `execute_sql` returns rows whether or not
+RLS would have refused them, and a probe that selects from a product table
+through that tool proves nothing about RLS at all. It also cannot
+`set local role authenticated`, because it is not a member of that role, and
+it cannot execute a `private.` helper whose EXECUTE was revoked from public.
+
+The sandbox cannot reach the REST endpoint either: the agent proxy answers
+`CONNECT tunnel failed, response 403` for `*.supabase.co`, so the anon-key
+route to the same proof is shut.
+
+WHAT WORKS, and it is what every probe from here uses. Run the probe through
+`apply_migration`, which holds a privileged role, and end the block with a
+deliberate `raise exception 'PROBE ALL PASS ...'`. The raise aborts the
+transaction, so nothing persists, no probe row survives on a live product
+table and no migration row is recorded, and the tool hands back the pass
+message as its error text. A failing assertion aborts the same way with its
+own message, so the two outcomes are told apart by what the message says.
+
+### 11.2 b1, `20260919103000_b1_the_example_refusal_covers_every_remaining_door.sql`, APPLIED
+
+Two `create or replace` functions and one new trigger. A business holding a
+reservation can no longer be flagged as an example, and the listing guard now
+counts reviews, inspection requests, recorded inspections, reservations and
+tenancy charges beside bookings.
+
+PROBE RESULT: assertions 1, 2, 3 and 5 pass as written. Assertion 4 failed on
+a FIXTURE FAULT IN THE PROBE, not on the migration and not on the product:
+b1's probe used the first `auth.users` row as its lister, and that user is a
+verified agent, so `enforce_demo_listing_has_unverified_lister` refused the
+control flip with "An example listing may not be attributed to a verified
+lister". That refusal is the badge law working correctly. Re-run with an
+unverified lister as the fixture, assertions 4 and 5 both pass. The lesson
+worth keeping: a probe control that uses whatever row happens to be first is
+not a control, it is a coin toss against every other trigger on the table.
+
+### 11.3 b3, `20260919140000_b3_a_block_holds_on_an_attachment_too.sql`, APPLIED
+
+One SECURITY DEFINER helper `private.blocked_for_message(uuid)` and one
+RESTRICTIVE insert policy on `message_attachments`, closing the hole where a
+blocked person could hang a photograph off one of their own older messages
+and have it appear in the thread of the person who blocked them.
+
+PROBE RESULT, honestly split:
+
+- Assertion 1, the helper exists and is SECURITY DEFINER: PASS.
+- Assertion 2, the policy exists, is `polpermissive = false` and is an INSERT
+  policy: PASS.
+- Assertion 3, the permissive policy is intact: PASS ONLY AFTER CORRECTING
+  THE ASSERTION. It tested `like '%sender_id = auth.uid()%'`, and Postgres
+  stores the expression with the RLS init-plan rewrite,
+  `m.sender_id = ( SELECT auth.uid() AS uid)`, so the literal never matches
+  however correct the policy is. Corrected to test for `sender_id`,
+  `auth.uid()` and `in_conversation` separately.
+- Assertion 4, a missing message is not "blocked": PASS.
+- Assertion 5, the cross-user read: RAN, RETURNED ZERO, AND PROVES NOTHING
+  YET. `message_attachments` holds zero rows, so zero readable by a stranger
+  is zero of zero. Recorded as unproven rather than passed. It becomes a real
+  proof beside the b5 probe on the seeded logins, once an attachment exists.
+
+RLS is enabled on `message_attachments`, `messages` and `conversations`
+(`relrowsecurity = true` on all three), which is structural and is proven.
+
+### 11.4 The domain, the sender and the drift test
+
+`BRAND_DOMAIN` is `vallospaces.com`. The sweep replaced `hello@vallo.ng`,
+`support@vallo.ng`, `www.vallo.ng` and `vallo.ng` across thirty-one files,
+including the Android manifest's two `android:host` values, the iOS
+entitlements' two `applinks:` values and the Apple App Site Association
+comment. `lib/email/client.ts` derives `DEFAULT_FROM` from `BRAND_DOMAIN`, so
+the transactional sender followed without being touched.
+
+`apps/web/src/lib/brand-domain.test.ts` is the drift test the founder asked
+for: it fails if `BRAND_DOMAIN` stops being a bare host, if `BRAND_ORIGIN`
+stops deriving from it, if the Android manifest or the iOS entitlements stop
+naming both the bare and the `www.` host, if any of five named files carries
+`vallo.ng` again, or if `vallospacesltd@gmail.com` appears in any of them.
+
+WHAT DELIBERATELY DID NOT CHANGE, and the founder should know: the native
+bundle identifier is still `ng.vallo.app`, in `build.gradle`, the Java
+package path, `strings.xml`, `capacitor.config.ts`, `project.pbxproj`,
+`assetlinks.json` and the AASA `appIDs`. A reverse-DNS bundle id needs no
+domain ownership, so it works, but it is derived from a domain we do not own
+and have dropped. It is also PERMANENT ONCE THE APP RECORD EXISTS in App
+Store Connect or Play Console, and this session cannot see whether those
+records have been created. Changing it is a one-way door that might break a
+signing and provisioning setup already in place, so it is on the founder's
+desk in section 9 rather than done unasked. The window closes at first
+submission.
+
+`vallospacesltd@gmail.com` appears in no tracked file. `vallo.ng` survives in
+exactly two, both deliberate: `docs/archive/SESSION_REPORT_2026-09-15.md` and
+`docs/design/audits/r3/findings.md`, which are historical records and are
+excluded from the sweep by design.
+
+### 11.5 The email inventory rule was banning true sentences
+
+`shell.test.ts` banned the bare words `restaurant` and `hotel` in every email
+this product sends, on the stated premise that "the restaurant and hotel
+reservation loops exist in the schema and hold zero rows". That premise was
+checked against the live database and it is false. Counts, read on
+19 September:
+
+| table | rows | all `is_demo` |
+| --- | --- | --- |
+| listings | 64 | yes |
+| accommodations | 5 | yes |
+| room_types | 11 | n/a |
+| restaurant_profiles | 2 | n/a |
+| businesses | 7 | yes |
+| bookings | 0 | n/a |
+| reservations | 0 | n/a |
+
+Both sides are example stock, and this email has always been free to say
+Vallo is for renting and buying. Banning one side's nouns while the other
+side's ran unchallenged was an accident of which half was written first, not
+a content truth rule. The assertion now bans the harm instead of the nouns:
+no quantity, no availability promise, no superlative inventory framing, and
+`experiences` still banned outright because no experiences product exists
+here at all. Money is struck out before the count rule runs, because
+"₦25,000 stays in your Vallo wallet" is a true sentence that a naive count
+rule reads as an inventory boast.
+
+### 11.6 Two findings fixed by the lead directly
+
+R1's A5, the biggest single finding in the visual audit: `.nf-icon-tile` in
+`glass.css` resolved to white at 11 per cent, white at 7.5 per cent and a
+white rim, with not one brand value, on the plate behind every glass object
+in every list row. That is the plate the founder photographed and ruled on
+twice. It is now `--nf-brand-edge`, `--nf-brand-tint-1` and `--nf-glow-edge`.
+The control-edge sweep across `controls.css`, `chips.css` and `landing.css`
+is F1's and F2's, with a new `check-css-tokens.mjs` rule so it cannot regress.
+
+R1's A40, every route logged a hydration mismatch on the three before-paint
+scripts in `layout.tsx`, because React deliberately does not serialise
+`nonce` to the client. It was visible as the "2 Issues" badge in a shipped
+proof. All three now carry `suppressHydrationWarning`, which is the sanctioned
+suppression for this exact case; the one on `<html>` does not reach
+descendants. The cost of leaving it was not the warning, it was that a
+permanent false positive hides real hydration bugs behind it.
+
+### 11.7 Two test failures that were the box, not the code
+
+`src/lib/plurals.test.ts` failed twice in a full run, one case timing out at
+716,842 ms against a 5,000 ms limit. Run alone on a quiet box the file passes
+in 1.26 s. Under load average 120 on four cores a vitest worker is starved,
+not wrong. Per 10.6 a red test taken under load is re-run before it is
+believed, and this is the record of that.
