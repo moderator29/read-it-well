@@ -802,6 +802,98 @@
     padding-inline: var(--nf-space-2xs);
   }
 
+  /*
+   * ===================================================================
+   * THE LIT EDGE, on the founder's ruling that our containers read dull
+   * beside the renders.
+   *
+   * Every container on this screen was a flat hairline: `.nf-card`'s stride
+   * ring is mostly the glass border with brand mixed into it, which is
+   * correct as a quiet material and is not what `7F96BE6C` draws. The render
+   * draws lit glass: a bright 1px brand rim, a white catchlight along the
+   * inside of the top edge, and a soft blue bloom thrown into the space
+   * around the card, over a near-black navy fill.
+   *
+   * Three layers and each one has a job:
+   *   the rim      a full brand-edge outline, so the shape is drawn in blue
+   *   the catch    the lit-rim ink inside the top edge, so it reads as glass
+   *                with light on it rather than as a blue outline
+   *   the bloom    two negative-spread rungs, close and wide, so the glow is
+   *                in the air around the card and never a halo stuck to it
+   *
+   * SCOPED TO THIS FILE'S OWN SURFACES, per ledger section 2: the material
+   * itself is `.nf-card` in the lead's glass.css and a worker does not edit
+   * it. This states the decision on the three containers the settings image
+   * governs, and it is the lead's to promote.
+   * =================================================================== */
+  .nf-sgroup .nf-sgroup__body,
+  .nf-card.nf-hub-profile,
+  .nf-card.nf-hub-pay {
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 0 1px var(--nf-glow-1),
+      0 0 30px -12px var(--nf-glow-3),
+      0 0 70px -26px var(--nf-glow-2);
+  }
+
+  /*
+   * The glyph tile, lit the same way and smaller than it was.
+   *
+   * It now holds a rendered glass object rather than a stroked glyph, so the
+   * tile is the object's ground and not a box with a picture in it: the rim
+   * comes up to brand, the well stays the darkest thing on the row, and the
+   * object sits at 26px inside 42 rather than filling it.
+   */
+  .nf-hub .nf-srow__icon,
+  .nf-hub__tile {
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 0 1px var(--nf-glow-wash),
+      0 0 16px -8px var(--nf-glow-3);
+  }
+
+  /*
+   * THE WORDS ARE WHITE, WITH BLUE UNDER THEM.
+   *
+   * Every sub-line on this screen was `--nf-content-muted`, which is a grey,
+   * and a column of grey paragraphs under white labels is exactly the flatness
+   * the founder named. The render's second lines are a dimmed blue-white: the
+   * same family as everything else on the screen, one step down in presence
+   * rather than one step towards grey.
+   */
+  .nf-hub .nf-srow__sub {
+    color: color-mix(in oklab, var(--nf-brand-secondary) 30%, var(--nf-content-secondary));
+  }
+  .nf-hub .nf-srow__value {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-hub-profile__email {
+    color: color-mix(in oklab, var(--nf-brand-secondary) 34%, var(--nf-content-secondary));
+  }
+  .nf-hub-head__lede {
+    color: color-mix(in oklab, var(--nf-brand-secondary) 26%, var(--nf-content-secondary));
+  }
+
+  /*
+   * Paper. The lit rim is a night effect: a blue outline and a blue bloom on
+   * a white page is a smudge, which is what the light law already says about
+   * every glow rung. The anatomy is kept and the light is stated as a
+   * brand-tinted hairline over the elevation ladder instead.
+   */
+  :root[data-theme="light"] .nf-sgroup .nf-sgroup__body,
+  :root[data-theme="light"] .nf-card.nf-hub-profile,
+  :root[data-theme="light"] .nf-card.nf-hub-pay {
+    border-color: var(--nf-border-brand);
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-hub .nf-srow__sub,
+  :root[data-theme="light"] .nf-hub-profile__email,
+  :root[data-theme="light"] .nf-hub-head__lede {
+    color: var(--nf-content-secondary);
+  }
   :root[data-theme="light"] .nf-hub .nf-srow__icon,
   :root[data-theme="light"] .nf-hub__tile {
     background: var(--nf-surface-inset);

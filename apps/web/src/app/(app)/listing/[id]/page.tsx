@@ -473,7 +473,20 @@ export default async function ListingDetailPage({
         : { label: "Message agent", href: messageHref };
 
   const stickySecondary: StickyAction | null = isExample
-    ? null
+    ? /*
+       * THE BREAKDOWN SURVIVES ON AN EXAMPLE ROW, and nothing else does.
+       *
+       * The foot used to carry one control here, which is the founder's
+       * send-back note that it shows "a price and Browse real listings"
+       * rather than the render's pair. The ledger is honest on this row:
+       * it is arithmetic over the figures the row itself states, it
+       * commits nobody to anything, and its own page says in full that the
+       * listing is an example. The inspection is the one that cannot be
+       * offered, so it is the one that stays replaced.
+       */
+      isRental
+      ? { label: t.catalogue.detail.calculateBreakdown, href: `/rent/move-in/${listing.id}` }
+      : null
     : isBookable
       ? { label: "Message agent", href: messageHref }
       : isRental
@@ -705,31 +718,37 @@ export default async function ListingDetailPage({
           except the booking panel, which is a discrete object rather than a
           section, and which is the only raised surface on the screen.
         */}
-        <div
-          className={`nf-glass nf-glass--strong relative z-10 -mx-gutter rounded-t-[1.75rem] border-x-0 border-b-0 px-gutter pb-lg sm:rounded-t-[2.25rem] sm:pb-xl ${
-            listing.photos.length > 1 ? "mt-sm pt-lg" : "-mt-xl pt-xl sm:-mt-2xl"
-          }`}
-        >
+        {/*
+          THE PAGE GROUND IS THE APP CANVAS, and it used to be a sheet.
+
+          This was one `nf-glass--strong` panel wrapped around the entire
+          body, which on the night canvas paints a washed lilac-grey slab
+          behind every section: the founder photographed it and called it a
+          grey form. The renders put lit glass CARDS on the near-black navy
+          page, so the sheet is gone and each section carries its own card.
+          The first one overlaps the photograph's lower edge, which is where
+          the sheet's radius used to do that job.
+        */}
+        <div className="relative z-10 -mt-xl sm:-mt-2xl">
           <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
             {/* --------------------------------------------- main column */}
             <div className="min-w-0">
               <Stack>
                 {/* ------------------------------- 2 to 5. THE LEAD BLOCK
-                    To 9E8B56ED and 7B5335E0: the market and kind tags, the
-                    title, the place with its pin, the figure with the
-                    Verified Listing pill beside it, the spec chips, the
-                    Move-in block on a tenancy, the first row of amenities. */}
-                <Section className="nf-rise scroll-mt-16" id="overview">
-                  <div className="flex flex-wrap items-center gap-xs">
-                    <span className="nf-detail-tag nf-detail-tag--market" data-testid="market-pill">
-                      <UiIcon name={market.icon} size={14} />
-                      {market.label}
-                    </span>
-                    <span className="nf-detail-tag">
-                      <UiIcon name="house" size={14} />
-                      {kind.charAt(0).toUpperCase() + kind.slice(1)}
-                    </span>
-
+                    The founder's send-back renders: a lit glass card
+                    overlapping the photograph, holding the title, the place
+                    with its pin, the Move-in Total panel on a tenancy and
+                    the small amenity row. The market and the check are on
+                    the photograph above it, not repeated here. */}
+                <Section className="nf-rise nf-glass nf-glass--card nf-detail-lead scroll-mt-16" id="overview">
+                  {/*
+                    THE MARKET AND THE CHECK ARE ON THE PHOTOGRAPH, not here.
+                    The render draws "For Rent" and "Verified" as pills at the
+                    hero's bottom left; they were a second row of chips above
+                    the title, which is the same fact stated twice and the
+                    thing the founder's send-back names first.
+                  */}
+                  <div className="flex flex-wrap items-center gap-xs empty:hidden">
                     {/* A rating only with the reviews behind it; a count only
                         when the record carries one. Blue, never gold. */}
                     {listing.rating > 0 && listing.reviewCount > 0 && (
@@ -763,7 +782,7 @@ export default async function ListingDetailPage({
 
                   {/* Above the price, and that position is the point: the
                       disclosure lands before the belief the figure forms. */}
-                  {listing.isDemo && <ExampleNotice variant="page" className="mt-block" />}
+                  {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
 
                   <div className="nf-detail-price-row mt-md">
                     {listing.priceMinor > 0 && (
@@ -785,9 +804,16 @@ export default async function ListingDetailPage({
                     )}
                   </div>
 
-                  <div className="mt-md">
-                    <ListingSpecChips chips={specChips(listing, t, locale)} />
-                  </div>
+                  {/* The spec pairs live inside the Move-in panel's own box on
+                      a tenancy, exactly as the render draws them, so the
+                      scrolling chip row is only for the markets that have no
+                      such panel. It was drawn on both, and on a phone the
+                      second copy ran off the right edge. */}
+                  {!(isRental && !isSale) && (
+                    <div className="mt-md">
+                      <ListingSpecChips chips={specChips(listing, t, locale)} />
+                    </div>
+                  )}
 
                   {/* The remaining trust marks: icon and word, no container. */}
                   {marks.filter((mark) => mark.icon !== "verified").length > 0 && (
@@ -1022,7 +1048,7 @@ export default async function ListingDetailPage({
           perLabel={perLabel}
           action={stickyAction}
           secondary={stickySecondary}
-          secondaryIcon={isRental && !isExample ? "document" : undefined}
+          secondaryIcon={isRental ? "document" : undefined}
           fallbackLabel={listing.title}
           moveInMinor={listing.moveInCostMinor}
           moveInStated={listing.moveInCostStated}

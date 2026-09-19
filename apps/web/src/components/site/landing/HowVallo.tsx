@@ -1,19 +1,22 @@
 import type { Dictionary } from "@vallo/i18n";
 import { Reveal } from "@/components/site/Reveal";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 
 /**
- * How Vallo works: Discover, Verify, Experience, Manage. Four orbs on a
- * hairline, a numbered title and one sentence each. Stroked glyphs here
- * because the render draws these as line icons in glass circles, and the
- * row is all one tier.
+ * How Vallo works: Discover, Verify, Experience, Manage. Four lit rings on a
+ * hairline, a numbered title and one sentence each.
+ *
+ * The marks are the glass objects. They were stroked glyphs on the reading
+ * that the render draws line icons here; at zoom the render's four rings hold
+ * the same blue glass objects as every other mark on the page, and the
+ * founder's second-stint word settles it.
  */
 export function HowVallo({ t }: { t: Dictionary }) {
   const h = t.landing.face.how;
-  const steps: { key: keyof typeof h.steps; icon: UiIconName }[] = [
-    { key: "discover", icon: "search" },
-    { key: "verify", icon: "verified" },
-    { key: "experience", icon: "key" },
+  const steps: { key: keyof typeof h.steps; icon: BrandIconName }[] = [
+    { key: "discover", icon: "listing-search" },
+    { key: "verify", icon: "shield-check" },
+    { key: "experience", icon: "keys-home" },
     { key: "manage", icon: "wallet" },
   ];
   return (
@@ -28,8 +31,8 @@ export function HowVallo({ t }: { t: Dictionary }) {
       <ol className="nf-landing-steps">
         {steps.map((s, i) => (
           <Reveal as="li" key={s.key} delay={i * 60} className="nf-landing-step">
-            <span className="nf-landing-orb nf-landing-orb--lg nf-landing-orb--stroke">
-              <UiIcon name={s.icon} size={24} aria-hidden />
+            <span className="nf-landing-orb nf-landing-orb--lg nf-landing-orb--ring">
+              <BrandIcon name={s.icon} fill />
             </span>
             <h3 className="nf-body flex items-center gap-inline font-semibold text-[var(--nf-content-primary)]">
               <span className="nf-landing-step-num nf-numeric" aria-hidden="true">

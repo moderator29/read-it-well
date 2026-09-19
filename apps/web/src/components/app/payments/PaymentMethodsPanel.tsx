@@ -203,7 +203,11 @@ export function PaymentMethodsPanel({
               </span>
               <span className="min-w-0 flex-1">
                 <span className={`block ${TYPE.rowTitle}`}>{account.bankName}</span>
-                <span className={`mt-3xs block truncate ${TYPE.rowMeta}`}>
+                {/* Not truncated. The render shows the masked number and what
+                    the account is, and half of the name the bank confirmed is
+                    worse than none: this row is how somebody checks they are
+                    being paid into the right account. */}
+                <span className={`mt-3xs block ${TYPE.rowMeta}`}>
                   <span className="nf-numeric">{maskNumber(account.accountNumber)}</span>
                   <span aria-hidden="true"> · </span>
                   {account.accountName}

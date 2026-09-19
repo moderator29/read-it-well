@@ -252,7 +252,7 @@ export function QueueFilters({
            ink so the row reads as the render's, and colour is never alone:
            the word is on every chip. */
         <nav aria-label="Filter by status" className="nf-admin-status">
-          <span className="nf-admin-status__label">Status:</span>
+          <span className="nf-admin-status__label">{f.status}</span>
           <Link
             href={queueHref(base, query, { status: undefined, offset: undefined })}
             aria-current={query.status ? undefined : "true"}

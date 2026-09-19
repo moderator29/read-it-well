@@ -4,6 +4,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getHomeOverview } from "@/lib/app/home-queries";
 import { getListingRepository } from "@/lib/listings/repository";
+import { getHomeMarkets } from "./market-queries";
 import { HomeScreen } from "@/components/app/home/HomeScreen";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
@@ -52,7 +53,14 @@ export default async function HomePage() {
   if (overview.askIntent) redirect("/welcome");
 
   const repo = getListingRepository();
-  const listings = await repo.recommended(6);
+  /*
+   * The recommendations and the market numbers, together.
+   *
+   * The tiles, the cities rail and the investment band all print real counts
+   * off the catalogue (see ./market-queries), and home already waits on one
+   * catalogue read, so the second goes beside it rather than after it.
+   */
+  const [listings, markets] = await Promise.all([repo.recommended(6), getHomeMarkets()]);
 
   /*
    * Whether this person is a seller or an agent who has not finished verifying.
@@ -74,5 +82,16 @@ export default async function HomePage() {
       : null;
   const roles = roleStateFrom(agentFacts, mode).roles;
 
-  return <HomeScreen t={t} locale={locale} overview={overview} listings={listings} roles={roles} />;
+  return (
+    <HomeScreen
+      t={t}
+      locale={locale}
+      overview={overview}
+      listings={listings}
+      roles={roles}
+      counts={markets.counts}
+      cities={markets.cities}
+      invest={markets.invest}
+    />
+  );
 }

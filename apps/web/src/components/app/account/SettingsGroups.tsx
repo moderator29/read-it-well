@@ -187,6 +187,7 @@ export function LanguageRow({
   current,
   label,
   sub,
+  glyph,
 }: {
   t: Dictionary;
   current: Locale;
@@ -194,6 +195,8 @@ export function LanguageRow({
       it, as the render draws it; the appearance screen keeps the one line. */
   label?: string;
   sub?: ReactNode;
+  /** The glass globe, where the calling screen's image draws one. */
+  glyph?: ReactNode;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -209,7 +212,7 @@ export function LanguageRow({
 
   return (
       <RowSelect
-        icon="chat-bubble"
+        {...(glyph ? { glyph } : { icon: "chat-bubble" as const })}
         label={label ?? t.settings.language.appLanguage}
         sub={sub}
         value={selected}

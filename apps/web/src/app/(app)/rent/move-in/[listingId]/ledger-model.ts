@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "@/lib/listings/pricing";
 import type { AreaComparison, LedgerLine } from "./MoveInLedger";
@@ -22,20 +22,22 @@ export function isTenancy(listing: Listing): boolean {
  * Every cost the agent named, as its own row, in the order a tenant meets
  * them. A part they did not name is not a row: nothing here is guessed.
  */
-export function ledgerLines(listing: Listing, t: Dictionary): LedgerLine[] {
+export function ledgerLines(listing: Listing, t: Dictionary, locale: Locale = "en"): LedgerLine[] {
   const period = rentPeriodOf(listing);
   const lines: LedgerLine[] = [];
   const push = (line: Omit<LedgerLine, "minor"> & { minor: number | undefined }) => {
     if (line.minor === undefined || line.minor === null || line.minor <= 0) return;
     lines.push({ ...line, minor: line.minor });
   };
-  /* "Rent (1 year)", as 9F384CFE prints it: the period as a noun in the
-     label, the adverb ("Yearly") as the hint beneath it. */
+  /* "Rent (1 year)" over "₦12,000,000 × 1 year", as the render prints it:
+     the label names the line and the qualifier shows the arithmetic behind
+     the figure on the right. The money goes through `formatMoney` from the
+     kobo on the row, never through a string built here. */
   push({
     key: "rent",
     icon: "home",
     label: `${t.catalogue.card.rent} (1 ${period})`,
-    hint: RENT_PERIOD_LABEL[period],
+    hint: `${formatMoney(listing.priceMinor, locale, listing.currency)} × 1 ${period}`,
     minor: listing.priceMinor,
   });
   push({

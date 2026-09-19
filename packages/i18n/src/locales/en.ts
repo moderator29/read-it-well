@@ -378,9 +378,10 @@ export const en = {
         title1: "Real Estate",
         title2: "reimagined.",
         subtitle:
-          "Discover, verify and manage the right property or stay across Nigeria, all in one place.",
+          "Discover, verify, and manage the perfect property or stay across Nigeria and beyond, all in one place.",
         explore: "Explore Properties",
         stays: "Explore Stays",
+        citiesLabel: "Popular Cities",
         cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
       },
       search: {
@@ -427,39 +428,46 @@ export const en = {
         },
       },
       chips: {
-        verified: { title: "Verified listings", sub: "Every lister checked by a person." },
-        ai: { title: "AI powered", sub: "Smarter search. Better matches." },
-        wallet: { title: "Secure wallet", sub: "Pay, save, grow." },
-        one: { title: "One platform", sub: "Every city, everywhere." },
-        stays: { title: "Vallo Stays", sub: "Hotels, apartments, villas and more." },
-        manage: { title: "Property management", sub: "For owners and agents." },
+        verified: { title: "Verified Listings", sub: "Real properties. Real people." },
+        ai: { title: "AI Powered", sub: "Smarter search. Better matches." },
+        wallet: { title: "Secure Wallet", sub: "Pay, Save, Grow." },
+        one: { title: "One Platform", sub: "Every city. Everywhere." },
+        stays: { title: "VALLO Stays", sub: "Hotels, apartments, villas & more." },
+        manage: { title: "Property Management", sub: "For owners & agents." },
       },
       community: {
         overline: "Real people. Real places.",
-        title: "A growing community of property seekers, owners and investors.",
+        /*
+         * The render sets two phrases of this headline in the brand ramp.
+         * Double brackets mark them, so a translator marks the phrases that
+         * carry the emphasis in their own language and a locale that has not
+         * been through this pass simply renders the whole line in white
+         * rather than losing its translation to the English fallback.
+         */
+        title: "A growing community of [[property seekers,]] [[owners and investors.]]",
         body: "Every count on this page is read live from the platform when the page loads. Nothing here is rounded up.",
-        join: "Join Vallo today",
+        join: "Join VALLO Today",
         thirdParty: "Third party",
         thirdPartyTitle: "Partner inventory, always labelled",
         thirdPartyBody:
           "A stay fulfilled by a partner carries this tag and says who confirms it. It is never dressed as first party.",
       },
       how: {
-        overline: "How Vallo works",
-        title: "Simple steps. Big possibilities.",
-        body: "Find, verify, book and manage property in a few clear moves.",
+        overline: "How VALLO works",
+        title: "Simple Steps. Big Possibilities.",
+        body: "Find, verify, book and manage properties, in just a few clicks.",
         steps: {
-          discover: { title: "Discover", body: "Browse verified properties and stays across the top cities." },
-          verify: { title: "Verify", body: "A person checks every agent before they can publish a listing." },
-          experience: { title: "Experience", body: "Book, inspect or stay, with the record kept in your account." },
-          manage: { title: "Manage", body: "Track, pay, save and manage it all in one place." },
+          discover: { title: "Discover", body: "Browse verified properties and stays across top cities." },
+          verify: { title: "Verify", body: "Our team checks every agent before they can list, for your peace of mind." },
+          experience: { title: "Experience", body: "Book, inspect or stay with confidence." },
+          manage: { title: "Manage", body: "Track, pay, save and manage all in one place." },
         },
       },
       categories: {
         overline: "Explore by category",
-        title: "Find exactly what you are looking for.",
-        body: "From city apartments to villas with a view, Vallo carries the whole market.",
-        join: "Join Vallo",
+        title: "Find exactly what you're looking for.",
+        body: "From modern apartments to villas with a view, VALLO has something for everyone.",
+        join: "Join VALLO",
         apartments: "Apartments",
         houses: "Houses",
         shortlets: "Shortlets",
@@ -471,9 +479,9 @@ export const en = {
         count: "{count} listed",
       },
       stays: {
-        overline: "Vallo Stays",
+        overline: "VALLO Stays",
         title: "Stay somewhere worth remembering.",
-        body: "Hotels, shortlets, apartments, villas, restaurants and experiences, booked from the same account.",
+        body: "Hotels, apartments, shortlets, villas, restaurants and more, booked from the same account.",
         cta: "Explore Stays",
         hotels: "Hotels",
         shortlets: "Shortlets",
@@ -483,18 +491,18 @@ export const en = {
         experiences: "Experiences",
       },
       app: {
-        title: "Take Vallo with you.",
-        body: "The complete property ecosystem in your pocket. Vallo installs from your browser on iPhone and Android.",
+        title: "Take VALLO with you.",
+        body: "The complete property ecosystem in your pocket. VALLO installs from your browser on iPhone and Android.",
         ios: "iPhone and iPad",
         iosSub: "Add to Home Screen",
         android: "Android",
         androidSub: "Install the app",
         rightTitle: "Your property journey, now on mobile.",
         points: {
-          all: "Full access to every feature",
+          all: "Full access to all features",
           notify: "Instant notifications",
           fast: "Secure and fast",
-          design: "Made for one hand",
+          design: "Beautiful, intuitive design",
         },
       },
       footer: {
@@ -513,6 +521,14 @@ export const en = {
         safety: "Safety",
         standards: "Standards",
         cancellations: "Cancellations",
+        buy: "Buy",
+        rent: "Rent",
+        invest: "Invest",
+        aboutUs: "About Us",
+        helpSupport: "Help & Support",
+        termsOfService: "Terms of Service",
+        privacyPolicy: "Privacy Policy",
+        cookies: "Cookies",
       },
     },
     /*
@@ -1341,6 +1357,10 @@ export const en = {
        condition filter in the search vocabulary yet, and a tile has to lead
        somewhere real. */
     searchProperties: "Search for properties, cities or locations",
+    /* The home field's own prompt, to the founder's target. Shorter than
+       `searchProperties` on purpose: at 390 the longer line ran off the end of
+       the well and was cut mid-word. */
+    searchMarkets: "Search markets or locations",
     browse: {
       buy: "Buy",
       rent: "Rent",
@@ -1348,6 +1368,39 @@ export const en = {
       land: "Land",
     },
     popularCities: "Popular Cities",
+    /* The nine markets on home, to the founder's target render (BUILD_06, F1).
+       Three of the render's names are not here because the search vocabulary
+       has no filter behind them: Resorts becomes Villas, Guest Houses becomes
+       Apartments and Commercial becomes Offices, each the nearest market this
+       catalogue actually holds. See components/app/home/markets.ts. The count
+       line is filled from a real count or the tile shows its name alone; it
+       never carries the render's "+", which would round a true figure up. */
+    markets: {
+      label: "Browse by market",
+      rent: "Rent",
+      buy: "Buy",
+      shortlet: "Shortlets",
+      hotel: "Hotels",
+      villa: "Villas",
+      apartment: "Apartments",
+      restaurant: "Restaurants",
+      office: "Offices",
+      land: "Land",
+      listingOne: "{count} listing",
+      listingMany: "{count} listings",
+    },
+    featuredCities: "Featured cities",
+    viewAllCities: "View all cities",
+    /* The investment band. Nothing here promises a yield, a return or a
+       projection, because none of that is modelled anywhere in the product;
+       the band is the for-sale market, named honestly. */
+    invest: {
+      eyebrow: "Invest in tomorrow",
+      titleLead: "Discover premium",
+      titleAccent: "investment opportunities.",
+      body: "Property for sale on Vallo, with each lister's checks in plain view.",
+      action: "Explore Investments",
+    },
     /* The assistant's own chrome (BUILD_06, F1): the name pair under the bar,
        the composer, the thinking pill and the four opening prompts. Each
        prompt asks what this catalogue can actually answer: a yearly rent in
@@ -2408,6 +2461,7 @@ export const en = {
         to: "To",
         apply: "Apply",
         clear: "Clear",
+        status: "Status:",
       },
       /*
        * PER COLUMN, NOT PER VALUE, and that is the whole point of the block.

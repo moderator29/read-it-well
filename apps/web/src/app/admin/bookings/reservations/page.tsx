@@ -79,7 +79,7 @@ export default async function AdminReservationsPage({
       {back}
       <ui.QueueHeader
         title="Reservations"
-        lede="Every table asked for at a restaurant on Vallo. A request the restaurant has not answered can be answered here on its behalf, and a confirmed table can be called off with a reason the guest reads word for word. Nothing here moves money."
+        lede="Tables asked for at restaurants on Vallo. Nothing here moves money."
         count={waiting}
       />
 
@@ -89,7 +89,7 @@ export default async function AdminReservationsPage({
         common={common}
         statuses={reservationStatusFilters(ui)}
         searchLabel="Find a table"
-        searchPlaceholder="Reservation id, or part of the restaurant's name"
+        searchPlaceholder="Reservation id or restaurant"
       />
       {/* The date range narrows by when the table is FOR, not when it was
           asked for, because "which tables are on Saturday" is the question. */}

@@ -45,7 +45,7 @@ export function StayCard({
 
   return (
     <article
-      className={`nf-pcard nf-pcard--wide ${index !== undefined ? "nf-card-in" : ""}`}
+      className={`nf-glass nf-glass--card nf-pcard nf-pcard--wide ${index !== undefined ? "nf-card-in" : ""}`}
       style={style}
       data-testid="stay-card"
     >

@@ -151,11 +151,20 @@ export function ListingCard({
       numeric: true,
     });
   }
-  const shown = row.slice(0, 4);
+  /*
+   * THREE FACTS, as the target render draws them: beds, baths and the floor
+   * area. The building noun is dropped once those three exist, because the
+   * render does not carry it and a fourth chip on a card this size wraps the
+   * row onto a second line. It survives where it is the only thing there is
+   * to say - a plot of land has no beds and no baths, and the render's own
+   * land card reads "Land, 5,000 sqm" - which is why it is dropped by rank
+   * rather than removed from the model.
+   */
+  const shown = (row.length > 3 ? row.filter((fact) => fact.key !== "kind") : row).slice(0, 3);
 
   return (
     <article
-      className={`nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${index !== undefined ? "nf-card-in" : ""}`}
+      className={`nf-glass nf-glass--card nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${index !== undefined ? "nf-card-in" : ""}`}
       style={cardStyle}
       data-testid="listing-card"
     >
@@ -241,7 +250,7 @@ export function ListingCard({
           <h3 className="nf-pcard__title">{listing.title}</h3>
 
           <p className="nf-pcard__where">
-            <UiIcon name="location" size={12} />
+            <UiIcon name="location" size={11} className="mt-3xs" />
             <span>{where}</span>
           </p>
 
@@ -298,7 +307,7 @@ export function ListingCard({
             <ul className="nf-pcard__facts" data-testid="card-facts">
               {shown.map((fact) => (
                 <li key={fact.key} className="nf-pcard__fact">
-                  <UiIcon name={fact.icon} size={12} />
+                  <UiIcon name={fact.icon} size={11} />
                   <span className={fact.numeric ? "nf-numeric" : undefined}>{fact.label}</span>
                 </li>
               ))}

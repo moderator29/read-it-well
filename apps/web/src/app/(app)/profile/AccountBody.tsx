@@ -89,8 +89,11 @@ function BelongingRow({
 }) {
   return (
     <Link href={href} className="nf-card nf-belong__row" data-testid={testId}>
+      {/* The glass object, smaller than the tile that grounds it. A rendered
+          object carries its own light, so at 40 inside 52 it filled the tile
+          and the column read as four pictures rather than four rows. */}
       <span className="nf-belong__tile" aria-hidden="true">
-        <BrandIcon name={icon} size={40} />
+        <BrandIcon name={icon} size={32} />
       </span>
       <span className="nf-belong__body">
         <span className="nf-belong__title">{title}</span>

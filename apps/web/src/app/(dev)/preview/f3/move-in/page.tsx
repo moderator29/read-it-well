@@ -23,7 +23,7 @@ export default async function MoveInPreview() {
     { ...SHELF[0]!, id: "peer-2", priceMinor: 12_500_000_00, area: listing.area },
     { ...SHELF[0]!, id: "peer-3", priceMinor: 12_000_000_00, area: listing.area },
   ];
-  const lines = ledgerLines(listing, t);
+  const lines = ledgerLines(listing, t, locale);
   const total = listing.moveInCostMinor ?? lines.reduce((sum, line) => sum + line.minor, 0);
 
   return (

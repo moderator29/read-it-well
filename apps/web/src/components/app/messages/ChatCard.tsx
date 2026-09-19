@@ -77,8 +77,11 @@ function Stars({ rating }: { rating: number | null }) {
   const full = Math.round(Math.min(5, Math.max(0, rating)));
   return (
     <span className="nf-chat-card__stars" aria-label={`Rated ${rating} out of 5`}>
+      {/* Solid, the way the render draws a rating. `star` is one of the
+          glyphs authored as a closed silhouette, so `filled` is real here
+          rather than paint poured into an outline. Blue by rule 8. */}
       {Array.from({ length: full }, (_, i) => (
-        <UiIcon key={i} name="star" size={16} />
+        <UiIcon key={i} name="star" size={16} filled />
       ))}
     </span>
   );

@@ -1,4 +1,5 @@
 import type { SavedMethods } from "@/lib/admin/payments-queries";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { AdminRead, SubjectLookup } from "@/lib/admin/queries";
 import type { AdminUi } from "../_components/ui";
 import { RemoveSavedMethod } from "./MethodLookup";
@@ -130,6 +131,9 @@ export function LookupResult({
                 const describe = `${brand} ending ${card.last4 ?? "????"}`;
                 return (
                   <li key={card.id} className="nf-row flex-wrap">
+                    {/* The saved card's glass object, small, as the render
+                        carries one per row. Never a card number beside it. */}
+                    <BrandIcon name="card-tile" size={26} className="shrink-0" />
                     <span className="min-w-0 flex-1">
                       <span className="nf-body-sm block font-semibold text-content">
                         {describe}
@@ -167,6 +171,8 @@ export function LookupResult({
                 const describe = `${account.bankName} ending ${account.accountNumberMasked.slice(-4)}`;
                 return (
                   <li key={account.id} className="nf-row flex-wrap">
+                    {/* The bank account's object: the column, not a card. */}
+                    <BrandIcon name="bank-column" size={26} className="shrink-0" />
                     <span className="min-w-0 flex-1">
                       <span className="nf-body-sm block font-semibold text-content">
                         {account.bankName}

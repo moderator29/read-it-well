@@ -847,7 +847,7 @@ function ThreadListingCard({
           </span>
         )}
         <span className={`nf-ai__result-meta ${facts.length === 0 ? "nf-ai__result-facts" : ""}`}>
-          <span className="nf-ai__result-fact">{listing.kind}</span>
+          <span className="nf-ai__result-fact nf-ai__result-kind">{listing.kind}</span>
           {listing.rating > 0 && (
             <span className="nf-ai__result-fact nf-numeric">
               <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />

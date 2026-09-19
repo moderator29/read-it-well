@@ -274,7 +274,7 @@ export function WalletDeck({
         <h2 id="nf-wallet-quick" className={`mb-heading ${TYPE.sectionTitle}`}>
           {copy.quickActions}
         </h2>
-        <div className="nf-wallet-quick nf-scroll-x">
+        <div className="nf-wallet-quick">
           <QuickLink href="/wallet/send" icon="arrow-up" rotate title={copy.sendMoney} sub={copy.sendMoneySub} />
           <QuickLink href="/wallet/receive" icon="user" title={copy.requestMoney} sub={copy.requestMoneySub} />
           <QuickButton
@@ -336,11 +336,15 @@ function QuickInner({
   return (
     <>
       <span className="nf-glyph-tile" aria-hidden="true">
-        <UiIcon name={icon} size={22} className={rotate ? "rotate-45" : undefined} />
+        <UiIcon name={icon} size={18} className={rotate ? "rotate-45" : undefined} />
       </span>
+      {/* Four to a row at 390px, so the two lines are the render's smaller
+          pair rather than the row type a full-width card can carry. */}
       <span className="block">
-        <span className={`block ${TYPE.rowTitle}`}>{title}</span>
-        <span className={`mt-3xs block ${TYPE.rowMeta}`}>{sub}</span>
+        <span className="nf-body-sm block font-semibold leading-tight text-[var(--nf-content-primary)]">
+          {title}
+        </span>
+        <span className={`mt-3xs block leading-tight ${TYPE.caption}`}>{sub}</span>
       </span>
     </>
   );

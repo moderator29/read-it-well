@@ -69,20 +69,28 @@ export function Hero({
               {face.hero.stays}
             </ButtonLink>
           </div>
-          <ul className="nf-rise nf-rise-5 flex flex-wrap gap-inline">
-            {face.hero.cities.map((city) => (
-              <li key={city}>
-                <Link
-                  href={`/search?q=${encodeURIComponent(city)}`}
-                  prefetch={false}
-                  className="nf-landing-city"
-                >
-                  <UiIcon name="location" size={14} aria-hidden />
-                  {city}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* The render puts the pin on the LABEL and leaves the pills plain,
+              with the first city filled: it is the city the search opens on,
+              not a selected state, so it carries no aria-current. */}
+          <div className="nf-rise nf-rise-5 nf-landing-cities">
+            <span className="nf-landing-cities-label">
+              <UiIcon name="location" size={14} aria-hidden />
+              {face.hero.citiesLabel}
+            </span>
+            <ul className="flex flex-wrap gap-inline">
+              {face.hero.cities.map((city, i) => (
+                <li key={city}>
+                  <Link
+                    href={`/search?q=${encodeURIComponent(city)}`}
+                    prefetch={false}
+                    className={`nf-landing-city${i === 0 ? " nf-landing-city--lead" : ""}`}
+                  >
+                    {city}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className="nf-landing-hero-plate" aria-hidden="true">
@@ -91,7 +99,7 @@ export function Hero({
             alt=""
             fill
             priority
-            sizes="(max-width: 64rem) 100vw, 60vw"
+            sizes="(max-width: 64rem) 78vw, 60vw"
           />
         </div>
 

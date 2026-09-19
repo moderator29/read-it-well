@@ -6,6 +6,13 @@
   The off-brand render (213F6F47) lends only its card and chart composition.
   Its gold, orange and flame are ignored: price up is emerald, price down is
   rose, and every accent is a depth of blue from the glow ladder.
+
+  THE LIT EDGE and THE SMALLER OBJECTS, on the founder's ruling of 19
+  September 2026, exactly as `wallet.css` states them: every container edge
+  is a bright brand hairline with an inner highlight and a soft blue glow
+  over a near-black navy fill, no flat grey anywhere in the dark, and the
+  glass marks come down a rung. The paper twin at the foot keeps the
+  anatomy and drops the bloom.
 */
 @layer components {
   /* ------------------------------------------------------------ overview */
@@ -41,16 +48,19 @@
     display: grid;
     place-items: center;
     flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
     overflow: hidden;
     border-radius: var(--nf-radius-circle);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-brand-tint-1);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-brand-tint-2);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 6px 16px -12px var(--nf-glow-3);
   }
   .nf-coin-img--lg {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 3rem;
+    height: 3rem;
   }
   .nf-coin-img > img {
     width: 100%;
@@ -115,11 +125,12 @@
     width: 1.75rem;
     height: 1.75rem;
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-brand-tint-1);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
     font-size: var(--nf-text-caption);
     font-weight: 700;
+    box-shadow: var(--nf-rim-lit);
   }
 
   /* ------------------------------------------------------------ the chart */
@@ -160,8 +171,13 @@
   .nf-crypto-stat {
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill-thin);
+    border: 1px solid var(--nf-brand-edge);
+    background:
+      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
+      var(--nf-glass-fill-thin);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 8px 20px -16px var(--nf-glow-3);
   }
 
   /* -------------------------------------------------- the honest states */
@@ -178,8 +194,8 @@
   }
   .nf-crypto-state__mark {
     position: relative;
-    width: 6rem;
-    height: 6rem;
+    width: 4.5rem;
+    height: 4.5rem;
   }
   .nf-crypto-state__mark::before {
     content: "";
@@ -199,8 +215,9 @@
   .nf-crypto-ghost {
     height: 4.5rem;
     border-radius: var(--nf-radius-md);
-    border: 1px dashed var(--nf-brand-edge-soft);
+    border: 1px dashed var(--nf-brand-edge);
     background: var(--nf-glass-fill-thin);
+    box-shadow: var(--nf-rim-lit);
   }
 
   /* ------------------------------------------------------- fund with crypto */
@@ -223,9 +240,38 @@
   .nf-crypto-fund__mark {
     position: relative;
     flex: none;
-    width: 4rem;
-    height: 4rem;
+    width: 3.25rem;
+    height: 3.25rem;
     filter: drop-shadow(0 10px 20px var(--nf-glow-3));
+  }
+
+  /* ------------------------------------------------- controls, scoped here */
+
+  /* The render's capsule, on this surface's root, for the reason stated at
+     length in `wallet.css`: the shared button material is G1's and the
+     founder's shape ruling is carried here until the lead promotes it. */
+  .nf-crypto-surface .nf-btn {
+    border-radius: var(--nf-radius-pill);
+  }
+  /* The lit container edge, exactly as `wallet.css` states and for the same
+     reason: at 390px in the dark the shared card edge disappears. */
+  .nf-crypto-surface .nf-card {
+    box-shadow:
+      0 0 0 1px var(--nf-brand-edge),
+      var(--nf-rim-lit),
+      0 16px 38px -26px var(--nf-glow-3);
+  }
+  .nf-crypto-surface .nf-btn--primary {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 10px 28px -12px var(--nf-glow-4);
+  }
+  .nf-crypto-surface .nf-btn--glass {
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 8px 20px -16px var(--nf-glow-3);
   }
 
   /* -------------------------------------------------------------- daylight */
@@ -234,11 +280,23 @@
   :root[data-theme="light"] .nf-coin-rank,
   :root[data-theme="light"] .nf-crypto-ghost {
     background: var(--nf-brand-tint-1);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge-soft);
+    box-shadow: none;
   }
   :root[data-theme="light"] .nf-crypto-stat {
     background: var(--nf-surface-inset);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge-soft);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-crypto-surface .nf-card {
+    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
+  }
+  :root[data-theme="light"] .nf-crypto-surface .nf-btn--primary {
+    box-shadow: var(--nf-glow-accent);
+  }
+  :root[data-theme="light"] .nf-crypto-surface .nf-btn--glass {
+    border-color: var(--nf-brand-edge-soft);
+    box-shadow: none;
   }
   :root[data-theme="light"] .nf-crypto-chart__line {
     filter: none;

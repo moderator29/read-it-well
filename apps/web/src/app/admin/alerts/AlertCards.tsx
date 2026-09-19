@@ -1,4 +1,5 @@
 import type { AlertView } from "@/lib/admin/queries";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { AlertResolve } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import type { AdminUi } from "../_components/ui";
@@ -67,8 +68,11 @@ export function AlertCard({
         </span>
       </div>
 
-      <h3 className="mt-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        {alert.title}
+      {/* The row's glass object, small, as the render shows one per row. A
+          risk alert is the warning mark; it is an ornament here, so no tile. */}
+      <h3 className="mt-xs flex items-center gap-inline text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+        <BrandIcon name="alert-triangle" size={26} />
+        <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (
         <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -127,8 +131,11 @@ export function DriftCard({
           {ui.when(alert.createdAt)}
         </span>
       </div>
-      <h3 className="mt-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        {alert.title}
+      {/* Drift is a disagreement about a calendar, so the calendar clock is
+          its object rather than the general warning mark. */}
+      <h3 className="mt-xs flex items-center gap-inline text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+        <BrandIcon name="calendar-clock" size={26} />
+        <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (
         <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">

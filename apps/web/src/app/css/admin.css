@@ -11,6 +11,12 @@
   pill, the submitted stamp, View and the kebab, then the pager and the
   Operations Console footer. Every desk inherits it through
   `app/admin/_components`. Everything here is scoped under `.nf-admin`.
+
+  Every container edge is lit glass, on the founder's ruling: the brand
+  hairline (`--nf-brand-edge`), the blue-white catchlight inside it
+  (`--nf-rim-lit`), a rung of the glow ladder and `--nf-bloom-card` behind
+  the panes. A flat grey border survives nowhere on a container here; the
+  hairlines that divide rows and cells inside one object are brand-tinted.
 */
 @layer components {
   /* ------------------------------------------------------------ the frame */
@@ -33,9 +39,11 @@
     width: var(--nf-rail-width);
     flex-shrink: 0;
     padding: var(--nf-space-md);
-    border-right: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-right: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
-    box-shadow: inset -1px 0 0 var(--nf-glass-rim);
+    box-shadow:
+      inset -1px 0 0 var(--nf-rim-lit-ink),
+      0 0 32px var(--nf-glow-1);
   }
   @media (min-width: 1024px) {
     .nf-admin-rail {
@@ -80,10 +88,10 @@
   .nf-admin-nav__row--on {
     color: var(--nf-content-primary);
     background: var(--nf-brand-tint-2);
-    border-color: var(--nf-brand-edge);
+    border-color: var(--nf-brand-edge-strong);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 14px var(--nf-glow-1);
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-2);
   }
   .nf-admin-nav__count {
     display: inline-flex;
@@ -115,13 +123,17 @@
     margin-top: var(--nf-space-md);
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 16px var(--nf-glow-1);
   }
+  /* The glass object, smaller than it was: a content object is a mark beside
+     the words, not a tile competing with them (the founder's ruling). */
   .nf-admin-rail__foot-mark {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     flex-shrink: 0;
   }
 
@@ -155,10 +167,13 @@
     min-height: 2.75rem;
     padding: var(--nf-space-xs) 4.5rem var(--nf-space-xs) 2.75rem;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body-sm);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 14px var(--nf-glow-1);
   }
   .nf-admin-bar__search input:focus {
     outline: none;
@@ -195,8 +210,9 @@
     min-height: 2.75rem;
     padding: var(--nf-space-2xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill-thin);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-admin-bar__avatar {
     display: grid;
@@ -224,7 +240,7 @@
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-2xl);
     padding-top: var(--nf-space-md);
-    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
@@ -269,21 +285,24 @@
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-md);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
     white-space: nowrap;
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 12px var(--nf-glow-1);
   }
   .nf-admin-tab--on {
     color: var(--nf-content-on-brand);
     background: var(--nf-gradient-cta);
-    border-color: var(--nf-brand-edge);
+    border-color: var(--nf-brand-edge-strong);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 16px var(--nf-glow-2);
+      var(--nf-rim-lit),
+      0 0 20px var(--nf-glow-3),
+      0 8px 24px -10px var(--nf-glow-3);
   }
   .nf-admin-tab__count {
     font-variant-numeric: tabular-nums;
@@ -315,11 +334,13 @@
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.75rem;
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body-sm);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 14px var(--nf-glow-1);
   }
   .nf-admin-search__field input::placeholder {
     color: var(--nf-content-muted);
@@ -352,8 +373,9 @@
     margin-top: var(--nf-space-xs);
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill-thin);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-admin-more > summary::-webkit-details-marker {
     display: none;
@@ -384,8 +406,9 @@
     min-height: 2.5rem;
     padding: var(--nf-space-2xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);
@@ -430,14 +453,19 @@
 
   /* The dense table is a list of rows on a grid, so a row can carry its
      detail beneath it (a native disclosure) without breaking table
-     semantics that a 390px screen cannot hold anyway. */
+     semantics that a 390px screen cannot hold anyway. It is a lit glass
+     pane: the brand hairline end to end, the blue-white catchlight inside
+     it, the card bloom behind, per the founder's ruling on container
+     edges; every token is the platform's own. */
   .nf-admin-table {
     border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
+      var(--nf-rim-lit),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      0 0 22px var(--nf-glow-2),
+      var(--nf-bloom-card);
     overflow: hidden;
   }
   /* The phone row is two lines on a grid: the tile, then the title over
@@ -447,7 +475,7 @@
   .nf-admin-table__head,
   .nf-admin-row__grid {
     display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
     grid-template-areas:
       "type title actions"
       "type meta actions";
@@ -502,13 +530,19 @@
     letter-spacing: var(--nf-tracking-overline);
     text-transform: uppercase;
     color: var(--nf-content-muted);
-    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-bottom: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background: var(--nf-glass-fill-thin);
   }
   .nf-admin-row {
-    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
   }
-  .nf-admin-row:first-of-type {
+  /*
+   * Every row sits in its own list item, so EVERY row was the first of its
+   * type inside its own `li` and this rule took the divider off all of them:
+   * the desks rendered as one unbroken block with no lines between rows.
+   * 278CC66A draws a hairline between rows and none above the first.
+   */
+  .nf-admin-table > ul > li:first-child > .nf-admin-row {
     border-top: 0;
   }
   .nf-admin-row > summary {
@@ -539,19 +573,23 @@
     color: var(--nf-content-secondary);
   }
   /* The type glyph on a lit glass tile: the one place a glyph gets a plate
-     in the console, because the render's whole table reads by it. */
+     in the console, because the render's whole table reads by it. 40px down
+     to 36px, because a row's glyph labels the row, it does not headline it. */
   .nf-admin-row__tile {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
     align-self: start;
     flex-shrink: 0;
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-brand-secondary);
-    box-shadow: inset 0 0 10px var(--nf-glow-wash);
+    box-shadow:
+      var(--nf-rim-lit),
+      inset 0 0 10px var(--nf-glow-wash),
+      0 0 10px var(--nf-glow-1);
   }
   .nf-admin-row__type-word {
     display: none;
@@ -609,7 +647,9 @@
     color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
     font-weight: 600;
-    box-shadow: 0 0 10px var(--nf-glow-1);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 12px var(--nf-glow-2);
   }
   .nf-admin-row[open] .nf-admin-row__view {
     background: var(--nf-brand-tint-2);
@@ -624,7 +664,7 @@
   }
   .nf-admin-row__body {
     padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-md);
-    border-top: var(--nf-border-width) dashed var(--nf-border-subtle);
+    border-top: var(--nf-border-width) dashed var(--nf-brand-edge-soft);
   }
   /* Desktop: every column shows and the phone-only stack unfolds. */
   @media (min-width: 1024px) {
@@ -678,8 +718,9 @@
     height: 2.25rem;
     padding-inline: var(--nf-space-2xs);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-caption);
     font-weight: 600;
@@ -703,7 +744,7 @@
   /* The desk cards inherit the well material so they sit in the frame. */
   .nf-admin .nf-queue-list > .nf-card {
     background: var(--nf-well-fill);
-    border-color: var(--nf-brand-edge-soft);
+    border-color: var(--nf-brand-edge);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -734,8 +775,22 @@
 :root[data-theme="light"] .nf-admin .nf-queue-list > .nf-card {
   background: var(--nf-surface-on-paper);
 }
+/*
+  The lit rim is a night material: on paper a blue-white catchlight inside a
+  chip or a tile is either invisible or a smear, so every object that gained
+  one for the founder's container ruling takes the paper shadow instead.
+*/
 :root[data-theme="light"] .nf-admin-table,
-:root[data-theme="light"] .nf-admin-rail__foot {
+:root[data-theme="light"] .nf-admin-rail__foot,
+:root[data-theme="light"] .nf-admin-tab,
+:root[data-theme="light"] .nf-admin-chip,
+:root[data-theme="light"] .nf-admin-row__tile,
+:root[data-theme="light"] .nf-admin-row__view,
+:root[data-theme="light"] .nf-admin-pager__page,
+:root[data-theme="light"] .nf-admin-bar__person,
+:root[data-theme="light"] .nf-admin-bar__search input,
+:root[data-theme="light"] .nf-admin-search__field input,
+:root[data-theme="light"] .nf-admin-more__body {
   box-shadow: var(--nf-shadow-on-paper);
 }
 :root[data-theme="light"] .nf-admin-tab--on,

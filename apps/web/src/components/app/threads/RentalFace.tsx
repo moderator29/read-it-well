@@ -7,7 +7,8 @@ import type { Dictionary, Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ICON, TYPE } from "@/components/app/Screen";
+import { TYPE } from "@/components/app/Screen";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import {
   acceptProposedTime,
   answerInspection,
@@ -178,17 +179,12 @@ export function RentalFace({
       className="nf-context-card"
     >
       <div className="flex w-full items-start gap-row">
-        {/* The same lit mark the context card above carries, so the face
-            reads as the second row of one object rather than a second box. */}
-        <span
-          aria-hidden="true"
-          className={`nf-context-card__mark grid place-items-center ${
-            state === "CONFIRMED"
-              ? "text-[var(--nf-state-success)]"
-              : "text-[var(--nf-brand-secondary)]"
-          }`}
-        >
-          <UiIcon name={state === "CONFIRMED" ? "verified" : "calendar-booking"} size={ICON.section} />
+        {/* The same glass object the context card above carries, so the face
+            reads as the second row of one object rather than a second box.
+            A glass object where the render shows one, per the founder's
+            ruling; the state is in the words and in the controls. */}
+        <span className="nf-context-card__mark" aria-hidden="true">
+          <BrandIcon name={state === "CONFIRMED" ? "seal-check" : "calendar-clock"} fill />
         </span>
 
         <div className="min-w-0 flex-1">

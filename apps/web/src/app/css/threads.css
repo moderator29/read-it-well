@@ -9,6 +9,15 @@
   lit from the top, and a shared card is the strong glass rung with a lit edge.
   Every colour is a layer-2 token, so the paper twin below only restates the
   few values that the dark ladder cannot lower on its own.
+
+  EVERY CONTAINER EDGE IS LIT GLASS, on the founder's ruling that our
+  surfaces read dull beside the renders. One recipe, from the platform's own
+  tokens: `--nf-brand-edge` (or `-strong` on the objects the render lights
+  hardest) for the hairline, `--nf-rim-lit` for the blue-white catchlight
+  inside it, and a rung of the glow ladder plus `--nf-bloom-card` behind. No
+  flat grey border survives on a container here; `--nf-border-subtle` is left
+  only where a hairline divides cells INSIDE one object, and even those are
+  brand-tinted now.
 */
 @layer components {
   /* ------------------------------------------------------------ the room */
@@ -42,10 +51,11 @@
     height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
     background: var(--nf-well-fill);
     box-shadow:
-      0 0 14px var(--nf-glow-2),
+      var(--nf-rim-lit),
+      0 0 16px var(--nf-glow-3),
       inset 0 0 10px var(--nf-glow-wash);
   }
   .nf-thread__ring > * {
@@ -173,12 +183,14 @@
     height: 2.25rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-brand-secondary);
     font-size: var(--nf-text-caption);
     font-weight: 700;
-    box-shadow: 0 0 10px var(--nf-glow-1);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 12px var(--nf-glow-2);
     overflow: hidden;
   }
   .nf-msg__avatar > * {
@@ -211,19 +223,21 @@
     color: var(--nf-brand-secondary);
   }
 
-  /* A role tag beside a name: Tenant, Agent, Host. A hairline pill, no fill,
-     so it labels the person without competing with the verified mark. */
+  /* A role tag beside a name: Tenant or Agent, on the rental face only. A
+     lit hairline pill on the well, so it labels the person without
+     competing with the verified mark. */
   .nf-role-tag {
     display: inline-flex;
     align-items: center;
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-pill);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     font-size: var(--nf-text-overline);
     font-weight: 600;
     line-height: 1.2;
     color: var(--nf-content-secondary);
-    background: var(--nf-glass-fill-thin);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
   }
 
   /* ------------------------------------------------------------ bubbles */
@@ -241,23 +255,24 @@
   .nf-bubble--theirs {
     color: var(--nf-content-primary);
     background: var(--nf-well-fill);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     border-bottom-left-radius: var(--nf-radius-xs);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-rim-lit),
       inset 0 0 18px var(--nf-glow-wash),
-      0 0 12px var(--nf-glow-1);
+      0 0 14px var(--nf-glow-2);
   }
   /* Mine: the CTA gradient, lit at the top, with the bloom the render gives
      the sent side. On-brand ink, never a raw white. */
   .nf-bubble--mine {
     color: var(--nf-content-on-brand);
     background: var(--nf-gradient-cta);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
     border-bottom-right-radius: var(--nf-radius-xs);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-2);
+      var(--nf-rim-lit),
+      0 0 22px var(--nf-glow-3),
+      0 8px 24px -12px var(--nf-glow-3);
   }
   /* A message that did not send loses its fill, so the shape says it. */
   .nf-bubble--failed {
@@ -337,20 +352,24 @@
 
   /* ------------------------------------------------------ the shared card */
 
-  /* A listing or a booking, shared into the chat. Strong glass, a lit brand
-     edge, and one bloom; it is the object of the conversation so it earns
-     the loudest surface in the room. */
+  /* A listing or a booking, shared into the chat: the object of the
+     conversation, so it earns the loudest surface in the room. The render
+     draws it as lit glass, which is the electric hairline at its strong
+     rung, the blue-white catchlight along the top and the card bloom
+     behind: the platform's own card recipe, one rung up. */
   .nf-chat-card {
     width: 100%;
     overflow: hidden;
     border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
     background: var(--nf-well-fill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 22px var(--nf-glow-2);
+      var(--nf-rim-lit),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      0 0 26px var(--nf-glow-3),
+      var(--nf-bloom-card);
   }
   .nf-chat-card__photo {
     position: relative;
@@ -363,10 +382,22 @@
     height: 100%;
     object-fit: cover;
   }
+  /*
+   * The badge sits ON a photograph, and a photograph is any colour. The
+   * status pill's own fill is a translucent wash, which is right on a panel
+   * and washes out over a bright window at dusk, so the badge carries its
+   * own dark plate: the pill keeps its state ink and the plate guarantees
+   * the contrast whatever is behind it.
+   */
   .nf-chat-card__badge {
     position: absolute;
     top: var(--nf-space-sm);
     right: var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-overlay-media-strong);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-chat-card__body {
     padding: var(--nf-space-md);
@@ -400,7 +431,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: var(--nf-space-md);
     padding-top: var(--nf-space-md);
-    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
   }
   .nf-chat-card__fact {
     display: flex;
@@ -409,7 +440,7 @@
     padding-inline: var(--nf-space-xs);
   }
   .nf-chat-card__fact + .nf-chat-card__fact {
-    border-left: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-left: var(--nf-border-width) solid var(--nf-brand-edge-soft);
   }
   .nf-chat-card__fact:first-child {
     padding-left: 0;
@@ -444,8 +475,9 @@
     margin-top: var(--nf-space-md);
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill-thin);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-chat-card__thumb {
     width: 4.5rem;
@@ -548,13 +580,16 @@
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 16px var(--nf-glow-1);
+      var(--nf-rim-lit),
+      0 0 20px var(--nf-glow-2),
+      var(--nf-bloom-card);
     color: inherit;
   }
+  /* The glass object, down from 48px: 9E06F51C draws the house as a mark
+     beside the words, not a tile the size of the two lines it labels. */
   .nf-context-card__mark {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     flex-shrink: 0;
   }
   .nf-context-card__line > span {
@@ -651,11 +686,13 @@
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 14px var(--nf-glow-1);
   }
   .nf-composer__field::placeholder {
     color: var(--nf-content-muted);
@@ -675,12 +712,13 @@
     height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
     background: var(--nf-gradient-cta);
     color: var(--nf-content-on-brand);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 14px var(--nf-glow-2);
+      var(--nf-rim-lit),
+      0 0 20px var(--nf-glow-3),
+      0 8px 22px -10px var(--nf-glow-3);
     transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-composer__send:disabled {
@@ -695,7 +733,7 @@
     align-items: center;
     gap: var(--nf-gap-inline-tight);
     padding-top: var(--nf-gap-inline);
-    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
   }
 
   /* ------------------------------------------------------------- inbox */
@@ -719,9 +757,11 @@
     place-items: center;
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
-    box-shadow: 0 0 10px var(--nf-glow-1);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 12px var(--nf-glow-2);
     padding: 2px;
   }
   .nf-inbox-row__ring > * {
@@ -792,9 +832,11 @@
     font-size: var(--nf-text-body);
     color: var(--nf-content-secondary);
   }
+  /* The glass house, down from 104px. It is the headline's companion, and
+     at the old size it outweighed the words it illustrates. */
   .nf-insp-hero__mark {
-    width: 6.5rem;
-    height: 6.5rem;
+    width: 5rem;
+    height: 5rem;
     flex-shrink: 0;
     margin-top: calc(var(--nf-space-sm) * -1);
     filter: drop-shadow(0 0 18px var(--nf-glow-2));
@@ -809,8 +851,10 @@
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
+      var(--nf-rim-lit),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      0 0 22px var(--nf-glow-2),
+      var(--nf-bloom-card);
     color: inherit;
   }
   .nf-insp-card__photo {
@@ -860,8 +904,11 @@
     margin-top: var(--nf-space-sm);
     padding: var(--nf-space-sm) 0;
     border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 16px var(--nf-glow-1);
   }
   .nf-insp-fact {
     display: flex;
@@ -881,7 +928,7 @@
     max-width: 100%;
   }
   .nf-insp-fact + .nf-insp-fact {
-    border-left: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-left: var(--nf-border-width) solid var(--nf-brand-edge-soft);
   }
   .nf-insp-fact__glyph {
     display: grid;
@@ -890,8 +937,9 @@
     height: 2rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill-thin);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
     color: var(--nf-brand-secondary);
   }
   .nf-insp-fact__label {
@@ -923,8 +971,12 @@
     margin-top: var(--nf-space-sm);
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 20px var(--nf-glow-2),
+      var(--nf-bloom-card);
   }
   .nf-insp-ladder__head {
     display: flex;
@@ -959,20 +1011,24 @@
     gap: var(--nf-space-sm);
     padding: var(--nf-space-xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill-thin);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-insp-step__tile {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-brand-secondary);
-    box-shadow: inset 0 0 10px var(--nf-glow-wash);
+    box-shadow:
+      var(--nf-rim-lit),
+      inset 0 0 10px var(--nf-glow-wash),
+      0 0 10px var(--nf-glow-1);
   }
   .nf-insp-step__name {
     font-weight: 600;
@@ -1011,15 +1067,18 @@
     margin-top: var(--nf-space-sm);
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 16px var(--nf-glow-1);
   }
   .nf-insp-notes__body {
     margin-top: var(--nf-space-2xs);
     padding: var(--nf-space-xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill-thin);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
     white-space: pre-wrap;
@@ -1084,6 +1143,23 @@
 :root[data-theme="light"] .nf-bubble--theirs {
   box-shadow: var(--nf-shadow-on-paper);
 }
+/*
+  The lit rim is a night material. On paper a blue-white catchlight inside a
+  small object is either invisible or a smear, so the objects that gained one
+  for the dark ruling take the paper shadow instead. The light law: same
+  anatomy, designed, never derived.
+*/
+:root[data-theme="light"] .nf-role-tag,
+:root[data-theme="light"] .nf-composer__field,
+:root[data-theme="light"] .nf-thread__ring,
+:root[data-theme="light"] .nf-msg__avatar,
+:root[data-theme="light"] .nf-inbox-row__ring,
+:root[data-theme="light"] .nf-chat-card__room,
+:root[data-theme="light"] .nf-insp-fact__glyph,
+:root[data-theme="light"] .nf-insp-facts,
+:root[data-theme="light"] .nf-insp-notes__body {
+  box-shadow: var(--nf-shadow-on-paper);
+}
 :root[data-theme="light"] .nf-chat-card,
 :root[data-theme="light"] .nf-context-card {
   box-shadow: var(--nf-shadow-on-paper);
@@ -1105,4 +1181,5 @@
 :root[data-theme="light"] .nf-insp-step,
 :root[data-theme="light"] .nf-insp-notes__body {
   background: var(--nf-surface-raised);
+  box-shadow: var(--nf-shadow-on-paper);
 }

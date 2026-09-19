@@ -460,7 +460,7 @@ export function SendFlow({
             onClear={() => setAmountText("")}
           />
         </div>
-        <ChipRow bleed={false} fadeEdges={false} snap={false} className="mt-inline">
+        <ChipRow bleed={false} fadeEdges={false} snap={false} className="nf-send-presets mt-inline">
           {PRESETS_KOBO.map((preset) => {
             const canonical = canonicalNaira(preset);
             return (
@@ -567,7 +567,7 @@ function SectionHead({
 }) {
   return (
     <div className="nf-money-sec__head">
-      <span className="nf-glyph-tile" aria-hidden="true">
+      <span className="nf-glyph-tile nf-glyph-tile--solid" aria-hidden="true">
         {icon ? <UiIcon name={icon} size={22} /> : <span className="nf-body font-bold">{glyph}</span>}
       </span>
       <div className="min-w-0">

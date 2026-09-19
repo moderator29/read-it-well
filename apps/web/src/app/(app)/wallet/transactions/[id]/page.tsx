@@ -38,7 +38,7 @@ export default async function WalletReceiptPage({
   const entry = await readWalletEntry(id);
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="nf-money mx-auto max-w-lg">
       <PageHeader title="Receipt" fallback="/wallet/transactions" />
 
       {entry ? (

@@ -56,8 +56,11 @@ export function EntryRow({
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className={`block ${TYPE.rowTitle}`}>{words.kind[entry.kind]}</span>
+          {/* Wrapped, not truncated. "Transfer to Tunde Adebayo" became
+              "Transfer to Tunde ..." at 390px, which cuts the one fact the
+              row exists to carry: who the money went to. */}
           {counterparty && (
-            <span className="nf-body-sm mt-3xs block truncate text-[var(--nf-content-secondary)]">
+            <span className="nf-body-sm mt-3xs block text-[var(--nf-content-secondary)]">
               {counterparty}
             </span>
           )}

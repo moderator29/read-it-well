@@ -14,6 +14,7 @@ const PAGES = [
   "checkout",
   "saved",
   "restaurants",
+  "restaurant",
 ];
 
 export default function F3PreviewIndex() {

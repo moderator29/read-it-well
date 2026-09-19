@@ -9,6 +9,12 @@
   content glyphs, the pill controls where the renders show pills. Everything
   is scoped under `.nf-agent` (the console shell) and `.nf-host` (the wizard
   and the verification flow), so nothing here can reach another surface.
+
+  The register now includes the founder's container ruling: every edge is
+  lit glass, which is `--nf-brand-edge` for the hairline, `--nf-rim-lit` for
+  the catchlight inside it and a glow rung with `--nf-bloom-card` behind. The
+  glass objects came down a size with it, because on a two-up grid at 390px
+  the object was taking the width the label needs.
 */
 @layer components {
   /* ------------------------------------------------------- the console */
@@ -23,15 +29,19 @@
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
     border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
+      var(--nf-rim-lit),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      0 0 20px var(--nf-glow-2),
+      var(--nf-bloom-card);
   }
+  /* The glass object, down from 48px: on a two-up grid at 390px the object
+     was taking the width the label needs to say what the figure counts. */
   .nf-agent-stat__mark {
-    width: 3rem;
-    height: 3rem;
+    width: 2.25rem;
+    height: 2.25rem;
     flex-shrink: 0;
   }
   .nf-agent-stat__label {
@@ -82,10 +92,12 @@
   .nf-agent .nf-card,
   .nf-agent-panel {
     background: var(--nf-well-fill);
-    border-color: var(--nf-brand-edge-soft);
+    border-color: var(--nf-brand-edge);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
+      var(--nf-rim-lit),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      0 0 20px var(--nf-glow-2),
+      var(--nf-bloom-card);
   }
   /* The top bar's search well, in the same material as the console's. */
   .nf-agent-bar__search {
@@ -105,10 +117,11 @@
     min-height: 2.5rem;
     padding: var(--nf-space-2xs) var(--nf-space-sm) var(--nf-space-2xs) 2.5rem;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body-sm);
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-agent-bar__search input:focus {
     outline: none;
@@ -169,11 +182,13 @@
     min-height: 4rem;
     padding: var(--nf-space-sm) var(--nf-space-md);
     border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     text-align: left;
     color: inherit;
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 16px var(--nf-glow-1);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
@@ -182,12 +197,14 @@
   .nf-host-choice[aria-checked="true"] {
     border-color: var(--nf-brand-edge-strong);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 16px var(--nf-glow-2);
+      var(--nf-rim-lit),
+      0 0 22px var(--nf-glow-3),
+      var(--nf-bloom-card);
   }
+  /* The glass object at the choice's left, down from 44px. */
   .nf-host-choice__mark {
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
     flex-shrink: 0;
   }
   .nf-host-choice__ring {
@@ -209,9 +226,11 @@
   .nf-host-group {
     padding: var(--nf-space-md);
     border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-1);
   }
   .nf-host-group__title {
     font-weight: 700;
@@ -233,7 +252,8 @@
     padding: var(--nf-space-sm) var(--nf-space-md);
     border-radius: var(--nf-radius-lg);
     border: var(--nf-border-width) dashed var(--nf-brand-edge);
-    background: var(--nf-glass-fill-thin);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
     color: var(--nf-content-secondary);
     text-align: left;
   }
@@ -248,7 +268,7 @@
     align-items: flex-start;
     gap: var(--nf-space-xs);
     padding: var(--nf-space-xs) 0;
-    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
@@ -292,6 +312,9 @@
   background: var(--nf-surface-on-paper);
   box-shadow: var(--nf-shadow-on-paper);
 }
+/* The lit rim is a night material; on paper the drop plate keeps the raised
+   surface and no catchlight. */
 :root[data-theme="light"] .nf-host-drop {
   background: var(--nf-surface-raised);
+  box-shadow: none;
 }

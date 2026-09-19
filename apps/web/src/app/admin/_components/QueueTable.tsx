@@ -37,7 +37,16 @@ export type QueueRowData = {
   type: string;
   icon: UiIconName;
   title: string;
-  /** The person or the place under the title. */
+  /**
+   * The PLACE under the title, drawn with the pin.
+   *
+   * Separate from `sub` because the pin is a claim: a row that draws it is
+   * saying the words beside it are somewhere on a map. The audit and alert
+   * desks have no place on their rows at all, and with one field they either
+   * went without the line or printed an actor's name under a map pin.
+   */
+  place?: string;
+  /** Anything else under the title: a person, an email, a wallet. No pin. */
   sub?: string;
   /** A second line on desktop only: the figure, the dates, the wallet. */
   detail?: string;
@@ -120,9 +129,14 @@ function RowGrid({ row }: { row: QueueRowData }) {
       </span>
       <span className="nf-admin-row__title">
         <span className="nf-admin-row__name">{row.title}</span>
-        {row.sub && (
+        {row.place && (
           <span className="nf-admin-row__sub">
             <UiIcon name="location" size={12} className="shrink-0" />
+            <span className="min-w-0 truncate">{row.place}</span>
+          </span>
+        )}
+        {row.sub && (
+          <span className="nf-admin-row__sub">
             <span className="min-w-0 truncate">{row.sub}</span>
           </span>
         )}

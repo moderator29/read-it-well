@@ -115,14 +115,15 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         photos={listing.photos ?? []}
         plates={RESTAURANT_PLATES as string[]}
         backFallback="/restaurants"
+        mark={{ label: t.stays.restaurantsTitle, icon: "utensils", verified: listing.verified, verifiedLabel: t.common.verified }}
       />
 
-      <div className="mx-auto max-w-2xl px-gutter pb-section pt-block">
-        <div className="flex flex-wrap items-center gap-xs">
-          <span className="nf-detail-tag nf-detail-tag--market">
-            <UiIcon name="utensils" size={14} />
-            {t.stays.restaurantsTitle}
-          </span>
+      {/* The third face of the one anatomy: the same lit lead card over the
+          photograph, and the open-now line where the market chip used to
+          sit, since the market is now stated on the photograph itself. */}
+      <div className="mx-auto max-w-2xl px-gutter pb-section">
+        <div className="nf-glass nf-glass--card nf-detail-lead relative z-10 -mt-xl sm:-mt-2xl">
+        <div className="flex flex-wrap items-center gap-xs empty:hidden">
           {hours && (
             <span className={`nf-reg-open ${hours.openNow ? "nf-reg-open--open" : "nf-reg-open--closed"}`} data-testid="open-now">
               <UiIcon name="history" size={12} />
@@ -148,6 +149,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             <span className={TYPE.rowMeta}>{copy.perHead}</span>
           </p>
         )}
+        </div>
 
         <Stack className="mt-block">
           {/* THE RESERVATION, FIRST. Not a panel beside the description. */}

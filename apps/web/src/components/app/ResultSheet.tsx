@@ -185,8 +185,16 @@ export function ResultSheet(props: ResultSheetProps) {
       hideTitle
       detents={[0.72]}
     >
+      {/*
+        `nf-money` is carried INSIDE the sheet on purpose. `Sheet` renders
+        through a portal on `document.body`, so it sits outside the page's
+        surface root and the money surfaces' control law (the render's
+        capsule and its glow, scoped in `app/css/wallet.css`) would stop at
+        the sheet's edge: a confirmation would answer a capsule button with a
+        rectangle. The class travels with the content instead.
+      */}
       <div
-        className="relative flex flex-col items-center px-3xs pb-block text-center"
+        className="nf-money relative flex flex-col items-center px-3xs pb-block text-center"
         style={{ "--nf-result-ink": tone.ink } as React.CSSProperties}
       >
         {/*

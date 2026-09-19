@@ -21,7 +21,9 @@
      * describes "a search bar floating over a photograph". Reported to the lead
      * for promotion.
      */
-    --nf-landing-title: clamp(2.75rem, 1.5rem + 4vw, 4.75rem);
+    /* A bit smaller on the phone than the first stint shipped: the founder
+       read 44px as oversized against the render's compact hero. */
+    --nf-landing-title: clamp(2.35rem, 1.2rem + 4.4vw, 4.75rem);
     --nf-landing-pill-max: 47.5rem;
     --nf-landing-card-w: 15.5rem;
     --nf-landing-hero-h: min(100svh, 56rem);
@@ -34,7 +36,20 @@
      * footer included, so the front door and the content pages share it.
      */
     --nf-landing-shell-max: 78rem;
-    --nf-landing-glow-ring: 0 0 0 1px var(--nf-brand-edge-soft), 0 0 28px var(--nf-glow-2);
+    /*
+     * EVERY CONTAINER ON THIS PAGE IS LIT GLASS, NOT A DARK BOX WITH A
+     * BORDER. The render's tiles carry a bright 1px brand rim, an inner
+     * highlight along the top edge and a blue bloom around the outside, over
+     * a near-black navy fill. The first stint's rim was the soft edge and
+     * read flat at zoom (founder's second-stint word), so the ring is the
+     * full brand edge now and every surface that uses it also carries the
+     * inner rim.
+     */
+    --nf-landing-glow-ring: 0 0 0 1px var(--nf-brand-edge), 0 0 30px var(--nf-glow-2);
+    --nf-landing-glass-edge:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 0 1px var(--nf-brand-edge),
+      0 0 26px var(--nf-glow-2);
     /*
      * ON THE PHOTOGRAPH, THE THEME DOES NOT CHANGE. A dusk plate is dark in
      * daylight too, so everything that sits on one (the hero copy, the city
@@ -67,7 +82,7 @@
     --nf-landing-control: var(--nf-glass-fill);
     --nf-landing-control-strong: var(--nf-glass-fill-strong);
     --nf-landing-pane: color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
-    --nf-landing-tile-fill: color-mix(in oklab, var(--nf-surface-canvas) 72%, transparent);
+    --nf-landing-tile-fill: color-mix(in oklab, var(--nf-surface-primary) 78%, transparent);
     --nf-landing-band-fill: color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent);
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
@@ -259,12 +274,46 @@
     flex-direction: column;
     overflow: hidden;
   }
+  /*
+   * The aurora field is gone from the hero at every width. The plate and the
+   * hero's own deep-blue ground are the atmosphere now, and a second glow
+   * behind them only muddied the blend.
+   */
   .nf-landing-hero-aurora {
-    z-index: -2;
+    display: none;
   }
-  @media (min-width: 64rem) {
-    .nf-landing-hero-aurora {
-      display: none;
+  /*
+   * THE PHONE HERO IS THE DESKTOP COMPOSITION MADE COMPACT, not a stacked
+   * page. The founder's second-stint ruling: the villa sits at the top right
+   * blended into the deep-blue ground, and the kicker, the headline, the
+   * sub-line, the buttons and the city pills all sit over it on the left.
+   * That supersedes the fitted-band ruling FOR THE HERO ONLY; every other
+   * plate on the site is still a band inside the gutters.
+   *
+   * The ground is painted here rather than inherited, because the hero is a
+   * night photograph in both themes (the same reason the desktop hero keeps
+   * its plate in daylight) and white copy needs the dark behind it on paper
+   * too.
+   */
+  @media (max-width: 63.999rem) {
+    .nf-landing-hero {
+      --nf-landing-fg: var(--nf-landing-on-ink);
+      --nf-landing-fg-2: var(--nf-landing-on-ink-secondary);
+      --nf-landing-fg-3: var(--nf-landing-on-ink-muted);
+      --nf-landing-accent: var(--nf-content-on-media-accent);
+      --nf-landing-hairline: var(--nf-landing-hairline-on-ink);
+      --nf-landing-control: var(--nf-landing-control-on-ink);
+      --nf-landing-control-strong: var(--nf-landing-control-on-ink-strong);
+      --nf-landing-pane: color-mix(in oklab, var(--nf-landing-ink) 82%, transparent);
+      color: var(--nf-landing-on-ink);
+      background-color: var(--nf-landing-ink);
+      background-image:
+        radial-gradient(
+          120% 80% at 82% 4%,
+          color-mix(in oklab, var(--nf-glow-ink) 20%, transparent) 0%,
+          transparent 62%
+        ),
+        linear-gradient(180deg, var(--nf-landing-ink) 0%, var(--nf-landing-ink) 100%);
     }
   }
   @media (min-width: 640px) {
@@ -291,37 +340,50 @@
    * of its foot.
    */
   .nf-landing-hero-plate {
-    position: relative;
-    height: 15rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 0;
+    width: 84%;
+    height: 27rem;
     overflow: hidden;
-    border-radius: var(--nf-radius-2xl);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow: var(--nf-landing-glow-ring), var(--nf-elev-3);
+    border-bottom-left-radius: var(--nf-radius-2xl);
   }
   .nf-landing-hero-plate img {
     object-fit: cover;
-    object-position: 50% 42%;
+    object-position: 58% 42%;
   }
+  /* The blend: the ink at full strength down the left edge and along the
+     foot, thinning to nothing across the frame, so the photograph has no
+     cut edge anywhere except the rounded corner. */
   .nf-landing-hero-plate::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      transparent 55%,
-      color-mix(in oklab, var(--nf-landing-ink) 55%, transparent) 100%
-    );
+    background:
+      linear-gradient(
+        90deg,
+        var(--nf-landing-ink) 0%,
+        color-mix(in oklab, var(--nf-landing-ink) 72%, transparent) 26%,
+        color-mix(in oklab, var(--nf-landing-ink) 30%, transparent) 58%,
+        transparent 100%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-landing-ink) 55%, transparent) 0%,
+        transparent 30%,
+        color-mix(in oklab, var(--nf-landing-ink) 60%, transparent) 76%,
+        var(--nf-landing-ink) 100%
+      );
   }
   @media (min-width: 64rem) {
     .nf-landing-hero-plate {
-      position: absolute;
       inset: 0;
       z-index: -2;
+      width: auto;
       height: auto;
-      border: 0;
       border-radius: 0;
-      box-shadow: none;
     }
     .nf-landing-hero-plate img {
       object-position: 50% 50%;
@@ -358,22 +420,37 @@
   }
 
   .nf-landing-hero-body {
-    position: relative;
+    /* Static at every width so the plate's `top: 0; right: 0` measures the
+       whole hero, nav included, rather than the shell's box inside it. */
+    position: static;
     flex: 1 1 auto;
     display: grid;
     align-content: center;
     gap: var(--nf-gap-block);
     padding-block: var(--nf-space-xl) var(--nf-space-2xl);
   }
-  /* The card overlaps the band's foot on the phone, as it does on desktop. */
+  /* The copy sits ON the photograph now, so it leads the stacking order. */
+  .nf-landing-hero-copy {
+    position: relative;
+    z-index: 1;
+  }
   @media (max-width: 63.999rem) {
     .nf-landing-hero-body > .nf-landing-float-wrap {
-      margin-top: calc(-1 * var(--nf-space-3xl) - var(--nf-space-md));
+      margin-top: var(--nf-gap-block);
       margin-inline-start: auto;
-      margin-inline-end: var(--nf-space-md);
       width: min(100%, var(--nf-landing-card-w));
       position: relative;
       z-index: 1;
+    }
+    /* Smaller controls to match the smaller headline. The tap targets keep
+       their 44px height; only the type and the side padding come in. */
+    .nf-landing-hero .nf-btn {
+      font-size: var(--nf-text-body-sm);
+      padding-inline: var(--nf-space-md);
+    }
+    .nf-landing-sub {
+      font-size: var(--nf-text-body);
+      max-width: 30ch;
     }
   }
   @media (min-width: 1024px) {
@@ -426,8 +503,31 @@
     color: var(--nf-landing-fg-2);
   }
 
-  /* City chips: capsules, per ledger section 8, on the canvas under 64rem
-     and on the photograph from it. */
+  /*
+   * The cities row: the render puts a pinned "Popular Cities" label in front
+   * of the pills, above a hairline, with the first city filled.
+   */
+  .nf-landing-cities {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    padding-top: var(--nf-gap-row);
+    border-top: 1px solid var(--nf-landing-hairline);
+  }
+  .nf-landing-cities-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-landing-fg-2);
+  }
+  .nf-landing-cities-label > svg {
+    color: var(--nf-landing-accent);
+  }
+
+  /* City chips: capsules, per ledger section 8, on the photograph. */
   .nf-landing-city {
     display: inline-flex;
     align-items: center;
@@ -447,8 +547,19 @@
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       background var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-landing-city > svg {
-    color: var(--nf-landing-accent);
+  .nf-landing-city--lead {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-gradient-cta);
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-2);
+  }
+  @media (hover: hover) {
+    .nf-landing-city--lead:hover {
+      background: var(--nf-gradient-cta);
+      border-color: var(--nf-brand-edge-strong);
+    }
   }
   @media (hover: hover) {
     .nf-landing-city:hover {
@@ -802,8 +913,10 @@
     padding: var(--nf-space-sm) var(--nf-space-md);
     border-radius: var(--nf-radius-lg);
     background: var(--nf-landing-tile-fill);
-    border: 1px solid var(--nf-glass-border);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
   }
   .nf-landing-stat-figure {
     font-family: var(--nf-font-display);
@@ -814,7 +927,7 @@
   }
   .nf-landing-stat-label {
     font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
+    color: var(--nf-content-secondary);
   }
 
   /* The glass circle every content object sits in from here down. */
@@ -837,9 +950,13 @@
     height: 4rem;
     padding: 0.5rem;
   }
-  .nf-landing-orb--stroke {
-    padding: 0;
-    color: var(--nf-brand-secondary);
+  /* The four rings in How Vallo works: a wider lit rim around the object. */
+  .nf-landing-orb--ring {
+    padding: 0.55rem;
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 26px var(--nf-glow-2);
   }
 
   /* ------------------------------------------------- the feature grid */
@@ -881,8 +998,10 @@
     padding: var(--nf-pad-card-sm);
     border-radius: var(--nf-radius-lg);
     background: var(--nf-landing-tile-fill);
-    border: 1px solid var(--nf-glass-border);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard),
@@ -893,10 +1012,10 @@
   }
   @media (hover: hover) {
     .nf-landing-tile:hover {
-      border-color: var(--nf-brand-edge);
+      border-color: var(--nf-brand-edge-strong);
       box-shadow:
         inset 0 1px 0 var(--nf-glass-rim),
-        0 0 24px var(--nf-glow-1);
+        0 0 28px var(--nf-glow-2);
     }
   }
   .nf-landing-tile:focus-visible {
@@ -910,7 +1029,7 @@
   }
   .nf-landing-tile-sub {
     font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
+    color: var(--nf-content-secondary);
   }
 
   /* ----------------------------------------------- the feature chips */
@@ -973,7 +1092,7 @@
   }
   .nf-landing-figure > span {
     font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
+    color: var(--nf-content-secondary);
   }
 
   .nf-landing-stack {
@@ -1059,6 +1178,11 @@
     color: var(--nf-content-primary);
     background: transparent;
     border: 1px solid var(--nf-brand-edge);
+  }
+
+  /* The phrases the render sets in the brand ink inside a white headline. */
+  .nf-landing-hl {
+    color: var(--nf-brand-secondary);
   }
 
   /* --------------------------------------------------- how it works */
@@ -1289,7 +1413,7 @@
     min-height: 2.75rem;
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
-    color: var(--nf-content-secondary);
+    color: var(--nf-content-primary);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   /* The render's list glyphs sit in small glass squares, not circles. */
@@ -1316,6 +1440,33 @@
     border-radius: var(--nf-radius-sm);
   }
 
+  /* ------------------------------------------------------ the buttons */
+
+  /*
+   * The render's buttons are capsules: a saturated blue fill with a bloom
+   * under it, and a softer glass capsule beside it with a lit rim. The
+   * platform's button is a rounded rectangle by its own law, which the
+   * amendment in ledger section 8 already bends where a governing image
+   * shows a capsule. This is that bend, scoped to the marketing surface.
+   */
+  .nf-landing .nf-btn,
+  .nf-site .nf-btn {
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-landing .nf-btn--primary,
+  .nf-site .nf-btn--primary {
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 24px var(--nf-glow-2);
+  }
+  .nf-landing .nf-btn--glass,
+  .nf-site .nf-btn--glass {
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+  }
+
   /* ---------------------------------------------------- the app band */
 
   .nf-landing-app {
@@ -1328,17 +1479,27 @@
       grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
     }
   }
+  /*
+   * The two install badges, shaped like the render's store badges: a deep
+   * capsule with a mark, a small line over a strong one. The WORDS are not
+   * the render's. There is no App Store or Play listing (native identifiers
+   * are on the stop list), so a badge reading "Download on the App Store"
+   * would be a claim about something that does not exist; these say what
+   * actually happens, which is that Vallo installs from the browser.
+   */
   .nf-landing-store {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-gap-row);
     min-height: 3.25rem;
-    padding: 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
-    background: var(--nf-glass-fill);
-    border: 1px solid var(--nf-glass-border);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
-    color: var(--nf-content-primary);
+    padding: 0 var(--nf-space-lg) 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-landing-ink);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+    color: var(--nf-landing-on-ink);
     transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-landing-store > span {
@@ -1348,7 +1509,7 @@
   }
   .nf-landing-store small {
     font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
+    color: var(--nf-landing-on-ink-secondary);
   }
   .nf-landing-store strong {
     font-size: var(--nf-text-body-sm);
@@ -1364,11 +1525,42 @@
     outline-offset: 2px;
   }
 
-  /* A phone, drawn. Not a device frame from a render: a rounded glass slab
-     with the portrait villa inside it and a listing card floating on it. */
+  /*
+   * TWO phones, drawn. Not device frames cropped from the render: rounded
+   * glass slabs, one carrying the portrait villa with a real listing card on
+   * it, one carrying the brand face the app opens on, offset as the render
+   * offsets them.
+   */
+  .nf-landing-phones {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-landing-phone--back {
+    margin-bottom: var(--nf-space-xl);
+  }
+  .nf-landing-phone-screen--brand {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-md);
+    text-align: center;
+    background:
+      radial-gradient(90% 60% at 50% 42%, var(--nf-glow-2) 0%, transparent 70%),
+      linear-gradient(180deg, var(--nf-landing-ink) 0%, var(--nf-landing-ink) 100%);
+  }
+  .nf-landing-phone-slogan {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-landing-on-ink-secondary);
+  }
   .nf-landing-phone {
     position: relative;
-    width: min(100%, 15rem);
+    flex: 1 1 0;
+    width: auto;
+    max-width: 11.5rem;
     margin-inline: auto;
     aspect-ratio: 9 / 18.5;
     padding: var(--nf-space-xs);
@@ -1412,7 +1604,7 @@
     align-items: center;
     gap: var(--nf-gap-row);
     font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
+    color: var(--nf-content-primary);
   }
   .nf-landing-checks li > svg {
     flex: none;
@@ -1461,11 +1653,15 @@
     border-color: var(--nf-border-subtle);
     box-shadow: var(--nf-elev-1);
   }
-  :root[data-theme="light"] .nf-landing-list a > span:first-child,
-  :root[data-theme="light"] .nf-landing-store {
+  :root[data-theme="light"] .nf-landing-list a > span:first-child {
     background: var(--nf-surface-primary);
     border-color: var(--nf-border-subtle);
     box-shadow: none;
+  }
+  /* The install badges stay the render's deep capsules on paper: they are
+     the one pair of controls that reads as a badge rather than a button. */
+  :root[data-theme="light"] .nf-landing-store {
+    box-shadow: var(--nf-elev-1);
   }
   :root[data-theme="light"] .nf-landing-stack-card {
     background: var(--nf-surface-primary);
@@ -1486,12 +1682,14 @@
      both themes, so they keep the night material; only the nav follows the
      paper once scrolled, which the shared chrome rule already does. The one
      shared control that would flip is the glass CTA, so it is held here. */
-  @media (min-width: 64rem) {
-    :root[data-theme="light"] .nf-landing-hero .nf-btn--glass {
-      color: var(--nf-landing-on-ink);
-      background: var(--nf-landing-control-on-ink);
-      border-color: var(--nf-landing-hairline-on-ink);
-    }
+  /* The hero is a night photograph in daylight too, at EVERY width now that
+     the phone carries the plate behind its copy, so the one control that
+     would otherwise turn to paper inside it is held to the night material. */
+  :root[data-theme="light"] .nf-landing-hero .nf-btn--glass {
+    color: var(--nf-landing-on-ink);
+    background: var(--nf-landing-control-on-ink);
+    border-color: var(--nf-landing-hairline-on-ink);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
   }
   :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-link,
   :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-glass {

@@ -34,7 +34,10 @@ export function MoneySheet({
       }}
       title={title}
     >
-      <div className="mx-auto w-full max-w-md">
+      {/* `nf-money` rides inside the portal, for the reason `ResultSheet`
+          states: the sheet is mounted on the body, outside the page root the
+          control law is scoped to. */}
+      <div className="nf-money mx-auto w-full max-w-md">
         <div className="mb-heading flex items-start justify-between gap-md">
           <p className="nf-body-sm leading-relaxed text-[var(--nf-content-muted)]">{hint}</p>
           {/* The close button has the corner to itself: a decoy object beside

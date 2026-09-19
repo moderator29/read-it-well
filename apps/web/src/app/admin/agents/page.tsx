@@ -459,7 +459,7 @@ function applicationRow(application: ApplicationView, ui: AdminUi): QueueRowData
     type: "Agent",
     icon: "user",
     title: application.fullName ?? application.businessName ?? application.reference,
-    sub: [application.city, application.stateCode].filter(Boolean).join(", "),
+    place: [application.city, application.stateCode].filter(Boolean).join(", "),
     detail: application.type === "business" ? "Business agent" : "Individual agent",
     detailSub: application.email ?? undefined,
     status: application.status,

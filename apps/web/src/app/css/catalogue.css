@@ -13,19 +13,29 @@
   /* ======================================================= the property card
      3EB3E2A9: a photograph, Verified top-left, the heart top-right, the market
      tag on the photo's foot, then title, place, price and the facts row. */
+  /*
+   * THE CARD IS LIT GLASS AT REST, on the founder's ruling against the
+   * target render. It used to carry its rim and its glow only on hover,
+   * which is a card that lights up on a desktop and never lights up on a
+   * phone, and the phone is the product.
+   *
+   * The ring itself is NOT written here: `.nf-glass--card` in the shared
+   * glass partial wears `--nf-glow-edge`, which is the lit top rim, the
+   * full brand ring and the near bloom composed once in the token layer.
+   * This file keeps only what is the card's own: its column, its clip and
+   * its press. Hover lifts it to the strong rung of the same ring rather
+   * than inventing a second shadow at this call site.
+   */
   .nf-pcard {
-    position: relative;
+    /* This surface's own rung beneath the overline, for the card's smallest
+       type: the fact row, the place line, the price suffix and the pills on
+       the photograph. Declared on the card root so everything inside it
+       reads one value, and reported to the lead for promotion. */
+    --nf-pcard-fact: 0.6875rem;
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 0 1px color-mix(in oklab, var(--nf-glow-ink) 10%, transparent),
-      var(--nf-elev-1);
     transition:
       transform var(--nf-duration-press) var(--nf-ease-press),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard),
@@ -33,22 +43,36 @@
   }
   @media (hover: hover) {
     .nf-pcard:hover {
-      border-color: var(--nf-brand-edge);
+      border-color: var(--nf-brand-edge-strong);
       box-shadow:
-        inset 0 1px 0 var(--nf-glass-rim),
-        0 0 22px var(--nf-glow-2),
-        var(--nf-elev-2);
+        var(--nf-glow-edge-strong),
+        inset 0 -1px 0 var(--nf-glass-floor),
+        var(--nf-bloom-card);
     }
   }
   .nf-pcard:active {
     transform: scale(var(--nf-press-scale-lg));
   }
+  /*
+   * THE PHOTOGRAPH SITS INSIDE THE CONTAINER, on the founder's ruling: its
+   * own radius, inset from the card's rim, never bled to the container edge
+   * and never under the title. `align-self: stretch` rather than width:100%
+   * because a flex child with a margin and a full width overflows its own
+   * card by the margin.
+   */
   .nf-pcard__media {
     position: relative;
     aspect-ratio: 4 / 3;
-    width: 100%;
+    align-self: stretch;
+    margin: var(--nf-space-2xs);
     overflow: hidden;
+    border-radius: var(--nf-radius-md);
     background: var(--nf-media-ground-to);
+  }
+  /* One across, so the small rung goes back to the overline: the stay card
+     has the width for it and its pills sit on a much larger photograph. */
+  .nf-pcard--wide {
+    --nf-pcard-fact: var(--nf-text-overline);
   }
   .nf-pcard--wide .nf-pcard__media {
     aspect-ratio: 16 / 10;
@@ -63,16 +87,26 @@
       transform: scale(1.04);
     }
   }
+  /*
+   * THE BODY'S SCALE IS THE RENDER'S, and the old one was half again too
+   * big. Two cards across a 390px screen leaves about 165px of card and 141
+   * of text, and the card was spending it on a 14px title over a 20px
+   * figure with 12px facts, which is why one card filled a third of the
+   * screen. The render gives the same column a small two-line title, a
+   * muted place, the figure as the one prominent line, and a hairline fact
+   * row. `--nf-pcard-fact` is this surface's own rung beneath the overline,
+   * scoped to the card and reported to the lead for promotion.
+   */
   .nf-pcard__body {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: var(--nf-gap-inline-tight);
-    padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-md);
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
   }
   @media (min-width: 40rem) {
     .nf-pcard__body {
-      padding: var(--nf-space-md);
+      padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
     }
   }
   .nf-pcard__title {
@@ -81,9 +115,9 @@
     -webkit-line-clamp: 2;
     overflow: hidden;
     overflow-wrap: anywhere;
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-caption);
     font-weight: 650;
-    line-height: 1.3;
+    line-height: 1.25;
     color: var(--nf-content-primary);
   }
   .nf-pcard--wide .nf-pcard__title {
@@ -92,10 +126,14 @@
   .nf-pcard__where {
     display: flex;
     align-items: flex-start;
-    gap: var(--nf-gap-inline-tight);
-    font-size: var(--nf-text-overline);
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-pcard-fact, var(--nf-text-overline));
+    line-height: 1.3;
     color: var(--nf-content-secondary);
     overflow-wrap: anywhere;
+  }
+  .nf-pcard--wide .nf-pcard__where {
+    font-size: var(--nf-text-overline);
   }
   .nf-pcard__where > svg {
     flex-shrink: 0;
@@ -105,42 +143,56 @@
   /* The figure. Brand blue on the night theme, as every price in the renders
      is, and the one thing on the card set in the display face. */
   .nf-pcard__price {
-    margin-top: var(--nf-gap-inline-tight);
+    margin-top: var(--nf-space-3xs);
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h4);
+    font-size: var(--nf-text-body-lg);
     font-weight: 700;
     letter-spacing: -0.02em;
-    line-height: 1.1;
+    line-height: 1.15;
     color: var(--nf-brand-secondary);
     white-space: nowrap;
   }
+  /* One across, so the figure keeps the heading rung it always had. */
+  .nf-pcard--wide .nf-pcard__price {
+    font-size: var(--nf-text-h4);
+  }
   .nf-pcard__price-suffix {
-    margin-left: var(--nf-space-2xs);
+    margin-left: var(--nf-space-3xs);
     font-family: var(--nf-font-sans);
-    font-size: var(--nf-text-overline);
+    font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     font-weight: 600;
     letter-spacing: 0;
     color: var(--nf-content-muted);
+  }
+  .nf-pcard--wide .nf-pcard__price-suffix {
+    font-size: var(--nf-text-overline);
   }
   .nf-pcard__sub {
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
+  /* Beds, baths and the floor area on one hairline row under a divider, as
+     the render draws them. They wrap rather than clip on the narrowest
+     cards: a fact cut in half states a different fact. */
   .nf-pcard__facts {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--nf-gap-inline-tight) var(--nf-space-xs);
-    margin-top: var(--nf-gap-inline);
-    padding-top: var(--nf-gap-inline);
+    gap: var(--nf-space-3xs) var(--nf-space-xs);
+    margin-top: auto;
+    padding-top: var(--nf-space-2xs);
     border-top: 1px solid var(--nf-divider);
-    font-size: var(--nf-text-overline);
+    font-size: var(--nf-pcard-fact, var(--nf-text-overline));
+    line-height: 1.2;
     color: var(--nf-content-secondary);
+  }
+  .nf-pcard--wide .nf-pcard__facts {
+    font-size: var(--nf-text-overline);
   }
   .nf-pcard__fact {
     display: inline-flex;
     align-items: center;
-    gap: var(--nf-space-2xs);
+    gap: var(--nf-space-3xs);
     white-space: nowrap;
   }
   .nf-pcard__fact > svg {
@@ -154,35 +206,35 @@
     z-index: 2;
     display: inline-flex;
     align-items: center;
-    gap: var(--nf-space-2xs);
-    padding: var(--nf-space-2xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-sm);
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-pill);
     border: 1px solid var(--nf-brand-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-overlay-media-strong));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
     box-shadow: 0 0 14px var(--nf-glow-2);
-    font-size: var(--nf-text-overline);
+    font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     font-weight: 650;
     line-height: 1;
     color: var(--nf-content-on-media);
     pointer-events: none;
   }
   .nf-pcard__mark--verified {
-    top: var(--nf-space-xs);
-    left: var(--nf-space-xs);
+    top: var(--nf-space-2xs);
+    left: var(--nf-space-2xs);
   }
   .nf-pcard__mark--market {
-    bottom: var(--nf-space-xs);
-    left: var(--nf-space-xs);
+    bottom: var(--nf-space-2xs);
+    left: var(--nf-space-2xs);
     background: var(--nf-overlay-media-strong);
     box-shadow: none;
   }
   /* The disclosure on an illustrative row. Cyan outline, never a fill, so it
      cannot be mistaken for a promotion; it never appears with Verified. */
   .nf-pcard__mark--example {
-    top: var(--nf-space-xs);
-    left: var(--nf-space-xs);
+    top: var(--nf-space-2xs);
+    left: var(--nf-space-2xs);
     border-color: color-mix(in oklab, var(--nf-state-warning) 60%, transparent);
     background: var(--nf-overlay-media-strong);
     box-shadow: none;
@@ -190,8 +242,8 @@
   }
   .nf-pcard__controls {
     position: absolute;
-    top: var(--nf-space-xs);
-    right: var(--nf-space-xs);
+    top: var(--nf-space-2xs);
+    right: var(--nf-space-2xs);
     z-index: 3;
     display: flex;
     align-items: center;
@@ -222,13 +274,13 @@
   }
   .nf-pcard__nophoto {
     position: absolute;
-    right: var(--nf-space-xs);
-    bottom: var(--nf-space-xs);
+    right: var(--nf-space-2xs);
+    bottom: var(--nf-space-2xs);
     z-index: 2;
-    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-pill);
     background: var(--nf-overlay-media-strong);
-    font-size: var(--nf-text-overline);
+    font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     color: var(--nf-content-on-media-muted);
     pointer-events: none;
   }
@@ -466,13 +518,23 @@
       box-shadow: var(--nf-elev-3);
     }
   }
+  /* The grabber above the title, as the render draws it. */
+  .nf-filters__grip {
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    flex-shrink: 0;
+    margin: var(--nf-space-xs) auto 0;
+    margin-top: calc(var(--nf-space-xs) + env(safe-area-inset-top, 0px));
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-edge-strong);
+  }
   .nf-filters__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-sm) var(--nf-pad-shell);
-    padding-top: calc(var(--nf-space-sm) + env(safe-area-inset-top, 0px));
     border-bottom: 1px solid var(--nf-border-subtle);
   }
   .nf-filters__title {
@@ -532,6 +594,9 @@
   .nf-filters__grid--5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+  /* Capsules, by the amended radius law and the target render: every choice
+     tile in this sheet is a pill, filled brand blue when it is the one
+     standing. */
   .nf-filters__tile {
     display: inline-flex;
     align-items: center;
@@ -539,7 +604,7 @@
     gap: var(--nf-space-2xs);
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-sm);
+    border-radius: var(--nf-radius-pill);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
@@ -674,59 +739,10 @@
   }
 
   /* ======================================================== listing detail
-     9E8B56ED with 7B5335E0's thumbnail strip. */
-  .nf-detail-thumbs {
-    display: flex;
-    gap: var(--nf-space-xs);
-    margin-inline: calc(var(--nf-pad-shell) * -1);
-    padding: var(--nf-space-sm) var(--nf-pad-shell) var(--nf-space-2xs);
-  }
-  /* On a phone the strip is the render's: four frames and the "+n" tile all
-     in view, sharing the width, nothing cut at the gutter. From `sm` the
-     frames take their own size and the row scrolls. */
-  @media (max-width: 39.99rem) {
-    .nf-detail-thumbs {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      overflow: visible;
-    }
-    .nf-detail-thumbs > li {
-      min-width: 0;
-    }
-    .nf-detail-thumb {
-      width: 100%;
-    }
-  }
-  .nf-detail-thumb {
-    position: relative;
-    display: block;
-    width: 5.25rem;
-    aspect-ratio: 4 / 3;
-    flex-shrink: 0;
-    overflow: hidden;
-    border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-media-ground-to);
-    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-detail-thumb:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-  .nf-detail-thumb--on {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow: 0 0 14px var(--nf-glow-2);
-  }
-  .nf-detail-thumb--more {
-    display: grid;
-    place-items: center;
-    border-color: var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    font-size: var(--nf-text-body);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
+     The founder's send-back: the hero carries the marks, a lit glass lead
+     card overlaps it, and there is no thumbnail strip. The strip's rules
+     went with it rather than being left behind for the next reader to
+     wonder about. */
   .nf-gallery-marks {
     position: absolute;
     left: var(--nf-space-sm);
@@ -952,6 +968,10 @@
     flex-shrink: 0;
   }
   /* The section tabs. Anchors, so they are shareable and need no script. */
+  /* On the page ground, as the render draws it: a row of words with a short
+     lit underline under the one you are in. It used to sit in its own dark
+     band, which on a page that no longer has a sheet reads as a second bar
+     under the header. */
   .nf-detail-tabs {
     position: sticky;
     top: 0;
@@ -960,9 +980,7 @@
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding-inline: var(--nf-pad-shell);
     border-bottom: 1px solid var(--nf-divider);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
-    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    background: var(--nf-surface-canvas);
   }
   .nf-detail-tabs > a {
     position: relative;
@@ -993,6 +1011,16 @@
     background: var(--nf-brand-secondary);
     box-shadow: 0 0 10px var(--nf-glow-3);
   }
+  /* The lead card, overlapping the photograph's lower edge: the job the
+     page-wide sheet used to do before it was retired. */
+  .nf-detail-lead {
+    padding: var(--nf-space-md);
+  }
+  @media (min-width: 40rem) {
+    .nf-detail-lead {
+      padding: var(--nf-space-lg);
+    }
+  }
   .nf-detail-panel {
     padding: var(--nf-space-md);
     border-radius: var(--nf-radius-lg);
@@ -1005,38 +1033,56 @@
     font-weight: 700;
     color: var(--nf-content-primary);
   }
-  /* Amenity tiles: the glass squares of the render, five across from `sm`. */
+  /*
+   * THE AMENITY TILE IS SMALL, and it was three times this size.
+   *
+   * The render's lead card carries six of them across the width, each a
+   * small lit square with a blue glyph over a two-line caption. The row
+   * scrolls; the Amenities section further down wraps the same tile into a
+   * grid. The ring is `.nf-glass--tile`'s, from the shared partial.
+   */
+  .nf-amenity-row {
+    display: flex;
+    gap: var(--nf-space-2xs);
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+  }
   .nf-amenity-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--nf-space-xs);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
   }
   @media (min-width: 40rem) {
     .nf-amenity-grid {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
     }
   }
   .nf-amenity-tile {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: var(--nf-space-xs);
-    min-height: 5rem;
-    padding: var(--nf-space-sm) var(--nf-space-xs);
+    justify-content: flex-start;
+    gap: var(--nf-space-3xs);
+    width: 100%;
+    min-height: 4rem;
+    padding: var(--nf-space-2xs) var(--nf-space-3xs);
     border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
-    font-size: var(--nf-text-overline);
+    font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.15;
     text-align: center;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    word-break: normal;
     color: var(--nf-content-primary);
   }
+  .nf-amenity-row .nf-amenity-tile {
+    width: 4.25rem;
+    flex-shrink: 0;
+  }
   .nf-amenity-tile > svg {
+    flex-shrink: 0;
     color: var(--nf-brand-secondary);
-    filter: drop-shadow(0 0 6px var(--nf-glow-2));
   }
   .nf-amenity-tile__object {
     display: block;
@@ -1150,6 +1196,9 @@
     padding-top: var(--nf-space-md);
     border-top: 1px solid var(--nf-brand-edge-soft);
   }
+  /* The total is the blue figure of the render, a rung above the rows it
+     sums. It was the same white as the lines above it, which made the one
+     number the page exists to print look like another row. */
   .nf-ledger-total__figure {
     margin-left: auto;
     font-family: var(--nf-font-display);
@@ -1158,7 +1207,7 @@
     letter-spacing: -0.02em;
     line-height: 1;
     white-space: nowrap;
-    color: var(--nf-content-primary);
+    color: var(--nf-brand-secondary);
     text-shadow: 0 0 22px var(--nf-glow-3);
   }
   .nf-ledger-note {
@@ -1210,51 +1259,65 @@
     aspect-ratio: 1;
     filter: drop-shadow(0 0 22px var(--nf-glow-2));
   }
-  /* Five tiles, all in view, at every width: the render shows the whole
-     set, and a strip that cuts the fifth tile at the gutter is not the
-     render. On a phone they share the width; from `md` they grow. */
+  /*
+   * THE MARKET TILE, to GOVERNING-home-markets-target: a small glass object
+   * at the top left, the name under it, an arrow at the bottom right, three
+   * across.
+   *
+   * It was five across with the object filling the tile, which left about
+   * 60px for the word and broke "Apartments" across two lines mid-word.
+   * Three across gives every label room to wrap between words at 390, and
+   * `word-break: normal` with `hyphens: auto` means a long name hyphenates
+   * where a dictionary would rather than shearing in half.
+   *
+   * NO COUNT LINE. The reference prints "12,450+ listings" under each name
+   * and this product does not have an honest per-category count to print,
+   * so it prints none: rule 15, never an invented number.
+   */
   .nf-stays-tiles {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: var(--nf-space-2xs);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
     overflow: visible;
-  }
-  @media (min-width: 48rem) {
-    .nf-stays-tiles {
-      gap: var(--nf-space-xs);
-    }
   }
   .nf-stays-tiles > li {
     min-width: 0;
   }
+  /* The ring is `.nf-glass--tile`'s, from the shared partial; this is the
+     tile's own layout only. */
   .nf-stays-tile {
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
     gap: var(--nf-space-2xs);
     width: 100%;
-    min-height: 6.25rem;
-    padding: var(--nf-space-sm) var(--nf-space-3xs);
-    overflow-wrap: anywhere;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
-    font-size: var(--nf-text-overline);
-    font-weight: 600;
-    line-height: 1.2;
-    text-align: center;
+    min-height: 6.5rem;
+    padding: var(--nf-space-sm);
+    padding-right: var(--nf-space-lg);
+    hyphens: auto;
+    overflow-wrap: break-word;
+    word-break: normal;
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    line-height: 1.25;
+    text-align: left;
     color: var(--nf-content-primary);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  @media (min-width: 48rem) {
-    .nf-stays-tile {
-      padding-inline: var(--nf-space-xs);
-    }
+  /* The arrow of the reference, bottom right, quiet until the tile is the
+     one standing. */
+  .nf-stays-tile__go {
+    position: absolute;
+    right: var(--nf-space-xs);
+    bottom: var(--nf-space-xs);
+    color: var(--nf-content-muted);
+  }
+  .nf-stays-tile--on .nf-stays-tile__go {
+    color: var(--nf-content-on-brand);
   }
   .nf-stays-tile:active {
     transform: scale(0.97);
@@ -1268,17 +1331,24 @@
       border-color: var(--nf-brand-edge);
     }
   }
-  .nf-stays-tile--on {
+  /* Two classes deep on purpose: the tile also wears `.nf-glass--tile`,
+     which is one class, and the standing tile has to beat it whichever
+     order the partials happen to bundle in. */
+  .nf-stays-tile.nf-stays-tile--on {
     border-color: var(--nf-brand-edge-strong);
     background: color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-canvas));
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-2);
+      var(--nf-glow-edge-strong),
+      inset 0 -1px 0 var(--nf-glass-floor);
   }
+  /* Small, as the reference draws it: the object names the market, it is not
+     the tile. It was 2.75rem in a tile 4rem wide, which is why there was no
+     room left for the word. */
   .nf-stays-tile__object {
     display: block;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
   }
   /* The stay card body: name and place left, the nightly figure right, the
      amenity chips under both. */
@@ -1306,6 +1376,17 @@
     font-weight: 500;
     letter-spacing: 0;
     color: var(--nf-content-muted);
+  }
+  /* The figure and the stars on one line, as the stay render draws them. */
+  .nf-stay-price-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  .nf-stay-price-row .nf-stay-card__price {
+    text-align: left;
   }
   .nf-stay-card__rating {
     display: inline-flex;
@@ -1498,7 +1579,6 @@
     .nf-pcard__heart,
     .nf-shelf-chip,
     .nf-filters__tile,
-    .nf-detail-thumb,
     .nf-stays-tile {
       transition: none;
     }
@@ -1517,7 +1597,10 @@
   /* ========================================================= the paper twin
      Same anatomy on daylight: white surfaces, hairline borders, the brand
      blue for figures and marks, no blur over a solid canvas. */
-  :root[data-theme="light"] .nf-pcard,
+  /* `.nf-pcard` and `.nf-stays-tile` are NOT in this list: they wear
+     `.nf-glass--card` and `.nf-glass--tile`, whose own paper twins live in
+     the shared light partial. Repeating them here would overrule the
+     system's card on daylight with a flatter one. */
   :root[data-theme="light"] .nf-shelf-field,
   :root[data-theme="light"] .nf-shelf-square,
   :root[data-theme="light"] .nf-shelf-chip,
@@ -1533,24 +1616,21 @@
   :root[data-theme="light"] .nf-agent-card,
   :root[data-theme="light"] .nf-ledger-card,
   :root[data-theme="light"] .nf-ledger-row__glyph,
-  :root[data-theme="light"] .nf-stays-tile,
   :root[data-theme="light"] .nf-stay-card__chip,
   :root[data-theme="light"] .nf-stay-facts,
   :root[data-theme="light"] .nf-stay-fact,
   :root[data-theme="light"] .nf-stay-type,
   :root[data-theme="light"] .nf-room-tile,
-  :root[data-theme="light"] .nf-detail-thumb--more,
   :root[data-theme="light"] .nf-reg-card {
     background: var(--nf-surface-primary);
     border-color: var(--nf-border-default);
     box-shadow: var(--nf-elev-1);
   }
-  :root[data-theme="light"] .nf-pcard__body,
   :root[data-theme="light"] .nf-stay-facts {
     background: var(--nf-surface-primary);
   }
   :root[data-theme="light"] .nf-shelf-chip--on,
-  :root[data-theme="light"] .nf-stays-tile--on,
+  :root[data-theme="light"] .nf-stays-tile.nf-stays-tile--on,
   :root[data-theme="light"] .nf-gallery-mark--market,
   :root[data-theme="light"] .nf-detail-tag--market {
     background: var(--nf-brand-primary);
@@ -1560,7 +1640,7 @@
   }
   :root[data-theme="light"] .nf-shelf-chip--on > svg,
   :root[data-theme="light"] .nf-detail-tag--market > svg,
-  :root[data-theme="light"] .nf-stays-tile--on {
+  :root[data-theme="light"] .nf-stays-tile.nf-stays-tile--on {
     color: var(--nf-content-on-brand);
   }
   :root[data-theme="light"] .nf-filters {

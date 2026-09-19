@@ -61,7 +61,7 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
     listing.isDemo ? Promise.resolve(null) : readOpenInspectionFor(listing.id),
   ]);
 
-  const lines = ledgerLines(listing, t);
+  const lines = ledgerLines(listing, t, locale);
   const stated = listing.moveInCostStated === true && (listing.moveInCostMinor ?? 0) > 0;
   const total = stated ? listing.moveInCostMinor! : lines.reduce((sum, line) => sum + line.minor, 0);
   const comparison = areaComparison(listing, peers);

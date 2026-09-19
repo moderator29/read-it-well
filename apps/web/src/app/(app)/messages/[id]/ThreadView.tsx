@@ -489,6 +489,18 @@ export function ThreadView({
   const place = listing ? [listing.area, listing.city].filter(Boolean).join(", ") : "";
   const tags = roleTags(context, role);
   const bundles = bundlePhotos(items);
+  /*
+   * THE STAY IS SAID ONCE.
+   *
+   * GOVERNING-chat-booking-card.png draws nothing between the header and the
+   * first bubble: the booking card IN the thread carries the status badge,
+   * the dates, the room and the way into the booking. Where that card is
+   * present the banner would repeat it and push the card's own photograph
+   * and badge off a 390px screen, so the banner stands down and the card is
+   * the one place the stay's state lives. A booking thread with no card
+   * shared into it still gets the banner, which is the only reason it exists.
+   */
+  const bookingCardInThread = items.some((m) => m.card?.kind === "booking");
 
   return (
     <div className="nf-thread mx-auto w-full max-w-3xl px-gutter">
@@ -555,7 +567,7 @@ export function ThreadView({
       />
 
       {/* ------------------------------------------------- context banner */}
-      {context && threadCopy && (
+      {context && threadCopy && !(context.kind === "booking" && bookingCardInThread) && (
         <ThreadContextBanner
           context={context}
           inspection={inspection}

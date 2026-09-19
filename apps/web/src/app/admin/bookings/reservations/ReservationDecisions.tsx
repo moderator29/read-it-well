@@ -120,7 +120,14 @@ export function ReservationDecisions({
           )}
         </div>
       ) : (
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm">
+        /* THE CONFIRM PANEL IS A CONTAINER, SO ITS EDGE IS LIT GLASS.
+           It carried `border border-[var(--nf-border-subtle)]`, a flat grey
+           outline, which is a box from a different company by the founder's
+           ruling on container edges. `nf-card` is the platform's one pane:
+           the blue conic rim that catches where the light enters and leaves,
+           the inner catchlight, the elevation rung. No new class, no second
+           material for the one panel that takes a table away. */
+        <div className="nf-card p-card-sm">
           <p className="nf-body font-semibold text-content">
             {WORDS[chosen].verb} for {guestName} at {placeName}?
           </p>

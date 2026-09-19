@@ -18,7 +18,7 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
   const t = getDictionary(locale);
   const safeId = id.slice(0, 80);
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-crypto-surface mx-auto max-w-2xl">
       <PageHeader title={t.crypto.title} fallback="/crypto" />
       <CoinDetail id={safeId} locale={locale} copy={t.crypto} />
     </div>

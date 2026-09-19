@@ -551,13 +551,30 @@ export function PostCard({
   );
 }
 
+/**
+ * THE FLAT ON A POST, AND WHY IT IS NOT F3's `ListingCard`.
+ *
+ * The rule is that a listing card on any surface comes from the one shared
+ * component and is never forked. This is not that card and cannot be: it
+ * takes `PostListing`, which is the eight-field projection
+ * `lib/social/posts-queries.ts` returns for a listing attached to a post,
+ * and `ListingCard` takes a whole `Listing` (photos, facts, market, price
+ * model, save state). `lib/` is read-only from here, so adopting the shared
+ * card needs that query widened first; it is filed as a finding rather than
+ * worked around by copying the catalogue card's anatomy into this file.
+ *
+ * So this deliberately stays a PLATE and not a card: one line of title, one
+ * of place, the figure and the way in. It carries the register's lit edge so
+ * it belongs to the card it sits in, and it borrows none of the catalogue
+ * card's composition, which is what forking it would mean.
+ */
 function ListingFacts({ listing }: { listing: PostListing }) {
   return (
-    <div className="mt-sm border-t border-[var(--nf-border-subtle)] pt-sm">
+    <div className="mt-sm border-t border-[var(--nf-brand-edge-soft)] pt-sm">
       <p className="text-[var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
         {listing.title}
       </p>
-      <p className="mt-3xs flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <p className="mt-3xs flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
         {listing.area}, {listing.city}
         {listing.verified ? (
           <span className="font-semibold text-[var(--nf-brand-secondary)]">&middot; Verified</span>
@@ -566,7 +583,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
       <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
         <p className="nf-numeric text-[var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
           {listing.priceLabel}{" "}
-          <span className="text-[var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-content-muted)]">
+          <span className="text-[var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-brand-secondary)]">
             {listing.periodLabel}
           </span>
         </p>
@@ -583,7 +600,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
 
 function ListingBlock({ listing }: { listing: PostListing }) {
   return (
-    <div className="mt-sm overflow-hidden rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)]">
+    <div className="nf-post__plate mt-sm overflow-hidden rounded-[var(--nf-radius-lg)]">
       <div className="p-sm">
         <ListingFacts listing={listing} />
       </div>

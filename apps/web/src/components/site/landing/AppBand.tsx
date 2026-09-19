@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { Reveal } from "@/components/site/Reveal";
+import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
@@ -27,6 +28,9 @@ export function AppBand({
   locale: Locale;
   listing: MiniListing | null;
 }) {
+  /* Two phones, as the render shows: one carrying a real listing card, one
+     carrying the brand face the app opens on. Both are drawn from the
+     product's own parts, never cropped from the render. */
   const a = t.landing.face.app;
   const points = [a.points.all, a.points.notify, a.points.fast, a.points.design];
   return (
@@ -58,26 +62,34 @@ export function AppBand({
         </Reveal>
 
         <Reveal delay={60}>
-          <div className="nf-landing-phone" aria-hidden="true">
-            <div className="nf-landing-phone-screen">
-              <Image
-                src={photo("villa-pool-portrait")}
-                alt=""
-                fill
-                sizes="240px"
-              />
-              {listing && (
-                <div className="nf-landing-phone-card">
-                  <div className="nf-landing-float">
-                    <ListingMini
-                      listing={listing}
-                      locale={locale}
-                      verifiedLabel={t.landing.face.card.verified}
-                      sizes="200px"
-                    />
+          <div className="nf-landing-phones" aria-hidden="true">
+            <div className="nf-landing-phone nf-landing-phone--back">
+              <div className="nf-landing-phone-screen">
+                <Image
+                  src={photo("villa-pool-portrait")}
+                  alt=""
+                  fill
+                  sizes="200px"
+                />
+                {listing && (
+                  <div className="nf-landing-phone-card">
+                    <div className="nf-landing-float">
+                      <ListingMini
+                        listing={listing}
+                        locale={locale}
+                        verifiedLabel={t.landing.face.card.verified}
+                        sizes="180px"
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+            <div className="nf-landing-phone nf-landing-phone--front">
+              <div className="nf-landing-phone-screen nf-landing-phone-screen--brand">
+                <Logo size={52} wordSize={24} />
+                <span className="nf-landing-phone-slogan">{t.landing.slogan}</span>
+              </div>
             </div>
           </div>
         </Reveal>

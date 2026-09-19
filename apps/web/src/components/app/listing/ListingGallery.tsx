@@ -114,13 +114,6 @@ export function ListingGallery({
     else router.push(backFallback);
   }
 
-  /* The thumbnail strip of 7B5335E0: the first four frames and a "+n" tile
-     for the rest. Only with real photography; a strip of one scene plate
-     four times would be a picture of a feature. */
-  const THUMBS = 4;
-  const thumbs = photos.slice(0, THUMBS);
-  const thumbRemainder = photos.length - thumbs.length;
-
   return (
     <>
     <section
@@ -293,8 +286,21 @@ export function ListingGallery({
             <UiIcon name="arrow-right" size={16} />
           </button>
 
+          {/*
+            THE DOTS ONLY WHERE THERE IS NO COUNTER.
+
+            The render states the position as "1/12" at the photograph's
+            bottom right and draws no dots at all. Ours drew both, and the
+            centred dot row ran straight through the "Verified" pill at the
+            bottom left, which is the collision in the founder's shot. Where
+            a counter exists it is the one statement of position; the dots
+            stay for a pane run that has no count to show, which is the
+            stand-in plates.
+          */}
           <ul
-            className="pointer-events-none absolute bottom-13 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2xs sm:bottom-15"
+            className={`pointer-events-none absolute bottom-13 left-1/2 z-10 -translate-x-1/2 items-center gap-2xs sm:bottom-15 ${
+              count > 0 || standIn ? "hidden" : "flex"
+            }`}
             aria-hidden="true"
           >
             {panes.map((photo, i) => (
@@ -311,44 +317,14 @@ export function ListingGallery({
         </>
       )}
     </section>
-    {photos.length > 1 && (
-      <ul className="nf-detail-thumbs nf-scroll-x" data-testid="gallery-thumbs" aria-label="Photos">
-        {thumbs.map((photo, i) => (
-          <li key={`thumb-${photo}-${i}`}>
-            <button
-              type="button"
-              onClick={() => go(i)}
-              aria-label={`Photo ${i + 1} of ${count}`}
-              aria-current={active === i ? "true" : undefined}
-              className={`nf-detail-thumb ${active === i ? "nf-detail-thumb--on" : ""}`}
-            >
-              {!broken[i] && (
-                <Image
-                  src={photo}
-                  alt=""
-                  fill
-                  sizes="84px"
-                  onError={() => setBroken((prev) => ({ ...prev, [i]: true }))}
-                  className="object-cover"
-                />
-              )}
-            </button>
-          </li>
-        ))}
-        {thumbRemainder > 0 && (
-          <li>
-            <button
-              type="button"
-              onClick={() => (viewer ? viewer.open(THUMBS) : go(THUMBS))}
-              aria-label={`View all ${count} photos`}
-              className="nf-detail-thumb nf-detail-thumb--more nf-numeric"
-            >
-              +{thumbRemainder}
-            </button>
-          </li>
-        )}
-      </ul>
-    )}
+    {/*
+      NO THUMBNAIL STRIP. The render has none: the hero is the photography
+      and the counter says how many there are. Ours drew four tiles under
+      the hero and, on a listing whose photographs had not resolved, four
+      empty dark boxes, which the founder photographed. The panes still
+      swipe, the counter still counts, and tapping one still opens the
+      lightbox at that photograph.
+    */}
     </>
   );
 }

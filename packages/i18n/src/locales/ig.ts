@@ -1058,6 +1058,21 @@ export const ig: Dictionary = withFallback({
       land: "Ala",
     },
     popularCities: "Obodo ndị a ma ama",
+    searchMarkets: "Chọọ ahịa ma ọ bụ ebe",
+    markets: {
+      label: "Chọgharịa ahịa",
+      rent: "Mgbazinye",
+      buy: "Zụta",
+      shortlet: "Shortlet",
+      hotel: "Họtel",
+      villa: "Villa",
+      apartment: "Flat",
+      restaurant: "Ụlọ nri",
+      office: "Ọfis",
+      land: "Ala",
+    },
+    featuredCities: "Obodo ndị a ma ama",
+    viewAllCities: "Lee obodo niile",
     assistant: {
       title: "Onye enyemaka AI",
       sub: "Nọ ebe a mgbe niile. Jụọ ihe ọ bụla.",
@@ -1997,6 +2012,7 @@ export const ig: Dictionary = withFallback({
         to: "Ruo",
         apply: "Tinye ya",
         clear: "Hichapụ",
+        status: "Ọnọdụ:",
       },
       columns: {
         walletEntryStatus: {

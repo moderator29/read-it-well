@@ -8,6 +8,22 @@
   the page head, the same glass, the same glow, the same rhythm.
 */
 @layer components {
+  /*
+   * The phone bar carries exactly three things, as the render does: the
+   * lockup, Get Started, and the panel opener. The opener is a glass square
+   * with a lit rim rather than the platform's plain icon button, so it reads
+   * as the same material as the search glyph on the desktop bar.
+   */
+  .nf-site-bar .nf-icon-btn {
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-glass-fill);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 14px var(--nf-glow-1);
+    color: var(--nf-content-primary);
+  }
+
   /* ------------------------------------------------------- the footer */
 
   .nf-site-footer {
@@ -62,7 +78,7 @@
   .nf-site-footer-link {
     display: inline-flex;
     align-items: center;
-    min-height: 2.75rem;
+    min-height: 2.5rem;
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
@@ -77,11 +93,55 @@
     outline-offset: 2px;
     border-radius: var(--nf-radius-xs);
   }
+  /*
+   * The lit skyline the render draws across the foot of the page, with the
+   * shield sitting on it. One inline path in the brand ink at a low opacity
+   * and one glass object: decorative, aria-hidden, no asset, no request.
+   */
+  .nf-site-footer-skyline {
+    position: relative;
+    margin-top: var(--nf-gap-section-tight);
+    height: 5rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-site-footer-skyline svg {
+    position: absolute;
+    inset: auto 0 0 0;
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+    opacity: 0.16;
+  }
+  .nf-site-footer-skyline::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--nf-brand-edge), transparent);
+  }
+  .nf-site-footer-seal {
+    position: absolute;
+    left: 50%;
+    bottom: calc(-1 * var(--nf-space-md));
+    transform: translateX(-50%);
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0.4rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-canvas);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 22px var(--nf-glow-2);
+  }
+
   .nf-site-footer-legal {
     display: flex;
     flex-direction: column;
     gap: var(--nf-gap-inline);
-    margin-top: var(--nf-gap-section-tight);
+    margin-top: var(--nf-gap-heading);
     padding-top: var(--nf-gap-heading);
     border-top: 1px solid var(--nf-border-subtle);
   }

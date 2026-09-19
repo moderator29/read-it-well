@@ -68,7 +68,9 @@ export function RemoveSavedMethod({
   }
 
   return (
-    <div className="mt-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm">
+    /* The same ruling as the reservation desk's confirm panel: a container
+       edge is lit glass, never a flat grey outline. `nf-card` carries it. */
+    <div className="nf-card mt-row p-card-sm">
       <p className="nf-body font-semibold text-content">Remove {describe} from their account?</p>
       <p className="nf-body-sm mt-row text-content-2">
         It comes off their list exactly as if they had removed it themselves. The

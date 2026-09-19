@@ -13,7 +13,9 @@
 @layer components {
   /* --------------------------------------------------------------- home */
 
-  /* The location chip: the feed header's bar, here under the greeting. */
+  /* The location chip: the feed header's bar, here under the greeting. Its
+     material is `.nf-glass--tile`, so the lit rim, the brand ring and the
+     near bloom are the ladder's and this rule carries only the layout. */
   .nf-home__loc {
     display: flex;
     width: 100%;
@@ -21,14 +23,8 @@
     align-items: center;
     gap: var(--nf-gap-row);
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill-thin);
     color: var(--nf-content-primary);
     text-align: left;
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 18px var(--nf-glow-wash);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
@@ -38,7 +34,7 @@
   }
   @media (hover: hover) {
     .nf-home__loc:hover {
-      border-color: var(--nf-brand-edge);
+      border-color: var(--nf-brand-edge-strong);
     }
   }
   .nf-home__loc-pin {
@@ -67,22 +63,16 @@
     flex-shrink: 0;
   }
 
-  /* The search field: one glass well with the glyph in it and a submit
-     beside it, the height of the large button so the two agree. */
+  /* The search field, to the founder's target: ONE wide well, the magnifier
+     in its left end, the brand arrow button inside its right. The material is
+     `.nf-glass--well`, so the trough, its rim and its focus behaviour are the
+     ladder's and not hand-rolled here. */
   .nf-home__search {
     display: flex;
     min-height: 3.5rem;
     align-items: center;
     gap: var(--nf-gap-inline);
     padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 2px 6px var(--nf-shade-2),
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 20px var(--nf-glow-wash);
-    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-home__search:focus-within {
     border-color: var(--nf-brand-edge);
@@ -95,6 +85,9 @@
   .nf-home__search:focus-within .nf-home__search-glyph {
     color: var(--nf-brand-secondary);
   }
+  /* The placeholder sits at the small body size, not the large one: at 390 the
+     larger size ran the prompt off the end of the field and cut it mid-word,
+     which is exactly what the founder photographed. */
   .nf-home__search-input {
     min-width: 0;
     flex: 1;
@@ -102,87 +95,98 @@
     background: transparent;
     border: 0;
     outline: none;
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     color: var(--nf-content-primary);
   }
   .nf-home__search-input::placeholder {
     color: var(--nf-content-muted);
   }
+  /* Inside the well, not beside it: the render's arrow is a small rounded
+     square sitting in the field's right end, at the well's inner height. */
+  .nf-home__search-go {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-md);
+  }
 
-  /* The four browse tiles: glass squares, an object each, a label under. */
-  .nf-home__tiles {
+  /* ---------------------------------------------------------- markets */
+  /* The nine market tiles, to the founder's target: three to a row, each a
+     lit glass tile carrying a SMALL object at the top left, the name under
+     it, the real count under that, and the arrow at the bottom right. The
+     rim, the ring and the bloom come from `.nf-glass--tile`; nothing is
+     hand-rolled here. */
+  .nf-home__markets {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--nf-space-xs);
   }
-  .nf-home__tile {
+  .nf-home__market {
     position: relative;
-    isolation: isolate;
     display: flex;
+    min-height: 6.5rem;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--nf-space-2xs);
-    min-height: 4.75rem;
-    padding: var(--nf-space-sm) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    align-items: flex-start;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm);
     color: var(--nf-content-primary);
-    text-align: center;
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      inset 0 0 0 1px var(--nf-glow-wash),
-      0 0 16px var(--nf-glow-wash);
+    text-align: left;
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  .nf-home__tile::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: var(--nf-glass-specular);
-    pointer-events: none;
-  }
-  .nf-home__tile:active {
+  .nf-home__market:active {
     transform: scale(var(--nf-press-scale));
   }
   @media (hover: hover) {
-    .nf-home__tile:hover {
-      border-color: var(--nf-brand-edge);
-      box-shadow:
-        inset 0 1px 0 var(--nf-glass-rim-thin),
-        0 0 22px var(--nf-glow-2);
+    .nf-home__market:hover {
+      border-color: var(--nf-brand-edge-strong);
     }
   }
-  .nf-home__tile-art {
+  /* SMALL. The object is a mark at the tile's top left, not the tile's
+     subject: at the size the four old tiles drew it, the name broke
+     mid-word underneath it. */
+  .nf-home__market-art {
     display: block;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-bottom: var(--nf-space-2xs);
   }
-  .nf-home__tile-label {
+  .nf-home__market-name {
     font-size: var(--nf-text-caption);
-    font-weight: 600;
+    font-weight: 650;
     line-height: 1.2;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
-  /* Wider than a phone the tiles keep their proportion: the object grows
-     with the tile rather than floating small in a wide slab. */
+  /* The count and the arrow share the tile's last line, as the target draws
+     them: the figure at the left, the arrow at the right of the same row. */
+  .nf-home__market-count {
+    margin-top: auto;
+    padding-right: var(--nf-space-lg);
+    font-size: var(--nf-text-overline);
+    line-height: 1.2;
+    color: var(--nf-content-link);
+  }
+  .nf-home__market-go {
+    position: absolute;
+    right: var(--nf-space-sm);
+    bottom: var(--nf-space-sm);
+    color: var(--nf-content-muted);
+  }
   @media (min-width: 640px) {
-    .nf-home__tiles {
+    .nf-home__markets {
       gap: var(--nf-space-md);
     }
-    .nf-home__tile {
-      min-height: 6.5rem;
+    .nf-home__market {
+      min-height: 8rem;
+      padding: var(--nf-space-md);
     }
-    .nf-home__tile-art {
-      width: 3.25rem;
-      height: 3.25rem;
+    .nf-home__market-art {
+      width: 2.25rem;
+      height: 2.25rem;
     }
-    .nf-home__tile-label {
+    .nf-home__market-name {
       font-size: var(--nf-text-body-sm);
     }
   }
@@ -205,17 +209,17 @@
     color: var(--nf-content-link);
   }
 
-  /* The verified cards, stacked full width on a phone as the render shows,
-     a grid from the tablet up. The card itself is the catalogue's own. */
+  /* TWO UP, on the founder's ruling: the recommendations are the catalogue's
+     own card (F3's, never forked here) at the smaller size, two to a row from
+     the phone up rather than one full-width card per screenful. */
   .nf-home__cards {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--nf-space-md);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
   }
   @media (min-width: 640px) {
     .nf-home__cards {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--nf-space-xl);
+      gap: var(--nf-space-md);
     }
   }
   @media (min-width: 1024px) {
@@ -224,64 +228,197 @@
     }
   }
 
-  /* Popular Cities: photo tiles with the name in the foot. */
-  .nf-home__cities {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--nf-space-xs);
-  }
-  .nf-home__city {
+  /* ------------------------------------------------------- invest band */
+  /* The investment band, to the founder's target: the words on the left, the
+     listing's photograph filling the right with the Verified mark on it. The
+     container is `.nf-glass--card`, so the lit ring and the float are the
+     ladder's. */
+  .nf-home__invest {
     position: relative;
-    display: block;
-    aspect-ratio: 4 / 5;
+    display: flex;
     overflow: hidden;
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: linear-gradient(180deg, var(--nf-media-ground-from), var(--nf-media-ground-to));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 16px var(--nf-glow-wash);
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+    min-height: 11rem;
+    isolation: isolate;
   }
-  .nf-home__city:active {
-    transform: scale(var(--nf-press-scale));
+  /* The words keep to the left two thirds. The photograph is absolute, so
+     without a width here the copy ran the full card and sat on the villa. */
+  .nf-home__invest-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-width: 0;
+    width: 68%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-md);
   }
-  .nf-home__city img {
+  .nf-home__invest-eyebrow {
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-link);
+  }
+  .nf-home__invest-title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 650;
+    line-height: 1.18;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-home__invest-accent {
+    display: block;
+    color: var(--nf-content-link);
+  }
+  .nf-home__invest-text {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-home__invest .nf-btn {
+    margin-top: var(--nf-space-xs);
+  }
+  /* The photograph fills the whole card and fades out to the left under the
+     words. It is NOT a panel butted against the copy: a scrim that starts at
+     the picture's own left edge draws a hard vertical seam down the middle of
+     the card, which the first shot of this band showed plainly. One image,
+     one gradient, no seam. */
+  .nf-home__invest-media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .nf-home__invest-media img {
     object-fit: cover;
-    transition: transform var(--nf-duration-deliberate) var(--nf-ease-standard);
+    object-position: right center;
   }
-  @media (hover: hover) {
-    .nf-home__city:hover img {
-      transform: scale(1.04);
-    }
-  }
-  .nf-home__city::after {
+  .nf-home__invest-media::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: var(--nf-scrim-media);
+    background: linear-gradient(
+      90deg,
+      var(--nf-surface-canvas) 6%,
+      color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent) 38%,
+      color-mix(in oklab, var(--nf-surface-canvas) 30%, transparent) 60%,
+      transparent 82%
+    );
     pointer-events: none;
   }
-  .nf-home__city-name {
+  .nf-home__invest-mark {
     position: absolute;
-    left: var(--nf-space-sm);
-    right: var(--nf-space-sm);
-    bottom: var(--nf-space-sm);
+    right: var(--nf-space-xs);
+    top: var(--nf-space-xs);
     z-index: 1;
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-overlay-media-strong));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    box-shadow: 0 0 14px var(--nf-glow-2);
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    line-height: 1;
     color: var(--nf-content-on-media);
+  }
+  @media (min-width: 640px) {
+    .nf-home__invest {
+      min-height: 13rem;
+    }
+    .nf-home__invest-body {
+      width: 58%;
+      padding: var(--nf-space-lg);
+    }
+    .nf-home__invest-title {
+      font-size: var(--nf-text-h3);
+    }
+    .nf-home__invest-text {
+      font-size: var(--nf-text-body-sm);
+    }
+  }
+
+  /* ---------------------------------------------------- featured cities */
+  /* The cities rail, to the founder's target: small photo capsules, each a
+     plate, the name, its real count and an arrow, scrolling sideways. */
+  .nf-home__overline {
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-secondary);
+  }
+  .nf-home__cities {
+    display: flex;
+    gap: var(--nf-space-xs);
+    overflow-x: auto;
+    padding-block: var(--nf-space-3xs);
+    scrollbar-width: none;
+  }
+  .nf-home__cities::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-home__city {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    max-width: 13rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm) var(--nf-space-2xs) var(--nf-space-2xs);
+    color: var(--nf-content-primary);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-home__city:active {
+    transform: scale(var(--nf-press-scale-lg));
+  }
+  @media (hover: hover) {
+    .nf-home__city:hover {
+      border-color: var(--nf-brand-edge-strong);
+    }
+  }
+  .nf-home__city-plate {
+    position: relative;
+    display: block;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-sm);
+    background: linear-gradient(180deg, var(--nf-media-ground-from), var(--nf-media-ground-to));
+  }
+  .nf-home__city-plate img {
+    object-fit: cover;
+  }
+  .nf-home__city-body {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+  .nf-home__city-name {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  @media (min-width: 640px) {
-    .nf-home__cities {
-      gap: var(--nf-space-md);
-    }
-    .nf-home__city {
-      aspect-ratio: 4 / 3;
-    }
+  .nf-home__city-count {
+    font-size: var(--nf-text-overline);
+    line-height: 1.2;
+    color: var(--nf-content-link);
+  }
+  .nf-home__city-go {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
   }
 
   /* The assistant card on home: the concierge object beside its promise. */
@@ -317,36 +454,34 @@
   }
 
   /* ---------------------------------------------------------- daylight */
-  :root[data-theme="light"] .nf-home__loc,
-  :root[data-theme="light"] .nf-home__tile {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-home__tile::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-home__search {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: inset 0 1px 2px var(--nf-shade-1);
-  }
-  :root[data-theme="light"] .nf-home__search:focus-within {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      inset 0 1px 2px var(--nf-shade-1),
-      0 0 0 3px var(--nf-glow-1);
-  }
-  :root[data-theme="light"] .nf-home__city {
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
-  }
+  /* The market tiles, the search well and the invest card take their paper
+     twins from the glass ladder (`.nf-glass--tile`, `--well`, `--card` in
+     light.css), so nothing about their material is restated here. What is
+     left is this surface's own: the photograph's scrim, and the accents that
+     need a darker ink on paper. The location chip wears `.nf-glass--tile`
+     too, so its paper twin is the ladder's as well. */
   @media (hover: hover) {
-    :root[data-theme="light"] .nf-home__tile:hover,
     :root[data-theme="light"] .nf-home__loc:hover {
       border-color: var(--nf-brand-edge);
       box-shadow: var(--nf-elev-2);
     }
+  }
+  /* On paper the photograph is not scrimmed into the page: the words sit on
+     white and the picture keeps its own edge. */
+  :root[data-theme="light"] .nf-home__invest-media::after {
+    background: linear-gradient(
+      90deg,
+      var(--nf-surface-primary) 6%,
+      color-mix(in oklab, var(--nf-surface-primary) 84%, transparent) 38%,
+      color-mix(in oklab, var(--nf-surface-primary) 32%, transparent) 60%,
+      transparent 82%
+    );
+  }
+  :root[data-theme="light"] .nf-home__market-count,
+  :root[data-theme="light"] .nf-home__city-count,
+  :root[data-theme="light"] .nf-home__invest-eyebrow,
+  :root[data-theme="light"] .nf-home__invest-accent {
+    color: var(--nf-brand-primary);
   }
 }
 
@@ -414,6 +549,8 @@
   .nf-notif__row[data-unread="true"] {
     background: var(--nf-brand-tint-1);
   }
+  /* The glyph tile's material is `.nf-glass--tile`; only its size, its shape
+     and its ink belong to this surface. */
   .nf-notif__tile {
     display: grid;
     flex-shrink: 0;
@@ -421,19 +558,12 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
     color: var(--nf-content-muted);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 12px var(--nf-glow-wash);
   }
   .nf-notif__row[data-unread="true"] .nf-notif__tile {
     color: var(--nf-brand-secondary);
-    border-color: var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 16px var(--nf-glow-2);
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow: var(--nf-glow-edge-strong);
   }
   .nf-notif__body {
     min-width: 0;
@@ -477,11 +607,8 @@
     box-shadow: 0 0 10px var(--nf-glow-3);
   }
 
-  :root[data-theme="light"] .nf-notif__tile {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
-  }
+  /* On paper the tile's material is the ladder's; the unread one keeps the
+     brand hairline rather than the lit ring, which is a night effect. */
   :root[data-theme="light"] .nf-notif__row[data-unread="true"] .nf-notif__tile {
     border-color: var(--nf-brand-edge);
     box-shadow: var(--nf-elev-1);
@@ -735,6 +862,11 @@
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-3xs);
+  }
+  /* Capitalise the CATEGORY only. This rule used to sit on every fact, which
+     capitalised the unit as well and printed the floor area as "116 M²". A
+     square metre is written m², whatever sentence it lands in. */
+  .nf-ai__result-kind {
     text-transform: capitalize;
   }
   .nf-ai__result-fact > svg {

@@ -3,6 +3,7 @@ import { formatMoney, type Locale } from "@vallo/i18n";
 import type { AdminRead } from "@/lib/admin/queries";
 import type { RefundConsole, RefundState, RefundView, WalletEntryView } from "@/lib/admin/money-queries";
 import type { StatusTone } from "@/components/ui/StatusPill";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
 import type { AdminUi } from "../_components/ui";
 
@@ -93,8 +94,11 @@ export function RefundRow({
 }) {
   const state = REFUND_STATE[refund.state];
   return (
-    <li className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
-      <span className="min-w-0">
+    <li className="flex flex-wrap items-baseline gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
+      {/* The row's glass object, small: money going back to a person. The
+          render carries one per row and this is the row's subject in a mark. */}
+      <BrandIcon name="payment-received" size={26} className="mt-3xs shrink-0" />
+      <span className="min-w-0 flex-1">
         <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
           {refund.guestName ?? "No display name"}
           {" · "}

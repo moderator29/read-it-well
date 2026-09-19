@@ -40,7 +40,7 @@ export default async function WalletSendPage({
   const copy = t.walletSend;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader
         title={copy.title}
         subtitle={copy.tagline}

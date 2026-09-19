@@ -31,7 +31,7 @@ export function CityRow({
       aria-label={
         isOwn ? `Your city is ${shown}. Change it.` : `Choose the city you explore from.`
       }
-      className="nf-home__loc nf-tap mt-md"
+      className="nf-glass nf-glass--tile nf-home__loc nf-tap mt-md"
     >
       <UiIcon name="location" size={20} className="nf-home__loc-pin" />
       <span className="nf-home__loc-name">

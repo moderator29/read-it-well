@@ -37,7 +37,7 @@ export default async function PreviewReservations() {
       </Link>
       <ui.QueueHeader
         title="Reservations"
-        lede="Every table asked for at a restaurant on Vallo. A request the restaurant has not answered can be answered here on its behalf, and a confirmed table can be called off with a reason the guest reads word for word. Nothing here moves money."
+        lede="Tables asked for at restaurants on Vallo. Nothing here moves money."
         count={requests.length}
       />
       <QueueFilters
@@ -46,7 +46,7 @@ export default async function PreviewReservations() {
         common={t.admin.common}
         statuses={reservationStatusFilters(ui)}
         searchLabel="Find a table"
-        searchPlaceholder="Reservation id, or part of the restaurant's name"
+        searchPlaceholder="Reservation id or restaurant"
       />
       <p className="nf-caption -mt-row mb-block">The dates narrow by when the table is for.</p>
       <ReservationGroup title="Waiting on the restaurant" rows={requests} ui={ui} guestsWord={guestsWord} />

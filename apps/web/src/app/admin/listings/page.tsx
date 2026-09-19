@@ -367,7 +367,7 @@ function listingRow(listing: ListingReviewView, ui: AdminUi): QueueRowData {
     type: "Listing",
     icon: "house",
     title: listing.title,
-    sub: [listing.area, listing.city].filter(Boolean).join(", "),
+    place: [listing.area, listing.city].filter(Boolean).join(", "),
     detail: `${listing.bedrooms} bed, ${listing.bathrooms} bath`,
     detailSub: listing.agentName ?? undefined,
     status: listing.status,

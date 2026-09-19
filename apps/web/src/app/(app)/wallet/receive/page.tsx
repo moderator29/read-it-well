@@ -40,7 +40,7 @@ export default async function WalletReceivePage() {
   const email = session.state === "signed-in" ? (session.user.email ?? "") : "";
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader
         title={copy.title}
         subtitle={copy.tagline}

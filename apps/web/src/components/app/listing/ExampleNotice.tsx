@@ -81,13 +81,23 @@ export function ExampleNotice({
        * point in the card a sighted reader does.
        */
       role="note"
-      className={`flex items-start gap-inline rounded-[var(--nf-radius-sm)] border-l-[3px] border-[var(--nf-state-warning)] bg-[var(--nf-state-warning-surface)] ${
-        page ? "nf-body p-card-sm" : "nf-body-sm p-inline"
+      /*
+       * A LINE, NOT A SLAB, on the founder's send-back. It was a filled
+       * wash the width of the page sitting in the middle of the listing,
+       * which is the loudest object on a screen whose subject is the
+       * property. The rule down the leading edge is kept, because that is
+       * the shape of a notice and it is what tells the sentence apart from
+       * the description; the fill is gone and the room around it with it.
+       * The size does not drop: a disclosure nobody can read is decoration,
+       * and this one still has to be read.
+       */
+      className={`flex items-start gap-inline border-l-2 border-[var(--nf-state-warning)] pl-sm ${
+        page ? "nf-body" : "nf-body-sm"
       } font-medium leading-snug text-[var(--nf-content-primary)] ${className ?? ""}`}
     >
       <UiIcon
         name="info"
-        size={page ? ICON.row : ICON.inline}
+        size={ICON.inline}
         className="mt-3xs shrink-0 text-[var(--nf-state-warning)]"
       />
       <span>{EXAMPLE_STATEMENT}</span>

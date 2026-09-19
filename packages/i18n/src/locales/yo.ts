@@ -1052,6 +1052,21 @@ export const yo: Dictionary = withFallback({
       land: "Ilẹ̀",
     },
     popularCities: "Àwọn Ìlú Gbajúmọ̀",
+    searchMarkets: "Wá ọjà tàbí ibi",
+    markets: {
+      label: "Ṣàwárí ọjà",
+      rent: "Yá",
+      buy: "Rà",
+      shortlet: "Shortlet",
+      hotel: "Hotẹ́ẹ̀lì",
+      villa: "Villa",
+      apartment: "Fláàtì",
+      restaurant: "Ilé oúnjẹ",
+      office: "Ọ́fíìsì",
+      land: "Ilẹ̀",
+    },
+    featuredCities: "Àwọn Ìlú Gbajúmọ̀",
+    viewAllCities: "Wo gbogbo ìlú",
     assistant: {
       title: "Olùrànlọ́wọ́ AI",
       sub: "Ó wà níbí nígbà gbogbo. Béèrè ohunkóhun.",
@@ -1993,6 +2008,7 @@ export const yo: Dictionary = withFallback({
         to: "Dé",
         apply: "Lò ó",
         clear: "Nù ú",
+        status: "Ipò:",
       },
       columns: {
         walletEntryStatus: {

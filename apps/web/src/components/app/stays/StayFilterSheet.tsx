@@ -281,6 +281,7 @@ export function StayFilterSheet({
         className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
       />
       <div ref={panelRef} data-testid="stay-filters" className="nf-filters">
+        <span className="nf-filters__grip" aria-hidden="true" />
         <header className="nf-filters__head">
           <p className="nf-filters__title">{copy.filters.title}</p>
           <button ref={closeRef} type="button" onClick={close} aria-label={copy.filters.close} className="nf-icon-btn h-11 w-11">

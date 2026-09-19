@@ -26,14 +26,14 @@ export default async function PreviewRefunds() {
     <ConsoleFrame t={t}>
       <ui.QueueHeader
         title="Money"
-        lede="Every wallet, the ledger behind them, and anything that has stopped moving. Amounts are what the ledger says, summed from COMPLETED entries only."
+        lede="Every wallet, the ledger behind them, and anything stuck."
       />
       <QueueFilters
         base={BASE}
         query={{}}
         common={t.admin.common}
         searchLabel="Find a person, a wallet or a payment"
-        searchPlaceholder="Name, wallet id, or payment reference"
+        searchPlaceholder="Name, wallet id or reference"
       />
       <ui.StatRow>
         <ui.Stat

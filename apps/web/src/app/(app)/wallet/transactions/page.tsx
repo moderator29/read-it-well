@@ -27,7 +27,7 @@ export default async function WalletTransactionsPage() {
   const wallet = await getWalletForViewer();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader title="Transactions" fallback="/wallet" />
 
       {!wallet.live ? (

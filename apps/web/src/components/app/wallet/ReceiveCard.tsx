@@ -196,7 +196,7 @@ export function ReceiveCard({
 function Head({ id, icon, title, sub }: { id: string; icon: UiIconName; title: string; sub: string }) {
   return (
     <div className="nf-money-sec__head">
-      <span className="nf-glyph-tile" aria-hidden="true">
+      <span className="nf-glyph-tile nf-glyph-tile--solid" aria-hidden="true">
         <UiIcon name={icon} size={22} />
       </span>
       <div className="min-w-0">

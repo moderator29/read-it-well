@@ -1050,6 +1050,21 @@ export const ha: Dictionary = withFallback({
       land: "Fili",
     },
     popularCities: "Shahararrun Birane",
+    searchMarkets: "Nemo kasuwanni ko wurare",
+    markets: {
+      label: "Bincika kasuwanni",
+      rent: "Haya",
+      buy: "Saya",
+      shortlet: "Shortlet",
+      hotel: "Otal",
+      villa: "Villa",
+      apartment: "Falat",
+      restaurant: "Gidan abinci",
+      office: "Ofis",
+      land: "Fili",
+    },
+    featuredCities: "Shahararrun Birane",
+    viewAllCities: "Duba dukkan birane",
     assistant: {
       title: "Mataimakin AI",
       sub: "Koyaushe a nan. Tambayi komai.",
@@ -1987,6 +2002,7 @@ export const ha: Dictionary = withFallback({
         to: "Zuwa",
         apply: "Yi amfani",
         clear: "Share",
+        status: "Matsayi:",
       },
       columns: {
         walletEntryStatus: {

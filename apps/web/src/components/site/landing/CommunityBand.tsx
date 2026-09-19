@@ -42,7 +42,18 @@ export function CommunityBand({
           <div>
             <span className="nf-overline text-[var(--nf-brand-secondary)]">{c.overline}</span>
             <h2 id="nf-landing-community-title" className="nf-h1 mt-row max-w-measure-display">
-              {c.title}
+              {/* Double-bracketed phrases take the brand ink, as the render
+                  sets them. A locale whose translation carries no brackets
+                  renders as one white line, which is the honest fallback. */}
+              {c.title.split(/\[\[(.+?)\]\]/g).map((part, i) =>
+                i % 2 === 1 ? (
+                  <span key={`${part}-${i}`} className="nf-landing-hl">
+                    {part}
+                  </span>
+                ) : (
+                  part
+                ),
+              )}
             </h2>
             <p className="nf-lede mt-group max-w-measure-lede">{c.body}</p>
           </div>

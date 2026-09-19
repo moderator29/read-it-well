@@ -44,18 +44,32 @@ export function ListingAmenityTiles({
   if (amenities.length === 0) return null;
   const shown = limit ? amenities.slice(0, limit) : amenities;
   const remainder = amenities.length - shown.length;
+  /*
+   * THE LEAD ROW SCROLLS, THE SECTION WRAPS, and both tiles are small.
+   *
+   * The render draws six small square tiles across the lead card, each a
+   * glyph over a two-line caption, and a "More" tile at the end. Ours were
+   * three per row at 5rem tall with the label wrapping inside them, which
+   * is the same information at three times the size and is what the
+   * founder's send-back calls enormous. `limit` is what the lead row
+   * passes, so it is also the signal that this is the scrolling row.
+   */
+  const row = limit !== undefined;
   return (
-    <ul className="nf-amenity-grid" data-testid="amenity-tiles">
+    <ul
+      className={row ? "nf-amenity-row nf-scroll-x" : "nf-amenity-grid"}
+      data-testid="amenity-tiles"
+    >
       {shown.map((code) => (
-        <li key={code} className="nf-amenity-tile">
-          <UiIcon name={AMENITY_ICON[code] ?? "sparkle"} size={ICON.row} />
+        <li key={code} className="nf-glass nf-glass--tile nf-amenity-tile">
+          <UiIcon name={AMENITY_ICON[code] ?? "sparkle"} size={ICON.inline} />
           <span>{amenityLabel(code)}</span>
         </li>
       ))}
       {remainder > 0 && moreHref && (
-        <li>
-          <a href={moreHref} className="nf-amenity-tile h-full">
-            <UiIcon name="more" size={ICON.row} />
+        <li className="contents">
+          <a href={moreHref} className="nf-glass nf-glass--tile nf-amenity-tile">
+            <UiIcon name="more" size={ICON.inline} />
             <span>
               {moreLabel ?? "More"} (+{remainder})
             </span>

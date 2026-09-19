@@ -68,7 +68,7 @@ export default async function WalletPage({
   const usdRate = Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : null;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader title={t.nav.wallet} actions={<WalletSettingsSheet />} />
 
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}

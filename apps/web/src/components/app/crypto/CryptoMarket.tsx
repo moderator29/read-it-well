@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
 import { fetchMarkets, type CryptoResponse, type CryptoVs, type MarketRow, type PairRow } from "./client";
-import { formatPercent, formatPrice, matchesCoin, movers } from "./format";
+import { formatCompact, formatPercent, formatPrice, matchesCoin, movers } from "./format";
 import { CoinImage } from "./CoinImage";
 import { Sparkline } from "./Sparkline";
 import { CryptoFailure } from "./CryptoStates";
@@ -284,9 +284,19 @@ function MoversCard({
               <span className="nf-coin-rank" aria-hidden="true">
                 {i + 1}
               </span>
+              {/*
+                THE PRICE IS COMPACT IN THIS COLUMN, and it was the full
+                figure. Two movers cards sit side by side at 390px, and a
+                naira price is "₦98,412,500.00": beside a rank, a symbol and
+                a signed percentage it truncated to "₦.." and the symbol to
+                one letter, so both columns said nothing at all. Compact
+                ("₦98.4m") is the same fact at a width this column has.
+              */}
               <span className="min-w-0 flex-1">
                 <span className={`block truncate ${TYPE.rowTitle}`}>{row.symbol.toUpperCase()}</span>
-                <span className={`nf-numeric block truncate ${TYPE.caption}`}>{formatPrice(row.price, vs, locale)}</span>
+                <span className={`nf-numeric block truncate ${TYPE.caption}`}>
+                  {formatCompact(row.price, vs, locale)}
+                </span>
               </span>
               <Change value={row.change24h} locale={locale} className="nf-body-sm shrink-0" />
             </Link>

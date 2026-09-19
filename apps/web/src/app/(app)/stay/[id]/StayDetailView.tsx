@@ -122,36 +122,45 @@ export function StayDetailView({
         mark={{ label: catalogue.title, icon: "bed" }}
       />
 
-      <div className="mx-auto max-w-2xl pb-[calc(var(--nf-action-bar-height,4.5rem)+var(--spacing-block))] pt-md">
-        {/* ------------------------------------------------ the headline */}
-        <div className="nf-stay-card__head">
-          <div className="min-w-0">
-            <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
-            {where && (
-              <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
-                <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
-                {where}
+      <div className="mx-auto max-w-2xl pb-[calc(var(--nf-action-bar-height,4.5rem)+var(--spacing-block))]">
+        {/* ------------------------------------------------ the headline
+            The render's order: the name, the place, then the figure on its
+            own line with the stars beside it. It used to put the figure in
+            the title's right-hand column, which on a phone squeezed a long
+            property name into half the width. The card is lit glass and it
+            overlaps the photograph, as every lead card on this platform
+            now does. */}
+        <div className="nf-glass nf-glass--card nf-detail-lead relative z-10 -mt-xl sm:-mt-2xl">
+          <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
+          {where && (
+            <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
+              <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+              {where}
+            </p>
+          )}
+          <div className="nf-stay-price-row mt-md">
+            {from !== null ? (
+              <p className="nf-stay-card__price" data-testid="stay-from">
+                <Amount
+                  minorUnits={from}
+                  locale={locale}
+                  secondaryClassName="text-[0.6em] font-semibold opacity-70"
+                />
+                <span className="nf-stay-card__per">{catalogue.perNight}</span>
               </p>
+            ) : (
+              <p className={`shrink-0 ${TYPE.rowMeta}`}>{copy.noRate}</p>
             )}
+            {/* The class the property carries, from its own record. A guest
+                rating is never drawn here: this read carries no reviews, and
+                an invented count is the one thing a stars row must not be. */}
             {detail.starRating && (
-              <p className="nf-stay-card__rating mt-inline-tight">
+              <p className="nf-stay-card__rating">
                 <UiIcon name="star" size={14} filled />
                 {STAR_LABEL[detail.starRating] ?? `${detail.starRating} star`}
               </p>
             )}
           </div>
-          {from !== null ? (
-            <p className="nf-stay-card__price" data-testid="stay-from">
-              <Amount
-                minorUnits={from}
-                locale={locale}
-                secondaryClassName="text-[0.6em] font-semibold opacity-70"
-              />
-              <span className="nf-stay-card__per">{catalogue.perNight}</span>
-            </p>
-          ) : (
-            <p className={`shrink-0 ${TYPE.rowMeta}`}>{copy.noRate}</p>
-          )}
         </div>
 
         {/* --------------------------------------- dates and the party */}
@@ -199,8 +208,8 @@ export function StayDetailView({
             <Section title={t.catalogue.detail.amenities}>
               <ul className="nf-amenity-grid" data-testid="stay-amenities">
                 {detail.amenities.map((amenity) => (
-                  <li key={amenity} className="nf-amenity-tile">
-                    <UiIcon name={amenityGlyph(amenity)} size={ICON.row} />
+                  <li key={amenity} className="nf-glass nf-glass--tile nf-amenity-tile">
+                    <UiIcon name={amenityGlyph(amenity)} size={ICON.inline} />
                     <span>{amenity}</span>
                   </li>
                 ))}

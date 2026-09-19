@@ -97,7 +97,11 @@ export const ASSISTANT_ITEMS: AssistantListingItem[] = [
     title: "2 Bedroom Apartment, Lekki Phase 1",
     city: "Lekki, Lagos",
     kind: "apartment",
-    price: "NGN 1,650,000 per year",
+    /* What `priceLine` in app/api/assistant/route.ts really emits: formatMoney
+       runs on en-NG, so the wire carries the naira sign, not the ISO code. The
+       fixture said "NGN" and the proof therefore showed a price this product
+       never sends. */
+    price: "₦1,650,000 per year",
     rating: 4.6,
     verified: LISTINGS[2]!.verified,
     bedrooms: LISTINGS[2]!.bedrooms,
@@ -111,7 +115,7 @@ export const ASSISTANT_ITEMS: AssistantListingItem[] = [
     title: "2 Bedroom Apartment, Osapa London",
     city: "Lekki, Lagos",
     kind: "apartment",
-    price: "NGN 1,850,000 per year",
+    price: "₦1,850,000 per year",
     rating: 4.8,
     verified: LISTINGS[2]!.verified,
     bedrooms: LISTINGS[2]!.bedrooms,

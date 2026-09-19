@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { photo } from "@/lib/site/photos";
 
 /**
@@ -13,13 +13,15 @@ import { photo } from "@/lib/site/photos";
  */
 export function StaysBand({ t }: { t: Dictionary }) {
   const s = t.landing.face.stays;
-  const list: { href: string; label: string; icon: UiIconName }[] = [
-    { href: "/stays/search?type=hotel", label: s.hotels, icon: "building-hotel" },
-    { href: "/stays/search?type=shortlet", label: s.shortlets, icon: "bed" },
-    { href: "/stays/search?type=apartment", label: s.apartments, icon: "building-apartment" },
-    { href: "/stays/search?type=villa", label: s.villas, icon: "pool" },
-    { href: "/restaurants", label: s.restaurants, icon: "utensils" },
-    { href: "/search?type=experience", label: s.experiences, icon: "ticket" },
+  /* Glass objects, not stroked glyphs: the render draws a blue glass mark in
+     a glass square on every row, and a row never mixes the two tiers. */
+  const list: { href: string; label: string; icon: BrandIconName }[] = [
+    { href: "/stays/search?type=hotel", label: s.hotels, icon: "hotel" },
+    { href: "/stays/search?type=shortlet", label: s.shortlets, icon: "shortlet" },
+    { href: "/stays/search?type=apartment", label: s.apartments, icon: "apartment-block" },
+    { href: "/stays/search?type=villa", label: s.villas, icon: "villa" },
+    { href: "/restaurants", label: s.restaurants, icon: "concierge-bell" },
+    { href: "/search?type=experience", label: s.experiences, icon: "map-route" },
   ];
   return (
     <section className="nf-shell py-section" aria-labelledby="nf-landing-stays-title">
@@ -51,7 +53,7 @@ export function StaysBand({ t }: { t: Dictionary }) {
                 <li key={item.href}>
                   <Link href={item.href} prefetch={false}>
                     <span>
-                      <UiIcon name={item.icon} size={16} aria-hidden />
+                      <BrandIcon name={item.icon} fill />
                     </span>
                     {item.label}
                   </Link>

@@ -10,7 +10,7 @@ export default function PreviewReceive() {
   const t = getDictionary("en");
   const copy = t.walletReceive;
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader
         title={copy.title}
         subtitle={copy.tagline}

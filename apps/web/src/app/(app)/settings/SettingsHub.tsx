@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ICON } from "@/components/app/Screen";
 import { RowButton, RowLink, RowSelect, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
@@ -107,6 +108,26 @@ function ProfileRow({
   );
 }
 
+/**
+ * THE SIX ROW GLYPHS ARE GLASS OBJECTS, NOT STROKES.
+ *
+ * `7F96BE6C` draws a blue glass object in every one of these tiles, and the
+ * icon law says the render decides the tier: a glass object where the image
+ * shows one, the stroked tier only for small controls. All six exist in the
+ * pack under the names the render draws, person and bell and shield and
+ * palette and globe and headset, so not one of them is an approximation.
+ *
+ * Smaller than the stroked glyphs they replace. A rendered object carries its
+ * own ground and its own light, so it reads at a size a line drawing would
+ * disappear at; drawn at the stroked tier's 24 it fills the tile and the rail
+ * turns into a column of pictures.
+ */
+const HUB_GLYPH = 26;
+
+function HubGlyph({ name }: { name: BrandIconName }) {
+  return <BrandIcon name={name} size={HUB_GLYPH} />;
+}
+
 /** An emerald tick beside a word: a state the platform actually checked. */
 function Checked({ children }: { children: string }) {
   return (
@@ -183,14 +204,14 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
       >
         <RowLink
           href="/settings/account"
-          icon="user"
+          glyph={<HubGlyph name="person-card" />}
           label={hub.accountInfo}
           sub={hub.accountInfoSub}
           value={person?.verified ? <Checked>{hub.verified}</Checked> : undefined}
           testId="hub-account"
         />
         <RowSwitch
-          icon="bell"
+          glyph={<HubGlyph name="bell-badge" />}
           label={t.settings.notifications.label}
           sub={hub.notificationsSub}
           value={notifyOn ? hub.on : hub.off}
@@ -201,7 +222,7 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
         />
         <RowLink
           href="/settings/privacy"
-          icon="shield-stop"
+          glyph={<HubGlyph name="shield-lock" />}
           label={hub.privacy}
           sub={hub.privacySub}
           value={
@@ -212,7 +233,7 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           testId="hub-privacy"
         />
         <RowSelect
-          icon="sparkle"
+          glyph={<HubGlyph name="palette" />}
           label={copy.label}
           sub={hub.appearanceSub}
           value={theme}
@@ -225,10 +246,11 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           current={locale}
           label={t.settings.language.label}
           sub={hub.languageSub}
+          glyph={<HubGlyph name="globe" />}
         />
         <RowLink
           href="/settings/help"
-          icon="chat-bubble"
+          glyph={<HubGlyph name="headset" />}
           label={hub.help}
           sub={hub.helpSub}
           testId="hub-help"

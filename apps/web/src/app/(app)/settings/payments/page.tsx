@@ -29,7 +29,7 @@ export default async function PaymentsPage() {
 
   if (session.state !== "signed-in") {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="nf-money mx-auto max-w-2xl">
         <PageHeader title={copy.title} fallback="/settings" />
         <EmptyState
           icon="card-lock"
@@ -42,7 +42,7 @@ export default async function PaymentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader title={copy.title} fallback="/settings" />
       <p className={`mb-block ${TYPE.body}`}>{copy.lede}</p>
       <PaymentMethodsBlock />

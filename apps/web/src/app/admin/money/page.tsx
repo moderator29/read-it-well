@@ -92,7 +92,7 @@ export default async function AdminMoneyPage({
     <div className="nf-console">
       <ui.QueueHeader
         title="Money"
-        lede="Every wallet, the ledger behind them, and anything that has stopped moving. Amounts are what the ledger says, summed from COMPLETED entries only."
+        lede="Every wallet, the ledger behind them, and anything stuck."
         count={stuck.length}
       />
 
@@ -130,7 +130,7 @@ export default async function AdminMoneyPage({
         query={query}
         common={common}
         searchLabel="Find a person, a wallet or a payment"
-        searchPlaceholder="Name, wallet id, or payment reference"
+        searchPlaceholder="Name, wallet id or reference"
       />
 
       <ui.StatRow>

@@ -85,8 +85,54 @@
    * place the cascade is observable. Naming `.nf-card` takes the selector to
    * two classes and settles it wherever the imports end up sitting.
    */
+  /*
+   * THE CARD'S EDGE IS LIT GLASS, on the founder's ruling that our containers
+   * read dull beside the renders.
+   *
+   * `GOVERNING-feed-plus-bloom.png` draws every card with a bright blue rim,
+   * a catchlight inside its top edge and a soft bloom in the air around it,
+   * over a near-black navy fill. `.nf-card`'s stride ring is the quiet
+   * material underneath and stays exactly as it is for the rest of the
+   * platform; this states the feed's own answer on top of it, which is what
+   * ledger section 2 asks a worker to do rather than editing glass.css.
+   *
+   * The bloom is two negative-spread rungs, close and wide, so it is light in
+   * the space around the card rather than a ring stuck to its border, and it
+   * never shows above the top edge where the rim is already doing the work.
+   */
   .nf-card.nf-post {
     border-radius: var(--nf-feed-radius);
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 0 1px var(--nf-glow-1),
+      0 0 30px -12px var(--nf-glow-3),
+      0 0 72px -26px var(--nf-glow-2);
+  }
+
+  /*
+   * THE WORDS ARE WHITE, WITH BLUE UNDER THEM.
+   *
+   * The handle, the time and the counts were all `--nf-content-muted`, a
+   * grey, so three quarters of the text on a card was grey text on navy. The
+   * render keeps everything in the blue family: the body white, the
+   * secondary lines a dimmed blue-white, never a grey paragraph.
+   */
+  .nf-post__handle,
+  .nf-post__when {
+    color: color-mix(in oklab, var(--nf-brand-secondary) 32%, var(--nf-content-secondary));
+  }
+  /* The flat attached to a post: a plate inside the card, lit at its edge so
+     it belongs to the card rather than sitting on it. See `ListingBlock`. */
+  .nf-post__plate {
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 20px -12px var(--nf-glow-3);
+  }
+  .nf-post__act {
+    color: color-mix(in oklab, var(--nf-brand-secondary) 38%, var(--nf-content-secondary));
   }
 
   /*
@@ -379,7 +425,12 @@
     margin-block-start: 12px;
     overflow: hidden;
     border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-border-subtle);
+    /* The plate is lit at its edge like every other container on the feed,
+       so a photograph sits in the card rather than being pasted onto it. */
+    border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow:
+      inset 0 0 0 1px var(--nf-glow-wash),
+      0 0 22px -14px var(--nf-glow-3);
   }
   .nf-post__media img {
     display: block;
@@ -2688,9 +2739,12 @@
     background: var(--nf-glass-fill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
+    /* Lit glass, as the render draws the field: a brand rim, the catchlight
+       inside the top edge, and a soft bloom under it. */
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px -6px var(--nf-glow-2);
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 0 1px var(--nf-glow-1),
+      0 0 28px -12px var(--nf-glow-3);
     color: var(--nf-content-primary);
     text-align: start;
     transition:
@@ -3194,6 +3248,31 @@
    * Paper. The same anatomy on white: glass becomes a white card with a
    * hairline and a soft shadow; the brand fills and rings stay brand.
    * ------------------------------------------------------------------ */
+  /*
+   * The lit edge is a night effect and does not cross. A blue rim with a blue
+   * bloom around it is light thrown into the air, and on a white page that is
+   * a smudge, which the light law already says about every glow rung. On
+   * paper the same anatomy is stated as a brand-tinted hairline over the
+   * elevation ladder, and the text goes back to ink.
+   */
+  :root[data-theme="light"] .nf-card.nf-post {
+    border-color: var(--nf-border-brand);
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-post__media {
+    border-color: var(--nf-border-default);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-post__plate {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-post__handle,
+  :root[data-theme="light"] .nf-post__when,
+  :root[data-theme="light"] .nf-post__act {
+    color: var(--nf-content-muted);
+  }
   :root[data-theme="light"] .nf-feed-chip {
     background: var(--nf-surface-primary);
     border-color: var(--nf-border-default);

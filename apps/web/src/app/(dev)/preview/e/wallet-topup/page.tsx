@@ -7,7 +7,7 @@ import { BALANCE_MINOR, BREAKDOWN, CARDS, ENTRIES } from "../fixtures";
 export default function PreviewWalletTopUp() {
   const t = getDictionary("en");
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader title={t.nav.wallet} />
       <WalletDeck
         locale="en"

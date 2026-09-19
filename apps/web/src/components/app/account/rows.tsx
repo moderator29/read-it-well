@@ -61,14 +61,33 @@ export function SettingsGroup({
 
 /* -------------------------------------------------------------------- row */
 
+/**
+ * A row's leading glyph.
+ *
+ * Two tiers and never both in one row, per the icon law. `glyph` is the blue
+ * glass object, passed by a caller whose governing image draws one (the
+ * settings home does, on all six of its rows); `icon` is the stroked tier,
+ * which is what a small control gets. A row that passes neither still gets
+ * the box, so a group where only some rows carry a mark keeps one rail.
+ */
+function RowGlyph({ icon, glyph }: { icon?: UiIconName; glyph?: ReactNode }) {
+  return (
+    <span className="nf-srow__icon" aria-hidden="true">
+      {glyph ?? (icon ? <UiIcon name={icon} size={ICON.row} /> : null)}
+    </span>
+  );
+}
+
 function RowInner({
   icon,
+  glyph,
   label,
   sub,
   value,
   trailing,
 }: {
   icon?: UiIconName;
+  glyph?: ReactNode;
   label: ReactNode;
   sub?: ReactNode;
   value?: ReactNode;
@@ -76,15 +95,7 @@ function RowInner({
 }) {
   return (
     <>
-      {icon ? (
-        <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={ICON.row} />
-        </span>
-      ) : (
-        /* Keeps the label column aligned in a group where only some rows carry
-           a glyph, rather than letting one row start further left. */
-        <span className="nf-srow__icon" aria-hidden="true" />
-      )}
+      <RowGlyph icon={icon} glyph={glyph} />
       <span className="nf-srow__body">
         <span className="nf-srow__label">{label}</span>
         {sub && <span className="nf-srow__sub">{sub}</span>}
@@ -107,6 +118,7 @@ const Chevron = (
 export function RowLink({
   href,
   icon,
+  glyph,
   label,
   sub,
   value,
@@ -115,13 +127,17 @@ export function RowLink({
 }: {
   href: string;
   icon?: UiIconName;
+  /** The blue glass object, where the governing image draws one. */
+  glyph?: ReactNode;
   label: ReactNode;
   sub?: ReactNode;
   value?: ReactNode;
   external?: boolean;
   testId?: string;
 }) {
-  const inner = <RowInner icon={icon} label={label} sub={sub} value={value} trailing={Chevron} />;
+  const inner = (
+    <RowInner icon={icon} glyph={glyph} label={label} sub={sub} value={value} trailing={Chevron} />
+  );
 
   if (external) {
     return (
@@ -147,6 +163,7 @@ export function RowLink({
 export function RowButton({
   onClick,
   icon,
+  glyph,
   label,
   sub,
   value,
@@ -157,6 +174,8 @@ export function RowButton({
 }: {
   onClick: () => void;
   icon?: UiIconName;
+  /** The blue glass object, where the governing image draws one. */
+  glyph?: ReactNode;
   label: ReactNode;
   sub?: ReactNode;
   value?: ReactNode;
@@ -175,6 +194,7 @@ export function RowButton({
     >
       <RowInner
         icon={icon}
+        glyph={glyph}
         label={label}
         sub={sub}
         value={value}
@@ -247,6 +267,7 @@ export function Switch({
 /** A row whose control is a switch. */
 export function RowSwitch({
   icon,
+  glyph,
   label,
   sub,
   value,
@@ -256,6 +277,8 @@ export function RowSwitch({
   testId,
 }: {
   icon?: UiIconName;
+  /** The blue glass object, where the governing image draws one. */
+  glyph?: ReactNode;
   label: string;
   sub?: ReactNode;
   /** The state in a word beside the switch ("On"), as the settings render
@@ -269,13 +292,7 @@ export function RowSwitch({
   const labelId = useId();
   return (
     <div className="nf-srow">
-      {icon ? (
-        <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={ICON.row} />
-        </span>
-      ) : (
-        <span className="nf-srow__icon" aria-hidden="true" />
-      )}
+      <RowGlyph icon={icon} glyph={glyph} />
       <span className="nf-srow__body">
         <span id={labelId} className="nf-srow__label">
           {label}
@@ -310,6 +327,7 @@ export function RowSwitch({
  */
 export function RowSelect<T extends string>({
   icon,
+  glyph,
   label,
   sub,
   value,
@@ -318,6 +336,8 @@ export function RowSelect<T extends string>({
   testId,
 }: {
   icon?: UiIconName;
+  /** The blue glass object, where the governing image draws one. */
+  glyph?: ReactNode;
   label: string;
   sub?: ReactNode;
   value: T;
@@ -348,13 +368,7 @@ export function RowSelect<T extends string>({
           own flex rhythm applies to it exactly as it does to every other row.
           Only the focus ring needs to know the two are related, and the
           adjacent-sibling rule in the stylesheet handles that. */}
-      {icon ? (
-        <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={ICON.row} />
-        </span>
-      ) : (
-        <span className="nf-srow__icon" aria-hidden="true" />
-      )}
+      <RowGlyph icon={icon} glyph={glyph} />
       <span className="nf-srow__body">
         <span id={labelId} className="nf-srow__label">
           {label}

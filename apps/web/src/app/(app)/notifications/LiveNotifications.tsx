@@ -162,11 +162,14 @@ export function LiveNotifications({
                 {section.items.length}
               </span>
             </div>
-            <ul className="nf-card nf-notif__list">
+            {/* The lit card, not the calm one: every container in the
+                reference renders carries the brand ring and its near bloom,
+                and this list is the surface's one object. */}
+            <ul className="nf-glass nf-glass--card nf-notif__list">
               {section.items.map((n) => {
                 const inner = (
                   <>
-                    <span className="nf-notif__tile" aria-hidden="true">
+                    <span className="nf-glass nf-glass--tile nf-notif__tile" aria-hidden="true">
                       <UiIcon name={iconFor(n.kind)} size={20} />
                     </span>
 

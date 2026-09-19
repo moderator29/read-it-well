@@ -624,6 +624,23 @@
     flex-direction: column;
     gap: 12px;
   }
+  /*
+   * THE ROW'S EDGE IS LIT GLASS, on the founder's ruling that our containers
+   * read dull beside the renders. `50E032EA` draws each belongings row with
+   * a bright blue rim, a catchlight along the inside of its top edge and a
+   * soft bloom around it, over a near-black navy fill. Scoped here rather
+   * than on `.nf-card` itself, which is the lead's material; see the same
+   * note in settings-rows.css.
+   */
+  .nf-card.nf-belong__row,
+  .nf-card.nf-belong__switch {
+    border-color: var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 0 1px var(--nf-glow-1),
+      0 0 30px -12px var(--nf-glow-3),
+      0 0 70px -26px var(--nf-glow-2);
+  }
   .nf-belong__row {
     display: flex;
     align-items: center;
@@ -651,11 +668,12 @@
     inline-size: 52px;
     block-size: 52px;
     border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
+    border: 1px solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 16px -6px var(--nf-glow-2);
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 0 1px var(--nf-glow-wash),
+      0 0 18px -8px var(--nf-glow-3);
   }
   .nf-belong__body {
     flex: 1 1 auto;
@@ -667,12 +685,14 @@
     font-weight: 700;
     letter-spacing: -0.01em;
   }
+  /* Blue-white, not grey: the render keeps every second line in the blue
+     family, one step down in presence rather than one step towards grey. */
   .nf-belong__sub {
     display: block;
     margin-block-start: 2px;
     font-size: var(--nf-text-caption);
     line-height: 1.4;
-    color: var(--nf-content-muted);
+    color: color-mix(in oklab, var(--nf-brand-secondary) 30%, var(--nf-content-secondary));
   }
   .nf-belong__chev {
     flex-shrink: 0;
@@ -745,6 +765,15 @@
   }
   :root[data-theme="light"] .nf-glass-seg__tab[aria-selected="true"] {
     box-shadow: var(--nf-elev-2);
+  }
+  /* Paper: the same anatomy without the bloom, which on white is a smudge. */
+  :root[data-theme="light"] .nf-card.nf-belong__row,
+  :root[data-theme="light"] .nf-card.nf-belong__switch {
+    border-color: var(--nf-border-brand);
+    box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-belong__sub {
+    color: var(--nf-content-muted);
   }
   :root[data-theme="light"] .nf-belong__tile {
     background: var(--nf-surface-inset);

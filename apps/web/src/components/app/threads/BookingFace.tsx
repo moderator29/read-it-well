@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { ICON, TYPE } from "@/components/app/Screen";
+import { TYPE } from "@/components/app/Screen";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ThreadContext } from "@/lib/messages/live";
 import { deriveBookingSteps, lagosToday, type BookingStepKey } from "./booking-steps";
@@ -78,8 +79,11 @@ export function BookingFace({
       className="nf-context-card nf-booking-fold mb-row"
     >
       <summary className="nf-booking-fold__summary">
-        <span className="nf-context-card__mark grid place-items-center text-[var(--nf-brand-secondary)]" aria-hidden="true">
-          <UiIcon name="building-hotel" size={ICON.section} />
+        {/* The glass object, because the render draws the stay as one: a
+            stroked glyph here is the one place the surface language says not
+            to use it (rule 5, and the founder's ruling on glass objects). */}
+        <span className="nf-context-card__mark" aria-hidden="true">
+          <BrandIcon name="hotel-room" fill />
         </span>
         <span className="min-w-0 flex-1">
           <span className="nf-overline block">{copy.label}</span>
@@ -160,11 +164,11 @@ export function BookingFace({
           })}
         </ol>
 
-      {cancelled && (
-        <p role="status" className={`mt-row ${TYPE.rowMeta}`}>
-          {copy.cancelled}
-        </p>
-      )}
+        {cancelled && (
+          <p role="status" className={`mt-row ${TYPE.rowMeta}`}>
+            {copy.cancelled}
+          </p>
+        )}
       </div>
     </details>
   );

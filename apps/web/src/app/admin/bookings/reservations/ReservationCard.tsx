@@ -1,4 +1,5 @@
 import { plural, type PluralForms } from "@vallo/i18n";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { BOOKING_STATUSES, type AdminReservationRow } from "@/lib/admin/bookings-queries";
 import type { ReservationDecision } from "@/lib/admin/schema";
 import type { AdminUi } from "../../_components/ui";
@@ -54,8 +55,13 @@ export function TableCard({
         </span>
       </div>
 
-      <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
-        {row.placeName}
+      {/* THE ROW CARRIES ITS GLASS OBJECT, SMALL, as the governing render
+          shows one on every queue row. A restaurant's table is the concierge
+          bell; it is an ornament on the row rather than the subject of the
+          surface, so it takes no tile (see the note in BrandIcon). */}
+      <h3 className="mt-xs flex items-center gap-inline text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+        <BrandIcon name="concierge-bell" size={28} />
+        <span className="min-w-0">{row.placeName}</span>
       </h3>
       <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {ui.when(row.reservedFor)}

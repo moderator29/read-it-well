@@ -90,7 +90,7 @@ export default async function AdminPaymentsPage({
     <div className="nf-console">
       <ui.QueueHeader
         title="Payments"
-        lede="Money that is stuck, short, or waiting on the provider. Everything here is read from the ledger itself rather than from a cached figure, so a number on this page is the number in the database."
+        lede="Money that is stuck, short, or waiting on the provider."
         count={overdrawn.length + staleHolds.length}
       />
 

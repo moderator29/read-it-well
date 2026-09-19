@@ -50,6 +50,9 @@ import { useClientMount } from "@/lib/ui/client-mount";
  * uses, so the number a person presses is the number they get.
  */
 
+/** The three markets the Market group offers; see `marketOptions`. */
+type Market = ListingIntent | "shortlet";
+
 type Draft = {
   q: string;
   kind?: ListingKind;
@@ -300,14 +303,30 @@ export function FilterDrawer({
     return KIND_ORDER.filter((kind) => present.has(kind));
   }, [facts, draft.kind]);
 
-  /* Buy is offered only where the pool holds something for sale. */
+  /*
+   * BUY, RENT, SHORTLET, as the target render draws the Market group.
+   *
+   * Two of the three are `listing_intent` values and the third is not:
+   * a shortlet is rented, by the night, and the column that tells it apart
+   * from a tenancy is `kind`. So the control answers in markets and writes
+   * whichever pair of columns that market means, which is the same shape
+   * the card's own `cardMarket` uses to read them back. Each option is
+   * offered only where the pool holds something it could return.
+   */
   const marketOptions = useMemo(() => {
     const sale = facts.some((fact) => fact.intent === "sale") || draft.intent === "sale";
-    const options: { value: ListingIntent; label: string; icon: UiIconName }[] = [];
+    const shortlet = facts.some((fact) => fact.kind === "shortlet") || draft.kind === "shortlet";
+    const options: { value: Market; label: string; icon: UiIconName }[] = [];
     if (sale) options.push({ value: "sale", label: "Buy", icon: "key" });
     options.push({ value: "rent", label: "Rent", icon: "home" });
+    if (shortlet) options.push({ value: "shortlet", label: "Shortlet", icon: "calendar-booking" });
     return options;
-  }, [facts, draft.intent]);
+  }, [facts, draft.intent, draft.kind]);
+
+  /* Which of the three the draft currently stands on. A shortlet is a rent
+     with a kind, so it is read before the bare intent. */
+  const market: Market | undefined =
+    draft.kind === "shortlet" ? "shortlet" : draft.intent === undefined ? undefined : draft.intent;
 
   const amenityOptions = useMemo(() => {
     const codes = new Set<string>();
@@ -375,10 +394,18 @@ export function FilterDrawer({
     });
   }
 
-  function pickMarket(value: ListingIntent) {
+  function pickMarket(value: Market) {
     setDraft((current) => {
-      const { intent: _was, ...rest } = current;
-      return current.intent === value ? rest : { ...rest, intent: value };
+      const { intent: _wasIntent, kind: _wasKind, ...rest } = current;
+      const wasShortlet = current.kind === "shortlet";
+      const standing = wasShortlet ? "shortlet" : current.intent;
+      /* Tapping the market you are already in clears it, which is how every
+         other group in this sheet behaves. */
+      if (standing === value) return current.kind && !wasShortlet ? { ...rest, kind: current.kind } : rest;
+      if (value === "shortlet") return { ...rest, intent: "rent", kind: "shortlet" };
+      return current.kind && !wasShortlet
+        ? { ...rest, intent: value, kind: current.kind }
+        : { ...rest, intent: value };
     });
   }
 
@@ -417,6 +444,9 @@ export function FilterDrawer({
         className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
       />
       <div ref={panelRef} data-testid="filters-drawer" className="nf-filters">
+        {/* The grabber of the render. Decoration, not a control: the sheet is
+            closed by the X beside it, by the backdrop and by Escape. */}
+        <span className="nf-filters__grip" aria-hidden="true" />
         <header className="nf-filters__head">
           <p className="nf-filters__title">{copy.title}</p>
           <button
@@ -459,11 +489,13 @@ export function FilterDrawer({
               title={copy.market}
               clearLabel={copy.clear}
               onClear={
-                draft.intent
+                market
                   ? () =>
                       setDraft((current) => {
-                        const { intent: _was, ...rest } = current;
-                        return rest;
+                        const { intent: _wasIntent, ...rest } = current;
+                        if (current.kind !== "shortlet") return rest;
+                        const { kind: _wasKind, ...bare } = rest;
+                        return bare;
                       })
                   : undefined
               }
@@ -471,7 +503,7 @@ export function FilterDrawer({
               <Tiles
                 columns={3}
                 testPrefix="filter-market"
-                value={draft.intent}
+                value={market}
                 onPick={pickMarket}
                 options={marketOptions}
               />

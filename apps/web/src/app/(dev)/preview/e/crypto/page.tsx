@@ -7,7 +7,7 @@ import { MARKETS, PAIRS } from "../fixtures";
 export default function PreviewCrypto() {
   const t = getDictionary("en");
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-crypto-surface mx-auto max-w-2xl">
       <PageHeader
         title={t.crypto.title}
         subtitle={t.crypto.lede}

@@ -7,7 +7,7 @@ import { ACCOUNTS, CARDS } from "../fixtures";
 export default function PreviewPayments() {
   const copy = getDictionary("en").paymentsPage;
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-money mx-auto max-w-2xl">
       <PageHeader title={copy.title} fallback="/settings" />
       <p className={`mb-block ${TYPE.body}`}>{copy.lede}</p>
       <PaymentMethodsPanel cards={CARDS} accounts={ACCOUNTS} cardsFailed={false} accountsFailed={false} copy={copy} />
