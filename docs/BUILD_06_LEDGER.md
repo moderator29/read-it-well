@@ -1062,3 +1062,83 @@ in-flight Python edit script at about 16:00, and said so unprompted; one
 worker ran a read-only git command against its own brief and reported it. The
 scopes in 10.1 are holding better than they were, and the reports are honest
 about where they did not.
+
+### 11.10 Account deletion: applied, probed, and the two faults found on apply day
+
+Both b5 migrations are applied. `public.account_deletion_requests` exists with
+RLS, one SELECT-own policy and no client write policy at all; eight functions
+are in place, all SECURITY DEFINER, with only `open_account_deletion` and
+`account_deletion_blockers` reachable by a signed-in caller.
+
+TWO FAULTS WERE FOUND AND FIXED BEFORE APPLYING, and both would have shipped.
+
+**The released handle was forty characters against a twenty-character check.**
+`social_profiles_handle_check` is `^[a-z][a-z0-9_]{2,19}$`, read off the live
+database. The purge set `handle = 'deleted_' || replace(uuid, '-', '')`, which
+is forty characters, so the update would have raised a check violation, rolled
+the transaction back, and FAILED EVERY DELETION for any account that had ever
+opened a social profile. Sixty-two unit tests could not see it, because the
+constraint lives in Postgres and not in TypeScript. It is `'d'` plus nineteen
+hex characters now, exactly twenty.
+
+**A negative wallet balance blocked the deletion, invisibly.**
+`account_deletion_blockers` returned `blocked` from `v_balance <> 0`, while
+`lib/account-deletion/preconditions.ts` builds the on-screen list from
+`walletBalanceMinor > 0`. `schedule_account_deletion` reads the flag, so a
+person carrying a negative balance would have seen no blockers at all, pressed
+Delete, and been refused with reason "blocked" and a list the interface
+computes as empty. A refusal with nothing to act on is the dead end the
+specification forbids, and a reconciliation error must not be usable as
+leverage against a data protection right. Held money in either direction still
+blocks, because that is somebody else's money in flight.
+
+THE LESSON, worth more than either fix: a unit test proves the code the author
+wrote. A CHECK constraint, a foreign key rule and a policy are the code the
+DATABASE wrote, and nothing in the TypeScript suite can see them. Every
+migration probe from here asserts against live constraints, not against the
+author's belief about them.
+
+PROBE RESULT, run through `apply_migration` and rolled back by a deliberate
+raise so nothing persisted:
+
+- The blockers read refuses a stranger with `insufficient_privilege`. This was
+  earned rather than written: the first probe run hit it because the runner
+  carries no `auth.uid()` and is not `service_role`.
+- Both restrict keys survive the migration (`bookings_guest_id_fkey` and
+  `wallets_user_id_fkey` are still `confdeltype = 'r'`).
+- One open request per person: a second schedule answers `already_open`.
+- A request inside its window answers `not_due` and does not purge.
+- The purge runs, scrubs the auth row, and answers `already` on a second run.
+- **The thread keeps its body and its `sender_id`.** The message the subject
+  sent is still there, word for word, with its sender pointing at the
+  tombstone rather than at nothing.
+- The auth row exists, is banned, and carries no routable address.
+- The released handle passes its own check at twenty characters.
+- **The cross-user read that must fail:** as a stranger, `select count(*) from
+  public.account_deletion_requests` returns zero while a request row exists in
+  the transaction. Non-vacuous, unlike the b3 attachment read.
+
+**APPLY-DAY FOLLOW-UP, named rather than done.** `lib/supabase/database.types.ts`
+has not been regenerated for the new table. Nothing in the feature reads it
+through the generated types (everything goes through the untyped PostgREST
+door in `lib/account-deletion/rpc.ts`, on the precedent of `lib/cron/rpc.ts`),
+so all five gates pass without it and the app typechecks clean both before and
+after. It should be regenerated on a quiet tree by somebody who can diff the
+5,517 lines properly rather than in the middle of a twelve-worker cycle.
+
+**HANDOVERS from the deletion build, all named by its author against itself:**
+`/delete-account` is not linked from the site footer, which is where Play
+reviewers look; signing in during the grace window shows GoTrue's raw "banned"
+message rather than a sentence naming the restore page;
+`lib/profile/schema.ts` still exports a dead `deleteAccountSchema` and a second
+copy of `DELETE_CONFIRM_PHRASE`, which is a real drift hazard beside the live
+constant in `lib/account-deletion/constants.ts`.
+
+**THREE THINGS THAT NEED THE FOUNDER'S WORD, added to section 9.** An `events`
+row survives with an anonymous host, because `events.host_id` cascades onto
+`auth.users` and we do not delete that row; the specification did not name
+events. A business keeps trading after its owner deletes, with only the
+representative's personal columns scrubbed and no precondition requiring a
+transfer, where a published listing has one. And a moderation `reports` row is
+retained pseudonymised: a safety record about somebody else, keyed to a now
+anonymous reporter, which is in neither of the founder's two lists.
