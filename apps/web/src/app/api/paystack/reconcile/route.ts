@@ -10,6 +10,12 @@ import {
 import { recordAlert } from "@/lib/alerts";
 import { failureReason } from "@/lib/payments/observability";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
+import {
+  RECONCILE_SUBJECT,
+  reconcileAlert,
+  reconcileAuditOutcome,
+  type ReconcileRunSummary,
+} from "./outcome";
 
 /**
  * The scheduled money reconciliation.
@@ -94,7 +100,7 @@ async function run(request: Request): Promise<NextResponse> {
       kind: "cron.reconcile.unauthorised",
       severity: "warning",
       detail: { http_status: 401 },
-      subjectId: "paystack-reconcile",
+      subjectId: RECONCILE_SUBJECT,
     });
     return refused("unauthorised", 401);
   }
@@ -112,7 +118,7 @@ async function run(request: Request): Promise<NextResponse> {
       kind: "cron.reconcile.unconfigured",
       severity: "critical",
       detail: { reason: "service_role_key_missing" },
-      subjectId: "paystack-reconcile",
+      subjectId: RECONCILE_SUBJECT,
     });
     return refused("service_role_key_missing", 503);
   }
@@ -138,22 +144,22 @@ async function run(request: Request): Promise<NextResponse> {
       kind: "cron.reconcile.failed",
       severity: "critical",
       detail: { hours, apply, reason },
-      subjectId: "paystack-reconcile",
+      subjectId: RECONCILE_SUBJECT,
     });
     return refused("run_failed", 500);
   }
 
   /*
-   * Every run records its outcome, not only the bad ones (A2-121): a job that
-   * has stopped firing is invisible unless its last "clean" row has a date on
-   * it. A run that needs a human is a warning with the counts in the detail.
+   * Every run writes its audit row, clean or not (A2-121): a job that has
+   * stopped firing is invisible unless its last clean row has a date on it.
+   * The desk hears only about a run that needs a person (BA's convention in
+   * lib/cron/report.ts), so the alerts badge counts attention, not the clock.
    */
-  await recordAlert({
-    kind: report.needsAttention ? "cron.reconcile.needs_attention" : "cron.reconcile.run",
-    severity: report.needsAttention ? "warning" : "info",
-    detail: {
-      hours,
-      apply,
+  const summary: ReconcileRunSummary = {
+    hours,
+    apply,
+    needsAttention: report.needsAttention,
+    counts: {
       charges_seen: report.charges.chargesSeen,
       charges_ours: report.charges.chargesOurs,
       gaps: report.charges.gaps.length,
@@ -162,25 +168,17 @@ async function run(request: Request): Promise<NextResponse> {
       released_minor: report.holds.releasedMinor,
       overdrawn: report.overdrawn.length,
     },
-    subjectId: "paystack-reconcile",
-  });
+  };
+
+  const alert = reconcileAlert(summary);
+  if (alert) await recordAlert(alert);
 
   await recordMoneyAudit(admin, {
     actor: { kind: "sweep" },
     action: "wallet.reconciliation.run",
     reference: null,
-    outcome: report.needsAttention ? "needs_attention" : "clean",
-    detail: {
-      hours,
-      apply,
-      charges_seen: report.charges.chargesSeen,
-      charges_ours: report.charges.chargesOurs,
-      gaps: report.charges.gaps.length,
-      recovered_minor: report.charges.recoveredMinor,
-      holds_examined: report.holds.examined,
-      released_minor: report.holds.releasedMinor,
-      overdrawn: report.overdrawn.length,
-    },
+    outcome: reconcileAuditOutcome(summary),
+    detail: { hours, apply, ...summary.counts },
   });
 
   return NextResponse.json(

@@ -21,6 +21,7 @@ import "server-only";
 
 import { type ActionResult, fail, ok } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { recordAlert } from "../alerts";
 import { guardMoney } from "../security/money-limits";
 import type { Json } from "../supabase/database.types";
 import { recordMoneyAudit } from "../wallet/audit";
@@ -89,7 +90,32 @@ export async function chargeSavedCard(params: {
      counted on top of the caller's own bucket, because this is the one place
      a saved card is actually charged. Fails open. */
   const limit = await guardMoney("chargeSavedCard", session.user.id);
-  if (!limit.allowed) return fail(limit.message);
+  if (!limit.allowed) {
+    /* Ten saved-card charges in ten minutes is a loop, a script or a person
+       in trouble, and every one of those is worth a line on the desk. Info,
+       not warning: nothing was charged. Same account inside the dedup window
+       folds into one alert, so a tight loop is one row, not fifty. */
+    logMoney({
+      surface: "fund",
+      outcome: "rejected",
+      reason: `saved_card_rate_limited:${params.purpose}`,
+      reference: params.reference,
+      amountMinor: params.amountMinor,
+      userId: session.user.id,
+    });
+    await recordAlert({
+      kind: "money.card_charge.limited",
+      severity: "info",
+      detail: {
+        purpose: params.purpose,
+        amount_minor: params.amountMinor,
+        retry_after_seconds: limit.retryAfterSeconds,
+      },
+      subjectId: session.user.id,
+      subjectKind: "user",
+    });
+    return fail(limit.message);
+  }
 
   const metadata: Record<string, Json> = {
     ...(params.metadata ?? {}),
