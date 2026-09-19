@@ -26,7 +26,35 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const t = getDictionary(locale);
 
   return (
-    <main id="main" className="nf-auth">
+    /*
+     * `data-theme="dark"`, and it is a ruling rather than a preference.
+     *
+     * The auth screen stays dark in BOTH themes, permanently (rule 22). It is
+     * the register setter for a money product: the first thing a stranger sees
+     * of Vallo, and the screen that has to look like somewhere it is safe to
+     * put a naira balance. Every serious money app in this market does exactly
+     * this, and the founder has closed the question rather than left it open.
+     *
+     * The attribute works because `tokens.css` declares the dark palette on
+     * `:root, [data-theme="dark"]`, so this element and everything inside it
+     * take the dark values whatever the document is set to. It is not a
+     * specificity trick: a custom property declared on a descendant wins for
+     * that subtree over the value it would otherwise inherit.
+     *
+     * The second half of the ruling is that this surface carries NO LIGHT
+     * TWIN, because a rule keyed on `:root[data-theme="light"] .nf-auth__x`
+     * still matches when the document really is light, attribute or no
+     * attribute. Anything left in `auth.css` under that selector would fight
+     * this and win, so it goes.
+     *
+     * A LIGHT INK WORDMARK IS STILL OWED, for the surfaces that are genuinely
+     * white: email headers, receipts and PDFs, the store listing and print.
+     * Until that render exists those surfaces use the TEXT wordmark, never a
+     * filtered version of the photographic one, because an ink version of a
+     * photographic render is a new render and not a filter. This screen is
+     * not one of those surfaces and never will be.
+     */
+    <main id="main" className="nf-auth" data-theme="dark">
       <div className="nf-auth__plate" aria-hidden="true">
         <Image src="/brand/photos/bg-blue-wave.jpg" alt="" fill sizes="100vw" priority />
       </div>

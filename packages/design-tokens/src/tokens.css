@@ -8,9 +8,32 @@
  *
  * Layer 1 is the raw palette. Never reference layer 1 from a component.
  * Layer 2 is the semantic layer. Components reference only layer 2.
+ *
+ * HOW A SUBTREE PINS A THEME, and why `[data-theme="dark"]` is on the
+ * selector below as well as `:root`.
+ *
+ * Dark is the product's default, so it is declared on `:root` and the paper
+ * twin overrides it on `:root[data-theme="light"]`. That works for the whole
+ * document and has no way to say "this part of the page is dark whatever the
+ * rest is". The auth screen needs exactly that: it stays dark in both themes,
+ * permanently, because it is the register setter for a money product and
+ * every serious one does this (rule 22).
+ *
+ * Listing `[data-theme="dark"]` here gives any element that carries the
+ * attribute the full dark palette for itself and everything inside it. It is
+ * not a specificity trick and does not fight `:root[data-theme="light"]`:
+ * specificity only decides between rules matching the SAME element, and a
+ * custom property declared on a descendant simply wins for that subtree over
+ * the value it would otherwise inherit.
+ *
+ * It does NOT make a light-theme rule keyed on `:root[data-theme="light"]
+ * .some-class` stop matching. Those still apply, because the root really is
+ * light. A surface that pins dark must therefore also not carry a light twin,
+ * which is the second half of shipping rule 22.
  */
 
-:root {
+:root,
+[data-theme="dark"] {
   /* ---------------------------------------------------------------------
    * LAYER 1: raw palette. Internal. Do not use directly in components.
    * ------------------------------------------------------------------ */
@@ -70,6 +93,29 @@
    * `#5C7CFF` at the top of this file believed a value that is false in half
    * the product.
    */
+  /*
+   * `--nf-electric-300`, AND IT IS THE ONE VALUE IN THIS FILE THAT WAS
+   * MEASURED RATHER THAN CHOSEN.
+   *
+   * The founder put the built landing beside
+   * `docs/design/references/GOVERNING-landing-desktop-hero.png` and said the
+   * blue was wrong: hotter, wider and more saturated than the reference. He
+   * was right, and eyeballing it again was never going to settle it, so
+   * `scripts/design/sample-reference.mjs` reads the reference PNG itself.
+   *
+   * The primary button in that image samples `#0167FE` at the left end of its
+   * gradient and `#006DFE` at the right, which is one colour rather than a
+   * sweep, and it averages to this. The product was shipping
+   * `--nf-electric-500` (`#0010E0`) as its primary: far darker and pulled
+   * towards violet, which is why our buttons read as a different product from
+   * the render beside them.
+   *
+   * WHITE STILL CLEARS AA ON IT. `#0069FE` has a relative luminance near 0.16
+   * against white's 1.0, so white text measures about 5:1, above the 4.5
+   * floor for body-sized text. It is a lower contrast than `#0010E0` gave,
+   * and that is the cost of matching the reference rather than an oversight.
+   */
+  --nf-electric-300: #0069FE;
   --nf-electric-400: #0C39EF;
   --nf-electric-500: #0010E0;
   --nf-electric-600: #0010D0;
@@ -135,7 +181,8 @@
    * ------------------------------------------------------------------ */
 
   /* Brand */
-  --nf-brand-primary: var(--nf-electric-500);
+  /* Measured off the governing reference, not chosen. See --nf-electric-300. */
+  --nf-brand-primary: var(--nf-electric-300);
   --nf-brand-primary-strong: var(--nf-electric-600);
   /*
    * THE QUIET BRAND INK, and it used to be `--nf-electric-300` in layer 1.
@@ -312,7 +359,11 @@
   --nf-side-accent: var(--nf-mode-personal);
 
   /* Surfaces. Brand navy. Depth is carried by rim and border, not shadow. */
-  --nf-surface-canvas: #000010;
+  /* `#000612`, measured off the reference's page ground below the fold. It
+     was `#000010`, which is very slightly bluer and very slightly darker; the
+     difference is small and it is still a difference, and a canvas is the one
+     colour every other value is judged against. */
+  --nf-surface-canvas: #000612;
   --nf-surface-primary: var(--nf-ink-900);
   --nf-surface-secondary: var(--nf-ink-850);
   --nf-surface-elevated: var(--nf-ink-800);
@@ -1448,12 +1499,43 @@
    *   4      a strong glow: the one object a screen is built around
    *   rim    the lit leading edge, near-opaque. An edge, never a bloom
    * ------------------------------------------------------------------ */
-  --nf-glow-ink: var(--nf-electric-400);
-  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) 8%, transparent);
-  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) 16%, transparent);
-  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) 30%, transparent);
-  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
-  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
+  /*
+   * THE GLOW IS THE BUTTON'S OWN LIGHT, so it is the button's own colour.
+   * It was `--nf-electric-400` (`#0C39EF`), a different and more violet blue
+   * from the thing that was supposed to be casting it, which is part of why
+   * the glow read as neon rather than as light coming off glass.
+   */
+  --nf-glow-ink: var(--nf-electric-300);
+  /*
+   * THE SCALE CAME DOWN, AND THE MEASUREMENT IS WHY.
+   *
+   * `scripts/design/sample-reference.mjs` walks outward from the primary
+   * button's right edge in the governing reference, five pixels at a time,
+   * and prints what is there. The light is gone by twenty pixels:
+   *
+   *     x=360  #0380FB   on the button
+   *     x=365  #43489D
+   *     x=370  #483E77
+   *     x=375  #4D3C64
+   *     x=380  #262B4C   back to the ground
+   *
+   * That is a tight, contained glow that sits close to the edge and reads as
+   * light on glass. Ours was 16 / 30 / 50 / 70 per cent thrown through a 44px
+   * blur, which the founder called neon, and having seen the numbers beside
+   * the picture he is plainly right.
+   *
+   * Every rung is roughly a third quieter. The ratios between them are kept,
+   * because the scale's job is that rung 3 reads as louder than rung 1 and a
+   * proportional reduction preserves that while turning the whole thing down.
+   * The blur and spread come down with it, in `--nf-glow-edge` below.
+   *
+   * BEFORE, for the ledger: wash 8, 1 at 16, 2 at 30, 3 at 50, 4 at 70.
+   */
+  --nf-glow-wash: color-mix(in oklab, var(--nf-glow-ink) 5%, transparent);
+  --nf-glow-1: color-mix(in oklab, var(--nf-glow-ink) 10%, transparent);
+  --nf-glow-2: color-mix(in oklab, var(--nf-glow-ink) 19%, transparent);
+  --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) 32%, transparent);
+  --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) 46%, transparent);
 
   /*
    * THE EDGE IS NOT THE GLOW, and separating them is what makes the scale above
@@ -1546,16 +1628,23 @@
    * and one short bloom so the object sits in light rather than on a page.
    * A resting card wears this; the focused or primary one still steps up.
    */
+  /* The blur and spread follow the scale down. The far rung was 44px, which
+     is more than twice the distance the reference's light actually carries,
+     and it is the single thing that made a resting container read as neon
+     rather than as glass. Measured falloff is in the comment above the scale. */
   --nf-glow-edge:
     inset 0 1px 0 var(--nf-rim-lit-ink),
     0 0 0 1px var(--nf-brand-edge),
-    0 0 16px -2px var(--nf-glow-2),
-    0 0 44px -14px var(--nf-glow-1);
+    0 0 10px -3px var(--nf-glow-2),
+    0 0 22px -12px var(--nf-glow-1);
+  /* The strong rung comes down with the rest. 56px was throwing light further
+     than the reference throws it from a PRIMARY button, on surfaces that are
+     not primary buttons. */
   --nf-glow-edge-strong:
     inset 0 1px 0 var(--nf-rim-lit-ink),
     0 0 0 1px var(--nf-brand-edge-strong),
-    0 0 18px var(--nf-glow-3),
-    0 0 56px -8px var(--nf-glow-2);
+    0 0 12px var(--nf-glow-3),
+    0 0 28px -8px var(--nf-glow-2);
   /*
    * THE STRIDES. The three rungs a lit edge is actually made of.
    *

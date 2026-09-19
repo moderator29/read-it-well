@@ -1641,3 +1641,183 @@ carry the lit brand edge on screen, the search pill reads Buy / Rent / Stay
 with no Invest, and the overline reads PROPERTY / STAYS / RESTAURANTS. Those
 are the three things the founder asked for and the three things that could not
 be seen until now.
+
+### 12.5 THE FIRST FIRST-PARTY VENUE, AND THE RESERVATION LOOP PROVED AGAINST IT
+
+`Vallo House Kitchen`, Abuja, owned by the company's own account, `first_party`,
+`is_demo = false`. Not example stock. It persists.
+
+**HOW DISCOVERY WAS HANDLED, and the founder asked to be told which.**
+`private.reservation_is_valid` refuses a table at a venue that is not
+`PUBLISHED`, so the venue cannot be both bookable and hidden. The founder's
+instruction allowed publishing and unpublishing straight after. I did better
+than that: the whole thing, the publish, the reservation, the thread, the
+confirmation, the cancellation and the return to `DRAFT`, ran inside ONE
+transaction. Under MVCC no other session ever observed the published state, so
+there was no window at all rather than a short one. The rows persist because
+the transaction committed.
+
+**WHAT RAN, in order, each wearing the right JWT so RLS decided rather than
+the code:**
+
+1. The guest held a table for four at seven tomorrow, as themselves. The
+   insert survived `reservations_insert_own`, the capacity check against the
+   service window, and the example refusal.
+2. The thread opened on the reservation spine, `context_kind = 'reservation'`,
+   and the guest spoke first.
+3. The host confirmed, as themselves, and answered in the thread.
+4. **A stranger read zero of it**: zero reservations, zero messages.
+5. The guest cancelled, so nothing is left outstanding against the venue.
+6. The venue returned to `DRAFT`.
+
+**WHAT PERSISTS AND WHAT IT PROVES:** one venue with one service window and
+one restaurant profile; one reservation, CANCELLED, answered, threaded, with
+two real messages; and **five notifications** across both parties. The loop is
+real end to end at the database and RLS layer, against inventory that is not
+an example.
+
+A second probe, rolled back, proves the venue is invisible: a signed-out
+visitor reads zero catalogue rows and zero business rows for it, a stranger
+reads zero of its reservations, **and 71 other venues remain publicly listed**,
+so the zero is not vacuous.
+
+**WHAT THIS PROOF DOES NOT CLAIM.** It ran through the database, not through
+the React surfaces, because this sandbox has no login. The server actions call
+exactly these paths, but nobody has watched the screens do it.
+
+**THE FOUNDER MUST CHECK THE VENUE'S DETAILS BEFORE IT IS EVER PUBLISHED.**
+Its address, phone and email are the company's own as best I know them, and I
+do not know them well enough for a public listing.
+
+### 12.6 THREE BLOCKERS BETWEEN THIS PROOF AND A REAL VENUE SIGNED THIS WEEK
+
+Found independently by three workers, which is why they are recorded together
+rather than in three places. The founder is signing a venue this week and none
+of these can wait.
+
+1. **NOTHING IN THE PRODUCT CAN PUBLISH A RESTAURANT.** `approveBusiness` only
+   reaches `APPROVED`. The only code path that writes `PUBLISHED` on a
+   business is `publishAccommodation`, which needs an `accommodations` row, a
+   map pin, a photograph and a rated room type, none of which a restaurant
+   has. There is no `/admin/businesses` route at all: `lib/admin/business-actions.ts`
+   and `business-queries.ts` exist and NOTHING IMPORTS THEM. So the venue
+   above could only be published by somebody writing SQL by hand, which is
+   exactly what I did and is not a process.
+2. **THE OWNER HAS NO DESK.** `private.notify_reservation` points a business
+   host at `/host/reservations`, which does not exist. The only reservations
+   board is `/agent/bookings`, behind `getAgentContext`, which requires an
+   `agents` row. A restaurant owner onboarded through the host wizard has a
+   `businesses` row and no `agents` row, so they can be sent a table and have
+   nowhere to accept it. The reader that surface needs,
+   `getHostReservations`, already exists and has no caller.
+3. **A RESTAURANT CANNOT CARRY PHOTOGRAPHS.** There is no photo table on the
+   business spine: `listing_photos` hangs off `listings` and
+   `accommodation_photos` off `accommodations`. The restaurant detail page
+   hard-codes `photos: []` and draws a category plate with an honest "no
+   photographs yet" chip, so nobody is misled, but an owner's photographs
+   cannot go up on the day they sign.
+
+**AND ONE THING THAT IS NOT A BLOCKER BUT IS A LIE WAITING.** The verified
+badge has TWO derivations that never meet: `businesses.verified` comes from
+`business_verification_checks` by trigger, while the catalogue projection's
+`verified` comes from `agent_badges.verified` through `businesses.agent_id`.
+On top of that the restaurant detail page hard-codes `verified: false` for a
+business-spine venue whatever either says. So a restaurant shows no verified
+mark today however many rungs it passes, and the day somebody fixes the page
+without reconciling the two derivations, a venue will wear a badge that no
+human check earned. Rule 12 is absolute, so the two derivations reconcile
+before the page changes, not after.
+
+---
+
+## 13. THE SHAPE LAW AND THE MEASURED PALETTE (founder's ruling, 19 September, night)
+
+The founder put the built landing beside
+`docs/design/references/GOVERNING-landing-desktop-hero.png` and ruled. Two
+things were wrong and both were shipping on every screen.
+
+### 13.1 THE SHAPE LAW, ABSOLUTE
+
+**Any control that carries TEXT is a rounded rectangle on
+`--nf-radius-control`, never a capsule.** Every primary and secondary button,
+every chip, every segment, every tab, every filter chip, every input, every
+dock label, every sheet action, every admin control. Zero occurrences of
+`999px`, `9999px`, `rounded-full` or `--nf-radius-pill` on a text-bearing
+control anywhere in the tree.
+
+The only things that stay circular are genuinely icon-only round controls that
+are round in the reference: an avatar, and a bare icon button such as the nav
+search glyph.
+
+**THIS OVERRIDES THE AMENDMENT IN SECTION 8** that let a governing image bend
+the shape law, and it overrides the paragraph in `DESIGN_DIRECTION.md`
+section 1 that said control shape follows the render. It does not. It follows
+this ruling.
+
+**AND THE AMENDMENT WAS WRONG ABOUT THE IMAGE IT CITED.** `landing.css`
+carried `.nf-landing .nf-btn, .nf-site .nf-btn { border-radius: pill }` under a
+comment reading "the render's buttons are capsules". Open the reference and
+count: there is not one capsule in it. Explore Properties, Explore Stays, Sign
+In, Get Started, the four city chips and the four search segments are all
+rounded rectangles. The only circle on the screen is the bare search glyph,
+which carries no text. That one rule was most of what the founder was looking
+at, and it was granted on a reading the image does not support.
+
+**ONE CLARIFICATION, WHICH IS THE LAW RATHER THAN AN EXCEPTION TO IT.**
+`--nf-radius-control` is 14px. On a 44px control that draws a rounded
+rectangle; on a 28px chip it is half the height and draws a capsule again,
+returning the exact shape the ruling forbids. So chips under about 32px take
+`--nf-radius-sm` (10px), which is the same shape language at a smaller size,
+and which is how the reference draws its Verified badge and its card tags.
+
+### 13.2 THE PALETTE, MEASURED RATHER THAN EYEBALLED
+
+`scripts/design/sample-reference.mjs` reads the reference PNG itself, in
+headless Chromium via a canvas, averaging a small box at each named point so
+one pixel of photographic grain cannot decide a token. It also walks outward
+from the primary button's edge and prints the falloff, because a glow is a
+radius, a spread and an opacity and one sample cannot tell those apart.
+
+| what | reference | ours, before | ours, after |
+| --- | --- | --- | --- |
+| page canvas | `#000612` | `#000010` | `#000612` |
+| brand primary | `#0167FE` to `#006DFE` | `#0010E0` | `#0069FE` |
+| glow ink | follows the button | `#0C39EF` | `#0069FE` |
+| glow rung 1 | | 16% | 10% |
+| glow rung 2 | | 30% | 19% |
+| glow rung 3 | | 50% | 32% |
+| glow rung 4 | | 70% | 46% |
+| lit edge blur | | 16px and 44px | 10px and 22px |
+| strong edge blur | | 18px and 56px | 12px and 28px |
+| primary resting bloom | | 14px and 30px | 8px and 18px |
+| marketing primary bloom | | 24px flat | 12px at -2 |
+
+**THE BRAND BLUE WAS THE BIG ONE.** The product shipped `#0010E0`, far darker
+and pulled towards violet. The reference is `#0069FE`, a brighter azure, and
+it is why our buttons read as a different product from the render beside them.
+White still clears AA on it at about 5:1, which is lower than `#0010E0` gave
+and is the cost of matching the reference rather than an oversight.
+
+**THE GLOW FALLOFF, MEASURED BOTH SIDES.** In the reference the light is gone
+twenty pixels from the button's edge: `#0380FB` on the button, then `#43489D`,
+`#483E77`, `#4D3C64`, and the ground has returned by `#262B4C`. Ours, measured
+the same way on a production build after the change, dies by about thirty:
+`#00255F` at the edge, `#000C1F` at five, `#000918` at fifteen, and canvas
+`#000612` by thirty. Close, the right register, and no longer the neon the
+founder named. The container border lands at `#00255F` against the
+reference's `#10345E`.
+
+### 13.3 PROOF, AND THE RULE THAT MADE IT POSSIBLE
+
+**`next dev` DOES NOT HYDRATE RELIABLY ON THIS BOX, AND `next start` DOES.**
+A worker proved it with this repository's own tool: same route, same binary,
+same verifier, four minutes apart, `verify-shots.mjs` failed on `next dev`
+with "React has not hydrated" and passed on `next start`. Every proof from
+here is taken from a production server. That is now the rule, and it is the
+fourth distinct way this machine has produced a picture of a page nobody
+meets.
+
+The landing proof is taken and it is honest: every capsule gone, the search
+container, the segments, the chips, both hero buttons and Get Started all
+rounded rectangles at 14px measured off the live page, and the blue matching
+the reference.

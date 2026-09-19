@@ -160,7 +160,7 @@
     gap: var(--nf-gap-inline);
     padding: var(--nf-space-2xs);
     padding-inline-start: var(--nf-space-md);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-glass-fill);
     border: 1px solid var(--nf-glass-border);
     box-shadow: inset 0 1px 0 var(--nf-glass-rim);
@@ -291,7 +291,7 @@
     color: var(--nf-landing-fg);
     background: var(--nf-landing-control);
     border-color: var(--nf-brand-edge);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
   }
   .nf-site-head-body {
     display: flex;
@@ -417,7 +417,7 @@
     align-items: center;
     gap: var(--nf-gap-inline);
     padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-muted);

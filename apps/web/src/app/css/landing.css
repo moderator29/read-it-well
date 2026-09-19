@@ -148,7 +148,7 @@
     gap: var(--nf-gap-inline-tight);
     min-height: 2.75rem;
     padding: var(--nf-gap-inline) var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);
     font-weight: 500;
     color: var(--nf-content-secondary);
@@ -611,7 +611,7 @@
     gap: var(--nf-gap-inline);
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-landing-fg);
@@ -682,6 +682,18 @@
   .nf-landing-float-media img {
     object-fit: cover;
   }
+  /*
+   * A 28px CHIP TAKES `--nf-radius-sm`, NOT `--nf-radius-control`, AND THAT
+   * IS THE LAW RATHER THAN AN EXCEPTION TO IT.
+   *
+   * The ruling is that a control carrying text is a rounded rectangle and
+   * never a capsule. `--nf-radius-control` is 14px. On a control 44px tall
+   * that is a rounded rectangle; on one 28px tall it is half the height,
+   * which draws a capsule again and returns the exact shape the ruling
+   * forbids. So the small chips take the 10px rung, which is the same shape
+   * language at a smaller size. The reference's Verified badge and its
+   * floating card tags are drawn exactly this way.
+   */
   .nf-landing-float-badge {
     position: absolute;
     top: var(--nf-gap-inline);
@@ -692,7 +704,7 @@
     gap: var(--nf-gap-inline-tight);
     min-height: 1.75rem;
     padding: 0 var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
     font-weight: 700;
     color: var(--nf-content-on-brand);
@@ -863,7 +875,7 @@
     .nf-landing-pill {
       flex-direction: row;
       align-items: center;
-      border-radius: var(--nf-radius-pill);
+      border-radius: var(--nf-radius-control);
     }
   }
   .nf-landing-pill-field {
@@ -898,7 +910,7 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-landing-control);
     border: 1px solid var(--nf-landing-hairline);
   }
@@ -915,7 +927,7 @@
     gap: var(--nf-gap-inline-tight);
     min-height: 2.5rem;
     padding: 0 var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     white-space: nowrap;
@@ -981,7 +993,7 @@
       width: auto;
       min-inline-size: max-content;
       padding-inline: var(--nf-space-md);
-      border-radius: var(--nf-radius-pill);
+      border-radius: var(--nf-radius-control);
       font-size: var(--nf-text-body-sm);
       font-weight: 650;
     }
@@ -1307,7 +1319,7 @@
     gap: var(--nf-gap-inline-tight);
     min-height: 1.75rem;
     padding: 0 var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
     font-weight: 700;
     color: var(--nf-content-on-brand);
@@ -1594,21 +1606,46 @@
   /* ------------------------------------------------------ the buttons */
 
   /*
-   * The render's buttons are capsules: a saturated blue fill with a bloom
-   * under it, and a softer glass capsule beside it with a lit rim. The
-   * platform's button is a rounded rectangle by its own law, which the
-   * amendment in ledger section 8 already bends where a governing image
-   * shows a capsule. This is that bend, scoped to the marketing surface.
+   * THE CAPSULE IS GONE, AND THE RULE THAT PUT IT HERE WAS WRONG ABOUT THE
+   * RENDER IT CITED.
+   *
+   * This rule used to read "the render's buttons are capsules" and made every
+   * button on the landing and every site page fully round. It was the single
+   * line responsible for most of what the founder saw: Get Started, Sign In,
+   * Explore Properties and Explore Stays all shipped as capsules.
+   *
+   * OPEN `docs/design/references/GOVERNING-landing-desktop-hero.png` AND
+   * COUNT. There is not one capsule in it. Explore Properties and Explore
+   * Stays are rounded rectangles. Sign In and Get Started are rounded
+   * rectangles. The city chips are rounded rectangles. The search segments
+   * are rounded rectangles. The only circle on the whole screen is the bare
+   * search glyph at the top right, which carries no text.
+   *
+   * So the bend recorded in ledger section 8 was granted on a reading of the
+   * image that the image does not support, and the founder has closed it: a
+   * control that carries text is a rounded rectangle on
+   * `--nf-radius-control`, everywhere, with no marketing exception. The
+   * exceptions are an avatar and a bare icon-only round control, and nothing
+   * else.
+   *
+   * The rule is deleted rather than set to the control radius, because the
+   * primitive already draws that and an override restating it is one more
+   * place for this to drift back.
    */
-  .nf-landing .nf-btn,
-  .nf-site .nf-btn {
-    border-radius: var(--nf-radius-pill);
-  }
+
+  /*
+   * The primary's marketing bloom, brought down with the scale. It was
+   * `0 0 24px` at rung 2 on a scale whose rungs were themselves a third
+   * hotter than they are now. The reference's light is gone twenty pixels
+   * from the button's edge, measured by `scripts/design/sample-reference.mjs`,
+   * so twenty-four pixels of unattenuated bloom was the neon the founder
+   * named.
+   */
   .nf-landing .nf-btn--primary,
   .nf-site .nf-btn--primary {
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
-      0 0 24px var(--nf-glow-2);
+      0 0 12px -2px var(--nf-glow-2);
   }
   .nf-landing .nf-btn--glass,
   .nf-site .nf-btn--glass {
@@ -1658,7 +1695,7 @@
     gap: var(--nf-gap-row);
     min-height: 3.25rem;
     padding: 0 var(--nf-space-lg) 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-landing-ink);
     border: 1px solid var(--nf-brand-edge);
     box-shadow:
