@@ -202,7 +202,7 @@ export function InspectionSheet({
           </span>
           <div className="min-w-0">
             <dt className="nf-insp-fact__label">Status</dt>
-            <dd className="mt-3xs">
+            <dd className="nf-insp-fact__pill">
               <StatusPill tone={STATE_TONE[inspection.state]} size="xs">
                 {yourMove ? "Your move" : STATE_LABEL[inspection.state]}
               </StatusPill>

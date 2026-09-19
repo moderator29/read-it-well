@@ -38,8 +38,8 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
@@ -58,10 +58,17 @@
     gap: var(--nf-gap-inline-tight);
     font-family: var(--nf-font-display);
     font-weight: 700;
-    font-size: var(--nf-text-body-lg);
+    font-size: var(--nf-text-body);
     line-height: 1.2;
     color: var(--nf-content-primary);
-    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  .nf-thread__title > span {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   .nf-thread__tick {
     color: var(--nf-brand-secondary);
@@ -78,6 +85,7 @@
     align-items: center;
     gap: var(--nf-space-3xs);
     margin-top: var(--nf-space-3xs);
+    min-width: 0;
     font-size: var(--nf-text-caption);
     color: var(--nf-content-secondary);
   }
@@ -205,9 +213,9 @@
 
   .nf-bubble {
     position: relative;
-    padding: var(--nf-space-sm) var(--nf-space-md);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-lg);
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     line-height: 1.45;
     overflow-wrap: anywhere;
   }
@@ -479,9 +487,14 @@
   }
   .nf-chat-card__actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-md);
+  }
+  .nf-chat-card__actions > * {
+    min-width: 0;
+    padding-inline: var(--nf-space-xs);
+    white-space: nowrap;
   }
   .nf-chat-card__foot {
     display: flex;
@@ -526,6 +539,12 @@
     height: 3rem;
     flex-shrink: 0;
   }
+  .nf-context-card__line > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
   .nf-context-card__title {
     font-weight: 700;
     font-size: var(--nf-text-body);
@@ -547,6 +566,30 @@
   .nf-context-card__chev {
     flex-shrink: 0;
     color: var(--nf-content-muted);
+  }
+  /* The booking face folds: the summary row is the stay in one line, the
+     open state is the four-step timeline. The render carries the stay on
+     the card in the thread, so the banner stays one row until asked. */
+  .nf-booking-fold > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .nf-booking-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .nf-booking-fold[open] > summary .nf-context-card__chev {
+    transform: rotate(90deg);
+  }
+  .nf-booking-fold .nf-context-card__chev {
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-booking-fold__body {
+    padding: 0 var(--nf-space-md) var(--nf-space-sm);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-booking-fold .nf-context-card__chev {
+      transition: none;
+    }
   }
   /* The face's own controls sit under the context line in one row. */
   .nf-context-card__actions {
@@ -787,9 +830,20 @@
   }
   .nf-insp-fact {
     display: flex;
+    flex-direction: column;
     gap: var(--nf-space-2xs);
     min-width: 0;
-    padding-inline: var(--nf-space-sm);
+    padding-inline: var(--nf-space-xs);
+  }
+  @media (min-width: 640px) {
+    .nf-insp-fact {
+      flex-direction: row;
+      padding-inline: var(--nf-space-sm);
+    }
+  }
+  .nf-insp-fact > div {
+    min-width: 0;
+    max-width: 100%;
   }
   .nf-insp-fact + .nf-insp-fact {
     border-left: var(--nf-border-width) solid var(--nf-border-subtle);
@@ -816,7 +870,16 @@
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-primary);
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
+  }
+  .nf-insp-fact__pill {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    min-width: 0;
+    max-width: 100%;
+  }
+  .nf-insp-fact__pill > * {
+    max-width: 100%;
   }
 
   /* The ladder: a glass panel, a heading row with the count and a bar, then
