@@ -258,7 +258,7 @@ export function contentSecurityPolicy(nonce: string): string {
      * which is exactly the split we want. One that does not understand it
      * falls back to `style-src` and is no worse off than before.
      */
-    ["style-src-elem", ["'self'"]],
+    ["style-src-elem", process.env.NODE_ENV === "development" ? ["'self'", "'unsafe-inline'"] : ["'self'"]],
 
     /*
      * Images used to be `https:`, a wildcard over every host on the web, and

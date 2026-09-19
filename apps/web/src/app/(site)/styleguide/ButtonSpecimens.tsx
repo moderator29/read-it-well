@@ -123,7 +123,7 @@ export function ButtonSpecimens() {
       <div>
         <p className="nf-overline mb-inline">Loading and disabled</p>
         <div className="flex flex-wrap items-start gap-group">
-          <div className="flex flex-col gap-inline">
+          <div className="flex flex-col items-start gap-inline">
             <Button
               variant="primary"
               loading={loading}
@@ -139,7 +139,7 @@ export function ButtonSpecimens() {
             />
           </div>
 
-          <div className="flex flex-col gap-inline">
+          <div className="flex flex-col items-start gap-inline">
             <Button
               variant="primary"
               disabled={disabled}

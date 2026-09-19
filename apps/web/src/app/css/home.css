@@ -598,12 +598,27 @@
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
+  /*
+   * ONE UNREAD MARK, ONE COLOUR, WHEREVER IT IS DRAWN.
+   *
+   * This was `--nf-brand-secondary` while the header bell's dot was on
+   * `--nf-status-pending`, so the same question, "is there something here I
+   * have not seen", was answered in two different colours on two surfaces one
+   * tap apart, and on paper the bell's was a teal-green, which is the colour
+   * this product uses to say something SUCCEEDED.
+   *
+   * `--nf-mark-unread` exists for exactly this meaning and is rose in both
+   * themes. An unread mark is not a state: nothing is pending, nothing
+   * failed, nothing succeeded, something is simply there and has not been
+   * seen. A thing that genuinely IS pending, a booking waiting on a host or a
+   * verification waiting on review, keeps `--nf-status-pending`.
+   */
   .nf-notif__dot {
     display: block;
     width: 0.625rem;
     height: 0.625rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-secondary);
+    background: var(--nf-mark-unread);
     box-shadow: 0 0 10px var(--nf-glow-3);
   }
 
