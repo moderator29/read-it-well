@@ -68,6 +68,26 @@ const CHROME_POINTS = [
   ["search field: fill", ...f(420, 397), 7],
   ["search field: top border", ...f(512, 371), 2],
   ["search submit: the rounded square fill", ...f(798, 397), 6],
+  /*
+   * W2, 19 September: THE POINT ABOVE AVERAGES THE ARROW WITH THE PLATE.
+   *
+   * It reads #3C7CFC, and that number was being used as "the fill of the
+   * submit button", which is what `compare-surface`'s home surface held our
+   * plate against. It is a 6px box on the CENTRE of the control, and the
+   * centre of the control is where the white arrow glyph is. A vertical scan
+   * down x=798 walks #0275FE, #005BFD, #0055FD and then #6499FE at y=396,
+   * which is the glyph; a horizontal scan clear of it at y=383 walks #0079FD
+   * at the left shoulder through #005BFD at the centre to #0079FD at the
+   * right, mean about #0068FD. So the plate is a saturated brand blue and
+   * #3C7CFC is a plate-and-glyph average.
+   *
+   * The old point stays, because it is cited in the second audit and in the
+   * ledger and a name that moves is a name nobody can check. This is the one
+   * the fill check is held against: an 11px box on the plate, above the
+   * glyph and inside both shoulders, and it reads #015FFD. Same lesson W3
+   * found on ten of the twenty hero points, on the other reference.
+   */
+  ["search submit: the plate, clear of the arrow glyph", ...f(797, 384), 11],
   ["market tile: fill", ...f(300, 530), 7],
   ["market tile: top border", ...f(293, 455), 2],
   ["market tile: the glyph plate behind the icon", ...f(246, 505), 5],
@@ -82,27 +102,54 @@ const CHROME_POINTS = [
 ];
 
 /** [name, fractionX, fractionY, boxSize] */
+/*
+ * W3, 19 September: TEN OF THESE TWENTY POINTS WERE NOT MEASURING A TOKEN.
+ *
+ * Every coordinate below was cropped out of the PNG at 4x and looked at
+ * before it was trusted, and half of them landed somewhere else entirely:
+ * five sat on the LABEL of the control they claimed to sample (the primary
+ * button's centre was on the "P" of Properties at 80 per cent lightness, the
+ * Lagos chip's fill was on the "g", the stats tile's fill was on the word
+ * Properties, the feature tile's fill was on "ed properties", the header's
+ * Get Started was on the "S"), four sat OUTSIDE the element on its own bloom
+ * or on the photograph a few pixels above it (the Lagos chip's "top border"
+ * was ten pixels above the chip, the search container's was on the pool), and
+ * one sat on a PHOTOGRAPH inside a card and called it the card's fill.
+ *
+ * A number read off a glyph is not a colour the token system can be held to,
+ * and a target that cannot be hit is worse than no target. The names are
+ * unchanged so the history still reads; the coordinates are the ones that
+ * measure the thing the name says.
+ *
+ * AND THE PRIMARY BUTTON'S GRADIENT RUNS TOP TO BOTTOM, NOT LEFT TO RIGHT.
+ * The three points spelled "left end / centre / right end of the gradient"
+ * read #0167FE, ink, and #006DFE: the two clean ones differ by six on one
+ * channel, because there is no horizontal gradient in that button at all. A
+ * vertical scan down its clean right shoulder walks #009DFE at the top to
+ * #0055FE at the foot, which is a 72-step ramp on green. So the three points
+ * are now top, centre and foot of the ramp that is actually there.
+ */
 const HERO_POINTS = [
   ["canvas: the page ground below the fold", ...f(40, 1010), 9],
   ["header: the bar's own fill, over the photo", ...f(700, 18), 5],
-  ["primary button: fill, left end of the gradient", ...f(186, 417), 5],
-  ["primary button: fill, centre", ...f(268, 417), 5],
-  ["primary button: fill, right end of the gradient", ...f(348, 417), 5],
-  ["primary button: the header's Get Started, centre", ...f(1346, 43), 5],
+  ["primary button: fill, top of the vertical ramp", ...f(340, 401), 3],
+  ["primary button: fill, centre height", ...f(340, 417), 3],
+  ["primary button: fill, foot of the vertical ramp", ...f(340, 433), 3],
+  ["primary button: the header's Get Started, fill under the label", ...f(1346, 56), 3],
   ["secondary button: Explore Stays, fill", ...f(440, 424), 5],
   ["secondary button: Explore Stays, top border", ...f(440, 398), 2],
-  ["chip: Lagos, fill", ...f(228, 477), 5],
-  ["chip: Lagos, top border", ...f(228, 460), 2],
+  ["chip: Lagos, fill", ...f(248, 477), 3],
+  ["chip: Lagos, top border", ...f(248, 461), 2],
   ["search container: fill, right of the segments", ...f(1085, 570), 6],
-  ["search container: top border", ...f(700, 549), 2],
+  ["search container: top border", ...f(1085, 547), 2],
   ["search segment: Buy, active fill", ...f(760, 570), 5],
   ["search segment: Rent, resting fill", ...f(848, 570), 5],
-  ["card: stats tile fill", ...f(600, 735), 6],
-  ["card: stats tile top border", ...f(587, 688), 2],
+  ["card: stats tile fill", ...f(660, 720), 5],
+  ["card: stats tile top border", ...f(660, 686), 2],
   ["card: the band behind the tiles", ...f(300, 770), 6],
-  ["tile: feature tile fill", ...f(620, 880), 6],
-  ["tile: feature tile top border", ...f(616, 810), 2],
-  ["listing card: fill", ...f(1300, 410), 5],
+  ["tile: feature tile fill", ...f(600, 840), 5],
+  ["tile: feature tile top border", ...f(600, 808), 2],
+  ["listing card: fill", ...f(1228, 427), 3],
 ];
 
 const POINTS = CHROME ? CHROME_POINTS : HERO_POINTS;
@@ -126,11 +173,18 @@ const FALLOFF = CHROME
       step: 5,
     }
   : {
+      /*
+       * W3: two pixels, not five, and starting one pixel inside the button.
+       * The founder's ruling is that ours is "hotter, wider and more
+       * saturated", and wider is a question about the SHAPE of this series.
+       * At a five pixel step there are four samples between the button edge
+       * and the ground, which cannot tell a tight bloom from a broad one.
+       */
       label: "primary button, rightward from its edge at y=417",
       y: 417,
-      from: 360,
-      to: 430,
-      step: 5,
+      from: 358,
+      to: 420,
+      step: 2,
     };
 
 const browser = await chromium.launch({

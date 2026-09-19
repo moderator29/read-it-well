@@ -215,12 +215,25 @@ const SURFACES = {
         tol: 14,
       },
       {
-        name: "search submit: the rounded square fill",
+        /*
+         * HELD AGAINST THE PLATE, NOT AGAINST THE PLATE PLUS THE ARROW. W2.
+         *
+         * This used to want #3C7CFC, from `search submit: the rounded square
+         * fill`, which is a 6px box on the CENTRE of the reference's button
+         * and therefore mostly the white arrow glyph. Our sample point is at
+         * fy 0.22, clear of our own arrow, so the check was holding a plate
+         * against a plate-and-glyph average and reporting a 53-point miss
+         * that was partly the harness's own doing. The new reference point
+         * is the same plate above the glyph and inside both shoulders. The
+         * old point is still printed by the sampler, because the second
+         * audit cites it.
+         */
+        name: "search submit: the plate",
         selector: ".nf-home__search-go",
         at: { fx: 0.5, fy: 0.22 },
         box: 3,
-        want: "#3C7CFC",
-        from: "chrome reference, search submit: the rounded square fill",
+        want: "#015FFD",
+        from: "chrome reference, search submit: the plate, clear of the arrow glyph",
         tol: 20,
       },
       {
@@ -278,10 +291,241 @@ const SURFACES = {
       { name: "market tile: the glyph plate", selector: ".nf-home__market-art .nf-brand-icon-ground", maxRatio: 0.45 },
     ],
   },
+
+  /*
+   * W3, 19 September: THE DESKTOP HERO AT 1536, WHICH NOBODY HAD MEASURED.
+   *
+   * `GOVERNING-landing-desktop-hero.png` is the colour and glow authority for
+   * the whole product and the landing at 1536 is the first thing a visitor
+   * meets, and until now every colour check in this file was a phone check.
+   * The hero image had been sampled; our own desktop rendering had not.
+   *
+   * WHY `/preview/f2` AND NOT `/`. They are the same tree: `app/page.tsx` and
+   * the preview page both render `LandingBody` and both wrap it in the same
+   * `SiteHeader`; only the DATA differs. On this box the catalogue read comes
+   * back empty, so the shipped `/` draws no floating listing card at all, and
+   * the card is one of the twenty points the reference names. A surface that
+   * cannot show the element cannot be held to it. Every other check here
+   * reads identically on `/`; the card is the only one that needs fixtures.
+   *
+   * THREE OF THE REFERENCE'S TWENTY POINTS HAVE NO COUNTERPART HERE, and
+   * inventing one would be worse than saying so:
+   *   - "card: stats tile fill" and "card: stats tile top border". The render
+   *     draws four glass stat tiles under the hero. That band was removed
+   *     from the landing on the founder's ruling of 19 September (the same
+   *     three figures were printed twice on one page); the figures now sit in
+   *     the community band as bare numerals, not as tiles, so there is no
+   *     tile to sample.
+   *   - the reference's feature TILES are ten separate glass plates; ours is
+   *     one banded row of six cells divided by hairlines. The band's edge is
+   *     checked against the tile's edge below, and the cell's interior
+   *     against the tile's fill, which is the closest honest pairing, but
+   *     the anatomy is not the same object and the numbers should be read
+   *     with that in mind.
+   *
+   * AND THE HEADER CHECK CARRIES A CAVEAT THE OTHERS DO NOT. Both headers
+   * float over a PHOTOGRAPH, and it is not the same photograph at the same
+   * pixel, so a miss on that one check is not on its own proof of anything.
+   * What IS proof is the step at the header's foot, and the reference has
+   * none: a column down `GOVERNING-landing-desktop-hero.png` at x=470 walks
+   * rgb(0 8 26) at y=2 to rgb(3 19 45) at y=128 without a single
+   * discontinuity, which is the image saying the bar has no fill of its own.
+   * The same column on ours steps rgb(40 53 98) at y=70 to rgb(4 16 50) at
+   * y=90. That is a bar. It is recorded in the report rather than as a check
+   * because a check needs one number and this needs two.
+   */
+  landing: {
+    url: "/preview/f2",
+    viewport: DESKTOP,
+    note: "the desktop hero and the feature band at 1536, against the governing hero PNG",
+    checks: [
+      {
+        name: "canvas: the page ground below the fold",
+        /* A NEGATIVE FRACTION IS OUTSIDE THE ELEMENT ON PURPOSE. The page's
+           own ground at 1536 is the gutter beside the feature band, and the
+           band is the only element whose box locates it. -0.1 of 1168px puts
+           the sample 117px to the left of the band, in the gutter. */
+        selector: ".nf-landing-chiprow",
+        at: { fx: -0.1, fy: 0.5 },
+        box: 9,
+        want: "#000612",
+        from: "hero reference, canvas: the page ground below the fold",
+        tol: 8,
+      },
+      {
+        name: "header: the bar's own fill, over the photo",
+        /* fx 0.293: the only empty run in our header row at 1536 is between
+           the wordmark (ends 338) and the nav (starts 556). Read the caveat
+           above before treating a miss here as a colour fault. */
+        selector: ".nf-site-bar",
+        at: { fx: 0.293, fy: 0.5 },
+        box: 5,
+        want: "#000D23",
+        from: "hero reference, header: the bar's own fill, over the photo",
+        tol: 10,
+      },
+      {
+        name: "primary button: fill, top of the vertical ramp",
+        /* fx 0.93 is past the trailing arrow and clear of the label. The
+           reference's ramp is vertical, so all three of these share a column
+           and differ only in height. */
+        selector: ".nf-landing-hero .nf-btn--primary",
+        at: { fx: 0.93, fy: 0.1 },
+        box: 3,
+        want: "#019BFE",
+        from: "hero reference, primary button: fill, top of the vertical ramp",
+        tol: 16,
+      },
+      {
+        name: "primary button: fill, centre height",
+        selector: ".nf-landing-hero .nf-btn--primary",
+        at: { fx: 0.93, fy: 0.5 },
+        box: 3,
+        want: "#0567FA",
+        from: "hero reference, primary button: fill, centre height",
+        tol: 16,
+      },
+      {
+        name: "primary button: fill, foot of the vertical ramp",
+        selector: ".nf-landing-hero .nf-btn--primary",
+        at: { fx: 0.93, fy: 0.9 },
+        box: 3,
+        want: "#005DFE",
+        from: "hero reference, primary button: fill, foot of the vertical ramp",
+        tol: 16,
+      },
+      {
+        name: "primary button: the header's Get Started, fill under the label",
+        selector: ".nf-site-nav .nf-btn--primary",
+        at: { fx: 0.9, fy: 0.85 },
+        box: 3,
+        want: "#0068FE",
+        from: "hero reference, primary button: the header's Get Started, fill under the label",
+        tol: 16,
+      },
+      {
+        name: "secondary button: Explore Stays, fill",
+        selector: ".nf-landing-hero .nf-btn--glass",
+        at: { fx: 0.9, fy: 0.15 },
+        box: 5,
+        want: "#212741",
+        from: "hero reference, secondary button: Explore Stays, fill",
+        tol: 16,
+      },
+      {
+        name: "secondary button: Explore Stays, top border",
+        selector: ".nf-landing-hero .nf-btn--glass",
+        at: "top-border",
+        box: 2,
+        want: "#2B6BA4",
+        from: "hero reference, secondary button: Explore Stays, top border",
+        tol: 16,
+      },
+      {
+        name: "chip: Lagos, fill",
+        selector: ".nf-landing-city--lead",
+        at: { fx: 0.9, fy: 0.5 },
+        box: 3,
+        want: "#083189",
+        from: "hero reference, chip: Lagos, fill",
+        tol: 16,
+      },
+      {
+        name: "chip: Lagos, top border",
+        selector: ".nf-landing-city--lead",
+        at: "top-border",
+        box: 2,
+        want: "#1C5CC9",
+        from: "hero reference, chip: Lagos, top border",
+        tol: 16,
+      },
+      {
+        name: "search container: fill, right of the segments",
+        selector: ".nf-landing-pill",
+        at: { fx: 0.87, fy: 0.5 },
+        box: 6,
+        want: "#1B395C",
+        from: "hero reference, search container: fill, right of the segments",
+        tol: 16,
+      },
+      {
+        name: "search container: top border",
+        selector: ".nf-landing-pill",
+        at: "top-border",
+        box: 2,
+        want: "#2F629C",
+        from: "hero reference, search container: top border",
+        tol: 16,
+      },
+      {
+        name: "search segment: Buy, active fill",
+        selector: '.nf-landing-pill-seg[aria-checked="true"]',
+        at: { fx: 0.87, fy: 0.5 },
+        box: 3,
+        want: "#124E9D",
+        from: "hero reference, search segment: Buy, active fill",
+        tol: 16,
+      },
+      {
+        name: "search segment: Rent, resting fill",
+        selector: '.nf-landing-pill-seg:not([aria-checked="true"])',
+        at: { fx: 0.9, fy: 0.5 },
+        box: 3,
+        want: "#1F3A5D",
+        from: "hero reference, search segment: Rent, resting fill",
+        tol: 16,
+      },
+      {
+        name: "card: the band behind the tiles",
+        selector: ".nf-landing-chiprow",
+        at: { fx: 0.02, fy: 0.5 },
+        box: 6,
+        want: "#000612",
+        from: "hero reference, card: the band behind the tiles",
+        tol: 8,
+      },
+      {
+        name: "tile: feature tile fill",
+        selector: ".nf-landing-chipcell",
+        at: { fx: 0.06, fy: 0.06 },
+        box: 5,
+        want: "#000D2B",
+        from: "hero reference, tile: feature tile fill",
+        tol: 16,
+      },
+      {
+        name: "tile: feature tile top border",
+        selector: ".nf-landing-chiprow",
+        at: "top-border",
+        box: 2,
+        want: "#001A41",
+        from: "hero reference, tile: feature tile top border",
+        tol: 16,
+      },
+      {
+        name: "listing card: fill",
+        selector: ".nf-landing-float",
+        at: { fx: 0.93, fy: 0.88 },
+        box: 3,
+        want: "#172633",
+        from: "hero reference, listing card: fill",
+        tol: 16,
+      },
+    ],
+    shapes: [
+      { name: "primary button", selector: ".nf-landing-hero .nf-btn--primary", maxRatio: 0.45 },
+      { name: "secondary button", selector: ".nf-landing-hero .nf-btn--glass", maxRatio: 0.45 },
+      { name: "the lead city chip", selector: ".nf-landing-city--lead", maxRatio: 0.45 },
+      { name: "the search container", selector: ".nf-landing-pill", maxRatio: 0.45 },
+      { name: "the active search segment", selector: '.nf-landing-pill-seg[aria-checked="true"]', maxRatio: 0.45 },
+      { name: "the floating listing card", selector: ".nf-landing-float", maxRatio: 0.45 },
+    ],
+  },
 };
 
 const SURFACE = arg("surface", "dock");
 const SCAN = arg("scan", null);
+const FALLOFF = arg("falloff", null);
 const SHAPE_SWEEP = process.argv.includes("--shape-sweep");
 
 /*
@@ -432,9 +676,34 @@ async function sampler(page) {
     page.evaluate(
       ({ x, y, size }) => {
         const { ctx, w, h } = window.__shot;
-        const px = Math.min(w - 1, Math.max(0, Math.round(x * 2)));
-        const py = Math.min(h - 1, Math.max(0, Math.round(y * 2)));
+        const px = Math.round(x * 2);
+        const py = Math.round(y * 2);
+        /*
+         * THE CLAMP THAT STOOD HERE INVENTED A FINDING, AND IT IS THE FIFTH
+         * HARNESS LIE. W2, 19 September.
+         *
+         * It read `Math.min(w - 1, Math.max(0, ...))` on both axes. The
+         * screenshot is the VIEWPORT, not the page, so any element below the
+         * fold has a sample point past the bottom of the shot, and the clamp
+         * quietly slid that point onto the LAST ROW OF THE SCREEN and
+         * returned whatever was there, with no warning and no mark on the
+         * output. At 390 the home's featured-cities row sits at y=920 in an
+         * 844px viewport, so every city chip number in the second audit was
+         * read off the bottom of the dock: the chip's border came back as
+         * #040A26 with "no distinct edge row at all", and the audit filed it
+         * as an edge that was not being drawn. Scrolled into view the same
+         * border reads #01409F, which is not missing, it is seventy-eight
+         * points TOO BRIGHT on blue. Same element, opposite defect, opposite
+         * fix.
+         *
+         * A measurement that cannot be taken has to say so. Out of bounds now
+         * returns null and the caller reports it as a miss with a reason,
+         * which is the only honest answer; the check loop below scrolls an
+         * element into view and re-shoots before it gets here, so in practice
+         * this fires only for a point genuinely off the page.
+         */
         const half = Math.max(0, Math.floor(size / 2));
+        if (px - half < 0 || py - half < 0 || px + half >= w || py + half >= h) return null;
         const d = ctx.getImageData(px - half, py - half, size, size).data;
         let r = 0, g = 0, b = 0, n = 0;
         for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n += 1; }
@@ -442,6 +711,33 @@ async function sampler(page) {
       },
       { x: cssX, y: cssY, size },
     );
+}
+
+/*
+ * SCROLL THE THING INTO VIEW BEFORE PHOTOGRAPHING IT. W2.
+ *
+ * The companion to the clamp above. A surface is a list of checks and they do
+ * not all fit on one screen: the home's canvas, search field and market tiles
+ * are above the fold at 390 and its city chips are eighty pixels below it. The
+ * sampler shoots the viewport, so the shot has to be retaken once the element
+ * being measured is actually in it. Returns true when it moved the page, which
+ * is the caller's signal that its screenshot is stale.
+ *
+ * `block: "center"` rather than `nearest`, so the element is not sitting under
+ * the fixed dock or behind the app header, either of which would be measured
+ * instead of it. `behavior: "instant"`, because `scroll-behavior: smooth` in
+ * base.css makes an animated scroll a silent no-op without a compositor, which
+ * is the same trap `openSurface` documents above.
+ */
+async function ensureInView(page, selector) {
+  return page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    if (r.top >= 0 && r.bottom <= window.innerHeight) return false;
+    el.scrollIntoView({ block: "center", behavior: "instant" });
+    return true;
+  }, selector);
 }
 
 const surface = SURFACES[SURFACE];
@@ -581,11 +877,76 @@ if (SHAPE_SWEEP) {
   process.exit(breaches.length === 0 ? 0 : 1);
 }
 
-const page = await openSurface(SCAN ? arg("url", surface.url) : surface.url, surface.viewport);
-const sample = await sampler(page);
+const page = await openSurface(
+  SCAN || FALLOFF ? arg("url", surface.url) : surface.url,
+  surface.viewport,
+);
+/* `let`, because a check whose element is below the fold scrolls the page
+   and the shot has to be retaken. See `ensureInView`. */
+let sample = await sampler(page);
+
+/*
+ * THE GLOW, AS A CURVE, BECAUSE ONE SAMPLE CANNOT TELL A RADIUS FROM A SPREAD.
+ *
+ * `sample-reference.mjs` walks rightward from the primary button's edge in the
+ * governing PNG and prints the series. This walks the SAME line on our own
+ * page, off a production screenshot, so the two curves can be laid beside each
+ * other. The founder's ruling was that ours is "hotter, wider and more
+ * saturated", and every word of that is a statement about the SHAPE of this
+ * series rather than about any one number in it.
+ *
+ * It prints a blue EXCESS alongside the hex: b - (r + g) / 2. Both walks cross
+ * a photograph, and a twilight sky is itself blue, so the raw channel says
+ * little; what the glow adds is the excess above whatever the ground already
+ * carries, and the distance at which that excess returns to the ground is how
+ * wide the glow is.
+ *
+ *   node scripts/design/compare-surface.mjs --base ... --surface landing \
+ *     --falloff ".nf-landing-hero .nf-btn--primary"
+ */
+if (FALLOFF) {
+  const rect = await page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: r.x, y: r.y, w: r.width, h: r.height };
+  }, FALLOFF);
+  if (!rect) { console.error(`falloff: no element matches ${FALLOFF}`); process.exit(2); }
+  const edge = rect.x + rect.w;
+  const to = Number(arg("reach", "58"));
+  const step = Number(arg("step", "2"));
+  const y = rect.y + rect.h / 2;
+  const series = [];
+  for (let d = -4; d <= to; d += step) {
+    const rgb = await sample(edge + d, y, 3);
+    const excess = Math.round(rgb[2] - (rgb[0] + rgb[1]) / 2);
+    series.push({ d, hex: hex(rgb), rgb, excess });
+  }
+  await browser.close();
+  if (JSON_OUT) {
+    console.log(JSON.stringify({ selector: FALLOFF, edge: Math.round(edge), y: Math.round(y), series }, null, 2));
+  } else {
+    console.log(`falloff: ${FALLOFF} at ${BASE}${arg("url", surface.url)}`);
+    console.log(`right edge at x=${Math.round(edge)}, walking rightward at y=${Math.round(y)}\n`);
+    console.log("  d(px)  colour    rgb                blue excess over the local ground");
+    for (const p of series) {
+      const bar = "#".repeat(Math.max(0, Math.min(60, Math.round(p.excess / 3))));
+      console.log(`  ${String(p.d).padStart(4)}   ${p.hex}  rgb(${p.rgb.join(" ").padEnd(11)})  ${String(p.excess).padStart(4)}  ${bar}`);
+    }
+  }
+  process.exit(0);
+}
 
 if (SCAN) {
   const axis = arg("axis", "x");
+  /* In view before the rect is read, for the reason set out on the clamp: a
+     scan of an element below the fold used to print the bottom row of the
+     screen over and over and look like a perfectly flat surface. That is what
+     "a scan down the chip finds no distinct edge row at all" was. W2. */
+  if (await ensureInView(page, SCAN)) {
+    await page.waitForTimeout(400);
+    sample = await sampler(page);
+  }
   const rect = await page.evaluate((sel) => {
     const el = document.querySelector(sel);
     if (!el) return null;
@@ -597,20 +958,33 @@ if (SCAN) {
   for (let f = 0; f <= 1.0001; f += 0.05) {
     const x = axis === "x" ? rect.x + rect.w * f : rect.x + rect.w / 2;
     const y = axis === "x" ? rect.y + rect.h / 2 : rect.y + rect.h * f;
-    console.log(`  ${axis}=${f.toFixed(2)}  ${hex(await sample(x, y, 3))}`);
+    const got = await sample(x, y, 3);
+    console.log(`  ${axis}=${f.toFixed(2)}  ${got ? hex(got) : "off the screenshot, not read"}`);
   }
   await browser.close();
   process.exit(0);
 }
 
-const rows = [];
-for (const check of surface.checks) {
-  const rect = await page.evaluate((sel) => {
+const readRect = (page, selector) =>
+  page.evaluate((sel) => {
     const el = document.querySelector(sel);
     if (!el) return null;
     const r = el.getBoundingClientRect();
     return { x: r.x, y: r.y, w: r.width, h: r.height };
-  }, check.selector);
+  }, selector);
+
+const rows = [];
+for (const check of surface.checks) {
+  /*
+   * IN VIEW FIRST, THEN THE RECT, THEN THE SHOT. W2, and the order matters:
+   * scrolling changes every rect on the page, so a rect read before the
+   * scroll names a place the element is no longer standing.
+   */
+  if (await ensureInView(page, check.selector)) {
+    await page.waitForTimeout(400);
+    sample = await sampler(page);
+  }
+  const rect = await readRect(page, check.selector);
   if (!rect || rect.w === 0) {
     rows.push({ ...check, got: null, delta: null, pass: false, why: "no element matches, or it draws nothing" });
     continue;
@@ -630,6 +1004,19 @@ for (const check of surface.checks) {
     y = rect.y + rect.h * check.at.fy;
   }
   const got = await sample(x, y, check.box ?? 3);
+  if (!got) {
+    /* The sampler refuses a point outside the shot rather than clamping it
+       onto the edge of the screen and returning a colour from somewhere
+       else. See the long note on the clamp. */
+    rows.push({
+      ...check,
+      got: null,
+      delta: null,
+      pass: false,
+      why: "the sample point is off the screenshot, so no colour was read",
+    });
+    continue;
+  }
   const want = parse(check.want);
   const delta = Math.max(...got.map((v, i) => Math.abs(v - want[i])));
   rows.push({ ...check, got: hex(got), delta, pass: delta <= check.tol, why: null });
