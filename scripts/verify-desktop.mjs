@@ -93,17 +93,56 @@ if (fullPage) {
    * fires on a frame the element is actually visible for, not on a scroll
    * position flicked past.
    */
+  /*
+   * `behavior: "instant"`, AND THIS IS THE THIRD REASON THIS HARNESS HAS LIED
+   * TODAY.
+   *
+   * `base.css` sets `html { scroll-behavior: smooth }`. A smooth scroll is an
+   * animation, and in headless Chromium with no compositor that animation
+   * never advances, so `window.scrollTo(0, y)` RETURNS HAVING DONE NOTHING.
+   * It does not throw and it does not warn: `window.scrollY` is measured at
+   * 0 after the call, at 80ms and at 500ms, while a real wheel gesture of the
+   * same distance moves the page normally. F2 measured exactly that.
+   *
+   * So the prime below primed nothing, no IntersectionObserver below the fold
+   * ever fired, and a fullpage capture came back with 20 of its 21 `Reveal`
+   * bands still at `opacity: 0`. That is the same picture the blur fault and
+   * the Content Security Policy fault each produced on their own, which is
+   * why two fixes went in before anybody found this one: three separate
+   * causes, one indistinguishable symptom.
+   *
+   * `behavior: "instant"` opts out of the CSS smooth behaviour for this call
+   * only and jumps the page. Nothing else changes.
+   */
+  const jump = (to) => window.scrollTo({ top: to, left: 0, behavior: "instant" });
+
   for (let y = 0, guard = 0; guard < 80; guard += 1) {
     const height = await page.evaluate(() => document.body.scrollHeight);
     if (y > height) break;
-    await page.evaluate((to) => window.scrollTo(0, to), y);
+    await page.evaluate(jump, y);
     await page.waitForTimeout(220);
     y += 450;
   }
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, left: 0, behavior: "instant" }));
   await page.waitForTimeout(500);
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: "instant" }));
   await page.waitForTimeout(500);
+
+  /*
+   * And prove the prime actually moved the page, rather than trusting it a
+   * fourth time. A harness that cannot tell whether it primed is a harness
+   * that will lie again, so it says so on stderr and the shot is suspect.
+   */
+  const reveals = await page.evaluate(() => {
+    const all = Array.from(document.querySelectorAll(".nf-reveal"));
+    return { total: all.length, shown: all.filter((el) => Number(getComputedStyle(el).opacity) > 0.5).length };
+  });
+  if (reveals.total > 0 && reveals.shown < reveals.total) {
+    console.error(
+      `WARNING: ${reveals.total - reveals.shown} of ${reveals.total} Reveal bands are still hidden. ` +
+        "This shot does not show the page a reader meets. Do not judge anything below the fold from it.",
+    );
+  }
 }
 
 await page.screenshot({ path: out, fullPage });

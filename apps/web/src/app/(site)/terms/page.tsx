@@ -31,7 +31,7 @@ export default function TermsPage() {
         title="Terms of service"
         lede="The rules of the platform, in plain language: what you can expect from Vallo, and what Vallo expects from you."
       >
-        <p className="nf-chip">Last updated: 28 July 2026</p>
+        <p className="nf-site-badge">Last updated: 28 July 2026</p>
       </SiteHead>
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

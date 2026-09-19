@@ -27,7 +27,7 @@ export default function PrivacyPage() {
         title="Privacy policy"
         lede="How Vallo collects, uses and protects your personal data, and the rights the Nigeria Data Protection Act 2023 gives you over it."
       >
-        <p className="nf-chip">Last updated: 28 July 2026</p>
+        <p className="nf-site-badge">Last updated: 28 July 2026</p>
       </SiteHead>
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

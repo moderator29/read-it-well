@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -105,13 +105,23 @@ function SavedSearchRow({
   /* The switch's optimistic position. `null` means nobody has touched it on
      this screen, so the stored column is what is drawn. */
   const [alertOverride, setAlertOverride] = useState<boolean | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const alertOn = alertOverride ?? row.alertEnabled;
   const chips = summariseSearch(row.params, locale);
 
+  /* The timer is cleared on unmount, because a row that has just been removed
+     is unmounted while its note is still counting down. */
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
   const say = useCallback((text: string, tone: "ok" | "error" = "ok") => {
     setNote({ text, tone });
-    window.setTimeout(() => setNote(null), NOTE_MS);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setNote(null), NOTE_MS);
   }, []);
 
   const toggleAlert = useCallback(() => {

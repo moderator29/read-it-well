@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const GROUPS = ["lead", "f1", "f2", "f3", "f4", "f5", "e"];
+const GROUPS = ["lead", "f1", "f2", "f3", "f4", "f5", "e", "o3"];
 
 export default function PreviewIndex() {
   return (

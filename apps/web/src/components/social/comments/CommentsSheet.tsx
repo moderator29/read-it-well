@@ -10,6 +10,7 @@ import { POST_COPY, POST_MAX, POST_REPORT_REASONS } from "@/lib/social/posts-sch
 import type { ActionResult } from "@/lib/actions/envelope";
 import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * Comments, as a sheet.
@@ -270,8 +271,13 @@ export function CommentsSheet({
                   aria-label={comment.authorLabel}
                 >
                   {comment.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={comment.avatarUrl} alt="" />
+                    <RemoteImage
+                      src={comment.avatarUrl}
+                      alt=""
+                      width={64}
+                      height={64}
+                      sizes="32px"
+                    />
                   ) : (
                     <span aria-hidden="true">{comment.authorLabel.charAt(0).toUpperCase()}</span>
                   )}

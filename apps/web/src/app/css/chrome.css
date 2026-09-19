@@ -554,8 +554,15 @@
   /*
     Hamburger, lockup, bell, avatar, on every in-app page (DESIGN_DIRECTION
     section 3.2). The round glass buttons are the renders' header controls:
-    a 40px glass square with the rim, the glyph at the content ink, the
-    unread dot in the attention cyan at the bell's shoulder.
+    a glass square with the rim, the glyph at the content ink, and the unread
+    mark at the bell's shoulder.
+
+    THE DOT IS ROSE, NOT CYAN, and this line used to say "the attention cyan"
+    while the rule below drew `--nf-mark-unread`. Two statements about one
+    pixel, and the stale one was the one a reader meets first. An unread mark
+    is not a state: nothing is pending, nothing failed, nothing succeeded,
+    something is simply there and has not been seen. The size is also no
+    longer 40px; `.nf-icon-btn` owns it.
   */
   /*
    * THE HEADER CONTROLS WEAR `.nf-icon-btn` NOW, AND THAT IS THE WHOLE CHANGE
@@ -594,7 +601,12 @@
     height: 0.5rem;
     border-radius: var(--nf-radius-circle);
     border: 2px solid var(--nf-surface-canvas);
-    background: var(--nf-status-pending);
+    /* `--nf-mark-unread`, not a state colour. This was `--nf-status-pending`,
+       whose daylight twin is #0E6E8C, so the dot rendered teal-green on paper
+       and a bell wearing the success colour said "all good" where it meant
+       "you have unread". The reasoning for the token is beside its definition
+       in packages/design-tokens. */
+    background: var(--nf-mark-unread);
   }
   .nf-app-header__avatar {
     display: grid;

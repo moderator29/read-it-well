@@ -7,6 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { FollowButton } from "./FollowButton";
 import { moreFollows } from "@/lib/social/follows-actions";
 import type { FollowDirection, FollowRow } from "@/lib/social/follows-queries";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * A list of people.
@@ -161,8 +162,13 @@ export function PeopleList({
                 aria-label={`Open ${name}`}
               >
                 {person.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={person.avatarUrl} alt="" />
+                  <RemoteImage
+                    src={person.avatarUrl}
+                    alt=""
+                    width={96}
+                    height={96}
+                    sizes="48px"
+                  />
                 ) : (
                   <span aria-hidden="true">{monogram}</span>
                 )}
@@ -178,7 +184,7 @@ export function PeopleList({
                   </Link>
                   {person.isAgent ? (
                     <span className="inline-flex shrink-0 items-center gap-2xs rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
-                      <UiIcon name="verified" size={11} />
+                      <UiIcon name="verified-badge" size={11} />
                       Agent
                     </span>
                   ) : null}

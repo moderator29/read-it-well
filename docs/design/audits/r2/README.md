@@ -86,6 +86,17 @@ left alone rather than guessed at.
 
 Exit 1 on any high-severity finding.
 
+**It has no exception list, and that is deliberate.** Its four findings were
+all in `app/(site)/styleguide/page.tsx`, and the cheap answer was to exempt the
+path on the grounds that a styleguide's buttons are specimens. That answer was
+refused: an exemption is a permanent promise never to check a file again, so
+the next genuinely broken control added to that page would go unreported
+forever. The specimens were given the behaviour they are specimens of instead -
+press one and it copies the line that draws it, and the two states have a
+switch each rather than a frozen picture - and the argument is written out at
+the head of `app/(site)/styleguide/ButtonSpecimens.tsx`. A listed exception is
+a job, not a ruling.
+
 ## 3. Smoke tests
 
 ```
@@ -131,8 +142,9 @@ accidental.
 
 - **designed** means a named state object: `EmptyState`, `EmptyActions`,
   `ResultScreen`, `Unreachable`, `QueueEmpty`, `Tombstone`, a `loading.tsx`, an
-  `error.tsx`, an `AuthGate` or an `AccessScreen`.
-- **accidental** means the section simply vanishes: a `.length === 0` that
+  `error.tsx`, an `AuthGate` or an `AccessScreen` - or a ternary whose empty
+  side DRAWS, which is how most of this tree writes it.
+- **accidental** means the section simply vanishes: a `.length` check that
   omits rather than draws, a `<Suspense>` with a bare fallback.
 
 Two deliberate narrowings keep the report worth reading. A surface only needs
@@ -140,6 +152,29 @@ an empty state if it RENDERS A COLLECTION; a settings form or a sign-in screen
 has no empty state to design, and listing those buried the surfaces that
 genuinely do. And a signed-out gate is looked for up the whole layout chain,
 because the admin and agent consoles gate in a layout rather than in the page.
+
+**What a surface is, corrected 19 September.** The first cut took a surface to
+be every file at or below the page's folder, and matched a fixed list of names
+anywhere in that text. Both halves misreported, and the script was failing five
+surfaces of which four were already correct:
+
+- a nested route (`/profile/setup/[role]`) was being read as part of its parent,
+  so the parent was called a data surface for its child's queries;
+- a view filed under `components/` (`ListingReviews.tsx`) or one folder up
+  (`SharePicker.tsx`) was invisible, so surfaces that draw a full `EmptyState`
+  were reported as drawing nothing;
+- `xs.length > 0 ? <list/> : <what to say instead/>` matched nothing at all;
+- `interests.map(...).join(", ")` counted as rendering a collection.
+
+So: the walk stops at the next `page.tsx`; the surface also carries what the
+page DIRECTLY imports, one hop, project files only, where the component must be
+RENDERED rather than merely defined (two hops reaches `Screen.tsx` and every
+page that imports it for the type scale would pass); a `.map` counts as a
+collection only when its callback returns JSX; and whether a length ternary
+draws or omits is read off a syntax tree, because the question is which branch
+is the empty one and text cannot answer it. The condition must be an emptiness
+test against zero or one-or-more and nothing else: `accounts.length === 1` is a
+plural, and it passed the first cut.
 
 Marketing pages, legal pages, the auth screens and the offline shell are
 public by design and are not asked for a signed-out state.

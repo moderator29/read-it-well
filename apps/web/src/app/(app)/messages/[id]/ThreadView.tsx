@@ -583,7 +583,7 @@ export function ThreadView({
           <h1 className={`nf-thread__title${propertyFace ? " nf-thread__title--place" : ""}`}>
             <span className="min-w-0">{propertyFace && listing ? listing.title : counterpartName}</span>
             {!propertyFace && counterpartVerified && (
-              <UiIcon name="verified" size={18} className="nf-thread__tick" label="Verified" />
+              <UiIcon name="verified-badge" size={18} className="nf-thread__tick" label="Verified" />
             )}
           </h1>
           {/* Said once. The context card under a property header already

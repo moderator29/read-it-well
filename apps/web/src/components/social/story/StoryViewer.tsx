@@ -21,6 +21,7 @@ import {
 import { blockUser, muteTarget, reportProfile } from "@/lib/social/posts-actions";
 import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 import { STORY_COPY } from "@/lib/social/stories-schema";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * A story, full bleed.
@@ -218,8 +219,17 @@ export function StoryViewer({
     <div className="nf-story">
       <article className="nf-story__stage">
         {story.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={story.imageUrl} alt="" className="nf-story__image" />
+          /* The picture IS the page, so it is the one image here that is
+             worth a full-width fetch and a priority hint. */
+          <RemoteImage
+            src={story.imageUrl}
+            alt=""
+            width={1200}
+            height={1600}
+            sizes="100vw"
+            priority
+            className="nf-story__image"
+          />
         ) : (
           <div className="nf-story__image nf-story__image--none" aria-hidden="true" />
         )}
@@ -236,8 +246,13 @@ export function StoryViewer({
           >
             <span className="nf-story__face">
               {story.author.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={story.author.avatarUrl} alt="" />
+                <RemoteImage
+                  src={story.author.avatarUrl}
+                  alt=""
+                  width={76}
+                  height={76}
+                  sizes="38px"
+                />
               ) : (
                 <span aria-hidden="true">{who.charAt(0).toUpperCase()}</span>
               )}
@@ -421,8 +436,13 @@ export function StoryViewer({
                     title={face.label}
                   >
                     {face.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={face.avatarUrl} alt="" />
+                      <RemoteImage
+                        src={face.avatarUrl}
+                        alt=""
+                        width={64}
+                        height={64}
+                        sizes="32px"
+                      />
                     ) : (
                       <span aria-hidden="true">{face.label.charAt(0).toUpperCase()}</span>
                     )}

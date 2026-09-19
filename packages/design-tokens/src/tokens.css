@@ -729,6 +729,30 @@
    * primary is a deep blue that does not hold up as small bold text on the
    * night canvas, and the quiet ink already carries a daylight override. */
   --nf-status-pending: var(--nf-state-warning);
+
+  /*
+   * THE UNREAD MARK, AND WHY IT IS ITS OWN TOKEN RATHER THAN A STATE COLOUR.
+   *
+   * The bell's dot was `--nf-status-pending`, which resolves to cyan. F1 shot
+   * the light chrome and found it rendering TEAL-GREEN on paper, because the
+   * daylight twin of that token is #0E6E8C. A green dot on a bell says "all
+   * good", which is the opposite of "you have unread", and colour was the only
+   * thing saying anything at all.
+   *
+   * An unread mark is NOT A STATE. Nothing is pending, nothing has failed and
+   * nothing has succeeded; something is simply there and has not been seen.
+   * Borrowing a state colour for it is how the mark ended up inheriting a
+   * daylight value chosen for a completely different meaning, and it is why
+   * this is a token of its own rather than an alias: an alias drifts the next
+   * time somebody tunes a state for contrast.
+   *
+   * Rose is what all three governing renders draw, and a red dot for unread is
+   * read as "there is something here" by everybody who has ever used a phone,
+   * not as an error. Rule 8 still holds, because rule 8 assigns rose to error
+   * and this token is not the error token; it is named for what it means and
+   * can be tuned without touching either.
+   */
+  --nf-mark-unread: var(--nf-rose-400);
   --nf-status-pending-surface: var(--nf-state-warning-surface);
   /*
    * THE ACCENT, WHICH EXISTS ENTIRELY FOR DAYLIGHT, and is the same colour as
@@ -2951,6 +2975,12 @@
   /* 6.22:1 on white. Was --nf-crimson-500 (#DC143C), which cleared white at
      4.99:1 but fell to 3.95:1 on the rose badge tint. */
   --nf-state-error: #C10E32;
+  /* The unread mark on paper. #C10E32 measures 6.22:1 on white, so the dot is
+     legible rather than a pale smudge, and it is the same hue the dark theme
+     draws so the mark does not change meaning between themes. Stated on its
+     own rather than aliased to the error token, for the reason written beside
+     the dark value. */
+  --nf-mark-unread: #C10E32;
   /*
    * Info was the one state colour the daylight contrast pass missed entirely:
    * it stayed on --nf-sky-400 (#38BDF8) at 2.14:1, less than half the AA floor.

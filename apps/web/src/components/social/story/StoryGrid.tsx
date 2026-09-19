@@ -3,6 +3,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import { STORY_COPY } from "@/lib/social/stories-schema";
 import { EmptyPanel } from "../profile/EmptyPanel";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * Stories, as a list of plates.
@@ -41,8 +42,14 @@ export function StoryGrid({
         <li key={story.id}>
           <Link href={`/stories/${story.id}`} className="nf-story-plate">
             {story.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={story.imageUrl} alt="" loading="lazy" />
+              <RemoteImage
+                src={story.imageUrl}
+                alt=""
+                width={600}
+                height={800}
+                sizes="(max-width: 640px) 50vw, 300px"
+                loading="lazy"
+              />
             ) : (
               <span className="nf-story-plate__art" aria-hidden="true" />
             )}

@@ -75,6 +75,15 @@ export const WATCHED_JOBS: readonly WatchedJob[] = [
      silence from this job means nobody was told, which is exactly what has to
      be visible when the catalogue is quiet rather than when the job is. */
   { job: "saved-search-alerts", schedule: "daily at 07:40 UTC", maxGapHours: 26 },
+  /* The account purge, and it is the job where silence costs most.
+     A deletion request carries a thirty day clock that a person was told
+     about in writing, and the only thing that honours it is this job firing.
+     A purge that quietly stops is a promise quietly broken, and unlike every
+     other job here nobody outside will notice, because the people waiting on
+     it have already left. It was scheduled in vercel.json and reported
+     through the same audit door as its siblings and was NOT on this list;
+     O2 found the gap and left the line to the owner rather than writing it. */
+  { job: "account-purge", schedule: "daily at 03:15 UTC", maxGapHours: 26 },
 ];
 
 export type LastRun = {

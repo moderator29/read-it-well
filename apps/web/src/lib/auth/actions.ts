@@ -15,31 +15,25 @@ import {
 import { authOrigin } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
+import {
+  deactivatedAccountNotice,
+  isDeactivatedAccountError,
+} from "./deactivated-notice";
+import type {
+  AuthField,
+  AuthFormState,
+  EmailStatus,
+  VerificationOutcome,
+} from "./form-state";
 
-export type AuthField =
-  | "firstName"
-  | "surname"
-  | "nickname"
-  | "email"
-  | "password"
-  | "confirmPassword"
-  | "hearAbout"
-  | "stateCode"
-  | "lgaCode"
-  | "occupationCode"
-  | "referralCode"
-  /* The six digits from the confirmation email. Part of the same union so the
-     verify screen reports a bad code exactly the way every other field on
-     every other auth form reports a bad value. */
-  | "code";
-
-export type AuthFormState = {
-  ok: boolean;
-  /** Where to go once the verifying moment has been on screen long enough. */
-  verified?: string;
-  message?: string;
-  fieldErrors?: Partial<Record<AuthField, string>>;
-};
+/*
+ * THE TWO TYPES THIS FILE USED TO EXPORT NOW LIVE IN `./form-state`.
+ *
+ * A `"use server"` module may export async functions and nothing else, not
+ * even a type re-export (BUILD_06 ledger 10.7). These were exported from here
+ * and imported by six components. Moving them costs nothing and ends a
+ * violation that had not bitten yet.
+ */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -252,7 +246,14 @@ export async function signInWithEmail(
     password: field(formData, "password"),
   });
 
-  if (error) return { ok: false, message: authMessage(error.message) };
+  if (error) {
+    /* Checked before the general mapper, because a deactivated account is the
+       one refusal here that a person cannot answer by trying again. */
+    if (isDeactivatedAccountError(error.message)) {
+      return { ok: false, ...deactivatedAccountNotice() };
+    }
+    return { ok: false, message: authMessage(error.message) };
+  }
 
   // The session cookies are set. Drop every cached render so the shell picks
   // up the real identity instead of the signed out view.
@@ -479,8 +480,6 @@ export async function verifySignUpCode(
  * per connection; and the answer is never more than which button to press. It
  * reveals nothing that trying to sign in would not.
  */
-export type EmailStatus = "none" | "email" | "google" | "unknown";
-
 export async function signUpMethodForEmail(email: string): Promise<EmailStatus> {
   const address = email.trim().toLowerCase();
   if (!EMAIL_RE.test(address)) return "unknown";
@@ -538,10 +537,6 @@ export async function signUpMethodForEmail(email: string): Promise<EmailStatus> 
  * Returns the path to go to, so the caller navigates rather than this throwing
  * a redirect through a fetch. `next` is re-validated here and never trusted.
  */
-export type VerificationOutcome =
-  | { ok: true; next: string }
-  | { ok: false; reason: "expired" | "invalid" | "unconfigured" };
-
 export async function completeEmailVerification(input: {
   code?: string | undefined;
   tokenHash?: string | undefined;

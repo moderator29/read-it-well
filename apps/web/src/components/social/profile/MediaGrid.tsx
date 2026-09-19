@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { MediaTile } from "@/lib/social/profile-tabs-queries";
 import { EmptyPanel } from "./EmptyPanel";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * Every picture somebody has posted, three across.
@@ -43,8 +44,16 @@ export function MediaGrid({
       {tiles.map((tile, index) => (
         <li key={`${tile.postId}-${index}`}>
           <Link href={`/post/${tile.postId}`} className="nf-media-grid__tile">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={tile.url} alt="" loading="lazy" />
+            {/* A third of the screen at 390, and it was serving the full
+                upload into it. */}
+            <RemoteImage
+              src={tile.url}
+              alt=""
+              width={400}
+              height={400}
+              sizes="(max-width: 640px) 33vw, 200px"
+              loading="lazy"
+            />
           </Link>
         </li>
       ))}

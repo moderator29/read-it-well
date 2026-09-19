@@ -374,4 +374,31 @@
     outline: var(--nf-focus-ring);
     outline-offset: var(--nf-focus-ring-offset);
   }
+
+  /*
+   * A STATIC LABEL IS NOT A CONTROL.
+   *
+   * `/contact`, `/terms` and `/privacy` were printing "Answered by a person",
+   * "English, Yoruba, Hausa, Igbo" and "Last updated" in `.nf-chip`, which is
+   * the interactive chip primitive: it reserves a 44px tap target and, since
+   * the controls sweep moved the primitive to match the governing render, it
+   * carries a lit brand edge. A brand-edged 44px capsule that cannot be
+   * tapped is a picture of a control, and on the legal pages it sits directly
+   * under a heading where it reads as a filter somebody forgot to wire.
+   *
+   * This is the same ink and the same shape at label weight: no tap target,
+   * no lit edge, no transition, and it never grows one.
+   */
+  .nf-site-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+    background: var(--nf-surface-raised);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
 }

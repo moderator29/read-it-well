@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatMoney } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { PropertyCard } from "@/lib/social/profile-tabs-queries";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * An agent's live places, on their own page.
@@ -21,10 +22,12 @@ export function PropertyList({ properties }: { properties: PropertyCard[] }) {
         <li key={property.id}>
           <Link href={`/listing/${property.id}`} className="nf-card nf-post nf-post--listing block">
             {property.photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <RemoteImage
                 src={property.photoUrl}
                 alt=""
+                width={800}
+                height={600}
+                sizes="(max-width: 640px) 100vw, 640px"
                 className="nf-post__plate"
                 loading="lazy"
               />

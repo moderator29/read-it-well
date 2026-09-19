@@ -1,0 +1,82 @@
+-- A TRIGGER FUNCTION IS NOT A REST ENDPOINT.
+--
+-- The Supabase security advisor, run after the day's five migrations landed,
+-- reported both example-refusal triggers as SECURITY DEFINER functions
+-- callable over `/rest/v1/rpc/`, one of them by `anon`. They are trigger
+-- functions: they read `new` and `old`, they have no meaning outside a
+-- trigger, and a direct call can only ever raise. Nothing was exploitable.
+-- The reason to close it anyway is that an entry point which exists by
+-- accident is how a real one gets lost in the noise later, and a launch
+-- checklist that has learnt to ignore two warnings has learnt to ignore the
+-- third.
+--
+-- WHY ONE OF THEM AND NOT THE OTHER. The business guard was CREATED in
+-- `20260919103000`, and Supabase ships
+-- `alter default privileges ... grant all on functions to anon, authenticated`,
+-- so a new function is born reachable. The listing guard was a
+-- `create or replace` of a function that already existed and kept whatever
+-- grants it already had. That asymmetry is worth knowing, because it means
+-- every NEW function in this estate is public until somebody says otherwise.
+--
+-- THIS IS NOT THE STOP LIST'S KIND OF REVOKE. It removes nothing anybody
+-- legitimately had: it strips a default grant from two functions no caller
+-- has ever had a reason to invoke. It is the same shape `private.notify` and
+-- the booking lifecycle sweeps already use.
+--
+-- IT CANNOT BREAK THE TRIGGERS, and the probe proves that rather than
+-- asserting it. Postgres does not check EXECUTE on a trigger function when
+-- firing a trigger; the executor invokes it directly.
+
+revoke all on function public.refuse_demo_flag_on_committed_business() from public, anon, authenticated;
+revoke all on function public.refuse_demo_flag_on_committed_listing() from public, anon, authenticated;
+
+-- PROBE, run by the lead through `apply_migration` and rolled back by a
+-- deliberate raise, so nothing persists and no probe row survives on a live
+-- product table. It raised PROBE ALL PASS on 19 September.
+--
+--   do $probe$
+--   declare
+--     u_owner uuid; u_guest uuid; b_id uuid; slot timestamptz; caught text;
+--     anon_can boolean; auth_can boolean;
+--   begin
+--     select id into u_owner from auth.users order by created_at limit 1;
+--     select id into u_guest from auth.users where id <> u_owner order by created_at limit 1;
+--     slot := (((now() at time zone 'Africa/Lagos')::date + 1) + time '19:00') at time zone 'Africa/Lagos';
+--
+--     -- 1. NEITHER CLIENT ROLE MAY CALL EITHER FUNCTION ANY MORE.
+--     select has_function_privilege('anon', 'public.refuse_demo_flag_on_committed_business()', 'EXECUTE')
+--       into anon_can;
+--     select has_function_privilege('authenticated', 'public.refuse_demo_flag_on_committed_listing()', 'EXECUTE')
+--       into auth_can;
+--     if anon_can then raise exception 'FAIL 1: anon can still execute the business trigger function'; end if;
+--     if auth_can then raise exception 'FAIL 1b: authenticated can still execute the listing trigger function'; end if;
+--
+--     -- 2. AND THE TRIGGER STILL FIRES, which is what makes the revoke safe.
+--     insert into public.businesses (kind, name, slug, owner_id, status, source, is_demo)
+--     values ('restaurant', 'Probe Revoke Kitchen', 'probe-revoke-' || gen_random_uuid(),
+--             u_owner, 'PUBLISHED', 'first_party', false)
+--     returning id into b_id;
+--     insert into public.service_windows (business_id, weekday, opens, last_seating, closes, covers)
+--     values (b_id, extract(dow from (slot at time zone 'Africa/Lagos'))::smallint,
+--             '18:00', '21:00', '23:00', 50);
+--     insert into public.reservations (business_id, guest_id, party_size, reserved_for)
+--     values (b_id, u_guest, 2, slot);
+--     begin
+--       update public.businesses set is_demo = true where id = b_id;
+--       raise exception 'FAIL 2: the trigger did not fire after the revoke';
+--     exception when check_violation then
+--       get stacked diagnostics caught = message_text;
+--       if caught not like '%reservations%' then
+--         raise exception 'FAIL 2b: refused, but not by the example guard: %', caught;
+--       end if;
+--     end;
+--
+--     raise exception 'PROBE ALL PASS (lead): neither client role can call either trigger function over REST, and the example refusal still fires on an ordinary update. Rolled back on purpose.';
+--   end
+--   $probe$;
+--
+-- WHAT THIS PROBE DELIBERATELY DOES NOT CLAIM: it does not attempt the REST
+-- call itself, because this sandbox's proxy refuses `*.supabase.co` and the
+-- MCP SQL runner carries `rolbypassrls` and cannot wear a client role for a
+-- function call. `has_function_privilege` answers the same question from the
+-- catalogue, which is where PostgREST reads it from too.

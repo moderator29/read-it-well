@@ -12,6 +12,7 @@ import { setSocialCover } from "@/lib/social/profiles-actions";
 import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * The top of your own account, wearing the same identity as your public page.
@@ -200,8 +201,15 @@ export function AccountHero({
              request. next/image is skipped for it exactly as the social header
              does: one image from a host that only exists once the platform
              keys land. The plate below IS optimised: it is ours. */
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt="" className="nf-social-cover__photo" />
+          <RemoteImage
+            src={cover}
+            alt=""
+            width={1200}
+            height={400}
+            sizes="(max-width: 768px) 100vw, 768px"
+            priority
+            className="nf-social-cover__photo"
+          />
         ) : (
           <Image
             src={COVER_PLATE}
@@ -262,8 +270,7 @@ export function AccountHero({
         >
           <span className="nf-profile-avatar__disc">
             {avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatar} alt="" />
+              <RemoteImage src={avatar} alt="" width={192} height={192} sizes="96px" />
             ) : (
               <span aria-hidden="true">{monogram}</span>
             )}
@@ -274,7 +281,7 @@ export function AccountHero({
               control. */}
           {identity?.isAgent ? (
             <span className="nf-profile-avatar__badge" aria-hidden="true">
-              <UiIcon name="verified" size={16} filled />
+              <UiIcon name="verified-badge" size={16} />
             </span>
           ) : (
             <span className="nf-profile-avatar__badge nf-profile-avatar__badge--quiet" aria-hidden="true">
@@ -293,7 +300,7 @@ export function AccountHero({
                 aria-label="Verified agent"
                 role="img"
               >
-                <UiIcon name="verified" size={18} filled />
+                <UiIcon name="verified-badge" size={18} />
               </span>
             ) : null}
           </h1>

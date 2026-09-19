@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { StoryCard } from "@/lib/social/stories-queries";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 export type StoryRingYou = { label: string; avatarUrl: string };
 
@@ -47,8 +48,7 @@ export function StoryRing({
           <Link href="/stories/new" className="nf-story-ring__item" data-testid="your-story">
             <span className="nf-story-ring__disc nf-story-ring__disc--you">
               {you?.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={you.avatarUrl} alt="" width={64} height={64} />
+                <RemoteImage src={you.avatarUrl} alt="" width={128} height={128} sizes="64px" />
               ) : (
                 <span className="nf-story-ring__monogram" aria-hidden="true">
                   {monogram}
@@ -66,8 +66,14 @@ export function StoryRing({
             <Link href={`/stories/${story.id}`} className="nf-story-ring__item">
               <span className="nf-story-ring__disc">
                 {story.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={story.imageUrl} alt="" width={64} height={64} loading="lazy" />
+                  <RemoteImage
+                    src={story.imageUrl}
+                    alt=""
+                    width={128}
+                    height={128}
+                    sizes="64px"
+                    loading="lazy"
+                  />
                 ) : (
                   <span className="nf-story-ring__monogram" aria-hidden="true">
                     {story.authorLabel.charAt(0).toUpperCase()}

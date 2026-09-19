@@ -12,6 +12,7 @@ import { LanguageRow } from "@/components/app/account/SettingsGroups";
 import { useNfSettings, useThemeChoice, type ThemeChoice } from "@/components/app/account/settings-store";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * THE SETTINGS HOME, per `7F96BE6C`.
@@ -86,8 +87,7 @@ function ProfileRow({
     <Link href="/profile" className="nf-card nf-hub-profile" data-testid="settings-profile-row">
       <span className="nf-hub-profile__avatar" aria-hidden="true">
         {person.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={person.avatarUrl} alt="" width={64} height={64} />
+          <RemoteImage src={person.avatarUrl} alt="" width={128} height={128} sizes="64px" />
         ) : (
           <span>{monogram}</span>
         )}
@@ -97,7 +97,7 @@ function ProfileRow({
           {person.name || person.email}
           {person.verified ? (
             <span className="nf-hub-tick" title={t.socialProfile.verifiedTitle} role="img" aria-label={t.socialProfile.verified}>
-              <UiIcon name="verified" size={16} filled />
+              <UiIcon name="verified-badge" size={16} />
             </span>
           ) : null}
         </span>
@@ -146,7 +146,7 @@ function Checked({ children }: { children: string }) {
   return (
     <span className="nf-hub-value nf-hub-value--ok">
       {children}
-      <UiIcon name="verified" size={16} filled />
+      <UiIcon name="verified-badge" size={16} />
     </span>
   );
 }

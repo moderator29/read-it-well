@@ -372,6 +372,27 @@
     color: var(--nf-content-secondary);
   }
 
+  /*
+   * The one link a refusal is allowed to carry, inside the sentence that
+   * earned it. Underlined rather than coloured alone, because it sits on a
+   * warning plate whose own ink is already a colour and rule 13 says colour
+   * is never the only signal.
+   */
+  .nf-auth__notice-link {
+    font-weight: 650;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .nf-auth__notice-link:hover {
+    text-decoration-thickness: 2px;
+  }
+  .nf-auth__notice-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-sm);
+  }
+
   /* The stage settles rather than snapping in; reduced motion shows it whole. */
   .nf-auth__brand,
   .nf-auth__card,
@@ -424,7 +445,29 @@
    * icon and wordmark are glass renders and keep their halo, as every glass
    * object does on paper.
    */
+  /*
+   * THE AURORA STAYS ON PAPER, AT PAPER'S OWN EXPOSURE.
+   *
+   * It was `display: none`, so the one photographic ground the design
+   * direction assigns to auth (section 3.6, the blue-wave plate behind the
+   * door) existed in one theme only and the light sign-in was a lockup and a
+   * card pasted on flat grey. Rule 7 is that light is a DESIGNED twin, not a
+   * derivation, and deleting the ground is a derivation with a step missing.
+   *
+   * Kept, dimmed, and over the paper canvas rather than under a dark scrim:
+   * the plate reads as a tint in the corners of a bright page instead of a
+   * photograph competing with black body copy. The media scrim `::after`
+   * adds goes, because it is a dark gradient and its whole job was holding
+   * white text off a bright picture, which is not the problem on paper.
+   */
   :root[data-theme="light"] .nf-auth__plate {
+    /* 0.12, read off a 390px shot rather than picked. The plate is a dark
+       blue wave, so at 0.18 the top third of the page came back grey and the
+       screen read as a dimmed photograph; at 0.12 it reads as paper carrying
+       a tint, which is the ground the card and the lockup want. */
+    opacity: 0.12;
+  }
+  :root[data-theme="light"] .nf-auth__plate::after {
     display: none;
   }
   :root[data-theme="light"] .nf-auth__card {
@@ -437,10 +480,18 @@
   :root[data-theme="light"] .nf-auth__card::before {
     display: none;
   }
+  /*
+   * THE PODIUM'S ELLIPSE GOES ON PAPER, AND ITS REFLECTION STAYS.
+   *
+   * The ring was `--nf-border-default` over a wash, which on a near-white
+   * page draws a stray grey oval under the card with nothing inside it: the
+   * shape is a dark-theme REFLECTION, light caught on a glass plinth, and
+   * paper has no reflection to catch. R1 finding A22. The soft gradient
+   * beneath it survives, because that reads as the card's own contact shadow
+   * on the page rather than as a drawn object.
+   */
   :root[data-theme="light"] .nf-auth__podium::before {
-    border-color: var(--nf-border-default);
-    background: radial-gradient(ellipse at 50% 50%, var(--nf-wash-4), transparent 70%);
-    box-shadow: none;
+    display: none;
   }
   :root[data-theme="light"] .nf-auth__podium::after {
     background: linear-gradient(180deg, var(--nf-wash-3), transparent 90%);
@@ -454,18 +505,54 @@
     background: var(--nf-content-primary);
     color: var(--nf-surface-primary);
   }
+  /*
+   * THE LANGUAGE CONTROL WAS WHITE ON WHITE. It drew `--nf-surface-primary`,
+   * which IS pure white on paper, inside a 13 per cent grey hairline, on a
+   * page whose canvas is #F4F5F7 - so on the first screen a new account ever
+   * sees, the only control in the top corner was very nearly invisible
+   * (R1 finding A22). It takes the same paper twin as every other icon-sized
+   * control now: the brand tint, the brand edge, and a contact shadow rather
+   * than a lift.
+   */
   :root[data-theme="light"] .nf-auth__lang .nf-btn.nf-btn--primary {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
+    background: var(--nf-brand-tint-1);
+    border-color: var(--nf-brand-edge);
+    color: var(--nf-content-primary);
+    box-shadow: 0 1px 2px var(--nf-shade-1);
   }
   :root[data-theme="light"] .nf-auth__notice {
     background: var(--nf-brand-tint-1);
     border-color: var(--nf-border-default);
   }
-  :root[data-theme="light"] .nf-auth__icon,
+  /*
+   * THE APP TILE GETS A GROUND ON PAPER, which is as far as CSS honestly
+   * reaches here.
+   *
+   * `vallo-icon.png` is a photographic glass render on a near-black tile, and
+   * on a pale page it reads as a black square somebody pasted there
+   * (R1 finding A22). `Logo.tsx` settles what may and may not be done about
+   * that: "an ink version of a photographic glass render is a new render, not
+   * a filter". So the artwork is not filtered, recoloured or inverted. What
+   * it is given is what R1 asked for and what a filter cannot fake: a seat.
+   * The tint and the ring sit BEHIND the render at its own radius, so the
+   * tile lands on a surface that belongs to the page rather than floating on
+   * it, and the halo becomes a contact shadow because a glow on white is a
+   * smudge.
+   *
+   * THE WORDMARK IS NOT FIXED BY THIS and is left honest rather than fudged.
+   * `vallo-wordmark.png` is chrome-blue 3D artwork with its highlights baked
+   * in; it needs a light twin asset, which is a render and not a stylesheet
+   * change. Its halo comes off, since that was the one thing making it worse.
+   */
+  :root[data-theme="light"] .nf-auth__icon {
+    padding: var(--nf-space-2xs);
+    background: var(--nf-brand-tint-1);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    box-shadow: 0 2px 8px var(--nf-shade-1);
+    filter: none;
+  }
   :root[data-theme="light"] .nf-auth__wordmark {
-    filter: drop-shadow(0 4px 14px var(--nf-glow-2));
+    filter: none;
   }
 }
 

@@ -1185,22 +1185,24 @@
   /* On paper the brand fill and the quiet ink are the same blue, so the
      ring's travelling arc needs its own tint to be seen moving. */
   /*
-   * THE SPINNER WAS INVISIBLE ON PAPER, and it took three attempts to find
-   * out why, so the finding is written down rather than the third attempt.
+   * THE SPINNER IS INVISIBLE ON PAPER AND THIS RULE DOES NOT FIX IT, because
+   * the cause is not in this file. Written down because the next person will
+   * otherwise spend the same hour.
    *
-   * The rule here was `:root[data-theme="light"] .nf-ai__ring`, which is one
-   * attribute and one class. Something later in the light cascade reaches the
-   * same element at the same weight and wins on source order: measured, the
-   * ring's computed border in light was `rgba(18, 21, 26, 0.08)`, which is
-   * `--nf-border-subtle`, a value this rule never mentions and the base rule
-   * never mentions either. A 3 per cent grey ring on a white pill on a white
-   * page is nothing at all, and this is the control that says the assistant
-   * is working.
+   * Measured on the running page: the ring's computed border in light is
+   * `rgba(18, 21, 26, 0.08)`, which is `--nf-border-subtle`. Neither this
+   * rule nor the base `.nf-ai__ring` rule mentions that token. The winner is
+   * `* { border-color: var(--nf-border-subtle) }` at `app/css/base.css:11`,
+   * which that file's own header says is DELIBERATELY UNLAYERED. Unlayered
+   * declarations outrank everything inside `@layer`, whatever its specificity,
+   * so no `border-color` written in a layer lands anywhere in this product.
+   * Every lit brand edge in the tree is really a grey hairline with a glow
+   * around it, which is R1's A5 seen from underneath.
    *
-   * Qualifying by the pill it lives in raises the weight by one class, which
-   * is the honest fix rather than a repeated selector or an `!important`.
-   * The track is a real tint of the brand and the travelling arc is the full
-   * brand, so the motion reads on paper.
+   * `base.css` is not this scope's to edit, so this rule stays correct and
+   * inert: the track is a real tint of the brand, the travelling arc is the
+   * full brand, and both start painting the moment the universal rule is
+   * scoped or layered. Reported rather than worked around with `!important`.
    */
   :root[data-theme="light"] .nf-ai__thinking .nf-ai__ring {
     border-color: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);

@@ -239,19 +239,19 @@ export function avatarPublicUrl(supabaseUrl: string, storagePath: string): strin
 
 /* ------------------------------------------------------------------- deletion */
 
-export const DELETE_CONFIRM_PHRASE = "DELETE MY ACCOUNT";
-
-export const deleteAccountSchema = z.object({
-  confirmPhrase: z
-    .string({ message: `Type ${DELETE_CONFIRM_PHRASE} to confirm.` })
-    .trim()
-    .refine(
-      (value) => value === DELETE_CONFIRM_PHRASE,
-      `Type ${DELETE_CONFIRM_PHRASE} exactly, in capitals, to confirm.`,
-    ),
-});
-
-export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+/*
+ * DELETION LIVES IN `lib/account-deletion`, AND IT LIVES THERE ONCE.
+ *
+ * `DELETE_CONFIRM_PHRASE` and `deleteAccountSchema` used to be declared here
+ * as well, word for word. Nothing imported this copy any more: the panel and
+ * the action both read `lib/account-deletion/constants.ts` and
+ * `lib/account-deletion/schema.ts`. A second copy of a confirmation phrase is
+ * not redundant, it is a trap with a delay on it: the day somebody changes
+ * the words a person has to type, they change one of the two, the form keeps
+ * validating against the other, and the failure is an account that cannot be
+ * deleted or one that deletes on the wrong words. Deleted rather than
+ * re-exported, because a re-export is still a second name for it.
+ */
 
 /* ---------------------------------------------------------------- name helpers */
 

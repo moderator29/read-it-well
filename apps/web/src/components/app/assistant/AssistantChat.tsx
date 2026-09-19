@@ -39,6 +39,7 @@ import {
   type Message,
   type Thread,
 } from "./threads";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * Vallo AI, to its governing image (`docs/design/references/BF49B814`).
@@ -660,8 +661,13 @@ export function AssistantChat({
                         {viewer.avatarUrl ? (
                           /* A storage URL signed for this reader, so next/image
                              would only add a hop to a link that expires. */
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={viewer.avatarUrl} alt="" width={36} height={36} />
+                          <RemoteImage
+                            src={viewer.avatarUrl}
+                            alt=""
+                            width={72}
+                            height={72}
+                            sizes="36px"
+                          />
                         ) : (
                           viewer.initials
                         )}

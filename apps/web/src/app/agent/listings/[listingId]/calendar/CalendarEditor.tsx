@@ -7,6 +7,7 @@ import { blockNights, unblockNights } from "@/lib/agent/calendar-actions";
 import { monthGrid, countNights } from "@/lib/agent/calendar-schema";
 import type { CalendarNight, CalendarSubject } from "@/lib/agent/calendar-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { EmptyState } from "@/components/app/Screen";
 
 /**
  * The host's calendar.
@@ -100,8 +101,32 @@ export function CalendarEditor({
     (openState && !openState.ok && openState.error) ||
     null;
 
+  /*
+   * THE FIRST RUN, WHICH IS EVERY LISTING ON THE DAY IT IS MADE.
+   *
+   * `nights` carries only what is closed or booked, so an empty array is not a
+   * failure and not a blank screen: it is a calendar with every date open. The
+   * grid still has to be here, because the grid IS the tool and hiding it would
+   * take away the one thing this screen does. What was missing was any word
+   * about it at the top. A host opening this for the first time met a legend,
+   * four identical grey months, and the only instruction four screens further
+   * down, past the scroll. So on a calendar with nothing on it yet this says
+   * what is not there, why, and what to do next, above the grid it is about,
+   * and it goes away for good the moment one night is closed or booked.
+   */
+  const untouched = nights.length === 0;
+
   return (
     <div>
+      {untouched && (
+        <EmptyState
+          icon="calendar-grid"
+          title="No nights closed yet"
+          body="Every date on this listing is open and nothing is booked, so a guest can ask for any of them. Tap a night below to start a run, then tap another to finish it."
+          data-testid="calendar-empty"
+        />
+      )}
+
       <ul className="mb-md flex flex-wrap items-center gap-x-md gap-y-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         <Key className="bg-[var(--nf-surface-raised)]" label="Open" />
         <Key className="bg-[var(--nf-brand-primary)]" label="Closed by you" />
@@ -244,7 +269,10 @@ export function CalendarEditor({
         </div>
       )}
 
-      {!from && (
+      {/* Suppressed on a first run: the empty state above has already said how
+          to start, and the locked-booking half of this sentence is about
+          nights that do not exist yet on a calendar with nothing booked. */}
+      {!from && !untouched && (
         <p className="mt-lg flex items-start gap-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           <UiIcon name="calendar-booking" size={16} className="mt-3xs shrink-0" />
           Tap a night to start, then tap another to finish the run. A night with

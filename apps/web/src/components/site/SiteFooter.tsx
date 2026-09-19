@@ -175,12 +175,26 @@ export function SiteFooter({ t }: { t: Dictionary }) {
           <p className="nf-caption">
             &copy; <span className="nf-numeric">{year}</span> {face.footer.legalName}. {f.rights}
           </p>
+          {/*
+            DELETE ACCOUNT SITS BESIDE PRIVACY AND TERMS, AND IT IS A STORE
+            REQUIREMENT RATHER THAN A COURTESY.
+
+            Google Play will not pass a submission without a publicly
+            reachable page that explains how to request account deletion and
+            what is destroyed against what is kept, and a reviewer looks for
+            it in the legal line at the foot of the site. `/delete-account`
+            has been built and live in `app/(site)` and linked from nowhere,
+            which is the same as not having it.
+          */}
           <p className="nf-caption flex flex-wrap gap-group">
             <Link href="/terms" className="nf-site-footer-link">
               {f.terms}
             </Link>
             <Link href="/privacy" className="nf-site-footer-link">
               {f.privacy}
+            </Link>
+            <Link href="/delete-account" className="nf-site-footer-link">
+              {f.deleteAccount}
             </Link>
           </p>
         </div>

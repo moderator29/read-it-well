@@ -34,23 +34,39 @@ export const onRequestError: Instrumentation.onRequestError = async (
   _request,
   context,
 ) => {
-  // The edge runtime gets the same treatment; `fetch` and `AbortSignal` are
-  // both present there. The import is dynamic so that nothing pulls the
-  // reporter, or `server-only`, into a build that never hits this path.
-  const { reportError } = await import("@/lib/observability/report");
+  /*
+   * Wrapped, and the try/catch is not decoration.
+   *
+   * This function runs INSIDE a failure that has already happened. If the
+   * dynamic import fails in some runtime, or the reporter throws on a shape
+   * nobody anticipated, the result would be a second error raised from
+   * inside the handler for the first, which is how one broken route becomes
+   * an unreadable log. `reportError` already returns rather than throws;
+   * this is the belt to that pair of braces.
+   *
+   * The import is dynamic so that nothing pulls the reporter, or
+   * `server-only`, into a runtime that never reaches this path. The edge
+   * runtime gets the same treatment: `fetch` and `AbortSignal` are both
+   * present there.
+   */
+  try {
+    const { reportError } = await import("@/lib/observability/report");
 
-  await reportError({
-    error,
-    level: "error",
-    context: {
-      kind: "server.request",
-      // The PATTERN, from Next's own context, never `request.path`.
-      routePath: context.routePath,
-      routerKind: context.routerKind,
-      routeType: context.routeType,
-      renderSource: context.renderSource,
-      revalidateReason: context.revalidateReason,
-      runtime: process.env.NEXT_RUNTIME ?? "server",
-    },
-  });
+    await reportError({
+      error,
+      level: "error",
+      context: {
+        kind: "server.request",
+        // The PATTERN, from Next's own context, never `request.path`.
+        routePath: context.routePath,
+        routerKind: context.routerKind,
+        routeType: context.routeType,
+        renderSource: context.renderSource,
+        revalidateReason: context.revalidateReason,
+        runtime: process.env.NEXT_RUNTIME ?? "server",
+      },
+    });
+  } catch {
+    // Silence on purpose. See above.
+  }
 };

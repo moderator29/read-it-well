@@ -725,4 +725,55 @@
       transform: scaleX(1);
     }
   }
+
+  /*
+   * THE ONE SCRIM FOR TEXT ON PHOTOGRAPHY.
+   *
+   * White type on a sunlit highlight is unreadable at any size, and this
+   * product sets labels on photography in at least four places: the landing
+   * hero, the landing's category tiles, the home for-sale band and every
+   * `MediaFrame` a caption is printed over. Each of those grew, or was about
+   * to grow, its own local gradient, and R1 filed the same finding twice
+   * (A6 and A11) against two of them.
+   *
+   * ONE DEFINITION, AND IT HAS NO EDGE. A rectangle with a hard boundary
+   * reads as a dark slab laid on a picture, which is worse than the problem:
+   * the landing hero shipped that for one stint and the entrance rise gave it
+   * away, because for a few hundred milliseconds there was a slab with no
+   * words on it. A radial that reaches full transparency INSIDE its own box
+   * has no boundary to see, so there is nothing to notice whether the words
+   * have arrived yet or not.
+   *
+   * The ink is weighted to the left and the foot because that is where text
+   * sits in every one of those four surfaces, and `--nf-landing-ink` is the
+   * one deep value the product already uses for ink over photography.
+   *
+   * Apply it to an absolutely positioned, `aria-hidden` element inside the
+   * frame, beneath the text. It is `pointer-events: none` so it can never
+   * take a tap from the control underneath it.
+   */
+  .nf-photo-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      135% 120% at 14% 52%,
+      color-mix(in oklab, var(--nf-landing-ink) 84%, transparent) 0%,
+      color-mix(in oklab, var(--nf-landing-ink) 60%, transparent) 36%,
+      color-mix(in oklab, var(--nf-landing-ink) 24%, transparent) 58%,
+      transparent 74%
+    );
+  }
+  /* The foot variant: for a tile whose picture must stay bright at the top
+     and whose label sits in the bottom strip, such as the landing's category
+     grid. Same ink, weighted down the page rather than across it. */
+  .nf-photo-scrim--foot {
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-landing-ink) 14%, transparent) 0%,
+      transparent 26%,
+      color-mix(in oklab, var(--nf-landing-ink) 58%, transparent) 54%,
+      color-mix(in oklab, var(--nf-landing-ink) 95%, transparent) 100%
+    );
+  }
 }

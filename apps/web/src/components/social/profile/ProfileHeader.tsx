@@ -7,6 +7,7 @@ import { BackChevron } from "./BackChevron";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
 import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
 import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * The top of a person's page.
@@ -116,8 +117,16 @@ export function ProfileHeader({
           /* The bucket is public, so the CDN URL renders without a signed
              request. next/image is skipped for it: one image from a host that
              only exists once the platform keys land. The plate IS optimised. */
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={profile.coverUrl} alt="" className="nf-social-cover__photo" />
+          /* The largest image on the page, into a band about 140px tall. It
+             was shipping at whatever size the uploader stored. */
+          <RemoteImage
+            src={profile.coverUrl}
+            alt=""
+            width={1200}
+            height={400}
+            sizes="(max-width: 640px) 100vw, 640px"
+            className="nf-social-cover__photo"
+          />
         ) : (
           <Image
             src={COVER_PLATE}
@@ -143,8 +152,13 @@ export function ProfileHeader({
         <div className="nf-profile-avatar">
           <span className="nf-profile-avatar__disc">
             {profile.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatarUrl} alt={`${name}, profile photo`} />
+              <RemoteImage
+                src={profile.avatarUrl}
+                alt={`${name}, profile photo`}
+                width={192}
+                height={192}
+                sizes="96px"
+              />
             ) : (
               <span aria-hidden="true">{monogram}</span>
             )}
@@ -154,7 +168,7 @@ export function ProfileHeader({
               else gets a mark there. */}
           {profile.isAgent ? (
             <span className="nf-profile-avatar__badge" aria-hidden="true">
-              <UiIcon name="verified" size={16} filled />
+              <UiIcon name="verified-badge" size={16} />
             </span>
           ) : null}
         </div>
@@ -170,7 +184,7 @@ export function ProfileHeader({
                   aria-label={copy.verified}
                   role="img"
                 >
-                  <UiIcon name="verified" size={18} filled />
+                  <UiIcon name="verified-badge" size={18} />
                 </span>
               ) : null}
             </h1>

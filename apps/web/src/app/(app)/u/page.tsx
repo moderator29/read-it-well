@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { findPeople } from "@/lib/social/people-queries";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 export const dynamic = "force-dynamic";
 
@@ -133,8 +134,13 @@ export default async function PeoplePage({
               <Link href={`/u/${person.handle}`} className="nf-people__who">
                 <span className="nf-people__avatar">
                   {person.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={person.avatarUrl} alt="" />
+                    <RemoteImage
+                      src={person.avatarUrl}
+                      alt=""
+                      width={96}
+                      height={96}
+                      sizes="48px"
+                    />
                   ) : (
                     <span aria-hidden="true">
                       {person.displayLabel.charAt(0).toUpperCase()}

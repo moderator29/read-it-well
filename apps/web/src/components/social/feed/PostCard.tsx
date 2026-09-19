@@ -7,6 +7,7 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { PostBody } from "./PostBody";
 import { Tombstone } from "./Tombstone";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * A post.
@@ -138,8 +139,16 @@ function Avatar({ author }: { author: PostAuthor | null }) {
          * the whole feed rather than a missing picture; Google alone serves
          * avatars from four shards.
          */
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={author.avatarPath} alt="" width={44} height={44} loading="lazy" decoding="async" />
+        /* 44px on screen. A twenty-post feed was fetching twenty full
+           uploads for it. */
+        <RemoteImage
+          src={author.avatarPath}
+          alt=""
+          width={88}
+          height={88}
+          sizes="44px"
+          loading="lazy"
+        />
       ) : (
         <span className="nf-post__monogram">{initial}</span>
       )}
@@ -356,7 +365,7 @@ export function PostCard({
                     aria-label="Verified agent"
                     role="img"
                   >
-                    <UiIcon name="verified" size={16} filled />
+                    <UiIcon name="verified-badge" size={16} />
                   </span>
                 ) : null}
                 {post.author?.moderatorOf ? (
@@ -434,8 +443,7 @@ export function PostCard({
       {post.media.length > 0 ? (
         <div className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}>
           {post.media.slice(0, 4).map((picture, index) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <RemoteImage
               key={picture.url}
               src={picture.url}
               alt={
@@ -443,8 +451,16 @@ export function PostCard({
                   ? `Picture ${index + 1} of ${post.media.length} on this post`
                   : "The picture on this post"
               }
+              width={picture.width || 1200}
+              height={picture.height || 900}
+              /* One across, or two, or a quarter, depending on how many the
+                 post carries. The grid class says which. */
+              sizes={
+                post.media.length === 1
+                  ? "(max-width: 640px) 100vw, 640px"
+                  : "(max-width: 640px) 50vw, 320px"
+              }
               loading="lazy"
-              decoding="async"
             />
           ))}
         </div>

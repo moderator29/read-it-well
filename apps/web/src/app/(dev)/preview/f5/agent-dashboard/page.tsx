@@ -59,11 +59,13 @@ export default async function PreviewAgentDashboard() {
       }}
     >
       {/*
-        NO STAT TILE ROW. It was four `StatCard`s from fixtures, and the route
-        does not render them: `RealDashboard` is the whole dashboard. A proof
-        that shows something the surface does not have proves nothing, so the
-        tiles are gone and `components/agent/StatCard.tsx` is reported as
-        unused rather than kept alive by its own screenshot.
+        NO STAT TILE ROW. It was four stat tiles built from fixtures, and the
+        route does not render them: `RealDashboard` is the whole dashboard. A
+        proof that shows something the surface does not have proves nothing.
+        The tiles went, the component they were built from turned out to have
+        no caller anywhere in the product once its own screenshot stopped
+        propping it up, and it has since been deleted. This note is what is
+        left of it, so nobody reintroduces the row to fill the space.
       */}
       <RealDashboard
         t={t}

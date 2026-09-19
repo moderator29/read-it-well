@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { TrendingItem } from "@/lib/app/home-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * What people are actually reading, in the reader's own city.
@@ -69,12 +70,12 @@ export function TrendingStrip({
                     /* Private object, read through a short-lived signed URL, so
                        next/image would only add a second hop to a URL that has
                        already expired by the time it is cached. */
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <RemoteImage
                       src={item.imageUrl}
                       alt=""
-                      width={56}
-                      height={56}
+                      width={112}
+                      height={112}
+                      sizes="56px"
                       className="h-full w-full object-cover"
                     />
                   ) : (

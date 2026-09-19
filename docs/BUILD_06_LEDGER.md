@@ -698,6 +698,16 @@ currency style clamps it up and turned ₦45k into ₦45.0k.
    an example. So the email rule now bans the harm rather than the nouns, and
    both surfaces are held to one standard. If you want the stricter rule
    instead, it has to apply to the property half as well.
+8. TWO DASHBOARD TOGGLES ONLY YOU CAN SET, both one click and both worth it.
+   LEAKED PASSWORD PROTECTION is disabled on the Supabase project. It checks a
+   new password against HaveIBeenPwned and refuses one that is already in a
+   breach corpus. On a platform holding a naira wallet it is the cheapest
+   security win available and it cannot be set through the API from here.
+   Second, the SIGN-IN LOCKUP HAS NO LIGHT ASSET: `vallo-wordmark.png` is a
+   photographic glass render built for a dark ground, and the rule that an ink
+   version of a photographic render is a new render rather than a filter means
+   nobody here can make one. It needs a light twin rendered, or a ruling that
+   the auth screen stays dark in both themes.
 
 ---
 
@@ -802,8 +812,15 @@ is believed.
 scope"), `npx eslint src`, `node scripts/check-css-tokens.mjs`,
 `npx vitest run`, and `npx next build`. The fifth is not optional: skipping
 it took production down for twenty minutes in this build (section 7.0).
-A "use server" module may export async functions and nothing else, not even
-a type re-export; any worker touching one says so in its report.
+A "use server" module may export async functions and may DECLARE types. It may
+not carry an export STATEMENT for anything else, and `export type { X }` is
+such a statement: tsc erases it and Turbopack still asks the actions manifest
+for an id that is not there. That one line took production down for twenty
+minutes. A type DECLARED inside the module is erased whole and stays legal;
+nineteen modules in this tree do it. The earlier wording here read "async
+functions and nothing else, not even a type re-export", which invited the
+opposite reading and cost a worker a stint chasing a defect that was not one
+(11.14). Any worker touching a "use server" module says so in its report.
 
 ---
 
@@ -1168,3 +1185,232 @@ representative's personal columns scrubbed and no precondition requiring a
 transfer, where a published listing has one. And a moderation `reports` row is
 retained pseudonymised: a safety record about somebody else, keyed to a now
 anonymous reporter, which is in neither of the founder's two lists.
+
+### 11.11 A signed URL does not go in `remotePatterns`, and the reason is the whole point of signing it
+
+O1 swept the raw `<img>` tags and found the one it could not close: the chat
+photographs in `ThreadView.tsx`, which are served by `createSignedUrls` as
+`/storage/v1/object/sign/...?token=...`. That host path is not in
+`next.config.ts`'s `remotePatterns`, and `next/image` THROWS on an unlisted
+host, which would be a 500 on every route drawing one. The same shape applies
+to KYC documents and social post media.
+
+THE OBVIOUS FIX IS WRONG AND MUST NOT BE MADE. Adding the sign path to
+`remotePatterns` would work, and it would quietly undo the signature. Next's
+optimiser caches the result under a key derived from the full source URL, and
+serves it from `/_next/image?url=<the signed url, encoded>&w=...&q=...`. Three
+consequences, each bad on its own: that address is shareable and carries the
+token in plain sight; the cached artefact outlives the token, so a grant that
+was meant to expire becomes permanent; and the token lands in every CDN access
+log the request passes through. For a chat photograph that is a privacy
+failure. For a KYC document it is a regulated-data failure.
+
+THE CORRECT FIX, and it is real work rather than a config line. A same-origin
+route handler that resolves the session, authorises the reader against the row
+that owns the object, and streams it. A relative `src` needs no
+`remotePatterns` entry at all, so `next/image` optimises it freely, the token
+never leaves the server, and the authorisation is ours rather than a signature
+with a clock on it. It also gives the one place to put a cache header that is
+correct for private media.
+
+Until that lands, the chat photographs stay raw and unoptimised, which is a
+bandwidth cost on the exact users who can least afford it, and it is the
+honest trade against handing out a permanent link to a private photograph.
+
+### 11.12 Two things the image sweep found that were not about images
+
+**The brand mark is 614 by 587 and was declared square.** Read off the PNG
+header, and confirmed independently: `vallo-mark.png` is not square.
+`LogoMark` declared `width={size} height={size}`, which is two faults in one
+line. It logged an aspect warning on every route that draws the logo, which is
+all of them, and anywhere a stylesheet honoured the square the mark was drawn
+FOUR AND A HALF PER CENT TALLER THAN THE ARTWORK. The suggested fix of
+`style={{ width: "auto" }}` would have silenced the warning and left the
+stretch. The intrinsic shape is now declared, `app/loading.tsx` no longer
+squares it, and `.nf-wait__mark` no longer squares it a second time. The first
+thing a stranger meets on the slowest page in the product was a stretched
+logo.
+
+**Four files carried a comment saying the storage bucket is outside the image
+optimiser's allowed hosts.** It has not been true since the Supabase host was
+derived into `remotePatterns`. The comments outlived the config, and the
+product kept serving full-resolution uploads into 84 and 128 pixel thumbnails
+because of a line nobody rechecked. A comment that states a fact about another
+file is a claim, and it rots exactly like code.
+
+### 11.13 The unread mark is its own token now
+
+The bell's dot was `--nf-status-pending`, whose daylight twin is `#0E6E8C`, so
+it rendered TEAL-GREEN on paper: a bell wearing the success colour, saying
+"all good" where it meant "you have unread", with colour the only thing saying
+anything at all.
+
+AN UNREAD MARK IS NOT A STATE. Nothing is pending, nothing failed and nothing
+succeeded; something is simply there and has not been seen. Borrowing a state
+colour is how it inherited a daylight value tuned for a different meaning.
+`--nf-mark-unread` is now its own token in both themes, rose, which is what all
+three governing renders draw and what everybody who has ever used a phone reads
+as "there is something here". Rule 8 still holds: rose is the error token's
+colour, and this is not the error token. It is named for what it means and can
+be tuned without touching either. #C10E32 on paper, 6.22:1 on white.
+
+### 11.14 CORRECTED. A type DECLARATION in a `"use server"` module is legal, and this entry was wrong
+
+**WHAT THIS ENTRY SAID FIRST, AND WHY IT WAS WRONG.** It recorded that
+`lib/auth/actions.ts` was exporting four types from a `"use server"` module
+and called that a second instance of the outage defect, caught by reading
+before a build caught it. That is not what happened, and the worker who
+reported it went back, probed the rule rather than believing its own reading,
+and told me so unprompted. This is the corrected entry; the wrong one is
+quoted above rather than quietly replaced, because a ledger that edits its own
+mistakes out is worth less than one that keeps them.
+
+**THE DISTINCTION, WHICH IS SHARP AND WHICH 10.7 STATED TOO LOOSELY.**
+
+```ts
+export type Thing = { a: string };   // DECLARATION. Legal. Erased whole.
+export type { Thing };               // RE-EXPORT STATEMENT. Breaks the build.
+```
+
+A type declared inside the module is erased by the compiler and no export
+statement survives into what the bundler reads. A re-export is a STATEMENT:
+tsc erases it, and Turbopack still asks the server-actions manifest for an id
+that is not there. Only the second one took production down.
+
+The evidence, probed rather than read. A synthetic `"use server"` module
+carrying all four shapes reports exactly two: the re-export and the exported
+const. It stays silent on the type declaration and on the async function.
+Reproducing the four exports that were actually in `lib/auth/actions.ts`, all
+of them declarations, eslint reports nothing, correctly. **Nineteen other
+`"use server"` modules in this tree do the same thing**, including
+`lib/wallet/actions.ts` with five of them, and production is green.
+
+So B3's `nf/server-actions-export-only-actions` rule was not silent on its own
+case. It was correctly silent on a non-case, and it reports zero across the
+tree, which is the number its own header predicts.
+
+**10.7's WORDING IS AMENDED** from "async functions and nothing else, not even
+a type re-export" to the sharper form: **a `"use server"` module may export
+async functions and may DECLARE types; it may not carry an export STATEMENT
+for anything else, and `export type { X }` is such a statement.** The old
+wording read as though "nothing else" covered declarations and the re-export
+clause were emphasis. It is the reverse: the re-export clause IS the rule.
+
+**THE MOVE STANDS ANYWAY, as a tidy-up and not as a fix.**
+`lib/auth/form-state.ts` needs to exist for an independent reason: the
+deactivated-sign-in notice and the form state it extends have to be testable,
+and a helper inside a `"use server"` file can never be reached by a test.
+
+**THE FAULT FAMILY, recorded because it caught a careful worker in the same
+session it was quoted at them.** `check-css-tokens.mjs` opens by saying its
+author reported one of these to their own coordinator as live code, in a
+report about this exact fault, and that knowing about the family does not
+protect you. Here the ledger's own imprecise wording became the premise, the
+premise became a finding, and the finding became a ledger entry, which would
+have made the imprecision permanent. It was caught only because a worker
+re-checked a claim it had already been thanked for.
+
+`account-purge` is now in `WATCHED_JOBS`, which is unrelated to the above and
+is true. It was scheduled and reporting and unwatched, and it is the job where
+silence costs most: a deletion request carries a thirty day clock somebody was
+told about in writing, and the only thing honouring it is this job firing. A
+purge that quietly stops is a promise quietly broken, and nobody outside will
+notice, because the people waiting on it have already left.
+
+
+### 11.15 The security advisor, run after the day's migrations, and what it actually found
+
+Run on the live project after all seven migrations landed. Thirty findings,
+triaged one by one rather than counted.
+
+**THE ONE THAT MATTERED, AND IT CAME BACK CLEAN.** Twenty-three SECURITY
+DEFINER functions are callable by `authenticated` over `/rest/v1/rpc/`, eight
+of them named `admin_*` or doing admin work: retiring example listings,
+reading revenue, resolving an escrow, reviewing a KYC document, setting a fee
+rate, looking a user up by email. If any one of those trusted the caller
+rather than checking them, any signed-in person could call it over REST and
+the platform would have a privilege escalation. **Every single one guards
+internally**, checked by reading each definition for a role check rather than
+by trusting the pattern: `admin_expire_stale_withdrawal_holds`,
+`admin_payment_health`, `admin_retire_demo_listings`, `admin_revenue_summary`,
+`admin_user_id_by_email`, `escrow_admin_resolve`, `review_kyc_document` and
+`set_fee_rate` all refuse a caller without the role. The advisor is reporting
+exposure, not a hole.
+
+The unguarded remainder are all correctly user-scoped: `end_session`,
+`end_other_sessions`, `my_sessions`, `current_agent_id` and all four escrow
+verbs read `auth.uid()` and act only on the caller's own rows.
+`agent_trust(uuid)` takes any uuid and is anon-callable, and that is intended:
+it returns a public reputation summary for an agent, and nothing at all for a
+uuid that is not one. `platform_stats()` is anon-callable because the landing
+band reads it unauthenticated.
+
+**WHAT WAS CLOSED.** Both example-refusal trigger functions were reachable at
+`/rest/v1/rpc/`, one of them by `anon`. A trigger function has no meaning
+outside a trigger and a direct call can only raise, so nothing was
+exploitable. It is closed anyway, because an entry point that exists by
+accident is how a real one gets lost in the noise, and a checklist that has
+learnt to ignore two warnings has learnt to ignore the third. Migration
+`20260919190000`, probed: neither client role can call either function, and
+the example refusal still fires on an ordinary update, because Postgres does
+not check EXECUTE when firing a trigger.
+
+**THE ASYMMETRY WORTH REMEMBERING.** The business guard was reachable and the
+listing guard was not, for one reason: the business one was CREATED today, and
+Supabase ships `alter default privileges ... grant all on functions to anon,
+authenticated`, so **every new function in this estate is born public**. The
+listing one was a `create or replace` and kept its existing grants. Every
+migration from here revokes the default grant on any function it creates, and
+B4's finding about the same default on 80 tables is the same fact wearing a
+different hat.
+
+**LEFT ALONE, WITH REASONS.** `idempotency_records`, `platform_revenue` and
+`rate_limits` have RLS enabled and no policies, which the advisor rates INFO.
+That is the correct shape for a service-role-only table: RLS on with no policy
+denies every client role by default, which is stronger than a policy nobody
+has read. `verification_is_required` is already B4's parked migration.
+
+**FOR THE FOUNDER, added to section 9.** Leaked password protection is
+disabled. Supabase checks a new password against HaveIBeenPwned and refuses a
+known-compromised one. It is one toggle in the dashboard, it costs nothing, it
+cannot be set from here, and on a platform holding a naira wallet it is the
+cheapest security win available.
+
+### 11.16 THE THIRD REASON THE HARNESS LIED, AND WHY TWO FIXES DID NOT SHOW IT
+
+Three separate faults produced one indistinguishable symptom today: a fullpage
+proof of a marketing page coming back as the hero and then thousands of pixels
+of empty navy. Each was found, fixed, and believed to be the cause.
+
+1. **No `backdrop-filter`.** Headless Chromium here has no GPU and drops the
+   property silently, so every glass surface painted as a flat wash. Fixed
+   with SwiftShader flags at `04e874b`.
+2. **The Content Security Policy refused Turbopack's own dev chunks.**
+   `strict-dynamic` with a nonce the HMR runtime does not carry, so hydration
+   never completed and no mount effect ever ran. Fixed in `csp.ts`, for
+   development only.
+3. **`window.scrollTo(0, y)` DOES NOTHING.** `base.css` sets
+   `html { scroll-behavior: smooth }`. A smooth scroll is an animation, and in
+   headless Chromium with no compositor the animation never advances, so the
+   call returns having moved nothing. It does not throw and it does not warn:
+   `window.scrollY` reads 0 immediately after, at 80ms and at 500ms, while a
+   real wheel gesture of the same distance scrolls normally. F2 measured
+   exactly that after confirming the CSP fix was live on the wire and the
+   bands were STILL blank.
+
+The prime loop in `verify-desktop.mjs` is built on `window.scrollTo(0, y)`, so
+it primed nothing and no IntersectionObserver below the fold fired, whatever
+the other two faults were doing. It now passes `behavior: "instant"`, which
+opts out of the CSS smooth behaviour for that call only.
+
+**AND IT NOW CHECKS ITSELF.** After the prime it counts `.nf-reveal` nodes and
+how many are actually visible, and prints a warning naming the shortfall when
+they do not match. A harness that cannot tell whether it primed is a harness
+that will lie a fourth time. This is the rule from 11.9 made mechanical: an
+instrument that has never been checked against a known answer is not evidence,
+so the instrument now answers for itself in every shot it takes.
+
+The lesson that cost the most here is not any of the three faults. It is that
+after fixing the first, and again after fixing the second, the symptom was
+unchanged and nobody read that as "there is another cause". One fault per
+symptom is an assumption, not an observation.

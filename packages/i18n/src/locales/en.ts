@@ -840,6 +840,11 @@ export const en = {
       contact: "Contact",
       privacy: "Privacy",
       terms: "Terms",
+      /* THE STORE BLOCKER. Google Play requires a publicly reachable page
+         explaining how to request account deletion, and a reviewer looks for
+         it beside Privacy and Terms rather than hunting for it. `/delete-account`
+         has been live and unlinked; this is the line that makes it findable. */
+      deleteAccount: "Delete account",
       docs: "Docs",
       becomeAgent: "Become an agent",
     },

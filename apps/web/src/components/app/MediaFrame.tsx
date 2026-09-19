@@ -531,6 +531,7 @@ export function MediaFrame({
   ghost = false,
   sizes = "(max-width: 640px) 50vw, 33vw",
   priority = false,
+  scrim = false,
 }: {
   hue: number;
   index?: number;
@@ -544,6 +545,22 @@ export function MediaFrame({
   sizes?: string;
   /** The first hero on a page is above the fold and may preload. */
   priority?: boolean;
+  /**
+   * Lay the shared `.nf-photo-scrim` over the frame, for a surface that
+   * prints text on top of it (R1's E12).
+   *
+   * WHY IT IS A PROP AND NOT AUTOMATIC. E12 asked for the frame to apply the
+   * scrim whenever it is given children, which would make it impossible to
+   * forget. This component takes no children: it is an `aria-hidden`
+   * absolutely positioned background and every caller paints its own text as
+   * a SIBLING above it, so the frame cannot see whether anything is printed
+   * over it. Changing that would mean rewriting six call sites that belong to
+   * other scopes. So the frame owns the scrim and the caller says when it
+   * needs one, which at least means there is one definition of the gradient
+   * rather than six. The automatic half is still owed and is recorded as
+   * such.
+   */
+  scrim?: boolean;
   /**
    * Draw the scene as a quiet ghost behind something else.
    *
@@ -596,6 +613,7 @@ export function MediaFrame({
       ) : (
         <MediaSkyline hue={hue + index} kind={kind} opacity={ghost ? GHOST_OPACITY : undefined} />
       )}
+      {scrim && <div className="nf-photo-scrim" />}
     </div>
   );
 }

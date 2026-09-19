@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
-import type { AuthFormState } from "@/lib/auth/actions";
+import type { AuthFormState } from "@/lib/auth/form-state";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
 import type { StateOption } from "@/lib/places/reference";
@@ -300,6 +300,21 @@ export function EmailAuthForm({
             className="mt-4 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
           >
             {state.message}
+            {/*
+              THE WAY OUT, when the refusal has one and it is somewhere else.
+              Inside the alert rather than under it, so a screen reader that
+              has just been handed the sentence is handed the link with it
+              rather than reaching it only by moving on. Nothing renders when
+              no action is set, which is every refusal but one.
+            */}
+            {state.action && (
+              <>
+                {" "}
+                <Link href={state.action.href} className="nf-auth__notice-link">
+                  {state.action.label}
+                </Link>
+              </>
+            )}
           </p>
         )}
 

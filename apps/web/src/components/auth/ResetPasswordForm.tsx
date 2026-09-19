@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
-import type { AuthFormState } from "@/lib/auth/actions";
+import type { AuthFormState } from "@/lib/auth/form-state";
 import { updatePassword } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/Button";
 import { PasswordField, StrengthMeter } from "./fields";

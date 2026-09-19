@@ -5,6 +5,7 @@ import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import { STORY_COPY } from "@/lib/social/stories-schema";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 type RailTab = "stories" | "updates";
 const RAIL_TABS: readonly RailTab[] = ["stories", "updates"] as const;
@@ -107,8 +108,14 @@ export function StoryRail({
                 <Link href={`/stories/${story.id}`} className="nf-story-rail__card">
                   <span className="nf-story-rail__thumb">
                     {story.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={story.imageUrl} alt="" loading="lazy" />
+                      <RemoteImage
+                        src={story.imageUrl}
+                        alt=""
+                        width={160}
+                        height={160}
+                        sizes="80px"
+                        loading="lazy"
+                      />
                     ) : (
                       <span className="nf-story-plate__art" aria-hidden="true" />
                     )}

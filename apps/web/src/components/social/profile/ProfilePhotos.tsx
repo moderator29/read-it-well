@@ -9,6 +9,7 @@ import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { reencodeToJpeg } from "./reencode";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * The cover, and the photo of you.
@@ -168,8 +169,14 @@ export function ProfilePhotos({
     <section className="nf-card nf-social-card overflow-hidden">
       <div className="relative h-[7.5rem] sm:h-[9rem]">
         {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt="" className="nf-social-cover__photo" />
+          <RemoteImage
+            src={cover}
+            alt=""
+            width={1200}
+            height={400}
+            sizes="(max-width: 640px) 100vw, 640px"
+            className="nf-social-cover__photo"
+          />
         ) : (
           <div className="nf-social-cover__art" aria-hidden="true" />
         )}
@@ -216,8 +223,7 @@ export function ProfilePhotos({
           className="nf-social-avatar -mt-xl cursor-pointer"
         >
           {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt="" />
+            <RemoteImage src={avatar} alt="" width={160} height={160} sizes="80px" />
           ) : (
             monogram
           )}

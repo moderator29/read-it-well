@@ -106,8 +106,8 @@ export default async function ContactPage({
               are answered before anything else.
             </p>
             <div className="mt-heading flex flex-wrap items-center justify-center gap-inline">
-              <span className="nf-chip">Answered by a person</span>
-              <span className="nf-chip">English, Yorùbá, Hausa, Igbo</span>
+              <span className="nf-site-badge">Answered by a person</span>
+              <span className="nf-site-badge">English, Yorùbá, Hausa, Igbo</span>
             </div>
           </div>
         </Reveal>

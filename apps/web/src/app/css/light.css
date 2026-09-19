@@ -82,35 +82,82 @@
    * `--nf-elev-1` under an inset fill is the contradiction that made the chip
    * read as a card in the first place, one layer down.
    */
-  :root[data-theme="light"] .nf-chip,
-  :root[data-theme="light"] .nf-icon-btn {
+  /*
+   * ------------------------------------------------------------------
+   * THE FILL ARGUMENT ABOVE STANDS. THE BORDER IT CHOSE DOES NOT.
+   *
+   * Everything the note says about direction is right and is kept: a control
+   * separates from its ground by being lighter or darker than it, paper has
+   * nothing lighter than the page, so a chip that lifts at night sets into
+   * the surface by day. The fill stays `--nf-surface-inset` and the drop
+   * shadow stays gone.
+   *
+   * What does not survive is the border. It is `--nf-border-subtle`, 8 per
+   * cent ink, and the dark chip was swept to `--nf-brand-edge-soft` on the
+   * strength of `founder/GOVERNING-search-filters-target.png`, which draws
+   * seventeen chips with a soft blue outline on every resting one. That left
+   * the two themes disagreeing about the edge of the same control, which
+   * Master Rule 7 forbids in the direction that matters: light is a designed
+   * twin with the same ANATOMY, and a blue outline by night with a grey one
+   * by day is two anatomies.
+   *
+   * The note's fear does not apply. It kept the edge neutral so that blue on
+   * a chip could mean "this filter is ON", and on paper selection has never
+   * been an edge at all: the rule forty lines below fills the selected chip
+   * solid brand with white ink, and has since it was written. A soft blue
+   * resting edge cannot be confused with a solid blue plate. The distance
+   * between them is far larger than the distance the note was protecting.
+   *
+   * THE ICON BUTTON SPLITS OFF HERE, and that is the second half.
+   *
+   * It was sharing this rule, so `box-shadow: none` took away the lit
+   * composition `.nf-icon-btn` wears at night - the brand ring and its near
+   * bloom - and `--nf-border-subtle` took away the ring itself. The result is
+   * R1 finding A23: on paper every header plate and icon button is a grey
+   * square, and a 390px light shot of the app header shows the hamburger and
+   * the bell reading as disabled. A control that disappears on one theme is a
+   * worse fault than any dull edge.
+   *
+   * It is NOT recessed, and that is why it cannot share the chip's rule. The
+   * chip's argument is about a filter sitting ON A CARD; the header's icon
+   * buttons sit on the page itself, and the references draw them as lit
+   * plates. The paper twin of a lit plate is a brand-tinted plate with a
+   * brand edge and a soft brand lift - the same anatomy, at paper's own
+   * exposure, with no bloom, because a bloom on white is a smudge.
+   * ------------------------------------------------------------------
+   */
+  :root[data-theme="light"] .nf-chip {
     background: var(--nf-surface-inset);
-    border-color: var(--nf-border-subtle);
+    border-color: var(--nf-brand-edge-soft);
     color: var(--nf-content-primary);
     box-shadow: none;
   }
+  :root[data-theme="light"] .nf-icon-btn {
+    background: var(--nf-brand-tint-1);
+    border-color: var(--nf-brand-edge);
+    color: var(--nf-content-primary);
+    box-shadow: 0 1px 2px var(--nf-shade-1);
+  }
   /*
-   * HOVER IS NEUTRAL ON PAPER TOO, and it was the brand edge.
+   * HOVER RISES TO THE PAGE, which is the note above's idea and is kept: a
+   * recessed control answers a pointer by coming UP to meet it, so the fill
+   * travels from the inset grey to the page's own white and nothing is cast.
    *
-   * The night chip was rebuilt so that the brand colour on a chip's edge means
-   * exactly one thing: this filter is ON. Leaving daylight's hover on
-   * `--nf-brand-edge` would have kept the older meaning alive in the theme half
-   * the users are in - a pointer passing over a chip would have given it the
-   * same signal as selecting it, one step quieter - which is the ambiguity the
-   * night change removed. Selection is blue; hover is not.
-   *
-   * AND HOVER RISES TO THE PAGE RATHER THAN LIFTING OFF IT. It was
-   * `box-shadow: var(--nf-elev-2)`, a drop shadow, which was coherent while the
-   * chip was a little white card and is not now that it is set into the surface.
-   * A recessed control answers a pointer by coming UP to meet it, so the fill
-   * travels from the inset grey to the page's own white and the hairline
-   * darkens. Nothing is cast, because nothing has left the surface.
+   * The EDGE now goes one rung up the same blue rather than to a darker grey.
+   * The note kept it neutral so hover could not be mistaken for selection,
+   * and that reasoning went with the resting edge: selection on paper is a
+   * solid brand plate with white ink, so a hairline one rung brighter cannot
+   * be read as it. A grey hover between a blue resting edge and a blue fill
+   * would be a flash of a third material for no reason.
    */
   @media (hover: hover) {
-    :root[data-theme="light"] .nf-chip:hover,
+    :root[data-theme="light"] .nf-chip:hover {
+      background: var(--nf-surface-primary);
+      border-color: var(--nf-brand-edge);
+    }
     :root[data-theme="light"] .nf-icon-btn:hover {
       background: var(--nf-surface-primary);
-      border-color: var(--nf-border-strong);
+      border-color: var(--nf-brand-edge-strong);
     }
   }
   /* Active filter chips go solid brand blue with white text, table-header

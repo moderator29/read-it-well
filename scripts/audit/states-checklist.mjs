@@ -29,7 +29,7 @@
  */
 
 import path from "node:path";
-import { ts, APP, walkFiles, read, parse, rel, exists, heading } from "./lib/tsx.mjs";
+import { ts, APP, SRC, walkFiles, read, parse, rel, exists, heading } from "./lib/tsx.mjs";
 
 const argv = process.argv.slice(2);
 const AS_JSON = argv.includes("--json");
@@ -45,11 +45,83 @@ const ONLY_GAPS = argv.includes("--gaps");
 const ALL = walkFiles(APP, [".tsx"]).filter((f) => !f.endsWith(".test.tsx"));
 const TEXT = new Map(ALL.map((f) => [f, read(f)]));
 
-/* Files that make up one surface: the page plus the view components that live
-   beside it in the same route folder and below it. */
+/*
+ * Files that make up one surface: the page, plus the view files that live in
+ * its own route folder.
+ *
+ * TWO CORRECTIONS, both of which were making this script report the opposite
+ * of the truth. They are written out because a checking script that lies is
+ * worse than no script, and both faults are the kind that come back.
+ *
+ * ONE: IT USED TO SWALLOW NESTED ROUTES. `f.startsWith(dir)` takes everything
+ * below the folder, and everything below a route folder includes OTHER ROUTES.
+ * `/profile/setup` renders a two-item constant and reads nothing at all, and
+ * it was reported as a data surface with no empty state because the script was
+ * reading `/profile/setup/[role]/page.tsx` as part of it. A nested page.tsx is
+ * a different surface with its own row in this table, so the walk now stops at
+ * the segment boundary.
+ *
+ * TWO: IT COULD ONLY SEE VIEWS THAT HAPPENED TO SIT IN THE ROUTE FOLDER.
+ * Where a page's view component lives is a filing decision, not a design one,
+ * and this script was grading the filing. `/listing/[id]` draws a full
+ * `EmptyState` for a listing with no reviews and `/messages/share/[kind]/[id]`
+ * draws one for an account with no conversations to share into; both were
+ * reported as drawing nothing, because `ListingReviews.tsx` is under
+ * `components/` and `SharePicker.tsx` is one folder up. So the surface now
+ * also carries what the page DIRECTLY IMPORTS, one hop, project files only.
+ *
+ * One hop and no further, deliberately. Two hops reaches the shared primitives
+ * and then every page that imports `Screen.tsx` for its type scale inherits the
+ * definition of `EmptyState` and passes. The imported files are also matched
+ * with a stricter rule (below): the component has to be RENDERED there, not
+ * merely defined or exported.
+ */
 function surfaceFiles(pageFile) {
   const dir = path.dirname(pageFile) + path.sep;
-  return ALL.filter((f) => f.startsWith(dir));
+  return ALL.filter((f) => {
+    if (!f.startsWith(dir)) return false;
+    const inner = f.slice(dir.length);
+    const segments = inner.split(path.sep);
+    /* A file in a subfolder that has its own page.tsx belongs to that surface. */
+    for (let i = 1; i < segments.length; i += 1) {
+      const nested = path.join(dir, ...segments.slice(0, i), "page.tsx");
+      if (TEXT.has(nested)) return false;
+    }
+    return true;
+  });
+}
+
+const EXT_TRIES = [".tsx", ".ts", "/index.tsx", "/index.ts"];
+const IMPORT_RE = /\bfrom\s*["']([^"']+)["']/g;
+
+/** `@/x` and `./x` to a real file under src, or null for a package import. */
+function resolveImport(spec, fromFile) {
+  let base;
+  if (spec.startsWith("@/")) base = path.join(SRC, spec.slice(2));
+  else if (spec.startsWith(".")) base = path.resolve(path.dirname(fromFile), spec);
+  else return null;
+  for (const ext of EXT_TRIES) {
+    const candidate = base + ext;
+    if (exists(candidate)) return candidate;
+  }
+  return null;
+}
+
+const VIEW_CACHE = new Map();
+function viewText(files) {
+  const seen = new Set(files);
+  const out = [];
+  for (const file of files) {
+    const text = TEXT.get(file) ?? "";
+    for (const match of text.matchAll(IMPORT_RE)) {
+      const target = resolveImport(match[1], file);
+      if (!target || !target.endsWith(".tsx") || seen.has(target)) continue;
+      seen.add(target);
+      if (!VIEW_CACHE.has(target)) VIEW_CACHE.set(target, read(target));
+      out.push({ file: target, text: VIEW_CACHE.get(target) });
+    }
+  }
+  return out;
 }
 
 function urlFor(file) {
@@ -74,7 +146,107 @@ function nearestRouteFile(pageFile, name) {
 
 const DESIGNED_EMPTY =
   /\b(EmptyState|EmptyActions|emptyMessage|emptyTitle|Unreachable|ResultScreen|QueueEmpty|Tombstone)\b/;
-const ANY_EMPTY_BRANCH = /\.length\s*===\s*0|\.length\s*<\s*1|!\w+\.length|\blength\s*\?\s/;
+/*
+ * The same names, but RENDERED rather than merely mentioned.
+ *
+ * This is the rule applied to a file the page imports rather than to the page
+ * itself, and the difference matters: `components/app/Screen.tsx` is where
+ * `EmptyState` is declared, so the loose rule above would pass every surface
+ * that imports that module for its type scale. A `<EmptyState` in an imported
+ * view is that view drawing one.
+ */
+const RENDERS_EMPTY =
+  /<\s*(EmptyState|EmptyActions|Unreachable|ResultScreen|QueueEmpty|Tombstone)\b|\bempty(?:Message|Title)\s*[:=]/;
+/*
+ * The accidental shape: the code knows the collection can be empty and answers
+ * by leaving the section out.
+ *
+ * `\.length\s*>\s*0\s*&&` was missing, which is the commonest spelling of it
+ * in this tree, so a surface written that way was reported as having no empty
+ * handling at all rather than as accidental. `/settings` was on the FAIL list
+ * for `blockers.length > 0 && (...)` - the list of things stopping an account
+ * being deleted, whose empty case is the happy path and correctly shows
+ * nothing. The script's own documentation has always called this shape
+ * accidental rather than missing; only the pattern disagreed.
+ */
+const ANY_EMPTY_BRANCH =
+  /\.length\s*===\s*0|\.length\s*<\s*1|!\w+\.length|\blength\s*\?\s|\.length\s*(?:>\s*0|>=\s*1)?\s*&&/;
+
+/*
+ * A LENGTH TERNARY WHOSE EMPTY SIDE DRAWS SOMETHING.
+ *
+ * The regex above knows `xs.length === 0` and `!xs.length`. It does not know
+ * `xs.length > 0 ? <the list/> : <what to say instead/>`, which is the single
+ * most common shape a real empty state takes in this tree, and every surface
+ * written that way was being reported as drawing nothing. `/restaurant/[id]`
+ * says in plain words that a venue has published no hours, and this script
+ * called it a hole.
+ *
+ * Text cannot answer this: the question is which branch of the ternary is the
+ * empty one and whether that branch renders or is `null`. So this one check
+ * builds a syntax tree, for the handful of files that reach it, and reads the
+ * branch. `null`, `undefined`, an empty fragment and an empty string are
+ * omissions; anything else is a drawn empty state.
+ */
+/*
+ * The condition has to be an EMPTINESS test and nothing else.
+ *
+ * The first cut of this asked only whether the condition mentioned `.length`,
+ * and `/agent/settings` promptly passed on
+ * `accounts.length === 1 ? "one account" : "you have N accounts"`, which is a
+ * plural, not an empty state. Zero and one-or-more, in the five spellings this
+ * tree uses, and no other number.
+ */
+const EMPTINESS_TEST =
+  /^\s*!?\s*[\w.?[\]()]+\.length\s*(?:(?:===?|!==?)\s*0|<\s*1|>\s*0|>=\s*1)?\s*$/;
+/** A bare truthiness guard: `detail`, `read.ok`, `data?.rows`. */
+const NULL_GUARD = /^\s*!?\s*[\w.?[\]()]+\s*$/;
+
+/**
+ * `detail && detail.windows.length > 0` is an emptiness test with a null guard
+ * in front of it, and it is how half this tree writes the check. The guards
+ * are stripped and the last operand is the test.
+ */
+function isEmptinessTest(condition) {
+  const parts = condition.split("&&");
+  const last = parts.pop();
+  if (!EMPTINESS_TEST.test(last)) return false;
+  return parts.every((part) => NULL_GUARD.test(part));
+}
+
+/** Which side of the ternary is the empty case. */
+const EMPTY_IS_TRUE_BRANCH = /\.length\s*(?:===?\s*0|<\s*1)\s*$|^\s*!/;
+const NOT_DRAWN = /^(null|undefined|""|''|``|<>\s*<\/>|<\/?>\s*<\/>)$/;
+
+function drawnEmptyBranch(file, text) {
+  let sourceFile;
+  try {
+    sourceFile = parse(file, text);
+  } catch {
+    return null;
+  }
+  let found = null;
+  const visit = (node) => {
+    if (found) return;
+    if (ts.isConditionalExpression(node)) {
+      const condition = node.condition.getText(sourceFile);
+      if (isEmptinessTest(condition)) {
+        const branch = EMPTY_IS_TRUE_BRANCH.test(condition.trim()) ? node.whenTrue : node.whenFalse;
+        const drawn = branch.getText(sourceFile).trim();
+        /* And the branch has to RENDER. A string on the empty side of a
+           ternary is a sentence somewhere in a paragraph, not a state. */
+        if (!NOT_DRAWN.test(drawn) && drawn.includes("<")) {
+          found = RENDERS_EMPTY.test(drawn) || DESIGNED_EMPTY.test(drawn)
+            ? "a named state component on the empty branch"
+            : "a drawn branch for the empty case";
+        }
+      }
+    }
+    if (!found) ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(sourceFile, visit);
+  return found;
+}
 const DESIGNED_LOADING = /\b(Skeleton|ScreenSkeleton|SkeletonCard|Ske|nf-skeleton|nf-spinner|loading\s*[:=])\b/;
 const DESIGNED_ERROR = /state="error"|tone="error"|role="alert"|\bErrorState\b|!result\.ok|!read\.ok|\.ok\s*===\s*false/;
 const SIGNED_OUT =
@@ -90,6 +262,45 @@ const SIGNED_OUT =
 const READS_DATA =
   /\bawait\s+(list|get|read|fetch|load|search|count)\w*\(|from\(["'`]|\.select\(|createClient\(/;
 const RENDERS_LIST = /\b\w+s\.map\(|\bitems\.map\(|\brows\.map\(|\bentries\.map\(|\bresults\.map\(/;
+
+/*
+ * ...AND THE MAP HAS TO PRODUCE A VIEW.
+ *
+ * `/settings` was on the gap list because `interests.map(t => label).join(", ")`
+ * matched the pattern above. That is a sentence being assembled, not a
+ * collection being rendered, and the settings index is a fixed list of rows
+ * with no empty state to design. A map whose callback returns JSX is the thing
+ * this report is actually about.
+ */
+function rendersACollection(files) {
+  for (const file of files) {
+    const text = TEXT.get(file) ?? "";
+    if (!RENDERS_LIST.test(text)) continue;
+    let sourceFile;
+    try {
+      sourceFile = parse(file, text);
+    } catch {
+      return true; /* unparseable: keep the surface on the list rather than off it */
+    }
+    let found = false;
+    const visit = (node) => {
+      if (found) return;
+      if (
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        node.expression.name.getText(sourceFile) === "map" &&
+        node.arguments.length > 0
+      ) {
+        const body = node.arguments[0].getText(sourceFile);
+        if (/<[A-Za-z>]/.test(body)) found = true;
+      }
+      if (!found) ts.forEachChild(node, visit);
+    };
+    ts.forEachChild(sourceFile, visit);
+    if (found) return true;
+  }
+  return false;
+}
 
 /* Public by design: a marketing page, a legal page, the auth screens and the
    offline shell have no signed-out state to design because that IS the state. */
@@ -123,12 +334,37 @@ for (const page of pages) {
           ? { has: true, quality: "designed", how: "skeleton or spinner in the view" }
           : { has: false, quality: "none", how: "" };
 
-  const readsData = READS_DATA.test(text) && RENDERS_LIST.test(text);
-  const empty = DESIGNED_EMPTY.test(text)
+  const readsData = READS_DATA.test(text) && RENDERS_LIST.test(text) && rendersACollection(files);
+
+  /*
+   * The order is deliberate, cheapest and most certain first. A named state
+   * component in the surface's own files, then one rendered in a view the page
+   * imports, then a ternary whose empty side draws, then the `&&` that merely
+   * omits the section, then nothing.
+   */
+  let empty = DESIGNED_EMPTY.test(text)
     ? { has: true, quality: "designed", how: "EmptyState / emptyMessage / ResultScreen" }
-    : ANY_EMPTY_BRANCH.test(text)
+    : null;
+  if (!empty) {
+    for (const view of viewText(files)) {
+      if (!RENDERS_EMPTY.test(view.text)) continue;
+      empty = { has: true, quality: "designed", how: `an empty state in ${rel(view.file)}` };
+      break;
+    }
+  }
+  if (!empty) {
+    for (const file of files) {
+      const drawn = drawnEmptyBranch(file, TEXT.get(file) ?? "");
+      if (!drawn) continue;
+      empty = { has: true, quality: "designed", how: `${drawn}, ${rel(file)}` };
+      break;
+    }
+  }
+  if (!empty) {
+    empty = ANY_EMPTY_BRANCH.test(text)
       ? { has: true, quality: "accidental", how: "a length check that omits the section" }
       : { has: false, quality: "none", how: "" };
+  }
 
   const error = errorFile
     ? { has: true, quality: "designed", how: errorFile }

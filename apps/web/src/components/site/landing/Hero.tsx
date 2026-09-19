@@ -51,6 +51,11 @@ export function Hero({
 
       <div className="nf-shell nf-landing-hero-body">
         <div className="nf-landing-hero-copy flex flex-col gap-heading">
+          {/* The shared scrim (utilities.css), not a landing-local gradient:
+              white type on the villa's lit glazing is unreadable without it,
+              and the same class does the same job on the category tiles and
+              on any other surface that sets a label on photography. */}
+          <div className="nf-photo-scrim" aria-hidden="true" />
           {/* Each crumb is one unbreakable word and the separator belongs to
               the crumb before it (R1 finding A7): as a leading `::before` on
               the following item, a wrap at 390 put a bare slash at the head

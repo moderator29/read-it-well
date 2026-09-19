@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SiteHead } from "@/components/site/SiteHead";
-import { Button } from "@/components/ui/Button";
+import { ButtonSpecimens } from "./ButtonSpecimens";
 import { Chip } from "@/components/ui/Chip";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { Skeleton, SkeletonText, SkeletonCard } from "@/components/ui/Skeleton";
@@ -30,9 +30,15 @@ export const metadata: Metadata = {
  * stops painting rather than as a page that quietly keeps lying.
  *
  * The controls are the real primitives, imported and rendered. Not screenshots,
- * not copies. If `Button` grows a variant, it appears here the moment the union
- * below is extended, and if a variant is removed the build fails on this file,
- * which is the correct place for that to hurt.
+ * not copies. If `Button` grows a variant, it appears here the moment the list
+ * in `ButtonSpecimens.tsx` is extended, and if a variant is removed the build
+ * fails on that file, which is the correct place for that to hurt.
+ *
+ * AND THEY WORK. A specimen you cannot press is a picture of a control, not a
+ * specimen of one; `ButtonSpecimens.tsx` carries the whole argument, and the
+ * list of variants moved there with the behaviour that makes it true. It had
+ * drifted, too: the button union grew a sixth variant, `glass`, and this page
+ * was still drawing five while claiming it could not drift.
  *
  * Noindex, because this is for the people building the platform.
  */
@@ -100,14 +106,6 @@ function SwatchRow({
     </li>
   );
 }
-
-const BUTTON_VARIANTS = [
-  "primary",
-  "secondary",
-  "ghost",
-  "danger",
-  "dangerQuiet",
-] as const;
 
 const STATUS_TONES: StatusTone[] = [
   "success",
@@ -228,33 +226,9 @@ export default function StyleguidePage() {
 
       <Section
         title="Buttons"
-        blurb="Five variants and three heights, 44, 48 and 56px. No other button heights exist on this platform. Every one of these is the real primitive, so a variant added to Button appears here and a variant removed breaks this file, which is the right place for that to hurt."
+        blurb="Six variants and three heights, 44, 48 and 56px. No other button heights exist on this platform. Every one of these is the real primitive and every one of them works: press a specimen and it copies the line that draws it, and the two states have a switch each rather than a frozen picture."
       >
-        <div className="nf-card space-y-heading p-card-sm">
-          {(["sm", "md", "lg"] as const).map((size) => (
-            <div key={size}>
-              <p className="nf-overline mb-inline">{size}</p>
-              <div className="flex flex-wrap items-center gap-row">
-                {BUTTON_VARIANTS.map((variant) => (
-                  <Button key={variant} variant={variant} size={size}>
-                    {variant}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ))}
-          <div>
-            <p className="nf-overline mb-inline">Loading and disabled</p>
-            <div className="flex flex-wrap items-center gap-row">
-              <Button variant="primary" loading>
-                Working
-              </Button>
-              <Button variant="primary" disabled>
-                Unavailable
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ButtonSpecimens />
       </Section>
 
       <Section

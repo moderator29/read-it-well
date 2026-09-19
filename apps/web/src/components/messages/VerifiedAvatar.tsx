@@ -127,7 +127,7 @@ export function VerifiedAvatar({
         <span
           className={`absolute -bottom-0.5 -right-0.5 grid place-items-center rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-status-verified)] text-[var(--nf-content-on-brand)] ${BADGE[size]}`}
         >
-          <UiIcon name="verified" size={GLYPH[size]} filled label={VERIFIED_LABEL} />
+          <UiIcon name="verified-badge" size={GLYPH[size]} label={VERIFIED_LABEL} />
         </span>
       ) : (
         kind && (

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { VerifyingPanel, type AuthMoment } from "./VerifyingPanel";
-import type { VerificationOutcome } from "@/lib/auth/actions";
+import type { VerificationOutcome } from "@/lib/auth/form-state";
 
 /**
  * The moment after somebody taps the button in their email.
