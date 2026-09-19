@@ -716,9 +716,14 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     </>
   ),
 
-  /* A trend, up and down. Drawn inline in `StatCard` at strokeWidth 3 on an
-     11px box, which renders at 1.4 CSS pixels - heavier than every other glyph
-     beside it and for no reason anybody recorded. */
+  /* A trend, up and down, and now also "one level up" on a place page, where
+     the render needs a glyph that is not the back arrow sitting directly
+     beneath it. It used to be drawn inline inside an agent stat tile at
+     strokeWidth 3 on an 11px box, which rendered at 1.4 CSS pixels, heavier
+     than every other glyph beside it and for no reason anybody recorded. That
+     component turned out to have no caller once its own screenshot stopped
+     propping it up and has been deleted, so this is the only trend arrow left
+     and it is on the scale. */
   "arrow-up": (
     <>
       <path d="M12 19.5v-15" />

@@ -150,7 +150,7 @@ than looking plausible.
   costs a day.
 - [ ] **`apps/web/public/.well-known/apple-app-site-association` needs the Apple Team ID**,
   ten alphanumerics, from Apple Developer, Membership details. The entry must
-  read `<TeamID>.ng.vallo.app`.
+  read `<TeamID>.com.vallospaces.app`.
 
 ### iOS associated domains
 - [ ] `apps/web/ios/App/App/App.entitlements` exists and is deliberately inert:
@@ -159,14 +159,34 @@ than looking plausible.
   ID. The three activation steps are written inside the file.
 
 ### Store listings
-- [ ] Bundle identifier `ng.vallo.app` reserved on both stores. This file said
-  `ng.rentme.app` until 19 September, which is the identifier from before the
-  rename and is wrong in the one way that cannot be undone: a bundle
-  identifier is fixed at first submission. The identifier the code actually
-  carries is `ng.vallo.app`, in `capacitor.config.ts`, `Info.plist` and
-  `AndroidManifest.xml`, and those three are authoritative over this list.
+- [ ] Bundle identifier `com.vallospaces.app` reserved on both stores.
+
+  THE IDENTIFIER HAS CHANGED ONCE AND MUST NEVER CHANGE AGAIN. This file said
+  `ng.rentme.app` until 19 September, which was the name from before the
+  rename. The code then carried `ng.vallo.app`, reverse DNS of a domain that
+  was never registered and has since been dropped. On the founder's word, and
+  only because NO STORE RECORD EXISTS YET on either platform, it is now
+  `com.vallospaces.app`, reverse DNS of the domain we actually own.
+
+  A bundle identifier is fixed at first submission. On Google Play it cannot
+  be changed at all once an app record exists; on Apple it means a new app.
+  So the window for this change was open only until the first store record is
+  created, and it is now closed to further changes.
+
+  `apps/web/src/lib/brand-domain.test.ts` fails if any of the seven places that
+  carry it ever disagree: `capacitor.config.ts`, the Android `namespace` and
+  `applicationId`, the Java package path, `strings.xml`, the iOS
+  `PRODUCT_BUNDLE_IDENTIFIER`, `assetlinks.json` and the Apple App Site
+  Association `appIDs`.
+
+  ENROLMENT, and this is the founder's note to himself rather than an
+  engineering step: enrol on both programmes as the ORGANISATION, VALLO SPACES
+  LTD, using the company registration, never as an individual. Moving an app
+  from a personal account to a company account afterwards is a migration
+  nobody wants, and on Apple it needs both parties and a support case.
+
   `MOBILE_READINESS.md` section 6 is the checklist to follow; this file is
-  background
+  background.
 - [ ] Screenshots at every required device size
 - [ ] Privacy questionnaires. `MOBILE_READINESS.md` section 5 answers them
 - [ ] Age rating questionnaires

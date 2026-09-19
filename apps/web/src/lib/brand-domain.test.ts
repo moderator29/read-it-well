@@ -76,3 +76,99 @@ describe("the brand domain, and the native files that must agree with it", () =>
     }
   });
 });
+
+/**
+ * THE BUNDLE IDENTIFIER, WHICH IS THE ONE STRING IN THIS PRODUCT THAT CAN
+ * NEVER BE CORRECTED.
+ *
+ * A domain can be repointed and a typo in copy can be fixed in an afternoon.
+ * A bundle identifier is fixed at first submission: Google Play will not
+ * change it at all once an app record exists, and Apple treats a change as a
+ * different app. There is no migration and no support case that undoes it.
+ *
+ * It has already been wrong twice. `docs/MOBILE.md` reserved `ng.rentme.app`,
+ * the name from before the rename, until 19 September. The code then carried
+ * `ng.vallo.app`, reverse DNS of a domain that was never registered and has
+ * since been dropped entirely. It is now `com.vallospaces.app`, reverse DNS
+ * of the domain the company actually owns, changed on the founder's word and
+ * only because no store record exists on either platform yet.
+ *
+ * Seven files carry it, in five different syntaxes, and not one of them is
+ * TypeScript, so nothing but this test can notice when they stop agreeing.
+ * The failure mode of a mismatch is not a build error: Gradle will happily
+ * build a package whose `applicationId` disagrees with `assetlinks.json`, and
+ * the only symptom is that Android App Links silently stop verifying and
+ * every shared link opens a browser for ever.
+ */
+describe("the native bundle identifier, which cannot be corrected after first submission", () => {
+  const BUNDLE = "com.vallospaces.app";
+
+  it("is the Android namespace and applicationId", () => {
+    const gradle = read("apps/web/android/app/build.gradle");
+    expect(gradle).toContain(`namespace = "${BUNDLE}"`);
+    expect(gradle).toContain(`applicationId "${BUNDLE}"`);
+  });
+
+  it("is the Java package, and the file sits at the path that package names", () => {
+    /*
+     * Both halves, because they fail independently and only one of them is
+     * loud. A `package` line that disagrees with its directory is a compile
+     * error, so it gets caught; a directory left behind after a rename is
+     * silent dead weight that the next person reads as the real one.
+     */
+    const dir = BUNDLE.split(".").join("/");
+    const activity = read(`apps/web/android/app/src/main/java/${dir}/MainActivity.java`);
+    expect(activity).toContain(`package ${BUNDLE};`);
+  });
+
+  it("is the package name and the custom scheme in strings.xml", () => {
+    const strings = read("apps/web/android/app/src/main/res/values/strings.xml");
+    expect(strings).toContain(`<string name="package_name">${BUNDLE}</string>`);
+    expect(strings).toContain(`<string name="custom_url_scheme">${BUNDLE}</string>`);
+  });
+
+  it("is the Capacitor appId, which is what generates the native projects", () => {
+    expect(read("apps/web/capacitor.config.ts")).toContain(`appId: "${BUNDLE}"`);
+  });
+
+  it("is the iOS product bundle identifier in every build configuration", () => {
+    /*
+     * Every configuration, not the first one found. Debug and Release each
+     * carry their own line, and a rename that caught only one produces an app
+     * whose TestFlight build and App Store build are different apps.
+     */
+    const pbxproj = read("apps/web/ios/App/App.xcodeproj/project.pbxproj");
+    const lines = pbxproj.split("\n").filter((line) => line.includes("PRODUCT_BUNDLE_IDENTIFIER"));
+    expect(lines.length).toBeGreaterThan(0);
+    for (const line of lines) {
+      expect(line, "an iOS build configuration carries a different bundle id").toContain(BUNDLE);
+    }
+  });
+
+  it("is the package Android App Links are signed for", () => {
+    const assetlinks = read("apps/web/public/.well-known/assetlinks.json");
+    expect(assetlinks).toContain(`"package_name": "${BUNDLE}"`);
+  });
+
+  it("is the app the Apple App Site Association names, behind the team id", () => {
+    const aasa = read("apps/web/public/.well-known/apple-app-site-association");
+    expect(aasa).toContain(`.${BUNDLE}"`);
+  });
+
+  it("leaves no trace of either identifier it used to be", () => {
+    for (const path of [
+      "apps/web/android/app/build.gradle",
+      "apps/web/android/app/src/main/AndroidManifest.xml",
+      "apps/web/android/app/src/main/res/values/strings.xml",
+      "apps/web/capacitor.config.ts",
+      "apps/web/ios/App/App.xcodeproj/project.pbxproj",
+      "apps/web/ios/App/App/App.entitlements",
+      "apps/web/public/.well-known/assetlinks.json",
+      "apps/web/public/.well-known/apple-app-site-association",
+    ]) {
+      const body = read(path);
+      expect(body, `${path} still carries ng.vallo.app`).not.toContain("ng.vallo.app");
+      expect(body, `${path} still carries ng.rentme.app`).not.toContain("ng.rentme.app");
+    }
+  });
+});

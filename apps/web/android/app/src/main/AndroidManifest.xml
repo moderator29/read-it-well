@@ -58,7 +58,7 @@
                 back to the browser. That failure is invisible unless somebody
                 goes looking, so verify it deliberately after the first release:
 
-                    adb shell pm get-app-links ng.vallo.app
+                    adb shell pm get-app-links com.vallospaces.app
 
                 and read the state beside each host. Anything other than
                 `verified` almost always means the fingerprint in

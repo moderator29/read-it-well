@@ -60,8 +60,12 @@ export type HoursCopy = { one: string; other: string };
 /**
  * A headline tile.
  *
- * Not `StatCard`, which is the dashboard's tile and requires a signed
- * month-over-month delta on every instance. There is no honest delta available
+ * Not the agent dashboard's stat tile, which required a signed
+ * month-over-month delta on every instance. That component has since been
+ * deleted, because it turned out to have no caller in the product once the
+ * preview screenshot that was keeping it alive stopped drawing it; this note
+ * survives because the REASON it was refused still governs this file. There
+ * is no honest delta available
  * for three of these four figures: a lifetime total has nothing to compare
  * against, a rating moves so slowly that a month's change is mostly noise, and
  * a forward calendar figure has no previous value at all. A tile that demanded

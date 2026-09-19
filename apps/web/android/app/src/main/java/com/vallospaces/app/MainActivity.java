@@ -1,4 +1,4 @@
-package ng.vallo.app;
+package com.vallospaces.app;
 
 import com.getcapacitor.BridgeActivity;
 

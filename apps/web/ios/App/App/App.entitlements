@@ -17,7 +17,7 @@
 	repository.
 
 	1. Apple Developer portal, Certificates Identifiers and Profiles, the App ID
-	   `ng.vallo.app`. Tick Associated Domains, save, and let the provisioning
+	   `com.vallospaces.app`. Tick Associated Domains, save, and let the provisioning
 	   profiles regenerate.
 	2. Xcode, the App target, Signing and Capabilities, the plus button,
 	   Associated Domains. Xcode finds this file at `App/App.entitlements`,
@@ -26,7 +26,7 @@
 	3. Publish `apps/web/public/.well-known/apple-app-site-association` on the
 	   live origin with the real Team ID in it. That file carries an obvious
 	   placeholder today, `PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID`, and the
-	   whole `appIDs` entry has to read `<TeamID>.ng.vallo.app`.
+	   whole `appIDs` entry has to read `<TeamID>.com.vallospaces.app`.
 
 	   The Team ID is ten alphanumeric characters and there are two places to
 	   read it. Apple Developer, Membership details, the field named Team ID.

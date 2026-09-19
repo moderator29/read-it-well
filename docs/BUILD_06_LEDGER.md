@@ -54,11 +54,37 @@ taken, and what needs the founder.
     event deserves, a test proving it. A screen with no write path is a half.
 20. The standard is not "does it work". It is "would a funded design team
     have shipped this, and would someone screenshot it to show a friend".
+21. BORN LOCKED, NEVER BORN PUBLIC. Supabase ships
+    `alter default privileges ... grant all on functions to anon,
+    authenticated`, so EVERY function created in this estate is reachable at
+    `/rest/v1/rpc/<name>` the moment it exists. So every migration that
+    creates a `SECURITY DEFINER` function revokes EXECUTE from `anon` and
+    `authenticated` IN THE SAME MIGRATION, and grants it back only to the
+    roles that genuinely need it, and the probe proves the revoke rather than
+    assuming it. The founder's rule, from the day the security advisor found
+    two trigger functions sitting as public endpoints because one of them had
+    simply been created that morning. A revoke of a grant the function was
+    born with is not the stop list's kind of revoke: it removes nothing
+    anybody ever legitimately had.
+22. THE AUTH SCREEN IS DARK IN BOTH THEMES, PERMANENTLY. The founder's
+    ruling, and it is closed: sign in, sign up and the first-run screens keep
+    the dark register whatever the OS or the theme control says, because that
+    screen sets the register for a money product and every serious one does
+    this. It is not waiting on an asset and it is not reopened. A light ink
+    wordmark is still needed for the surfaces that are genuinely white, email
+    headers, receipts and PDFs, the store listing and print; until that render
+    exists those surfaces use the TEXT wordmark, never a filtered version of
+    the photographic one, because an ink version of a photographic render is
+    a new render and not a filter.
 
 **The stop list, absolute:** merchant-of-record exposure or any float;
 spending money or new paid vendors; destructive database operations (drops,
 data-losing migrations, revokes); git history rewriting; remote branch
-deletion; native app identifiers; `HANDOFF_01` legal ground; writing test rows
+deletion; native app identifiers (STILL ABSOLUTE for every worker: the one
+change ever made to them, `ng.vallo.app` to `com.vallospaces.app` on
+19 September, was made by the lead on the founder's explicit word while no
+store record existed, and that window is now shut); `HANDOFF_01` legal ground;
+writing test rows
 to live product tables; relaxing `messages.sender_id`; rendering any partner
 row before the label and the fulfilment-honest CTA exist; wallet or saved
 cards anywhere in the third-party flow; scraping the CAC portal or anything
@@ -1493,3 +1519,125 @@ The other two instances today: the screenshot harness rendering no
 `backdrop-filter` and then never scrolling, and a lint rule believed silent on
 a case that was not a case. All three are the same failure, which is trusting
 an instrument that has never been checked against a known answer.
+
+---
+
+## 12. The founder's rulings of 19 September, evening, and what each one closed
+
+### 12.1 THE BUNDLE IDENTIFIER IS `com.vallospaces.app`, AND THAT WINDOW IS NOW SHUT
+
+The founder confirmed that no store record exists on either platform, nothing
+has been submitted and neither developer programme has been enrolled in. So
+the identifier changed, in one pass, before anything else touched native.
+
+`ng.vallo.app` was reverse DNS of a domain that was never registered and has
+been dropped. `com.vallospaces.app` is reverse DNS of the domain the company
+owns. Seven places carry it, in five syntaxes, and every one of them moved:
+
+| where | what changed |
+| --- | --- |
+| `capacitor.config.ts` | `appId` |
+| `android/app/build.gradle` | `namespace` and `applicationId` |
+| `android/.../java/**/MainActivity.java` | the `package` line AND the directory it lives in |
+| `android/.../res/values/strings.xml` | `package_name` and `custom_url_scheme` |
+| `ios/App/App.xcodeproj/project.pbxproj` | `PRODUCT_BUNDLE_IDENTIFIER`, both configurations |
+| `public/.well-known/assetlinks.json` | `package_name` |
+| `public/.well-known/apple-app-site-association` | the `appIDs` entry behind the team id |
+
+`brand-domain.test.ts` gained eight assertions covering all seven, including
+that the Java file sits at the path its `package` line names, that EVERY iOS
+build configuration carries it rather than the first one found, and that no
+file anywhere still contains `ng.vallo.app` or `ng.rentme.app`. Fourteen
+assertions in that file now, all passing.
+
+**WHY A TEST AND NOT A NOTE.** None of those seven files is TypeScript. Gradle
+will build a package whose `applicationId` disagrees with `assetlinks.json`
+without a word, and the only symptom is that Android App Links stop verifying
+and every shared link opens a browser for ever. That is the same silent class
+as the domain itself.
+
+**THE WINDOW IS SHUT.** Google Play will not change an application id once an
+app record exists; Apple treats a change as a different app. The stop list's
+ban on touching native identifiers stands for every worker, with this one
+change recorded as the exception it was.
+
+**THE FOUNDER'S NOTE TO HIMSELF, recorded here because he asked for it to be:**
+enrol on both programmes as the ORGANISATION, VALLO SPACES LTD, using the
+company registration, never as an individual. Moving an app from a personal
+account to a company account afterwards is a migration nobody wants, and on
+Apple it needs both parties and a support case.
+
+### 12.2 THE AUTH SCREEN IS DARK IN BOTH THEMES, AND THAT IS CLOSED
+
+The founder's ruling, now rule 22. Sign in, sign up and first run keep the
+dark register whatever the OS or the theme control says. It is the register
+setter for a money product and every serious one does this. It is not waiting
+on an asset and it is not reopened.
+
+This closes R1's A22 as a question rather than as a defect: the sign-in lockup
+staying dark on paper is now correct behaviour, not a bug. What remains of
+A22 is the parts that are genuinely broken in light, the language control
+that was white on white and the missing aurora plate, and F1 has already
+closed both.
+
+A LIGHT INK WORDMARK IS STILL NEEDED, for the surfaces that are genuinely
+white: email headers, receipts and PDFs, the store listing, print. The founder
+is having it made. Until it exists, those surfaces use the TEXT wordmark and
+never a filtered version of the photographic render, because an ink version of
+a photographic render is a new render and not a filter.
+
+### 12.3 BORN LOCKED, NEVER BORN PUBLIC
+
+Now rule 21, and it comes straight out of the security advisor run in 11.15.
+Every migration that creates a `SECURITY DEFINER` function revokes EXECUTE
+from `anon` and `authenticated` in the same migration, grants it back only to
+the roles that need it, and proves the revoke in its probe rather than
+assuming it.
+
+The founder's phrasing is better than mine and is the rule's name.
+
+### 12.4 THE HARNESS IS HONEST NOW, AND HERE IS THE MEASUREMENT THAT SAYS SO
+
+The founder's instruction is that every visual proof taken on 19 September is
+void and no frontend scope closes on one. That is correct, and this is the
+evidence that the next one will be worth something.
+
+Measured on a live dev server, on the landing page, at 1440:
+
+| | before the prime | after the prime |
+| --- | --- | --- |
+| `.nf-reveal` bands visible | 1 of 21 | **21 of 21** |
+| `window.scrollY` after a 4,526px page was primed | 0 | 3,626 |
+| elements resolving `backdrop-filter` | | 10 |
+| console refusals, page errors, websocket failures | | 0 |
+
+And separately, on `/contact`: 246 of 320 elements carry a React fiber, so
+hydration completes.
+
+**THE REPORT THAT SAID HYDRATION NEVER COMPLETES DOES NOT REPRODUCE.** A
+worker reported one element with a fiber, `NEXTJS-PORTAL`, and an HMR socket
+failing, and suspected `proxy.ts`. It also reported, honestly and unprompted,
+that it had written a stale copy of `csp.ts` back over the development branch
+and restored it from a backup taken minutes earlier. Its measurement was
+almost certainly taken against that stale copy. `proxy.ts` needed no change,
+and I did not make one: a fix applied to a fault that does not reproduce is
+just a new fault waiting.
+
+**BOTH HARNESSES NOW REFUSE TO WRITE A SHOT THEY CANNOT STAND BEHIND.**
+`verify-desktop.mjs` counts the reveals after its prime and warns by name when
+they do not all show. `verify-shots.mjs`, which captures the viewport only,
+now FAILS a route outright when a band that is ON SCREEN is still at opacity
+zero, because that means React has not hydrated and the shot is of a page
+nobody meets. It writes no file in that case, so a broken shot cannot be
+mistaken for a proof later.
+
+That is the 11.9 rule made mechanical in both directions: an instrument that
+has never been checked against a known answer is not evidence, so each
+instrument now answers for itself on every shot it takes.
+
+**THE FIRST HONEST PROOF OF THE DAY**, and it shows the cascade fix landing:
+the city chips, the search well, the feature plates and the ghost button all
+carry the lit brand edge on screen, the search pill reads Buy / Rent / Stay
+with no Invest, and the overline reads PROPERTY / STAYS / RESTAURANTS. Those
+are the three things the founder asked for and the three things that could not
+be seen until now.

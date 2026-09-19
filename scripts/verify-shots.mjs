@@ -107,6 +107,30 @@ for (const route of routes) {
       // attribute is set by an inline script that needs no CSS at all. Two
       // light shots went through exactly that way before this line existed.
       sheets: document.styleSheets.length,
+      /*
+       * A THIRD CHECK, EARNED THE HARD WAY.
+       *
+       * Everything below the fold in this product is wrapped in `Reveal`,
+       * which fades a block in from an IntersectionObserver in an effect. An
+       * effect only runs once React has hydrated, and hydration has failed
+       * silently on this machine three separate ways in one day: no
+       * `backdrop-filter` without SwiftShader, a Content Security Policy that
+       * refused the dev server's own script chunks, and a scroll prime that
+       * did nothing because the page sets smooth scrolling and a smooth scroll
+       * is an animation that never advances without a compositor.
+       *
+       * Every one produced the same picture, so two fixes went in before
+       * anybody found the third. This harness shoots the viewport only, so a
+       * band below the fold is not its problem, but a band ON SCREEN sitting
+       * at opacity zero means hydration has not finished and the shot is of a
+       * page nobody will ever see. It is counted here rather than reasoned
+       * about, because reasoning about it is what cost the day.
+       */
+      stuckReveals: Array.from(document.querySelectorAll(".nf-reveal")).filter((el) => {
+        const box = el.getBoundingClientRect();
+        const onScreen = box.top < window.innerHeight && box.bottom > 0;
+        return onScreen && Number(getComputedStyle(el).opacity) < 0.5;
+      }).length,
     }));
 
     if (state.theme !== theme) {
@@ -120,6 +144,13 @@ for (const route of routes) {
       failures += 1;
       console.error(
         `FAILED ${route}: the page loaded no stylesheet, so the shot would be unstyled. Usually a server running against a build that has been replaced. No file written.`,
+      );
+      continue;
+    }
+    if (state.stuckReveals > 0) {
+      failures += 1;
+      console.error(
+        `FAILED ${route}: ${state.stuckReveals} Reveal band(s) are on screen and still invisible, so React has not hydrated and this shot is of a page nobody meets. No file written.`,
       );
       continue;
     }

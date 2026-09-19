@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID.ng.vallo.app"],
+        "appIDs": ["PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID.com.vallospaces.app"],
         "components": [
           {
             "/": "/auth/*",
