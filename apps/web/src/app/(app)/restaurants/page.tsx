@@ -3,6 +3,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { listRestaurants } from "@/lib/stays/queries";
+import { businessCoverUrls } from "@/lib/stays/business-photos";
 import { StayCard } from "@/components/app/stays/StayCard";
 import { stayCardFromListing, type StayCardData } from "@/components/app/stays/stay-card-model";
 import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
@@ -44,6 +45,11 @@ export default async function RestaurantsPage() {
   const savedKeys = savedKeySet(savedPlaces.ok ? savedPlaces.data : []);
   const canSavePlaces = session.state === "signed-in";
 
+  /* The venues' own photographs (P3), in one read for the whole shelf rather
+     than one per card. A venue with none is simply absent from the map and
+     keeps the category plate below, which is labelled as a stand-in. */
+  const covers = await businessCoverUrls(venues.map((venue) => venue.business.id));
+
   const cards: StayCardData[] = [
     ...venues.map<StayCardData>((venue) => ({
       id: venue.business.id,
@@ -52,7 +58,7 @@ export default async function RestaurantsPage() {
       where: [venue.business.area, venue.business.city].filter(Boolean).join(", "),
       kind: "restaurant",
       hue: 0,
-      photo: null,
+      photo: covers.get(venue.business.id) ?? null,
       standIn: restaurantPlate(venue.business.id),
       verified: false,
       isDemo: venue.business.is_demo,

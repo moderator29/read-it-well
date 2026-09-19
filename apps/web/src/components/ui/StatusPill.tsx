@@ -176,7 +176,13 @@ export type StatusPillProps = {
    * word beside it carries the meaning, which on the queue it always does.
    */
   mark?: "shape" | "dot";
-  /** The amended radius law: the render's status pills are capsules. */
+  /**
+   * RETIRED BY THE SHAPE LAW, kept so nothing breaks. A status pill carries a
+   * word, so it is a rounded rectangle. No product surface passes "pill";
+   * only `app/(dev)/preview/g1/` does.
+   *
+   * @deprecated The shape law leaves one control shape. Do not pass "pill".
+   */
   shape?: "control" | "pill";
   className?: string;
   children: ReactNode;

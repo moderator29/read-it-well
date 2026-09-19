@@ -257,6 +257,10 @@ export function AdminTabs({
              the larger number has the answer in the tooltip and the screen
              reader has it in the label.
           */
+          /* KEPT ROUND under the shape law. A count badge is not a control:
+             nothing is pressed here, the disclosure around it is the control and
+             it is a rectangle. Sibling of the reaction dot, which the ruling
+             names as correct. */
           <span
             title={`${waiting} waiting across the console`}
             aria-label={`${waiting} waiting across the console`}

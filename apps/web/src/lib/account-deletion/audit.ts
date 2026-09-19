@@ -31,6 +31,7 @@ export type DeletionAction =
   | "account.deletion.cancelled"
   | "account.deletion.reauth_failed"
   | "account.deletion.purge_started"
+  | "account.deletion.commitments_closed"
   | "account.deletion.purge_storage"
   | "account.deletion.purge_completed"
   | "account.deletion.purge_failed";

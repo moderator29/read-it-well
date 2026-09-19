@@ -410,6 +410,9 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                 className="flex min-h-11 w-full flex-col items-center justify-center gap-xs"
                 title={title}
               >
+                {/* KEPT ROUND: the marker is an indicator, not the control.
+                    The control is the button around it and it carries no radius
+                    of its own. */}
                 <span
                   className="nf-numeric grid h-8 w-8 place-items-center rounded-full text-[var(--nf-text-overline)] font-bold transition-colors sm:h-9 sm:w-9 sm:text-[var(--nf-text-caption)]"
                   style={{

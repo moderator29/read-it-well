@@ -277,13 +277,17 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
           enterKeyHint="send"
           className="nf-field min-w-0 flex-1"
         />
+        {/* Send is a rounded square. GOVERNING-chat-booking-card.png draws this
+            exact control that way, and its header's back, call and overflow
+            buttons with it; the only circles in that image are the avatars. It
+            was `rounded-full`. */}
         <Button
           type="submit"
           variant="primary"
           iconOnly
           aria-label="Send message"
           disabled={!draft.trim() && !pendingImage}
-          className="shrink-0 rounded-full"
+          className="shrink-0 rounded-[var(--nf-radius-control)]"
         >
           <UiIcon name="arrow-right" size={20} className="-rotate-90" />
         </Button>

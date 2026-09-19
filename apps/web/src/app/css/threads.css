@@ -261,14 +261,26 @@
     color: var(--nf-brand-secondary);
   }
 
-  /* A role tag beside a name: Tenant or Agent, on the rental face only. A
-     lit hairline pill on the well, so it labels the person without
-     competing with the verified mark. */
+  /*
+   * A role tag beside a name: Tenant or Agent, on the rental face only. A lit
+   * hairline lozenge on the well, so it labels the person without competing
+   * with the verified mark.
+   *
+   * RECTANGLE, NOT CAPSULE, and this one is a judgement rather than a
+   * mechanical swap, so it is written down. It is a `<span>`: nobody presses
+   * it, so the shape law does not reach it on the word "control" alone. It is
+   * reached on consistency. It is a small text lozenge sitting on the same
+   * screen as the chat card's status badge and its nights chip, both of which
+   * `GOVERNING-chat-booking-card.png` draws as rounded rectangles, and one
+   * capsule left among them reads as a rule somebody forgot rather than a
+   * rule somebody took. If the founder wants the inert labels kept round it
+   * is one token here and two in the card below.
+   */
   .nf-role-tag {
     display: inline-flex;
     align-items: center;
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     font-size: var(--nf-text-overline);
     font-weight: 600;
@@ -444,14 +456,21 @@
    * The badge sits ON a photograph, and a photograph is any colour. The
    * status pill's own fill is a translucent wash, which is right on a panel
    * and washes out over a bright window at dusk, so the badge carries its
-   * own dark plate: the pill keeps its state ink and the plate guarantees
+   * own dark plate: the badge keeps its state ink and the plate guarantees
    * the contrast whatever is behind it.
+   *
+   * THE PLATE WAS A CAPSULE AROUND A RECTANGLE. `StatusPill` defaults to
+   * `shape="control"`, so the badge inside this plate already draws at
+   * `--nf-radius-control`; the plate behind it was at 999px, which put a
+   * stadium behind a rounded rectangle and showed the mismatch at both ends.
+   * `GOVERNING-chat-booking-card.png` draws Confirmed as one rounded
+   * rectangle, and now so does this.
    */
   .nf-chat-card__badge {
     position: absolute;
     top: var(--nf-space-sm);
     right: var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-overlay-media-strong);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
@@ -581,11 +600,13 @@
     color: var(--nf-content-primary);
     font-variant-numeric: tabular-nums;
   }
+  /* The chip beside the price: 3 Nights, or the rental period. A chip, and
+     the shape law names chips, so a rounded rectangle. */
   .nf-chat-card__chip {
     display: inline-flex;
     align-items: center;
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
     font-size: var(--nf-text-overline);
@@ -845,6 +866,18 @@
   .nf-inbox-row__ring > * {
     border-radius: inherit;
   }
+  /*
+   * THE UNREAD COUNT STAYS ROUND, and that is a decision and not an oversight.
+   *
+   * It is not a control: it is a number painted inside `.nf-inbox-row`, which
+   * is the control, and it carries `aria-label` rather than a press. It is the
+   * same family as the story ring's plus badge and the notification dot, which
+   * the shape law exempts by name. `--nf-radius-pill` rather than
+   * `--nf-radius-circle` because it is 22px tall with a floor of 22px WIDE and
+   * grows sideways at two digits: 50% would draw an ellipse the moment the
+   * count reached 10, which is the exact fault the inbox ring above has
+   * already been through.
+   */
   .nf-inbox-row__count {
     display: inline-flex;
     align-items: center;

@@ -1394,6 +1394,12 @@ export const en = {
       losesDevices: "Every device you are signed in on, and every notification.",
       losesFiles:
         "Every file you have uploaded, including any identity or host documents.",
+      /* The founder's ruling of 19 September: a future event is cancelled with
+         notice to everyone attending, never left with a host who has gone.
+         Named here so nobody discovers it afterwards, which is the whole
+         reason it is not a blocker. */
+      losesEvents:
+        "Any event you are hosting that has not happened yet is cancelled, and everybody going is told. Events that have already happened stay, with your name removed.",
       keptTitle: "Kept, with your name removed",
       keepsBookings:
         "Bookings, reservations, wallet entries, payments and payout records. Nigerian anti-money-laundering rules require us to keep transaction records, so these stay on file with your name, email address and telephone number removed.",
@@ -1452,6 +1458,12 @@ export const en = {
       blockerPublishedListings: "You have {count} listing still published.",
       blockerPublishedListingsPlural: "You have {count} listings still published.",
       blockerPublishedListingsCta: "Unpublish or transfer",
+      /* A business may never be orphaned. Two doors, and the link carries
+         both: hand it to somebody who accepts it, or close it. Never an
+         address to email. */
+      blockerOwnedBusinesses: "You run {count} business that is still trading.",
+      blockerOwnedBusinessesPlural: "You run {count} businesses that are still trading.",
+      blockerOwnedBusinessesCta: "Hand it over or close it",
 
       unavailable:
         "We cannot check your account right now, so the delete button is not safe to press. Try again in a moment.",

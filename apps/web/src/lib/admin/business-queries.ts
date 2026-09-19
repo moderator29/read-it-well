@@ -130,6 +130,14 @@ export type BusinessQueueRow = {
   payoutNameMismatch: boolean;
   verificationTier: number;
   verified: boolean;
+  /**
+   * Photographs on the venue itself (`business_photos`, P3), which is the
+   * restaurant spine's only photo table. Shown on the desk because a published
+   * venue with none draws a category plate under a "No photographs yet" chip,
+   * and the reviewer is the person who can chase them for it. NOT a publish
+   * gate: see `publishRestaurant`.
+   */
+  photoCount: number;
   submittedAt: string | null;
   reviewedAt: string | null;
   reviewNotes: string | null;
@@ -239,7 +247,7 @@ export async function getBusinessQueue(
       .map((row) => row.owner_id)
       .filter((id): id is string => Boolean(id));
 
-    const [documents, rungs, accommodations, restaurants, windows, payouts, names] =
+    const [documents, rungs, accommodations, restaurants, windows, photos, payouts, names] =
       await Promise.all([
         admin
           .from("business_documents")
@@ -260,6 +268,7 @@ export async function getBusinessQueue(
           .select("business_id, price_band, cuisines")
           .in("business_id", ids),
         admin.from("service_windows").select("business_id").in("business_id", ids),
+        admin.from("business_photos").select("business_id").in("business_id", ids),
         ownerIds.length > 0
           ? admin
               .from("bank_accounts")
@@ -291,6 +300,11 @@ export async function getBusinessQueue(
     const windowCount = new Map<string, number>();
     for (const row of windows.data ?? []) {
       windowCount.set(row.business_id, (windowCount.get(row.business_id) ?? 0) + 1);
+    }
+
+    const photoCount = new Map<string, number>();
+    for (const row of photos.data ?? []) {
+      photoCount.set(row.business_id, (photoCount.get(row.business_id) ?? 0) + 1);
     }
 
     const rows: BusinessQueueRow[] = page.rows.map((business) => {
@@ -329,6 +343,7 @@ export async function getBusinessQueue(
         ),
         verificationTier: business.verification_tier,
         verified: business.verified,
+        photoCount: photoCount.get(business.id) ?? 0,
         submittedAt: business.submitted_at,
         reviewedAt: business.reviewed_at,
         reviewNotes: business.review_notes,

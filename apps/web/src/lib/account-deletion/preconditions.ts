@@ -15,7 +15,7 @@
  * `formatMoney` at the edge, per the money law.
  */
 
-/** The six numbers the database answers with, exactly as they arrive. */
+/** The seven numbers the database answers with, exactly as they arrive. */
 export type BlockerReading = {
   /** Spendable kobo. Must be zero. */
   walletBalanceMinor: number;
@@ -25,6 +25,12 @@ export type BlockerReading = {
   activeReservations: number;
   pendingPayouts: number;
   publishedListings: number;
+  /**
+   * First-party businesses of theirs a stranger can still transact against:
+   * published, bookable, expected tonight, or still owed money. A draft
+   * nobody can find is not one of them.
+   */
+  ownedBusinesses: number;
 };
 
 export const EMPTY_READING: BlockerReading = {
@@ -34,6 +40,7 @@ export const EMPTY_READING: BlockerReading = {
   activeReservations: 0,
   pendingPayouts: 0,
   publishedListings: 0,
+  ownedBusinesses: 0,
 };
 
 /**
@@ -46,7 +53,8 @@ export type BlockerKind =
   | "active-bookings"
   | "active-reservations"
   | "pending-payouts"
-  | "published-listings";
+  | "published-listings"
+  | "owned-businesses";
 
 export type Blocker = {
   kind: BlockerKind;
@@ -60,9 +68,11 @@ export type Blocker = {
 };
 
 /**
- * Read the six numbers, answer with the blockers in the order a person should
- * deal with them: money first, because a balance is the one that costs
- * somebody something if they get it wrong.
+ * Read the seven numbers, answer with the blockers in the order a person
+ * should deal with them: money first, because a balance is the one that costs
+ * somebody something if they get it wrong, and the business last, because it
+ * is the one whose route out takes another person's agreement and therefore
+ * takes the longest.
  */
 export function blockersFrom(reading: BlockerReading): Blocker[] {
   const blockers: Blocker[] = [];
@@ -91,6 +101,26 @@ export function blockersFrom(reading: BlockerReading): Blocker[] {
       kind: "published-listings",
       href: "/agent/listings",
       amount: reading.publishedListings,
+    });
+  }
+  /*
+   * A BUSINESS MAY NEVER BE ORPHANED, and this is the precondition that says
+   * so. `public.businesses.owner_id` cascades onto `auth.users`, and the purge
+   * deliberately does not delete that row, so without this the hotel keeps
+   * selling rooms with a tombstone behind it. The founder's principle: nothing
+   * a stranger can still transact against may be left ownerless.
+   *
+   * THE ROUTE OUT IS TWO DOORS AND BOTH ARE REAL. `/host/transfer` carries
+   * them: hand the business to another Vallo account, which is an offer they
+   * have to accept rather than something done to them, or close it, which is
+   * unpublishing the rooms, settling the diary and taking it off the market.
+   * The screen names both, and neither is an address to email.
+   */
+  if (reading.ownedBusinesses > 0) {
+    blockers.push({
+      kind: "owned-businesses",
+      href: "/host/transfer",
+      amount: reading.ownedBusinesses,
     });
   }
 
@@ -132,5 +162,6 @@ export function readingFrom(value: unknown): BlockerReading {
     activeReservations: num("active_reservations"),
     pendingPayouts: num("pending_payouts"),
     publishedListings: num("published_listings"),
+    ownedBusinesses: num("owned_businesses"),
   };
 }

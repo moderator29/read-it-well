@@ -55,10 +55,16 @@ export type ChipBehaviour = "filter" | "choice" | "link" | "static";
 export type ChipSize = "sm" | "md";
 
 /**
- * The amended radius law (ledger section 8). `control` is the rectangle every
- * existing rail draws; `pill` is the capsule the governing renders show for
- * the city chips, the search sheet's filter row and the welcome CTA: glass
- * fill, soft brand edge, and when selected a solid brand fill with the glow.
+ * RETIRED BY THE SHAPE LAW. A chip carries text, so a chip is a rounded
+ * rectangle on `--nf-radius-control`, including the city chips, the filter row
+ * and the welcome CTA this type was written to make capsules. The founder's
+ * ruling supersedes the section 8 amendment; `docs/DESIGN_DIRECTION.md`
+ * section 1 states it, and the governing landing hero has no capsule in it.
+ *
+ * `control` is the only value any product surface passes. The type keeps
+ * `pill` until `nf-chip--pill` leaves the stylesheets.
+ *
+ * @deprecated The shape law leaves one control shape. Do not pass "pill".
  */
 export type ChipShape = "control" | "pill";
 

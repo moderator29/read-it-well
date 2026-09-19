@@ -513,6 +513,8 @@ export function SupportChat() {
                 enterKeyHint="send"
                 className="nf-field min-w-0 flex-1"
               />
+              {/* Rounded square, as the composer send in
+                  GOVERNING-chat-booking-card.png is. It was `rounded-full`. */}
               <Button
                 type="submit"
                 variant="primary"
@@ -521,7 +523,7 @@ export function SupportChat() {
                 aria-label="Send message"
                 data-testid="support-send"
                 disabled={!draft.trim() || streaming}
-                className="shrink-0 rounded-full"
+                className="shrink-0 rounded-[var(--nf-radius-control)]"
               >
                 <UiIcon name="arrow-right" size={16} className="-rotate-90" />
               </Button>

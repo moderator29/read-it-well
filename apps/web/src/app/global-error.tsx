@@ -89,13 +89,20 @@ export default function GlobalError({
               </p>
             )}
 
+            {/* Both of these were `borderRadius: "999px"`. They are controls
+                carrying words, so they take the control radius like every other
+                one in the product. The radius is read as a token even here: this
+                boundary renders its own <html>, but the token sheet is a global
+                stylesheet and the gradient and ink beside it already rely on it,
+                so a raw 999px was the only value on this screen that had opted
+                out of the system. */}
             <div style={{ marginTop: "1.5rem", display: "grid", gap: "0.75rem" }}>
               <button
                 type="button"
                 onClick={reset}
                 style={{
                   minHeight: "3rem",
-                  borderRadius: "999px",
+                  borderRadius: "var(--nf-radius-control)",
                   border: 0,
                   padding: "0 1.5rem",
                   font: "inherit",
@@ -117,7 +124,7 @@ export default function GlobalError({
                   minHeight: "3rem",
                   display: "grid",
                   placeItems: "center",
-                  borderRadius: "999px",
+                  borderRadius: "var(--nf-radius-control)",
                   padding: "0 1.5rem",
                   fontWeight: 600,
                   textDecoration: "none",

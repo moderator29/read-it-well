@@ -170,3 +170,26 @@ export const restaurantProfileDraftSchema = z.object({
   powerBackup: z.boolean().optional(),
   outdoor: z.boolean().optional(),
 });
+
+/* ---------------------------------------------------------- photographs */
+
+/**
+ * One photograph of the venue, already uploaded to the public bucket.
+ *
+ * The same shape as `hostDocumentSchema` above and for the same reason: the
+ * browser puts the object in storage under its own uid prefix, which storage
+ * RLS enforces, and hands the server the path. The server trusts none of it.
+ */
+export const businessPhotoSchema = z.object({
+  businessId: z.uuid("That venue could not be identified."),
+  storagePath: z
+    .string()
+    .trim()
+    .min(1, "That upload could not be identified.")
+    .max(400, "That upload could not be identified."),
+});
+
+/** One photograph already on record, named for removal. */
+export const businessPhotoIdSchema = z.object({
+  photoId: z.uuid("That photograph could not be identified."),
+});

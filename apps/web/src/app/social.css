@@ -570,20 +570,25 @@
     outline-offset: 2px;
   }
 
-  /* ----------------------------------------------- the glass capsule tabs */
+  /* ------------------------------------------------ the glass segment tabs */
 
   /*
-   * Belongings / Posts, and the public page's four. One glass capsule with
-   * the live segment filled in brand, the shape the render draws and the
-   * same one the feed's For you / Following wears, so a tab is one object
-   * across the whole social layer.
+   * Belongings / Posts, and the public page's four. One glass track with the
+   * live segment filled in brand, the same object the feed's For you /
+   * Following wears, so a tab is one thing across the whole social layer.
+   *
+   * IT WAS A CAPSULE AND IT IS A RECTANGLE NOW, founder's ruling of 19
+   * September: a tab carries a word, a thing that carries a word is a
+   * rounded rectangle on `--nf-radius-control`, and that is the whole of it.
+   * The track takes `--nf-radius-lg` so the outer corner is concentric with
+   * the tab inside it: 14px plus the 4px of padding is 18px.
    */
   .nf-glass-seg {
     display: grid;
     grid-template-columns: repeat(var(--nf-seg-count, 2), minmax(0, 1fr));
     gap: 4px;
     padding: 4px;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-lg);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-glass-fill-thin);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
@@ -599,7 +604,7 @@
     min-block-size: 46px;
     padding-inline: 8px;
     border: 0;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: transparent;
     font-size: var(--nf-text-body);
     font-weight: 600;

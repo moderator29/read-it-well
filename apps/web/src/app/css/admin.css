@@ -100,7 +100,16 @@
     min-width: 1.5rem;
     height: 1.375rem;
     padding-inline: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-pill);
+    /*
+      THE SHAPE LAW, and this badge carries text. The founder's ruling of
+      19 September closes the amended control law: anything that carries TEXT
+      is a rounded rectangle on `--nf-radius-control`, and only a genuinely
+      icon-only round control (an avatar, a bare glyph button) stays circular.
+      The governing hero draws the one badge it has, the listing card's
+      Verified mark, as a rounded rectangle, so a count wearing a capsule was
+      the odd shape on the surface rather than the consistent one.
+    */
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-overline);
@@ -397,8 +406,9 @@
     font-weight: 600;
     color: var(--nf-content-secondary);
   }
-  /* A status chip: an outlined pill in the state's own ink and wash, the
-     four on-palette colours (blue, cyan, emerald, rose). "All" is brand. */
+  /* A status chip: an outlined rounded rectangle in the state's own ink and
+     wash, the four on-palette colours (blue, cyan, emerald, rose). "All" is
+     brand. */
   .nf-admin-chip {
     display: inline-flex;
     align-items: center;
@@ -406,13 +416,25 @@
     min-height: 2.5rem;
     padding: var(--nf-space-2xs) var(--nf-space-sm);
     /*
-      A CAPSULE, BECAUSE EVERY CHIP ON THIS PLATFORM IS A CAPSULE (R1 A24).
-      This was --nf-radius-sm, so the admin status filter was a row of squares
-      sitting among the product's pills, on the one surface where the console
-      is supposed to read as the same product as everything else. The governing
-      image shows pills and the shared Chip primitive draws pills.
+      A ROUNDED RECTANGLE, AND R1 A24 IS OVERRULED.
+
+      A24 read `--nf-radius-sm` here, called it a row of squares among the
+      product's pills, and moved it to `--nf-radius-pill`. The premise was that
+      "the governing image shows pills". It does not. The founder's ruling of
+      19 September was taken with `GOVERNING-landing-desktop-hero.png` open,
+      and there is not one capsule in that image: the city chips, the search
+      segments, both hero buttons, Sign In and Get Started are all rounded
+      rectangles, and the only circle on the page is the bare search glyph.
+
+      So the correction A24 wanted was real and its destination was wrong.
+      `--nf-radius-sm` was the odd rung, not the rectangle: this reads
+      `--nf-radius-control`, the platform's one corner for anything you press.
+      The console reads as the same product because it wears the same radius,
+      not because it wears a capsule. `components/ui/Chip.tsx` and chips.css
+      are another worker's scope and still draw `rounded-full` as this is
+      written; they come to the same rung under the same ruling.
     */
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow: var(--nf-rim-lit);

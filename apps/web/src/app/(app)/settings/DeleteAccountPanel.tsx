@@ -118,6 +118,20 @@ function blockerCopy(
         ),
         cta: copy.blockerPublishedListingsCta,
       };
+    /*
+     * A BUSINESS MAY NEVER BE ORPHANED. The link goes to /host/transfer, which
+     * carries both doors: hand it to another Vallo account, which is an offer
+     * they have to accept, or close it. Neither is an address to email, which
+     * is the rule the whole precondition list is built on.
+     */
+    case "owned-businesses":
+      return {
+        line: phrase(
+          many ? copy.blockerOwnedBusinessesPlural : copy.blockerOwnedBusinesses,
+          { count },
+        ),
+        cta: copy.blockerOwnedBusinessesCta,
+      };
   }
 }
 
@@ -385,7 +399,13 @@ function DeleteDrawer({
                 {phrase(copy.destroyedTitle, { days: String(GRACE_WINDOW_DAYS) })}
               </p>
               <ul className="mt-xs space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-                {[copy.losesProfile, copy.losesContent, copy.losesDevices, copy.losesFiles].map(
+                {[
+                  copy.losesProfile,
+                  copy.losesContent,
+                  copy.losesDevices,
+                  copy.losesFiles,
+                  copy.losesEvents,
+                ].map(
                   (line) => (
                     <li key={line} className="flex gap-sm">
                       <span

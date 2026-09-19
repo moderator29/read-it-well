@@ -22,6 +22,10 @@
     display: flex;
     align-items: center;
   }
+  /* The track and the fill keep their round ends under the founder's shape
+     law: a 5px rail carries no letters, and the law exempts the progress kind
+     of geometry by name. Squaring a slider rail ends up looking like a
+     mis-drawn divider under a round thumb. */
   .nf-range__track,
   .nf-range__fill {
     position: absolute;
@@ -259,7 +263,14 @@
      */
     min-width: 0;
     border: 1px solid transparent;
-    border-radius: var(--nf-radius-lg);
+    /*
+     * `--nf-radius-control`, not `--nf-radius-lg`, on the founder's shape law
+     * of 19 September: every input is a rounded rectangle on the control
+     * radius, the same corner the buttons and chips beside it take. It stood
+     * at 18px, which put a field four pixels softer than the button it sits
+     * next to on every form on the platform.
+     */
+    border-radius: var(--nf-radius-control);
     padding: var(--nf-space-md);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body);
@@ -617,9 +628,22 @@
       0 0 0 3px var(--nf-glow-2),
       0 0 22px -6px var(--nf-glow-4);
   }
-  .nf-field--pill {
-    border-radius: var(--nf-radius-pill);
-  }
+  /*
+   * `.nf-field--pill` STOOD HERE AND IS DELETED, and this is the decision
+   * rather than a deferral.
+   *
+   * It set `--nf-radius-pill` and nothing else, which the founder's shape law
+   * of 19 September ends: an input carries text, so it is a rounded rectangle
+   * on `--nf-radius-control`, never a capsule. Rewriting the rule to name the
+   * control radius would leave a variant setting 14px on an element the base
+   * `.nf-field` already puts at 14px, which is the silent no-op that
+   * `.nf-icon-btn--square` was deleted for earlier in this same file.
+   *
+   * `shape="pill"` in `components/ui/Field.tsx` now writes an inert class.
+   * That file belongs to another queue and can drop the prop whenever
+   * convenient; until it does, a "pill" field renders as the rectangle every
+   * other field renders as, which is the intended outcome.
+   */
   /* The glyph slot, in the quiet brand ink the render draws its search and
      pin glyphs in. A glass object or a line glyph; the caller decides. */
   .nf-field__glyph {

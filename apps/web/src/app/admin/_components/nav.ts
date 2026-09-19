@@ -30,7 +30,15 @@ export type AdminDestination = {
 };
 
 /** Destinations whose labels are not in the dictionary yet. See `label` above. */
-type MoneyNavKey = "money" | "escrow" | "kyc" | "fees" | "payments" | "examples" | "audit";
+type MoneyNavKey =
+  | "money"
+  | "escrow"
+  | "kyc"
+  | "fees"
+  | "payments"
+  | "examples"
+  | "audit"
+  | "businesses";
 
 /**
  * A band of the rail, and the reason the rail has bands at all.
@@ -86,6 +94,17 @@ export const ADMIN_NAV_GROUPS: AdminGroup[] = [
       // to prevent.
       { key: "stops", href: "/admin/stops", icon: "shield-stop" },
       { key: "listings", href: "/admin/listings", icon: "building-apartment" },
+      /*
+       * Businesses sits between the listings queue and the stays board,
+       * because it is the queue that FEEDS both: an operator is a hotel with
+       * rooms or a restaurant with tables, and until this desk existed neither
+       * could be put in front of a guest by anything in the product. It
+       * carries no badge yet: the applications count the layout passes is the
+       * agent queue's, and a second count would need `getQueueCounts` to learn
+       * about businesses, which is another owner's file. The desk's own header
+       * shows what is waiting.
+       */
+      { key: "businesses", href: "/admin/businesses", icon: "building-hotel", label: "Businesses" },
       // Stays sits between the supply queues and the human ones, because it is
       // both: a stay is a property's calendar and somebody's money at once. It
       // carries no badge, deliberately. Nothing on it is waiting on a decision,

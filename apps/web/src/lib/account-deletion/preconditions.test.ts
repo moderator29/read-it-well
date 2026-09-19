@@ -10,8 +10,8 @@ import {
 /**
  * The preconditions, and the rule that every one of them has a way out.
  *
- * What is pinned: a clean account proceeds; each of the six blockers fires on
- * its own number and on nothing else; every blocker carries a route; money is
+ * What is pinned: a clean account proceeds; each of the seven blockers fires
+ * on its own number and on nothing else; every blocker carries a route; money is
  * ordered before diary entries because a balance is the one that costs
  * somebody something; a negative balance does not hold a deletion hostage; and
  * a malformed answer from the database reads as zero rather than throwing on a
@@ -36,6 +36,7 @@ describe("the preconditions", () => {
       [{ activeBookings: 2 }, "active-bookings"],
       [{ activeReservations: 1 }, "active-reservations"],
       [{ publishedListings: 3 }, "published-listings"],
+      [{ ownedBusinesses: 1 }, "owned-businesses"],
     ];
     for (const [patch, kind] of cases) {
       const blockers = blockersFrom(reading(patch));
@@ -53,9 +54,10 @@ describe("the preconditions", () => {
         activeBookings: 1,
         activeReservations: 1,
         publishedListings: 1,
+        ownedBusinesses: 1,
       }),
     );
-    expect(all).toHaveLength(6);
+    expect(all).toHaveLength(7);
     for (const blocker of all) {
       expect(blocker.href.startsWith("/")).toBe(true);
       expect(blocker.href.length).toBeGreaterThan(1);
@@ -79,10 +81,23 @@ describe("the preconditions", () => {
     expect(blockersFrom(reading({ walletBalanceMinor: -5_000 }))).toEqual([]);
     expect(canProceed(reading({ walletBalanceMinor: -5_000 }))).toBe(true);
   });
+
+  it("sends the business blocker to a surface that carries both doors", () => {
+    const [blocker] = blockersFrom(reading({ ownedBusinesses: 2 }));
+    expect(blocker?.href).toBe("/host/transfer");
+    expect(blocker?.amount).toBe(2);
+  });
+
+  it("puts the business last, because its route out needs another person to agree", () => {
+    const all = blockersFrom(
+      reading({ ownedBusinesses: 1, publishedListings: 1, walletBalanceMinor: 100 }),
+    );
+    expect(all[all.length - 1]?.kind).toBe("owned-businesses");
+  });
 });
 
 describe("reading the database's answer", () => {
-  it("takes the six numbers", () => {
+  it("takes the seven numbers", () => {
     expect(
       readingFrom({
         blocked: true,
@@ -92,6 +107,7 @@ describe("reading the database's answer", () => {
         active_reservations: 0,
         pending_payouts: 1,
         published_listings: 4,
+        owned_businesses: 2,
       }),
     ).toEqual({
       walletBalanceMinor: 25_000,
@@ -100,6 +116,7 @@ describe("reading the database's answer", () => {
       activeReservations: 0,
       pendingPayouts: 1,
       publishedListings: 4,
+      ownedBusinesses: 2,
     });
   });
 

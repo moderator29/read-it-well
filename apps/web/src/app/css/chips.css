@@ -634,9 +634,11 @@
  *
  * Everything in this block is a NEW class. Nothing above changes, because
  * fourteen workers are standing on it. The chip keeps its rectangle by
- * default; `.nf-chip--pill` is the capsule the amended radius law records
- * (ledger section 8), and the rest are the register's surfaces that the
- * Sheet, ActionBar, Table and Progress primitives now expose as props.
+ * default; `.nf-chip--pill` KEEPS ITS NAME AND HAS LOST ITS CAPSULE, on the
+ * founder's shape law of 19 September, which overrides the amended radius law
+ * this comment used to cite (ledger section 8). The rest are the register's
+ * surfaces that the Sheet, ActionBar, Table and Progress primitives expose as
+ * props.
  *
  * Light rules live here, under `:root[data-theme="light"]`, at one class
  * higher than light.css's `.nf-chip` rule so they win the tie that source
@@ -646,13 +648,19 @@
   /* ---------------------------------------------------------- chip, pill */
 
   /*
-   * The capsule chip: the landing's city chips, the search sheet's Buy / 2 Bed
+   * The glass chip: the landing's city chips, the search sheet's Buy / 2 Bed
    * / More (3), the welcome CTA. Glass fill, a SOFT brand edge (a resting chip
    * casts no light, so the edge is the only brand on it) and the lit rim, on
    * the thin blur because a chip sits on a card, not over a page.
+   *
+   * THE SHAPE IS A ROUNDED RECTANGLE. Every one of those chips carries a word,
+   * and the governing hero draws its city chips as rounded rectangles: there
+   * is not one capsule in that image. The radius is written out rather than
+   * left to `.nf-chip` so that the intent is on the page, not inherited by
+   * accident. The class name stays because Chip.tsx is another worker's file.
    */
   .nf-chip--pill {
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     padding-inline: var(--nf-space-md);
     color: var(--nf-content-primary);
     border-color: var(--nf-brand-edge-soft);
@@ -745,16 +753,22 @@
     box-shadow: 0 4px 12px var(--nf-glow-3);
   }
 
-  /* --------------------------------------------------- segmented, capsule */
+  /* ----------------------------------------------------- segmented, glass */
 
   /*
-   * The capsule rail: the feed's For You / Following and the search pill's
+   * The glass rail: the feed's For You / Following and the search pill's
    * Buy / Rent / Stay / Invest. One glass track with the soft brand edge, and
    * the travelling segment is FILLED brand with the glow rather than a raised
    * neutral plate, so the state is the loudest thing in the control.
+   *
+   * TRACK AND TRAVELLING SEGMENT ARE BOTH ROUNDED RECTANGLES, on the founder's
+   * shape law of 19 September. The governing hero draws this exact control,
+   * the search pill's Buy / Rent / Stay / Invest, and both the rail and the
+   * standing segment are rounded rectangles there. Same radius on both, which
+   * is what the base `.nf-segmented` in buttons.css already does.
    */
   .nf-segmented--pill {
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-glass-fill);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
@@ -762,21 +776,21 @@
     box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
   }
   .nf-segmented--pill .nf-segmented__capsule {
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-primary);
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
       0 0 16px var(--nf-glow-3);
   }
   .nf-segmented--pill .nf-segmented__item {
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
   }
   .nf-segmented--pill .nf-segmented__item[aria-selected="true"],
   .nf-segmented--pill .nf-segmented__item[aria-checked="true"] {
     color: var(--nf-content-on-brand);
   }
   .nf-segmented--pill .nf-segmented__link {
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
   }
   .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
     background: var(--nf-brand-primary);

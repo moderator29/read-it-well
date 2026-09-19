@@ -273,6 +273,11 @@
     content: "";
     width: 2.25rem;
     height: 0.25rem;
+    /* A SEMICIRCLE AND IT STAYS ONE. The shape law of 19 September is about
+       controls that carry TEXT; a 4px grip bar carries none, and it is the
+       case the token's own note keeps `--nf-radius-pill` alive for, beside a
+       progress cap. At this height the two rungs paint the same pixels
+       anyway, since a radius clamps at half the shorter side. */
     border-radius: var(--nf-radius-pill);
     background: var(--nf-content-muted);
     opacity: 0.5;

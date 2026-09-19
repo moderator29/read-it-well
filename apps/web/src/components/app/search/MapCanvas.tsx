@@ -673,7 +673,11 @@ export function MapCanvas({
                 "--pin-i": i,
               } as React.CSSProperties
             }
-            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-sm py-xs text-[var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
+            /* THE SHAPE LAW. A cluster bubble is a control carrying text (the
+               count), so it is a rounded rectangle on the control radius, not a
+               capsule. It was `rounded-full`, which on a two or three digit
+               count drew a lozenge. Same ruling as the price pin below. */
+            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-sm py-xs text-[var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
           >
             <span className="nf-map-pin-breathe inline-block">{group.items.length}</span>
             <span className="sr-only"> places grouped here, open them</span>
@@ -700,7 +704,9 @@ export function MapCanvas({
                   "--pin-i": i,
                 } as React.CSSProperties
               }
-              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-pill)] px-sm py-xs text-[var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
+              /* THE SHAPE LAW. A price pin is a button carrying a price, so it
+                 takes the control radius. It read `--nf-radius-pill`. */
+              className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-control)] px-sm py-xs text-[var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
                 chosen
                   ? "scale-110 border border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
                   : "border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-primary)] hover:border-[var(--nf-brand-primary)]"

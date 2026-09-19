@@ -209,8 +209,12 @@
     font-weight: 650;
   }
 
-  /* The marks on the photograph. Verified is the brand pill of the renders:
-     glass, brand edge, a soft glow; the market tag is the same pill at rest. */
+  /* The marks on the photograph. Verified is the brand mark of the renders:
+     glass, brand edge, a soft glow; the market tag is the same mark at rest.
+
+     ROUNDED RECTANGLE, on the founder's shape law of 19 September. It carries
+     a word, and the governing hero draws its Verified mark on the card as a
+     rounded rectangle, not a capsule. There is not one capsule in that image. */
   .nf-pcard__mark {
     position: absolute;
     z-index: 2;
@@ -218,7 +222,7 @@
     align-items: center;
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-brand-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-overlay-media-strong));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
@@ -282,13 +286,15 @@
   .nf-pcard__heart[aria-pressed="true"] {
     color: var(--nf-content-on-media-accent);
   }
+  /* Carries a word, so it is a rounded rectangle like every other lettered
+     plate on this platform (the founder's shape law, 19 September). */
   .nf-pcard__nophoto {
     position: absolute;
     right: var(--nf-space-2xs);
     bottom: var(--nf-space-2xs);
     z-index: 2;
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-overlay-media-strong);
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     color: var(--nf-content-on-media-muted);
@@ -391,8 +397,10 @@
       0 0 16px var(--nf-glow-1);
     color: var(--nf-brand-secondary);
   }
-  /* The chip row. Capsules, by the amended radius law (ledger section 8):
-     the governing image shows capsules and the product ships them. */
+  /* The chip row. ROUNDED RECTANGLES, by the founder's shape law of
+     19 September, which replaces the amended radius law that stood here: the
+     governing hero shows NO capsule anywhere, and its city chips (Lagos,
+     Abuja, Lekki, Ikeja) are rounded rectangles on the control radius. */
   .nf-shelf-chips {
     display: flex;
     gap: var(--nf-space-xs);
@@ -406,7 +414,7 @@
     gap: var(--nf-space-xs);
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
     box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
@@ -528,7 +536,11 @@
       box-shadow: var(--nf-elev-3);
     }
   }
-  /* The grabber above the title, as the render draws it. */
+  /* The grabber above the title, as the render draws it.
+
+     LEFT ROUND ON PURPOSE under the founder's shape law: this is a 4px bar
+     with no letters on it and it is not a control. Squaring its ends would
+     make a grabber look like a broken divider. */
   .nf-filters__grip {
     display: block;
     width: 2.5rem;
@@ -620,9 +632,10 @@
   .nf-filters__grid--5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  /* Capsules, by the amended radius law and the target render: every choice
-     tile in this sheet is a pill, filled brand blue when it is the one
-     standing. */
+  /* ROUNDED RECTANGLES, by the founder's shape law of 19 September, which
+     replaces the amended radius law that stood here: every choice tile in
+     this sheet carries a word, so it takes the control radius, filled brand
+     blue when it is the one standing. */
   .nf-filters__tile {
     display: inline-flex;
     align-items: center;
@@ -630,7 +643,7 @@
     gap: var(--nf-space-2xs);
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
@@ -808,13 +821,14 @@
   .nf-gallery-mark--market {
     background: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-overlay-media-strong));
   }
+  /* A lettered tag, so a rounded rectangle (the founder's shape law). */
   .nf-detail-tag {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-2xs);
     min-height: 2rem;
     padding: 0 var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
@@ -1028,6 +1042,9 @@
   .nf-detail-tabs > a[aria-current="true"] {
     color: var(--nf-content-primary);
   }
+  /* The 2px rule under the standing tab. LEFT ROUND under the founder's shape
+     law: it is a mark on the tab, not a control and not lettered, and the
+     governing hero draws exactly this under Home. */
   .nf-detail-tabs > a[aria-current="true"]::after {
     content: "";
     position: absolute;
@@ -1136,12 +1153,15 @@
     border: 1px solid var(--nf-brand-edge);
     box-shadow: 0 0 14px var(--nf-glow-1);
   }
+  /* The class name still says pill; the SHAPE is a rounded rectangle, because
+     it carries a word (the founder's shape law, 19 September). The name is
+     left alone because the markup that writes it is another worker's file. */
   .nf-agent-card__pill {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 0;
     background: var(--nf-brand-primary);
     font-size: var(--nf-text-overline);
@@ -1305,15 +1325,18 @@
     color: var(--nf-content-muted);
   }
 
-  /* The capsule row. Four small pills, each a glyph and a word. They scroll
+  /* The fact row. Four small plates, each a glyph and a word, and each a
+     ROUNDED RECTANGLE on the founder's shape law of 19 September: the class
+     names below still say capsule because the markup is another worker's
+     file, but nothing in this row is a capsule any more. They scroll
      rather than wrap or shrink: the type floor is a floor, so a label that
      does not fit moves sideways instead of getting smaller. */
   .nf-detail-capsules {
     display: flex;
     gap: var(--nf-space-xs);
-    /* The row bleeds to the card's own edges so a capsule that does not fit
+    /* The row bleeds to the card's own edges so a plate that does not fit
        is clearly cut BY THE EDGE rather than by a padding it stops inside,
-       which reads as a broken pill instead of a row you can push. Same trick,
+       which reads as a broken plate instead of a row you can push. Same trick,
        same reason, as `.nf-amenity-row` above. */
     margin-inline: calc(var(--nf-pad-shell) * -1);
     margin-top: var(--nf-space-md);
@@ -1325,7 +1348,7 @@
     align-items: center;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-subtle);
     background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
@@ -1350,6 +1373,11 @@
     align-items: center;
     gap: var(--nf-space-sm);
   }
+  /* An avatar, so it stays a circle: the founder's shape law exempts avatars
+     by name, and 999px on a 3rem square IS the circle. Left on the pill token
+     rather than swapped to `--nf-radius-circle` because the two render
+     identically here and the token swap is the lead's tidy, not a shape
+     change. */
   .nf-host-row__avatar {
     position: relative;
     display: block;
@@ -1989,12 +2017,13 @@
     border-radius: var(--nf-radius-md);
     background: var(--nf-media-ground-to);
   }
+  /* Open or Closed, in words, so a rounded rectangle (the founder's law). */
   .nf-reg-open {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-overline);
     font-weight: 650;
   }
@@ -2063,6 +2092,33 @@
   :root[data-theme="light"] .nf-stay-facts {
     background: var(--nf-surface-primary);
   }
+  /*
+   * THE CHOSEN FILTER TILE WAS WHITE INK ON A WHITE PLATE ON DAYLIGHT, AND
+   * THIS IS THE FIX. Found in a 390 light proof of the stays filter sheet on
+   * 19 September: the Any tile under Rating rendered as an empty white box.
+   *
+   * The mechanism is the ordinary one for this file. The paper-twin list
+   * above names `.nf-filters__tile` and paints it `--nf-surface-primary`, at
+   * a specificity of three, and the chosen state a few hundred lines up is
+   * `.nf-filters__tile[aria-pressed="true"]`, which is two. So the white
+   * surface won the background and the chosen state still won the ink, which
+   * it sets to `--nf-content-on-brand`: white letters on white paper. Every
+   * sheet in the product opens with at least one tile chosen, so this was on
+   * screen the moment a light user opened Filters, in both sheets.
+   *
+   * `.nf-shelf-chip--on` two rules down has had this exact companion rule all
+   * along, which is why the shelf chips were right and these were not: the
+   * tile's chosen state is spelled with an attribute rather than a modifier
+   * class, so it was never added to that list. It is spelled out here rather
+   * than folded into that selector because a pressed tile also carries the
+   * brand edge and the glow, and the shelf chip's light rule is the right
+   * shape for both.
+   *
+   * NOT A SHAPE CHANGE. The radius work of this pass did not cause it and
+   * does not depend on it; it was found by looking at the proof.
+   */
+  :root[data-theme="light"] .nf-filters__tile[aria-pressed="true"],
+  :root[data-theme="light"] .nf-filters__tile[aria-checked="true"],
   :root[data-theme="light"] .nf-shelf-chip--on,
   :root[data-theme="light"] .nf-stays-tile.nf-stays-tile--on,
   :root[data-theme="light"] .nf-gallery-mark--market,
@@ -2074,6 +2130,8 @@
   }
   :root[data-theme="light"] .nf-shelf-chip--on > svg,
   :root[data-theme="light"] .nf-detail-tag--market > svg,
+  :root[data-theme="light"] .nf-filters__tile[aria-pressed="true"] > svg,
+  :root[data-theme="light"] .nf-filters__tile[aria-checked="true"] > svg,
   :root[data-theme="light"] .nf-stays-tile.nf-stays-tile--on {
     color: var(--nf-content-on-brand);
   }

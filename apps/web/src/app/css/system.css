@@ -374,7 +374,23 @@
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-xl);
     padding: var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    /*
+     * A ROUNDED RECTANGLE. The class name is now the only pill left about it.
+     *
+     * This is the waiting screen's stand-in for the landing search container,
+     * and it was a capsule on the amended control law (ledger section 8, "the
+     * render shows a pill here"). The founder's ruling of 19 September closes
+     * that amendment: `GOVERNING-landing-desktop-hero.png` draws the search
+     * container as a rounded rectangle, not a capsule, and there is no capsule
+     * anywhere in the image. A skeleton that does not have the shape of the
+     * thing it stands in for is a flash of the wrong layout, so this follows
+     * the container onto `--nf-radius-control`.
+     *
+     * NOT CLOSED HERE: `app/loading.tsx` still passes `radius="pill"` to the
+     * two Skeletons inside this box, and that file belongs to another scope.
+     * Reported rather than edited.
+     */
+    border-radius: var(--nf-radius-control);
     /* A CONTAINER, so it is lit. `--nf-glass-border` is 11 per cent white,
        which on the navy canvas is a grey hairline, and this pill is the only
        object on a waiting screen. The founder's ruling of 19 September puts

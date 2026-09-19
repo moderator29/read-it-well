@@ -325,6 +325,163 @@ export async function publishAccommodation(input: {
   return ok(null);
 }
 
+/* ------------------------------------------------ the shelf gate, part two */
+
+/**
+ * Put one RESTAURANT on the shelf: APPROVED to PUBLISHED.
+ *
+ * WHY THIS EXISTS AT ALL. `publishAccommodation` above is the only code path
+ * in the product that has ever written PUBLISHED on a business, and every one
+ * of its four gates is about a property: an `accommodations` row, a pin, a
+ * photograph and a room type with a rate. A restaurant has none of those and
+ * never will, so a venue could be put in front of guests only by somebody
+ * writing SQL by hand, which is what happened to the first first-party venue
+ * (ledger 12.5) and is not a process.
+ *
+ * THE GATE, AND THE REASONING FOR EVERY LINE OF IT. The rule cannot be
+ * borrowed from the stays side, so it is derived from two places: what
+ * `private.reservation_is_valid` refuses a table for, and what the venue's own
+ * page has to be able to read to be a real place rather than a stub.
+ *
+ *   A SERVICE WINDOW WITH COVERS ABOVE ZERO. This is the hard one. The
+ *   database works out whether a venue can take a booking entirely from
+ *   `service_windows`; with none, EVERY request is refused with "that
+ *   restaurant does not seat guests at that time", and the owner sits for a
+ *   fortnight watching a page that looks perfectly fine take no bookings.
+ *   Publishing a venue that cannot accept a single table is publishing a dead
+ *   end, which is the same fault the room-with-a-rate gate prevents next door.
+ *
+ *   A CITY AND A STATE. `listRestaurants` filters by state and city and
+ *   `catalogue_entries` files the venue under them, so a venue with neither is
+ *   unreachable from every shelf in the product. It would be live and
+ *   invisible, which is worse than not being live, because nobody would go
+ *   looking for the reason.
+ *
+ *   A PHONE NUMBER THAT SOMEBODY ANSWERS. A reservation is a request a venue
+ *   answers in its own time and the platform holds nothing. When the app is
+ *   not enough - a guest is late, a party has grown - the phone is the only
+ *   remaining route, and it is the one thing the onboarding script marks
+ *   REQUIRED for exactly this reason.
+ *
+ *   FIRST PARTY, NOT AN EXAMPLE, AND ACTUALLY A RESTAURANT. These three are
+ *   not judgement calls: they are the conditions `private.reservation_is_valid`
+ *   itself imposes, so a venue published without them is a page whose only
+ *   control refuses every use. Checking them here means the refusal is a
+ *   sentence a reviewer can act on rather than a trigger exception nobody sees.
+ *
+ * WHAT IS DELIBERATELY NOT A GATE.
+ *
+ *   PHOTOGRAPHS. The stays gate requires one because a stay with no
+ *   photographs is a dead end wearing a price. A restaurant page is not that:
+ *   it draws a Vallo category plate under a plain "No photographs yet" chip,
+ *   so a guest is never shown a stock picture as if it were this dining room,
+ *   and a table costs nobody anything. The onboarding script promises an owner
+ *   they can go live the day they sign and send their photographs during the
+ *   week; making a photograph a gate would make that promise false. The desk
+ *   says what is missing instead of refusing.
+ *
+ *   THE PIN. Same argument, and `search_catalogue` admits a row with a null
+ *   location inside a radius filter: a missing pin costs distance sorting and
+ *   the map, not visibility. The stays gate (MK-55) is about somebody arriving
+ *   at a building at night with a suitcase; a diner choosing a restaurant has
+ *   the address, the area and the phone.
+ *
+ *   A RUNG, OR A BADGE. Nothing on this path reads or writes the verification
+ *   ladder. Publishing is a decision about inventory and the ladder is a
+ *   decision about a person, and tying the two together is how a venue ends up
+ *   wearing a mark no human check earned.
+ *
+ * The business must be APPROVED first, for the same reason the stays gate
+ * insists on it: putting the second gate in front of the first would publish
+ * an operator nobody has read.
+ */
+export async function publishRestaurant(input: {
+  businessId: string;
+}): Promise<ActionResult<null>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+
+  const parsed = validate(businessIdSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const { data: business, error: readError } = await access.supabase
+    .from("businesses")
+    .select(
+      "id, name, kind, status, owner_id, source, is_demo, city, state_code, phone, service_windows(covers)",
+    )
+    .eq("id", parsed.data.businessId)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN);
+  if (!business) return fail(GONE);
+
+  if (business.kind !== "restaurant") {
+    return fail(
+      "This is not a restaurant. A stay goes live from its property, which carries the pin and the rooms.",
+    );
+  }
+  if (business.status === "PUBLISHED") {
+    return fail("This venue is already live. Refresh the queue to see the current state.");
+  }
+  if (business.status !== "APPROVED") {
+    return fail("Approve the application first, then put the venue on the shelf.");
+  }
+  if (business.source !== "first_party") {
+    return fail(
+      "Only a first-party venue is published from here. Partner inventory is labelled where it is shown and never dressed as ours.",
+    );
+  }
+  if (business.is_demo) {
+    return fail("This venue is an example, so it cannot take a table and must not go on the shelf.");
+  }
+  if (!business.city || !business.state_code) {
+    return fail(
+      "This venue has no city and state on record, so no shelf in the product could show it. Add them and try again.",
+    );
+  }
+  if (!business.phone) {
+    return fail(
+      "This venue has no phone number, so a guest who needs the restaurant itself has no way to reach it.",
+    );
+  }
+  const seats = business.service_windows.filter((window) => window.covers > 0).length;
+  if (seats === 0) {
+    return fail(
+      "This venue has no service with covers above zero, so every request for a table would be refused. Add the hours and the guest number first.",
+    );
+  }
+
+  const now = new Date().toISOString();
+  const { error: updateError } = await access.supabase
+    .from("businesses")
+    .update({ status: "PUBLISHED", published_at: now })
+    .eq("id", business.id)
+    .eq("status", "APPROVED");
+  if (updateError) return fail(SERVICE_DOWN);
+
+  await announce(
+    access.user.id,
+    business as BusinessRow,
+    {
+      title: "Your venue is live",
+      body: `${business.name} is now in search and open for tables. You answer each request yourself, and nothing is held for a guest until you do.`,
+    },
+    {
+      action: "business.publish",
+      detail: {
+        name: business.name,
+        kind: business.kind,
+        service_windows: seats,
+        city: business.city,
+        state_code: business.state_code,
+      },
+    },
+  );
+
+  refreshConsole();
+  revalidatePath("/restaurants");
+  return ok(null);
+}
+
 /* -------------------------------------------------------------- the rungs */
 
 /**

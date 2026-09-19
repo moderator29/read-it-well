@@ -202,12 +202,16 @@ export function ReserveTable({
         <label className="nf-label" htmlFor={partyId}>
           Guests
         </label>
+        {/* The two steppers are rectangles on the control radius, as the field
+            between them is. They were circles. See the note in TenancyTerm.tsx:
+            a circle survives the shape law only where a governing reference
+            draws that control round, and none draws a stepper. */}
         <div className="mt-2xs flex items-center gap-sm">
           <button
             type="button"
             onClick={() => setParty((n) => Math.max(1, n - 1))}
             aria-label="One fewer guest"
-            className="grid h-9 w-9 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-9 w-9 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party <= 1}
           >
             <UiIcon name="minus" size={16} aria-hidden />
@@ -230,7 +234,7 @@ export function ReserveTable({
             type="button"
             onClick={() => setParty((n) => Math.min(MAX_PARTY, n + 1))}
             aria-label="One more guest"
-            className="grid h-9 w-9 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-9 w-9 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party >= MAX_PARTY}
           >
             <UiIcon name="plus" size={16} aria-hidden />

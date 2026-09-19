@@ -286,14 +286,13 @@
 
   /* ------------------------------------------------- controls, scoped here */
 
-  /* The render's capsule, on this surface's root, for the reason stated at
-     length in `wallet.css`: the shape is the founder's ruling for the whole
-     register and the shared material can only spell it per control. The
-     LIGHT on the buttons was promoted into `buttons.css` and the two rules
-     that painted it here are deleted. */
-  .nf-crypto-surface .nf-btn {
-    border-radius: var(--nf-radius-pill);
-  }
+  /* The capsule override is deleted, for the reason stated at length in
+     `wallet.css`: the founder's shape ruling of 19 September makes a control
+     that carries a word a rounded rectangle, `.nf-btn` in `buttons.css` is
+     already `--nf-radius-control`, and a surface partial restating the
+     platform default is a second source of truth waiting to drift. The LIGHT
+     on these buttons was promoted into `buttons.css` earlier and the two
+     rules that painted it here went with it. */
   /* The lit container edge, asked for with the shared recipe. `.nf-card` was
      not promoted alongside `.nf-glass--card`, so this surface still has to
      ask; `--nf-glow-edge` means it asks for the one composition rather than

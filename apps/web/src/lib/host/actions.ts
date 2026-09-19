@@ -39,9 +39,12 @@ import {
 } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { documentPathBelongsTo, missingFrom, type HostType } from "./onboarding";
+import { MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
 import { getMyHostDraft } from "./queries";
 import {
   accommodationDraftSchema,
+  businessPhotoIdSchema,
+  businessPhotoSchema,
   hostDocumentSchema,
   hostDraftSchema,
   ratePlanDraftSchema,
@@ -73,6 +76,18 @@ const EDITABLE: readonly Database["public"]["Enums"]["listing_status"][] = [
 function refreshHostSurfaces(): void {
   revalidatePath("/host");
   revalidatePath("/host/apply");
+}
+
+/**
+ * The surfaces a photograph changes: the owner's own manager, and every guest
+ * surface that draws the venue. The shelf and the detail page are ordinary
+ * dynamic routes, so this is belt and braces rather than the only thing
+ * keeping them current.
+ */
+function refreshVenueSurfaces(): void {
+  revalidatePath("/host");
+  revalidatePath("/host/photos");
+  revalidatePath("/restaurants");
 }
 
 /** A URL-safe slug from a name, with a short suffix so two hosts may share one. */
@@ -592,5 +607,138 @@ export async function setRestaurantProfileDraft(input: unknown): Promise<ActionR
   }
 
   refreshHostSurfaces();
+  return ok(null);
+}
+
+/* --------------------------------------------------------- photographs */
+
+/**
+ * The caller's own business, at ANY status, or the sentence that says why not.
+ *
+ * Deliberately not `editableBusiness`. That helper refuses once an application
+ * has been sent, which is right for an answer on a form and wrong for a
+ * photograph: the onboarding script promises an owner they can go live the day
+ * they sign and send their pictures during the week, so the moment a venue is
+ * APPROVED or PUBLISHED is exactly when its photographs arrive. Ownership is
+ * still the gate, and RLS re-checks it on the write through
+ * `private.owns_business`.
+ */
+async function ownedBusiness(
+  businessId: string,
+): Promise<
+  { ok: false; result: ActionResult<never> } | { ok: true; userId: string }
+> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return { ok: false, result: fail(NOT_CONFIGURED_MESSAGE) };
+  if (session.state === "signed-out") return { ok: false, result: fail(SIGNED_OUT_MESSAGE) };
+
+  const { data, error } = await session.supabase
+    .from("businesses")
+    .select("id")
+    .eq("id", businessId)
+    .eq("owner_id", session.user.id)
+    .maybeSingle();
+  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
+  if (!data) return { ok: false, result: fail(NOT_YOURS_MESSAGE) };
+  return { ok: true, userId: session.user.id };
+}
+
+/**
+ * Record a photograph the browser has already put in the public bucket.
+ *
+ * THE POSITION IS DECIDED HERE, not by the caller, and it is the lowest free
+ * one. `position` is unique per business and 0 is the cover everywhere that
+ * reads these rows, so letting a form post a number would let two photographs
+ * race for the cover and one of them would fail on the unique index with a
+ * refusal nobody could act on. Uploading in order therefore means the FIRST
+ * photograph is the cover, which is what the surface tells the owner.
+ *
+ * The path is checked against the caller's own uid prefix before any write,
+ * exactly as `uploadHostDocumentPath` does it: storage RLS enforces the same
+ * rule on the upload itself, so a path that fails here was never written by
+ * this person.
+ */
+export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ id: string }>> {
+  const parsed = validate(businessPhotoSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const guarded = await ownedBusiness(parsed.data.businessId);
+  if (!guarded.ok) return guarded.result;
+
+  if (!documentPathBelongsTo(guarded.userId, parsed.data.storagePath)) {
+    return fail(
+      "That upload did not come from your own account, so we did not file it. Please choose the photograph again.",
+    );
+  }
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+
+  const { data: taken, error: readError } = await session.supabase
+    .from("business_photos")
+    .select("position")
+    .eq("business_id", parsed.data.businessId)
+    .order("position", { ascending: true });
+  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+
+  const position = nextPhotoPosition((taken ?? []).map((row) => row.position));
+  if (position === null) {
+    return fail(
+      `A venue carries up to ${MAX_BUSINESS_PHOTOS} photographs. Take one down and add this in its place.`,
+    );
+  }
+
+  const { data, error } = await session.supabase
+    .from("business_photos")
+    .insert({
+      business_id: parsed.data.businessId,
+      storage_path: parsed.data.storagePath,
+      position,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    if (error?.code === "23505") {
+      return fail("That photograph landed at the same moment as another. Try it again.");
+    }
+    return fail("That photograph did not attach. Choose the file again.");
+  }
+
+  refreshVenueSurfaces();
+  return ok({ id: data.id });
+}
+
+/**
+ * Take one photograph down.
+ *
+ * The row goes and the object stays: the bucket is swept by the account
+ * deletion purge, and deleting a public object from under a page that may
+ * still be rendering it is how a live venue ends up with a broken image. What
+ * a guest sees is decided by the rows, and the row is gone.
+ *
+ * Removing the cover promotes the next photograph, because every reader orders
+ * by position and takes the first. Nothing is renumbered, so nothing else
+ * moves.
+ */
+export async function removeBusinessPhoto(input: unknown): Promise<ActionResult<null>> {
+  const parsed = validate(businessPhotoIdSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  /* The delete is scoped by RLS (`business_photos_write` admits the owner and
+     an admin), so a photograph on somebody else's venue simply does not move
+     and the count says so rather than the policy being restated here. */
+  const { error, count } = await session.supabase
+    .from("business_photos")
+    .delete({ count: "exact" })
+    .eq("id", parsed.data.photoId);
+  if (error) return fail(SERVICE_DOWN_MESSAGE);
+  if (count === 0) return fail(NOT_YOURS_MESSAGE);
+
+  refreshVenueSurfaces();
   return ok(null);
 }

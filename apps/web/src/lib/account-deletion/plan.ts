@@ -162,7 +162,12 @@ export const RETAINED_TABLES: readonly RetainedTable[] = [
   {
     table: "businesses",
     stripped: "the representative's name and number, CAC number, registered name and tax identifier",
-    because: "the business keeps trading under its own name",
+    because: "the business keeps trading under its own name, and it may not reach this point still on the market: owning one that a stranger can transact against is a precondition, cleared by transferring it to somebody who accepted it or by closing it",
+  },
+  {
+    table: "events",
+    stripped: "nothing: the host becomes an anonymous reference, exactly as a message sender does",
+    because: "a meetup that already happened is history, and the evening belongs to everybody who was there; the host name every surface draws comes from profiles, which this purge scrubs to Deleted account",
   },
   {
     table: "profiles",
@@ -173,6 +178,62 @@ export const RETAINED_TABLES: readonly RetainedTable[] = [
     table: "social_profiles",
     stripped: "handle, biography, pronouns, link, cover, banner and photograph",
     because: "the row carries counts other people's timelines are drawn from",
+  },
+];
+
+export type ClosedTable = {
+  table: string;
+  /** What is resolved, in plain words. */
+  resolved: string;
+  /** Who is told, because a commitment closed in silence is the failure. */
+  notice: string;
+};
+
+/**
+ * RESOLVED RATHER THAN DESTROYED OR KEPT, which is the third thing a purge can
+ * do to a row and the one the first deletion build did not have.
+ *
+ * The founder's principle: past records anonymise and stay, because they are
+ * history, but FUTURE COMMITMENTS MUST BE RESOLVED BEFORE THE ACCOUNT CAN GO.
+ * A row in this list is neither destroyed nor kept as it was: it is brought to
+ * a close, and somebody is told.
+ *
+ * `supabase/migrations/20260919210100_p1_a_future_event_is_cancelled_with_notice.sql`
+ * is what performs it, in its own transaction, immediately before the purge,
+ * and `plan.test.ts` reads that migration and asserts every table named here
+ * is actually named there.
+ *
+ * WHY A FUTURE EVENT IS NOT ALSO A BLOCKER, which was the author's call to
+ * argue: an event carries no money by the deliberate design of its own
+ * migration, it has exactly one host so there is nobody to hand it to, and its
+ * cancellation is complete and automatic because the trigger that writes
+ * `cancelled_at` is the same one that tells every attendee. Blocking would
+ * make somebody wait out their last meetup before they could exercise a data
+ * protection right, and the only act available to them would be the one the
+ * purge can perform for them. A cancellation with notice IS the resolution.
+ * A business blocks and an event does not, and the difference is that a
+ * stranger can hand a business money.
+ */
+export const CLOSED_TABLES: readonly ClosedTable[] = [
+  {
+    table: "events",
+    resolved: "every event of theirs that has not happened yet is cancelled; past events are left exactly as they are",
+    notice: "everybody going and everybody waitlisted, by name of the event and the reason",
+  },
+  {
+    table: "reservations",
+    resolved: "every table still to come at a restaurant of theirs is cancelled",
+    notice: "the guest who booked it",
+  },
+  {
+    table: "accommodations",
+    resolved: "anything of theirs somehow still published is taken off the market",
+    notice: "nobody: this should always be zero, and a count above zero is an alert for the desk rather than a message to a person",
+  },
+  {
+    table: "business_transfers",
+    resolved: "an offer of a business made TO them lapses, because it can never be accepted now; an offer they made to somebody else is left open, because it is the one door that can still put a living owner behind a business",
+    notice: "the owner who made the offer",
   },
 ];
 

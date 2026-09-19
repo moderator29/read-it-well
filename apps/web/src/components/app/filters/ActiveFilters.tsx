@@ -40,6 +40,10 @@ function RemoveChip({
       >
         <span>{label}</span>
         <span className="sr-only">Remove {removes}</span>
+        {/* KEPT ROUND: a 16px glyph plate inside the chip, aria-hidden and not
+            separately focusable. The chip is the control and `.nf-chip` carries
+            its shape. The two spans inside it are the cross strokes; their
+            `rounded-full` is a line cap on a 1.5px bar, not a shape. */}
         <span
           aria-hidden="true"
           className="relative block h-4 w-4 rounded-full bg-[var(--nf-surface-inset)]"

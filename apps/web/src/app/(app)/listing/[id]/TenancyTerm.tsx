@@ -140,7 +140,14 @@ function StepButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="nf-tap grid h-9 w-9 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-primary)] transition-colors hover:bg-[var(--nf-glass-fill)] disabled:opacity-35"
+      /* Icon only, and still a rectangle. The shape law keeps a circle only for
+         a control that is round in a governing reference: the avatar and the
+         landing nav search glyph. No reference draws a stepper, and the one
+         governing image that draws bare icon buttons at all
+         (GOVERNING-chat-booking-card.png: back, call, overflow, send) draws every
+         one of them as a rounded square. A surface with no reference inherits the
+         register, and the register's control is the rectangle. */
+      className="nf-tap grid h-9 w-9 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] text-[var(--nf-content-primary)] transition-colors hover:bg-[var(--nf-glass-fill)] disabled:opacity-35"
     >
       <UiIcon name={icon} size={16} />
     </button>

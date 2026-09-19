@@ -17,18 +17,27 @@ import type { DeletionAction, DeletionAuditDetail } from "./audit";
  *      completion email and it is about to stop existing. It is held in a
  *      local for the length of one purge and is never stored, never logged and
  *      never written to the audit line.
- *   2. Purge the rows, in one database transaction, which also hands back
+ *   2. CLOSE THE FUTURE COMMITMENTS, before a single row is scrubbed. Every
+ *      event of theirs that has not happened yet is cancelled and everybody
+ *      going is told; every table still to come at a restaurant of theirs is
+ *      cancelled and the guest is told; anything somehow still on the market
+ *      comes off it. The founder's principle: past records anonymise and stay
+ *      because they are history, but a future commitment is resolved before
+ *      the account can go. It runs FIRST because the notices it sends name the
+ *      event and the restaurant, and after step 3 there is nobody to send
+ *      them on behalf of.
+ *   3. Purge the rows, in one database transaction, which also hands back
  *      every storage path it can see.
- *   3. Purge the objects, through the Storage API, because deleting a
+ *   4. Purge the objects, through the Storage API, because deleting a
  *      `storage.objects` row from SQL orphans the file.
- *   4. Scrub the auth row through the admin API as well as in SQL. Two
+ *   5. Scrub the auth row through the admin API as well as in SQL. Two
  *      independent routes to the same end: if this database does not grant
  *      `postgres` write access to the auth schema, the API still removes the
  *      address, the telephone number, the password and the metadata, and bans
  *      the row. The SQL half additionally removes the identity providers,
  *      which the admin API cannot do for a last identity.
- *   5. Mark the request PURGED, and only then.
- *   6. Send the completion email.
+ *   6. Mark the request PURGED, and only then.
+ *   7. Send the completion email.
  *
  * A FAILURE AT ANY STEP LEAVES THE REQUEST OPEN. `fail_account_purge` records
  * the reason and does not close the row, so the next scheduled run picks it up
@@ -102,6 +111,30 @@ export async function purgeOne(deps: PurgeDeps, due: DueRequest): Promise<PurgeO
     await deps.audit("account.deletion.purge_started", due.userId, due.requestId, {
       attempt: due.attempts + 1,
     });
+
+    /*
+     * THE FUTURE COMMITMENTS, RESOLVED FIRST AND IN THEIR OWN TRANSACTION.
+     *
+     * A failure here leaves the request OPEN, like every other failure in this
+     * file, so the next run tries again. It is safe to have run and then
+     * failed: an event cancelled with notice to everybody going is not a harm
+     * to anybody, and the function changes nothing the second time because
+     * every statement in it is keyed on a state it has already left.
+     *
+     * It is a SEPARATE call rather than a step inside `purge_account_rows`
+     * because re-emitting that function to add a step would put the twenty
+     * character handle fix and the balance fix of ledger 11.10 back on the
+     * table for a change that touches neither.
+     */
+    const closed = record(
+      await deps.rpc("close_future_commitments", { p_request: due.requestId }),
+    );
+    if (closed["ran"] === true) {
+      await deps.audit("account.deletion.commitments_closed", due.userId, due.requestId, {
+        ...countsFrom(closed["counts"]),
+      });
+    }
+
     rows = record(await deps.rpc("purge_account_rows", { p_request: due.requestId }));
   } catch (error) {
     const reason = error instanceof Error ? error.message.slice(0, 200) : "purge threw";

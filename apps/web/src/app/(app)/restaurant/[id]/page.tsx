@@ -19,6 +19,7 @@ import {
 import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
 import { getRestaurantDetail } from "@/lib/stays/queries";
+import { listBusinessPhotos } from "@/lib/stays/business-photos";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
@@ -163,6 +164,19 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   if (!listingFace && !detail) notFound();
 
   /*
+   * THE VENUE'S OWN PHOTOGRAPHS, which until P3 could not exist.
+   *
+   * There was no photo table on the business spine, so this page hard-coded an
+   * empty list and the gallery drew a Vallo category plate under a "No
+   * photographs yet" chip. `business_photos` is that table, and the read is the
+   * caller's own: `business_photos_select` shows a published venue's pictures
+   * to anybody and an unpublished venue's only to its owner and to an admin.
+   * A venue that still has none keeps the honest plate, because the gallery
+   * only draws a stand-in when the list is empty.
+   */
+  const venuePhotos = detail ? await listBusinessPhotos(detail.business.id) : [];
+
+  /*
    * ONE FACE, TWO READS. The page below speaks about a venue, not about a
    * row shape, so the two reads are flattened here and nowhere else. A
    * business states no price and carries no reviews of its own yet, so those
@@ -190,7 +204,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         title: detail!.business.name,
         area: detail!.business.area,
         city: detail!.business.city,
-        photos: [] as string[],
+        photos: venuePhotos.map((photo) => photo.url),
         /* `businesses.source` says first party or partner; the verified mark
            means a human was checked, which is not what that column records,
            so a venue carries none until it earns one. */

@@ -338,7 +338,10 @@
         var(--nf-tab-count)
     );
     translate: calc(var(--nf-tab-i) * (100% + var(--nf-tab-gap)));
-    border-radius: var(--nf-radius-lg);
+    /* The control rung, because it sits directly under `.nf-tab__link`, which
+       the shape law puts there: a highlight whose corners do not match the
+       label it is drawn behind reads as a second shape. */
+    border-radius: var(--nf-radius-control);
     /*
      * WHAT THE PILL IS, RESOLVED AGAINST THE IMAGES RATHER THAN ARGUED ABOUT
      * AGAIN.
@@ -387,8 +390,14 @@
     flex-shrink: 0;
     width: 3.5rem;
     height: 3.5rem;
-    /* A circle, as the founder's reference has it. A rounded square beside a
-       true pill read as two families. */
+    /* A CIRCLE, AND IT SURVIVES THE SHAPE LAW. The ruling of 19 September
+       makes every text-bearing control a rounded rectangle and keeps exactly
+       two things round: an avatar, and a bare icon-only button like the
+       reference's nav search glyph. This island is 56px square, holds one
+       glyph and no word, so it is the second of those. (The older half of
+       this note, "a rounded square beside a true pill read as two families",
+       no longer describes the bar: `.nf-tabbar` is a rounded rectangle on
+       `--nf-radius-2xl`.) */
     border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
     /* The canvas rather than a white wash, for the same reason the header
@@ -486,7 +495,12 @@
     gap: 0.125rem;
     height: 3.5rem;
     padding-inline: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-lg);
+    /* THE SHAPE LAW: the founder named the dock label among the text-bearing
+       controls, and every one of those is a rounded rectangle on
+       `--nf-radius-control`. This read `--nf-radius-lg`, which is the same
+       family and the wrong rung; the capsule it was before that is recorded
+       in the note above `.nf-tab`. */
+    border-radius: var(--nf-radius-control);
     color: var(--nf-content-muted);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),

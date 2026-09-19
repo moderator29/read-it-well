@@ -1,7 +1,12 @@
 /*
   auth: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  section 2.
+
+  THIS FAMILY HAS ONE THEME. The auth screen and first run are dark in both
+  themes, permanently (ledger rule 22), so there are no light-theme rules in
+  this file and adding one would break the ruling rather than complete it.
+  The two "NO DAYLIGHT TWIN" notes below say why the ABSENCE is the
+  mechanism. The header used to promise the opposite.
 
   The governing image is docs/design/references/55A56F21 (sign-in): the app
   icon and the wordmark stacked over the aurora plate, the slogan, a glass card
@@ -208,7 +213,45 @@
    * controls use: glass fill, hairline, the same 44px target. Scoped here
    * rather than in the component so no other screen changes.
    */
-  .nf-auth__lang .nf-btn.nf-btn--primary {
+  /*
+   * `select` IS IN THIS SELECTOR TO WIN A FIGHT, and the fight is the exact
+   * one rule 22's mechanism creates.
+   *
+   * Pinning `data-theme="dark"` on the auth root pins the TOKENS for the
+   * subtree. It does not stop a light-keyed rule from MATCHING, and
+   * `light.css` carries `:root[data-theme="light"] select.nf-btn--primary`
+   * for the site header's language pill, which at (0,3,1) outranked this
+   * rule at (0,3,0) and is in a later partial besides. Measured on the real
+   * page: in the light run this control came back `rgb(0, 0, 32)` with a
+   * `rgba(255,255,255,0.13)` edge where the dark run gave it the well fill
+   * and the brand edge. It looked nearly right only by accident - the light
+   * rule's own `var()`s were resolving against the pinned DARK tokens.
+   *
+   * THE FIRST ATTEMPT AT THIS WAS WRONG AND THE MEASUREMENT CAUGHT IT. I
+   * added the element type alone, `.nf-auth__lang select.nf-btn.nf-btn--primary`,
+   * calling it (0,4,1) against the light rule's (0,3,1). It is (0,3,1): I had
+   * forgotten that `:root` is itself a pseudo-class and counts. A tie goes to
+   * the later partial, `light.css` is imported eleven lines after this one,
+   * and the re-run came back with the same three differences. The arithmetic
+   * is only worth doing if the result is then checked against the page.
+   *
+   * So the selector leads with the PINNED ATTRIBUTE instead, which is both
+   * higher at (0,4,1) and the honest statement of the condition: inside a
+   * subtree that pins dark, this is the rule. That is the general shape for
+   * any surface rule 22 ever covers, not a trick particular to a language
+   * pill. NOT a light twin: there is no theme keyed here, the attribute is
+   * always present on this surface, and it paints one thing in both themes.
+   *
+   * The shared rule in `light.css` is left exactly as it is, because it is
+   * the right paper design for the site header, which is a genuinely white
+   * surface and always will be.
+   *
+   * THE GENERAL SHAPE IS WORTH SEEING. Any light-keyed rule more specific
+   * than a surface's own will leak into any subtree that pins dark. Fourteen
+   * of seventeen probes on this page came back identical without help; this
+   * was the one that did not.
+   */
+  [data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary {
     min-height: 2.75rem;
     border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
@@ -219,11 +262,11 @@
       inset 0 1px 0 var(--nf-glass-rim-thin),
       0 0 10px var(--nf-glow-wash);
   }
-  .nf-auth__lang .nf-btn.nf-btn--primary::after {
+  [data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary::after {
     display: none;
   }
   @media (hover: hover) {
-    .nf-auth__lang .nf-btn.nf-btn--primary:hover:not(:disabled) {
+    [data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary:hover:not(:disabled) {
       border-color: var(--nf-brand-edge);
       box-shadow:
         inset 0 1px 0 var(--nf-glass-rim-thin),
@@ -437,128 +480,45 @@
     }
   }
 
-  /* ---------------------------------------------------------- daylight */
-  /*
-   * The paper twin, designed rather than derived: the photograph and its
-   * scrim go, the page is the paper canvas, the card is flat white with a
-   * hairline and a soft shadow, and the podium is a quiet grey lens. The
-   * icon and wordmark are glass renders and keep their halo, as every glass
-   * object does on paper.
-   */
-  /*
-   * THE AURORA STAYS ON PAPER, AT PAPER'S OWN EXPOSURE.
+  /* ------------------------------------------------- NO DAYLIGHT TWIN
    *
-   * It was `display: none`, so the one photographic ground the design
-   * direction assigns to auth (section 3.6, the blue-wave plate behind the
-   * door) existed in one theme only and the light sign-in was a lockup and a
-   * card pasted on flat grey. Rule 7 is that light is a DESIGNED twin, not a
-   * derivation, and deleting the ground is a derivation with a step missing.
+   * THE AUTH SCREEN IS DARK IN BOTH THEMES, PERMANENTLY (ledger rule 22).
    *
-   * Kept, dimmed, and over the paper canvas rather than under a dark scrim:
-   * the plate reads as a tint in the corners of a bright page instead of a
-   * photograph competing with black body copy. The media scrim `::after`
-   * adds goes, because it is a dark gradient and its whole job was holding
-   * white text off a bright picture, which is not the problem on paper.
-   */
-  :root[data-theme="light"] .nf-auth__plate {
-    /* 0.12, read off a 390px shot rather than picked. The plate is a dark
-       blue wave, so at 0.18 the top third of the page came back grey and the
-       screen read as a dimmed photograph; at 0.12 it reads as paper carrying
-       a tint, which is the ground the card and the lockup want. */
-    opacity: 0.12;
-  }
-  :root[data-theme="light"] .nf-auth__plate::after {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-auth__card {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-auth__card::before {
-    display: none;
-  }
-  /*
-   * THE PODIUM'S ELLIPSE GOES ON PAPER, AND ITS REFLECTION STAYS.
+   * A hundred and seventeen lines of paper twin stood here and are deleted:
+   * the plate's daylight exposure, the flat white card, the podium's grey
+   * lens, the door, the language control, the notice, the seated app tile.
+   * Most of it was written an hour before the ruling, by me, off real 390px
+   * shots. The reasoning was sound and the ground moved: the founder has
+   * closed the question rather than leaving it open, because this screen is
+   * the register setter for a money product and every serious one in this
+   * market keeps its door dark.
    *
-   * The ring was `--nf-border-default` over a wash, which on a near-white
-   * page draws a stray grey oval under the card with nothing inside it: the
-   * shape is a dark-theme REFLECTION, light caught on a glass plinth, and
-   * paper has no reflection to catch. R1 finding A22. The soft gradient
-   * beneath it survives, because that reads as the card's own contact shadow
-   * on the page rather than as a drawn object.
-   */
-  :root[data-theme="light"] .nf-auth__podium::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-auth__podium::after {
-    background: linear-gradient(180deg, var(--nf-wash-3), transparent 90%);
-  }
-  :root[data-theme="light"] .nf-auth__door {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-auth__door-mark {
-    background: var(--nf-content-primary);
-    color: var(--nf-surface-primary);
-  }
-  /*
-   * THE LANGUAGE CONTROL WAS WHITE ON WHITE. It drew `--nf-surface-primary`,
-   * which IS pure white on paper, inside a 13 per cent grey hairline, on a
-   * page whose canvas is #F4F5F7 - so on the first screen a new account ever
-   * sees, the only control in the top corner was very nearly invisible
-   * (R1 finding A22). It takes the same paper twin as every other icon-sized
-   * control now: the brand tint, the brand edge, and a contact shadow rather
-   * than a lift.
-   */
-  :root[data-theme="light"] .nf-auth__lang .nf-btn.nf-btn--primary {
-    background: var(--nf-brand-tint-1);
-    border-color: var(--nf-brand-edge);
-    color: var(--nf-content-primary);
-    box-shadow: 0 1px 2px var(--nf-shade-1);
-  }
-  :root[data-theme="light"] .nf-auth__notice {
-    background: var(--nf-brand-tint-1);
-    border-color: var(--nf-border-default);
-  }
-  /*
-   * THE APP TILE GETS A GROUND ON PAPER, which is as far as CSS honestly
-   * reaches here.
+   * THE DELETION IS THE WHOLE MECHANISM, NOT TIDYING UP AFTER IT.
    *
-   * `vallo-icon.png` is a photographic glass render on a near-black tile, and
-   * on a pale page it reads as a black square somebody pasted there
-   * (R1 finding A22). `Logo.tsx` settles what may and may not be done about
-   * that: "an ink version of a photographic glass render is a new render, not
-   * a filter". So the artwork is not filtered, recoloured or inverted. What
-   * it is given is what R1 asked for and what a filter cannot fake: a seat.
-   * The tint and the ring sit BEHIND the render at its own radius, so the
-   * tile lands on a surface that belongs to the page rather than floating on
-   * it, and the halo becomes a contact shadow because a glow on white is a
-   * smudge.
+   * `app/(auth)/layout.tsx` and `WelcomeStage` carry `data-theme="dark"`, and
+   * `tokens.css` declares the dark palette on `:root, [data-theme="dark"]`,
+   * so the subtree takes dark values whatever the document is set to. That
+   * pins the TOKENS. It does not stop a rule keyed on
+   * `:root[data-theme="light"] .nf-auth__card` from matching, because when
+   * the document really is light that selector is true and it is more
+   * specific than anything the pinned tokens do. Every such rule left here
+   * would fight the attribute and win, on the exact screen the ruling is
+   * about. So there is nothing to keep behind a flag and nothing to revisit:
+   * the absence of these rules is what makes the ruling hold.
    *
-   * THE WORDMARK IS NOT FIXED BY THIS and is left honest rather than fudged.
-   * `vallo-wordmark.png` is chrome-blue 3D artwork with its highlights baked
-   * in; it needs a light twin asset, which is a render and not a stylesheet
-   * change. Its halo comes off, since that was the one thing making it worse.
-   */
-  :root[data-theme="light"] .nf-auth__icon {
-    padding: var(--nf-space-2xs);
-    background: var(--nf-brand-tint-1);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    box-shadow: 0 2px 8px var(--nf-shade-1);
-    filter: none;
-  }
-  :root[data-theme="light"] .nf-auth__wordmark {
-    filter: none;
-  }
+   * IF A LIGHT AUTH SCREEN IS EVER WANTED AGAIN it is a new design against a
+   * new reference, not this block restored. It is in the history.
+   *
+   * WHAT DID NOT LIVE HERE AND IS NOT AFFECTED: `.nf-icon-btn`'s paper twin
+   * in light.css, which is about every header plate in the product, and the
+   * text wordmark that white surfaces use until the ink render exists.
+   * ------------------------------------------------------------------ */
 }
 
 /*
   welcome: the first run, to docs/design/references/2A49E2F7 (two worlds and
-  the coin). Same family as auth, same partial, same two themes. The stage is
+  the coin). Same family as auth, same partial, and ONE theme: dark, in both
+  themes, permanently (ledger rule 22). The stage is
   the lockup, the two-line headline, the two glass world cards with the coin
   between them on a lit podium, the beat dots, the capsule Get Started (per
   the amended radius law, BUILD_06 section 8) and Skip.
@@ -782,11 +742,27 @@
     box-shadow: 0 0 10px var(--nf-glow-3);
   }
 
-  /* The capsule, by the founder's identical-to-images ruling (section 8). */
+  /*
+   * A ROUNDED RECTANGLE, ON THE SAME FOUNDER'S RULING, TAKEN AGAIN AND CLOSED.
+   *
+   * This read "the capsule, by the founder's identical-to-images ruling
+   * (section 8)". Section 8's amendment listed "the Get Started button on
+   * welcome" among the controls the renders draw as capsules. The ruling of
+   * 19 September settles it the other way and is the later word: the shape
+   * law was taken with `GOVERNING-landing-desktop-hero.png` open, that image
+   * holds no capsule at all, and its own Get Started - top right, the primary
+   * button of the whole reference - is a rounded rectangle. Anything carrying
+   * text reads `--nf-radius-control`; only an avatar and a bare icon button
+   * stay round.
+   *
+   * ONLY THE RADIUS MOVED. The glow on this button is left exactly as it was:
+   * the lead is setting the glow scale centrally and two people tuning one
+   * bloom at once produces neither person's number.
+   */
   .nf-welcome__cta {
     margin-top: var(--nf-space-md);
     width: 100%;
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
       0 0 26px var(--nf-glow-2);
@@ -841,31 +817,19 @@
     }
   }
 
-  /* ---------------------------------------------------------- daylight */
-  :root[data-theme="light"] .nf-welcome__world {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-welcome__world::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-welcome__stage::before {
-    border-color: var(--nf-border-default);
-    background: radial-gradient(ellipse at 50% 50%, var(--nf-wash-4), transparent 70%);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-welcome__coin {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-brand-edge);
-    box-shadow: var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-welcome__coin::after {
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-welcome__cta {
-    box-shadow: 0 4px 14px var(--nf-glow-2);
-  }
+  /* ------------------------------------------------- NO DAYLIGHT TWIN
+   *
+   * FIRST RUN IS AUTH, so rule 22 reaches it: the ruling names sign in, sign
+   * up AND first run, and this screen is the one immediately after the door,
+   * built on the same `.nf-auth` ground so the two read as one place. A paper
+   * twin here would have made the register change halfway through a sequence
+   * the reader experiences as continuous.
+   *
+   * Six rules deleted: the two world cards, their specular, the podium lens,
+   * the coin, its reflection and the call to action's daylight lift. The
+   * reason they cannot merely be left unused is in the matching note in the
+   * auth block above: `data-theme="dark"` on `WelcomeStage` pins the TOKENS,
+   * and a rule keyed on `:root[data-theme="light"] .nf-welcome__coin` still
+   * matches when the document is light and beats them.
+   * ------------------------------------------------------------------ */
 }

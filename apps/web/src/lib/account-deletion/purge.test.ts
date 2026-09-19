@@ -28,6 +28,10 @@ function deps(
   const audits: Recorded[] = [];
   const emails: string[] = [];
   const answers: Record<string, unknown> = {
+    close_future_commitments: {
+      ran: true,
+      counts: { events_cancelled: 2, reservations_cancelled: 1, businesses_suspended: 0 },
+    },
     purge_account_rows: {
       purged: true,
       user_id: USER,
@@ -81,6 +85,43 @@ function deps(
 }
 
 const due = { requestId: REQUEST, userId: USER, attempts: 0 };
+
+describe("the future commitments are resolved before anything is destroyed", () => {
+  it("closes them before the rows are purged, because afterwards there is nobody to send the notices on behalf of", async () => {
+    const d = deps();
+    await purgeOne(d, due);
+    expect(d.calls.indexOf("close_future_commitments")).toBeGreaterThanOrEqual(0);
+    expect(d.calls.indexOf("close_future_commitments")).toBeLessThan(
+      d.calls.indexOf("purge_account_rows"),
+    );
+  });
+
+  it("writes what it closed to the audit line, as counts and nothing else", async () => {
+    const d = deps();
+    await purgeOne(d, due);
+    const line = d.audits.find((entry) => entry.action === "account.deletion.commitments_closed");
+    expect(line).toBeDefined();
+    expect(line?.detail).toEqual({
+      events_cancelled: 2,
+      reservations_cancelled: 1,
+      businesses_suspended: 0,
+    });
+    for (const value of Object.values(line?.detail ?? {})) {
+      expect(typeof value).toBe("number");
+    }
+  });
+
+  it("leaves the request open when the commitments could not be closed, and destroys nothing", async () => {
+    const d = deps({
+      rpcAnswers: { close_future_commitments: new Error("close threw") },
+    });
+    const outcome = await purgeOne(d, due);
+    expect(outcome.result).toBe("retry");
+    expect(d.calls).not.toContain("purge_account_rows");
+    expect(d.calls).not.toContain("finish_account_purge");
+    expect(d.calls).toContain("fail_account_purge");
+  });
+});
 
 describe("purging one account", () => {
   it("reads the address before anything is destroyed", async () => {

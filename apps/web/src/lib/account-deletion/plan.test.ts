@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { DESTROYED_TABLES, PURGED_BUCKETS, RETAINED_TABLES } from "./plan";
+import { CLOSED_TABLES, DESTROYED_TABLES, PURGED_BUCKETS, RETAINED_TABLES } from "./plan";
 import { STORAGE_BUCKETS } from "./constants";
 
 /**
@@ -40,10 +40,37 @@ const REQUEST_MIGRATION = readFileSync(
   "utf8",
 );
 
-/** The executable half, with the commented probe and header stripped out. */
-const BODY = MIGRATION.split("\n")
-  .filter((line) => !line.trimStart().startsWith("--"))
-  .join("\n");
+const TRANSFER_MIGRATION = readFileSync(
+  fileURLToPath(
+    new URL(
+      "../../../../../supabase/migrations/20260919210000_p1_a_business_is_never_left_ownerless.sql",
+      import.meta.url,
+    ),
+  ),
+  "utf8",
+);
+
+const CLOSE_MIGRATION = readFileSync(
+  fileURLToPath(
+    new URL(
+      "../../../../../supabase/migrations/20260919210100_p1_a_future_event_is_cancelled_with_notice.sql",
+      import.meta.url,
+    ),
+  ),
+  "utf8",
+);
+
+/** The executable half of any of them, with the commented probe and header stripped out. */
+function executable(sql: string): string {
+  return sql
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("--"))
+    .join("\n");
+}
+
+const BODY = executable(MIGRATION);
+const TRANSFER_BODY = executable(TRANSFER_MIGRATION);
+const CLOSE_BODY = executable(CLOSE_MIGRATION);
 
 describe("the destroy list and the migration agree", () => {
   it("deletes from every table the ledger says is destroyed", () => {
@@ -155,11 +182,143 @@ describe("the grace window is a real clock", () => {
   });
 });
 
+describe("a business may never be orphaned", () => {
+  it("counts a business a stranger can still transact against as a blocker", () => {
+    expect(TRANSFER_BODY).toContain("'owned_businesses', v_business");
+    expect(TRANSFER_BODY).toContain("or v_business > 0");
+  });
+
+  it("does not reopen the negative balance fault of 11.10", () => {
+    expect(TRANSFER_BODY).toContain("v_balance > 0");
+    expect(TRANSFER_BODY).not.toContain("v_balance <> 0");
+  });
+
+  it("moves ownership only through a row somebody accepted", () => {
+    // The offer writes a PENDING row and nothing else. The only statement in
+    // the file that repoints owner_id lives in the response function.
+    expect(TRANSFER_BODY).toContain("create or replace function public.respond_to_business_transfer");
+    const offer = TRANSFER_BODY.slice(
+      TRANSFER_BODY.indexOf("create or replace function public.offer_business_transfer"),
+      TRANSFER_BODY.indexOf("create or replace function public.respond_to_business_transfer"),
+    );
+    expect(offer).not.toContain("set owner_id");
+    expect(offer.length).toBeGreaterThan(0);
+  });
+
+  it("refuses to hand a business to somebody who is leaving too", () => {
+    expect(TRANSFER_BODY).toContain("'receiver_leaving'");
+    // Checked when it is offered AND again when it is accepted, because
+    // fourteen days is long enough to change your mind about your own account.
+    expect(TRANSFER_BODY.match(/receiver_leaving/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
+  });
+
+  it("takes the badge out with the person it vouched for", () => {
+    expect(TRANSFER_BODY).toContain("agent_id             = null");
+    expect(TRANSFER_BODY).toContain("'identity', 'pending'");
+    expect(TRANSFER_BODY).toContain("consents             = '{}'::jsonb");
+    expect(TRANSFER_BODY).toContain("hygiene_attested_at  = null");
+    expect(TRANSFER_BODY).toContain("licence_attested_at  = null");
+  });
+});
+
+describe("a future event is cancelled with notice, never orphaned", () => {
+  it("resolves every table the closed list names", () => {
+    for (const entry of CLOSED_TABLES) {
+      expect(CLOSE_BODY, `${entry.table} is on the closed list`).toContain(
+        `public.${entry.table}`,
+      );
+    }
+  });
+
+  it("cancels an event rather than deleting it, so the attendees keep their record", () => {
+    expect(CLOSE_BODY).toContain("set status        = 'CANCELLED'");
+    expect(CLOSE_BODY).not.toContain("delete from public.events");
+  });
+
+  it("leaves a past event alone, because history is not ours to rewrite", () => {
+    expect(CLOSE_BODY).toContain("and starts_at > now()");
+  });
+
+  it("writes a reason, which is what the notification trigger reads out", () => {
+    expect(CLOSE_BODY).toContain("cancel_reason = v_reason");
+  });
+
+  it("cancels the tables before it suspends the restaurant, or the guests are never told", () => {
+    expect(CLOSE_BODY.indexOf("reservations_cancelled")).toBeLessThan(
+      CLOSE_BODY.indexOf("businesses_suspended"),
+    );
+  });
+
+  it("asks the same clock the purge asks, so nobody's evening is cancelled early", () => {
+    expect(CLOSE_BODY).toContain("if v_req.purge_after > now() then");
+    expect(CLOSE_BODY).toContain("'not_due'");
+  });
+});
+
+describe("rule 21: born locked, never born public", () => {
+  it("revokes execute from anon and authenticated on every function it creates", () => {
+    for (const body of [TRANSFER_BODY, CLOSE_BODY]) {
+      const created = [...body.matchAll(/create or replace function (public\.[a-z_]+)\(/g)].map(
+        (match) => match[1],
+      );
+      expect(created.length).toBeGreaterThan(0);
+      for (const fn of created) {
+        const revokes = [...body.matchAll(/revoke all on function ([a-z_.]+)/g)].map(
+          (match) => match[1],
+        );
+        expect(revokes, `${fn} is revoked in its own migration`).toContain(fn);
+      }
+      // And every revoke names a function this same file created, so nothing
+      // is taken away from an object that existed before it.
+      for (const fn of [...body.matchAll(/revoke all on function ([a-z_.]+)/g)].map((m) => m[1])) {
+        expect(body).toContain(`create or replace function ${fn}(`);
+      }
+    }
+  });
+
+  it("never lets anon back in", () => {
+    for (const body of [TRANSFER_BODY, CLOSE_BODY]) {
+      for (const line of body.split("\n").filter((row) => row.includes("grant execute"))) {
+        expect(line, "anon is never granted execute").not.toContain("anon");
+      }
+    }
+  });
+});
+
+describe("the new migrations are additive", () => {
+  it("alters no foreign key, drops nothing but a policy, and relaxes no restrict key", () => {
+    for (const body of [TRANSFER_BODY, CLOSE_BODY]) {
+      expect(body).not.toMatch(/drop\s+constraint/i);
+      expect(body).not.toMatch(/drop\s+table/i);
+      expect(body).not.toMatch(/drop\s+column/i);
+      expect(body).not.toMatch(/drop\s+function/i);
+      expect(body).not.toMatch(/drop\s+index/i);
+      const drops = [...body.matchAll(/drop\s+(\w+)/gi)].map((match) => match[1]?.toLowerCase());
+      for (const kind of drops) expect(kind).toBe("policy");
+      expect(body).not.toMatch(/on\s+delete\s+restrict/i);
+      expect(body).not.toMatch(/alter\s+table[\s\S]{0,40}?alter\s+column/i);
+      expect(body).not.toContain("delete from auth.users");
+    }
+  });
+});
+
 describe("the probes are present and ask the right question", () => {
   it("each migration carries an RLS cross-user read that must fail", () => {
-    for (const sql of [MIGRATION, REQUEST_MIGRATION]) {
+    for (const sql of [MIGRATION, REQUEST_MIGRATION, TRANSFER_MIGRATION, CLOSE_MIGRATION]) {
       expect(sql).toContain("THE RLS CROSS-USER READ THAT MUST FAIL");
       expect(sql).toContain("rollback;");
+    }
+  });
+
+  it("the new probes end in a deliberate raise, so the transaction rolls itself back", () => {
+    for (const sql of [TRANSFER_MIGRATION, CLOSE_MIGRATION]) {
+      expect(sql).toContain("PROBE ALL PASS");
+    }
+  });
+
+  it("the new probes are not vacuous: they prove a row exists before proving it cannot be read", () => {
+    for (const sql of [TRANSFER_MIGRATION, CLOSE_MIGRATION]) {
+      expect(sql).toContain("the read would be vacuous");
     }
   });
 });

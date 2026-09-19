@@ -271,7 +271,11 @@ export function ListingGallery({
       {standIn && (
         <p
           data-testid="gallery-standin"
-          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-pill)] bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium backdrop-blur-md sm:bottom-14 sm:right-4"
+          /* Not interactive, but it is a media CHIP carrying words, and the
+             photo counter twelve lines below is the same chip at the same corner
+             already on the control radius. A capsule beside a rectangle in one
+             file is the confusion the shape law removes. */
+          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           {t.catalogue.card.noPhotos}
         </p>

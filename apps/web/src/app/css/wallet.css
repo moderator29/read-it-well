@@ -577,26 +577,26 @@
   /* ------------------------------------------------- controls, scoped here */
 
   /*
-   * THE CAPSULE, AND THE ONE THING THIS PARTIAL STILL SAYS ABOUT BUTTONS.
+   * THE CAPSULE IS GONE, AND WITH IT THE LAST THING THIS PARTIAL SAID ABOUT
+   * BUTTON SHAPE.
    *
-   * The light was promoted and is gone from here. `buttons.css` now rests
-   * the primary in its own two-rung bloom and rings the glass secondary in
-   * brand with the lit rim, so the four rules that used to paint those two
-   * controls on this surface have been deleted rather than left to drift
-   * beside the shared ones.
+   * The light was promoted and went first: `buttons.css` rests the primary in
+   * its own two-rung bloom and rings the glass secondary in brand with the lit
+   * rim, so the four rules that used to paint those two controls here were
+   * deleted rather than left to drift beside the shared ones.
    *
-   * The SHAPE is the remainder, and it stays for a reason that is not
-   * inertia. The founder's ruling of 19 September makes the capsule the law
-   * of the whole money register, not a choice taken control by control; the
-   * shared material carries the same value as an opt-in variant
-   * (`.nf-btn--pill`), which can only be spelled at each call site. One rule
-   * applying the shared token to one surface is the smaller of the two
-   * duplications, and it introduces no value of its own: this is
-   * `--nf-radius-pill` and nothing else.
+   * The shape was the remainder, and it read
+   * `.nf-money .nf-btn { border-radius: var(--nf-radius-pill) }` on the note
+   * that the founder's ruling of 19 September made the capsule the law of the
+   * money register. THAT RULING IS CLOSED THE OTHER WAY NOW: anything you
+   * press that carries a word is a rounded rectangle, and the governing
+   * reference has no capsule button anywhere in it. So the override is not
+   * retuned to `--nf-radius-control`, it is DELETED, because `.nf-btn` in
+   * `buttons.css` is already `--nf-radius-control` and a surface partial
+   * restating the platform default is how a second source of truth starts.
+   * Every button on the wallet surfaces now takes its corner from the one
+   * place that owns it.
    */
-  .nf-money .nf-btn {
-    border-radius: var(--nf-radius-pill);
-  }
   /*
    * THE BIG FIGURE IS WHITE, and it was brand blue.
    *

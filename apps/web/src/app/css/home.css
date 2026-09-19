@@ -504,13 +504,18 @@
     gap: var(--nf-gap-row);
     margin-bottom: var(--nf-gap-row);
   }
+  /* The unread count. It carries a numeral, so it takes the control radius
+     like every other lettered plate (the founder's shape law, 19 September).
+     A single digit still reads as a disc, because 14px of corner on a 24px
+     box clamps to half the box; a count in double figures now grows into a
+     rounded rectangle instead of a capsule. */
   .nf-notif__count {
     display: inline-grid;
     place-items: center;
     min-width: 1.5rem;
     height: 1.5rem;
     padding-inline: var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     background: var(--nf-brand-tint-2);
     font-size: var(--nf-text-overline);
     font-weight: 650;
@@ -855,6 +860,9 @@
     font-weight: 650;
     line-height: 1.3;
   }
+  /* LEFT ROUND under the founder's shape law: a bare glyph in a 22px square,
+     the same kind of object as the nav search button in the governing hero,
+     which is the one circle in that image. No letters on it. */
   .nf-ai__result-go {
     display: inline-flex;
     flex-shrink: 0;
@@ -942,13 +950,18 @@
     pointer-events: none;
   }
 
-  /* The thinking state: the ring and the word, as one pill. */
+  /* The thinking state: the ring and the word, as one plate.
+
+     The ring inside it stays a circle (a spinner is not a control), but the
+     plate around it carries a word, so the plate is a rounded rectangle on
+     the founder's shape law of 19 September. It sits in a row with chips and
+     would be the only capsule on the surface otherwise. */
   .nf-ai__thinking {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-gap-row);
     padding: var(--nf-space-xs) var(--nf-space-md) var(--nf-space-xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
     font-size: var(--nf-text-body-sm);

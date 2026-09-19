@@ -633,7 +633,21 @@ const DULL_ALLOWED = new Set([
   "src/app/css/catalogue.css  .nf-tenancy-chip",
 ]);
 
-function dullControlsIn(source, where) {
+/*
+ * ONE WALKER, TWO RULES, AND THAT IS THE POINT.
+ *
+ * Rule 9 below asks whether a resting control wears a grey hairline. Rule 10
+ * asks whether a resting control wears a capsule. They are the same question
+ * about the same set of rules, so they read the same selector vocabulary,
+ * the same state exclusion and the same crude brace walk, and they differ
+ * only in the declaration they look for and the exception list they honour.
+ *
+ * Written as two functions they would have drifted: the first version of rule
+ * 9 watched one border token and `.nf-chip` walked past it on a second, and
+ * a second copy of this walk would acquire its own version of that mistake on
+ * its own schedule. A caller passes `test` and `allowed` and nothing else.
+ */
+function restingControlFaults(source, where, test, allowed) {
   const found = [];
   /* A stack, so `@layer components { .nf-chip { ... } }` reports `.nf-chip`
      and not the layer. Every partial in this repository is wrapped in a
@@ -652,7 +666,7 @@ function dullControlsIn(source, where) {
     const top = stack[stack.length - 1];
     if (top && opens === 0) {
       if (POINTER.test(line)) top.pointer = true;
-      if (BORDER_GLASS.test(line) && top.hit < 0) top.hit = index;
+      if (test.test(line) && top.hit < 0) top.hit = index;
     }
     for (let i = 0; i < closes; i += 1) {
       const rule = stack.pop();
@@ -665,13 +679,17 @@ function dullControlsIn(source, where) {
         /* Keyed on file and selector rather than on a line number, because a
            line number moves every time somebody edits above it and an
            exception that silently stops matching is worse than no exception. */
-        !DULL_ALLOWED.has(`${where}  ${rule.selector}`)
+        !allowed.has(`${where}  ${rule.selector}`)
       ) {
         found.push(`${where}:${rule.hit + 1}  ${rule.selector}`);
       }
     }
   });
   return found;
+}
+
+function dullControlsIn(source, where) {
+  return restingControlFaults(source, where, BORDER_GLASS, DULL_ALLOWED);
 }
 
 /* A pass of its own, after the patterns above are in scope. Same files, same
@@ -681,6 +699,250 @@ for (const dir of ROOTS) {
     const source = withoutComments(readFileSync(file, "utf8"));
     for (const fault of dullControlsIn(source, relative(ROOT, file))) dullControls.push(fault);
   }
+}
+
+/*
+ * ------------------------------- CHECK TEN: A CAPSULE ON A CONTROL
+ *
+ * THE LAW IT ENFORCES, which is a founder ruling of 19 September and is
+ * written up in `docs/DESIGN_DIRECTION.md` section 1.
+ *
+ * Any control that carries TEXT is a ROUNDED RECTANGLE on
+ * `--nf-radius-control`. Every button, chip, segment, tab, filter chip,
+ * input, dock label, sheet action and admin control. Two exceptions and no
+ * others: an avatar, and a bare icon button carrying no text that a governing
+ * image draws round, which today is the landing nav's search glyph and
+ * nothing else. `GOVERNING-landing-desktop-hero.png` has no capsule anywhere
+ * in it and one circle, that glyph; `GOVERNING-chat-booking-card.png` draws
+ * send, back, call and overflow as rounded squares and keeps the circle for
+ * avatars.
+ *
+ * WHY IT IS A CHECK AND NOT A SWEEP. The capsule was never a decision
+ * anybody took per control. `tokens.css` records it: `--nf-radius-pill` was
+ * for a long time the only token name that meant "a control", so every button
+ * and chip became a 999px capsule by having nowhere else to point. A sweep
+ * fixes today's call sites. It does not fix the next chip, which will be
+ * copied from whatever chip is nearest, and this rule exists so that the
+ * nearest chip can never again be a capsule.
+ *
+ * IT DECIDES "CONTROL" EXACTLY AS CHECK NINE DOES, through the same
+ * `restingControlFaults` walk: the same `CONTROL_SELECTOR` vocabulary, the
+ * same `cursor: pointer` fallback, the same `NOT_RESTING` exclusion of state
+ * and paper-twin selectors. A second vocabulary for the same question is how
+ * two checks come to disagree about what a control is, and check nine already
+ * learned that lesson once when it watched a single border token and `.nf-chip`
+ * rested on a different one.
+ *
+ * WHAT A PILL RADIUS IS, for this check: `var(--nf-radius-pill)`,
+ * `var(--nf-radius-control-pill)`, and a literal `999px` or `9999px`.
+ *
+ * `50%` AND `--nf-radius-circle` ARE NOT REPORTED, deliberately. That is how
+ * an avatar, a status dot and a count badge are drawn and they are correct as
+ * circles; the ruling's own words are that a dot, a spinner, a progress ring,
+ * an avatar ring and a story ring are not controls. A circle token on a rule
+ * whose selector carries a control word is the one hole left open here, and it
+ * is open because closing it would fire on every avatar in the tree.
+ *
+ * AND IT RUNS OVER TSX TOO, which is new for a shape rule and is where the
+ * sweep that motivated it did most of its work. There the question "is this a
+ * control" has a better answer than a selector: the radius is written in the
+ * opening tag of an element, and the element has a NAME. A `rounded-full` in
+ * the opening tag of a `button`, `a`, `Link`, `input`, `select`, `textarea`,
+ * `summary`, `Button`, `ButtonLink` or `Chip` is a capsule on a control. The
+ * same class on a `span` or a `div` is not reported, because that is an
+ * avatar, a dot, a bar, a ring or a skeleton nine times in ten and this check
+ * would be switched off inside a week if it said otherwise.
+ *
+ * ---------------------------------------------------------------------------
+ * WHAT THIS RULE CANNOT SEE, AND IT IS MORE THAN THE OTHERS CANNOT SEE.
+ *
+ * THIS SCRIPT GREPS SOURCE TEXT. IT CANNOT PROVE WHAT THE BROWSER RESOLVED.
+ * That sentence belongs at the top of this file rather than in one check, and
+ * it is here because it was paid for today: a single unlayered
+ * `* { border-color: ... }` in `base.css` was outranking every layered brand
+ * edge in the product, and every check in this file passed the whole time,
+ * correctly, because the source text each of them reads was right. Cascade,
+ * layer order, specificity and inheritance are all invisible here. A green run
+ * of this file means the text is right. It does not mean the screen is.
+ *
+ * So, specifically, this check does not see:
+ *
+ *   A RADIUS THAT ARRIVES FROM SOMEWHERE ELSE. `<button className="nf-chip">`
+ *   is reported only if `.nf-chip` itself is caught in the stylesheet pass.
+ *   A capsule reaching a control through a shared class, a cascade, an inline
+ *   style computed at runtime, or a `style` prop holding a variable, is
+ *   outside it.
+ *
+ *   WHETHER THE CONTROL CARRIES TEXT. The ruling's line is drawn at text and
+ *   this check is drawn at controls, which is the wider set. An icon-only
+ *   button written as a circle is reported. That is deliberate: the two
+ *   exceptions the ruling allows are an avatar and one nav glyph, both of
+ *   which are drawn in CSS on rules that name them, so a TSX control asking
+ *   for a capsule is a fault every time so far. If a genuine round icon
+ *   control ever needs to live in TSX, it goes in `PILL_ALLOWED_TSX` below
+ *   with its reason, and the reason has to name the governing image.
+ *
+ *   A RULE WRITTEN INLINE, on one line with its selector, or a selector split
+ *   across lines. Same crude brace walk as check nine, same argument for it.
+ *
+ *   A `shape="pill"` PROP. `Button`, `Chip` and `StatusPill` each still carry
+ *   one, and it maps to a class rather than to a radius, so nothing here can
+ *   read it. All three are marked `@deprecated` and no surface outside
+ *   `app/(dev)/preview/g1/` passes one; what closes that door properly is this
+ *   check firing on `nf-btn--pill` and `nf-chip--pill` in the stylesheets, and
+ *   their owners deleting the rules.
+ */
+const PILL_RADIUS =
+  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill)\s*\)|\b9{3,4}px\b)/;
+
+/*
+ * THE EXCEPTIONS, keyed on file and selector, each with its reason, exactly as
+ * check nine's are and for the same reason: nobody can add one without saying
+ * which kind it is.
+ *
+ * PERMANENT: the check is wrong about these. A capsule is the SHAPE of the
+ * object rather than a decision about a control, which is the distinction the
+ * ruling itself draws when it says a dot, a spinner, a progress ring and a
+ * story ring are not controls.
+ *
+ * DEBT: a real capsule on a real control, in a stylesheet this sweep did not
+ * own. Listed so the gate stays green for its owner tonight and so the rule is
+ * live for everything else. A LISTED ENTRY IS A JOB, NOT A RULING: delete it
+ * when the control is squared off, and never add one to make a build pass.
+ */
+const PILL_ALLOWED = new Set([
+  /*
+   * PERMANENT. The dock island is 56px square, holds one glyph and carries no
+   * word, so it is the ruling's second exception: a bare icon button, the same
+   * species as the landing nav's search glyph. Its own rule in `chrome.css`
+   * says so in a comment written when the ruling landed, and the bar it sits
+   * beside, `.nf-tabbar`, is a rounded rectangle.
+   */
+  "src/app/css/chrome.css  .nf-dock-island",
+]);
+
+/* The TSX half of the same list, and it has one entry. The two round things
+   the ruling allows, the avatar and the landing nav's search glyph, are both
+   drawn in CSS on rules that name them, so a TSX entry has to argue for itself
+   on other grounds. */
+const PILL_ALLOWED_TSX = new Set([
+  /*
+   * PERMANENT, and it is the same object check nine already excuses as
+   * `.nf-switch` in DULL_ALLOWED, reached through its component instead of
+   * through its stylesheet. This `button` is a switch TRACK: `role="switch"`,
+   * a thumb that travels along it, and a capsule is what a track IS. A
+   * rectangle here would not be a squarer control, it would be a different
+   * object. The word beside a switch is a label element, not the control.
+   */
+  "src/components/ui/Switch.tsx  <button> nf-switch",
+]);
+
+const pillControls = [];
+
+for (const dir of ROOTS) {
+  for (const file of filesUnder(join(ROOT, dir), [".css"])) {
+    const source = withoutComments(readFileSync(file, "utf8"));
+    const where = relative(ROOT, file);
+    for (const fault of restingControlFaults(source, where, PILL_RADIUS, PILL_ALLOWED)) {
+      pillControls.push(fault);
+    }
+  }
+}
+
+/*
+ * The TSX half. A pill radius written in the OPENING TAG of a control element.
+ *
+ * The scan walks the file once and, at every `<Name`, reads forward to that
+ * tag's own `>`, skipping any `>` inside a string or inside braces, because
+ * `onClick={() => f()}` and `style={{ ... }}` both contain one and a naive
+ * scan ends the tag in the middle of its attributes. What is between the two
+ * is the element's attributes and nothing else, so a match inside it belongs
+ * to that element rather than to a neighbour, which is the whole reason this
+ * is a small state machine rather than "walk back fifteen lines and hope".
+ */
+const CONTROL_TAG =
+  /^(?:button|a|input|select|textarea|summary|option|Link|Button|ButtonLink|Chip)$/;
+const PILL_IN_TSX =
+  /\brounded-full\b|rounded-\[\s*(?:var\(\s*--nf-radius-(?:pill|control-pill)\s*\)|9{3,4}px)\s*\]|borderRadius\s*:\s*["'`]\s*(?:9{3,4}px|var\(\s*--nf-radius-(?:pill|control-pill)\s*\))\s*["'`]/;
+
+function pillControlsInTsx(source, where) {
+  const found = [];
+  const lineStarts = [0];
+  for (let k = 0; k < source.length; k += 1) if (source[k] === "\n") lineStarts.push(k + 1);
+  const lineAt = (offset) => {
+    let lo = 0;
+    let hi = lineStarts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (lineStarts[mid] <= offset) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo + 1;
+  };
+
+  let i = 0;
+  while (i < source.length) {
+    if (source[i] !== "<" || !/[A-Za-z]/.test(source[i + 1] ?? "")) {
+      i += 1;
+      continue;
+    }
+    const name = /^<([A-Za-z][A-Za-z0-9_.]*)/.exec(source.slice(i, i + 64));
+    if (!name) {
+      i += 1;
+      continue;
+    }
+    let j = i + name[0].length;
+    let depth = 0;
+    let quote = null;
+    while (j < source.length) {
+      const c = source[j];
+      if (quote) {
+        if (c === "\\") {
+          j += 2;
+          continue;
+        }
+        /* A `"` or `'` attribute string never contains a newline, so a
+           newline ends it. Without this one line a single unbalanced quote
+           anywhere runs the scan to the end of the file and reports the wrong
+           element: the first run of this check printed `<input>` for a `<span>`
+           nine hundred lines further down. A template literal is allowed to
+           span lines and is not reset. */
+        if (c === "\n" && quote !== "`") quote = null;
+        else if (c === quote) quote = null;
+      } else if (c === '"' || c === "'" || c === "`") {
+        quote = c;
+      } else if (c === "{") {
+        depth += 1;
+      } else if (c === "}") {
+        depth -= 1;
+      } else if (c === ">" && depth === 0) {
+        break;
+      }
+      j += 1;
+    }
+    const attributes = source.slice(i, j);
+    if (CONTROL_TAG.test(name[1])) {
+      const hit = PILL_IN_TSX.exec(attributes);
+      /* The element's first `nf-` class, so an exception can name ONE control
+         in a file rather than every control of that tag in it. A line number
+         would have been the precise key and it moves the moment somebody edits
+         above it, which is the argument check nine's exception list already
+         makes for itself. An element with no `nf-` class keys on its tag alone,
+         which is coarser, and an exception for one of those has to say so. */
+      const marker = /\bnf-[a-z0-9-]+/.exec(attributes)?.[0] ?? "";
+      const key = `${where}  <${name[1]}> ${marker}`.trimEnd();
+      if (hit && !PILL_ALLOWED_TSX.has(key)) {
+        found.push(`${where}:${lineAt(i + hit.index)}  <${name[1]}> ${marker}  ${hit[0].trim()}`);
+      }
+    }
+    i = j + 1;
+  }
+  return found;
+}
+
+for (const file of filesUnder(join(ROOT, "src"), [".tsx"])) {
+  const source = withoutJsComments(readFileSync(file, "utf8"));
+  for (const fault of pillControlsInTsx(source, relative(ROOT, file))) pillControls.push(fault);
 }
 
 /*
@@ -728,9 +990,29 @@ for (const dir of ROOTS) {
  * mode is a visible false positive that the reader can see is prose, which is
  * the right way round for a check to be wrong.
  */
+/*
+ * AND `accept="image/*"` USED TO SWALLOW NINE HUNDRED LINES OF A COMPONENT.
+ *
+ * The first version opened a block comment at any `/*`. `ListingWizard.tsx`
+ * writes `accept="image/*"` on its file input, so the stripper opened a
+ * comment inside a string literal and closed it at the next real `*\/`, which
+ * was 900 lines later. Everything between was blanked, so check 2 could not
+ * have reported a layer-1 token anywhere in it, and nothing said so: the
+ * check ran, printed nothing, and the silence read as a pass. That is this
+ * file's own fault family, in this file's own helper, and it was found by
+ * check 10 printing a `<input>` for a `<span>` and the report being read
+ * rather than counted.
+ *
+ * A comment opener is now one that FOLLOWS nothing, whitespace, or an opening
+ * bracket, comma, semicolon, colon or `=`. A `/*` that follows a word
+ * character, which is what a glob in a MIME type or a URL looks like, is not
+ * a comment. The captured character is put back so offsets do not move.
+ */
 function withoutJsComments(source) {
   return source
-    .replace(/\/\*[\s\S]*?\*\//g, (block) => "\n".repeat((block.match(/\n/g) ?? []).length))
+    .replace(/(^|[\s({[,;:=])\/\*[\s\S]*?\*\//g, (block, before) =>
+      before + "\n".repeat((block.match(/\n/g) ?? []).length),
+    )
     .split("\n")
     .map((line) => (/^\s*(\/\/|\*)/.test(line) ? "" : line))
     .join("\n");
@@ -1176,6 +1458,33 @@ if (dullControls.length > 0) {
   console.error(`\n${dullControls.length} dull control(s).\n`);
 }
 
+if (pillControls.length > 0) {
+  failed = true;
+  console.error(
+    "\nA CAPSULE ON A CONTROL. The founder's ruling of 19 September, written\n" +
+      "up in docs/DESIGN_DIRECTION.md section 1: any control that carries text\n" +
+      "is a ROUNDED RECTANGLE on --nf-radius-control. Every button, chip,\n" +
+      "segment, tab, filter chip, input, dock label, sheet action and admin\n" +
+      "control. GOVERNING-landing-desktop-hero.png has no capsule anywhere in\n" +
+      "it, and its one circle is the nav search glyph.\n\n" +
+      "Two exceptions and no others: an avatar, and a bare icon button that\n" +
+      "carries no text and is drawn round in a governing image. A dot, a\n" +
+      "spinner, a progress bar, a range track, a sheet grip, a switch track and\n" +
+      "an avatar or story ring are SHAPES rather than controls, and this rule\n" +
+      "is wrong about any of them it names: give the rule a selector that says\n" +
+      "what it is, or list it in PILL_ALLOWED with the reason.\n\n" +
+      "The fix is one token. --nf-radius-control, not --nf-radius-pill, not\n" +
+      "--nf-radius-control-pill, and never a literal 999px.\n\n" +
+      "WHAT THIS CHECK DOES NOT PROVE: it greps source text. It cannot see a\n" +
+      "radius that reaches a control through a shared class, a cascade or a\n" +
+      "runtime style, and it cannot see what the browser computed. A single\n" +
+      "unlayered rule outranked every layered brand edge in this product today\n" +
+      "with every check in this file green, because the source text was right.\n",
+  );
+  for (const entry of pillControls) console.error(`  ${entry}`);
+  console.error(`\n${pillControls.length} capsule(s) on a control.\n`);
+}
+
 if (failed) process.exit(1);
 
 console.log(
@@ -1183,6 +1492,8 @@ console.log(
     "0 raw colour literals, 0 unresolved var() references, 0 var() references " +
     "of the wrong type, 0 duplicate declarations, 0 comment paths that do not " +
     `resolve, 0 resting controls edged in a neutral border token (${DULL_ALLOWED.size} ` +
-    "listed exceptions, see DULL_ALLOWED), and every partial parses. " +
-    "All nine are enforced.",
+    "listed exceptions, see DULL_ALLOWED), 0 capsules on a control in the " +
+    `stylesheets or in TSX (${PILL_ALLOWED.size + PILL_ALLOWED_TSX.size} listed exceptions, see PILL_ALLOWED), ` +
+    "and every partial parses. All ten are enforced. None of them proves what " +
+    "the browser computed: this script reads source text only.",
 );

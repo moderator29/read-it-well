@@ -120,6 +120,7 @@ export async function RentalPanel({
       <ol className="mt-md space-y-sm border-t border-[var(--nf-border-subtle)] pt-md">
         {STEPS.map((step, i) => (
           <li key={step.label} className="flex items-start gap-sm">
+            {/* KEPT ROUND: an ordinal marker in an <ol>, not a control. */}
             <span className="nf-numeric nf-caption mt-3xs grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] font-bold text-[var(--nf-content-secondary)]">
               {i + 1}
             </span>

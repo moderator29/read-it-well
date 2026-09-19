@@ -34,15 +34,42 @@ lists the off-brand details that must be translated rather than copied.
    fullpage renders is never transcribed; write real copy in its place),
    honest data never invented counts, and no logic errors copied (one
    render pairs yearly rent with nightly date pickers; the market decides
-   the panel, as built). **Control shape follows the governing image, by
-   the founder's identical-to-images ruling**: where a render shows pill
-   chips and capsule buttons, ship them; where it shows rectangles, ship
-   rectangles; extend the radius tokens to carry both and record the
-   amendment of the old 14px control law in the ledger. The
+   the panel, as built). The
    neon edge-glow around phone frames in the renders is presentation
    framing for the image, not UI chrome; do not draw a glowing border
    around the real viewport.
-4. **Areas with no reference inherit the register.** Every page the images
+4. **THE SHAPE LAW, AND IT IS CLOSED.** Any control that carries TEXT is a
+   ROUNDED RECTANGLE on `--nf-radius-control`. Every button, chip, segment,
+   tab, filter chip, input, dock label, sheet action and admin control. There
+   is no capsule variant of a control and no surface on which one is correct:
+   not the city chips, not the search segments, not the filter row, not the
+   welcome CTA, not a status pill. **Zero occurrences of `rounded-full`,
+   `border-radius: 999px`, `9999px`, `var(--nf-radius-pill)` or
+   `var(--nf-radius-control-pill)` on a text-bearing control.** TWO
+   EXCEPTIONS, and there are no others: an AVATAR, and a BARE ICON BUTTON
+   that carries no text and is drawn round in a governing image, which today
+   means the landing nav's search glyph and nothing else. Where no image
+   governs a control, the control is a rectangle, because a surface with no
+   reference inherits the register and the register's control is the
+   rectangle. A dot, a spinner, a progress bar, a range track, a sheet grip,
+   a switch track and knob, an avatar ring, a story ring and a skeleton
+   placeholder are SHAPES and not controls, and this law does not reach them.
+   **THIS SUPERSEDES THE EARLIER NOTE IN THIS SECTION**, which read "control
+   shape follows the governing image ... where a render shows pill chips and
+   capsule buttons, ship them", **and it supersedes the section 8 amendment
+   in `docs/BUILD_06_LEDGER.md`** that added `--nf-radius-control-pill` as a
+   second control role. Both are withdrawn. The founder's ruling of
+   19 September, with `GOVERNING-landing-desktop-hero.png` open: not one
+   capsule in that image, and the only circle in it is the search glyph at
+   the top right. `GOVERNING-chat-booking-card.png` settles the icon-only
+   case the same way, drawing send, back, call and overflow as rounded
+   squares and reserving the circle for avatars. It is not a preference and
+   it is not reopened by a render that disagrees: where a render draws a
+   capsule, that is a render mistake and rule 3 above governs it.
+   `apps/web/scripts/check-css-tokens.mjs` rule 10 fails the build on a pill
+   radius on a control, in the stylesheets and in TSX, so drift cannot
+   reopen it either.
+5. **Areas with no reference inherit the register.** Every page the images
    do not cover (edit profile, notifications, verification, host wizard,
    agent console, stories, help, checkout and everything else) is designed
    in the same language: same glass, same glow discipline, same card

@@ -2763,9 +2763,14 @@
  * THE FEED TO `GOVERNING-feed-plus-bloom.png`.
  *
  * Everything from the location chip down to the plus, in the order it is read.
- * Layer two tokens only; the capsule shapes are the founder's identical-to-
- * images ruling (ledger section 8) carried by `--nf-radius-pill`. Every rule
- * with a night answer has a paper answer at the foot of the file.
+ * Layer two tokens only. THE SHAPE LAW, founder's ruling of 19 September, which
+ * closes the section 8 amendment: anything you press that carries a WORD is a
+ * rounded rectangle on `--nf-radius-control`. The segment, its two halves and
+ * the three bloom lozenges were capsules under the old reading and are
+ * rectangles now. What stays round on this surface is what was never a control
+ * choosing a shape: the story rings, the avatars, the plus itself, the little
+ * plus badge on a ring. Every rule with a night answer has a paper answer at
+ * the foot of the file.
  * ===========================================================================
  */
 @layer components {
@@ -2964,7 +2969,16 @@
     gap: 3px;
     padding: 3px;
     margin-block-end: 12px;
-    border-radius: var(--nf-radius-pill);
+    /*
+     * THE TRACK IS THE SEGMENT'S OUTER CORNER, so it is concentric with the
+     * half inside it rather than a shape of its own: 14px of control plus the
+     * 3px of padding plus the 1px border is 18px, which is `--nf-radius-lg` on
+     * the nose. Reading `--nf-radius-control` here instead would draw the two
+     * corners at the same radius and the gap between them would pinch at the
+     * ends, which is the tell that a pill was swapped for a rectangle without
+     * anybody looking at it.
+     */
+    border-radius: var(--nf-radius-lg);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-glass-fill-thin);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
@@ -2979,7 +2993,8 @@
     /* 44 and not the render's 38: the tap law outranks the image and this is
        one of the two controls on the screen a thumb reaches for most. */
     min-block-size: 44px;
-    border-radius: var(--nf-radius-pill);
+    /* For you / Following carries a word, so it is a rectangle. */
+    border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
@@ -3285,7 +3300,13 @@
     justify-content: center;
     gap: 8px;
     padding-inline: 12px;
-    border-radius: var(--nf-radius-pill);
+    /*
+     * A LOZENGE THAT CARRIES A WORD IS A RECTANGLE. Each of the three has a
+     * glyph AND the word beside it, and you press it, so the shape law reaches
+     * it exactly as it reaches the segment above. The plus they are thrown
+     * from stays a circle: that one is icon only and genuinely round.
+     */
+    border-radius: var(--nf-radius-control);
     pointer-events: auto;
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body-sm);

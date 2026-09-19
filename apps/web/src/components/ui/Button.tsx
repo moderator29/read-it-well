@@ -53,8 +53,20 @@ export type ButtonVariant =
   | "danger"
   | "dangerQuiet";
 
-/** The amended radius law (ledger section 8): a rectangle by default, the
- *  capsule where the governing render shows one. */
+/**
+ * RETIRED BY THE SHAPE LAW, and kept only so nothing breaks on the night it
+ * landed. A control that carries text is a rounded rectangle on
+ * `--nf-radius-control`; there is no capsule variant of a control any more.
+ * The founder's ruling supersedes the section 8 amendment this type was
+ * written for, and `docs/DESIGN_DIRECTION.md` section 1 now states it.
+ *
+ * Nothing under `app/` or `components/` outside `app/(dev)/preview/g1/` passes
+ * `shape="pill"`. When the `nf-btn--pill` rule goes from the stylesheets, and
+ * `check-css-tokens.mjs` rule 10 is what will make it go, this type and the
+ * prop go with it.
+ *
+ * @deprecated The shape law leaves one control shape. Do not pass "pill".
+ */
 export type ButtonShape = "control" | "pill";
 
 /**
