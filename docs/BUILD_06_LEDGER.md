@@ -672,6 +672,32 @@ currency style clamps it up and turned ₦45k into ₦45.0k.
    was changed unasked, because guessing wrong either breaks a signing and
    provisioning setup already in place or leaves the wrong name on the store
    for ever.
+6. THREE RULINGS THE DELETION SPECIFICATION DID NOT COVER, each found by
+   building it rather than by reading it.
+   (a) An `events` row survives an account deletion with an ANONYMOUS HOST.
+       `events.host_id` cascades onto `auth.users`, and we deliberately do not
+       delete that row, so the event stays up with nobody's name on it. Should
+       a hosted event be cancelled, transferred, or left standing anonymously?
+   (b) A BUSINESS KEEPS TRADING after its owner deletes their account. Only
+       the representative's personal columns are scrubbed. A published listing
+       has a precondition requiring it to be unpublished or transferred first;
+       a business has none. Should it? It is the same shape of question, and
+       the answer decides whether a venue can be orphaned.
+   (c) A moderation `reports` row is RETAINED PSEUDONYMISED. It is a safety
+       record about somebody else, keyed to a now anonymous reporter, and it
+       is in neither of the two lists you gave. Keeping it protects the person
+       who was reported about; destroying it is what a strict reading of the
+       erasure list would do. It is kept today.
+7. ONE STANDARD THAT IS NOW CONSISTENT, recorded because you may want to
+   overrule it. The auth emails were forbidden from naming hotels or
+   restaurants on the premise that those loops hold zero rows, while the
+   landing's Stays band links to hotel, resort and guest house searches that
+   return nothing today. Checked against the live database, both sides are
+   example stock in exactly the same way: `accommodations` 5, `room_types` 11,
+   `restaurant_profiles` 2, `businesses` 7, `listings` 64, every row flagged as
+   an example. So the email rule now bans the harm rather than the nouns, and
+   both surfaces are held to one standard. If you want the stricter rule
+   instead, it has to apply to the property half as well.
 
 ---
 
