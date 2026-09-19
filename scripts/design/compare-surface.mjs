@@ -308,17 +308,37 @@ const SHAPE_SWEEP = process.argv.includes("--shape-sweep");
  */
 const FAIL_AT = 0.5;
 const WARN_AT = 0.35;
+/*
+ * R1'S SECOND PASS WIDENED THIS, and the reason is worth keeping: the sweep
+ * reported `/` clean while `.nf-notif__count` was drawing a perfect circle
+ * around the numeral "2" one route away. The list was written from the word
+ * "control" and the shape law is not about controls by name, it is about
+ * anything drawn with a corner and a label. So it now reaches badges, counts,
+ * tags, segments and summaries, and it matches on class SUBSTRINGS rather than
+ * on an inventory of exact class names, because an inventory is a list of the
+ * faults somebody has already thought of.
+ */
 const CONTROL_SELECTOR = [
   "button",
   "a.nf-btn",
   "a.nf-site-nav-link",
   "a.nf-tab__link",
   "button.nf-tab__link",
-  ".nf-chip",
   ".nf-btn",
   ".nf-icon-btn",
   ".nf-landing-pill-seg",
   ".nf-landing-city",
+  ".nf-home__market",
+  ".nf-home__city",
+  ".nf-home__loc",
+  "label",
+  "summary",
+  "[class*=chip]",
+  "[class*=badge]",
+  "[class*=count]",
+  "[class*=tag]",
+  "[class*=seg]",
+  "[class*=pill]",
   "input:not([type=range]):not([type=checkbox]):not([type=radio])",
   "select",
   "[role=button]",
@@ -473,13 +493,45 @@ if (SHAPE_SWEEP) {
               : parseFloat(rawRadius) || 0;
             const ratio = radius / short;
             if (ratio < warnAt) continue;
-            /* Text-bearing is the thing the law turns on, and it is asked of
-               the element rather than assumed from its class. An input has no
-               text node, so its value and its placeholder count as its text. */
+            /*
+             * Text-bearing is the thing the law turns on, and it is asked of
+             * the element rather than assumed from its class. An input has no
+             * text node, so its value and its placeholder count as its text.
+             *
+             * AND SCREEN-READER-ONLY TEXT DOES NOT COUNT, WHICH R1 FOUND THE
+             * HARD WAY. The sweep's one breach on the landing was a 44x44
+             * search button at ratio 0.50, reported as a text-bearing capsule
+             * because its label is `<span class="sm:sr-only">Search</span>`.
+             * Nobody SEES that word. The element may well still be wrong, but
+             * it is wrong under the icon-only clause, which has a different
+             * test and a different fix, and filing it as a text breach sends
+             * the reader to the wrong paragraph of the law. The shape law is
+             * about what is drawn, so the text test has to be about what is
+             * drawn too.
+             */
+            const hidden = (node) => {
+              const cs = getComputedStyle(node);
+              if (cs.display === "none" || cs.visibility === "hidden") return true;
+              /* The sr-only recipe: clipped to nothing and taken out of flow. */
+              const w = parseFloat(cs.width) || 0;
+              const h = parseFloat(cs.height) || 0;
+              if (cs.position === "absolute" && w <= 1 && h <= 1) return true;
+              return cs.clipPath === "inset(50%)" || cs.clip === "rect(0px, 0px, 0px, 0px)";
+            };
+            const visibleText = (node) => {
+              let out = "";
+              for (const child of node.childNodes) {
+                if (child.nodeType === Node.TEXT_NODE) out += child.nodeValue;
+                else if (child.nodeType === Node.ELEMENT_NODE && !hidden(child)) {
+                  out += visibleText(child);
+                }
+              }
+              return out;
+            };
             const text = (
               el.value ||
               el.getAttribute("placeholder") ||
-              el.textContent ||
+              visibleText(el) ||
               ""
             ).replace(/\s+/g, " ").trim();
             const label = el.className && typeof el.className === "string" ? el.className.split(/\s+/).slice(0, 3).join(".") : el.tagName.toLowerCase();

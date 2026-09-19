@@ -1201,13 +1201,24 @@
   }
   /* The class name still says pill; the SHAPE is a rounded rectangle, because
      it carries a word (the founder's shape law, 19 September). The name is
-     left alone because the markup that writes it is another worker's file. */
+     left alone because the markup that writes it is another worker's file.
+
+     AND `control` WAS STILL THE CAPSULE, WHICH R1's SECOND PASS MEASURED ON A
+     RUNNING PAGE AT BOTH WIDTHS. This is the clearest live example of the
+     ratio trap in the product: at 390 the label "Verified agent" wraps, the
+     box is 90x41, and 14px of corner is a ratio of 0.34, a tidy rectangle. At
+     1536 the label stops wrapping, the height collapses to 23px, and the SAME
+     token is a ratio of 0.62. One declaration, one viewport apart, compliant
+     and then a capsule. On the words "Verified agent", which is the single
+     most trust-bearing label on a listing. `--nf-radius-xs` is 6px, which is
+     0.26 on the short box and 0.15 on the tall one, so it is a rectangle at
+     every width the product is read at. */
   .nf-agent-card__pill {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     border: 0;
     background: var(--nf-brand-primary);
     font-size: var(--nf-text-overline);

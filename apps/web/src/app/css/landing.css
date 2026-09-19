@@ -198,9 +198,26 @@
       background var(--nf-duration-fast) var(--nf-ease-standard),
       border-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /*
+   * THE ONE CIRCLE THE LAW ALLOWS, AND IT WAS THE ONE THING DRAWN SQUARE.
+   *
+   * DESIGN_DIRECTION section 1 names two exemptions and no others: an avatar,
+   * and "a BARE ICON BUTTON that carries no text and is drawn round in a
+   * governing image, which today means the landing nav's search glyph and
+   * nothing else". This is that glyph. `SiteHeader.tsx` gives it an
+   * `aria-label` and a `UiIcon` and no text node, and
+   * `GOVERNING-landing-desktop-hero.png` draws it as the only circle in the
+   * entire image, which is the sentence the founder used when he ruled.
+   *
+   * It was inheriting the nav's rectangle while the two hero search actions
+   * further down this file were drawing circles. The product was spending its
+   * one permitted circle in the two places the law forbids and refusing it in
+   * the one place the law names. Both corrected together.
+   */
   .nf-site-nav-glass--icon {
     padding: 0;
     width: 2.75rem;
+    border-radius: var(--nf-radius-circle);
   }
   @media (hover: hover) {
     .nf-site-nav-glass:hover {
@@ -963,7 +980,23 @@
     white-space: nowrap;
     width: 2.75rem;
     height: 2.75rem;
-    border-radius: var(--nf-radius-circle);
+    /*
+     * RECTANGLES, AND THE PRODUCT HAD THIS EXACTLY INVERTED.
+     *
+     * These two 44px squares were drawn at 50%, so both were circles. Neither
+     * is the exemption: the law allows ONE round icon-only control, "the
+     * landing nav's search glyph and nothing else", and that glyph is
+     * `.nf-site-nav-glass--icon` in `SiteHeader.tsx`, which was drawing a
+     * rounded RECTANGLE. So the landing spent no circle where the reference
+     * has one and two where it has none, which R1 measured at 0.32 on the
+     * glyph against 0.50 on both of these. Both corrected, in opposite
+     * directions, in the same tranche.
+     *
+     * The phone block at the foot of this file already knew: it moves the
+     * submit to `--nf-radius-control` under 640px. That was the right shape
+     * hiding inside a media query.
+     */
+    border-radius: var(--nf-radius-control);
     color: var(--nf-landing-fg);
     background: transparent;
     transition: background var(--nf-duration-fast) var(--nf-ease-standard);
