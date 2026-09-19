@@ -82,9 +82,14 @@ const RADII = [
   { token: "--nf-radius-lg", label: "lg 18", square: false },
   { token: "--nf-radius-xl", label: "xl 22", square: false },
   { token: "--nf-radius-2xl", label: "2xl 32", square: false },
-  { token: "--nf-radius-pill", label: "pill", square: false },
-  { token: "--nf-radius-control", label: "control, the rectangle law", square: false },
-  { token: "--nf-radius-control-pill", label: "control-pill, section 8", square: false },
+  /* `--nf-radius-pill` is still here because it is still real: it is what an
+     avatar, a dot, a ring, a range track and a loading bar are drawn with.
+     What it is NOT is a control shape. `--nf-radius-control-pill` used to sit
+     on the next line as a second control role and it has been deleted with the
+     amendment that created it, because the governing images it cited do not
+     contain a single capsule. Ledger section 13. */
+  { token: "--nf-radius-pill", label: "pill, for shapes and never for a control", square: false },
+  { token: "--nf-radius-control", label: "control, and every control that carries text", square: false },
   { token: "--nf-radius-circle", label: "circle", square: true },
   { token: "--nf-radius-squircle", label: "squircle", square: true },
 ];

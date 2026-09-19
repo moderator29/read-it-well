@@ -269,7 +269,13 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
       <p className="nf-caption mt-inline-tight">
         {[row.area, row.city, row.stateCode].filter(Boolean).join(", ") || "No place on record"}
         {" · "}
-        {`Level ${tier} of 4, ${BUSINESS_TIER_NAME[tier].toLowerCase()}`}
+        {/* THE LADDER'S OWN WORD FOR TIER 0 IS "Approved", which is right on a
+            host's status page and reads as a contradiction here, beside a chip
+            that says SUBMITTED. A venue with no rung recorded is told so
+            plainly instead. */}
+        {tier === 0
+          ? "No rung recorded yet"
+          : `Level ${tier} of 4, ${BUSINESS_TIER_NAME[tier].toLowerCase()}`}
       </p>
 
       {isRestaurant && (

@@ -30,7 +30,7 @@ export default function LoadingProfile() {
       <div className="nf-social-identity" aria-hidden="true">
         <div className="nf-social-avatar nf-social-avatar--ring" />
         <div className="nf-social-identity__actions">
-          <span className="nf-social-skeleton block h-11 w-24 rounded-[var(--nf-radius-pill)]" />
+          <span className="nf-social-skeleton block h-11 w-24 rounded-[var(--nf-radius-control)]" />
           <span className="nf-social-skeleton block h-11 w-11 rounded-[var(--nf-radius-pill)]" />
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function LoadingProfile() {
           <span className="nf-social-skeleton block h-4 w-20 rounded-[var(--nf-radius-xs)]" />
           <span className="nf-social-skeleton block h-4 w-14 rounded-[var(--nf-radius-xs)]" />
         </div>
-        <span className="nf-social-skeleton mt-lg block h-11 w-full rounded-[var(--nf-radius-pill)]" />
+        <span className="nf-social-skeleton mt-lg block h-11 w-full rounded-[var(--nf-radius-control)]" />
       </div>
     </div>
   );

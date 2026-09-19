@@ -24,7 +24,7 @@ export function LoadingPeople() {
               <span className="nf-social-skeleton block h-4 w-36 rounded-[var(--nf-radius-xs)]" />
               <span className="nf-social-skeleton block h-3 w-24 rounded-[var(--nf-radius-xs)]" />
             </div>
-            <span className="nf-social-skeleton block h-10 w-24 rounded-[var(--nf-radius-pill)]" />
+            <span className="nf-social-skeleton block h-10 w-24 rounded-[var(--nf-radius-control)]" />
           </li>
         ))}
       </ul>

@@ -25,7 +25,7 @@ export default function LoadingNewStory() {
         <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
         <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
         <span className="nf-social-skeleton block h-24 w-full rounded-[var(--nf-radius-md)]" />
-        <span className="nf-social-skeleton block h-11 w-40 rounded-[var(--nf-radius-pill)]" />
+        <span className="nf-social-skeleton block h-11 w-40 rounded-[var(--nf-radius-control)]" />
       </div>
     </div>
   );

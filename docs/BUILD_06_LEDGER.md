@@ -98,11 +98,15 @@ product. M6 and the landmark seed stay drafted in
 **The design law in one line:** the reference images are the target; match
 composition, hierarchy, glow, glass depth, spacing rhythm and mood through
 the token system; translate the renders' mistakes per `DESIGN_DIRECTION.md`
-section 1.3; every surface without an image inherits the register; control
-shape follows the governing image (pills where it shows pills, the 14px
-control law amended, see section 8); no glowing border around the real
-viewport; every surface closes only with the side-by-side screenshot in
-section 6.
+section 1.3; every surface without an image inherits the register; **A
+CONTROL THAT CARRIES TEXT IS A ROUNDED RECTANGLE ON `--nf-radius-control`
+AND NEVER A CAPSULE**, with only an avatar and a bare icon-only control
+staying round, and a control with no governing image taking the rectangle
+(section 13, and it WITHDRAWS the amendment in section 8 that let an image
+bend this; that amendment was granted on a reading the image does not
+support); no glowing border around the real viewport; every surface closes
+only with the side-by-side screenshot in section 6, taken from a PRODUCTION
+server, because `next dev` does not hydrate reliably on this box.
 
 **Agent contract:** agents never run git; strict written file scopes in
 section 2; a finding outside your scope is a line in your report, not an
@@ -1821,3 +1825,49 @@ The landing proof is taken and it is honest: every capsule gone, the search
 container, the segments, the chips, both hero buttons and Get Started all
 rounded rectangles at 14px measured off the live page, and the blue matching
 the reference.
+
+### 13.4 THE AMENDMENT IS WITHDRAWN AT ITS ROOT, NOT JUST OVERRIDDEN
+
+Three places were still carrying the withdrawn law after the sweep, and a law
+that survives in the text every worker restates is not withdrawn.
+
+**Section 0's design law in one line** still read "control shape follows the
+governing image (pills where it shows pills, the 14px control law amended, see
+section 8)". That is the sentence each worker restates at the top of its
+report, so every stint since the ruling would have restated the thing the
+ruling closed. It now states the shape law and says in terms that it withdraws
+the section 8 amendment.
+
+**`--nf-radius-control-pill` still existed in `tokens.css`**, under a long and
+genuinely well-argued comment: the renders draw capsules for the city chips,
+the filter chips, the bloom lozenges, the For You / Following toggle and the
+welcome CTA, and rectangles for the cards and fields, so the two shapes carry
+two jobs, a capsule being a thing you flick between and a rectangle a thing
+that holds content.
+
+IT IS A GOOD ARGUMENT AND THE IMAGES DO NOT SUPPORT IT. The four city chips in
+the governing reference are rounded rectangles. So are the four search
+segments, and Explore Properties, Explore Stays, Sign In and Get Started. The
+token is deleted rather than aliased to the control rung, because an alias is
+a name that still invites the question the ruling closed, and its comment is
+replaced by a note recording the argument so nobody rediscovers it and thinks
+it was never made. The gallery entry went with it.
+
+**Seven button-shaped SKELETONS were still capsules.** The tenth rule
+correctly stays silent on them, because a skeleton is a span and not a
+control, so it is the third kind the ruling says to leave. But a skeleton is a
+picture of the thing it stands in for, and these were capsules standing in for
+rounded rectangles, so the page visibly reshaped the moment it loaded, which
+is the one thing a skeleton exists to prevent. The law reaches them through
+what they are a picture of rather than through what they are.
+
+**AND A DEFECT IN THE CHECKER ITSELF, found by a worker reading what its own
+guard printed rather than trusting that it fired.** `withoutJsComments` opened
+a block comment at any `/*`, and one file writes `accept="image/*"` on a file
+input, so the stripper opened a comment inside a string literal and blanked
+about nine hundred lines. Check two could not have reported anything in that
+region and printed nothing, which reads exactly like a pass, and every line
+number in such a file was shifted. Fixed by requiring a comment opener to
+follow nothing, whitespace, or an opening bracket, comma, semicolon, colon or
+equals, and proved with an ordered probe. It was hiding nothing today, which
+is luck rather than a result.

@@ -29,7 +29,7 @@ export default function LoadingAroundManage() {
               <span className="nf-social-skeleton block h-4 w-40 rounded-[var(--nf-radius-xs)]" />
               <span className="nf-social-skeleton block h-3 w-56 rounded-[var(--nf-radius-xs)]" />
             </div>
-            <span className="nf-social-skeleton block h-9 w-20 rounded-[var(--nf-radius-pill)]" />
+            <span className="nf-social-skeleton block h-9 w-20 rounded-[var(--nf-radius-control)]" />
           </li>
         ))}
       </ul>

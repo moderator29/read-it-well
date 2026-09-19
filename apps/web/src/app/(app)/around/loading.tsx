@@ -30,7 +30,14 @@ export default function LoadingAround() {
         {[28, 20, 24].map((width, index) => (
           <span
             key={index}
-            className="nf-social-skeleton block h-9 rounded-[var(--nf-radius-pill)]"
+            /* A SKELETON IS THE SHAPE IT STANDS IN FOR. These were capsules
+               while every button they replace is now a rounded rectangle, so
+               the page visibly reshaped the moment it loaded, which is the one
+               thing a skeleton exists to prevent. The shape law does not reach
+               a skeleton directly, because a skeleton is not a control and the
+               tenth rule correctly stays silent on a span; it reaches it
+               through what it is a picture of. */
+            className="nf-social-skeleton block h-9 rounded-[var(--nf-radius-control)]"
             style={{ width: `${width * 4}px` }}
           />
         ))}

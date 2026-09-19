@@ -1767,39 +1767,44 @@
    * ------------------------------------------------------------------ */
   --nf-radius-control: var(--nf-radius-md);
 
-  /* ---------------------------------------------------------------------
-   * THE CONTROL LAW, AMENDED. BUILD_06_LEDGER section 8, on the founder's
-   * identical-to-images ruling.
+  /* --------------------------------------------------------------------
+   * `--nf-radius-control-pill` IS GONE, AND THE ARGUMENT THAT CREATED IT WAS
+   * WRONG ABOUT THE IMAGES IT CITED.
    *
-   * The note above records the owner asking for rectangles across the
-   * platform, and `--nf-radius-control` at 14px is that decision. It stands.
-   * What has changed is that the reference renders are now the law of the
-   * frontend, and the renders draw some controls as capsules: the city chips
-   * under the landing headline, the filter chips, the three bloom lozenges
-   * that fan out of the feed's + button, the For You / Following segment
-   * toggle, the Get Started button on welcome, the search pill itself. They
-   * also draw rectangles, in the same screens: the cards, the fields, the
-   * dock, the wallet's action tiles, the feature tiles. The renders are not
-   * undecided about it; the two shapes carry two jobs. A capsule is a thing
-   * you flick between or pick from a row of peers. A rectangle is a thing
-   * that holds content or takes input.
+   * This token existed under a long and confident comment saying the renders
+   * draw capsules for the city chips, the filter chips, the bloom lozenges,
+   * the For You / Following toggle, the welcome CTA and the search pill, and
+   * rectangles for the cards and fields, and that the two shapes carry two
+   * jobs: a capsule is a thing you flick between, a rectangle is a thing that
+   * holds content.
    *
-   * So the amendment is a SECOND CONTROL ROLE rather than a change to the
-   * first, and it derives from the rung the way `--nf-radius-control` does:
-   * `--nf-radius-pill` is the primitive and this says what it is for. The
-   * rule for choosing: where a governing image shows a capsule, the control
-   * reads this; where it shows a rectangle, or where no image governs the
-   * surface, the control reads `--nf-radius-control`, because a surface with
-   * no reference inherits the register and the register's default control is
-   * still the rectangle. Nothing that already reads `--nf-radius-pill`
-   * directly (the range track, the loading bar, the dock's travelling pill,
-   * the dock's circle) needs to move: those are not controls choosing a
-   * shape, they are shapes.
+   * IT IS A GOOD ARGUMENT AND THE IMAGES DO NOT SUPPORT IT. Open
+   * `docs/design/references/GOVERNING-landing-desktop-hero.png` and count.
+   * The four city chips are rounded rectangles. The four search segments are
+   * rounded rectangles. Explore Properties, Explore Stays, Sign In and Get
+   * Started are rounded rectangles. There is not one capsule anywhere on that
+   * screen. The only circle is the bare search glyph, which carries no text.
    *
-   * It is not themed and it is not 999px written twice. If the pill rung
-   * ever changes, both names follow it.
+   * The founder put the built landing beside that image and closed it: a
+   * control that carries text is a rounded rectangle on
+   * `--nf-radius-control`, everywhere, with no image exception. The only
+   * things that stay round are an avatar and a bare icon-only control, and a
+   * control with no governing image takes the rectangle, because a surface
+   * with no reference inherits the register and the register's control is the
+   * rectangle. The full ruling is ledger section 13; the tenth rule in
+   * `check-css-tokens.mjs` now fails the build on a capsule reaching a
+   * control.
+   *
+   * The token is deleted rather than aliased to the control rung, because an
+   * alias is a name that still invites the question this ruling closed. What
+   * is left of the old comment is this note, so nobody rediscovers the
+   * argument and thinks it was never made.
+   *
+   * Nothing that reads `--nf-radius-pill` DIRECTLY needs to move, and that
+   * part of the old comment was always right: the range track, the loading
+   * bar, the dock's travelling mark and every avatar, dot and ring are not
+   * controls choosing a shape, they are shapes.
    * ------------------------------------------------------------------ */
-  --nf-radius-control-pill: var(--nf-radius-pill);
 
   /* ---------------------------------------------------------------------
    * BORDER WIDTH. Two values, and neither of them is a half pixel.

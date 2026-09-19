@@ -151,7 +151,12 @@ function TableCard({
       {table.conversationId && (
         <Link
           href={`/messages/${table.conversationId}`}
-          className={`mt-row inline-flex items-center gap-inline-tight ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline`}
+          /* The link ink is set last and on its own, not through `TYPE.rowMeta`:
+             both are arbitrary-value utilities of equal specificity, so the one
+             that wins is whichever Tailwind emits later rather than whichever
+             is written later here, and a link that does not look like a link is
+             not a link. */
+          className="nf-body-sm mt-row inline-flex items-center gap-inline-tight font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           Talk to {table.guestName}
           <UiIcon name="arrow-right" size={16} />

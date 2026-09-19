@@ -131,11 +131,19 @@ export function BusinessPhotoManager({
                 sizes="(min-width: 640px) 200px, 45vw"
                 className="h-32 w-full rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] object-cover"
               />
-              <div className="mt-inline flex items-center justify-between gap-inline">
-                <span className="nf-overline">{index === 0 ? "Cover" : `Photograph ${index + 1}`}</span>
+              {/* STACKED, NOT A ROW. At 390 two of these sit side by side and
+                  a label beside a control has about 80px to live in: the
+                  control ran out past the card's edge and the word under it
+                  broke in two. The name of the photograph and the way to
+                  remove it are a stack at every width. */}
+              <div className="mt-inline">
+                <span className="nf-overline block">
+                  {index === 0 ? "Cover" : `Photograph ${index + 1}`}
+                </span>
                 <Button
-                  variant="dangerQuiet"
+                  variant="ghost"
                   size="sm"
+                  full
                   disabled={removing || busy}
                   onClick={() => remove(photo.id)}
                 >

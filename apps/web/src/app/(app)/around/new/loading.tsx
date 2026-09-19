@@ -23,7 +23,7 @@ export default function LoadingProposeArea() {
           <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
         </div>
         <span className="nf-social-skeleton block h-24 w-full rounded-[var(--nf-radius-md)]" />
-        <span className="nf-social-skeleton block h-11 w-44 rounded-[var(--nf-radius-pill)]" />
+        <span className="nf-social-skeleton block h-11 w-44 rounded-[var(--nf-radius-control)]" />
       </div>
 
       {/* The moderator rules panel underneath. It is static copy and arrives with
