@@ -103,10 +103,32 @@ export function formatMoney(
      * rule. That reads correctly, but it sits inside the same native review
      * the locale files are already waiting on.
      */
+    /*
+     * ONE FRACTION DIGIT, ALWAYS, because compact notation left alone keeps
+     * two SIGNIFICANT digits and that silently changes the number.
+     *
+     * ₦6,800,000 came out ₦6.8m, which is the figure. ₦14,700,000 came out
+     * ₦15m, which is not: it is ₦300,000 more than the person owes, and it
+     * was painting on the move-in bar of the listing page directly under a
+     * card reading ₦14,700,000, so the same screen stated two different
+     * obligations. A reader cannot tell a short way of writing a number from
+     * a different number, so the abbreviation has to hold its value.
+     *
+     * `maximumFractionDigits: 1` keeps the tenth on any figure that has one
+     * and drops nothing that matters: ₦45k stays ₦45k, ₦1.2m stays ₦1.2m,
+     * ₦14.7m stops being ₦15m. A figure whose tenth is zero still prints
+     * whole, because the minimum is left at zero.
+     */
     const compact = new Intl.NumberFormat(intlTag[locale], {
       style: "currency",
       currency,
       notation: "compact",
+      /* The minimum is stated because `style: "currency"` defaults it to the
+         currency's own two digits, and naming a maximum of 1 then clamps the
+         minimum up to 1 as well: ₦45k came out ₦45.0k and ₦180m came out
+         ₦180.0m. A whole figure prints whole. */
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
     }).format(major);
     return compact.replace(/[A-Za-z]+$/, (suffix) => suffix.toLowerCase());
   }
