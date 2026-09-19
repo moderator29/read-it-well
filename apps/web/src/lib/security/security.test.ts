@@ -334,3 +334,51 @@ describe("script-src is one directive in production and another in development",
     }
   });
 });
+
+describe("style-src-elem splits development from what ships", () => {
+  /*
+   * The element form of the style allowance is the dangerous half: an injected
+   * `<style>` block can draw a fake sign-in over the real page, hide the amount
+   * above a Pay button, or read the document through attribute selectors. It is
+   * taken back in the build that ships and given back under `next dev` only,
+   * because Turbopack injects one on every hot update and refusing it leaves a
+   * dev page that renders, looks broken and explains nothing.
+   *
+   * A worker reverted the development branch once, reading the comment above it
+   * as though its measurement covered both builds. These four assertions are so
+   * the next reading is settled by a test rather than by a paragraph.
+   */
+  const original = process.env.NODE_ENV;
+  const directive = (value: string, name: string) =>
+    value
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part === name || part.startsWith(`${name} `)) ?? "";
+
+  const withEnv = (env: string) => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = env;
+    return directive(contentSecurityPolicy("TESTNONCE"), "style-src-elem");
+  };
+
+  afterEach(() => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = original;
+  });
+
+  it("refuses an injected style element in production", () => {
+    expect(withEnv("production")).not.toContain("'unsafe-inline'");
+  });
+
+  it("refuses one under test too, so every other assertion here reads the shipping form", () => {
+    expect(withEnv("test")).not.toContain("'unsafe-inline'");
+  });
+
+  it("allows one in development, because Turbopack injects it on every hot update", () => {
+    expect(withEnv("development")).toContain("'unsafe-inline'");
+  });
+
+  it("is present in every environment, so a browser never falls back to style-src", () => {
+    for (const env of ["production", "test", "development"]) {
+      expect(withEnv(env)).toContain("'self'");
+    }
+  });
+});

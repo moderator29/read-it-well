@@ -8,8 +8,48 @@
  */
 /* ---------------------------------------------------------------- base */
 
-* {
-  border-color: var(--nf-border-subtle);
+/*
+ * THE ONE LINE THAT WAS CANCELLING EVERY BRAND EDGE IN THE PRODUCT.
+ *
+ * This declaration used to sit unlayered, like the rest of this file. An
+ * UNLAYERED declaration beats every layered one whatever the specificity, and
+ * every component partial in this product is inside `@layer components`. So
+ * `* { border-color }` at specificity zero was outranking
+ * `.nf-chip { border: 1px solid var(--nf-brand-edge) }` at specificity ten,
+ * and the brand edge never landed on anything.
+ *
+ * WHAT THAT COST. It is R1's finding A5 seen from underneath. Three separate
+ * workers spent this cycle moving resting controls off grey hairlines and on
+ * to the brand edge, a guard rule was added to `check-css-tokens.mjs` so it
+ * could not regress, and the checker passed, because it greps source text and
+ * the source text was correct. On screen nothing moved. F4 measured it on a
+ * running page: two chips set to `--nf-brand-edge` computed to
+ * `rgba(255,255,255,0.08)`, and a ring in light computed to
+ * `rgba(18,21,26,0.08)`, a value neither its base rule nor its light rule
+ * mentions. The glows landed, because nothing resets `box-shadow`, which is
+ * why those controls improved enough to look like progress.
+ *
+ * This is also the answer to the founder saying, over and over, in four
+ * separate messages, that the containers still read dull.
+ *
+ * WHY THE LINE EXISTS AT ALL, because deleting it is the wrong fix. Without
+ * it, `border: 1px solid` with no colour resolves to `currentColor`, so a
+ * border inherits the text colour and every hairline in the product turns
+ * near-white. Tailwind's preflight carries the same declaration for the same
+ * reason.
+ *
+ * SO IT MOVES INTO `@layer base` RATHER THAN GOING AWAY. Base loses to
+ * components, which is the whole point of the layer order, so a component
+ * that states its own border colour now wins, and an element that states none
+ * still gets a sensible default instead of its own ink. The rest of this file
+ * stays unlayered on purpose: a focus ring and a skip link are element
+ * defaults that SHOULD outrank a component, and they set no property a
+ * component competes for.
+ */
+@layer base {
+  * {
+    border-color: var(--nf-border-subtle);
+  }
 }
 
 html {

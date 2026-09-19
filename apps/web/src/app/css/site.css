@@ -269,10 +269,28 @@
         );
     }
   }
+  /*
+   * THE EYEBROW KEEPS ITS BRAND EDGE, and this rule used to take it away.
+   *
+   * `.nf-site-head .nf-chip` outranks `.nf-chip`, so `--nf-landing-hairline`
+   * was overriding the primitive's brand edge and this one chip computed
+   * white at eleven per cent on every site page. Measured on a running page
+   * rather than reasoned about, which is how it was found at all.
+   *
+   * The other two declarations here are doing real work and stay: this chip
+   * sits on photography, so it takes the landing ink and the landing control
+   * fill rather than the page's. The border was the odd one out, and it is
+   * the one thing the governing images are unambiguous about: there is not a
+   * single grey chip edge anywhere in them, on photography or off it.
+   *
+   * `--nf-brand-edge` rather than the primitive's `--nf-brand-edge-soft`,
+   * because soft is tuned to hold against a flat dark page and this chip has
+   * a photograph behind it. One rung, for the one place that needs it.
+   */
   .nf-site-head .nf-chip {
     color: var(--nf-landing-fg);
     background: var(--nf-landing-control);
-    border-color: var(--nf-landing-hairline);
+    border-color: var(--nf-brand-edge);
     border-radius: var(--nf-radius-pill);
   }
   .nf-site-head-body {
@@ -330,10 +348,15 @@
   }
   /* The head keeps its photograph in daylight, like the landing hero; only
      the foot of the scrim changes colour, which the canvas token does. */
+  /* The paper twin takes the same brand edge for the same reason. Leaving the
+     hairline here would have given dark the render's blue outline and paper a
+     grey one, which is the divergence this cycle has already closed twice on
+     other controls. The landing ink and control fill stay, because this chip
+     still sits on a photograph in both themes. */
   :root[data-theme="light"] .nf-site-head .nf-chip {
     color: var(--nf-landing-fg);
     background: var(--nf-landing-control);
-    border-color: var(--nf-landing-hairline);
+    border-color: var(--nf-brand-edge);
   }
 
   /*

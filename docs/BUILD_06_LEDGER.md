@@ -1414,3 +1414,82 @@ The lesson that cost the most here is not any of the three faults. It is that
 after fixing the first, and again after fixing the second, the symptom was
 unchanged and nobody read that as "there is another cause". One fault per
 symptom is an assumption, not an observation.
+
+### 11.17 ONE UNLAYERED LINE WAS CANCELLING EVERY BRAND EDGE IN THE PRODUCT
+
+This is the answer to the founder saying, in four separate messages across two
+days, that the containers still read dull. Everybody believed him and nobody
+found it, because the fix kept being made and kept passing every check.
+
+`apps/web/src/app/css/base.css` carried, UNLAYERED:
+
+```css
+* {
+  border-color: var(--nf-border-subtle);
+}
+```
+
+Every component partial in this product is inside `@layer components`. An
+unlayered declaration beats every layered one WHATEVER THE SPECIFICITY, so
+`*` at specificity zero was outranking `.nf-chip` at specificity ten. Every
+`border: 1px solid var(--nf-brand-edge)` written anywhere in the product
+resolved to white at eight per cent.
+
+**WHAT IT COST.** It is R1's finding A5 seen from underneath. Three workers
+spent this cycle moving resting controls off grey hairlines and on to the
+brand edge. A ninth rule was added to `check-css-tokens.mjs` so it could not
+regress. The checker passed, because it greps SOURCE TEXT and the source text
+was correct. On screen, nothing moved. The glows landed, because nothing
+resets `box-shadow`, which is exactly why the controls improved enough to look
+like progress and nobody went further.
+
+F4 found it by measuring a running page rather than reading the file: two
+chips it had just set to `--nf-brand-edge` computed `rgba(255,255,255,0.08)`,
+and a ring in light computed `rgba(18,21,26,0.08)`, a value neither its base
+rule nor its light rule mentions.
+
+**THE FIX, AND WHY DELETING THE LINE WOULD BE WRONG.** Without it,
+`border: 1px solid` with no colour resolves to `currentColor`, so every
+hairline inherits its text colour and turns near-white. Tailwind's preflight
+carries the same declaration for the same reason. So it moves into
+`@layer base` rather than going away. Base loses to components, which is the
+whole point of the layer order: a component that states its own border colour
+wins, and an element that states none still gets a sensible default instead of
+its own ink. The rest of `base.css` stays unlayered deliberately, because a
+focus ring and a skip link SHOULD outrank a component and they set no property
+a component competes for.
+
+**MEASURED, NOT ASSUMED.** A dev server, a real browser, computed styles
+before and after, including an injected probe element carrying a component
+class so the test could not be confounded by the page's own markup:
+
+| element | before | after |
+| --- | --- | --- |
+| injected `.nf-glass--card` | white 8% | brand blue |
+| `.nf-btn--glass` | white 8% | brand blue |
+| `.nf-icon-btn` | white 8% | brand blue |
+| `.nf-chip` on a site page | white 11% | brand blue |
+
+The chip needed a second fix, found by the same measurement. It still came
+back white at eleven per cent after the layer change, because
+`.nf-site-head .nf-chip` in `site.css` overrode the primitive with
+`--nf-landing-hairline`. Its other two declarations are doing real work, since
+that chip sits on photography and takes the landing ink and fill; the border
+was the odd one out, and the governing images have no grey chip edge anywhere,
+on photography or off it. Both themes now take `--nf-brand-edge`, one rung
+above the primitive's soft, because soft is tuned to hold against a flat dark
+page and this one has a photograph behind it.
+
+**THE RULE THIS EARNS, and it is the third time today the same lesson has
+arrived wearing different clothes.** A guard that reads source text proves
+what was written. It cannot prove what the browser resolved. `check-css-tokens.mjs`
+is still worth having and it caught real faults this week, but it passed a
+product whose brand edges did not exist. From here, a visual ruling closes on
+a COMPUTED value from a running page, not on a diff, and the two proofs above
+are the shape of that: read the variable, read the element, and inject a probe
+so the page's own markup cannot flatter the answer.
+
+The other two instances today: the screenshot harness rendering no
+`backdrop-filter` and then never scrolling, and a lint rule believed silent on
+a case that was not a case. All three are the same failure, which is trusting
+an instrument that has never been checked against a known answer.

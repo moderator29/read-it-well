@@ -258,6 +258,28 @@ export function contentSecurityPolicy(nonce: string): string {
      * which is exactly the split we want. One that does not understand it
      * falls back to `style-src` and is no worse off than before.
      */
+    /*
+     * THE DEVELOPMENT BRANCH STAYS, and the paragraph above is about what
+     * SHIPS. The measurement it quotes, zero `<style>` elements across
+     * seventeen routes, was taken on a PRODUCTION build, and it is still true
+     * there. Under `next dev` it is false: Turbopack replaces a stylesheet on
+     * every hot update by injecting a `<style>` element, and this directive
+     * with `'self'` alone refuses one, because `'self'` governs where a file
+     * may come from and says nothing about inline content.
+     *
+     * The consequence is the fault this whole file has produced three times
+     * today in different clothes: a page that renders, looks broken, and
+     * explains nothing. An unstyled dev page is indistinguishable from a
+     * stylesheet somebody has just broken, so it costs a worker an hour and
+     * then costs the next one another.
+     *
+     * `NODE_ENV` is `production` in the build that ships and `test` under
+     * vitest, so this allowance reaches no deployed response, and the
+     * assertions that forbid `'unsafe-inline'` still run against the shipping
+     * directive. Somebody reverted this line to the shipping form while this
+     * was being written, which is the reading the paragraph above invites;
+     * the paragraph now says which build it measured.
+     */
     ["style-src-elem", process.env.NODE_ENV === "development" ? ["'self'", "'unsafe-inline'"] : ["'self'"]],
 
     /*
