@@ -57,27 +57,22 @@
     /* ONE GLOB, NOT THIRTY LINES. Every parallel build directory this repo
        has ever used, .next-verify, .next-admin, .next-qa5 and the rest, was
        listed by hand, and each new one appended two more lines and another
-       commit. They are all the same shape, so match the shape. */
+       commit. They are all the same shape, so match the shape.
+
+       AND NEXT WILL KEEP ADDING THE LITERALS BACK ANYWAY, which is worth
+       knowing before somebody thinks the globs are broken. `next build` and
+       `next dev` append their own `<distDir>/types` entry to this array
+       unless they find that exact STRING already in it; a glob that covers
+       the path is not a match as far as that check is concerned. With nine
+       workers each on their own NEXT_DIST_DIR, this file grew thirty dead
+       lines in an evening and showed up as a modified shared file in
+       everybody's `git status`.
+
+       So: the two globs below cover every one of them, any `.next-*` literal
+       that reappears here is redundant, and you may delete it on sight
+       without checking what it was for. */
     ".next-*/types/**/*.ts",
-    ".next-*/dev/types/**/*.ts",
-    ".next-v1/types/**/*.ts",
-    ".next-v1/dev/types/**/*.ts",
-    ".next-v5dev/types/**/*.ts",
-    ".next-v5dev/dev/types/**/*.ts",
-    ".next-lead/types/**/*.ts",
-    ".next-lead/dev/types/**/*.ts",
-    ".next-r1/types/**/*.ts",
-    ".next-r1/dev/types/**/*.ts",
-    ".next-p3/types/**/*.ts",
-    ".next-p3/dev/types/**/*.ts",
-    ".next-v3/types/**/*.ts",
-    ".next-v3/dev/types/**/*.ts",
-    ".next-r2/types/**/*.ts",
-    ".next-r2/dev/types/**/*.ts",
-    ".next-v5/types/**/*.ts",
-    ".next-v5/dev/types/**/*.ts",
-    ".next-v4/types/**/*.ts",
-    ".next-v4/dev/types/**/*.ts"
+    ".next-*/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
