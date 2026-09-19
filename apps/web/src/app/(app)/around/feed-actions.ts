@@ -19,7 +19,22 @@ import { loadMoreFeed, type FeedMode } from "@/lib/social/posts-actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { FeedPage } from "@/lib/social/posts-queries";
 
-export type { FeedMode };
+/*
+ * A "use server" MODULE MAY EXPORT ASYNC FUNCTIONS AND NOTHING ELSE, and a
+ * type RE-EXPORT counts as something else.
+ *
+ * `export type { FeedMode };` stood here so `page.tsx` could take the type
+ * from the same file as the action. TypeScript erases it, so `tsc --noEmit`
+ * is silent, and it is not a runtime value, so the unit tests never see it.
+ * The production compiler is the only gate that catches it: Turbopack builds
+ * one actions manifest per server module and puts every named export in it,
+ * so this line asked for an action id for a type, and the build failed with
+ * "Export FeedMode doesn't exist in target module". It took production down.
+ *
+ * The type belongs to `lib/social/posts-actions`, which declares it, and a
+ * consumer imports it from there. A type alias DECLARED inside a "use server"
+ * module is erased whole and is fine; a re-export statement is not.
+ */
 
 /**
  * `page.tsx` binds `mode` and `Feed` supplies each cursor, so the component

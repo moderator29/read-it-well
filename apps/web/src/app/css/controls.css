@@ -321,9 +321,26 @@
     border-radius: var(--nf-radius-control);
     color: var(--nf-content-primary);
     cursor: pointer;
+    /*
+     * THE ICON'S OWN CONTAINER IS LIT, on the founder's ruling of 19
+     * September: the resting glow belongs "in the inner containers of icons,
+     * platform wide ... same as the search icons".
+     *
+     * The ring was already brand, but the light on it was `--nf-glow-1` at
+     * 16 per cent, which on the navy canvas is invisible at 44px: in every
+     * reference render the small square behind a glyph, the back control, the
+     * heart, the share, the bell and the sliders beside the search field, is
+     * a dark plate with a bright blue outline throwing light. This is the
+     * same composition the cards and tiles now wear (`--nf-glow-edge`),
+     * with the inner wash kept because a control this small reads better with
+     * the light coming from inside it as well as around it. The hover and
+     * press states below step up from here.
+     */
     border: 1px solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
-    box-shadow: 0 0 10px var(--nf-glow-1), inset 0 0 10px var(--nf-glow-wash);
+    box-shadow:
+      var(--nf-glow-edge),
+      inset 0 0 10px var(--nf-glow-wash);
     transition:
       transform var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);

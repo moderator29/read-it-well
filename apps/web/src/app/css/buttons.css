@@ -260,13 +260,29 @@
      the note there explains why it cannot live next to this rule. */
 
   /* ---- primary: the signature gradient, lit on the moments that earn it ---- */
+  /*
+   * THE PRIMARY IS LIT AT REST, on the founder's ruling of 19 September:
+   * "retire all our buttons colours to this new one ... make it this style of
+   * blue like really shiny".
+   *
+   * The fill and the edge were already the render's. What was missing was the
+   * light: this button carried no outer glow at all until a pointer hovered
+   * it, so on a phone, which is the whole product, the platform's signature
+   * control never once threw light on the screen around it. Every primary in
+   * the reference renders sits in its own bloom. Two rungs, near and far, so
+   * the button reads as lit rather than as outlined, and the press and hover
+   * states below step up from this floor instead of introducing it.
+   */
   .nf-btn--primary {
     position: relative;
     overflow: hidden;
     color: var(--nf-content-on-brand);
     background: var(--nf-gradient-cta);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 2px 14px -2px var(--nf-glow-3),
+      0 10px 30px -12px var(--nf-glow-2);
   }
   /*
    * The signature ripple, ON PRESS ONLY and half as long.
@@ -313,6 +329,8 @@
     transition: transform var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-btn--primary:active:not(:disabled) {
+    /* Pressed, the bloom pulls in: a control under a finger is closer to the
+       surface, so the far rung goes and the near one tightens. */
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim),
       0 0 10px var(--nf-glow-2);
@@ -328,7 +346,8 @@
       border-color: var(--nf-brand-edge-strong);
       box-shadow:
         inset 0 1px 0 var(--nf-glass-rim),
-        0 0 20px var(--nf-glow-3);
+        0 0 22px var(--nf-glow-3),
+        0 12px 36px -10px var(--nf-glow-2);
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -421,20 +440,32 @@
    * exactly where the material should be legible, so it now has all four: the
    * blurred and saturated fill, the lit rim, the hairline and a shadow.
    */
+  /*
+   * The glass secondary is ringed in brand as well.
+   *
+   * It stood on `--nf-glass-border`, 11 per cent white, which on the navy
+   * canvas is the grey the founder called dull; and it is the button that
+   * stands BESIDE the primary in every render ("Explore Stays" beside
+   * "Explore Properties", "Contact hotel" beside "View Booking Details"), so
+   * a grey outline next to a lit blue one reads as a disabled control. The
+   * soft brand edge and the lit top rim put it in the same family at a
+   * quieter volume, with no bloom of its own: the pair is one lit object and
+   * one glass one, which is what the renders draw.
+   */
   .nf-btn--glass {
     color: var(--nf-content-secondary);
     background: var(--nf-glass-fill);
-    border: var(--nf-border-width) solid var(--nf-glass-border);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
+      inset 0 1px 0 var(--nf-rim-lit-ink),
       var(--nf-elev-1);
   }
   @media (hover: hover) {
     .nf-btn--glass:hover:not(:disabled) {
       background: var(--nf-glass-fill-strong);
-      border-color: var(--nf-brand-edge-soft);
+      border-color: var(--nf-brand-edge);
       color: var(--nf-content-primary);
     }
   }

@@ -12,7 +12,8 @@ import {
 import { listStories } from "@/lib/social/stories-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { AROUND_UNCONFIGURED } from "./copy";
-import { loadMoreAround, type FeedMode } from "./feed-actions";
+import { loadMoreAround } from "./feed-actions";
+import type { FeedMode } from "@/lib/social/posts-actions";
 import { Feed } from "@/components/social/feed/Feed";
 import { FeedTabs, isFeedTab, type FeedTab } from "@/components/social/feed/FeedMasthead";
 import { LocationChip } from "@/components/social/feed/LocationChip";
