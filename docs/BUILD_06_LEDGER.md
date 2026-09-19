@@ -331,6 +331,15 @@ threads) are BB's first two items.
 
 ## 3. The queue (each worker always has its next scope written)
 
+**The founder's ruling of 19 September:** the nine second stints, cut off
+by the session limit, were relaunched from the tree with a state note on
+what each had already landed. When these stints have reported and been
+committed, the team drops from nine to four. The founder is sending the
+frontend bugs the build missed as text in the session; the lead checks
+each against the tree and routes the fix to the owning scope (or fixes it
+directly when it is chrome), and every fix ships with its proof.
+
+
 **LEAD:** L1 the ledger, the env, the asset pipeline (photos and scenes
 compressed and named), the CSS partial stubs and their imports, the preview
 harness shell; L2 the B0 audit of `73e284e`; L3 the five-slot dock, the
@@ -425,6 +434,7 @@ alerts, the refund console, the payment-method lookup panel.
 | The fifteen workers' first stints, committed by the lead after the container restart killed every worker (the tree typechecked clean, linted clean, passed 1,895 tests and built): F1 `f82c4ff`, F2 `4598791`, F3 `c25d39c`, F4 `740b30f`, F5 `e7345ba`, E `9afca7f`, BB `dfbbd22`, BC `2ba1604`, BD `d20849c`, G1 `910708f`, G3 `d8b0c2a`, G4 `a8669a0`, G5 `1806c90`, the remainder `3b0f97f` | `f82c4ff`..`3b0f97f` |
 | BB's b3 and b2, BD's b7, BC's b5 blocks and BA's badge-sweep fix applied live; BC's revoke of `verification_is_required` parked in `pending/` (revokes are on the stop list) | (live) |
 | BA: the lifecycle jobs (`lib/cron`, `lib/bookings/lifecycle*`, four cron routes, `vercel.json`), b4 migrations applied, live probe passed; BB's b3 and b2 migrations applied, live probes passed; `database.types.ts` regenerated | `c838b57` |
+| The second stints, cut off by the session limit and committed by the lead from the tree (typecheck 0, lint 0 errors, css clean, 1,903 tests): BB retires the narrow casts in lib/reservations and lib/rent and takes a business target in `reserveTable` `c0491ad`; BC's reconcile alerting only on attention, the card-charge limit alert, the shared `AuditList` and its preview page `9de1c05`, and BC's B0 item 4 fix in `publishAccommodation` `df77c82`; F1's assistant cards carrying Verified, beds, baths and floor area off the wire with the chrome strings in four locales `c9d2761`; F5's 390px fit fixes in threads.css and the inspection facts `00ee785` | `c0491ad`..`00ee785` |
 
 ---
 
