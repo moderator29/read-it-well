@@ -2383,14 +2383,14 @@ which split on the first agent approval and are invisible until then.
 
 ---
 
-## 15. W4, 19 September, night: the purge was already wired, and the verified badge now has one derivation
+## 16. W4, 19 September, night: the purge was already wired, and the verified badge now has one derivation
 
 **The rules and the stop list were restated before anything was touched, as
 section 0 requires.** Two jobs were given. The first turned out to be already
 done by somebody else and is recorded here as verified rather than as landed.
 The second landed, as one migration applied and probed and six files.
 
-### 15.1 JOB ONE WAS ALREADY DONE, AND SECTION 14 IS STALE ON THIS POINT
+### 16.1 JOB ONE WAS ALREADY DONE, AND SECTION 14 IS STALE ON THIS POINT
 
 Section 14 closes with "`close_future_commitments` is applied but is not yet
 wired into the purge job ... until somebody does that, a purge will still
@@ -2424,7 +2424,7 @@ functions this flow reaches" and then listed eight, none of them
 which Postgres functions the deletion flow can reach was being given a list
 with the newest and most consequential one missing from it.
 
-### 15.2 JOB TWO: THE VERIFIED BADGE, COLLAPSED ONTO THE LADDER
+### 16.2 JOB TWO: THE VERIFIED BADGE, COLLAPSED ONTO THE LADDER
 
 R2's section 4 is correct in its diagnosis and correct in its qualifier, and
 both are preserved here. **This is not visible today.** Read live before the
@@ -2521,7 +2521,7 @@ probe: 1 agent row, 0 named `Probe agent, rolled back`, 0 with `verified` true,
 whose name begins `probe`. The column default reads `false`, the constraint
 exists, the trigger exists.
 
-### 15.3 A FIFTH SURFACE NOBODY HAD COUNTED, FOUND BY THE TEST AND NOT BY READING
+### 16.3 A FIFTH SURFACE NOBODY HAD COUNTED, FOUND BY THE TEST AND NOT BY READING
 
 R2 named three readers of the hand-set boolean. The regression test written for
 this job, `apps/web/src/lib/trust/agent-badge-derivation.test.ts`, scans every
@@ -2542,7 +2542,7 @@ genuinely verified agent and nothing would have complained. It now reads
 `(data.verification_tier ?? 0) >= 1` off a tier the same query already
 selected, so the raw column is read from nowhere in the application at all.
 
-### 15.4 WHAT LANDED IN THE APPLICATION
+### 16.4 WHAT LANDED IN THE APPLICATION
 
 `lib/admin/actions.ts`: `verified: true` is gone from the approval upsert, with
 a comment saying why it is an absence rather than an oversight, and the
@@ -2559,7 +2559,7 @@ old fault written out so the next reader is not puzzled.
 `identitiesOf` reads `agents.verified`. `lib/agent/listings-queries.ts`: the
 fifth surface, above.
 
-### 15.5 THE GATES, EXACT
+### 16.5 THE GATES, EXACT
 
 All from `apps/web`. `npx tsc --noEmit -p tsconfig.json` exits 0 with no
 diagnostics. `npx eslint` over the seven touched files exits 0, with three
@@ -2571,7 +2571,7 @@ src/lib/account-deletion/purge.test.ts`: 2 files, 26 tests, all passed. The
 production build through the shared lock, `NEXT_DIST_DIR=.next-w4 npx next
 build`, exits 0.
 
-### 15.6 WHAT WAS NOT DONE, UNPROMPTED
+### 16.6 WHAT WAS NOT DONE, UNPROMPTED
 
 **R2's step 5 was NOT done and needs the founder.** `agents.verified` is not
 dropped. It is now a derived copy of `agent_badges.verified` and dropping it is
