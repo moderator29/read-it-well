@@ -435,6 +435,10 @@ alerts, the refund console, the payment-method lookup panel.
 | BB's b3 and b2, BD's b7, BC's b5 blocks and BA's badge-sweep fix applied live; BC's revoke of `verification_is_required` parked in `pending/` (revokes are on the stop list) | (live) |
 | BA: the lifecycle jobs (`lib/cron`, `lib/bookings/lifecycle*`, four cron routes, `vercel.json`), b4 migrations applied, live probe passed; BB's b3 and b2 migrations applied, live probes passed; `database.types.ts` regenerated | `c838b57` |
 | The second stints, cut off by the session limit and committed by the lead from the tree (typecheck 0, lint 0 errors, css clean, 1,903 tests): BB retires the narrow casts in lib/reservations and lib/rent and takes a business target in `reserveTable` `c0491ad`; BC's reconcile alerting only on attention, the card-charge limit alert, the shared `AuditList` and its preview page `9de1c05`, and BC's B0 item 4 fix in `publishAccommodation` `df77c82`; F1's assistant cards carrying Verified, beds, baths and floor area off the wire with the chrome strings in four locales `c9d2761`; F5's 390px fit fixes in threads.css and the inspection facts `00ee785` | `c0491ad`..`00ee785` |
+| The three stood-down workers and the four kept ones, verified by the whole gate INCLUDING `next build`: BB's rent seams and the seeded-photo path `536046c`, BC and BD's desks `383fe16`, the five frontend scopes `6dc50c0` | `536046c`..`6dc50c0` |
+| The founder's rulings in the token layer: `--nf-glow-edge`, the glass ladder's brand outline, the blue dock capsule `3e1413f`; the lit primary and brand-ringed glass secondary and the lit icon plate, with the production fix `bf4d63f` | `3e1413f`, `bf4d63f` |
+| The founder's send-backs: home rebuilt to the markets render, the listing page retired and rebuilt, search two-up and small, the threads and desks lit | `d3611d1` |
+| A compacted figure keeps its value (the move-in bar said 15m over a card saying 14,700,000) | `b4999de` |
 
 ---
 
@@ -479,6 +483,35 @@ from `apps/web` (F1 3101, F2 3102, F3 3103, F4 3104, F5 3105, E 3106, lead
 ---
 
 ## 7. Probes and audits
+
+### 7.0 The outage of 19 September, and the gate that was missing
+
+Three production deploys went red, including one that changed only
+documentation, because they all inherited one commit. The cause was
+`export type { FeedMode };` in `app/(app)/around/feed-actions.ts`. A
+"use server" module may export async functions and nothing else, and
+Turbopack builds one actions manifest per server module from its named
+exports, so the build asked for an action id for a type. TypeScript erases
+a type re-export, so `tsc --noEmit` was silent; it is not a runtime value,
+so 1,937 tests were silent; `eslint` and the CSS checker have nothing to
+say about it. `next build` is the only gate that sees it, and it was the
+one gate not being run before a push. It is now run before every push, and
+the rule is written here: a type alias DECLARED inside a "use server"
+module is erased whole and is legal; a re-export statement is not.
+
+A CORRECTION THIS LEDGER OWES. The commit message on `d3611d1` claims
+2,003 tests. The true figure at that tree is 1,937. The commit is pushed
+and history is not rewritten, so the correction lives here instead.
+
+Two things the box taught, for whoever reads this next. Fifteen and then
+nine concurrent workers drove the load average above 100 on four cores,
+which OOM-killed typechecks, panicked Turbopack's PostCSS worker into
+500ing every preview route, and made workers report red results that were
+machine faults rather than code faults. Four workers is the number this
+box actually holds. And a worker's proof is only worth the tree it was
+shot from: two workers finished a stint having changed a design they had
+never seen rendered, because every screenshot attempt was starved.
+
 
 **Live migrations, 18 September 2026, applied by the lead through the
 Supabase MCP after reading every line, each probed as one rolled-back block
@@ -555,6 +588,48 @@ not loss holes, and every charge is refundable through the processor.
 ---
 
 ## 8. Pitches and amendments taken into the build
+
+### 8.x The founder's rulings of 19 September, and where each one lives
+
+The founder photographed production beside the reference renders and sent
+five messages. The material rulings were taken into the token layer rather
+than into pages, because he asked for them "wide platform":
+
+- **"Our containers are dull."** The token layer had no rung between a
+  hairline and `--nf-glow-edge-strong`, so a resting card carried a 50 per
+  cent outline with its bloom set at -10px and -12px spreads, which shows
+  nothing at the edge. `--nf-glow-edge` is that rung: the lit top rim, a
+  full brand ring, one near bloom, with a daylight twin that keeps the
+  outline and drops the light. Worn by `.nf-glass--card`, `.nf-glass--tile`
+  and `.nf-icon-btn`. The glass ladder's base outline moved from 11 per
+  cent white, which reads grey on navy, to the soft brand edge.
+- **"Change the bottom nav container capsule to the branding colour."** The
+  capsule was 90 per cent raw canvas behind a neutral stride ring. It is
+  now blue glass with the lit edge, and the travelling pill is brand-washed
+  with its own ring and bloom instead of a 9 per cent white plate.
+- **"Retire all our buttons colours to this new one, really shiny."** The
+  primary carried no outer glow until a pointer hovered it, so on a phone
+  the signature control never threw light. It now rests in its own two-rung
+  bloom. The glass secondary stood on an 11 per cent white border, grey
+  beside a lit blue primary, and is now brand-ringed with the lit rim.
+- **"The resting glow belongs in the inner containers of the icons."**
+  `.nf-icon-btn` had `--nf-glow-1` at 16 per cent, invisible at 44px, and
+  now wears the same lit edge as the cards.
+- **Home, the listing page, search and the filter sheet** were rebuilt to
+  his own references, which are filed in
+  `docs/design/references/founder/`. The listing page he photographed was
+  retired entirely on his instruction.
+- **Team size.** Nine, then four on his ruling. The three stood down (F4, E,
+  BD) reported with their work syntactically complete and verified.
+
+A MONEY RULING THAT CAME OUT OF AUDITING HIS PROOF. Compact notation keeps
+two significant digits, so `formatMoney`'s compact branch turned
+₦14,700,000 into ₦15m and painted it on the move-in bar directly under a
+card reading ₦14,700,000. One screen stated two different obligations and
+the one on the control a person presses was wrong by ₦300,000. The branch
+now names one fraction digit, with the minimum stated explicitly because
+currency style clamps it up and turned ₦45k into ₦45.0k.
+
 
 1. **The control radius law is amended** on the founder's identical-to-images
    ruling: where a governing image shows a capsule (city chips, filter
