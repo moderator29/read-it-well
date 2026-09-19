@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { canGoBackInApp } from "@/lib/ui/history";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { ListingActions } from "./ListingActions";
@@ -43,6 +43,7 @@ export function ListingGallery({
   plates = [],
   initialSaved = false,
   backFallback = "/home",
+  mark,
 }: {
   listingId: string;
   title: string;
@@ -64,6 +65,12 @@ export function ListingGallery({
   initialSaved?: boolean;
   /** Where back goes when this page was opened directly. */
   backFallback?: string;
+  /**
+   * The pill on the photograph's foot (9E8B56ED: For Rent, then Verified;
+   * BB0C2C85: Stays). Only what the read can stand behind: the market is
+   * always known, and Verified appears only where a person checked.
+   */
+  mark?: { label: string; icon?: UiIconName; verified?: boolean; verifiedLabel?: string };
 }) {
   const router = useRouter();
   /* The gallery's floating back circle is icon-only, so its accessible name is
@@ -231,6 +238,20 @@ export function ListingGallery({
         start above the overlap and keep the 0.25rem the dots always had on the
         counter.
       */}
+      {mark && (
+        <p className="nf-gallery-marks" data-testid="gallery-marks">
+          <span className="nf-gallery-mark nf-gallery-mark--market">
+            {mark.icon && <UiIcon name={mark.icon} size={14} />}
+            {mark.label}
+          </span>
+          {mark.verified && (
+            <span className="nf-gallery-mark">
+              <UiIcon name="verified" size={14} />
+              {mark.verifiedLabel ?? t.common.verified}
+            </span>
+          )}
+        </p>
+      )}
       {standIn && (
         <p
           data-testid="gallery-standin"

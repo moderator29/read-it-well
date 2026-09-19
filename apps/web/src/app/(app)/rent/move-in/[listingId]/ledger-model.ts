@@ -29,10 +29,12 @@ export function ledgerLines(listing: Listing, t: Dictionary): LedgerLine[] {
     if (line.minor === undefined || line.minor === null || line.minor <= 0) return;
     lines.push({ ...line, minor: line.minor });
   };
+  /* "Rent (1 year)", as 9F384CFE prints it: the period as a noun in the
+     label, the adverb ("Yearly") as the hint beneath it. */
   push({
     key: "rent",
     icon: "home",
-    label: `${t.catalogue.card.rent} (1 ${RENT_PERIOD_LABEL[period].toLowerCase()})`,
+    label: `${t.catalogue.card.rent} (1 ${period})`,
     hint: RENT_PERIOD_LABEL[period],
     minor: listing.priceMinor,
   });

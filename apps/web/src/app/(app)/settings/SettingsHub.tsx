@@ -193,6 +193,7 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           icon="bell"
           label={t.settings.notifications.label}
           sub={hub.notificationsSub}
+          value={notifyOn ? hub.on : hub.off}
           checked={notifyOn}
           onChange={flipNotifications}
           disabled={pending}
@@ -219,7 +220,12 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           onChange={chooseTheme}
           testId="hub-theme"
         />
-        <LanguageRow t={t} current={locale} />
+        <LanguageRow
+          t={t}
+          current={locale}
+          label={t.settings.language.label}
+          sub={hub.languageSub}
+        />
         <RowLink
           href="/settings/help"
           icon="chat-bubble"
@@ -230,8 +236,9 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
       </SettingsGroup>
 
       {/* The Payment Methods block sits here in the render, between the hub
-          rows and Log Out. The page renders it (a server component) between
-          this component's two halves; see `page.tsx`. */}
+          rows and Log Out. The page renders worker E's `PaymentMethodsBlock`
+          (a server component on the real reads) between this component's two
+          halves; see `page.tsx`. */}
     </div>
   );
 }

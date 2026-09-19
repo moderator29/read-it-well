@@ -53,8 +53,10 @@ export function specChips(listing: Listing, t: Dictionary, locale: Locale): Spec
 
 export function ListingSpecChips({ chips }: { chips: SpecChip[] }) {
   if (chips.length === 0) return null;
+  /* Five or fewer share the width, as 7B5335E0 draws them; more scroll. */
+  const fit = chips.length <= 5;
   return (
-    <ul className="nf-spec-row nf-scroll-x" data-testid="spec-chips">
+    <ul className={`nf-spec-row ${fit ? "nf-spec-row--fit" : "nf-scroll-x"}`} data-testid="spec-chips">
       {chips.map((chip) => (
         <li key={chip.key} className="nf-spec-tile">
           <UiIcon name={chip.icon} size={ICON.inline} />

@@ -12,7 +12,7 @@ import { ICON } from "@/components/app/Screen";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
-import { bundlePhotos } from "@/components/app/messages/bundle";
+import { bundlePhotos, isCaption } from "@/components/app/messages/bundle";
 import { parseShare, shareHref, SHARE_LEAD } from "@/components/app/messages/share";
 import {
   attachImage,
@@ -190,19 +190,14 @@ function Ticks({ read }: { read: boolean }) {
 }
 
 /**
- * The role a name carries on a context thread: the rental face labels the
- * renter and the lister, a stay labels the guest and the host, a table the
- * guest and the restaurant. A plain direct message labels nobody.
+ * The role a name carries on the rental face (9E06F51C): "Tenant" beside the
+ * renter's name, "Agent" under the lister's avatar. The booking render draws
+ * no tags at all, so a stay and a table label nobody, and neither does a
+ * plain direct message.
  */
 function roleTags(context: ThreadContext | undefined, role: ThreadRole): { mine: string; theirs: string } | null {
-  if (!context) return null;
-  const pairs: Record<ThreadContext["kind"], [string, string]> = {
-    listing: ["Agent", "Tenant"],
-    booking: ["Host", "Guest"],
-    reservation: ["Restaurant", "Guest"],
-  };
-  const [host, guest] = pairs[context.kind];
-  return role === "host" ? { mine: host, theirs: guest } : { mine: guest, theirs: host };
+  if (context?.kind !== "listing") return null;
+  return role === "host" ? { mine: "Agent", theirs: "Tenant" } : { mine: "Tenant", theirs: "Agent" };
 }
 
 export function ThreadView({
@@ -528,15 +523,9 @@ export function ThreadView({
           )}
         </div>
         <div className="nf-thread__actions">
-          {listing && (
-            <Link
-              href={`/listing/${listing.id}`}
-              aria-label="Open the property"
-              className="nf-icon-btn"
-            >
-              <UiIcon name="house" size={ICON.inline} />
-            </Link>
-          )}
+          {/* One glass control on the right, the way the render keeps its
+              right edge quiet. The property itself opens from the options
+              sheet and from the context card, so nothing is lost here. */}
           <button
             ref={sheetTriggerRef}
             type="button"
@@ -591,13 +580,25 @@ export function ThreadView({
           Keep every chat and payment inside Vallo
         </p>
 
-        {bundles.map(({ lead: m, items: run }) => {
+        {bundles.map(({ lead: m, items: run }, index) => {
           const share = m.card ? null : parseShare(m.body);
           const wide = Boolean(m.card);
+          /* A run of messages from one side in one minute shares one name
+             row and one avatar, the way the render stacks the hotel's
+             greeting over its card. */
+          const prev = index > 0 ? bundles[index - 1]!.lead : null;
+          const continues =
+            prev !== null && prev.mine === m.mine && prev.timeLabel === m.timeLabel && !prev.state && !m.state;
+          const photos = run.filter((p) => p.imageUrl !== null);
+          const caption = run.length > 1 ? run.find((p) => isCaption(p)) : null;
+          const words = run.length === 1 ? m.body : (caption?.body ?? "");
+          const last = run[run.length - 1]!;
           return (
             <div
               key={m.id}
-              className={`nf-msg ${m.mine ? "nf-msg--mine nf-msg-in--mine" : "nf-msg-in--theirs"}`}
+              className={`nf-msg ${m.mine ? "nf-msg--mine nf-msg-in--mine" : "nf-msg-in--theirs"}${
+                wide ? " nf-msg--card" : ""
+              }${continues ? " nf-msg--cont" : ""}`}
             >
               {m.mine ? (
                 <span className="nf-msg__side" aria-hidden="true">
@@ -613,7 +614,7 @@ export function ThreadView({
               )}
 
               <div className={`nf-msg__stack${wide ? " nf-msg__stack--wide" : ""}`}>
-                {!m.mine && (
+                {!m.mine && !continues && (
                   <p className="nf-msg__meta">
                     <span className="nf-msg__sender">{counterpartName}</span>
                     {tags && <span className="nf-role-tag">{tags.theirs}</span>}
@@ -633,25 +634,25 @@ export function ThreadView({
                           : "nf-bubble--theirs"
                     }${m.state === "sending" ? " nf-bubble--sending" : ""}`}
                   >
-                    {run.length > 1 ? (
+                    {photos.length > 1 ? (
                       /* The bundle: three thumbnails and the count of the rest. */
-                      <div className="nf-photo-bundle" role="group" aria-label={`${run.length} photos`}>
-                        {run.slice(0, 3).map((p, i) => (
+                      <div className="nf-photo-bundle" role="group" aria-label={`${photos.length} photos`}>
+                        {photos.slice(0, 3).map((p, i) => (
                           <span key={p.id} className="nf-photo-bundle__cell">
                             {/* Signed and object URLs cannot go through the optimiser. */}
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.imageUrl ?? ""} alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`} />
-                            {i === 2 && run.length > 3 && (
-                              <span className="nf-photo-bundle__more">+{run.length - 3}</span>
+                            {i === 2 && photos.length > 3 && (
+                              <span className="nf-photo-bundle__more">+{photos.length - 3}</span>
                             )}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      m.imageUrl && (
+                      photos[0]?.imageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={m.imageUrl}
+                          src={photos[0].imageUrl}
                           alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
                           className="nf-bubble__photo"
                         />
@@ -667,7 +668,7 @@ export function ThreadView({
                         </Link>
                       </p>
                     ) : (
-                      m.body && run.length === 1 && <p className="nf-bubble__body">{m.body}</p>
+                      words && <p className="nf-bubble__body">{words}</p>
                     )}
                     <p className="nf-bubble__foot">
                       {/*
@@ -681,7 +682,7 @@ export function ThreadView({
                       ) : (
                         <span className="nf-numeric">{m.timeLabel}</span>
                       )}
-                      {m.mine && !m.state && <Ticks read={Boolean(m.read)} />}
+                      {m.mine && !m.state && <Ticks read={Boolean(last.read)} />}
                     </p>
                   </div>
                 )}

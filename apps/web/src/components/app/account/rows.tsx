@@ -249,6 +249,7 @@ export function RowSwitch({
   icon,
   label,
   sub,
+  value,
   checked,
   onChange,
   disabled,
@@ -257,6 +258,9 @@ export function RowSwitch({
   icon?: UiIconName;
   label: string;
   sub?: ReactNode;
+  /** The state in a word beside the switch ("On"), as the settings render
+      draws it, so colour is never the only signal. */
+  value?: ReactNode;
   checked: boolean;
   onChange: (next: boolean) => void;
   disabled?: boolean;
@@ -278,6 +282,11 @@ export function RowSwitch({
         </span>
         {sub && <span className="nf-srow__sub">{sub}</span>}
       </span>
+      {value !== undefined && value !== null && value !== "" && (
+        <span className="nf-srow__value nf-srow__value--switch" aria-hidden="true">
+          {value}
+        </span>
+      )}
       <Switch
         checked={checked}
         onChange={onChange}

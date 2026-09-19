@@ -2071,6 +2071,7 @@ export const ig: Dictionary = withFallback({
       title: "Nchịkọta ọrụ",
       lede:
         "Akara ntụkwasị obi ọ bụla Vallo na-emepụta na-akwụsị ebe a: ihe nyocha nchekwa jidere, ihe ndị òtù kpesara, onye na-echere nkwado, na ihe na-echere ịmalite ọrụ. Ọnụọgụ ọ bụla bụ ahịrị ị nwere ike ikpocha.",
+      queueLede: "Ndepụta, akwụkwọ ndị nnọchianya, mkpesa, nkwado na ozi ndị e debere, nke ọhụrụ na mbụ. Lelee ọ bụla na-emeghe tebụl nke na-ekpebi ya.",
       queueClear: "Ahịrị a dị ọcha.",
       tiles: {
         moderation: {
@@ -2736,6 +2737,10 @@ export const ig: Dictionary = withFallback({
     bankAction: "Wepụ ego gaa n'ụlọ akụ gị",
     noteTitle: "Tinye ndetu",
     noteSub: "Nhọrọ, maka ncheta",
+    recipientChecking: "Na-elele adreesị ahụ",
+    recipientFound: "Na-eziga na",
+    recipientNone: "No Vallo account uses this address yet. Check the spelling, or ask them to sign up first.",
+    recipientSelf: "That is your own address. Enter the recipient's.",
   },
 
   walletReceive: {

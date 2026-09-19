@@ -5,6 +5,7 @@ import { LocationChip } from "@/components/social/feed/LocationChip";
 import { StoryRing } from "@/components/social/feed/StoryRing";
 import { CreateBloom } from "@/components/social/bloom/CreateBloom";
 import { FEED_PLACES, FEED_POSTS, FEED_STORIES, YOU } from "./fixtures";
+import { SettleFocus } from "./SettleFocus";
 
 /**
  * The feed as a signed-in person sees it, from fixtures. `bloomOpen` mounts
@@ -47,6 +48,7 @@ export function FeedPreview({ bloomOpen }: { bloomOpen: boolean }) {
         reviewable={[]}
         initialOpen={bloomOpen}
       />
+      {bloomOpen ? <SettleFocus /> : null}
     </div>
   );
 }

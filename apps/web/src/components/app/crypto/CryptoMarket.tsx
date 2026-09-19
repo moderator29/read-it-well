@@ -77,7 +77,7 @@ export function CryptoMarket({
     return () => controller.abort();
   }, [live, vs, attempt]);
 
-  const rows: MarketRow[] = "ok" in markets && markets.ok ? markets.data : [];
+  const rows = useMemo<MarketRow[]>(() => ("ok" in markets && markets.ok ? markets.data : []), [markets]);
   const tabOptions: SegmentedOption<"coins" | "pairs">[] = [
     { value: "coins", label: copy.coins },
     { value: "pairs", label: copy.pairs },

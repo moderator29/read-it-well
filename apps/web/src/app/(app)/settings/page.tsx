@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { Chip } from "@/components/ui/Chip";
-import { EmptyState } from "@/components/app/Screen";
-import { EmptyActions } from "@/components/app/EmptyActions";
-import { PaymentMethodsSlot } from "@/components/app/account/PaymentMethodsSlot";
-import {
-  SETTINGS_SEARCH_COPY,
-  matchSettings,
-  settingsSections,
-} from "@/components/app/account/settings-search";
+import { PaymentMethodsBlock } from "@/components/app/payments/PaymentMethodsBlock";
 import { loadProfileState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { getAgentContext } from "@/lib/agent/listings-queries";
@@ -29,25 +21,23 @@ export async function generateMetadata(): Promise<Metadata> {
  * thousand pixels of it; the preferences are all still here, one tap down,
  * grouped under the row that names them: `/settings/account`,
  * `/settings/notifications`, `/settings/privacy`, `/settings/appearance` and
- * `/settings/help`. The search stays: a plain GET whose answers are now links
- * to those screens rather than jumps down this one.
+ * `/settings/help`.
+ *
+ * The search field that sat under the headline is gone from this screen: the
+ * render has none, and six rows do not need one. The account screen keeps
+ * its search over the preferences it holds (`./account`).
  *
  * Two worlds, one screen. Signed in on a configured platform the hub's switch
  * writes `profiles.settings` under row level security; signed out, or before
  * the platform keys land, it writes the device document, exactly as before.
  */
-export default async function SettingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string | string[] }>;
-}) {
+export default async function SettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, agentContext, params] = await Promise.all([
+  const [account, sessions, agentContext] = await Promise.all([
     loadProfileState(),
     loadSessions(),
     getAgentContext(),
-    searchParams,
   ]);
   const signedIn = account.state === "signed-in";
   const profile = signedIn ? account.profile : null;
@@ -62,11 +52,6 @@ export default async function SettingsPage({
      platform is an APPROVED, verified agent. Nobody else gets the word. */
   const verified = agentContext.state === "agent" && agentContext.agent.verified;
 
-  const rawQuery = Array.isArray(params.q) ? params.q[0] : params.q;
-  const searchQuery = (rawQuery ?? "").trim();
-  const matching = matchSettings(settingsSections(t), searchQuery);
-  const searching = searchQuery.length > 0;
-
   const hub = t.settings.hub;
 
   return (
@@ -75,42 +60,6 @@ export default async function SettingsPage({
         <h1 className="nf-hub-head__title">{t.nav.settings}</h1>
         <p className="nf-hub-head__lede">{hub.lede}</p>
       </header>
-
-      <form method="get" action="/settings" className="mb-row" role="search">
-        <label className="block">
-          <span className="sr-only">{SETTINGS_SEARCH_COPY.placeholder}</span>
-          <input
-            type="search"
-            name="q"
-            defaultValue={searchQuery}
-            placeholder={SETTINGS_SEARCH_COPY.placeholder}
-            className="nf-field w-full"
-            data-testid="settings-search"
-          />
-        </label>
-      </form>
-
-      {searching && matching.length > 0 && (
-        <nav aria-label={t.nav.settings} className="mb-block flex flex-wrap gap-inline">
-          {matching.map((entry) => (
-            <Chip key={entry.id} behaviour="link" href={entry.href} size="sm">
-              {entry.label}
-            </Chip>
-          ))}
-        </nav>
-      )}
-
-      {searching && matching.length === 0 && (
-        <EmptyState
-          icon="home-search"
-          title={SETTINGS_SEARCH_COPY.noMatchTitle}
-          body={SETTINGS_SEARCH_COPY.noMatchBody}
-          action={
-            <EmptyActions primary={{ label: SETTINGS_SEARCH_COPY.clear, href: "/settings" }} />
-          }
-          data-testid="settings-no-match"
-        />
-      )}
 
       <div className="space-y-block">
         <SettingsHub
@@ -133,16 +82,12 @@ export default async function SettingsPage({
           deviceCount={deviceCount}
         />
 
-        {/* Worker E fills this slot from `components/app/payments`; see
-            `PaymentMethodsSlot`. Signed out there are no methods to show. */}
-        {signedIn ? (
-          <PaymentMethodsSlot
-            title={hub.payments}
-            sub={hub.paymentsSub}
-            addLabel={hub.add}
-            manageLabel={t.paymentsPage.settingsRow}
-          />
-        ) : null}
+        {/* Worker E's block, on the real `listPaymentMethods` and
+            `listBankAccounts` reads: the cards and bank accounts with Add,
+            Default and Verified as the render draws them. It renders nothing
+            signed out, because a block about somebody's cards has no honest
+            signed-out form. */}
+        <PaymentMethodsBlock />
 
         <LogOutRow t={t} signedIn={signedIn} />
       </div>

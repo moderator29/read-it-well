@@ -2529,6 +2529,7 @@ export const en = {
       title: "Operations overview",
       lede:
         "Every trust signal Vallo produces ends here: what the safety scan caught, what members reported, who is waiting to be approved, and what is waiting to go live. Each number is a queue you can clear.",
+      queueLede: "Listings, agent applications, reports, support and flagged messages, newest first. Every View opens the desk that decides it.",
       queueClear: "This queue is clear.",
       tiles: {
         moderation: {
@@ -3208,6 +3209,10 @@ export const en = {
     bankAction: "Withdraw to your bank",
     noteTitle: "Add a note",
     noteSub: "Optional, for reference",
+    recipientChecking: "Checking the address",
+    recipientFound: "Sends to",
+    recipientNone: "No Vallo account uses this address yet. Check the spelling, or ask them to sign up first.",
+    recipientSelf: "That is your own address. Enter the recipient's.",
   },
 
   /**

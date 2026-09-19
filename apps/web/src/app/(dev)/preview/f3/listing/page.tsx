@@ -37,6 +37,7 @@ export default async function ListingPreview() {
           kind={listing.kind}
           photos={listing.photos}
           backFallback="/preview/f3"
+          mark={{ label: t.catalogue.card.forRent, icon: "key", verified: listing.verified, verifiedLabel: t.common.verified }}
         />
         <div className="nf-glass nf-glass--strong relative z-10 -mx-gutter mt-sm rounded-t-[1.75rem] border-x-0 border-b-0 px-gutter pb-lg pt-lg sm:rounded-t-[2.25rem] sm:pb-xl">
           <Stack>
@@ -57,7 +58,7 @@ export default async function ListingPreview() {
                 <span className="min-w-0">{where}</span>
                 <UiIcon name="arrow-right" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
               </a>
-              <div className="mt-md flex flex-wrap items-end justify-between gap-sm">
+              <div className="nf-detail-price-row mt-md">
                 <p className="nf-detail-price">
                   <Amount
                     minorUnits={listing.priceMinor}

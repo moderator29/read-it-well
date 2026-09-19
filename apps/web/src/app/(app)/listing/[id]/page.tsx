@@ -682,6 +682,12 @@ export default async function ListingDetailPage({
           photos={listing.photos}
           initialSaved={initialSaved}
           backFallback="/home"
+          mark={{
+            label: isSale ? t.catalogue.card.forSale : market.label,
+            icon: market.icon,
+            verified: listing.verified,
+            verifiedLabel: t.common.verified,
+          }}
         />
 
         {/*
@@ -759,7 +765,7 @@ export default async function ListingDetailPage({
                       disclosure lands before the belief the figure forms. */}
                   {listing.isDemo && <ExampleNotice variant="page" className="mt-block" />}
 
-                  <div className="mt-md flex flex-wrap items-end justify-between gap-sm">
+                  <div className="nf-detail-price-row mt-md">
                     {listing.priceMinor > 0 && (
                       <p className="nf-detail-price" data-testid="detail-price">
                         <Amount

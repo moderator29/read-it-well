@@ -9,6 +9,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { BookingView } from "@/lib/bookings/queries";
 import type { ReservationView } from "@/lib/reservations/queries";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
+import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
 import { buildTripSpine, type TripEntry } from "./trip-spine";
 
 /**
@@ -118,7 +119,10 @@ export function TripSpine({
       : reservation.listingId
         ? `/restaurant/${reservation.listingId}`
         : "/restaurants",
-    photo: null,
+    /* The restaurant plate the shelf draws for this venue, so the row's
+       thumbnail carries the same picture the card did rather than an empty
+       tile; a stand-in, the same one the shelf labels as such. */
+    photo: restaurantPlate(reservation.listingId ?? reservation.id),
     status: reservation.status,
     justBooked: reservation.id === justBookedId,
     booking: null,

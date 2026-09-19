@@ -182,7 +182,19 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
  * radio rows: a language is one answer, and the four rows took a third of the
  * screen to say so.
  */
-export function LanguageRow({ t, current }: { t: Dictionary; current: Locale }) {
+export function LanguageRow({
+  t,
+  current,
+  label,
+  sub,
+}: {
+  t: Dictionary;
+  current: Locale;
+  /** The settings home names the row "Language" with "App language" under
+      it, as the render draws it; the appearance screen keeps the one line. */
+  label?: string;
+  sub?: ReactNode;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selected, setSelected] = useState<Locale>(current);
@@ -198,7 +210,8 @@ export function LanguageRow({ t, current }: { t: Dictionary; current: Locale }) 
   return (
       <RowSelect
         icon="chat-bubble"
-        label={t.settings.language.appLanguage}
+        label={label ?? t.settings.language.appLanguage}
+        sub={sub}
         value={selected}
         /* The native name first, because somebody looking for Yoruba is
            looking for "Yorùbá". The English name follows only where the two

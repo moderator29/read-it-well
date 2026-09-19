@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  BLOOM_ITEM,
   BLOOM_SPRING,
   bloomSlot,
   bloomTransform,
@@ -66,14 +67,23 @@ describe("the bloom geometry", () => {
   });
 
   it("fits inside a 390px phone with the plus at the corner", () => {
-    /* The plus centre sits 46px in from the right edge and a lozenge is at
-       most 140px wide, so both edges of every slot must stay on the screen. */
+    /* The plus centre sits 46px in from the right edge (a 1rem inset and a
+       60px circle), so both edges of every slot must stay on the screen even
+       at the spring's overshoot. */
     const plusX = 390 - 46;
+    const half = BLOOM_ITEM.width / 2;
     for (let i = 0; i < 3; i += 1) {
       const slot = bloomSlot(i);
-      expect(plusX + slot.x - 70).toBeGreaterThan(8);
-      expect(plusX + slot.x + 70).toBeLessThan(390 - 4);
+      expect(plusX + slot.x * 1.08 - half).toBeGreaterThan(8);
+      expect(plusX + slot.x + half).toBeLessThan(390 - 2);
     }
+  });
+
+  it("clears the plus itself, nearest lozenge first", () => {
+    /* The plus is a 60px circle; the nearest lozenge must sit above its rim
+       rather than on it, or the fan reads as a stack. */
+    const nearest = bloomSlot(0);
+    expect(nearest.y + BLOOM_ITEM.height / 2).toBeLessThan(-30);
   });
 
   it("collapses onto the plus at progress zero", () => {

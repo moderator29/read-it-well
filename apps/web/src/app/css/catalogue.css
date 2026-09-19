@@ -681,6 +681,22 @@
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding: var(--nf-space-sm) var(--nf-pad-shell) var(--nf-space-2xs);
   }
+  /* On a phone the strip is the render's: four frames and the "+n" tile all
+     in view, sharing the width, nothing cut at the gutter. From `sm` the
+     frames take their own size and the row scrolls. */
+  @media (max-width: 39.99rem) {
+    .nf-detail-thumbs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      overflow: visible;
+    }
+    .nf-detail-thumbs > li {
+      min-width: 0;
+    }
+    .nf-detail-thumb {
+      width: 100%;
+    }
+  }
   .nf-detail-thumb {
     position: relative;
     display: block;
@@ -710,6 +726,45 @@
     font-size: var(--nf-text-body);
     font-weight: 700;
     color: var(--nf-content-primary);
+  }
+  .nf-gallery-marks {
+    position: absolute;
+    left: var(--nf-space-sm);
+    bottom: 3rem;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    pointer-events: none;
+  }
+  @media (min-width: 40rem) {
+    .nf-gallery-marks {
+      left: var(--nf-space-md);
+      bottom: 3.5rem;
+    }
+  }
+  .nf-gallery-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.25rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-overlay-media-strong));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    box-shadow: 0 0 16px var(--nf-glow-2);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    line-height: 1;
+    color: var(--nf-content-on-media);
+  }
+  .nf-gallery-mark > svg {
+    color: var(--nf-content-on-media);
+  }
+  .nf-gallery-mark--market {
+    background: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-overlay-media-strong));
   }
   .nf-detail-tag {
     display: inline-flex;
@@ -751,6 +806,17 @@
   .nf-detail-verified > svg {
     color: var(--nf-brand-secondary);
   }
+  /* Beside the price on one line at 390, as 7B5335E0 and 0D3D34D2 draw it:
+     the figure one rung down on a phone and the pill at control height. */
+  .nf-detail-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  .nf-detail-price-row > .nf-detail-verified {
+    flex-shrink: 0;
+  }
   .nf-detail-price {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h1);
@@ -758,6 +824,16 @@
     letter-spacing: -0.02em;
     line-height: 1;
     color: var(--nf-brand-secondary);
+  }
+  @media (max-width: 39.99rem) {
+    .nf-detail-price-row > .nf-detail-price {
+      font-size: var(--nf-text-h2);
+      white-space: nowrap;
+    }
+    .nf-detail-price-row > .nf-detail-verified {
+      min-height: 2.5rem;
+      padding-inline: var(--nf-space-sm);
+    }
   }
   .nf-detail-price__suffix {
     margin-left: var(--nf-space-xs);
@@ -795,6 +871,22 @@
   }
   .nf-spec-tile > svg {
     color: var(--nf-brand-secondary);
+  }
+  .nf-spec-row--fit {
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  .nf-spec-row--fit .nf-spec-tile {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .nf-spec-row--fit .nf-spec-tile > span {
+    display: block;
+    min-width: 0;
   }
   /* The move-in block: brand-tinted glass, the figure lit. */
   .nf-detail-movein {
@@ -1118,20 +1210,22 @@
     aspect-ratio: 1;
     filter: drop-shadow(0 0 22px var(--nf-glow-2));
   }
+  /* Five tiles, all in view, at every width: the render shows the whole
+     set, and a strip that cuts the fifth tile at the gutter is not the
+     render. On a phone they share the width; from `md` they grow. */
   .nf-stays-tiles {
-    display: flex;
-    gap: var(--nf-space-xs);
-    margin-inline: calc(var(--nf-pad-shell) * -1);
-    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
+    overflow: visible;
   }
   @media (min-width: 48rem) {
     .nf-stays-tiles {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      margin-inline: 0;
-      padding-inline: 0;
-      overflow: visible;
+      gap: var(--nf-space-xs);
     }
+  }
+  .nf-stays-tiles > li {
+    min-width: 0;
   }
   .nf-stays-tile {
     display: flex;
@@ -1139,10 +1233,10 @@
     align-items: center;
     justify-content: center;
     gap: var(--nf-space-2xs);
-    width: 6.5rem;
-    min-height: 6.5rem;
-    flex-shrink: 0;
-    padding: var(--nf-space-sm) var(--nf-space-xs);
+    width: 100%;
+    min-height: 6.25rem;
+    padding: var(--nf-space-sm) var(--nf-space-3xs);
+    overflow-wrap: anywhere;
     border-radius: var(--nf-radius-md);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
@@ -1159,7 +1253,7 @@
   }
   @media (min-width: 48rem) {
     .nf-stays-tile {
-      width: auto;
+      padding-inline: var(--nf-space-xs);
     }
   }
   .nf-stays-tile:active {
@@ -1457,6 +1551,7 @@
   }
   :root[data-theme="light"] .nf-shelf-chip--on,
   :root[data-theme="light"] .nf-stays-tile--on,
+  :root[data-theme="light"] .nf-gallery-mark--market,
   :root[data-theme="light"] .nf-detail-tag--market {
     background: var(--nf-brand-primary);
     border-color: var(--nf-brand-primary);

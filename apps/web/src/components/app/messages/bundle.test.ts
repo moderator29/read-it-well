@@ -24,7 +24,17 @@ describe("photo bundles", () => {
     expect(bundles[0]?.lead.id).toBe("a");
   });
 
-  it("breaks the run on a text message, a different sender or a different minute", () => {
+  it("takes the words that follow the photos as the caption, once", () => {
+    const bundles = bundlePhotos([
+      photo("a"),
+      photo("b"),
+      text("t", "Here are more photos"),
+      text("u", "And the rent"),
+    ]);
+    expect(bundles.map((b) => b.items.map((m) => m.id))).toEqual([["a", "b", "t"], ["u"]]);
+  });
+
+  it("breaks the run on a photo after the caption, a different sender or a different minute", () => {
     const bundles = bundlePhotos([
       photo("a"),
       text("t", "Here are more photos"),
@@ -32,7 +42,12 @@ describe("photo bundles", () => {
       photo("c", false),
       photo("d", true, "10:43"),
     ]);
-    expect(bundles.map((b) => b.items.map((m) => m.id))).toEqual([["a"], ["t"], ["b"], ["c"], ["d"]]);
+    expect(bundles.map((b) => b.items.map((m) => m.id))).toEqual([["a", "t"], ["b"], ["c"], ["d"]]);
+  });
+
+  it("never lets words start a run or join words", () => {
+    const bundles = bundlePhotos([text("t", "Hello"), text("u", "There"), photo("a")]);
+    expect(bundles.map((b) => b.items.map((m) => m.id))).toEqual([["t"], ["u"], ["a"]]);
   });
 
   it("never bundles a photo that is still sending or failed", () => {

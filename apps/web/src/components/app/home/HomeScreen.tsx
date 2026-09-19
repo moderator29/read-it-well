@@ -62,7 +62,7 @@ const CITIES: CityTile[] = [
   {
     name: "Abuja",
     href: "/search?q=Abuja",
-    src: "/brand/photos/skyline-waterfront-dusk.jpg",
+    src: "/brand/photos/villa-exterior-sunset.jpg",
     position: "center",
   },
   {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getDictionary, plural } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";
@@ -8,10 +7,9 @@ import { SegmentedProgress } from "@/components/ui/Progress";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
-import { Amount } from "@/components/ui/Amount";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { CheckoutSummary } from "./CheckoutSummary";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
 import { PaymentReturn } from "./PaymentReturn";
@@ -135,12 +133,6 @@ export default async function CheckoutPage({
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeSavedCardFor.bind(null, bookingId, savedCardKey);
 
-  /* The guest and night counts on the summary. They were a pair of English
-     ternaries sitting directly above money that was already being formatted for
-     the reader's locale, which is the same half-localised screen the booking
-     card had. Both now resolve their form through `Intl.PluralRules`. */
-  const counts = getDictionary(locale).counts;
-
   /* ----------------------------------------------------------- the screen */
 
   return (
@@ -187,71 +179,9 @@ export default async function CheckoutPage({
       )}
 
       <Reveal>
-        <section
-          aria-labelledby="nf-checkout-summary"
-          className="nf-card p-md sm:p-lg"
-        >
-          <h2 id="nf-checkout-summary" className="nf-h3">
-            {view.title}
-          </h2>
-          {view.location.length > 0 && (
-            <p className="mt-2xs flex items-center gap-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={12} className="shrink-0" />
-              <span className="truncate">{view.location}</span>
-            </p>
-          )}
-
-          <dl className="mt-md grid gap-xs border-t border-[var(--nf-border-subtle)] pt-md">
-            <div className="flex items-start justify-between gap-md">
-              <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">Dates</dt>
-              <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
-                {view.dateRange}
-              </dd>
-            </div>
-            <div className="flex items-start justify-between gap-md">
-              <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">Guests</dt>
-              <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
-                {plural(view.guests, counts.guests, locale)} &middot;{" "}
-                {plural(view.nights, counts.nights, locale)}
-              </dd>
-            </div>
-            {view.lines.map((line) => (
-              <div key={line.label} className="flex items-start justify-between gap-md">
-                <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{line.label}</dt>
-                <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
-                  {/* A receipt line, so the kobo is stated rather than rounded
-                      away: this column has to add up to the total below it. */}
-                  <Amount
-                    minorUnits={line.minor}
-                    locale={locale}
-                    currency={view.currency}
-                    showFraction
-                  />
-                </dd>
-              </div>
-            ))}
-          </dl>
-
-          <div className="mt-md border-t border-[var(--nf-border-subtle)] pt-md">
-            <p className="nf-overline text-[var(--nf-content-muted)]">Total to pay</p>
-            <p className="mt-2xs">
-              <Amount
-                minorUnits={view.totalMinor}
-                locale={locale}
-                currency={view.currency}
-                showFraction
-                suffix="in full"
-                className="text-[clamp(2.5rem,10vw,3.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]"
-                secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
-              />
-            </p>
-            {view.platformTakesNothing && (
-              <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-                Vallo adds nothing of its own to this total. Every naira goes to the stay.
-              </p>
-            )}
-          </div>
-        </section>
+        {/* What is being bought, as one component the preview harness draws
+            with fixture props and this route draws with the real read. */}
+        <CheckoutSummary view={view} locale={locale} />
       </Reveal>
 
       {view.paid ? (

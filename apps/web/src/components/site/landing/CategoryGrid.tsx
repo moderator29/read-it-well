@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/site/Reveal";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import { photo, type PhotoName } from "@/lib/site/photos";
 
@@ -37,15 +37,18 @@ export function CategoryGrid({
   counts: ReadonlyMap<ListingKind, number> | null;
 }) {
   const c = t.landing.face.categories;
-  const tiles: { kind: ListingKind; label: string; photo: PhotoName; icon: UiIconName }[] = [
-    { kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "building-apartment" },
-    { kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "house" },
-    { kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "bed" },
-    { kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "building-hotel" },
-    { kind: "villa", label: c.villas, photo: "villa-pool-skyline-01", icon: "pool" },
-    { kind: "rental", label: c.rentals, photo: "living-room-dusk", icon: "key" },
-    { kind: "office", label: c.offices, photo: "skyline-waterfront-dusk", icon: "grid" },
-    { kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "map" },
+  /* The glyph on each tile is a glass object (the render draws a blue glass
+     building in a glass square on every tile), so the whole row is on the
+     BrandIcon tier: no stroked glyph sits beside a glass one. */
+  const tiles: { kind: ListingKind; label: string; photo: PhotoName; icon: BrandIconName }[] = [
+    { kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "serviced-block" },
+    { kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "modern-house" },
+    { kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "shortlet" },
+    { kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "hotel" },
+    { kind: "villa", label: c.villas, photo: "villa-pool-skyline-01", icon: "villa" },
+    { kind: "rental", label: c.rentals, photo: "living-room-dusk", icon: "keys-home" },
+    { kind: "office", label: c.offices, photo: "skyline-waterfront-dusk", icon: "office-space" },
+    { kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "land-plot" },
   ];
 
   return (
@@ -79,11 +82,11 @@ export function CategoryGrid({
                     src={photo(tile.photo)}
                     alt=""
                     fill
-                    sizes="(max-width: 640px) 45vw, 200px"
+                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 50vw, 200px"
                   />
                   <span className="nf-landing-cat-body">
                     <span className="nf-landing-cat-icon">
-                      <UiIcon name={tile.icon} size={18} aria-hidden />
+                      <BrandIcon name={tile.icon} fill />
                     </span>
                     <span className="min-w-0">
                       <span className="nf-landing-cat-title">{tile.label}</span>

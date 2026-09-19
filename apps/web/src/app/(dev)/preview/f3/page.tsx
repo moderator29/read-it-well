@@ -1,6 +1,20 @@
 import Link from "next/link";
 
-const PAGES = ["search", "listing", "move-in", "stays", "stay", "trips", "bookings", "checkout", "saved", "restaurants"];
+const PAGES = [
+  "search",
+  "search?filters=open",
+  "listing",
+  "move-in",
+  "stays",
+  "stays-search",
+  "stays-search?filters=open",
+  "stay",
+  "trips",
+  "bookings",
+  "checkout",
+  "saved",
+  "restaurants",
+];
 
 export default function F3PreviewIndex() {
   return (

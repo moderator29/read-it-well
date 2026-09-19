@@ -69,10 +69,13 @@ export function isSettled(state: SpringState, target: number): boolean {
 export type BloomSlot = { x: number; y: number; rotate: number };
 
 const SLOTS: BloomSlot[] = [
-  { x: -46, y: -82, rotate: -8 },
-  { x: -88, y: -146, rotate: -14 },
-  { x: -130, y: -208, rotate: -20 },
+  { x: -24, y: -66, rotate: -8 },
+  { x: -64, y: -120, rotate: -14 },
+  { x: -106, y: -174, rotate: -20 },
 ];
+
+/** A lozenge's width and height, as the stylesheet draws them. */
+export const BLOOM_ITEM = { width: 124, height: 46 } as const;
 
 export function bloomSlot(index: number): BloomSlot {
   return SLOTS[Math.min(index, SLOTS.length - 1)] ?? SLOTS[0]!;

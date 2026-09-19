@@ -21,11 +21,19 @@
      * describes "a search bar floating over a photograph". Reported to the lead
      * for promotion.
      */
-    --nf-landing-title: clamp(2.75rem, 1.6rem + 4.9vw, 5.5rem);
+    --nf-landing-title: clamp(2.75rem, 1.5rem + 4vw, 4.75rem);
     --nf-landing-pill-max: 47.5rem;
     --nf-landing-card-w: 15.5rem;
     --nf-landing-hero-h: min(100svh, 56rem);
-    --nf-landing-hero-h-desktop: clamp(40rem, 78svh, 46rem);
+    --nf-landing-hero-h-desktop: clamp(36rem, 66svh, 42rem);
+    /*
+     * The render's content sits inside a shell four fifths of the frame wide
+     * (its stats band spans 1240 of 1536); the platform shell is 1440 with a
+     * 40px gutter, which put the landing's edges 100px further out than the
+     * image on every band. The marketing shell is capped here, header and
+     * footer included, so the front door and the content pages share it.
+     */
+    --nf-landing-shell-max: 78rem;
     --nf-landing-glow-ring: 0 0 0 1px var(--nf-brand-edge-soft), 0 0 28px var(--nf-glow-2);
     /*
      * ON THE PHOTOGRAPH, THE THEME DOES NOT CHANGE. A dusk plate is dark in
@@ -76,6 +84,13 @@
       --nf-landing-control-strong: var(--nf-landing-control-on-ink-strong);
       --nf-landing-pane: color-mix(in oklab, var(--nf-landing-ink) 78%, transparent);
     }
+  }
+
+  .nf-landing .nf-shell,
+  .nf-site .nf-shell,
+  .nf-site-nav .nf-shell,
+  .nf-site-footer .nf-shell {
+    max-width: var(--nf-landing-shell-max, 78rem);
   }
 
   /* ------------------------------------------------------------ the nav */
@@ -363,6 +378,9 @@
   }
   @media (min-width: 1024px) {
     .nf-landing-hero-body {
+      /* Static, so the plate's `inset: 0` measures the whole hero (nav
+         height included) and not the shell's box inside it. */
+      position: static;
       grid-template-columns: minmax(0, 33rem) 1fr;
       align-items: center;
       padding-block: var(--nf-space-xl) var(--nf-space-2xl);
@@ -465,7 +483,6 @@
     .nf-landing-float-wrap {
       justify-self: end;
       align-self: end;
-      margin-inline-end: var(--nf-space-xl);
     }
   }
   .nf-landing-float-media {
@@ -1106,16 +1123,24 @@
       gap: var(--nf-gap-group);
     }
   }
+  /*
+   * A photo tile, to the fullpage render: the photograph fills the tile and
+   * stays bright, the scrim is weighted to the foot where the glyph, the
+   * name and the count sit, and the rim is lit. A whole-tile scrim made the
+   * eight read as dark slabs with a picture behind them (second stint).
+   */
   .nf-landing-cat {
     position: relative;
     display: flex;
     align-items: flex-end;
-    aspect-ratio: 1;
+    aspect-ratio: 1.04;
     overflow: hidden;
-    padding: var(--nf-pad-card-sm);
+    padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow: var(--nf-landing-glow-ring);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-landing-glow-ring);
     color: var(--nf-landing-on-ink);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
@@ -1144,8 +1169,15 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: var(--nf-scrim-media);
     pointer-events: none;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-landing-ink) 12%, transparent) 0%,
+        transparent 30%,
+        color-mix(in oklab, var(--nf-landing-ink) 40%, transparent) 62%,
+        color-mix(in oklab, var(--nf-landing-ink) 88%, transparent) 100%
+      );
   }
   .nf-landing-cat-body {
     position: relative;
@@ -1154,21 +1186,26 @@
     align-items: center;
     gap: var(--nf-gap-inline);
   }
+  /* The glass square the object sits in: brand-tinted glass on the photo. */
   .nf-landing-cat-icon {
     display: inline-grid;
     place-items: center;
     flex: none;
     width: 2.25rem;
     height: 2.25rem;
+    padding: 0.3rem;
     border-radius: var(--nf-radius-sm);
-    background: var(--nf-landing-control-on-ink);
-    border: 1px solid var(--nf-landing-hairline-on-ink);
-    color: var(--nf-landing-on-ink);
+    background: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-landing-control-on-ink));
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 12px var(--nf-glow-2);
   }
   .nf-landing-cat-title {
     display: block;
     font-size: var(--nf-text-body-sm);
     font-weight: 650;
+    line-height: 1.2;
   }
   .nf-landing-cat-count {
     display: block;
@@ -1188,8 +1225,9 @@
 
   .nf-landing-band {
     display: grid;
-    gap: var(--nf-gap-block);
+    gap: var(--nf-gap-group);
     overflow: hidden;
+    padding: var(--nf-pad-card-sm);
     border-radius: var(--nf-radius-2xl);
     background: var(--nf-landing-band-fill);
     border: 1px solid var(--nf-brand-edge-soft);
@@ -1202,10 +1240,21 @@
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
     }
   }
+  /*
+   * The photograph is a rounded tile inset in the band, as the render draws
+   * it, so on the phone it is a fitted band inside the card's own padding.
+   * NO `min-height` WITH THE ASPECT RATIO ON THE PHONE: 16rem tall at 16:10
+   * gave the box a 410px min-content width, which is wider than the band at
+   * 390, and the auto grid track grew to it and pushed the copy out past
+   * the band's clipped edge (found in the second-stint 390 shot).
+   */
   .nf-landing-band-photo {
     position: relative;
-    min-height: 16rem;
+    min-width: 0;
     aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: calc(var(--nf-radius-2xl) - var(--nf-pad-card-sm));
+    border: 1px solid var(--nf-brand-edge-soft);
   }
   @media (min-width: 1024px) {
     .nf-landing-band-photo {
@@ -1218,14 +1267,15 @@
   }
   .nf-landing-band-body {
     display: grid;
+    min-width: 0;
     gap: var(--nf-gap-block);
-    padding: var(--nf-pad-card) var(--nf-pad-card) var(--nf-pad-card-lg);
+    padding: var(--nf-pad-card-sm) var(--nf-pad-card-sm) var(--nf-pad-card);
   }
   @media (min-width: 1024px) {
     .nf-landing-band-body {
       grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
       align-items: center;
-      padding: var(--nf-pad-card-lg);
+      padding: var(--nf-pad-card) var(--nf-pad-card-lg);
     }
   }
   .nf-landing-list {
@@ -1242,16 +1292,18 @@
     color: var(--nf-content-secondary);
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* The render's list glyphs sit in small glass squares, not circles. */
   .nf-landing-list a > span:first-child {
     display: inline-grid;
     place-items: center;
     flex: none;
     width: 2rem;
     height: 2rem;
-    border-radius: var(--nf-radius-circle);
+    border-radius: var(--nf-radius-sm);
     color: var(--nf-brand-secondary);
     background: var(--nf-glass-fill);
     border: 1px solid var(--nf-brand-edge-soft);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
   }
   @media (hover: hover) {
     .nf-landing-list a:hover {

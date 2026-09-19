@@ -4,7 +4,7 @@ import type { Dictionary, Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { ButtonLink } from "@/components/ui/Button";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { MediaFrame } from "@/components/app/MediaFrame";
@@ -31,6 +31,33 @@ const BUSINESS_LABEL: Record<string, string> = {
   resort: "Resort",
   shortlet_operator: "Shortlet",
 };
+
+/**
+ * The glyph for an amenity the read names in words ("Air conditioning",
+ * "Wi-Fi"). BB0C2C85 draws each tile with its own glyph; the label is
+ * matched by its words, and anything unrecognised takes the shield, which is
+ * honest for a fact the property stated.
+ */
+const AMENITY_GLYPHS: [RegExp, UiIconName][] = [
+  [/wi-?fi|internet/i, "wifi"],
+  [/air|a\/c|cool/i, "sparkle"],
+  [/kitchen|cook/i, "kitchen"],
+  [/park/i, "parking"],
+  [/pool|swim/i, "pool"],
+  [/breakfast|restaurant|dining|meal/i, "utensils"],
+  [/gym|fitness|power|generator|electric/i, "bolt"],
+  [/tv|television|screen/i, "picture"],
+  [/bed|room service|linen/i, "bed"],
+  [/bath|shower|tub/i, "bath"],
+  [/balcon|terrace|view/i, "building-apartment"],
+  [/desk|work/i, "document"],
+  [/laundry|clean/i, "sparkle"],
+];
+
+export function amenityGlyph(label: string): UiIconName {
+  for (const [pattern, icon] of AMENITY_GLYPHS) if (pattern.test(label)) return icon;
+  return "verified";
+}
 
 function dateLabel(iso: string | undefined, locale: Locale): string | null {
   if (!iso) return null;
@@ -92,6 +119,7 @@ export function StayDetailView({
         kind="hotel"
         photos={detail.photos.map((photo) => photo.url)}
         backFallback="/stays"
+        mark={{ label: catalogue.title, icon: "bed" }}
       />
 
       <div className="mx-auto max-w-2xl pb-[calc(var(--nf-action-bar-height,4.5rem)+var(--spacing-block))] pt-md">
@@ -168,11 +196,11 @@ export function StayDetailView({
         <Stack className="mt-block">
           {/* ------------------------------------------------ amenities */}
           {detail.amenities.length > 0 && (
-            <Section title={copy.amenitiesTitle}>
-              <ul className="nf-amenity-grid">
+            <Section title={t.catalogue.detail.amenities}>
+              <ul className="nf-amenity-grid" data-testid="stay-amenities">
                 {detail.amenities.map((amenity) => (
                   <li key={amenity} className="nf-amenity-tile">
-                    <UiIcon name="verified" size={ICON.row} />
+                    <UiIcon name={amenityGlyph(amenity)} size={ICON.row} />
                     <span>{amenity}</span>
                   </li>
                 ))}

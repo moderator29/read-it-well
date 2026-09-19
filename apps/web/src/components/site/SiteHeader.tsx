@@ -59,7 +59,7 @@ export function SiteHeader({
 
           <nav
             aria-label={t.nav.primaryLabel}
-            className="ms-auto hidden items-center gap-inline-tight lg:flex"
+            className="mx-auto hidden items-center gap-inline-tight lg:flex"
           >
             <SiteNavLinks
               links={links}

@@ -411,21 +411,22 @@
     grid-template-columns: auto minmax(0, 1fr);
     column-gap: 16px;
     align-items: start;
-    margin-block-start: -3.25rem;
+    margin-block-start: -2.75rem;
     position: relative;
     z-index: 1;
   }
   /*
-   * The face. 128px on a phone with the ring lit from the upper left and a
-   * glow beneath it, which is the one lamp this screen is allowed: the
-   * person is what the page is about.
+   * The face. 112px on a phone, a little over a quarter of the screen as the
+   * render proportions it, with the ring lit from the upper left and a glow
+   * beneath it, which is the one lamp this screen is allowed: the person is
+   * what the page is about.
    */
   .nf-profile-avatar {
     position: relative;
     display: grid;
     place-items: center;
-    inline-size: 8rem;
-    block-size: 8rem;
+    inline-size: 7rem;
+    block-size: 7rem;
     padding: 4px;
     border-radius: var(--nf-radius-circle);
     border: 3px solid transparent;
@@ -494,7 +495,7 @@
   /* The words sit beside the face and start where the cover ends, so the
      name is the first thing under the photograph. */
   .nf-profile-text {
-    padding-block-start: 3.75rem;
+    padding-block-start: 3.25rem;
     min-inline-size: 0;
   }
   .nf-profile-text .nf-social-name {
@@ -523,11 +524,34 @@
   .nf-profile-text .nf-social-count__rule {
     block-size: 2.25rem;
   }
+  /*
+   * Edit profile and the public page, as two quiet text links under the
+   * counts. The render has no buttons between the counts and the capsule, so
+   * these keep their 44px targets without becoming a row of controls that
+   * the image does not draw.
+   */
   .nf-profile-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-block-start: 1rem;
+    gap: 4px 18px;
+    margin-block-start: 0.375rem;
+  }
+  .nf-profile-actions__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 44px;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-profile-actions__link:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-profile-actions__link:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
   }
 
   /* ----------------------------------------------- the glass capsule tabs */
@@ -603,9 +627,9 @@
   .nf-belong__row {
     display: flex;
     align-items: center;
-    gap: 14px;
-    min-block-size: 76px;
-    padding: 12px 14px 12px 12px;
+    gap: 12px;
+    min-block-size: 70px;
+    padding: 10px 14px 10px 10px;
     border-radius: var(--nf-radius-lg);
     color: var(--nf-content-primary);
     text-align: start;
@@ -624,8 +648,8 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    inline-size: 56px;
-    block-size: 56px;
+    inline-size: 52px;
+    block-size: 52px;
     border-radius: var(--nf-radius-md);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
@@ -656,8 +680,8 @@
   }
   /* The role switch wears the card and keeps its own row inside it. */
   .nf-belong__switch .nf-row-button {
-    min-block-size: 76px;
-    padding-inline: 12px 14px;
+    min-block-size: 70px;
+    padding-inline: 10px 14px;
     background: transparent;
     border: 0;
   }

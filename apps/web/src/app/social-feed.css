@@ -391,8 +391,12 @@
   .nf-post__media--1 {
     grid-template-columns: 1fr;
   }
+  /* One picture is a wide plate, as the governing feed draws every single
+     photograph: a band under the words rather than a portrait that takes the
+     screen. 16:9 is the widest the plate can go before a room loses its
+     ceiling and floor. */
   .nf-post__media--1 img {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
   }
   .nf-post__media--2 {
     grid-template-columns: 1fr 1fr;
@@ -2677,7 +2681,7 @@
     align-items: center;
     gap: 12px;
     inline-size: 100%;
-    min-block-size: 52px;
+    min-block-size: 48px;
     padding-inline: 16px 14px;
     border-radius: var(--nf-radius-md);
     border: 1px solid var(--nf-brand-edge-soft);
@@ -2740,11 +2744,11 @@
     /* Bleeds to the screen edge so the last ring is cut by the phone, which
        is the only affordance a horizontal row has that there is more. */
     margin-inline: -1.25rem;
-    margin-block: 14px 12px;
+    margin-block: 12px 10px;
   }
   .nf-story-ring__row {
     display: flex;
-    gap: 14px;
+    gap: 10px;
     padding-inline: 1.25rem;
     padding-block: 4px;
     overflow-x: auto;
@@ -2758,8 +2762,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 7px;
-    inline-size: 76px;
+    gap: 6px;
+    inline-size: 70px;
     scroll-snap-align: start;
     border-radius: var(--nf-radius-md);
   }
@@ -2777,8 +2781,8 @@
     position: relative;
     display: grid;
     place-items: center;
-    inline-size: 68px;
-    block-size: 68px;
+    inline-size: 62px;
+    block-size: 62px;
     padding: 3px;
     border-radius: var(--nf-radius-circle);
     border: 2px solid transparent;
@@ -2807,7 +2811,7 @@
     place-items: center;
     background: var(--nf-gradient-brand);
     color: var(--nf-content-on-brand);
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     font-weight: 700;
   }
   .nf-story-ring__plus {
@@ -2816,8 +2820,8 @@
     inset-block-end: -2px;
     display: grid;
     place-items: center;
-    inline-size: 24px;
-    block-size: 24px;
+    inline-size: 22px;
+    block-size: 22px;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
@@ -2842,7 +2846,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 4px;
     padding: 4px;
-    margin-block-end: 14px;
+    margin-block-end: 12px;
     border-radius: var(--nf-radius-pill);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-glass-fill-thin);
@@ -3053,14 +3057,18 @@
       bottom: 1.5rem;
     }
   }
+  /*
+   * The scrim is the outside-tap target and very little else. The governing
+   * image keeps the feed fully readable under the open fan, so this is a
+   * quiet deepening of the canvas rather than a curtain: the lozenges carry
+   * their own rim and glow to stand off the cards.
+   */
   .nf-bloom__scrim {
     position: fixed;
     inset: 0;
     z-index: var(--nf-z-overlay);
     cursor: default;
-    background: color-mix(in oklab, var(--nf-surface-canvas) 48%, transparent);
-    -webkit-backdrop-filter: blur(1.5px);
-    backdrop-filter: blur(1.5px);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 22%, transparent);
     animation: nf-bloom-dim var(--nf-duration-base) var(--nf-ease-standard);
   }
   @keyframes nf-bloom-dim {
@@ -3122,37 +3130,50 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    margin-left: -66px;
-    margin-top: -24px;
-    inline-size: 132px;
-    block-size: 48px;
+    /* Half of `BLOOM_ITEM` in `physics.ts`, which the geometry test reads. */
+    margin-left: -62px;
+    margin-top: -23px;
+    inline-size: 124px;
+    block-size: 46px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding-inline: 16px;
+    gap: 9px;
+    padding-inline: 14px;
     border-radius: var(--nf-radius-pill);
     pointer-events: auto;
-    color: var(--nf-content-primary);
+    color: var(--nf-content-on-brand);
     font-size: var(--nf-text-body);
     font-weight: 600;
     letter-spacing: -0.01em;
-    border: 1px solid var(--nf-brand-edge-strong);
-    background: color-mix(in oklab, var(--nf-surface-raised) 70%, var(--nf-brand-primary));
+    /* Lit blue glass, as the render draws it: the fill leans on the brand
+       rather than the card, the rim is bright, and the bloom around it is
+       the same rung the plus wears so the three read as thrown from it. */
+    border: 1px solid color-mix(in oklab, var(--nf-brand-accent) 62%, white);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-brand-primary) 58%, var(--nf-surface-raised)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-raised)) 100%
+      );
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-strong),
-      0 0 0 1px var(--nf-glow-2),
-      0 0 26px -2px var(--nf-glow-3),
-      var(--nf-elev-4);
+      0 0 0 3px var(--nf-glow-wash),
+      0 0 24px -2px var(--nf-glow-3),
+      0 12px 28px -14px var(--nf-glow-4);
     will-change: transform;
     transform-origin: 50% 50%;
   }
   .nf-bloom__item:hover,
   .nf-bloom__item:focus-visible {
-    background: color-mix(in oklab, var(--nf-surface-raised) 62%, var(--nf-brand-primary));
-    border-color: var(--nf-brand-edge-strong);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-raised)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 52%, var(--nf-surface-raised)) 100%
+      );
   }
   .nf-bloom__item:focus-visible {
     outline: 2px solid var(--nf-brand-accent);
@@ -3210,22 +3231,24 @@
     box-shadow: none;
   }
   :root[data-theme="light"] .nf-bloom__scrim {
-    background: color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 30%, transparent);
   }
   :root[data-theme="light"] .nf-bloom__fab {
     box-shadow:
       0 0 0 6px var(--nf-glow-wash),
       0 10px 24px -10px var(--nf-glow-3);
   }
+  /* On paper the lozenges keep the brand fill: white pills over a white page
+     would vanish, and the fan is the one place the feed is allowed a lamp. */
   :root[data-theme="light"] .nf-bloom__item {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
+    background: var(--nf-gradient-brand);
+    border-color: color-mix(in oklab, var(--nf-brand-accent) 50%, white);
     box-shadow:
-      0 0 0 1px var(--nf-glow-1),
-      var(--nf-elev-3);
+      0 0 0 3px var(--nf-glow-wash),
+      0 10px 24px -12px var(--nf-glow-3);
   }
   :root[data-theme="light"] .nf-bloom__item:hover,
   :root[data-theme="light"] .nf-bloom__item:focus-visible {
-    background: var(--nf-surface-inset);
+    filter: brightness(1.06);
   }
 }

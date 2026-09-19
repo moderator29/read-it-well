@@ -718,8 +718,8 @@
   /* Each glyph in a glass square, as drawn. */
   .nf-hub .nf-srow__icon,
   .nf-hub__tile {
-    inline-size: 44px;
-    block-size: 44px;
+    inline-size: 42px;
+    block-size: 42px;
     border-radius: var(--nf-radius-sm);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
@@ -728,13 +728,43 @@
       0 0 12px -6px var(--nf-glow-2);
     color: var(--nf-content-primary);
   }
+  /*
+   * The hub's rows are denser than the account screens' rows, as the render
+   * draws them: the label a step under body and bold, the line under it at
+   * caption, the value at caption, so "Account Information" and "Verified"
+   * share one line at 390px rather than wrapping around each other.
+   */
   .nf-hub .nf-srow {
-    min-block-size: 68px;
+    min-block-size: 62px;
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-hub .nf-srow__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    letter-spacing: -0.005em;
+  }
+  .nf-hub .nf-srow__sub {
+    margin-top: 1px;
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+  }
+  .nf-hub .nf-srow__value {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  /* The word beside a switch sits close to it, as drawn. */
+  .nf-srow__value--switch {
+    margin-inline-end: 2px;
+  }
+  /* A select row on the hub points right like its neighbours: every row is
+     a door, and the picker opens in place when the door is pressed. */
+  .nf-hub .nf-srow__select ~ .nf-srow__chev {
+    transform: rotate(-90deg);
   }
   /* The rule between rows starts after the tile, so the tiles read as one
      rail. */
   .nf-hub .nf-srow + .nf-srow::before {
-    inset-inline-start: calc(var(--nf-pad-row-inline) + 44px + var(--nf-gap-inline));
+    inset-inline-start: calc(var(--nf-space-sm) + 42px + var(--nf-gap-inline));
   }
 
   .nf-hub-value {

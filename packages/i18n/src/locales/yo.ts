@@ -2067,6 +2067,7 @@ export const yo: Dictionary = withFallback({
       title: "Àkọ́sórí iṣẹ́",
       lede:
         "Gbogbo àmì ìgbẹ́kẹ̀lé tí Vallo ń mú jáde parí síbí: ohun tí ẹ̀rọ ààbò rí, ohun tí àwọn ọmọ ẹgbẹ́ ròyìn, ẹni tí ó ń dúró de ìfọwọ́sí, àti ohun tí ó ń dúró láti ṣiṣẹ́. Nọ́mbà kọ̀ọ̀kan jẹ́ ìlà tí o lè pé.",
+      queueLede: "Àwọn àtòjọ, ìbéèrè aṣojú, ìròyìn, àtìlẹ́yìn àti ìfiránṣẹ́ tí a fi àmì sí, tuntun ni àkọ́kọ́. Wíwo kọ̀ọ̀kan ń ṣí tábìlì tí ó pinnu rẹ̀.",
       queueClear: "Ìlà yìí mọ́.",
       tiles: {
         moderation: {
@@ -2747,6 +2748,10 @@ export const yo: Dictionary = withFallback({
     bankAction: "Yọ owó sí báǹkì rẹ",
     noteTitle: "Fi àkọsílẹ̀ kún",
     noteSub: "Àṣàyàn, fún ìrántí",
+    recipientChecking: "Ń ṣàyẹ̀wò àdírẹ́sì náà",
+    recipientFound: "Yóò ránṣẹ́ sí",
+    recipientNone: "No Vallo account uses this address yet. Check the spelling, or ask them to sign up first.",
+    recipientSelf: "That is your own address. Enter the recipient's.",
   },
 
   walletReceive: {

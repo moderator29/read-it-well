@@ -104,7 +104,7 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--nf-gap-group);
+    gap: var(--nf-gap-row);
     padding-block: var(--nf-gap-inline) var(--nf-gap-group);
     /* The last bubble must clear the composer's shadow, never sit under it. */
     scroll-padding-bottom: var(--nf-space-xl);
@@ -126,12 +126,29 @@
      Theirs sits left, mine sits right with the avatar on the outside. */
   .nf-msg {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: var(--nf-gap-inline-tight);
     max-width: 100%;
   }
   .nf-msg--mine {
     flex-direction: row-reverse;
+  }
+  /* A continuation: the same side, the same minute. The name row is not
+     repeated and the avatar column is kept but not drawn, so the bubbles
+     stack under one name the way the render stacks the greeting and the
+     card. Sits closer to the bubble above than a new turn does. */
+  .nf-msg--cont {
+    margin-top: calc(var(--nf-space-2xs) - var(--nf-gap-row));
+  }
+  .nf-msg--cont > .nf-msg__avatar,
+  .nf-msg--cont > .nf-msg__side {
+    visibility: hidden;
+  }
+  /* A shared card takes the whole width the bubbles span: no avatar column,
+     because the card is the object of the conversation, not a remark. */
+  .nf-msg--card > .nf-msg__avatar,
+  .nf-msg--card > .nf-msg__side {
+    display: none;
   }
   .nf-msg__stack {
     display: flex;
@@ -337,7 +354,7 @@
   }
   .nf-chat-card__photo {
     position: relative;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 3 / 1;
     background: var(--nf-surface-inset);
     overflow: hidden;
   }
@@ -431,8 +448,8 @@
     background: var(--nf-glass-fill-thin);
   }
   .nf-chat-card__thumb {
-    width: 5.5rem;
-    height: 4.5rem;
+    width: 4.5rem;
+    height: 3.5rem;
     flex-shrink: 0;
     overflow: hidden;
     border-radius: var(--nf-radius-sm);
@@ -495,6 +512,7 @@
     min-width: 0;
     padding-inline: var(--nf-space-xs);
     white-space: nowrap;
+    font-size: var(--nf-text-caption);
   }
   .nf-chat-card__foot {
     display: flex;
@@ -545,6 +563,12 @@
     text-overflow: ellipsis;
     max-width: 100%;
   }
+  /* The property then the area on ONE line (9E06F51C): the title gives way
+     first, the area keeps its words. */
+  .nf-context-card__line > span + span {
+    flex-shrink: 0;
+    max-width: 50%;
+  }
   .nf-context-card__title {
     font-weight: 700;
     font-size: var(--nf-text-body);
@@ -552,7 +576,7 @@
   }
   .nf-context-card__line {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: var(--nf-space-2xs);
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-caption);
@@ -570,9 +594,20 @@
   /* The booking face folds: the summary row is the stay in one line, the
      open state is the four-step timeline. The render carries the stay on
      the card in the thread, so the banner stays one row until asked. */
+  .nf-booking-fold {
+    display: block;
+    padding: 0;
+  }
   .nf-booking-fold > summary {
     list-style: none;
     cursor: pointer;
+  }
+  .nf-booking-fold__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: inherit;
   }
   .nf-booking-fold > summary::-webkit-details-marker {
     display: none;

@@ -17,6 +17,7 @@ import { getPlaceReviews } from "@/lib/social/reviews-queries";
 import { listMyAreas } from "@/lib/social/areas-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { Feed } from "@/components/social/feed/Feed";
+import { loadMoreAround } from "../feed-actions";
 import { AroundFab } from "@/components/social/AroundFab";
 import { AREA_COPY } from "@/lib/social/areas-schema";
 import { JoinButton } from "../JoinButton";
@@ -139,6 +140,10 @@ export default async function AreaPage({
       <section className="mb-lg">
         <Feed
           initial={feed.posts}
+          pageCursor={feed.cursor}
+          /* The place's own timeline pages through BB's `loadMoreFeed`, the
+             same read `getAreaFeed` made for the first page. */
+          loadMore={loadMoreAround.bind(null, { kind: "area", areaId: area.id })}
           signedIn={viewer.signedIn}
           canCompose
           areaId={area.status === "ACTIVE" ? area.id : undefined}

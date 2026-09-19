@@ -21,6 +21,7 @@ import { canonicalNaira } from "./AmountField";
 import { useMoneyWait, WaitNotice } from "./MoneyWait";
 import { ErrorNotice } from "./ErrorNotice";
 import { mintIdempotencyKey } from "./idempotency";
+import { lookupRecipient, type RecipientLookup } from "@/app/(app)/wallet/send/recipient-action";
 import {
   readRecentRecipients,
   recipientInitials,
@@ -48,10 +49,14 @@ import {
  * always did and returns the same receipt; this page changes what is around
  * it, never what it does. No client-side money arithmetic decides anything.
  *
- * THE RECIPIENT IS AN EMAIL, said plainly. There is no lookup of a Vallo
- * user by name that could hand this form an address, and the action
- * resolves the email server-side at the moment of sending. The recent chips
- * are the sends made from this device, kept in this browser only; see
+ * THE RECIPIENT IS AN EMAIL, said plainly, AND IT IS CHECKED AS IT IS TYPED.
+ * The moment the field holds a well-formed address, `lookupRecipient` asks
+ * whether a Vallo account uses it and the name on that account is drawn
+ * under the field, the way the withdraw sheet draws the name the bank
+ * confirmed: a person sees who they are paying before Continue. The action
+ * resolves the address again server-side at the moment of sending; the
+ * lookup is the courtesy and never the guard. The recent chips are the
+ * sends made from this device, kept in this browser only; see
  * `recent-recipients.ts` for why the ledger cannot supply them.
  */
 
@@ -103,8 +108,32 @@ export function SendFlow({
   const amountOk = kobo !== null && kobo >= MIN_MOVE_KOBO && kobo <= MAX_MOVE_KOBO;
   const after = balanceMinor - (kobo ?? 0);
   const enough = after >= 0;
-  const emailOk = EMAIL_RE.test(email.trim());
-  const canContinue = emailOk && amountOk && enough;
+  const address = email.trim().toLowerCase();
+  const emailOk = EMAIL_RE.test(address);
+
+  /*
+   * THE LOOKUP, keyed on the address it answered for, so an answer about the
+   * last address never sits under the next one. Debounced, because a person
+   * correcting one letter is not asking four questions; the attempt counter
+   * stops a slower earlier answer landing last.
+   */
+  const [lookup, setLookup] = useState<{ for: string; result: "checking" | RecipientLookup } | null>(null);
+  const attempt = useRef(0);
+  useEffect(() => {
+    if (!EMAIL_RE.test(address)) return;
+    const mine = ++attempt.current;
+    const timer = window.setTimeout(() => {
+      setLookup({ for: address, result: "checking" });
+      void lookupRecipient(address).then((result) => {
+        if (mine === attempt.current) setLookup({ for: address, result });
+      });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [address]);
+  const check = emailOk && lookup && lookup.for === address ? lookup.result : null;
+  const recipientName = check !== null && check !== "checking" && check.state === "found" ? check.name : null;
+  const refused = check !== null && check !== "checking" && (check.state === "none" || check.state === "self");
+  const canContinue = emailOk && amountOk && enough && check !== "checking" && !refused;
 
   /*
    * THE RECEIPT IS THE LEDGER'S ROW, NOT THE ACTION'S SUMMARY. One read by
@@ -216,9 +245,16 @@ export function SendFlow({
               className="nf-h1 tracking-tight text-[var(--nf-content-primary)]"
             />
           </p>
-          <p className={`mt-inline-tight ${TYPE.rowTitle} [overflow-wrap:anywhere]`}>
-            {copy.to.replace("{email}", email.trim())}
-          </p>
+          {recipientName ? (
+            <>
+              <p className={`mt-inline-tight ${TYPE.rowTitle}`}>{copy.to.replace("{email}", recipientName)}</p>
+              <p className={`${TYPE.rowMeta} [overflow-wrap:anywhere]`}>{email.trim()}</p>
+            </>
+          ) : (
+            <p className={`mt-inline-tight ${TYPE.rowTitle} [overflow-wrap:anywhere]`}>
+              {copy.to.replace("{email}", email.trim())}
+            </p>
+          )}
           {note.trim() && <p className={`mt-inline-tight ${TYPE.rowMeta}`}>{note.trim()}</p>}
 
           <dl className="nf-cells nf-cells--pair mt-block text-left">
@@ -318,8 +354,42 @@ export function SendFlow({
             placeholder={copy.recipientPlaceholder}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            error={fieldErrors?.recipientEmail}
+            error={
+              fieldErrors?.recipientEmail ??
+              (check !== null && check !== "checking" && check.state === "none"
+                ? copy.recipientNone
+                : check !== null && check !== "checking" && check.state === "self"
+                  ? copy.recipientSelf
+                  : undefined)
+            }
           />
+          {/* What the lookup said, in the register of the withdraw sheet's
+              "Name on the account": the name is shown, never made editable,
+              because it is the account's record and not ours to correct. */}
+          {check === "checking" && (
+            <p role="status" aria-live="polite" className={`mt-inline-tight ${TYPE.rowMeta}`}>
+              {copy.recipientChecking}
+            </p>
+          )}
+          {recipientName && (
+            <p
+              role="status"
+              aria-live="polite"
+              className="nf-recipient-found mt-inline-tight"
+              data-testid="wallet-send-recipient-found"
+            >
+              <UiIcon name="verified" size={18} className="shrink-0 text-[var(--nf-state-success)]" />
+              <span className="min-w-0">
+                <span className={`block ${TYPE.label}`}>{copy.recipientFound}</span>
+                <span className={`block truncate ${TYPE.rowTitle}`}>{recipientName}</span>
+              </span>
+            </p>
+          )}
+          {check !== null && check !== "checking" && check.state === "unknown" && check.reason.length > 0 && (
+            <p role="status" className={`mt-inline-tight ${TYPE.rowMeta}`}>
+              {check.reason}
+            </p>
+          )}
         </div>
         {recent.length > 0 && (
           <div className="mt-row">

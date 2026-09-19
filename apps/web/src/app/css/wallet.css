@@ -342,6 +342,16 @@
     color: var(--nf-content-on-brand);
     border-color: transparent;
   }
+  /* The name the lookup confirmed, on an inset plate under the field. */
+  .nf-recipient-found {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
 
   /* The trust strip, from 77A54EA3's foot. Only what is true is claimed. */
   .nf-trust {

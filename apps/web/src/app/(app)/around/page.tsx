@@ -12,7 +12,7 @@ import {
 import { listStories } from "@/lib/social/stories-queries";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { AROUND_UNCONFIGURED } from "./copy";
-import { loadMoreFeed } from "./feed-actions";
+import { loadMoreAround, type FeedMode } from "./feed-actions";
 import { Feed } from "@/components/social/feed/Feed";
 import { FeedTabs, isFeedTab, type FeedTab } from "@/components/social/feed/FeedMasthead";
 import { LocationChip } from "@/components/social/feed/LocationChip";
@@ -99,6 +99,19 @@ export default async function AroundPage({
 
   const browsingOpen = !selected && tab === "for-you" && mine.length === 0;
 
+  /* The timeline the next page continues, named for BB's `loadMoreFeed`: the
+     same three reads as above, so page two is read exactly as page one was. */
+  const activeArea = selected && selected.status === "ACTIVE" ? selected.id : undefined;
+  const feedMode: FeedMode = activeArea
+    ? { kind: "area", areaId: activeArea }
+    : tab === "following"
+      ? { kind: "joined" }
+      : tab === "new"
+        ? { kind: "everywhere" }
+        : joined
+          ? { kind: "joined" }
+          : { kind: "everywhere" };
+
   /* Unconfigured beats every branch under it. Each of those is a statement of
      fact about what is out there, and without keys not one of them was
      checked. */
@@ -177,17 +190,13 @@ export default async function AroundPage({
         <Feed
           initial={feed.posts}
           pageCursor={feed.cursor}
-          /* THE PAGING SEAM. `./feed-actions` is the stand-in for BB's
-             `loadMoreFeed(cursor)` in `lib/social/posts-actions.ts`; when that
-             lands this becomes `loadMore={loadMoreFeed}` and the seam file goes. */
-          loadMore={loadMoreFeed.bind(null, {
-            mode: tab,
-            areaId: selected && selected.status === "ACTIVE" ? selected.id : undefined,
-          })}
+          /* The next page, through BB's `loadMoreFeed` with the mode bound
+             here, so the client supplies a cursor and nothing else. */
+          loadMore={loadMoreAround.bind(null, feedMode)}
           locale={locale}
           signedIn={signedIn}
           canCompose
-          areaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}
+          areaId={activeArea}
           areaName={selected?.name}
           emptyMessage={emptyMessage}
           {...(unconfigured
@@ -199,9 +208,7 @@ export default async function AroundPage({
         />
       </section>
 
-      <AroundFab
-        currentAreaId={selected && selected.status === "ACTIVE" ? selected.id : undefined}
-      />
+      <AroundFab currentAreaId={activeArea} />
     </div>
   );
 }

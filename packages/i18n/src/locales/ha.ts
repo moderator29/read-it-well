@@ -2061,6 +2061,7 @@ export const ha: Dictionary = withFallback({
       title: "Taƙaitawar aiki",
       lede:
         "Kowace alamar amincin da Vallo ke samarwa tana ƙarewa nan: abin da binciken tsaro ya kama, abin da mambobi suka ƙorafta, wanda ke jiran amincewa, da abin da ke jiran fara aiki. Kowace lamba layi ce da za ka iya kammalawa.",
+      queueLede: "Lissafi, neman wakilai, ƙorafe-ƙorafe, tallafi da saƙonnin da aka yi wa alama, sabbi a farko. Kowane Duba yana buɗe teburin da ke yanke shawara.",
       queueClear: "Wannan layin babu abu.",
       tiles: {
         moderation: {
@@ -2727,6 +2728,10 @@ export const ha: Dictionary = withFallback({
     bankAction: "Cire kuɗi zuwa bankinka",
     noteTitle: "Ƙara bayani",
     noteSub: "Na zaɓi, don tunawa",
+    recipientChecking: "Ana duba adireshin",
+    recipientFound: "Za a aika zuwa",
+    recipientNone: "No Vallo account uses this address yet. Check the spelling, or ask them to sign up first.",
+    recipientSelf: "That is your own address. Enter the recipient's.",
   },
 
   walletReceive: {

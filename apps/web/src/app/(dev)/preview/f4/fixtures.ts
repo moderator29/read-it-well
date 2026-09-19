@@ -153,6 +153,96 @@ export const FEED_STORIES: StoryCard[] = [
 
 export const YOU = { label: PERSON.name, avatarUrl: PERSON.avatarUrl };
 
+/** The first feed post as a thread root, with three answers under it. */
+export const THREAD = {
+  root: { ...FEED_POSTS[0]!, replyCount: 3 },
+  replies: [
+    {
+      ...post({
+        id: "00000000-0000-4000-8000-00000000d001",
+        kind: "REPLY",
+        body: "Congratulations. Is the pool heated, or is that the Lagos sun doing the work?",
+        author: {
+          id: "00000000-0000-4000-8000-000000000004",
+          handle: "chii_realty",
+          displayLabel: "Chioma Okafor",
+          avatarPath: null,
+          isAgent: true,
+          moderatorOf: null,
+        },
+        createdLabel: "1h ago",
+        replyingTo: "@tunde_realestate",
+        likeCount: 12,
+      }),
+      depth: 1,
+      parentId: FEED_POSTS[0]!.id,
+      mutedAuthor: false,
+    },
+    {
+      ...post({
+        id: "00000000-0000-4000-8000-00000000d002",
+        kind: "REPLY",
+        body: "The sun, all of it. The terrace faces west so the evenings are the whole point.",
+        createdLabel: "52m ago",
+        replyingTo: "@chii_realty",
+        likeCount: 8,
+      }),
+      depth: 2,
+      parentId: "00000000-0000-4000-8000-00000000d001",
+      mutedAuthor: false,
+    },
+    {
+      ...post({
+        id: "00000000-0000-4000-8000-00000000d003",
+        kind: "REPLY",
+        body: "What did the title search look like for this one? Phase 1 has been busy this year.",
+        author: {
+          id: "00000000-0000-4000-8000-000000000005",
+          handle: "lagosrealtor",
+          displayLabel: "LagosRealtor",
+          avatarPath: null,
+          isAgent: true,
+          moderatorOf: null,
+        },
+        createdLabel: "30m ago",
+        replyingTo: "@tunde_realestate",
+        likeCount: 3,
+      }),
+      depth: 1,
+      parentId: FEED_POSTS[0]!.id,
+      mutedAuthor: false,
+    },
+  ],
+};
+
+/** A saved card and a bank account, for the settings home's payment block.
+    The bank is the catalogue's invented one, never a real bank. */
+export const PAYMENT_CARDS = [
+  {
+    id: "00000000-0000-4000-8000-00000000e001",
+    cardType: "verve",
+    last4: "4081",
+    expMonth: 11,
+    expYear: 2028,
+    bank: null,
+    reusable: true,
+    isDefault: true,
+    createdAt: "2026-06-01T09:00:00.000Z",
+  },
+];
+
+export const BANK_ACCOUNTS = [
+  {
+    id: "00000000-0000-4000-8000-00000000e002",
+    bankCode: "000",
+    bankName: "Lagoon Bank",
+    accountNumber: "0000002210",
+    accountName: "SEYI OMOJUNI",
+    isDefault: true,
+    createdAt: "2026-06-01T09:00:00.000Z",
+  },
+];
+
 export const FEED_PLACES = [
   { slug: "lekki-phase-1", name: "Lekki Phase 1", city: "Lagos" },
   { slug: "victoria-island", name: "Victoria Island", city: "Lagos" },

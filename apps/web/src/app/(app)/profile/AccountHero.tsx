@@ -230,17 +230,21 @@ export function AccountHero({
           </Link>
         </div>
 
+        {/* The cover is changed in place through one quiet glass square at
+            the foot of the band: the render draws no words on its cover,
+            and the square's name says what it does. */}
         {identity && (
           <div className="nf-social-cover__change">
             <button
               type="button"
               onClick={() => coverInput.current?.click()}
               disabled={busy !== null}
-              className="nf-social-round nf-social-round--pill"
+              className="nf-social-round"
+              aria-label={busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
+              title={cover ? "Change cover" : "Add a cover"}
               data-testid="account-cover-button"
             >
-              <UiIcon name="picture" size={16} />
-              {busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
+              <UiIcon name={busy === "cover" ? "sparkle" : "picture"} size={18} />
             </button>
           </div>
         )}
@@ -343,13 +347,13 @@ export function AccountHero({
       <div className="nf-profile-actions">
         {identity ? (
           <>
-            <Link href={`/u/${identity.handle}/edit`} className="nf-btn nf-btn--sm nf-btn--glass">
+            <Link href={`/u/${identity.handle}/edit`} className="nf-profile-actions__link">
               <UiIcon name="settings-gear" size={16} />
               Edit profile
             </Link>
             <Link
               href={`/u/${identity.handle}`}
-              className="nf-btn nf-btn--sm nf-btn--ghost"
+              className="nf-profile-actions__link"
               data-testid="account-public-page"
             >
               <UiIcon name="link" size={16} />
