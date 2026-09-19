@@ -332,6 +332,11 @@
     width: 3.125rem;
     height: 1.875rem;
     border-radius: var(--nf-radius-control);
+    /* THE HAIRLINE IS RIGHT HERE AND THE CHECK IS WRONG ABOUT IT. An OFF
+       switch has to read as off, and the lit brand edge is how this product
+       says a control is live: putting it on the off track would light the
+       thing whose whole job is to look unlit. The ON state two rules below
+       takes the brand fill, which is where the light belongs. */
     border: 1px solid var(--nf-border-subtle);
     background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
     cursor: pointer;
@@ -538,7 +543,9 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 50%;
-    border: 1px solid var(--nf-border-subtle);
+    /* Lit brand edge, not a grey hairline (R1 A5). */
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
     background: var(--nf-glass-fill-thin);
     color: var(--nf-content-secondary);
     cursor: pointer;

@@ -19,7 +19,10 @@ import {
 import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
 import { getRestaurantDetail } from "@/lib/stays/queries";
+import { listSavedPlaces } from "@/lib/saved/places-actions";
+import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
+import { siteUrl } from "@/lib/site";
 
 const WEEKDAY: Record<number, string> = {
   0: "Sunday",
@@ -82,13 +85,49 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListingRepository().byId(id);
-  if (!listing || listing.kind !== "restaurant") {
+  const restaurant = listing && listing.kind === "restaurant" ? listing : null;
+  /* The business-grade venue answers here too, or every M7 restaurant would
+     carry the fallback title in the tab and in a shared link. */
+  const venue = restaurant ?? (await getRestaurantDetail(id));
+  if (!venue) {
     return { title: getDictionary(await getLocale()).restaurantPage.fallbackTitle };
   }
-  const where = [listing.area, listing.city].filter(Boolean).join(", ");
+  const name = "business" in venue ? venue.business.name : venue.title;
+  const area = "business" in venue ? venue.business.area : venue.area;
+  const city = "business" in venue ? venue.business.city : venue.city;
+  const where = [area, city].filter(Boolean).join(", ");
+  const title = where ? `${name}, ${where}` : name;
+  const description = where
+    ? `${name}, ${where}. Ask for a table on Vallo.`
+    : `${name}. Ask for a table on Vallo.`;
+  const url = `${siteUrl().replace(/\/+$/, "")}/restaurant/${id}`;
+  /* A listing-backed restaurant carries photographs; an M7 business row does
+     not expose one here, and a card with no image is better than a card
+     pointing at nothing. */
+  const cover = restaurant && restaurant.photos.length > 0 ? restaurant.photos[0] : undefined;
   return {
-    title: where ? `${listing.title}, ${where}` : listing.title,
+    title,
+    /*
+     * STILL NOINDEX, AND THE SHARE CARD IS NOT A CONTRADICTION. `robots`
+     * speaks to a crawler deciding what to put in an index; Open Graph speaks
+     * to a messenger drawing a preview of a link somebody has already been
+     * sent. This page keeps the first and gains the second (R3 finding F-10):
+     * a restaurant forwarded into WhatsApp unfurled as the generic site card.
+     */
     robots: { index: false, follow: false },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url,
+      ...(cover ? { images: [cover] } : {}),
+    },
+    twitter: {
+      card: cover ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(cover ? { images: [cover] } : {}),
+    },
   };
 }
 
@@ -96,22 +135,90 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const listing = await getListingRepository().byId(id);
   const copy = t.restaurantPage;
+
+  /*
+   * TWO KINDS OF RESTAURANT REACH THIS URL, AND ONE OF THEM USED TO 404.
+   *
+   * The catalogue holds restaurants twice over: as first-party `listings`
+   * rows, which the repository resolves, and as `businesses` of kind
+   * restaurant, which is what M7 onboards and what `listRestaurants` reads.
+   * `/restaurants` and the stays shelf both link a business-grade venue to
+   * `/restaurant/<businessId>`, and this route asked the LISTING repository
+   * only: `byId` returned null for every one of them and the page called
+   * `notFound()`. A venue we list, with hours we compute and a reservation
+   * table the database is ready to accept, opened a not-found screen.
+   *
+   * So the id is resolved against both, listing first because that is the
+   * older and larger half, and the face below is drawn from whichever
+   * answered. Nothing else about the listing path changes.
+   */
+  const listing = await getListingRepository().byId(id);
+  const listingFace = listing && listing.kind === "restaurant" ? listing : null;
+  const detail = await getRestaurantDetail(listingFace ? listingFace.id : id);
 
   /* This route is for restaurants. Anything else is served by the surface built
      for it, so a stay or a flat that arrived here is not found rather than
      drawn in the wrong clothes. */
-  if (!listing || listing.kind !== "restaurant") notFound();
+  if (!listingFace && !detail) notFound();
 
-  const where = [listing.area, listing.city].filter(Boolean).join(", ");
-  const messageHref = `/messages/new?listing=${listing.id}`;
+  /*
+   * ONE FACE, TWO READS. The page below speaks about a venue, not about a
+   * row shape, so the two reads are flattened here and nowhere else. A
+   * business states no price and carries no reviews of its own yet, so those
+   * cells are simply absent rather than zeroed: a venue with no stated cover
+   * charge must not be drawn as costing nothing.
+   */
+  const venue = listingFace
+    ? {
+        id: listingFace.id,
+        isBusiness: false as const,
+        title: listingFace.title,
+        area: listingFace.area,
+        city: listingFace.city,
+        photos: listingFace.photos ?? [],
+        verified: listingFace.verified,
+        priceMinor: listingFace.priceMinor,
+        currency: listingFace.currency,
+        rating: listingFace.reviewCount > 0 && listingFace.rating > 0
+          ? { average: listingFace.rating, count: listingFace.reviewCount }
+          : null,
+      }
+    : {
+        id: detail!.business.id,
+        isBusiness: true as const,
+        title: detail!.business.name,
+        area: detail!.business.area,
+        city: detail!.business.city,
+        photos: [] as string[],
+        /* `businesses.source` says first party or partner; the verified mark
+           means a human was checked, which is not what that column records,
+           so a venue carries none until it earns one. */
+        verified: false,
+        priceMinor: 0,
+        currency: "NGN",
+        rating: null,
+      };
+
+  const where = [venue.area, venue.city].filter(Boolean).join(", ");
+  /* A thread is bound to a LISTING (`startConversation({ listingId })`), so a
+     business venue has no thread to open and the control is not drawn for it
+     rather than drawn and refusing. Reported, not worked around. */
+  const messageHref = venue.isBusiness ? null : `/messages/new?listing=${venue.id}`;
 
   /* The hours, when the venue has published them through lib/stays
      (service windows on the business-grade schema). A listing with none
      keeps the honest line below rather than a guessed badge. */
-  const detail = await getRestaurantDetail(listing.id);
   const hours = detail ? { openNow: detail.open_now, label: detail.hours_label } : null;
+
+  /* A business venue's shortlist is `saved_places` under the restaurant kind,
+     keyed on the business id exactly as `catalogue_entries` files it; a
+     catalogue listing stays on `saved_items` and needs no target. Read here so
+     the heart is lit before hydration. */
+  const savedPlaces = venue.isBusiness ? await listSavedPlaces() : null;
+  const savedVenue =
+    savedPlaces !== null &&
+    isSaved(savedKeySet(savedPlaces.ok ? savedPlaces.data : []), "restaurant", venue.id);
 
   /*
    * THE SPEC STRIP, THE CAPSULES AND THE HOST, from `restaurant_profiles`.
@@ -153,23 +260,30 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
      assembled from fields that exist. */
   const aboutParagraphs = [
     detail?.business.description ??
-      [listing.title, where ? `is in ${where}` : null, firstCuisine ? `and serves ${firstCuisine}` : null]
+      [venue.title, where ? `is in ${where}` : null, firstCuisine ? `and serves ${firstCuisine}` : null]
         .filter(Boolean)
         .join(" ")
         .concat("."),
   ];
 
   return (
-    <div>
+    <div className="nf-cat-surface">
       <ListingGallery
-        listingId={listing.id}
-        title={listing.title}
+        listingId={venue.id}
+        title={venue.title}
         hue={0}
         kind="restaurant"
-        photos={listing.photos ?? []}
+        photos={venue.photos}
         plates={RESTAURANT_PLATES as string[]}
         backFallback="/restaurants"
-        mark={{ label: t.stays.restaurantsTitle, icon: "utensils", verified: listing.verified, verifiedLabel: t.common.verified }}
+        mark={{ label: t.stays.restaurantsTitle, icon: "utensils", verified: venue.verified, verifiedLabel: t.common.verified }}
+        /* The heart, on the shelf this venue actually lives on. A business is
+           a `saved_places` row under the restaurant kind; a catalogue listing
+           keeps the `saved_items` path and passes no target. It refused every
+           tap on a venue until now. */
+        {...(venue.isBusiness
+          ? { place: { kind: "restaurant" as const, id: venue.id }, initialSaved: savedVenue }
+          : {})}
       />
 
       {/* The third face of the one detail anatomy (B047A0CE): the same lit
@@ -188,7 +302,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             </span>
           )}
         </div>
-        <h1 className="nf-h2 mt-row [text-wrap:balance]">{listing.title}</h1>
+        <h1 className="nf-h2 mt-row [text-wrap:balance]">{venue.title}</h1>
         {where && (
           <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
             <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -198,25 +312,25 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
 
         <DetailSpecStrip pairs={specPairs} />
 
-        {listing.priceMinor > 0 && (
+        {venue.priceMinor > 0 && (
           <DetailPriceRow
             figure={
-              <Amount minorUnits={listing.priceMinor} locale={locale} currency={listing.currency} />
+              <Amount minorUnits={venue.priceMinor} locale={locale} currency={venue.currency} />
             }
             unit={copy.perHead}
-            /* Real rows only: `listing.rating` is averaged from `reviews` and
-               is zero on an example row, so this is absent until somebody has
+            /* Real rows only: the rating is averaged from `reviews` and is
+               zero on an example row, so this is absent until somebody has
                actually reviewed the venue. */
             rating={
-              listing.reviewCount > 0 && listing.rating > 0
+              venue.rating
                 ? {
-                    average: formatNumber(listing.rating, locale, {
+                    average: formatNumber(venue.rating.average, locale, {
                       minimumFractionDigits: 1,
                       maximumFractionDigits: 1,
                     }),
                     reviews: t.catalogue.stays.reviews.replace(
                       "{count}",
-                      formatNumber(listing.reviewCount, locale),
+                      formatNumber(venue.rating.count, locale),
                     ),
                   }
                 : null
@@ -236,7 +350,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
                 ? {
                     name: detail.business.name,
                     role: t.stays.restaurantsTitle,
-                    verified: listing.verified,
+                    verified: venue.verified,
                     verifiedLabel: t.catalogue.detail.verifiedHost,
                     messageHref,
                     messageLabel: t.catalogue.detail.message,
@@ -252,7 +366,16 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
             title={copy.reserveTitle}
             description={copy.reserveBody}
           >
-            <ReserveTable listingId={listing.id} messageHref={messageHref} />
+            {/* A reservation names exactly one venue and the database says
+                which column it lands in: `business_id` for an M7 venue,
+                `listing_id` for a catalogue restaurant. The form carried only
+                the listing half, so the whole business-grade path was
+                unreachable from the product while `reserveTable` was ready to
+                accept it. */}
+            <ReserveTable
+              {...(venue.isBusiness ? { businessId: venue.id } : { listingId: venue.id })}
+              messageHref={messageHref}
+            />
           </Section>
 
           <Section title={copy.gettingThereTitle}>
@@ -313,9 +436,11 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
                   <p className={`mt-row ${TYPE.rowMeta}`}>{copy.hoursAsk}</p>
                 </>
               )}
-              <ButtonLink href={messageHref} variant="secondary" className="mt-row">
-                {copy.message}
-              </ButtonLink>
+              {messageHref && (
+                <ButtonLink href={messageHref} variant="secondary" className="mt-row">
+                  {copy.message}
+                </ButtonLink>
+              )}
             </Surface>
           </Section>
         </Stack>

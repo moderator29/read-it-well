@@ -16,6 +16,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
+import { callableNumberFor } from "../security/counterpart-contact";
 import type { ThreadContextKind } from "./db";
 import { lagosTimeLabel, lagosWhenLabel } from "./time";
 
@@ -73,6 +74,21 @@ export type LiveThreadData = {
   conversationId: string;
   meId: string;
   counterpartName: string;
+  /**
+   * The other party's number, in the canonical `+234...` form, for the call
+   * control the thread header draws beside the kebab.
+   *
+   * NULL IS A REAL ANSWER AND IT IS THE COMMON ONE. Nobody is obliged to put a
+   * number on their account, a block withholds it, and a platform with no
+   * service key resolves nothing at all. The header draws the control only
+   * when this is a string, so a dead dialler is structurally impossible.
+   *
+   * `lib/security/counterpart-contact.ts` is where the entitlement is decided
+   * and is the only place it may be changed. This read's own job is the half
+   * above it: the membership check three lines up is what makes the caller a
+   * party at all, and nothing is resolved before it has passed.
+   */
+  counterpartPhone: string | null;
   listing: {
     id: string;
     title: string;
@@ -424,13 +440,22 @@ export async function loadThread(
 
   const counterpartId =
     conversation.guest_id === user.id ? conversation.agent_id : conversation.guest_id;
-  const identities = await identitiesOf([counterpartId]);
+  /* Both halves of the counterpart's identity resolve together, and both only
+     after the membership check above has passed. The name fails soft to a
+     generic label; the number fails soft to nothing at all, because a label
+     that is too generic is a small loss and a number handed to the wrong
+     reader is not. */
+  const [identities, counterpartPhone] = await Promise.all([
+    identitiesOf([counterpartId]),
+    callableNumberFor(user.id, counterpartId),
+  ]);
   const counterpart = identities.get(counterpartId);
 
   return {
     conversationId: conversation.id,
     meId: user.id,
     counterpartName: counterpart?.name ?? FALLBACK_NAME,
+    counterpartPhone,
     listing: conversation.listings
       ? {
           id: conversation.listings.id,

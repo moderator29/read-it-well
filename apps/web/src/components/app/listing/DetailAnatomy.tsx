@@ -132,7 +132,14 @@ export type DetailHost = {
   verifiedLabel: string;
   /** The host's own photograph, where the read carries one. */
   photoUrl?: string | null;
-  messageHref: string;
+  /**
+   * Where the Message button goes, and NULL where there is nowhere for it to
+   * go. `startConversation` binds a thread to a listing, so a business-grade
+   * venue (M7, no listing row) has no thread to open: the host row then draws
+   * the name and the shield and no button, because a control that cannot act
+   * is never drawn. It is not a reason to hide the host.
+   */
+  messageHref?: string | null;
   messageLabel: string;
 };
 
@@ -184,17 +191,19 @@ export function DetailAboutCard({
               )}
               <span className="nf-host-row__name">{host.name}</span>
             </span>
-            <AuthGate action="message">
-              <ButtonLink
-                href={host.messageHref}
-                variant="secondary"
-                size="sm"
-                className="shrink-0"
-                data-testid="host-message"
-              >
-                {host.messageLabel}
-              </ButtonLink>
-            </AuthGate>
+            {host.messageHref && (
+              <AuthGate action="message">
+                <ButtonLink
+                  href={host.messageHref}
+                  variant="secondary"
+                  size="sm"
+                  className="shrink-0"
+                  data-testid="host-message"
+                >
+                  {host.messageLabel}
+                </ButtonLink>
+              </AuthGate>
+            )}
           </div>
         </>
       )}

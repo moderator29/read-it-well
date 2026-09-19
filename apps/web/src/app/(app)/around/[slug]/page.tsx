@@ -112,9 +112,15 @@ export default async function AreaPage({
       {/* The way back up. A person who walked into Lekki Phase 1 from a search
           may not know Eti-Osa is above it, and this is the only line on the
           page that tells them. */}
+      {/* THE GLYPH IS AN UP ARROW AND IT WAS A BACK ARROW.
+          This link goes UP a level, from a place to the local government it
+          sits inside, and the district header directly beneath it carries the
+          product's real back control with the same left arrow. Two identical
+          arrows, one above the other, going to two different places, and only
+          one of them going back. */}
       {door ? (
         <Link href={`/around/${door.slug}`} className="nf-enter__back mb-md">
-          <UiIcon name="arrow-left" size={15} />
+          <UiIcon name="arrow-up" size={15} />
           Part of {door.name}
         </Link>
       ) : null}

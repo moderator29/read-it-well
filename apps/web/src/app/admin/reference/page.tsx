@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { requireAdmin, adminRefusal } from "@/lib/admin/guard";
+import { adminUi } from "../_components/ui";
 import { listLocalGovernmentsForAdmin, listOccupationsForAdmin } from "@/lib/admin/reference-queries";
 import { listStates } from "@/lib/places/queries";
 import { LocalGovernmentEditor, OccupationEditor } from "./ReferenceEditors";
@@ -25,6 +28,8 @@ export const dynamic = "force-dynamic";
  * do damage is not worth building.
  */
 export default async function AdminReferencePage() {
+  const locale = await getLocale();
+  const ui = adminUi(getDictionary(locale), locale);
   const access = await requireAdmin();
   if (access.state !== "admin") {
     return (
@@ -43,17 +48,22 @@ export default async function AdminReferencePage() {
     listStates(),
   ]);
 
+  /*
+    THE ONE DESK THAT DID NOT INHERIT THE FRAME.
+
+    Every other destination in this console opens `.nf-console` and draws
+    `ui.QueueHeader`, so it sits at the same width, with the same display
+    title and the same sub-line. This one wrote its own header at `h4` in a
+    bare flex column, which put its heading two tiers below every other desk's
+    and let the editors run to the full width of a desktop. Same pieces now,
+    so it reads as the same product.
+  */
   return (
-    <div className="flex flex-col gap-xl">
-      <header>
-        <h1 className="text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Reference data</h1>
-        <p className="mt-2xs max-w-[70ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
-          The closed lists every profile picks from. A code is the value stored
-          on the person&apos;s row, so it can never be edited once it exists, and
-          nothing here can be deleted: a delete would quietly empty the answer of
-          everybody who had chosen it. A wrong row gets renamed.
-        </p>
-      </header>
+    <div className="nf-console flex flex-col gap-xl">
+      <ui.QueueHeader
+        title="Reference data"
+        lede="The closed lists every profile picks from. A code is the value stored on the person's row, so it can never be edited once it exists, and nothing here can be deleted: a delete would quietly empty the answer of everybody who had chosen it. A wrong row gets renamed."
+      />
 
       <OccupationEditor rows={occupations} />
       <LocalGovernmentEditor rows={localGovernments} states={states} />

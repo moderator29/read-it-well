@@ -8,7 +8,7 @@ import { CHAPTERS, CHAPTER_INDEX } from "./chapters";
 export const metadata: Metadata = {
   title: "Documentation",
   description:
-    "The full Vallo documentation: finding a place, the power and water filters, booking, the wallet, Around, agent mode, trust and safety, and your rights under the NDPA.",
+    "The full Vallo documentation, both sides: property search and its power and water filters, the stays journey from dated search to Trips, holding a restaurant table, the wallet, Around, agent mode, trust and safety, and your rights under the NDPA.",
 };
 
 /**
@@ -33,11 +33,14 @@ export default function DocsHomePage() {
       <div className="nf-rise">
         <h1 className="nf-h1 max-w-[18ch]">Every part of the platform, written out</h1>
         <p className="mt-group max-w-[62ch] text-[var(--nf-content-secondary)]">
-          Every part of the platform written out plainly: how to find a place, what the
-          light and water rows on a listing actually tell you, how a booking holds your
-          dates, what the wallet does, how Around works, and what happens when something
-          goes wrong. The platform charges no fees, and this document says so wherever it
-          matters.
+          Both sides of Vallo written out plainly. On the Property side: how to find a
+          place to rent or buy, what the light and water rows on a listing actually
+          tell you, and how an inspection comes before any money moves. On Vallo
+          Stays: searching against dates and guests, how a booking holds your nights,
+          asking a restaurant for a table, and where it all lands in Trips. Then the
+          wallet that pays for both, how Around works, and what happens when something
+          goes wrong. The platform charges no fees, and this document says so wherever
+          it matters.
         </p>
         {first && (
           <div className="mt-heading flex flex-wrap gap-row">

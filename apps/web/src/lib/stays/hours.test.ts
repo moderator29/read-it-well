@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { lagosClock, openState } from "./hours";
+import { HOURS_UNKNOWN_LABEL, lagosClock, openState } from "./hours";
 import type { ServiceWindowRow } from "./types";
 
 /**
@@ -63,6 +63,82 @@ describe("openState", () => {
   it("does not let a Saturday window answer for a Friday", () => {
     const state = openState([window(6, "18:00:00", "21:30:00", "23:00:00")], new Date("2026-09-18T18:30:00Z"));
     expect(state.open_now).toBe(false);
+  });
+
+  /*
+   * NO WINDOWS AT ALL IS NOT "CLOSED TODAY", and this is the distinction the
+   * label used to lose. "Closed today" says a timetable exists and this day is
+   * not on it. A venue that has published nothing supports no such claim.
+   */
+  it("says the hours are not published when there are no windows at all", () => {
+    const state = openState([], new Date("2026-09-18T18:30:00Z"));
+    expect(state).toEqual({ open_now: false, hours_label: HOURS_UNKNOWN_LABEL });
+    expect(state.hours_label).not.toBe("Closed today");
+  });
+
+  it("still says closed today when a timetable exists and this weekday is not on it", () => {
+    // Sunday in Lagos, only Friday windows: a real claim, and it stays.
+    const state = openState([FRIDAY_DINNER], new Date("2026-09-20T12:00:00Z"));
+    expect(state).toEqual({ open_now: false, hours_label: "Closed today" });
+  });
+});
+
+/*
+ * ACROSS MIDNIGHT, BOTH WAYS A VENUE CAN BE MODELLED.
+ *
+ * M7's `service_windows_order_chk` says `opens < closes`, so a live row cannot
+ * run past midnight and a venue serving until 2am is TWO rows: Friday evening
+ * and a Saturday small-hours row. Both spellings are proved here, because the
+ * constraint is schema and this module must not quietly depend on it.
+ */
+describe("openState across midnight", () => {
+  const FRIDAY_LATE = window(5, "18:00:00", "23:00:00", "23:59:59");
+  const SATURDAY_SMALL_HOURS = window(6, "00:00:00", "01:30:00", "02:00:00");
+
+  it("is open at 00:30 on the two-row spelling the schema allows", () => {
+    // 23:30Z Friday is 00:30 Saturday in Lagos.
+    const state = openState(
+      [FRIDAY_LATE, SATURDAY_SMALL_HOURS],
+      new Date("2026-09-18T23:30:00Z"),
+    );
+    expect(state).toEqual({ open_now: true, hours_label: "Open until 02:00" });
+  });
+
+  it("is closed at 03:00, once the small-hours window has ended", () => {
+    const state = openState(
+      [FRIDAY_LATE, SATURDAY_SMALL_HOURS],
+      new Date("2026-09-19T02:00:00Z"),
+    );
+    expect(state.open_now).toBe(false);
+    expect(state.hours_label).toBe("Closed for today");
+  });
+
+  /* The single-row spelling: one Friday window that runs to 02:00. The check
+     constraint refuses it today; the row TYPE does not, and answering "closed"
+     to somebody sitting in the dining room would be the worst kind of wrong. */
+  const FRIDAY_OVERNIGHT = window(5, "18:00:00", "01:00:00", "02:00:00");
+
+  it("is open at 22:00 on the Friday evening half of an overnight window", () => {
+    const state = openState([FRIDAY_OVERNIGHT], new Date("2026-09-18T21:00:00Z"));
+    expect(state).toEqual({ open_now: true, hours_label: "Open until 02:00" });
+  });
+
+  it("is open at 00:30 on the Saturday morning half of a Friday overnight window", () => {
+    const state = openState([FRIDAY_OVERNIGHT], new Date("2026-09-18T23:30:00Z"));
+    expect(state).toEqual({ open_now: true, hours_label: "Open until 02:00" });
+  });
+
+  it("is closed at 01:30, past the overnight window's last seating", () => {
+    // 00:30Z Saturday is 01:30 Lagos: inside the window, past last seating.
+    const state = openState([FRIDAY_OVERNIGHT], new Date("2026-09-19T00:30:00Z"));
+    expect(state.open_now).toBe(false);
+    expect(state.hours_label).toBe("Closed today");
+  });
+
+  it("does not let a plain evening window spill into the next morning", () => {
+    // Friday 18:00 to 23:00 says nothing about Saturday at 00:30.
+    const state = openState([FRIDAY_DINNER], new Date("2026-09-18T23:30:00Z"));
+    expect(state).toEqual({ open_now: false, hours_label: "Closed today" });
   });
 });
 

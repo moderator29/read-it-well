@@ -13,6 +13,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { TYPE } from "@/components/app/Screen";
+import { formatPhone } from "@/lib/phone";
 import type { ListingKind } from "@/lib/listings/types";
 import {
   acceptProposedTime,
@@ -194,6 +195,25 @@ export function InspectionSheet({
           <div className="min-w-0">
             <dt className="nf-insp-fact__label">{side === "requester" ? "Showing you round" : "Asked to view"}</dt>
             <dd className="nf-insp-fact__value">{inspection.counterpartName ?? "Not named yet"}</dd>
+            {/*
+              THE NUMBER, when this reader is allowed to have it.
+
+              `lib/security/counterpart-contact.ts` decides: RLS membership
+              first, a block in either direction withholds it, every failure
+              withholds. Null therefore means the line is not drawn at all,
+              rather than drawn empty or drawn as a dead control. The anchor
+              hands the number to the device's dialler and nothing here logs
+              it; `formatPhone` is what puts it on the screen, so the digits
+              are grouped the same way everywhere on the platform.
+            */}
+            {inspection.counterpartPhone && (
+              <dd className="nf-insp-fact__phone">
+                <a href={`tel:${inspection.counterpartPhone}`} aria-label={`Call ${inspection.counterpartName ?? "them"}`}>
+                  <UiIcon name="phone" size={14} className="shrink-0" />
+                  <span className="nf-numeric">{formatPhone(inspection.counterpartPhone)}</span>
+                </a>
+              </dd>
+            )}
           </div>
         </div>
         <div className="nf-insp-fact">

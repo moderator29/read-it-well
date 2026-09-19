@@ -13,6 +13,13 @@ import {
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { toggleSave } from "@/lib/saved/actions";
+import {
+  saveRestaurant,
+  saveStay,
+  unsaveRestaurant,
+  unsaveStay,
+} from "@/lib/saved/places-actions";
+import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
@@ -29,6 +36,15 @@ import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
  * the card straight back and says why in a sentence. An unsave never opens a
  * dialogue: the card becomes an undo chip in its own slot, and the row it
  * removed is restored by hearting it again from that chip.
+ *
+ * TWO SHELVES ARRIVE ON ONE BOARD. A saved property is a `saved_items` row or
+ * a device save; a saved stay or restaurant is a `saved_places` row under its
+ * entity kind. They interleave by `savedAt`, which is epoch seconds on both
+ * sides, so the board is the shortlist in the order the person built it. The
+ * only thing the board has to know about the difference is which write to
+ * call, which is what `item.place` carries: `toggleSave` cannot reach
+ * `saved_places` at all, so sending a hotel to it would report a success that
+ * removed nothing.
  */
 
 export type SavedBoardItem = {
@@ -37,6 +53,14 @@ export type SavedBoardItem = {
   mode: "db" | "local";
   /** Epoch seconds, so an undo can restore the original ordering. */
   savedAt: number;
+  /**
+   * Set on a saved stay or restaurant, which lives in `saved_places` rather
+   * than `saved_items`. The remove and the undo below are two different
+   * tables, and `toggleSave` can only ever reach the listing one: sending an
+   * accommodation id to it removes nothing and reports success, which is the
+   * worst of the three possible outcomes. So the kind travels with the item.
+   */
+  place?: SavePlaceTarget;
   card: ReactNode;
 };
 
@@ -111,13 +135,28 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
     });
   }, []);
 
+  /** The write behind one card, whichever shelf it belongs to. */
+  async function write(item: { id: string; place?: SavePlaceTarget }, on: boolean) {
+    if (item.place) {
+      if (item.place.kind === "accommodation") {
+        return on
+          ? await saveStay({ accommodationId: item.place.id })
+          : await unsaveStay({ accommodationId: item.place.id });
+      }
+      return on
+        ? await saveRestaurant({ restaurantId: item.place.id })
+        : await unsaveRestaurant({ restaurantId: item.place.id });
+    }
+    return await toggleSave({ listingId: item.id });
+  }
+
   function unsave(item: SavedBoardItem) {
     setMessage(item.id, null);
     setPhase((prev) => ({ ...prev, [item.id]: "removed" }));
     if (item.mode === "local") removeLocalSave(item.id);
 
     startTransition(async () => {
-      const result = await toggleSave({ listingId: item.id });
+      const result = await write(item, false);
       if (result.ok) return;
       // Nothing was removed, so the card goes back exactly as it was.
       if (item.mode === "local") addLocalSave(item.id, item.savedAt);
@@ -137,7 +176,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
     if (item?.mode === "local") addLocalSave(id, item.savedAt);
 
     startTransition(async () => {
-      const result = await toggleSave({ listingId: id });
+      const result = await write({ id, place: item?.place }, true);
       if (!result.ok) {
         if (item?.mode === "local") removeLocalSave(id);
         setPhase((prev) => ({ ...prev, [id]: "removed" }));

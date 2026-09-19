@@ -941,3 +941,124 @@ permanent false positive hides real hydration bugs behind it.
 in 1.26 s. Under load average 120 on four cores a vitest worker is starved,
 not wrong. Per 10.6 a red test taken under load is re-run before it is
 believed, and this is the record of that.
+
+### 11.8 Carried, with the fix written out so the next owner does not re-derive it
+
+`RENT_PERIOD_LABEL` in `apps/web/src/lib/listings/pricing.ts` is English only:
+`{ month: "Monthly", quarter: "Quarterly", year: "Yearly" }`. It is lowercased
+and dropped inside sentences that ARE translated, so a Yoruba reader gets
+"Háyà Yearly" and a Hausa and Igbo reader the same shape. F3 has now carried
+this forward twice and it is not F3's file.
+
+THE FIX, and why it was not done this cycle. It needs four dictionary keys in
+each of `en`, `ha`, `ig` and `yo`, a `rentPeriodLabel(t, period)` helper
+beside the constant, and then eight call sites converted:
+`components/app/listing/ListingMoveIn.tsx:60,65`,
+`app/(app)/rent/pay/[inspectionId]/page.tsx:240`,
+`app/(app)/rent/move-in/[listingId]/ledger-model.ts:54`,
+`app/(app)/wallet/transactions/[id]/paid-for.ts:98`,
+`lib/bookings/queries.ts`, and `pricing.ts:239,244` itself.
+
+Those files belong to three different workers and four of them were being
+edited while this was written. Two agents already collided once on this build
+and the second overwrote the first's finished locale work, which cost five
+keys that had to be restored by hand. So this waits for ONE owner holding all
+eight call sites at once, rather than being started across live edits. It is
+a half-day with the tree quiet and it should be the first thing somebody
+picks up.
+
+Also carried, both small and both named by F3 against itself: `/trips` has
+two English literals in its read-failed panel, and `components/app/messages/
+share.ts:47` and `ThreadContextBanner.tsx:124` carry comments calling
+`/bookings/<id>` "the trips hub's own detail route", which was wrong when it
+was written and is accidentally true now that F3 has built that route. The
+wording should be re-read rather than left to look prescient.
+
+### 11.9 The cycle's landings, and the three faults that were bigger than the findings that found them
+
+**A ₦24,000,000 ASKING PRICE READ "per night".** F5 found a two-case ternary
+in the agent listings surface that mapped every rate period that was not
+`year` to a nightly label, so a sale price and a monthly and a quarterly rent
+all printed as a nightly rate to the person who listed them. A full six-value
+period map now exists in all four locales. This is the money rule failing on
+the one screen where a lister checks their own work.
+
+**THE FEED CURSOR WAS SKIPPING ROWS IN BULK, SILENTLY.** B2 found that
+`readFeedPage` ordered by `created_at desc` with no tiebreaker and paged with
+a strict `created_at < cursor`. That assumes no two posts share an instant,
+and they do: `private.open_place_entries` writes two SYSTEM entries per place
+with `now()`, which is the TRANSACTION timestamp, so every place opened by one
+migration carries an identical `created_at` to the microsecond. Page one
+served twenty rows at instant T and returned T; page two asked for
+`created_at < T` and stepped over every remaining row at T. Hundreds of posts
+were unreachable and the feed simply looked like it had ended. It is keyset
+pagination on `(created_at, id)` now, with a cursor format that still accepts
+a bare instant so a tab open across the deploy pages on rather than breaking.
+
+**THE HARNESS WAS LYING A SECOND TIME, AND THIS ONE HID THE WHOLE PAGE.** F2
+probed a running dev server and found the CSP refusing Next's own dev chunks:
+`strict-dynamic` is in force, Turbopack's HMR runtime injects chunk tags that
+carry no nonce, so the browser refuses them and HYDRATION NEVER COMPLETES.
+Nothing looks wrong if you are clicking around, because the server-rendered
+HTML is already on screen. It is fatal to a proof: every band below the fold
+is wrapped in `Reveal`, which fades a block in from an IntersectionObserver in
+an effect, and an effect that never runs leaves 20 of 21 `.nf-reveal` nodes at
+`opacity: 0`. Measured by F2 directly, with `window.scrollY` stuck at 0 after
+a scroll to 4,623.
+
+`scriptSrc` in `lib/security/csp.ts` now drops `strict-dynamic` and adds
+`'unsafe-eval'` under `NODE_ENV === "development"` only, and four assertions
+hold the line: production and test keep strict-dynamic and refuse eval, and
+no environment ever gets `'unsafe-inline'`. The shipping policy is unchanged.
+`verify-desktop.mjs` also waited only 600ms after `load`, which caught pages
+before their photography had decoded; it now waits for every image to decode,
+bounded at 60s, then settles.
+
+That is twice in one day that workers judged finished work from a picture of
+something the browser never drew. THE RULE THIS EARNS: a proof harness is a
+measuring instrument, and an instrument that has never been checked against a
+known answer is not evidence. Before trusting a shot, prove the harness draws
+the thing being judged.
+
+**A MASK CHANNEL IS NOT A COLOUR.** `check-css-tokens.mjs` was failing four
+`#000` values inside a `mask-image` gradient in `home.css`. A mask stop's
+alpha decides what shows through; it is never painted and has no light twin.
+The rule was pushing authors towards inventing a fake token or reaching for
+`--nf-ink-950`, where a near-black that is not quite opaque silently fades the
+edge of the content it is meant to reveal in full. The checker now exempts
+only the lines a mask declaration spans, and a literal anywhere else in the
+same rule is still reported. Proven both ways: a probe literal outside a mask
+is still caught.
+
+**THE PLATFORM'S SHARE DOES NOT EXIST, AND THE EARNINGS SCREEN SAID IT DID.**
+`agentEarnings.howBody` read "split three ways: your share, the platform's
+share and what the payment processor takes". Vallo charges nothing and
+`platformShareMinor` is 0, so rule 3 was broken on the screen a lister reads
+to work out what they are owed. F5 found it and could not fix it under the
+ADD-only rule for locale values. It is two ways now, and it says plainly that
+Vallo takes nothing.
+
+**Also landed this cycle:** the side law closed on `/search` with one
+`hrefForListing(kind, id)` helper and the `side` prop deleted so there is
+nothing left to forget; the heart reading back lit after a reload on every
+card surface; a booking detail route, so the primary button on a forwarded
+booking card stops 404ing; four Stays prefixes in the Android manifest and the
+Apple App Site Association; a booking notification landing on the side the
+reader is standing in; a refund telling the guest in the product and not only
+by email; a flagged message storing an account number masked to its last four
+rather than a second plain-text copy in a second table; a block holding on an
+attachment as well as on a message; an example refusal covering reviews,
+inspections, reservations and tenancy charges; two thread faces that are
+structurally different rather than differently worded; an oval avatar ring on
+every inbox row, fixed; 214 raw font sizes across the agent console mapped to
+the scale; and a fourth lint rule, `nf/server-actions-export-only-actions`,
+which reports the exact defect that took production down for twenty minutes,
+in the editor rather than in a build somebody skips.
+
+**Process, recorded because it is how the next collision gets avoided.** Two
+workers reported editing the same file concurrently and both survived; one
+worker ran `pkill -f "import re"` and may have killed another worker's
+in-flight Python edit script at about 16:00, and said so unprompted; one
+worker ran a read-only git command against its own brief and reported it. The
+scopes in 10.1 are holding better than they were, and the reports are honest
+about where they did not.

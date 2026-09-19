@@ -7,6 +7,7 @@ import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/wallet/schema";
 import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-schema";
+import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
 import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-schema";
 import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-schema";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
@@ -63,7 +64,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 1,
     title: "What Vallo is, and who it is for",
     summary:
-      "Nigeria's all-in-one property marketplace: rent, buy, stay and eat, with a naira wallet, a social layer and no platform fee anywhere.",
+      "One app with two sides, Property and Vallo Stays: rent, buy, book a room or a table, with one account, one naira wallet and no platform fee anywhere.",
     icon: "house-sparkle",
     sections: [
       {
@@ -72,17 +73,76 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              Vallo is Nigeria&apos;s all-in-one property marketplace, for finding a
-              place and getting into it. Shortlets, hotels, apartments, homes, villas,
-              restaurants, experiences, annual rentals, shops, offices and land sit in
-              one catalogue, and the same account carries your bookings, your money,
-              your messages and your conversations about the areas you live in.
+              Vallo is Nigeria&apos;s property marketplace, and it has two sides.{" "}
+              <strong>Property</strong> is renting, buying and selling: annual
+              rentals, homes, villas, shops, offices and land, listed by agents a
+              person has checked, with inspections before any money moves.{" "}
+              <strong>Vallo Stays</strong> is the nightly side: hotels, apartments,
+              guest houses, resorts, serviced apartments, shortlets and restaurant
+              tables. One account carries both, along with your wallet, your
+              bookings, your messages and your conversations about the areas you
+              live in.
             </p>
             <p>
               It is built for how renting and staying actually works here. That means
               three questions come before the price: is there light, is there water,
               and will the gate let you in. Those are structured facts on a listing,
               not a tick box called Backup Power, and you can filter on them.
+            </p>
+          </>
+        ),
+      },
+      {
+        id: "the-two-sides",
+        heading: "The two sides, and the switch",
+        body: (
+          <>
+            <p>
+              Vallo is one app wearing two faces, because renting a flat for a year
+              and booking a room for a night are not the same errand and should not
+              share one set of controls.
+            </p>
+            <ul>
+              <li>
+                <strong>The Property side.</strong>{" "}
+                <Link href="/search" className={A}>
+                  Search
+                </Link>{" "}
+                and{" "}
+                <Link href="/rent" className={A}>
+                  Rent
+                </Link>
+                , listings, agents, inspections and{" "}
+                <Link href="/bookings" className={A}>
+                  Bookings
+                </Link>
+                . Prices are a sale price or a yearly rent with the move-in total
+                printed under it.
+              </li>
+              <li>
+                <strong>Vallo Stays.</strong>{" "}
+                <Link href="/stays" className={A}>
+                  Stays
+                </Link>
+                , its dated search,{" "}
+                <Link href="/restaurants" className={A}>
+                  Restaurants
+                </Link>{" "}
+                and{" "}
+                <Link href="/trips" className={A}>
+                  Trips
+                </Link>
+                . Prices are per night, against dates and a party size.
+              </li>
+            </ul>
+            <p>
+              <strong>Switching costs nothing and changes nothing you own.</strong> The
+              switch sits at the foot of the side drawer, and flipping it changes the
+              vocabulary and the bottom bar, not your account: the same profile, the
+              same wallet, the same balance, the same inbox and the same saved places.
+              Bookings is the Property side&apos;s word for what is coming up, and
+              Trips is the Stays side&apos;s word for it. A table you hold and a room
+              you book both land in Trips.
             </p>
           </>
         ),
@@ -98,8 +158,14 @@ export const CHAPTERS: DocChapter[] = [
               list or on a map.
             </li>
             <li>
-              <strong>Book and pay.</strong> Hold your dates, see the whole price in
-              naira before you commit, and pay by card or from your wallet.
+              <strong>Book a stay.</strong> Search with your dates and your party,
+              hold the nights, see the whole price in naira before you commit, and
+              pay by card or from your wallet.
+            </li>
+            <li>
+              <strong>Hold a table.</strong> Ask a restaurant for a date, a time and
+              a party size. The restaurant answers, the reservation opens its own
+              conversation, and no money moves for a table.
             </li>
             <li>
               <strong>Keep your money in one place.</strong> Fund a wallet, withdraw to
@@ -202,8 +268,9 @@ export const CHAPTERS: DocChapter[] = [
             <p>Three surfaces, one account.</p>
             <ul>
               <li>
-                <strong>The platform.</strong> Home, Search, Around, Saved, Bookings,
-                Wallet, Inbox, Notifications, your profile and Settings.
+                <strong>The platform.</strong> Home, Search, Stays, Restaurants,
+                Around, Saved, Bookings and Trips, Wallet, Inbox, Notifications, the
+                assistant, your profile and Settings.
               </li>
               <li>
                 <strong>Agent Mode.</strong> A separate workspace at{" "}
@@ -425,7 +492,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 3,
     title: "Finding a place",
     summary:
-      "Search, the filters including power and water, the map, saving a shortlist, and sharing a search by its link.",
+      "Property search with its filters including power and water, stay search against dates and guests, the map, saving a shortlist, and sharing a search by its link.",
     icon: "home-search",
     sections: [
       {
@@ -442,13 +509,61 @@ export const CHAPTERS: DocChapter[] = [
               city, an area or the kind of place you want.
             </p>
             <p>
-              The category tiles across the top narrow the catalogue to one kind: hotels,
-              apartments, homes, shortlets, villas, restaurants, experiences, rentals,
+              The category tiles across the top narrow the catalogue to one kind:
+              hotels, apartments, homes, shortlets, villas, restaurants, rentals,
               shops, offices or land. The result count speaks the category&apos;s own
               language, so land counts in plots rather than results.
             </p>
             <p>
               Sorting is Recommended, Top rated, Price low to high, or Price high to low.
+            </p>
+          </>
+        ),
+      },
+      {
+        id: "searching-stays",
+        heading: "Searching stays, which asks for dates",
+        body: (
+          <>
+            <p>
+              The Stays side has its own search, because a room is priced against
+              nights and a party rather than against a year.{" "}
+              <Link href="/stays" className={A}>
+                Stays
+              </Link>{" "}
+              is the shelf; the field on it opens{" "}
+              <Link href="/stays/search" className={A}>
+                the dated search
+              </Link>
+              , which asks for three things.
+            </p>
+            <ul>
+              <li>
+                <strong>Where.</strong> A city, an area or a landmark.
+              </li>
+              <li>
+                <strong>Check in and check out.</strong> Leave them empty and you see
+                the shelf; fill them and every price on the page becomes the total
+                for those nights rather than a nightly rate.
+              </li>
+              <li>
+                <strong>Guests.</strong> Adults and children. A place that cannot
+                sleep your party is not offered to you.
+              </li>
+            </ul>
+            <p>
+              The category tiles narrow it to hotels, shortlets, serviced apartments,
+              resorts or guest houses. Restaurants are not stays and have their own
+              shelf at{" "}
+              <Link href="/restaurants" className={A}>
+                Restaurants
+              </Link>
+              , where a table is asked for rather than booked.
+            </p>
+            <p>
+              Every stay search keeps its whole state in the address bar, exactly as
+              the property search does, so a link you send opens on what you were
+              looking at, dates and all.
             </p>
           </>
         ),
@@ -782,7 +897,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 5,
     title: "Booking and paying",
     summary:
-      "Reserving holds your dates, the price breakdown shows everything, and you pay by card or from your wallet.",
+      "The stays journey end to end: reserving holds your dates, the breakdown shows everything, you pay by card or wallet, and it lands in Trips. Restaurant tables too.",
     icon: "calendar-check",
     sections: [
       {
@@ -990,6 +1105,82 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               An unpaid hold is different again: let it go whenever you like, for nothing.
             </p>
+          </>
+        ),
+      },
+      {
+        id: "trips",
+        heading: "Where a stay lives afterwards: Trips",
+        body: (
+          <>
+            <p>
+              On the Stays side the same list is called{" "}
+              <Link href="/trips" className={A}>
+                Trips
+              </Link>
+              , and it is arranged by date rather than by status: what is happening
+              today sits in the middle with a rule running through it, what is coming
+              is above, and everything finished is one tap below.
+            </p>
+            <p>
+              A held table sits on that same spine, at its hour, beside the nights.
+              An inspection does not: an inspection is not a trip, so it stays on{" "}
+              <Link href="/bookings" className={A}>
+                Bookings
+              </Link>{" "}
+              on the Property side. Both lists are the same account looked at from
+              the two sides, so nothing is in one and missing from the other except
+              by that rule.
+            </p>
+          </>
+        ),
+      },
+      {
+        id: "holding-a-table",
+        heading: "Holding a table at a restaurant",
+        body: (
+          <>
+            <p>
+              A table is not a booking and it is worth saying plainly:{" "}
+              <strong>no money moves for a reservation</strong>. You ask, the
+              restaurant answers, and you pay the restaurant when you eat.
+            </p>
+            <ol>
+              <li>
+                <strong>Find it.</strong>{" "}
+                <Link href="/restaurants" className={A}>
+                  Restaurants
+                </Link>{" "}
+                is the shelf; open one and you get its hours, its area and its
+                reservation panel.
+              </li>
+              <li>
+                <strong>Ask.</strong> A date, a time and a party size. The time is
+                read as Lagos time whatever your phone is set to, because somebody
+                choosing Friday at seven means seven in the evening where the food
+                is. A date in the past is refused, and so is anything more than{" "}
+                {MAX_DAYS_AHEAD} days ahead or a party larger than {MAX_PARTY}: above
+                that a table is an event, and the answer is a conversation.
+              </li>
+              <li>
+                <strong>Wait for the answer.</strong> The reservation opens pending
+                and the restaurant confirms it or turns it down. You are notified
+                either way.
+              </li>
+              <li>
+                <strong>Talk.</strong> Every reservation opens its own conversation in{" "}
+                <Link href="/messages" className={A}>
+                  your inbox
+                </Link>
+                , so running twenty minutes late is a message rather than a phone
+                call nobody can find later.
+              </li>
+              <li>
+                <strong>Cancel.</strong> From the reservation, at any hour, for
+                nothing. The cancellation schedule governs paid stays and has nothing
+                to say about a table, because nothing was taken.
+              </li>
+            </ol>
           </>
         ),
       },
@@ -1753,6 +1944,16 @@ export const CHAPTERS: DocChapter[] = [
               Every listing here was put up by a person we have checked. There is no
               outside inventory on Vallo at all, which is the only reason the badge can
               carry any weight.
+            </p>
+            <p>
+              <strong>Verified and Third party are different words and they never
+              overlap.</strong> Verified is about a person: somebody at Vallo checked
+              who is behind the listing. Third party is about fulfilment: it marks a
+              stay that a partner confirms and delivers rather than us, and it says
+              who that partner is. A row carrying the Third party tag is never dressed
+              as first party and never wears the verified tick, on either side of the
+              product. There is no partner inventory live today; the label exists so
+              that the first one cannot arrive unlabelled.
             </p>
           </>
         ),

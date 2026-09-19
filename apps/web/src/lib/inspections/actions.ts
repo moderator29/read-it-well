@@ -27,6 +27,18 @@ import { INSPECTION_OUTCOMES, type InspectionState } from "./types";
 
 const MAX_NOTE = 400;
 
+/**
+ * The example refusal, in the one sentence a person can act on.
+ *
+ * Every listing in the catalogue today carries `is_demo`, and the trigger
+ * `inspection_requests_never_against_a_demo_listing` refuses the insert with
+ * SQLSTATE 23514. Without this the guest was told "We could not send that
+ * request. Try again in a moment", which is false twice over: nothing went
+ * wrong, and trying again will never work.
+ */
+const EXAMPLE_LISTING_MESSAGE =
+  "This is an example listing, so there is nothing to view. Open a real listing from search and arrange an inspection there.";
+
 /** The furthest ahead somebody may ask to view a property. */
 const MAX_DAYS_AHEAD = 90;
 
@@ -63,6 +75,17 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
     return fail("Sign in to arrange an inspection.");
   }
 
+  /* Before the write, so the person reads the truth rather than a constraint
+     violation. The trigger refuses again underneath: this is the courtesy and
+     that is the guarantee. A listing that does not come back at all is left to
+     the insert policy's own refusal, which already has its sentence below. */
+  const { data: listing } = await session.supabase
+    .from("listings")
+    .select("id, is_demo")
+    .eq("id", parsed.data.listingId)
+    .maybeSingle();
+  if (listing?.is_demo) return fail(EXAMPLE_LISTING_MESSAGE);
+
   const { data, error } = await session.supabase
     .from("inspection_requests")
     .insert({
@@ -80,10 +103,15 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
 
   if (error || !data) {
     /*
-     * The two refusals a person can actually do something about, told apart
-     * by the constraint that fired rather than by guessing.
+     * The refusals worth telling apart, read from the constraint that fired
+     * rather than guessed at. The example one is first because it is the one
+     * a person can do nothing about except go somewhere real, and because a
+     * listing can become an example between the read above and this insert.
      */
     const message = error?.message ?? "";
+    if (/example/i.test(message)) {
+      return fail(EXAMPLE_LISTING_MESSAGE);
+    }
     if (message.includes("inspection_requests_parties_differ")) {
       return fail("This is your own property, so there is nothing to arrange.");
     }

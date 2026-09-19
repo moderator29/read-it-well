@@ -563,10 +563,27 @@ function shellText({ purpose, blocks, facts, footnote }) {
  */
 const FACTS_MARKETPLACE = {
   title: "Worth knowing before you start",
+  /*
+   * BOTH SIDES, from the content truth sweep of 19 September. This band sat
+   * at the foot of the first email anybody ever gets and described a property
+   * marketplace and nothing else: three lines about rent, the move-in total
+   * and inspecting before paying, on a product whose other half sells nights.
+   * A reader invited by a friend to look for a room read a footer that did
+   * not know the thing they came for existed.
+   *
+   * WHAT IT MAY AND MAY NOT SAY. `shell.test.ts` draws the line at the HARM
+   * rather than at the nouns: naming what the product is for is allowed, an
+   * unstandable count is not, an availability promise ("book a table
+   * tonight") is not, a superlative ("the best hotels in Lagos") is not, and
+   * "experiences" is banned outright because there is no experiences product
+   * here at all: no table, no route, no screen. Every line below is written
+   * to that line, and an email cannot be corrected once it has landed.
+   */
   lines: [
     "Every listing was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message.",
-    "The rent is rarely the whole number. Caution deposit, agency, legal, agreement and service charge are normal here, so plan around the total move-in cost.",
-    "Keep chats and payments inside Vallo, and pay only after you have inspected a place in person.",
+    "Vallo has two sides on one account. Property is renting, buying and selling; Vallo Stays is hotels, apartments, guest houses, resorts and restaurant tables. One naira wallet pays for both.",
+    "On a tenancy the rent is rarely the whole number. Caution deposit, agency, legal, agreement and service charge are normal here, so the move-in total is printed in full before you commit.",
+    "Keep chats and payments inside Vallo. Inspect a property before you pay for it, and pay for a stay at checkout rather than into anybody's account.",
   ],
 };
 
@@ -579,7 +596,7 @@ const templates = {
     blocks: [
       heading("Confirm your email address"),
       lede(
-        "You are one step from a Vallo account. Confirm this address and you can search, message a lister and save the places you like.",
+        "You are one step from a Vallo account. Confirm this address and you can search property, book a stay, hold a table, message a lister and save the places you like.",
       ),
       gap(28),
       cta("Confirm my email", "{{ .ConfirmationURL }}"),
@@ -687,14 +704,14 @@ const templates = {
     blocks: [
       heading("You have been invited to Vallo"),
       lede(
-        "Vallo is a Nigerian property marketplace for renting, buying and selling, and for short stays. Accept below and your account is set up in a moment.",
+        "Vallo is a Nigerian property marketplace with two sides on one account: renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. Accept below and your account is set up in a moment.",
       ),
       gap(26),
       cta("Accept your invitation", "{{ .ConfirmationURL }}"),
       gap(28),
       pointList([
         "Browse as much as you like before you tell anybody anything about yourself.",
-        "Listings, conversations and bookings all sit in one account.",
+        "Listings, conversations, bookings and trips all sit in one account.",
         "Your details stay private until you choose to message a lister.",
       ]),
       gap(24),

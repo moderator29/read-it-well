@@ -21,7 +21,17 @@
  * Client-safe: no imports, pure string work, tested.
  */
 
-export type SharedKind = "listing" | "booking";
+/**
+ * `stay` IS ITS OWN KIND, and it is not a listing with a different name.
+ *
+ * `/stay/<id>` takes an ACCOMMODATION id when a host has onboarded one and a
+ * catalogue listing id otherwise, and the two live in different tables with
+ * different readers. Sharing an accommodation-backed stay as a listing
+ * resolved nothing, so the bubble fell back to a bare path: that is the seam
+ * the founder hit. A third kind costs one branch in `resolveCard` and makes
+ * the card real on both.
+ */
+export type SharedKind = "listing" | "booking" | "stay";
 
 export type SharedRef = { kind: SharedKind; id: string };
 
@@ -31,11 +41,14 @@ const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 export const SHARE_LEAD: Record<SharedKind, string> = {
   listing: "Shared a listing",
   booking: "Shared a booking",
+  stay: "Shared a stay",
 };
 
 /** Where each kind opens. `/bookings/<id>` is the trips hub's own detail route. */
 export function shareHref(ref: SharedRef): string {
-  return ref.kind === "listing" ? `/listing/${ref.id}` : `/bookings/${ref.id}`;
+  if (ref.kind === "listing") return `/listing/${ref.id}`;
+  if (ref.kind === "stay") return `/stay/${ref.id}`;
+  return `/bookings/${ref.id}`;
 }
 
 /** The body a share sends. Two lines: what it is, then the path that opens it. */
@@ -43,8 +56,10 @@ export function shareBody(ref: SharedRef): string {
   return `${SHARE_LEAD[ref.kind]}\n${shareHref(ref)}`;
 }
 
+/* Each segment is written exactly as `shareHref` writes it, so `bookings`
+   plural and `stay` singular are both spelled out rather than inferred. */
 const SHARE_RE = new RegExp(
-  `^(?:Shared a (?:listing|booking)\\n)?/(listing|bookings)/(${UUID})$`,
+  `^(?:Shared a (?:listing|booking|stay)\\n)?/(listing|bookings|stay)/(${UUID})$`,
   "i",
 );
 
@@ -58,7 +73,9 @@ const SHARE_RE = new RegExp(
 export function parseShare(body: string): SharedRef | null {
   const match = SHARE_RE.exec(body.trim());
   if (!match) return null;
-  const kind: SharedKind = match[1]!.toLowerCase() === "listing" ? "listing" : "booking";
+  const segment = match[1]!.toLowerCase();
+  const kind: SharedKind =
+    segment === "listing" ? "listing" : segment === "stay" ? "stay" : "booking";
   return { kind, id: match[2]!.toLowerCase() };
 }
 

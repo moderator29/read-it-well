@@ -14,6 +14,7 @@
  */
 
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
+import { GRACE_WINDOW_DAYS } from "@/lib/account-deletion/constants";
 import {
   COMPANY_DOMAIN,
   COMPANY_FORMAL_NAME,
@@ -182,15 +183,81 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "7. How long we keep data",
+    /* Rewritten so the document and the code finally agree. The old version
+       promised deletion "within a reasonable period", and the product could
+       not perform one at all for anybody who had transacted: see
+       docs/design/audits/r3/findings.md F-17. Every sentence below describes
+       what lib/account-deletion actually does. */
+    title: "7. How long we keep data, and what happens when you delete your account",
     body: (
-      <p>
-        We keep personal data only as long as it is needed. Account data is kept while
-        your account is active and deleted or anonymised within a reasonable period after
-        you close it. Booking and payment records are kept for as long as Nigerian
-        financial and tax rules require. Verification documents are kept while you remain
-        an agent and for the period the law requires afterwards.
-      </p>
+      <>
+        <p>
+          We keep personal data only as long as we need it. While your account is open we
+          keep your profile, your content and your records. When you delete your account,
+          two different things happen to two different kinds of data, and this section
+          says plainly which is which.
+        </p>
+        <p>
+          <strong>You can delete your account yourself,</strong> in Settings then Account,
+          in the app or on this website. You do not need to write to us and we do not do
+          it by hand.
+        </p>
+        <p>
+          <strong>Nothing is destroyed for {GRACE_WINDOW_DAYS} days.</strong> The moment
+          you confirm, your account is signed out everywhere and deactivated: you cannot
+          sign in and nobody can reach your profile. We email you the date the deletion
+          runs and a code that stops it. If you use that code inside the window,
+          everything is put back and nothing has been lost. At the end of the{" "}
+          {GRACE_WINDOW_DAYS} days a scheduled job runs the deletion, and we email you
+          again when it has finished.
+        </p>
+        <p>
+          <strong>Destroyed outright.</strong> Your profile and the details in it, your
+          photograph and cover picture, your posts, comments, stories and unpublished
+          drafts, your saved properties, stays, tables, searches and interests, your
+          search history, the devices you are signed in on, your notifications, your saved
+          cards and bank accounts, and every file you have uploaded, including identity,
+          agency and host documents. The files are removed from storage, not merely the
+          records that point at them.
+        </p>
+        <p>
+          <strong>Kept, with you removed from it.</strong> Vallo is registered with the
+          Special Control Unit against Money Laundering and is subject to Nigeria&rsquo;s
+          Money Laundering (Prevention and Prohibition) Act, which requires a business
+          that moves money to retain its transaction records for at least five years after
+          the transaction. So your bookings, reservations, wallet entries, payments,
+          platform revenue lines, payout records, inspection requests and reviews are kept
+          for that period. Your name, email address and telephone number are removed from
+          every one of them, and what remains is an amount, a date and a reference that no
+          longer identifies you. Messages you have sent stay in the other person&rsquo;s
+          conversation so their side of the thread is still readable, with the sender
+          shown as a deleted account.
+        </p>
+        <p>
+          <strong>This is the retention exception to your right to erasure,</strong> and
+          section 8 sets out how to exercise that right. The NDPA permits us to keep
+          personal data where another law requires us to, and this is that case. It is
+          limited to the records named above, for the period named above, and to nothing
+          else.
+        </p>
+        <p>
+          Verification documents are the clearest example of the line: while you are an
+          agent or a host we keep them because the law requires us to hold them; when you
+          delete your account we destroy the documents themselves and keep only the record
+          that a check took place, with the document type and number removed.
+        </p>
+        <p>
+          The full list of what is destroyed and what is kept, and the form that stops a
+          deletion already running, are at{" "}
+          <a
+            href="/delete-account"
+            className="font-semibold text-[var(--nf-content-link)] hover:underline"
+          >
+            the delete account page
+          </a>
+          .
+        </p>
+      </>
     ),
   },
   {
@@ -201,7 +268,11 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
         <ul>
           <li>Ask for a copy of the personal data we hold about you.</li>
           <li>Ask us to correct data that is inaccurate or incomplete.</li>
-          <li>Ask us to delete data we no longer have a lawful reason to keep.</li>
+          <li>
+            Delete your account yourself, in Settings then Account, which destroys
+            everything except the records section 7 says we are required to keep.
+          </li>
+          <li>Ask us to delete other data we no longer have a lawful reason to keep.</li>
           <li>Object to, or ask us to restrict, certain processing.</li>
           <li>Ask for your data in a portable format.</li>
           <li>Withdraw consent where processing is based on consent.</li>
@@ -214,7 +285,15 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
               that mailbox does not exist, so every NDPA request sent to it
               would have gone nowhere while the sender believed they had
               asked. */}
-          To exercise any of these rights, write to us through{" "}
+          Deletion is the one you do not have to ask us for: it is a control in the
+          product, it takes effect immediately, and{" "}
+          <a
+            href="/delete-account"
+            className="font-semibold text-[var(--nf-content-link)] hover:underline"
+          >
+            the delete account page
+          </a>{" "}
+          explains it in full. To exercise any of the others, write to us through{" "}
           <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">
             {SUPPORT_LABEL}
           </a>

@@ -43,6 +43,15 @@ export type ChatCardListing = {
   bathrooms: number;
   /** 0 to 5, or null when nobody has rated it. */
   rating: number | null;
+  /**
+   * Which share this card IS, when it is not a catalogue listing.
+   *
+   * A stay shared from `/stay/<id>` carries an accommodation id, and both the
+   * primary link and the forward have to say `stay` or they point at
+   * `/listing/<accommodationId>`, which is nothing. Absent means a listing,
+   * which is what every other caller sends.
+   */
+  shareKind?: "listing" | "stay";
 };
 
 export type ChatCardBooking = {
@@ -130,6 +139,10 @@ function Forward({ target }: { target: SharedRef }) {
 
 export function ChatCard({ card, forwardable = true }: { card: ChatCardData; forwardable?: boolean }) {
   if (card.kind === "listing") {
+    /* What this card IS, decided once, so the primary link, the forward and
+       the foot cannot disagree about it. */
+    const stay = card.shareKind === "stay";
+    const self: SharedRef = { kind: stay ? "stay" : "listing", id: card.id };
     return (
       <article className="nf-chat-card" data-testid="chat-card-listing" aria-label={card.title}>
         <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
@@ -157,19 +170,24 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
             {card.periodLabel && <span className="nf-chat-card__chip">{card.periodLabel}</span>}
           </p>
           <div className="nf-chat-card__actions">
-            <Link href={shareHref({ kind: "listing", id: card.id })} className="nf-btn nf-btn--primary nf-btn--md">
-              View listing
+            <Link href={shareHref(self)} className="nf-btn nf-btn--primary nf-btn--md">
+              {stay ? "View stay" : "View listing"}
               <UiIcon name="chevron-right" size={16} />
             </Link>
-            <Link href={`/messages/new?listing=${card.id}`} className="nf-btn nf-btn--glass nf-btn--md">
-              <UiIcon name="chat-bubble" size={16} />
-              Message agent
-            </Link>
+            {/* A stay's enquiry thread hangs off its accommodation, which
+                `/messages/new?listing=` cannot open, so the control that
+                cannot act is not drawn on that face. */}
+            {!stay && (
+              <Link href={`/messages/new?listing=${card.id}`} className="nf-btn nf-btn--glass nf-btn--md">
+                <UiIcon name="chat-bubble" size={16} />
+                Message agent
+              </Link>
+            )}
           </div>
           {forwardable && (
             <div className="nf-chat-card__foot">
-              <span>Listing on Vallo</span>
-              <Forward target={{ kind: "listing", id: card.id }} />
+              <span>{stay ? "Stay on Vallo" : "Listing on Vallo"}</span>
+              <Forward target={self} />
             </div>
           )}
         </div>

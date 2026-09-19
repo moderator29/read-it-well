@@ -4,9 +4,17 @@ import nextTypescript from "eslint-config-next/typescript";
 import nfColour from "./eslint-rules/no-raw-colour.mjs";
 import nfSpacing from "./eslint-rules/no-raw-spacing.mjs";
 import nfFontSize from "./eslint-rules/no-arbitrary-font-size.mjs";
+import nfServerActions from "./eslint-rules/server-actions-export-only-actions.mjs";
 
 /**
- * All three design-system rules under one plugin namespace, `nf/`.
+ * The three design-system rules and one outage rule, under one plugin
+ * namespace, `nf/`.
+ *
+ * FOUR NOW, AND THE FOURTH IS NOT A DESIGN RULE. `nf/no-raw-colour`,
+ * `nf/no-raw-spacing` and `nf/no-arbitrary-font-size` guard the token system;
+ * `nf/server-actions-export-only-actions` guards the one defect class that
+ * only `next build` can see (BUILD_06_LEDGER section 7.0). It is registered
+ * here rather than in its own config so there is one namespace to read.
  *
  * THREE, AND FOR A LONG TIME THIS LINE SAID "BOTH". `nf/no-arbitrary-font-size`
  * was named in the sprint plan, in the briefs handed to the workstreams and in
@@ -16,7 +24,14 @@ import nfFontSize from "./eslint-rules/no-arbitrary-font-size.mjs";
  * success everywhere it was looked at. It exists now; see
  * eslint-rules/no-arbitrary-font-size.mjs.
  */
-const nf = { rules: { ...nfColour.rules, ...nfSpacing.rules, ...nfFontSize.rules } };
+const nf = {
+  rules: {
+    ...nfColour.rules,
+    ...nfSpacing.rules,
+    ...nfFontSize.rules,
+    ...nfServerActions.rules,
+  },
+};
 
 /**
  * ESLint, which has never actually run on this repository.
@@ -405,6 +420,41 @@ const config = [
     ignores: ["src/design-system/**/*.{ts,tsx}", "src/components/ui/**/*.{ts,tsx}"],
     plugins: { nf },
     rules: { "nf/no-arbitrary-font-size": "warn" },
+  },
+
+  /*
+   * ------------------------------------------------------------------
+   * The fourth rule, and the only one here that is about an outage rather
+   * than about the design system.
+   *
+   * `export type { FeedMode };` inside a "use server" module took production
+   * down for twenty minutes on 19 September (BUILD_06_LEDGER section 7.0).
+   * TypeScript erases a type re-export, so `tsc --noEmit` was silent; it is
+   * not a runtime value, so the whole test suite was silent; the CSS checker
+   * has nothing to say about it. `next build` was the only gate that saw it,
+   * and it was the one gate not being run before a push.
+   *
+   * ERROR EVERYWHERE, FROM THE DAY IT IS WRITTEN, which is the opposite of
+   * how the three rules above landed and is deliberate. Those three describe
+   * a migration with thousands of sites; this one describes a defect with
+   * ZERO sites in the tree today. Every "use server" module here exports
+   * async functions and type DECLARATIONS only, and a type declared inside
+   * such a module is erased whole and stays legal, so the rule is left with
+   * nothing to say until somebody reintroduces the outage. A rule at zero
+   * that guards a known outage holds a real line on the branch that brings it
+   * back, and warning about that would be the same silence that let it
+   * through the first time.
+   *
+   * It does NOT replace `next build`, which stays the fifth gate. It moves
+   * the same finding from a slow gate somebody skips to a gate that runs in
+   * the editor while the line is being typed.
+   *
+   * See eslint-rules/server-actions-export-only-actions.mjs for what counts.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    plugins: { nf },
+    rules: { "nf/server-actions-export-only-actions": "error" },
   },
 ];
 

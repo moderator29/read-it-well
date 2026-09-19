@@ -85,6 +85,10 @@ export function TripSpine({
   const t = getDictionary(locale);
   const words = t.admin.common.status;
   const copy = t.stays;
+  /* The two stay controls this spine was missing say the same words the
+     bookings hub says, from the one block, so the same action is never named
+     two ways in one product. */
+  const bookingCopy = t.catalogue.bookings;
 
   const stays: TripItem[] = bookings.map((booking) => ({
     id: booking.id,
@@ -158,6 +162,8 @@ export function TripSpine({
               today={tonight.has(item.id)}
               todayLabel={copy.tripsToday}
               statusWord={words[item.status]}
+              payLabel={bookingCopy.payNow}
+              reviewLabel={bookingCopy.leaveReview}
             />
           ))}
         </ol>
@@ -181,6 +187,8 @@ export function TripSpine({
                   today={false}
                   todayLabel={copy.tripsToday}
                   statusWord={words[item.status]}
+                  payLabel={bookingCopy.payNow}
+                  reviewLabel={bookingCopy.leaveReview}
                   muted
                 />
               ))}
@@ -198,12 +206,17 @@ function SpineRow({
   todayLabel,
   statusWord,
   muted = false,
+  payLabel,
+  reviewLabel,
 }: {
   item: TripItem;
   today: boolean;
   todayLabel: string;
   statusWord: string;
   muted?: boolean;
+  /** "Pay now" and "Leave a review", in the reader's language. */
+  payLabel: string;
+  reviewLabel: string;
 }) {
   return (
     <li className={`relative flex gap-md py-md ${item.justBooked ? "nf-tx-in" : ""}`}>
@@ -275,9 +288,38 @@ function SpineRow({
         height of the control rather than overlapping the next one. It opens
         the SAME sheet /bookings opens.
       */}
-      {item.booking?.cancellable && !muted && (
-        <div className="mt-inline pl-[calc(4rem+var(--spacing-md))]">
-          <CancelBookingControl booking={item.booking} />
+      {/*
+        THE CONTROLS A STAY CARRIES, AND TWO OF THEM WERE ONLY ON /bookings.
+
+        R3 F-08: the two screens rendered the same stays and neither was
+        complete. The date spine could cancel a stay and could not PAY for a
+        reserved one or review a finished one, so a guest who came here first
+        had to find the other screen to finish the two things that matter
+        most. Both are the same guarded facts `/bookings` uses, from the same
+        read: `PENDING` means reserved and not paid, and `reviewable` is the
+        read's own word for "the database would accept a review now".
+      */}
+      {item.booking && !muted && (
+        <div className="mt-inline flex flex-wrap items-center gap-md pl-[calc(4rem+var(--spacing-md))]">
+          {item.booking.status === "PENDING" && (
+            <Link
+              href={`/checkout/${item.booking.id}`}
+              className="nf-btn nf-btn--primary nf-btn--sm"
+              data-testid="trip-pay"
+            >
+              {payLabel}
+            </Link>
+          )}
+          {item.booking.reviewable && (
+            <Link
+              href={`/bookings/${item.booking.id}/review`}
+              className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              data-testid="trip-review"
+            >
+              {reviewLabel}
+            </Link>
+          )}
+          {item.booking.cancellable && <CancelBookingControl booking={item.booking} />}
         </div>
       )}
       </div>

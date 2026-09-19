@@ -86,6 +86,7 @@ The Apple Developer account is still needed, for the store and for signing.
 | `NEXT_PUBLIC_NGN_USD_RATE` | public | The wallet's naira→dollar toggle simply does not appear. It is gated rather than defaulted because a made-up FX rate on a wallet balance is a lie about money. |
 | `CSP_ENFORCE` | **server** | **Leave it unset. The Content Security Policy enforces by default now.** It used to read `=== "true"`, which meant an unset variable, a typo or a new environment all landed on report-only, and a report-only policy blocks nothing. Set to the literal `false`, and only that, to step back to reporting while chasing a directive: violations post to `/api/csp-report` and appear as `[csp]` lines in the deployment log. Every other value, including no value, enforces. |
 | `NF_DATA_SOURCE` | server | `repository` (default) or `api`. Selects the listing/agent data source. Leave unset. |
+| `SENTRY_DSN` | **server** | **Crash and error reporting is off and the product is silent about it.** A crash in production leaves only Vercel's own logs, and a crash on an App Store or Play Store build leaves nothing at all, because neither store hands that data back. Set it and `lib/observability/report.ts` posts scrubbed events to Sentry's envelope endpoint over plain HTTPS: server errors through `instrumentation.ts`'s `onRequestError`, browser errors through the error boundaries and `/api/client-error`. Unset, every call returns `{sent:false}` and prints nothing at all, so a development console stays quiet. The value is read on the server only, it is never sent to the browser and it is never logged, so there is no `NEXT_PUBLIC_` twin and none should be added. **Nothing personal is ever sent:** every event passes an explicit allowlist and then the credential-key vocabulary in `lib/alerts/record.ts`, and `lib/observability/scrub.test.ts` proves an email, a bank account, a NIN, an authorization header and a card number do not survive it. Stack traces arrive minified: no source maps are uploaded, by choice, because that needs an auth token this build has not got. Free tier at [sentry.io](https://sentry.io). |
 
 ---
 
@@ -100,7 +101,6 @@ wondering why.
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Not needed. Checkout is a server-initiated redirect, so the browser never holds a Paystack key. |
 | `TERMII_API_KEY` | Phone/SMS OTP has not shipped. |
 | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | No analytics client is installed. |
-| `SENTRY_DSN` | No error reporting client is installed. |
 
 ---
 

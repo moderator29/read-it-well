@@ -36,6 +36,40 @@
    * brand colour marked "is a chip" rather than "is on". It is the ordinary
    * default border now, and the brand edge is what selection looks like.
    *
+   * ------------------------------------------------------------------
+   * AND THAT LAST PARAGRAPH IS HALF RIGHT, WHICH IS WHY IT IS KEPT.
+   *
+   * Its diagnosis was correct: when every chip in a row carries the brand
+   * colour, the brand colour is saying "this is a chip", the selected one has
+   * nothing left to be, and the row has no state. That is exactly what was
+   * wrong and it is still true.
+   *
+   * Its remedy was wrong, and the governing images say so plainly.
+   * `founder/GOVERNING-search-filters-target.png` (byte-identical to the
+   * catalogue's `3EB3E2A9`) draws seventeen chips on one screen: Property
+   * Type, Market, Bedrooms, Bathrooms and the four-chip row under the search
+   * field. EVERY RESTING ONE CARRIES A SOFT BLUE OUTLINE. Not one grey edge
+   * appears anywhere in that image, and `--nf-border-default` is 13 per cent
+   * white, which on this navy is flat grey.
+   *
+   * What the render takes out of the resting state is BRIGHTNESS, not COLOUR.
+   * So the resting edge comes back to `--nf-brand-edge-soft` with no glow of
+   * any kind, and selection is not a rung brighter on the same border: in
+   * that image the selected chip is a SOLID BRAND PLATE WITH WHITE INK. All,
+   * Buy, Any and Any are filled; House, Apartment, Duplex, Terrace, Land,
+   * Rent, Shortlet, 1+, 2+, 3+ and 4+ are outlined.
+   *
+   * That is a far larger gap than soft-edge to strong-edge, so the paragraph
+   * above gets what it actually wanted - an unmistakable selected state - and
+   * the row stops being a line of grey boxes. It also ends a disagreement
+   * between the themes: `light.css` has drawn the selected chip as a filled
+   * brand plate with `--nf-content-on-brand` ink since it was written, so
+   * until now one theme shipped the render's treatment and the other did not.
+   *
+   * THE HOVER COMES WITH IT, to `--nf-brand-edge`. It was
+   * `--nf-border-strong`, which put a grey flash between two blue states.
+   * ------------------------------------------------------------------
+   *
    * THE FILL IS THIN GLASS, not the well. The well is a trough cut INTO a
    * surface - correct for the icon button and the sunken meter, wrong for a
    * chip, which sits ON the page and should read as a light plate.
@@ -55,7 +89,7 @@
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
-    border: var(--nf-border-width) solid var(--nf-border-default);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background: var(--nf-glass-fill-thin);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
@@ -101,7 +135,10 @@
   @media (hover: hover) {
     .nf-chip:hover {
       color: var(--nf-content-primary);
-      border-color: var(--nf-border-strong);
+      /* One rung up the same blue, not a grey. A hover that reached for
+         `--nf-border-strong` put a flash of grey between a soft blue resting
+         edge and a filled blue selected one. */
+      border-color: var(--nf-brand-edge);
       transform: translateY(-1px);
     }
   }
@@ -111,15 +148,29 @@
     }
   }
   /*
-   * Selected. The brand edge and ONE bloom, which is the only light left in the
-   * row now that the resting state has none, so it reads as a state rather than
-   * as a slightly brighter member of a lit set.
+   * Selected: a FILLED BRAND PLATE, which is what the governing image draws
+   * and what the light theme has always drawn.
+   *
+   * This was the brand edge and one bloom, on the argument that it was the
+   * only light left in a row whose resting chips had none. The resting chips
+   * carry a soft blue outline again, per the render, so a border one rung
+   * brighter is no longer a state anybody could read across eight chips - and
+   * the render never asked for one. In
+   * `founder/GOVERNING-search-filters-target.png` the selected chip is solid
+   * brand with white ink and a bloom under it, beside outlined siblings.
+   *
+   * `--nf-content-on-brand` for the ink, because the plate is now brand and
+   * `--nf-content-primary` on it is white-on-blue by luck rather than by
+   * declaration. The bloom steps up one rung with the fill: a filled plate
+   * throwing the same 14px of `--nf-glow-1` a hairline threw would read as
+   * flat paint.
    */
   .nf-chip[aria-pressed="true"],
   .nf-chip--active {
-    color: var(--nf-content-primary);
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow: 0 0 14px var(--nf-glow-1);
+    color: var(--nf-content-on-brand);
+    background: var(--nf-brand-primary);
+    border-color: var(--nf-brand-primary);
+    box-shadow: 0 0 18px var(--nf-glow-2);
   }
 
   /* ------------------------------------------------------- the feed tabs */

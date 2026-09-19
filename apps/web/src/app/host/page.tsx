@@ -3,8 +3,8 @@ import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import { getMyBusinesses, getMyHostDraft } from "@/lib/host/queries";
-import { missingFrom } from "@/lib/host/onboarding";
+import { getMyBusinesses, getMyHostDraft, type MyBusiness } from "@/lib/host/queries";
+import { missingFrom, type HostDraft } from "@/lib/host/onboarding";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
@@ -63,11 +63,33 @@ export default async function HostPage() {
   }
 
   const [businesses, draft] = await Promise.all([getMyBusinesses(), getMyHostDraft()]);
-  const open = draft.businessId ? draft : null;
-  const missing = open ? missingFrom(open) : [];
 
   return (
     <HostShell logoLabel={t.a11y.logoHome}>
+      <HostStandingBody businesses={businesses} draft={draft.businessId ? draft : null} />
+    </HostShell>
+  );
+}
+
+/**
+ * Where a host stands, apart from its reads.
+ *
+ * Separated so the whole screen can be rendered from fixtures in the preview
+ * harness and read against the register at 390 dark. The route passes exactly
+ * what it read; nothing here fetches anything.
+ */
+export function HostStandingBody({
+  businesses,
+  draft: open,
+}: {
+  businesses: MyBusiness[];
+  /** The application still in progress, or null when there is none. */
+  draft: HostDraft | null;
+}) {
+  const missing = open ? missingFrom(open) : [];
+
+  return (
+    <>
       <div className="nf-agent-head">
         <div>
           <h1 className="nf-agent-head__title">Host</h1>
@@ -113,15 +135,28 @@ export default async function HostPage() {
             <RowList boxed>
               {businesses.map((business) => (
                 <Row key={business.id} className="flex-col items-stretch gap-xs py-md">
-                  <div className="flex items-center gap-sm">
-                    <span className="min-w-0 flex-1">
+                  {/*
+                    THE NAME AND THE STATE DO NOT SHARE A LINE ON A PHONE.
+
+                    "The Harbour Kitchen" beside "Needs more from you" left
+                    about 120px for a business name, so the name broke in two
+                    and the pill sat across its second line. A grid rather
+                    than a flex row, because the two of them are a stack at
+                    390 and a pair from `sm` up, and that is a layout
+                    statement rather than a wrapping accident.
+                  */}
+                  <div className="grid gap-2xs sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-sm">
+                    <span className="min-w-0">
                       <span className={`block ${TYPE.rowTitle}`}>{business.name}</span>
                       <span className={`block ${TYPE.rowMeta}`}>
                         Tier {business.verificationTier} of 4
                         {business.verified ? ", verified" : ""}
                       </span>
                     </span>
-                    <StatusPill tone={toneForStatus(business.status)}>
+                    <StatusPill
+                      tone={toneForStatus(business.status)}
+                      className="justify-self-start sm:justify-self-end"
+                    >
                       {STATUS_WORD[business.status] ?? business.status}
                     </StatusPill>
                   </div>
@@ -147,6 +182,6 @@ export default async function HostPage() {
           />
         )}
       </Stack>
-    </HostShell>
+    </>
   );
 }

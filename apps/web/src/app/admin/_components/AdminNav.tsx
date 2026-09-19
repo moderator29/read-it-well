@@ -237,11 +237,31 @@ export function AdminTabs({
           {current ? labelFor(current, labels) : navLabel}
         </span>
         {waiting > 0 && (
-          /* Everything waiting anywhere in the console, in the attention
+          /*
+             Everything waiting anywhere in the console, in the attention
              colour, so a shut control still answers "is there work". Cyan
              rather than brand blue for the same reason the rail's badge is:
-             a work-waiting count means attention, not brand. */
-          <span className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
+             a work-waiting count means attention, not brand.
+
+             AND IT SAYS WHICH NUMBER IT IS (R1 finding A37). This is a bare
+             figure sitting beside the name of the destination you are standing
+             on, which is exactly how it gets read as that destination's count.
+             On the overview it sat directly above a tab reading "All (42)"
+             while itself reading 41, and two numbers that disagree on an
+             operations surface cost more trust than either one is worth. The
+             race behind that shot is gone (`getQueueCounts` is now one read per
+             request), but the two figures still answer different questions: this
+             one counts every destination, including moderation and alerts,
+             where the overview's "All" counts the five queues its table folds
+             in. So the badge names itself, and a reader who wonders why it is
+             the larger number has the answer in the tooltip and the screen
+             reader has it in the label.
+          */
+          <span
+            title={`${waiting} waiting across the console`}
+            aria-label={`${waiting} waiting across the console`}
+            className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]"
+          >
             {waiting}
           </span>
         )}

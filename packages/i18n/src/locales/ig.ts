@@ -306,7 +306,7 @@ export const ig: Dictionary = withFallback({
         careers: "Ọrụ",
       },
       hero: {
-        crumbs: ["Ụlọ", "Ebe obibi", "Itinye ego", "Njikwa"],
+        crumbs: ["Ụlọ", "Ebe obibi", "Ụlọ nri", "Njikwa"],
         title1: "Real Estate",
         title2: "reimagined.",
         subtitle:
@@ -321,7 +321,6 @@ export const ig: Dictionary = withFallback({
         buy: "Zụta",
         rent: "Gbazite",
         stay: "Biri",
-        invest: "Tinye ego",
         filters: "Mepee nzacha",
         go: "Chọọ",
       },
@@ -340,35 +339,14 @@ export const ig: Dictionary = withFallback({
         cities: "Obodo",
         states: "Steeti",
       },
-      features: {
-        overline: "Karịa ụlọ",
-        title: "Ihe niile ị chọrọ n'otu ikpo okwu.",
-        body: "Site na ndepụta enyochara ruo n'obibi dị mkpirikpi, onye inyeaka na-agụ katalọgụ na obere akpa ego na-akwụ ụgwọ ha niile, Vallo na-enye gị njem ụlọ gị dum n'otu akaụntụ.",
-        learn: "Mụtakwuo",
-        tiles: {
-          buy: { title: "Zụta", sub: "Ụlọ enyochara" },
-          rent: { title: "Gbazite", sub: "Nhọrọ dị mfe" },
-          stays: { title: "Ebe obibi", sub: "Ụlọ oriri na ọzọ" },
-          invest: { title: "Tinye ego", sub: "Ala na azụmahịa" },
-          assistant: { title: "Onye inyeaka AI", sub: "Nchọ ka mma" },
-          wallet: { title: "Obere akpa ego", sub: "Kwụọ ma jikwaa" },
-          bookings: { title: "Ndebanye", sub: "Dị mfe ma dị nchebe" },
-          messaging: { title: "Ozi", sub: "Nọgide na-ejikọ" },
-          inspections: { title: "Nyocha", sub: "Lee ma nyochaa" },
-          management: { title: "Njikwa", sub: "Maka ndị nwe ụlọ na ndị nnọchiteanya" },
-        },
-      },
-      chips: {
-        verified: { title: "Ndepụta enyochara", sub: "Mmadụ na-enyocha onye ọ bụla na-edepụta." },
-        ai: { title: "AI na-akwado", sub: "Nchọ ka mma. Nkwekọ ka mma." },
-        wallet: { title: "Obere akpa ego dị nchebe", sub: "Kwụọ, chekwaa, too." },
-        one: { title: "Otu ikpo okwu", sub: "Obodo ọ bụla, ebe ọ bụla." },
-        stays: { title: "Vallo Stays", sub: "Ụlọ oriri, ụlọ, villa na ọzọ." },
-        manage: { title: "Njikwa ụlọ", sub: "Maka ndị nwe ụlọ na ndị nnọchiteanya." },
-      },
+      /* THE FEATURE BAND IS ABSENT HERE ON PURPOSE, AND FALLS BACK TO
+         ENGLISH. The content truth sweep of 19 September rewrote all six
+         cells and the Igbo that stood here would have printed a different
+         claim under the same keys. A native speaker writes the six and they
+         come back. */
       community: {
         overline: "Ndị mmadụ n'ezie. Ebe n'ezie.",
-        title: "Obodo na-eto eto nke ndị na-achọ ụlọ, ndị nwe ụlọ na ndị na-etinye ego.",
+        title: "Obodo na-eto eto nke ndị na-achọ ụlọ, ndị nwe ụlọ na ndị nnabata.",
         body: "A na-agụ ọnụọgụ ọ bụla na peeji a ozugbo site na ikpo okwu mgbe peeji a na-ebu. Ọ dịghị ihe a gbakwunyere.",
         join: "Sonye na Vallo taa",
         thirdParty: "Ndị ọzọ",
@@ -405,7 +383,7 @@ export const ig: Dictionary = withFallback({
       stays: {
         overline: "Vallo Stays",
         title: "Biri n'ebe kwesịrị icheta.",
-        body: "Ụlọ oriri, mgbazinye mkpirikpi, ụlọ, villa, ụlọ nri na ahụmahụ, edebanyere site n'otu akaụntụ.",
+        body: "Ụlọ oriri, mgbazinye mkpirikpi, ụlọ, villa na ụlọ nri, edebanyere site n'otu akaụntụ.",
         cta: "Chọgharịa ebe obibi",
         hotels: "Ụlọ oriri",
         apartments: "Ụlọ obibi",
@@ -446,6 +424,7 @@ export const ig: Dictionary = withFallback({
         safety: "Nchekwa",
         standards: "Ụkpụrụ",
         cancellations: "Nkagbu",
+        restaurants: "Ụlọ nri",
       },
     },
     slogan: "Real Estate reimagined!",
@@ -1091,7 +1070,12 @@ export const ig: Dictionary = withFallback({
         moveIn: "Ego ole ka ọ ga-efu m ịkwaga?",
         generator: "Ebe ole nwere jeneretọ?",
         shortlets: "Gosi m shortlet na Victoria Island",
+        stay: "Họtel na Victoria Island na ngwụcha izu a",
+        table: "Ebee ka m ga-edebe tebulu na Ikoyi?",
       },
+      emptyTitle: "Kedu ka m ga-esi nyere gị aka taa?",
+      emptyBody:
+        "Jụọ maka ebe ị ga-agbazite ma ọ bụ zụta, họtel ma ọ bụ shortlet ị ga-anọ, tebulu ị ga-edebe, na ihe ịkwaga na-efu n'ezie.",
     },
     aiCard: {
       title: "Jụọ Vallo AI",
@@ -1429,6 +1413,14 @@ export const ig: Dictionary = withFallback({
       priceYearPlaceholder: "2,500,000",
       perNight: "kwa abalị",
       perYear: "kwa afọ",
+      period: {
+        month: "kwa ọnwa",
+        quarter: "kwa nkeji afọ",
+        year: "kwa afọ",
+        night: "kwa abalị",
+        guest: "kwa onye",
+        sale: "ọnụahịa a jụrụ",
+      },
       cleaningLabel: "Nhicha",
       cleaningHint: "Nhọrọ. A na-atụkwasị ya otu ugboro maka obibi, ọ bụghị kwa abalị.",
       cleaningHintSet: "{amount} nke a tụkwasịrị otu ugboro maka obibi.",
@@ -2627,6 +2619,7 @@ export const ig: Dictionary = withFallback({
     expand: "Mepee",
     collapse: "Mechie",
     openMenu: "Mepee menu",
+    verifiedAccount: "Akaụntụ enyochara",
     closeMenu: "Mechie menu",
     languageSwitcher: "Gbanwee asụsụ",
     favourite: "Chekwaa na ndị masịrị gị",
@@ -2653,6 +2646,16 @@ export const ig: Dictionary = withFallback({
   },
 
   threads: {
+    context: {
+      rentalEnquiry: "Ajụjụ mgbazinye",
+      stayBooking: "Ndebe obibi",
+      tableBooking: "Ndebe tebụl",
+      directMessage: "Ozi ozugbo",
+      viewBooking: "Lee nkọwa ndebe",
+      viewTrips: "Lee njem gị",
+      viewProperty: "Lee ụlọ ahụ",
+      viewRestaurant: "Lee ụlọ nri ahụ",
+    },
     rental: {
       waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
       waitingOnThem: "Na-eche {name} ka ọ zaa.",
@@ -3109,6 +3112,66 @@ export const ig: Dictionary = withFallback({
       insideVallo: "Ihe niile n'ime Vallo",
       notFound: "Ndepụta ahụ adịghịzi.",
       notRental: "Naanị ụlọ mgbazinye nwere ụgwọ mbanye.",
+    },
+    /* Ibe ndebe ọnọdụ (/bookings). Build 06, F3. */
+    bookings: {
+      statusLabel: "Ọnọdụ ndebe",
+      upcoming: "Na-abịa",
+      completed: "Emechara",
+      cancelled: "Akagburu",
+      emptyUpcomingTitle: "E debeghị ihe ọ bụla",
+      emptyUpcomingBody:
+        "Mgbe ị debere ebe, ọ ga-apụta ebe a ya na ụbọchị gị, mkpokọta gị na ihe niile ị chọrọ n'ụbọchị ahụ.",
+      emptyCompletedTitle: "Enweghị ebe obibi emechara",
+      emptyCompletedBody:
+        "Ebe obibi na-abịa ebe a mgbe ị pụsịrị, ebe ahụ kwa ka ị ga-edetụ nyocha gị.",
+      emptyCancelledTitle: "Akagbughị ihe ọ bụla",
+      emptyCancelledBody:
+        "Anyị na-edobe ndebe akagburu ebe a ka ị nwee ndekọ mgbe niile, ọbụlagodi mgbe ụbọchị ahụ gafere.",
+      findPlace: "Chọta ebe",
+      payNow: "Kwụọ ugbu a",
+      cancel: "Kagbuo",
+      leaveReview: "Detuo nyocha",
+      yourReview: "Nyocha gị",
+      viewDetails: "Lee nkọwa",
+      total: "mkpokọta",
+      arriving: "Onye na-abịa: {name}",
+      unavailableTitle: "Anyị enweghị ike ibubata ebe obibi gị",
+      unavailableBody:
+        "Ihe dị n'akụkụ anyị azaghị ugbu a. Ọ dịghị ihe gbanwere banyere ndebe gị. Bugharịa ibe a, ha ga-alọghachi.",
+      signedOutTitle: "Banye ka ị hụ ebe obibi gị",
+      signedOutBody:
+        "Ebe obibi ọ bụla ị debere jikọrọ na akaụntụ gị, ya mere naanị nke gị ka anyị na-egosi gị. Banye, ihe ọ bụla e ji akaụntụ a debe ga-apụta ebe a.",
+      signIn: "Banye",
+      findStay: "Chọta ebe obibi",
+      inspectionsTitle: "Nyocha gị",
+      inspectionsBody: "Onye depụtara ụlọ ahụ na-ahụ otu ọnọdụ ahụ ị na-ahụ.",
+      alsoOnTrips: "Ebe obibi gị na tebul gị, n'usoro ha ga-eme, dị na Njem.",
+      openTrips: "Mepee Njem",
+      alsoOnBookings: "Mgbazinye na nyocha dị na Ndebe.",
+      openBookings: "Mepee Ndebe",
+      detailMissingTitle: "Ndebe ahụ adịghị ebe a",
+      detailMissingBody:
+        "O nwere ike ịbụ nke akaụntụ ọzọ, ma ọ bụ na akagburu ya wepụ ya. Mepee ndebe gị ka ị hụ ihe dị ebe ahụ ugbu a.",
+      howTitle: "Otu ndebe si arụ ọrụ",
+      step1Title: "Họrọ ụbọchị gị",
+      step1Body: "Họrọ ụbọchị mbanye na ụbọchị ọpụpụ na kalenda dị ndụ.",
+      step2Title: "Kwenye ma kwụọ",
+      step2Body: "Ịkwụ ụgwọ nwere nchekwa na naira. Anyị anaghị anara gị ụgwọ n'oge na-erubeghị.",
+      step3Title: "Nwee obi ụtọ na ebe obibi gị",
+      step3Body: "Nkọwa mbanye ga-abịa ebe a nakwa site na email.",
+    },
+    /* Mgbazinye abụghị ebe obibi: o nwere ụbọchị mbanye na oge ụgwọ ụlọ. Build 06, F3. */
+    tenancy: {
+      section: "Mgbazinye gị",
+      sectionLine: "Ụgwọ ụlọ ị malitere ịkwụ na Vallo.",
+      moveIn: "Banye na {date}",
+      period: "Ụgwọ ụlọ {period}",
+      total: "Mkpokọta ụgwọ mbanye",
+      pay: "Kwụọ ụgwọ ụlọ",
+      due: "A kwụghị ụgwọ ụlọ",
+      settled: "Akwụgoro ụgwọ ụlọ",
+      view: "Lee ụlọ ahụ",
     },
     stays: {
       title: "Ebe obibi",

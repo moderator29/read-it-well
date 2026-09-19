@@ -4,16 +4,17 @@ Your invitation
 You have been invited to Vallo
 ------------------------------
 
-Vallo is a Nigerian property marketplace for renting, buying and
-selling, and for short stays. Accept below and your account is set up in
-a moment.
+Vallo is a Nigerian property marketplace with two sides on one account:
+renting, buying and selling, and Vallo Stays for hotels, apartments,
+guest houses, resorts and restaurant tables. Accept below and your
+account is set up in a moment.
 
 Accept your invitation:
 {{ .ConfirmationURL }}
 
 - Browse as much as you like before you tell anybody anything about
 yourself.
-- Listings, conversations and bookings all sit in one account.
+- Listings, conversations, bookings and trips all sit in one account.
 - Your details stay private until you choose to message a lister.
 
 This invitation was sent to {{ .Email }}. It is personal to you, so
@@ -25,11 +26,15 @@ If the button does not work, copy this link into your browser:
 Worth knowing before you start
 - Every listing was put up by a real person on Vallo. Nothing is
 imported from an outside feed, so there is always somebody to message.
-- The rent is rarely the whole number. Caution deposit, agency, legal,
-agreement and service charge are normal here, so plan around the total
-move-in cost.
-- Keep chats and payments inside Vallo, and pay only after you have
-inspected a place in person.
+- Vallo has two sides on one account. Property is renting, buying and
+selling; Vallo Stays is hotels, apartments, guest houses, resorts and
+restaurant tables. One naira wallet pays for both.
+- On a tenancy the rent is rarely the whole number. Caution deposit,
+agency, legal, agreement and service charge are normal here, so the
+move-in total is printed in full before you commit.
+- Keep chats and payments inside Vallo. Inspect a property before you
+pay for it, and pay for a stay at checkout rather than into anybody's
+account.
 
 If you were not expecting an invitation, ignore this message. No account
 is created and nothing further happens.

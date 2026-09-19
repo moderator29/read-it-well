@@ -20,11 +20,25 @@ import "server-only";
  * in from the target: the desk is a ledger of decisions, not a second view
  * of every table, and reaching into a booking or a wallet from here would
  * show an operator more than the line they came to read.
+ *
+ * AND THE BAG IS SCRUBBED ON THE WAY OUT. `metadata` is free-form and two
+ * dozen call sites write it; every one of them is clean today, which is a
+ * fact about today and not a property of this reader. `safeAuditMetadata`
+ * withholds any key naming an identity document or a credential (NIN, BVN,
+ * bank account, card, token, secret, signature, password, email, phone)
+ * before the row leaves this function, so rule 16 holds at the reader as well
+ * as the writer. It is the same vocabulary `lib/alerts/record.ts` applies at
+ * the other end of the pipe, and `audit-filter.test.ts` proves it.
  */
 
 import { createAdminClient } from "../supabase/admin";
 import type { Json } from "../supabase/database.types";
-import { auditIdExpression, auditTextExpression, planAuditQuery } from "./audit-filter";
+import {
+  auditIdExpression,
+  auditTextExpression,
+  planAuditQuery,
+  safeAuditMetadata,
+} from "./audit-filter";
 import { requireAdmin } from "./guard";
 import { takePage, type AdminQueueFilter } from "./queue-filter";
 import type { AdminRead } from "./queries";
@@ -97,7 +111,11 @@ export async function getAuditLog(filter?: AdminQueueFilter): Promise<AdminRead<
           action: row.action,
           entityType: row.entity_type,
           entityId: row.entity_id,
-          metadata: row.metadata,
+          /* Rule 16 at the reader, not only at the writer: see
+             `safeAuditMetadata`. Every writer in the tree is clean today,
+             which is a fact about today, and this row is about to be put in
+             front of every admin. */
+          metadata: safeAuditMetadata(row.metadata) as Json,
         })),
       },
     };

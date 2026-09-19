@@ -2,6 +2,7 @@ import "server-only";
 
 import { formatMoney, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
+import { RENT_PERIOD_LABEL, type RentPeriod } from "../listings/pricing";
 import { getListingRepository } from "../listings/repository";
 import type { Listing } from "../listings/types";
 import { isSupabaseConfigured } from "../supabase/env";
@@ -75,10 +76,62 @@ export type BookingView = {
   reviewable: boolean;
 };
 
+/**
+ * A TENANCY CHARGE, WHICH IS NOT A STAY AND MUST NEVER BE DRAWN AS ONE.
+ *
+ * The rent payment step opens its charge as a bookings row (lib/rent, the b3
+ * migration) because every money rail in the product hangs off one. Rendered
+ * through `BookingView` it would arrive on screen as a one-night stay priced
+ * at a year's rent, with a check-in, a check-out and a guest count, which is
+ * the yearly-rent-with-nightly-pickers error the design direction bans, said
+ * out loud in somebody's list of trips.
+ *
+ * So it gets its own half of the view model, branching on `rent_payments`
+ * exactly as `lib/bookings/arrival.ts` branches before it sends a
+ * confirmation. A tenancy has a move-in day and a period, not a date range;
+ * a total, not a nightly rate; and one door, `/rent/pay/<inspectionId>`,
+ * which is where `lib/rent` completes the payment. It is never the stay
+ * checkout: that route would take a tenant to a nightly panel for a home they
+ * are renting for a year.
+ */
+export type RentChargeView = {
+  /** The bookings row carrying the money. */
+  id: string;
+  /** The inspection the charge belongs to, and the only route to paying it. */
+  inspectionId: string;
+  listingId: string;
+  title: string;
+  area: string;
+  city: string;
+  photo: string | null;
+  /** ISO date the tenancy starts. */
+  moveIn: string;
+  /** e.g. "Fri 14 Aug", the day the keys change hands. */
+  moveInLabel: string;
+  rentPeriod: RentPeriod;
+  /** "Yearly", "Monthly", "Quarterly": the rent module's own words. */
+  periodLabel: string;
+  /** The frozen figure the charge carries, through formatMoney. */
+  totalDisplay: string;
+  status: Database["public"]["Enums"]["booking_status"];
+  /** True once money has settled against the charge. */
+  paid: boolean;
+  /** True while the tenant can still complete it. */
+  payable: boolean;
+  /** Where paying it happens. Never a stay checkout. */
+  href: string;
+};
+
 export type BookingGroups = {
   upcoming: BookingView[];
   completed: BookingView[];
   cancelled: BookingView[];
+  /**
+   * The account's tenancy charges, newest move-in first. Kept out of the three
+   * stay groups on purpose: a tab called Upcoming is about nights away, and a
+   * tenancy belongs beside them rather than inside them.
+   */
+  rent: RentChargeView[];
 };
 
 const DAY_LABEL = new Intl.DateTimeFormat("en-GB", {
@@ -91,6 +144,17 @@ const DAY_LABEL = new Intl.DateTimeFormat("en-GB", {
 function labelDate(iso: string): string {
   return DAY_LABEL.format(new Date(`${iso}T12:00:00Z`));
 }
+
+/** The columns of `rent_payments` this screen needs to speak about a tenancy. */
+type RentChargeRow = {
+  booking_id: string;
+  inspection_id: string;
+  listing_id: string;
+  move_in: string;
+  rent_period: RentPeriod;
+  total_minor: number;
+  currency: string;
+};
 
 /**
  * The signed-in user's real bookings, grouped for the trips hub tabs.
@@ -141,26 +205,30 @@ export async function getMyBookings(
    * rail hangs off a booking. Rendered here it would read as a stay of one
    * night at the price of a year, which is the yearly-rent-with-nightly-
    * pickers error in a list. The `rent_payments` row is what says a booking
-   * is a tenancy charge, read under the tenant's own RLS, and those bookings
-   * are left out of the stays groups; the rent surfaces read them through
-   * `getMyRentCharges` instead.
+   * is a tenancy charge, read under the tenant's own RLS, and it carries the
+   * move-in day, the period and the inspection the charge belongs to. Those
+   * bookings are kept out of the three stay groups and built into
+   * `groups.rent` instead, in tenancy words, pointing at `/rent/pay`. They
+   * were dropped entirely until this branch existed, which was honest about
+   * the words and silent about the money: a tenant with an unpaid charge had
+   * nothing on this screen at all and no route to the one page that takes it.
    */
-  const rentBookingIds = new Set<string>();
+  const chargeByBooking = new Map<string, RentChargeRow>();
   if (rows.length > 0) {
     const { data: charges } = await session.supabase
       .from("rent_payments")
-      .select("booking_id")
+      .select("booking_id, inspection_id, listing_id, move_in, rent_period, total_minor, currency")
       .in(
         "booking_id",
         rows.map((r) => r.id),
       );
-    for (const c of charges ?? []) if (c.booking_id) rentBookingIds.add(c.booking_id);
+    for (const c of charges ?? []) if (c.booking_id) chargeByBooking.set(c.booking_id, c);
   }
-  const stays = rows.filter((r) => !rentBookingIds.has(r.id));
+  const stays = rows.filter((r) => !chargeByBooking.has(r.id));
 
   // Display data: platform listing rows first, seed catalogue as the
   // fallback for titles and photography, a plain placeholder after that.
-  const listingIds = [...new Set(stays.map((r) => r.listing_id))];
+  const listingIds = [...new Set(rows.map((r) => r.listing_id))];
   const dbListings = new Map<string, { title: string; area: string | null; city: string | null }>();
   if (listingIds.length > 0) {
     const { data: listingRows } = await session.supabase
@@ -203,14 +271,14 @@ export async function getMyBookings(
    * from people who are entitled to it every time the payments table blinked.
    */
   const paidBookingIds = new Set<string>();
-  if (stays.length > 0) {
+  if (rows.length > 0) {
     const { data: paidRows } = await session.supabase
       .from("transactions")
       .select("booking_id")
       .eq("status", "SUCCESSFUL")
       .in(
         "booking_id",
-        stays.map((r) => r.id),
+        rows.map((r) => r.id),
       );
     for (const r of paidRows ?? []) {
       if (r.booking_id) paidBookingIds.add(r.booking_id);
@@ -218,7 +286,7 @@ export async function getMyBookings(
   }
 
   const today = lagosToday();
-  const groups: BookingGroups = { upcoming: [], completed: [], cancelled: [] };
+  const groups: BookingGroups = { upcoming: [], completed: [], cancelled: [], rent: [] };
 
   for (const row of stays) {
     const db = dbListings.get(row.listing_id);
@@ -304,7 +372,42 @@ export async function getMyBookings(
     else groups.upcoming.push(view);
   }
 
+  /* --------------------------------------------- the other branch: tenancies */
+  for (const row of rows) {
+    const charge = chargeByBooking.get(row.id);
+    if (!charge) continue;
+    const db = dbListings.get(row.listing_id);
+    const seed = seedListings.get(row.listing_id);
+    const paid = paidBookingIds.has(row.id);
+    groups.rent.push({
+      id: row.id,
+      inspectionId: charge.inspection_id,
+      listingId: row.listing_id,
+      title: db?.title ?? seed?.title ?? "Your tenancy",
+      area: db?.area ?? seed?.area ?? "",
+      city: db?.city ?? seed?.city ?? "",
+      photo: seed?.photos[0] ?? null,
+      moveIn: charge.move_in,
+      moveInLabel: labelDate(charge.move_in),
+      rentPeriod: charge.rent_period,
+      periodLabel: RENT_PERIOD_LABEL[charge.rent_period],
+      /* The charge's own frozen total in integer kobo, not the listing's
+         current arithmetic: a lister editing a fee after the tenant opened
+         the payment cannot move the figure under them, and this screen must
+         quote the same number `/rent/pay` will take. */
+      totalDisplay: formatMoney(charge.total_minor, locale, charge.currency),
+      status: row.status,
+      paid,
+      /* Payable means the tenant can still complete it. A settled charge is a
+         record; a CANCELLED or expired one is answered by the rent page's own
+         honest state rather than by a control here that would refuse. */
+      payable: !paid && row.status === "PENDING",
+      href: `/rent/pay/${charge.inspection_id}`,
+    });
+  }
+
   // Upcoming reads soonest first; history stays newest first.
   groups.upcoming.sort((a, b) => (a.checkIn < b.checkIn ? -1 : 1));
+  groups.rent.sort((a, b) => (a.moveIn < b.moveIn ? 1 : -1));
   return groups;
 }

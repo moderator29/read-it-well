@@ -5,6 +5,8 @@ import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import type { ChatCardData } from "@/components/app/messages/ChatCard";
 import { parseShare, type SharedRef } from "@/components/app/messages/share";
 import { getListingRepository } from "@/lib/listings/repository";
+import { getStayDetail } from "@/lib/stays/queries";
+import { accommodationPhotoUrl } from "@/lib/stays/photos";
 import { PERIOD_SUFFIX } from "@/lib/listings/pricing";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import type { Database } from "@/lib/supabase/database.types";
@@ -124,6 +126,55 @@ async function bookingCard(db: Db, id: string, locale: Locale): Promise<ChatCard
   };
 }
 
+/**
+ * A stay shared from `/stay/<id>`.
+ *
+ * `/stay/<id>` takes an ACCOMMODATION id where a host has onboarded one and
+ * falls through to the catalogue listing otherwise, so this tries the
+ * accommodation first and then the listing. Without it an accommodation-backed
+ * stay shared into a thread resolved nothing and the bubble drew the words and
+ * the path rather than a card.
+ *
+ * Only what the record can say: the venue's name, where it is, its first
+ * photograph and the cheapest published rate. No rating, because
+ * `accommodations` carries none and a star count nobody earned is an invented
+ * number (rule 15).
+ */
+async function stayCard(id: string, locale: Locale): Promise<ChatCardData | null> {
+  const detail = await getStayDetail(id);
+  if (!detail) {
+    /* Not an accommodation. `/stay/<id>` falls through to the listing page in
+       exactly this case, so the card falls through with it. */
+    const listing = await getListingRepository().byId(id);
+    return listing ? listingCard(listing, locale) : null;
+  }
+
+  const { accommodation, photos, room_types } = detail;
+  const cover = [...photos].sort((a, b) => a.position - b.position)[0];
+  const rates = room_types
+    .flatMap((room) => room.rate_plans.map((plan) => plan.rate_minor))
+    .filter((minor) => minor > 0);
+  const cheapest = rates.length > 0 ? Math.min(...rates) : null;
+
+  return {
+    kind: "listing",
+    id: accommodation.id,
+    title: accommodation.name,
+    area: accommodation.area ?? "",
+    city: accommodation.city ?? "",
+    photo: cover ? accommodationPhotoUrl(cover.storage_path) : null,
+    hue: 0,
+    listingKind: "hotel",
+    verified: false,
+    priceLabel: cheapest === null ? "" : formatMoney(cheapest, locale),
+    periodLabel: cheapest === null ? "" : PERIOD_SUFFIX.night,
+    bedrooms: 0,
+    bathrooms: 0,
+    rating: null,
+    shareKind: "stay",
+  };
+}
+
 /** One card for one reference, or null when it does not resolve for this reader. */
 export async function resolveCard(
   db: Db,
@@ -135,6 +186,7 @@ export async function resolveCard(
       const listing = await getListingRepository().byId(ref.id);
       return listing ? listingCard(listing, locale) : null;
     }
+    if (ref.kind === "stay") return await stayCard(ref.id, locale);
     return await bookingCard(db, ref.id, locale);
   } catch {
     return null;

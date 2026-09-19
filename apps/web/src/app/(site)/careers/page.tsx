@@ -9,7 +9,7 @@ import { SUPPORT_HREF, SUPPORT_IS_EMAIL, SUPPORT_LABEL } from "@/lib/support-ema
 export const metadata: Metadata = {
   title: "Careers",
   description:
-    "Help build Nigeria's all-in-one property marketplace. How we work at Vallo, and how to send a speculative application.",
+    "Help build Nigeria's property marketplace and the stays side beside it. How we work at Vallo, and how to send a speculative application.",
 };
 
 /**
@@ -32,7 +32,7 @@ export default function CareersPage() {
     {
       icon: "shield-check",
       title: "Trust is the product",
-      body: "Verification, secure payments and honest reviews are not compliance chores. They are the whole point, and everyone on the team owns them.",
+      body: "Verification, payments that leave a reference, and reviews attached to stays that happened are not compliance chores. They are the whole point, and everyone on the team owns them.",
     },
     {
       icon: "chat",
@@ -60,7 +60,7 @@ export default function CareersPage() {
         icon="reviews"
         chip="Careers at Vallo"
         title="Build Nigeria's property marketplace"
-        lede="We are a small team building the place Nigerians rent, buy, stay and list: homes, hotels, shops, offices and land, a naira wallet, and four languages. Every listing is put up by a verified person. If that sounds like your kind of problem, we want to hear from you."
+        lede="We are a small team building one app with two sides: Property for renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. One account, one naira wallet, four languages, and every listing put up by a person we have checked. If that sounds like your kind of problem, we want to hear from you."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

@@ -19,6 +19,7 @@ import {
 import type { ListingSummary } from "@/lib/agent/listings-queries";
 import { createUndoWindow, type UndoWindow } from "@/lib/ui/undo-window";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
@@ -191,14 +192,14 @@ function ConfirmSheet({
         </div>
       }
     >
-      <p className="text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {copy.body}
       </p>
-      <p className="mt-sm truncate text-[0.8125rem] font-semibold">{state.listing.title}</p>
+      <p className="mt-sm truncate text-[var(--nf-text-caption)] font-semibold">{state.listing.title}</p>
 
       {error && (
         <p
-          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[0.8125rem] font-medium"
+          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[var(--nf-text-caption)] font-medium"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -213,7 +214,7 @@ function ConfirmSheet({
           {unmet.map((message) => (
             <li
               key={message}
-              className="flex items-start gap-xs text-[0.75rem] text-[var(--nf-content-secondary)]"
+              className="flex items-start gap-xs text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
             >
               <span className="mt-2xs h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--nf-state-warning)]" />
               {message}
@@ -255,8 +256,8 @@ function UndoStrip({
     <li className="nf-card overflow-hidden p-0" data-testid="draft-undo">
       <div className="flex items-center justify-between gap-md p-md" role="status">
         <span className="min-w-0 leading-tight">
-          <span className="block text-[0.875rem] font-semibold">{t.workspace.undo.removed}</span>
-          <span className="block truncate text-[0.78rem] text-[var(--nf-content-muted)]">
+          <span className="block text-[var(--nf-text-body-sm)] font-semibold">{t.workspace.undo.removed}</span>
+          <span className="block truncate text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
             {title}
           </span>
         </span>
@@ -307,10 +308,20 @@ function ListingRow({
           style={{ background: "var(--nf-surface-raised)" }}
         >
           {listing.coverUrl ? (
-            // Storage serves the bucket's public URL directly, outside the
-            // image optimiser's allowed hosts.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.coverUrl} alt="" className="h-full w-full object-cover" />
+            /* THE COMMENT THAT USED TO BE HERE WAS OUT OF DATE, and it was
+               costing real bandwidth. It said the storage bucket's public URL
+               is "outside the image optimiser's allowed hosts"; the Supabase
+               host has been derived into `next.config.ts`'s `remotePatterns`
+               since, so a public object IS allowed and this thumbnail was
+               shipping a full size upload into an 84px square. */
+            <RemoteImage
+              src={listing.coverUrl}
+              alt=""
+              width={84}
+              height={84}
+              sizes="84px"
+              className="h-full w-full object-cover"
+            />
           ) : (
             <span className="grid h-full w-full place-items-center text-[var(--nf-content-muted)]">
               <UiIcon name="grid" size={24} />
@@ -319,15 +330,26 @@ function ListingRow({
         </span>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-start justify-between gap-xs">
-            <h3 className="truncate text-[0.9375rem] font-semibold">{listing.title}</h3>
+          {/*
+            THE TITLE IS THE ROW, SO IT IS NEVER TRUNCATED TO MAKE ROOM FOR A
+            PILL. It was `truncate` beside a `shrink-0` StatusPill, and at
+            390px "More information needed" left three characters of the
+            property's name: a workspace listing four properties showed
+            "Fo...", "Mo..." and "Lu...". The pill takes its own line on a
+            phone and comes back beside the title where there is room, and
+            the title wraps to two lines rather than losing its words.
+          */}
+          <div className="flex flex-col items-start gap-2xs sm:flex-row sm:items-start sm:justify-between sm:gap-xs">
+            <h3 className="line-clamp-2 min-w-0 text-[var(--nf-text-body-sm)] font-semibold">
+              {listing.title}
+            </h3>
             <StatusPill tone={toneForStatus(listing.status)} className="shrink-0">
               {t.workspace.status[listing.status]}
             </StatusPill>
           </div>
 
           {(listing.area || listing.city) && (
-            <p className="mt-2xs flex items-center gap-xs text-[0.78rem] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">
                 {[listing.area, listing.city].filter(Boolean).join(", ")}
@@ -336,17 +358,25 @@ function ListingRow({
           )}
 
           <p className="mt-xs flex items-baseline gap-xs">
-            <span className="nf-numeric text-[0.9375rem] font-bold">
+            <span className="nf-numeric text-[var(--nf-text-body-sm)] font-bold">
               {listing.priceMinor > 0
                 ? formatMoneyGlance(listing.priceMinor, locale)
                 : t.guestView.priceToSet}
             </span>
-            <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
-              {listing.pricePeriod === "year" ? t.pricing.perYear : t.pricing.perNight}
+            {/*
+              SIX PERIODS, NOT TWO. This was a ternary on "year", so a monthly
+              rent read "per night", a quarterly one read "per night", and a
+              ₦24,000,000 ASKING PRICE on a house for sale read "per night" on
+              the agent's own workspace. `PERIOD_SUFFIX` in lib/listings has
+              carried all six for a while; the words are now in the dictionary
+              too, so the row says the right one in four languages.
+            */}
+            <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              {t.pricing.period[listing.pricePeriod]}
             </span>
           </p>
 
-          <p className="mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {listing.photoCount === 1
               ? t.workspace.photoCountOne
               : fill(t.workspace.photoCount, { count: listing.photoCount })}
@@ -355,7 +385,7 @@ function ListingRow({
       </div>
 
       {listing.reviewNotes && (
-        <p className="border-t border-[var(--nf-border-subtle)] px-md py-sm text-[0.75rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="border-t border-[var(--nf-border-subtle)] px-md py-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
           {listing.reviewNotes}
         </p>
       )}
@@ -364,7 +394,7 @@ function ListingRow({
         {editable && (
           <Link
             href={`/agent/list?id=${listing.id}`}
-            className="flex items-center gap-2xs text-[0.8125rem] font-semibold text-[var(--nf-content-link)]"
+            className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)]"
           >
             {t.workspace.actions.edit}
             <UiIcon name="arrow-right" size={16} />
@@ -374,7 +404,7 @@ function ListingRow({
             calendar appears exactly where a guest could otherwise book. */}
         <Link
           href={`/agent/listings/${listing.id}/calendar`}
-          className="flex items-center gap-2xs text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
+          className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
         >
           <UiIcon name="calendar-booking" size={16} />
           Calendar
@@ -382,7 +412,7 @@ function ListingRow({
         {editable && (
           <button
             type="button"
-            className="text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
+            className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
             onClick={() => onAction("submit", listing)}
           >
             {t.workspace.actions.submit}
@@ -391,7 +421,7 @@ function ListingRow({
         {live && (
           <button
             type="button"
-            className="text-[0.8125rem] font-semibold text-[var(--nf-content-secondary)]"
+            className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
             onClick={() => onAction("unpublish", listing)}
           >
             {t.workspace.actions.takeDown}
@@ -416,7 +446,7 @@ function ListingRow({
       {error && (
         <p
           role="alert"
-          className="border-t border-[var(--nf-border-subtle)] px-md py-sm text-[0.75rem] text-[var(--nf-state-error)]"
+          className="border-t border-[var(--nf-border-subtle)] px-md py-sm text-[var(--nf-text-overline)] text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -522,7 +552,7 @@ export function ListingsWorkspace({
           <UiIcon name="house" size={32} />
         </span>
         <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
-        <p className="mx-auto mt-xs max-w-[38ch] text-[0.875rem] text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-xs max-w-[38ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           {t.workspace.emptyBody}
         </p>
         <ButtonLink href="/agent/list" variant="primary" className="mt-lg">
@@ -547,7 +577,7 @@ export function ListingsWorkspace({
               <h2 className="nf-h3">{heading.title}</h2>
               <span className="nf-count-badge">{count}</span>
             </span>
-            <p className="mb-sm mt-2xs text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="mb-sm mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {heading.blurb}
             </p>
             <ul className="space-y-sm">

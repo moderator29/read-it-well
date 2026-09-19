@@ -339,7 +339,7 @@ function Shell({
   subtitle?: string;
 }) {
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
         <PageHeader title="Checkout" subtitle={subtitle} fallback="/bookings" />

@@ -42,7 +42,11 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         { href: "/search?type=home", label: face.footer.buy },
         { href: "/search?type=rental", label: face.footer.rent },
         { href: "/stays", label: face.nav.stays },
-        { href: "/search?type=land", label: face.footer.invest },
+        /* The render's Product column lists Invest, pointing at land. Vallo
+           sells no investment product, so the slot carries Restaurants,
+           which is a shipped surface. Land is still a door on the landing's
+           category grid and in the search filters. */
+        { href: "/restaurants", label: face.footer.restaurants },
         { href: "/assistant", label: face.footer.ai },
       ],
     },

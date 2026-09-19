@@ -39,6 +39,23 @@
     gap: var(--nf-gap-inline);
     padding-block: var(--nf-gap-inline);
   }
+  /*
+   * A TIGHTER GAP ON A PHONE, BECAUSE THE CALL CONTROL ARRIVED.
+   *
+   * The row is the way back, the avatar, the name with its context and place,
+   * then the call and the kebab: four 44px targets and a text column. At 390
+   * the text column measured 114px against the 144px "Grand Vista Hotel"
+   * wants, so the name ellipsises where it did not before the control
+   * existed. Nothing here shrinks a tap target to fix that, because 44px is
+   * law; the three gaps come down one rung instead, which is twelve pixels
+   * back into the name. A longer name still truncates, and its whole text is
+   * on the context card and in the options sheet.
+   */
+  @media (max-width: 479px) {
+    .nf-thread__head {
+      gap: var(--nf-gap-inline-tight);
+    }
+  }
 
   /* The counterpart's avatar sits in a lit glass ring: a hairline of brand
      ink, a soft bloom, and the surface behind it kept dark so the ring is
@@ -80,6 +97,22 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+  /*
+   * THE PROPERTY FACE'S TITLE WRAPS RATHER THAN TRUNCATING.
+   *
+   * On the stay face the title is a person or a venue and one line is right.
+   * On the property face it is the LISTING TITLE, which is the whole subject
+   * of the conversation, and at 390 beside a back button, a photograph and
+   * two controls it had about 180px: "Luxury 2 bedroom apartment" became
+   * "Luxury 2 bedroom apa...". Two lines, then the ellipsis, so the header
+   * stays bounded and the words survive.
+   */
+  .nf-thread__title--place > span {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+  }
   .nf-thread__tick {
     color: var(--nf-brand-secondary);
     flex-shrink: 0;
@@ -93,6 +126,11 @@
   .nf-thread__place {
     display: flex;
     align-items: center;
+    /* Wraps, because the property face puts the listing's Verified badge on
+       this line and at 390 a badge that cannot wrap truncates the place
+       instead: "Lekki Phase 1..." beside a pill, on the one line whose job
+       is to say where the property is. */
+    flex-wrap: wrap;
     gap: var(--nf-space-3xs);
     margin-top: var(--nf-space-3xs);
     min-width: 0;
@@ -252,9 +290,29 @@
   }
   /* Theirs: a dark glass well with a brand hairline and a faint inner bloom.
      The tail corner is the one nearest the avatar. */
+  /*
+   * THE INCOMING BUBBLE IS BLUE GLASS, NOT A DARK WELL (R1 A16).
+   *
+   * `--nf-well-fill` is the INPUT material: the recessed ground a field is
+   * cut into, near-black by design because something is meant to be typed on
+   * it. A message somebody sent is not a field. Beside
+   * `GOVERNING-chat-booking-card.png` the difference reads immediately: the
+   * render draws the counterpart's bubble as a deep translucent blue with a
+   * lit rim, the same family as the sent side and a shade quieter, and ours
+   * read as a black box with a blue hairline drawn round it. Messaging is one
+   * of the five governing surfaces and this was the reason it looked least
+   * like the product.
+   *
+   * THE TAIL IS THE CORNER, AND THAT IS DELIBERATE. R1 asks for a 6px
+   * triangle on the outer bottom corner. The asymmetric radius below already
+   * is the tail: it points at the avatar, it costs no pseudo-element, and it
+   * survives a bubble that wraps to one line. A triangle laid over a corner
+   * that is already cut would be the same gesture drawn twice (10.2: resolve
+   * the render, do not copy the confusion).
+   */
   .nf-bubble--theirs {
     color: var(--nf-content-primary);
-    background: var(--nf-well-fill);
+    background: var(--nf-brand-tint-1);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     border-bottom-left-radius: var(--nf-radius-xs);
     box-shadow:
@@ -668,6 +726,12 @@
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-sm);
   }
+  /* A pair that wraps at 390 fills its own line rather than sitting at two
+     different widths down the left edge; side by side where there is room,
+     which is how GOVERNING-chat-booking-card.png draws the same pair. */
+  .nf-context-card__actions > * {
+    flex: 1 1 auto;
+  }
 
   /* ----------------------------------------------------------- composer */
 
@@ -752,10 +816,24 @@
       background: var(--nf-glass-fill);
     }
   }
+  /*
+   * THE RING WAS AN OVAL ON EVERY ROW IT HAS EVER DRAWN.
+   *
+   * It has no width or height of its own: it wraps the avatar and takes its
+   * size. Its parent rows are flex containers, and a flex child with no
+   * `align-self` STRETCHES to the row's height, so on a two-line inbox row
+   * the ring grew about a sixth taller than it was wide and
+   * `border-radius: 50%` drew that as an ellipse. Four of them down the
+   * inbox, three more on the share picker. `align-self: center` is the fix;
+   * `aspect-ratio` is the guard, so a future row that centres its items
+   * cannot bring the oval back by another route.
+   */
   .nf-inbox-row__ring {
     display: grid;
     place-items: center;
     flex-shrink: 0;
+    align-self: center;
+    aspect-ratio: 1;
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
@@ -963,6 +1041,62 @@
   }
   .nf-insp-fact__pill > * {
     max-width: 100%;
+  }
+  /* The call line under the counterpart's name, as the render draws it: the
+     stroked phone glyph and the grouped number, in brand ink so it reads as
+     the one thing in the cell you can act on. Drawn only when the read gave
+     a number, so it never appears as a dead control. */
+  .nf-insp-fact__phone {
+    margin-top: var(--nf-space-3xs);
+    min-width: 0;
+  }
+  .nf-insp-fact__phone > a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-height: 2.75rem;
+    min-width: 0;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    /* Breaks between the groups a phone number is written in and never
+       inside one: `anywhere` would put "+234 8" on one line and "01 000
+       0000" on the next, which is not a number anybody can read back. */
+    overflow-wrap: normal;
+  }
+
+  /*
+   * THE INSPECTION ROW AT 390, and why two of its parts move.
+   *
+   * The row is a glyph, a text column and a state pill, with the controls
+   * under them. At 390 the pill is `shrink-0` and "Waiting on you" is wide,
+   * so the text column collapsed to about a third of the card and the
+   * property title, the time, the name and the note each broke over three
+   * lines. Underneath, the controls carried a 56px indent that lines them up
+   * with the title on a wide screen and, on a phone, pushed "Offer another
+   * time" and "Decline" onto a second row hard against the right edge.
+   *
+   * So the pill takes its own line under the text on a phone and comes back
+   * to the right where there is room, and the controls lose the indent at the
+   * width where there is nothing to indent them under.
+   */
+  .nf-insp-row__state {
+    flex-basis: 100%;
+    padding-left: calc(2.75rem + var(--nf-space-sm));
+    text-align: left;
+  }
+  .nf-insp-row__controls {
+    padding-left: 0;
+  }
+  @media (min-width: 640px) {
+    .nf-insp-row__state {
+      flex-basis: auto;
+      padding-left: 0;
+      text-align: right;
+    }
+    .nf-insp-row__controls {
+      padding-left: calc(2.75rem + var(--nf-space-sm));
+    }
   }
 
   /* The ladder: a glass panel, a heading row with the count and a bar, then

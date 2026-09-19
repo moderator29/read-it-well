@@ -1,5 +1,5 @@
 import type { Listing } from "@/lib/listings/types";
-import type { BookingView } from "@/lib/bookings/queries";
+import type { BookingView, RentChargeView } from "@/lib/bookings/queries";
 import type { ReservationView } from "@/lib/reservations/queries";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import type { PaymentMethod } from "@/lib/payments/methods";
@@ -332,6 +332,54 @@ export const BOOKINGS: BookingView[] = [
     arrivingPhone: null,
     reviewed: false,
     reviewable: true,
+  },
+];
+
+/**
+ * TENANCY CHARGES, the fourth group `getMyBookings` answers with.
+ *
+ * A move-in day and a rent period, never a range and never a night. The
+ * totals are the charge's own frozen figures as the read formats them, and
+ * the one door is `/rent/pay/<inspectionId>`, never a stay checkout. The
+ * second row is a settled charge, which is what proves the payment control
+ * disappears once money is against it.
+ */
+export const TENANCIES: RentChargeView[] = [
+  {
+    id: "00000000-0000-4000-8000-00000000f371",
+    inspectionId: "00000000-0000-4000-8000-00000000f381",
+    listingId: RENTAL.id,
+    title: "Luxury 4 bedroom duplex with BQ",
+    area: "Lekki Phase 1",
+    city: "Lagos",
+    photo: P("villa-pool-skyline-01"),
+    moveIn: "2026-10-01",
+    moveInLabel: "Thu 1 Oct",
+    rentPeriod: "year",
+    periodLabel: "Yearly",
+    totalDisplay: "₦14,700,000",
+    status: "PENDING",
+    paid: false,
+    payable: true,
+    href: "/rent/pay/00000000-0000-4000-8000-00000000f381",
+  },
+  {
+    id: "00000000-0000-4000-8000-00000000f372",
+    inspectionId: "00000000-0000-4000-8000-00000000f382",
+    listingId: "00000000-0000-4000-8000-00000000f312",
+    title: "Modern 3 bedroom duplex",
+    area: "Ikoyi",
+    city: "Lagos",
+    photo: P("tower-entrance-dusk"),
+    moveIn: "2026-03-01",
+    moveInLabel: "Sun 1 Mar",
+    rentPeriod: "year",
+    periodLabel: "Yearly",
+    totalDisplay: "₦6,200,000",
+    status: "CONFIRMED",
+    paid: true,
+    payable: false,
+    href: "/rent/pay/00000000-0000-4000-8000-00000000f382",
   },
 ];
 

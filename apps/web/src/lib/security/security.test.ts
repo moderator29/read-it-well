@@ -276,3 +276,61 @@ describe("cspEnforced", () => {
     expect(cspHeaderName()).toBe("Content-Security-Policy-Report-Only");
   });
 });
+
+describe("script-src is one directive in production and another in development", () => {
+  /*
+   * These four assertions exist because the development branch of `scriptSrc`
+   * is a loosening, and a loosening with no test is a loosening that leaks.
+   * `NODE_ENV` is `test` under vitest, so the assertions above this block
+   * already run against the shipping directive; these run against both.
+   */
+  const original = process.env.NODE_ENV;
+  const directive = (value: string, name: string) =>
+    value
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part === name || part.startsWith(`${name} `)) ?? "";
+
+  const withEnv = (env: string) => {
+    // `NODE_ENV` is typed as a readonly literal union, so the cast is what a
+    // test needs to stand where a deployment stands. It is restored below.
+    (process.env as Record<string, string | undefined>).NODE_ENV = env;
+    return directive(contentSecurityPolicy("TESTNONCE"), "script-src");
+  };
+
+  afterEach(() => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = original;
+  });
+
+  it("keeps strict-dynamic and refuses eval in production", () => {
+    const script = withEnv("production");
+    expect(script).toContain("'strict-dynamic'");
+    expect(script).not.toContain("'unsafe-eval'");
+    expect(script).not.toContain("'unsafe-inline'");
+  });
+
+  it("keeps strict-dynamic and refuses eval under test, which is what the other assertions read", () => {
+    const script = withEnv("test");
+    expect(script).toContain("'strict-dynamic'");
+    expect(script).not.toContain("'unsafe-eval'");
+  });
+
+  it("drops strict-dynamic in development so Turbopack's own chunks can load", () => {
+    /*
+     * With strict-dynamic in force the dev server's HMR chunk tags carry no
+     * nonce, so the browser refuses them, hydration never completes and every
+     * mount effect in the product never runs. The visible cost was that every
+     * `Reveal` band stayed at opacity 0 in every screenshot proof.
+     */
+    const script = withEnv("development");
+    expect(script).not.toContain("'strict-dynamic'");
+    expect(script).toContain("'self'");
+    expect(script).toContain("'nonce-TESTNONCE'");
+  });
+
+  it("never allows inline script, in any environment", () => {
+    for (const env of ["production", "test", "development"]) {
+      expect(withEnv(env)).not.toContain("'unsafe-inline'");
+    }
+  });
+});

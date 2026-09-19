@@ -39,6 +39,31 @@ import Image from "next/image";
  * version of a photographic glass render is a new render, not a filter.
  */
 
+/**
+ * THE MARK IS NOT SQUARE, AND SAYING IT WAS PUT A WARNING ON EVERY PAGE.
+ *
+ * `vallo-mark.png` is 614 by 587: the extraction keyed the towers and the
+ * swoosh out of the square tile, and what is left is slightly wider than it
+ * is tall. This component declared `width={size} height={size}` anyway, which
+ * is two separate faults in one line. `next/image` computes the rendered
+ * height from the real file against the declared width, finds it disagrees
+ * with the declared height, and logs "has either width or height modified,
+ * but not the other" on every route that draws the logo, which is all of
+ * them (R1, `docs/design/audits/r1/findings.md` A40). And anywhere a
+ * stylesheet honoured the square, the mark was stretched 4.6 per cent taller
+ * than the artwork.
+ *
+ * Declaring the true shape fixes both. The rendered size is still driven by
+ * `size` through the style, so no call site changes and nothing moves on
+ * screen except the 4.6 per cent that should never have been there.
+ */
+const MARK_INTRINSIC = { width: 614, height: 587 } as const;
+
+/** The height `size` implies, at the artwork's real aspect. */
+function markHeight(size: number): number {
+  return Math.round((size * MARK_INTRINSIC.height) / MARK_INTRINSIC.width);
+}
+
 export function LogoMark({
   size = 48,
   responsive = false,
@@ -62,7 +87,7 @@ export function LogoMark({
       alt={title ?? ""}
       aria-hidden={title ? undefined : true}
       width={size}
-      height={size}
+      height={markHeight(size)}
       priority={priority}
       className={className}
       style={{ width, height: "auto" }}
@@ -81,6 +106,8 @@ export function LogoLockup({
 }) {
   return (
     <Image
+      /* 1024 by 1024 on disk, so the square here is the artwork's real shape
+         and not the assumption that broke the mark above. */
       src="/brand/vallo-logo.png"
       alt="Vallo"
       width={size}

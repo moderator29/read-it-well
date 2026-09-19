@@ -27,7 +27,7 @@ export function StaysBand({ t }: { t: Dictionary }) {
     { href: "/restaurants", label: s.restaurants, icon: "concierge-bell" },
   ];
   return (
-    <section className="nf-shell py-section" aria-labelledby="nf-landing-stays-title">
+    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-stays-title">
       <Reveal>
         <div className="nf-landing-band">
           <div className="nf-landing-band-photo">

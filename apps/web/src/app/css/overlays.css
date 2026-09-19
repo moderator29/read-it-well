@@ -47,18 +47,79 @@
     animation: nf-drawer-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
 
+  /*
+   * THE DRAWER'S SCRIM DIMS A LIVING PAGE. It used to black one out.
+   *
+   * It was `--nf-overlay-backdrop` with a small blur, and the backdrop token
+   * is tuned for a modal sheet, where the page behind is meant to stop
+   * existing. A navigation drawer is the opposite case: in `BCD39CA8` the
+   * results page beside the panel is dimmed and FULLY LEGIBLE, with its own
+   * glow still on it, and that is the whole reason the panel reads as a pane
+   * sliding over the app rather than as a second screen. The strip that
+   * stayed visible was pure black, which said the app had gone.
+   *
+   * 58 per cent of the deepest ink with a real blur, so the page is still
+   * there and still moving behind the glass. The no-backdrop-filter path
+   * goes to 78, because with nothing separating the two layers the type
+   * underneath competes with the panel's own. (R1 finding A19.)
+   */
+  .nf-drawer-scrim {
+    background: var(--nf-shade-3);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+    backdrop-filter: blur(10px) saturate(1.1);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nf-drawer-scrim {
+      background: var(--nf-overlay-backdrop);
+    }
+  }
+
   /* The drawer render opens from the LEFT, the app dimmed to its right. */
   @keyframes nf-drawer-in-left {
     from {
-      transform: translateX(-100%);
+      transform: translateX(calc(-100% - 0.5rem));
     }
     to {
       transform: translateX(0);
     }
   }
+  /*
+   * THE SIDE DRAWER IS A FLOATING LIT PANEL, per `BCD39CA8` (the drawer
+   * render), and it used to be a slab welded to the screen edge.
+   *
+   * Three things the render has and this did not. It FLOATS: all four corners
+   * are rounded and there is a margin of dimmed app around the whole panel,
+   * top and bottom included, which is what makes it read as a surface lifted
+   * off the screen rather than a second screen. It is RINGED: a bright blue
+   * outline with light coming off it, the same `--nf-glow-edge` composition
+   * every card, tile and icon plate now wears, where this carried
+   * `--nf-elev-4-rim` (a neutral grey hairline) and a drop shadow. And it is
+   * NARROWER: it stopped at 88% of a 390px screen, which leaves 47px of app
+   * showing, and the render leaves close to a third, so the dimmed catalogue
+   * behind it is legible as the place you are coming back to.
+   *
+   * The width is still capped in rem for a tablet, where 80% of 1024 would be
+   * a drawer nobody can reach across.
+   */
   .nf-drawer--left {
-    border-right: 1px solid var(--nf-elev-4-border);
-    border-radius: 0 var(--nf-radius-2xl) var(--nf-radius-2xl) 0;
+    inset-block: calc(env(safe-area-inset-top, 0px) + 0.5rem)
+      calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+    inset-inline-start: 0.5rem;
+    width: min(80%, 22rem);
+    border: 1px solid var(--nf-brand-edge-strong);
+    border-radius: var(--nf-radius-2xl);
+    /*
+     * The STRONG rung, and this is the second and last surface that takes it
+     * (the flip coin card at the foot is the other). A card in a stack takes
+     * the normal rung because six of them lit at full strength is six lamps;
+     * an open drawer is the only object on the screen, so there is nothing to
+     * compete with and the render rings it as brightly as anything it
+     * contains. At the normal rung, held beside `BCD39CA8`, the panel's
+     * outline disappeared into the dimmed app along its whole left side.
+     */
+    box-shadow:
+      var(--nf-glow-edge-strong),
+      var(--nf-elev-4);
     animation: nf-drawer-in-left var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
 

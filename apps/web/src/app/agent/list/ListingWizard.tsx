@@ -57,6 +57,7 @@ import {
   type WaterSupply,
 } from "@/lib/agent/listings-schema";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { TextField, TextArea } from "@/components/ui/Field";
@@ -312,8 +313,8 @@ function Toggle({
       onClick={() => onChange(!checked)}
     >
       <span>
-        <span className="block text-[0.9375rem] font-medium">{title}</span>
-        <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">{body}</span>
+        <span className="block text-[var(--nf-text-body-sm)] font-medium">{title}</span>
+        <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{body}</span>
       </span>
       <span
         className="relative h-7 w-12 shrink-0 rounded-full transition-colors"
@@ -379,7 +380,7 @@ function Counter({
 }) {
   return (
     <div className="flex items-center justify-between gap-row border-b border-[var(--nf-border-subtle)] py-row last:border-b-0">
-      <span className="text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">{label}</span>
+      <span className="text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">{label}</span>
       <span className="flex items-center gap-md">
         <button
           type="button"
@@ -388,11 +389,11 @@ function Counter({
           disabled={value <= min}
           onClick={() => onChange(Math.max(min, value - 1))}
         >
-          <span aria-hidden="true" className="text-[1.25rem] leading-none">
+          <span aria-hidden="true" className="text-[var(--nf-text-h4)] leading-none">
             &minus;
           </span>
         </button>
-        <span className="nf-numeric w-7 text-center text-[1rem] font-bold">{value}</span>
+        <span className="nf-numeric w-7 text-center text-[var(--nf-text-body)] font-bold">{value}</span>
         <button
           type="button"
           className="nf-icon-btn"
@@ -400,7 +401,7 @@ function Counter({
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
         >
-          <span aria-hidden="true" className="text-[1.25rem] leading-none">
+          <span aria-hidden="true" className="text-[var(--nf-text-h4)] leading-none">
             +
           </span>
         </button>
@@ -1070,7 +1071,7 @@ export function ListingWizard({
         <h1 className="nf-h3" aria-live="polite">
           {stepNames[step]}
         </h1>
-        <span className="nf-numeric shrink-0 text-[0.75rem] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric shrink-0 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.wizard.stepCounter, { current: step + 1, total: STEP_KEYS.length })}
         </span>
       </div>
@@ -1256,7 +1257,7 @@ export function ListingWizard({
         {/* -------------------------------------------------------- 2 photos */}
         {step === 1 && (
           <div className="space-y-group">
-            <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
               {fill(copy.photos.intro, { min: MIN_PHOTOS, max: MAX_PHOTOS })}{" "}
               {fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH })}
             </p>
@@ -1292,12 +1293,12 @@ export function ListingWizard({
               </p>
             )}
 
-            <p className="nf-numeric text-[0.75rem] text-[var(--nf-content-muted)]">
+            <p className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}
             </p>
 
             {photos.length === 0 ? (
-              <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-subtle)] p-cell text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
+              <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-subtle)] p-cell text-center text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 {copy.photos.empty}
               </div>
             ) : (
@@ -1305,10 +1306,19 @@ export function ListingWizard({
                 {photos.map((photo, index) => (
                   <li key={photo.id} className="overflow-hidden rounded-[var(--nf-radius-md)]">
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
-                      {/* Storage serves these straight from its public URL, so
-                          they render without the image optimiser. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photo.url} alt="" className="h-full w-full object-cover" />
+                      {/* The public bucket IS on the optimiser's allowlist
+                          (`next.config.ts` derives the Supabase host), so the
+                          old note here was out of date and an agent reviewing
+                          ten photographs was downloading ten full size
+                          uploads into a two column grid. */}
+                      <RemoteImage
+                        src={photo.url}
+                        alt=""
+                        width={640}
+                        height={480}
+                        sizes="(max-width: 40rem) 50vw, 20rem"
+                        className="h-full w-full object-cover"
+                      />
                       {index === 0 && (
                         <span className="nf-badge nf-badge--brand absolute left-2 top-2">
                           {copy.photos.cover}
@@ -1330,7 +1340,7 @@ export function ListingWizard({
                       </button>
                       <button
                         type="button"
-                        className="text-[0.75rem] font-semibold text-[var(--nf-content-muted)]"
+                        className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
                         onClick={() => dropPhoto(index)}
                       >
                         {copy.photos.remove}
@@ -1439,7 +1449,7 @@ export function ListingWizard({
         {/* --------------------------------------------- 5 light and water */}
         {step === 4 && (
           <div className="space-y-heading">
-            <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
               Is there light, is there water, and will they let a guest through
               the gate. These are the first three questions every guest here asks,
               and answering them honestly wins bookings from the listings that do
@@ -1467,7 +1477,7 @@ export function ListingWizard({
                   </button>
                 ))}
               </div>
-              <p className="text-[0.75rem] text-[var(--nf-content-muted)]">
+              <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {POWER_GRID_CHOICES.find((c) => c.value === values.powerGrid)?.blurb ??
                   "What the distribution company actually gives this address."}
               </p>
@@ -1539,7 +1549,7 @@ export function ListingWizard({
                   </button>
                 ))}
               </div>
-              <p className="text-[0.75rem] text-[var(--nf-content-muted)]">
+              <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {WATER_SUPPLY_CHOICES.find((c) => c.value === values.waterSupply)?.blurb ??
                   "Where the water in the taps comes from."}
               </p>
@@ -1547,7 +1557,7 @@ export function ListingWizard({
 
             <label className="flex items-center justify-between gap-md border-y border-[var(--nf-border-subtle)] py-row">
               <span>
-                <span className="block text-[0.9375rem] font-medium text-[var(--nf-content-primary)]">
+                <span className="block text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
                   Prepaid meter
                 </span>
                 <span className="nf-body-sm mt-inline-tight block text-[var(--nf-content-muted)]">
@@ -1564,7 +1574,7 @@ export function ListingWizard({
 
             {/* ------------------------------------------------ the gate */}
             <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
-              <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 Getting through the gate
               </p>
               <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
@@ -1832,7 +1842,7 @@ export function ListingWizard({
                   point and "we did not say" is not the same promise.
                 */}
                 <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
-                  <p className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                  <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     What it costs to move in
                   </p>
                   <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
@@ -1978,7 +1988,7 @@ export function ListingWizard({
                   </select>
                 </Field>
 
-                <p className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {copy.pricing.rentalNote}
                 </p>
               </>
@@ -2021,7 +2031,7 @@ export function ListingWizard({
                   onChange={(e) => set("availableFrom", e.target.value)}
                 />
               ) : (
-                <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
+                <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   Set above, with the tenancy terms.
                 </span>
               )}
@@ -2038,10 +2048,18 @@ export function ListingWizard({
             <article className="nf-card overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
                 {photos[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photos[0].url} alt="" className="h-full w-full object-cover" />
+                  /* The guest view's cover: one wide 4:3 plate, so it earns a
+                     larger candidate than the grid above it. */
+                  <RemoteImage
+                    src={photos[0].url}
+                    alt=""
+                    width={960}
+                    height={720}
+                    sizes="(max-width: 48rem) 100vw, 30rem"
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
-                  <div className="grid h-full w-full place-items-center text-[0.75rem] text-[var(--nf-content-muted)]">
+                  <div className="grid h-full w-full place-items-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {copy.guestView.addPhotos}
                   </div>
                 )}
@@ -2088,7 +2106,7 @@ export function ListingWizard({
                 </p>
               </div>
               <div className="p-card">
-                <h3 className="text-[0.9375rem] font-semibold leading-snug">
+                <h3 className="text-[var(--nf-text-body-sm)] font-semibold leading-snug">
                   {values.title || copy.guestView.titlePlaceholder}
                 </h3>
                 <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]">
@@ -2105,10 +2123,10 @@ export function ListingWizard({
                     .join(" · ")}
                 </p>
                 <p className="mt-inline flex items-baseline gap-inline-tight">
-                  <span className="nf-numeric text-[1.0625rem] font-bold">
+                  <span className="nf-numeric text-[var(--nf-text-body-lg)] font-bold">
                     {price ?? copy.guestView.priceToSet}
                   </span>
-                  <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {pricePeriod}
                   </span>
                 </p>
@@ -2179,9 +2197,9 @@ export function ListingWizard({
                       <UiIcon name="verified" size={12} />
                     </span>
                     <span className="min-w-0 leading-snug">
-                      <span className="block text-[0.875rem] font-medium">{item.label}</span>
+                      <span className="block text-[var(--nf-text-body-sm)] font-medium">{item.label}</span>
                       {problem && (
-                        <span className="block text-[0.75rem] text-[var(--nf-content-muted)]">
+                        <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                           {gateText(problem.field, problem.message)}
                         </span>
                       )}

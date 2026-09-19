@@ -4,25 +4,33 @@ import Link from "next/link";
 import { useId, useState, type KeyboardEvent } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
-type Segment = "buy" | "rent" | "stay" | "invest";
+type Segment = "buy" | "rent" | "stay";
 
 /**
- * The floating search pill: a text field, four segments, a filter glyph.
+ * The floating search pill: a text field, three segments, a filter glyph.
  *
- * Every segment is a real route. Buy, Rent and Invest are the discovery page
- * with the matching market (`type` is the parameter search-params.ts reads;
- * homes for sale, yearly rentals, land); Stay is the stays search. The form
- * submits with GET, so the pill works with no JavaScript at all and the
- * segment only decides where the text goes. The filter glyph opens the
+ * THREE SEGMENTS, NOT THE RENDER'S FOUR. The governing image shows Buy /
+ * Rent / Stay / Invest. Vallo sells no investment product: the fourth
+ * segment pointed at `/search?type=land`, which is a land listing and not
+ * an investment, so the pill was naming a capability the platform does not
+ * have. The content truth sweep of 19 September drops it, and land stays
+ * reachable from the category grid below and from the filter drawer. The
+ * visual treatment of the pill is unchanged; the three segments simply take
+ * the width the four had.
+ *
+ * Every remaining segment is a real route. Buy and Rent are the discovery
+ * page with the matching market (`type` is the parameter search-params.ts
+ * reads; homes for sale, yearly rentals); Stay is the stays search. The
+ * form submits with GET, so the pill works with no JavaScript at all and
+ * the segment only decides where the text goes. The filter glyph opens the
  * discovery page, whose own drawer holds every filter this platform has.
  */
 const ROUTES: Record<Segment, { action: string; type?: string; icon: UiIconName }> = {
   buy: { action: "/search", type: "home", icon: "home" },
   rent: { action: "/search", type: "rental", icon: "key" },
   stay: { action: "/stays/search", icon: "bed" },
-  invest: { action: "/search", type: "land", icon: "compass" },
 };
-const ORDER: Segment[] = ["buy", "rent", "stay", "invest"];
+const ORDER: Segment[] = ["buy", "rent", "stay"];
 
 export function SearchPill({
   labels,
@@ -79,9 +87,15 @@ export function SearchPill({
         <Link href="/search" aria-label={labels.filters} prefetch={false}>
           <UiIcon name="sliders" size={18} aria-hidden />
         </Link>
+        {/* Word first, arrow after it, as "Explore Properties" already does.
+            The two used to be laid out by `place-items: center` on a grid,
+            which at 390 put the arrow in a row of its own above the word and
+            made the product's primary control read as broken (R1 finding
+            A8). Above 640 the button is a circle and the word is for screen
+            readers only. */}
         <button type="submit" aria-label={labels.go}>
-          <UiIcon name="arrow-right" size={18} aria-hidden />
           <span className="sm:sr-only">{labels.go}</span>
+          <UiIcon name="arrow-right" size={18} aria-hidden />
         </button>
       </div>
     </form>

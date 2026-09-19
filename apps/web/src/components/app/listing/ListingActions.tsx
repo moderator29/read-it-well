@@ -5,8 +5,20 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { toggleSave } from "@/lib/saved/actions";
+import {
+  saveRestaurant,
+  saveStay,
+  unsaveRestaurant,
+  unsaveStay,
+} from "@/lib/saved/places-actions";
 import { addLocalSave, removeLocalSave } from "@/lib/saved/local";
-import { deviceSavesChanged, useDeviceSaved } from "@/components/app/SaveControl";
+import {
+  deviceSavesChanged,
+  useDeviceSaved,
+  type SavePlaceTarget,
+} from "@/components/app/SaveControl";
+import { ShareSheet } from "@/components/app/messages/ShareSheet";
+import type { SharedKind } from "@/components/app/messages/share";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -27,8 +39,24 @@ import { deviceSavesChanged, useDeviceSaved } from "@/components/app/SaveControl
  * Save flips instantly and settles against the truth the action returns:
  * a catalogue listing is kept on the device, a platform listing is a row under
  * RLS, and a write that fails puts the heart straight back and says why.
- * Share uses the platform sheet when the browser has one and copies the link
- * when it does not, so the control is never a dead end.
+ *
+ * THE HEART ON A STAY AND ON A RESTAURANT WROTE NOTHING, which is worse than
+ * having no heart at all. `/stay/<id>` carries an ACCOMMODATION id and the
+ * venue face carries a BUSINESS id; `saved_items.listing_id` has a foreign key
+ * to `public.listings`, so both taps came back as "this place is no longer
+ * available, so it cannot be saved" against a place that was right there on the
+ * screen. Their shortlist is `saved_places`, and `place` is how this control is
+ * told which shelf it is writing to. Absent, it is a listing and nothing about
+ * the old path changes.
+ *
+ * SHARE ASKS WHICH SHARE IT IS, and it used to have only one answer. It called
+ * the browser's own sheet and fell back to the clipboard, which sends a place
+ * to somebody who is NOT on Vallo. The founder's complaint was that he could
+ * not send a property into somebody's DMs, and every part of that path already
+ * existed apart from the way in: `/messages/share/<kind>/<id>` lists his own
+ * conversations under RLS and sends a real message that the thread expands
+ * into a card. `ShareSheet` is the way in, and the link is still the second
+ * row on it, so the control is never a dead end either way.
  */
 
 const TOAST_MS = 2600;
@@ -56,11 +84,27 @@ export function ListingActions({
   listingId,
   title,
   initialSaved = false,
+  shareKind = "listing",
+  place,
 }: {
   listingId: string;
   title: string;
   /** Whether this listing is already on the account's shortlist. */
   initialSaved?: boolean;
+  /**
+   * Set on a catalogue place rather than a platform listing: an accommodation
+   * on `/stay/<id>`, a business venue on `/restaurant/<id>`. It decides which
+   * table the heart writes to. See the note above this component.
+   */
+  place?: SavePlaceTarget;
+  /**
+   * What `listingId` IS, for the share path.
+   *
+   * `/stay/<id>` carries an ACCOMMODATION id, not a listing id, so a stay
+   * shared as a listing resolves to nothing. The stay page says `stay`; the
+   * listing and restaurant pages both carry listing ids and leave this alone.
+   */
+  shareKind?: SharedKind;
 }) {
   /*
    * The device's answer, from the one store every heart reads.
@@ -81,6 +125,7 @@ export function ListingActions({
   const setSaved = setOverride;
   const [message, setMessage] = useState<string | null>(null);
   const [signInPrompt, setSignInPrompt] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -108,6 +153,30 @@ export function ListingActions({
     setSignInPrompt(false);
 
     startTransition(async () => {
+      if (place) {
+        /* The other shelf. Save and unsave are separate intents, as the
+           actions are written, so a double tap cannot flip a shortlist the
+           wrong way. There is no device half here: `saved_items` takes
+           listing ids only, so a signed-out tap is answered by the sign-in
+           prompt the envelope already carries rather than by a local save
+           that could never be reconciled. */
+        const result =
+          place.kind === "accommodation"
+            ? next
+              ? await saveStay({ accommodationId: place.id })
+              : await unsaveStay({ accommodationId: place.id })
+            : next
+              ? await saveRestaurant({ restaurantId: place.id })
+              : await unsaveRestaurant({ restaurantId: place.id });
+        if (!result.ok) {
+          setSaved(!next);
+          say(result.error, result.error.startsWith("Sign in"));
+          return;
+        }
+        say(next ? "Saved to your shortlist" : "Removed from saved");
+        return;
+      }
+
       const result = await toggleSave({ listingId });
       if (!result.ok) {
         // Nothing changed anywhere, so the heart goes back exactly as it was.
@@ -130,7 +199,13 @@ export function ListingActions({
     });
   }
 
-  async function share() {
+  /*
+   * SHARING OFF VALLO. The button no longer calls this directly: the sheet
+   * above it asks whether the place is going to somebody's DMs or to the
+   * outside world, because the founder could not do the first one at all and
+   * this was the whole of what "share" meant. This is the second answer.
+   */
+  async function shareElsewhere() {
     const url = typeof window === "undefined" ? "" : window.location.href;
     if (!url) return;
 
@@ -164,7 +239,9 @@ export function ListingActions({
       <div className="flex items-center gap-xs">
         <button
           type="button"
-          onClick={share}
+          onClick={() => setShareOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={shareOpen}
           aria-label="Share this listing"
           data-testid="listing-share"
           className="grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
@@ -216,6 +293,16 @@ export function ListingActions({
           )}
         </p>
       )}
+
+      {/* The way into somebody's DMs, and the way out to everywhere else. */}
+      <ShareSheet
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        kind={shareKind}
+        id={listingId}
+        title={title}
+        onShareElsewhere={() => void shareElsewhere()}
+      />
     </div>
   );
 }

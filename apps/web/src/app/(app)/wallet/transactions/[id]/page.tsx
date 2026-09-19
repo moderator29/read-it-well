@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
 import { Receipt } from "@/components/app/wallet/Receipt";
 import { readWalletEntry } from "@/lib/wallet/repository";
+import { readPaidFor } from "./paid-for";
 
 /** Never indexed, and never in a browser tab title beside somebody's amount. */
 export const metadata: Metadata = {
@@ -36,6 +37,9 @@ export default async function WalletReceiptPage({
   const { id } = await params;
   const locale = await getLocale();
   const entry = await readWalletEntry(id);
+  /* What the money bought, when the reference names something this reader
+     owns. Asked only once there is a receipt to put it on. */
+  const paidFor = entry ? await readPaidFor(entry.reference) : null;
 
   return (
     <div className="nf-money mx-auto max-w-lg">
@@ -43,7 +47,7 @@ export default async function WalletReceiptPage({
 
       {entry ? (
         <Reveal>
-          <Receipt entry={entry} locale={locale} />
+          <Receipt entry={entry} locale={locale} paidFor={paidFor} />
         </Reveal>
       ) : (
         <Reveal>

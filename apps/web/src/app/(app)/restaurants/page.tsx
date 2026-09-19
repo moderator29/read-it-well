@@ -9,6 +9,9 @@ import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
+import { resolveSession } from "@/lib/actions/session";
+import { listSavedPlaces } from "@/lib/saved/places-actions";
+import { isSaved, savedKeySet } from "@/lib/saved/places";
 
 export const metadata: Metadata = {
   title: "Restaurants",
@@ -29,10 +32,17 @@ export const dynamic = "force-dynamic";
 export default async function RestaurantsPage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const [listings, venues] = await Promise.all([
+  const [listings, venues, session, savedPlaces] = await Promise.all([
     getListingRepository().search({ kind: "restaurant" }),
     listRestaurants(),
+    resolveSession(),
+    listSavedPlaces(),
   ]);
+  /* The saved shelf this reader already has. A venue is a business row, and
+     `catalogue_entries` files a restaurant under its business id, so the
+     business id IS the key the shortlist is written with. */
+  const savedKeys = savedKeySet(savedPlaces.ok ? savedPlaces.data : []);
+  const canSavePlaces = session.state === "signed-in";
 
   const cards: StayCardData[] = [
     ...venues.map<StayCardData>((venue) => ({
@@ -56,6 +66,10 @@ export default async function RestaurantsPage() {
       ],
       totalMinor: null,
       nights: null,
+      /* A business-grade venue is a `saved_places` row under the restaurant
+         kind; a catalogue listing below is a `saved_items` row. Two shelves,
+         one heart, and the card is told which one it writes to. */
+      place: { kind: "restaurant", id: venue.business.id },
     })),
     ...listings.map((listing) => ({
       ...stayCardFromListing(listing),
@@ -82,7 +96,14 @@ export default async function RestaurantsPage() {
         <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" data-testid="restaurant-shelf">
           {cards.map((card, index) => (
             <li key={card.id}>
-              <StayCard stay={card} locale={locale} t={t} index={index} />
+              <StayCard
+                stay={card}
+                locale={locale}
+                t={t}
+                index={index}
+                saved={card.place ? isSaved(savedKeys, card.place.kind, card.place.id) : false}
+                canSavePlaces={canSavePlaces}
+              />
             </li>
           ))}
         </ul>

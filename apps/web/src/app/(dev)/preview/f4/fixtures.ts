@@ -247,3 +247,148 @@ export const FEED_PLACES = [
   { slug: "lekki-phase-1", name: "Lekki Phase 1", city: "Lagos" },
   { slug: "victoria-island", name: "Victoria Island", city: "Lagos" },
 ];
+
+/* ------------------------------------------------------------------ stories */
+
+/** One story, as `/stories/[id]` hands it to the viewer. */
+export const STORY = {
+  id: "00000000-0000-4000-8000-00000000b001",
+  headline: "The pool at dusk, and what the terrace is really for",
+  standfirst:
+    "Three years of evenings on this terrace, and the thing nobody tells you about a west-facing pool in Lekki.",
+  placeLabel: "Lekki Phase 1, Lagos",
+  imageUrl: villa,
+  author: {
+    id: COUNTERPART.id,
+    handle: COUNTERPART.handle,
+    label: COUNTERPART.name,
+    avatarUrl: "",
+    isAgent: true,
+  },
+  createdLabel: "2h ago",
+  edited: false,
+  likeCount: 48,
+  saveCount: 11,
+  commentCount: 6,
+  viewCount: 412,
+  liked: false,
+  saved: false,
+  isMine: false,
+  removed: false,
+  heldReason: null,
+  areaSlug: "lekki-phase-1",
+  areaName: "Lekki Phase 1",
+};
+
+export const STORY_FACES = [
+  { userId: "00000000-0000-4000-8000-000000000004", label: "Chioma Okafor", handle: "chii_realty", avatarUrl: "" },
+  { userId: "00000000-0000-4000-8000-000000000005", label: "LagosRealtor", handle: "lagosrealtor", avatarUrl: "" },
+  { userId: PERSON.id, label: PERSON.name, handle: PERSON.handle, avatarUrl: "" },
+];
+
+export const STORY_COMMENTS = [
+  {
+    id: "00000000-0000-4000-8000-00000000f001",
+    parentId: null,
+    body: "The light at that hour is the whole argument for the west side.",
+    createdLabel: "1h ago",
+    authorId: "00000000-0000-4000-8000-000000000004",
+    authorLabel: "Chioma Okafor",
+    authorHandle: "chii_realty",
+    avatarUrl: "",
+    likeCount: 4,
+    liked: false,
+    isMine: false,
+    removed: false,
+  },
+];
+
+/* ------------------------------------------------------------- a place page */
+
+export const PLACE_REVIEWS = [
+  {
+    id: "00000000-0000-4000-8000-00000000f101",
+    rating: 5,
+    body: "Quiet street, generator ran the whole weekend, and the host answered every message within the hour.",
+    createdLabel: "Last month",
+    listingTitle: "Two bedroom serviced flat, Lekki Phase 1",
+    authorLabel: "Chioma Okafor",
+  },
+  {
+    id: "00000000-0000-4000-8000-00000000f102",
+    rating: 4,
+    body: "Exactly the photographs. Water pressure on the top floor is the only thing I would mention.",
+    createdLabel: "Last month",
+    listingTitle: "Terrace off Admiralty Way",
+    authorLabel: "LagosRealtor",
+  },
+];
+
+/* ------------------------------------------------------ the profile editor */
+
+export const EDITOR_PROFILE = {
+  userId: PERSON.id,
+  handle: PERSON.handle,
+  displayLabel: PERSON.name,
+  avatarUrl: "",
+  isAgent: false,
+  bio: PERSON.bio,
+  bioStatus: "LIVE" as const,
+  pronouns: "he/him",
+  link: "https://seyi.example",
+  contactPolicy: "REQUEST" as const,
+  pidginOk: true,
+  homeAreaId: "00000000-0000-4000-8000-00000000c001",
+  coverPath: null,
+  coverUrl: skyline,
+  followerCount: 128,
+  followingCount: 96,
+  postCount: 24,
+  claimedAt: "2026-06-01T09:00:00.000Z",
+};
+
+export const AREA_OPTIONS = [
+  { id: "00000000-0000-4000-8000-00000000c001", name: "Lekki Phase 1", city: "Lagos", stateCode: "LA" },
+  { id: "00000000-0000-4000-8000-00000000c002", name: "Victoria Island", city: "Lagos", stateCode: "LA" },
+];
+
+/* ------------------------------------------------------------ notifications */
+
+export const NOTIFICATIONS = [
+  {
+    id: "00000000-0000-4000-8000-00000000f201",
+    kind: "booking",
+    title: "Your reservation at Grand Vista Hotel is confirmed",
+    body: "Check in Friday from 15:00. The room is held in your name.",
+    href: "/trips",
+    read: false,
+    createdAt: "2026-09-19T08:12:00.000Z",
+  },
+  {
+    id: "00000000-0000-4000-8000-00000000f202",
+    kind: "social",
+    title: "Chioma Okafor replied to you in Lekki Phase 1",
+    body: "The light at that hour is the whole argument for the west side.",
+    href: "/post/00000000-0000-4000-8000-00000000a001",
+    read: false,
+    createdAt: "2026-09-19T07:40:00.000Z",
+  },
+  {
+    id: "00000000-0000-4000-8000-00000000f203",
+    kind: "message",
+    title: "Tunde Adebayo sent you a message",
+    body: "Happy to show you the terrace on Saturday morning.",
+    href: "/messages",
+    read: true,
+    createdAt: "2026-09-18T16:05:00.000Z",
+  },
+  {
+    id: "00000000-0000-4000-8000-00000000f204",
+    kind: "wallet",
+    title: "Your wallet top up cleared",
+    body: null,
+    href: "/wallet",
+    read: true,
+    createdAt: "2026-09-18T11:30:00.000Z",
+  },
+];

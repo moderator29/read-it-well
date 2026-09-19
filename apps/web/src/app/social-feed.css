@@ -639,7 +639,10 @@
     min-block-size: 48px;
     padding-inline: 13px;
     border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-subtle);
+    /* A resting control carries the brand edge with light on it, never a grey
+       hairline: every governing reference draws it that way (R1 A5). */
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
     font-size: var(--nf-text-body);
     color: var(--nf-content-secondary);
     cursor: pointer;
@@ -1051,7 +1054,9 @@
     min-block-size: 30px;
     padding-inline: 11px;
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
+    /* Lit brand edge, not a grey hairline (R1 A5). */
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
     font-size: var(--nf-text-caption);
     font-weight: 650;
     color: var(--nf-content-secondary);
@@ -1449,6 +1454,34 @@
     display: block;
     font-size: var(--nf-text-caption);
     color: var(--nf-content-on-media-secondary);
+  }
+  /*
+   * 390, WHERE THIS ROW RUNS OUT.
+   *
+   * Back, avatar, name, Follow and the menu are five things on one line and
+   * only the name flexes, so at the phone width a thirteen character name was
+   * truncating to "Tunde Ad...". A person's name is the subject of the row,
+   * and neither round control may shrink below the 44px tap law, so the room
+   * comes from the gaps and from one step down the type scale rather than
+   * from the name.
+   *
+   * IT SITS HERE, AFTER `.nf-story__who`, AND THAT IS THE WHOLE FIX. The
+   * first attempt put this block up beside `.nf-story__top`, which is
+   * declared BEFORE the name is: same specificity, earlier in the file, so
+   * the plain rule below won and only the gap change landed. A media query is
+   * not a specificity bump.
+   */
+  @media (max-width: 430px) {
+    .nf-story__top {
+      gap: var(--nf-space-2xs);
+      padding-inline: var(--nf-space-md);
+    }
+    .nf-story__author {
+      gap: var(--nf-space-2xs);
+    }
+    .nf-story__who {
+      font-size: var(--nf-text-body-sm);
+    }
   }
   .nf-story__menu {
     inset-inline-end: 0;
@@ -2327,7 +2360,11 @@
     min-block-size: 38px;
     padding-inline: 15px;
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-default);
+    /* Lit brand edge, not a grey hairline. These are the feed's own filter
+       tabs, the control that decides what the whole screen shows, and they
+       were eleven grey boxes beside one lit primary (R1 A5). */
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
     font-size: var(--nf-text-caption);
     font-weight: 650;
     color: var(--nf-content-secondary);
@@ -2630,7 +2667,9 @@
     min-block-size: 40px;
     padding-inline: 14px;
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-default);
+    /* Lit brand edge, not a grey hairline (R1 A5). */
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
     background: var(--nf-surface-inset);
     font-size: var(--nf-text-caption);
     font-weight: 650;
@@ -3177,16 +3216,33 @@
     block-size: 60px;
     border-radius: var(--nf-radius-circle);
     color: var(--nf-content-on-brand);
+    /*
+     * GLASS, NOT PAINT (R1 A25, and the governing image agrees).
+     *
+     * This was a solid radial fill from accent to brand, so the disc was
+     * opaque and the post underneath simply stopped: the first shot of the
+     * feed has it covering the middle of "Looking for something short-term".
+     * `GOVERNING-feed-plus-bloom.png` draws a translucent blue circle with a
+     * bright rim over Chioma's post, and the post's own words and the card's
+     * edge are both visible THROUGH it. The light in the render is in the rim
+     * and the bloom around it, never in the fill, which is the same rule the
+     * lozenges below already follow.
+     *
+     * The specular stays: a glass sphere has a highlight at the upper left,
+     * and without it a translucent circle is a hole rather than an object.
+     */
     border: 1px solid color-mix(in oklab, var(--nf-brand-accent) 70%, white);
     background:
       radial-gradient(
-        120% 120% at 30% 25%,
-        color-mix(in oklab, var(--nf-brand-accent) 55%, white) 0%,
-        var(--nf-brand-primary) 48%,
-        var(--nf-brand-primary-strong) 100%
-      );
+        90% 90% at 30% 25%,
+        var(--nf-glass-rim-strong) 0%,
+        transparent 55%
+      ),
+      color-mix(in oklab, var(--nf-brand-primary) 42%, var(--nf-glass-fill));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-strong),
+      var(--nf-glow-edge-strong),
       0 0 0 6px var(--nf-glow-wash),
       0 0 28px -2px var(--nf-glow-3),
       0 14px 34px -12px var(--nf-glow-4);
@@ -3351,7 +3407,14 @@
   :root[data-theme="light"] .nf-bloom__scrim {
     background: color-mix(in oklab, var(--nf-surface-canvas) 30%, transparent);
   }
+  /* On paper the plus keeps the brand FILL. A translucent blue circle is an
+     object against a dark feed and a smudge against a white one, and the plus
+     inside it is on-brand ink that needs something to sit on. Night gets the
+     render's glass, daylight gets the render's brightness. */
   :root[data-theme="light"] .nf-bloom__fab {
+    background: var(--nf-gradient-brand);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     box-shadow:
       0 0 0 6px var(--nf-glow-wash),
       0 10px 24px -10px var(--nf-glow-3);
@@ -3371,5 +3434,28 @@
   :root[data-theme="light"] .nf-bloom__item:hover,
   :root[data-theme="light"] .nf-bloom__item:focus-visible {
     filter: brightness(1.06);
+  }
+
+  /*
+   * A COMPOSER'S SEND KEEPS ITS FILL WHILE THE FIELD IS EMPTY (R1 A26).
+   *
+   * The platform's disabled rule flattens a button to a neutral plate with
+   * muted ink, which is right for a Save that is off because a form is wrong.
+   * A composer's send is off because nobody has typed yet: that is its
+   * RESTING state, it is what the screen looks like for the whole time
+   * somebody is reading before they answer, and a dead grey square is the
+   * only primary on the surface for all of it.
+   *
+   * It belongs in `buttons.css` as a shared modifier the moment the same
+   * sweep reaches `threads.css` and the assistant; it is local here because
+   * that file is not this scope's to edit.
+   */
+  .nf-btn.nf-composer__send:disabled:not([data-loading="true"]) {
+    background: var(--nf-gradient-cta);
+    background-image: var(--nf-gradient-cta);
+    color: var(--nf-content-on-brand);
+    border-color: var(--nf-brand-edge);
+    opacity: 0.45;
+    box-shadow: none;
   }
 }

@@ -55,7 +55,7 @@ export const dynamic = "force-dynamic";
  * list that showed only decided rungs would leave an agent on tier 1 looking at
  * a single line with no idea that three more exist.
  */
-function Ladder({ ladder }: { ladder: OwnLadder }) {
+export function Ladder({ ladder }: { ladder: OwnLadder }) {
   return (
     <ol className="mt-lg flex flex-col gap-sm">
       {VERIFICATION_ORDER.map((rung) => {
@@ -66,10 +66,10 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
         return (
           <li key={rung.kind} className="nf-card p-md sm:p-panel">
             <div className="flex flex-wrap items-center gap-xs">
-              <span className="text-[0.75rem] font-semibold tabular-nums text-[var(--nf-content-muted)]">
+              <span className="text-[var(--nf-text-overline)] font-semibold tabular-nums text-[var(--nf-content-muted)]">
                 {rung.step}
               </span>
-              <span className="text-[1rem] font-semibold text-[var(--nf-content-primary)]">
+              <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                 {rung.label}
               </span>
               {/* Three states, and the third is the honest one that a two-state
@@ -85,13 +85,13 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
               )}
             </div>
 
-            <p className="mt-xs text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {rung.meaning}
             </p>
 
             {/* Named concretely so a host can go and get it, which is the whole
                 point of publishing the ladder rather than describing it. */}
-            <p className="mt-xs text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               <span className="font-semibold">What we look at:</span> {rung.evidence}
             </p>
 
@@ -100,7 +100,7 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
                 locked door. */}
             {decision?.note && (
               <p
-                className={`mt-sm rounded-lg px-sm py-xs text-[0.8125rem] leading-relaxed ${
+                className={`mt-sm rounded-lg px-sm py-xs text-[var(--nf-text-caption)] leading-relaxed ${
                   failed
                     ? "bg-[var(--nf-state-error-surface)] text-[var(--nf-content-primary)]"
                     : "bg-[var(--nf-surface-raised)] text-[var(--nf-content-secondary)]"
@@ -114,7 +114,7 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
               /* Tier says this rung is behind them but no row records it. That
                  is a real state: the tier is recomputed by trigger and a row can
                  be removed. Said plainly rather than papered over. */
-              <p className="mt-xs text-[0.8125rem] text-[var(--nf-content-muted)]">
+              <p className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 Counted towards your standing, with no decision recorded against
                 it.
               </p>
@@ -126,23 +126,36 @@ function Ladder({ ladder }: { ladder: OwnLadder }) {
   );
 }
 
-function Standing({ tier }: { tier: VerificationTier }) {
+export function Standing({ tier }: { tier: VerificationTier }) {
   const next = nextRung(tier);
   return (
     <div className="nf-card p-panel">
-      <p className="text-[0.8125rem] text-[var(--nf-content-secondary)]">
+      <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         Your standing
       </p>
-      <p className="mt-2xs text-[1.375rem] font-bold leading-tight text-[var(--nf-content-primary)]">
+      <p className="mt-2xs text-[var(--nf-text-h3)] font-bold leading-tight text-[var(--nf-content-primary)]">
         {TIER_NAME[tier]}
       </p>
-      <p className="mt-2xs text-[0.8125rem] tabular-nums text-[var(--nf-content-muted)]">
+      <p className="mt-2xs text-[var(--nf-text-caption)] tabular-nums text-[var(--nf-content-muted)]">
         {tier} of {VERIFICATION_ORDER.length} checks passed
       </p>
 
-      <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+      {/*
+        THE SENTENCE IS NOT SPLICED OUT OF THE REVIEWER'S WORDS ANY MORE.
+
+        It read "Next up is bank account in their own name. The payout account
+        resolved through the payment processor, with the returned account name
+        matching the identity on file." Both halves come from
+        `lib/trust/verification.ts`, which is written for the member of staff
+        making the decision: it says "this agent", "they" and "them" about the
+        very person reading this page. Lower-casing a label into the middle of
+        a second-person sentence made it worse. The rung's own card below
+        carries the reviewer's words under "What we look at", where third
+        person is correct because it is quoting the check.
+      */}
+      <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {next
-          ? `Next up is ${next.label.toLowerCase()}. ${next.evidence}`
+          ? `Next on the ladder: ${next.label}. What that check looks at is on its card below.`
           : "Every check on the ladder is passed. There is nothing further to send."}
       </p>
 
@@ -209,7 +222,7 @@ export default async function Page() {
         /* An honest absence rather than an empty ladder. Drawing four "not
            checked yet" rungs from a failed read would tell an agent who has
            passed three that they have passed none. */
-        <p className="nf-card p-panel text-[0.875rem] text-[var(--nf-content-secondary)]">
+        <p className="nf-card p-panel text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           Your checks could not be loaded just now. Nothing has changed, and
           reloading usually settles it.
         </p>

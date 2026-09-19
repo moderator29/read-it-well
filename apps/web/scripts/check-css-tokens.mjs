@@ -391,6 +391,7 @@ const failures = [];
 const componentFailures = [];
 const unresolved = [];
 const mistyped = [];
+const dullControls = [];
 /*
  * THE RAW-COLOUR CHECK USED TO REPORT A COUNT AND NOT A PLACE.
  *
@@ -482,11 +483,203 @@ for (const dir of ROOTS) {
       }
     });
 
+    /*
+     * A MASK CHANNEL IS NOT A COLOUR, and this is the exception that says so.
+     *
+     * `mask-image: linear-gradient(transparent 0, #000 16px, ...)` uses the
+     * alpha of each stop to decide what shows through. The `#000` there is not
+     * painted, is never seen, and has no light twin: in both themes the only
+     * thing that matters is that the stop is fully opaque. There is no token
+     * for it and there should not be one, because a token named for a colour
+     * that is not a colour would be read as a colour by the next person.
+     *
+     * Without this exception the rule was pushing authors towards the two
+     * things it exists to prevent: inventing a fake token to satisfy a
+     * checker, or reaching for `--nf-ink-950` in a mask, where a near-black
+     * that is not quite opaque silently fades the edge of the content it is
+     * supposed to reveal in full.
+     *
+     * The exception is narrow on purpose. It covers only the lines a
+     * `mask-image` or `-webkit-mask-image` declaration actually spans, from
+     * the property to its semicolon, so a literal anywhere else in the same
+     * rule is still reported.
+     */
+    const masked = new Set();
+    {
+      const lines = source.split("\n");
+      let inMask = false;
+      lines.forEach((line, index) => {
+        if (!inMask && /(^|[\s;{])(-webkit-)?mask(-image)?\s*:/.test(line)) inMask = true;
+        if (inMask) {
+          masked.add(index);
+          if (line.includes(";")) inMask = false;
+        }
+      });
+    }
+
     source.split("\n").forEach((line, index) => {
       for (const hit of line.matchAll(RAW_COLOUR)) {
+        if (masked.has(index)) continue;
         rawColours.push(`${where}:${index + 1}  ${hit[0]}`);
       }
     });
+
+  }
+}
+
+/*
+ * ------------------------------- A GREY EDGE ON A RESTING CONTROL
+ *
+ * The neutral border family is white at 8, 11, 13 and 22 per cent. On the
+ * deep navy canvas every one of those is a grey hairline, and in every
+ * governing reference a resting chip, tile, plate, icon button and secondary
+ * carries a BLUE outline. R1's audit of 19 September called the gap between
+ * those two facts "the biggest single reason the product still does not read
+ * as its renders": a screen with one lit primary and eleven grey boxes reads
+ * as a prototype with one finished control.
+ *
+ * The sweep that fixed it is the easy half. This is the half that makes it
+ * stay fixed, because the next chip somebody adds will be copied from
+ * whatever chip is nearest, and for a long time that was a grey one.
+ *
+ * FOUR TOKENS, NOT ONE. The first version of this check watched
+ * `--nf-glass-border` alone, and `.nf-chip` - the shared primitive behind the
+ * bookings tabs, the host wizard's kind chips, the reviews filter and four
+ * more surfaces F5 found - rested on `--nf-border-default` and walked
+ * straight past it. Two greys with different names is the obvious next
+ * mistake, so the whole neutral family is watched.
+ *
+ * WHAT COUNTS AS A CONTROL, and why it is decided from the SELECTOR.
+ *
+ * There is no way to know from CSS alone whether an element is interactive.
+ * What there is, in this codebase, is a naming convention that has held
+ * across every partial: a control is named for what it does. `__btn`,
+ * `--chip`, `__tab`, `__tile`, `__toggle`, `-island`, `-pill`, `__option`.
+ * A rule whose selector carries one of those, or that declares
+ * `cursor: pointer`, is a control. Anything else - a divider, a section edge,
+ * a scrim, a skeleton, a row of actions - keeps the hairline, because a
+ * hairline is exactly right for a line that separates two things.
+ *
+ * AND ONLY ITS RESTING RULE, WHICH IS THE WHOLE PRECISION OF THIS CHECK.
+ *
+ * The first version treated `:hover`, `:active`, `:focus` and
+ * `[aria-pressed]` as EVIDENCE that a rule was a control, which is true and
+ * is the wrong way round: the fault the founder photographed is a resting
+ * control that looks unfinished, and a state rule is not the resting state.
+ * A hover that darkens toward a neutral, a focus ring that sets a border, a
+ * disabled button that goes grey on purpose and a light-theme override that
+ * is a designed paper twin are all legitimate, and flagging thirty of them
+ * is how a check gets switched off in a week - which this file's own header
+ * warns about at length.
+ *
+ * So a state selector and a `[data-theme="light"]` selector are EXCLUDED, and
+ * what is left is exactly the fault: the edge a control wears when nothing
+ * is happening to it, in the theme that is the product's default.
+ *
+ * THE PARSE IS DELIBERATELY CRUDE, on the same argument `SOLE_VAR` above
+ * makes for itself: brace depth and the text before `{`. It cannot see a rule
+ * written inline. An over-eager report names a file and a line that a reader
+ * can look at and dismiss, which is the right way round for a check to be
+ * wrong.
+ */
+const CONTROL_SELECTOR =
+  /(__btn|-btn\b|--btn|\bbtn\b|chip|__tab\b|--tab\b|__tile|-tile\b|toggle|switch|__pill|-pill\b|island|__option|__control)/;
+/* A state, or the paper twin. Neither is the resting edge this check is about. */
+const NOT_RESTING =
+  /(:hover|:active|:focus|:disabled|\[aria-pressed|\[aria-current|\[aria-disabled|\[data-on\b|\[data-loading|\[data-theme|\[disabled)/;
+const BORDER_GLASS =
+  /border(?:-[a-z]+)?\s*:[^;]*var\(\s*--nf-(?:glass-border|border-subtle|border-default|border-strong)\s*\)/;
+const POINTER = /cursor\s*:\s*pointer/;
+
+/*
+ * THE EXCEPTIONS, KEYED ON FILE AND SELECTOR, EACH WITH ITS REASON.
+ *
+ * Two kinds, and they are deliberately in one list so that nobody can add to
+ * it without writing which kind they are adding.
+ *
+ * PERMANENT: the check is wrong about these, and the reason is about
+ * semantics rather than taste.
+ *
+ *   `.nf-tag-pill--neutral` is the neutral member of a status family whose
+ *   other members carry status colour. Blue on it would read as a state, and
+ *   "no state" is the state it exists to express.
+ *
+ *   `.nf-switch`, in both files that draw one, is a TRACK in its off
+ *   position. Grey off and brand on is the entire semantics of a switch; a
+ *   blue track would say the switch is on before anybody touched it.
+ *
+ *   `.nf-option` belongs to the agent workspace and selects with
+ *   `--nf-mode-agent`. Its own comment argues it is an inset ANSWER inside a
+ *   container rather than an object, and the mode's whole point is that it is
+ *   not the brand. A brand-blue resting edge would put brand chrome inside a
+ *   surface deliberately built not to wear it.
+ *
+ * DEBT: real instances of the fault in a file this sweep did not own. They
+ * are listed so the gate stays green for their owner today and so the rule is
+ * already live for everything else. A LISTED ENTRY IS A JOB, NOT A RULING:
+ * delete it when the edge is swept, and never add one to make a build pass.
+ *
+ *   `catalogue.css` (F3): the shelf sort control and two card chips. The
+ *   stays render `FD3DFE84` draws those amenity chips with a soft blue
+ *   outline, so all three are the same fault, not exceptions.
+ */
+const DULL_ALLOWED = new Set([
+  "src/app/css/chips.css  .nf-tag-pill--neutral",
+  "src/app/css/controls.css  .nf-switch",
+  "src/app/settings-rows.css  .nf-switch",
+  "src/app/css/utilities.css  .nf-option",
+  "src/app/css/catalogue.css  .nf-shelf-sort > summary",
+  "src/app/css/catalogue.css  .nf-stay-card__chip",
+  "src/app/css/catalogue.css  .nf-tenancy-chip",
+]);
+
+function dullControlsIn(source, where) {
+  const found = [];
+  /* A stack, so `@layer components { .nf-chip { ... } }` reports `.nf-chip`
+     and not the layer. Every partial in this repository is wrapped in a
+     layer, so without this every report named the same six characters. */
+  const stack = [];
+  source.split("\n").forEach((line, index) => {
+    const opens = (line.match(/\{/g) ?? []).length;
+    const closes = (line.match(/\}/g) ?? []).length;
+    if (opens > 0) {
+      stack.push({
+        selector: line.slice(0, line.indexOf("{")).trim(),
+        pointer: false,
+        hit: -1,
+      });
+    }
+    const top = stack[stack.length - 1];
+    if (top && opens === 0) {
+      if (POINTER.test(line)) top.pointer = true;
+      if (BORDER_GLASS.test(line) && top.hit < 0) top.hit = index;
+    }
+    for (let i = 0; i < closes; i += 1) {
+      const rule = stack.pop();
+      if (!rule) break;
+      const resting = !NOT_RESTING.test(rule.selector);
+      if (
+        rule.hit >= 0 &&
+        resting &&
+        (CONTROL_SELECTOR.test(rule.selector) || rule.pointer) &&
+        /* Keyed on file and selector rather than on a line number, because a
+           line number moves every time somebody edits above it and an
+           exception that silently stops matching is worse than no exception. */
+        !DULL_ALLOWED.has(`${where}  ${rule.selector}`)
+      ) {
+        found.push(`${where}:${rule.hit + 1}  ${rule.selector}`);
+      }
+    }
+  });
+  return found;
+}
+
+/* A pass of its own, after the patterns above are in scope. Same files, same
+   comment stripping, so a hairline argued about in prose is never reported. */
+for (const dir of ROOTS) {
+  for (const file of filesUnder(join(ROOT, dir), [".css"])) {
+    const source = withoutComments(readFileSync(file, "utf8"));
+    for (const fault of dullControlsIn(source, relative(ROOT, file))) dullControls.push(fault);
   }
 }
 
@@ -962,11 +1155,34 @@ if (rawColours.length > 0) {
   console.error(`\n${rawColours.length} literal(s).\n`);
 }
 
+if (dullControls.length > 0) {
+  failed = true;
+  console.error(
+    "\nA GREY HAIRLINE ON A CONTROL. `--nf-glass-border` is 11 per cent white,\n" +
+      "which on the navy canvas is grey, and every governing reference draws a\n" +
+      "resting chip, tile, plate, icon button and secondary with a BLUE outline\n" +
+      "carrying light. A screen with one lit primary and eleven grey boxes reads\n" +
+      "as a prototype with one finished control, which is what the founder\n" +
+      "photographed and what R1 called the single biggest visual gap.\n\n" +
+      "The substitution: `border-color: var(--nf-brand-edge)` plus\n" +
+      "`box-shadow: var(--nf-glow-edge)`, which is the lit top rim, the full\n" +
+      "brand ring and one near bloom, composed once in the token layer.\n\n" +
+      "IF WHAT YOU HAVE IS A DIVIDER, this check is wrong about it: the hairline\n" +
+      "is right for a line between two things, and what made it look like a\n" +
+      "control was the selector. Rename it, or say in a comment why the rule\n" +
+      "carries a control word and is not one.\n",
+  );
+  for (const entry of dullControls) console.error(`  ${entry}`);
+  console.error(`\n${dullControls.length} dull control(s).\n`);
+}
+
 if (failed) process.exit(1);
 
 console.log(
   "css tokens: clean - 0 layer-1 references in stylesheets, 0 in components, " +
     "0 raw colour literals, 0 unresolved var() references, 0 var() references " +
     "of the wrong type, 0 duplicate declarations, 0 comment paths that do not " +
-    "resolve, and every partial parses. All eight are enforced.",
+    `resolve, 0 resting controls edged in a neutral border token (${DULL_ALLOWED.size} ` +
+    "listed exceptions, see DULL_ALLOWED), and every partial parses. " +
+    "All nine are enforced.",
 );

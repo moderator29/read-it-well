@@ -53,6 +53,23 @@ import {
  * DEFAULT IS DRY. `?apply=1` is required before anything is written, so the
  * first run against a live database can only ever report. Wire the schedule
  * with apply once a dry run has been read.
+ *
+ * IT IS ON THE SCHEDULE NOW, AND IT WAS NOT. `apps/web/vercel.json` carried
+ * four crons, all of them BA's lifecycle sweeps, and this route was not among
+ * them: nothing on Vercel and nothing in pg_cron called it, so the job that
+ * recovers a lost webhook, settles a stranded withdrawal hold and reports an
+ * overdrawn wallet had never run at all. Every paragraph above described a
+ * schedule that did not exist. It is `10 * * * *` from this commit, hourly,
+ * between the hold sweep at :05 and the pg_cron watch at :20.
+ *
+ * AND IT IS WIRED DRY, DELIBERATELY. The path in vercel.json carries no
+ * `apply=1`, so the hourly run reports and alerts and writes NOTHING, which is
+ * what this file's own instruction above asks for: read a dry run first. The
+ * lead flips it by appending `?apply=1` to the cron path once a dry run has
+ * been read against the live project. Until then the desk hears about a gap
+ * and a person closes it by hand, which is strictly better than the nothing
+ * that was there before and strictly safer than a sweep nobody has watched
+ * moving money on its own.
  */
 
 export const runtime = "nodejs";

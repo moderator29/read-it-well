@@ -405,7 +405,14 @@
     gap: var(--nf-space-2xs);
     min-height: 2.5rem;
     padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-sm);
+    /*
+      A CAPSULE, BECAUSE EVERY CHIP ON THIS PLATFORM IS A CAPSULE (R1 A24).
+      This was --nf-radius-sm, so the admin status filter was a row of squares
+      sitting among the product's pills, on the one surface where the console
+      is supposed to read as the same product as everything else. The governing
+      image shows pills and the shared Chip primitive draws pills.
+    */
+    border-radius: var(--nf-radius-pill);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow: var(--nf-rim-lit);
@@ -437,6 +444,14 @@
   .nf-admin-chip--rejected {
     --nf-admin-chip-ink: var(--nf-status-rejected);
   }
+  /*
+    SELECTED, AND IT IS NEVER A THEME SURFACE (R1 finding A24).
+
+    In dark this is what it has always been and it reads correctly: near-white
+    ink over an 18 per cent wash of the state's own ink over a near-black
+    ground. The light half is written below, in the paper block, because the
+    two themes need genuinely different answers and a single rule was the bug.
+  */
   .nf-admin-chip--on {
     color: var(--nf-content-primary);
     border-color: var(--nf-admin-chip-ink);
@@ -445,7 +460,7 @@
   }
   .nf-admin-chip--all.nf-admin-chip--on {
     color: var(--nf-content-on-brand);
-    background: var(--nf-brand-primary);
+    background: var(--nf-gradient-cta);
     border-color: var(--nf-brand-edge);
   }
 
@@ -475,7 +490,13 @@
   .nf-admin-table__head,
   .nf-admin-row__grid {
     display: grid;
-    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    /* The type column is `auto` rather than the tile's 2.25rem, because the
+       WORD is back under the glyph (278CC66A draws Listing, Booking, User,
+       Payment beside the tile on the phone as well as on the desktop). The
+       word is short in every desk that renders this table, so `auto` costs
+       the title about fourteen pixels and stops an operator having to learn
+       eight glyphs and eight reference prefixes to read a mixed queue. */
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
       "type title actions"
       "type meta actions";
@@ -564,11 +585,15 @@
     color: var(--nf-content-secondary);
     font-variant-numeric: tabular-nums;
   }
+  /* Tile over word on the phone, tile beside word on the desktop, which is
+     the render's own arrangement at each width. */
   .nf-admin-row__type {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--nf-space-2xs);
-    min-width: 0;
+    gap: var(--nf-space-3xs);
+    min-width: 2.25rem;
+    max-width: 4.5rem;
     font-size: var(--nf-text-overline);
     color: var(--nf-content-secondary);
   }
@@ -591,8 +616,16 @@
       inset 0 0 10px var(--nf-glow-wash),
       0 0 10px var(--nf-glow-1);
   }
+  /* It was hidden, and the note above the table said the glyph and the pill
+     said what each cell is. They do not: a house glyph is a listing and a
+     property report alike, and LST- against RPT- is an abbreviation an
+     operator has to be taught. The render prints the word at both widths. */
   .nf-admin-row__type-word {
-    display: none;
+    display: block;
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
   }
   .nf-admin-row__title {
     min-width: 0;
@@ -669,13 +702,19 @@
   /* Desktop: every column shows and the phone-only stack unfolds. */
   @media (min-width: 1024px) {
     .nf-admin-row__id,
-    .nf-admin-row__type-word,
     .nf-admin-row__detail,
     .nf-admin-row__when {
       display: block;
     }
+    .nf-admin-row__type {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--nf-space-2xs);
+      max-width: none;
+    }
     .nf-admin-row__type-word {
       font-size: var(--nf-text-caption);
+      text-align: left;
       color: var(--nf-content-secondary);
     }
     .nf-admin-row__id {
@@ -742,9 +781,47 @@
   }
 
   /* The desk cards inherit the well material so they sit in the frame. */
-  .nf-admin .nf-queue-list > .nf-card {
+  /*
+   * EVERY CARD IN THE CONSOLE IS A LIT CONTAINER, not only the ones a queue
+   * list happens to hold.
+   *
+   * This rule was `.nf-admin .nf-queue-list > .nf-card`, so a desk's rows
+   * were lit and the metric tiles above them, the detail panel, the switch
+   * rows, the reference rows and every confirmation panel were not: the same
+   * material, on the same screen, at two different edge strengths. That is
+   * the founder's "our containers are dull" on the console. The recipe is the
+   * platform's own and is not hand-rolled here: `--nf-brand-edge` for the
+   * hairline, `--nf-rim-lit` for the catchlight inside it, one glow rung and
+   * the card bloom behind, exactly as `.nf-glass--card` composes it.
+   */
+  .nf-admin .nf-card {
     background: var(--nf-well-fill);
     border-color: var(--nf-brand-edge);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-1),
+      var(--nf-bloom-card);
+  }
+  /*
+   * THE FLAGGED METRIC TILE'S RULE IS A RULE, NOT A CRESCENT.
+   *
+   * `ui.Stat` drew its tone as `border-left: 4px`, and a 4px border on a
+   * 22px radius is mitred away to nothing at both ends: the rose on the money
+   * tile read as a crescent stuck to the corner rather than as a rule down
+   * the side. An inset shadow is the same 4px, straight, and the radius
+   * rounds its ends instead of eating them. The colour is still only half the
+   * signal: the value carries the tone and the screen reader is told in
+   * words, per rule 13.
+   */
+  .nf-admin .nf-card.nf-admin-stat--flagged {
+    box-shadow:
+      inset var(--nf-admin-stat-rule) 0 0 var(--nf-admin-stat-ink),
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-1),
+      var(--nf-bloom-card);
+  }
+  .nf-admin-stat--flagged {
+    --nf-admin-stat-rule: 4px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -767,13 +844,35 @@
 :root[data-theme="light"] .nf-admin-bar__search input,
 :root[data-theme="light"] .nf-admin-search__field input,
 :root[data-theme="light"] .nf-admin-tab,
-:root[data-theme="light"] .nf-admin-chip,
+/*
+  :not(--on) IS THE WHOLE OF R1 FINDING A24.
+
+  This selector is `:root[data-theme="light"] .nf-admin-chip`, which outranks
+  `.nf-admin-chip--all.nf-admin-chip--on` on specificity, so on paper it
+  repainted the SELECTED chip with the white paper surface while leaving its
+  `color: var(--nf-content-on-brand)` alone. White ink on a white plate,
+  measured by F6 at 1.21:1: the selected filter was invisible on the surface
+  whose entire job is telling an operator what they have narrowed to. The
+  coloured selected chips survived it only because their ink is dark, and they
+  still lost their fill, so selection was carried by a border alone.
+
+  Selected chips are excluded here and stated on their own below.
+*/
+:root[data-theme="light"] .nf-admin-chip:not(.nf-admin-chip--on),
 :root[data-theme="light"] .nf-admin-table,
 :root[data-theme="light"] .nf-admin-row__tile,
 :root[data-theme="light"] .nf-admin-row__view,
 :root[data-theme="light"] .nf-admin-pager__page,
-:root[data-theme="light"] .nf-admin .nf-queue-list > .nf-card {
+:root[data-theme="light"] .nf-admin .nf-card {
   background: var(--nf-surface-on-paper);
+  box-shadow: var(--nf-shadow-on-paper);
+}
+/* On paper the rule stays and the night light goes, same as every other
+   object that gained a catchlight for the container ruling. */
+:root[data-theme="light"] .nf-admin .nf-card.nf-admin-stat--flagged {
+  box-shadow:
+    inset var(--nf-admin-stat-rule) 0 0 var(--nf-admin-stat-ink),
+    var(--nf-shadow-on-paper);
 }
 /*
   The lit rim is a night material: on paper a blue-white catchlight inside a
@@ -796,6 +895,50 @@
 :root[data-theme="light"] .nf-admin-tab--on,
 :root[data-theme="light"] .nf-admin-pager__page--on {
   background: var(--nf-brand-primary);
+}
+/*
+  THE SELECTED STATUS CHIP ON PAPER (R1 finding A24), and it is a fill rather
+  than a wash, deliberately.
+
+  A wash does not work here and the Chip primitive already learned why: eighteen
+  per cent of any ink over white is very nearly white, so on paper the selected
+  chip was a white lozenge among white lozenges and the only thing telling them
+  apart was a border colour. Rule 13 says colour is never the only signal; a
+  filled capsule beside outlined ones is a difference in weight that survives
+  greyscale, a monitor with the contrast wound down, and the reader who cannot
+  tell cyan from sky.
+
+  WHY THE INK AND NOT THE BRAND GRADIENT FOR ALL FIVE, which is what A24
+  prescribes. On paper the four state inks are the deep daylight values, and
+  white on each of them clears AA for the chip's caption-sized 600 weight:
+  cyan #0E6E8C 5.79:1, emerald #0A7A51 5.37:1, rose #C10E32 6.22:1, sky
+  #0369A1 5.93:1, and All on #0C2FE8 8.12:1. Filling all five with the brand
+  gradient instead would clear contrast too and would throw away the state's
+  own colour on the one control whose job is to say WHICH state, so the ink
+  stays and only All, whose ink is the brand, wears the gradient.
+
+  THE SAME FILL IS WRONG IN DARK and is not applied there. The night ramp's
+  inks are the bright ones, and white on them fails outright: cyan #00C8FF is
+  1.96:1, emerald #10B981 2.54:1, rose #FF1744 3.85:1. Dark keeps near-white
+  ink over the eighteen per cent wash, which reads correctly over a near-black
+  ground and is what shipped. Two themes, two answers, neither of them a
+  theme-derived surface, which is what A24 actually asks for.
+*/
+:root[data-theme="light"] .nf-admin-chip--on {
+  color: var(--nf-content-on-brand);
+  background: var(--nf-admin-chip-ink);
+  border-color: var(--nf-admin-chip-ink);
+  box-shadow: var(--nf-shadow-on-paper);
+}
+/* The state dot sits on its own ink once the chip is filled, so it takes the
+   on-brand paper the label takes or it disappears into the fill. */
+:root[data-theme="light"] .nf-admin-chip--on::before {
+  background: var(--nf-content-on-brand);
+}
+:root[data-theme="light"] .nf-admin-chip--all.nf-admin-chip--on {
+  color: var(--nf-content-on-brand);
+  background: var(--nf-gradient-cta);
+  border-color: var(--nf-brand-edge);
 }
 :root[data-theme="light"] .nf-admin-nav__row--on {
   background: var(--nf-brand-tint-2);

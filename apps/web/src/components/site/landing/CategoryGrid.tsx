@@ -31,6 +31,11 @@ import { photo, type PhotoName } from "@/lib/site/photos";
  * `landingData` in LandingBody.tsx for the check); a null prints no number
  * at all, which the design law allows and an invented one does not.
  *
+ * EIGHT TILES, EIGHT OBJECTS (R1 finding A11). Four of the eight carried
+ * near-identical glass buildings, so a reader scanning the grid saw the same
+ * mark four times: shortlets take the calendar, resorts the palm, commercial
+ * the tower and land the map pin, which is what each tile is actually about.
+ *
  * The plates are the lead's mapping (re-audit, ledger section 6). Land takes
  * the bridge skyline as the closest honest plate: a category tile is a door
  * into a market, not a picture of one listing, so the objection `MediaFrame`
@@ -58,16 +63,16 @@ export function CategoryGrid({
   }[] = [
     { key: "apartment", href: "/search?type=apartment", kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "serviced-block" },
     { key: "home", href: "/search?type=home", kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "modern-house" },
-    { key: "shortlet", href: "/search?type=shortlet", kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "shortlet" },
+    { key: "shortlet", href: "/search?type=shortlet", kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "calendar-home" },
     { key: "hotel", href: "/search?type=hotel", kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "hotel" },
-    { key: "resort", href: "/stays/search?type=resort", label: c.resorts, photo: "resort-pool-deck", icon: "villa" },
+    { key: "resort", href: "/stays/search?type=resort", label: c.resorts, photo: "resort-pool-deck", icon: "palm-tree" },
     { key: "guest_house", href: "/stays/search?type=guest_house", label: c.guestHouses, photo: "villa-pool-skyline-01", icon: "hotel-star" },
-    { key: "office", href: "/search?type=office", kind: "office", label: c.commercial, photo: "skyline-waterfront-dusk", icon: "office-space" },
-    { key: "land", href: "/search?type=land", kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "land-plot" },
+    { key: "office", href: "/search?type=office", kind: "office", label: c.commercial, photo: "skyline-waterfront-dusk", icon: "building-chip" },
+    { key: "land", href: "/search?type=land", kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "pin-map" },
   ];
 
   return (
-    <section className="nf-shell py-section" aria-labelledby="nf-landing-cats-title">
+    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-cats-title">
       <div className="nf-landing-split nf-landing-split--even">
         <Reveal className="flex flex-col gap-heading">
           <div>

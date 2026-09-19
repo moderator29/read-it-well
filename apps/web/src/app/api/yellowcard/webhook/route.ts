@@ -62,6 +62,23 @@ export async function POST(request: Request): Promise<NextResponse> {
        arriving while we are in it must stay in the retry queue rather than
        being acknowledged into oblivion. */
     logMoney({ surface: "fund", outcome: "unconfigured", reason: "yellowcard_not_configured" });
+    /*
+     * AND THE DESK HEARS ABOUT IT, which it did not until now.
+     *
+     * Without the key nothing arriving here can be authenticated, so every
+     * genuine crypto credit is sitting in Yellow Card's retry queue with a 500
+     * against it and the only trace on our side was a log line nobody reads at
+     * 3am. `recordAlert` makes its own client and never throws, which is what
+     * makes it safe in the one branch where the environment is incomplete, and
+     * it folds repeats inside ten minutes into one row so a retrying processor
+     * leaves one alert rather than a hundred.
+     */
+    await recordAlert({
+      kind: "webhook.yellowcard.unconfigured",
+      severity: "critical",
+      detail: { reason: "yellowcard_not_configured", http_status: 500 },
+      subjectId: "yellowcard-webhook",
+    });
     return NextResponse.json({ received: false, reason: "unconfigured" }, { status: 500 });
   }
 
@@ -140,6 +157,20 @@ export async function POST(request: Request): Promise<NextResponse> {
       outcome: "unconfigured",
       reason: "service_role_key_missing",
       reference: event.reference,
+    });
+    /* A signed, completed credit we cannot write down. The delivery stays in
+       the retry queue and a person is told, because the retry queue is the
+       processor's dashboard and not ours. */
+    await recordAlert({
+      kind: "webhook.yellowcard.unconfigured",
+      severity: "critical",
+      detail: {
+        reason: "service_role_key_missing",
+        reference: event.reference,
+        amount_minor: event.amountMinor,
+        http_status: 500,
+      },
+      subjectId: event.reference,
     });
     return NextResponse.json({ received: false, reason: "unconfigured" }, { status: 500 });
   }
@@ -248,6 +279,21 @@ export async function POST(request: Request): Promise<NextResponse> {
         amount_minor: event.amountMinor,
       },
       subjectId: event.reference,
+    });
+    /* EVERY DELIVERY LEAVES A ROW, including this one. The two branches above
+       write `recordWebhookDelivery` and this one did not, so the delivery that
+       went WRONG was the single delivery with no line in the run history: an
+       operator counting deliveries against Yellow Card's dashboard would have
+       found ours short by exactly the failures. Best effort, like every audit
+       write on a money path, and the alert above stands whether it lands. */
+    await recordWebhookDelivery(admin, {
+      event: "collection.completed",
+      reference: event.reference,
+      amountMinor: event.amountMinor,
+      currency: "NGN",
+      outcome: "failed",
+      reason: `write_failed:${failureReason(error)}`,
+      httpStatus: 500,
     });
     /* 500 so it is sent again. The credit is not written, and an acknowledged
        failure here is a lost deposit. */

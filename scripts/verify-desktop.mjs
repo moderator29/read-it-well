@@ -47,7 +47,30 @@ const page = await ctx.newPage();
  * harness already does, and it is what made a landing shot possible at all.
  */
 await page.goto(base + route, { waitUntil: "load", timeout: 90_000 });
-await page.waitForTimeout(600);
+
+/*
+ * THE SETTLE, AND WHY 600ms WAS A LIE ON THIS BOX.
+ *
+ * A proof taken 600ms after `load` on a machine carrying twenty other dev
+ * servers catches the page before its photography has decoded and before the
+ * entrance animation has run, so the shot shows an empty frame where the hero
+ * image belongs and a band mid-rise. F2 threw away a desktop hero proof for
+ * exactly this and said so rather than filing findings off it.
+ *
+ * Waiting for every image to actually decode is the honest version of a
+ * settle: it is bounded, it is about the thing being judged, and on a quiet
+ * box it costs almost nothing. The timeout is generous because a cold
+ * Turbopack compile on four saturated cores is measured in minutes, not
+ * milliseconds, and a shot that times out is better than a shot that lies.
+ */
+await page
+  .waitForFunction(
+    () => Array.from(document.images).every((img) => img.complete),
+    null,
+    { timeout: 60_000 },
+  )
+  .catch(() => {});
+await page.waitForTimeout(1_500);
 
 /*
  * THE SCROLL PRIME, and why a fullpage shot is worthless without it.

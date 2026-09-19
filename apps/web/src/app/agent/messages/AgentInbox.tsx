@@ -30,15 +30,21 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
     <li>
       <Link
         href={`/messages/${thread.id}`}
-        className="nf-card block p-md transition-colors hover:border-[var(--nf-border-strong)]"
+        /* `.nf-card` paints its border from a conic brand gradient through a
+           transparent border-color, so setting `border-color` on hover threw
+           the gradient away and left a flat 22 per cent white outline, which
+           is the dull container the founder photographed. `.nf-card--interactive`
+           is the designed answer: the press physics, and the light travelling
+           once round the ring on a pointer. */
+        className="nf-card nf-card--interactive block p-md"
       >
         <div className="flex items-start justify-between gap-sm">
           <div className="min-w-0 leading-tight">
-            <p className="truncate text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+            <p className="truncate text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               {thread.counterpartName}
             </p>
             {thread.listingTitle && (
-              <p className="mt-2xs flex items-center gap-xs text-[0.78rem] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 <UiIcon name="location" size={12} className="shrink-0" />
                 <span className="truncate">{thread.listingTitle}</span>
               </p>
@@ -48,18 +54,18 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
             {thread.unread > 0 && (
               <span className="nf-numeric nf-badge nf-badge--brand">{thread.unread}</span>
             )}
-            <span className="text-[0.75rem] text-[var(--nf-content-muted)]">
+            <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {thread.whenLabel}
             </span>
           </span>
         </div>
 
-        <p className="mt-sm line-clamp-2 text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm line-clamp-2 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {thread.lastMessage}
         </p>
 
         {thread.waitingOnYou && (
-          <p className="mt-sm flex items-center gap-xs text-[0.75rem] font-semibold text-[var(--nf-state-warning)]">
+          <p className="mt-sm flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-state-warning)]">
             <UiIcon name="bell" size={12} className="shrink-0" />
             {waitLabel(thread.waitingHours)}
           </p>
@@ -100,7 +106,10 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
       </nav>
 
       {threads.length > 0 ? (
-        <ul className="mt-md grid gap-sm">
+        /* `grid-cols-1` rather than a bare `grid`: an implicit `auto` track
+           will not shrink below its item's min-content, which is how the
+           reviews list came to be 395px wide inside a 358px column. */
+        <ul className="mt-md grid grid-cols-1 gap-sm">
           {threads.map((thread) => (
             <ThreadRow key={thread.id} thread={thread} />
           ))}
@@ -113,7 +122,7 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
           <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             {filter === "waiting" ? "Nobody is waiting on you" : "No enquiries yet"}
           </p>
-          <p className="mx-auto mt-2xs max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             {filter === "waiting"
               ? "Every enquiry has had your reply. That is exactly how a guest decides to book."
               : "When a guest messages you about one of your listings, the thread lands here."}

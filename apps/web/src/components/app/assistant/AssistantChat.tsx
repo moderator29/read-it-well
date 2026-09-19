@@ -20,6 +20,8 @@ import type {
   AssistantStreamEvent,
   AssistantTurn,
 } from "@/lib/assistant/types";
+import { hrefForListing } from "@/lib/listings/href";
+import type { ListingKind } from "@/lib/listings/types";
 import { canGoBackInApp } from "@/lib/ui/history";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import {
@@ -85,13 +87,71 @@ const PACE_FALLBACK_MESSAGE =
  * power columns no competitor carries, and the shortlet market. A starter
  * that cannot be answered teaches somebody the assistant does not work, so
  * nothing here is a mood the catalogue has no inventory for.
+ *
+ * THE LAST TWO ARE THE OTHER SIDE, and they are here because all four of the
+ * originals were property (ledger 10.4). Vallo is two sides, and an assistant
+ * whose every opening line is a rent question tells somebody the Stays half
+ * of their own account is not its business. A hotel and a table are both
+ * shapes the catalogue actually holds, so both are answerable.
  */
 const STARTERS: { icon: UiIconName; key: keyof Dictionary["home"]["assistant"]["chips"] }[] = [
   { icon: "search", key: "lekki" },
   { icon: "wallet", key: "moveIn" },
   { icon: "bolt", key: "generator" },
   { icon: "calendar-booking", key: "shortlets" },
+  { icon: "bed", key: "stay" },
+  { icon: "utensils", key: "table" },
 ];
+
+/*
+ * WHERE A RESULT OPENS: the SIDE LAW, applied on the card.
+ *
+ * `lib/side.constants.ts` rules that the URL wins over the cookie, so a hotel
+ * link opens in the Stays shell for everybody and a flat opens in Property.
+ * The assistant route streams every result with `href` hardcoded to
+ * `/listing/<id>` regardless of what the row is, so until now a hotel the
+ * assistant found opened inside the property shell: property dock, property
+ * chrome, a Book Inspection footer under a room that is sold by the night.
+ *
+ * `/api/assistant` now builds the right path through `hrefForListing`, so
+ * fresh results arrive correct. THIS STAYS ANYWAY, because conversations live
+ * on the device under `nf_ai_threads` and every result card stored before
+ * that fix carries the old `/listing/<id>` in its own JSON. Without this a
+ * person's own history would keep opening hotels in the property shell for as
+ * long as they kept the thread. The wire carries `kind`, so the right
+ * destination is recomputed from a stale row rather than migrated.
+ *
+ * The same `hrefForListing` the route uses, so there is one rule and not a
+ * second one wearing a client's clothes. The wire types `kind` as `string`
+ * because it is the column value, and `hrefForListing` answers `/listing/<id>`
+ * for anything it does not recognise, which is the same thing the stale row
+ * already said.
+ */
+function destinationFor(item: AssistantListingItem): string {
+  return hrefForListing(item.kind as ListingKind, item.id);
+}
+
+/**
+ * The category, as a word rather than as the column value.
+ *
+ * The card printed `listing.kind` straight from the wire, so it read "hotel"
+ * in lower case beside a rating in the product's own numerals. One noun per
+ * kind, capitalised; anything unrecognised falls through unchanged rather
+ * than being hidden, because a category we cannot name is still a fact.
+ */
+const KIND_NOUN: Record<string, string> = {
+  hotel: "Hotel",
+  apartment: "Apartment",
+  home: "Home",
+  shortlet: "Shortlet",
+  villa: "Villa",
+  restaurant: "Restaurant",
+  experience: "Experience",
+  rental: "Rental",
+  shop: "Shop",
+  office: "Office",
+  land: "Land",
+};
 
 const DRAWER_EXIT_MS = 240;
 
@@ -562,10 +622,13 @@ export function AssistantChat({
                   <BrandIcon name="bot" fill />
                 </span>
                 <div>
-                  <p className="nf-h3">How can I help today?</p>
+                  {/* Both of these were English constants in the markup, on a
+                      screen whose composer, chips and thinking pill all come
+                      from the dictionary. Three of four languages read the
+                      assistant's own description of itself in a fourth. */}
+                  <p className="nf-h3">{copy.emptyTitle}</p>
                   <p className="nf-body-sm mx-auto mt-2xs max-w-[36ch] text-[var(--nf-content-muted)]">
-                    Ask about places to rent, buy or stay in across Nigeria, and what moving in
-                    really costs.
+                    {copy.emptyBody}
                   </p>
                 </div>
               </div>
@@ -676,7 +739,11 @@ export function AssistantChat({
                 className="nf-ai__chip nf-tap"
               >
                 <UiIcon name={s.icon} size={20} />
-                {copy.chips[s.key]}
+                {/* The label is its own element so it can clamp. A bare text
+                    node inside the flex row had nothing to clamp ON, which is
+                    why a long starter was cut by the rail rather than ended
+                    by an ellipsis (R1 A4). */}
+                <span className="nf-ai__chip-label">{copy.chips[s.key]}</span>
               </button>
             ))}
           </div>
@@ -829,8 +896,18 @@ function ThreadListingCard({
           className="nf-ai__result-save h-9 w-9"
         />
       </div>
-      <Link href={listing.href} className="nf-ai__result-body">
-        <span className="nf-ai__result-title">{listing.title}</span>
+      <Link href={destinationFor(listing)} className="nf-ai__result-body">
+        {/* The render draws a chevron in its own ring beside the title, and
+            the card had none: nothing on it said it was a way through, so two
+            results inside a reply read as an illustration of the answer
+            rather than as the two doors they are (ledger 10.2). Decorative,
+            because the whole body is already the link. */}
+        <span className="nf-ai__result-head">
+          <span className="nf-ai__result-title">{listing.title}</span>
+          <span className="nf-ai__result-go" aria-hidden="true">
+            <UiIcon name="chevron-down" size={14} className="-rotate-90" />
+          </span>
+        </span>
         <span className="nf-ai__result-where">
           <UiIcon name="location" size={12} className="shrink-0" />
           <span className="truncate">{listing.city}</span>
@@ -847,7 +924,9 @@ function ThreadListingCard({
           </span>
         )}
         <span className={`nf-ai__result-meta ${facts.length === 0 ? "nf-ai__result-facts" : ""}`}>
-          <span className="nf-ai__result-fact nf-ai__result-kind">{listing.kind}</span>
+          <span className="nf-ai__result-fact nf-ai__result-kind">
+            {KIND_NOUN[listing.kind] ?? listing.kind}
+          </span>
           {listing.rating > 0 && (
             <span className="nf-ai__result-fact nf-numeric">
               <UiIcon name="star" size={12} className="text-[var(--nf-rating)]" />

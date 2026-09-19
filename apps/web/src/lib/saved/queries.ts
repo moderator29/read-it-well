@@ -6,7 +6,11 @@ import { loadListingsByIds } from "../listings/supabase-repository";
 import type { Listing } from "../listings/types";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
+import { staysClient } from "../stays/db";
+import type { CatalogueEntryRow, StaySearchRow } from "../stays/types";
+import type { SavedPlaceKind } from "./db";
 import { normaliseSaves, type LocalSave } from "./keys";
+import { undatedSearchRow } from "./places";
 import type { SavedEntry } from "./types";
 
 /**
@@ -116,4 +120,95 @@ export async function getSavedListings(local: LocalSave[] = []): Promise<SavedEn
     });
   }
   return entries.sort((a, b) => b.savedAt - a.savedAt);
+}
+
+/* ------------------------------------------------------ the other two shelves */
+
+/**
+ * ONE SAVED STAY OR RESTAURANT, RESOLVED TO SOMETHING RENDERABLE.
+ *
+ * The shortlist has three shelves and until now the page could only draw one.
+ * `saved_items` holds the Property side and `getSavedListings` above reads it;
+ * `saved_places` holds all three kinds and had an action layer with no reader
+ * at all, so a person could heart a hotel and then find nothing on /saved.
+ *
+ * The row handed back is a `StaySearchRow` on purpose rather than a fourth
+ * card shape. That is what `stays_search` answers with, what the stays shelf
+ * renders and what `stayCardFromRow` already turns into a card, so a saved
+ * stay is drawn by exactly the component that draws a searched one. A
+ * shortlist asks no dates, so the dated half of the row is null; see
+ * `undatedSearchRow`.
+ */
+export type SavedPlaceEntry = {
+  kind: SavedPlaceKind;
+  /** Epoch seconds, so this list orders beside `SavedEntry` with no conversion. */
+  savedAt: number;
+  row: StaySearchRow;
+};
+
+/**
+ * The account's saved stays and restaurants, newest first.
+ *
+ * LISTING SAVES ARE DELIBERATELY NOT READ HERE. They are `saved_items`, which
+ * `getSavedListings` already resolves through the listing repository along
+ * with the device half a signed-out visitor built up. Reading the listing kind
+ * from `saved_places` too would draw some property twice and neither shelf
+ * would be able to say which heart it was.
+ *
+ * Empty for a signed-out reader, an unconfigured platform and any read
+ * failure, for the same reason the listing half degrades: a shortlist is a
+ * section of a page with other things on it. An id that resolves to nothing
+ * (a hotel withdrawn, a restaurant closed) is dropped rather than drawn as a
+ * broken card, which is the behaviour M13 designed the missing foreign key
+ * around.
+ */
+export async function getSavedPlaces(): Promise<SavedPlaceEntry[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const session = await resolveSession();
+    if (session.state !== "signed-in") return [];
+
+    const { data: saves, error } = await session.supabase
+      .from("saved_places")
+      .select("entity_kind, entity_id, created_at")
+      .eq("user_id", session.user.id)
+      .in("entity_kind", ["accommodation", "restaurant"])
+      .order("created_at", { ascending: false })
+      .limit(ROW_LIMIT);
+    if (error || !saves) return [];
+
+    const wanted = saves.filter((save) => UUID_RE.test(save.entity_id));
+    if (wanted.length === 0) return [];
+
+    /* One read for every shelf. `catalogue_entries` is the same projection
+       the stays search answers from, so a saved card and a searched card
+       cannot disagree about a title, a cover or a rating. */
+    const stays = await staysClient();
+    const { data: entries } = await stays
+      .from("catalogue_entries")
+      .select("*")
+      .in(
+        "entity_id",
+        wanted.map((save) => save.entity_id),
+      );
+
+    const byKey = new Map<string, CatalogueEntryRow>();
+    for (const entry of (entries ?? []) as CatalogueEntryRow[]) {
+      byKey.set(`${entry.entity_kind}:${entry.entity_id}`, entry);
+    }
+
+    const out: SavedPlaceEntry[] = [];
+    for (const save of wanted) {
+      const entry = byKey.get(`${save.entity_kind}:${save.entity_id}`);
+      if (!entry) continue;
+      out.push({
+        kind: save.entity_kind as SavedPlaceKind,
+        savedAt: toSeconds(save.created_at),
+        row: undatedSearchRow(entry),
+      });
+    }
+    return out.sort((a, b) => b.savedAt - a.savedAt);
+  } catch {
+    return [];
+  }
 }

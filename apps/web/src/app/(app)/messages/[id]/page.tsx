@@ -166,6 +166,10 @@ export default async function ConversationPage({
         */
         counterpartVerified={thread.listing?.verified ?? false}
         counterpartName={thread.counterpartName}
+        /* Null unless `lib/security/counterpart-contact.ts` allowed it: RLS
+           membership first, a block in either direction withholds it, every
+           failure withholds. The header draws no call control on null. */
+        counterpartPhone={thread.counterpartPhone}
         listing={
           thread.listing
             ? {

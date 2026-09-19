@@ -169,6 +169,9 @@ export const INSPECTION: Inspection = {
   respondedAt: "2026-06-21T08:00:00.000Z",
   conversationId: CONVERSATION_ID,
   counterpartName: COUNTERPART.name,
+  /* A number the read would have allowed: the sheet draws the call line only
+     when `lib/security/counterpart-contact.ts` gave one. */
+  counterpartPhone: "+2348010000000",
   outcome: null,
 };
 

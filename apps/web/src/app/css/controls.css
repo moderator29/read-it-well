@@ -90,6 +90,16 @@
    * outline when it is not, brand fill when it is, which is the whole
    * vocabulary the filter rows and the bedroom row share.
    */
+  /*
+   * The resting edge is BLUE, at the softest rung, and it was
+   * `--nf-border-subtle` - 8 per cent white, the faintest grey there is.
+   * `founder/GOVERNING-search-filters-target.png` draws this exact control
+   * seventeen times (Property Type, Market, Bedrooms, Bathrooms) and every
+   * unselected one carries a soft blue outline. The comment above already
+   * described the right vocabulary - quiet outline off, brand fill on - and
+   * `.nf-segment--on` below already ships the fill; only the word "quiet" had
+   * been read as "grey". Matches `.nf-chip`, which was swept in the same pass.
+   */
   .nf-segment {
     display: inline-flex;
     align-items: center;
@@ -97,7 +107,7 @@
     width: 100%;
     padding: var(--nf-gap-inline);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
+    border: 1px solid var(--nf-brand-edge-soft);
     background: transparent;
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-body-sm);
@@ -110,7 +120,9 @@
   }
   @media (hover: hover) {
     .nf-segment:hover {
-      border-color: var(--nf-border-strong);
+      /* One rung up the same blue, so the hover is not a grey step between a
+         blue resting edge and a blue fill. */
+      border-color: var(--nf-brand-edge);
       color: var(--nf-content-primary);
     }
   }

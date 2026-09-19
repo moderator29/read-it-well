@@ -85,13 +85,25 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
               setConfirming(true);
             }}
           >
-            Review {live.length === 1 ? "1 example" : `all ${live.length} examples`}
+            {/* One string, not a text node and an expression. `.nf-btn` is a
+                flex row with a gap, so two children put the gap AND the
+                literal space between the words: the button read
+                "Review  all 2 examples". */}
+            {live.length === 1 ? "Review 1 example" : `Review all ${live.length} examples`}
           </Button>
         </div>
       )}
 
+      {/*
+        ROSE, NOT THE PENDING CYAN, on the panel below. `--nf-state-warning`
+        resolves to `--nf-cyan-400`, which is the token `--nf-status-pending`
+        is defined as, so this panel asked "are you sure" in the colour the
+        product reserves for "still going through". Nothing here is in flight:
+        it is a confirmation for an action that takes rows off the public
+        catalogue, and the button inside it is already `danger`.
+      */}
       {confirming && (
-        <div className="mt-group rounded-[var(--nf-radius-md)] border border-[var(--nf-state-warning)] p-card-sm">
+        <div className="mt-group rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] p-card-sm">
           <p className="nf-body font-semibold text-content">
             This will take {live.length === 1 ? "1 example property" : `${live.length} example properties`}
             {cities.size > 0 &&
@@ -122,7 +134,7 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
 
           <div className="mt-group flex flex-wrap gap-inline">
             <Button type="button" variant="danger" loading={pending} onClick={run}>
-              Retire {live.length === 1 ? "1 example" : `${live.length} examples`}
+              {live.length === 1 ? "Retire 1 example" : `Retire ${live.length} examples`}
             </Button>
             <Button
               type="button"

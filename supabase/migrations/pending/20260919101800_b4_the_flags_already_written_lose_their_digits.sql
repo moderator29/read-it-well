@@ -1,0 +1,134 @@
+-- B4. The flags already written lose their digits. DRAFT. NOT APPLIED.
+--
+-- THIS FILE WAITS FOR THE FOUNDER'S WORD, because it rewrites rows that exist.
+-- The stop list forbids data-losing database operations, and this is one by
+-- design: after it runs, the ten digit runs currently sitting in
+-- public.message_flags.matched are gone and cannot be recovered from that
+-- column. That is the entire point, and it is still a deletion, so it is
+-- parked rather than applied.
+--
+-- WHAT IT PAIRS WITH.
+-- supabase/migrations/20260919101700_b4_a_flag_stops_keeping_the_account_number.sql
+-- is the forward-looking half and is safe to apply on its own today: it masks
+-- the digits at the moment the flag is written, so from the hour it lands no
+-- new row holds an account number. This file is the backward-looking half. The
+-- two are deliberately separate so the safe one is not held up by the one that
+-- needs a decision.
+--
+-- WHAT IT WOULD DO, in one sentence: rewrite every existing
+-- message_flags.matched whose value is a bare ten digit run into six bullets
+-- and the last four digits, leaving the payment_keyword rows untouched, and
+-- report how many it changed.
+--
+-- WHY IT IS SAFE TO RUN TWICE. The WHERE clause matches only a bare ten digit
+-- run, and a masked value is not one, so a second run changes nothing.
+--
+-- WHY THE MESSAGE ITSELF IS NOT TOUCHED. public.messages.body is the person's
+-- own words in their own thread and both parties can read it. Editing what
+-- somebody said, even to protect them, is a different and much larger
+-- decision, and the moderation desk needs the message to decide the case. The
+-- finding was never that the number exists; it was that it is COPIED into a
+-- second table with a different audience and a different lifetime.
+--
+-- WHAT THE LEAD SHOULD KNOW BEFORE APPLYING. lib/admin/queries.ts narrows the
+-- flags queue with `.ilike("matched", "%term%")`. Any operator habit of
+-- pasting a whole account number into that box stops working the moment this
+-- runs, and searching the last four digits is what replaces it.
+--
+-- HOW MANY ROWS. Unknown from here: this sandbox holds no database
+-- credentials, so the count below is read by the probe and by nothing else.
+-- The live figure was 0 flags of any kind at the 18 September baseline, so
+-- this may well be a no-op, and it is written out in full because the file has
+-- to be correct on the database that exists on the day it is applied.
+--
+-- ---------------------------------------------------------------------------
+-- PROBE, for the lead, through the Supabase MCP. Run PART ONE first, on its
+-- own, to see what the change would touch; it reads and writes nothing.
+--
+--   -- PART ONE: what is there now.
+--   select reason,
+--          count(*) as rows,
+--          count(*) filter (where matched ~ '^\d{10}$') as bare_ten_digit_runs
+--     from public.message_flags
+--    group by reason
+--    order by reason;
+--
+-- Then PART TWO, which is the rolled-back rehearsal: it applies the statement,
+-- checks the outcome and the cross-user read, and rolls the whole thing back,
+-- so nothing persists until the lead runs the file itself.
+--
+--   begin;
+--
+--   insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+--   values
+--     ('00000000-0000-4000-8000-0000000000b1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sc-probe-guest@example.invalid', 'x', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}'),
+--     ('00000000-0000-4000-8000-0000000000b2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sc-probe-agent@example.invalid', 'x', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}'),
+--     ('00000000-0000-4000-8000-0000000000b3', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sc-probe-third@example.invalid', 'x', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}');
+--
+--   insert into public.agents (id, user_id, display_name)
+--   values ('00000000-0000-4000-8000-0000000000b4', '00000000-0000-4000-8000-0000000000b2', 'SC probe agent');
+--
+--   insert into public.listings (id, agent_id, title, property_type, is_demo, status)
+--   values ('00000000-0000-4000-8000-0000000000b5', '00000000-0000-4000-8000-0000000000b4', 'SC probe flat', 'apartment', false, 'PUBLISHED');
+--
+--   insert into public.conversations (id, listing_id, guest_id, agent_id)
+--   values ('00000000-0000-4000-8000-0000000000b6', '00000000-0000-4000-8000-0000000000b5', '00000000-0000-4000-8000-0000000000b1', '00000000-0000-4000-8000-0000000000b2');
+--
+--   insert into public.messages (id, conversation_id, sender_id, body)
+--   values ('00000000-0000-4000-8000-0000000000b7', '00000000-0000-4000-8000-0000000000b6', '00000000-0000-4000-8000-0000000000b1', 'A message with no digits in it at all.');
+--
+--   -- An old-shaped row, written by hand because the trigger no longer makes
+--   -- one. This is what the live table may still be holding.
+--   insert into public.message_flags (id, message_id, reason, matched)
+--   values ('00000000-0000-4000-8000-0000000000b8', '00000000-0000-4000-8000-0000000000b7', 'account_number', '0123456789'),
+--          ('00000000-0000-4000-8000-0000000000b9', '00000000-0000-4000-8000-0000000000b7', 'payment_keyword', 'transfer');
+--
+--   -- THE STATEMENT ITSELF, exactly as it appears below the probe.
+--   update public.message_flags
+--      set matched = repeat('•', 6) || right(matched, 4)
+--    where reason = 'account_number'
+--      and matched ~ '^\d{10}$';
+--
+--   do $probe$
+--   declare
+--     third uuid := '00000000-0000-4000-8000-0000000000b3';
+--     kept  text;
+--     n     integer;
+--   begin
+--     select matched into kept from public.message_flags where id = '00000000-0000-4000-8000-0000000000b8';
+--     if kept <> '••••••6789' then raise exception 'FAIL 1: the old row is %, expected six bullets and 6789', kept; end if;
+--     select matched into kept from public.message_flags where id = '00000000-0000-4000-8000-0000000000b9';
+--     if kept <> 'transfer' then raise exception 'FAIL 1: the keyword row was touched, it now reads %', kept; end if;
+--     select count(*) into n from public.message_flags where matched ~ '^\d{10}$';
+--     if n <> 0 then raise exception 'FAIL 1: % bare ten digit runs survived', n; end if;
+--     raise notice 'PASS 1: the digits are gone, the keyword row is untouched, nothing bare is left';
+--
+--     -- Idempotence: a second run must change nothing.
+--     update public.message_flags
+--        set matched = repeat('•', 6) || right(matched, 4)
+--      where reason = 'account_number' and matched ~ '^\d{10}$';
+--     select matched into kept from public.message_flags where id = '00000000-0000-4000-8000-0000000000b8';
+--     if kept <> '••••••6789' then raise exception 'FAIL 2: a second run changed the row to %', kept; end if;
+--     raise notice 'PASS 2: running it twice is running it once';
+--
+--     -- 3. THE CROSS-USER READ, WHICH MUST FAIL.
+--     perform set_config('request.jwt.claims', json_build_object('sub', third, 'role', 'authenticated')::text, true);
+--     set local role authenticated;
+--     select count(*) into n from public.message_flags;
+--     if n <> 0 then raise exception 'FAIL 3: A STRANGER READ % FLAG ROWS', n; end if;
+--     select count(*) into n from public.messages where conversation_id = '00000000-0000-4000-8000-0000000000b6';
+--     if n <> 0 then raise exception 'FAIL 3: A STRANGER READ % MESSAGES IN SOMEBODY ELSE''S THREAD', n; end if;
+--     reset role;
+--     perform set_config('request.jwt.claims', '', true);
+--     raise notice 'PASS 3: a third account reads 0 flags and 0 messages';
+--
+--     raise notice 'ALL PASS. Rolling back.';
+--   end $probe$;
+--
+--   rollback;
+-- ---------------------------------------------------------------------------
+
+update public.message_flags
+   set matched = repeat('•', 6) || right(matched, 4)
+ where reason = 'account_number'
+   and matched ~ '^\d{10}$';

@@ -133,7 +133,7 @@ commit does not read as an accidental omission.
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media goes to Supabase Storage |
 | `TERMII_API_KEY` | No SMS or OTP path calls it |
 | `TRAVELGATE_API_KEY` | Requires a signed commercial agreement that does not exist, and no code path awaits it |
-| `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | Error tracking is not wired. Route errors log to the server console via `app/error.tsx` |
+| `NEXT_PUBLIC_SENTRY_DSN` | Nothing reads it and nothing should. `SENTRY_DSN` IS wired as of 19 September 2026 and is server side only: the browser posts crashes to `/api/client-error` on our own origin and the server forwards them, so no DSN reaches a bundle. See `docs/ENVIRONMENT.md` section 3 |
 | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Product analytics is not wired |
 
 If you have any of these set in Vercel today, they are inert; clearing them
@@ -540,10 +540,14 @@ follows is only the part an operator needs before pressing deploy.
 - **The landing page claims NDPA compliance as a fact** and nothing in the
   repository can establish it. Change that sentence before launch, and start the
   NDPC registration, which has weeks of lead time. `RECOMMENDATIONS.md` LG-1.
-- **No analytics and no error tracking.** `NEXT_PUBLIC_POSTHOG_KEY` and
-  `SENTRY_DSN` are documented but nothing reads them. A production incident
-  leaves only Vercel's own logs. That absence is also a genuine privacy asset:
-  `docs/MOBILE_READINESS.md` section 5.
+- **No analytics.** `NEXT_PUBLIC_POSTHOG_KEY` is documented and nothing reads
+  it. That absence is a genuine privacy asset:
+  `docs/MOBILE_READINESS.md` section 5. **Error tracking is now wired**
+  (`SENTRY_DSN`, `lib/observability/`), and it is the one piece of telemetry
+  the stores make unavoidable: a store build's crashes are not reported back
+  to us by either store. It sends no personal data and no analytics; set the
+  DSN before the first store submission or a production incident still leaves
+  only Vercel's own logs.
 - **No CI.** There is no `.github/workflows` directory, and 83 browser specs
   plus 8 vitest files run only when a human remembers.
   `RECOMMENDATIONS.md` T-1.

@@ -324,7 +324,24 @@ export function ThreadView({
         <h2 className="mt-xs text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           {replies.length === 1 ? "1 reply" : `${replies.length} replies`}
         </h2>
-      ) : null}
+      ) : (
+        /*
+         * A THREAD WITH NO REPLIES SAID NOTHING AT ALL.
+         *
+         * The heading above only draws when there is a count, so an unanswered
+         * post rendered the card, the composer, and then blank screen: no
+         * heading, no line, nothing to tell somebody whether the replies had
+         * failed to load or had never been written. One quiet line, in the
+         * same voice as the feed's end of session, and it points at the
+         * composer directly above rather than repeating it as a second
+         * control.
+         */
+        <p className="mt-xs text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+          {signedIn
+            ? "Nobody has replied yet. Yours would be the first."
+            : "Nobody has replied yet."}
+        </p>
+      )}
 
       {replies.map((reply) => (
         <div

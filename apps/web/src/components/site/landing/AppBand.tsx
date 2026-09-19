@@ -47,7 +47,7 @@ export function AppBand({
   const a = t.landing.face.app;
   const points = [a.points.all, a.points.notify, a.points.fast, a.points.design];
   return (
-    <section className="nf-shell py-section" aria-labelledby="nf-landing-app-title">
+    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-app-title">
       <div className="nf-landing-app">
         <Reveal className="flex flex-col gap-heading">
           <div>

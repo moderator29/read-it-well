@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * The feed cursor, consumed. `loadMoreFeed` is the server action the feed's
  * load-more control calls; these prove its edges: no cursor is an ended page
- * and never a second first page, a cursor that is not an instant is refused
+ * and never a second first page, a cursor that is not a cursor is refused
  * before Postgres sees it, a place id that is not a uuid is refused, "joined"
  * never pages another person's places, and the three modes reach the three
  * reads with the cursor intact.
@@ -51,9 +51,27 @@ describe("loadMoreFeed", () => {
     expect(reads.getEverywhereFeed).not.toHaveBeenCalled();
   });
 
-  it("refuses a cursor that is not an instant before any read", async () => {
+  it("refuses a cursor that is not a cursor before any read", async () => {
     const { loadMoreFeed } = await import("./posts-actions");
     const result = await loadMoreFeed("yesterday");
+    expect(result.ok).toBe(false);
+    expect(reads.getEverywhereFeed).not.toHaveBeenCalled();
+  });
+
+  /* The cursor names the row the last page stopped on, not just its instant,
+     because places opened in one migration share a `created_at` to the
+     microsecond and an instant alone skipped every row at that instant. */
+  it("carries an instant-and-id cursor through to the read unchanged", async () => {
+    const { loadMoreFeed } = await import("./posts-actions");
+    const cursor = `2026-09-18T10:00:00.123456+00:00|${AREA}`;
+    const result = await loadMoreFeed(cursor);
+    expect(result.ok).toBe(true);
+    expect(reads.getEverywhereFeed).toHaveBeenCalledWith(cursor);
+  });
+
+  it("refuses an instant-and-id cursor whose id is not a uuid", async () => {
+    const { loadMoreFeed } = await import("./posts-actions");
+    const result = await loadMoreFeed("2026-09-18T10:00:00.000Z|lekki");
     expect(result.ok).toBe(false);
     expect(reads.getEverywhereFeed).not.toHaveBeenCalled();
   });

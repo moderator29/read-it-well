@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
+import { callableNumbersFor } from "../security/counterpart-contact";
 import type { Database } from "../supabase/database.types";
 import { isOpen, type Inspection, type InspectionOutcome, type InspectionState } from "./types";
 
@@ -99,10 +100,19 @@ async function readSide(column: "lister_id" | "requester_id"): Promise<Inspectio
       rows.map((row) => row.listing_id),
     );
     /* The OTHER party, whichever side this read is. */
-    const names = await readDisplayNames(
-      session.supabase,
-      rows.map((row) => (column === "lister_id" ? row.requester_id : row.lister_id)),
+    const counterpartIds = rows.map((row) =>
+      column === "lister_id" ? row.requester_id : row.lister_id,
     );
+    /* The name and the number are two different disclosures and they come from
+       two different places for that reason. The name is the public face
+       `social_profiles` holds; the number is the account record, which no
+       reader's own client can see, so it goes through the one module that
+       decides who may be handed whose. One read for the whole page either
+       way. */
+    const [names, numbers] = await Promise.all([
+      readDisplayNames(session.supabase, counterpartIds),
+      callableNumbersFor(session.user.id, counterpartIds),
+    ]);
 
     const inspections: Inspection[] = rows.map((row) => ({
       id: row.id,
@@ -118,6 +128,8 @@ async function readSide(column: "lister_id" | "requester_id"): Promise<Inspectio
       conversationId: row.conversation_id,
       counterpartName:
         names.get(column === "lister_id" ? row.requester_id : row.lister_id) ?? null,
+      counterpartPhone:
+        numbers.get(column === "lister_id" ? row.requester_id : row.lister_id) ?? null,
       outcome: row.outcome,
     }));
 
@@ -226,7 +238,10 @@ export async function readOpenInspectionFor(listingId: string): Promise<Inspecti
       createdAt: row.created_at,
       respondedAt: row.responded_at,
       conversationId: row.conversation_id,
+      /* This read answers "have I already asked about this one" for the
+         listing page. It resolves no counterpart, so it claims none. */
       counterpartName: null,
+      counterpartPhone: null,
       outcome: row.outcome,
     };
   } catch {
@@ -265,9 +280,12 @@ export async function readOpenInspectionForConversation(
     if (!data) return null;
 
     const row = data as Row;
-    const titles = await readListingTitles(session.supabase, [row.listing_id]);
-    const names = await readDisplayNames(session.supabase, [
-      row.requester_id === session.user.id ? row.lister_id : row.requester_id,
+    const counterpartId =
+      row.requester_id === session.user.id ? row.lister_id : row.requester_id;
+    const [titles, names, numbers] = await Promise.all([
+      readListingTitles(session.supabase, [row.listing_id]),
+      readDisplayNames(session.supabase, [counterpartId]),
+      callableNumbersFor(session.user.id, [counterpartId]),
     ]);
     return {
       id: row.id,
@@ -281,9 +299,8 @@ export async function readOpenInspectionForConversation(
       createdAt: row.created_at,
       respondedAt: row.responded_at,
       conversationId: row.conversation_id,
-      counterpartName:
-        names.get(row.requester_id === session.user.id ? row.lister_id : row.requester_id) ??
-        null,
+      counterpartName: names.get(counterpartId) ?? null,
+      counterpartPhone: numbers.get(counterpartId) ?? null,
       outcome: row.outcome,
     };
   } catch {

@@ -14,6 +14,13 @@
  * The entity id carries no foreign key (M13 explains why), so a save against
  * a retired entity simply resolves to nothing at read time. The caller
  * resolves ids to cards through the catalogue; this module only knows keys.
+ *
+ * NOTHING BUT ASYNC FUNCTIONS IS EXPORTED FROM HERE, and that is a rule rather
+ * than a tidiness. A `"use server"` module may export async functions and
+ * nothing else, not even a type: this build lost production for twenty minutes
+ * to that exact mistake. `SavedPlace`, the shape every write below answers
+ * with, lives in `./places` with the rest of the pure half and is imported as
+ * a type. Anything new here is an async function or it belongs in `./places`.
  */
 
 import { revalidatePath } from "next/cache";
@@ -25,6 +32,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { SAVED_PLACE_KINDS, asSavedPlaceKind, type SavedPlaceKind } from "./db";
+import type { SavedPlace } from "./places";
 
 const placeKeySchema = z.object({
   entityKind: z.enum(SAVED_PLACE_KINDS, { message: "That is not something we can save." }),
@@ -37,14 +45,6 @@ const listSchema = z.object({
 
 const SAVE_DOWN_MESSAGE =
   "We could not update your shortlist just now. Please try again in a moment.";
-
-/** One saved key. The caller resolves it to a card. */
-export type SavedPlace = {
-  entityKind: SavedPlaceKind;
-  entityId: string;
-  /** ISO instant. */
-  savedAt: string;
-};
 
 /** Put a place on the shortlist. Saying it twice is one save. */
 export async function savePlace(input: {
@@ -79,6 +79,11 @@ export async function savePlace(input: {
         .eq("entity_id", parsed.data.entityId)
         .maybeSingle();
       if (existing) {
+        /* The same revalidation the first-write branch does. The row was put
+           there by another tab, so this request's cached /saved is the stale
+           one either way, and a save that answers "already yours" while the
+           shortlist still draws without it is the same bug as not saving. */
+        revalidatePath("/saved");
         return ok({
           entityKind: asSavedPlaceKind(existing.entity_kind),
           entityId: existing.entity_id,

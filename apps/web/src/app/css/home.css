@@ -822,14 +822,35 @@
     padding: var(--nf-space-sm);
     color: var(--nf-content-primary);
   }
+  /* Title and the way through, on one line, as the governing render draws
+     them. The title takes the room and the ring never shrinks. */
+  .nf-ai__result-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+  }
   .nf-ai__result-title {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    min-width: 0;
+    flex: 1;
     font-size: var(--nf-text-caption);
     font-weight: 650;
     line-height: 1.3;
+  }
+  .nf-ai__result-go {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+    color: var(--nf-brand-secondary);
   }
   .nf-ai__result-where {
     display: flex;
@@ -945,13 +966,61 @@
     }
   }
 
-  /* Suggestion chips: rectangles with a glyph, on a rail above the composer. */
+  /*
+   * Suggestion chips: rectangles with a glyph, on a rail above the composer.
+   *
+   * THE RAIL USED TO CUT A CHIP MID-WORD AT THE VIEWPORT EDGE (R1 A4). It was
+   * a plain `overflow-x: auto` inside the gutter, so the last chip ended in a
+   * hard vertical slice through whatever letter happened to be there and
+   * nothing said the row continued. Three things fix that and they are the
+   * same three A2 settled for the filter rail: the row BLEEDS to the screen
+   * edge and pays the gutter back as padding, so a chip is cut at the edge of
+   * the screen rather than at an arbitrary line inside the page; a trailing
+   * mask fades the last 24px, so the cut is an affordance instead of damage;
+   * and `scroll-padding-inline` means a chip scrolled to never lands under
+   * that fade.
+   */
   .nf-ai__chips {
     display: flex;
     gap: var(--nf-space-xs);
     overflow-x: auto;
     padding-block: var(--nf-space-sm);
     scrollbar-width: none;
+    /* The bleed is the CONTAINER's gutter, not the shell's. `.nf-ai` pads
+       itself with `px-md` at phone width, and pulling back by the wider
+       `--nf-pad-shell` pushed the rail 8px past both screen edges, which is
+       the opposite of the fix (measured: left -8, right 398 at 390). */
+    margin-inline: calc(-1 * var(--nf-space-md));
+    padding-inline: var(--nf-space-md);
+    scroll-padding-inline: var(--nf-space-md);
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--nf-space-md),
+      #000 calc(100% - 1.5rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--nf-space-md),
+      #000 calc(100% - 1.5rem),
+      transparent 100%
+    );
+  }
+  @media (min-width: 640px) {
+    .nf-ai__chips {
+      margin-inline: calc(-1 * var(--nf-space-lg));
+      padding-inline: var(--nf-space-lg);
+      scroll-padding-inline: var(--nf-space-lg);
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-ai__chips {
+      margin-inline: calc(-1 * var(--nf-space-xl));
+      padding-inline: var(--nf-space-xl);
+      scroll-padding-inline: var(--nf-space-xl);
+    }
   }
   .nf-ai__chips::-webkit-scrollbar {
     display: none;
@@ -962,7 +1031,11 @@
     align-items: center;
     gap: var(--nf-gap-inline);
     min-height: 3.25rem;
-    max-width: 14rem;
+    /* Two lines and then an ellipsis, never a slice. 15rem is A4's number:
+       it is wide enough for the longest starter in all four locales at two
+       lines and narrow enough that a second chip is always visible, which is
+       what tells somebody the row scrolls. */
+    max-width: 15rem;
     padding: var(--nf-space-xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-md);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
@@ -978,6 +1051,14 @@
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  /* Two lines, then an ellipsis. Never a slice through a letter. */
+  .nf-ai__chip-label {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
   }
   .nf-ai__chip:active {
     transform: scale(var(--nf-press-scale));
@@ -1041,6 +1122,30 @@
     height: 3.5rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-lg);
+    box-shadow: var(--nf-glow-edge-strong);
+  }
+  /*
+   * SEND KEEPS ITS FILL WHEN IT IS WAITING FOR WORDS (R1 A26).
+   *
+   * The platform's disabled rule swaps every button to a flat neutral with
+   * muted ink, which is right for a form's Save: the button is off because
+   * something is wrong. Send is off because the field is empty, which is the
+   * resting state of a composer, so for the whole time somebody is looking at
+   * this screen before they type, the only primary on it was a dead grey
+   * square. It stays the brand square and dims, which says "type something"
+   * rather than "this is broken".
+   *
+   * The governing render draws a paper plane here. `UiIcon` has no `send`
+   * glyph yet and adding one is the icon pipeline's job, not this file's, so
+   * the arrow stays and the glyph is reported rather than approximated.
+   */
+  .nf-ai__send:disabled:not([data-loading="true"]) {
+    background: var(--nf-gradient-cta);
+    background-image: var(--nf-gradient-cta);
+    color: var(--nf-content-on-brand);
+    border-color: var(--nf-brand-edge);
+    opacity: 0.45;
+    box-shadow: none;
   }
 
   /* ---------------------------------------------------------- daylight */
@@ -1079,8 +1184,26 @@
   }
   /* On paper the brand fill and the quiet ink are the same blue, so the
      ring's travelling arc needs its own tint to be seen moving. */
-  :root[data-theme="light"] .nf-ai__ring {
-    border-color: var(--nf-brand-tint-3);
+  /*
+   * THE SPINNER WAS INVISIBLE ON PAPER, and it took three attempts to find
+   * out why, so the finding is written down rather than the third attempt.
+   *
+   * The rule here was `:root[data-theme="light"] .nf-ai__ring`, which is one
+   * attribute and one class. Something later in the light cascade reaches the
+   * same element at the same weight and wins on source order: measured, the
+   * ring's computed border in light was `rgba(18, 21, 26, 0.08)`, which is
+   * `--nf-border-subtle`, a value this rule never mentions and the base rule
+   * never mentions either. A 3 per cent grey ring on a white pill on a white
+   * page is nothing at all, and this is the control that says the assistant
+   * is working.
+   *
+   * Qualifying by the pill it lives in raises the weight by one class, which
+   * is the honest fix rather than a repeated selector or an `!important`.
+   * The track is a real tint of the brand and the travelling arc is the full
+   * brand, so the motion reads on paper.
+   */
+  :root[data-theme="light"] .nf-ai__thinking .nf-ai__ring {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
     border-top-color: var(--nf-brand-primary);
     box-shadow: none;
   }

@@ -47,10 +47,20 @@ export default function manifest(): MetadataRoute.Manifest {
      * and offices, so it read as a booking app.
      */
     description:
-      "Nigeria's property marketplace. Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. One search, one naira wallet, and agents checked by real people.",
+      "Nigeria's property marketplace, in two halves on one account. Property: a flat for the year, a house to buy, a shop to trade from, or the land itself, from agents checked by real people. Vallo Stays: hotels, apartments, guest houses, resorts and restaurant tables. One naira wallet pays for all of it.",
     lang: "en-NG",
     dir: "ltr",
-    start_url: "/home",
+    /*
+     * THE INSTALLED APP USED TO OPEN ON A SIGN-IN WALL (R3 finding F-12).
+     *
+     * `start_url` was `/home`, and `proxy.ts` counts `home` among the product
+     * segments, so a signed-out launch of the installed app redirected
+     * straight to `/sign-in?notice=sign-in-required`. A first launch has to
+     * show the product. `/` is public, it is the landing built to the
+     * founder's governing images, and a signed-in reader is one tap from
+     * Home through the header, so nobody who has an account loses anything.
+     */
+    start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
@@ -96,7 +106,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "My bookings",
         short_name: "Bookings",
-        description: "Check your bookings and their payment references",
+        description: "Your stays, trips and inspections, with their payment references",
         url: "/bookings",
         icons: [{ src: "/pwa/shortcut-bookings.png", sizes: "96x96", type: "image/png" }],
       },
@@ -145,11 +155,23 @@ export default function manifest(): MetadataRoute.Manifest {
         label: "Rent, buy, shortlet, land and commercial, in one search",
       },
       {
-        src: "/pwa/shots/narrow-stays.jpg",
+        /*
+         * THIS ENTRY NAMED A FILE THAT IS NOT ON DISK (R3 finding F-11).
+         *
+         * It read `narrow-stays.jpg`; `public/pwa/shots` holds
+         * `narrow-markets.jpg`. Chrome drops the whole rich install card when
+         * one listed screenshot 404s, so the manifest lost precisely the
+         * store-style prompt this block exists for. The entry now names the
+         * file that is there. The shot is the landing's market grid, so the
+         * label says that rather than claiming a Stays screen; when
+         * `scripts/build-pwa-screenshots.mjs` is next run against a live
+         * server it writes a Stays capture and this pair is renamed together.
+         */
+        src: "/pwa/shots/narrow-markets.jpg",
         sizes: "780x1688",
         type: "image/jpeg",
         form_factor: "narrow",
-        label: "Hotels, shortlets and tables on the Stays side",
+        label: "Every market, property and stays, in one search",
       },
       {
         src: "/pwa/shots/wide-home.jpg",

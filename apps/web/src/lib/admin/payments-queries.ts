@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AdminRead } from "./money-queries";
+import { writeAudit } from "./audit";
 import { requireAdmin } from "./guard";
 import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
@@ -296,6 +297,26 @@ const METHOD_LIMIT = 30;
  * their owner and this panel exists precisely for the day the owner cannot
  * reach them. Removed rows are shown with their date rather than hidden: a
  * card somebody removed last month is still the card a charge was made with.
+ *
+ * THE LOOKUP ITSELF IS AUDITED, AND THAT IS THE POINT OF THIS PARAGRAPH.
+ * Every write on this desk has always written an `audit_log` row; the read did
+ * not, and the read is the one that opens somebody's saved cards and bank
+ * accounts to a member of staff the owner has never met. A company that cannot
+ * answer "who looked at my account details, and when" has no answer at all,
+ * and the answer has to exist before the first person asks rather than after.
+ * So one row per successful lookup, naming the operator, the account looked at
+ * and how many entries were on screen. Nothing about a card or an account goes
+ * into it: the counts are enough to tell a lookup from a browse, and the audit
+ * log must never become the second place the tail of a bank account lives.
+ *
+ * A lookup happens only when an operator typed a term that resolved to a
+ * person, so this is one row per search and not one per page view.
+ *
+ * Best effort, as `writeAudit` is everywhere else. Refusing to show the panel
+ * because the log line failed would take a working support desk down over a
+ * logging hiccup, and a gap in the trail is visible as a gap. The stricter
+ * reading, that an unloggable read should not happen at all, is a real
+ * argument and belongs to the whole console rather than to this one function.
  */
 export async function getSavedMethods(userId: string): Promise<AdminRead<SavedMethods>> {
   const access = await requireAdmin();
@@ -332,6 +353,23 @@ export async function getSavedMethods(userId: string): Promise<AdminRead<SavedMe
         .limit(METHOD_LIMIT),
     ]);
     if (cardsRes.error || accountsRes.error) return UNAVAILABLE;
+
+    await writeAudit(admin, {
+      actorId: access.user.id,
+      action: "payment_methods.viewed",
+      entityType: "user",
+      entityId: userId,
+      /*
+       * The keys avoid the word "card" deliberately. `forbiddenAuditKey` in
+       * audit-filter.ts withholds any key containing it, which is right, and a
+       * count rendered as "withheld" would be a line nobody can read. These
+       * two are counts and nothing else.
+       */
+      detail: {
+        methods_shown: (cardsRes.data ?? []).length,
+        accounts_shown: (accountsRes.data ?? []).length,
+      },
+    });
 
     return {
       state: "ok",

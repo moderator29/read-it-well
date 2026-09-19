@@ -256,8 +256,21 @@ export async function respondToReservation(
     await db.from("reservations").update({ conversation_id: conversationId }).eq("id", data.id);
   }
 
+  /*
+   * THE SURFACES THAT EXIST, AND ONLY THOSE (R2-7).
+   *
+   * `/host/reservations` stood here and there is no such route. A revalidate
+   * of a path nothing serves is not harmless: it reads as a promise in the
+   * code that the venue has a desk of its own, and it hid the real gap, which
+   * is that the ONLY desk answering a table today is `/agent/bookings`. The
+   * database is wider than that surface: `reservations_update_business_host`
+   * admits any `businesses.owner_id` through `private.owns_business`, so a
+   * venue owner who is not an agent may legally answer a table and has
+   * nowhere to do it. `getHostReservations` in `lib/reservations/queries.ts`
+   * is the reader that spine needs, and it has no caller yet; the surface is
+   * `app/host/**`, which is not this module's to build.
+   */
   revalidatePath("/agent/bookings");
-  revalidatePath("/host/reservations");
   revalidatePath("/bookings");
   revalidatePath("/trips");
   return ok(null);

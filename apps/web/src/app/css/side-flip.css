@@ -44,17 +44,36 @@
     perspective: 1200px;
     perspective-origin: 50% 50%;
   }
-  .nf-flip-stage:not([data-phase="idle"])::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--nf-overlay-backdrop);
-    opacity: 0;
-    animation: nf-flip-backdrop var(--nf-duration-fast) var(--nf-ease-press) forwards;
+  /*
+   * THE PAGE BEING LEFT STAYS ON SCREEN. It used to be blacked out.
+   *
+   * This drew `--nf-overlay-backdrop` - 62 per cent black - across the whole
+   * stage, and the fixed cover on top of it drew an opaque canvas. Between
+   * them, everything outside the turning pane went to black, so the flip, the
+   * interaction the founder calls the product's signature, read as a crash.
+   * `GOVERNING-flip-mid-turn.png` is explicit about the opposite: the search
+   * bar, the market chips, two listing cards and Popular Cities are all
+   * legible either side of the pane, dimmed and crisp, which is what makes
+   * the pane read as a card turning ABOVE a live page rather than as a
+   * screen being replaced. (R1 finding A21.)
+   *
+   * A brightness filter rather than a black sheet, because that is what the
+   * render shows: the page keeps its own colour and its own glow at lower
+   * exposure, where a 62 per cent black veil grey-washes it. No blur, also
+   * from the render, which keeps the page sharp.
+   *
+   * WHAT IS NOT FIXED HERE. Our mechanic rotates the page itself as the front
+   * face of the card, where the render keeps the page still and turns a pane
+   * over it. Mid-turn the page is therefore edge-on rather than flat behind
+   * the pane. Changing that is a restructure of `components/app/flip`, which
+   * is not this worker's scope; this removes the black-out, which is the part
+   * that read as a fault.
+   */
+  .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face--front {
+    filter: brightness(0.45) saturate(0.8);
   }
-  @keyframes nf-flip-backdrop {
-    to { opacity: 1; }
-  }
+  /* `@keyframes nf-flip-backdrop` stood here and went with the black sheet it
+     faded in. Nothing else referenced it. */
 
   /* -------------------------------------------------------------- the card */
 
@@ -79,9 +98,11 @@
       The elevation shadow stays underneath for depth.
     */
     box-shadow:
-      0 0 0 1.5px var(--nf-glow-brand-rim),
-      0 0 24px var(--nf-glow-3),
-      0 0 90px var(--nf-glow-2),
+      inset 0 0 0 1px var(--nf-rim-lit-ink),
+      0 0 0 2px var(--nf-glow-brand-rim),
+      0 0 22px var(--nf-glow-4),
+      0 0 64px var(--nf-glow-3),
+      0 0 140px -20px var(--nf-glow-2),
       var(--nf-elev-4);
     background: var(--nf-surface-canvas);
   }
@@ -93,12 +114,28 @@
     inset: 0;
     pointer-events: none;
     border-radius: inherit;
+    /*
+     * THE LEADING EDGE, and it is a white core, not a blue wash.
+     *
+     * In `GOVERNING-flip-mid-turn.png` the edge of the turning pane is the
+     * brightest thing on the screen: a hard near-white line with the brand
+     * blue falling off it over a few pixels and a wide bloom beyond. This was
+     * `--nf-glow-3` fading out over eight per cent of the pane's width, which
+     * at 390px is 31px of soft blue haze and reads as a gradient somebody put
+     * on a card rather than as light on a turning edge. Four stops a side
+     * now: the lit core, the last rung of the brand edge, a short fall, then
+     * nothing.
+     */
     background: linear-gradient(
       calc(90deg + var(--nf-flip-dir) * 12deg),
-      var(--nf-glow-3) 0%,
-      transparent 8%,
-      transparent 92%,
-      var(--nf-glow-3) 100%
+      var(--nf-rim-lit-ink) 0%,
+      var(--nf-glow-brand-rim) 0.6%,
+      var(--nf-glow-3) 1.6%,
+      transparent 7%,
+      transparent 93%,
+      var(--nf-glow-3) 98.4%,
+      var(--nf-glow-brand-rim) 99.4%,
+      var(--nf-rim-lit-ink) 100%
     );
     opacity: 0;
     transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
@@ -169,10 +206,24 @@
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
   }
+  /*
+   * THE FIXED COVER IS GLASS, NOT PAINT.
+   *
+   * `.nf-flip-cover` sets an opaque `--nf-surface-canvas` ground, which is
+   * right for the back FACE of the card - that face is the incoming side and
+   * has to be a solid object. The fixed twin is different: it rides above the
+   * whole stage through the hold and the reveal, and painted opaque it is the
+   * second half of the black-out, hiding the page the render keeps visible.
+   * A veil and the strong blur instead, so the glow and the mark sit over a
+   * page that is still there. (R1 finding A21.)
+   */
   .nf-flip-cover--fixed {
     position: absolute;
     inset: 0;
     z-index: 2;
+    background: color-mix(in oklab, var(--nf-surface-canvas) 62%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     transition: opacity var(--nf-duration-base) var(--nf-ease-exit);
   }
   .nf-flip-stage[data-phase="reveal"] .nf-flip-cover--fixed {
@@ -265,8 +316,22 @@
     width: 3.75rem;
     height: 3.75rem;
     border-radius: var(--nf-radius-lg);
-    background: var(--nf-glass-fill-thin);
-    box-shadow: inset 0 0 0 1px var(--nf-border-subtle);
+    /*
+     * The three objects on the cover are LIT TILES, on the founder's ruling
+     * that our glass containers were dull. This drew `--nf-glass-fill-thin`
+     * behind a one-pixel `--nf-border-subtle`, which is a neutral grey
+     * hairline - and it drew it on the one surface in the product that is
+     * entirely about light, the pane mid-turn. `.nf-glass--tile`'s recipe,
+     * restated here because these are list items the stylesheet owns rather
+     * than elements this worker's scope can add a class to.
+     */
+    background:
+      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
+      var(--nf-glass-card-fill);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow:
+      var(--nf-glow-edge),
+      inset 0 -1px 0 var(--nf-glass-floor);
     animation: nf-flip-mini-in var(--nf-duration-slow) var(--nf-ease-spring) both;
     animation-delay: calc(var(--nf-duration-fast) + var(--nf-flip-mini-i, 0) * 60ms);
   }
@@ -357,13 +422,30 @@
     min-height: 5rem;
     padding: 0.75rem 0.875rem;
     border-radius: var(--nf-radius-xl);
-    border: 1px solid var(--nf-brand-edge);
+    /*
+     * THE STRONGER RUNG, DELIBERATELY, AND THIS IS THE ONE PLACE ON THE PANEL
+     * THAT GETS IT.
+     *
+     * The coin card is the star of the drawer render: it is the brightest
+     * container on that screen, brighter than the user card above it and
+     * brighter than the theme row below it, because it is the control that
+     * turns the whole product over. The card wears `.nf-glass--card` from the
+     * shared ladder in the markup, and this promotes its ring one rung to
+     * `--nf-glow-edge-strong` - the full brand-edge-strong outline, a 18px
+     * bloom at `--nf-glow-3` and a 56px far bloom - so the panel has a clear
+     * order of brightness rather than three containers shouting equally.
+     *
+     * The wash on top of the shared fill is the render's: the card is tinted
+     * blue inside, not neutral glass, which is what separates it from the
+     * user card at a glance rather than by reading it.
+     */
+    border: 1px solid var(--nf-brand-edge-strong);
     background:
       linear-gradient(var(--nf-light-angle), var(--nf-brand-tint-2), var(--nf-brand-tint-1) 60%, transparent),
       var(--nf-glass-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 28px -6px var(--nf-glow-3);
+      var(--nf-glow-edge-strong),
+      inset 0 -1px 0 var(--nf-glass-floor);
     color: var(--nf-content-secondary);
     text-align: left;
     transition:
@@ -371,9 +453,12 @@
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-side-switch:hover:not(:disabled) {
+    border-color: var(--nf-glow-brand-rim);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-strong),
-      0 0 36px -4px var(--nf-glow-4);
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 0 1px var(--nf-glow-brand-rim),
+      0 0 26px var(--nf-glow-4),
+      0 0 64px -6px var(--nf-glow-2);
   }
   .nf-side-switch:active:not(:disabled) {
     transform: scale(0.985);
@@ -394,11 +479,32 @@
     width: 3.5rem;
     height: 3.5rem;
     border-radius: var(--nf-radius-circle);
-    border: 1.5px solid var(--nf-brand-edge-strong);
-    background: radial-gradient(circle at 50% 40%, var(--nf-brand-tint-3), transparent 72%);
+    /*
+     * THE LIT RIM, matched to `GOVERNING-flip-mid-turn.png` rather than to a
+     * guess. The rim on the turning pane in that render is not a blue line:
+     * it is a near-white core with the brand blue bleeding off both sides of
+     * it into a wide bloom. `--nf-glow-brand-rim` is the last rung of the
+     * edge ladder and `--nf-rim-lit-ink` is the white-hot core, so the ring
+     * reads as light catching an edge rather than as a drawn outline. Two
+     * blooms, a tight bright one and a wide soft one, because the render has
+     * both and one alone reads either as a halo or as a smudge.
+     */
+    border: 1.5px solid var(--nf-glow-brand-rim);
+    /* The annulus itself is lit, not a dark gap between two rings. In the
+       drawer render the band around the coin is the brightest blue on the
+       panel; a tint that faded to nothing at 72 per cent left a grey ring
+       with a bright hairline on the outside of it. */
+    background: radial-gradient(
+      circle at 50% 40%,
+      var(--nf-brand-primary) 0%,
+      var(--nf-brand-tint-3) 78%,
+      transparent 100%
+    );
     box-shadow:
-      0 0 0 4px var(--nf-glow-1),
-      0 0 22px var(--nf-glow-3);
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 0 3px var(--nf-glow-1),
+      0 0 18px var(--nf-glow-4),
+      0 0 48px -6px var(--nf-glow-2);
     perspective: 400px;
   }
   .nf-side-switch__coin {

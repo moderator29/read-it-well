@@ -304,7 +304,7 @@ export const yo: Dictionary = withFallback({
         careers: "Iṣẹ́",
       },
       hero: {
-        crumbs: ["Ohun ìní", "Ibùgbé", "Ìdókòwò", "Ìṣàkóso"],
+        crumbs: ["Ohun ìní", "Ibùgbé", "Ilé oúnjẹ", "Ìṣàkóso"],
         title1: "Real Estate",
         title2: "reimagined.",
         subtitle:
@@ -319,7 +319,6 @@ export const yo: Dictionary = withFallback({
         buy: "Rà",
         rent: "Yá",
         stay: "Gbé",
-        invest: "Dókòwò",
         filters: "Ṣí àwọn àṣàyàn",
         go: "Wá",
       },
@@ -338,35 +337,14 @@ export const yo: Dictionary = withFallback({
         cities: "Ìlú",
         states: "Ìpínlẹ̀",
       },
-      features: {
-        overline: "Ju ohun ìní lọ",
-        title: "Gbogbo ohun tí o nílò lórí pẹpẹ kan.",
-        body: "Láti àkọsílẹ̀ tí a fọwọ́ sí dé ibùgbé kúkúrú, olùrànlọ́wọ́ tó ń ka ìwé àkọsílẹ̀ àti àpò owó tó ń san fún gbogbo rẹ̀, Vallo fún ọ ní gbogbo ìrìn àjò ohun ìní rẹ nínú àkáǹtì kan.",
-        learn: "Kọ́ sí i",
-        tiles: {
-          buy: { title: "Rà", sub: "Àwọn ilé tí a fọwọ́ sí" },
-          rent: { title: "Yá", sub: "Àwọn àṣàyàn rọrùn" },
-          stays: { title: "Ibùgbé", sub: "Hótẹ́lì àti síwájú" },
-          invest: { title: "Dókòwò", sub: "Ilẹ̀ àti òwò" },
-          assistant: { title: "Olùrànlọ́wọ́ AI", sub: "Ìwádìí tó gbọ́n" },
-          wallet: { title: "Àpò owó", sub: "San kí o sì ṣàkóso" },
-          bookings: { title: "Ìforúkọsílẹ̀", sub: "Rọrùn tó sì ní ààbò" },
-          messaging: { title: "Ìránṣẹ́", sub: "Wà ní ìsopọ̀" },
-          inspections: { title: "Àyẹ̀wò", sub: "Wo kí o sì ṣàyẹ̀wò" },
-          management: { title: "Ìṣàkóso", sub: "Fún onílé àti aṣojú" },
-        },
-      },
-      chips: {
-        verified: { title: "Àkọsílẹ̀ tí a fọwọ́ sí", sub: "Ènìyàn ló ń yẹ olùkọsílẹ̀ kọ̀ọ̀kan wò." },
-        ai: { title: "Pẹ̀lú agbára AI", sub: "Ìwádìí tó gbọ́n. Ìbámu tó dára." },
-        wallet: { title: "Àpò owó tó ní ààbò", sub: "San, pamọ́, dàgbà." },
-        one: { title: "Pẹpẹ kan", sub: "Gbogbo ìlú, níbi gbogbo." },
-        stays: { title: "Vallo Stays", sub: "Hótẹ́lì, ilé, villa àti síwájú." },
-        manage: { title: "Ìṣàkóso ohun ìní", sub: "Fún onílé àti aṣojú." },
-      },
+      /* THE FEATURE BAND IS ABSENT HERE ON PURPOSE, AND FALLS BACK TO
+         ENGLISH. The content truth sweep of 19 September rewrote all six
+         cells and the Yoruba that stood here would have printed a different
+         claim under the same keys. A native speaker writes the six and they
+         come back. */
       community: {
         overline: "Àwọn ènìyàn gidi. Àwọn ibi gidi.",
-        title: "Àwùjọ tó ń dàgbà ti àwọn olùwá ilé, onílé àti olùdókòwò.",
+        title: "Àwùjọ tó ń dàgbà ti àwọn olùwá ilé, onílé àti ògbàlejò.",
         body: "A ń ka iye kọ̀ọ̀kan lórí ojú ìwé yìí láàyè láti orí pẹpẹ nígbà tí ojú ìwé bá ṣí. A kò fi kún ohunkóhun.",
         join: "Darapọ̀ mọ́ Vallo lónìí",
         thirdParty: "Ẹnìkẹta",
@@ -403,7 +381,7 @@ export const yo: Dictionary = withFallback({
       stays: {
         overline: "Vallo Stays",
         title: "Gbé níbi tó yẹ láti rántí.",
-        body: "Hótẹ́lì, ìyálé kúkúrú, ilé, villa, ilé oúnjẹ àti ìrírí, tí a forúkọ sílẹ̀ láti àkáǹtì kan náà.",
+        body: "Hótẹ́lì, ìyálé kúkúrú, ilé, villa àti ilé oúnjẹ, tí a forúkọ sílẹ̀ láti àkáǹtì kan náà.",
         cta: "Ṣàwárí ibùgbé",
         hotels: "Hótẹ́lì",
         apartments: "Ilé gbígbé",
@@ -444,6 +422,7 @@ export const yo: Dictionary = withFallback({
         safety: "Ààbò",
         standards: "Àwọn ìlànà",
         cancellations: "Ìfagilé",
+        restaurants: "Ilé oúnjẹ",
       },
     },
     slogan: "Real Estate reimagined!",
@@ -1085,7 +1064,12 @@ export const yo: Dictionary = withFallback({
         moveIn: "Èló ni yóò ná mi láti ṣílọ?",
         generator: "Àwọn ibi wo ló ní jẹnẹ́rétọ̀?",
         shortlets: "Fi shortlet ní Victoria Island hàn mí",
+        stay: "Hotẹ́ẹ̀lì ní Victoria Island ní ọ̀sẹ̀ yìí",
+        table: "Níbo ni mo ti lè fi tábìlì pamọ́ ní Ikoyi?",
       },
+      emptyTitle: "Báwo ni mo ṣe lè ràn ọ́ lọ́wọ́ lónìí?",
+      emptyBody:
+        "Béèrè nípa ibi tí o lè háyà tàbí rà, hotẹ́ẹ̀lì tàbí shortlet tí o lè dúró sí, tábìlì tí o lè pamọ́, àti iye tí ṣíṣílọ ń ná ní ti gidi.",
     },
     aiCard: {
       title: "Béèrè lọ́wọ́ Vallo AI",
@@ -1423,6 +1407,14 @@ export const yo: Dictionary = withFallback({
       priceYearPlaceholder: "2,500,000",
       perNight: "fún alẹ́ kan",
       perYear: "fún ọdún kan",
+      period: {
+        month: "fún oṣù kan",
+        quarter: "fún ìdámẹ́rin ọdún",
+        year: "fún ọdún kan",
+        night: "fún alẹ́ kan",
+        guest: "fún ènìyàn kan",
+        sale: "iye tí a béèrè",
+      },
       cleaningLabel: "Ìmọ́tótó",
       cleaningHint: "Àṣàyàn. A fi kún lẹ́ẹ̀kan fún ìbùgbé, kì í ṣe fún alẹ́ kọ̀ọ̀kan.",
       cleaningHintSet: "{amount} tí a fi kún lẹ́ẹ̀kan fún ìbùgbé.",
@@ -2638,6 +2630,7 @@ export const yo: Dictionary = withFallback({
     expand: "Ṣí",
     collapse: "Pa",
     openMenu: "Ṣí àkójọ",
+    verifiedAccount: "Àkántì tí a ti ṣàyẹ̀wò",
     closeMenu: "Ti àkójọ",
     languageSwitcher: "Yí èdè padà",
     favourite: "Fi pamọ́ sí àyànfẹ́",
@@ -2664,6 +2657,16 @@ export const yo: Dictionary = withFallback({
   },
 
   threads: {
+    context: {
+      rentalEnquiry: "Ìbéèrè nípa háyà",
+      stayBooking: "Ìfilọ́lẹ̀ ibùgbé",
+      tableBooking: "Ìfilọ́lẹ̀ tábìlì",
+      directMessage: "Ìfiránṣẹ́ tààrà",
+      viewBooking: "Wo kúlẹ̀kúlẹ̀ ìfilọ́lẹ̀",
+      viewTrips: "Wo àwọn ìrìnàjò rẹ",
+      viewProperty: "Wo ilé náà",
+      viewRestaurant: "Wo ilé oúnjẹ náà",
+    },
     rental: {
       waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
       waitingOnThem: "Ń dúró de {name} láti dáhùn.",
@@ -3120,6 +3123,66 @@ export const yo: Dictionary = withFallback({
       insideVallo: "Gbogbo rẹ̀ nínú Vallo",
       notFound: "Àkọsílẹ̀ yẹn kò sí mọ́.",
       notRental: "Ilé háyà nìkan ló ní owó ìwọlé.",
+    },
+    /* Ojú-ìwé ìfipamọ́ (/bookings). Build 06, F3. */
+    bookings: {
+      statusLabel: "Ipò ìfipamọ́",
+      upcoming: "Tó ń bọ̀",
+      completed: "Tí ó parí",
+      cancelled: "Tí a fagilé",
+      emptyUpcomingTitle: "Kò sí ìfipamọ́ kankan síbẹ̀",
+      emptyUpcomingBody:
+        "Nígbà tí o bá fi ibì kan pamọ́, yóò hàn níbí pẹ̀lú àwọn ọjọ́ rẹ, àpapọ̀ owó rẹ àti gbogbo ohun tí o nílò ní ọjọ́ náà.",
+      emptyCompletedTitle: "Kò sí ibùgbé tí ó parí síbẹ̀",
+      emptyCompletedBody:
+        "Ibùgbé máa ń wá síbí lẹ́yìn tí o bá jáde, ibẹ̀ ni o sì ti lè fi àtúnyẹ̀wò rẹ sílẹ̀.",
+      emptyCancelledTitle: "Kò sí èyí tí a fagilé",
+      emptyCancelledBody:
+        "A ń pa àwọn ìfipamọ́ tí a fagilé mọ́ síbí kí o lè ní àkọsílẹ̀ nígbà gbogbo, àní lẹ́yìn tí àwọn ọjọ́ bá ti kọjá.",
+      findPlace: "Wá ibì kan",
+      payNow: "San nísinsìnyí",
+      cancel: "Fagilé",
+      leaveReview: "Fi àtúnyẹ̀wò sílẹ̀",
+      yourReview: "Àtúnyẹ̀wò rẹ",
+      viewDetails: "Wo àwọn àlàyé",
+      total: "àpapọ̀",
+      arriving: "Ẹni tó ń dé: {name}",
+      unavailableTitle: "A kò lè ṣàfihàn àwọn ibùgbé rẹ",
+      unavailableBody:
+        "Ohun kan ní ìhà tiwa kò dáhùn ní báyìí. Kò sí ohun tí ó yípadà nípa àwọn ìfipamọ́ rẹ. Tún ojú-ìwé náà gbé, wọn yóò sì padà wá.",
+      signedOutTitle: "Wọlé láti rí àwọn ibùgbé rẹ",
+      signedOutBody:
+        "Gbogbo ibùgbé tí o bá fi pamọ́ ni a so mọ́ àkántì rẹ, torí náà tìrẹ nìkan ni a ń fi hàn ọ́. Wọlé, ohunkóhun tí a fi àkántì yìí pamọ́ yóò sì hàn níbí.",
+      signIn: "Wọlé",
+      findStay: "Wá ibi ìgbọ́bùgbé",
+      inspectionsTitle: "Àwọn àyẹ̀wò rẹ",
+      inspectionsBody: "Ẹni tó kọ ilé náà sílẹ̀ rí ipò kan náà tí ìwọ rí.",
+      alsoOnTrips: "Àwọn ibùgbé àti tábìlì rẹ, ní ètò bí wọ́n ṣe ń ṣẹlẹ̀, wà ní Ìrìnàjò.",
+      openTrips: "Ṣí Ìrìnàjò",
+      alsoOnBookings: "Àwọn háyà àti àyẹ̀wò wà ní Ìfipamọ́.",
+      openBookings: "Ṣí Ìfipamọ́",
+      detailMissingTitle: "Ìfipamọ́ yẹn kò sí níbí",
+      detailMissingBody:
+        "Ó lè jẹ́ ti àkántì mìíràn, tàbí kí a ti fagilé rẹ̀ kí a sì mú un kúrò. Ṣí àwọn ìfipamọ́ rẹ láti rí ohun tó wà níbẹ̀ báyìí.",
+      howTitle: "Bí ìfipamọ́ ṣe ń ṣiṣẹ́",
+      step1Title: "Yan àwọn ọjọ́ rẹ",
+      step1Body: "Yan ọjọ́ ìwọlé àti ọjọ́ ìjáde lórí kàlẹ́ńdà ààyè.",
+      step2Title: "Fọwọ́sí kí o sì san",
+      step2Body: "Ìsanwó tó ní ààbò ní naira. A kì í gba owó ní kùtùkùtù.",
+      step3Title: "Gbádùn ibùgbé rẹ",
+      step3Body: "Àwọn àlàyé ìwọlé yóò dé síbí àti nípasẹ̀ ímeèlì.",
+    },
+    /* Háyà kìí ṣe ibùgbé: ọjọ́ ìwọlé àti àkókò háyà ni ó ní. Build 06, F3. */
+    tenancy: {
+      section: "Àwọn háyà rẹ",
+      sectionLine: "Háyà tí o ti bẹ̀rẹ̀ sí san lórí Vallo.",
+      moveIn: "Wọlé ní {date}",
+      period: "Háyà {period}",
+      total: "Àpapọ̀ owó ìwọlé",
+      pay: "San háyà",
+      due: "Háyà tí kò tí ì san",
+      settled: "A ti san háyà",
+      view: "Wo ilé náà",
     },
     stays: {
       title: "Ibùgbé",

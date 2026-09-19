@@ -1,4 +1,5 @@
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
  * A person's avatar in messaging, with the verified mark on it.
@@ -50,6 +51,17 @@ const BADGE: Record<AvatarSize, string> = {
 
 const GLYPH: Record<AvatarSize, number> = { sm: 12, md: 12, lg: 16 };
 
+/**
+ * The same three sizes as `SHELL`, as numbers.
+ *
+ * `SHELL` states them in Tailwind's scale because that is what the class
+ * attribute needs; `sizes` on the image needs the pixel count. Both are
+ * derived from one row here so the two cannot drift: an avatar whose `sizes`
+ * disagrees with its box fetches the wrong candidate, which is the one bug
+ * this whole sweep exists to remove.
+ */
+const PIXELS: Record<AvatarSize, number> = { sm: 36, md: 44, lg: 48 };
+
 function initialOf(name: string): string {
   const trimmed = name.trim();
   return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : "?";
@@ -88,8 +100,18 @@ export function VerifiedAvatar({
         className={`flex items-center justify-center overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] font-bold text-[var(--nf-content-primary)] ${SHELL[size]}`}
       >
         {photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+          /* 36, 44 or 48px, and the CSS above already crops it to the circle.
+             The source is a full size upload, so the size it is fetched at is
+             the whole saving: a thread of twenty messages was twenty full
+             resolution photographs. */
+          <RemoteImage
+            src={photoUrl}
+            alt=""
+            width={PIXELS[size]}
+            height={PIXELS[size]}
+            sizes={`${PIXELS[size]}px`}
+            className="h-full w-full object-cover"
+          />
         ) : (
           initialOf(name)
         )}

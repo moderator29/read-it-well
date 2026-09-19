@@ -28,7 +28,7 @@ export const dynamic = "force-dynamic";
  * its raw name and gets the generic consequence, which is still honest about
  * what switching off does.
  */
-function SwitchRow({
+export function SwitchRow({
   flag,
   copy,
   common,
@@ -44,8 +44,18 @@ function SwitchRow({
   const label = labels[flag.key] ?? flag.key;
 
   return (
+    /*
+      THE SWITCH TAKES ITS OWN LINE ON A PHONE.
+
+      The row is a text column and a control, and the control is `shrink-0`
+      while the text was `flex-1`, so at 390px the text had about half the
+      card and every consequence sentence broke over seven lines beside a
+      button sitting alone in the other half. `basis-full` puts the switch
+      under the words where the words need the width, and `sm:basis-0` gives
+      the original row back the moment there is room for it.
+    */
     <li className="nf-card flex flex-wrap items-start gap-md p-md sm:p-lg">
-      <span className="min-w-0 flex-1">
+      <span className="min-w-0 flex-1 basis-full sm:basis-0">
         <span className="flex flex-wrap items-center gap-xs">
           <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{label}</span>
           <ui.StatusChip

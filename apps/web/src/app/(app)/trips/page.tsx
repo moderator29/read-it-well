@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getLocale } from "@/lib/locale";
 import { getMyBookings } from "@/lib/bookings/queries";
 import { getMyReservations } from "@/lib/reservations/queries";
@@ -48,7 +50,7 @@ export default async function TripsPage({
     reservations.length === 0;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="luggage-check" />
         <PageHeader title={t.stays.tripsTitle} subtitle={t.stays.tripsLine} fallback="/stays" />
@@ -81,6 +83,28 @@ export default async function TripsPage({
           justBookedId={justBooked}
         />
       ) : null}
+
+      {/*
+        WHERE THE OTHER HALF IS (R3 finding F-08). This screen is the date
+        spine: what is next, stays and tables in the order they happen. A
+        tenancy has no place on it (a year's rent is not a trip) and neither
+        does an inspection, so it says where they are rather than leaving
+        somebody to find /bookings by guesswork. `groups.rent` is deliberately
+        not read here; see the note in `lib/bookings/queries.ts`.
+      */}
+      <p
+        data-testid="trips-cross-link"
+        className={`mt-block flex flex-wrap items-center gap-inline ${TYPE.rowMeta}`}
+      >
+        <span>{t.catalogue.bookings.alsoOnBookings}</span>
+        <Link
+          href="/bookings"
+          className="inline-flex items-center gap-2xs font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+        >
+          {t.catalogue.bookings.openBookings}
+          <UiIcon name="arrow-right" size={16} />
+        </Link>
+      </p>
     </div>
   );
 }

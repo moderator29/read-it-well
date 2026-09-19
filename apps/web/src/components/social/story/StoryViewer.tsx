@@ -388,8 +388,13 @@ export function StoryViewer({
               aria-pressed={saved}
               className={`nf-story__act${saved ? " nf-story__act--on" : ""}`}
             >
+              {/* A BOOKMARK, NOT THE REPOST ARROWS. This control saves a story
+                  to the reader's own shelf: nothing is republished and nobody
+                  else sees it happen, which is the exact opposite of what two
+                  circling arrows mean to anybody who has met them on the feed
+                  card directly beneath this screen. */}
               <span className="nf-story__act-circle">
-                <UiIcon name="repost" size={22} filled={saved} />
+                <UiIcon name="bookmark" size={22} filled={saved} />
               </span>
               <span className="nf-story__act-count nf-numeric">{saveCount}</span>
               <span className="sr-only">{saved ? "saved, undo" : "saves, save this story"}</span>
@@ -442,8 +447,12 @@ export function StoryViewer({
                 ? `${story.commentCount} ${story.commentCount === 1 ? "comment" : "comments"}`
                 : STORY_COPY.addComment}
             </span>
+            {/* This opens the comments. It was drawing the share arrow, which
+                was the THIRD share glyph on one screen (the card's corner, the
+                action row, and here) and the only one of the three that did
+                not share anything. */}
             <span className="nf-story__send" aria-hidden="true">
-              <UiIcon name="share" size={17} />
+              <UiIcon name="chat-bubble" size={17} />
             </span>
           </button>
         </div>

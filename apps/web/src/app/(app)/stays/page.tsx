@@ -15,6 +15,10 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState, ICON } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
+import { resolveSession } from "@/lib/actions/session";
+import { listSavedPlaces } from "@/lib/saved/places-actions";
+import { getSavedListings } from "@/lib/saved/queries";
+import { isSaved, savedKeySet } from "@/lib/saved/places";
 
 export const metadata: Metadata = {
   title: "Stays",
@@ -55,7 +59,31 @@ export default async function StaysHomePage() {
   const t = getDictionary(locale);
   const copy = t.catalogue.stays;
 
-  const [projection, tables] = await Promise.all([listStaysShelf({}, 6), readShelf(["restaurant"], 3)]);
+  /*
+   * THE HEARTS ARE LIT FROM THE ACCOUNT'S OWN SHORTLIST.
+   *
+   * `saved_places` is where a hotel or a restaurant is saved and nothing on
+   * this shelf read it, so a stay the reader had already hearted came back
+   * every visit with an empty heart on it. `listSavedPlaces` answers with the
+   * keys alone; `savedKeySet` and `isSaved` decide each card with no second
+   * read per card. Signed out there is no shelf to write to at all, which is
+   * what `canSavePlaces` carries to the card: the heart is absent rather than
+   * present and refusing.
+   */
+  const [projection, tables, session, savedPlaces, savedListings] = await Promise.all([
+    listStaysShelf({}, 6),
+    readShelf(["restaurant"], 3),
+    resolveSession(),
+    listSavedPlaces(),
+    /* The restaurants rail is built from `Listing` rows, not from the
+       catalogue projection, so its hearts write to `saved_items` and the
+       place keys above cannot answer them. Both shelves are read because
+       this one page draws cards from both tables. (R2 finding 4.) */
+    getSavedListings(),
+  ]);
+  const savedKeys = savedKeySet(savedPlaces.ok ? savedPlaces.data : []);
+  const savedListingIds = new Set(savedListings.map((entry) => entry.listing.id));
+  const canSavePlaces = session.state === "signed-in";
   const featured: StayCardData[] =
     projection.length > 0
       ? projection.filter((row) => row.entity_kind !== "restaurant").map(stayCardFromRow)
@@ -109,7 +137,14 @@ export default async function StaysHomePage() {
           <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" data-testid="featured-stays">
             {featured.slice(0, 6).map((stay, index) => (
               <li key={stay.id}>
-                <StayCard stay={stay} locale={locale} t={t} index={index} />
+                <StayCard
+                  stay={stay}
+                  locale={locale}
+                  t={t}
+                  index={index}
+                  saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
+                  canSavePlaces={canSavePlaces}
+                />
               </li>
             ))}
           </ul>
@@ -131,11 +166,18 @@ export default async function StaysHomePage() {
           <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
             {tables.slice(0, 3).map((listing, index) => (
               <li key={listing.id}>
+                {/* The href override is gone: `stayCardFromListing` reads it
+                    from the kind now, so a restaurant lands on
+                    `/restaurant/<id>` wherever it is drawn rather than only
+                    where somebody remembered to say so. The heart takes the
+                    stored truth, which this rail was not passing at all, so a
+                    hearted table came back unlit. (R2 findings 1 and 4.) */}
                 <StayCard
-                  stay={{ ...stayCardFromListing(listing), href: `/restaurant/${listing.id}` }}
+                  stay={stayCardFromListing(listing)}
                   locale={locale}
                   t={t}
                   index={index}
+                  saved={savedListingIds.has(listing.id)}
                 />
               </li>
             ))}

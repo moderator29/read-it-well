@@ -51,9 +51,18 @@ export function Hero({
 
       <div className="nf-shell nf-landing-hero-body">
         <div className="nf-landing-hero-copy flex flex-col gap-heading">
+          {/* Each crumb is one unbreakable word and the separator belongs to
+              the crumb before it (R1 finding A7): as a leading `::before` on
+              the following item, a wrap at 390 put a bare slash at the head
+              of the second line, which is a typesetting error on the first
+              text of the product's first screen. Under 26.75rem the fourth
+              crumb is hidden rather than shortened, because the crumbs are
+              content truth and abbreviating one would be a different claim. */}
           <ol className="nf-rise nf-landing-crumbs" aria-label={face.hero.crumbs.join(" / ")}>
-            {face.hero.crumbs.map((c) => (
-              <li key={c}>{c}</li>
+            {face.hero.crumbs.map((c, i) => (
+              <li key={c} className={i === face.hero.crumbs.length - 1 ? "nf-landing-crumb--last" : undefined}>
+                {c}
+              </li>
             ))}
           </ol>
           <h1 id="nf-landing-title" className="nf-landing-title">

@@ -59,7 +59,12 @@ export function SideSwitch({
     <button
       ref={button}
       type="button"
-      className="nf-side-switch nf-tap"
+      /* The material is the shared glass card's, not this file's own. The
+         drawer render draws the coin card as the brightest container on the
+         panel, and `.nf-glass--card` is the composition the founder's ruling
+         put on every container; `.nf-side-switch` adds only the brand wash,
+         the geometry and the star's stronger rung on top of it. */
+      className="nf-side-switch nf-tap nf-glass nf-glass--card"
       disabled={pending}
       data-spinning={spinning || undefined}
       style={{ "--nf-flip-dir": other === "stays" ? -1 : 1 } as React.CSSProperties}

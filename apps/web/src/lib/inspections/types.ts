@@ -105,6 +105,19 @@ export type Inspection = {
   /** The other party's display name, when the projection could resolve one. */
   counterpartName: string | null;
   /**
+   * The other party's number, in the canonical `+234...` form, so the row and
+   * the sheet can offer a call rather than only a name.
+   *
+   * OPTIONAL FOR THE SAME REASON `outcome` BELOW IS: the components build
+   * fixtures of this shape and none of them has a number to give. Every read
+   * in lib/inspections fills it, and fills it with null far more often than
+   * not: a party with no number on their account, a block in either direction
+   * and a platform with no service key all resolve to null, and a null draws
+   * no control. `lib/security/counterpart-contact.ts` holds that rule and is
+   * the only place it may be changed.
+   */
+  counterpartPhone?: string | null;
+  /**
    * Set only on COMPLETED, and only if somebody said why. Optional on the
    * type because the components build fixtures of this shape and none of
    * them has an opinion about it; every read in lib/inspections fills it.

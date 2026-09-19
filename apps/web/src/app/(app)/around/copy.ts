@@ -32,11 +32,18 @@
  * hand-written copies of an apology drift, and the product ends up apologising
  * twice in two voices on two screens of the same feature.
  *
- * WHAT IS STILL WRONG AND IS NOT THIS OWNER'S TO FIX. The banned sentence also
- * lives as `PLACE_COPY.unconfigured` in `lib/social/places-schema.ts`, which is
- * outside this scope. Nothing renders it any more, so the product no longer
- * says it, but the string is still in the tree and the spec that bans the
- * synonym will not catch it. It is listed in the sprint report for removal.
+ * WHAT WAS STILL WRONG AND IS NOW GONE. This note used to record a second copy
+ * of the banned sentence living as `PLACE_COPY.unconfigured` in
+ * `lib/social/places-schema.ts`. That key no longer exists; the string is out
+ * of the tree, so the note was pointing at nothing and has been cut rather
+ * than left to send the next reader looking.
+ *
+ * WHAT IS STILL WRONG AND IS NOT THIS OWNER'S TO FIX. `BOT_COPY.unconfigured`
+ * in `lib/social/bot-schema.ts` reads "I am not switched on in places yet",
+ * and unlike the old place string it IS rendered: `summonBot` writes it into a
+ * reply a member of the public reads. "Not switched on yet" is the same banned
+ * schedule in a different coat. `lib/` is outside this scope, so it is
+ * reported rather than edited.
  */
 export const AROUND_UNCONFIGURED = {
   /** The feed, where the question is "why is there nothing to read". */

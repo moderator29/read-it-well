@@ -271,6 +271,28 @@ export type RoomTypeDetail = RoomTypeRow & {
   rate_plans: (RatePlanRow & { policy: CancellationPolicyRow | null })[];
 };
 
+/**
+ * The projection's own verdict on one accommodation: the badge and the
+ * rating, exactly as the shelf card reads them.
+ *
+ * THE SHIELD IS THE PROJECTION'S, NOT A SECOND OPINION. `catalogue_entries.verified`
+ * for an accommodation is `source = 'first_party' and not is_demo and the
+ * owning agent carries a verified badge`, recomputed by the M9 triggers. Any
+ * other arithmetic on the detail screen would let a property wear a shield on
+ * its own page that the shelf refuses it, and ledger rule 12 says the shield
+ * only ever means a human was checked.
+ *
+ * `rating_avg` is null and `rating_count` is 0 for every accommodation today,
+ * because `reviews.listing_id` is a foreign key to `listings` and an
+ * accommodation id matches no review row. This carries the projection's
+ * numbers rather than inventing any, so the face lights up on its own the day
+ * reviews can key on a stay and the M9 refresh averages them.
+ */
+export type StayCatalogueFacts = Pick<
+  CatalogueEntryRow,
+  "verified" | "rating_avg" | "rating_count"
+>;
+
 export type StayDetail = {
   accommodation: AccommodationRow;
   business: Pick<BusinessRow, "id" | "name" | "slug" | "kind" | "source" | "phone" | "email" | "is_demo">;
@@ -279,6 +301,13 @@ export type StayDetail = {
   room_types: RoomTypeDetail[];
   /** The property-level policy, when one is set; plans carry their own. */
   policy: CancellationPolicyRow | null;
+  /**
+   * The projection row behind this accommodation, or null when it has none
+   * (an unpublished property, read by its own owner). Null is never "verified
+   * and unrated"; it is "the shelf has nothing to say about this yet", and the
+   * face draws neither shield nor rating for it.
+   */
+  catalogue: StayCatalogueFacts | null;
 };
 
 export type RestaurantDetail = {

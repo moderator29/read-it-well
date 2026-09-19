@@ -165,6 +165,54 @@ const PAYSTACK_ORIGINS: readonly string[] = [
  * Every directive below is either the strictest value that works or carries the
  * reason it cannot be.
  */
+/**
+ * `script-src`, which is one directive in production and a different one under
+ * `next dev`, and the difference is worth the paragraphs below.
+ *
+ * WHAT SHIPS. `'strict-dynamic'` with a per-request nonce. Where it is
+ * supported the browser ignores `'self'` and every host in the directive and
+ * trusts only scripts carrying this request's nonce, plus whatever those
+ * scripts load themselves. That last clause is what lets Next's chunk loader
+ * keep working without listing a single file. `'self'` and `https:` stay for
+ * browsers that do not implement strict-dynamic, where they are the fallback
+ * rather than the rule.
+ *
+ * WHY DEVELOPMENT IS DIFFERENT, AND WHY IT COST US A DAY OF PROOFS. Under
+ * `next dev` with Turbopack, the HMR runtime injects its own chunk tags after
+ * hydration and they do not carry the request's nonce. With strict-dynamic in
+ * force the browser refuses every one of them, so `/_next/static/chunks/*`
+ * never loads, HYDRATION NEVER COMPLETES, and any effect that runs on mount
+ * never runs at all.
+ *
+ * That is invisible if you are clicking around, because the server-rendered
+ * HTML is already on screen. It is NOT invisible in a screenshot: this product
+ * wraps every band below the fold in `Reveal`, which fades a block in from an
+ * IntersectionObserver in an effect. No hydration, no observer, no reveal, so
+ * a fullpage proof of a marketing page came back as the hero and then four and
+ * a half thousand pixels of nothing. F2 measured it directly: 21 `.nf-reveal`
+ * nodes, one shown, twenty at `opacity: 0`, and `window.scrollY` stuck at 0
+ * after a scroll to 4,623. Every worker shooting a Reveal page was judging
+ * their work from a picture of a page that had never finished loading.
+ *
+ * So in development the policy keeps the nonce and drops `'strict-dynamic'`,
+ * which lets `'self'` do its job again and serve same-origin chunks, and adds
+ * `'unsafe-eval'` because Turbopack's HMR needs it. BOTH ARE DEVELOPMENT ONLY.
+ * `NODE_ENV` is `production` in the build that ships and `test` under vitest,
+ * so neither reaches a deployed response, and the assertions in
+ * `security.test.ts` and `tests/csp.spec.mjs` that forbid `'unsafe-eval'` and
+ * `'unsafe-inline'` still run against the shipping directive and still pass.
+ *
+ * The alternative, loosening what ships, is the trade this comment exists to
+ * refuse: a real policy is worth more than a convenient one, and a development
+ * server is not a threat surface.
+ */
+function scriptSrc(nonce: string): string[] {
+  if (process.env.NODE_ENV === "development") {
+    return ["'self'", "https:", `'nonce-${nonce}'`, "'unsafe-eval'"];
+  }
+  return ["'self'", "https:", `'nonce-${nonce}'`, "'strict-dynamic'"];
+}
+
 export function contentSecurityPolicy(nonce: string): string {
   const supabase = supabaseOrigins();
 
@@ -172,18 +220,9 @@ export function contentSecurityPolicy(nonce: string): string {
     // Everything not named below falls back to same origin only.
     ["default-src", ["'self'"]],
 
-    /*
-     * `strict-dynamic` is the point of the whole policy. Where it is supported
-     * it makes the browser ignore `'self'` and every host in this directive,
-     * and trust only scripts carrying this request's nonce plus whatever those
-     * scripts load themselves. That last part is what lets Next's chunk loader
-     * keep working without listing a single file.
-     *
-     * `'self'` and `https:` stay for browsers that do not implement
-     * strict-dynamic, where they are the fallback rather than the rule. A
-     * browser that understands strict-dynamic never reads them.
-     */
-    ["script-src", ["'self'", "https:", `'nonce-${nonce}'`, "'strict-dynamic'"]],
+    // strict-dynamic with a per-request nonce, and one deliberate difference
+    // under `next dev`. The whole reasoning is on `scriptSrc` above.
+    ["script-src", scriptSrc(nonce)],
 
     /*
      * `'unsafe-inline'` for styles, honestly labelled rather than quietly

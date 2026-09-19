@@ -1,6 +1,8 @@
 import type { Listing, ListingKind } from "@/lib/listings/types";
+import { hrefForListing } from "@/lib/listings/href";
 import type { StaySearchRow } from "@/lib/stays/types";
 import { accommodationPhotoUrl } from "@/lib/stays/photos";
+import type { SavePlaceTarget } from "@/components/app/SaveControl";
 
 /**
  * What a stay card needs, whichever read produced it.
@@ -32,6 +34,19 @@ export type StayCardData = {
   /** A dated search's whole-stay total, in kobo, when the row carries one. */
   totalMinor: number | null;
   nights: number | null;
+  /**
+   * WHERE THIS CARD'S HEART WRITES.
+   *
+   * A catalogue accommodation or restaurant is saved into `saved_places`
+   * under its entity kind; a platform listing is a `saved_items` row and its
+   * heart needs nothing here. Set only by the projection adapter and by the
+   * two surfaces that read businesses directly, because those are the only
+   * reads that know an entity kind at all. Without it a hotel's heart went to
+   * `toggleSave`, whose foreign key can never accept an accommodation id, so
+   * the tap came back as "this place is no longer available" and saved
+   * nothing.
+   */
+  place?: SavePlaceTarget;
 };
 
 function place(area: string | null | undefined, city: string | null | undefined): string {
@@ -47,7 +62,13 @@ export function stayCardFromListing(listing: Listing, nights: number | null = nu
       : null;
   return {
     id: listing.id,
-    href: `/stay/${listing.id}`,
+    /* The kind decides the shell, not the shelf the card happens to be on.
+       This was a flat `/stay/<id>`, so the restaurants rail on `/stays` had
+       to override the href at the call site to stop a table opening in the
+       lodging shell - and any other caller that forgot would have shipped the
+       bug. `hrefForListing` answers it from `listing.kind` for every surface
+       at once. See `lib/listings/href.ts` and R2 findings 1 and 3. */
+    href: hrefForListing(listing.kind, listing.id),
     title: listing.title,
     where: place(listing.area, listing.city),
     kind: listing.kind,
@@ -117,5 +138,12 @@ export function stayCardFromRow(row: StaySearchRow): StayCardData {
     amenities: row.amenity_codes,
     totalMinor: row.total_minor !== null && row.total_minor > 0 ? row.total_minor : null,
     nights: row.nights,
+    /* The projection is the one read that knows the entity kind, so it is the
+       one place that can tell the heart which shelf it writes to. A `listing`
+       row keeps the `saved_items` path it already had. */
+    place:
+      row.entity_kind === "accommodation" || row.entity_kind === "restaurant"
+        ? { kind: row.entity_kind, id: row.entity_id }
+        : undefined,
   };
 }

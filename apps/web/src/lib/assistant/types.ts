@@ -33,7 +33,17 @@ export type AssistantListingItem = {
   bathrooms?: number;
   /** Floor area in square metres, when the lister gave one. */
   sizeSqm?: number;
-  /** In-app link, always "/listing/<id>". */
+  /**
+   * Where this row opens, already built by the route under the SIDE LAW.
+   *
+   * NOT always "/listing/<id>", and the comment that said so was the reason
+   * it stayed wrong: a stay opens at "/stay/<id>", a restaurant at
+   * "/restaurant/<id>" and a property at "/listing/<id>". `hrefForListing` in
+   * `lib/listings/href.ts` is the one place that decides it. The path forces
+   * the shell (`lib/side.constants.ts`), so a client renders this as it
+   * arrives; a client that recomputes it calls the same helper and never
+   * writes a second rule.
+   */
   href: string;
   /** Lead photo URL for the card thumbnail. */
   photo?: string;

@@ -18,8 +18,10 @@ import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/Stat
  * detail under it and a 390px screen cannot hold seven columns; a native
  * `<details>` gives the open and close, the keyboard and the state for
  * free, and the grid draws the columns the width allows. The header row is
- * drawn on desktop where the columns line up and hidden on the phone where
- * the glyph and the pill say what each cell is.
+ * drawn on desktop where the columns line up and hidden on the phone, where
+ * every cell names itself instead: the type word sits under its glyph, the
+ * pill carries its own status word, and the reference and the stamp read as
+ * what they are.
  *
  * WHAT IS DELIBERATELY NOT HERE. Bulk actions and an export button: no desk
  * has a bulk write and no export exists on the platform, and a control that
@@ -124,8 +126,8 @@ function RowGrid({ row }: { row: QueueRowData }) {
         <span className="nf-admin-row__tile" aria-hidden="true">
           <UiIcon name={row.icon} size={20} />
         </span>
+        {/* Printed, not hidden. See the note on `.nf-admin-row__type-word`. */}
         <span className="nf-admin-row__type-word">{row.type}</span>
-        <span className="sr-only">{row.type}</span>
       </span>
       <span className="nf-admin-row__title">
         <span className="nf-admin-row__name">{row.title}</span>

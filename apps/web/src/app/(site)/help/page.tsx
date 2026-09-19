@@ -10,7 +10,7 @@ import { ButtonLink } from "@/components/ui/Button";
 export const metadata: Metadata = {
   title: "Help centre",
   description:
-    "Answers about booking, payments after inspection, refunds, listing a property, verification and languages on Vallo.",
+    "Answers about both sides of Vallo: the switch between Property and Stays, booking a stay, holding a table, payments after inspection, refunds, listing, verification and languages.",
 };
 
 /**
@@ -44,16 +44,55 @@ const TRUST_LINKS: { href: string; icon: BrandIconName; title: string; body: str
     href: "/cancellations",
     icon: "calendar-clock",
     title: "Cancellations",
-    body: "One refund schedule for every stay, with the windows written out.",
+    body: "One refund schedule for every paid stay, with the windows written out.",
   },
 ];
 
 const FAQS: Faq[] = [
+  /*
+   * THE TWO SIDES COME FIRST, because until the content truth sweep of 19
+   * September this page answered as though Vallo sold property and nothing
+   * else, and the three questions a person actually arrives with on a
+   * two-sided product were nowhere on it: what the switch is, how paying for
+   * a stay differs from paying for a tenancy, and what Verified means when a
+   * row can also say Third party.
+   */
+  {
+    category: "Property and Stays",
+    q: "What are the two sides, and what does switching do?",
+    a: "Vallo is one app with two faces. The Property side is renting, buying and selling: listings, agents, inspections and Bookings, priced as a sale price or a yearly rent. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced apartments, shortlets and restaurant tables, priced per night against your dates. The switch sits at the foot of the side menu. Flipping it changes the vocabulary and the bottom bar and nothing else: same account, same profile, same wallet and balance, same inbox, same saved places. Bookings is the Property side's word for what is coming up and Trips is the Stays side's word for it.",
+  },
+  {
+    category: "Property and Stays",
+    q: "How is paying for a stay different from paying for a tenancy?",
+    a: "A stay is paid on Vallo before you arrive. You pick your dates, reserve, and the nights are held free for 48 hours while you decide; the breakdown shows the nightly rate, the nights and anything the host charges, added up, and you pay by card or from your wallet. A tenancy is the other way round: you message the agent, you inspect the property in person, and only then do you pay, with the whole move-in total printed before you commit. There is no reserve button on a yearly rental for that reason. Both are paid inside Vallo and both leave a reference you can open later.",
+  },
+  {
+    category: "Property and Stays",
+    q: "Does my wallet work on both sides?",
+    a: "Yes. There is one naira wallet on one account. Top it up by card or bank transfer, pay for a tenancy, a sale deposit or a hotel room from the same balance, and withdraw to your own Nigerian bank account. Refunds land back in the same wallet whichever side they came from.",
+  },
+  {
+    category: "Property and Stays",
+    q: "Do I have to pay for a restaurant table?",
+    a: "No. A table is a request, not a booking: you ask for a date, a time and a party size, and the restaurant confirms it or turns it down. No money moves on Vallo for a reservation and you pay the restaurant when you eat. Every reservation opens its own conversation, so running late is a message rather than a phone call. Cancel it at any hour, for nothing.",
+  },
+  {
+    category: "Property and Stays",
+    q: "What does Verified mean, and what does Third party mean?",
+    a: "They answer two different questions and they never overlap. Verified is about a person: somebody at Vallo checked the identification of the agent or host behind the listing before it went live, and higher levels mean we have also checked their address, their payout account, or met them. Third party is about fulfilment: it marks a stay that a partner confirms and delivers rather than us, and it names that partner. A row carrying the Third party tag is never dressed as first party and never wears the verified tick. No partner inventory is live today; the label exists so that the first one cannot arrive unlabelled.",
+  },
+
   // ------------------------------------------------------------ booking
   {
     category: "Booking a stay",
     q: "How do I book a stay on Vallo?",
-    a: "Search for the city or area you want, open a listing, pick your dates and follow the booking steps. You will see the full price in naira before you confirm anything, and your booking then appears under Bookings in your account.",
+    a: "Open Stays, type where you are going and set your check-in, your check-out and how many of you there are. Every price on the results page then becomes the total for those nights rather than a rate. Open one, reserve, and the nights are held for 48 hours for nothing while you decide. Pay by card or from your wallet and the stay appears under Trips on the Stays side, or Bookings on the Property side, with its reference.",
+  },
+  {
+    category: "Booking a stay",
+    q: "How do I hold a table at a restaurant?",
+    a: "Open Restaurants, open the one you want, and ask for a date, a time and a party size. The time is read as Lagos time whatever your phone is set to. The restaurant confirms it or turns it down and you are told either way, the reservation opens its own conversation, and it sits with your stays on Trips at its hour.",
   },
   {
     category: "Booking a stay",
@@ -80,7 +119,7 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "What payment methods can I use?",
-    a: "You can pay in naira with Nigerian debit cards or by bank transfer, and from your Vallo wallet. Prices are always shown in naira with no hidden conversion.",
+    a: "You can pay in naira with Nigerian debit cards or by bank transfer, and from your Vallo wallet. The same three work on both sides of the product, for a night or for a year. Prices are always shown in naira with no hidden conversion.",
   },
   {
     category: "Payments and refunds",
@@ -102,6 +141,11 @@ const FAQS: Faq[] = [
   },
 
   // ------------------------------------------------------------ listing
+  {
+    category: "Listing your property",
+    q: "Can I list a hotel, a guest house or a restaurant rather than a property?",
+    a: "Yes. The same application covers both sides. Once you are approved you publish from your agent workspace, and a place let by the night is run with the host tools: the calendar, the nights you close by hand, and the bookings that arrive against them. A restaurant is listed the same way and answers table requests from the same workspace.",
+  },
   {
     category: "Listing your property",
     q: "How do I list my property on Vallo?",
@@ -178,7 +222,7 @@ export default function HelpPage() {
         icon="support-chat"
         chip="Help centre"
         title="How can we help?"
-        lede="Straight answers about booking, payments, refunds, listing and verification. Search below, or browse by topic."
+        lede="Straight answers about both sides of Vallo: the switch, booking a stay, holding a table, payments, refunds, listing and verification. Search below, or browse by topic."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

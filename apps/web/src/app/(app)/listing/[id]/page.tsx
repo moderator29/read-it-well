@@ -665,7 +665,7 @@ export default async function ListingDetailPage({
       hue={listing.hue}
       kind={listing.kind}
     >
-      <div className="mx-auto max-w-5xl">
+      <div className="nf-cat-surface mx-auto max-w-5xl">
         {structuredData && (
           <script
             type="application/ld+json"

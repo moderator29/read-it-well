@@ -20,7 +20,7 @@ export function HowVallo({ t }: { t: Dictionary }) {
     { key: "manage", icon: "wallet" },
   ];
   return (
-    <section className="nf-shell py-section" aria-labelledby="nf-landing-how-title">
+    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-how-title">
       <Reveal className="mx-auto mb-block max-w-measure-lede text-center">
         <span className="nf-overline text-[var(--nf-brand-secondary)]">{h.overline}</span>
         <h2 id="nf-landing-how-title" className="nf-h1 mt-row">

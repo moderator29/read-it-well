@@ -10,6 +10,12 @@ import {
 } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { toggleSave } from "@/lib/saved/actions";
+import {
+  saveRestaurant,
+  saveStay,
+  unsaveRestaurant,
+  unsaveStay,
+} from "@/lib/saved/places-actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
 
 /**
@@ -149,7 +155,31 @@ export function useDeviceSaved(listingId: string): boolean {
   );
 }
 
-export function useSaveControl(listingId: string, initialSaved = false) {
+/**
+ * THE OTHER SHELF, AND WHY THE HEART NEEDED A SECOND DESTINATION.
+ *
+ * `saved_items.listing_id` has a foreign key to `public.listings`, so a hotel
+ * or a restaurant can never be a row in it: the catalogue holds them as
+ * accommodations and businesses, and their shortlist is `saved_places`. A
+ * stay card hearted through `toggleSave` therefore wrote nothing and came
+ * back with the withdrawn-listing refusal, which is a heart that looks like a
+ * control and is a picture of one. `lib/saved/places-actions.ts` has the two
+ * pairs of writes, by name, each revalidating /saved; this is the target a
+ * card hands over so the tap lands in the right table.
+ */
+export type SavePlaceTarget = { kind: "accommodation" | "restaurant"; id: string };
+
+export function useSaveControl(
+  listingId: string,
+  initialSaved = false,
+  /**
+   * Set when this card is a catalogue place rather than a platform listing.
+   * The device half does not apply: `saved_places` is an account's own table
+   * and there is no signed-out mirror for it, so a caller draws this heart
+   * only for a reader who is signed in (see `StayCard`).
+   */
+  place?: SavePlaceTarget,
+) {
   /**
    * The person's own answer, once they have given one. `null` means they have
    * not touched this heart on this page, so the stored truth wins.
@@ -185,6 +215,27 @@ export function useSaveControl(listingId: string, initialSaved = false) {
     setNote(null);
 
     startTransition(async () => {
+      if (place) {
+        /* The place shelf. Save and unsave are separate intents rather than a
+           toggle, exactly as the actions are written: a double tap or a stale
+           tab cannot flip somebody's shortlist the wrong way. */
+        const result =
+          place.kind === "accommodation"
+            ? next
+              ? await saveStay({ accommodationId: place.id })
+              : await unsaveStay({ accommodationId: place.id })
+            : next
+              ? await saveRestaurant({ restaurantId: place.id })
+              : await unsaveRestaurant({ restaurantId: place.id });
+        if (!result.ok) {
+          setOverride(!next);
+          say(result.error, "error");
+          return;
+        }
+        say(next ? "Saved" : "Removed");
+        return;
+      }
+
       const result = await toggleSave({ listingId });
 
       /* Signed out, or a catalogue id the foreign key can never accept. Both
@@ -212,7 +263,7 @@ export function useSaveControl(listingId: string, initialSaved = false) {
       setOverride(settled);
       say(settled ? "Saved" : "Removed");
     });
-  }, [listingId, pending, saved, say]);
+  }, [listingId, pending, place, saved, say]);
 
   return { saved, note, pending, toggle };
 }

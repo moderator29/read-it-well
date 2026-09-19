@@ -47,3 +47,50 @@ import { config } from "zod";
  * ends up doing.
  */
 config({ jitless: true });
+
+/**
+ * ## The second job: an unhandled rejection is reported, not lost
+ *
+ * Added when crash reporting landed, and it is here for the same ordering
+ * reason as the setting above: this file runs before any route chunk
+ * evaluates, so a rejection thrown by the very first chunk to load is
+ * already covered.
+ *
+ * React's error boundaries catch what happens during render. They do not
+ * catch a promise rejected in an event handler, an `await` in a `useEffect`
+ * with nothing attached to it, or a failed `fetch` nobody awaited, and those
+ * are the client errors that actually reach people: a Save button that
+ * silently does nothing. `unhandledrejection` is the only place the browser
+ * offers them.
+ *
+ * `error` is listened for as well. React 19 forwards an error that reached
+ * no boundary to `window.reportError`, which raises exactly this event, so
+ * the two listeners together cover the whole client surface: boundaries
+ * report themselves, and everything else arrives here.
+ *
+ * The reporter is imported lazily so that the observability module is not
+ * pulled into the first chunk the browser parses. Nothing is printed: the
+ * browser already prints an unhandled rejection in the console itself, and a
+ * second line would be noise on top of it.
+ */
+if (typeof window !== "undefined") {
+  const report = (error: unknown, kind: string) => {
+    void import("@/lib/observability/client").then(({ reportClientError }) => {
+      reportClientError(error, { kind });
+    });
+  };
+
+  window.addEventListener("unhandledrejection", (event) => {
+    report(event.reason, "client.unhandled_rejection");
+  });
+
+  window.addEventListener("error", (event) => {
+    /*
+     * A failed `<img>` or `<script>` raises `error` on the ELEMENT and it
+     * bubbles to window with no `error` property. A broken photo is not a
+     * crash, and reporting one would drown the real ones.
+     */
+    if (event.error === undefined || event.error === null) return;
+    report(event.error, "client.uncaught");
+  });
+}

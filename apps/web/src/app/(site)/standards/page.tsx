@@ -12,7 +12,7 @@ import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
 export const metadata: Metadata = {
   title: "Trust and safety standards",
   description:
-    "What is not allowed on Vallo, how we enforce it, how long we take to answer a report, and how to appeal a decision.",
+    "What is not allowed on Vallo on either side, property or stays, how we enforce it, how long we take to answer a report, and how to appeal a decision.",
 };
 
 /**
@@ -39,12 +39,16 @@ const NOT_ALLOWED: { title: string; body: string }[] = [
     body: `${NO_FEES_LINE} An inspection fee, an agency fee, a holding fee or a caution fee presented as ours is a lie, and an account that presents one is removed.`,
   },
   {
-    title: "Listing a property you do not control",
-    body: "Somebody else's photographs, an address that is not yours to let, or a property that has already gone. Duplicate and stolen photographs are checked before a listing is published.",
+    title: "Listing a place you do not control",
+    body: "Somebody else's photographs, an address that is not yours to let, a property that has already gone, or a hotel, guest house or restaurant you do not run. Duplicate and stolen photographs are checked before anything is published.",
   },
   {
-    title: "Misrepresenting a property",
-    body: "Photographs that are not of the place, a size or an address that is wrong, or amenities that do not exist. Light, water and gate access are the three that matter most here, and getting them wrong is not a small thing.",
+    title: "Misrepresenting a property or a stay",
+    body: "Photographs that are not of the place, a size or an address that is wrong, or amenities that do not exist. Light, water and gate access are the three that matter most on the Property side, and getting them wrong is not a small thing. On Vallo Stays it is the room, what it sleeps, the check-in hour and the house rules.",
+  },
+  {
+    title: "Dressing partner inventory as our own",
+    body: "A stay a partner confirms and fulfils carries the Third party tag and names that partner. Presenting one as first party, or letting it wear the verified tick, is a trust breach rather than a labelling slip, and it is treated as one.",
   },
   {
     title: "Harassment, threats or discrimination",
@@ -82,7 +86,7 @@ const CONSEQUENCES: { title: string; body: string }[] = [
   },
   {
     title: "Listing unpublished",
-    body: "The property leaves search while we look at it. Existing bookings are handled with the guest directly, never silently cancelled.",
+    body: "The property or the stay leaves search while we look at it. Existing bookings and reservations are handled with the guest directly, never silently cancelled.",
   },
   {
     title: "Account suspended",
@@ -102,7 +106,7 @@ export default function StandardsPage() {
         icon="shield-home"
         chip="Trust and safety"
         title="What we do not allow, and how quickly we answer"
-        lede="These are the standards every person on Vallo agrees to, the way we enforce them, and the response times we hold ourselves to. If we miss one, tell us and quote your reference."
+        lede="These are the standards every person on Vallo agrees to, on both sides of the product, the way we enforce them, and the response times we hold ourselves to. If we miss one, tell us and quote your reference."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
@@ -211,7 +215,9 @@ export default function StandardsPage() {
             Approval is where an agent starts, not where they finish. Four checks
             sit above it, in this order, and each one is a decision a named member
             of our team recorded. An agent cannot skip a step: passing the last
-            one while the first is outstanding counts for nothing.
+            one while the first is outstanding counts for nothing. The same ladder
+            governs a host who lets rooms by the night and a restaurant that takes
+            tables, because it is the person being checked and not the product.
           </p>
           <ol className="mt-group space-y-row">
             {VERIFICATION_ORDER.map((rung) => (

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
@@ -65,7 +66,40 @@ export type QueueCounts = {
   moderation: number;
 };
 
-export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
+/**
+ * The queue counts, read ONCE PER REQUEST (R1 finding A37, F6 fault 11).
+ *
+ * THE FAULT. `app/admin/layout.tsx` called this to badge the rail and the
+ * phone header, and `app/admin/page.tsx` called it again to count the tabs.
+ * Two calls, two moments, eleven `count: exact` reads each. A row landing
+ * between them put two different numbers on one screen: the header badge said
+ * 41 and the tab beneath it said "All (42)" in the same shot. On an operations
+ * console that is the invented-count rule failing on the one surface where a
+ * number has to be trusted, and an operator who has caught the console lying
+ * about a count once will not believe the next one.
+ *
+ * THE FIX IS ONE READ. A layout and a page are separate server components and
+ * cannot hand each other a value, so "delete the second read and pass the
+ * first down" is spelled here instead: React's `cache` memoises the call for
+ * the life of one request, so the second caller gets the first caller's
+ * result rather than a second look at a table that has moved. Nothing is
+ * cached across requests and nothing is stale: the next navigation reads
+ * again, which is what a queue count must do.
+ *
+ * WHY NOT `lib/cache/memo.ts`. That memo holds one value at module scope for a
+ * TTL, which is right for a reference table and exactly wrong for a count of
+ * work waiting: it would go on saying 41 to every operator for as long as the
+ * TTL ran, which is a worse lie than the one this fixes.
+ *
+ * THE TWO NUMBERS ARE STILL DIFFERENT QUESTIONS, and that is deliberate. The
+ * phone header's badge sums every destination that carries one, so a shut
+ * control answers "is there work anywhere"; the overview's "All" tab sums the
+ * five queues its table actually folds in. So the badge is greater than the
+ * tab exactly when something is held in moderation or an alert is open, which
+ * is true rather than inconsistent. `AdminNav.tsx` names the badge so it
+ * cannot be read as the tab's number.
+ */
+export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> => {
   const admin = await adminClient();
   if (!admin) return UNAVAILABLE;
 
@@ -131,7 +165,7 @@ export async function getQueueCounts(): Promise<AdminRead<QueueCounts>> {
   } catch {
     return UNAVAILABLE;
   }
-}
+});
 
 /** ------------------------------------------------------------ message flags */
 

@@ -76,7 +76,30 @@ export async function AgentShell({
             </form>
             <span className="flex-1 sm:hidden" />
 
-            <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
+            {/*
+              THE RIGHT OF THE BAR, AS THE CONSOLE RENDERS DRAW IT.
+
+              CDA4B82B and 278CC66A both end the bar with the bell and the
+              signed-in person, and this one ended it with a LANGUAGE SELECT
+              painted `nf-btn--primary`. At 390 that made a locale picker the
+              only lit blue object on the screen, louder than the page's own
+              primary action, and the workspace had no way to reach
+              notifications at all. So: the bell first (a real destination,
+              never a badge nobody can clear), then the agent's own initial,
+              then the language control, quietened to the console's glass
+              inside `.nf-agent` rather than restyled in its own file.
+            */}
+            <Link href="/notifications" aria-label={t.nav.notifications} className="nf-icon-btn h-10 w-10">
+              <UiIcon name="bell" size={20} />
+            </Link>
+            {profile && (
+              <span className="nf-agent-bar__avatar" aria-hidden="true">
+                {profile.displayName.trim().charAt(0).toUpperCase() || "V"}
+              </span>
+            )}
+            <span className="nf-agent-bar__lang">
+              <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
+            </span>
           </div>
         </header>
 

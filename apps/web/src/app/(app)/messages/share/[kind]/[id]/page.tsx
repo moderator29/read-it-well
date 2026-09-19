@@ -40,10 +40,17 @@ export default async function SharePage({
 }) {
   const { kind, id } = await params;
   if (!UUID_RE.test(id)) notFound();
-  if (kind !== "listing" && kind !== "booking" && kind !== "into") notFound();
+  if (kind !== "listing" && kind !== "booking" && kind !== "stay" && kind !== "into") notFound();
 
   const session = await resolveSession();
-  const back = kind === "into" ? `/messages/${id}` : "/messages";
+  const back =
+    kind === "into"
+      ? `/messages/${id}`
+      : kind === "listing"
+        ? `/listing/${id}`
+        : kind === "stay"
+          ? `/stay/${id}`
+          : `/bookings/${id}`;
 
   if (session.state !== "signed-in") {
     const next = returnHref(`/messages/share/${kind}/${id}`, "", "message");
@@ -155,11 +162,7 @@ export default async function SharePage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader
-        title="Share to chat"
-        subtitle={card.title}
-        fallback={kind === "listing" ? `/listing/${id}` : `/bookings/${id}`}
-      />
+      <PageHeader title="Share to chat" subtitle={card.title} fallback={back} />
       <ShareToThread card={card} target={ref} threads={threads} />
     </div>
   );

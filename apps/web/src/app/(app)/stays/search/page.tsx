@@ -12,6 +12,9 @@ import { stayCardFromRow } from "@/components/app/stays/stay-card-model";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
+import { resolveSession } from "@/lib/actions/session";
+import { listSavedPlaces } from "@/lib/saved/places-actions";
+import { isSaved, savedKeySet } from "@/lib/saved/places";
 
 export const metadata: Metadata = {
   title: "Explore stays",
@@ -43,7 +46,16 @@ export default async function StaysSearchPage({
   const query: StaysQuery = parseStaysQuery(params, today);
   const type = readType(params.type);
 
-  const result = await searchStays(query);
+  /* The shortlist this reader already has, so a result they hearted last week
+     arrives lit. Keys only, one read for the page. Signed out there is
+     nowhere for a tap on a hotel to be kept, so no heart is drawn. */
+  const [result, session, savedPlaces] = await Promise.all([
+    searchStays(query),
+    resolveSession(),
+    listSavedPlaces(),
+  ]);
+  const savedKeys = savedKeySet(savedPlaces.ok ? savedPlaces.data : []);
+  const canSavePlaces = session.state === "signed-in";
   const rows = narrowByType(result.rows, type);
   const total = type ? rows.length : result.total;
   const stays = rows.map(stayCardFromRow);
@@ -104,7 +116,14 @@ export default async function StaysSearchPage({
         <ul className="mt-block grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" data-testid="stay-results">
           {stays.map((stay, index) => (
             <li key={`${stay.id}-${index}`}>
-              <StayCard stay={stay} locale={locale} t={t} index={index} />
+              <StayCard
+                stay={stay}
+                locale={locale}
+                t={t}
+                index={index}
+                saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
+                canSavePlaces={canSavePlaces}
+              />
             </li>
           ))}
         </ul>

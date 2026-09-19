@@ -386,11 +386,23 @@ export const en = {
         careers: "Careers",
       },
       hero: {
-        crumbs: ["Property", "Stays", "Invest", "Manage"],
+        /* The render's breadcrumb reads PROPERTY / STAYS / INVEST / MANAGE.
+           Invest is gone because Vallo sells no investment product and the
+           landing may not name a capability with no shipped surface;
+           Restaurants takes the slot because /restaurants is shipped. */
+        crumbs: ["Property", "Stays", "Restaurants", "Manage"],
         title1: "Real Estate",
         title2: "reimagined.",
+        /* The hero speaks for BOTH SIDES, which is the whole point of the
+           content truth sweep. The line it replaced said "property or stay
+           across Nigeria and beyond": one soft noun for two products, and a
+           reach ("beyond") the platform does not have.
+           KEPT SHORT ON PURPOSE (R1 finding A6): the first version of this
+           line ran to five lines at 390 and painted them across the lit
+           glazing of the villa. The scrim underneath it is now cut properly
+           and the line is three lines at that width. */
         subtitle:
-          "Discover, verify, and manage the perfect property or stay across Nigeria and beyond, all in one place.",
+          "Two sides, one account. Rent or buy from checked agents, or book a stay on Vallo Stays, and pay from one naira wallet.",
         explore: "Explore Properties",
         stays: "Explore Stays",
         citiesLabel: "Popular Cities",
@@ -402,7 +414,6 @@ export const en = {
         buy: "Buy",
         rent: "Rent",
         stay: "Stay",
-        invest: "Invest",
         filters: "Open filters",
         go: "Search",
       },
@@ -421,31 +432,35 @@ export const en = {
         cities: "Cities",
         states: "States",
       },
-      features: {
-        overline: "More than properties",
-        title: "Everything you need in one platform.",
-        body: "From verified listings to short stays, an assistant that reads the catalogue and a wallet that pays for all of it, Vallo gives you the whole of your property journey in one account.",
-        learn: "Learn more",
-        tiles: {
-          buy: { title: "Buy", sub: "Verified properties" },
-          rent: { title: "Rent", sub: "Flexible options" },
-          stays: { title: "Stays", sub: "Hotels and more" },
-          invest: { title: "Invest", sub: "Land and commercial" },
-          assistant: { title: "AI Assistant", sub: "Smarter search" },
-          wallet: { title: "Wallet", sub: "Pay and manage" },
-          bookings: { title: "Bookings", sub: "Easy and secure" },
-          messaging: { title: "Messaging", sub: "Stay connected" },
-          inspections: { title: "Inspections", sub: "View and verify" },
-          management: { title: "Management", sub: "For owners and agents" },
-        },
-      },
+      /* The ten-tile "Everything you need in one platform" grid was
+         removed from the page on the founder's ruling of 19 September
+         (it is not in his render) and its strings went with it in the
+         content truth sweep. One of them was an Invest tile, and Vallo
+         sells no investment product. */
+      /*
+       * THE FEATURE BAND, AND THE RULE IT NOW OBEYS.
+       *
+       * Six cells, the render's composition exactly. What changed is what
+       * they claim. Every one of the six names a capability with a shipped
+       * surface behind it, and the route is written beside it here so the
+       * next person can check rather than trust: buy and rent (/search,
+       * /rent, /inspections), Vallo Stays (/stays, /stays/search,
+       * /restaurants), the wallet (/wallet), bookings and trips (/bookings,
+       * /trips), messages (/messages) and the assistant (/assistant).
+       *
+       * What came off: "One Platform / Every city. Everywhere.", which is a
+       * reach claim rather than a capability, and "Property Management",
+       * which was true but said nothing about the Stays half. The agent
+       * console and the host tools are named in the How Vallo works Manage
+       * step instead, where the routes can be stated in a sentence.
+       */
       chips: {
-        verified: { title: "Verified Listings", sub: "Real properties. Real people." },
-        ai: { title: "AI Powered", sub: "Smarter search. Better matches." },
-        wallet: { title: "Secure Wallet", sub: "Pay, Save, Grow." },
-        one: { title: "One Platform", sub: "Every city. Everywhere." },
-        stays: { title: "VALLO Stays", sub: "Hotels, apartments, villas & more." },
-        manage: { title: "Property Management", sub: "For owners & agents." },
+        verified: { title: "Buy and rent", sub: "Checked agents, inspections, the move-in total in full." },
+        ai: { title: "AI assistant", sub: "Ask in four languages. Real places back." },
+        wallet: { title: "One naira wallet", sub: "Top up, pay, withdraw, on both sides." },
+        one: { title: "Bookings and trips", sub: "Stays, tables and inspections, by date." },
+        stays: { title: "Vallo Stays", sub: "Hotels, apartments, resorts, guest houses, tables." },
+        manage: { title: "Messages", sub: "The agent or the host, on the record." },
       },
       community: {
         overline: "Real people. Real places.",
@@ -456,30 +471,34 @@ export const en = {
          * been through this pass simply renders the whole line in white
          * rather than losing its translation to the English fallback.
          */
-        title: "A growing community of [[property seekers,]] [[owners and investors.]]",
-        body: "Every count on this page is read live from the platform when the page loads. Nothing here is rounded up.",
-        join: "Join VALLO Today",
+        title: "A growing community of [[renters, buyers and guests,]] [[agents and hosts.]]",
+        body: "Both sides of Vallo, one account. Every count on this page is read live from the platform when it loads, and nothing here is rounded up.",
+        join: "Join Vallo today",
         thirdParty: "Third party",
         thirdPartyTitle: "Partner inventory, always labelled",
         thirdPartyBody:
           "A stay fulfilled by a partner carries this tag and says who confirms it. It is never dressed as first party.",
       },
       how: {
-        overline: "How VALLO works",
+        overline: "How Vallo works",
         title: "Simple Steps. Big Possibilities.",
-        body: "Find, verify, book and manage properties, in just a few clicks.",
+        body: "Find it, check who is behind it, book or inspect it, and keep the record.",
         steps: {
-          discover: { title: "Discover", body: "Browse verified properties and stays across top cities." },
-          verify: { title: "Verify", body: "Our team checks every agent before they can list, for your peace of mind." },
-          experience: { title: "Experience", body: "Book, inspect or stay with confidence." },
-          manage: { title: "Manage", body: "Track, pay, save and manage all in one place." },
+          discover: { title: "Discover", body: "Search property to rent or buy, or stays and tables, from one account." },
+          verify: { title: "Verify", body: "A person checks every agent by hand before they can publish anything." },
+          experience: { title: "Experience", body: "Message, inspect, book a night or a table, and pay inside Vallo." },
+          /* The agent console and the host tools are the property
+             management claim, and both are shipped: /agent/listings and
+             /host. Named here rather than as a feature chip so the routes
+             can be stated. */
+          manage: { title: "Manage", body: "Run your listings from the agent console, or your stay from host tools." },
         },
       },
       categories: {
         overline: "Explore by category",
         title: "Find exactly what you're looking for.",
-        body: "From modern apartments to luxury resorts, VALLO has something for everyone.",
-        join: "Join VALLO",
+        body: "Apartments, houses and land on the Property side; hotels, resorts and guest houses on Vallo Stays.",
+        join: "Join Vallo",
         apartments: "Apartments",
         houses: "Houses",
         shortlets: "Shortlets",
@@ -497,9 +516,9 @@ export const en = {
         count: "{count} listed",
       },
       stays: {
-        overline: "VALLO Stays",
+        overline: "Vallo Stays",
         title: "Stay somewhere worth remembering.",
-        body: "Hotels, apartments, resorts, guest houses, serviced apartments and more.",
+        body: "Hotels, apartments, resorts, guest houses, serviced apartments and restaurant tables, booked on the account you already have.",
         cta: "Explore Stays",
         /* The render's six rows, and the Stays side serves every one of them:
            `hotel`, `apartment`, `resort`, `guest_house` and
@@ -515,8 +534,8 @@ export const en = {
         restaurants: "Restaurants",
       },
       app: {
-        title: "Take VALLO with you.",
-        body: "The complete property ecosystem in your pocket. VALLO installs from your browser on iPhone and Android.",
+        title: "Take Vallo with you.",
+        body: "Both sides in your pocket: property to rent or buy, and stays and tables to book. Vallo installs from your browser on iPhone and Android.",
         /*
          * The store badges' own wording, which is set by Apple's and Google's
          * guidelines rather than by us: "Download on the / App Store" and
@@ -528,7 +547,7 @@ export const en = {
         iosSub: "Download on the",
         android: "Google Play",
         androidSub: "GET IT ON",
-        rightTitle: "Your property journey, now on mobile.",
+        rightTitle: "Property and stays, now on mobile.",
         points: {
           all: "Full access to all features",
           notify: "Instant notifications",
@@ -538,7 +557,7 @@ export const en = {
       },
       footer: {
         legalName: "VALLO SPACES LTD",
-        legalLine: "A Nigerian technology company building the future of property.",
+        legalLine: "A Nigerian technology company building property and stays on one account.",
         stayConnected: "Stay connected",
         newsletterBody: "New listings, product news and the occasional honest update.",
         emailLabel: "Email address",
@@ -554,7 +573,10 @@ export const en = {
         cancellations: "Cancellations",
         buy: "Buy",
         rent: "Rent",
-        invest: "Invest",
+        /* The render's Product column lists Invest. There is no investment
+           product, so the slot carries Restaurants, which is shipped at
+           /restaurants. Land is still a door on the category grid. */
+        restaurants: "Restaurants",
         aboutUs: "About Us",
         helpSupport: "Help & Support",
         termsOfService: "Terms of Service",
@@ -1346,25 +1368,88 @@ export const en = {
       dataSaverSub: "Load lighter photos on mobile data. Kinder to a small bundle.",
     },
 
-    /* The two-step drawer. Slow on purpose: this is the one control in the app
-       that cannot be undone. */
+    /* The deletion flow. Slow on purpose, and honest at every step: this is
+       the one control in the app that cannot be undone, and F-17 records what
+       the old version cost, which was every person who had ever paid for
+       anything being told to email support. The copy never overstates what is
+       destroyed and never hides what is kept. */
     delete: {
       title: "Delete account",
       close: "Close",
-      doneTitle: "Your account is deleted",
-      doneBody:
-        "Everything tied to it has gone with it and you have been signed out. Taking you back to the home page now. You are welcome to start again any time.",
-      permanentTitle: "This is permanent",
-      losesProfile: "Your profile, photo and preferences are removed.",
-      losesContent: "Your saved places, messages and reviews go with them.",
+
+      /* Step one: what actually happens. Two lists, because there are two
+         answers and a person deserves both before they type anything. */
+      permanentTitle: "What happens when you do this",
+      graceTitle: "You have {days} days to change your mind",
+      graceBody:
+        "Your account is signed out everywhere and deactivated straight away. Nothing is destroyed for {days} days. We email you a code that puts everything back, and it is the only thing that can.",
+      destroyedTitle: "Destroyed after {days} days",
+      losesProfile: "Your profile, your photograph and your cover picture.",
+      losesContent: "Your posts, comments, stories, saved items, interests and drafts.",
+      losesDevices: "Every device you are signed in on, and every notification.",
+      losesFiles:
+        "Every file you have uploaded, including any identity or host documents.",
+      keptTitle: "Kept, with your name removed",
       keepsBookings:
-        "Bookings already made stay on record with the host, as the law requires, but are no longer linked to you here.",
+        "Bookings, reservations, wallet entries, payments and payout records. Nigerian anti-money-laundering rules require us to keep transaction records, so these stay on file with your name, email address and telephone number removed.",
+      keepsMessages:
+        "Messages you have sent stay in the other person's conversation with an anonymous sender, so their side of the thread still reads.",
+      keepsReviews: "Reviews you have written stay on the property, with no author name.",
       talkFirst:
         "If something has gone wrong, talk to us first. Most things can be fixed without losing your history.",
       keep: "Keep my account",
+
+      /* Step two: prove it is you, then type the phrase. */
+      confirmTitle: "Confirm it is you",
+      passwordLabel: "Your password",
+      passwordHint: "The password you sign in with.",
+      codeLabel: "The code we emailed you",
+      codeHint:
+        "You signed up with Google or Apple, so there is no password on this account. We send a code to your email address instead.",
+      sendCode: "Email me a code",
+      sendingCode: "Sending",
+      codeSent: "Sent. Check your email.",
       typeToConfirm: "Type {phrase} to confirm",
       capitals: "Capitals exactly as shown. Anything else will not unlock the button.",
-      confirm: "Delete for good",
+      confirm: "Start the deletion",
+
+      doneTitle: "Your account is deactivated",
+      doneBody:
+        "You are signed out everywhere and nothing has been destroyed. Check your email for the date and the code that stops it. Taking you back to the home page now.",
+
+      /* The window, seen by somebody who signed back in before the ban bit,
+         or from a session that predates it. */
+      scheduledTitle: "This account is scheduled for deletion",
+      scheduledBody:
+        "Everything is destroyed on {date}, which is in {days} days. Until then nothing has gone and you can put it all back.",
+      restore: "Restore my account",
+      restoring: "Restoring",
+      restored: "Your account is back. Nothing was destroyed.",
+
+      /* The preconditions. Each one names what is in the way and carries the
+         control that clears it. None of them is a dead end. */
+      blockedTitle: "There is still something of yours here",
+      blockedBody:
+        "Clear these and the delete button unlocks. Nothing here stops you leaving, it just has to be settled first.",
+      blockerWalletBalance: "Your wallet holds {amount}.",
+      blockerWalletBalanceCta: "Withdraw it",
+      blockerWalletHeld: "{amount} of yours is held in escrow.",
+      blockerWalletHeldCta: "Open my wallet",
+      blockerPendingPayouts: "You have {count} withdrawal that has not settled.",
+      blockerPendingPayoutsPlural: "You have {count} withdrawals that have not settled.",
+      blockerPendingPayoutsCta: "Open my wallet",
+      blockerActiveBookings: "You have {count} booking that is still on.",
+      blockerActiveBookingsPlural: "You have {count} bookings that are still on.",
+      blockerActiveBookingsCta: "Cancel it",
+      blockerActiveReservations: "You have {count} table reservation still to come.",
+      blockerActiveReservationsPlural: "You have {count} table reservations still to come.",
+      blockerActiveReservationsCta: "Cancel it",
+      blockerPublishedListings: "You have {count} listing still published.",
+      blockerPublishedListingsPlural: "You have {count} listings still published.",
+      blockerPublishedListingsCta: "Unpublish or transfer",
+
+      unavailable:
+        "We cannot check your account right now, so the delete button is not safe to press. Try again in a moment.",
     },
 
     about: {
@@ -1427,15 +1512,26 @@ export const en = {
     },
     featuredCities: "Featured cities",
     viewAllCities: "View all cities",
-    /* The investment band. Nothing here promises a yield, a return or a
-       projection, because none of that is modelled anywhere in the product;
-       the band is the for-sale market, named honestly. */
+    /*
+     * THE FOR-SALE BAND, AND WHY IT NO LONGER SAYS INVEST (R1 finding A36).
+     *
+     * This band said "INVEST IN TOMORROW / Discover premium investment
+     * opportunities / Explore Investments" while the landing had just dropped
+     * its Invest segment on the ground that Vallo sells no investment
+     * product. Two surfaces of one product cannot disagree about whether a
+     * product exists, and the landing is the one telling the truth: there is
+     * no investment offering here, no yield, no return, no projection and no
+     * screen that models one. What the band actually shows is a property for
+     * sale, so that is what it now says. The key is still called `invest`
+     * because `HomeScreen` and `InvestBand` read it by that name and a key is
+     * not copy; the words a person reads are all that changed.
+     */
     invest: {
-      eyebrow: "Invest in tomorrow",
-      titleLead: "Discover premium",
-      titleAccent: "investment opportunities.",
-      body: "Property for sale on Vallo, with each lister's checks in plain view.",
-      action: "Explore Investments",
+      eyebrow: "Buy",
+      titleLead: "Property for sale",
+      titleAccent: "on Vallo.",
+      body: "Homes, land and commercial space to buy, with each lister's checks in plain view.",
+      action: "Explore properties for sale",
     },
     /* The assistant's own chrome (BUILD_06, F1): the name pair under the bar,
        the composer, the thinking pill and the four opening prompts. Each
@@ -1453,7 +1549,16 @@ export const en = {
         moveIn: "What will it cost me to move in?",
         generator: "Which places have a generator?",
         shortlets: "Show me shortlets in Victoria Island",
+        stay: "A hotel in Victoria Island this weekend",
+        table: "Where can I book a table in Ikoyi?",
       },
+      /* The self description. It sits over an empty thread, which is the one
+         place somebody is deciding what this assistant is for, and until now
+         it described a property search on a product that is also hotels,
+         shortlets, guest houses and tables (ledger 10.4). */
+      emptyTitle: "How can I help today?",
+      emptyBody:
+        "Ask about somewhere to rent or buy, a hotel or shortlet to stay in, a table to book, and what moving in really costs.",
     },
     aiCard: {
       /*
@@ -1818,6 +1923,18 @@ export const en = {
       priceYearPlaceholder: "2,500,000",
       perNight: "per night",
       perYear: "per year",
+      /* Every unit a headline price can be quoted in, keyed by the column's
+         own value, plus "sale" for the one that is not a period at all. The
+         workspace read a two-case ternary before this existed and told a host
+         their asking price was "per night". */
+      period: {
+        month: "per month",
+        quarter: "per quarter",
+        year: "per year",
+        night: "per night",
+        guest: "per head",
+        sale: "asking price",
+      },
       cleaningLabel: "Cleaning",
       cleaningHint: "Optional. Added once per stay, not per night.",
       cleaningHintSet: "{amount} added once per stay.",
@@ -2132,7 +2249,7 @@ export const en = {
     emptyAction: "See your bookings",
     howTitle: "How your share is worked out",
     howBody:
-      "A settled payment is split three ways: your share, the platform's share and what the payment processor takes. The three always add up to what the guest paid, which is why every line here reconciles.",
+      "A settled payment is split two ways: your share and what the payment processor takes. Vallo takes nothing from it. The two always add up to what the guest paid, which is why every line here reconciles.",
   },
 
   /**
@@ -3149,6 +3266,7 @@ export const en = {
     expand: "Expand",
     collapse: "Collapse",
     openMenu: "Open menu",
+    verifiedAccount: "Verified account",
     closeMenu: "Close menu",
     languageSwitcher: "Change language",
     favourite: "Save to favourites",
@@ -3189,6 +3307,24 @@ export const en = {
    * Added 18 September 2026 (Build 05, FE-1).
    */
   threads: {
+    /*
+     * The context card above every thread face, named rather than hardcoded.
+     *
+     * "Rental enquiry" was an English literal in `ThreadContextBanner.tsx` and
+     * a second copy of it in `ThreadView.tsx`, at the top of a Hausa, Igbo or
+     * Yoruba reader's own conversation, with every sibling string on the same
+     * card already translated.
+     */
+    context: {
+      rentalEnquiry: "Rental enquiry",
+      stayBooking: "Stay booking",
+      tableBooking: "Table booking",
+      directMessage: "Direct message",
+      viewBooking: "View booking details",
+      viewTrips: "View your trips",
+      viewProperty: "View the property",
+      viewRestaurant: "View the restaurant",
+    },
     rental: {
       waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
       waitingOnThem: "Waiting on {name} to answer.",
@@ -3620,6 +3756,83 @@ export const en = {
       insideVallo: "Everything inside Vallo",
       notFound: "That listing is no longer available.",
       notRental: "Only a home to rent has a move-in cost.",
+    },
+    /**
+     * A TENANCY IS NOT A STAY, so it has its own words. Added 19 September
+     * 2026 (Build 06, F3) when rent charges stopped being dropped from
+     * /bookings. Nothing here counts nights or guests, and nothing here says
+     * check in: a tenancy has a move-in day and a rent period.
+     */
+    /**
+     * The trips hub (/bookings). Added 19 September 2026 (Build 06, F3): the
+     * screen shipped with its tabs, its three empty states, its controls and
+     * its explainer as English literals inside the component, so three of the
+     * four languages this platform ships in read the record of their own
+     * paid stays in English.
+     */
+    bookings: {
+      statusLabel: "Booking status",
+      upcoming: "Upcoming",
+      completed: "Completed",
+      cancelled: "Cancelled",
+      emptyUpcomingTitle: "Nothing booked yet",
+      emptyUpcomingBody:
+        "When you reserve a place, it appears here with your dates, your total and everything you need on the day.",
+      emptyCompletedTitle: "No completed stays yet",
+      emptyCompletedBody:
+        "A stay moves here after checkout, and that is where you can leave a review of it.",
+      emptyCancelledTitle: "Nothing cancelled",
+      emptyCancelledBody:
+        "Cancelled bookings are kept here so you always have the record, even after the dates have gone.",
+      findPlace: "Find a place",
+      payNow: "Pay now",
+      cancel: "Cancel",
+      leaveReview: "Leave a review",
+      yourReview: "Your review",
+      viewDetails: "View details",
+      total: "total",
+      arriving: "Arriving: {name}",
+      unavailableTitle: "We could not load your stays",
+      unavailableBody:
+        "Something on our side did not answer just now. Nothing has changed about your bookings. Reload the page and they should come straight back.",
+      signedOutTitle: "Sign in to see your stays",
+      signedOutBody:
+        "Every stay you book is tied to your account, so we only ever show you your own. Sign in and anything booked with this account appears here.",
+      signIn: "Sign in",
+      findStay: "Find somewhere to stay",
+      inspectionsTitle: "Your inspections",
+      inspectionsBody: "Whoever listed the property sees the same state you do.",
+      /* The two halves of the record, each saying where the other half is
+         (R3 finding F-08). Written as one sentence and a link rather than a
+         second navigation block. */
+      alsoOnTrips: "Your stays and tables, in the order they happen, are on Trips.",
+      openTrips: "Open Trips",
+      alsoOnBookings: "Tenancies and inspections are on Bookings.",
+      openBookings: "Open Bookings",
+      /* One booking's own page, which a shared card opens (R2 finding R2-2).
+         "Not yours" and "not there" say the same thing on purpose: naming the
+         difference would confirm to somebody guessing that a booking exists. */
+      detailMissingTitle: "That booking is not here",
+      detailMissingBody:
+        "It may belong to another account, or it may have been cancelled and removed. Open your bookings to see what is there now.",
+      howTitle: "How booking works",
+      step1Title: "Choose your dates",
+      step1Body: "Pick check-in and check-out on a live calendar.",
+      step2Title: "Confirm and pay",
+      step2Body: "Secure payment in naira. You are never charged early.",
+      step3Title: "Enjoy your stay",
+      step3Body: "Check-in details arrive right here and by email.",
+    },
+    tenancy: {
+      section: "Your tenancies",
+      sectionLine: "Rent you have started paying for on Vallo.",
+      moveIn: "Move in {date}",
+      period: "{period} rent",
+      total: "Move-in total",
+      pay: "Pay the rent",
+      due: "Rent due",
+      settled: "Rent paid",
+      view: "View property",
     },
     stays: {
       title: "Stays",

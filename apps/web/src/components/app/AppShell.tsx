@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -9,6 +9,7 @@ import { AppRail } from "./AppRail";
 import { MobileTabBar, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
@@ -60,30 +61,47 @@ export function AppShell({
   side = "property",
   userName,
   userHandle = "",
+  verified = false,
   unreadNotifications = 0,
   avatarUrl = "",
   signedIn = false,
   isAgent = false,
   isAdmin = false,
+  preview,
   children,
 }: {
   t: Dictionary;
   side?: Side;
   userName: string;
   userHandle?: string;
+  /** The human-checked tick in the drawer's user card. See `AppRail`. */
+  verified?: boolean;
   unreadNotifications?: number;
   avatarUrl?: string;
   signedIn?: boolean;
   isAgent?: boolean;
   isAdmin?: boolean;
+  /**
+   * The dev preview harness, and nothing else, ever.
+   *
+   * Two facts the chrome takes from the browser rather than from a prop: the
+   * route it is on, and whether the drawer is open. Neither can be reached
+   * from a screenshot harness - `verify-shots.mjs` loads a URL and shoots,
+   * it does not click - so the drawer, which is the single largest surface
+   * this component owns, could not be proven against its reference image at
+   * all. `app/(dev)/preview/f1/*` sets this; the product never does, and the
+   * preview tree 404s in production.
+   */
+  preview?: { route?: string; drawer?: boolean };
   children: React.ReactNode;
 }) {
-  const active = usePathname();
+  const pathname = usePathname();
+  const active = preview?.route ?? pathname;
   /* Five navigation rows are the same pathname with a different `type`, so the
      rail needs that one parameter to tell them apart. Everything else about
      the query is ignored, so /search?q=Lekki still lights Explore. */
   const activeType = useSearchParams().get("type");
-  const [drawer, setDrawer] = useState(false);
+  const [drawer, setDrawer] = useState(preview?.drawer ?? false);
 
   const effectiveSide: Side = sideOfPath(active) ?? side;
   const immersive = isImmersiveRoute(active);
@@ -112,6 +130,51 @@ export function AppShell({
   const closeDrawer = useCallback(() => setDrawer(false), []);
   const openDrawer = useCallback(() => setDrawer(true), []);
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
+
+  /*
+   * THE HEADER IS NOT A BAR UNTIL THERE IS SOMETHING UNDER IT.
+   *
+   * Every governing render that draws this header - the founder's home
+   * target, the feed render, the flip render, the stays render - draws the
+   * lockup, the bell and the avatar sitting ON THE PAGE, with no bar behind
+   * them at all. What shipped was an 88 per cent canvas veil on every screen
+   * at every scroll position, which at the top of a page is a flat dark band
+   * across the first 60px with a hard edge under it, over a page whose own
+   * brand glow it is masking. (R1 finding A38.)
+   *
+   * The veil is not wrong, it is just premature: the reason it exists is
+   * content passing UNDERNEATH, and at scroll zero nothing is. So the bar is
+   * transparent until the page moves and frosts once it has, which is both
+   * what the renders show and what the veil was for.
+   *
+   * A scroll listener rather than `animation-timeline: scroll()`, which is
+   * Chromium-only and would leave every other engine permanently transparent
+   * with type scrolling through the lockup - the exact defect the veil
+   * prevents. Passive, rAF-throttled, and it writes an attribute rather than
+   * state on every frame, so a scroll costs one class change at the moment
+   * it crosses the threshold and nothing at all in between. Not motion, so
+   * `prefers-reduced-motion` does not apply: it is a material that answers a
+   * condition, like the dock's own auto-hide.
+   */
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (!showsHeader) return;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 8);
+    };
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [showsHeader]);
 
   const marked = signedIn && unreadNotifications > 0;
 
@@ -152,9 +215,14 @@ export function AppShell({
             type="button"
             aria-label={t.a11y.closeMenu}
             onClick={closeDrawer}
-            className="absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm"
+            className="nf-drawer-scrim absolute inset-0"
           />
-          <div className="nf-drawer nf-drawer--left absolute inset-y-0 left-0 overflow-y-auto">
+          {/* The panel's own box is the stylesheet's: the drawer render draws
+              a FLOATING lit panel with all four corners rounded and a strip of
+              the dimmed app beside it, not a slab welded to the screen edge,
+              and the safe areas are part of that geometry. Utilities here
+              would outrank the component layer and pin it back to the edge. */}
+          <div className="nf-drawer nf-drawer--left absolute overflow-y-auto">
             <AppRail
               t={t}
               side={effectiveSide}
@@ -163,6 +231,7 @@ export function AppShell({
               userName={userName}
               userHandle={userHandle}
               avatarUrl={avatarUrl}
+              verified={verified}
               unreadNotifications={unreadNotifications}
               isAgent={isAgent}
               isAdmin={isAdmin}
@@ -185,7 +254,8 @@ export function AppShell({
       >
         {showsHeader && (
         <header
-          className={`nf-glass nf-glass--chrome nf-safe-top nf-app-header sticky top-0 z-40 ${
+          data-scrolled={scrolled || undefined}
+          className={`nf-safe-top nf-app-header sticky top-0 z-40 ${
             signedIn ? "lg:hidden" : ""
           }`}
         >
@@ -195,7 +265,7 @@ export function AppShell({
               aria-label={t.a11y.openMenu}
               aria-expanded={drawer}
               onClick={openDrawer}
-              className="nf-tap nf-app-header__btn -ms-2xs lg:hidden"
+              className="nf-tap nf-icon-btn nf-app-header__btn -ms-2xs lg:hidden"
             >
               <UiIcon name="menu" size="md" />
             </button>
@@ -213,15 +283,20 @@ export function AppShell({
                       ? t.a11y.notificationsUnread.replace("{count}", String(unreadNotifications))
                       : t.nav.notifications
                   }
-                  className="nf-tap nf-app-header__btn relative"
+                  className="nf-tap nf-icon-btn nf-app-header__btn"
                 >
                   <UiIcon name="bell" size="md" />
                   {marked && <span aria-hidden="true" className="nf-app-header__dot" />}
                 </Link>
                 <Link href="/profile" aria-label={t.nav.profile} className="nf-tap nf-app-header__avatar">
                   {avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatarUrl} alt="" />
+                    /* The header avatar is a 40px circle on every screen in
+                       the product, and the source is a full size upload. It
+                       goes through the optimiser at the size it is drawn;
+                       `RemoteImage` keeps an unexpected host from throwing
+                       here, which on the app header would be a 500 on every
+                       route at once. */
+                    <RemoteImage src={avatarUrl} alt="" width={40} height={40} sizes="40px" />
                   ) : (
                     <span aria-hidden="true">{userName.slice(0, 1).toUpperCase()}</span>
                   )}

@@ -1,8 +1,6 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
-import { StatCard } from "@/components/agent/StatCard";
-import { Amount, Figure } from "@/components/ui/Amount";
 import { RealDashboard } from "@/app/agent/dashboard/RealDashboard";
 import type { AgentNumbers } from "@/lib/agent/listings-queries";
 import { COUNTERPART } from "../../_fixtures/people";
@@ -60,12 +58,13 @@ export default async function PreviewAgentDashboard() {
         verified: true,
       }}
     >
-      <div className="mb-block grid grid-cols-2 gap-row lg:grid-cols-4">
-        <StatCard icon="naira-hand" label="Earned this month" value={<Amount minorUnits={42_500_000} locale={locale} />} />
-        <StatCard icon="calendar-check" label="Upcoming stays" value={<Figure value={1} locale={locale} />} />
-        <StatCard icon="home-check" label="Live listings" value={<Figure value={4} locale={locale} />} />
-        <StatCard icon="chat-duo" label="Unread messages" value={<Figure value={3} locale={locale} />} />
-      </div>
+      {/*
+        NO STAT TILE ROW. It was four `StatCard`s from fixtures, and the route
+        does not render them: `RealDashboard` is the whole dashboard. A proof
+        that shows something the surface does not have proves nothing, so the
+        tiles are gone and `components/agent/StatCard.tsx` is reported as
+        unused rather than kept alive by its own screenshot.
+      */}
       <RealDashboard
         t={t}
         locale={locale}

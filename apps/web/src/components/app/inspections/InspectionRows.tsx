@@ -65,25 +65,22 @@ const STATE_TONE: Record<InspectionState, StatusTone> = {
 
 
 /**
- * The indent that puts a row's controls under its text, and it was 4px short.
+ * The indent that puts a row's controls under its text.
  *
  * Each row is `nf-role-mark`, then `gap-sm`, then the text column. The controls
  * sit below in their own full-width div, so lining them up under the title means
  * clearing exactly those two things: `.nf-role-mark` is 2.75rem in
  * `app/css/controls.css` and the gap is the 12px rung, which is 56px.
  *
- * It was `pl-[3.25rem]` - 52px - written out at three call sites. Somebody
- * measured a 2.5rem mark, or estimated it. Every chip row on this screen sat
- * four pixels to the left of the title it belongs under, which is the kind of
- * thing nobody reports and everybody feels.
- *
- * Written as the SUM rather than as the total, so if either half moves this
- * follows it instead of drifting again. One constant rather than three copies,
- * for the same reason. It still trips `nf/no-raw-spacing`, and it should: the
- * rule cannot know this is derived from two other values. That is what this
- * note is for.
+ * IT MOVED TO THE STYLESHEET AND IT NOW HAS A WIDTH CONDITION. It was an
+ * arbitrary Tailwind value here, which cannot carry one, and at 390px the
+ * indent was spending a sixth of the card lining three buttons up under a
+ * title: "Offer another time" and "Decline" wrapped onto a second row hard
+ * against the right edge. `.nf-insp-row__controls` in `app/css/threads.css`
+ * drops it on a phone and restores it at 640, with the sum written out so
+ * that if either half moves the rule follows it.
  */
-const CONTROL_INDENT = "pl-[calc(2.75rem+var(--spacing-sm))]";
+const CONTROL_INDENT = "nf-insp-row__controls";
 
 function whenLine(value: string, locale: Locale): string {
   const date = new Date(value);
@@ -186,7 +183,7 @@ function InspectionRow({
 
   return (
     <Row className={`flex-col items-stretch gap-xs py-md ${entrance}`}>
-      <div className="flex w-full items-start gap-sm">
+      <div className="flex w-full flex-wrap items-start gap-sm">
         <span className="nf-role-mark mt-3xs shrink-0" aria-hidden="true">
           <UiIcon name="calendar-booking" size={ICON.row} />
         </span>
@@ -195,9 +192,26 @@ function InspectionRow({
           {/* The property first. It is what an agent with nine of them is
               scanning for, and it is what a renter who asked three agents on
               Tuesday needs to tell the rows apart. */}
-          <span className={`block ${TYPE.rowTitle}`}>
-            {inspection.listingTitle ?? UNTITLED}
-          </span>
+          {/*
+            THE PROPERTY IS A LINK, because the line above this one says the
+            property comes first so a renter who asked three agents on Tuesday
+            can tell the rows apart, and dead text is not how somebody checks
+            which flat a row is about. A row whose listing has since been
+            taken down carries no id, so it stays plain text rather than
+            pointing at nothing.
+          */}
+          {inspection.listingId ? (
+            <Link
+              href={`/listing/${inspection.listingId}`}
+              className={`block ${TYPE.rowTitle} hover:underline`}
+            >
+              {inspection.listingTitle ?? UNTITLED}
+            </Link>
+          ) : (
+            <span className={`block ${TYPE.rowTitle}`}>
+              {inspection.listingTitle ?? UNTITLED}
+            </span>
+          )}
           <span className={`mt-3xs block ${TYPE.rowMeta}`}>
             {whenLine(shown, locale)}
             {inspection.counterpartName ? ` · ${inspection.counterpartName}` : ""}
@@ -220,7 +234,11 @@ function InspectionRow({
           )}
         </span>
 
-        <span className="shrink-0 text-right">
+        {/* Its own line under the text on a phone, back on the right where
+            there is room. See `.nf-insp-row__state` in threads.css: as a
+            `shrink-0` cell at 390 it took a third of the card and every line
+            of the row broke over three. */}
+        <span className="nf-insp-row__state shrink-0">
           <StatusPill tone={STATE_TONE[inspection.state]}>
             {labels[inspection.state]}
           </StatusPill>
@@ -296,6 +314,43 @@ function InspectionRow({
           >
             {MARK_DONE}
           </Button>
+          {inspection.conversationId && (
+            <Link
+              href={`/messages/${inspection.conversationId}`}
+              className={`${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] hover:underline`}
+            >
+              {OPEN_CHAT}
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/*
+        THE MORNING AFTER THE VIEWING, AND IT WAS A DEAD END.
+
+        A COMPLETED row drew nothing at all. The only doors into
+        `/rent/pay/<inspectionId>` in the whole product were inside a thread
+        (`components/app/threads/RentalFace.tsx`, on the CONFIRMED state) and
+        the move-in ledger, so `/inspections`, the surface somebody opens the
+        day after standing in a flat, offered a chat link and stopped, on a
+        platform whose name is about rent.
+
+        The requester pays, so only that side sees it, exactly as the thread
+        face decides. The route itself owns every answer to "is there a charge
+        yet": no keys, not accepted, no figure, the lister looking at the
+        tenant's page, already paid, each a designed screen. So this is a
+        control that acts, not a picture of one.
+      */}
+      {inspection.state === "COMPLETED" && side === "requester" && (
+        <div className={`flex flex-wrap items-center gap-xs ${CONTROL_INDENT}`}>
+          <Link
+            href={`/rent/pay/${inspection.id}`}
+            className="nf-btn nf-btn--primary nf-btn--sm"
+            data-testid="inspection-rent-pay"
+          >
+            {PAY_RENT}
+            <UiIcon name="chevron-right" size={16} />
+          </Link>
           {inspection.conversationId && (
             <Link
               href={`/messages/${inspection.conversationId}`}
@@ -404,6 +459,7 @@ const TAKE_TIME = "Take that time";
 const WITHDRAW = "Withdraw";
 const MARK_DONE = "It happened";
 const OPEN_CHAT = "Open the chat";
+const PAY_RENT = "Pay the rent";
 const PROPOSE_TITLE = "Offer another time";
 const PROPOSE_SUB =
   "They will see the time you offer and can take it in one tap. The time they asked for stays on the record.";

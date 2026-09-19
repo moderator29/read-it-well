@@ -334,8 +334,18 @@ export function FilterDrawer({
     const sale = facts.some((fact) => fact.intent === "sale") || draft.intent === "sale";
     const shortlet = facts.some((fact) => fact.kind === "shortlet") || draft.kind === "shortlet";
     const options: { value: Market; label: string; icon: UiIconName }[] = [];
-    if (sale) options.push({ value: "sale", label: "Buy", icon: "key" });
-    options.push({ value: "rent", label: "Rent", icon: "home" });
+    /*
+     * BUY IS THE HOUSE AND RENT IS THE KEY, and these two were the other way
+     * round.
+     *
+     * `components/site/landing/SearchPill.tsx` draws `buy` with the house and
+     * `rent` with the key, which is what the governing hero shows; this drawer
+     * drew Buy with the key and Rent with the house. Two surfaces two taps
+     * apart teaching a person opposite things about the same two words. The
+     * hero settles it, so this is the side that moves. (R1 finding A14.)
+     */
+    if (sale) options.push({ value: "sale", label: "Buy", icon: "home" });
+    options.push({ value: "rent", label: "Rent", icon: "key" });
     if (shortlet) options.push({ value: "shortlet", label: "Shortlet", icon: "calendar-booking" });
     return options;
   }, [facts, draft.intent, draft.kind]);

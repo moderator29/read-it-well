@@ -10,7 +10,7 @@ import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schem
 export const metadata: Metadata = {
   title: "Safety centre",
   description:
-    "How payments work on Vallo, how inspections work, what we will never ask you for, and how to report someone who asks you to pay outside the platform.",
+    "How payments work on both sides of Vallo, how a stay is paid for against how a tenancy is, how inspections work, what we will never ask you for, and how to report someone who asks you to pay outside the platform.",
 };
 
 /**
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 const PAYING_STEPS: { title: string; body: string }[] = [
   {
     title: "You never pay a person, you pay the platform",
-    body: "Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card, a bank transfer raised by the processor, or your Vallo wallet. There is no other way to pay for a stay here, and there is no step where somebody sends you an account number.",
+    body: "Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card, a bank transfer raised by the processor, or your Vallo wallet. That is true on both sides: a hotel room for Friday and a flat for the year are paid the same way, and there is no step on either where somebody sends you an account number.",
   },
   {
     title: "The price you agree is the price you pay",
@@ -44,7 +44,11 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Money comes back to your wallet first",
-    body: "A refund lands in your Vallo wallet, which is the fastest route we have, and you move it to your bank from there whenever you want.",
+    body: "A refund lands in your Vallo wallet, which is the fastest route we have, and you move it to your bank from there whenever you want. One wallet serves both sides, so it does not matter which one the money came from.",
+  },
+  {
+    title: "A table costs nothing to hold",
+    body: "A restaurant reservation is a request, not a payment. You ask for a date, a time and a party size, the restaurant answers, and you pay the restaurant when you eat. Nobody on Vallo has any reason to take money from you for a table, and anybody asking for one is not doing platform business.",
   },
 ];
 
@@ -55,7 +59,7 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Then inspect",
-    body: "For a rental, view the property before any money moves, in person or on a video call. Bring somebody with you if you can, and go in daylight. An agent who will not let you inspect before paying is telling you something.",
+    body: "For a rental or a sale, view the property before any money moves, in person or on a video call. Bring somebody with you if you can, and go in daylight. An agent who will not let you inspect before paying is telling you something. A stay is the other way round, because you cannot inspect a hotel room in Enugu from Lagos: there you pay on Vallo first, and the cancellation schedule and the report route are what protect you instead.",
   },
   {
     title: "Confirm the inspection in the thread",
@@ -75,7 +79,7 @@ export default function SafetyCentrePage() {
         icon="shield-check"
         chip="Safety centre"
         title="Nobody on Vallo should ever ask you to pay outside it"
-        lede="How payments work here, how inspections work, what we will never ask you for, and what to do the moment somebody asks you for money off the platform."
+        lede="How payments work here on both sides, how inspections work before a tenancy, what a stay is protected by instead, what we will never ask you for, and what to do the moment somebody asks you for money off the platform."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
@@ -154,8 +158,8 @@ export default function SafetyCentrePage() {
           </h2>
           <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Renting a place you have never seen is how most people lose money in
-            this market. The order below is the whole defence, and it costs
-            nothing.
+            this market. The order below is the whole defence on the Property
+            side, and it costs nothing.
           </p>
           <ol className="mt-group space-y-row">
             {INSPECTION_STEPS.map((step, index) => (

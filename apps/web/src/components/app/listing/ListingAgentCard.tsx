@@ -1,8 +1,8 @@
 import type { Dictionary } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { VerifiedAgentBadge } from "./VerifiedAgentBadge";
 
 /**
  * The agent card of 9E8B56ED, with what the product can honestly say.
@@ -37,12 +37,10 @@ export function ListingAgentCard({
           <span className="nf-body font-semibold text-[var(--nf-content-primary)]">
             {name ?? copy.agentRole}
           </span>
-          {verified && (
-            <span className="nf-agent-card__pill">
-              <UiIcon name="verified" size={11} />
-              {copy.verifiedAgent}
-            </span>
-          )}
+          {/* The badge opens the ladder rather than standing there being
+              trusted. See `VerifiedAgentBadge`: the one claim the product
+              rests on had nowhere to go from the screen where it matters. */}
+          {verified && <VerifiedAgentBadge label={copy.verifiedAgent} />}
         </p>
         <p className="nf-caption mt-3xs text-[var(--nf-content-muted)]">
           {verified ? `${t.common.verified} before this listing went live` : "Manages this listing on Vallo"}

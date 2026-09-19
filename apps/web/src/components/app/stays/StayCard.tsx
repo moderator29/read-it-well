@@ -32,14 +32,29 @@ export function StayCard({
   locale,
   t,
   index,
+  saved = false,
+  canSavePlaces = false,
 }: {
   stay: StayCardData;
   locale: Locale;
   t: Dictionary;
   index?: number;
+  /** Lit at rest, from the account's shortlist (`savedKeySet` and `isSaved`
+      in `@/lib/saved/places`), decided on the server that read it. */
+  saved?: boolean;
+  /**
+   * Whether the reader can actually write to `saved_places`, which means
+   * whether they are signed in. A stay or a restaurant has no device half:
+   * `saved_items` takes listing ids only, so there is nowhere for a
+   * signed-out tap on a hotel to go. A control that cannot act is never
+   * drawn, so the heart is simply absent for that reader rather than present
+   * and refusing.
+   */
+  canSavePlaces?: boolean;
 }) {
   const copy = t.catalogue.stays;
-  const save = useSaveControl(stay.id);
+  const save = useSaveControl(stay.id, saved, stay.place);
+  const showSave = stay.place ? canSavePlaces : true;
   const chips = stay.amenities.slice(0, 4);
   const style = index !== undefined ? ({ "--card-i": Math.min(index, 5) } as React.CSSProperties) : undefined;
 
@@ -49,9 +64,11 @@ export function StayCard({
       style={style}
       data-testid="stay-card"
     >
-      <div className="nf-pcard__controls">
-        <SaveButton saved={save.saved} pending={save.pending} onToggle={save.toggle} title={stay.title} surface="media" />
-      </div>
+      {showSave && (
+        <div className="nf-pcard__controls">
+          <SaveButton saved={save.saved} pending={save.pending} onToggle={save.toggle} title={stay.title} surface="media" />
+        </div>
+      )}
       {save.note && (
         <p role="status" className="nf-pcard__note">
           {save.note.text}

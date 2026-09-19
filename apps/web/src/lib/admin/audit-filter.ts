@@ -42,7 +42,23 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export const AUDIT_ENTITY_TYPES = [
   { value: "wallet_entry", label: "Money", icon: "wallet" },
   { value: "paystack_webhook", label: "Webhook delivery", icon: "link" },
+  /*
+   * THE CHIP THAT WAS MISSING, AND IT WAS THE ONE THE ALERTING STORY DEPENDS
+   * ON. `lib/cron/report.ts` writes one `audit_log` row per scheduled run,
+   * clean or not, under `entity_type = 'cron_job'`, precisely so that a job
+   * which has quietly STOPPED firing is visible: its last clean row has a
+   * date on it. That is the only way to see it, because a job that does not
+   * run raises no alert, and the desk had no way to ask for those rows. Four
+   * of the vocabulary's types were absent from this list, so the chips were
+   * telling an operator the log holds eighteen kinds of thing when it holds
+   * twenty-two. `audit-filter.test.ts` now holds the writer vocabulary beside
+   * this list and fails when the two drift apart.
+   */
+  { value: "cron_job", label: "Scheduled job", icon: "history" },
   { value: "booking", label: "Booking", icon: "calendar-booking" },
+  { value: "reservation", label: "Reservation", icon: "calendar-booking" },
+  { value: "room_type", label: "Room type", icon: "building-hotel" },
+  { value: "inventory_drift", label: "Inventory drift", icon: "shield-stop" },
   { value: "listing", label: "Listing", icon: "house" },
   { value: "business", label: "Business", icon: "building-hotel" },
   { value: "agent", label: "Agent", icon: "user" },
@@ -119,6 +135,81 @@ export function auditIdExpression(id: string): string {
 export function actionLabel(action: string): string {
   const text = action.replace(/[._-]+/g, " ").trim();
   return text.length === 0 ? action : text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/* ------------------------------------------------ what a row may never show */
+
+/**
+ * THE LAST GATE BEFORE A DECISION LINE IS PUT ON A SCREEN.
+ *
+ * `audit_log.metadata` is a free bag: two dozen call sites choose what goes in
+ * it, and the viewer renders it as stored. Every writer in the tree is clean
+ * today, which is a fact about today and not a property of the viewer. Rule 16
+ * is absolute, so the READER enforces it too: a key naming a NIN, a BVN, a
+ * bank account, a card, a token, a secret, a signature, a password, an email
+ * address or a phone number is dropped here and never reaches the page,
+ * whatever a writer put there and whenever it was written. The same shape and
+ * the same vocabulary as the scrubber in `lib/alerts/record.ts`, applied at
+ * the other end of the pipe.
+ *
+ * NAMES ARE NOT DROPPED, and that is a decision rather than an oversight.
+ * `agent_name`, `business_name` and `displayName` are already what the rows
+ * around them are about: the desk resolves and shows `actorName` on every row
+ * from `profiles`, the whole console is a list of people and the decisions
+ * taken about them, and a suspension line with the name cut out of it is a
+ * line an operator cannot act on. What rule 16 forbids is identity documents
+ * and credentials, and those are what this drops.
+ *
+ * A dropped key is REPLACED, not silently removed: the key stays with the
+ * value "[withheld]", so a reader can see that the row carried something and
+ * that this viewer refused to show it, rather than reading a shorter row and
+ * believing it complete.
+ */
+const WITHHELD = "[withheld]";
+
+const FORBIDDEN_METADATA_KEY_PARTS = [
+  "email",
+  "phone",
+  "msisdn",
+  "nin",
+  "bvn",
+  "passport",
+  "account_number",
+  "accountnumber",
+  "iban",
+  "card",
+  "pan",
+  "cvv",
+  "token",
+  "secret",
+  "signature",
+  "password",
+  "authorization",
+] as const;
+
+/** True when this key names an identity document or a credential. */
+export function forbiddenAuditKey(key: string): boolean {
+  const lower = key.toLowerCase();
+  return FORBIDDEN_METADATA_KEY_PARTS.some((part) => lower.includes(part));
+}
+
+/**
+ * One row's metadata, safe to render. Objects and arrays are walked one level
+ * deep, because a bag inside a bag is still a bag somebody will read.
+ */
+export function safeAuditMetadata(metadata: unknown, depth = 0): unknown {
+  if (metadata === null || metadata === undefined) return metadata ?? null;
+  if (Array.isArray(metadata)) {
+    return depth >= 2 ? WITHHELD : metadata.map((item) => safeAuditMetadata(item, depth + 1));
+  }
+  if (typeof metadata !== "object") return metadata;
+  if (depth >= 2) return WITHHELD;
+
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(metadata as Record<string, unknown>)) {
+    out[key] = forbiddenAuditKey(key) ? WITHHELD : safeAuditMetadata(value, depth + 1);
+  }
+  return out;
 }
 
 /** A word for a target type, falling back to the value made readable. */

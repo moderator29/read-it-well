@@ -30,7 +30,7 @@ export type AdminDestination = {
 };
 
 /** Destinations whose labels are not in the dictionary yet. See `label` above. */
-type MoneyNavKey = "money" | "escrow" | "kyc" | "fees" | "payments" | "examples";
+type MoneyNavKey = "money" | "escrow" | "kyc" | "fees" | "payments" | "examples" | "audit";
 
 /**
  * A band of the rail, and the reason the rail has bands at all.
@@ -151,6 +151,22 @@ export const ADMIN_NAV_GROUPS: AdminGroup[] = [
     key: "platform",
     heading: "Platform",
     items: [
+      /*
+       * THE AUDIT LOG, WHICH HAD NO DOOR (R2 finding 12).
+       *
+       * /admin/audit has existed since the audit reader landed and was
+       * reachable only by typing the URL or from the dev preview harness: the
+       * route inventory found no link to it from anywhere in the console. The
+       * one screen that answers "who did this, and when" was the one screen an
+       * operator could not find, which is the same as not having it.
+       *
+       * It sits first in Platform because it is the entry an operator actually
+       * opens: Examples, Reference and Switches are configuration somebody
+       * changes rarely, and the log is what somebody reads the moment a
+       * decision is questioned. It carries no badge, because a record is not
+       * work waiting.
+       */
+      { key: "audit", href: "/admin/audit", icon: "history", label: "Audit log" },
       { key: "examples", href: "/admin/examples", icon: "building-apartment", label: "Examples" },
       { key: "reference", href: "/admin/reference", icon: "grid" },
       { key: "switches", href: "/admin/switches", icon: "key" },

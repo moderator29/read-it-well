@@ -6,16 +6,26 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
  * The six-cell chip row from the fullpage render: one glass band, six glass
  * objects, a title and a one-line sub each. Statements about the product,
  * each of which is true today, none of which carries a number.
+ *
+ * THE SIX NOW SPEAK FOR BOTH SIDES, and every one of them points at a
+ * shipped surface (content truth sweep, 19 September; the routes are named
+ * in the dictionary beside the strings). The row used to read Verified
+ * Listings, AI Powered, Secure Wallet, One Platform, Vallo Stays and
+ * Property Management: three of those described the Property side only and
+ * "One Platform / Every city. Everywhere." was a reach claim rather than a
+ * capability. It reads buy and rent, the assistant, the wallet, bookings
+ * and trips, Vallo Stays and messages instead. The composition, the glass
+ * band and the six glass objects are untouched.
  */
 export function FeatureChips({ t }: { t: Dictionary }) {
   const c = t.landing.face.chips;
   const cells: { key: keyof typeof c; icon: BrandIconName }[] = [
-    { key: "verified", icon: "seal-check" },
+    { key: "verified", icon: "keys-home" },
     { key: "ai", icon: "bot" },
     { key: "wallet", icon: "wallet-secure" },
-    { key: "one", icon: "globe-pin" },
+    { key: "one", icon: "calendar-check" },
     { key: "stays", icon: "hotel-star" },
-    { key: "manage", icon: "doc-home" },
+    { key: "manage", icon: "chat-duo" },
   ];
   return (
     <section className="nf-shell pb-section" aria-label={c.one.title}>

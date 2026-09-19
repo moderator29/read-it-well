@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
+import { hrefForListing } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { IntentTune } from "@/components/app/IntentTune";
@@ -56,7 +57,7 @@ export function ListingCard({
   t,
   index,
   intent,
-  side = "property",
+  saved,
   wide = false,
   dense = false,
 }: {
@@ -66,7 +67,24 @@ export function ListingCard({
   /** Position in a freshly assembled list, for the entrance stagger. */
   index?: number;
   intent?: PropertyType[];
-  side?: "property" | "stays";
+  /**
+   * The STORED truth about the heart, from `saved_items`, when the page that
+   * drew this card already knows it.
+   *
+   * The card used to call `useSaveControl(listing.id)` with nothing, so the
+   * heart rendered from the device store alone and a signed-in reader's
+   * hearted listing came back empty after a reload - on `/search`, on
+   * `/rent`, and most visibly on `/saved`, where the `StayCard` half passed
+   * its stored value and drew a filled heart beside a `ListingCard` drawing
+   * an empty one, on the board whose entire job is the shortlist. The write
+   * always worked; this is the read back, which is the half of the ONE LAW
+   * that says the UI shows the new reality. (R2 finding 4.)
+   *
+   * Optional because a surface that genuinely does not know must not claim
+   * `false`: `undefined` leaves `useSaveControl` on the device store it
+   * already falls back to, which is the honest answer for a guest.
+   */
+  saved?: boolean;
   /** One across, the 16:10 photograph of the stays shelf. */
   wide?: boolean;
   /**
@@ -82,7 +100,18 @@ export function ListingCard({
 }) {
   const router = useRouter();
   const photo = listing.photos[0];
-  const href = `${side === "stays" ? "/stay" : "/listing"}/${listing.id}`;
+  /*
+   * WHERE THIS OPENS IS DECIDED BY WHAT THE LISTING IS, not by a prop.
+   *
+   * This was `side === "stays" ? "/stay" : "/listing"` off a `side` prop that
+   * defaulted to `"property"` and that NO CALL SITE IN THE TREE PASSED. The
+   * property search's own category rail offers Shortlets, Apartments, Villas
+   * and Hotels, so four of its nine markets opened a Stays object inside the
+   * Property shell, and a saved hotel did the same from the shortlist. The
+   * prop is deleted rather than threaded through the three pages, because a
+   * prop nobody passes is how this happened. See `lib/listings/href.ts`.
+   */
+  const href = hrefForListing(listing.kind, listing.id);
   const copy = t.catalogue.card;
 
   /* Prefetch on intent, never on a data-saver connection. */
@@ -142,7 +171,7 @@ export function ListingCard({
       : undefined;
 
   const tunableKind: PropertyType | null = isPropertyType(listing.kind) ? listing.kind : null;
-  const save = useSaveControl(listing.id);
+  const save = useSaveControl(listing.id, saved);
 
   /* The facts row: beds, baths, then the floor area when the lister gave one,
      then what the place is. Four at most, so a card stays one row. */

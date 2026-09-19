@@ -21,6 +21,9 @@ export default async function PreviewThreadRental() {
         meId={PERSON.id}
         counterpartName="Michael T."
         counterpartVerified={false}
+        /* The worst case for the header: the call control beside the kebab on
+           the face whose title is the longest thing on the screen. */
+        counterpartPhone="+2348010000000"
         listing={{
           id: LISTING_ID,
           title: "Luxury 2 bedroom apartment",

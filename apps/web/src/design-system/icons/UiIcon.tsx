@@ -49,6 +49,10 @@ export type UiIconName =
   | "parking"
   | "kitchen"
   | "verified"
+  /* The identity tick: a filled circle with a white tick through it, which is
+     what every governing render draws beside a name. `verified` stays the
+     shield and belongs in a chip about a LISTING. See the drawing below. */
+  | "verified-badge"
   | "location"
   | "chevron-down"
   | "arrow-right"
@@ -280,6 +284,36 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     <>
       <path d="M12 2.9 19.2 6v5.3c0 4.3-2.9 8-7.2 9.6-4.3-1.6-7.2-5.3-7.2-9.6V6Z" />
       <path d="m8.7 11.8 2.3 2.3 4.3-4.4" />
+    </>
+  ),
+  /*
+   * THE IDENTITY TICK, AND IT IS A CIRCLE BECAUSE FOUR GOVERNING IMAGES DRAW
+   * A CIRCLE.
+   *
+   * `verified` above is a shield, and the shield was being used for two
+   * different ideas at once: "this listing was checked" (a chip, which is
+   * where `50E032EA` and `3EB3E2A9` do draw a shield, and where it stays) and
+   * "this person was checked" (beside a name, where `GOVERNING-feed-plus-bloom`,
+   * `GOVERNING-chat-booking-card`, `50E032EA` and `7F96BE6C` all draw a FILLED
+   * CIRCLE WITH A WHITE TICK). It also collided with Inspections, which is a
+   * third idea wearing the same shape. (R1 finding A12.)
+   *
+   * Drawn as a closed disc with the tick knocked through it, so it reads at
+   * 14px beside a name, which is the size it is used at almost everywhere.
+   * The disc takes `currentColor`, so identity is brand and a status word is
+   * emerald, decided by the call site rather than baked here.
+   */
+  "verified-badge": (
+    <>
+      <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none" />
+      <path
+        d="m8.2 12.2 2.6 2.6 5-5.2"
+        fill="none"
+        stroke="var(--nf-content-on-brand)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </>
   ),
   // An agent stopped from trading. Deliberately the same shield as `verified`,

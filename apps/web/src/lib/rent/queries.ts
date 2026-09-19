@@ -205,7 +205,24 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
   }
 }
 
-/** A tenant's or lister's rent charges, for the trips and earnings surfaces. */
+/**
+ * A tenant's or lister's rent charges.
+ *
+ * NOTHING CALLS THIS, AND THE HEADER USED TO CLAIM OTHERWISE. It said "for
+ * the trips and earnings surfaces", and neither is true: `/bookings` and
+ * `/trips` read tenancies through `getMyBookings`, which branches on
+ * `rent_payments` itself and returns them as `groups.rent` in tenancy words,
+ * and `/agent/earnings` reads `ledger_entries` through `readAgentEarnings`,
+ * which already carries rent money because a rent charge rides the booking
+ * rails. So this is dead code rather than the earnings-side reader it was
+ * written for, and the accurate sentence is worth more than the flattering
+ * one until the lead decides whether to delete it.
+ *
+ * What it alone can still answer, if a surface ever wants it: WHICH tenancy a
+ * settled figure belongs to, from the lister's side (`side: "lister"`, under
+ * `rent_payments_select_lister`). The earnings page shows the money without
+ * naming the inspection behind it.
+ */
 export type RentChargeSummary = {
   id: string;
   inspectionId: string;

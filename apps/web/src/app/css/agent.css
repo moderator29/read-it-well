@@ -134,6 +134,36 @@
     color: var(--nf-content-muted);
     pointer-events: none;
   }
+  /* The signed-in agent's initial, the same plate the console bar uses. */
+  .nf-agent-bar__avatar {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+  }
+  /*
+   * THE LANGUAGE CONTROL IS GLASS IN HERE, NOT THE PRIMARY.
+   *
+   * `LanguageSwitcher` belongs to another surface's worker and paints itself
+   * `nf-btn nf-btn--primary`, which is correct on a marketing header where it
+   * is one of two controls and wrong in a workspace bar, where it made a
+   * locale picker the loudest object on a 390px screen and outshouted the
+   * page's own action. Scoped under this surface's root per the ledger's
+   * shared-class rule, and reported rather than changed at the source.
+   */
+  .nf-agent-bar__lang .nf-btn--primary {
+    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    color: var(--nf-content-secondary);
+    box-shadow: var(--nf-rim-lit);
+  }
 
   /* ---------------------------------------------- the wizard and the flow */
 
@@ -307,6 +337,7 @@
 :root[data-theme="light"] .nf-agent .nf-card,
 :root[data-theme="light"] .nf-agent-panel,
 :root[data-theme="light"] .nf-agent-bar__search input,
+:root[data-theme="light"] .nf-agent-bar__lang .nf-btn--primary,
 :root[data-theme="light"] .nf-host-choice,
 :root[data-theme="light"] .nf-host-group {
   background: var(--nf-surface-on-paper);

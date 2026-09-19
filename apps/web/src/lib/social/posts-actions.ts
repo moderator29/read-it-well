@@ -41,6 +41,7 @@ import {
 } from "./posts-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
+import { parseFeedCursor } from "./posts-cursor";
 
 function paced(seconds: number): string {
   return `You have done that a few times already. Try again ${retryIn(seconds)}.`;
@@ -715,8 +716,13 @@ const feedModeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("area"), areaId: z.uuid() }),
 ]);
 
-/** A created_at cursor is an ISO instant; anything else is not a cursor. */
-const feedCursorSchema = z.string().datetime({ offset: true });
+/**
+ * A feed cursor names the exact row the last page stopped on: its instant and
+ * its id. `parseFeedCursor` in `posts-queries` owns the shape (and still
+ * accepts a bare instant minted by an older deployment), so there is one
+ * definition of what a cursor is and this only has to say yes or no.
+ */
+const feedCursorSchema = z.string().refine((value) => parseFeedCursor(value) !== null);
 
 const ENDED: FeedPage = { posts: [], cursor: null, ended: true };
 
@@ -727,9 +733,9 @@ const ENDED: FeedPage = { posts: [], cursor: null, ended: true };
  * consumed them, so every timeline rendered its first twenty posts and
  * stopped. This is the missing half: hand back the `cursor` a page returned
  * and get the rows before it, through the same three reads the page made,
- * under the same RLS-bound client. A cursor that is not an instant, or a
- * mode that names a place that is not a uuid, is refused as one honest
- * sentence rather than passed to Postgres.
+ * under the same RLS-bound client. A cursor that is not a cursor, or a mode
+ * that names a place that is not a uuid, is refused as one honest sentence
+ * rather than passed to Postgres.
  *
  * "joined" resolves the viewer from the session rather than from the client,
  * so nobody can page through another person's places: signed out it is an

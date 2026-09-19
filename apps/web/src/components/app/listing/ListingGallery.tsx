@@ -7,6 +7,8 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { canGoBackInApp } from "@/lib/ui/history";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { ListingActions } from "./ListingActions";
+import type { SavePlaceTarget } from "@/components/app/SaveControl";
+import type { SharedKind } from "@/components/app/messages/share";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
@@ -44,6 +46,8 @@ export function ListingGallery({
   initialSaved = false,
   backFallback = "/home",
   mark,
+  shareKind = "listing",
+  place,
 }: {
   listingId: string;
   title: string;
@@ -71,6 +75,19 @@ export function ListingGallery({
    * always known, and Verified appears only where a person checked.
    */
   mark?: { label: string; icon?: UiIconName; verified?: boolean; verifiedLabel?: string };
+  /**
+   * What `listingId` is for the share path: `stay` on `/stay/<id>`, where the
+   * id belongs to an accommodation rather than to a catalogue listing. Passed
+   * straight to `ListingActions`, which owns the sheet.
+   */
+  shareKind?: SharedKind;
+  /**
+   * The shortlist target when this hero belongs to a catalogue place rather
+   * than to a platform listing: an accommodation on `/stay`, a business venue
+   * on `/restaurant`. Passed to `ListingActions`, which owns the heart; see
+   * its note on why the heart wrote nothing on those two faces.
+   */
+  place?: SavePlaceTarget;
 }) {
   const router = useRouter();
   /* The gallery's floating back circle is icon-only, so its accessible name is
@@ -218,7 +235,13 @@ export function ListingGallery({
         </button>
       </div>
 
-      <ListingActions listingId={listingId} title={title} initialSaved={initialSaved} />
+      <ListingActions
+        listingId={listingId}
+        title={title}
+        initialSaved={initialSaved}
+        shareKind={shareKind}
+        place={place}
+      />
 
       {/*
         Clear of the sheet, not under it.

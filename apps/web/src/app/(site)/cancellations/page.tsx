@@ -9,7 +9,7 @@ import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 export const metadata: Metadata = {
   title: "Cancellation policy",
   description:
-    "One cancellation schedule for every stay on Vallo: everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day starts.",
+    "One cancellation schedule for every paid stay on Vallo: everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day starts. A restaurant table is free to cancel and a tenancy is settled in its own agreement.",
 };
 
 /**
@@ -33,7 +33,7 @@ export default function CancellationPolicyPage() {
         icon="calendar-clock"
         chip="Cancellations"
         title="One cancellation policy, on every stay"
-        lede="Not one policy per agent. The same three steps apply to every stay booked and paid for on Vallo, so you never have to work out which rules you agreed to. A tenancy, a sale or a lease is settled in the agreement you sign with the agent and is not covered by the schedule below."
+        lede="Not one policy per agent. The same three steps apply to every stay booked and paid for on Vallo, so you never have to work out which rules you agreed to. A restaurant table is not covered because nothing was taken for it: cancel a table at any hour, for nothing. A tenancy, a sale or a lease is settled in the agreement you sign with the agent, and is not covered by the schedule below either."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
@@ -54,10 +54,11 @@ export default function CancellationPolicyPage() {
           <div className="nf-card mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               A reservation you have not paid for is a hold on the calendar and
-              nothing more. Cancel it from Bookings at any hour, for nothing, and
-              the nights reopen for somebody else immediately. A hold you walk
-              away from releases itself, so you cannot accidentally block a
-              agent&apos;s calendar by forgetting about it.
+              nothing more. Cancel it from Bookings, or from Trips on the Stays
+              side, at any hour, for nothing, and the nights reopen for somebody
+              else immediately. A hold you walk away from releases itself, so you
+              cannot accidentally block an agent&apos;s calendar by forgetting
+              about it.
             </p>
           </div>
         </section>
@@ -133,6 +134,23 @@ export default function CancellationPolicyPage() {
           </ul>
         </section>
 
+        {/* --------------------------------------------- restaurant tables */}
+        <section className="mt-section" aria-labelledby="tables">
+          <h2 id="tables" className="nf-h2 text-[1.375rem]">
+            A restaurant table is different
+          </h2>
+          <div className="nf-card mt-group p-card">
+            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              Nothing is taken for a table, so nothing has to come back. You ask
+              a restaurant for a date, a time and a party size, and the restaurant
+              confirms it or turns it down. Cancel from the reservation at any
+              hour, for nothing, and tell them in its own conversation if you are
+              simply running late. You pay the restaurant when you eat, and the
+              schedule above has nothing to say about any of it.
+            </p>
+          </div>
+        </section>
+
         {/* ------------------------------------------------ refund route */}
         <section className="mt-section" aria-labelledby="refund-route">
           <h2 id="refund-route" className="nf-h2 text-[1.375rem]">
@@ -143,8 +161,9 @@ export default function CancellationPolicyPage() {
               Into your Vallo wallet, in naira, to the kobo. That is the fastest
               route available in this market and it is not a store credit: move it
               to your Nigerian bank account from the wallet whenever you want, or
-              spend it on your next stay. Card reversals are slower and depend on
-              your bank, which is why they are not the default.
+              spend it on your next stay or on the other side of the product. One
+              wallet serves both. Card reversals are slower and depend on your
+              bank, which is why they are not the default.
             </p>
           </div>
         </section>

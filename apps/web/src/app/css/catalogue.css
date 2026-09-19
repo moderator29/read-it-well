@@ -1142,10 +1142,47 @@
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-pill);
+    border: 0;
     background: var(--nf-brand-primary);
     font-size: var(--nf-text-overline);
     font-weight: 650;
     color: var(--nf-content-on-brand);
+  }
+  /* The pill is a BUTTON now (it opens the verification ladder), so it takes
+     the platform's press and focus rather than a browser default. */
+  button.nf-agent-card__pill {
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  button.nf-agent-card__pill:active {
+    transform: scale(var(--nf-press-scale));
+  }
+  button.nf-agent-card__pill:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    button.nf-agent-card__pill {
+      transition: none;
+    }
+    button.nf-agent-card__pill:active {
+      transform: none;
+    }
+  }
+  /* The rung numeral in the Verified sheet: the ladder's own step, on the
+     small lit plate the rest of this family uses for a mark. */
+  .nf-verify-step {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-brand-tint-2);
+    font-size: var(--nf-text-caption);
+    font-weight: 650;
+    color: var(--nf-brand-secondary);
   }
   /*
    * ==================================== the marks that sit ON a photograph
@@ -1773,6 +1810,54 @@
     color: var(--nf-content-secondary);
   }
   .nf-stay-card__chip > svg {
+    color: var(--nf-brand-secondary);
+  }
+
+  /*
+   * EVERY CONTAINER ON THESE SURFACES READS AS LIT GLASS.
+   *
+   * The founder's note against the renders: our containers are dull where
+   * every container in the reference set is ringed in brand blue with light
+   * coming off the ring. `--nf-glow-edge` is that ring composed once in the
+   * token layer, and the lead put it on `.nf-glass--card`, `.nf-glass--tile`
+   * and `.nf-icon-btn`. `.nf-card` is a DIFFERENT material (a stride-gradient
+   * border box) and was deliberately not promoted with them, so the catalogue
+   * surfaces ask for the edge the same way the money surfaces already do
+   * (`.nf-money .nf-card` in wallet.css): by naming the shared recipe rather
+   * than by writing a second one here. The card's own float rides underneath,
+   * exactly as `.nf-glass--card` arranges it.
+   *
+   * The root class is on the page wrapper of each catalogue surface, so this
+   * cannot reach a card on somebody else's screen.
+   */
+  .nf-cat-surface .nf-card {
+    box-shadow:
+      var(--nf-glow-edge),
+      var(--nf-bloom-card);
+  }
+
+  /* ============================================================== the tenancy
+     The rent period on a tenancy card (/bookings, F3, 19 September 2026). It is
+     the stay chip's geometry and it is NOT the stay chip: a tenancy card must
+     not carry a class whose name says stay, because the next person to widen
+     `.nf-stay-card__chip` for a nightly card would widen this with it. Same
+     tokens, its own name, no glow of its own: it sits inside a card that is
+     already lit by `--nf-glow-edge`. */
+  .nf-tenancy-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2rem;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--nf-content-secondary);
+  }
+  .nf-tenancy-chip > svg {
     color: var(--nf-brand-secondary);
   }
 

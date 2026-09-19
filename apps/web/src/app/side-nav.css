@@ -55,6 +55,14 @@
     padding: 0.25rem 0.5rem 0.75rem;
   }
 
+  /* In the drawer the head holds the close control alone, so it is a strip of
+     empty panel above the user card rather than a row of anything. The render
+     starts on the face; this gives the head only the height its one control
+     needs. */
+  .nf-nav--drawer .nf-nav__head {
+    padding-bottom: 0.25rem;
+  }
+
   .nf-nav__brand {
     display: inline-flex;
     align-items: center;
@@ -194,32 +202,62 @@
     "View profile" capsule outlined in the brand edge. The rail keeps the
     compact row above; only the drawer wears the card.
   */
+  /*
+   * THE MATERIAL IS `.nf-glass--card`'S, and this rule keeps only geometry.
+   *
+   * It was hand-rolled: a soft brand hairline over `--nf-glass-fill-thin`
+   * with a 24px bloom pulled 8px back inside its own edge, which is the
+   * composition the founder photographed and called dull. glass.css imports
+   * after this file, so adding `nf-glass nf-glass--card` in `AppRail` hands
+   * the card the lit top rim, the full brand ring and the near bloom that
+   * every other container on the platform now wears, and the four paint
+   * declarations that used to be here would only have fought it.
+   */
+  /*
+   * Tightened with the rows, and for the same reason. The card was 1.25rem of
+   * padding round a 4.5rem face, about 180 CSS px of a 844px screen, and with
+   * the rows at their old height that put the coin below the fold. It is the
+   * first thing read and it still is; it simply does not need a fifth of the
+   * panel to say one name. (R1 finding A18.)
+   */
   .nf-nav__who--card {
-    gap: 1rem;
-    margin: 0 0.25rem 1rem;
-    padding: 1.25rem 1rem;
-    border-radius: var(--nf-radius-xl);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background:
-      linear-gradient(var(--nf-light-angle), var(--nf-brand-tint-1), transparent 70%),
-      var(--nf-glass-fill-thin);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 24px -8px var(--nf-glow-2);
+    gap: 0.875rem;
+    margin: 0 0.25rem 0.75rem;
+    padding: 1rem 0.875rem;
   }
+  /*
+   * THE LIT RING AROUND THE FACE, and it had a dark gap in it.
+   *
+   * The drawer render puts the photograph inside a bright blue ring that
+   * touches it. This drew 2px of `--nf-surface-primary` first - the panel's
+   * own dark colour - and only then the brand edge, so at 390px the avatar
+   * read as a disc with a black outline and a faint blue halo somewhere
+   * outside it. The ring now starts at the face: the lit rim at the last rung
+   * of the edge ladder, then the bloom.
+   */
   .nf-nav__who--card .nf-nav__avatar {
-    width: 4.5rem;
-    height: 4.5rem;
-    font-size: 1.5rem;
+    width: 3.75rem;
+    height: 3.75rem;
+    font-size: 1.25rem;
     box-shadow:
-      0 0 0 2px var(--nf-surface-primary),
-      0 0 0 4px var(--nf-brand-edge),
-      0 0 22px var(--nf-glow-3);
+      0 0 0 3px var(--nf-glow-brand-rim),
+      0 0 24px var(--nf-glow-3),
+      0 0 48px -8px var(--nf-glow-2);
   }
   .nf-nav__who--card .nf-nav__whoname {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
     font-size: 1.125rem;
     font-weight: 700;
     white-space: normal;
+  }
+  /* The tick beside the name in the drawer render. Nothing sets `verified`
+     true today, so this rule waits for the ladder rather than decorating
+     everybody; see the prop's note in `AppRail`. */
+  .nf-nav__whotick {
+    flex: none;
+    color: var(--nf-brand-secondary);
   }
   .nf-nav__whohandle {
     font-size: 0.8125rem;
@@ -244,17 +282,48 @@
   }
   /* The drawer's rows are taller and its active row is the filled brand
      slab with the glow the render draws. */
+  /*
+   * 44px, THE TAP TARGET AND NOT A PIXEL MORE, and the star being below the
+   * fold is what decided it.
+   *
+   * Measured off `BCD39CA8`: the panel draws nine rows in about 371 CSS px
+   * at 390x844, roughly 41 each. This was 56, which is 55 per cent taller,
+   * and the arithmetic of that is the whole finding - thirteen rows at 56
+   * ran the FLIP COIN card off the bottom of the screen, and section 6 calls
+   * the coin the star of this surface. Nobody scrolls a navigation drawer to
+   * find the thing it is built around.
+   *
+   * 41 is not the number to copy, because it is under the 44pt touch floor
+   * this codebase holds everywhere else. 44 is: it clears the floor exactly,
+   * it recovers around 150 CSS px over thirteen rows, and it brings the
+   * panel's density within a few points of the render. The glyph and the
+   * label come down with it, because a 24px glyph beside 16px type in a 44px
+   * row is a row with no air in it. (R1 finding A18.)
+   */
   .nf-nav--drawer .nf-nav__row {
-    min-height: 3.5rem;
-    padding-inline: 1rem;
+    min-height: 2.75rem;
+    gap: 0.75rem;
+    padding: var(--nf-space-2xs) 0.875rem;
     border-radius: var(--nf-radius-lg);
+    font-size: var(--nf-text-body-sm);
   }
+  .nf-nav--drawer .nf-nav__glyph {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .nf-nav--drawer .nf-nav__glyph > * {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  /* The render's lit row throws real light: the brand gradient with a bloom
+     off all four sides, not a flat slab with a hint under it. */
   .nf-nav--drawer .nf-nav__row--on {
     background: linear-gradient(var(--nf-light-angle), var(--nf-brand-primary), var(--nf-brand-accent));
     color: var(--nf-content-on-brand);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 22px -4px var(--nf-glow-3);
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 20px var(--nf-glow-3),
+      0 0 48px -8px var(--nf-glow-2);
   }
   .nf-nav--drawer .nf-nav__row--on .nf-nav__glyph {
     color: var(--nf-content-on-brand);
@@ -283,21 +352,102 @@
     flex: none;
     overflow: visible;
   }
-  .nf-nav--drawer .nf-nav__section:first-child > .nf-nav__heading {
+  /*
+   * NO HEADING ABOVE THE FIRST GROUP, and the selector had to learn that the
+   * first group is not always the first section.
+   *
+   * The drawer render opens straight into rows: no label above them, and
+   * "WORKSPACE" only later, where the list changes subject. This hid the
+   * heading of `:first-child`, which is right on the desktop rail. On a phone
+   * the first section is Home / Explore / Feed and it is `display: none`,
+   * because the dock carries those three - so `:first-child` was a section
+   * nobody could see and the heading that actually sat at the top of the
+   * panel, ACCOUNT, was labelled. The panel opened with a category heading
+   * over the first row, which the render does not do.
+   *
+   * The second selector is the phone case: the section straight after the
+   * hidden one is the first one read, so its heading goes too. Both are
+   * needed - they describe two different viewports, not one rule written
+   * twice.
+   */
+  .nf-nav--drawer .nf-nav__section:first-child > .nf-nav__heading,
+  .nf-nav--drawer .nf-nav__section--docked + .nf-nav__section > .nf-nav__heading {
     display: none;
+  }
+  @media (min-width: 64rem) {
+    /* Above the breakpoint the docked section is visible again, so the group
+       after it is a genuine second subject and keeps its label. */
+    .nf-nav--drawer .nf-nav__section--docked + .nf-nav__section > .nf-nav__heading {
+      display: block;
+    }
   }
   .nf-nav--drawer .nf-nav__foot {
     border-top: 0;
     padding-top: 0.75rem;
   }
+  /*
+   * The theme row under the coin. The drawer render draws it as a glass card
+   * with a lit edge, one rung quieter than the coin above it; this had
+   * `--nf-border-subtle` over `--nf-glass-fill-thin`, which is the dull
+   * container the founder photographed. The tile's recipe, restated here
+   * rather than added as a class because the row is `ThemeToggle`'s markup
+   * and that component belongs to another scope.
+   */
   .nf-nav--drawer .nf-nav__foot .nf-nav__row {
     margin-top: 0.5rem;
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill-thin);
     min-height: 3.25rem;
+    border: 1px solid var(--nf-brand-edge);
+    background:
+      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
+      var(--nf-glass-card-fill);
+    box-shadow:
+      var(--nf-glow-edge),
+      inset 0 -1px 0 var(--nf-glass-floor);
   }
   .nf-nav--drawer .nf-nav__foot .nf-nav__row::after {
     content: none;
+  }
+
+  /*
+   * THE LEGAL ROW at the foot of the drawer, which the drawer render draws
+   * under a divider and the product did not have at all: a shield, the
+   * registered name set small in brand caps, a chevron. Quiet by design - it
+   * is the last thing on the panel and it is not a destination anybody is
+   * looking for - but it is a real link to the terms, because the render
+   * draws a chevron and a chevron that goes nowhere is a lie.
+   */
+  .nf-nav__legal {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 2.75rem;
+    margin-top: 0.75rem;
+    padding: 0 0.75rem;
+    border-top: 1px solid var(--nf-divider);
+    padding-top: 0.75rem;
+    color: var(--nf-content-muted);
+  }
+  .nf-nav__legalname {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-nav__legalchev {
+    flex: none;
+  }
+  a.nf-nav__legal:hover {
+    color: var(--nf-content-secondary);
+  }
+  a.nf-nav__legal:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+    border-radius: var(--nf-radius-md);
   }
 
   /* ------------------------------------------------------------ the lists */
@@ -522,6 +672,31 @@
 
   :root[data-theme="light"] .nf-nav__row--on {
     background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+
+  /*
+   * THE DRAWER'S LIT ROW STAYS FILLED ON PAPER, and it was white ink on a
+   * pale lavender wash.
+   *
+   * The rail's daylight answer above drops the active pill to a 12 per cent
+   * tint, which is right for a quiet column beside the content. The drawer's
+   * active row is a different object: the render draws it as a filled brand
+   * slab and this stylesheet sets `--nf-content-on-brand` - white - on it to
+   * match. The two rules met in the middle and produced white text on a
+   * near-white plate, which a 390px light shot of the open drawer shows is
+   * unreadable rather than merely quiet.
+   *
+   * Light is a designed twin with the same anatomy, not a derivation: the
+   * slab is the anatomy here, so it stays a slab and the white ink stays
+   * correct. Specificity carries it over the rail's rule without reordering
+   * any import.
+   */
+  :root[data-theme="light"] .nf-nav--drawer .nf-nav__row--on {
+    background: linear-gradient(var(--nf-light-angle), var(--nf-brand-primary), var(--nf-brand-accent));
+    color: var(--nf-content-on-brand);
+  }
+  :root[data-theme="light"] .nf-nav--drawer .nf-nav__row--on .nf-nav__glyph {
+    color: var(--nf-content-on-brand);
   }
 
   :root[data-theme="light"] .nf-nav__scroll--agent .nf-nav__row--on {

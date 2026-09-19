@@ -5,10 +5,12 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { buildNav } from "./nav-model";
 import { NavTree } from "./NavTree";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { SideSwitch } from "./SideSwitch";
+import { COMPANY_LEGAL_NAME } from "@/lib/legal/company";
 import type { Side } from "@/lib/side.constants";
 
 /**
@@ -47,6 +49,7 @@ export function AppRail({
   userName,
   userHandle = "",
   avatarUrl = "",
+  verified = false,
   unreadNotifications = 0,
   isAgent = false,
   isAdmin = false,
@@ -62,6 +65,14 @@ export function AppRail({
   userName: string;
   userHandle?: string;
   avatarUrl?: string;
+  /**
+   * The human-checked tick, beside the name in the drawer's user card, as the
+   * drawer render draws it. Default false and nothing in the product sets it
+   * true yet: `ShellIdentity.verified` is still hardcoded false, so the tick
+   * renders for nobody rather than for everybody. Master Rule 12 - the badge
+   * only ever means a human was checked - makes that the only honest default.
+   */
+  verified?: boolean;
   unreadNotifications?: number;
   isAgent?: boolean;
   isAdmin?: boolean;
@@ -111,17 +122,43 @@ export function AppRail({
           because it is one destination; the capsule is the visible affordance
           and the whole block is its tap target.
         */
-        <Link href="/profile" onClick={onNavigate} className={drawer ? "nf-nav__who nf-nav__who--card" : "nf-nav__who"}>
+        <Link
+          href="/profile"
+          onClick={onNavigate}
+          className={drawer ? "nf-nav__who nf-nav__who--card nf-glass nf-glass--card" : "nf-nav__who"}
+        >
           <span className="nf-nav__avatar" aria-hidden="true">
             {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="" />
+              /* 28px in the rail, 60px in the drawer card: the CSS decides,
+                 so `sizes` has to follow the same branch or the browser
+                 fetches the wrong one of the two. */
+              <RemoteImage
+                src={avatarUrl}
+                alt=""
+                width={drawer ? 60 : 28}
+                height={drawer ? 60 : 28}
+                sizes={drawer ? "60px" : "28px"}
+              />
             ) : (
               userName.slice(0, 1).toUpperCase()
             )}
           </span>
           <span className="nf-nav__whobody">
-            <span className="nf-nav__whoname">{userName}</span>
+            <span className="nf-nav__whoname">
+              {userName}
+              {drawer && verified && (
+                /* The circular badge, not the shield: `BCD39CA8` draws a
+                   filled disc with a white tick beside the name, and the
+                   shield now means a checked LISTING and nothing else.
+                   (R1 finding A12.) */
+                <UiIcon
+                  name="verified-badge"
+                  size={16}
+                  className="nf-nav__whotick"
+                  label={t.a11y.verifiedAccount}
+                />
+              )}
+            </span>
             {drawer && userHandle && <span className="nf-nav__whohandle">@{userHandle}</span>}
             {drawer && (
               <span className="nf-nav__whocta">
@@ -152,6 +189,33 @@ export function AppRail({
       <div className="nf-nav__foot">
         <SideSwitch t={t} onNavigate={onNavigate} />
         <ThemeToggle variant="row" />
+        {/*
+          THE LEGAL ROW AT THE FOOT OF THE DRAWER, which the drawer render
+          draws and the product did not have: a divider, a shield, the
+          registered name in small caps, a chevron. It is a LINK, to the
+          terms, because a chevron that goes nowhere is a lie and because
+          Master Rule 14 allows the registered name only on a legal surface -
+          a door into one is exactly that.
+
+          Drawer only. The desktop rail is a permanent column beside the
+          content, and the render puts this at the bottom of a panel that is
+          read top to bottom and dismissed; the rail's equivalent is the site
+          footer.
+        */}
+        {drawer && (
+          <Link href="/terms" onClick={onNavigate} className="nf-nav__legal">
+            {/* `document`, not the shield the render draws. The only shield in
+                the pack is `shield-stop`, which this product has given one
+                meaning - an agent stopped from trading - and borrowing it for
+                a link to the terms would teach that shape a second one.
+                Master Rule 12's discipline about the verified tick is the same
+                discipline: a mark means one thing. What is behind this row is
+                a document, so it is a document. */}
+            <UiIcon name="document" size={16} />
+            <span className="nf-nav__legalname">{COMPANY_LEGAL_NAME}</span>
+            <UiIcon name="chevron-right" size={14} className="nf-nav__legalchev" />
+          </Link>
+        )}
       </div>
     </aside>
   );

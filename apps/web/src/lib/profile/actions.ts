@@ -10,14 +10,18 @@
  * cannot wipe one flipped on a laptop a second earlier. Nothing here writes a
  * notification: a person changing their own preferences already knows.
  *
- * Deletion is the one privileged path. It signs the person out and then asks
- * the auth admin API to remove the user, which cascades every owned row. When
- * the service key is absent the action says so plainly and deletes nothing,
- * because a delete button that quietly does nothing is worse than an honest
- * refusal.
+ * DELETION IS NOT HERE ANY MORE. This file used to carry a `deleteAccount`
+ * that called `admin.auth.admin.deleteUser`, which aborts on the first row
+ * whose foreign key is `on delete restrict`: every booking, every wallet. So
+ * it failed for precisely the people who had paid for something and told them
+ * to email support, which App Store Review guideline 5.1.1(v) names as the
+ * rejection case rather than as a workaround. The whole flow, its
+ * preconditions, its thirty day window and its scheduled purge now live in
+ * `lib/account-deletion`. See `docs/design/audits/r3/findings.md` F-17.
+ *
+ * THIS MODULE IS "use server", so it exports async functions and nothing else.
  */
 
-import { SUPPORT_EMAIL } from "../support-email";
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import {
@@ -25,12 +29,10 @@ import {
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
-import { createAdminClient } from "../supabase/admin";
 import { SUPABASE_URL } from "../supabase/env";
 import {
   avatarPublicUrl,
   composeDisplayName,
-  deleteAccountSchema,
   mergeSettings,
   parseSettings,
   setAvatarSchema,
@@ -55,23 +57,6 @@ const AVATAR_FAILED_MESSAGE =
 
 const AVATAR_FOREIGN_PATH_MESSAGE =
   "That photo was not uploaded to your own folder. Choose the photo again.";
-
-/*
- * "Account deletion completes the moment the platform keys land" was a
- * schedule this product cannot keep, and it named our own deployment while
- * naming it. What the reader needs is what has happened to their account and
- * the one route that still works. See F2-003.
- */
-const DELETE_GATED_MESSAGE =
-  `We cannot delete your account from here right now, and nothing has been deleted today. Email ${SUPPORT_EMAIL} and the team will remove your account by hand.`;
-
-const DELETE_FAILED_MESSAGE =
-  `We could not complete the deletion just now. Your account is untouched. Try again shortly, or email ${SUPPORT_EMAIL}.`;
-
-/** True when the platform holds a service role key it can act with. */
-function hasServiceRoleKey(): boolean {
-  return (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").length > 0;
-}
 
 /* ------------------------------------------------------------------- profile */
 
@@ -232,38 +217,10 @@ export async function signOut(): Promise<ActionResult<null>> {
 
 /* ------------------------------------------------------------------ deletion */
 
-export async function deleteAccount(input: unknown): Promise<ActionResult<null>> {
-  const parsed = validate(deleteAccountSchema, input);
-  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-
-  const session = await resolveSession();
-  if (session.state === "unconfigured") return fail(DELETE_GATED_MESSAGE);
-  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
-
-  if (!hasServiceRoleKey()) return fail(DELETE_GATED_MESSAGE);
-
-  const { supabase, user } = session;
-
-  // Sign out first so the browser is never left holding a session for a user
-  // that no longer exists.
-  await supabase.auth.signOut();
-
-  try {
-    const admin = createAdminClient();
-    const { error } = await admin.auth.admin.deleteUser(user.id);
-    if (error) return fail(DELETE_FAILED_MESSAGE);
-  } catch {
-    return fail(DELETE_FAILED_MESSAGE);
-  }
-
-  revalidatePath("/", "layout");
-  return ok(null);
-}
-
-/** Form binding for useActionState in the confirmation drawer. */
-export async function deleteAccountAction(
-  _prev: ActionResult<null> | null,
-  formData: FormData,
-): Promise<ActionResult<null>> {
-  return deleteAccount(formDataToObject(formData));
-}
+/*
+ * `deleteAccount` and `deleteAccountAction` lived here and have been removed.
+ * The replacement is `startDeletion`, `cancelDeletion` and `restoreWithCode`
+ * in `lib/account-deletion/actions.ts`, with the purge on the cron harness in
+ * `lib/cron/jobs/account-purge.ts`. Nothing in the app imported the old pair
+ * except the settings drawer, which now draws `DeleteAccountPanel`.
+ */

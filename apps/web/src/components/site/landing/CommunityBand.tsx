@@ -36,7 +36,7 @@ export function CommunityBand({
   const figures = statTiles(stats, t).slice(0, 3);
 
   return (
-    <section className="nf-shell py-section" aria-labelledby="nf-landing-community-title">
+    <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-community-title">
       <div className="nf-landing-split nf-landing-split--even">
         <Reveal className="flex flex-col gap-heading">
           <div>

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getLocale } from "@/lib/locale";
 import { getMyBookings } from "@/lib/bookings/queries";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -62,6 +64,9 @@ export default async function BookingsPage({
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  /* Every word on this screen, in the reader's language. It shipped as English
+     literals in the markup; see the note in `MyBookings`. */
+  const copy = t.catalogue.bookings;
   const params = await searchParams;
   const justBookedRaw = params.justBooked;
   const justBooked = typeof justBookedRaw === "string" ? justBookedRaw : undefined;
@@ -94,13 +99,13 @@ export default async function BookingsPage({
   const inspections = await readInspectionsForRequester();
 
   const steps: { icon: BrandIconName; title: string; body: string }[] = [
-    { icon: "calendar-check", title: "Choose your dates", body: "Pick check-in and check-out on a live calendar." },
-    { icon: "shield-lock", title: "Confirm and pay", body: "Secure payment in naira. You are never charged early." },
-    { icon: "luggage-check", title: "Enjoy your stay", body: "Check-in details arrive right here and by email." },
+    { icon: "calendar-check", title: copy.step1Title, body: copy.step1Body },
+    { icon: "shield-lock", title: copy.step2Title, body: copy.step2Body },
+    { icon: "luggage-check", title: copy.step3Title, body: copy.step3Body },
   ];
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
       <PageHeader title={t.nav.bookings} />
@@ -109,8 +114,8 @@ export default async function BookingsPage({
       {inspections.inspections.length > 0 && (
         <Reveal className="mb-block">
           <Section
-            title="Your inspections"
-            description="Whoever listed the property sees the same state you do."
+            title={copy.inspectionsTitle}
+            description={copy.inspectionsBody}
           >
             <InspectionRows
               inspections={inspections.inspections}
@@ -135,11 +140,8 @@ export default async function BookingsPage({
       <Reveal>
         {unavailable ? (
           <div className="py-heading text-center" data-testid="bookings-unavailable">
-            <p className={TYPE.rowTitle}>We could not load your stays</p>
-            <p className={`mx-auto mt-row max-w-sm ${TYPE.body}`}>
-              Something on our side did not answer just now. Nothing has changed about
-              your bookings. Reload the page and they should come straight back.
-            </p>
+            <p className={TYPE.rowTitle}>{copy.unavailableTitle}</p>
+            <p className={`mx-auto mt-row max-w-sm ${TYPE.body}`}>{copy.unavailableBody}</p>
           </div>
         ) : groups ? (
           <MyBookings groups={groups} locale={locale} justBookedId={justBooked} />
@@ -156,12 +158,12 @@ export default async function BookingsPage({
           */
           <EmptyState
             icon="calendar-check"
-            title="Sign in to see your stays"
-            body="Every stay you book is tied to your account, so we only ever show you your own. Sign in and anything booked with this account appears here."
+            title={copy.signedOutTitle}
+            body={copy.signedOutBody}
             action={
               <EmptyActions
-                primary={{ label: "Sign in", href: "/sign-in" }}
-                secondary={{ label: "Find somewhere to stay", href: "/search" }}
+                primary={{ label: copy.signIn, href: "/sign-in" }}
+                secondary={{ label: copy.findStay, href: "/search" }}
               />
             }
             data-testid="bookings-signed-out"
@@ -169,12 +171,41 @@ export default async function BookingsPage({
         )}
       </Reveal>
 
+      {/*
+        WHERE THE OTHER HALF OF THE RECORD IS (R3 finding F-08).
+
+        /bookings and /trips read the same account and were drawing the same
+        stays under two names with neither screen complete. The split, written
+        down here and in the report: THIS screen is the RECORD, what the
+        account has committed to and what is owed on it, which is why the
+        tenancies and the inspections lead it; /trips is the same commitments
+        on a DATE SPINE, which is the question "what is next" rather than
+        "what do I have". Each says the other exists in one sentence rather
+        than a second navigation block, so neither is a dead end and nobody
+        has to guess which screen holds their table.
+      */}
+      <Reveal delay={80}>
+        <p
+          data-testid="bookings-cross-link"
+          className={`mt-block flex flex-wrap items-center gap-inline ${TYPE.rowMeta}`}
+        >
+          <span>{copy.alsoOnTrips}</span>
+          <Link
+            href="/trips"
+            className="inline-flex items-center gap-2xs font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          >
+            {copy.openTrips}
+            <UiIcon name="arrow-right" size={16} />
+          </Link>
+        </p>
+      </Reveal>
+
       <Reveal delay={100}>
         {/* THREE CARDS BECAME THREE ROWS. Three steps of one process drawn as
             three bordered boxes is three objects where there is one sequence;
             one surface with hairlines between says "these belong together and
             they are in this order", which is the thing the reader needs. */}
-        <h2 className="nf-group-label mt-block">How booking works</h2>
+        <h2 className="nf-group-label mt-block">{copy.howTitle}</h2>
         <RowList boxed>
           {steps.map((s) => (
             <Row key={s.title} className="items-start">

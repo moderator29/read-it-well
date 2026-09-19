@@ -5,7 +5,10 @@ import { StayDetailView } from "./StayDetailView";
 import { readStayDates, toStaysSearchHref } from "@/components/app/stays/model";
 import type { StayDetail } from "./detail-model";
 import { getStayDetail } from "@/lib/stays/queries";
+import { listSavedPlaces } from "@/lib/saved/places-actions";
+import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { accommodationPhotoUrl } from "@/lib/stays/photos";
+import { siteUrl } from "@/lib/site";
 import ListingPage, { generateMetadata as listingMetadata } from "../../listing/[id]/page";
 
 type Params = Promise<{ id: string }>;
@@ -81,36 +84,76 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
     businessKind: detail.business.kind,
     hostName: detail.business.name,
     /*
-     * THE SHIELD MEANS A HUMAN WAS CHECKED (ledger rule 12).
+     * THE SHIELD MEANS A HUMAN WAS CHECKED (ledger rule 12), AND THE SHELF
+     * DECIDES IT.
      *
-     * `source: "first_party"` is a business a person onboarded onto Vallo and
-     * that passed the publish review; licensed or partner stock never earns
-     * the shield, and an example row never does either, whatever its source
-     * says. Anything short of both is a host row with a role line and no
-     * shield, which is the honest shape for a host we have not checked.
+     * This used to be `source === "first_party" && !is_demo`, computed here.
+     * That is not the same test the shelf card applies: `catalogue_entries.verified`
+     * for an accommodation is first party, AND not an example, AND the owning
+     * agent carrying a verified badge. A first-party hotel whose agent has not
+     * been checked would have worn a shield on this page and none on the card
+     * that led here, which is exactly the claim rule 12 forbids. So the
+     * projection's own column is read (`getStayDetail`) and used verbatim; no
+     * projection row means no shield.
      */
-    hostVerified: detail.business.source === "first_party" && detail.business.is_demo !== true,
+    hostVerified: detail.catalogue?.verified === true,
     /*
-     * NO RATING, AND THIS IS NOT AN OVERSIGHT.
+     * THE RATING IS THE PROJECTION'S, AND TODAY THE PROJECTION HAS NONE.
      *
-     * `reviews.listing_id` is a foreign key to `listings`; an accommodation id
-     * matches no review row, so there is nothing real to average and the face
-     * draws no rating at all. What lands it: reviews keyed on the
-     * accommodation (or its business), read the way `getListingReviews` reads
-     * a listing's. Until then a star here would be a number we made up.
+     * `reviews.listing_id` is a foreign key to `listings`, so an accommodation
+     * id matches no review row and the M9 refresh writes `rating_avg = null,
+     * rating_count = 0` for every accommodation. The face therefore draws no
+     * rating at all, which is the honest answer rather than a zero or an empty
+     * star. Nothing here invents a number and nothing has to change the day
+     * reviews can key on a stay: the refresh averages them and this lights up.
      */
-    rating: null,
+    rating:
+      detail.catalogue && detail.catalogue.rating_avg !== null && detail.catalogue.rating_count > 0
+        ? { average: detail.catalogue.rating_avg, count: detail.catalogue.rating_count }
+        : null,
   };
 }
 
+/**
+ * THE SHARE CARD, which this route had none of (R3 finding F-10).
+ *
+ * A stay forwarded into WhatsApp unfurled as the generic site card, in a
+ * market where the forwarded link is the growth loop. The shape is the one
+ * `lib/listings/syndication.ts` sets for a property: type, title, description,
+ * the canonical url, and the first photograph where there is one, with the
+ * twitter card falling back to `summary` when there is not so the unfurl never
+ * reserves space for an image that will not arrive.
+ *
+ * `accommodationPhotoUrl` already returns an absolute public storage URL, so
+ * the image needs no resolution against `metadataBase`.
+ */
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
   const detail = await readStayDetail(id);
   if (!detail) return listingMetadata({ params });
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
+  const title = where ? `${detail.name}, ${where}` : detail.name;
+  const description =
+    detail.description ?? (where ? `A stay in ${where}, on Vallo.` : "A stay on Vallo.");
+  const url = `${siteUrl().replace(/\/+$/, "")}/stay/${detail.id}`;
+  const cover = detail.photos[0]?.url;
   return {
-    title: where ? `${detail.name}, ${where}` : detail.name,
-    description: detail.description ?? undefined,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url,
+      ...(cover ? { images: [cover] } : {}),
+    },
+    twitter: {
+      card: cover ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(cover ? { images: [cover] } : {}),
+    },
   };
 }
 
@@ -130,9 +173,22 @@ export default async function StayDetailPage({
      handing it the one argument it takes. */
   if (!detail) return <ListingPage params={params} />;
 
-  const [locale, query] = await Promise.all([getLocale(), searchParams]);
+  const [locale, query, savedPlaces] = await Promise.all([
+    getLocale(),
+    searchParams,
+    /* THE HEART'S RESTING STATE, read on the server so it survives a reload.
+       This face drew an empty heart on every visit because it never asked the
+       shortlist, and an accommodation's shortlist is `saved_places`. Keys
+       alone; `isSaved` decides this one card. */
+    listSavedPlaces(),
+  ]);
   const t = getDictionary(locale);
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
+  const saved = isSaved(
+    savedKeySet(savedPlaces.ok ? savedPlaces.data : []),
+    "accommodation",
+    detail.id,
+  );
 
   return (
     <StayDetailView
@@ -146,6 +202,7 @@ export default async function StayDetailPage({
       t={t}
       datesHref={toStaysSearchHref({ checkIn, checkOut, guests })}
       reserve={{ stayId: detail.id, checkIn, checkOut, guests }}
+      saved={saved}
     />
   );
 }

@@ -25,12 +25,16 @@ import "@/app/css/system.css";
 export default function LoadingRoot() {
   return (
     <LoadingShell label="Loading Vallo" className="nf-shell nf-wait py-section">
+      {/* 48 by 46, which is the mark's real 614:587 shape. It was declared
+          square here and squared again by `.nf-wait__mark`, so the first
+          thing a stranger saw on the slowest page in the product was the
+          logo stretched 4.6 per cent. See `design-system/brand/Logo.tsx`. */}
       <Image
         src="/brand/vallo-mark.png"
         alt=""
         aria-hidden="true"
         width={48}
-        height={48}
+        height={46}
         priority
         className="nf-wait__mark"
       />

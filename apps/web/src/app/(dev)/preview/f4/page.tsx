@@ -1,6 +1,19 @@
 import Link from "next/link";
 
-const PAGES = ["feed", "feed-bloom", "post-thread", "profile", "settings"];
+const PAGES = [
+  "feed",
+  "feed-bloom",
+  "post-thread",
+  "story",
+  "story-new",
+  "place",
+  "profile",
+  "edit-profile",
+  "notifications",
+  "settings",
+  "assistant",
+  "thread-empty",
+];
 
 export default function F4PreviewIndex() {
   return (

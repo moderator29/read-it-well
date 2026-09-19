@@ -29,6 +29,16 @@ import type {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** A finite number, whatever the driver handed back, or null. Never NaN. */
+function finiteOrNull(value: unknown): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 /**
  * The undated stays shelf for a place: the projection in its standing order
  * (featured, then newest), through the same search function the filters use
@@ -71,7 +81,7 @@ export async function getStayDetail(accommodationId: string): Promise<StayDetail
       .maybeSingle();
     if (!accommodation) return null;
 
-    const [businessRes, photosRes, amenityLinksRes, roomTypesRes] = await Promise.all([
+    const [businessRes, photosRes, amenityLinksRes, roomTypesRes, catalogueRes] = await Promise.all([
       supabase
         .from("businesses")
         .select("id, name, slug, kind, source, phone, email, is_demo")
@@ -92,6 +102,17 @@ export async function getStayDetail(accommodationId: string): Promise<StayDetail
         .eq("accommodation_id", accommodationId)
         .eq("status", "PUBLISHED")
         .order("base_rate_minor", { ascending: true }),
+      /* The shelf's own verdict on this property: the badge and the rating,
+         read from the projection the search sorts by rather than recomputed
+         here, so the detail screen and the card can never disagree about
+         whether a human was checked. One indexed read on the unique
+         (entity_kind, entity_id). */
+      supabase
+        .from("catalogue_entries")
+        .select("verified, rating_avg, rating_count")
+        .eq("entity_kind", "accommodation")
+        .eq("entity_id", accommodationId)
+        .maybeSingle(),
     ]);
 
     // A business that is not visible to this caller is a property that is not
@@ -144,6 +165,17 @@ export async function getStayDetail(accommodationId: string): Promise<StayDetail
       room_types,
       policy: accommodation.cancellation_policy_id
         ? (policies.get(accommodation.cancellation_policy_id) ?? null)
+        : null,
+      catalogue: catalogueRes.data
+        ? {
+            verified: catalogueRes.data.verified === true,
+            /* `rating_avg` is numeric(3,2) and `rating_count` a count, and a
+               driver that hands either back as a string must not turn a real
+               rating into no rating. Anything that is not a finite number is
+               "no rating", never a zero. */
+            rating_avg: finiteOrNull(catalogueRes.data.rating_avg),
+            rating_count: finiteOrNull(catalogueRes.data.rating_count) ?? 0,
+          }
         : null,
     };
   } catch {

@@ -52,27 +52,122 @@ export function ThreadContextBanner({
   locale: Locale;
   onAccepted: () => void;
 }) {
+  const words = copy.context;
+
   if (context.kind === "reservation") {
     if (!context.reservation) return null;
+    const reservation = context.reservation;
     return (
-      <ReservationFace
-        reservation={context.reservation}
-        viewerIsGuest={role === "guest"}
-        copy={copy.reservation}
-        locale={locale}
-      />
+      <div className="mb-row flex flex-col gap-inline">
+        {/*
+          THE WAY TO THE THING THE CONVERSATION IS ABOUT.
+
+          This branch returned the face alone and the face carries no link, no
+          button and no href, so a guest in a table thread could not reach the
+          restaurant or their own trips from the one screen they were on. The
+          card is the listing branch's, with its actions row rather than a
+          chevron, because two destinations cannot both be a card-wide anchor
+          and an anchor inside an anchor is not markup.
+
+          The restaurant link is drawn only when the reservation carries a
+          listing: a table held against a business row has nowhere on the
+          catalogue to point at, and a dead control is never drawn.
+        */}
+        <div className="nf-context-card flex-col items-stretch" data-testid="thread-context-card">
+          <div className="flex items-center gap-row">
+            <span className="nf-context-card__mark" aria-hidden="true">
+              {/* The glass object the restaurant surfaces already use for a
+                  table held at a venue. There is no `restaurant` object in
+                  the pack, and inventing a name for one is how a glyph goes
+                  missing at runtime. */}
+              <BrandIcon name="concierge-bell" fill />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="nf-context-card__title">{words.tableBooking}</span>
+              {reservation.listingTitle && (
+                <span className="nf-context-card__line">
+                  <span className="truncate">{reservation.listingTitle}</span>
+                </span>
+              )}
+            </span>
+          </div>
+          <div className="nf-context-card__actions">
+            <Link href="/trips" className="nf-btn nf-btn--primary nf-btn--md">
+              {words.viewTrips}
+              <UiIcon name="chevron-right" size={16} />
+            </Link>
+            {reservation.listingId && (
+              <Link
+                href={`/restaurant/${reservation.listingId}`}
+                className="nf-btn nf-btn--glass nf-btn--md"
+              >
+                <UiIcon name="utensils" size={16} />
+                {words.viewRestaurant}
+              </Link>
+            )}
+          </div>
+        </div>
+        <ReservationFace
+          reservation={reservation}
+          viewerIsGuest={role === "guest"}
+          copy={copy.reservation}
+          locale={locale}
+        />
+      </div>
     );
   }
 
   if (context.kind === "booking") {
     if (!context.booking) return null;
+    const booking = context.booking;
     return (
-      <BookingFace
-        booking={context.booking}
-        stateEvents={context.stateEvents ?? []}
-        copy={copy.booking}
-        locale={locale}
-      />
+      <div className="mb-row flex flex-col gap-inline">
+        {/*
+          Same repair as the reservation branch, and the governing chat image
+          asks for exactly this pair: "View booking details" as the primary and
+          a second, quieter way to the place. `/bookings/<id>` is the trips
+          hub's own detail route, which is where the booking itself lives.
+
+          THE PROPERTY LINK GOES TO THE CATALOGUE PAGE. `loadThread` gives this
+          face a `listingId` and no accommodation id, so `/stay/<id>` would be
+          a guess; `/listing/<listingId>` is the row the booking was written
+          against and always resolves. Carrying the accommodation id through
+          would be a change to `lib/messages/live.ts`, which is another
+          worker's file.
+        */}
+        <div className="nf-context-card flex-col items-stretch" data-testid="thread-context-card">
+          <div className="flex items-center gap-row">
+            <span className="nf-context-card__mark" aria-hidden="true">
+              <BrandIcon name="hotel-room" fill />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="nf-context-card__title">{words.stayBooking}</span>
+              <span className="nf-context-card__line">
+                <span className="truncate">{booking.title}</span>
+              </span>
+            </span>
+          </div>
+          <div className="nf-context-card__actions">
+            <Link href={`/bookings/${booking.id}`} className="nf-btn nf-btn--primary nf-btn--md">
+              {words.viewBooking}
+              <UiIcon name="chevron-right" size={16} />
+            </Link>
+            <Link
+              href={`/listing/${booking.listingId}`}
+              className="nf-btn nf-btn--glass nf-btn--md"
+            >
+              <UiIcon name="house" size={16} />
+              {words.viewProperty}
+            </Link>
+          </div>
+        </div>
+        <BookingFace
+          booking={booking}
+          stateEvents={context.stateEvents ?? []}
+          copy={copy.booking}
+          locale={locale}
+        />
+      </div>
     );
   }
 
@@ -88,7 +183,7 @@ export function ThreadContextBanner({
             <BrandIcon name="home-search" fill />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="nf-context-card__title">Rental enquiry</span>
+            <span className="nf-context-card__title">{words.rentalEnquiry}</span>
             <span className="nf-context-card__line">
               <span className="truncate">{listing.title}</span>
               {listing.area && <span>{listing.area}</span>}

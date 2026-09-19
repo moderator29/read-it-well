@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -41,7 +42,33 @@ import { ReceiptActions } from "./ReceiptActions";
  * person waiting and a person filing a dispute.
  */
 
-export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale }) {
+export function Receipt({
+  entry,
+  locale,
+  paidFor,
+}: {
+  entry: WalletEntry;
+  locale: Locale;
+  /**
+   * THE THING THIS MONEY BOUGHT, when the ledger can name it.
+   *
+   * The receipt answered how much, when and under what reference, and there it
+   * stopped: there was no route from a payment to the stay, the tenancy or the
+   * listing it paid for, on the screen somebody opens precisely to ask what
+   * they paid for. Resolved on the server from the booking reference (see
+   * `paid-for.ts`) and passed in, so this component still renders a row of the
+   * ledger and nothing else.
+   *
+   * Null whenever any part of it fails to resolve, and then nothing is drawn.
+   */
+  paidFor?: {
+    listingId: string;
+    title: string;
+    when: string;
+    period: string | null;
+    kind: "stay" | "tenancy";
+  } | null;
+}) {
   const credit = entry.direction === "credit";
   /* A receipt is the thing somebody forwards to a landlord, so it is the last
      surface that should be in a language they did not choose. See
@@ -124,6 +151,40 @@ export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale 
         */}
         <Row label="Reference" value={entry.reference} mono />
       </dl>
+
+      {/*
+        THE WAY BACK TO THE THING ITSELF.
+
+        One row, drawn only when the reference resolved to a booking this
+        reader owns and to a listing that is still there. A tenancy says its
+        move-in day and its period; a stay says its dates. Neither borrows the
+        other's words, for the same reason /bookings does not.
+      */}
+      {paidFor && (
+        <Link
+          href={`/listing/${paidFor.listingId}`}
+          data-testid="receipt-paid-for"
+          className="nf-tap flex items-center gap-md border-t border-[var(--nf-border-subtle)] px-card py-row text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
+        >
+          <span className="nf-glyph-tile" aria-hidden="true">
+            <UiIcon name={paidFor.kind === "tenancy" ? "key" : "calendar-booking"} size={20} />
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="nf-overline block">
+              {paidFor.kind === "tenancy" ? "Tenancy" : "Stay"}
+            </span>
+            <span className={`mt-3xs block ${TYPE.rowTitle}`}>{paidFor.title}</span>
+            <span className="nf-body-sm mt-3xs block text-[var(--nf-content-secondary)]">
+              {paidFor.period ? `${paidFor.period} · ${paidFor.when}` : paidFor.when}
+            </span>
+          </span>
+          <UiIcon
+            name="chevron-right"
+            size={18}
+            className="shrink-0 text-[var(--nf-content-muted)]"
+          />
+        </Link>
+      )}
 
       <div className="border-t border-[var(--nf-border-subtle)] p-card">
         <ReceiptActions

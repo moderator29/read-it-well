@@ -25,14 +25,14 @@ import { fill, type AdminCommon } from "./copy";
  *
  * Every screen in the console draws its heading, its empty state, its detail
  * rows and its metric tiles from here. Twenty pages were carrying `mb-5`,
- * `p-4`, `gap-3` and `text-[0.875rem]` because those were the values this file
+ * `p-4`, `gap-3` and `text-[var(--nf-text-body-sm)]` because those were the values this file
  * handed them, so the console's rhythm was set in one place and it was set
  * against no scale at all. Moving this file moves all twenty at once, and every
  * page that stops hand-rolling a tile stops inventing a fifth padding value for
  * it.
  *
- * The type went UP a tier across the board. `text-[0.875rem]` on a detail value
- * and `text-[0.75rem]` on its label is a reading size chosen for a dense table,
+ * The type went UP a tier across the board. `text-[var(--nf-text-body-sm)]` on a detail value
+ * and `text-[var(--nf-text-overline)]` on its label is a reading size chosen for a dense table,
  * and this console is not a dense table: it is where somebody decides whose
  * money moves, at eleven at night, and the old sizes made that decision harder
  * to read than the marketing pages that carry no consequence at all. Detail
@@ -296,7 +296,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
   /**
    * A section of a page, with its heading and the air under it.
    *
-   * Every console page was writing `<h2 className="mb-2 text-[1rem] ...">` by
+   * Every console page was writing `<h2 className="mb-2 text-[var(--nf-text-body)] ...">` by
    * hand and then a list under it, which is how one page ended up with 8px of
    * air under a heading and the next with 12px. One interval, named for the
    * relationship it expresses, decided once.
@@ -358,9 +358,18 @@ export function adminUi(t: Dictionary, locale: Locale) {
   }) {
     const flagged = tone !== "neutral";
     return (
+      /* The rule is an inset shadow rather than a left border: see
+         `.nf-admin-stat--flagged` in admin.css for why a 4px border on a 22px
+         radius reads as a crescent. The ink travels as a custom property so
+         the tone stays a decision here and the geometry stays in the
+         stylesheet. */
       <div
-        className={`nf-card p-card${flagged ? " border-l-4" : ""}`}
-        style={flagged ? { borderLeftColor: STAT_VALUE_COLOUR[tone] } : undefined}
+        className={`nf-card p-card${flagged ? " nf-admin-stat--flagged" : ""}`}
+        style={
+          flagged
+            ? ({ "--nf-admin-stat-ink": STAT_VALUE_COLOUR[tone] } as CSSProperties)
+            : undefined
+        }
       >
         <p className="nf-overline">{label}</p>
         <p
@@ -511,7 +520,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
   /** Label and value, stacked on a phone, paired on wider screens. */
   function DetailRow({ label, value }: { label: string; value: ReactNode }) {
     return (
-      <div className="flex flex-col gap-inline-tight border-t border-[var(--nf-border-subtle)] py-row sm:flex-row sm:gap-group">
+      <div className="flex flex-col gap-inline-tight border-t border-[var(--nf-brand-edge-soft)] py-row sm:flex-row sm:gap-group">
         <dt className="nf-overline shrink-0 sm:w-48">{label}</dt>
         <dd className="nf-body min-w-0 break-words text-content">
           {value === null || value === "" ? (
@@ -536,7 +545,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
   /** One line of the admission checklist: a tick, a cross, and the evidence. */
   function CheckRow({ label, pass, detail }: { label: string; pass: boolean; detail: string }) {
     return (
-      <li className="flex items-start gap-inline border-t border-[var(--nf-border-subtle)] py-row">
+      <li className="flex items-start gap-inline border-t border-[var(--nf-brand-edge-soft)] py-row">
         {/* Rose and a cross, for the same reason as `QueueUnavailable`: a
             check that did not pass is a failure, and a bell in the pending
             colour said neither. */}

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { reportClientError } from "@/lib/observability/client";
 import { SystemMoment } from "./offline/SystemMoment";
 
 /**
@@ -24,8 +25,13 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Replaced by the Sentry client once observability lands in Phase 1.
+    /* The console line stays: it is what a developer reads locally, and it
+       is the only record at all when `SENTRY_DSN` is unset. The report is
+       what makes the first real user's crash visible to us; it is scrubbed
+       and it is silent when nothing is configured
+       (`lib/observability/report.ts`). */
     console.error("[vallo] route error", error);
+    reportClientError(error, { kind: "client.route_boundary", digest: error.digest });
   }, [error]);
 
   return (

@@ -180,7 +180,21 @@ export function buildNav({
           ? [{ href: "/trips", label: t.nav.trips, icon: "ticket" } as NavNode]
           : [
               { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" } as NavNode,
-              { href: "/inspections", label: t.nav.inspections, icon: "eye" } as NavNode,
+              /*
+               * The shield-check, not an eye. `/profile` already draws
+               * Inspections with a shield and the drawer drew it with an eye,
+               * which is two glyphs for one destination two taps apart; an
+               * eye also says "look at this" where an inspection is somebody
+               * going and CHECKING, which is exactly what the shield-check
+               * says. (R1 finding A33.)
+               *
+               * `verified` is that shield-check. It is also, today, the
+               * identity tick across the product, which R1 finding A12 moves
+               * to a new circular badge so the shield can mean "checked" and
+               * nothing else. Until A12 lands this glyph carries both
+               * meanings; after it, only this one.
+               */
+              { href: "/inspections", label: t.nav.inspections, icon: "verified" } as NavNode,
             ]),
         { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
         {
@@ -208,7 +222,18 @@ export function buildNav({
          * tool you reach for from inside what you are doing is precisely a thing
          * that has to be reachable from inside what you are doing.
          */
-        { href: "/assistant", label: "Vallo AI", icon: "sparkle" },
+        /*
+         * "AI Assistant", NOT "Vallo AI", and it is the dictionary's string
+         * rather than a literal.
+         *
+         * The drawer called it Vallo AI, the page it opens is titled AI
+         * Assistant, and `BCD39CA8` writes AI Assistant: one destination with
+         * two names, in the two places a person meets it one tap apart. A
+         * hardcoded English literal in a navigation model is also the reason
+         * it could drift - every other row here reads `t.nav.*` and would
+         * have followed a rename for free. (R1 finding A33.)
+         */
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
       ],
     });
   }

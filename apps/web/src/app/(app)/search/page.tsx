@@ -22,6 +22,10 @@ import {
   orderByStatedIntent,
 } from "@/lib/listings/intent";
 import { readIntentTuning } from "@/lib/interests/queries";
+import { getSavedListings } from "@/lib/saved/queries";
+import { canonicalSearch } from "@/lib/saved/searches";
+import { findSavedSearch } from "@/lib/saved/searches-queries";
+import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
@@ -104,6 +108,36 @@ export default async function SearchPage({
   ]);
   const sorted = sortListings(rawResults, query.sort);
 
+  /*
+   * WHICH OF THESE ARE ALREADY ON THE SHORTLIST.
+   *
+   * The card used to draw its heart from the device store alone, so a
+   * signed-in reader whose save went to `saved_items` came back to an empty
+   * heart on every result. The stored ids are read here, once, and handed to
+   * each card; the device half is still resolved inside the control, so a
+   * guest is unaffected. (R2 finding 4.)
+   *
+   * `getSavedListings` with no argument returns the account's rows only and
+   * resolves them to listings, which is more work than an id set needs. It is
+   * what the three detail pages already call for exactly this answer, so this
+   * uses the same door rather than adding a second one; a cheap
+   * `getSavedListingIds` in `lib/saved/queries.ts` would be the better read
+   * and belongs to whoever owns that module.
+   */
+  const savedIds = new Set((await getSavedListings()).map((entry) => entry.listing.id));
+
+  /*
+   * WHETHER THIS EXACT SEARCH IS ALREADY KEPT.
+   *
+   * `canonicalSearch` is the same address the control would write, built from
+   * the same parsed query these results were fetched with, so the control
+   * cannot save one thing and the page show another. The read is the account's
+   * own rows under its own policy in this request, which is what makes the
+   * control honest after a reload rather than only after a tap.
+   */
+  const canonical = canonicalSearch(raw);
+  const savedSearch = canonical.key.length > 0 ? await findSavedSearch(canonical.key) : null;
+
   /* A stated interest reorders an unfiltered shelf and nothing else. */
   const tuning = await readIntentTuning();
   const statedIntent = hasOwnRequest(query) ? [] : tuning.interests;
@@ -146,6 +180,19 @@ export default async function SearchPage({
       </h1>
 
       <ShelfCount query={query} count={listings.length} narrowed={narrowed || Boolean(query.q)} locale={locale} t={t} />
+
+      {/* Keeping the hunt, beside the count of what it found. It is drawn only
+          when there is something to keep: an unfiltered /search is every place
+          on the platform and saving that is a subscription to the catalogue
+          rather than to a search. */}
+      {savedSearch && savedSearch.state !== "unconfigured" && (
+        <SaveSearchControl
+          params={canonical.params}
+          saved={savedSearch.state === "signed-in" ? savedSearch.saved : null}
+          signedIn={savedSearch.state === "signed-in" || savedSearch.state === "unavailable"}
+          signInHref={`/sign-in?next=${encodeURIComponent(canonical.href)}`}
+        />
+      )}
 
       {/* Says why the order is what it is, and only when it really is. */}
       {intentApplied && intentKinds.length > 0 && (
@@ -250,6 +297,7 @@ export default async function SearchPage({
                     t={t}
                     index={i}
                     dense
+                    saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
                   />
                 </li>

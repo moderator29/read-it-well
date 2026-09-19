@@ -475,14 +475,27 @@ export async function attachImage(input: {
     return fail("This photo does not belong to this conversation. Choose the photo again.");
   }
 
+  /*
+   * THE GUARD MOVED OUT OF THE `if`, AND THAT WAS A REAL HOLE.
+   *
+   * It used to run only on the branch that mints a new message. The other
+   * branch attaches to a message the caller has already sent, and the
+   * restrictive policy from the b5 migration is on `messages`, not on
+   * `message_attachments`, so after a block a person could still hang a
+   * photograph off one of their own older messages and have it appear in the
+   * thread of the person who blocked them. A picture is the thing a block
+   * exists to stop. Both branches ask now, and the twin restrictive policy on
+   * `message_attachments` is the wall behind the sentence.
+   */
+  const guard = await guardConversation(session.supabase, session.user.id, data.conversationId);
+  if (!guard.ok) {
+    if (guard.reason === "blocked") return fail(BLOCKED_MESSAGE);
+    if (guard.reason === "not_yours") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+    return fail("Your photo did not send. Tap retry to send it again.");
+  }
+
   let messageId = data.messageId ?? null;
   if (!messageId) {
-    const guard = await guardConversation(session.supabase, session.user.id, data.conversationId);
-    if (!guard.ok) {
-      if (guard.reason === "blocked") return fail(BLOCKED_MESSAGE);
-      if (guard.reason === "not_yours") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
-      return fail("Your photo did not send. Tap retry to send it again.");
-    }
     const { data: message, error: messageError } = await session.supabase
       .from("messages")
       .insert({
@@ -548,6 +561,15 @@ export async function confirmInspection(input: {
   if (error || !row) {
     if (error?.code === "23505") return fail("You have already confirmed inspection here.");
     if (error?.code === "42501") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+    /* The demo trigger on inspection_confirmations, in its own words. An
+       example listing can be messaged about but never inspected, and "did not
+       save, please try again" would send somebody back to a door that is
+       walled up. */
+    if (error?.code === "23514" && /example/i.test(error.message)) {
+      return fail(
+        "This is an example listing, so there is nothing to have inspected. Open a real listing from search.",
+      );
+    }
     return fail("Your confirmation did not save. Please try again.");
   }
 

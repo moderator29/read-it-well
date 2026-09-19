@@ -109,7 +109,7 @@
    * The previous guess was a flat 80px, which cleared nothing on a notch.
    */
   :root {
-    --nf-tabbar-clearance: calc(0.35rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+    --nf-tabbar-clearance: calc(0.75rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
   }
 
   /*
@@ -188,7 +188,7 @@
    * whatever comes next.
    */
   .nf-dockrow[data-dock-hidden="true"] {
-    transform: translateY(calc(100% + 0.35rem + env(safe-area-inset-bottom)));
+    transform: translateY(calc(100% + 0.75rem + env(safe-area-inset-bottom)));
     opacity: 0;
     visibility: hidden;
   }
@@ -273,13 +273,32 @@
       color-mix(in oklab, var(--nf-brand-primary) 10%, color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent)),
       color-mix(in oklab, var(--nf-brand-primary) 10%, color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent))
     );
+    /*
+     * ONE RULE FOR THE CAPSULE NOW, AND THERE WERE TWO.
+     *
+     * A second `.nf-tabbar` block lower down this file restated the radius as
+     * `--nf-radius-2xl` and the whole box-shadow, so the capsule this block
+     * describes - pill radius, `--nf-glow-edge` - was not what shipped: the
+     * later block won on order and drew a rounded rectangle ringed in
+     * `--nf-brand-edge-soft`, the softest rung there is. Two rules for one
+     * object is how the ring quietly got a third as dim as the comment above
+     * claims it is.
+     *
+     * The founder's target (`founder/GOVERNING-home-markets-target-2.jpg`)
+     * settles both questions. It is a ROUNDED RECTANGLE, not a true pill, so
+     * `--nf-radius-2xl` is right and the pill radius is wrong. And its outline
+     * is a bright blue line with light coming off it, which is `--nf-glow-edge`
+     * at the full `--nf-brand-edge` - so the soft rung is wrong. Merged here,
+     * both decisions kept, and the dock's own lift stays underneath.
+     */
     border: var(--nf-border-width) solid var(--nf-brand-edge);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-2xl);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
       var(--nf-glow-edge),
       inset 0 -1px 0 var(--nf-glass-floor),
+      0 10px 40px -12px var(--nf-glow-3),
       var(--nf-glass-shadow-lifted);
   }
 
@@ -319,20 +338,29 @@
         var(--nf-tab-count)
     );
     translate: calc(var(--nf-tab-i) * (100% + var(--nf-tab-gap)));
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-lg);
     /*
-     * The mark of "you are here" is blue now, not a grey lift. The founder's
-     * shipped screenshot shows the active tab on a 9 per cent white plate
-     * that barely separates from the capsule; the reference draws it as the
-     * one brand-lit object on the bar. Brand wash, a soft brand ring and a
-     * short bloom: enough to be unmistakable, quiet enough that the bar is
-     * still not the loudest thing on the screen.
+     * WHAT THE PILL IS, RESOLVED AGAINST THE IMAGES RATHER THAN ARGUED ABOUT
+     * AGAIN.
+     *
+     * This rule and the one that replaced it below both read the same
+     * reference and reached opposite conclusions: one made the pill a 30 per
+     * cent brand plate with a lit rim, the other a 22 per cent wash of the
+     * side accent with an 18px bloom. Neither is what the images show. In
+     * `founder/GOVERNING-home-markets-target-2.jpg` and in
+     * `GOVERNING-feed-plus-bloom.png` there is NO PLATE BEHIND THE ACTIVE TAB
+     * AT ALL: the bar is one even sheet of blue glass and the active
+     * destination is marked by a lit glyph and a lit label, nothing else.
+     *
+     * But the pill is not decoration to delete. It is the only thing in the
+     * dock that MOVES, and the travel is what makes changing tabs read as one
+     * highlight sliding rather than as two cuts. So it is resolved as the
+     * faintest lift that still carries the motion: a 10 per cent wash of the
+     * side's own depth of blue with a hairline of its rim and no bloom. At a
+     * glance the bar reads as the image; in motion it still morphs.
      */
-    background: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-    box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      0 0 0 1px var(--nf-brand-edge-soft),
-      0 0 14px -2px var(--nf-glow-2);
+    background: color-mix(in oklab, var(--nf-side-accent) 10%, transparent);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
     transition: translate var(--nf-duration-base) var(--nf-ease-entrance);
   }
   /*
@@ -368,11 +396,15 @@
        whatever passes beneath and the dock stops matching the page it sits on.
        See the note on `.nf-glass--chrome`. */
     background: color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent);
-    border: 1px solid color-mix(in oklab, var(--nf-glass-border) 70%, var(--nf-brand-edge));
+    /* A CONTROL EDGE, so it is brand and it is lit. This blended 70 per cent
+       of the grey hairline into the brand edge, which on the navy canvas is
+       mostly grey: a round control floating over content with a neutral
+       outline, beside a capsule ringed in blue. (R1 finding A5.) */
+    border: 1px solid var(--nf-brand-edge);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-strong),
+      var(--nf-glow-edge),
       inset 0 -1px 0 var(--nf-glass-floor),
       var(--nf-glass-shadow-lifted);
     transition:
@@ -402,15 +434,18 @@
     .nf-dock-island {
       background: var(--nf-surface-elevated);
     }
-    /* The capsule keeps its stride ring in the fallback; only the fill goes
-       opaque. `background: <colour>` here would have dropped the border-box
-       layer and left the bar with a transparent 1px border. */
+    /*
+     * The capsule goes opaque with no blur behind it. The two-layer
+     * padding-box/border-box trick that stood here was painting a conic
+     * STRIDE gradient into the border, and the strides came off this object
+     * when the founder ruled the capsule carries one brand ring rather than a
+     * sweeping catch. It was drawing a border nothing else in the file draws
+     * any more, only on devices without backdrop-filter, where nobody would
+     * have seen it to notice. A flat fill; the real 1px `--nf-brand-edge`
+     * border above survives on its own.
+     */
     .nf-tabbar {
-      background:
-        linear-gradient(var(--nf-surface-elevated), var(--nf-surface-elevated))
-          padding-box,
-        conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
-          border-box;
+      background: var(--nf-surface-elevated);
     }
   }
 
@@ -430,24 +465,32 @@
     flex: 1 1 0;
     min-width: 0;
   }
+  /*
+    ONE RULE FOR THE TAB, AND THERE WERE TWO. This block set `height: 3.25rem`
+    and a row layout; a second block forty lines below set `height: 3.5rem`
+    and `flex-direction: column` for the labels, so the height stated here was
+    never the height that shipped. Merged, with the label layout kept, because
+    the labels are what the founder chose.
+
+    THE LABEL. The renders write a word under every glyph. Eleven pixels on
+    the caption face, the glyph above it, the active slot at the brand ink
+    with a soft glow, the way the feed render lights Home.
+  */
   .nf-tab__link {
     position: relative;
     z-index: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 3.25rem;
+    gap: 0.125rem;
+    height: 3.5rem;
     padding-inline: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-pill);
+    border-radius: var(--nf-radius-lg);
     color: var(--nf-content-muted);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-  /* Full brightness on the quiet pill: the active state is the solid glyph at
-     the content ink, the way the reference bar does it, not a colour badge. */
-  .nf-tab__link[aria-current="page"] {
-    color: var(--nf-content-primary);
   }
   /*
    * The press is on the LINK rather than on the bar, so a thumb gets an answer
@@ -461,17 +504,6 @@
     position: relative;
     display: flex;
     flex-shrink: 0;
-  }
-  /*
-    THE LABEL RETURNS. The renders write a word under every glyph and the
-    founder chose the five-slot bar with words. Eleven pixels on the caption
-    face, the glyph above it, the active slot at the brand ink with a soft
-    glow, the way the feed render lights Home.
-  */
-  .nf-tab__link {
-    flex-direction: column;
-    gap: 0.125rem;
-    height: 3.5rem;
   }
   .nf-tab__label {
     font-size: 0.6875rem;
@@ -489,37 +521,29 @@
   .nf-tab__link[data-on] .nf-tab__icon {
     filter: drop-shadow(0 0 6px var(--nf-glow-3));
   }
-  .nf-tab__mark {
-    position: absolute;
-    top: -0.125rem;
-    right: -0.25rem;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: var(--nf-radius-circle);
-    border: 2px solid var(--nf-surface-canvas);
-    background: var(--nf-status-pending);
-  }
-  /* The bar itself: the renders draw one rounded glass slab with a bright
-     top rim and a brand glow bleeding from its base, not a capsule. */
-  .nf-tabbar {
-    border-radius: var(--nf-radius-2xl);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-strong),
-      inset 0 -1px 0 var(--nf-glass-floor),
-      0 0 0 1px var(--nf-brand-edge-soft),
-      0 10px 40px -12px var(--nf-glow-3),
-      var(--nf-glass-shadow-lifted);
-  }
-  .nf-tabbar__pill {
-    border-radius: var(--nf-radius-lg);
-    /* The side's own depth of blue (seed 3): the moment the flip lands the
-       pill reads as the other side's, so the dock tells the same story as
-       the cover. Depth, never hue. */
-    background: color-mix(in oklab, var(--nf-side-accent) 22%, transparent);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-2);
-  }
+  /*
+   * `.nf-tab__mark` STOOD HERE AND IS GONE WITH ITS MARKUP.
+   *
+   * It was the unread dot on the dock's profile slot, and the app header's
+   * bell carries the same dot on every screen the dock appears on. See the
+   * note in `MobileTabBar.tsx`. Left as a rule it would have been a dead
+   * selector, which this file has a long paragraph about further down.
+   */
+  /*
+   * THE SECOND `.nf-tabbar` AND `.nf-tabbar__pill` BLOCKS STOOD HERE AND ARE
+   * GONE, FOLDED INTO THE ONES ABOVE.
+   *
+   * They restated the radius and the whole box-shadow of both objects, so the
+   * capsule and the pill were described twice in one file and what shipped
+   * was whichever block happened to be later. Both decisions they carried are
+   * kept upstairs: the rounded rectangle rather than a true pill (which is
+   * what the founder's target draws), and the side's own depth of blue on the
+   * travelling element (depth, never hue, so the dock tells the same story as
+   * the flip cover the moment a flip lands). What is NOT kept is the soft
+   * `--nf-brand-edge-soft` ring, because the target's capsule is outlined in
+   * a bright blue line, and the 22 per cent plate, for the reason set out on
+   * the pill above.
+   */
   @media (prefers-reduced-motion: reduce) {
     .nf-tabbar__pill {
       transition: none;
@@ -533,26 +557,28 @@
     a 40px glass square with the rim, the glyph at the content ink, the
     unread dot in the attention cyan at the bell's shoulder.
   */
+  /*
+   * THE HEADER CONTROLS WEAR `.nf-icon-btn` NOW, AND THAT IS THE WHOLE CHANGE
+   * TO THEIR MATERIAL.
+   *
+   * They were hand-rolled: `--nf-border-subtle` at one pixel over
+   * `--nf-glass-fill-thin` with an inset rim and nothing else. On the navy
+   * canvas that is a grey-edged smudge, and it is exactly the dullness the
+   * founder photographed. Every reference render draws the small square
+   * behind a header glyph as a dark plate with a BRIGHT BLUE OUTLINE throwing
+   * light: `GOVERNING-flip-mid-turn.png` puts the bell in one and the drawer
+   * render puts both bells in one. `.nf-icon-btn` in controls.css is that
+   * exact composition already (`--nf-glow-edge` plus the inner wash), worn by
+   * the back control, the heart, the share and the filter opener.
+   *
+   * So the markup adds `nf-icon-btn` and this class keeps only what is
+   * particular to the header. Nothing about the fill, the ring, the hover or
+   * the press is repeated here: those belong to the shared control and forking
+   * them once is what produced the dull plate in the first place.
+   */
   .nf-app-header__btn {
-    display: grid;
-    place-items: center;
+    position: relative;
     flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-glass-fill-thin);
-    color: var(--nf-content-primary);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
-    transition:
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-  .nf-app-header__btn:hover {
-    background: var(--nf-glass-fill);
-  }
-  .nf-app-header__btn:active {
-    transform: scale(var(--nf-press-scale-sm));
   }
   .nf-app-header__btn:focus-visible,
   .nf-app-header__avatar:focus-visible,
@@ -597,6 +623,61 @@
     align-items: center;
     flex: none;
     border-radius: var(--nf-radius-sm);
+  }
+  /*
+   * THE APP HEADER IS NOT A BAR UNTIL THERE IS SOMETHING UNDER IT.
+   *
+   * It wore `.nf-glass nf-glass--chrome`, which is an 88 per cent canvas veil
+   * over a strong blur with a grey hairline under it, on every screen at
+   * every scroll position. That material is correct for the marketing bar,
+   * which has the whole page moving underneath it from the first frame. At
+   * the top of an in-app page nothing is underneath, and there it paints a
+   * flat dark band across the first 60px, masks the brand glow the layout
+   * washes down from the top edge, and rules a hard line across the screen.
+   * Every governing render that draws this header - the founder's home
+   * target, the feed render, the flip render, the stays render - draws the
+   * lockup, the bell and the avatar ON THE PAGE, with no bar at all.
+   * (R1 finding A38.)
+   *
+   * So the veil is not removed, it is deferred. At rest the header is
+   * transparent and the page reads straight through it. Once the page has
+   * moved, `AppShell` sets `data-scrolled` and the bar frosts: the brand tint
+   * the founder's ruling put on every container, the strong blur, and
+   * `--nf-glow-edge` at its foot rather than a grey hairline. The `::after`
+   * exit scrim `.nf-glass--chrome` contributed goes with the class, and
+   * nothing wants it back, because a lit edge IS the separation.
+   *
+   * The transition is on the material only. Nothing moves, so reduced motion
+   * has nothing to flatten; the rule below is there because a colour fade is
+   * still a change somebody may have asked not to see.
+   */
+  .nf-app-header {
+    background: transparent;
+    transition:
+      background-color var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-app-header[data-scrolled] {
+    background: color-mix(
+      in oklab,
+      var(--nf-brand-tint-1),
+      color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent)
+    );
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    box-shadow: var(--nf-glow-edge);
+  }
+  /* No blur available means nothing is being separated by one, so the frosted
+     state goes opaque rather than leaving type to read through a wash. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nf-app-header[data-scrolled] {
+      background: var(--nf-surface-canvas);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-app-header {
+      transition: none;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-app-header__btn {

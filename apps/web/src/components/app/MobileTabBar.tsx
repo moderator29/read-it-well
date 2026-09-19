@@ -121,20 +121,26 @@ export const TAB_BAR_ROUTES = [
   "/restaurants",
   "/assistant",
   /*
-   * `/saved` IS GONE FROM THIS LIST, and its presence was the exact bug the
-   * paragraph above claims to have fixed. No tab and no island points at
-   * `/saved`, so the dock rendered on it with the pill parked and nothing
-   * highlighted: the bottom of the screen occupied by a control answering no
-   * question, which is the sentence this file already wrote about settings and
-   * checkout. `/saved` is reached from the rail and the drawer and carries its
-   * own back affordance, like every other non-tab destination.
+   * TWO NOTES THAT DESCRIBED A LIST THIS ONE IS NOT STOOD HERE, AND BOTH ARE
+   * CORRECTED RATHER THAN DELETED, because the reasoning in them is still the
+   * reasoning and only the conclusion moved.
    *
-   * `/assistant` is deliberately NOT here either, for a different reason. It IS
-   * a dock destination, but it is an immersive route - it owns the whole
-   * viewport with its own header and a composer pinned to the bottom edge - so
-   * a dock floating over its composer would be in the way of the one thing that
-   * screen is for. Tapping the tab still gets you there; the dock simply steps
-   * aside once you arrive, the same way it does for an open thread.
+   * The first said `/saved` IS GONE FROM THIS LIST, on the argument that no
+   * tab points at it so the dock would render with the pill parked. It is on
+   * the list, six lines above, and has been since the chrome ruling put the
+   * dock on the renders' own set of screens. The argument was not wrong about
+   * a parked pill; it was answered instead by `[data-parked]` on the pill,
+   * which stops drawing "you are here" when nobody is here, so a screen can
+   * keep its navigation without a tab claiming it falsely.
+   *
+   * The second said `/assistant` is deliberately NOT here. It is here too, and
+   * that changes nothing, because `isImmersiveRoute` returns true for it and
+   * `tabRootFor` tests immersiveness first: the assistant owns the whole
+   * viewport with a composer pinned to the bottom edge, and a dock floating
+   * over that composer would be in the way of the one thing the screen is
+   * for. Tapping the tab still gets you there; the dock steps aside once you
+   * arrive, the same way it does for an open thread. Listing it costs nothing
+   * and keeps the honest statement that it IS a dock destination.
    */
 ];
 
@@ -263,6 +269,24 @@ export function MobileTabBar({
     ? { href: "/profile", label: t.nav.profile, icon: "user" }
     : { href: "/sign-up", label: t.common.signUp, icon: "user" };
 
+  /*
+   * THE UNREAD MARK CAME OFF THE PROFILE SLOT, and this file's own argument is
+   * why.
+   *
+   * It was here on the reasoning that "the profile slot is the way through to
+   * notifications on a phone", which was true while the app header appeared on
+   * tab roots only. The header is on EVERY in-app page now, by the founder's
+   * chrome ruling, and it carries the bell with its own dot. Wherever this
+   * dock renders the header renders too - a route that is immersive or
+   * edge-to-edge has neither - so the two were drawing the same fact twice on
+   * the same screen, six inches apart, which is the "three placements for one
+   * feature" this file already refuses for the assistant.
+   *
+   * The founder's target draws exactly one mark, on the bell. `unreadNotifications`
+   * is still a prop because the ACCESSIBLE NAME of the profile slot still says
+   * how many are waiting, which costs no pixels and is the one place the count
+   * itself can be read out.
+   */
   const root = tabRootFor(active);
   /* Slot order: three links, More, Profile. The travelling pill counts More
      as a slot so the geometry is one fifth per slot. */
@@ -276,7 +300,13 @@ export function MobileTabBar({
     <AutoHideDock
       route={active}
       label={t.nav.primaryLabel}
-      className="nf-dockrow fixed inset-x-4 bottom-[calc(0.35rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
+      /* 0.75rem off the bottom, and it was 0.35. Held beside the founder's
+         target the dock sat almost on the edge of the glass where the render
+         floats it clear with a real gap under the capsule, and 5.6px of
+         clearance is not a float, it is a bar that missed. The clearance
+         token in chrome.css carries the same number, so sticky footers on tab
+         routes offset by what the dock actually occupies. */
+      className="nf-dockrow fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 lg:hidden"
     >
       <ul
         className="nf-tabbar"
@@ -329,7 +359,6 @@ export function MobileTabBar({
               >
                 <span className="nf-tab__icon">
                   <UiIcon name={tab.icon} size="md" filled={isActive} />
-                  {isProfile && marked && <span aria-hidden="true" className="nf-tab__mark" />}
                 </span>
                 <span className="nf-tab__label">{tab.label}</span>
               </Link>

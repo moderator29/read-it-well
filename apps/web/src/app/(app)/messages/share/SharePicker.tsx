@@ -27,6 +27,13 @@ import { Button } from "@/components/ui/Button";
  * undoable.
  */
 
+/** What the confirm calls the thing being sent. One word per kind, no ternary. */
+const SHARE_NOUN: Record<SharedRef["kind"], string> = {
+  listing: "this listing",
+  booking: "this booking",
+  stay: "this stay",
+};
+
 export type ShareThread = {
   id: string;
   counterpartName: string;
@@ -182,7 +189,7 @@ export function ShareIntoThread({
         <ConfirmSend
           conversationId={conversationId}
           target={chosen.ref}
-          label={`Send ${chosen.ref.kind === "booking" ? "this booking" : "this listing"}`}
+          label={`Send ${SHARE_NOUN[chosen.ref.kind]}`}
           onCancel={() => setChosen(null)}
         />
       )}

@@ -20,6 +20,7 @@ import { formatMoney } from "@vallo/i18n";
 import type { PostListing, PostView } from "@/components/social/feed/PostCard";
 import { EDIT_WINDOW_MINUTES } from "./posts-schema";
 import { listingPhotoUrl, readMediaFor, type SignedMedia } from "./posts-media";
+import { encodeFeedCursor, parseFeedCursor } from "./posts-cursor";
 
 const POST_COLUMNS = `
   id, area_id, root_id, parent_id, depth, author_id, author_kind, kind, body,
@@ -435,7 +436,11 @@ export async function readMutes(
 
 export type FeedPage = {
   posts: PostView[];
-  /** The created_at of the last row, for the next page. Null when the feed ends. */
+  /**
+   * Where the next page starts: the last consumed row's `created_at` and its
+   * id, as `posts-cursor` writes them. Null when the feed ends. Opaque to
+   * every caller; only `posts-cursor` knows the shape.
+   */
   cursor: string | null;
   ended: boolean;
 };
@@ -510,12 +515,23 @@ async function readFeedPage(
     query = query.in("area_id", areaIds);
   }
 
+  /* A TOTAL order, newest first. `id` is the primary key, so the pair can
+     never tie and a keyset cursor over it can never skip or repeat a row. */
   query = query
     .is("parent_id", null)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(PAGE_SIZE + 1);
 
-  if (cursor) query = query.lt("created_at", cursor);
+  const at = parseFeedCursor(cursor);
+  if (at?.id) {
+    /* Strictly after the named row in that order. PostgREST ANDs repeated
+       `or` parameters, so this narrows the public-post `or` above rather than
+       replacing it. */
+    query = query.or(`created_at.lt.${at.at},and(created_at.eq.${at.at},id.lt.${at.id})`);
+  } else if (at) {
+    query = query.lt("created_at", at.at);
+  }
 
   const [{ data, error }, muted] = await Promise.all([query, readMutes(supabase, viewerId)]);
   if (error || !data) return EMPTY_PAGE;
@@ -529,7 +545,7 @@ async function readFeedPage(
      the posts that sat between them. */
   const consumed = ended ? all : all.slice(0, PAGE_SIZE);
   const last = consumed.length > 0 ? consumed[consumed.length - 1] : null;
-  const cursorOut = ended || !last ? null : last.created_at;
+  const cursorOut = ended || !last ? null : encodeFeedCursor(last.created_at, last.id);
 
   const page = consumed.filter(
     (row) =>

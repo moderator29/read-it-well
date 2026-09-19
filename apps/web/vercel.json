@@ -2,8 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     { "path": "/api/cron/hold-sweep", "schedule": "5 * * * *" },
+    { "path": "/api/paystack/reconcile", "schedule": "10 * * * *" },
     { "path": "/api/cron/pg-cron-watch", "schedule": "20 * * * *" },
     { "path": "/api/cron/complete-stays", "schedule": "30 2 * * *" },
-    { "path": "/api/cron/inventory-drift", "schedule": "45 2 * * *" }
+    { "path": "/api/cron/inventory-drift", "schedule": "45 2 * * *" },
+    { "path": "/api/cron/account-purge", "schedule": "15 3 * * *" },
+    { "path": "/api/cron/saved-search-alerts", "schedule": "40 7 * * *" }
   ]
 }

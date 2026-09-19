@@ -29,7 +29,7 @@ export function AgentModePill({ label, className }: { label: string; className?:
   return (
     <span
       className={[
-        "inline-flex w-fit items-center gap-xs rounded-[var(--nf-radius-control)] px-sm py-2xs text-[0.6875rem] font-bold",
+        "inline-flex w-fit items-center gap-xs rounded-[var(--nf-radius-control)] px-sm py-2xs text-[var(--nf-text-overline)] font-bold",
         className ?? "",
       ].join(" ")}
       style={{
@@ -76,12 +76,12 @@ export function AgentIdentityCard({
         <span className="min-w-0 flex-1 leading-tight">
           {/* "Not signed in as an agent" is a sentence and it was ending at "Not
               signed in as an ag" in the rail. It wraps. */}
-          <span className="block text-[0.875rem] font-semibold leading-snug text-[var(--nf-content-secondary)]">
+          <span className="block text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-secondary)]">
             {visitorLabel}
           </span>
           <Link
             href="/sign-in"
-            className="mt-3xs inline-block text-[0.75rem] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="mt-3xs inline-block text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {signInLabel}
           </Link>
@@ -93,7 +93,7 @@ export function AgentIdentityCard({
   return (
     <div className="nf-card flex items-center gap-md p-sm">
       <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold text-[var(--nf-content-on-brand)]"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)]"
         style={{ background: "var(--nf-gradient-agent)" }}
         aria-hidden="true"
       >
@@ -104,11 +104,11 @@ export function AgentIdentityCard({
             hyphenated, and this is the agent's own name in their own
             workspace: "Oluwaseun Adeyemi-Ogun..." is the product telling
             somebody it could not be bothered to fit them in. It wraps. */}
-        <span className="block text-[0.875rem] font-semibold [overflow-wrap:anywhere]">
+        <span className="block text-[var(--nf-text-body-sm)] font-semibold [overflow-wrap:anywhere]">
           {profile.displayName}
         </span>
         {profile.verified && (
-          <span className="mt-3xs inline-flex items-center gap-2xs text-[0.75rem] text-[var(--nf-state-success)]">
+          <span className="mt-3xs inline-flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-state-success)]">
             <UiIcon name="verified" size={12} />
             {verifiedLabel}
           </span>

@@ -7,7 +7,7 @@ import { ButtonLink } from "@/components/ui/Button";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Vallo is Nigeria's all-in-one property marketplace: homes, shortlets, hotels, shops, offices and land, listed by verified people, in the languages Nigerians actually speak.",
+    "Vallo is one app with two sides: Property for renting, buying and selling, and Vallo Stays for hotels, apartments, guest houses, resorts and restaurant tables. One account, one naira wallet, four languages.",
 };
 
 /**
@@ -52,16 +52,18 @@ export default function AboutPage() {
   ];
 
   /* Until this pass the grid held Stays, Hotels, Food and Experiences: the
-     product's earlier scope, with no property in it. It now carries the whole
-     marketplace. Six cards, because four could not hold nine markets without
-     lying by omission. */
+     product's earlier scope, with no property in it. It then carried the
+     property markets and lost the Stays half again. It now carries BOTH
+     SIDES, three cards each, and the sixth card no longer says "experiences",
+     which is not a category this platform has and never was: it says
+     restaurants, which is a shipped surface at /restaurants. */
   const categories: { icon: BrandIconName; title: string; body: string }[] = [
-    { icon: "keys-home", title: "Rentals", body: "Annual homes and flats. Message the agent, inspect, then pay." },
+    { icon: "keys-home", title: "Rentals", body: "Annual homes and flats on the Property side. Message the agent, inspect, then pay." },
     { icon: "house-sparkle", title: "Property for sale", body: "Homes, apartments and villas, offered by the person accountable for them." },
     { icon: "home-search", title: "Commercial and land", body: "Shops, offices and plots, let on a tenancy or offered for sale." },
-    { icon: "homes-sparkle", title: "Stays", body: "Shortlets, apartments and villas for a night or a season." },
-    { icon: "hotel-star", title: "Hotels", body: "From guesthouses to city landmarks, listed by the people who run them." },
-    { icon: "gift", title: "Food and experiences", body: "Restaurants worth crossing town for, and things worth leaving the house for." },
+    { icon: "homes-sparkle", title: "Stays", body: "Shortlets, apartments, resorts and serviced flats on Vallo Stays, for a night or a season." },
+    { icon: "hotel-star", title: "Hotels and guest houses", body: "From a guest house to a city landmark, listed by the people who run them." },
+    { icon: "concierge-bell", title: "Restaurants", body: "Ask for a table, and the restaurant answers. No money moves for a reservation." },
   ];
 
   return (
@@ -72,8 +74,8 @@ export default function AboutPage() {
         plate="skyline-bridge-dusk"
         icon="house-sparkle"
         chip="About Vallo"
-        title="Rent, buy or sell property, with the fear taken out."
-        lede="Vallo is Nigeria's all-in-one property marketplace: homes to rent or buy, shortlets and hotels, shops, offices and land, with a naira wallet and the areas around them. Every listing was put up by a real person we have checked, and the whole product works in the languages Nigerians actually speak."
+        title="Rent, buy or stay, with the fear taken out."
+        lede="Vallo is one app with two sides. Property is renting, buying and selling: homes, shops, offices and land, with agents checked by a person and an inspection before any money moves. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced flats and restaurant tables. One account, one naira wallet, and the whole product working in the languages Nigerians actually speak."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
@@ -83,16 +85,17 @@ export default function AboutPage() {
           <div className="nf-card p-card-lg">
             <h2 className="nf-overline">Our mission</h2>
             <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
-              To make finding and booking a place in Nigeria as safe and simple as
-              messaging a friend, so that nobody pays for a room that does not exist,
-              queues for an agent who never shows, or settles for less because the good
-              options were hidden.
+              To make finding a place in Nigeria as safe and simple as messaging a
+              friend, whether it is a flat for the year, a house to buy, a hotel room
+              for Friday or a table for six, so that nobody pays for a room that does
+              not exist, queues for an agent who never shows, or settles for less
+              because the good options were hidden.
             </p>
             <p className="mt-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Too much of Nigerian renting and travel still runs on hearsay, unverified
+              Too much of Nigerian renting and travel still runs on hearsay, unchecked
               middlemen and payments made on trust alone. We are replacing that with
-              verified listings, secure payments and honest reviews, one booking at a
-              time.
+              agents checked by a person, payments that leave a reference, and reviews
+              attached to stays that actually happened, one booking at a time.
             </p>
           </div>
         </Reveal>
@@ -103,8 +106,8 @@ export default function AboutPage() {
             <h2 className="nf-overline">Our vision</h2>
             <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
               A Nigeria, and eventually an Africa, where anyone can discover, trust and
-              book any space, from a Lagos shortlet to a Calabar kitchen, in their own
-              language and their own currency.
+              take any space, from a Lagos flat let for the year to a Calabar kitchen
+              held for one evening, in their own language and their own currency.
             </p>
           </div>
         </Reveal>
@@ -156,8 +159,9 @@ export default function AboutPage() {
           <div className="nf-card p-card text-center-lg">
             <h2 className="nf-h2 mx-auto max-w-[22ch]">Come and build this with us</h2>
             <p className="mx-auto mt-row max-w-[48ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
-              Whether you are looking for your next stay, want to list a property, or
-              want to join the team, there is a place for you here.
+              Whether you are looking for your next place, want to list a property or
+              a room to let by the night, or want to join the team, there is a place
+              for you here.
             </p>
             <div className="mt-heading flex flex-wrap items-center justify-center gap-group">
               <ButtonLink

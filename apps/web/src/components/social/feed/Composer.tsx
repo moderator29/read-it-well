@@ -494,7 +494,16 @@ export function Composer({
             Cancel
           </button>
         ) : null}
-        <button type="submit" className="nf-btn nf-btn--primary h-10 px-lg text-[var(--nf-text-body-sm)]" disabled={!canSend}>
+        {/* `nf-composer__send` keeps the brand fill while the field is empty.
+            See the rule in social-feed.css: a composer's send is off because
+            nobody has typed yet, which is its resting state, not a fault, and
+            the platform's flat grey disabled reads as a broken control on the
+            one primary the screen has (R1 A26). */}
+        <button
+          type="submit"
+          className="nf-btn nf-btn--primary nf-composer__send h-10 px-lg text-[var(--nf-text-body-sm)]"
+          disabled={!canSend}
+        >
           {pending ? "Sending" : isReply ? "Reply" : "Post"}
         </button>
       </div>

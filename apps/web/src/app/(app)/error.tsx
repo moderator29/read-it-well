@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { reportClientError } from "@/lib/observability/client";
 import { SystemMoment } from "../offline/SystemMoment";
 
 /**
@@ -33,9 +34,12 @@ export default function AppError({
   reset: () => void;
 }) {
   useEffect(() => {
-    /* Console until observability lands, matching the root boundary. The full
-       error object goes here and nowhere near the rendered output. */
+    /* The full error object goes to the console and nowhere near the
+       rendered output. The report beside it is scrubbed before it leaves the
+       server and is silent when `SENTRY_DSN` is unset, matching the root
+       boundary. */
     console.error("[vallo] app route error", error);
+    reportClientError(error, { kind: "client.app_boundary", digest: error.digest });
   }, [error]);
 
   return (

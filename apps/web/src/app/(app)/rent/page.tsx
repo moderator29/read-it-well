@@ -4,6 +4,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { getMessageRepository } from "@/lib/messages/repository";
+import { getSavedListings } from "@/lib/saved/queries";
 import { ListingCard } from "@/components/app/ListingCard";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
@@ -39,6 +40,11 @@ export default async function RentPage({
   const repo = getListingRepository();
   const messages = getMessageRepository();
   const rentals = await repo.search({ q, kind: "rental" });
+
+  /* The shortlist, so a hearted rental comes back hearted. Without this the
+     card resolved the heart from the device store alone and a signed-in
+     reader's save was invisible after a reload. (R2 finding 4.) */
+  const savedIds = new Set((await getSavedListings()).map((entry) => entry.listing.id));
 
   // Each card's message button deep links into the existing thread about
   // that listing when one exists, otherwise into the conversation list.
@@ -128,7 +134,7 @@ export default async function RentPage({
           <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
             {rentals.map((r) => (
               <li key={r.id} className="flex flex-col gap-sm">
-                <ListingCard listing={r} locale={locale} t={t} />
+                <ListingCard listing={r} locale={locale} t={t} saved={savedIds.has(r.id)} />
                 <ButtonLink
                   href={messageHrefs.get(r.id) ?? "/messages"}
                   variant="primary"

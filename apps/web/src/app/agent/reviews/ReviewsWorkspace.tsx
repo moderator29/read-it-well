@@ -25,10 +25,18 @@ function Stars({ rating }: { rating: number }) {
   return (
     <span className="flex items-center gap-3xs" aria-hidden="true">
       {Array.from({ length: 5 }, (_, i) => (
+        /* SOLID FOR THE SCORE, OUTLINE FOR THE REST. Every star was an
+           outline and the only difference between a scored one and an unscored
+           one was its colour and its opacity, which is rule 13 exactly: a host
+           reading their own reviews in daylight, or anybody who cannot
+           separate those two blues, counted five stars on a two-star review.
+           `star` is authored as a closed silhouette, so `filled` is real here.
+           The same treatment the chat card already uses. */
         <UiIcon
           key={i}
           name="star"
           size={16}
+          filled={i < rating}
           className={
             i < rating ? "text-[var(--nf-rating)]" : "text-[var(--nf-content-muted)] opacity-40"
           }
@@ -47,10 +55,10 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
           <BrandIcon name="reviews" fill />
         </span>
         <p className="flex items-baseline gap-xs">
-          <span className="nf-numeric text-[1.75rem] font-bold tracking-tight text-[var(--nf-content-primary)]">
+          <span className="nf-numeric text-[var(--nf-text-h2)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {formatRating(summary.average, locale)}
           </span>
-          <span className="text-[0.875rem] text-[var(--nf-content-secondary)]">
+          <span className="text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
             across {formatNumber(summary.total, locale)} {summary.total === 1 ? "review" : "reviews"}
           </span>
         </p>
@@ -61,7 +69,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
           const count = summary.distribution[star - 1] ?? 0;
           return (
             <li key={star} className="flex items-center gap-sm">
-              <span className="nf-numeric w-3 shrink-0 text-[0.78rem] text-[var(--nf-content-muted)]">
+              <span className="nf-numeric w-3 shrink-0 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 {star}
               </span>
               <span
@@ -73,7 +81,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
                   style={{ width: `${Math.round((count / most) * 100)}%` }}
                 />
               </span>
-              <span className="nf-numeric w-6 shrink-0 text-right text-[0.78rem] text-[var(--nf-content-muted)]">
+              <span className="nf-numeric w-6 shrink-0 text-right text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 {count}
               </span>
               <span className="sr-only">
@@ -95,10 +103,10 @@ function ReviewCard({ review }: { review: AgentReview }) {
         <p className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
           <Stars rating={review.rating} />
           <span className="sr-only">{review.rating} out of 5.</span>
-          <span className="text-[0.8125rem] font-semibold text-[var(--nf-content-primary)]">
+          <span className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
             {review.author}
           </span>
-          <span className="text-[0.75rem] text-[var(--nf-content-muted)]">{review.when}</span>
+          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{review.when}</span>
         </p>
         {review.response === null && (
           <span className="nf-badge nf-badge--brand">Needs a reply</span>
@@ -107,18 +115,23 @@ function ReviewCard({ review }: { review: AgentReview }) {
 
       <Link
         href={`/listing/${review.listingId}`}
-        className="mt-xs flex items-center gap-xs text-[0.78rem] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
+        className="mt-xs flex min-w-0 items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
       >
+        {/* `min-w-0` on both, or the truncate never fires: a flex child's
+            minimum width is its content by default, so "Luxury 2 bedroom
+            apartment with a sea view" pushed this row 21px past the right
+            edge of a 390px screen and gave the whole page a horizontal
+            scroll. */}
         <UiIcon name="location" size={12} className="shrink-0" />
-        <span className="truncate">{review.listingTitle}</span>
+        <span className="min-w-0 truncate">{review.listingTitle}</span>
       </Link>
 
       {review.body ? (
-        <p className="mt-sm whitespace-pre-line text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm whitespace-pre-line text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {review.body}
         </p>
       ) : (
-        <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           This guest rated the stay and did not write anything.
         </p>
       )}
@@ -157,7 +170,7 @@ export function ReviewsWorkspace({
           <BrandIcon name="reviews" fill />
         </span>
         <p className="mt-md font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
-        <p className="mx-auto mt-2xs max-w-[42ch] text-[0.875rem] text-[var(--nf-content-muted)]">
+        <p className="mx-auto mt-2xs max-w-[42ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
           A guest can review a stay once they have checked out and paid. The first
           one lands here, and you get the chance to answer it in public.
         </p>
@@ -199,7 +212,18 @@ export function ReviewsWorkspace({
       </nav>
 
       {shown.length > 0 ? (
-        <ul className="mt-md grid gap-sm">
+        /*
+          `grid-cols-1`, NOT A BARE `grid`.
+
+          A grid with no declared columns gets one implicit `auto` track, and
+          an `auto` track will not shrink below its item's min-content. The
+          review cards' min-content is about 361px, so at 390 the whole list
+          drew 395px wide and the page carried a horizontal scroll: the second
+          card's listing title ran off the right edge. `grid-cols-1` is
+          `repeat(1, minmax(0, 1fr))`, which clamps the track to the container
+          and lets the truncation inside the card do its job.
+        */
+        <ul className="mt-md grid grid-cols-1 gap-sm">
           {shown.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}
@@ -212,7 +236,7 @@ export function ReviewsWorkspace({
           <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             Every review has your answer
           </p>
-          <p className="mx-auto mt-2xs max-w-[40ch] text-[0.875rem] text-[var(--nf-content-muted)]">
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             A host who answers reads as a host who cares, and that is what the next
             guest is looking for on the page.
           </p>

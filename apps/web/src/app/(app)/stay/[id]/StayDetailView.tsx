@@ -107,6 +107,7 @@ export function StayDetailView({
   t,
   datesHref,
   reserve,
+  saved = false,
 }: {
   detail: StayDetail;
   nights: number | null;
@@ -118,6 +119,10 @@ export function StayDetailView({
   t: Dictionary;
   datesHref: string;
   reserve: ReserveBase;
+  /** Whether this accommodation is already on the account's shortlist, read
+      on the server from `saved_places` so the heart is lit before hydration
+      and stays lit through a reload. */
+  saved?: boolean;
 }) {
   const from = stayFromMinor(detail, nights);
   const total = from !== null && nights !== null ? from * nights : null;
@@ -226,7 +231,7 @@ export function StayDetailView({
   ];
 
   return (
-    <div>
+    <div className="nf-cat-surface">
       <ListingGallery
         listingId={detail.id}
         title={detail.name}
@@ -235,6 +240,15 @@ export function StayDetailView({
         photos={detail.photos.map((photo) => photo.url)}
         backFallback="/stays"
         mark={{ label: catalogue.title, icon: "bed" }}
+        /* `detail.id` is an ACCOMMODATION id, not a listing id, so the share
+           path has to be told or it builds `/listing/<accommodationId>`,
+           which resolves to nothing. See `components/app/messages/share.ts`. */
+        shareKind="stay"
+        /* And the heart writes to `saved_places` under the accommodation kind
+           rather than to `saved_items`, whose foreign key can never accept
+           this id. It refused every tap on this page until now. */
+        place={{ kind: "accommodation", id: detail.id }}
+        initialSaved={saved}
       />
 
       <div className="mx-auto max-w-2xl pb-section">

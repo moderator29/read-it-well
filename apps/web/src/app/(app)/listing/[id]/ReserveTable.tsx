@@ -64,10 +64,24 @@ function dayLabel(iso: string, todayIso: string): string {
 
 export function ReserveTable({
   listingId,
+  businessId,
   messageHref,
 }: {
-  listingId: string;
-  messageHref: string;
+  /**
+   * The catalogue restaurant this table is at. Exactly one of `listingId` and
+   * `businessId` is set, which is `reservations_exactly_one_target_chk` said
+   * in the component's own props: `reserveSchema` refuses a form carrying both
+   * or neither, so the two are never merged into one loose string.
+   */
+  listingId?: string;
+  /** An M7 business-grade venue, which is the other half of the same rule. */
+  businessId?: string;
+  /**
+   * Where "message the restaurant" goes, and null where a thread cannot
+   * exist: `startConversation` binds a conversation to a listing, so a
+   * business venue has none to open and the line is not drawn.
+   */
+  messageHref?: string | null;
 }) {
   const todayIso = lagosDayIso(0);
   const days = useMemo(() => Array.from({ length: 14 }, (_, i) => lagosDayIso(i)), []);
@@ -113,7 +127,10 @@ export function ReserveTable({
 
   return (
     <form action={formAction} className="nf-card p-lg">
-      <input type="hidden" name="listingId" value={listingId} />
+      {/* One target, never both: the field that is not this venue's is simply
+          not in the form, which is what `reserveSchema`'s refine asks for. */}
+      {listingId && <input type="hidden" name="listingId" value={listingId} />}
+      {businessId && <input type="hidden" name="businessId" value={businessId} />}
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="time" value={time} />
 
@@ -221,15 +238,20 @@ export function ReserveTable({
         </div>
         {/* Said before somebody counts to fifty and is refused, rather than
             after. The database enforces the same number. */}
-        {party >= MAX_PARTY && (
-          <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-            For a larger party,{" "}
-            <Link href={messageHref} className="underline underline-offset-2">
-              message the restaurant
-            </Link>
-            .
-          </p>
-        )}
+        {party >= MAX_PARTY &&
+          (messageHref ? (
+            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              For a larger party,{" "}
+              <Link href={messageHref} className="underline underline-offset-2">
+                message the restaurant
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              That is the largest table that can be held here.
+            </p>
+          ))}
       </div>
 
       <div className="mt-md">

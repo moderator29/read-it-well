@@ -596,6 +596,26 @@ export async function POST(request: Request): Promise<NextResponse> {
   // is our environment being incomplete and it is temporary: please retry.
   if (!isPaystackConfigured()) {
     logMoney({ surface: "webhook", outcome: "unconfigured", reason: "paystack_key_missing" });
+    /*
+     * AND THE DESK HEARS ABOUT IT, which it did not until now.
+     *
+     * This branch is the loudest state this route can be in: without the key
+     * NOTHING that arrives can be authenticated, so every genuine settlement
+     * is piling up in Paystack's retry queue with a 503 against it, and the
+     * only trace on our side was a log line in Vercel. That is the shape of
+     * the incident this whole file is written around, one layer further out.
+     * `recordAlert` makes its own client and never throws, so it is safe in
+     * exactly the branch where nothing else is configured; when it cannot
+     * write either, it says so on the console itself. The alerts writer folds
+     * repeats inside ten minutes into one row, so a processor retrying hard
+     * leaves one alert, not a hundred.
+     */
+    await recordAlert({
+      kind: "webhook.paystack.unconfigured",
+      severity: "critical",
+      detail: { reason: "paystack_key_missing", http_status: 503 },
+      subjectId: "paystack-webhook",
+    });
     return NextResponse.json(
       { received: false, reason: "paystack_key_missing" },
       { status: 503 },

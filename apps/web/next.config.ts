@@ -116,6 +116,41 @@ const nextConfig: NextConfig = {
       { source: "/agents", destination: "/profile?switch=owner", permanent: false },
       { source: "/agents/apply", destination: "/profile/setup/owner", permanent: false },
       { source: "/agents/status", destination: "/profile/application", permanent: false },
+      /*
+       * `/support`, which the product offers and this build has never served
+       * (R2 finding 5).
+       *
+       * `app/agent/verification/page.tsx` gives an agent whose verification
+       * has stalled a full-width "Ask about this check" button pointing here,
+       * and its own comment says "Messaging support is the real next step, so
+       * it is the one offered". The address was never built, so the one person
+       * on the platform who most needs a human was tapping into a 404.
+       *
+       * `/contact` is that next step and always was: it files a real support
+       * ticket, hands back its VAL-SUP reference, and carries a Verification
+       * topic in `lib/trust/support-topics.ts`. 307 like the three above,
+       * because `/support` is an address we may yet want to serve properly.
+       *
+       * The better fix is one line rather than this one: the button should
+       * point at `/contact?topic=verification` so the topic arrives
+       * preselected, exactly as the safety centre's report control already
+       * does with `?topic=safety`. That file is F5's, so it is a line in the
+       * report rather than an edit here, and this redirect closes the hole in
+       * the meantime and stays as the net for anything already shared.
+       */
+      { source: "/support", destination: "/contact", permanent: false },
+      /*
+       * `/agent`, the console's own root, which has never rendered anything.
+       *
+       * `app/agent/` holds thirteen folders and no `page.tsx`, so the agent
+       * console has no root: `nav-model.ts` sends people to
+       * `/agent/dashboard` and everything works, right up until somebody
+       * shortens the address in the bar or a link drops the segment. R2 found
+       * it pointed at only from the dev harness and scored it as costing a
+       * customer nothing, which is true of that one link and not of the agent
+       * who types the obvious thing.
+       */
+      { source: "/agent", destination: "/agent/dashboard", permanent: false },
     ];
   },
 

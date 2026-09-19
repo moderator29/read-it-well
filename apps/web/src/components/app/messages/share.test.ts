@@ -16,6 +16,20 @@ describe("a share body", () => {
     expect(parseShare(body)).toEqual({ kind: "booking", id: ID });
   });
 
+  it("round-trips a stay onto its own route, not the listing one", () => {
+    const body = shareBody({ kind: "stay", id: ID });
+    expect(body).toBe(`Shared a stay\n/stay/${ID}`);
+    expect(shareHref({ kind: "stay", id: ID })).toBe(`/stay/${ID}`);
+    expect(parseShare(body)).toEqual({ kind: "stay", id: ID });
+  });
+
+  it("keeps stay and listing apart, because their ids come from different tables", () => {
+    expect(parseShare(`/stay/${ID}`)).toEqual({ kind: "stay", id: ID });
+    expect(parseShare(`/listing/${ID}`)).toEqual({ kind: "listing", id: ID });
+    /* `/stays` is the browse index, not a share. */
+    expect(parseShare(`/stays/${ID}`)).toBeNull();
+  });
+
   it("accepts the bare path and ignores case", () => {
     expect(parseShare(`/LISTING/${ID.toUpperCase()}`)).toEqual({ kind: "listing", id: ID });
   });

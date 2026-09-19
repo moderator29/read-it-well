@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     /* This printed the fifteen characters {SUPPORT_EMAIL} into the page
        description, which is what a search result and a shared link show. */
-    "Reach the Vallo support team. Send us a message and somebody reads it.",
+    "Reach the Vallo support team about a property, a stay, a table, a payment or a listing. Send us a message and somebody reads it.",
 };
 
 
@@ -52,7 +52,7 @@ export default async function ContactPage({
         icon="chat"
         chip="Contact us"
         title="Talk to a human"
-        lede="Whether it is a booking, a payment, a listing or something odd you spotted, the fastest route to a fix is below."
+        lede="A tenancy, a stay, a table you are waiting on, a payment, a listing or something odd you spotted: whichever side of Vallo it is, the fastest route to a fix is below."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
@@ -120,8 +120,9 @@ export default async function ContactPage({
                 <BrandIcon name="support-chat" fill />
               </span>
               <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
-                Many questions already have written answers about bookings, payments,
-                refunds and listing.
+                Many questions already have written answers: the switch between
+                the two sides, booking a stay, holding a table, payments, refunds
+                and listing.
               </p>
             </div>
             <ButtonLink href="/help" variant="secondary" className="shrink-0">
@@ -169,9 +170,10 @@ export default async function ContactPage({
               </p>
             </div>
             <div className="nf-card p-card">
-              <p className="nf-overline">Agents</p>
+              <p className="nf-overline">Agents and hosts</p>
               <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                Applying to list, or checking on an application? Start at{" "}
+                Applying to list a property, a place to let by the night or a
+                restaurant, or checking on an application? Start at{" "}
                 <Link href="/agents" className="font-semibold text-[var(--nf-content-link)] hover:underline">
                   Become an agent
                 </Link>

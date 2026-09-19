@@ -54,22 +54,92 @@ function hhmm(time: string): string {
 }
 
 /**
+ * THE THREE ANSWERS THIS MODULE CAN GIVE, AND WHY THE FIRST ONE IS NEW.
+ *
+ * "Closed today" is a CLAIM: it says somebody published a timetable and this
+ * weekday is not on it. A venue that has published no windows at all supports
+ * no such claim, and until now it got that sentence anyway, because an empty
+ * list and a list with nothing for this weekday both fell through the same
+ * branch. On a shelf of cards that reads as "we checked, they are shut", which
+ * is a thing we do not know, and it is the invented-fact failure rule 13 and
+ * the content truth sweep are both about. `/restaurant/<id>` already draws its
+ * own "no hours published" card from `windows.length`; the CARD on
+ * `/restaurants` does not have that list, only this label, so the label has to
+ * carry the distinction.
+ */
+export const HOURS_UNKNOWN_LABEL = "Hours not published";
+
+/**
+ * A window that runs past midnight, e.g. opens 18:00 and closes 02:00.
+ *
+ * `service_windows_order_chk` in M7 says `opens < closes`, so the database
+ * cannot hold one today and a venue serving until 2am is two rows, the second
+ * one on the next weekday. This module is not allowed to depend on that: the
+ * row type permits the shape, the constraint is one migration away from being
+ * relaxed for exactly this reason, and "open now" answering "closed" to
+ * somebody standing in a full dining room at half past midnight is the worst
+ * kind of wrong. So both spellings are handled and the tests hold both.
+ */
+function isOvernight(window: ServiceWindowRow): boolean {
+  return window.closes <= window.opens;
+}
+
+/** Yesterday, on the same 0-is-Sunday spine Postgres `extract(dow)` uses. */
+function previousWeekday(weekday: number): number {
+  return (weekday + 6) % 7;
+}
+
+/** Is this moment inside the window and not past its last seating? */
+function seatingNow(window: ServiceWindowRow, time: string): boolean {
+  if (!isOvernight(window)) {
+    return window.opens <= time && time <= window.last_seating;
+  }
+  // The evening half, before midnight. A last seating at or after `opens` ends
+  // it; one before `opens` belongs to the morning half and never limits this.
+  const eveningLimit = window.last_seating >= window.opens ? window.last_seating : "23:59:59";
+  return window.opens <= time && time <= eveningLimit;
+}
+
+/** The morning half of a window opened yesterday: 00:00 to its last seating. */
+function spillSeatingNow(window: ServiceWindowRow, time: string): boolean {
+  if (!isOvernight(window)) return false;
+  const morningLimit = window.last_seating < window.opens ? window.last_seating : window.closes;
+  return time <= morningLimit;
+}
+
+function byOpens(a: ServiceWindowRow, b: ServiceWindowRow): number {
+  return a.opens < b.opens ? -1 : a.opens > b.opens ? 1 : 0;
+}
+
+/**
  * Whether the venue is seating people at this moment, and the sentence that
  * says so. "Open" means inside a window and not past its last seating: a
  * kitchen that has stopped taking people is closed to a diner even while the
  * doors are unlocked.
  */
 export function openState(windows: ServiceWindowRow[], now: Date = new Date()): OpenState {
+  if (windows.length === 0) {
+    return { open_now: false, hours_label: HOURS_UNKNOWN_LABEL };
+  }
+
   const { weekday, time } = lagosClock(now);
-  const today = windows
-    .filter((w) => w.weekday === weekday)
-    .sort((a, b) => (a.opens < b.opens ? -1 : a.opens > b.opens ? 1 : 0));
+  const today = windows.filter((w) => w.weekday === weekday).sort(byOpens);
+
+  // Last night's service, still seating. Checked first, because at 00:30 the
+  // weekday has already rolled over and today's own windows are hours away.
+  const spill = windows
+    .filter((w) => w.weekday === previousWeekday(weekday))
+    .sort(byOpens)
+    .find((w) => spillSeatingNow(w, time));
+  if (spill) {
+    return { open_now: true, hours_label: `Open until ${hhmm(spill.closes)}` };
+  }
 
   if (today.length === 0) {
     return { open_now: false, hours_label: "Closed today" };
   }
 
-  const current = today.find((w) => w.opens <= time && time <= w.last_seating);
+  const current = today.find((w) => seatingNow(w, time));
   if (current) {
     return { open_now: true, hours_label: `Open until ${hhmm(current.closes)}` };
   }

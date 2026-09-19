@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary } from "@vallo/i18n";
+import { getDictionary, type Dictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
-import { getPayoutAccounts } from "@/lib/agent/payout-queries";
+import type { AgentProfile } from "@/lib/agent/types";
+import { getPayoutAccounts, type PayoutAccount } from "@/lib/agent/payout-queries";
 import { loadSettingsState } from "@/lib/profile/queries";
+import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { groupNuban } from "@/lib/agent/payout-schema";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -69,10 +71,42 @@ export default async function Page() {
   const [account, payout] = await Promise.all([loadSettingsState(), getPayoutAccounts()]);
   const agent = context.agent;
   const accounts = payout.state === "ready" ? payout.accounts : [];
-  const preferred = accounts.find((a) => a.isDefault) ?? accounts[0] ?? null;
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/settings" profile={agentProfileFrom(agent)}>
+      <AgentSettingsBody
+        t={t}
+        agent={agentProfileFrom(agent)}
+        accounts={accounts}
+        notifications={account.state === "signed-in" ? account.settings.notifications : null}
+      />
+    </AgentShell>
+  );
+}
+
+/**
+ * The body of /agent/settings, apart from its reads.
+ *
+ * Separated so the whole screen can be rendered from fixtures in the preview
+ * harness and read against the register at 390 dark. The route passes exactly
+ * what it read; nothing here fetches anything.
+ */
+export function AgentSettingsBody({
+  t,
+  agent,
+  accounts,
+  notifications,
+}: {
+  t: Dictionary;
+  agent: AgentProfile;
+  accounts: PayoutAccount[];
+  /** Null when the preference document could not be read. */
+  notifications: ResolvedProfileSettings["notifications"] | null;
+}) {
+  const preferred = accounts.find((a) => a.isDefault) ?? accounts[0] ?? null;
+
+  return (
+    <>
       <div className="mb-lg">
         <h1 className="nf-h1">{t.agent.nav.settings}</h1>
         <p className="mt-2xs text-[var(--nf-content-secondary)]">
@@ -82,16 +116,12 @@ export default async function Page() {
 
       <div className="mx-auto max-w-2xl space-y-md">
         {/* ------------------------------------------------ notifications */}
-        {account.state === "signed-in" ? (
-          <AccountNotificationsCard
-            t={t}
-            initial={account.settings.notifications}
-            variant="host"
-          />
+        {notifications ? (
+          <AccountNotificationsCard t={t} initial={notifications} variant="host" />
         ) : (
           <div className="nf-card p-panel">
             <p className="nf-overline">Notifications</p>
-            <p className="mt-xs text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               We could not read your preferences just now. Nothing has changed, and
               you are still receiving everything you were receiving before.
             </p>
@@ -103,24 +133,24 @@ export default async function Page() {
           <p className="nf-overline">Where your earnings go</p>
           {preferred ? (
             <>
-              <p className="mt-sm flex items-center gap-xs text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <p className="mt-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 <UiIcon name="verified" size={16} className="shrink-0 text-[var(--nf-state-success)]" />
                 {preferred.bankName}
               </p>
-              <p className="nf-numeric mt-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
+              <p className="nf-numeric mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
                 {groupNuban(preferred.accountNumber)}
               </p>
-              <p className="mt-2xs text-[0.875rem] text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
                 {preferred.accountName}
               </p>
-              <p className="mt-sm text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+              <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                 {accounts.length === 1
                   ? "This is the account your payouts are sent to."
                   : `Your payouts go here. You have ${accounts.length} accounts on file.`}
               </p>
             </>
           ) : (
-            <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               You have not told us where to send your earnings yet. Nothing can be
               paid out until you do, and it takes about a minute.
             </p>
@@ -133,7 +163,7 @@ export default async function Page() {
         {/* ------------------------------------------------------ identity */}
         <div className="nf-card p-panel">
           <p className="nf-overline">Your host identity</p>
-          <p className="mt-sm flex flex-wrap items-center gap-x-xs gap-y-2xs text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+          <p className="mt-sm flex flex-wrap items-center gap-x-xs gap-y-2xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
             {agent.displayName}
             {agent.verified && (
               <span className="nf-badge nf-badge--brand">
@@ -142,7 +172,7 @@ export default async function Page() {
               </span>
             )}
           </p>
-          <dl className="mt-sm grid gap-xs border-t border-[var(--nf-border-subtle)] pt-sm text-[0.875rem]">
+          <dl className="mt-sm grid gap-xs border-t border-[var(--nf-border-subtle)] pt-sm text-[var(--nf-text-body-sm)]">
             <div className="flex items-center justify-between gap-sm">
               <dt className="text-[var(--nf-content-muted)]">Account type</dt>
               <dd className="text-[var(--nf-content-secondary)]">
@@ -164,7 +194,7 @@ export default async function Page() {
               </dd>
             </div>
           </dl>
-          <p className="mt-sm text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             This is the name Vallo checked and the name on every one of your
             listings, so it is not something to change on your own. Write to
             support and we will change it with you.
@@ -177,7 +207,7 @@ export default async function Page() {
         {/* ------------------------------------------------------ the rest */}
         <div className="nf-card p-panel">
           <p className="nf-overline">Everything else</p>
-          <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             Theme, language, privacy, security and account deletion are one account
             wide, so they live on your Vallo settings page rather than being kept
             in two places.
@@ -187,6 +217,6 @@ export default async function Page() {
           </Link>
         </div>
       </div>
-    </AgentShell>
+    </>
   );
 }

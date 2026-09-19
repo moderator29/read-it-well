@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getDictionary, plural, type Locale } from "@vallo/i18n";
+import { getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import type { BookingGroups, BookingView } from "@/lib/bookings/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
@@ -14,6 +14,7 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
    the same stays on its date spine and needs the same control, and two copies
    of a sheet that releases somebody's dates is how one of them drifts. */
 import { CancelBookingSheet } from "@/components/app/bookings/CancelBookingSheet";
+import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 
@@ -27,34 +28,45 @@ import { EmptyActions } from "@/components/app/EmptyActions";
 
 type TabKey = "upcoming" | "completed" | "cancelled";
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "upcoming", label: "Upcoming" },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
-];
+type BookingsCopy = Dictionary["catalogue"]["bookings"];
 
 /**
- * The three empty states, each true of the tab it belongs to.
+ * The tabs, and the three empty states, each true of the tab it belongs to.
  *
  * A title and a body rather than one orphan sentence, so all three take the
  * same shape as every other empty state on the platform. "Your next adventure
  * starts with a search" went: this is a property marketplace in Nigeria, not a
  * travel brochure, and the sentence said nothing a reader could act on.
+ *
+ * THE WORDS WERE ENGLISH LITERALS IN THIS FILE and are dictionary entries now
+ * (`catalogue.bookings`, all four locales). Three of the four languages this
+ * platform ships in were reading the record of their own paid stays in
+ * English, on the screen where somebody checks what happened to money they
+ * have already sent.
  */
-const EMPTY_TITLE: Record<TabKey, string> = {
-  upcoming: "Nothing booked yet",
-  completed: "No completed stays yet",
-  cancelled: "Nothing cancelled",
-};
+function tabs(copy: BookingsCopy): { key: TabKey; label: string }[] {
+  return [
+    { key: "upcoming", label: copy.upcoming },
+    { key: "completed", label: copy.completed },
+    { key: "cancelled", label: copy.cancelled },
+  ];
+}
 
-const EMPTY_COPY: Record<TabKey, string> = {
-  upcoming:
-    "When you reserve a place, it appears here with your dates, your total and everything you need on the day.",
-  completed:
-    "A stay moves here after checkout, and that is where you can leave a review of it.",
-  cancelled:
-    "Cancelled bookings are kept here so you always have the record, even after the dates have gone.",
-};
+function emptyTitle(copy: BookingsCopy, key: TabKey): string {
+  return key === "upcoming"
+    ? copy.emptyUpcomingTitle
+    : key === "completed"
+      ? copy.emptyCompletedTitle
+      : copy.emptyCancelledTitle;
+}
+
+function emptyBody(copy: BookingsCopy, key: TabKey): string {
+  return key === "upcoming"
+    ? copy.emptyUpcomingBody
+    : key === "completed"
+      ? copy.emptyCompletedBody
+      : copy.emptyCancelledBody;
+}
 
 /*
  * THE LOCAL STATUS MAP IS GONE, AND IT WAS TWO FAULTS AT ONCE.
@@ -111,6 +123,7 @@ function BookingCard({
      `BookingCard`'s neighbours: a fifth value is a dictionary entry now, not an
      edit to a private map on this screen. */
   const statusWords = t.admin.common.status;
+  const copy = t.catalogue.bookings;
 
   return (
     <li
@@ -165,7 +178,7 @@ function BookingCard({
               data-testid="booking-arriving"
               className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]"
             >
-              Arriving: {b.arrivingName}
+              {copy.arriving.replace("{name}", b.arrivingName)}
               {b.arrivingPhone && (
                 <>
                   {" "}
@@ -182,7 +195,9 @@ function BookingCard({
           <span className="nf-numeric text-[var(--nf-text-body-sm)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {b.totalDisplay}
           </span>
-          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">total</span>
+          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            {copy.total}
+          </span>
         </p>
         <span className="flex items-center gap-md">
           {/* A PENDING stay is reserved, not paid. Until this link existed the
@@ -190,7 +205,7 @@ function BookingCard({
               checkout closes. */}
           {b.status === "PENDING" && (
             <ButtonLink href={`/checkout/${b.id}`} variant="primary" size="sm">
-              Pay now
+              {copy.payNow}
             </ButtonLink>
           )}
           {b.cancellable && (
@@ -199,7 +214,7 @@ function BookingCard({
               onClick={() => onCancel(b)}
               className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
-              Cancel
+              {copy.cancel}
             </button>
           )}
           {/* A finished stay is the only place a review can be written, and the
@@ -211,7 +226,7 @@ function BookingCard({
               href={`/bookings/${b.id}/review`}
               className="nf-btn nf-btn--primary px-sm py-xs text-[var(--nf-text-caption)]"
             >
-              Leave a review
+              {copy.leaveReview}
             </Link>
           )}
           {b.reviewed && (
@@ -220,14 +235,14 @@ function BookingCard({
               className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
-              Your review
+              {copy.yourReview}
             </Link>
           )}
           <Link
             href={`/listing/${b.listingId}`}
             className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
-            View details
+            {copy.viewDetails}
             <UiIcon name="arrow-right" size={16} />
           </Link>
         </span>
@@ -249,6 +264,10 @@ export function MyBookings({
 }) {
   const [active, setActive] = useState<TabKey>("upcoming");
   const [cancelling, setCancelling] = useState<BookingView | null>(null);
+  const dictionary = getDictionary(locale);
+  const tenancyCopy = dictionary.catalogue.tenancy;
+  const copy = dictionary.catalogue.bookings;
+  const TABS = tabs(copy);
 
   const index = TABS.findIndex((t) => t.key === active);
   const current = TABS[index] ?? TABS[0]!;
@@ -257,6 +276,32 @@ export function MyBookings({
 
   return (
     <div>
+      {/*
+        THE TENANCIES SIT BESIDE THE STAY TABS, NOT INSIDE THEM.
+
+        A fourth segment was the other option and it is the wrong one twice
+        over. The control is labelled "Booking status" and its three segments
+        are statuses; a tenancy is a KIND of thing, so it would be the one
+        segment in the row answering a different question. And a tab hides
+        what is not selected: an unpaid rent charge is the most urgent thing
+        this screen can carry, and it was invisible here until today, so it is
+        not put back behind a tab somebody has to guess at.
+
+        It renders only when the account has one. Nobody who books hotels ever
+        sees this section, and nothing is invented to fill it.
+      */}
+      {groups.rent.length > 0 && (
+        <section className="mb-block" data-testid="tenancy-section">
+          <h2 className="nf-group-label">{tenancyCopy.section}</h2>
+          <p className={`mb-row ${TYPE.rowMeta}`}>{tenancyCopy.sectionLine}</p>
+          <ul className="grid gap-md">
+            {groups.rent.map((tenancy) => (
+              <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/*
         Was a hand-rolled tablist: three equal columns with a 2px underline slid
         by `translateX(index * 100%)`, which only tracked because the grid forced
@@ -273,7 +318,7 @@ export function MyBookings({
         `aria-labelledby`.
       */}
       <Segmented<TabKey>
-        label="Booking status"
+        label={copy.statusLabel}
         options={TABS.map((tab) => ({ value: tab.key, label: tab.label }))}
         value={active}
         onChange={setActive}
@@ -309,8 +354,8 @@ export function MyBookings({
         >
           <EmptyState
             icon="calendar-check"
-            title={EMPTY_TITLE[current.key]}
-            body={EMPTY_COPY[current.key]}
+            title={emptyTitle(copy, current.key)}
+            body={emptyBody(copy, current.key)}
             action={
               /* Never a dead end: the two tabs that are empty because nothing
                  has happened YET point at the thing that would make something
@@ -322,7 +367,7 @@ export function MyBookings({
                    button in a centred column, which is the third of the three
                    treatments F2-073 counted and reads at 390px as a chip
                    somebody forgot to style. */
-                <EmptyActions primary={{ label: "Find a place", href: "/search" }} />
+                <EmptyActions primary={{ label: copy.findPlace, href: "/search" }} />
               )
             }
             data-testid={`bookings-empty-${current.key}`}

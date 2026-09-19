@@ -189,12 +189,17 @@ export function ProfilePhotos({
             <UiIcon name="picture" size={14} />
             {busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
           </button>
+          {/* GLASS, NOT GHOST. These two sit side by side on a photograph
+              nobody has seen. The ghost variant paints nothing at all, so the
+              only one of the pair that had a plate was the safe one, and the
+              control that throws somebody's cover away was a floating word
+              over a skyline. Both are controls, both read as controls. */}
           {cover && (
             <button
               type="button"
               onClick={() => void removeCover()}
               disabled={busy !== null}
-              className="nf-btn nf-btn--ghost px-sm py-xs text-[var(--nf-text-overline)]"
+              className="nf-btn nf-btn--glass px-sm py-xs text-[var(--nf-text-overline)]"
             >
               Remove
             </button>

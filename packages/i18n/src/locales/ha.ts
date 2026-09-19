@@ -305,7 +305,7 @@ export const ha: Dictionary = withFallback({
         careers: "Ayyuka",
       },
       hero: {
-        crumbs: ["Gidaje", "Masauki", "Zuba jari", "Gudanarwa"],
+        crumbs: ["Gidaje", "Masauki", "Gidajen abinci", "Gudanarwa"],
         title1: "Real Estate",
         title2: "reimagined.",
         subtitle:
@@ -320,7 +320,6 @@ export const ha: Dictionary = withFallback({
         buy: "Saya",
         rent: "Haya",
         stay: "Masauki",
-        invest: "Zuba jari",
         filters: "Buɗe tacewa",
         go: "Bincika",
       },
@@ -339,35 +338,18 @@ export const ha: Dictionary = withFallback({
         cities: "Birane",
         states: "Jihohi",
       },
-      features: {
-        overline: "Fiye da gidaje",
-        title: "Duk abin da kake buƙata a dandamali ɗaya.",
-        body: "Daga lissafin da aka tabbatar zuwa gajeren masauki, mataimaki da ke karanta kundin da walat da ke biyan komai, Vallo yana ba ka dukkan tafiyar gidanka a asusu ɗaya.",
-        learn: "Ƙara koyo",
-        tiles: {
-          buy: { title: "Saya", sub: "Gidaje da aka tabbatar" },
-          rent: { title: "Haya", sub: "Zaɓuɓɓuka masu sauƙi" },
-          stays: { title: "Masauki", sub: "Otal-otal da ƙari" },
-          invest: { title: "Zuba jari", sub: "Filaye da kasuwanci" },
-          assistant: { title: "Mataimakin AI", sub: "Bincike mai wayo" },
-          wallet: { title: "Walat", sub: "Biya da gudanarwa" },
-          bookings: { title: "Ajiyar wuri", sub: "Sauƙi da tsaro" },
-          messaging: { title: "Saƙonni", sub: "Ci gaba da haɗi" },
-          inspections: { title: "Duba gida", sub: "Gani da tabbatarwa" },
-          management: { title: "Gudanarwa", sub: "Ga masu gida da wakilai" },
-        },
-      },
-      chips: {
-        verified: { title: "Lissafin da aka tabbatar", sub: "An duba kowane mai lissafi da hannu." },
-        ai: { title: "Da ƙarfin AI", sub: "Bincike mai wayo. Sakamako mafi kyau." },
-        wallet: { title: "Walat mai tsaro", sub: "Biya, ajiye, haɓaka." },
-        one: { title: "Dandamali ɗaya", sub: "Kowane birni, ko'ina." },
-        stays: { title: "Vallo Stays", sub: "Otal-otal, gidaje, villa da ƙari." },
-        manage: { title: "Gudanar da gidaje", sub: "Ga masu gida da wakilai." },
-      },
+      /* THE FEATURE BAND IS ABSENT HERE ON PURPOSE, AND FALLS BACK TO
+         ENGLISH. The content truth sweep of 19 September rewrote all six
+         cells: they now name buy and rent, the assistant, the wallet,
+         bookings and trips, Vallo Stays and messages, where they used to
+         name verified listings, AI, the wallet, "one platform", Stays and
+         property management. Leaving the old Hausa in place would have
+         printed a DIFFERENT claim from the English under the same keys,
+         which is worse than printing English. A native speaker writes the
+         six cells and they come back here. */
       community: {
         overline: "Mutane na gaske. Wurare na gaske.",
-        title: "Al'umma mai girma ta masu neman gida, masu gida da masu zuba jari.",
+        title: "Al'umma mai girma ta masu neman gida, masu gida da masu masauki.",
         body: "Kowane adadi a wannan shafi ana karanta shi kai tsaye daga dandamali lokacin da shafin ya buɗe. Ba a ƙara komai ba.",
         join: "Shiga Vallo yau",
         thirdParty: "Na ɓangare na uku",
@@ -404,7 +386,7 @@ export const ha: Dictionary = withFallback({
       stays: {
         overline: "Vallo Stays",
         title: "Zauna a wurin da ba za ka manta ba.",
-        body: "Otal-otal, gajeren haya, gidaje, villa, gidajen abinci da abubuwan more rayuwa, an ajiye daga asusu ɗaya.",
+        body: "Otal-otal, gajeren haya, gidaje, villa da gidajen abinci, an ajiye daga asusu ɗaya.",
         cta: "Bincika masauki",
         hotels: "Otal-otal",
         apartments: "Gidajen haya",
@@ -445,6 +427,7 @@ export const ha: Dictionary = withFallback({
         safety: "Tsaro",
         standards: "Ƙa'idoji",
         cancellations: "Soke ajiya",
+        restaurants: "Gidajen abinci",
       },
     },
     slogan: "Real Estate reimagined!",
@@ -1083,7 +1066,12 @@ export const ha: Dictionary = withFallback({
         moveIn: "Nawa zai ci ni in ƙaura?",
         generator: "Waɗanne wurare ne ke da janareta?",
         shortlets: "Nuna mini shortlet a Victoria Island",
+        stay: "Otal a Victoria Island wannan karshen mako",
+        table: "A ina zan iya yin ajiyar tebur a Ikoyi?",
       },
+      emptyTitle: "Yaya zan taimaka yau?",
+      emptyBody:
+        "Tambaya game da wurin haya ko saya, otal ko shortlet da za ka sauka, tebur da za ka ajiye, da abin da ƙaura ke ci da gaske.",
     },
     aiCard: {
       title: "Tambayi Vallo AI",
@@ -1419,6 +1407,14 @@ export const ha: Dictionary = withFallback({
       priceYearPlaceholder: "2,500,000",
       perNight: "kowane dare",
       perYear: "kowace shekara",
+      period: {
+        month: "kowane wata",
+        quarter: "kowane kwata",
+        year: "kowace shekara",
+        night: "kowane dare",
+        guest: "kowane mutum",
+        sale: "farashin tambaya",
+      },
       cleaningLabel: "Tsaftace",
       cleaningHint: "Na zabi. Ana ƙara shi sau ɗaya ga zaman, ba kowane dare ba.",
       cleaningHintSet: "{amount} da aka ƙara sau ɗaya ga zaman.",
@@ -2618,6 +2614,7 @@ export const ha: Dictionary = withFallback({
     expand: "Buɗe",
     collapse: "Rufe",
     openMenu: "Buɗe menu",
+    verifiedAccount: "Asusun da aka tantance",
     closeMenu: "Rufe menu",
     languageSwitcher: "Canza harshe",
     favourite: "Ajiye cikin abubuwan so",
@@ -2644,6 +2641,16 @@ export const ha: Dictionary = withFallback({
   },
 
   threads: {
+    context: {
+      rentalEnquiry: "Tambaya kan haya",
+      stayBooking: "Ajiyar zama",
+      tableBooking: "Ajiyar tebur",
+      directMessage: "Saƙo kai tsaye",
+      viewBooking: "Duba cikakken ajiyar",
+      viewTrips: "Duba tafiyeyinka",
+      viewProperty: "Duba gidan",
+      viewRestaurant: "Duba gidan cin abinci",
+    },
     rental: {
       waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
       waitingOnThem: "Ana jiran {name} ya amsa.",
@@ -3100,6 +3107,66 @@ export const ha: Dictionary = withFallback({
       insideVallo: "Komai a cikin Vallo",
       notFound: "Wannan jeri ba ya samuwa kuma.",
       notRental: "Gidan haya kawai ke da kuɗin shiga.",
+    },
+    /* Shafin ajiyar wuri (/bookings). Build 06, F3. */
+    bookings: {
+      statusLabel: "Matsayin ajiya",
+      upcoming: "Mai zuwa",
+      completed: "An kammala",
+      cancelled: "An soke",
+      emptyUpcomingTitle: "Ba a yi ajiya ba tukuna",
+      emptyUpcomingBody:
+        "Sa'ad da ka ajiye wuri, zai bayyana a nan da kwanakinka, jimlarka da duk abin da kake bukata a ranar.",
+      emptyCompletedTitle: "Babu masaukin da aka kammala tukuna",
+      emptyCompletedBody:
+        "Masauki na zuwa nan bayan ka fita, kuma a nan ne za ka iya barin sharhinka.",
+      emptyCancelledTitle: "Ba a soke komai ba",
+      emptyCancelledBody:
+        "Muna ajiye ajiyoyin da aka soke a nan don ka kasance da tarihi koyaushe, ko bayan kwanakin sun wuce.",
+      findPlace: "Nemi wuri",
+      payNow: "Biya yanzu",
+      cancel: "Soke",
+      leaveReview: "Bar sharhi",
+      yourReview: "Sharhinka",
+      viewDetails: "Duba bayanai",
+      total: "jimla",
+      arriving: "Mai zuwa: {name}",
+      unavailableTitle: "Ba mu iya loda masaukanka ba",
+      unavailableBody:
+        "Wani abu a gefenmu bai amsa ba yanzu. Babu abin da ya canza game da ajiyoyinka. Sake loda shafin za su dawo.",
+      signedOutTitle: "Shiga don ka ga masaukanka",
+      signedOutBody:
+        "Kowane masaukin da ka ajiye yana da alaƙa da asusunka, don haka naka kaɗai muke nuna maka. Ka shiga, duk abin da aka ajiye da wannan asusun zai bayyana a nan.",
+      signIn: "Shiga",
+      findStay: "Nemi wurin kwana",
+      inspectionsTitle: "Dubanka",
+      inspectionsBody: "Wanda ya saka gidan yana ganin matsayi ɗaya da kai.",
+      alsoOnTrips: "Masaukanka da teburanka, bisa tsarin lokacinsu, suna kan Tafiye-tafiye.",
+      openTrips: "Buɗe Tafiye-tafiye",
+      alsoOnBookings: "Hayoyi da duba suna kan Ajiya.",
+      openBookings: "Buɗe Ajiya",
+      detailMissingTitle: "Wannan ajiyar ba ta nan",
+      detailMissingBody:
+        "Wataƙila ta wani asusu ce, ko kuma an soke ta an cire ta. Buɗe ajiyoyinka don ka ga abin da ke nan yanzu.",
+      howTitle: "Yadda ajiya ke aiki",
+      step1Title: "Zaɓi kwanakinka",
+      step1Body: "Zaɓi ranar shiga da ranar fita a kalanda mai rai.",
+      step2Title: "Tabbatar ka biya",
+      step2Body: "Biyan kuɗi mai tsaro da naira. Ba a taɓa cajin ka da wuri ba.",
+      step3Title: "Ji daɗin masaukinka",
+      step3Body: "Bayanan shiga za su iso nan da kuma ta imel.",
+    },
+    /* Haya ba masauki ba ne: yana da ranar shiga da lokacin haya. Build 06, F3. */
+    tenancy: {
+      section: "Hayoyinka",
+      sectionLine: "Hayar da ka fara biya a Vallo.",
+      moveIn: "Shiga a {date}",
+      period: "Hayar {period}",
+      total: "Jimlar kuɗin shiga",
+      pay: "Biya haya",
+      due: "Ba a biya hayar ba tukuna",
+      settled: "An biya haya",
+      view: "Duba gidan",
     },
     stays: {
       title: "Masauki",

@@ -8,8 +8,9 @@ import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/T
 import { reservationLine } from "@/components/app/threads/ReservationFace";
 import type { Inspection } from "@/lib/inspections/types";
 import type { ThreadContext } from "@/lib/messages/live";
-import { ICON } from "@/components/app/Screen";
+import { EmptyState, ICON } from "@/components/app/Screen";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
+import { MediaFrame } from "@/components/app/MediaFrame";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
 import { bundlePhotos, isCaption } from "@/components/app/messages/bundle";
@@ -79,6 +80,17 @@ export type ThreadViewProps = {
   conversationId: string;
   meId: string | null;
   counterpartName: string;
+  /**
+   * Their number, when this reader is allowed to have it, and null otherwise.
+   *
+   * Resolved by `lib/security/counterpart-contact.ts`, not by this component:
+   * RLS decides membership first, a block in either direction withholds it,
+   * every failure withholds, and an absent or unreadable number comes back
+   * null. So null means DO NOT DRAW THE CONTROL, which is why the header
+   * renders nothing at all rather than a disabled button (rule 19: a control
+   * that cannot act is never drawn).
+   */
+  counterpartPhone?: string | null;
   /**
    * The counterpart's REAL verification state, from `agents.verified`.
    *
@@ -195,9 +207,20 @@ function Ticks({ read }: { read: boolean }) {
  * no tags at all, so a stay and a table label nobody, and neither does a
  * plain direct message.
  */
+/**
+ * The role tags the PROPERTY face carries and the stay face does not.
+ *
+ * "Vallo Agent" rather than "Agent" on the side doing the letting, which is
+ * the render's own wording and is the more useful of the two: it says the
+ * person answering is acting on this platform, which is exactly the fact a
+ * renter is weighing. The other side is the Tenant. A stay thread gets none
+ * of this: there is no tenancy in it and nobody is anybody's agent.
+ */
 function roleTags(context: ThreadContext | undefined, role: ThreadRole): { mine: string; theirs: string } | null {
   if (context?.kind !== "listing") return null;
-  return role === "host" ? { mine: "Agent", theirs: "Tenant" } : { mine: "Tenant", theirs: "Agent" };
+  return role === "host"
+    ? { mine: "Vallo Agent", theirs: "Tenant" }
+    : { mine: "Tenant", theirs: "Vallo Agent" };
 }
 
 export function ThreadView({
@@ -205,6 +228,7 @@ export function ThreadView({
   conversationId,
   meId,
   counterpartName,
+  counterpartPhone = null,
   counterpartVerified,
   listing,
   inspected: inspectedInitial,
@@ -478,15 +502,43 @@ export function ThreadView({
 
   /* The header's context line: what this conversation is FOR, in two words,
      under the name, the way the render writes "Hotel Booking". */
+  /* From the dictionary, not from three English literals. The same three
+     words are on the context card below, so they come from one place. In seed
+     mode there is no dictionary, and the English is the fallback rather than
+     the source. */
+  const words = threadCopy?.context;
   const contextLine =
     context?.kind === "reservation" && context.reservation && threadCopy
       ? reservationLine(context.reservation, locale, threadCopy.reservation)
       : context?.kind === "booking"
-        ? "Stay booking"
+        ? (words?.stayBooking ?? "Stay booking")
         : context?.kind === "listing" && listing
-          ? "Rental enquiry"
-          : "Direct message";
+          ? (words?.rentalEnquiry ?? "Rental enquiry")
+          : (words?.directMessage ?? "Direct message");
   const place = listing ? [listing.area, listing.city].filter(Boolean).join(", ") : "";
+  /*
+   * ONE COMPONENT, TWO FACES, AND THE RECORD CHOOSES.
+   *
+   * The founder sent both renders (docs/design/references/founder/) and the
+   * thing they disagree about is WHO THE HEADER IS ABOUT.
+   *
+   *   A STAY thread is a conversation with a venue. The header is the venue:
+   *   its mark, its name with the verified tick, "Stay booking" under it, and
+   *   the place. Everything about the stay itself lives in the booking card
+   *   in the thread.
+   *
+   *   A PROPERTY thread is a conversation about a flat. The header is the
+   *   FLAT: the property's frame, its title, its place, and the listing's own
+   *   emerald Verified pill beside the place. It carries no context line,
+   *   because the context card directly beneath it already says "Rental
+   *   enquiry" and the render does not say it twice. The counterpart is not
+   *   lost: their name and their role tag sit on every bubble they send,
+   *   which the stay face does not draw at all.
+   *
+   * So a stay thread can never show a Tenant tag and a property thread can
+   * never show a check-in date, and neither face has to be told which it is.
+   */
+  const propertyFace = context?.kind === "listing" && listing !== null;
   const tags = roleTags(context, role);
   const bundles = bundlePhotos(items);
   /*
@@ -512,29 +564,68 @@ export function ThreadView({
           <UiIcon name="arrow-left" size={ICON.inline} />
         </button>
         {/*
-          The counterpart's avatar, in the lit ring, carrying their verified
-          mark. The mark on the avatar is only ever about identity; the
-          inspection state tints the header row instead.
+          The mark in the lit ring. On a stay thread it is the counterpart and
+          it carries their verified state, because the person you are talking
+          to IS the venue. On a property thread it is the PROPERTY, drawn by
+          the one photographic frame the platform has, because the flat is
+          what the conversation is about and the person is named on every
+          bubble. The mark is only ever about identity; the inspection state
+          tints the header row instead.
         */}
         <span className="nf-thread__ring">
-          <VerifiedAvatar name={counterpartName} verified={counterpartVerified} size="md" />
+          {propertyFace && listing ? (
+            <MediaFrame hue={listing.hue} sizes="44px" />
+          ) : (
+            <VerifiedAvatar name={counterpartName} verified={counterpartVerified} size="md" />
+          )}
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="nf-thread__title">
-            <span className="min-w-0">{counterpartName}</span>
-            {counterpartVerified && (
+          <h1 className={`nf-thread__title${propertyFace ? " nf-thread__title--place" : ""}`}>
+            <span className="min-w-0">{propertyFace && listing ? listing.title : counterpartName}</span>
+            {!propertyFace && counterpartVerified && (
               <UiIcon name="verified" size={18} className="nf-thread__tick" label="Verified" />
             )}
           </h1>
-          <p className="nf-thread__context">{contextLine}</p>
+          {/* Said once. The context card under a property header already
+              carries "Rental enquiry", and the render does not repeat it. */}
+          {!propertyFace && <p className="nf-thread__context">{contextLine}</p>}
           {place && (
             <p className="nf-thread__place">
               <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-brand-secondary)]" />
-              <span className="truncate">{place}</span>
+              <span className={propertyFace ? "min-w-0" : "truncate"}>{place}</span>
+              {/* The LISTING's own badge, beside the place, exactly where the
+                  render puts it. It is a claim about the property and it is
+                  never drawn from anything but `listings.verified`. */}
+              {propertyFace && listing?.verified && (
+                <span className="nf-badge nf-badge--success shrink-0">
+                  <UiIcon name="verified" size={12} />
+                  Verified
+                </span>
+              )}
             </p>
           )}
         </div>
         <div className="nf-thread__actions">
+          {/*
+            THE CALL, TO THE LEFT OF THE KEBAB, exactly where
+            GOVERNING-chat-booking-card.png draws it.
+
+            A plain `tel:` anchor, which is the one call control a web app can
+            honestly offer: it hands the number to the device's own dialler
+            and nothing here records, rings or logs anything. It is drawn only
+            when the read gave a number, so a thread with a block in it, or a
+            counterpart who has not given one, simply has one control on the
+            right instead of two.
+          */}
+          {counterpartPhone && (
+            <a
+              href={`tel:${counterpartPhone}`}
+              aria-label={`Call ${counterpartName}`}
+              className="nf-icon-btn"
+            >
+              <UiIcon name="phone" size={ICON.inline} />
+            </a>
+          )}
           {/* One glass control on the right, the way the render keeps its
               right edge quiet. The property itself opens from the options
               sheet and from the context card, so nothing is lost here. */}
@@ -591,6 +682,37 @@ export function ThreadView({
           <UiIcon name="verified" size={16} />
           Keep every chat and payment inside Vallo
         </p>
+
+        {/*
+          * A THREAD NOBODY HAS SPOKEN IN DREW NOTHING AT ALL.
+          *
+          * `bundles.map` over an empty list renders nothing, so the first
+          * conversation anybody opens was the safety strip, a void, and the
+          * composer. That is the state every thread starts in: a person taps
+          * Message the agent from a listing and lands on a screen that looks
+          * broken at the exact moment they are deciding whether to trust us.
+          *
+          * The body says what this thread is FOR, taken from the context the
+          * page already resolved, so it is never the same sentence twice in a
+          * row. No action: the composer is directly beneath and a button here
+          * would be a second control for the one thing already in reach.
+          */}
+        {bundles.length === 0 && (
+          <EmptyState
+            icon="chat-duo"
+            title={`Say hello to ${counterpartName}`}
+            body={
+              context?.kind === "listing"
+                ? "Nothing has been said here yet. Ask what you need to know about the property, agree a time to see it, and keep the whole conversation in one place."
+                : context?.kind === "booking"
+                  ? "Nothing has been said here yet. Ask about your arrival, the room or anything the booking does not answer."
+                  : context?.kind === "reservation"
+                    ? "Nothing has been said here yet. Confirm the time, the size of the party, and anything the kitchen should know."
+                    : "Nothing has been said here yet. Whatever you write stays between the two of you, and the whole conversation is kept here."
+            }
+            data-testid="thread-empty"
+          />
+        )}
 
         {bundles.map(({ lead: m, items: run }, index) => {
           const share = m.card ? null : parseShare(m.body);

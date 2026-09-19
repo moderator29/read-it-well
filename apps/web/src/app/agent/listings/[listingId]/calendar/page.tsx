@@ -86,7 +86,7 @@ export default async function Page({
       <div className="mb-lg">
         <Link
           href="/agent/listings"
-          className="text-[0.8125rem] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+          className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
         >
           My listings
         </Link>

@@ -164,7 +164,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
     <section>
       <div className="mb-sm flex flex-wrap items-center gap-sm">
         <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">Occupations</h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button
@@ -203,8 +203,14 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
                 <span className="block text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
                   {row.name}
                 </span>
+                {/* The code and the sort number are both schema, and both
+                    genuinely matter here (the code is the stored value and
+                    cannot be changed; the number decides where the row sits
+                    in a picker). So they are named rather than run together
+                    as "Built environment · quantity_surveyor · 20", which
+                    read as three facts of the same kind and was none. */}
                 <span className="nf-numeric mt-3xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                  {row.category} &middot; {row.code} &middot; {row.sortOrder}
+                  {row.category} &middot; code {row.code} &middot; order {row.sortOrder}
                 </span>
               </span>
               <span className="shrink-0 text-[var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
@@ -339,7 +345,7 @@ export function LocalGovernmentEditor({
         <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Local governments
         </h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button

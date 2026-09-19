@@ -62,6 +62,11 @@ const DATES_TAKEN_MESSAGE = "Those dates were just taken. Pick different dates."
  * check back soon" promised a date for a property that does not exist. An
  * example listing never opens, and "check back soon" is the banned "coming
  * soon" in other words. See F2-003.
+ *
+ * One sentence for both kinds of example, because to a guest they are the
+ * same thing: a seed catalogue entry that has no database row at all, and a
+ * `listings` row carrying `is_demo`. Both are shown in search and neither can
+ * ever be stayed in.
  */
 const SEED_LISTING_MESSAGE =
   "This is an example listing, so there are no dates to book. Open a real listing from search to book a stay.";
@@ -177,12 +182,21 @@ export async function reserve(
   if (UUID_RE.test(input.listingId)) {
     const { data: row, error } = await session.supabase
       .from("listings")
-      .select("id, title, agent_id, listing_intent, rate_minor, rate_period, rent_amount_minor")
+      .select(
+        "id, title, agent_id, listing_intent, rate_minor, rate_period, rent_amount_minor, is_demo",
+      )
       .eq("id", input.listingId)
       .maybeSingle();
     if (error) return fail(GENERIC_RESERVE_MESSAGE);
     if (row) {
-      /* Three refusals, in the order somebody would meet them.
+      /* Four refusals, in the order somebody would meet them.
+
+         An example is refused first, because it is the only one of the four
+         that is never the guest's to fix and never becomes bookable: the
+         trigger `bookings_never_against_a_demo_listing` refuses the insert
+         underneath and always will, so this is purely the sentence, and
+         without it the guest was told "something went wrong on our side"
+         about a property that was never real.
 
          A property for sale is not reservable at all: there are no nights to
          hold and no arrival date to hold them for. A tenancy is not reservable
@@ -191,6 +205,7 @@ export async function reserve(
          test is whether the listing carries a nightly rate at all: a tenancy
          states rent_amount_minor and leaves rate_minor at zero, and a shortlet
          does the reverse. */
+      if (row.is_demo) return fail(SEED_LISTING_MESSAGE);
       if (row.listing_intent === "sale") return fail(SALE_MESSAGE);
       if (row.rate_minor <= 0 || row.rate_period === null) return fail(RENTAL_MESSAGE);
       /* Per head, not per night. A restaurant table is reserved through
@@ -287,6 +302,13 @@ export async function reserve(
   if (insertError || !created) {
     if (insertError?.code === "23P01") return fail(DATES_TAKEN_MESSAGE);
     if (insertError?.code === "23503") return fail(UNKNOWN_LISTING_MESSAGE);
+    /* The demo trigger raises 23514 with its own words. It is read before
+       checkConstraintMessage, which speaks only for the eleven CHECK
+       constraints on the table and would otherwise blame our arithmetic for a
+       listing that is an example. */
+    if (insertError?.code === "23514" && /example/i.test(insertError.message)) {
+      return fail(SEED_LISTING_MESSAGE);
+    }
     if (insertError?.code === "23514") return fail(checkConstraintMessage(insertError.message));
     /* Probed against live Postgres: a check_out on or before check_in raises
        22000 from the `during` daterange generated column before

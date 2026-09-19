@@ -14,6 +14,7 @@ import {
 } from "../_components/QueueFilters";
 import { Constants } from "@/lib/supabase/database.types";
 import { PERIOD_SUFFIX, SALE_STATUS_LABEL, TENURE_LABEL } from "@/lib/listings/pricing";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -150,17 +151,21 @@ function ListingCard({
           <ul className="flex w-max gap-xs">
             {listing.photos.map((photo, index) => (
               <li key={photo}>
-                {/* Plain img: these are reviewer thumbnails from the platform
-                    storage bucket, not optimised marketing imagery, and a
-                    signed URL cannot go through the optimiser at all. The
-                    reasoning was written here already; the directive makes it
-                    machine-readable so the rule stops reporting a decision
-                    somebody has taken. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                {/* These come from `photoUrl` in `lib/admin/queries.ts`,
+                    which returns the bucket's PUBLIC url, not a signed one:
+                    the note that used to sit here said a signed URL cannot go
+                    through the optimiser, which is true and was about a
+                    different code path. A reviewer opening a listing was
+                    pulling every full size upload on it down a strip of 128px
+                    thumbnails. `RemoteImage` keeps the signed case safe by
+                    falling back rather than throwing. */}
+                <RemoteImage
                   src={photo}
                   alt={fill(copy.photoAlt, { title: listing.title, number: index + 1 })}
                   loading="lazy"
+                  width={128}
+                  height={96}
+                  sizes="128px"
                   className="h-24 w-32 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] object-cover"
                 />
               </li>

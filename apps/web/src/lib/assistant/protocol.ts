@@ -15,7 +15,8 @@ export type AssistantListingItem = {
   /** Display string, e.g. "NGN 185,000 / night". Formatted server-side. */
   price: string;
   rating: number;
-  /** In-app link, always "/listing/<id>". */
+  /** Where this row opens, per the SIDE LAW: "/listing/<id>", "/stay/<id>" or
+      "/restaurant/<id>", built by the route and never rebuilt by a client. */
   href: string;
   /** Lead photo URL for the card thumbnail. Not sent to the model. */
   photo?: string;

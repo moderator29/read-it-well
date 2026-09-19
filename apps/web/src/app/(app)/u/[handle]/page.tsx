@@ -19,6 +19,7 @@ import {
 } from "@/lib/social/profile-tabs-schema";
 import { AroundFab } from "@/components/social/AroundFab";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
+import { siteUrl } from "@/lib/site";
 import {
   getProfileActivity,
   getProfileFeed,
@@ -68,13 +69,52 @@ import { isSocialEnabled } from "@/lib/social/flag";
  * will never render.
  */
 
+/**
+ * THE SHARE CARD FOR A PROFILE (R3 finding F-10).
+ *
+ * The product tells a person their address is `/u/<handle>` and then published
+ * that address with no card at all, so the link they were invited to share
+ * unfurled as the generic site card. It now carries the name, the bio and the
+ * avatar.
+ *
+ * `loadPublicProfile` is the same read the page makes, and it is the read that
+ * enforces the rules: a held bio comes back empty to everybody but its owner,
+ * and a blocked or missing handle comes back as a state that is not `found`,
+ * in which case the card says nothing about whether the handle is taken.
+ */
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ handle: string }>;
 }): Promise<Metadata> {
-  const { handle } = await params;
-  return { title: `@${normaliseHandle(handle)}` };
+  const { handle: raw } = await params;
+  const handle = normaliseHandle(raw);
+  const title = `@${handle}`;
+  const view = await loadPublicProfile(raw);
+  if (view.state !== "found") return { title };
+
+  const name = view.profile.displayLabel || title;
+  const description = view.profile.bio || `${name} on Vallo.`;
+  const url = `${siteUrl().replace(/\/+$/, "")}/u/${handle}`;
+  const avatar = view.profile.avatarUrl || undefined;
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "profile",
+      title: `${name} (${title})`,
+      description,
+      url,
+      ...(avatar ? { images: [avatar] } : {}),
+    },
+    twitter: {
+      card: "summary",
+      title: `${name} (${title})`,
+      description,
+      ...(avatar ? { images: [avatar] } : {}),
+    },
+  };
 }
 
 function tabFrom(raw: string | string[] | undefined, allowed: TabKey[]): TabKey | undefined {

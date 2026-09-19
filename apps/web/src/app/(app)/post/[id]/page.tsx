@@ -7,6 +7,7 @@ import { AroundFab } from "@/components/social/AroundFab";
 import { ThreadView } from "./ThreadView";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
+import { siteUrl } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +22,25 @@ export async function generateMetadata({
   const who =
     thread.root.author?.displayLabel ??
     (thread.root.author?.handle ? `@${thread.root.author.handle}` : "Vallo");
+  const title = `${who} on Around`;
+  const description = thread.root.body?.slice(0, 160) ?? `A post on Around, on Vallo.`;
+  const url = `${siteUrl().replace(/\/+$/, "")}/post/${id}`;
+  /*
+   * THE SHARE CARD (R3 finding F-10), AND WHY IT CARRIES NO POST PHOTOGRAPH.
+   *
+   * A post's media lives in the private `social-media` bucket and reaches the
+   * page as a SIGNED url that expires. A signed url in an og:image is a card
+   * that works for an hour and then shows a broken image for ever, which is
+   * worse than the site card, so the root `opengraph-image.png` is left to do
+   * this job. The author's avatar is not used either: on a text post it would
+   * read as the subject of the link rather than as its author.
+   */
   return {
-    title: `${who} on Around`,
-    description: thread.root.body?.slice(0, 160) ?? undefined,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "article", title, description, url },
+    twitter: { card: "summary", title, description },
   };
 }
 
