@@ -69,29 +69,54 @@ export function lagosInstant(date: string, time: string): Date | null {
   return Number.isNaN(at.getTime()) ? null : at;
 }
 
-export const reserveSchema = z.object({
-  listingId: z.string().uuid({ message: "That restaurant could not be identified." }),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Pick a date." }),
-  time: z
-    .string()
-    .regex(/^\d{2}:\d{2}$/, { message: "Pick a time." }),
-  partySize: z.coerce
-    .number()
-    .int({ message: "Guests must be a whole number." })
-    .min(1, { message: "A table is for at least one person." })
-    .max(MAX_PARTY, {
-      message: `For more than ${MAX_PARTY} people, message the restaurant instead.`,
-    }),
-  note: z
-    .string()
-    .max(500, { message: "Keep the note under 500 characters." })
-    .optional()
-    .or(z.literal("")),
-});
+const RESTAURANT_ID_MESSAGE = "That restaurant could not be identified.";
+
+/** A uuid, or the empty string a hidden input sends when the field is not in play. */
+const optionalId = z.string().uuid({ message: RESTAURANT_ID_MESSAGE }).or(z.literal("")).optional();
+
+/**
+ * A table is held at EXACTLY ONE venue: a restaurant listing (the original
+ * path) or a first-party business (M7). The database says the same with
+ * `reservations_exactly_one_target_chk`; this is the sentence. An empty
+ * string counts as absent so a form may carry both hidden inputs and fill
+ * one.
+ */
+export const reserveSchema = z
+  .object({
+    listingId: optionalId,
+    businessId: optionalId,
+    date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Pick a date." }),
+    time: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/, { message: "Pick a time." }),
+    partySize: z.coerce
+      .number()
+      .int({ message: "Guests must be a whole number." })
+      .min(1, { message: "A table is for at least one person." })
+      .max(MAX_PARTY, {
+        message: `For more than ${MAX_PARTY} people, message the restaurant instead.`,
+      }),
+    note: z
+      .string()
+      .max(500, { message: "Keep the note under 500 characters." })
+      .optional()
+      .or(z.literal("")),
+  })
+  .refine((value) => (value.listingId ? 1 : 0) + (value.businessId ? 1 : 0) === 1, {
+    message: RESTAURANT_ID_MESSAGE,
+    path: ["listingId"],
+  });
 
 export type ReserveInput = z.infer<typeof reserveSchema>;
+
+/** The one venue a validated reserve input names. */
+export function reserveTarget(input: ReserveInput): { kind: "listing" | "business"; id: string } {
+  return input.businessId
+    ? { kind: "business", id: input.businessId }
+    : { kind: "listing", id: input.listingId ?? "" };
+}
 
 export const respondSchema = z.object({
   reservationId: z.string().uuid(),

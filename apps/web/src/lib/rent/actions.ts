@@ -31,7 +31,7 @@ import { payWithSavedCard } from "../bookings/checkout";
 import { isFeatureEnabled } from "../flags";
 import type { ChargeSavedCardOutcome } from "../payments/charge-saved-card";
 import { getAdminClient } from "../wallet/ledger";
-import { readOpenOutcome, rentClient } from "./db";
+import { readOpenOutcome } from "./db";
 import { lagosToday, rentPaymentIdSchema, startRentPaymentSchema, whyNotMoveIn } from "./schema";
 
 const PAUSED_MESSAGE = "Payments are paused for maintenance. Please try again in a little while.";
@@ -81,7 +81,7 @@ export async function startRentPayment(input: {
 
   let outcome;
   try {
-    const { data, error } = await rentClient(admin).rpc("open_rent_charge", {
+    const { data, error } = await admin.rpc("open_rent_charge", {
       p_tenant: session.user.id,
       p_inspection: parsed.data.inspectionId,
       p_move_in: moveIn,
@@ -163,7 +163,7 @@ export async function payRentWithSavedCard(input: {
   const parsed = validate(rentPaymentIdSchema, { inspectionId: input.inspectionId });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { data: charge, error } = await rentClient(session.supabase)
+  const { data: charge, error } = await session.supabase
     .from("rent_payments")
     .select("booking_id, tenant_id")
     .eq("inspection_id", parsed.data.inspectionId)

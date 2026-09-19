@@ -6,7 +6,6 @@ import { HOLD_WINDOW_HOURS } from "../bookings/checkout-view";
 import type { InspectionState } from "../inspections/types";
 import { isPaystackConfigured } from "../payments/paystack";
 import type { Database } from "../supabase/database.types";
-import { rentClient } from "./db";
 import { ledgerFromCharge, ledgerFromListing, type RentLedger } from "./ledger";
 import { lagosToday } from "./schema";
 
@@ -113,8 +112,7 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
       return { state: "not-accepted", inspectionState, listingId: listing.id, title };
     }
 
-    const rent = rentClient(session.supabase);
-    const { data: charge } = await rent
+    const { data: charge } = await session.supabase
       .from("rent_payments")
       .select("*")
       .eq("inspection_id", inspectionId)
@@ -224,8 +222,7 @@ export type RentChargeSummary = {
 export async function getMyRentCharges(locale: Locale): Promise<RentChargeSummary[] | null | "unavailable"> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
-  const rent = rentClient(session.supabase);
-  const { data, error } = await rent
+  const { data, error } = await session.supabase
     .from("rent_payments")
     .select("*")
     .order("created_at", { ascending: false })

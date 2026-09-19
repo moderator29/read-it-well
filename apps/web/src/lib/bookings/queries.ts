@@ -21,22 +21,6 @@ import type { Database } from "../supabase/database.types";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * The one column this module reads off `rent_payments`, typed by hand until
- * the lead regenerates `database.types.ts` for the b3 migration. The same
- * device `lib/rent/db.ts` uses; the cast is confined to this alias.
- */
-type RentChargeReader = {
-  from: (table: "rent_payments") => {
-    select: (columns: "booking_id") => {
-      in: (
-        column: "booking_id",
-        values: string[],
-      ) => PromiseLike<{ data: { booking_id: string | null }[] | null; error: unknown }>;
-    };
-  };
-};
-
-/**
  * Dates a guest cannot pick for this listing: booked or blocked nights from
  * today forward. Empty when Supabase is not configured, when the id is a
  * catalogue entry rather than a platform listing, or on any read failure.
@@ -163,7 +147,7 @@ export async function getMyBookings(
    */
   const rentBookingIds = new Set<string>();
   if (rows.length > 0) {
-    const { data: charges } = await (session.supabase as unknown as RentChargeReader)
+    const { data: charges } = await session.supabase
       .from("rent_payments")
       .select("booking_id")
       .in(

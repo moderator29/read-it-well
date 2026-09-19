@@ -1,7 +1,10 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { resolveSession } from "../actions/session";
-import { reservationsClient, type ReservationStatus } from "./db";
+import type { Database } from "../supabase/database.types";
+import type { ReservationStatus } from "./db";
 
 /**
  * Read side of restaurant reservations.
@@ -61,7 +64,7 @@ type Venue = { title: string; location: string };
  * taken down since) falls back to a plain word rather than leaking.
  */
 async function readVenues(
-  supabase: ReturnType<typeof reservationsClient>,
+  supabase: SupabaseClient<Database>,
   listingIds: string[],
   businessIds: string[],
 ): Promise<{ listings: Map<string, Venue>; businesses: Map<string, Venue> }> {
@@ -133,7 +136,7 @@ function toView(
 export async function getMyReservations(now: Date = new Date()): Promise<ReservationsRead<ReservationView>> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
-  const supabase = reservationsClient(session.supabase);
+  const supabase = session.supabase;
 
   const { data: rows, error } = await supabase
     .from("reservations")
@@ -163,7 +166,7 @@ export async function getHostReservations(
 ): Promise<ReservationsRead<HostReservationView>> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
-  const supabase = reservationsClient(session.supabase);
+  const supabase = session.supabase;
 
   const { data: rows, error } = await supabase
     .from("reservations")

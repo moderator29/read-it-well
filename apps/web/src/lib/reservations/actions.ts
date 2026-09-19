@@ -5,8 +5,8 @@ import { fail, formDataToObject, ok, validate, type ActionResult } from "../acti
 import { resolveSession } from "../actions/session";
 import { sendMessage, startReservationThread } from "../messages/actions";
 import { consume, subjectForUser } from "../security/rate-limit";
-import { reservationsClient, type ReservationStatus } from "./db";
-import { lagosInstant, reserveSchema, respondSchema, whyNotBookable } from "./schema";
+import type { ReservationStatus } from "./db";
+import { lagosInstant, reserveSchema, reserveTarget, respondSchema, whyNotBookable } from "./schema";
 
 /**
  * Asking a restaurant to hold a table, and the restaurant answering.
@@ -30,8 +30,10 @@ import { lagosInstant, reserveSchema, respondSchema, whyNotBookable } from "./sc
  * THE THREAD. A reservation is a thing two people talk about ("we are running
  * twenty minutes late"), so the moment one exists its thread is opened
  * through the messaging module's own `startReservationThread` (M10 context,
- * party check in the database) and stamped back on the row as
- * `conversation_id`. The guest's request, the venue's answer and a
+ * party check in the database, the host resolved through the listing's agent
+ * or the business's owner) and stamped back on the row as `conversation_id`.
+ * A table at a first-party business (M7, `business_id` set, `listing_id`
+ * null) takes the same path as a table at a restaurant listing. The guest's request, the venue's answer and a
  * cancellation are then posted INTO that thread by whoever did them, through
  * `sendMessage`, in their own voice: `messages.sender_id` stays NOT NULL and
  * there are no system rows. The thread is a courtesy and the reservation is
@@ -81,13 +83,10 @@ function party(size: number): string {
  * already been notified, so a thread that will not open is reported as null,
  * never as a failure of the thing the person actually did.
  *
- * SEAM (BC): a reservation with `business_id` set resolves no host today,
- * because `startContextThread` in lib/messages/actions.ts walks
- * reservations through listings(agent_id, agents(user_id)) only; the b3
- * migration's party check already admits businesses.owner_id. Once BC's
- * `startContextThread` resolves the host through `businesses.owner_id` for
- * the business spine, this function needs no change: the same call opens
- * the thread for both kinds and the stamp below lands on either row.
+ * One call for both spines: `startContextThread` resolves the host through
+ * `listings.agent_id` for a listing reservation and through
+ * `businesses.owner_id` for a business one, which is the pair the b3 party
+ * check admits, so the stamp lands on either kind of row.
  */
 async function speakInThread(
   reservationId: string,
@@ -127,17 +126,20 @@ export async function reserveTable(
   const problem = whyNotBookable(at);
   if (problem) return fail(problem, { time: problem });
 
-  const db = reservationsClient(session.supabase);
+  const db = session.supabase;
+  const target = reserveTarget(parsed.data);
 
   // The example check, before the limiter and before the write, so a person
   // reading the catalogue is told the truth without spending a token or a
   // round trip. The trigger refuses again underneath; this is the sentence.
-  const { data: listing } = await db
-    .from("listings")
-    .select("id, is_demo")
-    .eq("id", parsed.data.listingId)
-    .maybeSingle();
-  if (listing?.is_demo) return fail(EXAMPLE_RESTAURANT_MESSAGE);
+  // A business is readable to a guest only while PUBLISHED, which is also the
+  // only state the trigger lets a table be held in, so a row that does not
+  // come back is left to the trigger's own refusal.
+  const { data: venue } =
+    target.kind === "business"
+      ? await db.from("businesses").select("id, is_demo").eq("id", target.id).maybeSingle()
+      : await db.from("listings").select("id, is_demo").eq("id", target.id).maybeSingle();
+  if (venue?.is_demo) return fail(EXAMPLE_RESTAURANT_MESSAGE);
 
   const verdict = await consume({
     bucket: "reservation_create",
@@ -153,7 +155,8 @@ export async function reserveTable(
   const { data, error } = await db
     .from("reservations")
     .insert({
-      listing_id: parsed.data.listingId,
+      // Exactly one of the two, as reservations_exactly_one_target_chk says.
+      ...(target.kind === "business" ? { business_id: target.id } : { listing_id: target.id }),
       // Pinned by the insert policy as well. Sent explicitly because the column
       // is NOT NULL and the policy checks equality rather than defaulting it.
       guest_id: session.user.id,
@@ -193,7 +196,7 @@ export async function reserveTable(
     await db.from("reservations").update({ conversation_id: conversationId }).eq("id", data.id);
   }
 
-  revalidatePath(`/listing/${parsed.data.listingId}`);
+  revalidatePath(target.kind === "business" ? `/restaurant/${target.id}` : `/listing/${target.id}`);
   revalidatePath("/bookings");
   revalidatePath("/trips");
   return ok({ reservationId: data.id, status: "PENDING", conversationId });
@@ -220,7 +223,7 @@ export async function respondToReservation(
   const parsed = validate(respondSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const db = reservationsClient(session.supabase);
+  const db = session.supabase;
   const { data, error } = await db
     .from("reservations")
     .update({
@@ -286,7 +289,7 @@ export async function cancelReservation(
     );
   }
 
-  const db = reservationsClient(session.supabase);
+  const db = session.supabase;
   const cancelled: ReservationStatus = "CANCELLED";
   const { data, error } = await db
     .from("reservations")
