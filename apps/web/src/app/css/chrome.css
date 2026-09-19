@@ -255,20 +255,30 @@
      * best of anything in the product: there are no corners to hide the
      * catches, so the light runs the curve and leaves. Same ring, same rungs.
      */
-    background:
-      linear-gradient(
-          color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent),
-          color-mix(in oklab, var(--nf-surface-canvas) 90%, transparent)
-        )
-        padding-box,
-      conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
-        border-box;
-    border: var(--nf-border-width) solid transparent;
+    /*
+     * THE CAPSULE CARRIES THE BRAND, on the founder's ruling of 19 September:
+     * "change the bottom nav container capsule to be exactly like our image
+     * thing branding color and the exact glass blue grid color branding".
+     *
+     * It was a charcoal capsule: 90 per cent raw canvas behind a neutral
+     * stride ring, which on a deep navy screen reads as a grey bar. The fill
+     * now carries the brand wash inside the canvas, so the material itself is
+     * blue glass rather than tinted smoke, and the ring is the lit edge every
+     * other container in the product wears, with the capsule's own lift kept
+     * underneath it. The strides are gone from the border: a conic sweep and
+     * a full brand ring are two different lights on one outline, and the
+     * render draws the second.
+     */
+    background: linear-gradient(
+      color-mix(in oklab, var(--nf-brand-primary) 10%, color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent)),
+      color-mix(in oklab, var(--nf-brand-primary) 10%, color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent))
+    );
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
     border-radius: var(--nf-radius-pill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-strong),
+      var(--nf-glow-edge),
       inset 0 -1px 0 var(--nf-glass-floor),
       var(--nf-glass-shadow-lifted);
   }
@@ -310,8 +320,19 @@
     );
     translate: calc(var(--nf-tab-i) * (100% + var(--nf-tab-gap)));
     border-radius: var(--nf-radius-pill);
-    background: color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    /*
+     * The mark of "you are here" is blue now, not a grey lift. The founder's
+     * shipped screenshot shows the active tab on a 9 per cent white plate
+     * that barely separates from the capsule; the reference draws it as the
+     * one brand-lit object on the bar. Brand wash, a soft brand ring and a
+     * short bloom: enough to be unmistakable, quiet enough that the bar is
+     * still not the loudest thing on the screen.
+     */
+    background: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    box-shadow:
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 0 1px var(--nf-brand-edge-soft),
+      0 0 14px -2px var(--nf-glow-2);
     transition: translate var(--nf-duration-base) var(--nf-ease-entrance);
   }
   /*

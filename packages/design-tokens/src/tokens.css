@@ -1508,6 +1508,25 @@
   --nf-bloom-card:
     0 8px 28px -10px var(--nf-glow-3),
     0 18px 56px -12px var(--nf-glow-1);
+  /*
+   * THE RESTING LIT EDGE, the rung between the soft hairline and
+   * `--nf-glow-edge-strong`.
+   *
+   * The founder read the shipped product beside the reference renders and
+   * said our containers are dull: in every render a card, a tile and a bar
+   * carry a bright blue outline with light coming off it, and ours carried a
+   * hairline and nothing else. `--nf-glow-edge-strong` is that composition at
+   * the strength of the one object a screen is built around, which is too
+   * much for a grid of eight. This is the same three parts, quieter: the
+   * lit top rim, a full brand ring so the outline reads all the way round,
+   * and one short bloom so the object sits in light rather than on a page.
+   * A resting card wears this; the focused or primary one still steps up.
+   */
+  --nf-glow-edge:
+    inset 0 1px 0 var(--nf-rim-lit-ink),
+    0 0 0 1px var(--nf-brand-edge),
+    0 0 16px -2px var(--nf-glow-2),
+    0 0 44px -14px var(--nf-glow-1);
   --nf-glow-edge-strong:
     inset 0 1px 0 var(--nf-rim-lit-ink),
     0 0 0 1px var(--nf-brand-edge-strong),
@@ -3077,6 +3096,13 @@
   --nf-bloom-card:
     0 1px 2px rgb(18 21 26 / 0.05),
     0 8px 22px -8px var(--nf-glow-2);
+  /* The resting lit edge on paper: the outline holds at full strength,
+     because an outline that fades loses the object, and the bloom behind it
+     becomes the short brand-tinted shadow daylight allows. */
+  --nf-glow-edge:
+    inset 0 1px 0 var(--nf-rim-lit-ink),
+    0 0 0 1px var(--nf-brand-edge),
+    0 4px 12px -6px var(--nf-glow-2);
   --nf-glow-edge-strong:
     inset 0 1px 0 var(--nf-rim-lit-ink),
     0 0 0 1px var(--nf-brand-edge-strong),

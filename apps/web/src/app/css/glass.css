@@ -145,12 +145,21 @@
    * The settled values are 88% and the strong blur, between the two that were
    * there. See the note on the tint in `--chrome` below.
    */
+  /*
+   * The base rung's outline is brand-tinted, not neutral white.
+   *
+   * `--nf-glass-border` is 11 per cent white at night, which on the deep navy
+   * canvas reads as grey: the founder's word for the whole product beside the
+   * renders was "dull", and this hairline is on nearly every container in it.
+   * The soft brand edge is the same weight of line in the blue family the
+   * renders actually draw. The modifiers below still set their own.
+   */
   .nf-glass,
   .nf-site-bar {
     position: relative;
     isolation: isolate;
     background: var(--nf-glass-fill);
-    border: 1px solid var(--nf-glass-border);
+    border: 1px solid var(--nf-brand-edge-soft);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     box-shadow:
@@ -283,6 +292,18 @@
    * Prefix first, standard property last, as the long note above `.nf-glass`
    * requires.
    */
+  /*
+   * THE CARD WEARS THE LIT EDGE NOW.
+   *
+   * The founder photographed the shipped product beside the reference renders
+   * and said our containers are dull: in the renders every card is ringed in
+   * bright blue with light coming off the ring, and ours carried a 50 per cent
+   * hairline with the bloom sitting so far behind it (-10px and -12px spreads)
+   * that nothing showed at the edge. `--nf-glow-edge` is that ring and its
+   * near bloom, composed once in the token layer; the card's own float
+   * (`--nf-bloom-card`) stays underneath it, so the object is both lit and
+   * lifted rather than one or the other.
+   */
   .nf-glass--card {
     background:
       linear-gradient(180deg, var(--nf-wash-2) 0%, transparent 46%),
@@ -290,7 +311,7 @@
     border-color: var(--nf-brand-edge);
     border-radius: var(--nf-radius-xl);
     box-shadow:
-      var(--nf-rim-lit),
+      var(--nf-glow-edge),
       inset 0 -1px 0 var(--nf-glass-floor),
       var(--nf-bloom-card);
   }
@@ -298,12 +319,17 @@
     background:
       linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
       var(--nf-glass-card-fill);
-    border-color: var(--nf-brand-edge-soft);
+    /* The tile is ringed too, at the card's own edge strength: the reference
+       home and landing grids draw their market tiles as small lit objects,
+       not as flat plates, and a soft hairline at this size disappeared
+       altogether. It keeps the thin rung's blur and shadow, so eight of them
+       in a grid are eight outlines and not eight lamps. */
+    border-color: var(--nf-brand-edge);
     border-radius: var(--nf-radius-lg);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      var(--nf-rim-lit),
+      var(--nf-glow-edge),
       inset 0 -1px 0 var(--nf-glass-floor),
       var(--nf-glass-shadow-thin);
   }
