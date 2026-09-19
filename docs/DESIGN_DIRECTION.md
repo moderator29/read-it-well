@@ -69,6 +69,23 @@ lists the off-brand details that must be translated rather than copied.
    `apps/web/scripts/check-css-tokens.mjs` rule 10 fails the build on a pill
    radius on a control, in the stylesheets and in TSX, so drift cannot
    reopen it either.
+
+   **AND THE PART A NAME CHECK CANNOT SEE, WHICH IS WHY THIS LAW HAS BEEN
+   BROKEN TWICE WITH EVERY GREP PASSING: A SHAPE RULING IS ABOUT THE RATIO,
+   NEVER ABOUT THE TOKEN NAME.** The same `--nf-radius-*` value is a rounded
+   rectangle on a tall element and a capsule on a short one. We shipped
+   `--nf-radius-sm` at 14px on a 28px chip, which is a capsule, and
+   `--nf-radius-2xl` at 32px on a 66px dock, which draws semicircular ends,
+   and neither contains the word pill, so rule 10 passed both. THE TEST IS
+   THE DRAWN RADIUS AS A FRACTION OF THE DRAWN SHORT SIDE: at or above 0.5
+   the element is a capsule however it was spelled, and anything above about
+   0.35 is looked at on the running page rather than in the file.
+   `scripts/design/compare-surface.mjs --shape-sweep` walks every control on
+   a route in a real browser and reports that ratio, which is the only check
+   that can see this. A source grep proves what was written; it never proves
+   what the browser drew. The same lesson, in the same week, as the unlayered
+   `*` border reset that read perfectly in the file and resolved to white 8%
+   in the browser.
 5. **Areas with no reference inherit the register.** Every page the images
    do not cover (edit profile, notifications, verification, host wizard,
    agent console, stories, help, checkout and everything else) is designed
