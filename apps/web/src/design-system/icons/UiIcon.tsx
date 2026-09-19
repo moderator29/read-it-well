@@ -143,9 +143,23 @@ export type UiIconName =
   | "apple"
   | "google-play"
   | "x-social"
-  | "telegram";
+  | "telegram"
+  /*
+   * The handset. The render draws a call control in a thread header beside
+   * the kebab, and the set had no glyph for it: `BrandIcon` carries `headset`
+   * and `phone-tile`, but those are tier-two glass objects and a header icon
+   * button is the stroked tier, so the control could not be drawn at all.
+   * One stroked handset, in the house style, at the same weight as its
+   * neighbours.
+   */
+  | "phone";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
+  /* The handset: the earpiece, the sweep and the mouthpiece as one stroke,
+     which is the shape every phone control has used since the rotary set. */
+  phone: (
+    <path d="M6.6 3.5h3l1.5 3.7-1.9 1.4a11.6 11.6 0 0 0 5.2 5.2l1.4-1.9 3.7 1.5v3a2 2 0 0 1-2.2 2A16.9 16.9 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z" />
+  ),
   // The Apple mark: the body with the bite, and the leaf above it.
   apple: (
     <g stroke="none" fill="currentColor">

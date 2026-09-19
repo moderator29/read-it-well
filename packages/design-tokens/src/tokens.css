@@ -2794,7 +2794,15 @@
    * is what a person actually recognises when they see it beside the logo. The
    * glass has exactly as much to be glass against and the page stops looking
    * perforated. */
-  --nf-icon-ground: color-mix(in oklab, var(--nf-ink-950) 86%, var(--nf-brand-primary));
+  /*
+   * THE CHIP WAS READING AS BLACK ON PAPER, which is the founder's word for
+   * it and the right word: 86 per cent of the darkest ink with a trace of
+   * brand in it is near enough to black that the blue never shows, so on a
+   * white page every glass object sat on a hard black square. The reference
+   * tiles are deep NAVY with the brand visible in them, so the mix turns
+   * round: the brand leads and the ink deepens it.
+   */
+  --nf-icon-ground: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-ink-950));
 
   /*
    * The artwork ground, in daylight. See the long note beside the night value.

@@ -992,19 +992,27 @@
   }
 
   /* The glass circle every content object sits in from here down. */
+  /*
+   * THE ORB IS LIT NOW, and roomier.
+   *
+   * It was a flat dark disc behind the object: a soft brand hairline and
+   * `--nf-glow-1` at sixteen per cent, which at 3rem is invisible. Beside the
+   * reference, where each feature object sits on a plate that is plainly
+   * ringed in blue with light coming off it, ours read as a hole. It takes
+   * the same lit edge as every card and control, and the padding goes up so
+   * the object stands off the ring rather than touching it.
+   */
   .nf-landing-orb {
     display: inline-grid;
     place-items: center;
     flex: none;
     width: 3rem;
     height: 3rem;
-    padding: 0.4rem;
+    padding: 0.55rem;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-glass-fill);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
+    border: 1px solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
   }
   .nf-landing-orb--lg {
     width: 4rem;
