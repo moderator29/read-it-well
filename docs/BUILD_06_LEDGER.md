@@ -1963,3 +1963,226 @@ with border `#002051`; the invest band fill `#000E32`.
 settled by fifteen. That is the same tight, contained register as the primary
 button's twenty pixels, and it is what the founder means by glass rather than
 neon.
+
+---
+
+## 14. A1's database cycle of 19 September, night: the three unapplied migrations
+
+**All three applied, all three probed, every probe ended in its own deliberate
+raise and rolled back.** The rules and the stop list were restated before
+anything was touched, as section 0 requires. No build was run, the full vitest
+suite was not run, and the only toolchain command in this cycle was
+`npx tsc --noEmit -p tsconfig.json` from `apps/web`, which the lead confirmed
+was fine to run unlocked while four other builds held the box.
+
+**WHAT LANDED, AND THE VERSION NUMBERS ARE NOT THE FILENAMES, WHICH IS THE
+FIRST THING THAT WILL BITE THE NEXT PERSON.** The Supabase MCP
+`apply_migration` tool assigns its own timestamp at the moment of application
+and ignores the one in the filename. So the three files went on as
+`20260919213006 p1_a_business_is_never_left_ownerless`,
+`20260919214015 p1_a_future_event_is_cancelled_with_notice` and
+`20260919214402 p3_a_restaurant_can_carry_photographs`, while the files on disk
+are still named `20260919210000`, `20260919210100` and `20260919220000`.
+Anybody who later reconciles this repository against the remote with
+`supabase db push`, or who compares `supabase_migrations.schema_migrations`
+against `ls supabase/migrations`, will find three pairs that do not line up by
+version even though the SQL is identical. That is a property of the tool and
+not a mistake in the files, but it is invisible until it is confusing, so it is
+recorded here. The second file genuinely depends on the first, because
+`close_future_commitments` reads `public.business_transfers`, and the applied
+order preserves that.
+
+**THE ORDER OF EVENTS.** `list_migrations` confirmed all three were unapplied
+and that the estate stood at `20260919181950`. Each file was read in full
+before it was applied, and each was reconstructed and diffed byte for byte
+against the file on disk before its text was handed to `apply_migration`, so
+that no transcription error could reach a live database behind a
+`{"success":true}`. `list_migrations` was re-checked immediately before the P3
+file, together with a direct look at `to_regclass('public.business_photos')`,
+and P3 had applied nothing, so that migration was A1's to run after all.
+
+**RULE 21 WAS VERIFIED INDEPENDENTLY OF WHAT EACH FILE'S OWN PROBE HAPPENS TO
+NAME, for every SECURITY DEFINER function the three files create.** That is
+eleven functions. The first file creates five in `public` and replaces a sixth,
+and every one carries `revoke all ... from public, anon, authenticated` before
+its grant: the four service-role-only ones
+(`offer_business_transfer`, `respond_to_business_transfer`,
+`withdraw_business_transfer`, `user_id_by_email_for_transfer`) are granted back
+to `service_role` alone, and the two guarded readers
+(`business_transfer_board`, `account_deletion_blockers`) are granted back to
+`authenticated, service_role` deliberately. The second file creates one,
+`close_future_commitments`, granted back to `service_role` alone. The third
+creates three in `private`, of which only `business_is_public` is granted back,
+to `anon` and `authenticated`, because it is read inside the photo table's
+SELECT policy and a signed-out visitor looking at a published venue must be
+able to execute it, which is the same grant `private.accommodation_is_public`
+has carried since M3. **The P3 file needed no correction**: all three of its
+functions already revoked.
+
+**PROBE ONE, `p1_a_business_is_never_left_ownerless`: PASSED ON THE THIRD RUN,
+AND THE TWO FAILURES WERE BOTH THE PROBE RATHER THAN THE MIGRATION.** The final
+output was
+`ERROR: P0001: PROBE ALL PASS p1 business transfer, rolling back`.
+
+The first failure was
+`ERROR: 42501: account_deletion_blockers may only be asked about yourself`,
+raised from line 19 of that function at the probe's assertion 6a. The probe
+called `public.account_deletion_blockers(seller)` while running as `postgres`
+with no `request.jwt.claims` set at all. The function's guard asks two
+questions, whether the caller's claimed role is `service_role` and whether
+`auth.uid()` is the subject, and under `apply_migration` the answer to both is
+no: `coalesce(claims ->> 'role', current_user)` resolves to `postgres` and
+`auth.uid()` is null. So the function refused, correctly, and it was the probe
+that was wrong. **This is worth dwelling on, because the tempting reading is
+that the migration had broken the guarded reader.** It had not. That guard is
+pre-existing, the file preserves it verbatim under a header that says every
+other line of the function is unchanged, and refusing an unauthenticated caller
+who asks about a named person is precisely its job. The probe now sets
+`request.jwt.claims` to the seller's own `sub` around both blocker calls and
+clears it afterwards, which is what the deletion screen genuinely does.
+
+The second failure was
+`ERROR: P0001: FAIL 3: the offer was refused: {"reason": "receiver_unavailable", "offered": false}`.
+The probe chose its `buyer` positionally, as the second row of `auth.users` by
+`created_at`, and on this estate that account is banned and has neither a
+confirmed email address nor a confirmed telephone number. `offer_business_transfer`
+refused it on the banned check, which is tested before the contactable check,
+which is tested before the leaving check. **The migration was right twice over
+here: it refused to hand a business to a banned account, and it refused for the
+correct one of the three reasons.** The fixture is now chosen by the
+eligibility predicate rather than by position, and it additionally requires the
+seller to own no business and hold no agent row, because assertion 6b asserts
+that the seller's `owned_businesses` falls to zero once the probe's business
+has moved, and a seller who already owned a published business would have
+failed that assertion on a business the probe never created. This is the same
+class of fault as the verified-agent fixture recorded earlier today, and it is
+now twice that a positional pick off `auth.users` has produced a false red. The
+lesson for the next probe author is blunt: **on this estate, never take the
+first or the second row of `auth.users` as a fixture. Select by the predicate
+the function under test actually enforces, and fail loudly when the estate
+cannot supply one.**
+
+**THE PROBE IN THAT FILE WAS CORRECTED IN PLACE AND STRENGTHENED, AND THE
+CORRECTION IS COMMENTS ONLY.** The probe lives in the file's header as a
+commented block, so replacing it changes nothing executable. This was verified
+rather than assumed: the executable tail of the file, from
+`/* --- the offer */` to the last line, is byte identical to the text that was
+applied, and every differing line in the whole file begins with `--`. The
+committed block now extracts to exactly the SQL that passed. Leaving the old
+block in place would have guaranteed that the next person to run it hit both
+failures again.
+
+**AND ON THE LEAD'S INSTRUCTION, THE PROBE NOW PROVES THE GUARD RATHER THAN THE
+PRIVILEGE BIT, WHICH IS ASSERTION 8.** `business_transfer_board` and
+`account_deletion_blockers` are deliberately executable by `authenticated`,
+because the transfer screen and the deletion screen call them as the signed-in
+person, and that grant is correct and must stay. It follows that
+`has_function_privilege` proves nothing at all about whether those two are safe.
+What keeps a stranger away from somebody's wallet balance, held escrow and
+future bookings is the self-only guard in the body, so the probe now wears a
+stranger's `authenticated` JWT and asserts that the board answers with BOTH
+lists empty and that `account_deletion_blockers` is REFUSED outright with
+`insufficient_privilege`. The refusal matters more than an empty answer would:
+a reply of zeroes is indistinguishable from an account that genuinely has
+nothing, whereas a refusal is the guard visibly holding.
+
+**PROBE TWO, `p1_a_future_event_is_cancelled_with_notice`: PASSED FIRST TIME.**
+The output was
+`ERROR: P0001: PROBE ALL PASS p1 future events cancelled with notice, rolling back`.
+It proved the revoke, that a request inside its grace window is refused with
+`not_due` so the function can never cancel somebody's evening early, that a
+future event becomes CANCELLED carrying a reason and that the attendee's
+notification count rises, that the past event stays LIVE with its title intact,
+that a second run cancels zero, and that a stranger wearing an `authenticated`
+JWT reads zero of the notifications addressed to somebody else while those rows
+demonstrably exist in the same transaction.
+
+**PROBE THREE, `p3_a_restaurant_can_carry_photographs`: PASSED FIRST TIME.**
+The output was
+`ERROR: P0001: PROBE ALL PASS p3 business photographs: 1 photographs on the venue, a stranger read 0 of them while it was DRAFT and 1 once it was PUBLISHED, a forged write was refused, the shelf cover follows position, no badge lit, and the three functions carry exactly the grants the header names. Rolled back on purpose.`
+
+**NOTHING WAS LEFT BEHIND, AND THIS WAS CHECKED RATHER THAN TRUSTED.** After
+each probe the live tables were counted: zero rows in `business_transfers`,
+zero in `account_deletion_requests`, zero in `business_photos`, zero businesses
+named `Probe house, rolled back` or `Probe Photo Kitchen`, zero slugs matching
+`probe-house-rolled-back-%`, zero catalogue covers matching `%/probe/%`, zero
+cancelled events, zero suspended businesses, and `public.businesses` still
+holding exactly the eight rows it held beforehand. The three probe runs also
+left no rows in `supabase_migrations.schema_migrations`, because the deliberate
+raise aborts the transaction the tool records the migration in, which is the
+behaviour the probes depend on and which is now confirmed empirically rather
+than assumed.
+
+**WHY EVERY PROBE WENT THROUGH `apply_migration` AND NOT `execute_sql`.** The
+MCP `execute_sql` tool runs as `supabase_read_only_user`, which carries
+`rolbypassrls`, so it can never demonstrate an RLS refusal and cannot
+`set local role authenticated`. A cross-user read run through it that returns
+zero has proved nothing whatsoever. `execute_sql` was therefore used in this
+cycle only for reads that make no RLS claim: counting probe leftovers, and
+establishing which accounts satisfy the transfer eligibility predicate. Every
+assertion about a refusal went through `apply_migration`, which runs as a role
+that can switch into `authenticated` and be bound by the policies.
+
+**THE TYPES.** `generate_typescript_types` was regenerated against the live
+schema and written to `apps/web/src/lib/supabase/database.types.ts`, which went
+from 5,549 to 5,697 lines. The change is purely additive: one hundred and
+forty-eight lines added, nothing removed, which is why `tsc` was unaffected.
+`npx tsc --noEmit -p tsconfig.json` from `apps/web` exits 0 with no
+diagnostics, in fifty-six seconds.
+
+**A DETAIL IN THAT REGENERATION THAT SAYS SOMETHING ABOUT THE STATE OF THE
+TYPES FILE ON MAIN, AND IT IS WORTH KNOWING.** The committed file was out of
+step with the database in both directions at once. It already carried
+`business_photos`, whose migration had not been applied to the database by
+anybody until this cycle, so the repository described a table that did not
+exist. It was simultaneously missing `account_deletion_requests`, whose
+migration `b5_an_account_can_ask_to_be_deleted` went on earlier the same day,
+so it omitted a table that did exist. Both are now correct. The reading is that
+the types file has been regenerated at moments that did not line up with the
+applies, and anybody trusting it as a description of the live schema between
+regenerations should not.
+
+**WHAT WAS FOUND AND DELIBERATELY NOT FIXED.**
+
+The P3 file is not idempotent. `create policy business_photos_select` and
+`create policy business_photos_write` are not preceded by
+`drop policy if exists`, which is the shape every other migration in this
+repository uses and which the first P1 file's own header calls out as the
+house convention. The table is `create table if not exists` and the functions
+are `create or replace`, so everything else in that file would survive a second
+run, but the two policies would raise `42710 policy already exists` and the
+whole migration would abort. It applied cleanly once, which is all that was
+needed tonight, so this was left alone: it is P3's file, it is not a rule 21
+matter, and changing it would have meant editing another worker's file for a
+fault that cannot bite until somebody re-runs a migration that has already
+landed. **It will bite exactly then**, so it is written down here rather than
+silently repaired.
+
+`business_transfers.status` and `account_deletion_requests.status` both come
+through the generated types as plain `string` rather than as a narrowed union,
+because they are `text` columns with CHECK constraints rather than Postgres
+enums. Anybody writing the transfer screen who expects the compiler to catch a
+misspelled `'ACCEPTED'` will not get that help, and will need a hand-written
+union or a runtime guard at the boundary. This is a consequence of the schema
+choice, not a fault in it, and it was not changed.
+
+The two derivations of the business `verified` badge still do not agree with
+each other, as section 12.6 already records. The P3 file copies the `verified`
+expression byte for byte and its probe asserts that photographs cannot light a
+badge, which holds, so nothing here made it worse. It remains open.
+
+**WHAT WAS NOT DONE, UNPROMPTED.** No `next build` and no `next dev` were run,
+so nothing in this cycle is proven at a rendered surface and no screenshot row
+in section 6 is claimed. The full vitest suite was not run, on the lead's
+instruction that it produces false reds under this load. The server actions and
+screens that will call `offer_business_transfer`,
+`respond_to_business_transfer`, `withdraw_business_transfer` and
+`business_transfer_board` do not exist yet and were not written; the four
+service-role functions are reachable from nothing at all today, which is the
+correct resting state for them but means the ONE LAW of rule 19 is not yet
+satisfied for the transfer feature, which has a database write path and no UI
+above it. `close_future_commitments` is applied but is not yet wired into the
+purge job, which must call it immediately before `purge_account_rows` and in
+its own transaction; until somebody does that, a purge will still orphan a
+future event. Those three are the next person's work and none of them is
+claimed here as done.

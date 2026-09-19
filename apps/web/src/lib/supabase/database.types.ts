@@ -194,6 +194,51 @@ export type Database = {
           },
         ]
       }
+      account_deletion_requests: {
+        Row: {
+          attempts: number
+          cancelled_at: string | null
+          completed_at: string | null
+          counts: Json
+          id: string
+          last_error: string | null
+          purge_after: string
+          requested_at: string
+          restore_code_hash: string | null
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          cancelled_at?: string | null
+          completed_at?: string | null
+          counts?: Json
+          id?: string
+          last_error?: string | null
+          purge_after: string
+          requested_at?: string
+          restore_code_hash?: string | null
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          cancelled_at?: string | null
+          completed_at?: string | null
+          counts?: Json
+          id?: string
+          last_error?: string | null
+          purge_after?: string
+          requested_at?: string
+          restore_code_hash?: string | null
+          started_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_bootstrap: {
         Row: {
           added_by: string | null
@@ -1310,6 +1355,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "business_photos_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_transfers: {
+        Row: {
+          business_id: string
+          expires_at: string
+          from_user_id: string
+          id: string
+          note: string | null
+          offered_at: string
+          responded_at: string | null
+          status: string
+          to_user_id: string
+        }
+        Insert: {
+          business_id: string
+          expires_at: string
+          from_user_id: string
+          id?: string
+          note?: string | null
+          offered_at?: string
+          responded_at?: string | null
+          status?: string
+          to_user_id: string
+        }
+        Update: {
+          business_id?: string
+          expires_at?: string
+          from_user_id?: string
+          id?: string
+          note?: string | null
+          offered_at?: string
+          responded_at?: string | null
+          status?: string
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_transfers_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
@@ -3923,27 +4012,42 @@ export type Database = {
       }
       saved_searches: {
         Row: {
+          alert_checked_at: string | null
+          alert_cursor_at: string | null
           alert_enabled: boolean
+          alert_notified_at: string | null
           created_at: string
           id: string
           label: string | null
           query: Json
+          query_key: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
+          alert_checked_at?: string | null
+          alert_cursor_at?: string | null
           alert_enabled?: boolean
+          alert_notified_at?: string | null
           created_at?: string
           id?: string
           label?: string | null
           query?: Json
+          query_key?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
+          alert_checked_at?: string | null
+          alert_cursor_at?: string | null
           alert_enabled?: boolean
+          alert_notified_at?: string | null
           created_at?: string
           id?: string
           label?: string | null
           query?: Json
+          query_key?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -4634,6 +4738,7 @@ export type Database = {
       }
     }
     Functions: {
+      account_deletion_blockers: { Args: { p_user: string }; Returns: Json }
       admin_expire_stale_withdrawal_holds: {
         Args: { p_older_than_minutes?: number }
         Returns: Json
@@ -4647,6 +4752,7 @@ export type Database = {
         Returns: Json
       }
       admin_revenue_summary: { Args: { p_days?: number }; Returns: Json }
+      admin_user_id_by_email: { Args: { p_email: string }; Returns: string }
       agent_trust: {
         Args: { p_user: string }
         Returns: {
@@ -4658,6 +4764,11 @@ export type Database = {
         }[]
       }
       bot_may_run: { Args: { p_user: string }; Returns: string }
+      business_transfer_board: { Args: { p_user: string }; Returns: Json }
+      cancel_account_deletion: {
+        Args: { p_restore_code_hash: string; p_user: string }
+        Returns: Json
+      }
       claim_idempotency: {
         Args: {
           key: string
@@ -4667,6 +4778,7 @@ export type Database = {
         }
         Returns: Json
       }
+      close_future_commitments: { Args: { p_request: string }; Returns: Json }
       complete_ended_stays: { Args: { p_limit?: number }; Returns: Json }
       consume_rate_limit: {
         Args: {
@@ -4682,6 +4794,7 @@ export type Database = {
         Returns: Json
       }
       current_agent_id: { Args: never; Returns: string }
+      due_account_purges: { Args: { p_limit: number }; Returns: Json }
       end_other_sessions: { Args: never; Returns: Json }
       end_session: { Args: { p_session: string }; Returns: Json }
       enter_place: {
@@ -4760,6 +4873,10 @@ export type Database = {
         Args: { older_than_minutes?: number }
         Returns: Json
       }
+      fail_account_purge: {
+        Args: { p_reason: string; p_request: string }
+        Returns: Json
+      }
       fee_rate_at: {
         Args: { p_at?: string; p_kind: Database["public"]["Enums"]["fee_kind"] }
         Returns: {
@@ -4768,6 +4885,10 @@ export type Database = {
           flat_minor: number
           rate_id: string
         }[]
+      }
+      finish_account_purge: {
+        Args: { p_request: string; p_storage: Json }
+        Returns: Json
       }
       grant_staff_role: {
         Args: {
@@ -4842,6 +4963,16 @@ export type Database = {
           user_agent: string
         }[]
       }
+      offer_business_transfer: {
+        Args: {
+          p_business: string
+          p_from: string
+          p_note: string
+          p_to: string
+        }
+        Returns: Json
+      }
+      open_account_deletion: { Args: { p_user: string }; Returns: Json }
       open_rent_charge: {
         Args: { p_inspection: string; p_move_in: string; p_tenant: string }
         Returns: Json
@@ -4863,6 +4994,7 @@ export type Database = {
           states: number
         }[]
       }
+      purge_account_rows: { Args: { p_request: string }; Returns: Json }
       record_booking_no_show: {
         Args: { p_actor: string; p_booking: string; p_note?: string }
         Returns: Json
@@ -4909,6 +5041,10 @@ export type Database = {
         }
         Returns: number
       }
+      respond_to_business_transfer: {
+        Args: { p_accept: boolean; p_transfer: string; p_user: string }
+        Returns: Json
+      }
       review_kyc_document: {
         Args: { p_approve: boolean; p_document: string; p_reason: string }
         Returns: Json
@@ -4919,6 +5055,10 @@ export type Database = {
           old_role: Database["public"]["Enums"]["app_role"]
           target_user: string
         }
+        Returns: Json
+      }
+      schedule_account_deletion: {
+        Args: { p_days: number; p_restore_code_hash: string; p_user: string }
         Returns: Json
       }
       set_fee_rate: {
@@ -5023,6 +5163,10 @@ export type Database = {
         Returns: string
       }
       unaccent_immutable: { Args: { input: string }; Returns: string }
+      user_id_by_email_for_transfer: {
+        Args: { p_email: string }
+        Returns: string
+      }
       verification_is_required: { Args: { p_user: string }; Returns: boolean }
       verify_payout_account: {
         Args: {
@@ -5039,6 +5183,10 @@ export type Database = {
           user_id: string
           wallet_id: string
         }[]
+      }
+      withdraw_business_transfer: {
+        Args: { p_transfer: string; p_user: string }
+        Returns: Json
       }
     }
     Enums: {

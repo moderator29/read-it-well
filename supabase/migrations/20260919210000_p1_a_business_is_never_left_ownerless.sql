@@ -203,10 +203,21 @@
 --      transfer row EXISTS in this transaction, and a stranger wearing an
 --      `authenticated` JWT still reads ZERO. The Supabase MCP `execute_sql`
 --      tool cannot show this, because the role it runs as carries
---      `rolbypassrls`; this probe sets the role itself.
+--      `rolbypassrls`; this probe sets the role itself. The board is asked
+--      about somebody else and answers with BOTH lists empty.
+--   8. THE SELF-ONLY GUARD IN THE BODY, which is worth more than the
+--      privilege bit. The two readers here are DELIBERATELY executable by
+--      `authenticated`, because the deletion screen and the transfer screen
+--      call them as the signed-in person, so the privilege bit alone proves
+--      nothing about safety. What stops a stranger reading somebody's wallet
+--      balance, held escrow and future bookings is the guard inside
+--      `account_deletion_blockers`, so the probe wears a stranger's JWT and
+--      asserts it is REFUSED with `insufficient_privilege` rather than
+--      answered with zeroes, which would be indistinguishable from an
+--      account that genuinely has nothing.
 --
 --   begin;
---
+--   --
 --   do $probe$
 --   declare
 --     seller    uuid;
@@ -261,7 +272,7 @@
 --     if has_function_privilege('anon', 'public.account_deletion_blockers(uuid)', 'execute') then
 --       raise exception 'FAIL 1: the replaced blockers function is reachable by anon';
 --     end if;
---
+--   --
 --     -- 2. the table, its RLS and its one policy
 --     if not exists (
 --       select 1 from pg_class where oid = 'public.business_transfers'::regclass and relrowsecurity
@@ -281,19 +292,71 @@
 --     if public.user_id_by_email_for_transfer('nobody@example.invalid') is not null then
 --       raise exception 'FAIL 2: the address lookup answered for an address nobody holds';
 --     end if;
---
---     select id into seller from auth.users order by created_at limit 1;
---     select id into buyer  from auth.users where id <> seller order by created_at limit 1;
---     select id into leaver from auth.users where id not in (seller, buyer) order by created_at limit 1;
+--   --
+--     /*
+--      * THE FIXTURE IS CHOSEN BY THE ELIGIBILITY PREDICATE, NOT BY POSITION.
+--      *
+--      * Taking the first rows of `auth.users` by `created_at` is what the first
+--      * draft of this probe did, and on the live estate the second such row is
+--      * BANNED and has neither a confirmed email nor a confirmed telephone
+--      * number. `offer_business_transfer` refused it with `receiver_unavailable`,
+--      * correctly, and the probe read its own bad fixture as a fault in the
+--      * migration. The eligibility rules are the thing under test, so the fixture
+--      * has to satisfy them up front and the probe has to fail loudly if the
+--      * estate cannot supply three accounts that do.
+--      *
+--      * The seller additionally owns no business and has no agent row of their
+--      * own, because assertion 6b asserts the seller's `owned_businesses` falls
+--      * to ZERO once the probe's business has moved. A seller who already owned a
+--      * published business would make that assertion fail on a business the probe
+--      * never created, which is a false red.
+--      */
+--     select u.id into seller
+--       from auth.users u
+--      where coalesce(u.banned_until, '-infinity'::timestamptz) <= now()
+--        and (u.email_confirmed_at is not null or u.phone_confirmed_at is not null)
+--        and not exists (select 1 from public.account_deletion_requests r
+--                         where r.user_id = u.id and r.status in ('SCHEDULED', 'PURGING'))
+--        and not exists (select 1 from public.businesses b where b.owner_id = u.id)
+--        and not exists (select 1 from public.agents a where a.user_id = u.id)
+--      order by u.created_at
+--      limit 1;
+--   --
+--     select u.id into buyer
+--       from auth.users u
+--      where u.id is distinct from seller
+--        and coalesce(u.banned_until, '-infinity'::timestamptz) <= now()
+--        and (u.email_confirmed_at is not null or u.phone_confirmed_at is not null)
+--        and not exists (select 1 from public.account_deletion_requests r
+--                         where r.user_id = u.id and r.status in ('SCHEDULED', 'PURGING'))
+--        and not exists (select 1 from public.businesses b where b.owner_id = u.id)
+--      order by u.created_at
+--      limit 1;
+--   --
+--     -- The leaver must pass the banned and contactable checks too, because those
+--     -- are tested BEFORE the leaving check inside the function. A banned leaver
+--     -- would be refused with `receiver_unavailable` and assertion 4 would pass
+--     -- for entirely the wrong reason.
+--     select u.id into leaver
+--       from auth.users u
+--      where u.id is distinct from seller
+--        and u.id is distinct from buyer
+--        and coalesce(u.banned_until, '-infinity'::timestamptz) <= now()
+--        and (u.email_confirmed_at is not null or u.phone_confirmed_at is not null)
+--        and not exists (select 1 from public.account_deletion_requests r
+--                         where r.user_id = u.id and r.status in ('SCHEDULED', 'PURGING'))
+--      order by u.created_at
+--      limit 1;
+--   --
 --     if seller is null or buyer is null or leaver is null then
---       raise exception 'PROBE NEEDS THREE AUTH USERS';
+--       raise exception 'PROBE NEEDS THREE ELIGIBLE AUTH USERS: not banned, contactable, not already leaving';
 --     end if;
---
+--   --
 --     insert into public.agents (user_id, display_name)
 --     values (seller, 'Probe agency, rolled back')
 --     on conflict (user_id) do update set display_name = excluded.display_name
 --     returning id into agent_row;
---
+--   --
 --     insert into public.businesses
 --       (owner_id, agent_id, kind, name, slug, status,
 --        representative_name, representative_phone, consents,
@@ -305,17 +368,24 @@
 --        jsonb_build_object('accuracy', now(), 'terms', now(), 'processing', now()),
 --        now(), now())
 --     returning id into biz;
---
+--   --
 --     insert into public.business_verification_checks (business_id, rung, status)
 --     values (biz, 'identity', 'passed')
 --     on conflict (business_id, rung) do update set status = 'passed';
---
+--   --
 --     if (select verified from public.businesses where id = biz) is not true then
 --       raise exception 'FAIL 5 setup: the badge did not light, so its going out proves nothing';
 --     end if;
---
---     -- 6a. the blocker sees it
+--   --
+--     -- 6a. the blocker sees it. The guard on this function is SELF ONLY, so the
+--     -- probe has to wear the subject's own JWT to ask about the subject: asked
+--     -- as postgres with no claims at all the function correctly refuses with
+--     -- insufficient_privilege, and reading that refusal as a migration fault
+--     -- would be reading the guard doing its job as a defect.
+--     perform set_config('request.jwt.claims',
+--                        json_build_object('sub', seller, 'role', 'authenticated')::text, true);
 --     verdict := public.account_deletion_blockers(seller);
+--     perform set_config('request.jwt.claims', '', true);
 --     if not (verdict ? 'owned_businesses') then
 --       raise exception 'FAIL 6: blockers does not answer with owned_businesses: %', verdict;
 --     end if;
@@ -325,7 +395,7 @@
 --     if (verdict ->> 'blocked')::boolean is not true then
 --       raise exception 'FAIL 6: a published business did not block the deletion';
 --     end if;
---
+--   --
 --     -- 4. a receiver who is leaving is refused
 --     insert into public.account_deletion_requests (user_id, purge_after)
 --     values (leaver, now() + interval '30 days');
@@ -334,7 +404,7 @@
 --        or answer ->> 'reason' <> 'receiver_leaving' then
 --       raise exception 'FAIL 4: an offer to somebody who is leaving was accepted: %', answer;
 --     end if;
---
+--   --
 --     -- 3. an offer alone moves nothing
 --     answer := public.offer_business_transfer(biz, seller, buyer, 'Probe note, rolled back');
 --     if (answer ->> 'offered')::boolean is not true then
@@ -344,7 +414,7 @@
 --     if (select owner_id from public.businesses where id = biz) <> seller then
 --       raise exception 'FAIL 3: an unaccepted offer moved the business';
 --     end if;
---
+--   --
 --     -- 5. accepting moves it, and everything keyed to the old owner goes
 --     answer := public.respond_to_business_transfer(transfer, buyer, true);
 --     if (answer ->> 'accepted')::boolean is not true then
@@ -375,17 +445,20 @@
 --     if (select verification_tier from public.businesses where id = biz) <> 0 then
 --       raise exception 'FAIL 5: the tier did not fall with the identity rung';
 --     end if;
---
+--   --
 --     -- 6b. and the blocker stops counting it
+--     perform set_config('request.jwt.claims',
+--                        json_build_object('sub', seller, 'role', 'authenticated')::text, true);
 --     verdict := public.account_deletion_blockers(seller);
+--     perform set_config('request.jwt.claims', '', true);
 --     if (verdict ->> 'owned_businesses')::integer <> 0 then
 --       raise exception 'FAIL 6: the business still counts against the person who gave it away: %', verdict;
 --     end if;
---
+--   --
 --     raise notice 'PASS 1-6';
 --   end;
 --   $probe$;
---
+--   --
 --   -- 7. THE RLS CROSS-USER READ THAT MUST FAIL, and it is not vacuous.
 --   do $rls$
 --   declare
@@ -406,33 +479,56 @@
 --     if stranger is null then
 --       raise exception 'PROBE NEEDS A FOURTH AUTH USER WHO IS PARTY TO NOTHING';
 --     end if;
---
+--   --
 --     perform set_config('request.jwt.claims',
 --                        json_build_object('sub', stranger, 'role', 'authenticated')::text, true);
 --     perform set_config('role', 'authenticated', true);
---
+--   --
 --     select count(*) into leaked from public.business_transfers;
---
+--   --
 --     perform set_config('role', 'postgres', true);
---
+--   --
 --     if leaked <> 0 then
 --       raise exception 'FAIL 7: a stranger read % transfer rows of the % that exist', leaked, rows_now;
 --     end if;
---
---     -- and the board refuses to answer about somebody else
+--   --
+--     -- and the board refuses to answer about somebody else, on BOTH lists
 --     perform set_config('request.jwt.claims',
 --                        json_build_object('sub', stranger, 'role', 'authenticated')::text, true);
 --     perform set_config('role', 'authenticated', true);
---     if jsonb_array_length(public.business_transfer_board(party) -> 'outgoing') <> 0 then
+--     if jsonb_array_length(public.business_transfer_board(party) -> 'outgoing') <> 0
+--        or jsonb_array_length(public.business_transfer_board(party) -> 'incoming') <> 0 then
 --       perform set_config('role', 'postgres', true);
 --       raise exception 'FAIL 7: a stranger read somebody else''s offers';
 --     end if;
+--   --
+--     /*
+--      * 8. THE GUARD INSIDE THE BODY, WHICH IS WORTH MORE THAN THE PRIVILEGE BIT.
+--      *
+--      * `account_deletion_blockers` and `business_transfer_board` are DELIBERATELY
+--      * executable by `authenticated`, because the deletion screen and the
+--      * transfer screen call them as the signed-in person. So the privilege bit
+--      * alone proves nothing about safety here. What actually stops a stranger
+--      * reading somebody's wallet balance, held escrow and future bookings is the
+--      * self-only guard in the body, and that is what gets proved: a stranger
+--      * wearing an authenticated JWT must be REFUSED outright, not merely answered
+--      * with zeroes, because zeroes would be indistinguishable from an account
+--      * that genuinely has nothing.
+--      */
+--     begin
+--       perform public.account_deletion_blockers(party);
+--       perform set_config('role', 'postgres', true);
+--       raise exception 'FAIL 8: a stranger read somebody else''s deletion blockers';
+--     exception
+--       when insufficient_privilege then
+--         null;
+--     end;
 --     perform set_config('role', 'postgres', true);
---
+--   --
 --     raise exception 'PROBE ALL PASS p1 business transfer, rolling back';
 --   end;
 --   $rls$;
---
+--   --
 --   rollback;
 -- ---------------------------------------------------------------------------
 
@@ -912,7 +1008,7 @@ begin
 end;
 $$;
 
-revoke all on function public.business_transfer_board(uuid) from public, anon;
+revoke all on function public.business_transfer_board(uuid) from public, anon, authenticated;
 grant execute on function public.business_transfer_board(uuid) to authenticated, service_role;
 
 /* ------------------------------- the seventh number on the deletion screen */
@@ -1042,5 +1138,5 @@ begin
 end;
 $$;
 
-revoke all on function public.account_deletion_blockers(uuid) from public, anon;
+revoke all on function public.account_deletion_blockers(uuid) from public, anon, authenticated;
 grant execute on function public.account_deletion_blockers(uuid) to authenticated, service_role;
