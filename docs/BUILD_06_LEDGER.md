@@ -1871,3 +1871,39 @@ number in such a file was shifted. Fixed by requiring a comment opener to
 follow nothing, whitespace, or an opening bracket, comma, semicolon, colon or
 equals, and proved with an ordered probe. It was hiding nothing today, which
 is luck rather than a result.
+
+### 13.5 THE DOCK WAS A CAPSULE, AND THE COMMENT ABOVE IT HAD ALREADY ARGUED IT SHOULD NOT BE
+
+Caught by looking at a production shot beside the governing image rather than
+by grepping, which is the only way this one could have been caught.
+
+`.nf-tabbar` carried a note that reads the founder's target correctly: "It is
+a ROUNDED RECTANGLE, not a true pill, so `--nf-radius-2xl` is right and the
+pill radius is wrong." The reasoning is right. The number is not. The bar is
+about 66px tall and `--nf-radius-2xl` is 32px, so twice the radius is the whole
+height and the corners meet in the middle: it draws semicircular ends, which
+is exactly the shape the note is arguing against, reached by the token the
+note chose.
+
+It is the same trap the 28px chips fell into, and it is worth stating as a
+rule rather than as two incidents. **A SHAPE RULING IS ABOUT THE RATIO, NEVER
+ABOUT THE TOKEN NAME.** The same radius token is a rounded rectangle on a tall
+element and a capsule on a short one, so "it uses the control radius" is not a
+proof that a control is a rectangle, and the tenth rule cannot see this at all
+because the source text is correct. Only a picture catches it.
+
+`--nf-radius-xl`, 22px on a 66px bar, leaves a clear straight edge down each
+side, which is what `GOVERNING-home-markets-target.png` draws: its dock has
+visibly vertical ends with rounded corners, not half circles.
+
+**THE SAME IMAGE SETTLES THE REST OF THE CHROME**, and it agrees with the
+desktop hero on every point: the search field is a rounded rectangle, its
+submit is a rounded SQUARE, all nine market tiles are rounded rectangles, the
+Explore button is a rounded rectangle, the Verified badge is a small rounded
+rectangle and the four city chips are rounded rectangles. The only circle on
+the entire screen is the avatar.
+
+**PROOFS, FROM A PRODUCTION SERVER**, in `docs/design/proofs/lead/`. The search
+surface at 390 dark: the menu button, Sign in, Sign up, the search field, the
+filter button, all three filter chips, "List your place" and now the dock are
+every one a rounded rectangle, and there is no capsule on the frame.

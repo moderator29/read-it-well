@@ -292,7 +292,26 @@
      * both decisions kept, and the dock's own lift stays underneath.
      */
     border: var(--nf-border-width) solid var(--nf-brand-edge);
-    border-radius: var(--nf-radius-2xl);
+    /*
+     * `--nf-radius-xl`, NOT `--nf-radius-2xl`, AND THE REASONING ABOVE WAS
+     * RIGHT WHILE THE NUMBER WAS WRONG.
+     *
+     * The note above correctly reads the founder's target as a ROUNDED
+     * RECTANGLE rather than a pill, and then picked 32px. This bar is about
+     * 66px tall. Twice 32 is 64, so a 32px corner consumes the whole height
+     * and draws semicircular ends: the shape the note is arguing against,
+     * reached by the token it chose. Measured off a production shot, not
+     * reasoned about.
+     *
+     * It is the same trap the 28px chips fell into. A radius token is a
+     * rectangle on a tall element and a capsule on a short one, so a shape
+     * ruling is about the ratio and never about the token name alone.
+     *
+     * 22px leaves a clear straight edge down each side, which is what the
+     * reference draws: its dock has visibly vertical ends with rounded
+     * corners, not half circles.
+     */
+    border-radius: var(--nf-radius-xl);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
