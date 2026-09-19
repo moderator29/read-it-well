@@ -46,7 +46,30 @@ const theme = light ? "light" : "dark";
 const outDir = join(dirname(fileURLToPath(import.meta.url)), ".shots");
 mkdirSync(outDir, { recursive: true });
 
-const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+/*
+ * THE BLUR FLAGS, AND WHY THIS HARNESS WAS LYING TO EVERY WORKER.
+ *
+ * Headless Chromium in this container has no GPU, and `backdrop-filter` is
+ * silently DROPPED rather than approximated: it does not warn, it does not
+ * fall back, it simply paints nothing. Every `.nf-glass` surface in this
+ * product is built on that property, so every proof this harness has ever
+ * written showed the glass as a flat low-alpha wash with the page legible
+ * straight through it. Workers judged glass depth, the dock capsule, the lit
+ * edge and a pinned bar's separation from the page against pictures that did
+ * not contain the material they were judging, and at least three phantom
+ * faults ("text painted over text under a sticky bar") were nearly filed off
+ * these files.
+ *
+ * SwiftShader is a software rasteriser, so the effect is composited on the
+ * CPU and the shot is what a phone would actually draw. It costs seconds per
+ * page and buys the only thing a proof is for.
+ */
+const LAUNCH_ARGS = ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"];
+
+const browser = await chromium.launch({
+  executablePath: "/opt/pw-browsers/chromium",
+  args: LAUNCH_ARGS,
+});
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
   colorScheme: theme,

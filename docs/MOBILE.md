@@ -150,7 +150,7 @@ than looking plausible.
   costs a day.
 - [ ] **`apps/web/public/.well-known/apple-app-site-association` needs the Apple Team ID**,
   ten alphanumerics, from Apple Developer, Membership details. The entry must
-  read `<TeamID>.ng.rentme.app`.
+  read `<TeamID>.ng.vallo.app`.
 
 ### iOS associated domains
 - [ ] `apps/web/ios/App/App/App.entitlements` exists and is deliberately inert:
@@ -159,7 +159,14 @@ than looking plausible.
   ID. The three activation steps are written inside the file.
 
 ### Store listings
-- [ ] Bundle identifier `ng.rentme.app` reserved on both stores
+- [ ] Bundle identifier `ng.vallo.app` reserved on both stores. This file said
+  `ng.rentme.app` until 19 September, which is the identifier from before the
+  rename and is wrong in the one way that cannot be undone: a bundle
+  identifier is fixed at first submission. The identifier the code actually
+  carries is `ng.vallo.app`, in `capacitor.config.ts`, `Info.plist` and
+  `AndroidManifest.xml`, and those three are authoritative over this list.
+  `MOBILE_READINESS.md` section 6 is the checklist to follow; this file is
+  background
 - [ ] Screenshots at every required device size
 - [ ] Privacy questionnaires. `MOBILE_READINESS.md` section 5 answers them
 - [ ] Age rating questionnaires
