@@ -2380,3 +2380,231 @@ on app-shell routes in production, which if real means those routes never
 hydrate for a visitor. `close_future_commitments` still wired into nothing, so
 a purge still orphans a future event. And the verified badge's two derivations,
 which split on the first agent approval and are invisible until then.
+
+---
+
+## 15. W4, 19 September, night: the purge was already wired, and the verified badge now has one derivation
+
+**The rules and the stop list were restated before anything was touched, as
+section 0 requires.** Two jobs were given. The first turned out to be already
+done by somebody else and is recorded here as verified rather than as landed.
+The second landed, as one migration applied and probed and six files.
+
+### 15.1 JOB ONE WAS ALREADY DONE, AND SECTION 14 IS STALE ON THIS POINT
+
+Section 14 closes with "`close_future_commitments` is applied but is not yet
+wired into the purge job ... until somebody does that, a purge will still
+orphan a future event." **That is no longer true and was already untrue when it
+was written.** `apps/web/src/lib/account-deletion/purge.ts` calls
+`close_future_commitments` immediately before `purge_account_rows`, in its own
+`deps.rpc` call and therefore its own transaction, inside the same `try` whose
+`catch` records the failure and leaves the request OPEN. The wiring came in at
+`b3f7b89`, found with
+`git log -S "close_future_commitments" -- apps/web/src/lib/account-deletion/purge.ts`,
+which is an ancestor of `56919ae`, the commit that carries section 14. So A1's
+note describes a hole that had been filled a few commits earlier, and the next
+person reading section 14 would have wired it a second time.
+
+The failure behaviour the brief asked for is the behaviour that is there: a
+throw from the close is caught, `fail_account_purge` records the reason, the
+request stays OPEN, `purge_account_rows` is never reached, and the run reports
+`retry`. A test proving the order already exists too, in
+`purge.test.ts`, under the heading "the future commitments are resolved before
+anything is destroyed": three cases, one asserting
+`indexOf("close_future_commitments") < indexOf("purge_account_rows")`, one
+asserting the audit line carries counts and nothing else, one asserting that a
+close that throws destroys nothing. `npx vitest run
+src/lib/account-deletion/purge.test.ts` from `apps/web`: 19 passed.
+
+**Nothing was rewritten to claim this as new work.** The one edit W4 made on
+this job is a docstring correction in
+`apps/web/src/lib/account-deletion/rpc.ts`, which described "the seven
+functions this flow reaches" and then listed eight, none of them
+`close_future_commitments`. It now says nine and names it. A reader auditing
+which Postgres functions the deletion flow can reach was being given a list
+with the newest and most consequential one missing from it.
+
+### 15.2 JOB TWO: THE VERIFIED BADGE, COLLAPSED ONTO THE LADDER
+
+R2's section 4 is correct in its diagnosis and correct in its qualifier, and
+both are preserved here. **This is not visible today.** Read live before the
+migration, aggregates only: 1 agent row, 0 with `verified = true`, 0 with
+`agent_badges.verified = true`, 0 rows that would fail the new constraint. The
+fault is on the approval path and no application has been approved through it.
+It fires on the FIRST approval. That is the argument for doing it now: the
+constraint applies clean while nobody is in the wrong state, and it will not
+once anybody is.
+
+Applied as `p2_a_verified_agent_means_a_person_was_checked`, on disk as
+`supabase/migrations/20260919230000_p2_a_verified_agent_means_a_person_was_checked.sql`.
+**The version numbers will not be the filename**, for the reason section 14
+records: `apply_migration` stamps its own timestamp.
+
+**THE THING THAT CHANGED THE SHAPE OF THE FIX, AND R2 DID NOT SEE IT.**
+`public.agents.verified` is `boolean NOT NULL DEFAULT TRUE`. Removing
+`verified: true` from the approval upsert therefore fixes NOTHING on its own,
+because the column default puts it straight back. Worse, R2's step 4 constraint
+applied on top of R2's step 1 would have made every future approval insert
+default to true at tier 0, violate the constraint, and **take agent approval
+down entirely**. The default moves to false in the same file.
+
+**AND THAT SAME FACT ARGUED FOR DERIVING THE COLUMN RATHER THAN FREEZING IT.**
+R2's four steps applied literally leave `agents.verified` false for ever. There
+are readers of it R2's list does not have:
+
+  `public.agent_trust(uuid)` awards 30 of its 100 trust points for
+  `verified and status = 'APPROVED'`. Frozen false, a genuinely checked agent
+  silently loses 30 points they had earned.
+
+  `public.enforce_demo_listing_has_unverified_lister()` and
+  `private.enforce_demo_business_has_unverified_agent()` both read
+  `a.verified or a.verification_tier > 0`, so they survive either way.
+
+So the file takes BOTH halves of the M15 precedent the brief names, not one:
+the constraint `agents_verified_means_identity_chk`, byte for byte the shape
+`businesses` has carried since `20260918120500`, AND a BEFORE INSERT OR UPDATE
+trigger `agents_derive_badge` running `private.derive_agent_badge()`, which
+sets `verified := verification_tier >= 1` exactly as
+`private.derive_business_badge()` does. `agent_trust` is then not re-emitted at
+all, which also means its deliberate `anon, authenticated` execute grant is not
+disturbed, and the probe asserts that grant is still there afterwards. A
+hand-written `verified = true` is overwritten rather than refused, which is
+M15's behaviour and means no existing caller starts erroring.
+
+`private.award_agent_badges()` is repointed at
+`coalesce(new.verification_tier, 0) < 1` and its caption corrected. It read
+"Identity and payout account verified, application approved", which claims TWO
+rungs where tier 1 proves one, and it was being awarded when NEITHER had been
+looked at. It now reads "Identity checked by a person at Vallo", which is what
+tier 1 means in the ladder's own words at `lib/trust/verification.ts`.
+
+**R2 ALSO ASKED FOR THAT TRIGGER TO BE MOVED so a tier climb awards the badge.
+It does not need moving.** `agents_award_badges_after_write` is already
+`AFTER INSERT OR UPDATE` with no column list, so it fires on a
+`verification_tier` write as it stands. Read off `pg_get_triggerdef` rather
+than assumed, and left alone.
+
+**RULE 21.** `private.derive_agent_badge()` is created here and revokes EXECUTE
+from `public`, `anon` and `authenticated` in the same file, granted back to
+nobody, because a trigger function runs as the table owner.
+`private.award_agent_badges()` is replaced rather than created and already
+carried that revoke; it is re-stated so the file stands alone. The probe proves
+both off `has_function_privilege` rather than assuming them.
+
+**THE PROBE PASSED FIRST TIME.** Run through `apply_migration`, never
+`execute_sql`. The output was
+
+`ERROR: P0001: PROBE ALL PASS p2 a verified agent means a person was checked: approval leaves the badge dark at tier 0 on all three surfaces, one passed identity rung lights all three with the corrected caption, the constraint refuses the bad state with the trigger disabled, a stranger read 0 agent rows, and agent_trust kept its public grant. Rolled back on purpose.`
+
+It proved the two revokes and the one grant that had to survive; that an agent
+inserted exactly as the approval inserts one, with `verified => true` forced on
+top, comes out false at tier 0; that neither `agent_badges.verified` nor the
+`verified_agent` row in `user_badges` lights at tier 0, which is the messaging
+tick and the social profile badge both dark; that one passed `identity` rung
+takes the tier to 1 and lights all three in the same statement with the
+corrected caption and no payout claim in it; that with the derive trigger
+DISABLED a forced `verified = true` at tier 0 is still refused with
+`check_violation`; and that a stranger wearing an `authenticated` JWT reads
+ZERO rows of `public.agents` while the row demonstrably exists in the same
+transaction.
+
+**THE FIXTURE WAS CHOSEN BY THE PREDICATE AND NOT POSITIONALLY**, which section
+14 asks for in as many words after two false reds in one day. The probe takes
+the first `auth.users` row for which no `public.agents` row exists, because
+that is what the write under test does, and raises loudly if the estate cannot
+supply one. Five candidates existed.
+
+**NOTHING WAS LEFT BEHIND, AND IT WAS COUNTED RATHER THAN TRUSTED.** After the
+probe: 1 agent row, 0 named `Probe agent, rolled back`, 0 with `verified` true,
+0 rows in `agent_verification_checks`, 0 `verified_agent` awards, 0
+`agent_badges` verified, and 0 rows in `supabase_migrations.schema_migrations`
+whose name begins `probe`. The column default reads `false`, the constraint
+exists, the trigger exists.
+
+### 15.3 A FIFTH SURFACE NOBODY HAD COUNTED, FOUND BY THE TEST AND NOT BY READING
+
+R2 named three readers of the hand-set boolean. The regression test written for
+this job, `apps/web/src/lib/trust/agent-badge-derivation.test.ts`, scans every
+`.ts` and `.tsx` under `src` for a PostgREST select on `agents` that asks for a
+bare `verified` column, and it found a fourth on its first run:
+`lib/agent/listings-queries.ts`, whose `getAgentContext` feeds
+`agentProfileFrom` and thence the **"Verified agent" chip in the agent's own
+workspace rail**, on `AgentNav`, `AgentRail` and `AgentMobileNav`, and the same
+chip again on `/agent/settings`.
+
+So the fault was one surface worse than the audit said: an agent who had sent
+us nothing would have been addressed as a verified agent in their own workspace
+chrome while `/agent/verification`, a click away, told them they were at tier 0
+and had not started. **This is also the clearest vindication of deriving the
+column rather than freezing it**: had the column been frozen false per the
+literal four steps, that chip would have gone permanently dark for every
+genuinely verified agent and nothing would have complained. It now reads
+`(data.verification_tier ?? 0) >= 1` off a tier the same query already
+selected, so the raw column is read from nowhere in the application at all.
+
+### 15.4 WHAT LANDED IN THE APPLICATION
+
+`lib/admin/actions.ts`: `verified: true` is gone from the approval upsert, with
+a comment saying why it is an absence rather than an oversight, and the
+notification is retitled from "You are a verified Vallo agent" to "Your agent
+application is approved", with a body that now says verification is a separate
+step. `lib/messages/live.ts`: the identity read takes
+`agent_badges(verified)` and a missing row reads false, for the reason
+`getAgentBadges()` gives, that the failure mode must be a tick that does not
+appear and never a tick with no check behind it.
+`components/messages/VerifiedAvatar.tsx`: the docstring named `agents.verified`
+as "WHERE THE TRUTH COMES FROM" and now names `agent_badges.verified`, with the
+old fault written out so the next reader is not puzzled.
+`app/(app)/messages/[id]/page.tsx`: the same correction to a comment that said
+`identitiesOf` reads `agents.verified`. `lib/agent/listings-queries.ts`: the
+fifth surface, above.
+
+### 15.5 THE GATES, EXACT
+
+All from `apps/web`. `npx tsc --noEmit -p tsconfig.json` exits 0 with no
+diagnostics. `npx eslint` over the seven touched files exits 0, with three
+PRE-EXISTING `nf/no-arbitrary-font-size` warnings on `VerifiedAvatar.tsx` lines
+55 to 57, which are the `SHELL` size map and are not lines W4 touched.
+`node scripts/check-css-tokens.mjs` exits 0, all ten checks clean.
+`npx vitest run src/lib/trust/agent-badge-derivation.test.ts
+src/lib/account-deletion/purge.test.ts`: 2 files, 26 tests, all passed. The
+production build through the shared lock, `NEXT_DIST_DIR=.next-w4 npx next
+build`, exits 0.
+
+### 15.6 WHAT WAS NOT DONE, UNPROMPTED
+
+**R2's step 5 was NOT done and needs the founder.** `agents.verified` is not
+dropped. It is now a derived copy of `agent_badges.verified` and dropping it is
+a data-losing migration, which is on the stop list.
+
+**No screenshot row is claimed in section 6.** The build was run, `next dev`
+was not, and nothing here is proven at a rendered surface. The three surfaces
+whose copy changed, the messaging tick, the social profile badge and the agent
+rail chip, are all argued from the query and the trigger, not photographed.
+
+**The full vitest suite was not run.** Load stood between 8 and 11 through this
+cycle and the brief forbids it above 10.
+
+**`database.types.ts` was NOT regenerated and does not need to be.** A column
+default, a CHECK constraint and a trigger appear nowhere in the generated
+types, and `agents.verified` already came through as optional on Insert because
+it already had a default. The `agent_badges` embed the messaging read now uses
+typechecks against the file as committed.
+
+**`public.agent_trust(uuid)` was deliberately NOT re-emitted**, for the reason
+in 15.2: deriving the column leaves it reading the truth, and replacing a
+50-line SECURITY DEFINER function that `anon` and `authenticated` hold a
+deliberate grant on, to change nothing about what it computes, is risk with no
+return. The probe asserts its grant survived.
+
+**The demo case was deliberately left alone.** M15's business trigger also
+forces `verified` false for a partner row. `agents` has `is_demo` rather than
+`source`, and a demo agent is held unverified today by sitting at tier 0, which
+the two `enforce_demo_*` triggers check directly. Adding an `is_demo` clause to
+the derivation would have been inventing a rule nobody asked for, so it was
+not.
+
+**No other worker's file was edited.** Seven files were modified in the working
+tree by other workers during this cycle, including `apps/web/tsconfig.json`,
+`components/auth/VerifyCodeForm.tsx` and `tests/csp.spec.mjs`. None was
+committed here; the commit carries an explicit pathspec.

@@ -125,7 +125,31 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
     const admin = createAdminClient();
     const [profiles, agents] = await Promise.all([
       admin.from("profiles").select("id, display_name").in("id", ids),
-      admin.from("agents").select("user_id, display_name, verified").in("user_id", ids),
+      /*
+       * THE TICK COMES OFF THE LADDER, NOT OFF `agents.verified`.
+       *
+       * This read used to take the raw `agents.verified` boolean, which the
+       * agent application approval set to true at `verification_tier` 0,
+       * before a single document had been looked at. The result was a tick on
+       * the avatar in every message thread and no tick on any listing behind
+       * it, because the listing surfaces read `agent_badges`, which
+       * `private.sync_agent_badge` derives from the KYC ladder as
+       * `verification_tier >= 1`. Two derivations of one badge, disagreeing on
+       * the surface where somebody decides whether to send a deposit.
+       *
+       * `agent_badges` is the published one and it is the only one now. It
+       * means exactly one thing: a person here looked at a government document
+       * and said yes.
+       *
+       * A MISSING ROW READS AS NOT VERIFIED, for the reason `getAgentBadges()`
+       * gives in the listings repository: the failure mode of this must be a
+       * tick that does not appear, never a tick that appears with no check
+       * behind it.
+       */
+      admin
+        .from("agents")
+        .select("user_id, display_name, agent_badges(verified)")
+        .in("user_id", ids),
     ]);
     for (const p of profiles.data ?? []) {
       if (p.display_name) {
@@ -133,7 +157,11 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
       }
     }
     for (const a of agents.data ?? []) {
-      map.set(a.user_id, { name: a.display_name, verified: a.verified, isAgent: true });
+      map.set(a.user_id, {
+        name: a.display_name,
+        verified: a.agent_badges?.verified ?? false,
+        isAgent: true,
+      });
     }
   } catch {
     // No service key yet: generic labels carry the surface.

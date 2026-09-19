@@ -77,7 +77,7 @@ export async function getAgentContext(): Promise<AgentContext> {
 
   const { data, error } = await session.supabase
     .from("agents")
-    .select("id, display_name, status, type, verified, verification_tier")
+    .select("id, display_name, status, type, verification_tier")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -94,7 +94,18 @@ export async function getAgentContext(): Promise<AgentContext> {
       displayName: data.display_name,
       status: data.status,
       type: data.type,
-      verified: data.verified,
+      /*
+       * THE RAIL'S "VERIFIED AGENT" CHIP, DERIVED FROM THE LADDER AND NOT FROM
+       * A COLUMN SOMEBODY SET.
+       *
+       * This used to read `agents.verified`, which the application approval
+       * wrote as true at tier 0. So an agent who had not sent us a single
+       * document was addressed as a verified agent in their own workspace
+       * chrome while `/agent/verification`, three centimetres away, told them
+       * they were at tier 0 and had not started. Tier 1 is the identity rung,
+       * and the identity rung is the badge.
+       */
+      verified: (data.verification_tier ?? 0) >= 1,
       verificationTier: data.verification_tier ?? 0,
     },
   };

@@ -150,8 +150,9 @@ export default async function ConversationPage({
         /*
           THE COUNTERPART'S VERIFIED STATE, AND WHERE IT HAS TO COME FROM.
 
-          `loadThread` resolves it - `identitiesOf` reads `agents.verified`
-          through the service role for exactly this - but it hands it back
+          `loadThread` resolves it - `identitiesOf` reads `agent_badges.verified`,
+          the KYC ladder's published badge, through the service role for exactly
+          this - but it hands it back
           filed under `listing.verified`, which is a misleading home for it:
           that key sits on the LISTING object and reads as a fact about the
           property when it is a fact about the person. It is the same value.

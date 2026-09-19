@@ -6,10 +6,11 @@ import type { Database } from "../supabase/database.types";
 /**
  * The narrow door from the deletion flow to its Postgres functions.
  *
- * The seven functions this flow reaches (`account_deletion_blockers`,
+ * The nine functions this flow reaches (`account_deletion_blockers`,
  * `open_account_deletion`, `schedule_account_deletion`,
- * `cancel_account_deletion`, `due_account_purges`, `purge_account_rows`,
- * `finish_account_purge` and `fail_account_purge`) are called BY NAME over
+ * `cancel_account_deletion`, `due_account_purges`,
+ * `close_future_commitments`, `purge_account_rows`, `finish_account_purge`
+ * and `fail_account_purge`) are called BY NAME over
  * PostgREST rather than through the generated typed surface, on the model of
  * `lib/cron/rpc.ts` and `lib/security/service-rpc.ts`: the call shape is fixed
  * in this one file, and `lib/supabase/database.types.ts` stays untouched until

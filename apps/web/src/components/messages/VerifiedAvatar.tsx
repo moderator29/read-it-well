@@ -18,11 +18,26 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
  * prop is worse than no tick anywhere: it is the one mark on the platform that
  * a person is going to weigh before sending money to a stranger.
  *
- * WHERE THE TRUTH COMES FROM. `agents.verified`, resolved in
- * `lib/messages/live.ts` and carried through as `counterpartVerified`. Not from
- * "is this person an agent", which is a different and much weaker fact: an
- * unapproved agent has a row in that table too. Not from the LISTING's verified
- * flag either, which is about the property.
+ * WHERE THE TRUTH COMES FROM. `agent_badges.verified`, resolved in
+ * `lib/messages/live.ts` and carried through as `counterpartVerified`. That
+ * table is the one published derivation of the badge: `private.sync_agent_badge`
+ * writes it as `agents.verification_tier >= 1`, and the tier is computed by
+ * `private.agent_tier` from the rungs in `agent_verification_checks`, each one
+ * a named member of staff's recorded decision. So the tick means one thing
+ * only: a person here looked at a government document and said yes. It is the
+ * same column every listing surface reads, which is the point: one badge, one
+ * derivation, no screen disagreeing with another.
+ *
+ * IT USED TO READ `agents.verified`, and that was the fault this docstring was
+ * wrong about. That column was hand-set to true at the moment an agent
+ * application was approved, at tier 0, so this component drew a tick for
+ * somebody nobody had checked while their own listings correctly drew none.
+ * The column is now derived from the tier and constrained to it, and nothing
+ * on this path reads it any more.
+ *
+ * Not from "is this person an agent", which is a different and much weaker
+ * fact: an unapproved agent has a row in that table too. Not from the
+ * LISTING's verified flag either, which is about the property.
  *
  * IT CANNOT APPEAR ON SEED CONTENT. The seed message repository has no agents
  * table behind it, so nothing there resolves an identity and `counterpartName`

@@ -288,8 +288,27 @@ export async function reviewAgentApplication(input: {
     const admin = createAdminClient();
 
     if (decision === "approve") {
-      // The approved agent profile. on conflict do nothing, so re-running an
-      // approval never duplicates a person or overwrites their live profile.
+      /*
+       * The approved agent profile. on conflict do nothing, so re-running an
+       * approval never duplicates a person or overwrites their live profile.
+       *
+       * `verified` IS NOT WRITTEN HERE, AND THAT IS RULE 12 RATHER THAN A
+       * TIDY-UP. Approval opens Agent Mode. It is not a check of anybody: at
+       * this moment `verification_tier` is 0 and not one document has been
+       * looked at. This upsert used to set `verified: true` in the same
+       * breath, which lit the tick in every message thread and the badge on
+       * the social profile while every listing behind them correctly showed
+       * none, because the listing surfaces read the KYC ladder through
+       * `agent_badges`. A reader weighing whether to send a deposit saw the
+       * tick in the thread and not on the listing and could not tell which
+       * screen was lying.
+       *
+       * The column is now derived from the tier by `private.derive_agent_badge`
+       * and held there by `agents_verified_means_identity_chk`, so writing it
+       * from here would be overwritten anyway. It is left out so the code says
+       * what the schema says: the badge is earned on the ladder at
+       * `/admin/verification`, one rung at a time, by a named member of staff.
+       */
       await admin.from("agents").upsert(
         {
           user_id: application.user_id,
@@ -297,7 +316,6 @@ export async function reviewAgentApplication(input: {
           display_name: application.full_name ?? "Vallo agent",
           type: application.type,
           status: "APPROVED",
-          verified: true,
         },
         { onConflict: "user_id", ignoreDuplicates: true },
       );
@@ -315,8 +333,13 @@ export async function reviewAgentApplication(input: {
     const notice =
       decision === "approve"
         ? {
-            title: "You are a verified Vallo agent",
-            body: "Your application is approved. Agent Mode is open, so you can list your first property.",
+            /* It says what actually happened. "Verified" is a word this
+               product may only use about somebody a person here has checked,
+               and at this instant nobody has: the ladder is at tier 0 and the
+               verification queue has not seen a document. The body already
+               said the true thing; the title now does too. */
+            title: "Your agent application is approved",
+            body: "Agent Mode is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
           }
         : decision === "reject"
           ? {
