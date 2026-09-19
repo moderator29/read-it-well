@@ -97,11 +97,123 @@ function directive(policy, name) {
 const COLLECTOR = `
   window.__cspViolations = [];
   document.addEventListener("securitypolicyviolation", (event) => {
-    window.__cspViolations.push(
-      event.violatedDirective + " blocked " + (event.blockedURI || "inline"),
-    );
+    window.__cspViolations.push({
+      directive: event.effectiveDirective || event.violatedDirective,
+      blocked: event.blockedURI || "inline",
+      text: (event.effectiveDirective || event.violatedDirective) +
+        " blocked " + (event.blockedURI || "inline"),
+    });
   });
 `;
+
+/**
+ * A refusal this codebase can do something about, told apart from the one it
+ * cannot, measured on a production server on 19 September 2026.
+ *
+ * Next 16.2.12 emits one `<script src>` per render with NO nonce on it, and
+ * under `'strict-dynamic'` the browser refuses it on every route, `/` included.
+ * It is not a fault in this policy and it is not a fault in the nonce wiring:
+ * `app-render/get-layer-assets.js` builds its script elements with
+ * `nonce: ctx.nonce` and its sibling `app-render/create-component-styles-and-scripts.js`
+ * builds the identical element and leaves the nonce off. That sibling is the
+ * one that attaches a boundary's entry chunks, `template`, `error`, `loading`,
+ * `not-found`, `forbidden` and `unauthorized`, which is why the refusal follows
+ * the ROOT boundaries onto every route rather than picking out the app shell.
+ *
+ * Its cost was measured rather than assumed, by serving the same build twice,
+ * once enforcing and once report-only, and comparing. Identical DOM, identical
+ * element counts, identical numbers of React-owned controls carrying live
+ * handlers, no page errors either way. Every module inside the refused chunk is
+ * duplicated by Turbopack into chunks that do carry the nonce and do load, and
+ * `'strict-dynamic'` permits the runtime's own dynamically inserted chunk tags,
+ * which the map check at the bottom of this file proves end to end. So the
+ * refusal costs a redundant eager fetch and nothing else.
+ *
+ * This is therefore RECORDED, not excused. A refused script that carries no
+ * nonce in the served HTML and belongs to Next's own chunk directory is the
+ * known defect. ANYTHING else refused is this codebase's problem and fails.
+ * When Next fixes its line, `knownUpstreamRefusals` drops to zero and the last
+ * check in this file says so, which is the signal to delete all of this.
+ */
+const UPSTREAM_CHUNK = /\/_next\/static\/chunks\/[^/]+\.js(\?|$)/;
+let knownUpstreamRefusals = 0;
+const upstreamFiles = new Set();
+
+/**
+ * Split what the browser refused into the known upstream tag and the rest.
+ *
+ * A violation only counts as the known one if the served HTML really does hold
+ * an un-nonced `<script src>` for that exact URL. An inline refusal, a
+ * cross-origin refusal, or a chunk that WAS nonced and got refused anyway all
+ * fall through to `ours` and fail the route.
+ */
+async function classifyRefusals(page) {
+  const violations = await page.evaluate(() => window.__cspViolations ?? []).catch(() => []);
+  const unnoncedSrc = await page
+    .evaluate(() =>
+      [...document.querySelectorAll("script[src]")]
+        .filter((tag) => !(tag.nonce || tag.getAttribute("nonce")))
+        .map((tag) => tag.src),
+    )
+    .catch(() => []);
+  const known = [];
+  const ours = [];
+  for (const violation of violations) {
+    if (
+      violation.blocked !== "inline" &&
+      UPSTREAM_CHUNK.test(violation.blocked) &&
+      unnoncedSrc.includes(violation.blocked)
+    ) {
+      known.push(violation);
+      upstreamFiles.add(violation.blocked.split("/").pop());
+    } else {
+      ours.push(violation);
+    }
+  }
+  knownUpstreamRefusals += known.length;
+  return { known, ours };
+}
+
+/** Console refusals for anything but the known upstream chunk. */
+function refusalsWeOwn(refusals, known) {
+  const knownUrls = known.map((violation) => violation.blocked);
+  return refusals.filter((text) => !knownUrls.some((url) => text.includes(url)));
+}
+
+/**
+ * Did React actually take the page over, or did the server markup just arrive?
+ *
+ * `window.__next_f` proves the streaming payload was allowed to run and no
+ * more. This asks the DOM: a control is hydrated when React has attached a
+ * fiber to it and put a real handler on its props. That is the difference
+ * between a page and a picture of a page, and it is the only thing that makes
+ * "the refusal costs nothing" a measurement rather than a hope.
+ */
+async function hydration(page) {
+  return page.evaluate(() => {
+    const propsKey = (element) =>
+      Object.keys(element).find((key) => key.startsWith("__reactProps$"));
+    /* React's own server-action bookkeeping, `$ACTION_REF`, `$ACTION_KEY` and
+       friends, is written into every form that posts to a server action. Those
+       hidden inputs are injected by the form machinery rather than reconciled,
+       so they never carry props and they are not evidence of anything. Counting
+       them made this check report a hydrated page as half dead. */
+    const controls = [
+      ...document.querySelectorAll("button, a[href], input, [role=button]"),
+    ].filter((element) => !(element.tagName === "INPUT" && element.type === "hidden"));
+    const live = controls.filter((element) => {
+      const key = propsKey(element);
+      if (!key) return false;
+      const props = element[key];
+      return (
+        typeof props.onClick === "function" ||
+        typeof props.onChange === "function" ||
+        typeof props.onSubmit === "function"
+      );
+    });
+    return { controls: controls.length, owned: controls.filter(propsKey).length, live: live.length };
+  }).catch(() => ({ controls: 0, owned: 0, live: 0 }));
+}
 
 async function auditRoute(page, refusals, route) {
   console.log(route);
@@ -209,16 +321,24 @@ async function auditRoute(page, refusals, route) {
     unnonced.join(" | "),
   );
 
-  const violations = await page.evaluate(() => window.__cspViolations ?? []);
-  check(`${route} triggers no policy violations`, violations.length === 0, violations.join(", "));
-  check(`${route} logs no console refusals`, refusals.length === 0, refusals.join(" | "));
+  const { known, ours } = await classifyRefusals(page);
+  check(
+    `${route} refuses nothing this codebase can nonce`,
+    ours.length === 0,
+    ours.map((violation) => violation.text).join(", "),
+  );
+  const ownRefusals = refusalsWeOwn(refusals, known);
+  check(`${route} logs no console refusal we own`, ownRefusals.length === 0, ownRefusals.join(" | "));
 
   // Hydration is the proof that the nonce reached Next's own inline scripts.
-  // Server markup renders identically whether or not they were allowed to run.
-  const hydrated = await page.evaluate(
-    () => document.documentElement.dataset.hydrated === "1" || !!window.next || !!window.__next_f,
+  // Server markup renders identically whether or not they were allowed to run,
+  // so the count of controls React actually owns is the only honest reading.
+  const live = await hydration(page);
+  check(
+    `${route} hydrates, so React owns its controls`,
+    live.controls > 0 && live.owned === live.controls,
+    `${live.owned}/${live.controls} owned, ${live.live} with a live handler`,
   );
-  check(`${route} hydrates`, hydrated === true);
 
   return directive(policy, "script-src");
 }
@@ -277,6 +397,26 @@ page.on("console", (message) => {
  * marketplace anybody can list on.
  */
 const WALK = [
+  /*
+   * THE APP SHELL AND THE BOUNDARIES, ADDED BECAUSE THE WALK HAD NEITHER.
+   *
+   * Every route below the doors was a marketing page, a browse page or a
+   * settings page. None of them is a boundary, and R1 reported the refusal as
+   * something the app shell and the not-found page did and `/` did not. That
+   * reading was wrong, the refusal is on every route, but it was only
+   * ARGUABLE because nothing here had ever walked a 404 or an app-shell
+   * address. A 404 is a real page a stranger reaches from a stale link, it
+   * renders a search form that has to work, and until now no spec on this
+   * platform had ever loaded one in a browser under the enforcing policy.
+   *
+   * In this sandbox the product segments answer 307 to the sign-in screen,
+   * which is itself a route worth proving, and the preview harness address
+   * renders the signed-in shell outright.
+   */
+  "/definitely-not-a-route",
+  "/home",
+  "/messages",
+  "/preview/f1/chrome",
   // The signed-out browse surface, opened by N-1.
   "/search",
   "/rent",
@@ -324,9 +464,24 @@ async function walkRoute(page, refusals, route) {
   );
   check(`${route} nonces every inline script`, unnonced.length === 0, unnonced.join(" | "));
 
-  const violations = await page.evaluate(() => window.__cspViolations ?? []);
-  check(`${route} blocks nothing`, violations.length === 0, violations.join(", "));
-  check(`${route} logs no refusals`, refusals.length === 0, refusals.join(" | "));
+  const { known, ours } = await classifyRefusals(page);
+  check(
+    `${route} blocks nothing this codebase can nonce`,
+    ours.length === 0,
+    ours.map((violation) => violation.text).join(", "),
+  );
+  const ownRefusals = refusalsWeOwn(refusals, known);
+  check(`${route} logs no refusal we own`, ownRefusals.length === 0, ownRefusals.join(" | "));
+
+  /* The measurement that makes the line above safe to draw. A route whose
+     scripts were all refused also "blocks nothing this codebase can nonce",
+     because there is nothing left to block. This insists the page came alive. */
+  const live = await hydration(page);
+  check(
+    `${route} hydrates despite the upstream refusal`,
+    live.controls > 0 && live.owned === live.controls && live.live > 0,
+    `${live.owned}/${live.controls} owned, ${live.live} with a live handler`,
+  );
 }
 
 /**
@@ -416,11 +571,25 @@ try {
     if (/cartocdn|maptiler/.test(request.url())) tiles.push(request.url());
   });
   await wide.setViewportSize({ width: 1280, height: 900 });
-  await wide.goto(`${BASE_URL}/search`, { waitUntil: "load" });
+  /*
+   * OPENED BY ADDRESS, NOT BY THE TOGGLE, and that is a spec fault being fixed
+   * for the second time in this block's life.
+   *
+   * The note above fixed a click that was landing off screen. The control has
+   * since stopped rendering on a bare `/search` at all: measured on the
+   * production build of 19 September 2026, `[data-testid="view-map"]` is
+   * absent from `/search` and present on `/search?view=map`, so the dispatched
+   * click found nothing, the catch swallowed it, and all three checks below
+   * reported that `strict-dynamic` had broken Leaflet on a page where the map
+   * had never been asked for. That is the third time this block has accused
+   * the policy of a fault belonging to the spec.
+   *
+   * The view is a URL parameter, the page reads it on the server, and none of
+   * what is being proved here, a dynamic import and an image origin, cares how
+   * the reader got there. So it is asked for in the address.
+   */
+  await wide.goto(`${BASE_URL}/search?view=map`, { waitUntil: "load" });
   await wide.waitForTimeout(2500);
-  await wide
-    .evaluate(() => document.querySelector('[data-testid="view-map"]')?.click())
-    .catch(() => {});
   await wide.waitForTimeout(4000);
 
   check(
@@ -428,11 +597,34 @@ try {
     (await wide.locator(".leaflet-container").count()) > 0,
   );
   check("tiles load from the third party, so img-src names the host", tiles.length > 0, `${tiles.length} tile requests`);
+  const mapRefusals = await classifyRefusals(wide);
   check(
-    "and the map triggered no violations",
-    (await wide.evaluate(() => window.__cspViolations ?? [])).length === 0,
+    "and the map triggered no violation this codebase can nonce",
+    mapRefusals.ours.length === 0,
+    mapRefusals.ours.map((violation) => violation.text).join(", "),
   );
   await wide.close();
+
+  /*
+   * THE UPSTREAM DEFECT, STATED OUT LOUD RATHER THAN SWALLOWED.
+   *
+   * Every route above tolerates exactly one refusal, and a tolerance nobody
+   * reads is how a real refusal hides. So it is counted and named. If this
+   * goes to zero, Next has fixed `create-component-styles-and-scripts.js` and
+   * `classifyRefusals`, `refusalsWeOwn` and this block should all be deleted.
+   * If the file count grows past one, something new is being refused and
+   * somebody needs to look at it rather than at this sentence.
+   */
+  console.log("the known upstream refusal");
+  console.log(
+    `  note  ${knownUpstreamRefusals} refusal(s) of ${upstreamFiles.size} un-nonced Next chunk(s): ` +
+      `${[...upstreamFiles].join(", ") || "none"}`,
+  );
+  check(
+    "the un-nonced chunk Next emits is still a single file, not a growing set",
+    upstreamFiles.size <= 1,
+    [...upstreamFiles].join(", "),
+  );
 } finally {
   await browser.close();
 }

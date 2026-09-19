@@ -205,6 +205,34 @@ const PAYSTACK_ORIGINS: readonly string[] = [
  * The alternative, loosening what ships, is the trade this comment exists to
  * refuse: a real policy is worth more than a convenient one, and a development
  * server is not a threat surface.
+ *
+ * ONE REFUSAL IS EXPECTED IN PRODUCTION AND IT IS NOT OURS. Measured on a
+ * production server on 19 September 2026, `next build` then `next start`, on
+ * every route walked including `/`: the browser refuses exactly one script,
+ * `/_next/static/chunks/11-*.js`, because Next emits that one `<script src>`
+ * with no nonce on it. It is not this policy and it is not the nonce wiring.
+ * Next 16.2.12 builds the identical element in two places and passes
+ * `nonce: ctx.nonce` in only one of them: `app-render/get-layer-assets.js`
+ * stamps it, `app-render/create-component-styles-and-scripts.js` does not. The
+ * second one is what attaches a boundary's entry chunks, `template`, `error`,
+ * `loading`, `not-found`, `forbidden` and `unauthorized`, and the ROOT
+ * boundaries sit above every route, which is why the refusal is on all of them
+ * rather than on the app shell alone.
+ *
+ * Its cost was measured, not assumed, by serving one build twice, enforcing and
+ * report-only, and comparing: identical DOM, identical element counts,
+ * identical numbers of React-owned controls carrying live handlers, no page
+ * errors either way. Every module inside that chunk is duplicated by Turbopack
+ * into chunks that do carry the nonce and do load, and `'strict-dynamic'`
+ * permits the runtime's own dynamically inserted chunk tags, which the map on
+ * `/search?view=map` proves end to end: Leaflet is imported on demand and its
+ * tiles arrive. So the refusal costs one redundant eager fetch and nothing
+ * else, and NOTHING HERE SHOULD BE LOOSENED TO SILENCE IT.
+ *
+ * `tests/csp.spec.mjs` records it rather than excusing it: any other refusal,
+ * an inline one, a cross-origin one, or a chunk that was nonced and refused
+ * anyway, still fails the walk, and the tally at the end of that file is the
+ * signal to delete the whole allowance the day Next stamps its own element.
  */
 function scriptSrc(nonce: string): string[] {
   if (process.env.NODE_ENV === "development") {
