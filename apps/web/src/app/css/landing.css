@@ -1466,6 +1466,20 @@
       inset 0 1px 0 var(--nf-glass-rim),
       0 0 18px var(--nf-glow-1);
   }
+  /*
+   * The hero's glass button is ALWAYS on the photograph, in both themes and
+   * at every width, and the platform's white-tinted glass reads as milk over
+   * a dusk plate. It takes the night material instead, which is the same
+   * decision the city pills and the pill already carry.
+   */
+  .nf-landing-hero .nf-btn--glass {
+    color: var(--nf-landing-on-ink);
+    background: var(--nf-landing-control-on-ink-strong);
+    border-color: var(--nf-landing-hairline-on-ink);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+  }
 
   /* ---------------------------------------------------- the app band */
 
@@ -1682,14 +1696,27 @@
      both themes, so they keep the night material; only the nav follows the
      paper once scrolled, which the shared chrome rule already does. The one
      shared control that would flip is the glass CTA, so it is held here. */
-  /* The hero is a night photograph in daylight too, at EVERY width now that
-     the phone carries the plate behind its copy, so the one control that
-     would otherwise turn to paper inside it is held to the night material. */
+  /*
+   * The night material for the hero's controls has to be restated under the
+   * light root, because light.css is imported after this partial and its own
+   * `:root[data-theme="light"] .nf-btn--glass` would otherwise turn the
+   * button to paper on top of a dusk photograph. Same for the panel opener
+   * in the bar while the bar is still transparent over the plate.
+   */
   :root[data-theme="light"] .nf-landing-hero .nf-btn--glass {
     color: var(--nf-landing-on-ink);
-    background: var(--nf-landing-control-on-ink);
+    background: var(--nf-landing-control-on-ink-strong);
     border-color: var(--nf-landing-hairline-on-ink);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim),
+      0 0 18px var(--nf-glow-1);
+  }
+  :root[data-theme="light"]
+    .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"])
+    .nf-icon-btn {
+    color: var(--nf-landing-on-ink);
+    background: var(--nf-landing-control-on-ink-strong);
+    border-color: var(--nf-landing-hairline-on-ink);
   }
   :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-link,
   :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-glass {

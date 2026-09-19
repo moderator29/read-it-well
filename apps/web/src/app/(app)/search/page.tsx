@@ -249,6 +249,7 @@ export default async function SearchPage({
                     locale={locale}
                     t={t}
                     index={i}
+                    dense
                     intent={tuning.signedIn ? tuning.interests : undefined}
                   />
                 </li>

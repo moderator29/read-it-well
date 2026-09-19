@@ -284,6 +284,12 @@ export const STAY: StayDetail = {
   ],
   policy: { id: "pol-1", name: "Flexible", summary: "Free cancellation until 48 hours before arrival.", freeUntilHours: 48 },
   businessKind: "resort",
+  hostName: "Oceanview Hospitality",
+  hostVerified: true,
+  /* The harness stands in for real inventory, so this fixture carries the
+     rating a reviewed property would, exactly as STAYS[1] does. The live read
+     carries none and the face draws none; see the note in the route. */
+  rating: { average: 4.8, count: 132 },
 };
 
 export const BOOKINGS: BookingView[] = [

@@ -9,6 +9,8 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
 import {
+  reserveHref,
+  type ReserveBase,
   MEAL_PLAN_KEY,
   ROOM_CATEGORY_KEY,
   orderedRooms,
@@ -37,27 +39,19 @@ import {
 
 type StaysCopy = Dictionary["stayDetail"];
 
-/** The checkout link's ingredients: the stay, the dates and the party. */
-export type ReserveBase = {
-  stayId: string;
-  checkIn?: string;
-  checkOut?: string;
-  guests: number;
-  /** The route the link lands on; the real checkout unless a harness says otherwise. */
-  basePath?: string;
-};
-
-/* THE FIRST-PARTY CHECKOUT, ALWAYS. This lane never borrows a step from the
-   third-party one: a room on Vallo is reserved and paid for on Vallo. */
-export function reserveHref(base: ReserveBase, roomTypeId: string, ratePlanId: string): string {
-  const search = new URLSearchParams({ stay: base.stayId, room: roomTypeId, rate: ratePlanId });
-  if (base.checkIn && base.checkOut) {
-    search.set("checkIn", base.checkIn);
-    search.set("checkOut", base.checkOut);
-  }
-  search.set("guests", String(base.guests));
-  return `${base.basePath ?? "/checkout"}?${search.toString()}`;
-}
+/*
+ * `ReserveBase` and `reserveHref` MOVED TO `detail-model.ts`.
+ *
+ * They were declared in this file, which carries "use client", so the server
+ * component above it could not call `reserveHref` at all: Next refuses a
+ * client export invoked from the server, and the stay face went to its error
+ * boundary the moment its availability card tried to build a checkout link.
+ * The link builder is pure string work with no browser in it, so it belongs in
+ * the view model both sides already import. Re-exported here so every existing
+ * call site keeps working and there is still exactly one definition.
+ */
+export type { ReserveBase } from "./detail-model";
+export { reserveHref };
 
 export function RoomTypes({
   detail,

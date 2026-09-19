@@ -110,7 +110,6 @@ export default async function ListingPreview() {
             </Section>
           </Stack>
         </div>
-        <div aria-hidden="true" className="h-[5.5rem]" />
         <ListingStickyBar
           variant="rental"
           priceMinor={listing.priceMinor}

@@ -153,11 +153,28 @@ function Group({
         <h2 id={id} className="nf-filters__group-title">
           {title}
         </h2>
-        {onClear && (
-          <button type="button" onClick={onClear} className="nf-filters__clear">
-            {clearLabel}
-          </button>
-        )}
+        {/*
+          ALWAYS DRAWN, DISABLED WHEN THERE IS NOTHING TO CLEAR.
+
+          3EB3E2A9 shows "Clear" beside every group heading. It used to appear
+          only once the group had a value, which made every heading in the
+          sheet jump sideways as a person touched the controls under it. It is
+          drawn at rest now and genuinely disabled - the attribute, so the
+          browser refuses the press, skips it in the tab order and announces it
+          - rather than a live-looking control that does nothing. Its
+          accessible name names its group, because nine controls all called
+          "Clear" are nine identical announcements.
+        */}
+        <button
+          type="button"
+          onClick={onClear}
+          disabled={!onClear}
+          aria-label={`${clearLabel}: ${title}`}
+          data-testid={`${id}-clear`}
+          className="nf-filters__clear"
+        >
+          {clearLabel}
+        </button>
       </div>
       {children}
     </section>
@@ -391,7 +408,9 @@ export function StayFilterSheet({
             </Group>
 
             {/* ------------------------------------------------ trust */}
-            <Group id="stay-trust" title={copy.filters.trust} clearLabel={copy.filters.clear}>
+            <Group id="stay-trust" title={copy.filters.trust} clearLabel={copy.filters.clear}
+              onClear={draft.verified || draft.freeCancellation
+                ? () => setDraft((c) => ({ ...c, verified: false, freeCancellation: false })) : undefined}>
               <div className="divide-y divide-[var(--nf-divider)]">
                 <SwitchRow icon="verified" label={copy.stays.verified} checked={draft.verified} testId="stay-verified" onChange={(v) => setDraft((c) => ({ ...c, verified: v }))} />
                 <SwitchRow icon="history" label={copy.stays.freeCancellation} checked={draft.freeCancellation} testId="stay-free-cancellation" onChange={(v) => setDraft((c) => ({ ...c, freeCancellation: v }))} />
@@ -423,7 +442,10 @@ export function StayFilterSheet({
             </Group>
 
             {/* ---------------------------------------------------- sort */}
-            <Group id="stay-sort" title={copy.filters.sortBy} clearLabel={copy.filters.clear}>
+            {/* Clearing a sort is returning to the order the shelf opens in. */}
+            <Group id="stay-sort" title={copy.filters.sortBy} clearLabel={copy.filters.clear}
+              onClear={draft.sort !== "recommended"
+                ? () => setDraft((c) => ({ ...c, sort: "recommended" })) : undefined}>
               <label className="nf-filters__row">
                 <UiIcon name="sliders" size={ICON.inline} />
                 <span className="sr-only">{copy.filters.sortBy}</span>

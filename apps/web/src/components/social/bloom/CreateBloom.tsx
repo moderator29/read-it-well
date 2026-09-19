@@ -267,7 +267,7 @@ export function CreateBloom({
                 onClick={() => choose(action.key)}
                 data-testid={`bloom-${action.key}`}
               >
-                <UiIcon name={action.icon} size={20} />
+                <UiIcon name={action.icon} size={18} />
                 <span>{action.label}</span>
               </button>
             ))}

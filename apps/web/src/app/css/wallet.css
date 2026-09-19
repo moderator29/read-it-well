@@ -77,10 +77,34 @@
     letter-spacing: var(--nf-tracking-display);
     color: var(--nf-content-primary);
   }
-  .nf-wallet-figure__kobo {
-    font-size: 0.6em;
+  /*
+   * THE KOBO ARE SMALLER, NOT GREYER, AND THIS IS THE ONLY PLACE THAT SAYS
+   * SO.
+   *
+   * The render draws "₦245,680.00" with the decimals at about six tenths of
+   * the naira and in the same white; at muted ink they read as a disabled
+   * fragment of the balance rather than as part of the figure. Hierarchy by
+   * size, which is what the render does.
+   *
+   * Four surfaces were each writing their own version of this as an
+   * arbitrary value: 0.62em at opacity 60, 0.72em at opacity 70, 0.62em in
+   * muted ink. Same job, four answers, and the result sheet's answer was a
+   * visibly different grey from the wallet's. One class, one rung down for
+   * the smaller figures.
+   */
+  .nf-money-kobo {
+    font-size: 0.68em;
     font-weight: 600;
-    color: var(--nf-content-muted);
+    color: var(--nf-content-primary);
+    opacity: 0.74;
+  }
+  /* The hero figure is 2.6rem, so the same ratio would put its decimals at
+     nearly a whole row title. One rung smaller against the naira, one rung
+     brighter, because at that size the decimals are read rather than
+     glanced at. Same recipe, different rung, one class. */
+  .nf-money-kobo--hero {
+    font-size: 0.6em;
+    opacity: 0.82;
   }
   .nf-wallet-change {
     display: inline-flex;
@@ -198,14 +222,42 @@
     gap: var(--nf-gap-inline);
     padding-block: var(--nf-space-2xs);
   }
+  /*
+   * FOUR ACROSS AT 390px LEAVES EACH CARD ABOUT 83 PIXELS, AND THE TYPE HAS
+   * TO KNOW THAT.
+   *
+   * At the shared small-body size the titles broke wherever they liked:
+   * "Send Money" over two lines, "Request Money" over two, and the card
+   * heights stopped agreeing. The governing render sets this row's title a
+   * good deal smaller than a row title and lets it take two lines, so the
+   * four read as one band. `text-wrap: balance` is what stops a two-line
+   * title leaving one orphan word, and the fixed height is what keeps the
+   * four plates level whatever their words do.
+   */
   .nf-wallet-quick__card {
     display: flex;
-    min-height: 7.25rem;
+    min-height: 7.75rem;
     flex-direction: column;
-    gap: var(--nf-gap-inline);
-    padding: var(--nf-space-sm) var(--nf-space-xs);
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-space-sm) var(--nf-space-2xs);
     text-align: left;
     color: var(--nf-content-primary);
+  }
+  .nf-wallet-quick__title {
+    display: block;
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    line-height: 1.25;
+    text-wrap: balance;
+    color: var(--nf-content-primary);
+  }
+  .nf-wallet-quick__sub {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    text-wrap: balance;
+    color: var(--nf-content-muted);
   }
   /* The plate on a quick card is smaller than the one a section head takes:
      four of them sit in the width one card used to have. */
@@ -294,15 +346,16 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: calc(var(--nf-focus-ring-offset) * -1);
   }
-  /* The mark's circle. The glass object carries its own light; the circle is
-     a quiet plate that keeps a column of marks reading as a column. */
+  /* The mark's circle, exactly as the governing render draws it: a tinted
+     plate holding one stroked glyph, so a column of movements reads as a
+     column of directions rather than as a column of blue. The glass tier
+     was here and is gone with its padding; see `kinds.ts` for why. */
   .nf-tx-tile {
     display: grid;
     place-items: center;
     flex: none;
     width: 2.75rem;
     height: 2.75rem;
-    padding: 0.28rem;
     border-radius: var(--nf-radius-circle);
     border: 1px solid var(--nf-brand-edge);
     background: var(--nf-brand-tint-2);
@@ -310,13 +363,6 @@
     box-shadow:
       var(--nf-rim-lit),
       0 6px 16px -12px var(--nf-glow-3);
-  }
-  /* The glass object fills the circle it sits in. A row mark is a content
-     icon, so it stays on the glass tier (direction ruling 5) and answers the
-     founder's size ruling by coming down a rung rather than by changing tier. */
-  .nf-tx-tile > * {
-    width: 100%;
-    height: 100%;
   }
 
   /* --------------------------------------------- send and receive sections */
@@ -417,16 +463,31 @@
   }
 
   /* The trust strip, from 77A54EA3's foot. Only what is true is claimed. */
+  /*
+   * THREE THINGS ACROSS A 390px CARD IS ONE TOO MANY.
+   *
+   * The mark, the words and the badge sat in one row. The badge is a fixed
+   * lozenge and the mark is a fixed 48px square, so the sentence in the
+   * middle was reading in a column about 150px wide and broke over five
+   * ragged lines. It is a reassurance; a reassurance that looks cramped
+   * reassures nobody. The badge drops to its own line beside the words,
+   * which is where the send render puts it.
+   */
   .nf-trust {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
     gap: var(--nf-gap-row);
     padding: var(--nf-pad-card-sm);
+  }
+  .nf-trust__body {
+    min-width: 0;
   }
   .nf-trust__badge {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-gap-inline-tight);
+    margin-top: var(--nf-space-xs);
     flex: none;
     padding: var(--nf-space-2xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
@@ -442,11 +503,20 @@
 
   /* ------------------------------------------------------ payment methods */
 
+  /* Plate, title and the Add control across the top; the sentence on its own
+     line under them, where it has the card's whole width. It used to sit in
+     the column the plate and the button left over, which at 390px is about
+     170 pixels, and a one-line sentence became three. */
   .nf-pay-head {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--nf-gap-row);
     padding: var(--nf-pad-card-sm);
+  }
+  .nf-pay-head__sub {
+    grid-column: 2 / -1;
+    margin-top: calc(var(--nf-gap-row) * -1 + var(--nf-space-3xs));
   }
   .nf-pay-rows {
     display: flex;
@@ -507,21 +577,22 @@
   /* ------------------------------------------------- controls, scoped here */
 
   /*
-   * THE RENDERS' BUTTON SHAPE, ON THE MONEY SURFACES ONLY, AND WHY IT IS
-   * SCOPED RATHER THAN CHANGED AT THE SOURCE.
+   * THE CAPSULE, AND THE ONE THING THIS PARTIAL STILL SAYS ABOUT BUTTONS.
    *
-   * The founder's ruling of 19 September 2026: the primary is a saturated
-   * blue CAPSULE carrying a glow at rest, the secondary a softer glass
-   * capsule with a lit rim. `app/css/buttons.css` draws a rounded rectangle
-   * with no resting bloom, on an earlier ruling recorded in that file, and
-   * that file belongs to G1. The ledger's rule for exactly this case
-   * (section 2): a worker needing a change to a shared class defines it
-   * inside its own partial, scoped under its surface's root class, and
-   * reports it for the lead to promote. `.nf-money` is that root, carried by
-   * the wallet, send, receive, statement, receipt and payments pages.
+   * The light was promoted and is gone from here. `buttons.css` now rests
+   * the primary in its own two-rung bloom and rings the glass secondary in
+   * brand with the lit rim, so the four rules that used to paint those two
+   * controls on this surface have been deleted rather than left to drift
+   * beside the shared ones.
    *
-   * It is a shape and a light, never a new colour: the fill is the CTA
-   * gradient the primary already uses and the glow is the glow ladder.
+   * The SHAPE is the remainder, and it stays for a reason that is not
+   * inertia. The founder's ruling of 19 September makes the capsule the law
+   * of the whole money register, not a choice taken control by control; the
+   * shared material carries the same value as an opt-in variant
+   * (`.nf-btn--pill`), which can only be spelled at each call site. One rule
+   * applying the shared token to one surface is the smaller of the two
+   * duplications, and it introduces no value of its own: this is
+   * `--nf-radius-pill` and nothing else.
    */
   .nf-money .nf-btn {
     border-radius: var(--nf-radius-pill);
@@ -536,25 +607,37 @@
    * September says the same in one line: text mostly white, blue accents.
    * The roll is G3's material and stays exactly as it is; only the ink is
    * overruled, and only on the surfaces this partial owns.
+   *
+   * IT IS STILL NEEDED, and the light half was missing. `motion.css` paints
+   * the figure `--nf-brand-secondary` in the dark and `--nf-brand-primary`
+   * on paper; the promotion of the lit edge did not touch it. The dark
+   * override was landing and the light one was not, because
+   * `:root[data-theme="light"] .nf-odometer-figure` outweighs a two-class
+   * selector, so the wallet balance was white in the dark and brand blue on
+   * paper. The screenshot of the light theme is what found it. Both halves
+   * are stated now, at the specificity each needs.
    */
-  .nf-money .nf-odometer-figure {
+  .nf-money .nf-odometer-figure,
+  :root[data-theme="light"] .nf-money .nf-odometer-figure {
     color: var(--nf-content-primary);
   }
   /*
-   * EVERY CONTAINER ON THESE SURFACES READS AS LIT GLASS.
+   * EVERY CONTAINER ON THESE SURFACES READS AS LIT GLASS, AND THE
+   * COMPOSITION IS NO LONGER WRITTEN HERE.
    *
-   * The shared `.nf-card` carries a stride-gradient edge that is nearly
-   * invisible at 390px in the dark, which is the "dull beside the renders"
-   * the founder named. The ring below is one bright brand hairline drawn
-   * OUTSIDE the border box, the inner highlight along the top, and a soft
-   * blue glow beneath; the material underneath is untouched, so promoting
-   * this to `glass.css` later is a move rather than a rewrite.
+   * This rule used to spell out the ring, the rim and the bloom by hand.
+   * The same three parts are now composed once in the token layer as
+   * `--nf-glow-edge`, which the lead put on `.nf-glass--card`,
+   * `.nf-glass--tile` and `.nf-icon-btn`. `.nf-card` is a different material
+   * (a stride-gradient border box) and was NOT promoted with them, so the
+   * money surfaces still have to ask for the edge; what they ask for is the
+   * shared recipe, so there is one composition and not two. The card's own
+   * float rides underneath, exactly as `.nf-glass--card` arranges it.
    */
   .nf-money .nf-card {
     box-shadow:
-      0 0 0 1px var(--nf-brand-edge),
-      var(--nf-rim-lit),
-      0 16px 38px -26px var(--nf-glow-3);
+      var(--nf-glow-edge),
+      var(--nf-bloom-card);
   }
   /* The four presets in the send render sit four across inside the gutters.
      At the shared chip padding the fourth ran off the screen. */
@@ -562,18 +645,6 @@
     min-width: 0;
     padding-inline: var(--nf-space-2xs);
     font-size: var(--nf-text-caption);
-  }
-  .nf-money .nf-btn--primary {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 10px 28px -12px var(--nf-glow-4);
-  }
-  .nf-money .nf-btn--glass {
-    border-color: var(--nf-brand-edge);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 8px 20px -16px var(--nf-glow-3);
   }
 
   /* --------------------------------------------------------- result marks */
@@ -626,13 +697,6 @@
   }
   :root[data-theme="light"] .nf-money .nf-card {
     box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
-  }
-  :root[data-theme="light"] .nf-money .nf-btn--primary {
-    box-shadow: var(--nf-glow-accent);
-  }
-  :root[data-theme="light"] .nf-money .nf-btn--glass {
-    border-color: var(--nf-brand-edge-soft);
-    box-shadow: none;
   }
   :root[data-theme="light"] .nf-recipient[aria-pressed="true"] .nf-recipient__avatar {
     background: var(--nf-brand-primary);

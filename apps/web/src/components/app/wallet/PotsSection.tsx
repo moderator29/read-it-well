@@ -86,7 +86,7 @@ export function PotsSection({ pots, locale }: { pots: Pot[]; locale: Locale }) {
                   locale={locale}
                   showFraction
                   className="nf-numeric nf-body font-semibold text-[var(--nf-content-primary)]"
-                  secondaryClassName="text-[0.62em] font-medium opacity-60"
+                  secondaryClassName="nf-money-kobo"
                 />
               </div>
 

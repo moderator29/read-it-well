@@ -36,7 +36,7 @@ export default async function SearchPreview({
       <ul className="mt-md grid grid-cols-2 gap-sm sm:gap-md lg:grid-cols-4" data-testid="results-grid">
         {listings.map((listing, i) => (
           <li key={listing.id}>
-            <ListingCard listing={listing} locale={locale} t={t} index={i} />
+            <ListingCard listing={listing} locale={locale} t={t} index={i} dense />
           </li>
         ))}
       </ul>

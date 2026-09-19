@@ -157,7 +157,10 @@ export function AccountBody({
   ];
 
   return (
-    <div className="mt-lg">
+    /* `mt-group`, not `mt-lg`: `50E032EA` sets the capsule directly under the
+       counts, and at lg the quiet link row above it plus the gap left most of
+       a thumb of empty canvas between the person and their belongings. */
+    <div className="mt-group">
       {/* Belongings / Posts: the glass capsule the render draws, and the same
           object the feed's For you / Following and the public page's tabs
           wear, so a tab is one thing across the whole social layer. */}

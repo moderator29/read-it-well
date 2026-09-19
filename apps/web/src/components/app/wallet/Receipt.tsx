@@ -1,6 +1,6 @@
 import { formatDate, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { TYPE } from "@/components/app/Screen";
 import { KIND_ICON, walletWords } from "./kinds";
@@ -68,7 +68,7 @@ export function Receipt({ entry, locale }: { entry: WalletEntry; locale: Locale 
       */}
       <div className="flex items-center gap-inline border-b border-[var(--nf-border-subtle)] p-card">
         <span className="nf-tx-tile" aria-hidden="true">
-          <BrandIcon name={KIND_ICON[entry.kind]} fill />
+          <UiIcon name={KIND_ICON[entry.kind]} size={20} />
         </span>
         <div className="min-w-0 flex-1">
           <p className={TYPE.rowTitle}>{words.kind[entry.kind]}</p>

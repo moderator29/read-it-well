@@ -87,7 +87,7 @@ export function AppBand({
             </div>
             <div className="nf-landing-phone nf-landing-phone--front">
               <div className="nf-landing-phone-screen nf-landing-phone-screen--brand">
-                <Logo size={52} wordSize={24} />
+                <Logo size={46} wordSize={20} />
                 <span className="nf-landing-phone-slogan">{t.landing.slogan}</span>
               </div>
             </div>

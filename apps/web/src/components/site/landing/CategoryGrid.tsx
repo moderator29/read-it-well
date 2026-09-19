@@ -63,7 +63,7 @@ export function CategoryGrid({
             <p className="nf-lede mt-group max-w-measure-lede">{c.body}</p>
           </div>
           <div>
-            <ButtonLink href="/start" variant="secondary" size="md" trailingIcon="arrow-right">
+            <ButtonLink href="/start" variant="primary" size="md" trailingIcon="arrow-right">
               {c.join}
             </ButtonLink>
           </div>

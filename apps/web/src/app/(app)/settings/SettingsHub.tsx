@@ -121,8 +121,21 @@ function ProfileRow({
  * own ground and its own light, so it reads at a size a line drawing would
  * disappear at; drawn at the stroked tier's 24 it fills the tile and the rail
  * turns into a column of pictures.
+ *
+ * WHAT THE FIRST SCREENSHOT OF THIS SCREEN SHOWED, recorded here because it
+ * is a real weakness and not a resolved one: the six objects do not read as
+ * one family at this size. `bell-badge` and `shield-lock` carry deep glass
+ * and catch the light; `person-card`, `palette`, `globe` and `headset` are
+ * flatter pieces of artwork and read almost as line drawings beside them, so
+ * the rail looks like two tiers in one column, which rule 5 forbids. None of
+ * the six has a light twin either, so on paper all six take the pack's navy
+ * chip and the group becomes six dark squares punched into a white card.
+ * Neither is fixable from this scope: the artwork is G2's and the chip is the
+ * icon ground in the lead's layer. It is filed rather than papered over, and
+ * the stroked tier is not the answer because the set has no palette, no globe
+ * and no headset, so switching would approximate three of the six.
  */
-const HUB_GLYPH = 26;
+const HUB_GLYPH = 24;
 
 function HubGlyph({ name }: { name: BrandIconName }) {
   return <BrandIcon name={name} size={HUB_GLYPH} />;

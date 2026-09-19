@@ -79,6 +79,27 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
         }
       : null,
     businessKind: detail.business.kind,
+    hostName: detail.business.name,
+    /*
+     * THE SHIELD MEANS A HUMAN WAS CHECKED (ledger rule 12).
+     *
+     * `source: "first_party"` is a business a person onboarded onto Vallo and
+     * that passed the publish review; licensed or partner stock never earns
+     * the shield, and an example row never does either, whatever its source
+     * says. Anything short of both is a host row with a role line and no
+     * shield, which is the honest shape for a host we have not checked.
+     */
+    hostVerified: detail.business.source === "first_party" && detail.business.is_demo !== true,
+    /*
+     * NO RATING, AND THIS IS NOT AN OVERSIGHT.
+     *
+     * `reviews.listing_id` is a foreign key to `listings`; an accommodation id
+     * matches no review row, so there is nothing real to average and the face
+     * draws no rating at all. What lands it: reviews keyed on the
+     * accommodation (or its business), read the way `getListingReviews` reads
+     * a listing's. Until then a star here would be a number we made up.
+     */
+    rating: null,
   };
 }
 

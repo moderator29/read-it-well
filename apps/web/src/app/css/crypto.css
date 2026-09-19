@@ -17,12 +17,21 @@
 @layer components {
   /* ------------------------------------------------------------ overview */
 
-  /* A rail of coin cards, bleeding into the gutter like every other rail. */
+  /*
+   * A rail of coin cards, bleeding to ITS OWN CONTAINER'S edge.
+   *
+   * It bled by `--nf-pad-shell`, which is the page gutter, and this rail
+   * lives inside a card whose gutter is `--nf-pad-card-sm`. The difference
+   * is about three and a half pixels a side, so the overview card stuck out
+   * past every other card on the surface and the whole market panel measured
+   * 349 wide inside a 342 column. Small, and visible as a card that does not
+   * line up with the two beneath it.
+   */
   .nf-coin-rail {
     display: flex;
     gap: var(--nf-gap-row);
-    margin-inline: calc(var(--nf-pad-shell) * -1);
-    padding-inline: var(--nf-pad-shell);
+    margin-inline: calc(var(--nf-pad-card-sm) * -1);
+    padding-inline: var(--nf-pad-card-sm);
     padding-block: var(--nf-space-2xs);
   }
   .nf-coin-card {
@@ -112,13 +121,45 @@
       background: var(--nf-glass-fill-thin);
     }
   }
+  /* 3.5rem, down from 4.5. The row carries a mark, a name, a symbol, a
+     sparkline, a price and a signed percentage across 390px, and the
+     sparkline was the one element paying for itself in the name's width:
+     "Chainlink" and "Litecoin" both truncated. A seven-day shape reads at
+     56px as well as at 72. */
   .nf-coin-spark {
     flex: none;
-    width: 4.5rem;
+    width: 3.5rem;
     height: 1.75rem;
     color: var(--nf-brand-secondary);
   }
-  .nf-coin-rank {
+  /* ------------------------------------------------------------- movers */
+
+  /*
+   * `.nf-coin-rank` STOOD HERE AND IS DELETED, WITH ITS ONLY CALLER.
+   *
+   * It drew a numbered pill at the head of every movers row. Two movers
+   * cards side by side at 390px leave each row about 135 logical pixels,
+   * and the pill took 28 of them to repeat what an ordered list already
+   * says. The row below spends that width on the figures instead.
+   */
+  .nf-mover-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    padding-block: var(--nf-space-2xs);
+    color: var(--nf-content-primary);
+  }
+  .nf-mover-row + .nf-mover-row {
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-mover-head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    min-width: 0;
+  }
+  .nf-mover-head__glyph {
     display: grid;
     place-items: center;
     flex: none;
@@ -128,8 +169,6 @@
     border: 1px solid var(--nf-brand-edge);
     background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
-    font-size: var(--nf-text-caption);
-    font-weight: 700;
     box-shadow: var(--nf-rim-lit);
   }
 
@@ -248,36 +287,27 @@
   /* ------------------------------------------------- controls, scoped here */
 
   /* The render's capsule, on this surface's root, for the reason stated at
-     length in `wallet.css`: the shared button material is G1's and the
-     founder's shape ruling is carried here until the lead promotes it. */
+     length in `wallet.css`: the shape is the founder's ruling for the whole
+     register and the shared material can only spell it per control. The
+     LIGHT on the buttons was promoted into `buttons.css` and the two rules
+     that painted it here are deleted. */
   .nf-crypto-surface .nf-btn {
     border-radius: var(--nf-radius-pill);
   }
-  /* The lit container edge, exactly as `wallet.css` states and for the same
-     reason: at 390px in the dark the shared card edge disappears. */
+  /* The lit container edge, asked for with the shared recipe. `.nf-card` was
+     not promoted alongside `.nf-glass--card`, so this surface still has to
+     ask; `--nf-glow-edge` means it asks for the one composition rather than
+     writing a second one. */
   .nf-crypto-surface .nf-card {
     box-shadow:
-      0 0 0 1px var(--nf-brand-edge),
-      var(--nf-rim-lit),
-      0 16px 38px -26px var(--nf-glow-3);
-  }
-  .nf-crypto-surface .nf-btn--primary {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 10px 28px -12px var(--nf-glow-4);
-  }
-  .nf-crypto-surface .nf-btn--glass {
-    border-color: var(--nf-brand-edge);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 8px 20px -16px var(--nf-glow-3);
+      var(--nf-glow-edge),
+      var(--nf-bloom-card);
   }
 
   /* -------------------------------------------------------------- daylight */
 
   :root[data-theme="light"] .nf-coin-img,
-  :root[data-theme="light"] .nf-coin-rank,
+  :root[data-theme="light"] .nf-mover-head__glyph,
   :root[data-theme="light"] .nf-crypto-ghost {
     background: var(--nf-brand-tint-1);
     border-color: var(--nf-brand-edge-soft);
@@ -290,13 +320,6 @@
   }
   :root[data-theme="light"] .nf-crypto-surface .nf-card {
     box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
-  }
-  :root[data-theme="light"] .nf-crypto-surface .nf-btn--primary {
-    box-shadow: var(--nf-glow-accent);
-  }
-  :root[data-theme="light"] .nf-crypto-surface .nf-btn--glass {
-    border-color: var(--nf-brand-edge-soft);
-    box-shadow: none;
   }
   :root[data-theme="light"] .nf-crypto-chart__line {
     filter: none;

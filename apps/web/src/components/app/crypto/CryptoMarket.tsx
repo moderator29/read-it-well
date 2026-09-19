@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
 import { fetchMarkets, type CryptoResponse, type CryptoVs, type MarketRow, type PairRow } from "./client";
-import { formatCompact, formatPercent, formatPrice, matchesCoin, movers } from "./format";
+import { formatListPrice, formatPercent, matchesCoin, movers } from "./format";
 import { CoinImage } from "./CoinImage";
 import { Sparkline } from "./Sparkline";
 import { CryptoFailure } from "./CryptoStates";
@@ -227,7 +227,9 @@ function CoinCard({ row, vs, locale }: { row: MarketRow; vs: CryptoVs; locale: L
           <span className={`block truncate ${TYPE.caption}`}>{row.name}</span>
         </span>
       </span>
-      <span className={`nf-numeric block ${TYPE.rowTitle}`}>{formatPrice(row.price, vs, locale)}</span>
+      {/* Grouped above a million, like the list rows: the card is 148px wide
+          and a full naira price measures 129 inside 120 of content. */}
+      <span className={`nf-numeric block ${TYPE.rowTitle}`}>{formatListPrice(row.price, vs, locale)}</span>
       <Change value={row.change24h} locale={locale} className="nf-body-sm" />
       <Sparkline values={row.sparkline7d} className="nf-coin-spark w-full" />
     </Link>
@@ -244,8 +246,13 @@ function CoinRow({ row, vs, locale }: { row: MarketRow; vs: CryptoVs; locale: Lo
           <span className={`mt-3xs block ${TYPE.rowMeta}`}>{row.symbol.toUpperCase()}</span>
         </span>
         <Sparkline values={row.sparkline7d} className="nf-coin-spark" />
+        {/*
+          THE LIST PRICE IS GROUPED ABOVE A MILLION, and it was the whole
+          figure. See `formatListPrice`: the full naira price took the name
+          column's last pixel and the row read "Chainli...".
+        */}
         <span className="nf-numeric shrink-0 text-right leading-tight">
-          <span className={`block ${TYPE.rowTitle}`}>{formatPrice(row.price, vs, locale)}</span>
+          <span className={`block ${TYPE.rowTitle}`}>{formatListPrice(row.price, vs, locale)}</span>
           <Change value={row.change24h} locale={locale} className="nf-body-sm mt-3xs" />
         </span>
       </Link>
@@ -268,37 +275,38 @@ function MoversCard({
 }) {
   return (
     <section className="nf-card p-card-sm" aria-label={title}>
-      <div className="flex items-center gap-inline">
-        <span className="nf-glyph-tile" aria-hidden="true">
-          <UiIcon name={icon} size={20} />
+      {/* The glyph comes down a rung and the title stops wrapping. At 135px
+          the full tile plus "Top gainers" at row-title size broke over two
+          lines, which put the two cards' lists at different heights. */}
+      <div className="nf-mover-head">
+        <span className="nf-mover-head__glyph" aria-hidden="true">
+          <UiIcon name={icon} size={16} />
         </span>
-        <h2 className={TYPE.rowTitle}>{title}</h2>
+        <h2 className={`truncate ${TYPE.rowMeta}`}>{title}</h2>
       </div>
+      {/*
+        THE ROW STACKS ITS NUMBERS, and it used to lay them out across.
+        Two of these cards sit side by side at 390px, which leaves each row
+        about 135 logical pixels. A rank pill, a symbol, a price and a signed
+        percentage cannot share that in one line: the shipped screenshot read
+        "L." over "₦." in both columns, which is a column that says nothing.
+        Symbol left, price over change right, is the reference render's own
+        mover anatomy and it needs half the width. The rank is gone with the
+        same argument: an ordered list already states its order, and the pill
+        was costing a quarter of the row to repeat it.
+      */}
       <ol className="mt-inline">
-        {rows.map((row, i) => (
+        {rows.map((row) => (
           <li key={row.id}>
             <Link
               href={`/crypto/${encodeURIComponent(row.id)}`}
-              className="nf-tap flex items-center gap-inline rounded-[var(--nf-radius-sm)] py-inline"
+              className="nf-tap nf-mover-row rounded-[var(--nf-radius-sm)]"
             >
-              <span className="nf-coin-rank" aria-hidden="true">
-                {i + 1}
+              <span className={`min-w-0 flex-1 truncate ${TYPE.rowTitle}`}>{row.symbol.toUpperCase()}</span>
+              <span className="nf-numeric shrink-0 text-right leading-tight">
+                <span className={`block ${TYPE.caption}`}>{formatListPrice(row.price, vs, locale)}</span>
+                <Change value={row.change24h} locale={locale} className="nf-caption mt-3xs" />
               </span>
-              {/*
-                THE PRICE IS COMPACT IN THIS COLUMN, and it was the full
-                figure. Two movers cards sit side by side at 390px, and a
-                naira price is "₦98,412,500.00": beside a rank, a symbol and
-                a signed percentage it truncated to "₦.." and the symbol to
-                one letter, so both columns said nothing at all. Compact
-                ("₦98.4m") is the same fact at a width this column has.
-              */}
-              <span className="min-w-0 flex-1">
-                <span className={`block truncate ${TYPE.rowTitle}`}>{row.symbol.toUpperCase()}</span>
-                <span className={`nf-numeric block truncate ${TYPE.caption}`}>
-                  {formatCompact(row.price, vs, locale)}
-                </span>
-              </span>
-              <Change value={row.change24h} locale={locale} className="nf-body-sm shrink-0" />
             </Link>
           </li>
         ))}

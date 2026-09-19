@@ -198,6 +198,16 @@
   .nf-pcard__fact > svg {
     color: var(--nf-content-muted);
   }
+  /* The "+N" mark that stands for the facts a two-up card has no room for.
+     It reads as a count rather than as a fact, so it takes the muted tone and
+     the well fill, and it never wraps the row: it is the last cell on it. */
+  .nf-pcard__fact--more {
+    padding: 0 var(--nf-space-3xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-muted);
+    font-weight: 650;
+  }
 
   /* The marks on the photograph. Verified is the brand pill of the renders:
      glass, brand edge, a soft glow; the market tag is the same pill at rest. */
@@ -576,6 +586,22 @@
   .nf-filters__clear:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
+  }
+  /*
+   * THE GROUP'S CLEAR IS ALWAYS THERE, AND IT IS DISABLED WHEN THERE IS
+   * NOTHING TO CLEAR.
+   *
+   * It used to be rendered only when the group had a value, so the sheet's
+   * right-hand column filled and emptied as a person touched it and every
+   * heading moved. 3EB3E2A9 draws "Clear" beside every heading. Drawn at rest
+   * and genuinely disabled (the attribute, not a class) it also stops being a
+   * control that looks live and does nothing, and it keeps its accessible
+   * name, which names its group: "Clear" alone, repeated nine times down a
+   * sheet, tells a screen-reader user nothing about which nine things.
+   */
+  .nf-filters__clear:disabled {
+    color: var(--nf-content-muted);
+    cursor: default;
   }
   .nf-filters__hint {
     margin-bottom: var(--nf-space-sm);
@@ -1121,6 +1147,329 @@
     font-weight: 650;
     color: var(--nf-content-on-brand);
   }
+  /*
+   * ==================================== the marks that sit ON a photograph
+   *
+   * THIS CLASS EXISTS BECAUSE TWO TAILWIND ARBITRARY UTILITIES COLLIDE.
+   *
+   * `text-[var(--nf-text-overline)]` and `text-[var(--nf-content-on-media)]`
+   * are both compiled to a `color` declaration: Tailwind reads the first
+   * variable as a colour because it cannot see that it holds a length. They
+   * have the same specificity, so the later one in the sheet wins, `color`
+   * resolves to a font size, the declaration is invalid at computed-value time
+   * and the element falls back to its INHERITED colour. The size never applied
+   * either.
+   *
+   * In dark nobody saw it: the inherited ink is near-white and the mark sits on
+   * a dark scrim. In light the inherited ink is near-black and the gallery's
+   * "1/5" counter, the "No photographs yet" mark and the "+N" tile all painted
+   * black on a 62% black overlay. That is the silent-fault family
+   * `scripts/check-css-tokens.mjs` opens with, and this is the shape of it the
+   * checker cannot see, because both names resolve.
+   *
+   * One class, with the size and the ink together, so neither can be dropped
+   * without the other going with it.
+   */
+  .nf-media-chip {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-on-media);
+  }
+  .nf-media-chip--muted {
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-media-chip--caption {
+    font-size: var(--nf-text-caption);
+  }
+  .nf-media-chip--lg {
+    font-size: var(--nf-text-body-lg);
+  }
+
+  /* ================================================== the detail anatomy
+     B047A0CE: the strip of spec pairs, the price row with its rating, the
+     capsule row, the About card with its host row, and the availability card
+     with the two date fields and the blue action. Shared by the stay face and
+     the restaurant face; see components/app/listing/DetailAnatomy.tsx. */
+
+  /* The spec strip: a bordered box of equal cells with hairlines between. */
+  .nf-spec-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-items: center;
+    margin-top: var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+  }
+  .nf-spec-strip__cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    min-height: 3rem;
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-align: center;
+  }
+  /* The hairline is a border on the cell rather than a separate element, so
+     a strip of one or two pairs has no dangling rule at its end. */
+  .nf-spec-strip__cell + .nf-spec-strip__cell {
+    border-left: 1px solid var(--nf-divider);
+  }
+  .nf-spec-strip__cell > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* The price row: the blue figure with its unit, the rating opposite. */
+  .nf-detail-price-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-md);
+  }
+  .nf-detail-price {
+    display: flex;
+    align-items: baseline;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-detail-price__figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-brand-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-detail-price__unit {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-detail-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  /* BLUE. The render's star is gold; direction section 1.3 turns every warm
+     hue in a render into its blue-family equivalent, and rule 8 names this
+     star specifically. */
+  .nf-detail-rating > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-detail-rating__count {
+    color: var(--nf-content-muted);
+  }
+
+  /* The capsule row. Four small pills, each a glyph and a word. They scroll
+     rather than wrap or shrink: the type floor is a floor, so a label that
+     does not fit moves sideways instead of getting smaller. */
+  .nf-detail-capsules {
+    display: flex;
+    gap: var(--nf-space-xs);
+    /* The row bleeds to the card's own edges so a capsule that does not fit
+       is clearly cut BY THE EDGE rather than by a padding it stops inside,
+       which reads as a broken pill instead of a row you can push. Same trick,
+       same reason, as `.nf-amenity-row` above. */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    margin-top: var(--nf-space-md);
+    padding: var(--nf-space-3xs) var(--nf-pad-shell);
+  }
+  .nf-detail-capsule {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+  }
+  .nf-detail-capsule > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* The divider between an About body and the host row under it. */
+  .nf-detail-hairline {
+    margin: var(--nf-space-md) 0;
+    border: 0;
+    border-top: 1px solid var(--nf-divider);
+  }
+
+  .nf-host-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-host-row__avatar {
+    position: relative;
+    display: block;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-pill);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+  }
+  .nf-host-row__body {
+    display: block;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .nf-host-row__title {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 650;
+    color: var(--nf-content-primary);
+  }
+  .nf-host-row__title > svg {
+    flex-shrink: 0;
+    color: var(--nf-status-verified);
+  }
+  .nf-host-row__title--plain {
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-host-row__name {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+
+  /* The availability card's two date fields, side by side. */
+  .nf-detail-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  /* A third field is not a date pair, it is the party, and it takes the whole
+     row rather than sitting in half of one with a hole beside it. */
+  .nf-detail-fields > :nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
+  .nf-detail-field {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 3.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-primary);
+  }
+  .nf-detail-field > svg:first-child,
+  .nf-detail-field > svg:last-child {
+    flex-shrink: 0;
+  }
+  .nf-detail-field > svg:first-child {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-detail-field > svg:last-child {
+    margin-left: auto;
+    color: var(--nf-content-muted);
+  }
+  .nf-detail-field__label {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-detail-field__value {
+    display: block;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-detail-availability__note {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ============================================ the pinned foot, as a grid
+
+     THE THREE PARTS CANNOT COLLIDE.
+
+     The foot was a flex row: a `min-w-0 flex-1` price column beside two
+     buttons. At 390 a rental's three parts (the move-in figure with its
+     caption, "Breakdown", "Book inspection") are wider than the shell, and a
+     flex column that is allowed to shrink while its own children are
+     `white-space: nowrap` does not shrink, it OVERFLOWS: the figure painted
+     straight over the ghost button, so the bar read "N15m" and "Breakdown"
+     on top of one another.
+
+     A grid cannot do that. At 390 the figure and the ghost share the first
+     row and the solid action takes the whole of the second, which is the
+     render's full-width blue call to action anyway. From `sm` the three sit
+     on one row, where they fit. Neither track can overflow into another
+     because each part owns a named area.
+
+     The action stretches to its area at 390 and sits at the end of the row
+     from `sm`. */
+  .nf-detail-foot {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "figure secondary"
+      "action action";
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-detail-foot__lead {
+    grid-area: figure;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+  .nf-detail-foot__secondary {
+    grid-area: secondary;
+    justify-self: end;
+  }
+  .nf-detail-foot__action {
+    grid-area: action;
+    justify-self: stretch;
+  }
+  @media (min-width: 40rem) {
+    .nf-detail-foot {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-areas: "figure secondary action";
+      gap: var(--nf-space-sm);
+    }
+    .nf-detail-foot__action {
+      justify-self: end;
+    }
+  }
+
+  /*
+     THE PAGE ENDS ABOVE THE FOOT.
+
+     `ListingStickyBar` measures the pinned bar and writes its height here, so
+     this clears the real foot on the real device rather than a number
+     somebody typed. The fallback covers the first paint and any browser with
+     no ResizeObserver: two rows of foot plus the home-indicator inset, which
+     is the tallest the bar gets at 390. */
+  .nf-detail-foot-spacer {
+    height: var(--nf-detail-foot-h, calc(9rem + env(safe-area-inset-bottom, 0px)));
+  }
+
   /* The sticky footer's figure column. */
   .nf-detail-foot__figure {
     font-family: var(--nf-font-display);

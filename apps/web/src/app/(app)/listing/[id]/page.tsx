@@ -1031,15 +1031,10 @@ export default async function ListingDetailPage({
           </div>
         </div>
 
-        {/* The bar is pinned to the viewport rather than sitting in the flow, so
-            the page has to end above it or the last thing on the screen is
-            permanently behind glass. */}
-        <div
-          aria-hidden="true"
-          className="h-[5.5rem]"
-          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-        />
-
+        {/* The clearance the pinned bar needs is the bar's own measured
+            height, and `ListingStickyBar` now ships its own spacer, so the
+            hardcoded `5.5rem` that used to stand here (shorter than the bar
+            at 390, which is why the tabs painted under it) is gone. */}
         <ListingStickyBar
           variant={isBookable ? "stay" : "rental"}
           priceMinor={listing.priceMinor}

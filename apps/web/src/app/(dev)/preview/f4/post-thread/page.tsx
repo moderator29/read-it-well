@@ -10,7 +10,7 @@ import { FEED_PLACES, THREAD } from "../fixtures";
  */
 export default function PostThreadPreview() {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
+    <div className="nf-shell mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader title="Thread" subtitle="Around Lekki Phase 1" fallback="/around" />
       <ThreadView thread={THREAD} signedIn openReply={false} />
       <CreateBloom

@@ -248,7 +248,7 @@ export function ListingGallery({
       {standIn && (
         <p
           data-testid="gallery-standin"
-          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-pill)] bg-[var(--nf-overlay-media-strong)] px-sm py-2xs text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-on-media-muted)] backdrop-blur-md sm:bottom-14 sm:right-4"
+          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-pill)] bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           {t.catalogue.card.noPhotos}
         </p>
@@ -256,7 +256,7 @@ export function ListingGallery({
       {count > 0 && (
         <p
           data-testid="gallery-counter"
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-2xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md sm:bottom-14 sm:right-4"
+          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] nf-media-chip px-sm py-2xs font-semibold backdrop-blur-md sm:bottom-14 sm:right-4"
         >
           <UiIcon name="picture" size={14} className="mr-2xs inline-block align-[-2px]" />
           <span className="sr-only">Photo </span>

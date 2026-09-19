@@ -114,12 +114,13 @@ export function PaymentMethodsPanel({
           <span className="nf-glyph-tile nf-glyph-tile--lg" aria-hidden="true">
             <UiIcon name="wallet" size={24} />
           </span>
-          <div className="min-w-0 flex-1">
-            <h2 id="nf-pay-title" className={TYPE.rowTitle}>
-              {copy.blockTitle}
-            </h2>
-            <p className={TYPE.rowMeta}>{copy.blockSub}</p>
-          </div>
+          {/* The title shares its line with the Add control and the sentence
+              runs the full width beneath. Beside a 48px plate and a button,
+              "Manage your cards and bank accounts." was reading in about 170
+              pixels and breaking over three lines. */}
+          <h2 id="nf-pay-title" className={`min-w-0 ${TYPE.rowTitle}`}>
+            {copy.blockTitle}
+          </h2>
           <Button
             type="button"
             variant="secondary"
@@ -132,6 +133,7 @@ export function PaymentMethodsPanel({
           >
             {copy.add}
           </Button>
+          <p className={`nf-pay-head__sub ${TYPE.rowMeta}`}>{copy.blockSub}</p>
         </div>
 
         {(error || addingCard) && (
@@ -207,11 +209,14 @@ export function PaymentMethodsPanel({
                     the account is, and half of the name the bank confirmed is
                     worse than none: this row is how somebody checks they are
                     being paid into the right account. */}
+                {/* Two lines, not one with a separator. The name the bank
+                    confirmed is somebody's full name, so at 390px the single
+                    line wrapped and left the middle dot stranded at the end
+                    of the first line. */}
                 <span className={`mt-3xs block ${TYPE.rowMeta}`}>
                   <span className="nf-numeric">{maskNumber(account.accountNumber)}</span>
-                  <span aria-hidden="true"> · </span>
-                  {account.accountName}
                 </span>
+                <span className={`block ${TYPE.rowMeta}`}>{account.accountName}</span>
               </span>
               <StatusPill tone="success" icon="verified" className="shrink-0">
                 {copy.verified}

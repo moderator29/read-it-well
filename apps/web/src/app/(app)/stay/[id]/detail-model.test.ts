@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  cheapestBookable,
+  maxSleeps,
   orderedRooms,
   planAcceptsNights,
   ratePlanTotalMinor,
@@ -122,5 +124,49 @@ describe("the room order", () => {
   it("keeps rooms that are too small visible rather than hiding the property's range", () => {
     const rooms = [room("small", { sleeps: 1 }), room("double", { sleeps: 2 })];
     expect(orderedRooms(detail(rooms), 2)).toHaveLength(2);
+  });
+});
+
+describe("how many the property sleeps", () => {
+  it("is the largest room, never the sum of the rooms", () => {
+    expect(maxSleeps(detail([room("a", { sleeps: 2 }), room("b", { sleeps: 4 })]))).toBe(4);
+  });
+
+  it("is null for a property with no rooms loaded", () => {
+    expect(maxSleeps(detail([]))).toBeNull();
+  });
+});
+
+describe("the one room and rate a Book now can mean", () => {
+  it("is the cheapest plan that takes the party and the length of stay", () => {
+    const found = cheapestBookable(
+      detail([
+        room("a", { sleeps: 2, ratePlans: [plan("cheap", 120_000_00)] }),
+        room("b", { sleeps: 4, ratePlans: [plan("dear", 320_000_00)] }),
+      ]),
+      3,
+      4,
+    );
+    /* The cheaper room sleeps two and the party is four, so the cheaper rate
+       is not on offer to them and the honest answer is the room that fits. */
+    expect(found?.room.id).toBe("b");
+    expect(found?.plan.id).toBe("dear");
+  });
+
+  it("refuses a plan whose minimum stay this booking does not reach", () => {
+    const found = cheapestBookable(
+      detail([room("a", { sleeps: 2, ratePlans: [plan("weekly", 100_000_00, { minStayNights: 7 })] })]),
+      2,
+      2,
+    );
+    expect(found).toBeNull();
+  });
+
+  it("is null where no room takes the party", () => {
+    expect(cheapestBookable(detail([room("a", { sleeps: 2, ratePlans: [plan("p", 1)] })]), 2, 6)).toBeNull();
+  });
+
+  it("is null where the property has rooms but no rate plans", () => {
+    expect(cheapestBookable(detail([room("a", { sleeps: 4, baseRateMinor: 90_000_00 })]), 2, 2)).toBeNull();
   });
 });

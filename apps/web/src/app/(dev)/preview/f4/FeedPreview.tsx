@@ -15,8 +15,16 @@ import { SettleFocus } from "./SettleFocus";
 export function FeedPreview({ bloomOpen }: { bloomOpen: boolean }) {
   const t = getDictionary("en");
   return (
+    /*
+     * `nf-shell`, not `px-md`, because that is what the app shell wraps the
+     * real `/around` in and the gutter is load bearing here: the story rail
+     * bleeds by 1.25rem to cut the last ring on the screen edge, which lands
+     * correctly inside the shell's 1.5rem gutter and four pixels off-screen
+     * inside a 1rem one. The first shot of this page had the row clipped, and
+     * the clipping was the harness rather than the feed.
+     */
     <div
-      className="mx-auto w-full max-w-3xl px-md pt-sm"
+      className="nf-shell mx-auto w-full max-w-3xl pt-sm"
       style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
     >
       <h1 className="sr-only">{t.nav.around}</h1>

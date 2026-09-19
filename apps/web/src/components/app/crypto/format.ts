@@ -54,6 +54,28 @@ export function formatCompact(value: number, vs: CryptoVs, locale: Locale): stri
   return text.replace(/[A-Z]+$/, (m) => m.toLowerCase());
 }
 
+/**
+ * The price AS A LIST ROW SAYS IT, which is not always the whole figure.
+ *
+ * A naira bitcoin price is "₦98,412,500.00": eighteen characters. In a row
+ * that also carries a coin mark, a name, a symbol, a seven-day sparkline and
+ * a signed percentage, it took every pixel the name had, so the list read
+ * "Bi...", "Eth...", "Chainli..." and the movers columns collapsed to a
+ * single letter and a bare currency sign. The screenshot of that is what
+ * sent this back.
+ *
+ * Above a million the figure is grouped ("₦98.4m"), which is both shorter
+ * and easier to read at a glance; below it the full price stays, because
+ * "₦3,940.00" fits and its kobo are the interesting part. The threshold is
+ * on the VALUE, not on the rendered string, so a locale that groups
+ * differently gets the same rule. Compact here keeps one decimal, so an
+ * abbreviated figure keeps its value rather than rounding away from it.
+ */
+export function formatListPrice(value: number, vs: CryptoVs, locale: Locale): string {
+  if (!Number.isFinite(value)) return "";
+  return Math.abs(value) >= 1e6 ? formatCompact(value, vs, locale) : formatPrice(value, vs, locale);
+}
+
 /** "+2.48%", "-0.90%", always signed, so the sign never depends on colour. */
 export function formatPercent(value: number, locale: Locale): string {
   if (!Number.isFinite(value)) return "";

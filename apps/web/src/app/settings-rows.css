@@ -628,9 +628,19 @@
     line-height: 1.1;
     color: var(--nf-content-primary);
   }
+  /*
+   * One line at 390, as the render sets it, and the size is only half of how
+   * that was reached. At body-sm the sentence wrapped and pushed the profile
+   * card down by 20px before the page had said anything; at caption it still
+   * needed 352px inside the 342 a phone leaves. Tracking it in by a
+   * hundredth of an em closed the gap and was the wrong fix, because a
+   * stylesheet quietly squeezing a sentence to make it fit is a rule that
+   * breaks the day the copy changes. The honest answer was a shorter line for
+   * the phone (`settings.hub.ledeShort`), so this only sets the size.
+   */
   .nf-hub-head__lede {
     margin-block-start: var(--nf-space-2xs);
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-secondary);
   }
@@ -641,7 +651,7 @@
     display: flex;
     align-items: center;
     gap: var(--nf-space-sm);
-    min-block-size: 88px;
+    min-block-size: 76px;
     padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-sm) var(--nf-space-sm);
     border-radius: var(--nf-radius-xl);
     color: var(--nf-content-primary);
@@ -654,8 +664,8 @@
     display: grid;
     place-items: center;
     flex: none;
-    inline-size: 64px;
-    block-size: 64px;
+    inline-size: 54px;
+    block-size: 54px;
     padding: 2px;
     border-radius: var(--nf-radius-circle);
     border: 1px solid transparent;
@@ -715,17 +725,22 @@
     color: var(--nf-brand-secondary);
   }
 
-  /* Each glyph in a glass square, as drawn. */
-  .nf-hub .nf-srow__icon,
-  .nf-hub__tile {
-    inline-size: 42px;
-    block-size: 42px;
+  /*
+   * Each glyph in a glass square, as drawn, at 38 and not 42.
+   *
+   * The tile carries the shared lit edge rather than a rim and a glow written
+   * here: `--nf-glow-edge` is the composition the cards and tiles already
+   * wear, and a settings tile is the smallest object on the screen that is
+   * still a container. Four pixels off each side is four pixels back for the
+   * words, and the words are what was wrapping.
+   */
+  .nf-hub .nf-srow__icon {
+    inline-size: 38px;
+    block-size: 38px;
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge-soft);
+    border: 1px solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 12px -6px var(--nf-glow-2);
+    box-shadow: var(--nf-glow-edge);
     color: var(--nf-content-primary);
   }
   /*
@@ -735,7 +750,7 @@
    * share one line at 390px rather than wrapping around each other.
    */
   .nf-hub .nf-srow {
-    min-block-size: 62px;
+    min-block-size: 56px;
     padding-inline: var(--nf-space-sm);
   }
   .nf-hub .nf-srow__label {
@@ -743,9 +758,22 @@
     font-weight: 650;
     letter-spacing: -0.005em;
   }
+  /*
+   * THE SUB LINE NEVER WRAPS, and this is the rule the whole screen's rhythm
+   * hangs on. Three of the six rows wrapped their second line at caption
+   * ("Name, email, phone number", "Password, sign-in and devices", "Theme,
+   * text size, motion"), and a wrapped sub grows its row by 18px, so the
+   * card that the render fits above the fold ran a third of a screen past it.
+   * Overline with an ellipsis: the sub is a hint at what is behind the door,
+   * never a sentence anybody has to finish, and the label above it and the
+   * value beside it both carry the meaning on their own.
+   */
   .nf-hub .nf-srow__sub {
     margin-top: 1px;
-    font-size: var(--nf-text-caption);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-overline);
     line-height: 1.35;
   }
   .nf-hub .nf-srow__value {
@@ -764,7 +792,7 @@
   /* The rule between rows starts after the tile, so the tiles read as one
      rail. */
   .nf-hub .nf-srow + .nf-srow::before {
-    inset-inline-start: calc(var(--nf-space-sm) + 42px + var(--nf-gap-inline));
+    inset-inline-start: calc(var(--nf-space-sm) + 38px + var(--nf-gap-inline));
   }
 
   .nf-hub-value {
@@ -777,30 +805,24 @@
     font-weight: 600;
   }
 
-  /* The payment methods block: a card with the tile, the words and Add at
-     the right, then E's rows under a hairline. */
-  .nf-hub-pay {
-    border-radius: var(--nf-radius-xl);
-    padding: var(--nf-space-sm);
-  }
-  .nf-hub-pay__head {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-gap-inline);
-    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-sm);
-  }
-  .nf-hub-pay__head .nf-srow__label {
-    font-weight: 700;
-  }
-  .nf-hub-pay__add {
-    flex: none;
-  }
-  .nf-hub-pay__body {
-    border-top: 1px solid var(--nf-border-subtle);
-  }
-  .nf-hub-pay__body .nf-srow {
-    padding-inline: var(--nf-space-2xs);
-  }
+  /*
+   * `.nf-hub-pay`, `.nf-hub-pay__head`, `.nf-hub-pay__add`, `.nf-hub-pay__body`
+   * AND `.nf-hub__tile` STOOD HERE AND ARE DELETED. Nothing in the tree ever
+   * wore one of them.
+   *
+   * They were written for a payment methods block this scope was going to
+   * draw, and then the block that shipped was worker E's
+   * `PaymentMethodsPanel`, which carries its own `.nf-pay-head` anatomy. Six
+   * rules and a lit-edge selector stayed behind describing a component that
+   * does not exist, which is worse than no rule: the next person to read this
+   * file would have believed the settings image's payments block was drawn
+   * here and tuned a screen by editing CSS that never matched anything.
+   *
+   * The consequence is real and is reported rather than patched from here:
+   * E's block is a plain `.nf-card`, so on the settings screen it rests at the
+   * quiet stride ring while the group above it wears the lit edge, and it
+   * reads a step dimmer than `7F96BE6C` draws it. That is E's file.
+   */
 
   /*
    * ===================================================================
@@ -821,37 +843,23 @@
    *   the bloom    two negative-spread rungs, close and wide, so the glow is
    *                in the air around the card and never a halo stuck to it
    *
-   * SCOPED TO THIS FILE'S OWN SURFACES, per ledger section 2: the material
-   * itself is `.nf-card` in the lead's glass.css and a worker does not edit
-   * it. This states the decision on the three containers the settings image
-   * governs, and it is the lead's to promote.
+   * THOSE THREE LAYERS ARE `--nf-glow-edge` NOW. When this block was written
+   * the ruling had not reached the token layer and a worker scoping its own
+   * copy under its own surfaces was the right move; the lead has since
+   * composed exactly this recipe once, and `.nf-glass--card` and
+   * `.nf-glass--tile` already wear it. So the hand-rolled four lines are
+   * gone and the token is named instead. The selectors stay because these
+   * containers are `.nf-card`, which is the quiet material by design, and
+   * the settings image draws them as the lit one; that is the only job
+   * this rule still does.
    * =================================================================== */
   .nf-sgroup .nf-sgroup__body,
-  .nf-card.nf-hub-profile,
-  .nf-card.nf-hub-pay {
+  .nf-card.nf-hub-profile {
     border-color: var(--nf-brand-edge);
     box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      0 0 0 1px var(--nf-glow-1),
-      0 0 30px -12px var(--nf-glow-3),
-      0 0 70px -26px var(--nf-glow-2);
-  }
-
-  /*
-   * The glyph tile, lit the same way and smaller than it was.
-   *
-   * It now holds a rendered glass object rather than a stroked glyph, so the
-   * tile is the object's ground and not a box with a picture in it: the rim
-   * comes up to brand, the well stays the darkest thing on the row, and the
-   * object sits at 26px inside 42 rather than filling it.
-   */
-  .nf-hub .nf-srow__icon,
-  .nf-hub__tile {
-    border-color: var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 0 1px var(--nf-glow-wash),
-      0 0 16px -8px var(--nf-glow-3);
+      var(--nf-glow-edge),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-bloom-card);
   }
 
   /*
@@ -884,8 +892,7 @@
    * brand-tinted hairline over the elevation ladder instead.
    */
   :root[data-theme="light"] .nf-sgroup .nf-sgroup__body,
-  :root[data-theme="light"] .nf-card.nf-hub-profile,
-  :root[data-theme="light"] .nf-card.nf-hub-pay {
+  :root[data-theme="light"] .nf-card.nf-hub-profile {
     border-color: var(--nf-border-brand);
     box-shadow: var(--nf-elev-2);
   }
@@ -894,8 +901,7 @@
   :root[data-theme="light"] .nf-hub-head__lede {
     color: var(--nf-content-secondary);
   }
-  :root[data-theme="light"] .nf-hub .nf-srow__icon,
-  :root[data-theme="light"] .nf-hub__tile {
+  :root[data-theme="light"] .nf-hub .nf-srow__icon {
     background: var(--nf-surface-inset);
     border-color: var(--nf-border-default);
     box-shadow: none;

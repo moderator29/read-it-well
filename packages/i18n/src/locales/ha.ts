@@ -253,6 +253,11 @@ export const ha: Dictionary = withFallback({
     savedSub: "Gidaje, otal da wuraren da ka ajiye",
     walletSub: "Sarrafa ma'aunin kuɗi, katunanka da ma'amaloli",
     inspectionsSub: "Duba dubawa da aka shirya da waɗanda suka wuce",
+    /** The phone's wording for the four Belongings rows: one line each. */
+    myBookingsRow: "Ajiyen gidaje da masauki",
+    savedRow: "Gidaje, otal da wurare",
+    walletRow: "Ma'auni, katuna da ma'amaloli",
+    inspectionsRow: "Dubawa mai zuwa da wadda ta wuce",
     back: "Koma",
     verified: "Wakili da aka tabbatar",
     verifiedTitle: "Wakilin Vallo da aka tabbatar",
@@ -764,6 +769,8 @@ export const ha: Dictionary = withFallback({
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Sarrafa asusunka, zaɓinka da hanyoyin biyan kuɗi.",
+      /** The phone's lede: one line under the headline. */
+      ledeShort: "Asusunka, zaɓinka da hanyoyin biyan kuɗi.",
       signInRow: "Shiga Vallo",
       signInRowSub: "Zaɓinka zai bi ka zuwa kowace na'ura da zarar ka shiga.",
       accountInfo: "Bayanin Asusu",
@@ -2876,6 +2883,8 @@ export const ha: Dictionary = withFallback({
     reserve: "Ajiye",
     noRate: "Babu farashi tukuna",
     noRatesYet: "This room has no rates loaded yet. Try another room, or message the property.",
+    roomTypes: "Nau'o'in ɗaki {count}",
+    roomTypesOne: "Nau'in ɗaki 1",
     noRoomsYet: "The rooms for this property are still being loaded.",
     minStay: "This rate needs at least {count} nights.",
     maxStay: "This rate covers at most {count} nights.",
@@ -2900,6 +2909,15 @@ export const ha: Dictionary = withFallback({
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Gidan cin abinci",
+    aboutTitle: "Game da wannan gidan cin abinci",
+    cuisine: "Irin abinci",
+    dressCode: "Salon sutura",
+    covers: "Wurin zama {count}",
+    parking: "Wurin ajiye mota",
+    backupPower: "Wutar madadin",
+    outdoor: "Zama a waje",
+    menu: "Duba jerin abinci",
+    openNowTitle: "A buɗe yanzu",
     perHead: "ga kowane mutum, galibi",
     reserveTitle: "Ajiye tebur",
     reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
@@ -3053,6 +3071,10 @@ export const ha: Dictionary = withFallback({
       seeAll: "Duba duka",
       photos: "Hotuna {count}",
       morePhotos: "+{count}",
+      aboutThisProperty: "Game da wannan gidan",
+      verifiedHost: "Mai masauki da aka tabbatar",
+      selectDate: "Zaɓi rana",
+      bookNow: "Yi ajiya yanzu",
     },
     ledger: {
       title: "Kuɗin shiga",

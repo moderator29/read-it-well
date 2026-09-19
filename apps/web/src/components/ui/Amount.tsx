@@ -85,11 +85,31 @@ export function Amount({
     /*
      * Compact notation carries its precision in the fraction: ₦1,500 compacts
      * to "₦1.5K". Forcing maximumFractionDigits to 0 rounds that to "₦2K",
-     * which is a DIFFERENT NUMBER rather than a shortened one. Compact is
-     * therefore left on Intl's own default of one fractional digit.
+     * which is a DIFFERENT NUMBER rather than a shortened one.
+     *
+     * THIS USED TO SAY THAT INTL DEFAULTS TO ONE FRACTIONAL DIGIT, AND IT DOES
+     * NOT. Compact notation defaults to two SIGNIFICANT digits, so the tenth
+     * survives only while the integer part is a single digit: ₦6,800,000 gave
+     * ₦6.8m and ₦14,700,000 gave ₦15m. The comment was right about the
+     * principle and wrong about the default, so the guard it described was
+     * never actually in place, and every glance figure over ten million with a
+     * non-zero tenth was a different number from the one it stood for. F3
+     * found it on the listing page's move-in bar, printing ₦15m directly under
+     * a card reading ₦14,700,000.
+     *
+     * One fraction digit, stated. The minimum is stated too, because
+     * `style: "currency"` defaults it to the currency's own two digits and
+     * naming only a maximum clamps the minimum up with it, which turned ₦45k
+     * into ₦45.0k. `formatMoney` in packages/i18n carries the identical pair
+     * for the identical reason; the two formatters must not disagree about
+     * what a shortened figure means.
      */
     ...(short
-      ? { notation: "compact" as const }
+      ? {
+          notation: "compact" as const,
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1,
+        }
       : {
           minimumFractionDigits: showFraction ? 2 : 0,
           maximumFractionDigits: showFraction ? 2 : 0,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatDate, type Locale } from "@vallo/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { TYPE } from "@/components/app/Screen";
@@ -52,7 +52,7 @@ export function EntryRow({
     <li>
       <Link href={`/wallet/transactions/${entry.id}`} className="nf-tx-row nf-tap">
         <span className="nf-tx-tile" aria-hidden="true">
-          <BrandIcon name={KIND_ICON[entry.kind]} fill />
+          <UiIcon name={KIND_ICON[entry.kind]} size={20} />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className={`block ${TYPE.rowTitle}`}>{words.kind[entry.kind]}</span>
@@ -64,7 +64,10 @@ export function EntryRow({
               {counterparty}
             </span>
           )}
-          <span className="nf-caption mt-3xs block">
+          {/* One line, never two. "15 Sept 2026 · 10:03" broke over two lines
+              in the column the amount and the status pill leave, which made
+              one row in a column of five a head taller than the rest. */}
+          <span className="nf-caption mt-3xs block whitespace-nowrap">
             {day}
             <span aria-hidden="true"> · </span>
             <span className="sr-only">, </span>
@@ -82,7 +85,7 @@ export function EntryRow({
               minorUnits={entry.amountMinor}
               locale={locale}
               showFraction
-              secondaryClassName="text-[0.72em] font-medium opacity-70"
+              secondaryClassName="nf-money-kobo"
             />
           </span>
           {entry.status === "COMPLETED" ? (

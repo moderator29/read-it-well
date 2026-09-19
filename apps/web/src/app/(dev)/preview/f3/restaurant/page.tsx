@@ -1,18 +1,26 @@
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { getDictionary, formatNumber, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { Amount } from "@/components/ui/Amount";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
+import {
+  DetailAboutCard,
+  DetailCapsules,
+  DetailPriceRow,
+  DetailSpecStrip,
+} from "@/components/app/listing/DetailAnatomy";
 import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "@/app/(app)/listing/[id]/ReserveTable";
 import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
 
 /**
- * The restaurant face: the third foot of the one listing anatomy, composed
- * from the same parts the route mounts. The hero carries the market pill,
- * the lit lead card carries the open-now line, the name, the place and the
- * typical spend, and the reservation is the first thing under it.
+ * The restaurant face: the third face of the one detail anatomy, composed
+ * from the same parts the route mounts. The lit lead card carries the
+ * open-now line, the name, the place, the bordered spec strip, the typical
+ * spend with its rating and the capsule row; the About card carries the
+ * venue's words and its host row; the reservation opens the run beneath it
+ * and the hours close the page.
  *
  * The venue here is the fixture restaurant with service windows, so the
  * open-now line is the real one `lib/stays/hours` computes on the Lagos
@@ -59,10 +67,50 @@ export default async function RestaurantFacePreview() {
             <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
             {where}
           </p>
-          <p className="mt-inline flex items-baseline gap-inline-tight">
-            <Amount minorUnits={25_000_00} locale={locale} className="nf-h3 text-[var(--nf-content-primary)]" />
-            <span className={TYPE.rowMeta}>{copy.perHead}</span>
-          </p>
+
+          <DetailSpecStrip
+            pairs={[
+              { key: "cuisine", icon: "utensils", label: "Nigerian" },
+              { key: "dress", icon: "user", label: "Smart casual" },
+              { key: "covers", icon: "grid", label: copy.covers.replace("{count}", "80") },
+            ]}
+          />
+
+          <DetailPriceRow
+            figure={<Amount minorUnits={25_000_00} locale={locale} />}
+            unit={copy.perHead}
+            rating={{
+              average: formatNumber(4.7, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+              reviews: t.catalogue.stays.reviews.replace("{count}", formatNumber(64, locale)),
+            }}
+          />
+
+          <DetailCapsules
+            label={t.catalogue.detail.amenities}
+            items={[
+              { key: "parking", icon: "parking", label: copy.parking },
+              { key: "power", icon: "bolt", label: copy.backupPower },
+              { key: "outdoor", icon: "map", label: copy.outdoor },
+              { key: "grill", icon: "utensils", label: "Grill" },
+            ]}
+          />
+        </div>
+
+        <div className="mt-block">
+          <DetailAboutCard
+            title={copy.aboutTitle}
+            paragraphs={[
+              "The Lagoon Kitchen is in Ikoyi and serves Nigerian cooking over the water, with an open grill and a terrace that seats eighty.",
+            ]}
+            host={{
+              name: "Lagoon Hospitality",
+              role: t.stays.restaurantsTitle,
+              verified: true,
+              verifiedLabel: t.catalogue.detail.verifiedHost,
+              messageHref,
+              messageLabel: t.catalogue.detail.message,
+            }}
+          />
         </div>
 
         <Stack className="mt-block">
@@ -72,6 +120,10 @@ export default async function RestaurantFacePreview() {
 
           <Section title={copy.hoursTitle}>
             <Surface>
+              <p className="nf-reg-open nf-reg-open--open mb-row" data-testid="hours-open-now">
+                <UiIcon name="history" size={12} />
+                {hours.label}
+              </p>
               <ul className="divide-y divide-[var(--nf-divider)]" data-testid="service-windows">
                 {windows.map((window) => (
                   <li key={window.id} className={`flex items-center justify-between gap-sm py-xs ${TYPE.body}`}>

@@ -317,6 +317,18 @@ export const en = {
     savedSub: "Your saved properties, hotels and places",
     walletSub: "Manage your balance, cards and transactions",
     inspectionsSub: "View your scheduled and past inspections",
+    /*
+     * The same four rows, said in one line each.
+     *
+     * The renders draw four rows and the Switch role capsule on one screen.
+     * The subs above wrap at 390, which cost a line per row and pushed the
+     * capsule off the bottom. These are the phone's wording; the longer subs
+     * stay for the wider layouts that have the room.
+     */
+    myBookingsRow: "Property and stays bookings",
+    savedRow: "Saved properties and places",
+    walletRow: "Balance, cards and transactions",
+    inspectionsRow: "Scheduled and past inspections",
     back: "Back",
     verified: "Verified agent",
     verifiedTitle: "A verified Vallo agent",
@@ -1058,6 +1070,11 @@ export const en = {
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Manage your account, preferences and payment methods.",
+      /* The phone's own line. The full lede wraps to three lines at 390 and
+         pushes the first row under the fold, and a stylesheet squeezing a
+         sentence to fit is a rule that breaks the day the copy changes, so
+         the short line is written rather than tracked. */
+      ledeShort: "Your account, preferences and payments.",
       signInRow: "Sign in to Vallo",
       signInRowSub: "Your preferences follow you to every device once you do.",
       accountInfo: "Account Information",
@@ -3403,6 +3420,8 @@ export const en = {
     reserve: "Reserve",
     noRate: "No rate yet",
     noRatesYet: "This room has no rates loaded yet. Try another room, or message the property.",
+    roomTypes: "{count} room types",
+    roomTypesOne: "1 room type",
     noRoomsYet: "The rooms for this property are still being loaded.",
     minStay: "This rate needs at least {count} nights.",
     maxStay: "This rate covers at most {count} nights.",
@@ -3429,6 +3448,18 @@ export const en = {
    */
   restaurantPage: {
     fallbackTitle: "Restaurant",
+    /* The restaurant face on the one detail anatomy, added 19 September 2026
+       (Build 06, F3). Every one of these labels a column the venue filled in
+       itself; a venue that filled none of them draws none of them. */
+    aboutTitle: "About this restaurant",
+    cuisine: "Cuisine",
+    dressCode: "Dress code",
+    covers: "Seats {count}",
+    parking: "Parking",
+    backupPower: "Backup power",
+    outdoor: "Outdoor seating",
+    menu: "See the menu",
+    openNowTitle: "Open now",
     perHead: "a head, typically",
     reserveTitle: "Hold a table",
     reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
@@ -3541,6 +3572,11 @@ export const en = {
       seeAll: "See all",
       photos: "{count} photos",
       morePhotos: "+{count}",
+      /** The detail anatomy of B047A0CE, added 19 September 2026 (Build 06, F3). */
+      aboutThisProperty: "About this property",
+      verifiedHost: "Verified host",
+      selectDate: "Select date",
+      bookNow: "Book now",
     },
     ledger: {
       title: "Move-in cost",

@@ -63,19 +63,27 @@ export function isSettled(state: SpringState, target: number): boolean {
  * the phone's edge; a real viewport cannot paint there, so every slot keeps
  * the lozenge inside the screen.
  *
+ * REMEASURED against the render after the first screenshot of the open fan.
+ * The old arc threw the three a third further out than the image does, which
+ * put Post most of the way up the card above it and spread the fan across
+ * half the screen; in the render the three sit in a tight curve that still
+ * reads as one gesture from the thumb. The lozenge shrank with them, from
+ * 124x46 to the render's 104x40, and the slots are scaled to the same
+ * measurement rather than to the old ones.
+ *
  * Index 0 is the lozenge nearest the plus. It opens first and closes last, so
  * the fan grows outward and folds inward.
  */
 export type BloomSlot = { x: number; y: number; rotate: number };
 
 const SLOTS: BloomSlot[] = [
-  { x: -24, y: -66, rotate: -8 },
-  { x: -64, y: -120, rotate: -14 },
-  { x: -106, y: -174, rotate: -20 },
+  { x: -12, y: -58, rotate: -6 },
+  { x: -40, y: -100, rotate: -12 },
+  { x: -72, y: -140, rotate: -18 },
 ];
 
 /** A lozenge's width and height, as the stylesheet draws them. */
-export const BLOOM_ITEM = { width: 124, height: 46 } as const;
+export const BLOOM_ITEM = { width: 104, height: 40 } as const;
 
 export function bloomSlot(index: number): BloomSlot {
   return SLOTS[Math.min(index, SLOTS.length - 1)] ?? SLOTS[0]!;

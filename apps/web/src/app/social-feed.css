@@ -93,21 +93,27 @@
    * a catchlight inside its top edge and a soft bloom in the air around it,
    * over a near-black navy fill. `.nf-card`'s stride ring is the quiet
    * material underneath and stays exactly as it is for the rest of the
-   * platform; this states the feed's own answer on top of it, which is what
-   * ledger section 2 asks a worker to do rather than editing glass.css.
+   * platform.
    *
-   * The bloom is two negative-spread rungs, close and wide, so it is light in
-   * the space around the card rather than a ring stuck to its border, and it
-   * never shows above the top edge where the rim is already doing the work.
+   * THIS USED TO HAND-ROLL THAT LIT EDGE, and it was right to at the time:
+   * the founder's ruling had not reached the token layer yet and `.nf-card`
+   * is the lead's file. It has reached it. `--nf-glow-edge` is now the rim,
+   * the full brand ring and the near bloom composed once, and `.nf-bloom-card`
+   * is the float `.nf-glass--card` already pairs with it, so the feed card
+   * wears the platform's own material rather than a second copy of it that
+   * would drift the first time either was tuned.
+   *
+   * What still needs a rule here, and why: the radius. The feed's cards are
+   * drawn rounder than the platform's `--nf-radius-xl` in the render, which
+   * `--nf-feed-radius` carries, and a radius is not part of the edge recipe.
    */
   .nf-card.nf-post {
     border-radius: var(--nf-feed-radius);
     border-color: var(--nf-brand-edge);
     box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      0 0 0 1px var(--nf-glow-1),
-      0 0 30px -12px var(--nf-glow-3),
-      0 0 72px -26px var(--nf-glow-2);
+      var(--nf-glow-edge),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-bloom-card);
   }
 
   /*
@@ -2732,19 +2738,21 @@
     align-items: center;
     gap: 12px;
     inline-size: 100%;
-    min-block-size: 48px;
-    padding-inline: 16px 14px;
+    min-block-size: 44px;
+    padding-inline: 14px 12px;
     border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
+    border: 1px solid var(--nf-brand-edge);
     background: var(--nf-glass-fill);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    /* Lit glass, as the render draws the field: a brand rim, the catchlight
-       inside the top edge, and a soft bloom under it. */
-    box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      0 0 0 1px var(--nf-glow-1),
-      0 0 28px -12px var(--nf-glow-3);
+    /*
+     * The resting lit edge from the token layer, not a second hand-rolled
+     * copy of it. This rule used to state the rim, the ring and the bloom in
+     * three lines of its own, which was the honest thing to do before the
+     * founder's ruling reached the tokens; now `--nf-glow-edge` IS that
+     * composition and two rules doing one job is how a design system rots.
+     */
+    box-shadow: var(--nf-glow-edge);
     color: var(--nf-content-primary);
     text-align: start;
     transition:
@@ -2753,10 +2761,8 @@
   }
   .nf-feed-chip:hover,
   .nf-feed-chip[aria-expanded="true"] {
-    border-color: var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 22px -4px var(--nf-glow-3);
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow: var(--nf-glow-edge-strong);
   }
   .nf-feed-chip:focus-visible {
     outline: 2px solid var(--nf-brand-primary);
@@ -2772,7 +2778,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     font-weight: 500;
     letter-spacing: -0.005em;
   }
@@ -2802,12 +2808,22 @@
   }
   .nf-story-ring__row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     padding-inline: 1.25rem;
     padding-block: 4px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
+    /*
+     * THE SNAPPORT KEEPS THE GUTTER. This row lost its leading padding in
+     * every screenshot and the reason was here rather than in the layout: a
+     * snap target aligned to `start` aligns against the scrollport's PADDING
+     * box, so the browser's first snap scrolled the row by exactly the
+     * padding and cut "Your story" against the screen edge. `scroll-padding`
+     * moves the snapport's own edge inward to match, so the first ring snaps
+     * to the gutter it was drawn at.
+     */
+    scroll-padding-inline: 1.25rem;
   }
   .nf-story-ring__row::-webkit-scrollbar {
     display: none;
@@ -2816,8 +2832,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    inline-size: 70px;
+    gap: 5px;
+    inline-size: 62px;
     scroll-snap-align: start;
     border-radius: var(--nf-radius-md);
   }
@@ -2831,12 +2847,20 @@
    * left like every other ring on the platform, and the outer glow is the
    * second rung so six of them in a row do not become a lamp.
    */
+  /*
+   * 56px, measured rather than chosen. The governing image fits six rings
+   * across the phone with the sixth cut by the edge; at 62 with a 10px gap
+   * only five reached the screen and the row read as a short list rather than
+   * as a rail with more behind it. 62px of pitch (56 plus the 8px gap and the
+   * item's own breathing) puts the sixth ring half on the screen, which is
+   * what the render draws and the only affordance a horizontal row has.
+   */
   .nf-story-ring__disc {
     position: relative;
     display: grid;
     place-items: center;
-    inline-size: 62px;
-    block-size: 62px;
+    inline-size: 56px;
+    block-size: 56px;
     padding: 3px;
     border-radius: var(--nf-radius-circle);
     border: 2px solid transparent;
@@ -2874,8 +2898,8 @@
     inset-block-end: -2px;
     display: grid;
     place-items: center;
-    inline-size: 22px;
-    block-size: 22px;
+    inline-size: 20px;
+    block-size: 20px;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
@@ -2887,7 +2911,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--nf-text-caption);
+    font-size: var(--nf-text-overline);
     font-weight: 500;
     color: var(--nf-content-primary);
   }
@@ -2898,8 +2922,8 @@
   .nf-feed-seg {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    padding: 4px;
+    gap: 3px;
+    padding: 3px;
     margin-block-end: 12px;
     border-radius: var(--nf-radius-pill);
     border: 1px solid var(--nf-brand-edge-soft);
@@ -2913,9 +2937,11 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
+    /* 44 and not the render's 38: the tap law outranks the image and this is
+       one of the two controls on the screen a thumb reaches for most. */
     min-block-size: 44px;
     border-radius: var(--nf-radius-pill);
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
     transition:
@@ -2947,11 +2973,14 @@
     align-items: center;
     column-gap: 10px;
   }
+  /* 40px, the render's face. At 46 the head row alone took a fifth of the
+     card's height and the feed fitted one and a bit posts on the screen
+     where the governing image fits two and a half. */
   .nf-post__avatar {
     display: grid;
     place-items: center;
-    inline-size: 46px;
-    block-size: 46px;
+    inline-size: 40px;
+    block-size: 40px;
     padding: 2px;
     border-radius: var(--nf-radius-circle);
     border: 1px solid transparent;
@@ -2997,7 +3026,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     font-weight: 700;
     letter-spacing: -0.015em;
     color: var(--nf-content-primary);
@@ -3038,10 +3067,16 @@
     margin-inline-end: -9px;
     margin-block-start: -6px;
   }
+  /*
+   * The body at body-sm, which is the size the render sets it: three lines of
+   * a post read as three lines there and as three lines here. At body the
+   * same words ran four lines and every card grew by a line of text it was
+   * never drawn with.
+   */
   .nf-post__body {
-    margin-block-start: 12px;
+    margin-block-start: 10px;
     min-inline-size: 0;
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     line-height: 1.5;
     letter-spacing: -0.005em;
     color: var(--nf-content-primary);
@@ -3185,37 +3220,44 @@
     left: 50%;
     top: 50%;
     /* Half of `BLOOM_ITEM` in `physics.ts`, which the geometry test reads. */
-    margin-left: -62px;
-    margin-top: -23px;
-    inline-size: 124px;
-    block-size: 46px;
+    margin-left: -52px;
+    margin-top: -20px;
+    inline-size: 104px;
+    block-size: 40px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 9px;
-    padding-inline: 14px;
+    gap: 8px;
+    padding-inline: 12px;
     border-radius: var(--nf-radius-pill);
     pointer-events: auto;
-    color: var(--nf-content-on-brand);
-    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
     letter-spacing: -0.01em;
-    /* Lit blue glass, as the render draws it: the fill leans on the brand
-       rather than the card, the rim is bright, and the bloom around it is
-       the same rung the plus wears so the three read as thrown from it. */
-    border: 1px solid color-mix(in oklab, var(--nf-brand-accent) 62%, white);
+    /*
+     * GLASS, NOT A BLUE BUTTON, and the first shot of the open fan is why
+     * this rule changed. At 58 per cent brand over the raised surface the
+     * three lozenges rendered as solid primary buttons thrown across the
+     * feed; the governing image draws them as the same dark glass the cards
+     * are made of, ringed in bright brand, with the photograph underneath
+     * showing through. The light in the image is all in the RING and the
+     * bloom, never in the fill, and that is the whole difference between a
+     * lozenge that floats and three buttons lying on a card.
+     *
+     * The rim and the bloom are `--nf-glow-edge-strong`, the one object a
+     * screen is built around, plus the plus's own outer wash so the three
+     * read as thrown from it.
+     */
+    border: 1px solid var(--nf-brand-edge-strong);
     background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-brand-primary) 58%, var(--nf-surface-raised)) 0%,
-        color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-raised)) 100%
-      );
+      linear-gradient(180deg, var(--nf-wash-2) 0%, transparent 52%),
+      color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-glass-card-fill));
     -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-strong),
+      var(--nf-glow-edge-strong),
       0 0 0 3px var(--nf-glow-wash),
-      0 0 24px -2px var(--nf-glow-3),
       0 12px 28px -14px var(--nf-glow-4);
     will-change: transform;
     transform-origin: 50% 50%;
@@ -3223,11 +3265,8 @@
   .nf-bloom__item:hover,
   .nf-bloom__item:focus-visible {
     background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-raised)) 0%,
-        color-mix(in oklab, var(--nf-brand-primary) 52%, var(--nf-surface-raised)) 100%
-      );
+      linear-gradient(180deg, var(--nf-wash-2) 0%, transparent 52%),
+      color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-glass-card-fill));
   }
   .nf-bloom__item:focus-visible {
     outline: 2px solid var(--nf-brand-accent);
@@ -3322,6 +3361,9 @@
   :root[data-theme="light"] .nf-bloom__item {
     background: var(--nf-gradient-brand);
     border-color: color-mix(in oklab, var(--nf-brand-accent) 50%, white);
+    /* The night lozenge is glass and its ink is the page's, so the word has to
+       come back to the on-brand ink here or it is white on white. */
+    color: var(--nf-content-on-brand);
     box-shadow:
       0 0 0 3px var(--nf-glow-wash),
       0 10px 24px -12px var(--nf-glow-3);

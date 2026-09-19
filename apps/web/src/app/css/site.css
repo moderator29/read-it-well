@@ -101,7 +101,7 @@
   .nf-site-footer-skyline {
     position: relative;
     margin-top: var(--nf-gap-section-tight);
-    height: 5rem;
+    height: 3.5rem;
     color: var(--nf-brand-secondary);
   }
   .nf-site-footer-skyline svg {
@@ -110,7 +110,7 @@
     width: 100%;
     height: 100%;
     fill: currentColor;
-    opacity: 0.16;
+    opacity: 0.08;
   }
   .nf-site-footer-skyline::after {
     content: "";

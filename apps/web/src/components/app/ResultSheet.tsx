@@ -267,7 +267,7 @@ export function ResultSheet(props: ResultSheetProps) {
                   locale={locale}
                   currency={fact.currency}
                   showFraction
-                  secondaryClassName="text-[0.62em] font-semibold text-[var(--nf-content-muted)]"
+                  secondaryClassName="nf-money-kobo"
                 />
               </p>
             )}

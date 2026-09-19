@@ -43,11 +43,11 @@ export default function ProfilePreview() {
             belongings: t.socialProfile.belongings,
             posts: t.socialProfile.posts,
             myBookings: t.socialProfile.myBookings,
-            myBookingsSub: t.socialProfile.myBookingsSub,
-            savedSub: t.socialProfile.savedSub,
-            walletSub: t.socialProfile.walletSub,
+            myBookingsSub: t.socialProfile.myBookingsRow,
+            savedSub: t.socialProfile.savedRow,
+            walletSub: t.socialProfile.walletRow,
             inspections: t.nav.inspections,
-            inspectionsSub: t.socialProfile.inspectionsSub,
+            inspectionsSub: t.socialProfile.inspectionsRow,
           }}
           email="seyi@example.com"
           placeLabel="Eti-Osa, Lagos"

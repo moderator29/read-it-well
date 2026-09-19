@@ -81,6 +81,20 @@ export type StayDetail = {
   policy: StayCancellationPolicy | null;
   /** The business behind the stay (hotel, resort, guest house), for the Property Type card. */
   businessKind?: string;
+  /** The business's own name, for the host row on the About card. */
+  hostName?: string | null;
+  /** True only where a human was checked (ledger rule 12). */
+  hostVerified?: boolean;
+  /**
+   * The guest rating, and ONLY where real review rows stand behind it.
+   *
+   * Null is the honest answer for every accommodation today: `reviews.listing_id`
+   * is a foreign key to `listings`, so an accommodation id matches no review row
+   * and there is nothing to average. The detail face draws no rating at all
+   * rather than a zero, an empty star outline or a "no reviews yet" placeholder,
+   * because all three read as a rating to somebody scanning the screen.
+   */
+  rating?: { average: number; count: number } | null;
 };
 
 /**
@@ -171,4 +185,70 @@ export function orderedRooms(detail: StayDetail, guests: number): StayRoomType[]
     if (fits !== 0) return fits;
     return price(a) - price(b);
   });
+}
+
+/**
+ * How many people the property can take, as one number.
+ *
+ * The largest room's `sleeps`, not the sum: a guest reads this as "can this
+ * place take my party", and a total across rooms would answer a question
+ * nobody asked and promise a booking no single room can honour.
+ */
+export function maxSleeps(detail: StayDetail): number | null {
+  const values = detail.roomTypes.map((room) => room.sleeps).filter((count) => count > 0);
+  return values.length > 0 ? Math.max(...values) : null;
+}
+
+/**
+ * The one room and rate a "Book now" can honestly mean.
+ *
+ * The cheapest rate plan on the cheapest room that takes this party for this
+ * length of stay. Null when no room takes the party, no plan takes the nights,
+ * or the property has no rate plans at all, and the face then sends the reader
+ * to the room list rather than to a checkout that would refuse them.
+ *
+ * Rooms that cannot take the party are skipped rather than priced, because a
+ * headline price somebody cannot book is the oldest lie in travel.
+ */
+export function cheapestBookable(
+  detail: StayDetail,
+  nights: number | null,
+  guests: number,
+): { room: StayRoomType; plan: StayRatePlan } | null {
+  let best: { room: StayRoomType; plan: StayRatePlan } | null = null;
+  for (const room of detail.roomTypes) {
+    if (guests > 0 && room.sleeps < guests) continue;
+    for (const plan of room.ratePlans) {
+      if (!planAcceptsNights(plan, nights)) continue;
+      if (best === null || plan.rateMinor < best.plan.rateMinor) best = { room, plan };
+    }
+  }
+  return best;
+}
+
+/**
+ * The checkout link's ingredients: the stay, the dates and the party.
+ *
+ * Lives here rather than in `RoomTypes.tsx` because that file is a client
+ * component and the availability card on the server face needs the same link.
+ */
+export type ReserveBase = {
+  stayId: string;
+  checkIn?: string;
+  checkOut?: string;
+  guests: number;
+  /** The route the link lands on; the real checkout unless a harness says otherwise. */
+  basePath?: string;
+};
+
+/* THE FIRST-PARTY CHECKOUT, ALWAYS. This lane never borrows a step from the
+   third-party one: a room on Vallo is reserved and paid for on Vallo. */
+export function reserveHref(base: ReserveBase, roomTypeId: string, ratePlanId: string): string {
+  const search = new URLSearchParams({ stay: base.stayId, room: roomTypeId, rate: ratePlanId });
+  if (base.checkIn && base.checkOut) {
+    search.set("checkIn", base.checkIn);
+    search.set("checkOut", base.checkOut);
+  }
+  search.set("guests", String(base.guests));
+  return `${base.basePath ?? "/checkout"}?${search.toString()}`;
 }

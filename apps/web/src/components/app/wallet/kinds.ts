@@ -1,5 +1,5 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
-import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
 import type { WalletEntryKind, WalletEntryStatus } from "@/lib/wallet/types";
 
 /**
@@ -28,17 +28,36 @@ import type { WalletEntryKind, WalletEntryStatus } from "@/lib/wallet/types";
  * drawn for exactly this pair. `escrow_hold` keeps the padlock, because a hold
  * is the one movement where the money has stopped rather than gone anywhere.
  */
-export const KIND_ICON: Record<WalletEntryKind, BrandIconName> = {
-  deposit: "wallet-plus",
-  withdrawal: "wallet-out",
-  payment: "payment-sent",
-  refund: "payment-received",
-  transfer_in: "payment-received",
-  transfer_out: "transfer-arrow",
-  escrow_hold: "shield-lock",
-  escrow_release: "payment-received",
-  escrow_refund: "payment-received",
+export const KIND_ICON: Record<WalletEntryKind, UiIconName> = {
+  deposit: "arrow-down",
+  withdrawal: "arrow-up",
+  payment: "wallet",
+  refund: "arrow-down",
+  transfer_in: "arrow-down",
+  transfer_out: "arrow-up",
+  escrow_hold: "shield-stop",
+  escrow_release: "arrow-down",
+  escrow_refund: "arrow-down",
 };
+
+/*
+ * AND THE MARK IS A STROKED GLYPH, NOT A GLASS OBJECT, ON THE RENDER'S OWN
+ * EVIDENCE.
+ *
+ * These were nine glass marks from the pack. The screenshot of the shipped
+ * statement beside `6AF37222` settled it: at the 44px circle the row gives
+ * them, every glass object rendered as the same blue blob, so five rows in a
+ * column looked identical and the direction of the money was carried by the
+ * sign alone. That is the fault this map was written to fix, reintroduced at
+ * a smaller size.
+ *
+ * The governing render does not draw glass here either. Its transaction
+ * tiles are plain line glyphs on a tinted circle: an arrow up, an arrow
+ * down, a card. Design direction ruling 5 keeps the stroked tier for exactly
+ * this case and forbids the black-and-white glyph only where the render
+ * shows a glass object; here it shows a stroke. Arrows carry the direction,
+ * the wallet mark carries a payment, the stop mark carries a hold.
+ */
 
 /* ----------------------------------------------------------------- the words */
 

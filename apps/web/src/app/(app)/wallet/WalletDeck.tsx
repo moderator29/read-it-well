@@ -26,6 +26,7 @@ import type { PaymentMethod } from "@/lib/payments/methods";
 import { SavedCardPicker, preselectedCardId } from "@/components/app/payments/SavedCardPicker";
 import { cardExpired } from "@/components/app/payments/format";
 import { formatKoboExact } from "@/components/app/wallet/money";
+import { fundingStep, verifyPath } from "@/components/app/wallet/funding-step";
 import { weekChange } from "@/components/app/wallet/week-change";
 import { BalanceBreakdownSheet } from "@/components/app/wallet/BalanceBreakdownSheet";
 import { MoneySheet } from "@/components/app/wallet/MoneySheet";
@@ -48,11 +49,13 @@ import { useMoneyWait, WaitNotice } from "@/components/app/wallet/MoneyWait";
  * the Crypto surface, where the real Yellow Card top-up lives. Nothing here
  * is a picture of a feature.
  *
- * THE QUICK ACTIONS ARE ONLY THE ONES WITH A PATH. The render shows airtime
- * and bills; neither exists here, so neither is drawn. Send, request (the
- * receive page with its share link), withdraw (the sheet) and the statement
- * are the four that are real, with the crypto top-up joining them only when
- * the server says the keys exist.
+ * THE QUICK ACTIONS ARE ONLY THE ONES WITH A PATH, AND THERE ARE FOUR OF
+ * THEM. The render shows airtime and bills; neither exists here, so neither
+ * is drawn. Send, request (the receive page with its share link), withdraw
+ * (the sheet) and the statement are the four that are real, and four is also
+ * the row the render draws. The crypto top-up used to join them as a
+ * conditional fifth; it lives on the Crypto surface now, which the balance
+ * card's fourth tile opens.
  *
  * Every money form posts to the wallet actions untouched; this file changes
  * what is around them, never what they do.
@@ -130,7 +133,7 @@ export function WalletDeck({
      wallet's own verifier settles the credit under the same reference. */
   const onCharged = (reference: string) => {
     setOpen(null);
-    router.push(`/wallet?funded=1&reference=${encodeURIComponent(reference)}`);
+    router.push(verifyPath(reference));
   };
 
   return (
@@ -189,13 +192,13 @@ export function WalletDeck({
                 locale={locale}
                 currency="USD"
                 showFraction
-                secondaryClassName="nf-wallet-figure__kobo"
+                secondaryClassName="nf-money-kobo nf-money-kobo--hero"
               />
             ) : (
               <>
                 {lead}
                 <Odometer value={wholeNaira} locale={locale} className="nf-odometer-figure" />
-                <span className="nf-wallet-figure__kobo">{kobo}</span>
+                <span className="nf-money-kobo nf-money-kobo--hero">{kobo}</span>
               </>
             )}
           </p>
@@ -283,14 +286,16 @@ export function WalletDeck({
             sub={copy.withdrawSub}
             onClick={() => setOpen("withdraw")}
           />
-          {cryptoEnabled && (
-            <QuickButton
-              icon="repost"
-              title={copy.cryptoTopUp}
-              sub={copy.cryptoTopUpSub}
-              onClick={() => setOpen("crypto")}
-            />
-          )}
+          {/*
+            THE CRYPTO TOP-UP TILE STOOD HERE AND IS GONE, on the screenshot.
+            The render draws these four across in one row; a fifth tile,
+            which is what the crypto top-up made when the keys exist, wrapped
+            alone onto a second row and squeezed the other four until "Top up
+            with crypto" broke over three lines. Nothing is lost: the balance
+            card's fourth tile goes to the Crypto surface and the real Yellow
+            Card top-up card sits at the foot of it, so the same funding is
+            one tap away and is drawn once instead of twice.
+          */}
           <QuickLink href="/wallet/transactions" icon="document" title={copy.statement} sub={copy.statementSub} />
         </div>
       </section>
@@ -338,13 +343,12 @@ function QuickInner({
       <span className="nf-glyph-tile" aria-hidden="true">
         <UiIcon name={icon} size={18} className={rotate ? "rotate-45" : undefined} />
       </span>
-      {/* Four to a row at 390px, so the two lines are the render's smaller
-          pair rather than the row type a full-width card can carry. */}
+      {/* Four to a row at 390px, so the pair is sized for 83 pixels rather
+          than for a full-width card. The sizes are the partial's, beside the
+          measurement that chose them. */}
       <span className="block">
-        <span className="nf-body-sm block font-semibold leading-tight text-[var(--nf-content-primary)]">
-          {title}
-        </span>
-        <span className={`mt-3xs block leading-tight ${TYPE.caption}`}>{sub}</span>
+        <span className="nf-wallet-quick__title">{title}</span>
+        <span className="nf-wallet-quick__sub">{sub}</span>
       </span>
     </>
   );
@@ -441,8 +445,12 @@ function FundForm({
 
   useEffect(() => {
     if (!saved.ok || !saved.data) return;
-    if (saved.data.authorizationUrl.length > 0) window.location.assign(saved.data.authorizationUrl);
-    else onCharged(saved.data.reference);
+    /* The branch lives in `funding-step.ts` so it can be tested; an empty
+       authorisation URL means the card was charged synchronously and the
+       credit settles through the verifier, never through assigning "". */
+    const step = fundingStep(saved.data);
+    if (step.kind === "hosted") window.location.assign(step.url);
+    else onCharged(step.reference);
     /* `onCharged` navigates; re-running on its identity would navigate twice. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saved]);
@@ -458,7 +466,7 @@ function FundForm({
     );
   }
   if (saved.ok && saved.data) {
-    const hostedNext = saved.data.authorizationUrl.length > 0;
+    const hostedNext = fundingStep(saved.data).kind === "hosted";
     return (
       <div role="status" aria-live="polite" className="py-group text-center">
         <p className="nf-body font-semibold">{hostedNext ? copy.opening : copy.charged}</p>

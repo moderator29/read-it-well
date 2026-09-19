@@ -252,6 +252,11 @@ export const yo: Dictionary = withFallback({
     savedSub: "Àwọn ilé, hótẹ́ẹ̀lì àti ibi tí o fipamọ́",
     walletSub: "Ṣàkóso owó rẹ, káàdì àti àwọn ìṣòwò",
     inspectionsSub: "Wo àwọn àyẹ̀wò tí a ṣètò àti tí ó ti kọjá",
+    /** The phone's wording for the four Belongings rows: one line each. */
+    myBookingsRow: "Ìfipamọ́ ilé àti ibùgbé",
+    savedRow: "Ilé, hótẹ́ẹ̀lì àti ibi",
+    walletRow: "Owó, káàdì àti ìṣòwò",
+    inspectionsRow: "Àyẹ̀wò tí a ṣètò àti tí ó kọjá",
     back: "Padà",
     verified: "Aṣojú tí a fọwọ́sí",
     verifiedTitle: "Aṣojú Vallo tí a fọwọ́sí",
@@ -763,6 +768,8 @@ export const yo: Dictionary = withFallback({
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Ṣàkóso àkọọ́lẹ̀ rẹ, àwọn ààyò àti àwọn ọ̀nà ìsanwó.",
+      /** The phone's lede: one line under the headline. */
+      ledeShort: "Àkọọ́lẹ̀ rẹ, àwọn ààyò àti ìsanwó.",
       signInRow: "Wọlé sí Vallo",
       signInRowSub: "Àwọn ààyò rẹ yóò tẹ̀lé ọ sí gbogbo ẹ̀rọ nígbà tí o bá wọlé.",
       accountInfo: "Ìwífún Àkọọ́lẹ̀",
@@ -2896,6 +2903,8 @@ export const yo: Dictionary = withFallback({
     reserve: "Fi pamọ́",
     noRate: "Kò sí owó síbẹ̀",
     noRatesYet: "This room has no rates loaded yet. Try another room, or message the property.",
+    roomTypes: "Irú yàrá {count}",
+    roomTypesOne: "Irú yàrá 1",
     noRoomsYet: "The rooms for this property are still being loaded.",
     minStay: "This rate needs at least {count} nights.",
     maxStay: "This rate covers at most {count} nights.",
@@ -2920,6 +2929,15 @@ export const yo: Dictionary = withFallback({
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Ilé oúnjẹ",
+    aboutTitle: "Nípa ilé oúnjẹ yìí",
+    cuisine: "Irú oúnjẹ",
+    dressCode: "Ìlànà aṣọ",
+    covers: "Ìjókòó {count}",
+    parking: "Ibi ìdúró ọkọ̀",
+    backupPower: "Iná àfẹ̀yìntì",
+    outdoor: "Ìjókòó òde",
+    menu: "Wo àkójọ oúnjẹ",
+    openNowTitle: "Ó ṣí báyìí",
     perHead: "fún ẹnì kọ̀ọ̀kan, ní gbogbogbò",
     reserveTitle: "Fi tábìlì pamọ́",
     reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
@@ -3073,6 +3091,10 @@ export const yo: Dictionary = withFallback({
       seeAll: "Wo gbogbo rẹ̀",
       photos: "Fọ́tò {count}",
       morePhotos: "+{count}",
+      aboutThisProperty: "Nípa ilé yìí",
+      verifiedHost: "Ògbàlejò tí a ti jẹ́rìí sí",
+      selectDate: "Yan ọjọ́",
+      bookNow: "Ṣe ìforúkọsílẹ̀ báyìí",
     },
     ledger: {
       title: "Owó ìwọlé",

@@ -1,11 +1,11 @@
 "use client";
 
-import { getDictionary, isGlanceCompact, plural, type Locale } from "@vallo/i18n";
+import { useEffect, useRef } from "react";
+import { formatMoneyGlance, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { ActionBar } from "@/components/ui/ActionBar";
-import { Amount } from "@/components/ui/Amount";
 
 /**
  * The listing's pinned action bar.
@@ -32,7 +32,7 @@ import { Amount } from "@/components/ui/Amount";
  *
  * What it quotes is never a guess: once real dates are picked it shows the very
  * total the reserve panel is about to submit, in integer kobo through
- * `<Amount>`, beside the nights it covers. Until then it shows the listing's
+ * `formatMoney`, beside the nights it covers. Until then it shows the listing's
  * own rate and what that rate buys.
  */
 
@@ -129,6 +129,38 @@ export function ListingStickyBar({
   const external = (a: StickyAction) =>
     a.external ? ({ target: "_blank", rel: "noopener noreferrer" } as const) : {};
 
+  /*
+   * THE FOOT'S OWN HEIGHT, PUBLISHED TO THE PAGE.
+   *
+   * The spacer above cannot be a fixed number: the foot is two rows at 390
+   * and one from `sm`, a long property name can add a line to it, and the
+   * home-indicator inset differs by device. So the foot measures itself and
+   * writes the answer to `--nf-detail-foot-h`, which the spacer reads. The
+   * CSS carries a fallback for the first paint and for a browser with no
+   * ResizeObserver, so the page is never flush against the bar even before
+   * this runs.
+   *
+   * `offsetHeight` is read from the pinned element rather than from this
+   * inner row because the inset and the bar's own padding live on the
+   * outer one, and that element belongs to the `ActionBar` primitive.
+   */
+  const footRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const inner = footRef.current;
+    const bar = inner?.closest(".nf-action-bar-pinned");
+    if (!(bar instanceof HTMLElement)) return;
+    const root = document.documentElement;
+    const apply = () => root.style.setProperty("--nf-detail-foot-h", `${bar.offsetHeight}px`);
+    apply();
+    if (typeof ResizeObserver === "undefined") return () => root.style.removeProperty("--nf-detail-foot-h");
+    const observer = new ResizeObserver(apply);
+    observer.observe(bar);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--nf-detail-foot-h");
+    };
+  }, []);
+
   return (
     /*
      * `aboveTabBar` is off because `/listing/[id]` is not one of
@@ -136,38 +168,52 @@ export function ListingStickyBar({
      * clear of. The bar sits on the edge itself, which is where reference 3
      * puts it.
      */
-    <ActionBar>
+    <>
+      {/*
+        THE PAGE HAS TO END ABOVE THE FOOT.
+
+        The foot is `position: fixed`, so it is out of flow and the document's
+        last element sits underneath it. Every page that mounts this bar used
+        to hand-roll its own `h-[5.5rem]` spacer, which was a guess: the foot
+        is two rows tall at 390 and one row from `sm`, and it carries the
+        home-indicator inset on top of that, so one hardcoded height was wrong
+        on every width it was not measured at. The spacer ships WITH the bar
+        now, and it is the bar's own measured height plus the inset the bar
+        already absorbs, so the two can never drift apart again.
+      */}
+      <div aria-hidden="true" className="nf-detail-foot-spacer" />
+      <ActionBar>
       <div
+        ref={footRef}
         data-testid="listing-sticky-bar"
-        className="flex w-full items-center gap-xs sm:gap-sm"
+        className="nf-detail-foot"
       >
-        <p className="flex min-w-0 flex-1 flex-col">
+        <p className="nf-detail-foot__lead">
           {amount > 0 ? (
             <>
               {/* No `truncate` on a price: a clipped figure states a wrong
                   number. The bar's own layout gives this column the room. */}
-              <span data-testid="sticky-total" className="nf-detail-foot__figure min-w-0">
-                <Amount
-                  minorUnits={amount}
-                  locale={locale}
-                  currency={currency}
-                  /*
-                   * The glance rule, so a yearly rent reads ₦4.5m in a bar
-                   * that also has to hold two buttons on a 390px screen,
-                   * while a nightly rate keeps the full figure somebody is
-                   * comparing against the listing below it.
-                   */
-                  glance
-                  /* A compacted figure's fraction is a SIGNIFICANT DIGIT, not
-                     kobo: ₦6,750,000 splits into "₦6", ".8" and "m", and the
-                     default muted tail draws that ".8" at 0.62em, so the bar
-                     read as ₦6 on a figure worth ₦6.8m. It keeps the figure's
-                     own size whenever the glance rule has compacted. Same rule,
-                     same reason, as the card. */
-                  secondaryClassName={
-                    isGlanceCompact(amount) ? "" : "text-[0.62em] font-semibold opacity-60"
-                  }
-                />
+              <span data-testid="sticky-total" className="nf-detail-foot__figure min-w-0 nf-numeric">
+                {/*
+                 * THROUGH `formatMoney`, NOT THROUGH `Amount`.
+                 *
+                 * The bar used `<Amount glance>`, and that is why the lead's
+                 * formatter fix did not reach this figure: `Amount` builds its
+                 * own `Intl.NumberFormat` with `notation: "compact"` and no
+                 * `maximumFractionDigits`, on the belief that Intl's compact
+                 * default keeps one fractional digit. It does not. Compact
+                 * notation defaults to TWO SIGNIFICANT DIGITS, so ₦14,700,000
+                 * came out ₦15m: three hundred thousand naira more than the
+                 * obligation, on the bar directly under a card reading
+                 * ₦14,700,000.
+                 *
+                 * `formatMoneyGlance` is the same one-million-naira threshold
+                 * applied by `formatMoney`, which the lead has already fixed to
+                 * keep the tenth. It is also the rule: money is displayed only
+                 * through `formatMoney`. `Amount` is not in this scope and the
+                 * defect is reported rather than edited here.
+                 */}
+                {formatMoneyGlance(amount, locale, currency)}
               </span>
               {/* No `truncate`. A caption that reads "to move in, from the p..."
                   is a promise trimmed into a different promise, and this column
@@ -219,7 +265,7 @@ export function ListingStickyBar({
             size="sm"
             leadingIcon="document"
             aria-label={secondary.label}
-            className="shrink-0"
+            className="nf-detail-foot__secondary"
             data-testid="sticky-breakdown"
           >
             <span className="nf-btn__label sm:hidden">{secondaryShortLabel ?? secondary.label}</span>
@@ -233,7 +279,7 @@ export function ListingStickyBar({
               variant="ghost"
               leadingIcon={secondaryIcon ?? (variant === "partner" ? "arrow-right" : "chat-bubble")}
               aria-label={secondary.label}
-              className="shrink-0"
+              className="nf-detail-foot__secondary"
             >
               <span className="nf-btn__label hidden sm:inline">{secondary.label}</span>
             </ButtonLink>
@@ -246,9 +292,9 @@ export function ListingStickyBar({
               href={action.href}
               {...external(action)}
               variant="primary"
-              size={variant === "rental" ? "sm" : "md"}
+              size="md"
               leadingIcon={variant === "rental" ? "calendar-booking" : undefined}
-              className="shrink-0"
+              className="nf-detail-foot__action"
               data-testid="sticky-action"
             >
               {action.label}
@@ -256,6 +302,7 @@ export function ListingStickyBar({
           </AuthGate>
         )}
       </div>
-    </ActionBar>
+      </ActionBar>
+    </>
   );
 }

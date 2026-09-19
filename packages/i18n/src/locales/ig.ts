@@ -254,6 +254,11 @@ export const ig: Dictionary = withFallback({
     savedSub: "Ụlọ, ụlọ oriri na ebe ndị i chekwara",
     walletSub: "Jikwaa ego gị, kaadị na azụmahịa gị",
     inspectionsSub: "Lee nyocha a haziri na nke gara aga",
+    /** The phone's wording for the four Belongings rows: one line each. */
+    myBookingsRow: "Ndebe ụlọ na ebe obibi",
+    savedRow: "Ụlọ, ụlọ oriri na ebe",
+    walletRow: "Ego, kaadị na azụmahịa",
+    inspectionsRow: "Nyocha a haziri na nke gara aga",
     back: "Laghachi",
     verified: "Onye nnọchiteanya enyochara",
     verifiedTitle: "Onye nnọchiteanya Vallo enyochara",
@@ -765,6 +770,8 @@ export const ig: Dictionary = withFallback({
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Jikwaa akaụntụ gị, mmasị gị na ụzọ ịkwụ ụgwọ.",
+      /** The phone's lede: one line under the headline. */
+      ledeShort: "Akaụntụ gị, mmasị gị na ụzọ ịkwụ ụgwọ.",
       signInRow: "Banye na Vallo",
       signInRowSub: "Mmasị gị na-eso gị na ngwaọrụ ọ bụla ozugbo ị banyere.",
       accountInfo: "Ozi Akaụntụ",
@@ -2885,6 +2892,8 @@ export const ig: Dictionary = withFallback({
     reserve: "Debe",
     noRate: "Enwebeghị ọnụ ahịa",
     noRatesYet: "This room has no rates loaded yet. Try another room, or message the property.",
+    roomTypes: "Ụdị ọnụ ụlọ {count}",
+    roomTypesOne: "Ụdị ọnụ ụlọ 1",
     noRoomsYet: "The rooms for this property are still being loaded.",
     minStay: "This rate needs at least {count} nights.",
     maxStay: "This rate covers at most {count} nights.",
@@ -2909,6 +2918,15 @@ export const ig: Dictionary = withFallback({
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Ụlọ oriri",
+    aboutTitle: "Maka ụlọ oriri a",
+    cuisine: "Ụdị nri",
+    dressCode: "Ụdị uwe",
+    covers: "Oche {count}",
+    parking: "Ebe ịdọba ụgbọala",
+    backupPower: "Ọkụ nkwado",
+    outdoor: "Ebe ndọba n'èzí",
+    menu: "Lee ndepụta nri",
+    openNowTitle: "Emeghere ugbu a",
     perHead: "maka onye ọ bụla, na-emekarị",
     reserveTitle: "Debe tebụl",
     reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
@@ -3062,6 +3080,10 @@ export const ig: Dictionary = withFallback({
       seeAll: "Hụ niile",
       photos: "Foto {count}",
       morePhotos: "+{count}",
+      aboutThisProperty: "Maka ụlọ a",
+      verifiedHost: "Onye nnabata akwadoro",
+      selectDate: "Họrọ ụbọchị",
+      bookNow: "Debe ugbu a",
     },
     ledger: {
       title: "Ụgwọ mbanye",

@@ -16,14 +16,16 @@ export function TrustStrip({ copy }: { copy: Dictionary["wallet"]["home"] }) {
       <span className="block h-12 w-12 shrink-0" aria-hidden="true">
         <BrandIcon name="shield-check" fill />
       </span>
-      <div className="min-w-0 flex-1">
+      {/* The badge sits under the words, not beside them: three fixed things
+          across 390px left the sentence reading in a 150px gutter. */}
+      <div className="nf-trust__body">
         <p className={TYPE.rowTitle}>{copy.trustTitle}</p>
         <p className={`mt-3xs ${TYPE.rowMeta}`}>{copy.trustBody}</p>
+        <span className="nf-trust__badge">
+          <UiIcon name="shield-stop" size={16} />
+          {copy.trustBadge}
+        </span>
       </div>
-      <span className="nf-trust__badge">
-        <UiIcon name="shield-stop" size={16} />
-        {copy.trustBadge}
-      </span>
     </aside>
   );
 }

@@ -58,6 +58,7 @@ export function ListingCard({
   intent,
   side = "property",
   wide = false,
+  dense = false,
 }: {
   listing: Listing;
   locale: Locale;
@@ -68,6 +69,16 @@ export function ListingCard({
   side?: "property" | "stays";
   /** One across, the 16:10 photograph of the stays shelf. */
   wide?: boolean;
+  /**
+   * Two of these cards share a 390px row.
+   *
+   * Set by the grids that draw two-up, and by nothing else. It is a fact about
+   * the LAYOUT, which only the grid knows, so it is passed rather than
+   * guessed: a card on the saved board and a card on the rent shelf are full
+   * width at 390 and have room for all three facts, and a card that dropped a
+   * fact there would be hiding something for no reason.
+   */
+  dense?: boolean;
 }) {
   const router = useRouter();
   const photo = listing.photos[0];
@@ -160,7 +171,31 @@ export function ListingCard({
    * land card reads "Land, 5,000 sqm" - which is why it is dropped by rank
    * rather than removed from the model.
    */
-  const shown = (row.length > 3 ? row.filter((fact) => fact.key !== "kind") : row).slice(0, 3);
+  const ranked = row.length > 3 ? row.filter((fact) => fact.key !== "kind") : row;
+
+  /*
+   * TWO FACTS AND A "+N" ON THE TWO-UP CARD, THREE ON THE WIDE ONE.
+   *
+   * The target render draws beds, baths and the floor area on one line. Ours
+   * wrapped onto two at 390, because a two-up card is about 150px of content
+   * and three glyph-and-label pairs need closer to 165. The row was tightened
+   * as far as it goes; going further meant dropping the fact row below the
+   * type scale's floor, and illegible text is not a fix, it is the same bug
+   * with fewer pixels.
+   *
+   * So the narrow card states the two facts people compare (how many bedrooms,
+   * how many bathrooms) and marks the rest with a count. The mark is not
+   * decoration: it carries the facts it stands for in its accessible name and
+   * in its tooltip, and the card it sits on opens the property where all of
+   * them are drawn in full. Nothing is hidden, one line is kept, and no
+   * character on this card is smaller than the floor.
+   *
+   * A card that is not two-up (the saved board, the rent shelf, the wide
+   * card) has the width for all three and keeps them.
+   */
+  const factLimit = dense ? 2 : 3;
+  const shown = ranked.slice(0, factLimit);
+  const spilled = ranked.slice(factLimit, 3);
 
   return (
     <article
@@ -311,6 +346,18 @@ export function ListingCard({
                   <span className={fact.numeric ? "nf-numeric" : undefined}>{fact.label}</span>
                 </li>
               ))}
+              {spilled.length > 0 && (
+                <li
+                  className="nf-pcard__fact nf-pcard__fact--more"
+                  title={spilled.map((fact) => fact.label).join(", ")}
+                  data-testid="card-facts-more"
+                >
+                  <span aria-hidden="true">+{spilled.length}</span>
+                  {/* The facts themselves, for anybody who cannot see the
+                      count. A "+1" with nothing behind it is a decoration. */}
+                  <span className="sr-only">{spilled.map((fact) => fact.label).join(", ")}</span>
+                </li>
+              )}
             </ul>
           )}
 

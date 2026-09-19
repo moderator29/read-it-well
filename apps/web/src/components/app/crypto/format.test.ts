@@ -1,15 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseResponse, type MarketRow } from "./client";
-import {
-  chartValues,
-  formatCompact,
-  formatPercent,
-  formatPrice,
-  linePath,
-  matchesCoin,
-  movers,
-  plainText,
-} from "./format";
+import { chartValues, formatCompact, formatListPrice, formatPercent, formatPrice, linePath, matchesCoin, movers, plainText } from "./format";
 
 function row(id: string, change24h: number): MarketRow {
   return {
@@ -102,5 +93,24 @@ describe("the envelope", () => {
       reason: "upstream",
     });
     expect(parseResponse("<!doctype html>")).toEqual({ ok: false, reason: "upstream" });
+  });
+});
+
+describe("formatListPrice", () => {
+  it("keeps the whole figure while it fits", () => {
+    expect(formatListPrice(3940, "ngn", "en")).toBe("\u20a63,940.00");
+  });
+
+  it("groups above a million, keeping the value rather than rounding it away", () => {
+    expect(formatListPrice(14_700_000, "ngn", "en")).toBe("\u20a614.7m");
+    expect(formatListPrice(98_412_500, "ngn", "en")).toBe("\u20a698.4m");
+  });
+
+  it("leaves a dollar price alone at the sizes a coin list shows", () => {
+    expect(formatListPrice(64_782.32, "usd", "en")).toBe("US$64,782.32");
+  });
+
+  it("says nothing for a figure the feed did not send", () => {
+    expect(formatListPrice(Number.NaN, "ngn", "en")).toBe("");
   });
 });

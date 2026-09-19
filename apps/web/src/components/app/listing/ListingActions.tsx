@@ -206,7 +206,7 @@ export function ListingActions({
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-xs text-right text-[var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-on-media)] backdrop-blur-md"
+          className="max-w-[15rem] rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] nf-media-chip px-sm py-xs text-right font-medium leading-snug backdrop-blur-md"
         >
           {message}
           {signInPrompt && (

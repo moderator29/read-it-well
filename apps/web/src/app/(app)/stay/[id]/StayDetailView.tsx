@@ -1,16 +1,31 @@
 import Image from "next/image";
-import Link from "next/link";
-import type { Dictionary, Locale } from "@vallo/i18n";
+import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
-import { ActionBar } from "@/components/ui/ActionBar";
-import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { ICON, Section, Stack, TYPE } from "@/components/app/Screen";
-import { RoomTypes, type ReserveBase } from "./RoomTypes";
-import { ROOM_CATEGORY_KEY, roomFromMinor, stayFromMinor, type StayDetail } from "./detail-model";
+import { RoomTypes } from "./RoomTypes";
+import {
+  DetailAboutCard,
+  DetailAvailabilityCard,
+  DetailCapsules,
+  DetailPriceRow,
+  DetailSpecStrip,
+  type DetailDateField,
+  type SpecPair,
+} from "@/components/app/listing/DetailAnatomy";
+import {
+  ROOM_CATEGORY_KEY,
+  cheapestBookable,
+  maxSleeps,
+  reserveHref,
+  roomFromMinor,
+  stayFromMinor,
+  type ReserveBase,
+  type StayDetail,
+} from "./detail-model";
 
 type StaysCopy = Dictionary["stayDetail"];
 
@@ -109,6 +124,106 @@ export function StayDetailView({
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
   const catalogue = t.catalogue.stays;
   const businessKind = detail.businessKind ?? "hotel";
+  const detailCopy = t.catalogue.detail;
+
+  /*
+   * THE SPEC STRIP, from what this record actually states.
+   *
+   * B047A0CE draws three pairs and its example is "4 Beds | 5 Baths |
+   * 2 Living Rooms", which is a RENTAL's vocabulary. An accommodation carries
+   * none of those columns: `room_types` states who a room sleeps and what it
+   * is, and `accommodations` states the class and the check-in time. So the
+   * strip is the same shape filled with this record's own facts, in the order
+   * a guest compares them, and a fact the property did not state is simply not
+   * a cell. Inventing a bathroom count to match a render is the exact failure
+   * the direction's "translate, never copy" rule exists to prevent.
+   */
+  const sleeps = maxSleeps(detail);
+  const specCandidates: SpecPair[] = [];
+  if (sleeps !== null) {
+    specCandidates.push({
+      key: "sleeps",
+      icon: "bed",
+      label: copy.sleeps.replace("{count}", formatNumber(sleeps, locale)),
+    });
+  }
+  if (detail.roomTypes.length > 0) {
+    specCandidates.push({
+      key: "rooms",
+      icon: "building-apartment",
+      label:
+        detail.roomTypes.length === 1
+          ? copy.roomTypesOne
+          : copy.roomTypes.replace("{count}", formatNumber(detail.roomTypes.length, locale)),
+    });
+  }
+  if (detail.starRating) {
+    specCandidates.push({
+      key: "class",
+      icon: "sparkle",
+      label: STAR_LABEL[detail.starRating] ?? `${detail.starRating} star`,
+    });
+  }
+  if (detail.checkInFrom) {
+    specCandidates.push({
+      key: "check-in",
+      icon: "history",
+      label: `${catalogue.checkIn} ${detail.checkInFrom.slice(0, 5)}`,
+    });
+  }
+
+  /* The capsules: the first four amenities the property named, each with the
+     glyph its words earn. Never a facility nobody claimed. */
+  const capsules = detail.amenities.map((amenity) => ({
+    key: amenity,
+    icon: amenityGlyph(amenity),
+    label: amenity,
+  }));
+
+  /*
+   * WHAT "BOOK NOW" HONESTLY MEANS HERE.
+   *
+   * With dates picked and a room that takes the party, it means the cheapest
+   * rate that can actually be booked, and the link is the real first-party
+   * checkout `reserveHref` builds, the same URL the room rows build. Without
+   * dates it means "pick your dates", because a checkout with no dates is a
+   * checkout that refuses. With dates and nothing bookable it means "see the
+   * rooms", because the refusal belongs where the reader can do something
+   * about it. Three states, three honest destinations, no dead button.
+   */
+  const datesPicked = Boolean(checkIn && checkOut && nights !== null && nights > 0);
+  const bookable = datesPicked ? cheapestBookable(detail, nights, guests) : null;
+  const action = bookable
+    ? {
+        label: detailCopy.bookNow,
+        href: reserveHref(reserve, bookable.room.id, bookable.plan.id),
+        gate: "pay" as const,
+      }
+    : datesPicked
+      ? { label: catalogue.seeRooms, href: "#rooms", gate: null }
+      : { label: copy.pickDates, href: datesHref, gate: null };
+
+  const fields: DetailDateField[] = [
+    {
+      key: "check-in",
+      label: catalogue.checkIn,
+      value: dateLabel(checkIn, locale) ?? detailCopy.selectDate,
+      href: datesHref,
+    },
+    {
+      key: "check-out",
+      label: catalogue.checkOut,
+      value: dateLabel(checkOut, locale) ?? detailCopy.selectDate,
+      href: datesHref,
+    },
+    {
+      key: "guests",
+      label: catalogue.guests,
+      value: copy.guests.replace("{count}", formatNumber(guests, locale)),
+      href: datesHref,
+      icon: "user",
+    },
+  ];
 
   return (
     <div>
@@ -122,14 +237,12 @@ export function StayDetailView({
         mark={{ label: catalogue.title, icon: "bed" }}
       />
 
-      <div className="mx-auto max-w-2xl pb-[calc(var(--nf-action-bar-height,4.5rem)+var(--spacing-block))]">
+      <div className="mx-auto max-w-2xl pb-section">
         {/* ------------------------------------------------ the headline
-            The render's order: the name, the place, then the figure on its
-            own line with the stars beside it. It used to put the figure in
-            the title's right-hand column, which on a phone squeezed a long
-            property name into half the width. The card is lit glass and it
-            overlaps the photograph, as every lead card on this platform
-            now does. */}
+            B047A0CE's order exactly: the name, the pin line, the bordered
+            strip of spec pairs, then the figure in blue with its unit and the
+            rating on the same row, then the capsules. The card is lit glass
+            and overlaps the photograph, as every lead card here does. */}
         <div className="nf-glass nf-glass--card nf-detail-lead relative z-10 -mt-xl sm:-mt-2xl">
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
           {where && (
@@ -138,68 +251,76 @@ export function StayDetailView({
               {where}
             </p>
           )}
-          <div className="nf-stay-price-row mt-md">
-            {from !== null ? (
-              <p className="nf-stay-card__price" data-testid="stay-from">
-                <Amount
-                  minorUnits={from}
-                  locale={locale}
-                  secondaryClassName="text-[0.6em] font-semibold opacity-70"
-                />
-                <span className="nf-stay-card__per">{catalogue.perNight}</span>
-              </p>
-            ) : (
-              <p className={`shrink-0 ${TYPE.rowMeta}`}>{copy.noRate}</p>
-            )}
-            {/* The class the property carries, from its own record. A guest
-                rating is never drawn here: this read carries no reviews, and
-                an invented count is the one thing a stars row must not be. */}
-            {detail.starRating && (
-              <p className="nf-stay-card__rating">
-                <UiIcon name="star" size={14} filled />
-                {STAR_LABEL[detail.starRating] ?? `${detail.starRating} star`}
-              </p>
-            )}
-          </div>
+
+          <DetailSpecStrip pairs={specCandidates} />
+
+          {from !== null ? (
+            <DetailPriceRow
+              figure={
+                <span data-testid="stay-from">
+                  <Amount
+                    minorUnits={from}
+                    locale={locale}
+                    secondaryClassName="text-[0.6em] font-semibold opacity-70"
+                  />
+                </span>
+              }
+              unit={catalogue.perNight}
+              /* Drawn only where real review rows stand behind it. */
+              rating={
+                detail.rating && detail.rating.count > 0
+                  ? {
+                      average: formatNumber(detail.rating.average, locale, {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      }),
+                      reviews: catalogue.reviews.replace(
+                        "{count}",
+                        formatNumber(detail.rating.count, locale),
+                      ),
+                    }
+                  : null
+              }
+            />
+          ) : (
+            <p className={`mt-md ${TYPE.rowMeta}`}>{copy.noRate}</p>
+          )}
+
+          <DetailCapsules items={capsules} label={t.catalogue.detail.amenities} />
+        </div>
+
+        {/* ------------------------------------- about, and who hosts it */}
+        <div className="mt-block">
+          <DetailAboutCard
+            title={catalogue.aboutThisStay}
+            paragraphs={detail.description ? [detail.description] : []}
+            host={
+              detail.hostName
+                ? {
+                    name: detail.hostName,
+                    role: BUSINESS_LABEL[businessKind] ?? "Host",
+                    verified: detail.hostVerified === true,
+                    verifiedLabel: detailCopy.verifiedHost,
+                    messageHref: `/messages/new?listing=${detail.id}`,
+                    messageLabel: detailCopy.message,
+                  }
+                : null
+            }
+          />
         </div>
 
         {/* --------------------------------------- dates and the party */}
-        <div className="nf-stay-facts mt-md" data-testid="stay-dates-row">
-          <Link href={datesHref} className="nf-stay-fact">
-            <UiIcon name="calendar-booking" size={ICON.inline} />
-            <span className="min-w-0">
-              <span className="nf-stay-fact__label">{catalogue.checkIn}</span>
-              <span className="nf-stay-fact__value">{dateLabel(checkIn, locale) ?? catalogue.pickDate}</span>
-            </span>
-            <UiIcon name="chevron-right" size={16} />
-          </Link>
-          <Link href={datesHref} className="nf-stay-fact">
-            <UiIcon name="calendar-booking" size={ICON.inline} />
-            <span className="min-w-0">
-              <span className="nf-stay-fact__label">{catalogue.checkOut}</span>
-              <span className="nf-stay-fact__value">{dateLabel(checkOut, locale) ?? catalogue.pickDate}</span>
-            </span>
-            <UiIcon name="chevron-right" size={16} />
-          </Link>
-          <Link href={datesHref} className="nf-stay-fact">
-            <UiIcon name="user" size={ICON.inline} />
-            <span className="min-w-0">
-              <span className="nf-stay-fact__label">{catalogue.guests}</span>
-              <span className="nf-stay-fact__value">{copy.guests.replace("{count}", String(guests))}</span>
-            </span>
-            <UiIcon name="chevron-right" size={16} />
-          </Link>
-          {total !== null && nights !== null && (
-            <div className="nf-stay-fact">
-              <UiIcon name="wallet" size={ICON.inline} />
-              <span className="min-w-0">
-                <span className="nf-stay-fact__label">{copy.totalFor.replace("{count}", String(nights))}</span>
-                <span className="nf-stay-fact__value nf-numeric">
-                  <Amount minorUnits={total} locale={locale} />
-                </span>
-              </span>
-            </div>
-          )}
+        <div className="mt-block" data-testid="stay-dates-row">
+          <DetailAvailabilityCard
+            title={detailCopy.checkAvailability}
+            fields={fields}
+            action={action}
+            note={
+              total !== null && nights !== null
+                ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(total, locale)}`
+                : copy.pickDatesForTotal
+            }
+          />
         </div>
 
         <Stack className="mt-block">
@@ -217,14 +338,9 @@ export function StayDetailView({
             </Section>
           )}
 
-          {/* ---------------------------------------------------- about */}
-          {detail.description && (
-            <Section title={catalogue.aboutThisStay}>
-              <div className="nf-detail-panel">
-                <p className={`${TYPE.body} leading-relaxed [overflow-wrap:anywhere]`}>{detail.description}</p>
-              </div>
-            </Section>
-          )}
+          {/* The description and the host row moved up into the About card
+              above, which is where B047A0CE puts them. A second copy here
+              would be the same paragraph twice on one screen. */}
 
           {/* ---------------------------------------------- property type */}
           <div className="nf-stay-type" data-testid="stay-type">
@@ -316,28 +432,17 @@ export function StayDetailView({
         </Stack>
       </div>
 
-      <ActionBar aboveTabBar>
-        <div className="min-w-0 flex-1">
-          {from !== null ? (
-            <>
-              <p className="nf-detail-foot__figure nf-numeric">
-                <Amount
-                  minorUnits={total ?? from}
-                  locale={locale}
-                />
-              </p>
-              <p className="nf-detail-foot__caption">
-                {total !== null && nights !== null ? copy.totalFor.replace("{count}", String(nights)) : catalogue.perNight}
-              </p>
-            </>
-          ) : (
-            <p className={TYPE.rowMeta}>{copy.noRate}</p>
-          )}
-        </div>
-        <ButtonLink href="#rooms" variant="primary" size="lg" leadingIcon="calendar-booking" className="shrink-0" data-testid="book-this-stay">
-          {catalogue.bookThisStay}
-        </ButtonLink>
-      </ActionBar>
+      {/*
+        NO PINNED FOOT ON THIS FACE.
+
+        It used to carry one, and it was the fault the lead's audit caught: the
+        foot painted over the amenity tiles at 390, and it quoted a total a
+        second time under a card that already stated it. Neither B047A0CE nor
+        BB0C2C85 ends on a pinned bar; both end on the availability card's own
+        full-width action, which is where the decision now lives. Nothing was
+        lost with it: the same three destinations (the checkout, the dates, the
+        rooms) are on the card above.
+      */}
     </div>
   );
 }

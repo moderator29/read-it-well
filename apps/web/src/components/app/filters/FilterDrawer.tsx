@@ -177,11 +177,28 @@ function Group({
         <h2 id={id} className="nf-filters__group-title">
           {title}
         </h2>
-        {onClear && (
-          <button type="button" onClick={onClear} className="nf-filters__clear">
-            {clearLabel}
-          </button>
-        )}
+        {/*
+          ALWAYS DRAWN, DISABLED WHEN THERE IS NOTHING TO CLEAR.
+
+          3EB3E2A9 shows "Clear" beside every group heading. It used to appear
+          only once the group had a value, which made every heading in the
+          sheet jump sideways as a person touched the controls under it. It is
+          drawn at rest now and genuinely disabled - the attribute, so the
+          browser refuses the press, skips it in the tab order and announces it
+          - rather than a live-looking control that does nothing. Its
+          accessible name names its group, because nine controls all called
+          "Clear" are nine identical announcements.
+        */}
+        <button
+          type="button"
+          onClick={onClear}
+          disabled={!onClear}
+          aria-label={`${clearLabel}: ${title}`}
+          data-testid={`${id}-clear`}
+          className="nf-filters__clear"
+        >
+          {clearLabel}
+        </button>
       </div>
       {hint && <p className="nf-filters__hint">{hint}</p>}
       {children}
@@ -649,7 +666,22 @@ export function FilterDrawer({
 
             {/* ------------------------------------------ light and water */}
             {showUtilities && (
-              <Group id="filter-utilities" title={copy.lightAndWater} clearLabel={copy.clear}>
+              <Group
+                id="filter-utilities"
+                title={copy.lightAndWater}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.powerBackup || draft.powerBandA || draft.waterSupply.length > 0
+                    ? () =>
+                        setDraft((current) => ({
+                          ...current,
+                          powerBackup: false,
+                          powerBandA: false,
+                          waterSupply: [],
+                        }))
+                    : undefined
+                }
+              >
                 <div className="divide-y divide-[var(--nf-divider)]">
                   {utilityOptions.backup && (
                     <SwitchRow
@@ -696,7 +728,21 @@ export function FilterDrawer({
             )}
 
             {/* ------------------------------------------------ trust */}
-            <Group id="filter-booking" title={copy.trust} clearLabel={copy.clear}>
+            <Group
+              id="filter-booking"
+              title={copy.trust}
+              clearLabel={copy.clear}
+              onClear={
+                draft.instantBook || draft.verifiedOnly
+                  ? () =>
+                      setDraft((current) => ({
+                        ...current,
+                        instantBook: false,
+                        verifiedOnly: false,
+                      }))
+                  : undefined
+              }
+            >
               <div className="divide-y divide-[var(--nf-divider)]">
                 <SwitchRow
                   icon="sparkle"
@@ -716,7 +762,16 @@ export function FilterDrawer({
             </Group>
 
             {/* ------------------------------------------------ location */}
-            <Group id="filter-location" title={copy.location} clearLabel={copy.clear}>
+            <Group
+              id="filter-location"
+              title={copy.location}
+              clearLabel={copy.clear}
+              onClear={
+                draft.q.trim().length > 0
+                  ? () => setDraft((current) => ({ ...current, q: "" }))
+                  : undefined
+              }
+            >
               <label className="nf-filters__row">
                 <UiIcon name="location" size={ICON.inline} />
                 <span className="sr-only">{copy.location}</span>
@@ -734,7 +789,19 @@ export function FilterDrawer({
             </Group>
 
             {/* ---------------------------------------------------- sort */}
-            <Group id="filter-sort" title={copy.sortBy} clearLabel={copy.clear}>
+            {/* Clearing a sort means going back to the order the shelf opens
+                in, which is the first entry in SORTS, so the control is live
+                exactly when the reader has moved off it. */}
+            <Group
+              id="filter-sort"
+              title={copy.sortBy}
+              clearLabel={copy.clear}
+              onClear={
+                SORTS[0] && draft.sort !== SORTS[0].key
+                  ? () => setDraft((current) => ({ ...current, sort: SORTS[0]!.key }))
+                  : undefined
+              }
+            >
               <label className="nf-filters__row">
                 <UiIcon name="sliders" size={ICON.inline} />
                 <span className="sr-only">{copy.sortBy}</span>

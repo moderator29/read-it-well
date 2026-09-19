@@ -58,7 +58,7 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-2xl">
       <header className="nf-hub-head">
         <h1 className="nf-hub-head__title">{t.nav.settings}</h1>
-        <p className="nf-hub-head__lede">{hub.lede}</p>
+        <p className="nf-hub-head__lede">{hub.ledeShort}</p>
       </header>
 
       <div className="space-y-block">

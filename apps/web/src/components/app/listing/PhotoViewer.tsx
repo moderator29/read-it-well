@@ -260,7 +260,7 @@ function Lightbox({
         >
           <UiIcon name="close" size={20} />
         </button>
-        <p className="nf-numeric pointer-events-none mt-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] px-sm py-xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-on-media)] backdrop-blur-md">
+        <p className="nf-numeric pointer-events-none mt-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--caption px-sm py-xs font-semibold backdrop-blur-md">
           <span className="sr-only">Photo </span>
           {active + 1} / {photos.length}
         </p>

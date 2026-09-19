@@ -76,6 +76,7 @@ export function SendFlow({
   initialEmail = "",
   initialAmount = "",
   initialNote = "",
+  lookup: lookupFn = lookupRecipient,
 }: {
   balanceMinor: number;
   locale: Locale;
@@ -83,6 +84,17 @@ export function SendFlow({
   initialEmail?: string;
   initialAmount?: string;
   initialNote?: string;
+  /**
+   * The lookup, overridable BY THE SCREENSHOT HARNESS AND NOTHING ELSE.
+   *
+   * The real one is a server action against the accounts table, so in a
+   * sandbox with no database it can only ever answer "unknown" and the
+   * found state, which is the whole point of this field, cannot be
+   * photographed. The default is the real action, so every shipped caller
+   * gets the real lookup without saying anything; `app/(dev)/preview/e`
+   * passes a fixture resolver to prove the look.
+   */
+  lookup?: (email: string) => Promise<RecipientLookup>;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("compose");
@@ -124,12 +136,12 @@ export function SendFlow({
     const mine = ++attempt.current;
     const timer = window.setTimeout(() => {
       setLookup({ for: address, result: "checking" });
-      void lookupRecipient(address).then((result) => {
+      void lookupFn(address).then((result) => {
         if (mine === attempt.current) setLookup({ for: address, result });
       });
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [address]);
+  }, [address, lookupFn]);
   const check = emailOk && lookup && lookup.for === address ? lookup.result : null;
   const recipientName = check !== null && check !== "checking" && check.state === "found" ? check.name : null;
   const refused = check !== null && check !== "checking" && (check.state === "none" || check.state === "self");

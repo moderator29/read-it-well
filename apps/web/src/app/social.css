@@ -416,31 +416,47 @@
     z-index: 1;
   }
   /*
-   * The face. 112px on a phone, a little over a quarter of the screen as the
+   * The face. 96px on a phone, a little under a quarter of the screen as the
    * render proportions it, with the ring lit from the upper left and a glow
    * beneath it, which is the one lamp this screen is allowed: the person is
    * what the page is about.
+   *
+   * It was 7rem with 4px of padding, and beside the render that read as a
+   * face inside a dark collar inside a blue ring: the padding paints the
+   * canvas between the photograph and the light, so the wider it is the
+   * further the light sits from the person. The render has the ring ON the
+   * photograph. 2px is the seam, not a band.
    */
   .nf-profile-avatar {
     position: relative;
     display: grid;
     place-items: center;
-    inline-size: 7rem;
-    block-size: 7rem;
-    padding: 4px;
+    inline-size: 6rem;
+    block-size: 6rem;
+    padding: 2px;
     border-radius: var(--nf-radius-circle);
     border: 3px solid transparent;
+    /*
+     * THE RING IS LIT ALL THE WAY ROUND, which is what the render draws and
+     * what the token layer's own edge recipe says: a lit top rim AND a full
+     * brand ring, never a bright arc fading into the page. The old third stop
+     * was 45 per cent of brand into transparent, so the lower right of the
+     * ring dissolved into the canvas and the face read as sitting in a dark
+     * collar rather than in a lamp. The gradient still runs from the upper
+     * left, because the whole material is lit from there; it just no longer
+     * runs out.
+     */
     background:
       linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
       linear-gradient(
           135deg,
           color-mix(in oklab, var(--nf-brand-accent) 95%, white) 0%,
-          var(--nf-brand-primary) 40%,
-          color-mix(in oklab, var(--nf-brand-primary) 45%, transparent) 100%
+          var(--nf-brand-primary) 45%,
+          var(--nf-brand-primary-strong) 100%
         )
         border-box;
     box-shadow:
-      0 0 0 1px var(--nf-glow-1),
+      0 0 0 1px var(--nf-glow-2),
       0 0 30px -4px var(--nf-glow-3),
       0 18px 40px -18px var(--nf-overlay-media-deep);
     cursor: pointer;
@@ -478,8 +494,8 @@
     inset-block-end: 4px;
     display: grid;
     place-items: center;
-    inline-size: 30px;
-    block-size: 30px;
+    inline-size: 26px;
+    block-size: 26px;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
@@ -495,11 +511,11 @@
   /* The words sit beside the face and start where the cover ends, so the
      name is the first thing under the photograph. */
   .nf-profile-text {
-    padding-block-start: 3.25rem;
+    padding-block-start: 2.875rem;
     min-inline-size: 0;
   }
   .nf-profile-text .nf-social-name {
-    font-size: 1.375rem;
+    font-size: 1.3125rem;
   }
   .nf-profile-text .nf-social-handle {
     margin-block-start: 0.1rem;
@@ -628,25 +644,29 @@
    * THE ROW'S EDGE IS LIT GLASS, on the founder's ruling that our containers
    * read dull beside the renders. `50E032EA` draws each belongings row with
    * a bright blue rim, a catchlight along the inside of its top edge and a
-   * soft bloom around it, over a near-black navy fill. Scoped here rather
-   * than on `.nf-card` itself, which is the lead's material; see the same
-   * note in settings-rows.css.
+   * soft bloom around it, over a near-black navy fill.
+   *
+   * The recipe is `--nf-glow-edge` from the token layer, not four lines
+   * written here. It was written here while the ruling was still only in the
+   * renders; it is composed once now, `.nf-glass--card` wears it, and these
+   * rows wear the same thing rather than a near-copy of it. The selector
+   * stays only because a belongings row is a `.nf-card`, which is the quiet
+   * material, and this image draws the lit one.
    */
   .nf-card.nf-belong__row,
   .nf-card.nf-belong__switch {
     border-color: var(--nf-brand-edge);
     box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      0 0 0 1px var(--nf-glow-1),
-      0 0 30px -12px var(--nf-glow-3),
-      0 0 70px -26px var(--nf-glow-2);
+      var(--nf-glow-edge),
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-bloom-card);
   }
   .nf-belong__row {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-block-size: 70px;
-    padding: 10px 14px 10px 10px;
+    min-block-size: 66px;
+    padding: 8px 14px 8px 10px;
     border-radius: var(--nf-radius-lg);
     color: var(--nf-content-primary);
     text-align: start;
@@ -665,15 +685,14 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    inline-size: 52px;
-    block-size: 52px;
+    inline-size: 44px;
+    block-size: 44px;
     border-radius: var(--nf-radius-md);
     border: 1px solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 0 1px var(--nf-glow-wash),
-      0 0 18px -8px var(--nf-glow-3);
+    /* The shared lit edge, same as the row it sits in and the settings tile
+       it is a sibling of. One recipe, three places that need it. */
+    box-shadow: var(--nf-glow-edge);
   }
   .nf-belong__body {
     flex: 1 1 auto;
@@ -681,16 +700,27 @@
   }
   .nf-belong__title {
     display: block;
-    font-size: var(--nf-text-body);
+    font-size: var(--nf-text-body-sm);
     font-weight: 700;
     letter-spacing: -0.01em;
   }
-  /* Blue-white, not grey: the render keeps every second line in the blue
-     family, one step down in presence rather than one step towards grey. */
+  /*
+   * Blue-white, not grey: the render keeps every second line in the blue
+   * family, one step down in presence rather than one step towards grey.
+   *
+   * One line, never two. "View your property and stays bookings" wrapped at
+   * caption and took the row from the render's 67px to 90, so four rows plus
+   * Switch role no longer fitted the screen the image fits them on. The line
+   * is a hint at what is behind the door; the title above it carries the
+   * meaning on its own.
+   */
   .nf-belong__sub {
     display: block;
     margin-block-start: 2px;
-    font-size: var(--nf-text-caption);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-overline);
     line-height: 1.4;
     color: color-mix(in oklab, var(--nf-brand-secondary) 30%, var(--nf-content-secondary));
   }
@@ -700,7 +730,7 @@
   }
   /* The role switch wears the card and keeps its own row inside it. */
   .nf-belong__switch .nf-row-button {
-    min-block-size: 70px;
+    min-block-size: 66px;
     padding-inline: 10px 14px;
     background: transparent;
     border: 0;
