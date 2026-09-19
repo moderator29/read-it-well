@@ -335,4 +335,43 @@
     background: var(--nf-landing-control);
     border-color: var(--nf-landing-hairline);
   }
+
+  /*
+   * The social row under the newsletter field: X and Telegram, as small lit
+   * glass squares in the same family as every other icon plate on the
+   * platform. Drawn only when a handle exists, so the row is never a row of
+   * dead marks; see SiteFooter.tsx.
+   */
+  .nf-site-footer-social {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    margin-top: var(--nf-gap-row);
+  }
+  .nf-site-footer-social__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-secondary);
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-site-footer-social__link:hover {
+      color: var(--nf-content-primary);
+      border-color: var(--nf-brand-edge);
+      box-shadow: var(--nf-glow-edge);
+    }
+  }
+  .nf-site-footer-social__link:focus-visible {
+    outline: var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
 }

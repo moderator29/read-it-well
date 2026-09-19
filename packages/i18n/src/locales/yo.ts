@@ -415,10 +415,11 @@ export const yo: Dictionary = withFallback({
       app: {
         title: "Mú Vallo lọ pẹ̀lú rẹ.",
         body: "Gbogbo ètò ohun ìní nínú àpò rẹ. Vallo ń fi sori ẹrọ láti inú aṣàwákiri rẹ lórí iPhone àti Android.",
-        ios: "iPhone àti iPad",
-        iosSub: "Fi kún ojú ilé",
-        android: "Android",
-        androidSub: "Fi ìṣàmúlò sori ẹrọ",
+        /* The four store-badge strings are deliberately absent and fall back
+           to English. "App Store" and "Google Play" are brand names Apple and
+           Google do not permit translating, and the small line above each is
+           part of the badge they publish, so a translated badge would be the
+           wrong badge rather than a localised one. */
         rightTitle: "Ìrìn àjò ohun ìní rẹ, báyìí lórí fóònù.",
         points: {
           all: "Àǹfààní kíkún sí gbogbo ẹ̀yà",

@@ -505,10 +505,17 @@ export const en = {
       app: {
         title: "Take VALLO with you.",
         body: "The complete property ecosystem in your pocket. VALLO installs from your browser on iPhone and Android.",
-        ios: "iPhone and iPad",
-        iosSub: "Add to Home Screen",
-        android: "Android",
-        androidSub: "Install the app",
+        /*
+         * The store badges' own wording, which is set by Apple's and Google's
+         * guidelines rather than by us: "Download on the / App Store" and
+         * "GET IT ON / Google Play", the small line above the large one.
+         * The founder's ruling of 19 September: the listings go live shortly
+         * and the badges carry the real marks from now.
+         */
+        ios: "App Store",
+        iosSub: "Download on the",
+        android: "Google Play",
+        androidSub: "GET IT ON",
         rightTitle: "Your property journey, now on mobile.",
         points: {
           all: "Full access to all features",

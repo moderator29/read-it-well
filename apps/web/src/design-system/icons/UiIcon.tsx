@@ -121,9 +121,59 @@ export type UiIconName =
    * glyph that says the wrong thing still costs a reader the half second it
    * takes to overrule it.
    */
-  | "feed";
+  | "feed"
+  /*
+   * THE FOUR BRAND MARKS, and why they are here rather than drawn in the
+   * house style.
+   *
+   * Everything else in this file is Vallo's own drawing. These four are
+   * somebody else's: the Apple mark, the Google Play triangle, the X mark and
+   * the Telegram plane. A recognisable mark is the whole job a store badge and
+   * a social link do, and a house-style approximation of one is worse than
+   * useless, because a reader who does not recognise it does not click and a
+   * reader who half recognises it distrusts it. So these are the real
+   * silhouettes, filled rather than stroked, and they are the only glyphs in
+   * the set that are not ours.
+   *
+   * They carry no colour of their own: they take `currentColor` like every
+   * other glyph, so a badge decides its own ink. Apple's and Google's badge
+   * guidelines both allow a monochrome mark on a dark plate, which is what the
+   * render draws.
+   */
+  | "apple"
+  | "google-play"
+  | "x-social"
+  | "telegram";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
+  // The Apple mark: the body with the bite, and the leaf above it.
+  apple: (
+    <g stroke="none" fill="currentColor">
+      <path d="M17.05 12.53c-.02-2.2 1.8-3.27 1.88-3.32-1.02-1.5-2.61-1.7-3.18-1.73-1.35-.14-2.64.8-3.33.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.7.71 2.87.69 1.19-.02 1.94-1.08 2.66-2.14.84-1.23 1.19-2.42 1.21-2.48-.03-.01-2.32-.89-2.34-3.53z" />
+      <path d="M14.87 6.1c.6-.73 1.01-1.75.9-2.76-.87.04-1.92.58-2.55 1.31-.56.65-1.05 1.68-.92 2.67.97.08 1.96-.49 2.57-1.22z" />
+    </g>
+  ),
+  // The Google Play triangle: four faces meeting at the play head.
+  "google-play": (
+    <g stroke="none" fill="currentColor">
+      <path d="M3.9 2.4c-.25.26-.4.67-.4 1.2v16.8c0 .53.15.94.4 1.2l.06.05 9.4-9.4v-.5L3.96 2.35z" />
+      <path d="M16.5 15.7l-3.14-3.15v-.5L16.5 8.9l.07.04 3.72 2.12c1.06.6 1.06 1.59 0 2.2l-3.72 2.11z" />
+      <path d="M16.57 15.66L13.36 12.4 3.9 21.6c.35.37.93.42 1.58.05l11.09-6z" />
+      <path d="M16.57 8.94L5.48 2.9c-.65-.37-1.23-.32-1.58.05l9.46 9.2z" />
+    </g>
+  ),
+  // The X mark: the two crossing strokes drawn as one closed shape.
+  "x-social": (
+    <g stroke="none" fill="currentColor">
+      <path d="M17.53 3h2.98l-6.51 7.44L21.66 21h-5.99l-4.7-6.14L5.6 21H2.62l6.96-7.96L2.34 3h6.14l4.24 5.61L17.53 3zm-1.05 16.22h1.65L7.6 4.69H5.83l10.65 14.53z" />
+    </g>
+  ),
+  // The Telegram plane: the sweep, the fold, and the tail beneath it.
+  telegram: (
+    <g stroke="none" fill="currentColor">
+      <path d="M21.94 4.3 18.9 19.2c-.23 1.02-.84 1.27-1.7.79l-4.7-3.46-2.27 2.18c-.25.25-.46.46-.95.46l.34-4.8 8.73-7.89c.38-.34-.08-.53-.59-.19L6.98 13.1l-4.65-1.45c-1.01-.32-1.03-1.01.21-1.5l18.15-7c.84-.31 1.58.19 1.25 1.15z" />
+    </g>
+  ),
   // Filter control. Two rails with offset handles, the convention every
   // traveller already recognises from the apps they use daily.
   sliders: (

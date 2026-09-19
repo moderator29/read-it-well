@@ -416,10 +416,11 @@ export const ha: Dictionary = withFallback({
       app: {
         title: "Ɗauki Vallo tare da kai.",
         body: "Cikakken tsarin gidaje a aljihunka. Vallo yana shiga daga burauzarka a iPhone da Android.",
-        ios: "iPhone da iPad",
-        iosSub: "Ƙara zuwa allon gida",
-        android: "Android",
-        androidSub: "Shigar da manhajar",
+        /* The four store-badge strings are deliberately absent and fall back
+           to English. "App Store" and "Google Play" are brand names Apple and
+           Google do not permit translating, and the small line above each is
+           part of the badge they publish, so a translated badge would be the
+           wrong badge rather than a localised one. */
         rightTitle: "Tafiyar gidanka, yanzu a waya.",
         points: {
           all: "Cikakken damar kowane fasali",

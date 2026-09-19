@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NewsletterForm } from "./NewsletterForm";
 
 /**
@@ -20,15 +21,19 @@ export function SiteFooter({ t }: { t: Dictionary }) {
   const f = t.landing.footer;
   const face = t.landing.face;
   /*
-   * The render's four columns, with every entry pointing at a route that
-   * exists (checked against app/(site) and the sitemap).
+   * THREE COLUMNS, on the founder's ruling of 19 September, matching the
+   * render: Product, Company, Support.
    *
-   * The render also lists Blog and Press under Company and a row of five
-   * social glyphs under Stay connected. There is no blog, no press room and
-   * no published handle, and a link labelled Blog that opens the docs, or a
-   * glyph that opens nothing, is a picture of a feature. They are left out
-   * until the pages and the accounts exist; the columns they belong to are
-   * built to take them.
+   * The fourth column was Legal, and it held Terms, Privacy and Cookies. All
+   * three already sit in the legal line at the very foot of the page, which
+   * is where the render puts them, so the column was printing the same three
+   * links twice on one screen. Dropping it is what makes the layout the
+   * render's, and it loses no destination.
+   *
+   * Every entry points at a route that exists, checked against app/(site) and
+   * the sitemap. The render also lists Blog and Press under Company; there is
+   * no blog and no press room, and a link labelled Blog that opens the docs
+   * is a picture of a feature, so those two wait for the pages.
    */
   const columns = [
     {
@@ -60,15 +65,29 @@ export function SiteFooter({ t }: { t: Dictionary }) {
         { href: "/cancellations", label: face.footer.cancellations },
       ],
     },
-    {
-      title: f.legal,
-      links: [
-        { href: "/terms", label: face.footer.termsOfService },
-        { href: "/privacy", label: face.footer.privacyPolicy },
-        { href: "/privacy", label: face.footer.cookies },
-      ],
-    },
   ];
+
+  /*
+   * THE SOCIAL ROW, on the same ruling: X and Telegram.
+   *
+   * Each handle is read from the environment and a glyph is drawn only for a
+   * handle that exists, because a social mark that opens nothing is the
+   * clearest possible picture of a feature. Set `NEXT_PUBLIC_VALLO_X_URL` and
+   * `NEXT_PUBLIC_VALLO_TELEGRAM_URL` and the two marks appear, with no code
+   * change. `rel="me"` states the account is ours, which is what X and
+   * Telegram read for verification, and `noopener` is the usual precaution on
+   * a new tab.
+   */
+  const socials = [
+    { url: process.env.NEXT_PUBLIC_VALLO_X_URL, icon: "x-social" as const, label: "X" },
+    {
+      url: process.env.NEXT_PUBLIC_VALLO_TELEGRAM_URL,
+      icon: "telegram" as const,
+      label: "Telegram",
+    },
+  ].filter((row): row is { url: string; icon: "x-social" | "telegram"; label: string } =>
+    Boolean(row.url),
+  );
 
   const year = new Date().getFullYear();
 
@@ -117,6 +136,22 @@ export function SiteFooter({ t }: { t: Dictionary }) {
               note={face.footer.newsletterNote}
               done={face.footer.subscribed}
             />
+            {socials.length > 0 && (
+              <ul className="nf-site-footer-social">
+                {socials.map((row) => (
+                  <li key={row.label}>
+                    <a
+                      href={row.url}
+                      className="nf-site-footer-social__link"
+                      target="_blank"
+                      rel="me noopener noreferrer"
+                    >
+                      <UiIcon name={row.icon} size={18} label={row.label} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 

@@ -11,14 +11,27 @@ import { ListingMini } from "./ListingMini";
 /**
  * Take Vallo with you.
  *
- * The render shows App Store and Google Play badges. There are no store
- * listings (native identifiers are on the stop list), and Vallo installs
- * from the browser as a PWA on both platforms today, so the two badges are
- * glass buttons saying exactly that and pointing at /start, where the
- * install prompt lives once somebody has an account. The phone is drawn, not
- * cropped from the render, with the portrait villa plate and a real listing
- * card on its screen.
+ * The render shows App Store and Google Play badges, and on the founder's
+ * ruling of 19 September they now carry the real marks: the listings go live
+ * shortly. Each badge reads its destination from the environment
+ * (`NEXT_PUBLIC_APP_STORE_URL`, `NEXT_PUBLIC_PLAY_STORE_URL`) and falls back
+ * to `/start`, where the browser install prompt lives, until the store URL
+ * exists. That is the honest arrangement: the badge is the real badge, and
+ * the day the listing is published the link becomes the listing with one
+ * environment variable and no code change. It never points at a store page
+ * that is not there, and it never says coming soon.
+ *
+ * The phone beside them is drawn, not cropped from the render, with the
+ * portrait villa plate and a real listing card on its screen.
  */
+/*
+ * Where a badge goes. Read at module scope because `NEXT_PUBLIC_*` is inlined
+ * at build time, and defaulted to the browser install page so the control is
+ * never dead while the store listings are still in review.
+ */
+const IOS_HREF = process.env.NEXT_PUBLIC_APP_STORE_URL || "/start";
+const ANDROID_HREF = process.env.NEXT_PUBLIC_PLAY_STORE_URL || "/start";
+
 export function AppBand({
   t,
   locale,
@@ -44,15 +57,15 @@ export function AppBand({
             <p className="nf-lede mt-group max-w-measure-lede">{a.body}</p>
           </div>
           <div className="flex flex-wrap gap-row">
-            <Link href="/start" className="nf-landing-store" prefetch={false}>
-              <UiIcon name="arrow-down" size={18} aria-hidden />
+            <Link href={IOS_HREF} className="nf-landing-store" prefetch={false}>
+              <UiIcon name="apple" size={26} aria-hidden />
               <span>
                 <small>{a.iosSub}</small>
                 <strong>{a.ios}</strong>
               </span>
             </Link>
-            <Link href="/start" className="nf-landing-store" prefetch={false}>
-              <UiIcon name="arrow-down" size={18} aria-hidden />
+            <Link href={ANDROID_HREF} className="nf-landing-store" prefetch={false}>
+              <UiIcon name="google-play" size={24} aria-hidden />
               <span>
                 <small>{a.androidSub}</small>
                 <strong>{a.android}</strong>

@@ -417,10 +417,11 @@ export const ig: Dictionary = withFallback({
       app: {
         title: "Were Vallo soro gị.",
         body: "Usoro ụlọ zuru oke n'akpa gị. Vallo na-etinye site na ihe nchọgharị gị na iPhone na Android.",
-        ios: "iPhone na iPad",
-        iosSub: "Tinye na ihuenyo ụlọ",
-        android: "Android",
-        androidSub: "Wụnye ngwa a",
+        /* The four store-badge strings are deliberately absent and fall back
+           to English. "App Store" and "Google Play" are brand names Apple and
+           Google do not permit translating, and the small line above each is
+           part of the badge they publish, so a translated badge would be the
+           wrong badge rather than a localised one. */
         rightTitle: "Njem ụlọ gị, ugbu a na ekwentị.",
         points: {
           all: "Ohere zuru oke na njirimara ọ bụla",
