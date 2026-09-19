@@ -295,7 +295,7 @@ tick is stored with the moment it was made.
 **21. Photographs of the venue. FIRST WEEK, and be honest about where they go**
 
 Collect them to the standard the rest of the product already enforces on a
-property: four to ten, at least 1600 pixels across, under 50MB each, JPEG, PNG,
+property: four to ten, at least 1600 pixels across, under 10MB each, JPEG, PNG,
 WEBP or HEIC (an iPhone straight out of the camera roll is fine). A phone
 camera in good light beats a bad professional shoot; the owner's own recent
 photographs are usually better than anything on their Instagram from 2021. Shoot
@@ -304,13 +304,20 @@ recognise it from the street, and two or three plates they are actually known
 for. Whoever takes them, agree out loud that Vallo may use them on the venue's
 page.
 
-**What you must not promise.** The venue record on the restaurant side does not
-carry photographs today. A venue's page currently shows a Vallo category
-photograph with a "No photographs yet" label over it, so a guest is never misled
-into thinking a stock picture is that dining room, but the owner's own
-photographs will not appear on their page the day they sign. Collect them
-anyway, hand them to whoever does the data entry, and tell the owner they go up
-when the venue page can carry them. Do not say they will be live tomorrow.
+**Where they go, and it changed.** This page used to tell you the venue record
+carried no photographs at all. It does now: `business_photos` exists, and the
+owner puts them up themselves at **/host/photos**, reachable from their own
+standing page beside each venue they hold. Up to ten, the first one uploaded is
+the cover, and the surface stays open at every status, so pictures collected in
+the first week go up in the first week rather than waiting on the application.
+A venue that still has none keeps the honest Vallo category photograph under a
+"No photographs yet" label, so a guest is never misled into thinking a stock
+picture is that dining room.
+
+**What you still must not promise.** That the pictures appear the moment they
+are handed to you. The owner needs an account, and the upload is theirs to make.
+Sit with them and do it in the room if there is time; otherwise agree who is
+uploading and when.
 
 ---
 
@@ -346,15 +353,20 @@ Tell the owner this, in this order, so the following week is not a silence.
    guest is told either way. A thread opens beside the booking so the two can
    talk about a late arrival or a high chair.
 
-**Two things to be careful about when you set expectations for the week.**
+**What to be careful about when you set expectations for the week.**
 
-There is no self-service button that puts a restaurant on the shelf today: step
-three is done by hand by the team, not by the owner and not by a console screen.
-And a restaurant owner has no page of their own yet for accepting tables, so
-until that exists the venue needs to be set up so the owner can reach the
-booking queue. Agree the timing with whoever is doing the data entry before you
-promise the owner a date. Do not tell an owner they will be taking bookings
-tomorrow unless somebody has confirmed both of those are handled.
+Both of the holes this page used to warn about are closed. Step three is a
+console action now (`publishRestaurant`, from the businesses queue), not a piece
+of hand-written SQL, and the owner answers tables on their own page at
+**/host/reservations**, which is where the notification has always pointed them.
+
+What is still true is that step three is a PERSON pressing a button, not an
+automatic consequence of the application arriving, and that the console refuses
+to put a venue on the shelf without a city, a state, a phone number and at least
+one service window with covers above zero. So the timing is somebody's decision
+and not a queue's. Agree it with whoever is reviewing before you promise the
+owner a date, and do not tell an owner they will be taking bookings tomorrow
+unless somebody has confirmed the review will happen.
 
 **The things not to say, ever:** that the venue is verified before the identity
 check has been done; that Vallo holds money, a deposit or a guarantee on a
@@ -394,7 +406,7 @@ before it was written. Nothing here has been applied to any database.
 | 18 | Authority to act | `business_documents` with `kind = 'association'` |
 | 19 | Bank account | `bank_accounts` (user-scoped by `user_id`, not business-scoped). `resolved_account_name` is NOT NULL and must be Paystack's answer, never typed |
 | 20 | The three consents | `businesses.consents` jsonb, `{"accuracy": "<iso>", "terms": "<iso>", "processing": "<iso>"}`. An absent key is a consent not given |
-| 21 | Photographs | **nowhere today.** There is no photo table on the business spine. `listing_photos` belongs to `listings`, `accommodation_photos` to `accommodations`, and a restaurant business has neither |
+| 21 | Photographs | `business_photos` (P3), modelled on `accommodation_photos`: `business_id`, `storage_path`, `position` unique per venue, 0 is the cover, ten per venue. Files go into the **public `accommodation-photos` bucket** under `<auth uid>/...`; no second bucket was created. `catalogue_entries.cover_path` is re-projected by trigger when a photograph is added, moved or removed |
 
 Also set at creation, by the application or by hand:
 `businesses.kind = 'restaurant'`, `businesses.source = 'first_party'`,
@@ -430,20 +442,23 @@ example refusal on the business path is the `is_demo` branch inside
 
 ### Things the reader should know before promising a date
 
-- **`status = 'PUBLISHED'` with `published_at` set is the gate, and nothing in
-  the product sets it for a restaurant.** `approveBusiness` in
-  `apps/web/src/lib/admin/business-actions.ts` moves a business to `APPROVED`
-  only. The single code path that writes `PUBLISHED` on `businesses` is
-  `publishAccommodation`, which requires an `accommodations` row, a pin, a photo
-  and a room type with a rate. A restaurant has no accommodation, so it never
-  reaches that path. There is also no `admin/businesses` route: the review and
-  rung actions exist and nothing imports them.
-- **The owner has no surface for accepting tables.** `private.notify_reservation`
-  points a business host at `/host/reservations`, which does not exist. The
-  reservations board lives at `/agent/bookings` and is guarded by
-  `getAgentContext`, which requires an `agents` row keyed to the user. A host
-  onboarded through the restaurant branch has a `businesses` row and no `agents`
-  row.
+- **`status = 'PUBLISHED'` with `published_at` set is the gate, and there is now
+  a code path that writes it for a restaurant.** `approveBusiness` in
+  `apps/web/src/lib/admin/business-actions.ts` still only moves a business to
+  `APPROVED`; `publishRestaurant` in the same file is the second gate and takes
+  it to `PUBLISHED`. It is admin only and refuses a venue that is not a
+  first-party, non-example restaurant sitting at `APPROVED`, or that is missing a
+  city, a state code, a phone number, or a `service_windows` row with `covers`
+  above zero. The `admin/businesses` route exists
+  (`apps/web/src/app/admin/businesses/`) and imports the review, rung and
+  publish actions. (`publishAccommodation` is unchanged and is still the stays
+  spine's own gate: an `accommodations` row, a pin, a photo and a room type with
+  a rate.)
+- **The owner has a surface for accepting tables.** `/host/reservations` exists
+  and is where `private.notify_reservation` has always pointed a business host.
+  It reads through `getHostReservations`, which leans on RLS and answers for both
+  spines, so it does not need an `agents` row; `/agent/bookings` remains the
+  agent spine's own board behind `getAgentContext`.
 - **The guest must not be the owner.** Nothing in the schema forbids it, but
   `getHostReservations` filters with `.neq("guest_id", <self>)`, so a table the
   owner books at their own venue never appears in their own queue.

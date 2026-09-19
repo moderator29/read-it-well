@@ -12,11 +12,14 @@
  * accepts five image types. The business spine shares that bucket, for the
  * reasons the P3 migration sets out, so it shares its limits too.
  *
- * NOTE FOR WHOEVER MAINTAINS THE ONBOARDING SCRIPT.
- * `docs/ONBOARDING_A_RESTAURANT.md` item 21 tells the founder to collect
- * photographs "under 50MB each". The bucket refuses anything over 10MB, so a
- * 50MB photograph collected on that promise cannot be uploaded at all. The
- * number below is the one the storage layer will actually honour.
+ * NOTE FOR WHOEVER MAINTAINS THE ONBOARDING SCRIPT, AND IT IS CLOSED.
+ * `docs/ONBOARDING_A_RESTAURANT.md` item 21 told the founder to collect
+ * photographs "under 50MB each" - 50MB is the social and walkthrough ceiling,
+ * not a photograph's - and the bucket refuses anything over 10MB, so a
+ * photograph collected on that promise could not be uploaded at all. The
+ * document says 10MB now and it says it in the same words as the constant
+ * below, which is the number the storage layer will actually honour. If that
+ * ceiling ever moves, both move.
  */
 
 /** The column's own ceiling: `position >= 0 and position < 10`. */
