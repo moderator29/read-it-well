@@ -1348,6 +1348,24 @@ export const en = {
       land: "Land",
     },
     popularCities: "Popular Cities",
+    /* The assistant's own chrome (BUILD_06, F1): the name pair under the bar,
+       the composer, the thinking pill and the four opening prompts. Each
+       prompt asks what this catalogue can actually answer: a yearly rent in
+       the unit it is quoted in, the move-in total, the power columns and the
+       shortlet market. A starter the assistant cannot answer teaches somebody
+       it does not work, so nothing here is a mood the catalogue lacks. */
+    assistant: {
+      title: "AI Assistant",
+      sub: "Always here. Ask anything.",
+      placeholder: "Type your message",
+      thinking: "Thinking...",
+      chips: {
+        lekki: "Two bedroom in Lekki under 5m a year",
+        moveIn: "What will it cost me to move in?",
+        generator: "Which places have a generator?",
+        shortlets: "Show me shortlets in Victoria Island",
+      },
+    },
     aiCard: {
       /*
        * THIS CARD USED TO BE A PICTURE OF ITS OWN WORDS.

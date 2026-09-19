@@ -1058,6 +1058,18 @@ export const ig: Dictionary = withFallback({
       land: "Ala",
     },
     popularCities: "Obodo ndị a ma ama",
+    assistant: {
+      title: "Onye enyemaka AI",
+      sub: "Nọ ebe a mgbe niile. Jụọ ihe ọ bụla.",
+      placeholder: "Dee ozi gị",
+      thinking: "Na-eche...",
+      chips: {
+        lekki: "Ime ụlọ abụọ na Lekki n'okpuru nde 5 kwa afọ",
+        moveIn: "Ego ole ka ọ ga-efu m ịkwaga?",
+        generator: "Ebe ole nwere jeneretọ?",
+        shortlets: "Gosi m shortlet na Victoria Island",
+      },
+    },
     aiCard: {
       title: "Jụọ Vallo AI",
       body: "Ọ na-achọ n'ime otu ndepụta ị na-agụ, ya mere ọ ga-agwa gị naanị maka ebe ndị dị na Vallo n'ezie.",

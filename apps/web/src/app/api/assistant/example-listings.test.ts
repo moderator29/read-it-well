@@ -27,6 +27,37 @@ const ROUTE = readFileSync(
   join(process.cwd(), "src/app/api/assistant/route.ts"),
   "utf8",
 );
+const WIRE = readFileSync(
+  join(process.cwd(), "src/lib/assistant/types.ts"),
+  "utf8",
+);
+
+describe("the result card carries only what the row states", () => {
+  /*
+   * The governing render shows a Verified mark and a beds, baths and floor
+   * area row on every card in the thread. The card may draw them only from
+   * the wire, and the wire may carry them only from the repository row, so
+   * this pins both ends: the type declares the four facts and the search
+   * mapper reads each one off `l`, the real listing, never a literal.
+   */
+  it("declares the facts on the wire type", () => {
+    expect(WIRE).toMatch(/verified: boolean;/);
+    expect(WIRE).toMatch(/bedrooms\?: number;/);
+    expect(WIRE).toMatch(/bathrooms\?: number;/);
+    expect(WIRE).toMatch(/sizeSqm\?: number;/);
+  });
+
+  it("reads each fact off the listing row in the search mapper", () => {
+    const mapper = /const forModel = top\.map\(\(l\) => \(\{[\s\S]*?\}\)\);/.exec(ROUTE)?.[0] ?? "";
+    expect(mapper.length).toBeGreaterThan(0);
+    expect(mapper).toContain("verified: l.verified");
+    expect(mapper).toMatch(/l\.bedrooms > 0 \? \{ bedrooms: l\.bedrooms \}/);
+    expect(mapper).toMatch(/l\.bathrooms > 0 \? \{ bathrooms: l\.bathrooms \}/);
+    expect(mapper).toMatch(/l\.sizeSqm > 0 \? \{ sizeSqm: l\.sizeSqm \}/);
+    // Never a literal true: the mark means a human was checked, or nothing.
+    expect(mapper).not.toMatch(/verified: true/);
+  });
+});
 
 describe("the assistant cannot recommend a property that does not exist", () => {
   it("excludes example listings from every catalogue search it runs", () => {

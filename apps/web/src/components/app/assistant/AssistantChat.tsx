@@ -8,7 +8,13 @@ import { useRouter } from "next/navigation";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { formatRating, type Locale } from "@vallo/i18n";
+import {
+  formatNumber,
+  formatRating,
+  getDictionary,
+  type Dictionary,
+  type Locale,
+} from "@vallo/i18n";
 import type {
   AssistantListingItem,
   AssistantStreamEvent,
@@ -55,10 +61,15 @@ import {
  *   stream. Signed in, the server returns a durable conversation id, kept on
  *   the thread as `serverId` so future turns append to the same row.
  *
- * WHAT THE RENDER SHOWS THAT THIS DOES NOT INVENT: the result cards carry
- * only what the route streams (title, city, kind, price, rating, photo), so
- * there is no verified chip and no bed or bath count on them until the wire
- * type carries those facts. A card that claimed them would be a picture.
+ * THE CARDS CARRY ONLY WHAT THE ROUTE STREAMS. The wire type now carries the
+ * facts the render shows (the Verified mark, beds, baths and floor area),
+ * each read off the repository row and omitted when the lister stated
+ * nothing, so a card here draws exactly what the search page's card draws
+ * for the same listing and never a picture of a fact.
+ *
+ * The chrome strings (the name pair, the prompts, the composer's placeholder,
+ * the thinking word) come from `home.assistant` in the dictionary, so the
+ * three other languages reach them.
  */
 
 const NETWORK_ERROR_MESSAGE =
@@ -75,11 +86,11 @@ const PACE_FALLBACK_MESSAGE =
  * that cannot be answered teaches somebody the assistant does not work, so
  * nothing here is a mood the catalogue has no inventory for.
  */
-const STARTERS: { icon: UiIconName; text: string }[] = [
-  { icon: "search", text: "Two bedroom in Lekki under 5m a year" },
-  { icon: "wallet", text: "What will it cost me to move in?" },
-  { icon: "bolt", text: "Which places have a generator?" },
-  { icon: "calendar-booking", text: "Show me shortlets in Victoria Island" },
+const STARTERS: { icon: UiIconName; key: keyof Dictionary["home"]["assistant"]["chips"] }[] = [
+  { icon: "search", key: "lekki" },
+  { icon: "wallet", key: "moveIn" },
+  { icon: "bolt", key: "generator" },
+  { icon: "calendar-booking", key: "shortlets" },
 ];
 
 const DRAWER_EXIT_MS = 240;
@@ -113,6 +124,8 @@ export function AssistantChat({
   seed?: { threads: Thread[]; thinking?: boolean };
 }) {
   const router = useRouter();
+  const t = getDictionary(locale);
+  const copy = t.home.assistant;
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -522,8 +535,8 @@ export function AssistantChat({
         </div>
       </div>
       <div className="nf-ai__ident">
-        <h1 className="nf-ai__title">AI Assistant</h1>
-        <p className="nf-ai__sub">Always here. Ask anything.</p>
+        <h1 className="nf-ai__title">{copy.title}</h1>
+        <p className="nf-ai__sub">{copy.sub}</p>
       </div>
 
       <div className="flex min-h-0 flex-1 gap-lg">
@@ -633,7 +646,7 @@ export function AssistantChat({
                           className="nf-listing-fold-in min-w-0"
                           style={{ "--i": i } as React.CSSProperties}
                         >
-                          <ThreadListingCard listing={l} locale={locale} />
+                          <ThreadListingCard listing={l} locale={locale} t={t} />
                         </li>
                       ))}
                     </ul>
@@ -646,7 +659,7 @@ export function AssistantChat({
               <div className="nf-rise nf-ai__turn" aria-label="Vallo AI is thinking">
                 <span className="nf-ai__thinking">
                   <span className="nf-ai__ring" aria-hidden="true" />
-                  Thinking...
+                  {copy.thinking}
                 </span>
               </div>
             )}
@@ -656,14 +669,14 @@ export function AssistantChat({
           <div className="nf-ai__chips" role="group" aria-label="Suggested questions">
             {STARTERS.map((s) => (
               <button
-                key={s.text}
+                key={s.key}
                 type="button"
-                onClick={() => send(s.text)}
+                onClick={() => send(copy.chips[s.key])}
                 disabled={streamingHere}
                 className="nf-ai__chip nf-tap"
               >
                 <UiIcon name={s.icon} size={20} />
-                {s.text}
+                {copy.chips[s.key]}
               </button>
             ))}
           </div>
@@ -687,7 +700,7 @@ export function AssistantChat({
                 type="text"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder="Type your message"
+                placeholder={copy.placeholder}
                 autoComplete="off"
                 enterKeyHint="send"
                 className="nf-ai__input"
@@ -757,16 +770,56 @@ export function AssistantChat({
 
 /**
  * A real catalogue result inside the thread, in the render's card anatomy:
- * the photograph with a working save on it, the title, where it is, the
- * price, and the facts the route actually streams.
+ * the photograph with the Verified mark and a working save on it, the title,
+ * where it is, the price, then beds, baths and floor area on a rule, and
+ * beneath them what the place is and its rating. Every fact is one the route
+ * streamed off the row; an absent one leaves no gap, the row just shrinks.
  */
-function ThreadListingCard({ listing, locale }: { listing: AssistantListingItem; locale: Locale }) {
+function ThreadListingCard({
+  listing,
+  locale,
+  t,
+}: {
+  listing: AssistantListingItem;
+  locale: Locale;
+  t: Dictionary;
+}) {
   const save = useSaveControl(listing.id);
+  const facts: { key: string; icon: UiIconName; label: string }[] = [];
+  if (listing.bedrooms !== undefined && listing.bedrooms > 0) {
+    facts.push({
+      key: "beds",
+      icon: "bed",
+      label: `${listing.bedrooms} ${listing.bedrooms === 1 ? t.common.bed : t.common.beds}`,
+    });
+  }
+  if (listing.bathrooms !== undefined && listing.bathrooms > 0) {
+    facts.push({
+      key: "baths",
+      icon: "bath",
+      label: `${listing.bathrooms} ${listing.bathrooms === 1 ? t.common.bath : t.common.baths}`,
+    });
+  }
+  if (listing.sizeSqm !== undefined && listing.sizeSqm > 0) {
+    facts.push({
+      key: "size",
+      icon: "grid",
+      label: `${formatNumber(listing.sizeSqm, locale)} ${t.catalogue.card.sqm}`,
+    });
+  }
   return (
     <article className="nf-ai__result">
       <div className="nf-ai__result-media">
         {listing.photo && (
           <Image src={listing.photo} alt="" fill sizes="(max-width: 640px) 45vw, 240px" />
+        )}
+        {/* The mark means a person at Vallo checked the lister, and the wire
+            carries it off the row, so it is never drawn from anything else. */}
+        {listing.verified && (
+          <span className="nf-ai__result-mark">
+            <UiIcon name="verified" size={12} />
+            {t.common.verified}
+          </span>
         )}
         <SaveButton
           saved={save.saved}
@@ -783,7 +836,17 @@ function ThreadListingCard({ listing, locale }: { listing: AssistantListingItem;
           <span className="truncate">{listing.city}</span>
         </span>
         <span className="nf-ai__result-price nf-numeric">{listing.price}</span>
-        <span className="nf-ai__result-facts">
+        {facts.length > 0 && (
+          <span className="nf-ai__result-facts">
+            {facts.map((f) => (
+              <span key={f.key} className="nf-ai__result-fact nf-numeric">
+                <UiIcon name={f.icon} size={12} />
+                {f.label}
+              </span>
+            ))}
+          </span>
+        )}
+        <span className={`nf-ai__result-meta ${facts.length === 0 ? "nf-ai__result-facts" : ""}`}>
           <span className="nf-ai__result-fact">{listing.kind}</span>
           {listing.rating > 0 && (
             <span className="nf-ai__result-fact nf-numeric">

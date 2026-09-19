@@ -452,7 +452,12 @@ async function runListingSearch(
        and 4.4 from twelve hundred are different claims, and the model cannot
        weigh them without this. */
     reviewCount: l.reviewCount,
+    /* The three facts the result card shows under the price, each read off
+       the row and omitted when the lister stated nothing: a zero bedroom
+       count on a restaurant is "does not apply", not a fact. */
     ...(l.bedrooms > 0 ? { bedrooms: l.bedrooms } : {}),
+    ...(l.bathrooms > 0 ? { bathrooms: l.bathrooms } : {}),
+    ...(l.sizeSqm !== undefined && l.sizeSqm > 0 ? { sizeSqm: l.sizeSqm } : {}),
     /* Facts the source actually stated: "Open now", "Hotel", light and water
        where a first-party host answered. Never a guess. */
     ...(l.amenities.length > 0 ? { facts: l.amenities.slice(0, 6) } : {}),

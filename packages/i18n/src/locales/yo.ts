@@ -1052,6 +1052,18 @@ export const yo: Dictionary = withFallback({
       land: "Ilẹ̀",
     },
     popularCities: "Àwọn Ìlú Gbajúmọ̀",
+    assistant: {
+      title: "Olùrànlọ́wọ́ AI",
+      sub: "Ó wà níbí nígbà gbogbo. Béèrè ohunkóhun.",
+      placeholder: "Kọ ìránṣẹ́ rẹ",
+      thinking: "Ó ń ronú...",
+      chips: {
+        lekki: "Yàrá méjì ní Lekki lábẹ́ mílíọ̀nù 5 lọ́dún",
+        moveIn: "Èló ni yóò ná mi láti ṣílọ?",
+        generator: "Àwọn ibi wo ló ní jẹnẹ́rétọ̀?",
+        shortlets: "Fi shortlet ní Victoria Island hàn mí",
+      },
+    },
     aiCard: {
       title: "Béèrè lọ́wọ́ Vallo AI",
       body: "Ó ń wá inú àkójọ kan náà tí ìwọ ń wò, nítorí náà ó lè sọ fún ọ nípa àwọn ibi tí ó wà lórí Vallo nìkan.",

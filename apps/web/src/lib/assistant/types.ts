@@ -21,6 +21,18 @@ export type AssistantListingItem = {
   /** Already-formatted display price, e.g. "NGN 185,000 per night". */
   price: string;
   rating: number;
+  /**
+   * A person at Vallo checked the lister. Read off the row, never asserted,
+   * and always false on an example listing (the repository derives it).
+   * The card draws its Verified mark from this and from nothing else.
+   */
+  verified: boolean;
+  /** Bedrooms, when the listing states one or more. Absent, never zero. */
+  bedrooms?: number;
+  /** Bathrooms, when the listing states one or more. Absent, never zero. */
+  bathrooms?: number;
+  /** Floor area in square metres, when the lister gave one. */
+  sizeSqm?: number;
   /** In-app link, always "/listing/<id>". */
   href: string;
   /** Lead photo URL for the card thumbnail. */

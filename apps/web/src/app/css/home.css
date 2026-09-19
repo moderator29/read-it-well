@@ -737,6 +737,42 @@
     gap: var(--nf-space-3xs);
     text-transform: capitalize;
   }
+  .nf-ai__result-fact > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+  }
+  /* What the place is and its rating, under the facts at the same weight. */
+  .nf-ai__result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs) var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  /* The Verified mark over the photograph, the search card's own anatomy:
+     brand fill on the media scrim, thin glass, a soft glow. On media in both
+     themes, so it needs no daylight twin. */
+  .nf-ai__result-mark {
+    position: absolute;
+    left: var(--nf-space-xs);
+    top: var(--nf-space-xs);
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-sm);
+    border: 1px solid var(--nf-brand-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-overlay-media-strong));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    box-shadow: 0 0 14px var(--nf-glow-2);
+    font-size: var(--nf-text-overline);
+    font-weight: 650;
+    line-height: 1;
+    color: var(--nf-content-on-media);
+    pointer-events: none;
+  }
 
   /* The thinking state: the ring and the word, as one pill. */
   .nf-ai__thinking {

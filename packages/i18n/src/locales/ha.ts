@@ -1050,6 +1050,18 @@ export const ha: Dictionary = withFallback({
       land: "Fili",
     },
     popularCities: "Shahararrun Birane",
+    assistant: {
+      title: "Mataimakin AI",
+      sub: "Koyaushe a nan. Tambayi komai.",
+      placeholder: "Rubuta saƙonka",
+      thinking: "Yana tunani...",
+      chips: {
+        lekki: "Ɗakuna biyu a Lekki ƙasa da miliyan 5 a shekara",
+        moveIn: "Nawa zai ci ni in ƙaura?",
+        generator: "Waɗanne wurare ne ke da janareta?",
+        shortlets: "Nuna mini shortlet a Victoria Island",
+      },
+    },
     aiCard: {
       title: "Tambayi Vallo AI",
       body: "Yana bincike a cikin jerin gidajen da kake gani, don haka zai iya gaya maka kawai game da wuraren da suke kan Vallo da gaske.",
