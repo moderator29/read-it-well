@@ -16,12 +16,15 @@ export function StaysBand({ t }: { t: Dictionary }) {
   /* Glass objects, not stroked glyphs: the render draws a blue glass mark in
      a glass square on every row, and a row never mixes the two tiers. */
   const list: { href: string; label: string; icon: BrandIconName }[] = [
+    /* The render's six, in its order. Every href is a stay type the Stays
+       side actually serves (lib/stays/types.ts) or, for restaurants, their
+       own surface, so no row here is a door into an empty room. */
     { href: "/stays/search?type=hotel", label: s.hotels, icon: "hotel" },
-    { href: "/stays/search?type=shortlet", label: s.shortlets, icon: "shortlet" },
     { href: "/stays/search?type=apartment", label: s.apartments, icon: "apartment-block" },
-    { href: "/stays/search?type=villa", label: s.villas, icon: "villa" },
+    { href: "/stays/search?type=resort", label: s.resorts, icon: "villa" },
+    { href: "/stays/search?type=guest_house", label: s.guestHouses, icon: "hotel-star" },
+    { href: "/stays/search?type=serviced_apartments", label: s.serviced, icon: "serviced-block" },
     { href: "/restaurants", label: s.restaurants, icon: "concierge-bell" },
-    { href: "/search?type=experience", label: s.experiences, icon: "map-route" },
   ];
   return (
     <section className="nf-shell py-section" aria-labelledby="nf-landing-stays-title">

@@ -4,8 +4,6 @@ import type { ListingKind } from "@/lib/listings/types";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
 import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
 import { Hero } from "./Hero";
-import { StatsBand } from "./StatsBand";
-import { FeatureGrid } from "./FeatureGrid";
 import { FeatureChips } from "./FeatureChips";
 import { CommunityBand } from "./CommunityBand";
 import { HowVallo } from "./HowVallo";
@@ -64,9 +62,21 @@ export function LandingBody({
   const first = data.cards[0] ?? null;
   return (
     <main id="main">
+      {/*
+        THE RENDER'S ORDER, on the founder's ruling of 19 September: hero,
+        feature band, community, how it works, category, stays, app.
+
+        Two sections stood between the hero and the feature band and neither
+        is in his render. The stats band printed the three platform figures
+        that the community band prints again two screens later, so a reader
+        met the same three numbers twice; the community band is where the
+        render puts them and it already takes `stats`. The ten-tile
+        "Everything you need in one platform" grid was navigation the render
+        does not carry, and every destination in it is reachable from the
+        category grid below or the footer's Product column, so removing it
+        costs the reader no door.
+      */}
       <Hero t={t} locale={locale} cards={data.cards} />
-      <StatsBand t={t} locale={locale} stats={data.stats} />
-      <FeatureGrid t={t} />
       <FeatureChips t={t} />
       <CommunityBand t={t} locale={locale} listing={first} stats={data.stats} />
       <HowVallo t={t} />

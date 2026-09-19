@@ -7,7 +7,7 @@ import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
 import type { PlatformStats } from "@/lib/platform-stats";
 import { ListingMini } from "./ListingMini";
-import { statTiles } from "./StatsBand";
+import { statTiles } from "./stat-tiles";
 
 /**
  * The community band: copy and three honest figures on the left, the

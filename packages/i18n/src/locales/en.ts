@@ -478,29 +478,41 @@ export const en = {
       categories: {
         overline: "Explore by category",
         title: "Find exactly what you're looking for.",
-        body: "From modern apartments to villas with a view, VALLO has something for everyone.",
+        body: "From modern apartments to luxury resorts, VALLO has something for everyone.",
         join: "Join VALLO",
         apartments: "Apartments",
         houses: "Houses",
         shortlets: "Shortlets",
         hotels: "Hotels",
-        villas: "Villas",
-        rentals: "Yearly rentals",
-        offices: "Offices",
+        /* The founder's render names these three and the Stays side really
+           serves all three, so they are doors into markets that exist:
+           `resort` and `guest_house` are stay types in lib/stays/types.ts,
+           and Commercial is the office market the catalogue holds. Villas and
+           yearly rentals stood in these slots while the three were thought
+           unavailable; both remain reachable from the search filters. */
+        resorts: "Resorts",
+        guestHouses: "Guest Houses",
+        commercial: "Commercial",
         land: "Land",
         count: "{count} listed",
       },
       stays: {
         overline: "VALLO Stays",
         title: "Stay somewhere worth remembering.",
-        body: "Hotels, apartments, shortlets, villas, restaurants and more, booked from the same account.",
+        body: "Hotels, apartments, resorts, guest houses, serviced apartments and more.",
         cta: "Explore Stays",
+        /* The render's six rows, and the Stays side serves every one of them:
+           `hotel`, `apartment`, `resort`, `guest_house` and
+           `serviced_apartments` are stay types in lib/stays/types.ts, and
+           restaurants have their own surface. Shortlets, villas and
+           experiences stood in three of these slots and are still reachable
+           from the stays search. */
         hotels: "Hotels",
-        shortlets: "Shortlets",
         apartments: "Apartments",
-        villas: "Villas",
+        resorts: "Resorts",
+        guestHouses: "Guest Houses",
+        serviced: "Serviced Apartments",
         restaurants: "Restaurants",
-        experiences: "Experiences",
       },
       app: {
         title: "Take VALLO with you.",

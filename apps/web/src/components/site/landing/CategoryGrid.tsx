@@ -11,13 +11,20 @@ import { photo, type PhotoName } from "@/lib/site/photos";
  * Explore by category: eight photo tiles linking to real searches.
  *
  * The render's eight are Apartments, Houses, Shortlets, Hotels, Resorts,
- * Guest Houses, Commercial, Land. Resorts and guest houses are not markets
- * this catalogue has, so a tile for either would link to an empty result,
- * and "Commercial" is two markets (shops, offices) behind one `type`. The
- * eight shipped are the eight real kinds with the most stock: villas and
- * yearly rentals take the two invented slots, and offices stand for
- * commercial. Shops and restaurants keep their place in the stays list and
- * the footer.
+ * Guest Houses, Commercial, Land, and all eight now ship, on the founder's
+ * ruling of 19 September.
+ *
+ * Resorts and guest houses were thought to be markets this catalogue does
+ * not have. They are: `resort` and `guest_house` are both stay types in
+ * lib/stays/types.ts, so those two tiles are doors into the Stays search
+ * rather than the property search, which is why a tile carries its own href
+ * instead of deriving one from a `ListingKind`. Commercial is the office
+ * market, which is the commercial stock the catalogue actually holds.
+ *
+ * A tile that crosses to the Stays side has no `kind`, so it prints no
+ * count: `counts` is a tally of property kinds and cannot answer for a stay
+ * type. No number is the honest answer there, and the design law allows a
+ * tile to stand on its name alone.
  *
  * COUNTS ARE SHOWN ONLY WHEN THEY ARE PROVABLY COMPLETE. `counts` is null
  * unless the page that computed it held the whole catalogue (see
@@ -40,15 +47,23 @@ export function CategoryGrid({
   /* The glyph on each tile is a glass object (the render draws a blue glass
      building in a glass square on every tile), so the whole row is on the
      BrandIcon tier: no stroked glyph sits beside a glass one. */
-  const tiles: { kind: ListingKind; label: string; photo: PhotoName; icon: BrandIconName }[] = [
-    { kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "serviced-block" },
-    { kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "modern-house" },
-    { kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "shortlet" },
-    { kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "hotel" },
-    { kind: "villa", label: c.villas, photo: "villa-pool-skyline-01", icon: "villa" },
-    { kind: "rental", label: c.rentals, photo: "living-room-dusk", icon: "keys-home" },
-    { kind: "office", label: c.offices, photo: "skyline-waterfront-dusk", icon: "office-space" },
-    { kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "land-plot" },
+  const tiles: {
+    key: string;
+    href: string;
+    /** Absent on a tile that crosses to the Stays side; see the note above. */
+    kind?: ListingKind;
+    label: string;
+    photo: PhotoName;
+    icon: BrandIconName;
+  }[] = [
+    { key: "apartment", href: "/search?type=apartment", kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "serviced-block" },
+    { key: "home", href: "/search?type=home", kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "modern-house" },
+    { key: "shortlet", href: "/search?type=shortlet", kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "shortlet" },
+    { key: "hotel", href: "/search?type=hotel", kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "hotel" },
+    { key: "resort", href: "/stays/search?type=resort", label: c.resorts, photo: "resort-pool-deck", icon: "villa" },
+    { key: "guest_house", href: "/stays/search?type=guest_house", label: c.guestHouses, photo: "villa-pool-skyline-01", icon: "hotel-star" },
+    { key: "office", href: "/search?type=office", kind: "office", label: c.commercial, photo: "skyline-waterfront-dusk", icon: "office-space" },
+    { key: "land", href: "/search?type=land", kind: "land", label: c.land, photo: "skyline-bridge-dusk", icon: "land-plot" },
   ];
 
   return (
@@ -70,14 +85,10 @@ export function CategoryGrid({
         </Reveal>
         <ul className="nf-landing-cats">
           {tiles.map((tile, i) => {
-            const count = counts?.get(tile.kind) ?? 0;
+            const count = tile.kind ? (counts?.get(tile.kind) ?? 0) : 0;
             return (
-              <Reveal as="li" key={tile.kind} delay={i * 40}>
-                <Link
-                  href={`/search?type=${tile.kind}`}
-                  prefetch={false}
-                  className="nf-landing-cat"
-                >
+              <Reveal as="li" key={tile.key} delay={i * 40}>
+                <Link href={tile.href} prefetch={false} className="nf-landing-cat">
                   <Image
                     src={photo(tile.photo)}
                     alt=""
