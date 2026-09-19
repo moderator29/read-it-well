@@ -458,10 +458,20 @@ export function freeTextGroups(term: string, stateNames: Map<string, string>): s
   return groups;
 }
 
-/** Public object URL for a stored photo, or the value itself if already a URL. */
-function photoUrl(storagePath: string): string {
+/**
+ * Public object URL for a stored photo, or the value itself if already a URL.
+ *
+ * An absolute PUBLIC PATH starting with a slash passes through untouched as
+ * well: the app serves it from `apps/web/public` itself. The b2 example
+ * listings carry that shape (`/brand/photos/<name>.jpg`, the photographs the
+ * lead compressed and filed), and a bucket path never starts with a slash, so
+ * the two cannot collide. Exported so the stays twin's test can hold the two
+ * definitions side by side.
+ */
+export function photoUrl(storagePath: string): string {
   if (/^https?:\/\//i.test(storagePath)) return storagePath;
-  const path = storagePath.replace(/^\/+/, "").replace(new RegExp(`^${PHOTO_BUCKET}/`), "");
+  if (storagePath.startsWith("/")) return storagePath;
+  const path = storagePath.replace(new RegExp(`^${PHOTO_BUCKET}/`), "");
   const base = SUPABASE_URL.replace(/\/+$/, "");
   return `${base}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
 }

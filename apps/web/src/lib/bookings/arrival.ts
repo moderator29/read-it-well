@@ -5,6 +5,7 @@ import type { Database } from "../supabase/database.types";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import { bookingConfirmed, stayArrivalDetails, type ArrivalAccess } from "../email/messages";
 import { contactForUser, emailMuted, type Contact } from "../email/recipients";
+import { isRentBooking } from "../rent/booking-kind";
 
 /**
  * One place where a confirmed stay is announced.
@@ -128,6 +129,14 @@ export async function announceConfirmedStay(
       .maybeSingle();
     const booking = (data ?? null) as BookingRow | null;
     if (!booking) return;
+
+    /* A rent charge is a bookings row too (the b3 design keeps one money
+       spine), but nobody is arriving anywhere: there is no stay, no nights,
+       no gate code, and "your stay is confirmed" to a tenant who just paid a
+       year's rent is a wrong sentence. The database notifier has already
+       told both sides in tenancy words ("Rent paid", "Rent received"), so the
+       stay mail is skipped rather than reworded. */
+    if (await isRentBooking(admin, params.bookingId)) return;
 
     const [listingTitle, access] = await Promise.all([
       readTitle(admin, booking.listing_id),

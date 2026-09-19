@@ -51,6 +51,7 @@ import { chargeSavedCard, type ChargeSavedCardOutcome } from "../payments/charge
 import { bookingReference, isBookingReference } from "../payments/references";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { bookingPaymentSubject } from "./payment-subject";
+import { checkoutReturnPath } from "../rent/return-path";
 import { guardMoney } from "../security/money-limits";
 import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
 import { announceConfirmedStay } from "./arrival";
@@ -302,7 +303,9 @@ async function startCardCheckoutWork(
   });
   if (attempt.error) return fail(SERVICE_DOWN_MESSAGE);
 
-  const callbackUrl = `${await siteOrigin()}/checkout/${booking.id}?paid=1&reference=${reference}`;
+  // A rent charge comes back to /rent/pay/<inspectionId>, a stay to
+  // /checkout/<bookingId>; the database decides which (lib/rent/return-path).
+  const callbackUrl = `${await siteOrigin()}${await checkoutReturnPath(admin, booking.id, reference)}`;
 
   try {
     const tx = await initializeTransaction({
@@ -403,7 +406,7 @@ async function payWithSavedCardWork(
     reference,
     purpose: "booking_payment",
     metadata: { booking_id: booking.id },
-    callbackUrl: `${await siteOrigin()}/checkout/${booking.id}?paid=1&reference=${reference}`,
+    callbackUrl: `${await siteOrigin()}${await checkoutReturnPath(admin, booking.id, reference)}`,
   });
 
   if (!charged.ok) {

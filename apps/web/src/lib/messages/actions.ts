@@ -27,6 +27,7 @@ import {
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
 import { getListingRepository } from "../listings/repository";
+import { reservationHostUserId, reservationSpine } from "../reservations/host";
 import { consume, subjectForUser } from "../security/rate-limit";
 import { createAdminClient } from "../supabase/admin";
 import {
@@ -261,7 +262,9 @@ async function startContextThread(
     kind === "reservation"
       ? await session.supabase
           .from("reservations")
-          .select("id, guest_id, listing_id, listings(agent_id, agents(user_id))")
+          .select(
+            "id, guest_id, listing_id, business_id, listings(agent_id, agents(user_id)), businesses(owner_id)",
+          )
           .eq("id", transactionId)
           .maybeSingle()
       : await session.supabase
@@ -273,7 +276,12 @@ async function startContextThread(
   const transaction = read.data;
   if (!transaction) return fail(NOT_YOUR_TRANSACTION_MESSAGE);
 
-  let hostUserId: string | null = transaction.listings?.agents?.user_id ?? null;
+  // The host, on either spine: the listing's agent as a user, or, for a table
+  // at a first-party business (M7, listing_id null), the business's owner.
+  // That is the pair the b3 party check admits, and it is resolved here by
+  // the same rule (`reservationHostUserId`) so the insert below cannot name a
+  // person the trigger would refuse.
+  let hostUserId: string | null = reservationHostUserId(transaction);
   if (!hostUserId && transaction.listings?.agent_id) {
     try {
       const admin = createAdminClient();
@@ -285,6 +293,26 @@ async function startContextThread(
       hostUserId = agent?.user_id ?? null;
     } catch {
       hostUserId = null;
+    }
+  }
+  if (!hostUserId && kind === "reservation") {
+    // A business is readable to a guest only while PUBLISHED, so the embed
+    // can come back empty for a table at a venue that has since come down.
+    // The reservation itself passed the caller's own read above; the owner
+    // is then resolved by the service role, exactly as the agent is.
+    const spine = reservationSpine(transaction);
+    if (spine?.kind === "business") {
+      try {
+        const admin = createAdminClient();
+        const { data: business } = await admin
+          .from("businesses")
+          .select("owner_id")
+          .eq("id", spine.businessId)
+          .maybeSingle();
+        hostUserId = business?.owner_id ?? null;
+      } catch {
+        hostUserId = null;
+      }
     }
   }
   if (!hostUserId) {
