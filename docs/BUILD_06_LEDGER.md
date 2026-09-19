@@ -2592,7 +2592,7 @@ it already had a default. The `agent_badges` embed the messaging read now uses
 typechecks against the file as committed.
 
 **`public.agent_trust(uuid)` was deliberately NOT re-emitted**, for the reason
-in 15.2: deriving the column leaves it reading the truth, and replacing a
+in 16.2: deriving the column leaves it reading the truth, and replacing a
 50-line SECURITY DEFINER function that `anon` and `authenticated` hold a
 deliberate grant on, to change nothing about what it computes, is risk with no
 return. The probe asserts its grant survived.
