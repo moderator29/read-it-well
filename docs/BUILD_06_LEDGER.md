@@ -2186,3 +2186,197 @@ purge job, which must call it immediately before `purge_account_rows` and in
 its own transaction; until somebody does that, a purge will still orphan a
 future event. Those three are the next person's work and none of them is
 claimed here as done.
+
+## 15. THE PLATFORM SWEEP, AND THE FIFTH TIME THE HARNESS LIED
+
+Nine workers on the founder's shape and colour ruling. This is what it found,
+written down because most of it is the same lesson in different clothes.
+
+### 15.1 TWENTY-ONE CAPSULES AND NOT ONE GREP COULD HAVE FOUND THEM
+
+Every breach fixed tonight had correct source text. `check-css-tokens.mjs`
+rule 10 passed all twenty-one and it was right to: it reads source text, and
+the source said `--nf-radius-control` every time. The defect is the RATIO, and
+the ratio depends on a height the stylesheet never states.
+
+They were found by measuring the drawn radius against the drawn short side on
+a running page. `.nf-badge` asked for 14px and drew between 19px and 26.6px
+tall, so every status chip in the product had semicircular ends: Waiting on
+you, Live, Under review, Passed, In review, Founding host, Default, Verified.
+Seven card plates, eight messaging plates, five social plates, two admin
+counts. The `.nf-agent-card__pill` carrying the words "Verified agent" is the
+clearest specimen of all: at 390 the label wraps, the box is 90x41 and the
+ratio is 0.34, a tidy rectangle; at 1536 the label stops wrapping, the height
+collapses to 23px and the SAME declaration is 0.62, a capsule. One rule, one
+viewport apart, compliant and then not.
+
+**AND THE RUNG BELOW THE RUNG.** `--nf-radius-sm` at 10px is still half of a
+19px badge and drew the capsule straight back. The founder's clarification
+named `sm` for a chip under about 32px and was written with a 28px chip in
+front of him. The rule carries down to `--nf-radius-xs` at 6px below about
+24px. It is a ratio rule, not a lookup table, and DESIGN_DIRECTION section 1
+now says so with both original breaches named.
+
+### 15.2 THE COUNT BADGE, RULED, BECAUSE THE PRODUCT CARRIED THREE ANSWERS
+
+`threads.css` ruled it round in a considered comment. `admin.css` ruled the
+opposite in its own. `chips.css` did a third thing. All three were reasoned
+and they cannot all be right, so V5 put it up rather than pick one.
+
+**The ruling is the rectangle.** The argument is the two-digit case: a 22px box
+with a 22px MINIMUM width that grows sideways drew a circle at one digit and an
+ELLIPSE at two, which is a capsule. A shape the content chooses is not a
+decision, it is two decisions taken by the data. And the exemption list settles
+the rest: it names a dot, a spinner, a progress ring, an avatar ring and a
+story ring, and every one of them carries NO text. A numeral is text. The law
+reaches it. All three files now carry one answer and the losing arguments are
+kept in place rather than deleted, because the next person will make them
+again.
+
+### 15.3 THE LANDING SPENT ITS ONE PERMITTED CIRCLE IN THE TWO PLACES THE LAW
+FORBIDS AND REFUSED IT IN THE ONE PLACE THE LAW NAMES
+
+The law allows exactly one round icon-only control: the landing nav's search
+glyph, because it is the only circle in the governing hero and the founder said
+so in those words. That glyph was drawing a rounded rectangle at ratio 0.32,
+while the two 44px search actions inside the hero pill, which no image draws
+round, were both at 50 per cent. Corrected in opposite directions in one
+tranche. The phone block at the foot of `landing.css` already had the right
+shape for the submit; it was hiding inside a media query.
+
+### 15.4 THE RETUNE HAD MOVED ONE RUNG AND LEFT THE FAMILY BEHIND
+
+Section 13.2 measured the reference and moved `--nf-brand-primary` to
+`#0069FE`, hue 215.2. It moved nothing else. So every accent the brand touches
+was still the light and deep siblings of a primary that no longer existed:
+`--nf-brand-quiet` at 228 (every price, every link, every star, every verified
+badge, every focus ring), `--nf-electric-400/500/600/700` at 228 to 236 (the
+brand accent, the brand border, the brand glow, all three mode inks), the hero
+headline's own gradient, the CTA gradient, the canvas bloom, and the entire
+LIGHT theme's brand primary, which had never been retuned at all. A fill said
+one blue while its own border, its own glow and its own accent said another.
+
+**Every night value is a pure hue rotation to 215.2, saturation and lightness
+untouched to the decimal, and contrast goes UP in every case** because rotating
+out of violet raises the green channel: brand-quiet 5.59:1 to 7.66:1,
+electric-400 2.75 to 4.18, 500 2.08 to 3.52, 600 1.92 to 3.13, 700 1.47 to
+2.09.
+
+**Daylight pays for the identical rotation, and that is the part worth
+remembering.** Against `#F4F5F7` paper, raising green LOWERS contrast: rotating
+`--nf-brand-quiet` in place would have taken it from 7.44:1 to 4.63:1, spending
+a third of the legibility of the ink people read links and prices in. So every
+light literal is rotated to 215.2 and THEN stepped down in lightness until it
+measures what it measured before, to two decimals. A hue fix that quietly
+spends contrast is not a fix.
+
+It stops at 215 and not at the reference's measured 197 because rule 8 reserves
+bright cyan for PENDING, and a price that looks like a state is worse than a
+price thirteen degrees warm. That last eighteen degrees is a ruling about rule
+8, not about these tokens, and it is recorded rather than hidden.
+
+### 15.5 THE FIFTH HARNESS LIE, AND IT IS THE WORST OF THEM
+
+`verify-shots.mjs` never looked at the HTTP status. While the preview door was
+shut it wrote PNGs of the 404 page and reported them as verified shots, and it
+was RIGHT to by its own rules: the 404 page sets `data-theme` from the same
+inline script, loads the same stylesheet, and has no Reveal bands to get stuck,
+so all three of its assertions pass on it perfectly. Three workers did it
+independently and between them nearly filed eight pictures of "This page has
+checked out" as proof that a surface had been swept.
+
+The other four lies produced a shot that LOOKED wrong. This one produces a tidy
+empty screen, which is why it is the worst.
+
+**A status check alone does not close it.** `notFound()` called from a layout
+during streaming answers HTTP 200 WITH the not-found body. So `not-found.tsx`
+carries `data-nf-not-found`, an attribute on the page rather than a class
+sniffed from outside, and the harness refuses on either signal.
+
+### 15.6 THE DOOR THAT TWO RULES HAD CLOSED BETWEEN THEM
+
+Section 5 says a signed-in surface, an empty state or an error state is
+photographed through the preview harness, because those cannot be reached
+without a session. The founder says every proof comes from a server that
+actually hydrates, which on this box means `next start`. But `next start` is
+`NODE_ENV=production` and the harness layout was a bare
+`if (production) notFound()`, so there was no way to photograph a signed-in
+surface at all. Four workers hit the same wall inside an hour.
+
+`previewHarnessIsOpen(env)` opens it on an explicit `VALLO_PREVIEW_HARNESS=1`
+AND never on Vercel whatever that variable says. The second condition is the
+one that matters: an environment variable alone is a footgun, because somebody
+debugging will add it to project settings and fixture pages carrying invented
+listings and invented money go live. `VERCEL` is set by the platform and a
+deployment cannot lie about it, so the condition we do not control is the one
+that fails closed. It is a function rather than a line in a layout because a
+gate nobody can test is a gate that quietly stops working.
+
+### 15.7 A RAIL THAT SCROLLED ITS OWN GUTTER AWAY
+
+Measured on production and exact. A snap position aligns a child's start edge
+to the SCROLLPORT's start edge and ignores the container's padding unless
+`scroll-padding` says otherwise. So the standard bleed-then-pad rail undoes
+itself the instant it settles: `scrollLeft` 24 against `padding-left` 24px on
+every padded rail, and 0 on every unpadded one. What it looks like is the first
+filter chip resting hard against the edge of the phone while the search field
+directly above it sits on the gutter. Two different left edges on one bar,
+correct in source, undone at runtime, invisible to every gate we own.
+
+`.nf-scroll-x` now takes `--nf-rail-snap-pad`, defaulting to zero so an
+unpadded rail is untouched, with a `.nf-scroll-x--gutter` variant that sets the
+padding and the snap inset from one token so the pair cannot drift apart. Every
+hand-rolled version of that pair in the tree had set the first and forgotten
+the second.
+
+### 15.8 A BAD INSTRUMENT IS WORSE THAN NO INSTRUMENT
+
+`compare-surface.mjs` was written tonight to measure rather than grep, and R1's
+second pass found three faults in it, which is the point of a second pass.
+
+`parseFloat("26%")` is 26, and dividing that by the short side as though it
+were pixels reported the home tile's glyph plate as a capsule at 0.93 when the
+truth is 26 per cent of 28px, which is 0.26 and compliant. It erred in BOTH
+directions at once, inventing breaches on small elements and hiding them on
+large ones, and every icon plate and avatar in the product had been measured
+that way.
+
+Screen-reader-only text was counted as text, so a 44px icon button whose label
+is an `sr-only` span was filed as a text-bearing capsule. It may well still be
+wrong, but under the icon-only clause, which has a different test and a
+different fix. The shape law is about what is DRAWN, so the text test walks the
+tree and skips anything clipped, hidden or taken out of flow.
+
+And the control selector was an inventory of the faults somebody had already
+thought of: it reported the landing clean while a notification count drew a
+perfect circle around the numeral "2" one route away, because `.nf-chip` was in
+the list and "count" was not. It matches class substrings now.
+
+### 15.9 WHAT THE SWEEP ACTUALLY COVERS, COUNTED HONESTLY
+
+`docs/design/SWEEP.md` is GENERATED by `scripts/design/sweep-register.mjs` from
+the route tree and the proofs directory, so it cannot claim coverage that does
+not exist, and a hand edit is lost on the next run. It counts 129 surfaces: 49
+with a proof taken on the honest harness, 20 carrying only VOID proofs from the
+broken one, and 60 with no proof at all. It matches a proof to a surface by the
+route's last real segment appearing in the file name, so it UNDERCOUNTS on
+purpose. A register that flatters the sweep is worse than no register.
+
+Every proof taken before `c32cd9c` is void by the founder's order. One worker
+corrected the lead on exactly this: its eleven shots carried a late timestamp
+but came off `next dev`, and a late timestamp on a dev-server shot is still a
+dev-server shot. It deleted all eleven and retook them.
+
+### 15.10 STILL OPEN, AND NAMED SO NOBODY THINKS IT IS DONE
+
+Sixty surfaces unproven and twenty to retake. R1's colour findings from A6
+down: the market tile fill is lifted everywhere and dramatically near the glyph
+(`#243856` at the top against a flat reference `#000C27`), the active dock
+glyph is washed toward white (`#5DA0FF` against `#0257FD`), the city chip
+border is not drawing at all. The light theme has never been audited for colour
+and neither has anything at 1536, which means the desktop hero, the image the
+whole ruling was made from, is unmeasured. A CSP refusal of Next's own chunks
+on app-shell routes in production, which if real means those routes never
+hydrate for a visitor. `close_future_commitments` still wired into nothing, so
+a purge still orphans a future event. And the verified badge's two derivations,
+which split on the first agent approval and are invisible until then.
