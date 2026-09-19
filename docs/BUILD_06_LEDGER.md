@@ -657,3 +657,109 @@ currency style clamps it up and turned ₦45k into ₦45.0k.
    on his word.
 4. Inherited from BUILD_05: the four `private` tables the advisor flags;
    MapTiler key before launch; LiteAPI and Booking.com for Phase F.
+
+---
+
+## 10. The twelve, and the laws they close under (founder's orders, 19 September)
+
+The founder has scaled the team to NINE BUILD AGENTS and THREE
+RECOMMENDATION AGENTS, and set the target: MVP, store ready, App Store and
+Play Store. This section is the contract. Every worker restates section 0
+before starting and reads its own row here.
+
+### 10.1 The roster and the file scopes (strict, non-overlapping)
+
+| Worker | Owns |
+| --- | --- |
+| **F1 chrome and navigation** | `components/app/{AppShell,AppRail,MobileTabBar,SideSwitch,nav-model}*`, `app/css/{chrome,side-nav,side-flip,overlays}.css`, `app/(auth)/**`, `components/auth/**`, `app/welcome/**`, `components/app/welcome/**`, `app/(dev)/preview/f1/**`, `docs/design/proofs/f1/**` |
+| **F2 landing, marketing shell, CONTENT TRUTH** | `app/page.tsx`, `app/(site)/**`, `components/site/**`, `lib/site/**`, `lib/platform-stats.ts`, `app/css/{landing,site}.css`, `app/layout.tsx` metadata only, `public/manifest*`, `supabase/templates/**`, `app/(dev)/preview/f2/**`, `docs/design/proofs/f2/**` |
+| **F3 catalogue and money** | `app/(app)/{search,listing,rent,stays,stay,trips,restaurants,restaurant,checkout,bookings,saved,wallet,crypto}/**`, `app/(app)/settings/payments/**`, `components/app/{search,filters,listing,stays,bookings,wallet,payments,crypto}/**`, `components/app/{ListingCard,MediaFrame,SaveControl,ResultSheet}.tsx`, `app/css/{explore,map,catalogue,wallet,crypto}.css`, `app/(dev)/preview/{f3,e}/**`, `docs/design/proofs/{f3,e}/**` |
+| **F4 social and identity** | `app/(app)/{around,post,stories,u,profile,notifications,assistant}/**`, `app/(app)/settings/**` except payments, `components/social/**`, `components/app/{account,assistant,home}/**`, `app/{social,social-feed,settings-rows}.css`, `app/css/home.css`, `app/(app)/home/**`, `app/(dev)/preview/f4/**`, `docs/design/proofs/f4/**` |
+| **F5 conversations and operations** | `app/(app)/{messages,inspections,verification}/**`, `components/app/{messages,threads,inspections}/**`, `components/verification/**`, `app/agent/**`, `components/agent/**`, `app/host/**`, `components/host/**`, `app/admin/**` except money/payments/bookings/alerts/audit, `app/css/{threads,admin,agent}.css`, `app/(dev)/preview/f5/**`, `docs/design/proofs/f5/**` |
+| **B1 inherited debts and gates** | the B0 items, the example-listing refusal on the listing path, reservations bound to threads, M6 and the M8 landmark seed when the founder's word comes |
+| **B2 stays engine and dead ends** | `lib/stays/**`, `lib/reservations/**`, `lib/rent/**`, `app/(app)/rent/pay/**`, `lib/social/posts-*.ts`, `lib/bookings/queries.ts` |
+| **B3 lifecycle and hardening** | `lib/cron/**`, `lib/bookings/lifecycle*`, `lib/security/**`, `lib/alerts/**`, `lib/messages/blocks.ts`, `app/api/paystack/**`, `app/api/yellowcard/**`, `lib/admin/audit*`, `app/admin/audit/**`, `lib/host/**`, `.github/workflows/**` |
+| **B4 architecture, data and admin** | all migrations, `lib/supabase/database.types.ts`, `app/api/crypto/**`, `lib/crypto/**`, `lib/saved/**`, `lib/admin/{money,payments,bookings}-*.ts`, `app/admin/{money,payments,bookings,alerts}/**` |
+| **R1 visual auditor** | edits nothing but `app/(dev)/preview/r1/**` and `docs/design/audits/r1/**` |
+| **R2 functionality auditor** | edits nothing but `app/(dev)/preview/r2/**`, `scripts/audit/**` and `docs/design/audits/r2/**` |
+| **R3 product and platform auditor** | edits nothing but `docs/design/audits/r3/**` |
+
+### 10.2 The component completeness law
+
+Every component visible in a reference image must exist, built, styled and
+functional. Go through `docs/design/CATALOGUE.md` file by file, open each
+keeper image, and enumerate every component in it. Nothing is skipped for
+looking minor. Where a render's layers are mixed, muddled, half drawn or
+plainly wrong, do not copy the confusion: resolve it into the deliberate
+component and record here what was resolved and why. Where the render shows
+something we lack, build it in the register; a missing icon is cropped from
+the reference and filed through the icon pipeline, never with baked text.
+Where a screen has no reference at all, build it in the same register.
+The sweep never trades a working flow for a look.
+
+### 10.3 The double re-audit law
+
+A frontend scope is audited TWICE before it closes. First the building
+agent re-audits its own work against the governing image and the ONE LAW
+and fixes what it finds. Then R1 audits it independently with the image
+open and R2 walks its controls end to end. A scope closes only when both
+passes are clean and the side-by-side sits in section 6. If it does not
+read as the image, it goes back. No tired closes.
+
+### 10.4 The content truth sweep (F2 owns it, and it is law)
+
+The words must describe what Vallo now is: one app, two sides, Property
+(rent, buy, verified listings, agents, inspections) and Vallo Stays
+(hotels, apartments, guest houses, resorts, serviced apartments, shortlets,
+restaurants), one account, one wallet, messaging, bookings, AI assistant,
+payments. Every marketing and documentation surface currently speaks
+property only.
+
+- **Landing:** the hero speaks for both sides; the search pill carries Buy,
+  Rent and Stay ONLY, because we offer no investment product, so the
+  render's Invest segment is dropped; the stats band is wired to the real
+  platform stats and never carries the render's invented 10K+ and 200+;
+  the feature list carries only capabilities with a shipped surface.
+- **Every (site) page:** /about, /docs and its twelve chapters, /help and
+  the FAQ, /safety, /standards, /cancellations, /careers, /contact. The
+  docs gain the stays journey and the restaurant reservation journey; the
+  FAQ gains the two-side questions (what the switch is, how stays payments
+  work, what Verified means beside Third party).
+- **Metadata and shells:** layout title, description and keywords, the
+  manifest description and its category order, the OG copy line, the email
+  footers. The auth slogan stays "Real Estate reimagined!" as ruled.
+- **All four locales**, through the i18n discipline, never hardcoded.
+- **The assistant** learns it helps with stays and restaurants, and its
+  cards obey the side law so a hotel opens in the Stays shell.
+- **The rule of the sweep:** never claim what does not exist, never keep
+  copy that undersells what does. Where a render's text conflicts with the
+  truth, the truth wins and the visual treatment stays. Every page swept
+  gets one line here: what it claimed, what it claims now.
+
+### 10.5 What MVP means, and it is the only definition
+
+Every surface with a reference image reads as that image in both themes
+with the side-by-side in section 6; every surface without one reads as the
+same product; every control is functional end to end under the ONE LAW;
+the three consumer dead ends are closed; the stays showcase is live; the
+hardening list has landed; the content truth sweep is complete; and R1, R2
+and R3 have each run a final pass with nothing critical open.
+
+### 10.6 The box, which is a real constraint and not an excuse
+
+Four cores. Fifteen and then nine concurrent workers drove the load average
+above 100, which OOM-killed typechecks, panicked Turbopack's PostCSS worker
+into 500ing every preview route, and made workers report machine faults as
+code faults. So: **B1 to B4 and R3 run NO dev server.** A frontend worker
+and R1 and R2 may hold one, and stop it the moment the shots are taken
+rather than keeping it warm. A red result under load 80 is re-run before it
+is believed.
+
+### 10.7 The gate, all five, before anything is pushed
+
+`npx tsc --noEmit -p apps/web` (zero across the app, never "zero in my
+scope"), `npx eslint src`, `node scripts/check-css-tokens.mjs`,
+`npx vitest run`, and `npx next build`. The fifth is not optional: skipping
+it took production down for twenty minutes in this build (section 7.0).
+A "use server" module may export async functions and nothing else, not even
+a type re-export; any worker touching one says so in its report.
