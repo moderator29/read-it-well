@@ -34,8 +34,8 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: var(--nf-space-lg) var(--nf-space-md);
-    padding-top: max(var(--nf-space-lg), env(safe-area-inset-top, 0px));
+    padding: var(--nf-space-md) var(--nf-space-md);
+    padding-top: max(var(--nf-space-md), env(safe-area-inset-top, 0px));
     padding-bottom: max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
     /*
      * The sky's ground colour, sampled from the render: #000214 at the
@@ -78,84 +78,6 @@
       linear-gradient(180deg, var(--nf-overlay-media-soft) 0%, transparent 30%, transparent 70%, var(--nf-overlay-media) 100%);
   }
 
-  /* ------------------------------------------------------------------ sky */
-  /*
-   * The render's light curtains. Right of frame: a tall bright curtain from
-   * the top corner falling to the right edge at mid height, the brightest
-   * light on the screen after the button. Left of frame: two softer sweeps
-   * rising from the left edge towards the lockup. Each ribbon is an
-   * elongated ellipse of light, rotated and blurred; the core runs white
-   * into the brand ink so it reads as light, not as paint.
-   */
-  .nf-auth__sky {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .nf-auth__ribbon {
-    position: absolute;
-    display: block;
-    border-radius: var(--nf-radius-circle);
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklab, var(--nf-content-primary) 30%, var(--nf-glow-ink)) 0%,
-      color-mix(in oklab, var(--nf-glow-ink) 78%, transparent) 34%,
-      color-mix(in oklab, var(--nf-glow-ink) 26%, transparent) 66%,
-      transparent 100%
-    );
-    filter: blur(14px);
-    mix-blend-mode: screen;
-  }
-  /* Right curtain: image x 780 to 1000, y 0 to 700. */
-  .nf-auth__ribbon--r1 {
-    right: -14%;
-    top: -6%;
-    width: 30%;
-    height: 62%;
-    rotate: -24deg;
-  }
-  /* Its brighter inner fold, thinner and nearer the edge. */
-  .nf-auth__ribbon--r2 {
-    right: -2%;
-    top: 8%;
-    width: 9%;
-    height: 44%;
-    rotate: -18deg;
-    filter: blur(8px);
-  }
-  /* The sweep running in from the right under the wordmark (image y 500 to 720). */
-  .nf-auth__ribbon--r3 {
-    right: -20%;
-    top: 34%;
-    width: 80%;
-    height: 12%;
-    rotate: -16deg;
-    opacity: 0.7;
-    filter: blur(22px);
-  }
-  /* Left: the long sweep from the edge at image y 700 up behind the icon. */
-  .nf-auth__ribbon--l1 {
-    left: -26%;
-    top: 16%;
-    width: 64%;
-    height: 14%;
-    rotate: -38deg;
-    opacity: 0.75;
-    filter: blur(22px);
-  }
-  /* Left: the low sweep at the horizon, image y 900 to 1000. */
-  .nf-auth__ribbon--l2 {
-    left: -20%;
-    top: 52%;
-    width: 46%;
-    height: 9%;
-    rotate: -20deg;
-    opacity: 0.6;
-    filter: blur(20px);
-  }
-
   .nf-auth__stage {
     position: relative;
     z-index: 1;
@@ -168,60 +90,26 @@
   }
 
   /*
-   * THE HORIZON AND THE GROUND. The render's horizon sits 136 image px above
-   * the card's foot (77 at s), with a dark ridge on it and a bright line of
-   * light, and below it the ground is a mirror: blue streaks, the plinth's
-   * glow pooled on it. Anchored to the stage rather than the viewport so the
-   * plinth always stands on it, and as wide as the screen.
+   * THE STAGE, the render's own: sky, curtains, horizon, the glass plinth
+   * and the mirror floor, with its painted UI lifted out
+   * (`session-b-crops.mjs`, box and treatment in `SOURCES.md`). It is scaled
+   * with the card and anchored at the card's foot, so the plinth stands
+   * exactly where the render stands it whatever the card holds:
+   *   width   1024 / 633 of the card (the render's width over its card's)
+   *   bottom  the render's foot is 116 render px below the plinth's, which
+   *           is 116 / 1536 = 7.55 per cent of the plate's own height
+   * Its edges are feathered to transparent in the file itself.
    */
-  .nf-auth__ground {
+  .nf-auth__scene {
     position: absolute;
     z-index: -1;
     left: 50%;
-    width: 100vw;
-    top: calc(100% - 7.75rem);
-    height: 100vh;
-    translate: -50% 0;
+    bottom: 0;
+    width: calc(100% * 1024 / 633);
+    aspect-ratio: 1024 / 1536;
+    translate: -50% 7.55%;
+    background: url("/brand/session-b/signin/stage.webp") center / 100% 100% no-repeat;
     pointer-events: none;
-    background:
-      /* the pool of plinth light on the mirror floor */
-      radial-gradient(ellipse 60% 16% at 50% 13%, var(--nf-glow-4), transparent 70%),
-      /* the horizon's own line of light */
-      linear-gradient(
-        180deg,
-        transparent 0,
-        color-mix(in oklab, var(--nf-glow-ink) 30%, transparent) 0.9rem,
-        color-mix(in oklab, var(--nf-auth-rim-hot) 55%, transparent) 1.1rem,
-        color-mix(in oklab, var(--nf-glow-ink) 26%, var(--nf-surface-canvas)) 1.25rem,
-        color-mix(in oklab, var(--nf-glow-ink) 16%, var(--nf-surface-canvas)) 40%,
-        var(--nf-surface-canvas) 100%
-      );
-  }
-  /* The ridge on the horizon, left and right of the card (image y 1110 to 1200). */
-  .nf-auth__ground::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: -0.9rem;
-    height: 2rem;
-    background:
-      radial-gradient(ellipse 22% 60% at 8% 100%, color-mix(in oklab, var(--nf-glow-ink) 14%, var(--nf-surface-canvas)) 60%, transparent 62%),
-      radial-gradient(ellipse 30% 45% at 92% 100%, color-mix(in oklab, var(--nf-glow-ink) 14%, var(--nf-surface-canvas)) 60%, transparent 62%);
-  }
-  /* Streaks of reflected light on the mirror ground. */
-  .nf-auth__ground::after {
-    content: "";
-    position: absolute;
-    inset: 1.25rem 0 0;
-    background: repeating-linear-gradient(
-      90deg,
-      transparent 0 14px,
-      color-mix(in oklab, var(--nf-glow-ink) 16%, transparent) 14px 16px,
-      transparent 16px 37px
-    );
-    mask-image: linear-gradient(180deg, transparent 0, #000 10%, transparent 55%);
-    opacity: 0.7;
   }
 
   /* ---------------------------------------------------------------- brand */
@@ -233,25 +121,20 @@
     text-decoration: none;
   }
   /*
-   * The app tile: 258 image px, 146 at s. The supplied tile carries its own
-   * thick lit edge; the halo is what lifts it off the sky, and the render's
-   * halo is strong (the edge reads #1E6BFF against a #001150 sky).
+   * The render's lockup as drawn: the app tile and the chrome wordmark, one
+   * crop 464 render px wide, so 464 / 633 of the card. Source 464 px against
+   * 265 CSS px at 390: 1.75x the source at 3x density (ledger, section 3).
    */
-  .nf-auth__icon {
+  .nf-auth__lockup {
     display: block;
-    width: 9.25rem;
-    height: 9.25rem;
-    border-radius: var(--nf-radius-squircle);
-    filter: drop-shadow(0 0 10px var(--nf-glow-4)) drop-shadow(0 0 28px var(--nf-glow-3));
-  }
-  /* The chrome wordmark: 382 by 70 image px, 216 by 40 at s, 38 below the tile (21). */
-  .nf-auth__wordmark {
-    display: block;
-    width: 13.5rem;
+    width: calc(100% * 464 / 633);
     height: auto;
-    margin-top: 1.25rem;
-    filter: drop-shadow(0 0 6px var(--nf-glow-3)) drop-shadow(0 0 18px var(--nf-glow-2));
+    margin-inline: auto;
   }
+  .nf-auth__brand {
+    width: 100%;
+  }
+
   /* ----------------------------------------------------------------- card */
   /*
    * The glass card. 633 by 630 image px, 358 wide at s; corner 42 image px
@@ -264,12 +147,11 @@
     position: relative;
     isolation: isolate;
     width: 100%;
-    /* The render puts 98 image px between the wordmark's foot and the card
-       (55 at s), with its slogan in the middle. The slogan does not ship
-       (founder, 22 September), so the gap closes to 36 and the wordmark
-       keeps the space. */
-    margin-top: 2.25rem;
-    padding: 2.125rem 2.125rem 1.875rem;
+    /* 78 render px from the lockup crop's foot to the card, as a share of
+       the card's width (margin percentages are of the width). The render's
+       slogan sat in this gap; it does not ship (founder, 22 September). */
+    margin-top: calc(100% * 78 / 633);
+    padding: 2.125rem 2.125rem 1.625rem;
     border-radius: var(--nf-radius-xl);
     border: var(--nf-border-width-strong) solid transparent;
     background:
@@ -312,77 +194,36 @@
   .nf-auth__card::after {
     content: "";
     position: absolute;
-    left: 10%;
-    right: 10%;
+    left: 8%;
+    right: 8%;
     top: -1.5px;
-    height: 3px;
-    border-radius: var(--nf-radius-circle);
-    background: radial-gradient(closest-side, var(--nf-content-primary), var(--nf-auth-rim-hot) 40%, transparent);
-    box-shadow: 0 0 14px 2px var(--nf-glow-4);
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--nf-auth-rim-hot) 28%,
+      var(--nf-content-primary) 50%,
+      var(--nf-auth-rim-hot) 72%,
+      transparent
+    );
+    filter: drop-shadow(0 0 5px var(--nf-glow-4));
     pointer-events: none;
   }
 
   /* --------------------------------------------------------------- podium */
-  /*
-   * The glass plinth the card stands on: 725 by 84 image px, so wider than
-   * the card by 14 per cent and 47px tall at s. A lit elliptical top with a
-   * hot rim and an inner ring, a front band, and its light pooled on the
-   * ground (drawn by `.nf-auth__ground`).
-   */
+  /* The plinth's own depth: the render draws 84 px of it below the card.
+     The plinth itself is in the stage plate; this only holds its room. */
   .nf-auth__podium {
-    position: relative;
-    z-index: -1;
-    width: 104%;
-    height: 3.25rem;
-    margin-top: -0.625rem;
+    width: 100%;
+    aspect-ratio: 633 / 84;
     pointer-events: none;
-  }
-  /* The lit top face: an ellipse with a hot rim and an inner ring. */
-  .nf-auth__podium::before {
-    content: "";
-    position: absolute;
-    z-index: 1;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 2.25rem;
-    border-radius: var(--nf-radius-circle);
-    border: 2px solid var(--nf-auth-rim-hot);
-    background:
-      radial-gradient(ellipse 50% 60% at 50% 45%, color-mix(in oklab, var(--nf-glow-ink) 80%, transparent), transparent 80%),
-      color-mix(in oklab, var(--nf-glow-ink) 34%, var(--nf-surface-canvas));
-    box-shadow:
-      inset 0 0 0 5px color-mix(in oklab, var(--nf-glow-ink) 22%, var(--nf-surface-canvas)),
-      inset 0 0 0 6.5px var(--nf-glow-brand-rim),
-      inset 0 0 18px var(--nf-glow-4),
-      0 0 14px var(--nf-glow-4),
-      0 0 36px var(--nf-glow-3);
-  }
-  /* The front band, from the face's middle to its lit foot. */
-  .nf-auth__podium::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 1.125rem;
-    bottom: 0;
-    border-radius: 0 0 50% 50% / 0 0 1rem 1rem;
-    border-bottom: var(--nf-border-width-strong) solid var(--nf-glow-brand-rim);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-glow-ink) 40%, var(--nf-surface-canvas)),
-      color-mix(in oklab, var(--nf-glow-ink) 18%, var(--nf-surface-canvas))
-    );
-    box-shadow:
-      0 4px 18px var(--nf-glow-4),
-      0 14px 40px var(--nf-glow-3);
   }
 
   /* The small print under the plinth. */
   .nf-auth__legal {
     position: relative;
     z-index: 1;
-    margin-top: var(--nf-space-md);
+    margin-top: var(--nf-space-xs);
     max-width: 22rem;
     text-align: center;
     font-size: var(--nf-text-overline);
@@ -463,8 +304,8 @@
 
   /* ---------------------------------------------------------- the fields */
   /*
-   * The email field: 70 image px tall (40 at s, floored to 50 so the three
-   * controls keep the render's 70:76:68 proportion above 48). Corner 12
+   * The email field: 70 image px tall (40 at s, floored to 48, the tap
+   * floor; the button above it at 52 keeps the render's 70:76 step). Corner 12
    * image px, the control rung. Fill #00144C, a shade under the card's glass;
    * edge the electric line (#0B4FD0 on the render's left side); the envelope
    * line glyph at 32 image px in from the edge (18), text after it.
@@ -484,7 +325,8 @@
    * transparent; after it, both are identical to dark.
    */
   .nf-auth[data-theme="dark"] .nf-auth__card .nf-field {
-    min-height: 3.125rem;
+    height: 3rem;
+    padding-block: 0;
     border: var(--nf-border-width) solid var(--nf-container-edge-lit);
     background: color-mix(in oklab, var(--nf-auth-glass) 92%, var(--nf-surface-canvas));
     box-shadow:
@@ -520,7 +362,7 @@
   }
 
   /*
-   * THE CONTINUE BUTTON, LIT. 76 image px tall (54 here, see the field) and
+   * THE CONTINUE BUTTON, LIT. 76 image px tall (52 here, see the field) and
    * 42 image px under the field (24). The render's fill runs #0380FE at the
    * top through #0038E8 to #004BFD at the foot, which is `--nf-gradient-cta`
    * to within a few points; on it a near-white hairline along the top
@@ -558,7 +400,7 @@
   }
   /* The chooser's Continue: the render's height and its gap under the field. */
   .nf-auth .nf-auth__cta {
-    --nf-btn-h: 3.375rem;
+    --nf-btn-h: 3.25rem;
     margin-top: 1.5rem;
     font-size: 1.0625rem;
   }
@@ -572,7 +414,7 @@
     display: flex;
     align-items: center;
     gap: var(--nf-space-md);
-    margin-block: 1.25rem;
+    margin-block: 1.125rem;
     font-size: var(--nf-text-overline);
     font-weight: 500;
     text-transform: uppercase;
@@ -635,7 +477,7 @@
   /* "Do not have an account? Sign up": caps 12 image px, 54 image px under
      Google to its centre (30). 13px at the card's factor. */
   .nf-auth__swap {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
     text-align: center;
     font-size: var(--nf-text-caption);
     color: var(--nf-content-secondary);
@@ -737,18 +579,8 @@
     .nf-auth {
       padding-block: var(--nf-space-2xl);
     }
-    .nf-auth__icon {
-      width: 10.5rem;
-      height: 10.5rem;
-    }
-    .nf-auth__wordmark {
-      width: 15.75rem;
-    }
     .nf-auth__card {
       padding: 2.5rem 2.5rem 2.25rem;
-    }
-    .nf-auth__ribbon--r1 {
-      width: 22%;
     }
   }
 }

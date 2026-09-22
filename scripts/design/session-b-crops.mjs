@@ -393,6 +393,178 @@ text at 3x and matches it at 2x. Nothing is upscaled.
 
 SURFACES.welcome = welcome;
 
+/* =====================================================================
+ * SIGNIN (Welcome back), render 55A56F21. Owner: Session B "signin".
+ * Its own helpers, prefixed `si`, so nothing above is changed: raw RGBA
+ * through sharp, a normalised-convolution fill that lifts painted UI out of
+ * a render, an edge feather, and a brightest-channel key outside one
+ * rounded rectangle (the app tile, kept whole).
+ * ===================================================================== */
+/** Decode a render (or a box of it) to raw RGBA. */
+async function siRead(file, box) {
+  let img = sharp(path.join(ROOT, file)).ensureAlpha();
+  if (box) img = img.extract(box);
+  const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });
+  return { data: new Float32Array(data), w: info.width, h: info.height };
+}
+
+/** Encode raw RGBA to WebP with alpha. */
+async function siWrite(raw, path, { quality = 84, width } = {}) {
+  const buf = Buffer.from(Uint8ClampedArray.from(raw.data));
+  let img = sharp(buf, { raw: { width: raw.w, height: raw.h, channels: 4 } });
+  if (width && width !== raw.w) img = img.resize({ width, kernel: "lanczos3" });
+  await img.webp({ quality, alphaQuality: 90, effort: 6, smartSubsample: true }).toFile(path);
+}
+
+/** Separable box blur, three passes (close to a gaussian), on one plane. */
+function siBlur(plane, w, h, radius) {
+  const tmp = new Float32Array(plane.length);
+  let src = plane;
+  for (let pass = 0; pass < 3; pass++) {
+    // horizontal
+    for (let y = 0; y < h; y++) {
+      let acc = 0;
+      const row = y * w;
+      for (let x = -radius; x <= radius; x++) acc += src[row + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) {
+        tmp[row + x] = acc / (2 * radius + 1);
+        acc += src[row + Math.min(w - 1, x + radius + 1)] - src[row + Math.max(0, x - radius)];
+      }
+    }
+    // vertical
+    const out = new Float32Array(plane.length);
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let y = -radius; y <= radius; y++) acc += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = acc / (2 * radius + 1);
+        acc += tmp[Math.min(h - 1, y + radius + 1) * w + x] - tmp[Math.max(0, y - radius) * w + x];
+      }
+    }
+    src = out;
+  }
+  return src;
+}
+
+/**
+ * Remove painted UI from a render by normalised convolution: every pixel
+ * inside `holes` is replaced by the blurred average of the pixels OUTSIDE the
+ * holes around it, so the fill is the render's own light carried inwards,
+ * never an invented colour. `feather` softens the seam.
+ */
+function siFill(raw, holes, { radius = 40, feather = 10 } = {}) {
+  const { data, w, h } = raw;
+  const keep = new Float32Array(w * h).fill(1);
+  for (const r of holes)
+    for (let y = r.top; y < r.top + r.height; y++)
+      for (let x = r.left; x < r.left + r.width; x++) keep[y * w + x] = 0;
+  const soft = feather > 0 ? siBlur(keep, w, h, feather) : keep;
+  /* Several reaches, nearest first: a pixel deep inside a large hole is
+     filled from the wide pass, one near the edge from the tight pass. */
+  const radii = [radius, radius * 3, radius * 8];
+  const weights = radii.map((r) => siBlur(keep, w, h, r));
+  const out = new Float32Array(data);
+  for (let c = 0; c < 3; c++) {
+    const plane = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) plane[i] = data[i * 4 + c] * keep[i];
+    const sums = radii.map((r) => siBlur(plane, w, h, r));
+    for (let i = 0; i < w * h; i++) {
+      let fill = 0;
+      let need = 1;
+      for (let k = 0; k < radii.length && need > 1e-3; k++) {
+        const wt = weights[k][i];
+        if (wt < 1e-5) continue;
+        const take = Math.min(1, wt / 0.25) * need;
+        fill += (sums[k][i] / wt) * take;
+        need -= take;
+      }
+      const k = keep[i] === 1 ? Math.max(soft[i], 0) : soft[i];
+      out[i * 4 + c] = data[i * 4 + c] * k + fill * (1 - k);
+    }
+  }
+  return { data: out, w, h };
+}
+
+/** Multiply alpha by a feather ramp of `px` on each named edge. */
+function siFeather(raw, px) {
+  const { data, w, h } = raw;
+  const ramp = (d, n) => (n <= 0 ? 1 : Math.min(1, Math.max(0, d / n)) ** 1.6);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const a =
+        ramp(x, px.left ?? 0) * ramp(w - 1 - x, px.right ?? 0) * ramp(y, px.top ?? 0) * ramp(h - 1 - y, px.bottom ?? 0);
+      data[(y * w + x) * 4 + 3] *= a;
+    }
+  return raw;
+}
+
+/** Brightest-channel key everywhere except inside one rounded rectangle. */
+function siKeyOutsideTile(raw, r, floor, span) {
+  const { data, w, h } = raw;
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      // signed distance to the rounded rectangle, negative inside
+      const cx = Math.max(r.left + r.radius - x, 0, x - (r.right - r.radius));
+      const cy = Math.max(r.top + r.radius - y, 0, y - (r.bottom - r.radius));
+      const d = Math.hypot(cx, cy) - r.radius;
+      const inside = Math.min(1, Math.max(0, 0.5 - d / r.soft));
+      const m = Math.max(data[i], data[i + 1], data[i + 2]);
+      const key = Math.min(1, Math.max(0, (m - floor) / span));
+      const a = Math.max(inside, key);
+      /* Colour is left as drawn: the ground under it on the page is the
+         same night sky, so the lit pixels composite back to what the render
+         shows, and nothing is invented by dividing through a guessed ground. */
+      data[i + 3] = 255 * a;
+    }
+  return raw;
+}
+
+async function signin() {
+  const RENDER = "55A56F21-0654-4F2D-984B-60A8CE97BB17.png";
+  const dir = path.join(OUT, "signin");
+  await mkdir(dir, { recursive: true });
+
+  /*
+   * 1. THE STAGE: the whole render with its painted UI lifted out, so what is
+   * left is the sky, the light curtains, the horizon, the plinth and the
+   * mirror floor, exactly as drawn. The holes are the lockup and slogan
+   * (the slogan never ships) and the card with its bloom. The plinth, from
+   * y 1338 down, is kept untouched. Served at 1024 wide; the page scales it
+   * with the card, anchored at the card's foot.
+   */
+  const stage = await siRead(RENDER);
+  const filled = siFill(
+    stage,
+    [
+      { left: 280, top: 170, width: 464, height: 516 }, // app tile, wordmark, slogan
+      { left: 150, top: 664, width: 724, height: 674 }, // card and its bloom, to the plinth
+    ],
+    { radius: 48, feather: 12 },
+  );
+  siFeather(filled, { left: 60, right: 60, top: 120, bottom: 40 });
+  await siWrite(filled, path.join(dir, "stage.webp"), { quality: 82 });
+
+  /*
+   * 2. THE LOCKUP: the app tile and the chrome wordmark together, as drawn,
+   * with the render's spacing between them. Its ground is the render's sky,
+   * feathered away on every side so it melts into the stage beneath.
+   */
+  const lockup = await siRead(RENDER, { left: 280, top: 176, width: 464, height: 452 });
+  /* Keyed, not boxed: outside the tile the render's sky goes and only light
+     stays (brightest channel, floor 70, span 150), so there is no rectangle
+     to see where the crop meets the stage. Inside the tile (render box 380,
+     222 to 642, 502, corner 52) the glass is kept whole, dark navy and all,
+     with a 6 px soft edge. */
+  siKeyOutsideTile(lockup, { left: 380 - 280, top: 222 - 176, right: 642 - 280, bottom: 502 - 176, radius: 52, soft: 6 }, 70, 150);
+  siFeather(lockup, { left: 12, right: 12, top: 12, bottom: 8 });
+  await siWrite(lockup, path.join(dir, "lockup.webp"), { quality: 90 });
+
+  console.log("signin: stage.webp, lockup.webp ->", dir);
+}
+/* ============================== end SIGNIN ============================ */
+SURFACES.signin = signin;
+
 const only = process.argv.includes("--surface")
   ? process.argv[process.argv.indexOf("--surface") + 1]
   : null;

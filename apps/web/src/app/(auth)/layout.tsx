@@ -15,15 +15,17 @@ import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
  * recovery all read as the same object; only the card's contents change.
  * `app/css/auth.css` is the whole surface.
  *
- * THE SKY IS DRAWN, NOT PHOTOGRAPHED. The plate that stood here was
- * `bg-blue-wave.jpg`, horizontal swells across a flat navy, which is a
- * different sky from the render's vertical curtains and mirrored horizon.
- * The render itself cannot be used as a plate because its card, lockup and
- * words are painted into it. So the curtains are five blurred ribbons and the
- * horizon is one element, all from tokens, and they sit in this subtree where
- * no rule in `light.css` reaches them (the old `.nf-aurora` and
- * `.nf-grid-veil` were switched off by `light.css` in light mode, which is
- * the leak `docs/research/LIGHT_MODE_SURVEY.md` 9.5 names).
+ * THE ART IS THE RENDER'S OWN, on the founder's instruction of 22 September
+ * (`docs/SESSION_B_SCOPE.md` section 9). Two crops, cut by
+ * `scripts/design/session-b-crops.mjs` into `public/brand/session-b/signin/`:
+ * the STAGE (the render with its painted card, lockup and slogan lifted out:
+ * sky, light curtains, horizon, glass plinth, mirror floor) and the LOCKUP
+ * (the app tile and chrome wordmark as drawn). The stage is scaled with the
+ * card and anchored at the card's foot, so the plinth is always under the
+ * live card exactly where the render puts it. The card, the fields, the
+ * buttons and every word stay live HTML. None of it sits under a class that
+ * `light.css` reaches (the old `.nf-aurora` and `.nf-grid-veil` were switched
+ * off by `light.css` in light mode, the leak the light survey 9.5 names).
  *
  * THE RENDER'S SLOGAN DOES NOT SHIP, and nothing replaces it. The founder
  * removed it on 22 September, and the standing rule in
@@ -52,37 +54,22 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
      * Session B ledger section 3 records the measurement.
      */
     <main id="main" className="nf-auth" data-theme="dark">
-      <div className="nf-auth__sky" aria-hidden="true">
-        <span className="nf-auth__ribbon nf-auth__ribbon--l1" />
-        <span className="nf-auth__ribbon nf-auth__ribbon--l2" />
-        <span className="nf-auth__ribbon nf-auth__ribbon--r1" />
-        <span className="nf-auth__ribbon nf-auth__ribbon--r2" />
-        <span className="nf-auth__ribbon nf-auth__ribbon--r3" />
-      </div>
-
       <div className="nf-auth__lang">
         <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
       </div>
 
       <div className="nf-auth__stage">
-        <div className="nf-auth__ground" aria-hidden="true" />
+        <div className="nf-auth__scene" aria-hidden="true" />
 
         <Link href="/" aria-label={t.a11y.logoHome} className="nf-auth__brand">
           <Image
-            src="/brand/vallo-icon.png"
+            src="/brand/session-b/signin/lockup.webp"
             alt=""
-            width={296}
-            height={296}
+            width={464}
+            height={452}
             priority
-            className="nf-auth__icon"
-          />
-          <Image
-            src="/brand/vallo-wordmark.png"
-            alt="Vallo"
-            width={432}
-            height={78}
-            priority
-            className="nf-auth__wordmark"
+            sizes="(min-width: 640px) 308px, 68vw"
+            className="nf-auth__lockup"
           />
         </Link>
 
