@@ -148,6 +148,66 @@ governs it.
    remaining caller of it is listed in the ledger with the reason it is
    allowed to exist. The list is short and it is argued, not assumed.
 
+### 2.7 What the sweep found, so nobody has to re-derive it
+
+**Twenty eight departures.** Eight of them are money and all eight are a bare
+`window.location.assign` to Paystack: the stay checkout and its 3-D Secure
+fallback, the rent payment and its 3-D Secure fallback, the wallet top-up and
+its 3-D Secure step, the add-a-card setup charge, and the crypto top-up.
+
+**The half of the fix that is already written.** `initializeTransaction` in
+`apps/web/src/lib/payments/paystack.ts` already returns Paystack's
+`access_code` on every single transaction, and not one caller in the codebase
+reads it. Verified independently: the only `accessCode` in the product is the
+estate gate code on a listing. So the server half of an in-app checkout has
+been built and thrown away on every payment this platform has ever
+initialised. `PaystackPop.resumeTransaction(accessCode, callbacks)` from
+`@paystack/inline-js` renders the checkout in an iframe on our own page with
+our own URL bar, and closes all seven Paystack departures with no new server
+call.
+
+**The one directive that blocks it.** `apps/web/src/lib/security/csp.ts:368`
+is `frame-src 'none'`, with a comment stating that we frame nothing and have
+no embedded checkout. That changes, deliberately, narrowed to exactly the
+Paystack origins and nothing else, with the reason written beside it in the
+form that file already demands of itself. `security.test.ts` and
+`tests/csp.spec.mjs` move with it. **A wildcard here would be a security
+regression and is refused.**
+
+**Three things the sweep could not prove, and they are the first things to
+test, not to assume.** Whether 3-D Secure renders inside that iframe rather
+than opening a window. Whether `resumeTransaction` works without also passing
+a public key, because if it needs one then `docs/ENVIRONMENT.md` and
+`docs/DEPLOY.md` are both wrong today. And the inline library's behaviour
+against a real card, because the sweep's egress could not reach Paystack's own
+documentation and read the packaged library instead. Test all three with a
+live test card before a line of UI is built on top of them.
+
+**A live bug, found on the way.** `externalHttpUrl` returns `null` for a
+same-origin URL, so `<Link href="/terms" target="_blank">` in the host wizard
+escapes the WebView into the system browser. A host applicant is thrown out of
+the application by our own legal page. Two lines.
+
+**Three national identity documents are reviewed on somebody else's domain.**
+The KYC, businesses and agents admin desks open signed Supabase Storage URLs
+with `target="_blank"`, so an operator reads a person's ID on `supabase.co`
+and the signed URL sits in the DOM. Build the in-app `DocumentViewer` and
+route all three through it.
+
+**Two props exist whose only purpose is to leave.** `StickyAction.external`
+and `RowLink.external` have zero call sites. Delete them. A prop that exists
+only to take a user off the platform should not be in this codebase.
+
+**Four departures are genuinely impossible and are allowed to stay:** the
+three `tel:` anchors, because a web application cannot place a call, and a
+user's own profile link, because linking out is the entire feature. The
+profile link gains an interstitial that names the destination host.
+
+**The permitted exception, narrowed.** `mailto:` support through
+`lib/support-email.ts` and its six consumers is the one exit the founder
+allows. Even so, `/contact` becomes the default route and the mailbox is
+offered beside it, not instead of it.
+
 **Definition of done for this track.** A written table in the ledger, one row
 per departure found in the sweep, each marked closed with its commit, or
 marked open with the reason it cannot close and what it needs. Zero rows are
