@@ -205,6 +205,8 @@ work and nothing waits on it that can be built around.
 | A demo account for the stores | Both stores require credentials a reviewer can sign in with. Ours is the seeding script, ready the moment he supplies the login. |
 | The solicitor's answer on custody | No code path that places the company in custody of third party naira ships until it is recorded here. |
 | `agents.verified` | Now a derived copy of `agent_badges.verified`. Dropping the column is data-losing and on the stop list. |
+| **Auth email is not actually sending** | **MEASURED, not inferred, on 22 September.** Neither route is live. `auth_logs` carry two `mail.send` events, both `mail_from: noreply@mail.app.supabase.io`, which is Supabase's built-in non-production sender: custom SMTP was never applied, and the hook cannot be on or GoTrue would not be sending at all. Three consecutive sign-ups on 12 September then failed `429 over_email_send_rate_limit` at 09:41, 09:43 and 09:44, which is the built-in cap and not custom SMTP's thirty an hour. Real people could not create accounts and nothing said so. The fix is one dashboard settings page and the choice between the routes is his; the arguments are in the research file 1.8 and 1.9, and `AUTH_EMAILS.md` section 1A now records the measurement. Neither code path was deleted, because deleting the loser before he chooses would decide it by attrition. |
+| Whether the five auth templates were ever pasted in | The dashboard renders its Email Templates whichever sender carries them, so the generated files are live copy if they were pasted and Supabase's own default wording is live copy if they were not. This repository cannot read that, and it is the last open question about them. |
 | The completed credit colour | The render draws it cyan, ours is emerald, and our colour law reserves cyan for PENDING. Emerald stays and the render is recorded as carrying a mistake unless he rules otherwise. |
 | A live Paystack test card, in a browser we control | The in-app checkout cannot be proved in this sandbox. Every Paystack origin is refused by the egress proxy and no secret key exists here, so no transaction can be initialised and no frame can be loaded. Two of the three things the sweep asked to be proved before any UI is built remain unproved for that reason, and both are below. |
 | Whether a Nigerian bank's 3-D Secure step renders INSIDE the checkout iframe or opens a window | This decides whether the in-app checkout is the win it looks like or a regression. If a bank opens a window, an in-app checkout that cannot complete a challenged card payment is worse than the redirect it replaces. The sweep's own evidence for "inside" was `PopupTransaction.getStatus()` and its `auth` state; that method is documented in the README of `@paystack/inline-js` v2.25.0 and IS NOT PRESENT IN ANY OF THE THREE SHIPPED BUILDS of that version, so the sweep's central inference rests on a method that does not exist. The shim carries no `window.open` and sets no `sandbox` attribute on the frame, which means nothing structurally prevents the framed document opening one. One test card answers this and nothing else will. |
@@ -460,3 +462,105 @@ brief says: `git add -A`, `git stash` in any form including `--autostash`,
 refusal is protecting twelve other people and is not to be forced past: commit
 your own files with an explicit pathspec first, then pull. All thirteen
 workers have been told.
+
+---
+
+## A1, Group A, backend B0 to B7: what was measured and what landed
+
+Written by A1 at the close of its stint. Every number here was taken against
+the live project `uccixoonmbhrnyczyigt` on 22 September 2026, after the work,
+not before it.
+
+### The zero the brand sweep was asked for
+
+| Where | Still says RentMe |
+| --- | --- |
+| Function bodies in `public` and `private` | **0**, excluding the two named below |
+| `public.badges` rows, any column including `code` | **0** |
+| `public.wallet_entries` metadata | **0** |
+| `public.reviews` author labels | **0** |
+| pg_cron job names | **0**, and still 8 active |
+| Supabase Vault secret names | **0** |
+| `apps/web` and `packages`, user-visible strings | **0** |
+
+The only two survivors are `private.validate_social_handle` and
+`private.handle_seed`, which carry the string in order to REFUSE it. They now
+refuse `vallo` as well, which is the hole that let any signed-in user claim
+`/u/vallo`. Proved live inside a rolled back transaction: the profile
+`phantomfcalls` was refused the handle `vallo_support` with sqlstate RM002 and
+was then allowed a neutral one, so the guard refuses the brand rather than
+refusing everything.
+
+The remaining `rentme` matches in `apps/web` are seven code comments that
+narrate the rename and warn against repeating it, plus historical applied
+migration files, which are records of what ran and are not edited.
+
+### The migration ledger, reconciled
+
+| Measure | Before | After |
+| --- | --- | --- |
+| Applied with no file in the repository | 4 | **0** |
+| Files in `migrations/` never applied | 3 | **0** |
+| Migration files on disk | 212 | 221 |
+| Rows in `supabase_migrations.schema_migrations` | 218 | 220 |
+
+The one remaining difference is
+`20260922140000_a_post_is_scanned_for_abuse_as_well_as_fraud.sql`, written into
+this tree by another worker at 12:56 today and theirs to apply.
+
+**One of the four orphans is not a migration.** `20260919181950` is a probe
+that was committed instead of rolled back. Its rows are still in the live
+product tables: the `businesses` row it demoted to DRAFT, the one
+`reservations` row this platform has, a `conversations` row and two `messages`
+rows. Removing them is data-losing on live tables and is the founder's call.
+
+### The two revocations, and the advisor's own count
+
+| Advisor finding | Before | After |
+| --- | --- | --- |
+| SECURITY DEFINER executable by `anon` | 2 | **1**, `platform_stats()`, deliberate |
+| SECURITY DEFINER executable by `authenticated` | 23 | **19** |
+
+**`agent_trust` was called signed out and the survey said it was not.**
+`readProfileByHandle` falls back to the anonymous client for a signed-out
+visitor and asks `agent_trust` on every public profile. Revoking the grant
+alone would have silently removed the trust band from every agent's public
+page. The band is kept and the enumeration is closed: the signed-out read is
+served by the server after the profile row has come back through
+`social_profiles_select`.
+
+### Two things the repository believed that the database does not
+
+1. **`20260915090000_the_database_stops_saying_rentme.sql` could never have
+   run.** It writes `update public.badges set label = ...` and
+   `update public.wallet_entries set note = ...`. Neither column exists. The
+   fix for the finding the audit calls the most serious in the estate would
+   have raised 42703 on its first data statement. Corrected in its own file,
+   which is allowed because it had never been applied, and applied.
+2. **No acceptance of the terms had ever been recorded.** Three comments and a
+   passing test say `handle_new_user` writes `profiles.terms_accepted_at` from
+   the hidden version field. `public.profiles` has no such column, has no
+   `terms_version` column, and `handle_new_user` does not contain the word
+   terms. `public.terms_acceptances` exists now and the server writes it.
+
+### Two defects a probe caught that a migration would not have
+
+* `wallet_entries_direction_chk` had never heard of a pot, so the savings pots
+  migration would have applied perfectly and then raised 23514 the first time
+  anybody moved money into one.
+* The store reviewer seed named the Eti-Osa local government as `eti-osa`.
+  `handle_new_user` matches that against nothing and stores null without
+  complaining. The code is `la_eti_osa`.
+
+### Still the founder's, and re-stated rather than assumed
+
+* **The reviewer login.** `npm run seed:reviewer` is written, idempotent, and
+  proves the sign in through the anon front door. It needs an address and a
+  password and nothing else.
+* **Whether the probe's rows stay.** The venue, the reservation and the thread
+  written by `20260919181950`.
+* **Whether the sign-in address ceiling stays.** Sixty attempts an hour against
+  one account closes unlimited distributed guessing and accepts a bounded
+  denial in exchange. Both halves are argued in `lib/auth/actions.ts`.
+* **Leaked password protection** is still disabled. The advisor still reports
+  it. One click.
