@@ -3,13 +3,23 @@ import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import { getMyBusinesses, type MyBusiness } from "@/lib/host/queries";
+import {
+  getMyBusinesses,
+  getPrimaryAccommodation,
+  type MyAccommodation,
+  type MyBusiness,
+} from "@/lib/host/queries";
 import { listBusinessPhotos, type BusinessPhoto } from "@/lib/stays/business-photos";
+import {
+  listAccommodationPhotos,
+  type AccommodationPhoto,
+} from "@/lib/stays/accommodation-photos";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { BusinessPhotoManager } from "@/components/host/BusinessPhotoManager";
+import { AccommodationPhotoManager } from "@/components/host/AccommodationPhotoManager";
 
 export const metadata: Metadata = {
   title: "Photographs",
@@ -33,6 +43,17 @@ export const dynamic = "force-dynamic";
  * So the write path is `addBusinessPhoto`, which gates on ownership at any
  * status rather than on editability, and this screen is reachable from the
  * host's own standing page for every venue on the account.
+ *
+ * AND IT NOW SERVES BOTH SPINES, which is the whole reason a hotel could not
+ * go live. A restaurant's photographs hang on its `businesses` row; a hotel's
+ * or a shortlet's hang on the `accommodations` row under it, in
+ * `accommodation_photos`, which had a table, a bucket, four storage policies
+ * and a catalogue trigger and no writer anywhere in the application. The
+ * submission gate refuses an accommodation with no photograph, so every hotel
+ * and every shortlet stopped dead at the review step. One door, two spines,
+ * decided by which table the chosen business's photographs actually live in,
+ * because a second route would have been a second place for the cover rule to
+ * drift.
  */
 export default async function HostPhotosPage({
   searchParams,
@@ -67,7 +88,20 @@ export default async function HostPhotosPage({
 
   const businesses = await getMyBusinesses();
   const chosen = businesses.find((row) => row.id === wanted) ?? businesses[0] ?? null;
-  const photos: BusinessPhoto[] = chosen ? await listBusinessPhotos(chosen.id) : [];
+
+  /* WHICH SPINE THIS VENUE'S PHOTOGRAPHS LIVE ON is decided by whether it has
+     a property under it, not by its kind: a business of a stays kind that has
+     not saved its property yet has nowhere to hang a photograph, and is told
+     so rather than being shown a drop target that would fail on the server. */
+  const accommodation =
+    chosen && chosen.kind !== "restaurant" ? await getPrimaryAccommodation(chosen.id) : null;
+  const photos: BusinessPhoto[] =
+    chosen && !accommodation && chosen.kind === "restaurant"
+      ? await listBusinessPhotos(chosen.id)
+      : [];
+  const propertyPhotos: AccommodationPhoto[] = accommodation
+    ? await listAccommodationPhotos(accommodation.id)
+    : [];
 
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
@@ -76,6 +110,8 @@ export default async function HostPhotosPage({
         businesses={businesses}
         chosen={chosen}
         photos={photos}
+        accommodation={accommodation}
+        propertyPhotos={propertyPhotos}
       />
     </HostShell>
   );
@@ -90,11 +126,18 @@ export function HostPhotosBody({
   businesses,
   chosen,
   photos,
+  accommodation = null,
+  propertyPhotos = [],
 }: {
   userId: string;
   businesses: MyBusiness[];
   chosen: MyBusiness | null;
+  /** The venue's own photographs, on the business spine. */
   photos: BusinessPhoto[];
+  /** The property under the chosen business, when it has one. */
+  accommodation?: MyAccommodation | null;
+  /** That property's photographs, on the accommodation spine. */
+  propertyPhotos?: AccommodationPhoto[];
 }) {
   if (!chosen) {
     return (
@@ -111,18 +154,24 @@ export function HostPhotosBody({
     );
   }
 
+  /* The subject of this screen: the property when there is one, the venue
+     itself when there is not. One count and one sentence, so the heading never
+     describes one spine while the manager below writes to the other. */
+  const onRecord = accommodation ? propertyPhotos.length : photos.length;
+  const subjectName = accommodation ? accommodation.name : chosen.name;
+
   return (
     <>
       <div className="nf-agent-head">
         <div>
           <h1 className="nf-agent-head__title">Photographs</h1>
           <p className={`mt-row ${TYPE.bodyLg}`}>
-            {chosen.name}
-            {photos.length === 0
+            {subjectName}
+            {onRecord === 0
               ? " has no photographs yet, so its page shows a Vallo plate with a label saying so."
-              : photos.length === 1
+              : onRecord === 1
                 ? " has one photograph, and it is the one guests see first."
-                : ` has ${photos.length} photographs.`}
+                : ` has ${onRecord} photographs.`}
           </p>
         </div>
       </div>
@@ -145,11 +194,33 @@ export function HostPhotosBody({
       )}
 
       <div className="mt-block">
-        <BusinessPhotoManager
-          businessId={chosen.id}
-          userId={userId}
-          photos={photos.map((photo) => ({ id: photo.id, url: photo.url }))}
-        />
+        {accommodation ? (
+          <AccommodationPhotoManager
+            accommodationId={accommodation.id}
+            userId={userId}
+            photos={propertyPhotos.map((photo) => ({ id: photo.id, url: photo.url }))}
+          />
+        ) : chosen.kind === "restaurant" ? (
+          <BusinessPhotoManager
+            businessId={chosen.id}
+            userId={userId}
+            photos={photos.map((photo) => ({ id: photo.id, url: photo.url }))}
+          />
+        ) : (
+          /* A stays business whose property has not been saved yet. The
+             photographs hang on the property, so there is one thing to do
+             first and it is named rather than drawn as an empty grid. */
+          <EmptyState
+            icon="camera"
+            title="Save the property first"
+            body="Photographs of a hotel or a shortlet hang on the property itself, so the application asks for its name and its pin first. Open the application, save the property, and the photographs go up on the same step."
+            action={
+              <ButtonLink href="/host/apply" variant="primary" size="lg">
+                Open the application
+              </ButtonLink>
+            }
+          />
+        )}
       </div>
     </>
   );

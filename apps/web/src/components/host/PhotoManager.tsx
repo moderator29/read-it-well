@@ -1,0 +1,222 @@
+"use client";
+
+import { useId, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
+import { RemoteImage } from "@/components/ui/RemoteImage";
+import type { ActionResult } from "@/lib/actions/envelope";
+import {
+  MAX_BUSINESS_PHOTOS,
+  PHOTO_ACCEPTED_LABEL,
+  PHOTO_ACCEPTED_MIME,
+  PHOTO_MAX_LABEL,
+  rejectPhoto,
+} from "@/lib/host/photos";
+import { createClient } from "@/lib/supabase/client";
+
+/**
+ * AN OWNER'S PHOTOGRAPHS, ONE SURFACE FOR BOTH SPINES.
+ *
+ * WHAT WAS TRUE BEFORE THIS. `business_photos` had a manager at
+ * `/host/photos` and `accommodation_photos` had none at all, although its
+ * table, its bucket, its four storage policies and its catalogue trigger were
+ * built in M3. So a restaurant could send its pictures and a hotel could not,
+ * while the submission gate in `lib/host/onboarding.ts` refuses an
+ * accommodation with no photograph. Every hotel and every shortlet filled in
+ * nine steps and could never press send.
+ *
+ * WHY ONE COMPONENT RATHER THAN A SECOND COPY. The act is identical on both
+ * spines: put the object in the same public bucket under the person's own uid
+ * prefix, then have a server action record the path after checking that prefix
+ * again. The tables differ only in which owner helper RLS consults. A second
+ * copy of this file is how the two surfaces come to disagree about the cover,
+ * the ceiling or the refusal wording, and the two upload ceilings already
+ * disagreed once across layers. `BusinessPhotoManager` and
+ * `AccommodationPhotoManager` are the two named doors onto this one body.
+ *
+ * THE UPLOAD IS THE DOCUMENT UPLOADER'S TWO-STEP, for its reasons: the browser
+ * puts the object in the bucket, storage RLS enforces the uid prefix, and the
+ * server records the path only after checking that prefix itself. A person who
+ * closes the tab keeps every photograph that finished.
+ *
+ * THE FIRST PHOTOGRAPH IS THE COVER, and the screen says so rather than
+ * offering a control that cannot be built honestly yet: position is unique per
+ * subject, so a reorder is a swap through a free slot and there is no free slot
+ * at ten photographs. Removing the cover promotes the next one, which is a
+ * reorder anybody can perform and nobody has to be taught.
+ */
+export function PhotoManager({
+  /** The row the photographs hang on: a business, or an accommodation. */
+  subjectId,
+  userId,
+  photos,
+  copy,
+  add,
+  remove: removeAction,
+}: {
+  subjectId: string;
+  userId: string;
+  /** What is on record, cover first. */
+  photos: { id: string; url: string }[];
+  copy: {
+    /** The heading, and the noun the sentences use. */
+    title: string;
+    /** What to photograph, in the owner's own terms. */
+    guidance: string;
+    /** "of your hotel", "of your venue": how a photograph is described. */
+    ofSubject: string;
+    /** The sentence when the subject is full. */
+    fullNote: string;
+  };
+  add: (input: { storagePath: string }) => Promise<ActionResult<{ id: string }>>;
+  remove: (input: { photoId: string }) => Promise<ActionResult<null>>;
+}) {
+  const router = useRouter();
+  const inputId = useId();
+  const input = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [removing, startRemoving] = useTransition();
+
+  const full = photos.length >= MAX_BUSINESS_PHOTOS;
+
+  async function pick(chosen: File | undefined) {
+    if (!chosen) return;
+    const refusal = rejectPhoto(chosen);
+    if (refusal) {
+      setError(refusal);
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      const ext = chosen.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      /* The bucket's own convention: the first folder is the uploader's uid,
+         which is what its four policies check. `accommodation-photos` is the
+         public photo bucket for the whole estate; the P3 migration's header
+         sets out why the business spine shares it rather than inventing one. */
+      const path = `${userId}/${subjectId}/${crypto.randomUUID()}.${ext}`;
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from("accommodation-photos")
+        .upload(path, chosen, { contentType: chosen.type });
+      if (uploadError) {
+        setError("The upload did not finish. Check your connection and choose the photograph again.");
+        return;
+      }
+      const result = await add({ storagePath: path });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+    } finally {
+      setBusy(false);
+      if (input.current) input.current.value = "";
+    }
+  }
+
+  function takeDown(photoId: string) {
+    setError(null);
+    startRemoving(async () => {
+      const result = await removeAction({ photoId });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  return (
+    <section className="nf-host-group">
+      <h2 className="nf-host-group__title">{copy.title}</h2>
+      <p className="nf-host-group__note">{copy.guidance}</p>
+      <p className="nf-caption mt-inline">
+        The first photograph is the one guests see on your card and at the top of your page. Take
+        it down and the next one takes its place. Up to {MAX_BUSINESS_PHOTOS}.
+      </p>
+
+      {photos.length > 0 && (
+        <ul className="mt-group grid grid-cols-2 gap-row sm:grid-cols-3">
+          {photos.map((photo, index) => (
+            <li key={photo.id} className="min-w-0">
+              <RemoteImage
+                src={photo.url}
+                alt={
+                  index === 0
+                    ? "The photograph guests see first"
+                    : `Photograph ${index + 1} ${copy.ofSubject}`
+                }
+                width={400}
+                height={300}
+                sizes="(min-width: 640px) 200px, 45vw"
+                className="h-32 w-full rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] object-cover"
+              />
+              {/* STACKED, NOT A ROW. At 390 two of these sit side by side and
+                  a label beside a control has about 80px to live in: the
+                  control ran out past the card's edge and the word under it
+                  broke in two. The name of the photograph and the way to
+                  remove it are a stack at every width. */}
+              <div className="mt-inline">
+                <span className="nf-overline block">
+                  {index === 0 ? "Cover" : `Photograph ${index + 1}`}
+                </span>
+                {/* GLASS, NOT GHOST. A ghost button is transparent and
+                    borderless by design, so under a photograph and beside a
+                    bold overline it read as a caption rather than a control:
+                    at 390 in dark the words "Take down" sat under the picture
+                    looking like its title. The quiet glass edge is the least
+                    that makes it legible as something to press, and it is not
+                    the rose destructive treatment, because three rose buttons
+                    in a grid of three photographs shout at an owner tidying
+                    their own pictures. */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  full
+                  disabled={removing || busy}
+                  onClick={() => takeDown(photo.id)}
+                >
+                  Take down
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <input
+        ref={input}
+        id={inputId}
+        type="file"
+        accept={PHOTO_ACCEPTED_MIME.join(",")}
+        className="sr-only"
+        disabled={busy || full}
+        onChange={(event) => void pick(event.target.files?.[0])}
+      />
+      {full ? (
+        <p className="nf-caption mt-group">{copy.fullNote}</p>
+      ) : (
+        <label htmlFor={inputId} className="nf-host-drop mt-group">
+          <UiIcon name="picture" size={20} className="shrink-0" />
+          <span className="min-w-0 flex-1">
+            <span className="block nf-body-sm font-semibold">
+              {busy ? "Uploading" : photos.length === 0 ? "Add the first photograph" : "Add another"}
+            </span>
+            <span className="block nf-caption">
+              {PHOTO_ACCEPTED_LABEL}, up to {PHOTO_MAX_LABEL} each. One at a time.
+            </span>
+          </span>
+        </label>
+      )}
+
+      {error && (
+        <p role="alert" className="nf-caption mt-row text-[var(--nf-state-error)]">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}

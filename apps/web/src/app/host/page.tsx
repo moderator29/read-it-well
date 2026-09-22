@@ -164,24 +164,28 @@ export function HostStandingBody({
                     <p className={`${TYPE.rowMeta} whitespace-pre-wrap`}>{business.reviewNotes}</p>
                   )}
                   {/*
-                    THE TWO DOORS A VENUE OWNER NEEDS, and neither existed.
+                    THE DOORS A VENUE OWNER NEEDS, and none of them existed.
                     `private.notify_reservation` has pointed a business host at
                     /host/reservations since M7 with no such route, and an
-                    owner's own photographs had nowhere to go at all. Drawn for
-                    a restaurant only: a stay's photographs hang on its
-                    property, and a link to a surface that cannot show what it
-                    saved is worse than no link.
+                    owner's own photographs had nowhere to go at all.
+
+                    PHOTOGRAPHS ARE NOW DRAWN FOR A STAY AS WELL. The note here
+                    used to say a stay's photographs hang on its property and a
+                    link to a surface that cannot show what it saved is worse
+                    than no link, which was true while `accommodation_photos`
+                    had no writer anywhere in the application. /host/photos now
+                    serves both spines, so the door is honest on both.
                   */}
-                  {business.kind === "restaurant" && (
-                    <div className="flex flex-wrap gap-inline">
+                  <div className="flex flex-wrap gap-inline">
+                    {business.kind === "restaurant" && (
                       <Link href="/host/reservations" className="nf-chip">
                         Tables
                       </Link>
-                      <Link href={`/host/photos?business=${business.id}`} className="nf-chip">
-                        Photographs
-                      </Link>
-                    </div>
-                  )}
+                    )}
+                    <Link href={`/host/photos?business=${business.id}`} className="nf-chip">
+                      Photographs
+                    </Link>
+                  </div>
                 </Row>
               ))}
             </RowList>

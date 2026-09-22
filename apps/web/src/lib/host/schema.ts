@@ -193,3 +193,60 @@ export const businessPhotoSchema = z.object({
 export const businessPhotoIdSchema = z.object({
   photoId: z.uuid("That photograph could not be identified."),
 });
+
+/**
+ * One photograph of an accommodation, already uploaded to the public bucket.
+ *
+ * The accommodation twin of `businessPhotoSchema`, same shape and same
+ * reasoning. The two spines are separate tables with separate owner helpers
+ * (`private.owns_accommodation` against `private.owns_business`), so they are
+ * separate schemas rather than one with an optional key: a call that named
+ * neither, or both, would have to be refused at runtime by an action instead
+ * of at the boundary by a type.
+ */
+export const accommodationPhotoSchema = z.object({
+  accommodationId: z.uuid("That property could not be identified."),
+  storagePath: z
+    .string()
+    .trim()
+    .min(1, "That upload could not be identified.")
+    .max(400, "That upload could not be identified."),
+});
+
+/** One accommodation photograph already on record, named for removal. */
+export const accommodationPhotoIdSchema = z.object({
+  photoId: z.uuid("That photograph could not be identified."),
+});
+
+/* ------------------------------------------------------- nightly inventory */
+
+/** A date the way `room_inventory.date` stores it, and nothing looser. */
+const isoDay = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "That is not a date. Use the date picker.");
+
+/**
+ * How many of a room type are on sale across a run of nights.
+ *
+ * `unitsOpen` of zero is a closure rather than a missing value, which is why
+ * it is a number with a floor of zero and never an optional. The ceiling is
+ * checked by the database against the room type's own `units_total`, because
+ * only the database knows that number at the moment of the write; 500 here is
+ * a sanity bound on what a form may post, not a product rule.
+ */
+export const roomNightsSchema = z
+  .object({
+    roomTypeId: z.uuid("That room type could not be identified."),
+    from: isoDay,
+    to: isoDay,
+    unitsOpen: z
+      .number()
+      .int("Rooms come in whole numbers.")
+      .min(0, "That cannot be fewer than none.")
+      .max(500, "That is more rooms than any one type holds."),
+  })
+  .refine((value) => value.to >= value.from, {
+    message: "The last night cannot come before the first.",
+    path: ["to"],
+  });

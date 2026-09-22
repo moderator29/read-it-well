@@ -33,7 +33,16 @@ function complete(over: Partial<HostDraft> = {}): HostDraft {
     representativeName: "Ada Obi",
     representativePhone: "+2348031234567",
     documents: { identity: true },
-    accommodation: { id: "a", name: "Ada's Place", hasPin: true, photoCount: 3 },
+    accommodation: {
+      id: "a",
+      name: "Ada's Place",
+      hasPin: true,
+      photos: [
+        { id: "p1", url: "/brand/photos/bedroom-01.jpg" },
+        { id: "p2", url: "/brand/photos/bedroom-02.jpg" },
+        { id: "p3", url: "/brand/photos/bedroom-03.jpg" },
+      ],
+    },
     roomTypeCount: 1,
     ratePlanCount: 1,
     hasBankAccount: true,
@@ -108,7 +117,7 @@ describe("missingFrom", () => {
 
   it("names the pin and the photos separately", () => {
     const missing = missingFrom(
-      complete({ accommodation: { id: "a", name: "x", hasPin: false, photoCount: 0 } }),
+      complete({ accommodation: { id: "a", name: "x", hasPin: false, photos: [] } }),
     );
     expect(missing).toContain("The pin on the map");
     expect(missing).toContain("At least one photo of the property");

@@ -376,7 +376,16 @@ export type HostDraft = {
     id: string;
     name: string;
     hasPin: boolean;
-    photoCount: number;
+    /**
+     * The photographs on record, cover first, rather than a count of them.
+     *
+     * A COUNT WAS ALL THIS CARRIED WHILE THERE WAS NOWHERE TO UPLOAD ONE. The
+     * wizard could only say how many existed and then tell the host that
+     * property photographs arrived "with the next host release", while
+     * `missingFrom` below refused to submit without one. Now that the property
+     * step manages them, it needs the rows themselves to draw them.
+     */
+    photos: { id: string; url: string }[];
   } | null;
   roomTypeCount: number;
   ratePlanCount: number;
@@ -467,7 +476,7 @@ export function missingFrom(draft: HostDraft): string[] {
     if (!draft.accommodation) {
       missing.push("The property");
     } else {
-      if (draft.accommodation.photoCount === 0) missing.push("At least one photo of the property");
+      if (draft.accommodation.photos.length === 0) missing.push("At least one photo of the property");
       if (!draft.accommodation.hasPin) missing.push("The pin on the map");
     }
     if (draft.roomTypeCount === 0) missing.push("At least one room type");

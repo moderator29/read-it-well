@@ -42,6 +42,7 @@ import {
   resolveBankAccount,
 } from "@/lib/payments/bank-accounts-actions";
 import { HostDocumentUploader } from "./HostDocumentUploader";
+import { AccommodationPhotoManager } from "./AccommodationPhotoManager";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -54,9 +55,12 @@ import { HostDocumentUploader } from "./HostDocumentUploader";
  * so a dropped connection loses nothing, and the server's draft wins on
  * arrival because it is what a reviewer will read.
  *
- * WHAT IS HONEST HERE. The property's photos are read (a count) and never
- * faked: `lib/host` has no photo action yet, so the step says how many are
- * on record and the review step names the gap. The map pin is two real
+ * WHAT IS HONEST HERE. The property's photographs are uploaded on the
+ * property step itself, through `AccommodationPhotoManager`, and the review
+ * step names the gap until one is on record. That step used to say photo
+ * upload for properties arrived with the next host release, while the
+ * submission gate refused an accommodation with no photograph: nine steps
+ * filled in and no way to press send. The map pin is two real
  * coordinates, filled from the device's own location on request. The bank
  * account is resolved with the bank before it is saved and the resolved
  * name is what is shown. Submission is `submitHostApplication`, which
@@ -593,7 +597,7 @@ function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
   );
 }
 
-function PropertyStep({ draft, policies, pending, fieldErrors, run, setNotice }: StepProps) {
+function PropertyStep({ draft, userId, policies, pending, fieldErrors, run, setNotice }: StepProps) {
   const [name, setName] = useState(draft.accommodation?.name ?? "");
   const [description, setDescription] = useState("");
   const [stars, setStars] = useState("");
@@ -641,8 +645,8 @@ function PropertyStep({ draft, policies, pending, fieldErrors, run, setNotice }:
         <h2 className="nf-host-group__title">The property</h2>
         {draft.accommodation && (
           <p className="nf-host-group__note">
-            On record: {draft.accommodation.name}, {draft.accommodation.photoCount} photo
-            {draft.accommodation.photoCount === 1 ? "" : "s"}, pin {draft.accommodation.hasPin ? "set" : "not set"}.
+            On record: {draft.accommodation.name}, {draft.accommodation.photos.length} photo
+            {draft.accommodation.photos.length === 1 ? "" : "s"}, pin {draft.accommodation.hasPin ? "set" : "not set"}.
           </p>
         )}
         <div className="mt-md flex flex-col gap-sm">
@@ -683,14 +687,36 @@ function PropertyStep({ draft, policies, pending, fieldErrors, run, setNotice }:
           Use my location
         </Button>
       </section>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">Photos</h2>
-        <p className="nf-host-group__note">
-          {draft.accommodation
-            ? `${draft.accommodation.photoCount} on record. Photo upload for properties arrives with the next host release; the review step names it while it is missing.`
-            : "Save the property first."}
-        </p>
-      </section>
+      {/*
+        THE STEP THAT COULD NOT BE FINISHED, FINISHED.
+
+        This section read "Photo upload for properties arrives with the next
+        host release" while `missingFrom` refused to submit an accommodation
+        with no photograph, so a hotel or a shortlet host filled in nine steps
+        and could never press send. The manager below writes to
+        `accommodation_photos`, which has had its table, its bucket, its RLS
+        and its catalogue trigger since M3 and no writer until now.
+
+        Photographs hang on the property row, so the upload appears only once
+        the property has been saved: a drop target that could not name what it
+        was attaching to would fail on the server after the file had already
+        gone up.
+      */}
+      {draft.accommodation ? (
+        <AccommodationPhotoManager
+          accommodationId={draft.accommodation.id}
+          userId={userId}
+          photos={draft.accommodation.photos}
+        />
+      ) : (
+        <section className="nf-host-group">
+          <h2 className="nf-host-group__title">Photographs of the property</h2>
+          <p className="nf-host-group__note">
+            Save the property first and the photographs hang on it. At least one is needed before
+            you can send the application.
+          </p>
+        </section>
+      )}
       <Button variant="primary" size="lg" full onClick={save} disabled={pending || name.trim().length < 2} loading={pending}>
         Save the property
       </Button>

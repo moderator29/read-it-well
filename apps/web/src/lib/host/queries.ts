@@ -24,6 +24,7 @@ import {
   type HostType,
 } from "./onboarding";
 import type { Database } from "../supabase/database.types";
+import { accommodationPhotoUrl } from "../stays/photos";
 import {
   BUSINESS_TIER_NAME,
   asBusinessTier,
@@ -101,7 +102,7 @@ export async function getMyHostDraft(): Promise<HostDraft> {
       session.supabase.from("business_documents").select("kind").eq("business_id", business.id),
       session.supabase
         .from("accommodations")
-        .select("id, name, latitude, longitude, accommodation_photos(id)")
+        .select("id, name, latitude, longitude, accommodation_photos(id, storage_path, position)")
         .eq("business_id", business.id)
         .order("created_at", { ascending: true })
         .limit(1),
@@ -167,7 +168,14 @@ export async function getMyHostDraft(): Promise<HostDraft> {
             /* Both halves of the pin, because one without the other is not a
                place on a map (MK-55). */
             hasPin: accommodation.latitude !== null && accommodation.longitude !== null,
-            photoCount: accommodation.accommodation_photos.length,
+            /* Cover first, because position 0 is the cover everywhere these
+               rows are read and the embed does not promise an order. */
+            photos: [...accommodation.accommodation_photos]
+              .sort((a, b) => a.position - b.position)
+              .map((photo) => ({
+                id: photo.id,
+                url: accommodationPhotoUrl(photo.storage_path),
+              })),
           }
         : null,
       roomTypeCount,
@@ -221,6 +229,131 @@ export async function getMyBusinesses(): Promise<MyBusiness[]> {
       reviewNotes: row.review_notes,
       createdAt: row.created_at,
     }));
+  } catch {
+    return [];
+  }
+}
+
+/** One of the caller's properties, as the photograph surface needs it. */
+export type MyAccommodation = {
+  id: string;
+  name: string;
+  status: ListingStatus;
+};
+
+/**
+ * The property a business lets, for a surface that hangs something on it.
+ *
+ * ONE PER BUSINESS TODAY, which is the wizard's own rule (`addAccommodationDraft`
+ * creates or updates the first one and says why), so this returns the oldest
+ * and null when there is none. A host with a second property adds it from a
+ * console that does not exist yet; when it does, this becomes a list and every
+ * caller of it gains a picker, exactly as `/host/photos` already draws one for
+ * a second business.
+ *
+ * Scoped by `accommodations_owner_all` through the business row, so another
+ * host's property does not come back. Null on any failure: a photograph
+ * surface with nothing to hang on draws an empty state, never a crash.
+ */
+export async function getPrimaryAccommodation(
+  businessId: string,
+): Promise<MyAccommodation | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+
+  try {
+    const { data, error } = await session.supabase
+      .from("accommodations")
+      .select("id, name, status, businesses!inner(owner_id)")
+      .eq("business_id", businessId)
+      .eq("businesses.owner_id", session.user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) return null;
+    return { id: data.id, name: data.name, status: data.status };
+  } catch {
+    return null;
+  }
+}
+
+/** One room type as the host's own room console shows it. */
+export type MyRoomType = {
+  id: string;
+  name: string;
+  category: Database["public"]["Enums"]["room_category"];
+  sleeps: number;
+  unitsTotal: number;
+  /** The lowest active rate on the type, in kobo, or null when it has none. */
+  lowestRateMinor: number | null;
+  status: ListingStatus;
+  /** Nights from today onwards that carry an inventory row. */
+  nightsOnSale: number;
+  /** The last night on sale, ISO, or null when none is. */
+  lastNightOnSale: string | null;
+};
+
+/**
+ * The rooms of one property, with what is on sale, for the host's console.
+ *
+ * WHY THE NIGHT COUNT IS HERE AND NOT A GUESS ON THE SCREEN. `stays_search`
+ * treats a missing `room_inventory` row as NOT OFFERED, so "how far ahead am I
+ * bookable" is the single question this surface exists to answer, and it can
+ * only be answered by counting the rows. Nothing is inferred from a horizon
+ * constant: what is printed is what the table holds.
+ *
+ * Scoped by `room_types_owner_all` and `room_inventory_owner_write`'s select
+ * twin, so another host's rooms do not come back. Empty on any failure.
+ */
+export async function getMyRoomTypes(accommodationId: string): Promise<MyRoomType[]> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return [];
+
+  try {
+    const { data, error } = await session.supabase
+      .from("room_types")
+      .select("id, name, category, sleeps, units_total, status, rate_plans(rate_minor, active)")
+      .eq("accommodation_id", accommodationId)
+      .order("created_at", { ascending: true })
+      .limit(50);
+    if (error || !data) return [];
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: nights } = await session.supabase
+      .from("room_inventory")
+      .select("room_type_id, date")
+      .in(
+        "room_type_id",
+        data.map((room) => room.id),
+      )
+      .gte("date", today)
+      .order("date", { ascending: false })
+      .limit(20_000);
+
+    const counted = new Map<string, { nights: number; last: string }>();
+    for (const night of nights ?? []) {
+      const seen = counted.get(night.room_type_id);
+      /* Ordered newest first, so the first night seen for a room type is the
+         furthest ahead it is bookable. */
+      if (seen) seen.nights += 1;
+      else counted.set(night.room_type_id, { nights: 1, last: night.date });
+    }
+
+    return data.map((room) => {
+      const active = room.rate_plans.filter((plan) => plan.active).map((plan) => plan.rate_minor);
+      const sale = counted.get(room.id);
+      return {
+        id: room.id,
+        name: room.name,
+        category: room.category,
+        sleeps: room.sleeps,
+        unitsTotal: room.units_total,
+        lowestRateMinor: active.length > 0 ? Math.min(...active) : null,
+        status: room.status,
+        nightsOnSale: sale?.nights ?? 0,
+        lastNightOnSale: sale?.last ?? null,
+      };
+    });
   } catch {
     return [];
   }

@@ -40,15 +40,19 @@ import {
 import type { Database } from "../supabase/database.types";
 import { documentPathBelongsTo, missingFrom, type HostType } from "./onboarding";
 import { MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
+import { MAX_NIGHTS_IN_ONE_ACT, nightsBetween } from "../stays/inventory";
 import { getMyHostDraft } from "./queries";
 import {
   accommodationDraftSchema,
+  accommodationPhotoIdSchema,
+  accommodationPhotoSchema,
   businessPhotoIdSchema,
   businessPhotoSchema,
   hostDocumentSchema,
   hostDraftSchema,
   ratePlanDraftSchema,
   restaurantProfileDraftSchema,
+  roomNightsSchema,
   roomTypeDraftSchema,
   serviceWindowDraftSchema,
 } from "./schema";
@@ -88,6 +92,31 @@ function refreshVenueSurfaces(): void {
   revalidatePath("/host");
   revalidatePath("/host/photos");
   revalidatePath("/restaurants");
+}
+
+/**
+ * The surfaces a photograph of a PROPERTY changes: the owner's own manager,
+ * the application it is still part of, and the guest surfaces that draw the
+ * stay. `/host/apply` is on this list and `/restaurants` is not, because an
+ * accommodation photograph is a submission requirement while it is being
+ * gathered, which is exactly when the review step must stop saying it is
+ * missing.
+ */
+/**
+ * The surfaces a night on sale changes: the host's own room console, and the
+ * stays shelf, where `stays_search` reads the nights directly.
+ */
+function refreshRoomSurfaces(): void {
+  revalidatePath("/host");
+  revalidatePath("/host/rooms");
+  revalidatePath("/stays");
+}
+
+function refreshPropertySurfaces(): void {
+  revalidatePath("/host");
+  revalidatePath("/host/apply");
+  revalidatePath("/host/photos");
+  revalidatePath("/stays");
 }
 
 /** A URL-safe slug from a name, with a short suffix so two hosts may share one. */
@@ -741,4 +770,239 @@ export async function removeBusinessPhoto(input: unknown): Promise<ActionResult<
 
   refreshVenueSurfaces();
   return ok(null);
+}
+
+/* ------------------------------------------ photographs of a property */
+
+/**
+ * The caller's own accommodation, at ANY status, or the sentence that says
+ * why not.
+ *
+ * The same argument as `ownedBusiness` above, one spine over. Photographs are
+ * not an answer on a form: they arrive while the application is with our team
+ * and they are replaced for years afterwards, so `editableBusiness`, which
+ * shuts on SUBMITTED, is the wrong gate for them. Ownership is the gate, and
+ * `accommodation_photos_write` re-checks it through
+ * `private.owns_accommodation` on the write itself.
+ *
+ * The read walks `accommodations` to `businesses` because ownership lives on
+ * the business row: `accommodations_owner_all` already scopes this select, so
+ * a property on somebody else's account simply does not come back.
+ */
+async function ownedAccommodation(
+  accommodationId: string,
+): Promise<
+  { ok: false; result: ActionResult<never> } | { ok: true; userId: string }
+> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return { ok: false, result: fail(NOT_CONFIGURED_MESSAGE) };
+  if (session.state === "signed-out") return { ok: false, result: fail(SIGNED_OUT_MESSAGE) };
+
+  const { data, error } = await session.supabase
+    .from("accommodations")
+    .select("id, businesses!inner(owner_id)")
+    .eq("id", accommodationId)
+    .eq("businesses.owner_id", session.user.id)
+    .maybeSingle();
+  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
+  if (!data) return { ok: false, result: fail(NOT_YOURS_MESSAGE) };
+  return { ok: true, userId: session.user.id };
+}
+
+/**
+ * Record a photograph of a property the browser has already put in the bucket.
+ *
+ * THIS IS THE ACTION THAT WAS MISSING, and its absence was the hardest dead
+ * end in the product: `missingFrom` blocks submission when an accommodation
+ * carries no photograph, and until now nothing anywhere in the application
+ * could put one there. Every hotel and every shortlet stopped at the review
+ * step with a requirement the product offered no way to meet.
+ *
+ * The rules are `addBusinessPhoto`'s, because a second pattern for the same
+ * act on a neighbouring table is how the two come to disagree. The position is
+ * decided here and is the lowest free one, so the first photograph is the
+ * cover and taking the cover down promotes the next. The path is checked
+ * against the caller's own uid prefix before any write; storage RLS enforces
+ * the same rule on the upload, so a path that fails here was never written by
+ * this person.
+ */
+export async function addAccommodationPhoto(
+  input: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = validate(accommodationPhotoSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const guarded = await ownedAccommodation(parsed.data.accommodationId);
+  if (!guarded.ok) return guarded.result;
+
+  if (!documentPathBelongsTo(guarded.userId, parsed.data.storagePath)) {
+    return fail(
+      "That upload did not come from your own account, so we did not file it. Please choose the photograph again.",
+    );
+  }
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+
+  const { data: taken, error: readError } = await session.supabase
+    .from("accommodation_photos")
+    .select("position")
+    .eq("accommodation_id", parsed.data.accommodationId)
+    .order("position", { ascending: true });
+  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+
+  const position = nextPhotoPosition((taken ?? []).map((row) => row.position));
+  if (position === null) {
+    return fail(
+      `A property carries up to ${MAX_BUSINESS_PHOTOS} photographs. Take one down and add this in its place.`,
+    );
+  }
+
+  const { data, error } = await session.supabase
+    .from("accommodation_photos")
+    .insert({
+      accommodation_id: parsed.data.accommodationId,
+      storage_path: parsed.data.storagePath,
+      position,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    if (error?.code === "23505") {
+      return fail("That photograph landed at the same moment as another. Try it again.");
+    }
+    return fail("That photograph did not attach. Choose the file again.");
+  }
+
+  refreshPropertySurfaces();
+  return ok({ id: data.id });
+}
+
+/**
+ * Take one photograph of a property down.
+ *
+ * The row goes and the object stays, for `removeBusinessPhoto`'s reason: the
+ * bucket is swept by the account deletion purge, and deleting a public object
+ * from under a page that may still be rendering it is how a live property ends
+ * up with a broken image. What a guest sees is decided by the rows.
+ */
+export async function removeAccommodationPhoto(input: unknown): Promise<ActionResult<null>> {
+  const parsed = validate(accommodationPhotoIdSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  /* Scoped by RLS (`accommodation_photos_write` admits the owner and an
+     admin), so a photograph on somebody else's property simply does not move
+     and the count says so rather than the policy being restated here. */
+  const { error, count } = await session.supabase
+    .from("accommodation_photos")
+    .delete({ count: "exact" })
+    .eq("id", parsed.data.photoId);
+  if (error) return fail(SERVICE_DOWN_MESSAGE);
+  if (count === 0) return fail(NOT_YOURS_MESSAGE);
+
+  refreshPropertySurfaces();
+  return ok(null);
+}
+
+/* ------------------------------------------------------ nightly inventory */
+
+/**
+ * The caller's own room type, or the sentence that says why not.
+ *
+ * Walks room type to accommodation to business, because ownership lives on
+ * the business row. `room_types_owner_all` already scopes this select and
+ * `room_inventory_owner_write` re-checks the same thing through
+ * `private.owns_room_type` on the write itself, so this read is the polite
+ * refusal rather than the security boundary.
+ */
+async function ownedRoomType(
+  roomTypeId: string,
+): Promise<
+  | { ok: false; result: ActionResult<never> }
+  | { ok: true; unitsTotal: number; name: string }
+> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return { ok: false, result: fail(NOT_CONFIGURED_MESSAGE) };
+  if (session.state === "signed-out") return { ok: false, result: fail(SIGNED_OUT_MESSAGE) };
+
+  const { data, error } = await session.supabase
+    .from("room_types")
+    .select("id, name, units_total, accommodations!inner(businesses!inner(owner_id))")
+    .eq("id", roomTypeId)
+    .eq("accommodations.businesses.owner_id", session.user.id)
+    .maybeSingle();
+  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
+  if (!data) return { ok: false, result: fail(NOT_YOURS_MESSAGE) };
+  return { ok: true, unitsTotal: data.units_total, name: data.name };
+}
+
+/**
+ * Set how many of one room type are on sale across a run of nights.
+ *
+ * THE WRITE THAT NOTHING PERFORMED. `room_inventory` was created in M5 with
+ * its oversell lock and its RLS, and the only two mentions of the table in the
+ * whole of `apps/web/src` were comments. `stays_search` treats a missing night
+ * as NOT OFFERED, so a hotel with no rows could not be found by anybody who
+ * typed dates. This is the surface's half of closing that; the other half is
+ * the horizon opened when a property is published.
+ *
+ * ZERO IS A CLOSURE, NOT AN ABSENCE, and that distinction is the reason this
+ * is an upsert rather than a delete. A row saying none are open tonight is the
+ * host's decision, recorded and visible to them. A missing row is silence, and
+ * silence and refusal look the same to a search but not to a person.
+ *
+ * WHAT THE DATABASE REFUSES AND THIS DOES NOT RESTATE: more rooms than the
+ * type holds (`private.room_inventory_within_total`), and fewer open than are
+ * already sold (`units_booked <= units_open`). Both come back as check
+ * violations and are turned into the sentence the host needs, because the
+ * second one means a guest has booked that night and the host is looking at
+ * the wrong number, not at a bug.
+ */
+export async function setRoomNights(input: unknown): Promise<ActionResult<{ nights: number }>> {
+  const parsed = validate(roomNightsSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { roomTypeId, from, to, unitsOpen } = parsed.data;
+
+  const guarded = await ownedRoomType(roomTypeId);
+  if (!guarded.ok) return guarded.result;
+
+  if (unitsOpen > guarded.unitsTotal) {
+    return fail(
+      `You told us there are ${guarded.unitsTotal} of these, so ${unitsOpen} cannot be on sale. Change the room type first if you have more.`,
+      { unitsOpen: `At most ${guarded.unitsTotal}.` },
+    );
+  }
+
+  const dates = nightsBetween(from, to);
+  if (dates.length === 0) return fail("The last night cannot come before the first.");
+  if (dates.length > MAX_NIGHTS_IN_ONE_ACT) {
+    return fail(
+      `That is ${dates.length} nights. Set up to ${MAX_NIGHTS_IN_ONE_ACT} at a time so nothing is lost part way.`,
+    );
+  }
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+
+  const { error } = await session.supabase.from("room_inventory").upsert(
+    dates.map((date) => ({ room_type_id: roomTypeId, date, units_open: unitsOpen })),
+    { onConflict: "room_type_id,date" },
+  );
+  if (error) {
+    if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    if (error.code === "23514") {
+      return fail(
+        "One of those nights already has more rooms booked than you are leaving open. Open at least as many as are sold, or pick a different run of nights.",
+      );
+    }
+    return fail(SERVICE_DOWN_MESSAGE);
+  }
+
+  refreshRoomSurfaces();
+  return ok({ nights: dates.length });
 }
