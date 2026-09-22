@@ -268,7 +268,7 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
     return (
       <EmptyChart
         height={220}
-        yLabels={["₦0", "", "", "", ""]}
+        yLabels={niceTicks(100_000_000).map((v) => formatMoney(v, locale, "NGN", { compact: true }))}
         xLabels={series.buckets.map((b, i) =>
           monthly || i % (series.range === "90d" ? 3 : 7) === 0 ? (monthly ? monthTick(b.start, locale) : dayTick(b.start, locale)) : "",
         )}
@@ -354,7 +354,7 @@ function RoleChart({ byRole, locale }: { byRole: ListingsByRole | null; locale: 
     return (
       <EmptyChart
         height={200}
-        yLabels={["0", "", "", "", ""]}
+        yLabels={niceTicks(10, 5).map((v) => String(v))}
         legend={["Owner", "Agent", "Firm"]}
         xLabels={byRole.months.map((m) => monthTick(m.month, locale))}
         note={{
