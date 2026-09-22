@@ -198,6 +198,7 @@ work and nothing waits on it that can be built around.
 
 | Item | Why it is his |
 | --- | --- |
+| `vallo_site_url` in Supabase Vault | **THE MOST URGENT ITEM ON THIS LIST.** It points at a per-deployment Vercel URL that no longer exists instead of the stable production alias, so the ONLY job that recovers a Paystack charge whose webhook never arrived has been dead since 29 AUGUST. Verified by the lead against the live database: the last `wallet.reconciliation.run` audit row is 29 August, and `net._http_response` holds six 404s in the last twenty four hours whose body reads `DEPLOYMENT_NOT_FOUND`. The scheduler reported `succeeded` every hour throughout, because the function fires an asynchronous request and never reads the answer. One Vault value fixes it and only the founder can set it. |
 | Leaked password protection | One click in the Supabase dashboard. Still disabled. |
 | `NEXT_PUBLIC_MAPTILER_KEY` | Unset, so a commercial marketplace is serving non commercial basemap tiles. |
 | Real supply | 64 listings, 64 published, 64 of 64 `is_demo`. The engine is real and the shop is empty. Ours is to stop the product claiming otherwise. |
