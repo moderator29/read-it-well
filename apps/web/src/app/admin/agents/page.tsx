@@ -8,6 +8,7 @@ import { ApplicationDecision, VerificationRungDecision } from "../_components/Ad
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { QueueTable, type QueueRowData } from "../_components/QueueTable";
+import { DocumentViewer } from "../_components/DocumentViewer";
 import {
   QueueFilters,
   queueNarrowed,
@@ -218,8 +219,9 @@ function ApplicationCard({
           }
         />
         {/* The whole point of a verification queue is seeing the document, so
-            each one is a real link. The bucket is private and these signatures
-            are short lived, so nothing here is a durable public URL. */}
+            each one opens. It used to open on `supabase.co`, in a new tab,
+            behind a signed URL that sat in this page's DOM; it opens in a
+            Vallo sheet now and no URL is handed out at all. */}
         {application.documents.length > 0 && (
           <ul className="mt-xs flex flex-wrap gap-xs px-md pb-sm">
             {application.documents.map((doc) => {
@@ -227,24 +229,13 @@ function ApplicationCard({
                 copy.documentKinds[doc.kind as keyof typeof copy.documentKinds] ?? doc.kind;
               return (
                 <li key={doc.id}>
-                  {doc.url ? (
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="nf-chip text-[var(--nf-text-overline)]"
-                    >
-                      {label}
-                      <span className="text-[var(--nf-content-muted)]">{copy.documentOpen}</span>
-                    </a>
-                  ) : (
-                    <span className="nf-chip text-[var(--nf-text-overline)] opacity-60">
-                      {label}
-                      <span className="text-[var(--nf-content-muted)]">
-                        {copy.documentUnavailable}
-                      </span>
-                    </span>
-                  )}
+                  <DocumentViewer
+                    documentId={doc.id}
+                    media={doc.media}
+                    label={`${label} ${copy.documentOpen}`}
+                    title={label}
+                    className="nf-chip text-[var(--nf-text-overline)]"
+                  />
                 </li>
               );
             })}

@@ -10,16 +10,17 @@ import "server-only";
  *
  * WHAT A REVIEWER ACTUALLY NEEDS IN FRONT OF THEM, per
  * docs/research/HOST_ONBOARDING_RESEARCH.md section 3.4: the business fields,
- * the uploaded documents behind short-lived signed URLs, the CAC number and
+ * the uploaded documents opened in place, the CAC number and
  * registered name to compare against the free public search, the resolved
  * bank name beside the identity and business names, the rungs already
  * recorded, and whether the property is actually publishable (a cover photo
  * and the pin, MK-55). A decision taken without those is a tick, not a review.
  *
- * THE SIGNED URL IS THE POINT, exactly as in kyc-queries.ts: host-documents
- * is a private bucket because these objects are driving licences and CAC
- * certificates. The reviewer gets a short-lived URL minted per request and
- * nothing is ever handed out beyond the person looking at the queue.
+ * THE PRIVATE BUCKET IS THE POINT, exactly as in kyc-queries.ts:
+ * host-documents is private because these objects are driving licences and
+ * CAC certificates. It used to hand the reviewer a short-lived signed URL,
+ * which the desk then opened in a tab on `supabase.co`. It hands out no URL
+ * at all now: see `app/api/documents/[id]/route.ts`.
  *
  * Reads go through the service role, but only after `requireAdmin` has passed
  * inside this module, the same shape `bookings-queries.ts` uses: the console
@@ -29,6 +30,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
+import { documentMedia, type DocumentMedia } from "./documents";
 import { requireAdmin } from "./guard";
 import {
   lagosDayEnd,
@@ -47,10 +49,6 @@ type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
 const UNAVAILABLE = { state: "unavailable" } as const;
 
-const DOCUMENT_BUCKET = "host-documents";
-
-/** Long enough to open a PDF and read it. Short enough not to be a leak. */
-const SIGNED_SECONDS = 600;
 
 /** The rungs, in the order a real host passes them (M15, and lib/trust). */
 export const BUSINESS_RUNGS = ["identity", "registration", "payout", "on_site"] as const;
@@ -71,7 +69,8 @@ export type BusinessDocumentView = {
   kind: string;
   uploadedAt: string;
   /** A short-lived URL that opens the actual file. Null if it would not sign. */
-  url: string | null;
+  /** How the in-app viewer draws it. See `lib/admin/documents.ts`. */
+  media: DocumentMedia;
 };
 
 export type BusinessRungView = {
@@ -282,11 +281,6 @@ export async function getBusinessQueue(
         ]),
       ]);
 
-    const urls = await signDocuments(
-      admin,
-      (documents.data ?? []).map((row) => row.storage_path),
-    );
-
     const payoutByUser = new Map<string, { name: string; bank: string }>();
     for (const row of payouts.data ?? []) {
       if (!payoutByUser.has(row.user_id) || row.is_default) {
@@ -354,7 +348,7 @@ export async function getBusinessQueue(
             id: row.id,
             kind: row.kind,
             uploadedAt: row.uploaded_at,
-            url: urls.get(row.storage_path) ?? null,
+            media: documentMedia(row.storage_path),
           })),
         rungs: (rungs.data ?? [])
           .filter((row) => row.business_id === business.id)
@@ -450,25 +444,13 @@ async function displayNames(admin: Db, ids: string[]): Promise<Map<string, strin
   return out;
 }
 
-/**
- * A signed URL per document, in one call. A path that fails to sign comes
- * back absent and the row renders without a link rather than with a broken
- * one: a reviewer clicking a dead link and getting a storage error page has
- * been told nothing useful.
+/*
+ * `signDocuments` STOOD HERE AND IT IS GONE ON PURPOSE.
+ *
+ * It minted a ten minute signed Supabase Storage URL per document and the
+ * desk opened it with `target="_blank"`, so a reviewer read a driving licence
+ * or a CAC certificate on `supabase.co` and the live signed link sat in our
+ * DOM to be forwarded. Nothing signs for a browser now:
+ * `/api/documents/<id>` streams from our own origin behind `requireAdmin`,
+ * uncached, with an audit row per view.
  */
-async function signDocuments(admin: Db, paths: string[]): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  const unique = [...new Set(paths.filter(Boolean))];
-  if (unique.length === 0) return out;
-  try {
-    const { data } = await admin.storage
-      .from(DOCUMENT_BUCKET)
-      .createSignedUrls(unique, SIGNED_SECONDS);
-    for (const entry of data ?? []) {
-      if (entry.path && entry.signedUrl) out.set(entry.path, entry.signedUrl);
-    }
-  } catch {
-    /* Storage unreachable. The queue still lists what is waiting. */
-  }
-  return out;
-}

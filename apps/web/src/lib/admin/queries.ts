@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
+import { documentMedia, type DocumentMedia } from "./documents";
 import { requireAdmin } from "./guard";
 import {
   lagosDayEnd,
@@ -534,7 +535,7 @@ export type ApplicationView = {
    * signature could not be minted, which the console says out loud rather than
    * rendering a link that leads nowhere.
    */
-  documents: { id: string; kind: string; url: string | null }[];
+  documents: { id: string; kind: string; media: DocumentMedia }[];
   submittedAt: string | null;
   reviewedAt: string | null;
   reviewNotes: string | null;
@@ -570,38 +571,35 @@ type ApplicationRow = {
   agent_documents: { id: string; kind: string; storage_path: string }[];
 };
 
-/** How long a reviewer's link to an identity document stays valid. */
-const DOCUMENT_URL_TTL_SECONDS = 600;
-
 /**
- * Mint one signed URL per uploaded document.
+ * Describe each uploaded document, WITHOUT minting a URL for the browser.
  *
- * These objects are identity documents in a private bucket, so they are never
- * linked directly and never handed a long life. Ten minutes is enough to open
- * one during a review and short enough that a copied console URL is worthless
- * soon after. A failure yields a null url rather than an exception, because a
- * missing signature must not take the whole applications queue down.
+ * This used to mint a ten minute signed Supabase Storage URL per document and
+ * the desk rendered each one as a chip with `target="_blank"`, so an operator
+ * read a NIN slip or a passport on `supabase.co`: another company's origin,
+ * another company's tab, outside our content security policy and outside the
+ * audit trail, with the live signed link sitting in our DOM where anything
+ * could read it and anybody could forward it.
+ *
+ * No signature reaches a browser now. All this returns is that the document
+ * exists and what shape it is, which is what the in-app viewer needs to
+ * choose how to draw it. The bytes come from `/api/documents/<id>` on our own
+ * origin, behind `requireAdmin`, uncached, one audit row per view.
+ *
+ * It no longer touches storage, so it cannot fail, so there is nothing left
+ * to swallow.
  */
-async function signDocuments(
-  admin: SupabaseClient<Database>,
+/** How long a reviewer's link to a walkthrough video stays valid. */
+const SIGNED_MEDIA_TTL_SECONDS = 600;
+
+function describeDocuments(
   rows: { id: string; kind: string; storage_path: string }[],
-): Promise<ApplicationView["documents"]> {
-  if (rows.length === 0) return [];
-  try {
-    const { data } = await admin.storage
-      .from("agent-documents")
-      .createSignedUrls(
-        rows.map((r) => r.storage_path),
-        DOCUMENT_URL_TTL_SECONDS,
-      );
-    return rows.map((row, index) => ({
-      id: row.id,
-      kind: row.kind,
-      url: data?.[index]?.signedUrl ?? null,
-    }));
-  } catch {
-    return rows.map((row) => ({ id: row.id, kind: row.kind, url: null }));
-  }
+): ApplicationView["documents"] {
+  return rows.map((row) => ({
+    id: row.id,
+    kind: row.kind,
+    media: documentMedia(row.storage_path),
+  }));
 }
 
 function toApplicationView(
@@ -721,18 +719,16 @@ export async function getAgentApplications(
     ]);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
-    // Signed one application at a time, so a single unreadable object cannot
-    // blank the documents on every other application in the queue.
-    const withDocuments = async (rows: ApplicationRow[]): Promise<ApplicationView[]> =>
-      Promise.all(
-        rows.map(async (row) => toApplicationView(row, await signDocuments(admin, row.agent_documents))),
-      );
+    /* Described rather than signed: nothing here touches storage any more, so
+       there is no per-application failure left to isolate and no await. */
+    const withDocuments = (rows: ApplicationRow[]): ApplicationView[] =>
+      rows.map((row) => toApplicationView(row, describeDocuments(row.agent_documents)));
 
     return {
       state: "ok",
       data: {
-        waiting: await withDocuments(waiting.data ?? []),
-        decided: await withDocuments(decided.data ?? []),
+        waiting: withDocuments(waiting.data ?? []),
+        decided: withDocuments(decided.data ?? []),
       },
     };
   } catch {
@@ -1006,7 +1002,7 @@ async function signListingVideos(
   try {
     const { data } = await admin.storage
       .from("listing-videos")
-      .createSignedUrls(paths, DOCUMENT_URL_TTL_SECONDS);
+      .createSignedUrls(paths, SIGNED_MEDIA_TTL_SECONDS);
     paths.forEach((path, index) => {
       const url = data?.[index]?.signedUrl;
       if (url) signed.set(path, url);
@@ -1102,16 +1098,37 @@ function toListingView(
   };
 }
 
-export type ListingQueue = { waiting: ListingReviewView[]; decided: ListingReviewView[] };
+export type ListingQueue = {
+  waiting: ListingReviewView[];
+  decided: ListingReviewView[];
+  /**
+   * True when there is another page of WAITING work behind this one.
+   *
+   * Only the waiting bucket pages, and the note above `getListingSubmissions`
+   * says why the other one does not.
+   */
+  full: boolean;
+};
 
 /**
  * Listing submissions, narrowed by the console's shared queue frame.
  *
- * The same two-bucket shape as `getAgentApplications`, for the same reason and
- * with the same consequence: a search, a status chip row and a date range, and
- * no pager, because "waiting on us" and "recently decided" are ordered by two
- * different columns and one cursor cannot walk both. The note on that function
- * is the long version.
+ * The same two-bucket shape as `getAgentApplications`: a search, a status chip
+ * row and a date range.
+ *
+ * ONLY THE WAITING BUCKET PAGES, AND IT HAD TO START. This read was capped at
+ * thirty waiting rows with no pager at all, so at the thirty-first submitted
+ * listing one became invisible to the reviewer, with nothing on the screen to
+ * say a row had been dropped. That is the worst shape a queue can have: a
+ * console that is wrong about how much work is waiting is worse than one that
+ * does not say.
+ *
+ * The old note argued there could be no pager because the two buckets are
+ * ordered by two different columns and one cursor cannot walk both. That is
+ * true of walking BOTH, and it was the wrong conclusion. "Recently decided" is
+ * a glance backwards and ten rows is all it was ever meant to be; "waiting on
+ * us" is the work, and the work is what has to be reachable. So one offset
+ * walks the waiting bucket and the decided list stays exactly as it was.
  *
  * The search is over the title and the city, which is how a reviewer describes
  * a listing to a colleague: "the Lekki three-bed". Not the address, which is
@@ -1127,6 +1144,7 @@ export async function getListingSubmissions(
 
   const term = (filter?.q ?? "").replace(/[,()*"\\]/g, "").trim();
   const status = pickStatus(Constants.public.Enums.listing_status, filter?.status);
+  const page = pageRange(filter);
   type ListingStatus = Database["public"]["Enums"]["listing_status"];
   const inBucket = <T extends ListingStatus>(bucket: readonly T[]): T[] =>
     status ? bucket.filter((value) => value === status) : [...bucket];
@@ -1155,7 +1173,9 @@ export async function getListingSubmissions(
         admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(waitingStatuses)),
       )
         .order("submitted_at", { ascending: false, nullsFirst: false })
-        .limit(30),
+        /* One row more than the page, so `takePage` can tell "there is another
+           page" from "this is the last one" with no second count query. */
+        .range(page.from, page.to),
       narrow(
         admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(decidedStatuses)),
       )
@@ -1164,14 +1184,16 @@ export async function getListingSubmissions(
     ]);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
-    const rows = [...(waiting.data ?? []), ...(decided.data ?? [])] as ListingRow[];
+    const waitingPage = takePage((waiting.data ?? []) as ListingRow[]);
+    const rows = [...waitingPage.rows, ...((decided.data ?? []) as ListingRow[])];
     const signedVideos = await signListingVideos(admin, rows);
 
     return {
       state: "ok",
       data: {
-        waiting: (waiting.data ?? []).map((row) => toListingView(admin, row, signedVideos)),
+        waiting: waitingPage.rows.map((row) => toListingView(admin, row, signedVideos)),
         decided: (decided.data ?? []).map((row) => toListingView(admin, row, signedVideos)),
+        full: waitingPage.full,
       },
     };
   } catch {

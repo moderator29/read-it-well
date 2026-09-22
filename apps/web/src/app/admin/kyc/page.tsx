@@ -19,6 +19,7 @@ import {
 } from "@/components/app/untranslated";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { DocumentDecision } from "../_components/MoneyDecisions";
+import { DocumentViewer } from "../_components/DocumentViewer";
 
 export const metadata: Metadata = {
   title: "Verification",
@@ -312,20 +313,19 @@ function SubjectCard({
               </p>
             )}
 
-            {doc.url ? (
-              <a
-                href={doc.url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-xs inline-block text-[var(--nf-text-caption)] font-medium underline"
-              >
-                Open the document
-              </a>
-            ) : (
-              <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                The file could not be reached just now. Reload to try again.
-              </p>
-            )}
+            {/* Opened in place. This was an anchor carrying a signed
+                Supabase URL with `target="_blank"`, so a reviewer read
+                somebody's NIN on `supabase.co`, in a tab that was not ours.
+                Nobody leaves Vallo. */}
+            <DocumentViewer
+              documentId={doc.id}
+              media={doc.media}
+              label="Open the document"
+              title={`${KIND_LABEL[doc.kind] ?? doc.kind}${
+                doc.subtype ? `, ${SUBTYPE_LABEL[doc.subtype] ?? doc.subtype}` : ""
+              }`}
+              className="mt-xs inline-block text-[var(--nf-text-caption)] font-medium underline"
+            />
 
             {decidable && doc.reviewStatus === "pending" && (
               <DocumentDecision documentId={doc.id} />

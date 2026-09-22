@@ -18,6 +18,7 @@ import {
   type QueueStatusOption,
 } from "../_components/QueueFilters";
 import { BusinessReviewDecision, PublishControl, RungDecision } from "./BusinessDecisions";
+import { DocumentViewer } from "../_components/DocumentViewer";
 
 export const metadata: Metadata = {
   title: "Businesses",
@@ -404,18 +405,16 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
                 {DOCUMENT_WORDS[doc.kind] ?? doc.kind}
               </span>
               <span className="nf-overline">{ui.when(doc.uploadedAt)}</span>
-              {doc.url ? (
-                <a
-                  href={doc.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="nf-caption ml-auto font-semibold underline"
-                >
-                  Open the file
-                </a>
-              ) : (
-                <span className="nf-caption ml-auto">The file could not be signed just now.</span>
-              )}
+              {/* Opened in place: this was a signed Supabase URL in a
+                  `target="_blank"` anchor, which read a driving licence on
+                  somebody else's origin. */}
+              <DocumentViewer
+                documentId={doc.id}
+                media={doc.media}
+                label="Open the file"
+                title={DOCUMENT_WORDS[doc.kind] ?? doc.kind}
+                className="nf-caption ml-auto font-semibold underline"
+              />
             </div>
           ))
         )}

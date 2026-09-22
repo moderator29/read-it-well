@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Constants, type Database } from "../supabase/database.types";
+import { documentMedia, type DocumentMedia } from "./documents";
 import { requireAdmin } from "./guard";
 import { lagosDayEnd, lagosDayStart, pickStatus, type AdminQueueFilter } from "./queue-filter";
 import type { AdminRead } from "./money-queries";
@@ -12,22 +13,18 @@ import type { AdminRead } from "./money-queries";
  * A reviewer could see that an agent had uploaded documents and had nowhere to
  * record a decision about any individual one. Approving somebody meant
  * approving their whole application on the strength of a thumbnail. This is the
- * read half of fixing that: every document waiting, with a signed URL that
- * actually opens it, and the ladder rung it belongs to beside it.
+ * read half of fixing that: every document waiting, openable in place, and
+ * the ladder rung it belongs to beside it.
  *
- * THE SIGNED URL IS THE POINT. agent-documents is a private bucket, correctly:
- * these objects are driving licences, NIN slips and CAC certificates, and a
- * public bucket serves straight from a CDN to anybody holding the path. The
- * reviewer gets a short-lived signed URL minted here, per request, and nothing
- * is ever handed out beyond the person looking at the queue.
+ * THE PRIVATE BUCKET IS THE POINT, AND IT IS NO LONGER SIGNED FOR A BROWSER.
+ * agent-documents is private, correctly: these objects are driving licences,
+ * NIN slips and CAC certificates. This file used to mint a ten minute signed
+ * URL per document and hand it to the page, which opened it in a new tab on
+ * `supabase.co`. It now hands out no URL at all. See the note where
+ * `signDocuments` used to stand, and `app/api/documents/[id]/route.ts`.
  */
 
 const UNAVAILABLE = { state: "unavailable" } as const;
-
-const DOCUMENT_BUCKET = "agent-documents";
-
-/** Long enough to open a PDF and read it. Short enough not to be a leak. */
-const SIGNED_SECONDS = 600;
 
 /** A proof of address older than this is refused. The rule, stated once. */
 export const ADDRESS_PROOF_MAX_AGE_DAYS = 92;
@@ -44,8 +41,16 @@ export type KycDocumentView = {
   uploadedAt: string;
   reviewedAt: string | null;
   reviewedByName: string | null;
-  /** A short-lived URL that opens the actual file. Null if it would not sign. */
-  url: string | null;
+  /**
+   * How the in-app viewer should draw this one, decided from the stored path.
+   *
+   * THIS USED TO BE A SIGNED SUPABASE URL and the desk rendered it in an
+   * anchor with `target="_blank"`, so a reviewer read somebody's NIN on
+   * `supabase.co` and the signed link sat in our DOM where it could be
+   * forwarded. The browser is told the document EXISTS and what shape it is;
+   * the bytes come from `/api/documents/<id>` on our own origin.
+   */
+  media: DocumentMedia;
   /** True when this replaces an earlier attempt. */
   isResubmission: boolean;
   /**
@@ -183,16 +188,12 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
       ...new Set(documents.map(ownerOf).filter((id): id is string => Boolean(id))),
     ];
 
-    const [names, agents, urls] = await Promise.all([
+    const [names, agents] = await Promise.all([
       displayNames(access.supabase, [
         ...userIds,
         ...documents.map((d) => d.reviewed_by).filter((id): id is string => Boolean(id)),
       ]),
       agentsFor(access.supabase, userIds),
-      signDocuments(
-        access.supabase,
-        documents.map((d) => d.storage_path),
-      ),
     ]);
 
     const ladders = await laddersFor(
@@ -244,7 +245,7 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
         uploadedAt: doc.uploaded_at,
         reviewedAt: doc.reviewed_at,
         reviewedByName: doc.reviewed_by ? (names.get(doc.reviewed_by) ?? null) : null,
-        url: urls.get(doc.storage_path) ?? null,
+        media: documentMedia(doc.storage_path),
         isResubmission: doc.supersedes_id !== null,
         tooOld: isTooOld(doc.kind, doc.issued_on),
       });
@@ -331,29 +332,17 @@ async function laddersFor(
   return out;
 }
 
-/**
- * A signed URL per document, in one call.
+/*
+ * `signDocuments` STOOD HERE AND IT IS GONE ON PURPOSE.
  *
- * A path that fails to sign comes back absent and the row renders without a
- * link rather than with a broken one, because a reviewer clicking a dead link
- * and getting a storage error page has been told nothing useful.
+ * It minted a ten minute signed Supabase Storage URL per document and handed
+ * it to the page, which rendered it in an anchor with `target="_blank"`. A
+ * reviewer therefore read somebody's NIN or passport on `supabase.co`, in a
+ * tab outside our chrome, outside our content security policy and outside the
+ * audit trail, and the live signed URL sat in our DOM where anything on the
+ * page could read it and anybody could forward it for the next ten minutes.
+ *
+ * Nothing signs for a browser any more. The queue says a document exists and
+ * what shape it is; `/api/documents/<id>` streams the bytes from our own
+ * origin behind `requireAdmin`, uncached, with an audit row per view.
  */
-async function signDocuments(
-  supabase: SupabaseClient<Database>,
-  paths: string[],
-): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  const unique = [...new Set(paths.filter(Boolean))];
-  if (unique.length === 0) return out;
-  try {
-    const { data } = await supabase.storage
-      .from(DOCUMENT_BUCKET)
-      .createSignedUrls(unique, SIGNED_SECONDS);
-    for (const entry of data ?? []) {
-      if (entry.path && entry.signedUrl) out.set(entry.path, entry.signedUrl);
-    }
-  } catch {
-    /* Storage unreachable. The queue still lists what is waiting. */
-  }
-  return out;
-}
