@@ -36,11 +36,24 @@ import { ActionBar } from "@/components/ui/ActionBar";
  * own rate and what that rate buys.
  */
 
+/**
+ * `external` STOOD HERE AND IT IS DELETED.
+ *
+ * It read "Off-platform destinations open in a new tab" and it spread
+ * `target="_blank" rel="noopener noreferrer"` onto both buttons in this bar.
+ * NOT ONE CALL SITE EVER SET IT. Its whole purpose was to take a person off
+ * Vallo, and the two features that would have reached for it first, a partner
+ * handoff and a restaurant's own menu link, are exactly the two the platform
+ * has now decided are ingested rather than linked.
+ *
+ * A prop whose only reason to exist is a rule violation does not sit in the
+ * tree waiting for somebody to use it. Anything genuinely off-platform that
+ * ever belongs on this bar goes through the consented interstitial, not
+ * through a spread on a button.
+ */
 export type StickyAction = {
   label: string;
   href: string;
-  /** Off-platform destinations open in a new tab. */
-  external?: boolean;
 };
 
 export function ListingStickyBar({
@@ -125,9 +138,6 @@ export function ListingStickyBar({
           ? (moveInLabel ?? "Move-in total")
           : (moveInFromLabel ?? "Move-in from")
         : perLabel;
-
-  const external = (a: StickyAction) =>
-    a.external ? ({ target: "_blank", rel: "noopener noreferrer" } as const) : {};
 
   /*
    * THE FOOT'S OWN HEIGHT, PUBLISHED TO THE PAGE.
@@ -275,7 +285,6 @@ export function ListingStickyBar({
           <AuthGate action="message">
             <ButtonLink
               href={secondary.href}
-              {...external(secondary)}
               variant="ghost"
               leadingIcon={secondaryIcon ?? (variant === "partner" ? "arrow-right" : "chat-bubble")}
               aria-label={secondary.label}
@@ -290,7 +299,6 @@ export function ListingStickyBar({
           <AuthGate action={variant === "rental" ? "inspect" : "pay"}>
             <ButtonLink
               href={action.href}
-              {...external(action)}
               variant="primary"
               size="md"
               leadingIcon={variant === "rental" ? "calendar-booking" : undefined}

@@ -122,7 +122,6 @@ export function RowLink({
   label,
   sub,
   value,
-  external,
   testId,
 }: {
   href: string;
@@ -132,26 +131,24 @@ export function RowLink({
   label: ReactNode;
   sub?: ReactNode;
   value?: ReactNode;
-  external?: boolean;
   testId?: string;
 }) {
   const inner = (
     <RowInner icon={icon} glyph={glyph} label={label} sub={sub} value={value} trailing={Chevron} />
   );
 
-  if (external) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer noopener"
-        className="nf-srow"
-        data-testid={testId}
-      >
-        {inner}
-      </a>
-    );
-  }
+  /*
+   * `external` STOOD HERE AND IT IS DELETED.
+   *
+   * It rendered this row as `<a target="_blank" rel="noreferrer noopener">`
+   * instead of a `Link`. NOT ONE CALL SITE EVER SET IT: every settings row in
+   * the product is internal. It existed so that the first "Help centre" or
+   * "Status page" row could quietly leave the platform, which is the one
+   * thing a settings list must not do.
+   *
+   * A settings row that genuinely needs content from elsewhere gets the
+   * consented interstitial, which names the host before anybody travels.
+   */
   return (
     <Link href={href} className="nf-srow" data-testid={testId}>
       {inner}
