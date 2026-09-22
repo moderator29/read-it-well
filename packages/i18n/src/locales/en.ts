@@ -1,4 +1,9 @@
 import type { CountForms } from "../plural";
+/* Price Check lives in its own module: `en.ts` is 4,900 lines, three workers
+   write to it in the same hour, and this namespace was lost to a concurrent
+   overwrite once already. One import and one line is the smallest footprint a
+   namespace can have here. */
+import { priceCheckEn } from "./price-check.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -4926,6 +4931,8 @@ export const en = {
     open: "Open it anyway",
     close: "Close",
   },
+
+  priceCheck: priceCheckEn,
 
 };
 

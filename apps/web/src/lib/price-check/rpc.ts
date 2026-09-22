@@ -1,0 +1,153 @@
+import "server-only";
+
+import type { createClient } from "../supabase/server";
+
+/**
+ * ONE TYPED DOOR TO THE PRICE CHECK RPCs, AND WHY IT IS NOT A REGENERATION.
+ *
+ * `lib/supabase/database.types.ts` is generated from the live schema and lists
+ * every function by name, so `supabase.rpc("estimate_value", ...)` does not
+ * typecheck until that file is regenerated. Regenerating it is the obvious
+ * move and it is the wrong one this week.
+ *
+ * THE FILE IS A SHARED ARTEFACT AND SIX WRITERS ARE IN THIS TREE. Regenerating
+ * it pulls in every table, column, enum and function that every other worker
+ * has applied to the live project today - the supply role axis, the mandates,
+ * the escrow states - into a commit whose subject is Price Check. That is a
+ * merge conflict on a generated file, which is the worst kind, and it is a
+ * diff no reviewer can read. Worse, it would make this commit LOOK like it
+ * changed the shape of tables it never touched.
+ *
+ * So the cast is local, it is narrow, and it is here rather than sprinkled
+ * through `queries.ts`: eight function names, their argument shapes written
+ * out, and one `as unknown as` in one place with this note beside it. When the
+ * generated file is next refreshed by whoever owns it, this module's bodies
+ * can be deleted and `queries.ts` need not change, because it already calls
+ * these names with these arguments.
+ *
+ * THE ARGUMENT SHAPES BELOW ARE THE MIGRATION'S, checked against
+ * `supabase/migrations/20260922222221_price_check_reports_what_places_are_asking.sql`.
+ * They are the only thing this file asserts that a compiler cannot, which is
+ * why they are written out in full rather than left as `Record<string, unknown>`:
+ * a mistyped parameter name is a silent null default in PostgREST, and a null
+ * default in this engine is a wider radius or a missing bedroom filter.
+ */
+
+type Db = Awaited<ReturnType<typeof createClient>>;
+
+export type PriceCheckRpcArgs = {
+  estimate_value: {
+    p_lat: number;
+    p_lng: number;
+    p_property_type: string;
+    p_intent: string;
+    p_bedrooms: number | null;
+    p_size_sqm: number | null;
+    p_exclude_id: string | null;
+  };
+  comparable_listings: {
+    p_lat: number;
+    p_lng: number;
+    p_property_type: string;
+    p_intent: string;
+    p_bedrooms: number | null;
+    p_radius_m: number;
+    p_max_age_days: number;
+    p_exclude_id: string | null;
+    p_limit: number;
+  };
+  comparable_supply_near: {
+    p_lat: number;
+    p_lng: number;
+    p_property_type: string;
+    p_intent: string;
+    p_bedrooms: number | null;
+    p_radius_m: number;
+  };
+  area_asking_summary: {
+    p_state_code: string;
+    p_city: string | null;
+    p_area: string | null;
+    p_property_type: string | null;
+    p_intent: string;
+    p_bedrooms: number | null;
+    p_max_age_days: number;
+  };
+  area_supply_census: {
+    p_state_code: string;
+    p_city: string | null;
+    p_area: string | null;
+    p_intent: string;
+  };
+  area_utility_facts: {
+    p_state_code: string;
+    p_city: string | null;
+    p_area: string | null;
+  };
+  area_suggestions: {
+    p_state_code: string;
+    p_query: string | null;
+    p_limit: number;
+  };
+  record_price_check_event: {
+    p_check_id: string;
+    p_stage: string;
+    p_user_id: string | null;
+    p_entry_point: string | null;
+    p_state_code: string | null;
+    p_lga_code: string | null;
+    p_geohash5: string | null;
+    p_property_type: string | null;
+    p_listing_intent: string | null;
+    p_bedrooms: number | null;
+    p_size_stated: boolean | null;
+    p_outcome: string | null;
+    p_refusal_code: string | null;
+    p_comparable_count: number | null;
+    p_radius_m: number | null;
+    p_dispersion: number | null;
+    p_confidence: string | null;
+    p_intent_chosen: string | null;
+    p_listing_id: string | null;
+  };
+  create_price_check_share: {
+    p_scope: string;
+    p_state_code: string;
+    p_lga_code: string | null;
+    p_area: string | null;
+    p_property_type: string | null;
+    p_listing_intent: string;
+    p_bedrooms: number | null;
+    p_low_minor: number;
+    p_mid_minor: number;
+    p_high_minor: number;
+    p_listing_count: number;
+    p_oldest_at: string | null;
+    p_newest_at: string | null;
+    p_created_by: string | null;
+  };
+};
+
+type LooseRpc = {
+  rpc: (
+    name: string,
+    args: Record<string, unknown>,
+  ) => PromiseLike<{ data: unknown; error: unknown }>;
+};
+
+/**
+ * Calls one of the Price Check functions with its own argument type.
+ *
+ * `data` comes back as `unknown` deliberately. The generated types would give
+ * a row shape and this cast cannot, so pretending otherwise would be a
+ * confident-looking lie: `queries.ts` narrows every field by hand, and every
+ * numeric field goes through `asNumber` because PostgREST sends bigint as a
+ * string and a kobo figure read as a string is a kobo figure printed as NaN.
+ */
+export async function priceCheckRpc<Name extends keyof PriceCheckRpcArgs>(
+  supabase: Db,
+  name: Name,
+  args: PriceCheckRpcArgs[Name],
+): Promise<{ data: unknown; error: unknown }> {
+  return (supabase as unknown as LooseRpc).rpc(name, args as Record<string, unknown>);
+}
