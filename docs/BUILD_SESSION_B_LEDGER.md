@@ -1038,6 +1038,22 @@ admin SELECT policies decide. Checked live in `pg_policies` on 22 September:
 `risk_alerts_admin_all`, `agents_select_admin`,
 `agent_applications_select_admin`, `bookings_admin_all`.
 
+**Landing by address (R-E, 2fc66f60).** `/admin/<desk>` ->
+`layout.tsx` reads the session cookie `nf_admin_entry` and compares it with the
+operator's user id -> `EntryGate` (client, sees the path) -> no entry: renders
+nothing of the desk (server and browser alike) and replaces the address with
+`/admin?next=<desk>` (`entryRedirect`) -> the overview writes the session
+cookie (no Max-Age, ends with the browser) and draws "You were heading to
+<desk>" with Continue as its first line (`safeDesk` accepts only a console
+path). Covers a typed address, a bookmark, a sent link and the sign-in bounce
+(`/sign-in?next=/admin/money` returns to the desk, which the gate catches), all
+inside `app/admin` with no proxy change. A client navigation after the
+overview reads the cookie in the browser, so the layout (not re-rendered on
+client navigations) cannot send the operator back. Tests:
+`_components/session-b-admin-entry.test.ts` (4). Not exercised end to end with
+a real admin session (none may be created); the redirect and the round trip
+are unit tested and the overview's link is in `overview-heading-to-1440-dark.jpg`.
+
 **Access.** `/admin/*` -> `app/admin/layout.tsx` -> `requireAdmin()`
 (`user_roles` has `admin` or `super_admin`) -> otherwise `AccessScreen`, no
 data markup. Unchanged from before. **Landing:** `/admin` is the overview; no
@@ -1096,6 +1112,29 @@ searches (A7), listing views (A8), refusal reasons (A11) are not recorded
 anywhere; Total searches, Listing views and Conversion read "Not recorded",
 Top areas by searches, Searches vs results and Top common refusals read "Not
 wired yet", each naming its request.
+
+**In flight (fa4f4673), from the closing audit's coverage map.** Inspections:
+Operations > In flight -> `getInspectionActivity()` -> six exact counts on
+`inspection_requests` by `state` (REQUESTED, PROPOSED, CONFIRMED, COMPLETED,
+DECLINED, WITHDRAWN) and the eight newest with `listings(title)`, under
+`inspection_requests_select_admin` (checked in `pg_policies`) -> the state
+table with a word and a meter per state and the newest list. **Broken links:**
+`account_deletion_requests` (only `_select_own`) -> **Request A12**;
+`business_transfers` (only `_select_party`) -> **Request A13**; per-job
+pg_cron -> A5; notifications -> A6; `private.reconciliation_watch` ->
+admin-money's request 10. Each has its panel on In flight saying so. Held
+events (`scan_event`) and blocked terms are admin-review's, by the lead's
+split.
+
+**Console copy (1464eca5).** Every heading, label, tab, table head, job status
+word, calm note and panel sentence on the shell and the three desks reads
+from `admin.shell` in the dictionary (en complete; yo, ha and ig carry the
+rail's names from their own `admin.nav`, the rest falls back to English and is
+marked NATIVE REVIEW). Still English in code: the job schedule words and job
+titles derived from the job names (`lib/admin/reads/jobs.ts`), relative times
+("12m ago"), the alert words (Resolved, High, Medium, Info), the audit row
+labels (System, Admin), the inspection state words on In flight and the
+"did not load" captions on KPI tiles. Recorded in 6.7.
 
 **Demo rows.** Every supply figure on these desks filters `is_demo = false`.
 The 64 example listings appear only on the Examples desk. Decided and stated
@@ -1244,31 +1283,32 @@ removed on paper. Proofs: `overview-1440-light-fixture.jpg`,
 `overview-390-light-fixture.jpg`, `operations-1440-light.jpg`,
 `analytics-1440-light.jpg`.
 
-### 6.4 Shape sweep
+### 6.4 Shape sweep (after the closing audit, R-D)
 
-`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3175 --shape-sweep --routes /preview/sbadmin/overview,/preview/sbadmin/operations,/preview/sbadmin/analytics --theme both`
-(the harness renders the real shell and views; the live `/admin` routes
-answer the access screen without a session, which the tool rightly refuses):
+The audit found 128 controls at exactly 0.35 on the committed admin
+harnesses, all on two shared controls: the status chip `.nf-admin-chip` and
+the queue search field (40px tall at 14px). Both, and the console bar's
+search, now draw `--nf-radius-sm` (10px, 0.25) in 2fc66f60. Re-run on every
+admin harness in the tree, including the committed session-b harness:
 
 ```
+node scripts/design/compare-surface.mjs --base http://127.0.0.1:3175 --shape-sweep --theme both --routes
+  /preview/session-b/admin/overview,/preview/session-b/admin/operations,
+  /preview/session-b/admin/analytics,/preview/f5/admin-desks,/preview/f5/admin-overview,
+  /preview/f5/admin-queue,/preview/f5/admin-frame,/preview/bd/reservations,/preview/bd/refunds,
+  /preview/bd/payments,/preview/bd/alerts,/preview/bc/audit,/preview/c1/listing-review,
+  /preview/p3/admin-businesses
 at 390px, 1536px in dark and light
-BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
-WORTH AN EYE, over 0.35 but not a capsule: 5
-  the console search input, 352x40, radius 14px, ratio 0.35 (overview, operations, analytics; dark and light)
+BREACHES (ratio at or above 0.5): 0
+WORTH AN EYE (over 0.35): 0
 ROUND ICON-ONLY CONTROLS: 0
-no text-bearing control is a capsule.
+ROUTES REFUSED: 0
+COVERED: 14 route(s) asked for, 0 refusal(s), 32 route/width/theme combination(s) actually measured.
 ```
 
-The search field sits exactly at 0.35: a 40px field on `--nf-radius-control`,
-drawn 40 tall because the render's field is 36 to 40. Accepted and recorded.
-An earlier sweep also flagged the rail's 36px child rows at 0.39; they moved
-to `--nf-radius-sm` (0.28) in c237af4.
-
-`apps/web/scripts/check-css-tokens.mjs`: clean (0 layer-1 references, 0 raw
-colour literals, 0 capsules on a control). `tsc --noEmit`: clean. eslint on
-every changed file: 0 errors (one existing warning in `AdminActions.tsx`,
-not introduced here). vitest: `session-b-admin-shell.test.ts` (16) and
-`lib/admin/reads/overview.test.ts` (11) pass.
+Zero at or above 0.35. The harness is committed under
+`apps/web/src/app/(dev)/preview/session-b/admin/` (R-G), so anyone can re-run
+it with `VALLO_PREVIEW_HARNESS=1`.
 
 ### 6.4a Glow identity and the designed empty state
 
@@ -1340,8 +1380,9 @@ one `AdminRail` sets.
   is styling through the shared stylesheet only (their cards and tables now
   take the panel material, their heads the new page head); no desk's logic
   was changed and none was screenshotted with a session.
-- i18n: the new console copy is English in the components, like the rail's
-  existing English labels; not added to the four dictionaries.
+- i18n: the console's copy is in `admin.shell` (1464eca5); the few data words
+  listed under "Console copy" in 6.1 are still English in code, and yo, ha and
+  ig translate only the rail's names so far (the rest falls back to English).
 - Coverage of "every notification" is blocked by RLS (Request A6); the eight
   notification kinds are listed on the tab and in the handbook, not counted.
 - The other swept desks have no admin render of their own; they inherit the
