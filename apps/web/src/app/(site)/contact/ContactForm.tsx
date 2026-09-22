@@ -5,7 +5,7 @@ import { submitContactForm } from "@/lib/support/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
-import { SUPPORT_EMAIL, SUPPORT_IS_EMAIL } from "@/lib/support-email";
+import { SUPPORT_EMAIL, SUPPORT_MAILBOX } from "@/lib/support-email";
 import {
   CONTACT_TOPICS,
   CONTACT_TOPIC_LABEL,
@@ -58,7 +58,7 @@ export function ContactForm({
           {state.data.reference}
         </p>
         <p className="mt-group text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
-          {SUPPORT_IS_EMAIL ? (
+          {SUPPORT_MAILBOX ? (
             <>
               Need to add something? Reply to that email, or write to{" "}
               <a
@@ -159,7 +159,7 @@ export function ContactForm({
           className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {state.error}
-          {SUPPORT_IS_EMAIL ? (
+          {SUPPORT_MAILBOX ? (
             <>
               {" "}You can also email{" "}
               <a
@@ -180,7 +180,7 @@ export function ContactForm({
               form opens a real support_tickets row that an admin works in the
               console, so it is the channel, not the fallback. */}
           This opens a support ticket and emails you the reference.
-          {SUPPORT_IS_EMAIL ? (
+          {SUPPORT_MAILBOX ? (
             <>
               {" "}If you would rather write to us yourself, the address is{" "}
               <a

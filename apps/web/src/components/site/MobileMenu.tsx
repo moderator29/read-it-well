@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
-import { SUPPORT_HREF, SUPPORT_IS_EMAIL } from "@/lib/support-email";
+import { SUPPORT_HREF } from "@/lib/support-email";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle, type ThemeToggleLabels } from "./ThemeToggle";
 import type { Locale } from "@vallo/i18n";
@@ -131,40 +131,29 @@ export function MobileMenu({
                   ...links,
                   { href: "/sign-in", label: signIn },
                   { href: SUPPORT_HREF, label: "Contact support" },
-                ].map((l) =>
-                  l.href === SUPPORT_HREF && SUPPORT_IS_EMAIL ? (
-                    <li key={l.href}>
-                      <a href={l.href} className="nf-row nf-row--tap justify-between">
-                        <span className="nf-body font-semibold text-[var(--nf-content-primary)]">
-                          {l.label}
-                        </span>
-                        <UiIcon
-                          name="chevron-right"
-                          size={16}
-                          className="shrink-0 text-[var(--nf-content-muted)]"
-                        />
-                      </a>
-                    </li>
-                  ) : (
-                    <li key={l.href}>
-                      <Link
-                        href={l.href}
-                        prefetch
-                        onClick={() => setOpen(false)}
-                        className="nf-row nf-row--tap justify-between"
-                      >
-                        <span className="nf-body font-semibold text-[var(--nf-content-primary)]">
-                          {l.label}
-                        </span>
-                        <UiIcon
-                          name="chevron-right"
-                          size={16}
-                          className="shrink-0 text-[var(--nf-content-muted)]"
-                        />
-                      </Link>
-                    </li>
-                  ),
-                )}
+                ].map((l) => (
+                  /* Every row here is a route on our own origin, including
+                     Contact support: it used to render as a bare anchor when
+                     a mailbox was configured, because `SUPPORT_HREF` was a
+                     mailto then. It is `/contact` in both worlds now. */
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      prefetch
+                      onClick={() => setOpen(false)}
+                      className="nf-row nf-row--tap justify-between"
+                    >
+                      <span className="nf-body font-semibold text-[var(--nf-content-primary)]">
+                        {l.label}
+                      </span>
+                      <UiIcon
+                        name="chevron-right"
+                        size={16}
+                        className="shrink-0 text-[var(--nf-content-muted)]"
+                      />
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </nav>
 

@@ -4,7 +4,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
-import { SUPPORT_HREF, SUPPORT_IS_EMAIL, SUPPORT_LABEL } from "@/lib/support-email";
+import { SUPPORT_HREF } from "@/lib/support-email";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -126,7 +126,10 @@ export default function CareersPage() {
                 size="lg"
                 trailingIcon="arrow-right"
               >
-                {SUPPORT_IS_EMAIL ? `Email ${SUPPORT_LABEL}` : "Send your application"}
+                {/* Was `Email <address>` wherever a mailbox existed, which
+                    sent an applicant straight out of the site. The form takes
+                    the application and the mailbox is offered on it. */}
+                Send your application
               </ButtonLink>
             </div>
             <p className="mt-row text-[0.8125rem] text-[var(--nf-content-muted)]">

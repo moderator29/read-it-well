@@ -1,4 +1,4 @@
-import { SUPPORT_EMAIL, SUPPORT_IS_EMAIL } from "@/lib/support-email";
+import { SUPPORT_EMAIL, SUPPORT_MAILBOX } from "@/lib/support-email";
 import type { Metadata } from "next";
 import { SiteHead } from "@/components/site/SiteHead";
 import Link from "next/link";
@@ -70,7 +70,7 @@ export default async function ContactPage({
               NEXT_PUBLIC_SUPPORT_EMAIL names a real one. Until then the
               promise is the hero, because the promise is the true part.
             */}
-            {SUPPORT_IS_EMAIL ? (
+            {SUPPORT_MAILBOX ? (
               <>
                 <p className="nf-overline">Support email</p>
                 <a

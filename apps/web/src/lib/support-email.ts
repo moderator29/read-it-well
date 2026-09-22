@@ -17,9 +17,22 @@
  * `/admin/support`, and a reply notifies the person who sent it. It is a
  * working channel today, which a mailto is not.
  *
- * Set `NEXT_PUBLIC_SUPPORT_EMAIL` the day the mailbox is real and all six
- * surfaces become `mailto:` again, with no other edit anywhere. That is the
- * whole reason this is one module and not six string literals.
+ * THE DEFAULT IS NOW INVERTED, AND THAT IS THE POINT OF THIS EDIT. Setting
+ * `NEXT_PUBLIC_SUPPORT_EMAIL` used to flip all six surfaces to `mailto:` in
+ * one environment change, which meant the day a mailbox appeared, every
+ * "contact support" control on the platform started throwing people into
+ * their mail application whether they wanted that or not.
+ *
+ * A mail client is THE ONE PERMITTED EXIT from Vallo, and it is permitted
+ * because somebody CHOSE to be emailed. A default is not a choice. So
+ * `SUPPORT_HREF` is `/contact` in both worlds now, and the mailbox, when it
+ * exists, is offered BESIDE the form as a second control the person can take
+ * or ignore. `/contact` already renders exactly that, as copyable text with
+ * its own mailto beside it.
+ *
+ * Nothing else about the module changes: `SUPPORT_MAILBOX` is still the one
+ * place that knows whether an address exists, and the surfaces that
+ * deliberately offer the mail application read `SUPPORT_MAILTO_HREF`.
  */
 
 const CONFIGURED = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || "";
@@ -30,32 +43,54 @@ const CONFIGURED = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || "";
  */
 export const SUPPORT_EMAIL: string | null = CONFIGURED.length > 0 ? CONFIGURED : null;
 
-/** Where "contact support" goes: the mailbox when configured, the form when not. */
-export const SUPPORT_HREF: string = SUPPORT_EMAIL ? `mailto:${SUPPORT_EMAIL}` : "/contact";
+/**
+ * Where "contact support" goes. `/contact`, always, in both worlds.
+ *
+ * It used to be `mailto:` the moment a mailbox was configured. See the
+ * inversion note above: a person who would rather stay can, and a person who
+ * would rather write an email still can, from the page this points at.
+ */
+export const SUPPORT_HREF = "/contact";
 
 /**
- * What the link says.
+ * The mail application, for the surfaces that offer it as a choice beside the
+ * form. Null when no mailbox is configured, which is the normal case today.
  *
- * Reads as a sentence either way: "write to support@vallospaces.com" and "write to
- * us through the contact form" both work where they are used, so no caller has
- * to branch on which world it is in.
+ * THE ONE PERMITTED EXIT FROM VALLO, and it is only an exit because whoever
+ * clicks it has asked to be emailed. Never use it as a default href.
  */
-export const SUPPORT_LABEL: string = SUPPORT_EMAIL ?? "the contact form";
+export const SUPPORT_MAILTO_HREF: string | null = SUPPORT_EMAIL
+  ? `mailto:${SUPPORT_EMAIL}`
+  : null;
+
+/**
+ * What the link says. It labels `SUPPORT_HREF`, so it names the form.
+ *
+ * This used to print the address itself where one was configured, which was
+ * true only while the href was a mailto. A link that reads as an email
+ * address and goes to a page is a small lie, and this module exists because
+ * of a bigger one.
+ */
+export const SUPPORT_LABEL = "the contact form";
 
 /**
  * The same, for a sentence built in a server action where no link is possible.
  * `lib/profile/actions.ts` puts this in the account-deletion fallback.
  */
-export const SUPPORT_SENTENCE: string = SUPPORT_EMAIL
-  ? `email ${SUPPORT_EMAIL}`
-  : "open the contact form at vallospaces.com/contact";
+export const SUPPORT_SENTENCE = "open the contact form at vallospaces.com/contact";
 
 /**
- * Kept as a named export because five surfaces already import it, and because
- * an external link needs `target="_blank"` where an internal one must not have
- * it. True only when a real mailbox is configured.
+ * Whether a real mailbox exists at all.
+ *
+ * It was called `SUPPORT_IS_EMAIL` and it meant two things at once: "a
+ * mailbox is configured" and "therefore `SUPPORT_HREF` is a mailto and needs
+ * `target=\"_blank\"`". The second reading is now false and would have been a
+ * quiet landmine, so the name says only the first.
+ *
+ * Read it to decide whether to OFFER the mail application beside the form.
+ * Never to decide where the primary control goes.
  */
-export const SUPPORT_IS_EMAIL: boolean = SUPPORT_EMAIL !== null;
+export const SUPPORT_MAILBOX: boolean = SUPPORT_EMAIL !== null;
 
 /** @deprecated Use `SUPPORT_HREF`, which is correct with no mailbox too. */
 export const SUPPORT_MAILTO: string = SUPPORT_HREF;

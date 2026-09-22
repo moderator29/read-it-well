@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { SUPPORT_HREF, SUPPORT_IS_EMAIL, SUPPORT_LABEL } from "@/lib/support-email";
+import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import "@/app/css/system.css";
 
 /**
@@ -100,7 +100,7 @@ export function LegalDocument({
           here would undo the entire reason this page exists. */}
       <p className="nf-legal__foot">
         See also our <Link href={otherHref}>{otherLabel}</Link>, or{" "}
-        <a href={SUPPORT_HREF}>{SUPPORT_IS_EMAIL ? SUPPORT_LABEL : "the contact form"}</a>{" "}
+        <Link href={SUPPORT_HREF}>{SUPPORT_LABEL}</Link>{" "}
         with any question.
       </p>
     </div>
