@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { listStaysShelf } from "@/lib/stays/queries";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { StayCard } from "@/components/app/stays/StayCard";
-import { StaySearchBar } from "@/components/app/stays/StaySearchBar";
-import { StayCategoryTiles } from "@/components/app/stays/StayCategoryTiles";
 import { STAY_KINDS } from "@/components/app/stays/model";
 import { stayCardFromListing, stayCardFromRow, type StayCardData } from "@/components/app/stays/stay-card-model";
-import { Reveal } from "@/components/site/Reveal";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { EmptyState, ICON } from "@/components/app/Screen";
+import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
+import { CityRow } from "@/components/app/home/CityRow";
+import { FeaturedBand } from "@/components/app/home/FeaturedBand";
+import { HomeHero } from "@/components/app/home/HomeHero";
+import { DAYPART_GREETING, getHomeOverview } from "@/lib/app/home-queries";
+import { LogoMark } from "@/design-system/brand/Logo";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
-import { getSavedListings } from "@/lib/saved/queries";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
 
 export const metadata: Metadata = {
@@ -28,9 +27,29 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * Stays home, to FD3DFE84: the headline with the glass hotel object, the
- * "Where are you going?" field with its filter glyph, the five category
- * tiles, and the featured cards.
+ * The Stays home page, to `GOVERNING-09` SCREEN ONE.
+ *
+ * SAME ANATOMY AS THE PROPERTY SIDE, STAYS CONTENT, and it is literally the
+ * same three components: `HomeHero`, `CategoryRow` and `FeaturedBand`. When
+ * the coin flips, the whole page becomes this one, which is what the flip has
+ * always promised, and it can only keep that promise if the two sides are one
+ * object with two sets of words rather than two screens that look similar.
+ *
+ * THE GREETING AND THE LOCATION ARE KEPT, on the founder's instruction, EVEN
+ * THOUGH THE RENDER DROPS THEM for a bare place chip in the corner. They are
+ * the reader's own facts and they are the same facts on both sides, so a flip
+ * does not change who you are or where you are.
+ *
+ * FIVE TILES BECAME FOUR AND THE SET CHANGED. `StayCategoryTiles` drew Hotels,
+ * Apartments, Resorts, Guest Houses and Serviced, which are five property
+ * TYPES. The render draws four DOORS: Hotels, Shortlets, Restaurants and
+ * Nearby. A type is a filter and a door is a thing you came here to do, and
+ * the render is right. The five types are still reachable, from the filter
+ * sheet on `/stays/search` where every other type filter already lives.
+ *
+ * THE RESTAURANTS RAIL CAME OFF and Restaurants is a tile now, pointing at the
+ * same `/restaurants` the rail's "See all" pointed at. Nothing became
+ * unreachable; one surface stopped being drawn twice on one screen.
  *
  * The featured shelf reads BB's catalogue projection first (`stays_search`
  * through `listStaysShelf`, which carries accommodations as well as
@@ -70,59 +89,121 @@ export default async function StaysHomePage() {
    * what `canSavePlaces` carries to the card: the heart is absent rather than
    * present and refusing.
    */
-  const [projection, tables, session, savedPlaces, savedListings] = await Promise.all([
+  const [projection, session, savedPlaces, overview] = await Promise.all([
     listStaysShelf({}, 6),
-    readShelf(["restaurant"], 3),
     resolveSession(),
     listSavedPlaces(),
-    /* The restaurants rail is built from `Listing` rows, not from the
-       catalogue projection, so its hearts write to `saved_items` and the
-       place keys above cannot answer them. Both shelves are read because
-       this one page draws cards from both tables. (R2 finding 4.) */
-    getSavedListings(),
+    /* The greeting, the name and the place, the SAME read the property home
+       does. Kept on this side on the founder's instruction even though the
+       render drops them: a flip changes what you are browsing, never who you
+       are or where you are. */
+    getHomeOverview(),
   ]);
   const savedKeys = savedKeySet(savedPlaces.ok ? savedPlaces.data : []);
-  const savedListingIds = new Set(savedListings.map((entry) => entry.listing.id));
   const canSavePlaces = session.state === "signed-in";
   const featured: StayCardData[] =
     projection.length > 0
       ? projection.filter((row) => row.entity_kind !== "restaurant").map(stayCardFromRow)
       : (await readShelf(STAY_KINDS, 3)).map((listing) => stayCardFromListing(listing));
 
+  const greeting = DAYPART_GREETING[overview.daypart];
+  const name = overview.firstName || (overview.signedIn ? "there" : "");
+  const stays = t.directHome.stays;
+
+  /*
+   * THE FOUR DOORS OF `GOVERNING-09`.
+   *
+   * Hotels and Shortlets narrow the stays catalogue by its own `kind` column,
+   * which is what `/stays/search?type=` already reads. Restaurants is its own
+   * surface and always has been. NEARBY IS `/around`, which is the local
+   * surface this product actually has: what is live near the reader, in the
+   * place the selector above names. It is not a map and it is not a radius
+   * search, because neither of those exists, and inventing a dead parameter
+   * for a tile is how a tile ends up doing nothing.
+   */
+  const doors: HomeCategory[] = [
+    {
+      key: "hotels",
+      label: stays.hotels,
+      meaning: stays.hotelsNote,
+      href: "/stays/search?type=hotel",
+      icon: "hotel-room",
+    },
+    {
+      key: "shortlets",
+      label: stays.shortlets,
+      meaning: stays.shortletsNote,
+      href: "/stays/search?type=shortlet",
+      icon: "shortlet",
+    },
+    {
+      key: "restaurants",
+      label: stays.restaurants,
+      meaning: stays.restaurantsNote,
+      href: "/restaurants",
+      icon: "concierge-bell",
+    },
+    {
+      key: "nearby",
+      label: stays.nearby,
+      meaning: stays.nearbyNote,
+      href: "/around",
+      icon: "pin-map",
+    },
+  ];
+
   return (
-    <>
-      <section className="nf-rise nf-stays-hero">
-        <div className="min-w-0">
-          <h1 className="nf-h1">{copy.title}</h1>
-          <p className="nf-body mt-inline-tight max-w-measure-lede text-[var(--nf-content-secondary)]">
-            {copy.lede}
-          </p>
-        </div>
-        <span className="nf-stays-hero__object" aria-hidden="true">
-          <BrandIcon name="hotel" fill priority />
-        </span>
+    <div className="nf-home">
+      {/* ------------------------------------------- the greeting, as kept */}
+      <section className="nf-rise">
+        <p className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">{greeting}</p>
+        {name ? (
+          <h1 className="nf-rise nf-rise-2 mt-inline-tight flex items-center gap-inline">
+            <span className="nf-h1">{name}</span>
+            <span className="inline-block shrink-0 translate-y-[2px]">
+              <LogoMark size={26} title="Vallo" />
+            </span>
+          </h1>
+        ) : (
+          <h1 className="nf-rise nf-rise-2 mt-inline-tight">
+            <span className="nf-h1">Welcome to Vallo</span>
+          </h1>
+        )}
+        <CityRow
+          label={overview.place.label}
+          context={overview.place.context}
+          isOwn={overview.place.isOwn}
+          signedIn={overview.signedIn}
+        />
       </section>
 
+      {/* ------------------------------------------------ 1. the hero plate */}
       <div className="mt-md">
-        <StaySearchBar t={t} filtersHref="/stays/search?filters=open" />
+        <HomeHero
+          id="stays-q"
+          place={overview.place.label || null}
+          title={stays.heroTitle}
+          lede={stays.heroLede}
+          searchPlaceholder={stays.heroSearch}
+          searchAction="/stays/search"
+          filtersHref="/stays/search?filters=open"
+          filtersLabel={t.directHome.filters}
+          searchLabel={stays.heroSearch}
+          kind="hotel"
+        />
       </div>
 
-      <Reveal as="section" className="mt-md">
-        <StayCategoryTiles t={t} />
-      </Reveal>
+      {/* ----------------------------------------------------- 2. the doors */}
+      <CategoryRow categories={doors} label={copy.title} columns={2} />
 
-      <Reveal as="section" className="mt-section-tight">
-        <div className="mb-heading flex items-end justify-between gap-md">
-          <h2 className="nf-h3">{copy.featured}</h2>
-          <Link
-            href="/stays/search"
-            className="nf-link-quiet nf-tap nf-body-sm shrink-0 text-[var(--nf-content-link)]"
-          >
-            {copy.seeAll}
-            <UiIcon name="arrow-right" size={ICON.inline} />
-          </Link>
-        </div>
-        {featured.length === 0 ? (
+      {/* ----------------------------------------------- 3. featured stays */}
+      <FeaturedBand
+        title={stays.featured}
+        seeAllHref="/stays/search"
+        seeAllLabel={copy.seeAll}
+        count={Math.min(featured.length, 6)}
+        testId="featured-stays"
+        empty={
           <EmptyState
             icon="hotel"
             title={t.stays.shelfEmptyTitle}
@@ -133,57 +214,21 @@ export default async function StaysHomePage() {
               </ButtonLink>
             }
           />
-        ) : (
-          <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3" data-testid="featured-stays">
-            {featured.slice(0, 6).map((stay, index) => (
-              <li key={stay.id}>
-                <StayCard
-                  stay={stay}
-                  locale={locale}
-                  t={t}
-                  index={index}
-                  saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
-                  canSavePlaces={canSavePlaces}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </Reveal>
-
-      {tables.length > 0 && (
-        <Reveal as="section" className="mt-section-tight">
-          <div className="mb-heading flex items-end justify-between gap-md">
-            <h2 className="nf-h3">{t.stays.tables}</h2>
-            <Link
-              href="/restaurants"
-              className="nf-link-quiet nf-tap nf-body-sm shrink-0 text-[var(--nf-content-link)]"
-            >
-              {copy.seeAll}
-              <UiIcon name="arrow-right" size={ICON.inline} />
-            </Link>
-          </div>
-          <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
-            {tables.slice(0, 3).map((listing, index) => (
-              <li key={listing.id}>
-                {/* The href override is gone: `stayCardFromListing` reads it
-                    from the kind now, so a restaurant lands on
-                    `/restaurant/<id>` wherever it is drawn rather than only
-                    where somebody remembered to say so. The heart takes the
-                    stored truth, which this rail was not passing at all, so a
-                    hearted table came back unlit. (R2 findings 1 and 4.) */}
-                <StayCard
-                  stay={stayCardFromListing(listing)}
-                  locale={locale}
-                  t={t}
-                  index={index}
-                  saved={savedListingIds.has(listing.id)}
-                />
-              </li>
-            ))}
-          </ul>
-        </Reveal>
-      )}
-    </>
+        }
+      >
+        {featured.slice(0, 6).map((stay, index) => (
+          <li key={stay.id} className="nf-feature-row__item">
+            <StayCard
+              stay={stay}
+              locale={locale}
+              t={t}
+              index={index}
+              saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
+              canSavePlaces={canSavePlaces}
+            />
+          </li>
+        ))}
+      </FeaturedBand>
+    </div>
   );
 }

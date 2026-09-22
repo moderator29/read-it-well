@@ -1444,3 +1444,297 @@
     box-shadow: none;
   }
 }
+
+/*
+  TRACK P: the hero plate, the category row and the featured band.
+
+  GOVERNING-01 screen one (property) and GOVERNING-09 screen one (Stays) draw
+  the SAME three objects with different content, so they are one set of rules
+  used by both sides rather than two that will drift.
+
+  MEASURED SHAPE, because the law is the ratio and never the token name:
+
+    .nf-hero-plate        radius 22 over a short side of about 300  = 0.07
+    .nf-hero-plate__chip  radius 14 over a short side of 30         = 0.47
+    .nf-hero-plate__search radius 14 over a short side of 52        = 0.27
+    .nf-hero-plate__filters radius 14 over a short side of 40       = 0.35
+    .nf-cat-tile__plate   radius 18 over a short side of 64         = 0.28
+    .nf-feature-row__item no radius of its own; the card carries it
+
+  The chip at 0.47 is the tightest thing on the screen and is deliberately
+  left at the control rung rather than nudged: it is under 0.5, so it is a
+  rounded rectangle, and the render draws it as one. Anything above about 0.35
+  is looked at on the running page, which is what the ratio sweep in the
+  ledger row is for.
+*/
+@layer components {
+  /* ------------------------------------------------------- the hero plate */
+  .nf-hero-plate {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xl);
+    border: 1px solid var(--nf-brand-edge);
+    /* The lit top rim and one near bloom, which is the register's container
+       light. Composed in the token layer so every plate in the product gets
+       the same light. */
+    box-shadow: var(--nf-glow-edge);
+  }
+  .nf-hero-plate__body {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-lg) var(--nf-space-md) var(--nf-space-md);
+  }
+  /* The place chip over the photograph, top left, as both renders draw it. */
+  .nf-hero-plate__chip {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 1.875rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-glass-rim-thin);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent);
+    backdrop-filter: blur(10px);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-hero-plate__title {
+    max-width: 14ch;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    color: var(--nf-content-primary);
+    text-shadow: 0 2px 18px var(--nf-overlay-media-strong);
+  }
+  .nf-hero-plate__lede {
+    max-width: var(--nf-measure-lede);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    color: var(--nf-content-primary);
+    text-shadow: 0 1px 12px var(--nf-overlay-media-strong);
+  }
+  /* THE FIELD SITS INSIDE THE CONTAINER, which is the whole difference
+     between this hero and the bare well it replaces. */
+  .nf-hero-plate__search {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+    min-height: 3.25rem;
+    margin-top: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs) var(--nf-space-3xs) var(--nf-space-3xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-glass-rim-thin);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent);
+    backdrop-filter: blur(14px);
+  }
+  .nf-hero-plate__search:focus-within {
+    border-color: var(--nf-brand-edge);
+  }
+  .nf-hero-plate__glyph {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-hero-plate__search:focus-within .nf-hero-plate__glyph {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-hero-plate__input {
+    min-width: 0;
+    flex: 1;
+    padding-block: var(--nf-space-sm);
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-hero-plate__input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  /* The filter control in the field's right end. A rounded rectangle, not a
+     circle: it is a control, and the two round exceptions are an avatar and a
+     bare icon button a governing image draws round. This one is drawn square
+     in both renders. */
+  .nf-hero-plate__filters {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-content-primary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 18%, transparent);
+    border: 1px solid var(--nf-brand-edge-soft);
+  }
+
+  /* ------------------------------------------------------ the category row */
+  .nf-cat-row {
+    display: grid;
+    grid-template-columns: repeat(var(--nf-cat-cols, 4), minmax(0, 1fr));
+    gap: var(--nf-gap-inline);
+  }
+  .nf-cat-row[data-columns="2"] {
+    --nf-cat-cols: 2;
+    gap: var(--nf-gap-row);
+  }
+  .nf-cat-tile {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    text-align: center;
+  }
+  /* The rounded plate the 3D object stands on, which is the register's own
+     tile: brand-washed glass, a lit rim and one soft bloom under it. */
+  .nf-cat-tile__plate {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 4.5rem;
+    padding: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge);
+    background:
+      linear-gradient(160deg, color-mix(in oklab, var(--nf-brand-primary) 20%, transparent), transparent 70%),
+      var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 22px var(--nf-glow-1);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-cat-tile:active .nf-cat-tile__plate {
+    transform: scale(var(--nf-press-scale-sm));
+  }
+  .nf-cat-tile__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-cat-tile__meaning {
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+  }
+  /* Two across, the object beside its words, as GOVERNING-09 draws the Stays
+     tiles. The plate stops filling the cell and the text goes left. */
+  .nf-cat-row[data-columns="2"] .nf-cat-tile {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "plate label"
+      "plate meaning";
+    align-items: center;
+    justify-items: start;
+    text-align: start;
+    gap: var(--nf-space-3xs) var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+  }
+  .nf-cat-row[data-columns="2"] .nf-cat-tile__plate {
+    grid-area: plate;
+    width: 3.25rem;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .nf-cat-row[data-columns="2"] .nf-cat-tile__label {
+    grid-area: label;
+  }
+  .nf-cat-row[data-columns="2"] .nf-cat-tile__meaning {
+    grid-area: meaning;
+  }
+
+  /* ------------------------------------------------------ the featured band */
+  .nf-feature-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    margin-bottom: var(--nf-gap-heading);
+  }
+  /*
+    A ROW THAT SCROLLS SIDEWAYS, and the second card is deliberately cut off by
+    the viewport's right edge. Both renders draw it that way and the cut IS the
+    affordance: it says there is more without spending a control on saying so.
+
+    The row bleeds into the page gutter on both sides so the first card starts
+    flush with the heading above it and the last one can scroll fully clear of
+    the right edge. `.nf-scroll-x` carries the overflow, the hidden scrollbar
+    and the overscroll containment.
+  */
+  .nf-feature-row {
+    display: flex;
+    gap: var(--nf-gap-inline);
+    /* Out to the phone edge on both sides. The padding BACK to the gutter and
+       the matching snap inset are `.nf-scroll-x--gutter`'s, which exists
+       precisely so the two cannot drift apart: every hand-rolled bleed rail in
+       this tree set the padding and forgot the snap inset, and the first card
+       then rested against the edge of the phone while the heading above it sat
+       on the gutter. */
+    margin-inline: calc(-1 * var(--nf-pad-shell));
+  }
+  .nf-feature-row__item {
+    flex: 0 0 auto;
+    width: min(76%, 17rem);
+  }
+  @media (min-width: 40rem) {
+    .nf-feature-row__item {
+      width: 18rem;
+    }
+  }
+}
+
+@layer components {
+  /* The three Track P objects in LIGHT. The plate keeps its photograph, so
+     only the things drawn OVER it change: the chip and the field take paper
+     rather than smoked glass, and the headline drops its dark text shadow,
+     which on a light page is a smudge. */
+  :root[data-theme="light"] .nf-hero-plate__chip,
+  :root[data-theme="light"] .nf-hero-plate__search {
+    background: color-mix(in oklab, var(--nf-surface-primary) 88%, transparent);
+    border-color: var(--nf-brand-edge);
+  }
+  /*
+   * THE RULE THE COMMENT ABOVE PROMISES, WHICH WAS NEVER WRITTEN.
+   *
+   * "the headline drops its dark text shadow, which on a light page is a
+   * smudge" describes a light override that does not exist, so on paper the
+   * title and the lede were near-black ink carrying a black halo. Two faults
+   * at once: the halo is invisible against the ink it surrounds, and it was
+   * the last thing holding dark ink off a photograph.
+   *
+   * On paper the analogue of a dark halo is a light one, which is the same
+   * argument the elevation ladder makes about rims and shades, so the halo
+   * inverts rather than going away. `--nf-surface-primary` is `#FFFFFF` in
+   * daylight, so this is a white bloom behind dark ink on a photograph, which
+   * is what keeps it readable over a light or a busy frame.
+   */
+  :root[data-theme="light"] .nf-hero-plate__title {
+    text-shadow: 0 2px 18px var(--nf-surface-primary);
+  }
+  :root[data-theme="light"] .nf-hero-plate__lede {
+    text-shadow: 0 1px 12px var(--nf-surface-primary);
+  }
+  :root[data-theme="light"] .nf-cat-tile__plate {
+    background:
+      linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%),
+      var(--nf-surface-primary);
+    border-color: var(--nf-border-brand);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-cat-row[data-columns="2"] .nf-cat-tile {
+    background: var(--nf-surface-primary);
+    /* `--nf-border-subtle` measures 1.17:1 on the white card, so the tile had
+       no boundary on paper at all. The resting edge of a tile is the brand
+       edge in both themes, which now measures 3.15:1 in daylight. */
+    border-color: var(--nf-brand-edge);
+  }
+}

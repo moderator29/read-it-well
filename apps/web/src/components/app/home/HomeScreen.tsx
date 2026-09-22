@@ -3,44 +3,71 @@ import type { Dictionary, Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { DAYPART_GREETING, type HomeOverview } from "@/lib/app/home-queries";
 import { ListingCard } from "@/components/app/ListingCard";
-import { AiAssistantBanner } from "@/components/app/AiAssistantBanner";
 import { CityRow } from "@/components/app/home/CityRow";
-import { FeaturedCities } from "@/components/app/home/FeaturedCities";
-import { InvestBand } from "@/components/app/home/InvestBand";
-import { MarketTiles } from "@/components/app/home/MarketTiles";
-import type { HomeCity, InvestFeature, MarketCounts } from "@/components/app/home/markets";
-import { TrendingStrip } from "@/components/app/home/TrendingStrip";
-import { Reveal } from "@/components/site/Reveal";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
+import { FeaturedBand } from "@/components/app/home/FeaturedBand";
+import { HomeHero } from "@/components/app/home/HomeHero";
 import { LogoMark } from "@/design-system/brand/Logo";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import type { RoleState } from "@/components/roles/roles";
-import { ButtonLink } from "@/components/ui/Button";
 import { EmptyActions } from "@/components/app/EmptyActions";
-import { EmptyState, ICON } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 
 /**
- * The in-app home, to the founder's target render
- * (`docs/design/references/founder/GOVERNING-home-markets-target.png`).
+ * The property home page, to `GOVERNING-01` SCREEN ONE.
  *
- * Top to bottom, in the target's order: the search field as ONE wide well
- * with the magnifier in its left end and the brand arrow inside its right,
- * the nine market tiles three to a row, the investment band, the featured
- * cities rail, and the recommendations two up beneath them.
+ * ---------------------------------------------------------------------------
+ * WHAT WAS KEPT, WHAT WAS REPLACED, AND WHY EACH.
  *
- * WHAT THE TARGET HAS THAT THIS SCREEN DOES NOT, on the founder's ruling:
- * the render's "EXPLORE MARKETS / Everything you need, in one place." block
- * is replaced by the three things that are the reader's own and cannot be a
- * marketing line: the shell's hamburger header above, the greeting with their
- * name, and the location chip. Everything else on the screen comes from the
- * target.
+ * KEPT, on the founder's instruction, because they are the reader's own facts
+ * and the one thing on this screen that cannot be a marketing line: the
+ * greeting decided by the clock in Lagos, their name, and the location
+ * selector. The header above (hamburger, lockup, bell, avatar) is the shell's
+ * and is untouched.
  *
- * PURE. The route reads the overview, the listings, the market counts and the
- * role facts and hands them in; the preview harness hands in fixtures, so the
- * look proven in the harness is the look that ships. Every number on this
- * screen is one the database holds: see `markets.ts` for why a market with no
- * count draws its name alone rather than a figure.
+ * REPLACED, and this is everything below the selector:
+ *
+ *   1. THE HERO CONTAINER. A photographed property plate carrying the place
+ *      chip, "Find your next home" in heavy type, one supporting line, and THE
+ *      SEARCH FIELD INSIDE THE CONTAINER with a filter control in its right
+ *      end. This takes the place of the bare wide search well that stood here.
+ *   2. THE FOUR CATEGORY TILES: Buy, Rent, Manage, Invest. Four, not the
+ *      render's five: "Short Let" is the Stays side and does not ship here.
+ *      Not nine: `MarketTiles` drew nine markets with counts, and both the
+ *      render and rule 15 say a tile carries a name rather than a figure.
+ *   3. FEATURED PROPERTIES, with a "See all", as a row of cards that scrolls
+ *      sideways.
+ *
+ * FIVE BLOCKS CAME OFF THIS SCREEN AND NONE OF THEM BECAME UNREACHABLE, which
+ * is the same standard the dock's "More" slot was held to. `MarketTiles` ->
+ * the four tiles and `/search?type=`. `InvestBand` -> the Invest tile, which
+ * is that band's own destination. `FeaturedCities` -> `/search` and the
+ * location selector kept above. `TrendingStrip` -> the Feed slot in the dock.
+ * `AiAssistantBanner` -> `/assistant`, which is a row in the side drawer and
+ * always was. The agents card -> `/agents`, also a drawer row, and the switch
+ * in the centre of the dock, which is now the real door to supply. Every one
+ * of the six is listed in `BUILD_07_LEDGER.md` section 6 with its new home.
+ *
+ * ---------------------------------------------------------------------------
+ * THE TWO CATEGORIES THAT NEEDED A RULING AND HAVE ONE.
+ *
+ * INVEST is a BROWSE FILTER over properties presented for their yield, and
+ * nothing else. Never a financial product, never a fund, never a promise of
+ * return. The Invest segment was taken out of the landing search control once
+ * already and the comment at the top of `SearchPill.tsx` records why: Vallo
+ * sells no investment product. That ruling stands and this tile does not
+ * reopen it, because a tile that filters the catalogue is not an instrument.
+ * The supporting line under it says so in the product, not only here.
+ *
+ * MANAGE RESOLVES BY WHO IS ASKING. Somebody who holds a supplier workspace
+ * lands on their own properties; somebody who holds none lands on the "Add a
+ * workspace" chooser, which is `GOVERNING-02`. It needs no new product and it
+ * is honest in both states. The page decides which and hands the href in, so
+ * this component never has to know about roles.
+ *
+ * PURE. The route reads the overview, the listings and the role facts and
+ * hands them in; the preview harness hands in fixtures, so the look proven in
+ * the harness is the look that ships.
  */
 export function HomeScreen({
   t,
@@ -48,9 +75,7 @@ export function HomeScreen({
   overview,
   listings,
   roles,
-  counts = {},
-  cities = [],
-  invest = null,
+  manageHref,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -58,15 +83,48 @@ export function HomeScreen({
   listings: Listing[];
   /** The seller or agent roles with verification outstanding; empty for a renter. */
   roles: RoleState[];
-  /** Published listings per market, for the tiles. Absent keys show no count. */
-  counts?: MarketCounts;
-  /** The busiest cities the catalogue holds a plate for. Empty renders no rail. */
-  cities?: HomeCity[];
-  /** The for-sale listing behind the investment band, or null to omit the band. */
-  invest?: InvestFeature | null;
+  /**
+   * Where the Manage tile goes for THIS reader: their own properties when they
+   * hold a supplier workspace, the "Add a workspace" chooser when they do not.
+   * Decided by the route, because only the route may read the account.
+   */
+  manageHref: string;
 }) {
   const greeting = DAYPART_GREETING[overview.daypart];
   const name = overview.firstName || (overview.signedIn ? "there" : "");
+  const copy = t.directHome;
+
+  /*
+   * THE PARAMETER IS `market`, AND IT IS NOT THE ONE THE OLD TILES SPENT.
+   *
+   * `MarketTiles` linked at `/search?intent=rent` and `/search?intent=sale`.
+   * `parseShelfQuery` reads `market=buy|rent` and reads NOTHING called
+   * `intent`, so both of those tiles have been landing on the unfiltered
+   * catalogue since the day the market parameter was introduced. Recorded here
+   * rather than quietly corrected, because the same dead parameter is spelled
+   * in four other places that belong to other scopes.
+   *
+   * BUY AND INVEST REACH THE SAME SHELF TODAY, ON PURPOSE AND SAID OUT LOUD.
+   * Invest is a browse filter over properties presented for their yield, and
+   * this platform holds no yield fact to filter on: no rental income, no
+   * service charge history, no occupancy. So Invest is the for-sale market
+   * with its own framing, which is exactly what `InvestBand` already resolved
+   * it to and for the same stated reason. It narrows the day there is
+   * something honest to narrow on, and until then the supporting line under
+   * the tile says what it is and what it is not.
+   */
+  const categories: HomeCategory[] = [
+    { key: "buy", label: copy.buy, href: "/search?market=buy", icon: "keys-handover" },
+    { key: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home" },
+    { key: "manage", label: copy.manage, href: manageHref, icon: "manage-ring" },
+    {
+      key: "invest",
+      label: copy.invest,
+      meaning: copy.investNote,
+      href: "/search?market=buy",
+      icon: "chart-growth",
+    },
+  ];
 
   return (
     <div className="nf-home">
@@ -112,68 +170,33 @@ export function HomeScreen({
         />
       </section>
 
-      {/* ------------------------------------------------------- search */}
-      {/*
-        ONE WELL, NOT A ROW OF CONTROLS. The target draws a single wide field
-        with the glyph in its left end and the arrow inside its right, and the
-        shipped screen had a fat submit in the middle of the field and a
-        separate filter box outside it, which squeezed the field until the
-        placeholder truncated mid-word. The filters live on the search page,
-        one tap further in, where the whole drawer is.
-      */}
-      <form
-        action="/search"
-        method="get"
-        role="search"
-        className="nf-glass nf-glass--well nf-home__search nf-rise nf-rise-3 mt-md"
-      >
-        <label htmlFor="home-q" className="sr-only">
-          {t.landing.hero.searchLabel}
-        </label>
-        <UiIcon name="search" size={ICON.inline} className="nf-home__search-glyph" />
-        <input
+      {/* ------------------------------------------------ 1. the hero plate */}
+      <div className="mt-md">
+        <HomeHero
           id="home-q"
-          name="q"
-          type="search"
-          autoComplete="off"
-          placeholder={t.home.searchMarkets}
-          className="nf-home__search-input"
+          place={overview.place.label || null}
+          title={copy.heroTitle}
+          lede={copy.heroLede}
+          searchPlaceholder={copy.heroSearch}
+          searchAction="/search"
+          filtersHref="/search?filters=open"
+          filtersLabel={copy.filters}
+          searchLabel={t.landing.hero.searchLabel}
+          kind="home"
         />
-        <button
-          type="submit"
-          aria-label={t.common.search}
-          className="nf-btn nf-btn--primary nf-btn--sm nf-btn--icon nf-home__search-go"
-        >
-          <UiIcon name="arrow-right" size={18} />
-        </button>
-      </form>
+      </div>
 
-      {/* -------------------------------------------------- market tiles */}
-      <MarketTiles t={t} locale={locale} counts={counts} />
+      {/* ------------------------------------------------ 2. the categories */}
+      <CategoryRow categories={categories} label={t.home.markets.label} />
 
-      {/* ------------------------------------------------- the investment band */}
-      {invest && (
-        <Reveal className="mt-section-tight">
-          <InvestBand t={t} feature={invest} />
-        </Reveal>
-      )}
-
-      {/* ---------------------------------------------------- cities */}
-      <Reveal className="mt-section-tight">
-        <FeaturedCities t={t} locale={locale} cities={cities} />
-      </Reveal>
-
-      {/* -------------------------------------------------- the cards */}
-      <Reveal as="section" className="mt-section-tight">
-        <div className="nf-home__head">
-          <h2 className="nf-h3">{t.home.recommended}</h2>
-          <Link href="/search" className="nf-home__more nf-tap">
-            {t.common.seeAll}
-            <UiIcon name="arrow-right" size={ICON.inline} />
-          </Link>
-        </div>
-
-        {listings.length === 0 ? (
+      {/* ------------------------------------------- 3. featured properties */}
+      <FeaturedBand
+        title={copy.featured}
+        seeAllHref="/search"
+        seeAllLabel={t.common.seeAll}
+        count={listings.length}
+        testId="featured-properties"
+        empty={
           /*
             THE ONE PLATFORM EMPTY STATE, and it ends somewhere. The only thing
             that resolves an empty shelf is supply, so that is the action.
@@ -181,7 +204,7 @@ export function HomeScreen({
           <EmptyState
             icon="home-search"
             title="Nothing to show here yet"
-            body="No agent has published a property in your city yet. The shelf fills the minute one does."
+            body="Nobody has published a property in your city yet. The shelf fills the minute somebody does."
             action={
               <EmptyActions primary={{ label: "List a property", href: "/profile?switch=owner" }} />
             }
@@ -191,61 +214,16 @@ export function HomeScreen({
               </p>
             }
           />
-        ) : (
-          <>
-            {/* Two up, on the shared card: the catalogue's card is F3's and is
-                never forked here, so home and search show one object. */}
-            <ul className="nf-home__cards">
-              {listings.map((l, i) => (
-                <li
-                  key={l.id}
-                  className="nf-card-in min-w-0"
-                  style={{ "--card-i": Math.min(i, 5) } as React.CSSProperties}
-                >
-                  <ListingCard listing={l} locale={locale} t={t} index={i} />
-                </li>
-              ))}
-            </ul>
-            <div className="mt-heading">
-              <ButtonLink href="/search" variant="secondary" full>
-                {t.common.viewAll}
-              </ButtonLink>
-            </div>
-          </>
-        )}
-      </Reveal>
-
-      {/* --------------------------------------------- what is live near you */}
-      <Reveal as="section" className="mt-section-tight">
-        <TrendingStrip
-          items={overview.trending}
-          cityLabel={overview.place.label}
-          hasPlaces={overview.areas.length > 0}
-        />
-      </Reveal>
-
-      {/* ----------------------------------------------------------- ai card */}
-      <Reveal className="mt-section-tight" delay={60}>
-        <AiAssistantBanner t={t} />
-      </Reveal>
-
-      {/* -------------------------------------------------- agent promo */}
-      <Reveal as="section" className="mt-section-tight" delay={60}>
-        <div className="nf-card relative flex flex-col gap-lg overflow-hidden p-card sm:p-cell md:flex-row md:items-center">
-          <span className="block h-16 w-16 shrink-0">
-            <BrandIcon name="homes-sparkle" fill />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="nf-h3">{t.home.agentCard.title}</h2>
-            <p className="nf-body mt-row max-w-[58ch] text-[var(--nf-content-secondary)]">
-              {t.home.agentCard.body}
-            </p>
-          </div>
-          <ButtonLink href="/agents" variant="secondary" className="shrink-0">
-            {t.home.agentCard.action}
-          </ButtonLink>
-        </div>
-      </Reveal>
+        }
+      >
+        {listings.map((listing, index) => (
+          <li key={listing.id} className="nf-feature-row__item">
+            {/* The catalogue's card is F3's and is never forked here, so home
+                and search show one object. */}
+            <ListingCard listing={listing} locale={locale} t={t} index={index} />
+          </li>
+        ))}
+      </FeaturedBand>
     </div>
   );
 }

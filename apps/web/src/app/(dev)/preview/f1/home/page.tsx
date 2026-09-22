@@ -2,7 +2,6 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { daypartFor, lagosHour, type HomeOverview } from "@/lib/app/home-queries";
 import { HomeScreen } from "@/components/app/home/HomeScreen";
-import type { HomeCity, InvestFeature, MarketCounts } from "@/components/app/home/markets";
 import { PERSON } from "../../_fixtures/people";
 import { LISTINGS } from "../listings";
 
@@ -41,74 +40,28 @@ export default async function PreviewHome() {
   };
 
   /*
-   * The market numbers the route reads from the catalogue, as fixtures for the
-   * same reason the listings are: this sandbox cannot reach the database, and
-   * a screenshot of the tiles has to show the count line that ships. These are
-   * the shapes of the live catalogue recorded in the ledger's baseline, and
-   * nothing in this folder renders on a product route.
+   * THE MARKET COUNT, CITY AND INVESTMENT FIXTURES STOOD HERE AND ARE GONE
+   * WITH THE BLOCKS THEY FED.
+   *
+   * `GOVERNING-01` screen one draws a hero plate, four category tiles with no
+   * counts on them, and one featured row. The nine market tiles, the cities
+   * rail and the investment band are not on that screen, so the harness has
+   * nothing left to hand them. `market-queries.ts` still holds the reads; one
+   * caller stopped calling.
    */
-  const counts: MarketCounts = {
-    rent: 8,
-    buy: 16,
-    shortlet: 8,
-    hotel: 2,
-    villa: 3,
-    apartment: 16,
-    restaurant: 2,
-    office: 3,
-    land: 3,
-  };
-
-  const cities: HomeCity[] = [
-    {
-      name: "Lagos",
-      href: "/search?q=Lagos",
-      count: 48,
-      src: "/brand/photos/skyline-bridge-dusk.jpg",
-      position: "center",
-    },
-    {
-      name: "Abuja",
-      href: "/search?q=Abuja",
-      count: 9,
-      src: "/brand/photos/villa-exterior-sunset.jpg",
-      position: "center",
-    },
-    {
-      name: "Port Harcourt",
-      href: "/search?q=Port%20Harcourt",
-      count: 4,
-      src: "/brand/photos/skyline-waterfront-dusk.jpg",
-      position: "left center",
-    },
-    {
-      name: "Ibadan",
-      href: "/search?q=Ibadan",
-      count: 3,
-      src: "/brand/photos/tower-entrance-dusk.jpg",
-      position: "center",
-    },
-  ];
-
-  const invest: InvestFeature = {
-    href: `/listing/${listings[0]!.id}`,
-    title: listings[0]!.title,
-    photo: "/brand/photos/villa-pool-terrace.jpg",
-    verified: true,
-  };
 
   return (
     <main id="main" className="min-h-dvh pb-4xl">
       <div className="nf-shell py-section-tight">
+        {/* `manageHref` is the chooser here, because a fixture holds no
+            account and a harness must never imply one. See HomeScreen. */}
         <HomeScreen
           t={t}
           locale={locale}
           overview={overview}
           listings={listings}
           roles={[]}
-          counts={counts}
-          cities={cities}
-          invest={invest}
+          manageHref="/profile/setup"
         />
       </div>
     </main>

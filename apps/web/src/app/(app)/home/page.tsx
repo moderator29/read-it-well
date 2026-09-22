@@ -4,7 +4,6 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getHomeOverview } from "@/lib/app/home-queries";
 import { getListingRepository } from "@/lib/listings/repository";
-import { getHomeMarkets } from "./market-queries";
 import { HomeScreen } from "@/components/app/home/HomeScreen";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
@@ -54,13 +53,17 @@ export default async function HomePage() {
 
   const repo = getListingRepository();
   /*
-   * The recommendations and the market numbers, together.
+   * The featured shelf.
    *
-   * The tiles, the cities rail and the investment band all print real counts
-   * off the catalogue (see ./market-queries), and home already waits on one
-   * catalogue read, so the second goes beside it rather than after it.
+   * The market counts read that stood here came off with the nine market
+   * tiles: `GOVERNING-01` draws a category row with NO counts on it, and
+   * HANDOFF 09 section 1.1 rules that the tiles drop their counts rather than
+   * print a figure `platform_stats()` cannot yet produce honestly. So the page
+   * no longer pays for a count nothing draws. `./market-queries` is still the
+   * home of that read and is still used by the preview harness; nothing was
+   * deleted, one caller stopped calling.
    */
-  const [listings, markets] = await Promise.all([repo.recommended(6), getHomeMarkets()]);
+  const listings = await repo.recommended(6);
 
   /*
    * Whether this person is a seller or an agent who has not finished verifying.
@@ -82,6 +85,25 @@ export default async function HomePage() {
       : null;
   const roles = roleStateFrom(agentFacts, mode).roles;
 
+  /*
+   * WHERE "MANAGE" GOES, DECIDED BY WHO IS ASKING.
+   *
+   * HANDOFF 09 section 6C.2: somebody holding a supplier workspace lands on
+   * their own properties; somebody holding none lands on the "Add a workspace"
+   * chooser. Both states are honest and neither needs a new product.
+   *
+   * IT READS THE AGENT ROW, WHICH IS WHAT EXISTS TODAY AND NOT WHAT WILL. The
+   * fuller answer is the workspace list, which also counts a stays business
+   * and a firm, and which B1 is building as `lib/supply/workspaces-queries`.
+   * The moment that lands this becomes a read of that list; it is one line and
+   * it is recorded in the ledger as owed rather than left to be noticed.
+   *
+   * AND IT IS NOT AUTHORISATION. Landing on the workspace does not permit a
+   * single action there: every route re-gates for itself against the database,
+   * which is section 3.5's standing rule.
+   */
+  const manageHref = agentContext.state === "agent" ? "/agent/listings" : "/profile/setup";
+
   return (
     <HomeScreen
       t={t}
@@ -89,9 +111,7 @@ export default async function HomePage() {
       overview={overview}
       listings={listings}
       roles={roles}
-      counts={markets.counts}
-      cities={markets.cities}
-      invest={markets.invest}
+      manageHref={manageHref}
     />
   );
 }
