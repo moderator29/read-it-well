@@ -510,3 +510,60 @@ I4. **`threads.css` carries dead `nf-insp-*` rules** (the hero, card, facts,
    `nf-insp-row__state` and `nf-insp-row__controls`, so those two stay; the
    rest can be deleted by whoever owns `threads.css`.
 
+
+### Requests from admin-shell (shell, overview, operations, analytics)
+
+The overview's, operations' and analytics' READS are Session B's own work in
+`apps/web/src/lib/admin/reads/overview.ts`, `operations.ts`, `analytics.ts`,
+`shared.ts`, `jobs.ts` and `shapes.ts` (read only, through the operator's own
+session under the admin SELECT policies, exact counts, no capped totals). The
+five below cannot be done as a read, because the data is not in any table an
+admin can SELECT, and each needs a MIGRATION or a WRITE in a file Session B
+does not own. Until they land, each panel says "Not recorded" or names the gap
+on the screen. The letters match the panel notes.
+
+A5. **An admin-callable read of the database's own scheduled jobs.** The
+    eight pg_cron jobs (`vallo_release_stale_holds`, `vallo_purge_rate_limits`,
+    `vallo_escrow_sweep_timeouts`, `vallo_reconcile_payments`,
+    `vallo-nightly-badges`, `vallo_purge_idempotency`,
+    `vallo_announce_completed_stays`, `vallo-daily-note`) live in `cron.job`
+    and `cron.job_run_details`, which PostgREST does not expose, and
+    `public.cron_job_failures` is EXECUTE for `service_role` only. Request: a
+    `security definer` function `public.admin_cron_jobs()` that repeats the
+    admin role check (`private.has_role(auth.uid(),'admin') or ...'super_admin'`)
+    and returns one row per job:
+    `jobname text, schedule text, active boolean, last_start timestamptz,
+    last_end timestamptz, last_status text, last_message text (left 200),
+    runs_24h int, failed_24h int, recovered_at timestamptz`.
+    Session B then lists them row by row in the Operations jobs table beside
+    the seven Vercel Cron jobs; today they are one summary row drawn from the
+    newest `pg-cron-watch` audit row.
+A6. **Admins cannot read `public.notifications`.** Its only SELECT policy is
+    `notifications_select_own`. The founder's update puts "every notification
+    the platform sends" on the Operations desk. Request, either: a policy
+    `notifications_select_admin` (the same `has_role` check the other admin
+    policies use), or better, because an operator needs volumes and not
+    people's messages, a `security definer` aggregate
+    `public.admin_notification_activity(p_days int)` returning
+    `kind notification_kind, sent bigint, read bigint, last_sent_at timestamptz`
+    per kind plus `day date, sent bigint` per day. Session B's panel
+    (`NotificationActivity` in `lib/admin/reads/shapes.ts`) is built and says
+    "Not wired yet" until then.
+A7. **Searches are not recorded anywhere.** Analytics draws Total searches,
+    Conversion rate, Demand vs supply, Top areas by searches and Searches vs
+    results. None can exist without a log. Request: a table
+    `public.search_events (id uuid, created_at timestamptz default now(),
+    side text check in ('property','stays'), state_code text, city text,
+    area text, intent text, results int, user_id uuid null)`, insert-only from
+    the search server action (no personal data beyond the optional user id),
+    an admin SELECT policy, and a 400 day retention in the existing purge job.
+A8. **Listing detail views are not recorded.** Listing views and conversion
+    need `public.listing_views (listing_id uuid, created_at timestamptz,
+    viewer_id uuid null)` written once per viewer per listing per day from the
+    listing page, with an admin SELECT policy.
+A11. **Refusal reasons are free text or nothing.** "Top common refusals"
+    needs a reason chosen from a fixed list when an owner or host declines an
+    inspection or a reservation (`declined_reason` as an enum or checked text:
+    `price`, `incomplete_details`, `not_available`, `location_mismatch`,
+    `not_suitable`, `other`) on the tables that record the decline, and the
+    decline controls to offer the list.
