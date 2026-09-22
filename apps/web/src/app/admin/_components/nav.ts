@@ -28,8 +28,13 @@ export type AdminDestination = {
   href: string;
   icon: AdminIcon;
   label: string;
-  /** The queue count keys whose sum this row carries as its badge. */
+  /**
+   * The `getQueueCounts()` key whose figure this row carries as its badge:
+   * work waiting on THIS desk, the same figure the desk itself shows.
+   */
   countKeys?: readonly string[];
+  /** What the badge counts, read out and shown as its tooltip ("3 flagged messages waiting"). */
+  countLabel?: string;
   children?: AdminDestination[];
 };
 
@@ -50,15 +55,15 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     icon: glyph("clipboard"),
     label: "Listings",
     countKeys: ["listings"],
+    countLabel: "listings waiting on a review decision",
   },
   {
     key: "supply",
     href: "/admin/supply",
     icon: glyph("list-doc"),
     label: "Supply",
-    countKeys: ["applications"],
     children: [
-      { key: "applications", href: "/admin/agents", icon: ui("user"), label: "Applications", countKeys: ["applications"] },
+      { key: "applications", href: "/admin/agents", icon: ui("user"), label: "Applications", countKeys: ["applications"], countLabel: "applications waiting on a decision" },
       { key: "businesses", href: "/admin/businesses", icon: ui("building-hotel"), label: "Businesses" },
       { key: "stops", href: "/admin/stops", icon: ui("shield-stop"), label: "Stops" },
     ],
@@ -81,23 +86,25 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     href: "/admin/moderation",
     icon: glyph("moderation"),
     label: "Moderation",
-    countKeys: ["moderation", "flags", "reports"],
+    countKeys: ["moderation"],
+    countLabel: "held posts, stories, comments and bios waiting on a decision",
     children: [
-      { key: "flags", href: "/admin/flags", icon: ui("chat-bubble"), label: "Message flags", countKeys: ["flags"] },
-      { key: "reports", href: "/admin/reports", icon: ui("flag"), label: "Reports", countKeys: ["reports"] },
+      { key: "flags", href: "/admin/flags", icon: ui("chat-bubble"), label: "Message flags", countKeys: ["flags"], countLabel: "flagged messages waiting on a decision" },
+      { key: "reports", href: "/admin/reports", icon: ui("flag"), label: "Reports", countKeys: ["reports"], countLabel: "reports open or under review" },
       { key: "social", href: "/admin/social", icon: ui("compass"), label: "Around" },
       { key: "standing", href: "/admin/standing", icon: ui("star"), label: "Standing" },
     ],
   },
-  { key: "tickets", href: "/admin/support", icon: glyph("support"), label: "Support", countKeys: ["tickets"] },
+  { key: "tickets", href: "/admin/support", icon: glyph("support"), label: "Support", countKeys: ["tickets"], countLabel: "support tickets open or pending" },
   {
     key: "operations",
     href: "/admin/operations",
     icon: glyph("operations"),
     label: "Operations",
     countKeys: ["alerts"],
+    countLabel: "alerts open, waiting on a person",
     children: [
-      { key: "alerts", href: "/admin/alerts", icon: ui("bell"), label: "Alerts", countKeys: ["alerts"] },
+      { key: "alerts", href: "/admin/alerts", icon: ui("bell"), label: "Alerts", countKeys: ["alerts"], countLabel: "alerts open, waiting on a person" },
       { key: "audit", href: "/admin/audit", icon: ui("history"), label: "Audit log" },
     ],
   },

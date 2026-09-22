@@ -967,6 +967,36 @@ fixture harness. Image values are image px x 0.908.
 | Top areas / fewest listings | two tables with bars | fewest listings real (empty today); top areas not wired (A7) | partial by data |
 | Searches vs results / refusals | bars; list | not wired (A7, A11) | by data |
 
+**Rail badges (lead review, 22 September).** Each badge is work waiting on
+that one desk, from `getQueueCounts()` (exact `head: true` counts), with a
+`title` tooltip and an accessible label naming what it counts:
+
+| Row | Key | Read and filter | Label |
+|---|---|---|---|
+| Listings | `listings` | `listings.status in (SUBMITTED, UNDER_REVIEW, APPROVED)` | listings waiting on a review decision |
+| Moderation | `moderation` | `posts`, `stories`, `story_comments` with `status = HELD`, plus `social_profiles.bio_status = HELD` | held posts, stories, comments and bios waiting on a decision |
+| Support | `tickets` | `support_tickets.status in (open, pending)` | support tickets open or pending |
+| Operations, and Alerts under it | `alerts` | `risk_alerts.status = open` | alerts open, waiting on a person |
+| Applications (under Supply) | `applications` | `agent_applications.status in (SUBMITTED, UNDER_REVIEW)` | applications waiting on a decision |
+| Message flags (under Moderation) | `flags` | `message_flags.status = open` | flagged messages waiting on a decision |
+| Reports (under Moderation) | `reports` | `reports.status in (open, reviewing)` | reports open or under review |
+| All desks | sum of the child rows above | | waiting across the desks below |
+
+Supply and the other parent rows carry no badge: their desks show supply, not
+a queue. Moderation no longer adds flags and reports into its own badge; they
+sit on their own rows. The Listings badge and the overview's Open reviews card
+read the SAME figure (`getQueueCounts().listings`), so they cannot disagree; it
+includes an example listing if one were ever submitted for review (none is).
+The earlier empty proof paired fixture badge counts (73, 10 ...) with the
+empty page, which was a harness mistake: the empty proofs now use the
+database's real queue counts on 22 September (flags 3, tickets 6, every other
+queue 0), so Listings reads nothing beside Open reviews 0.
+
+**Empty charts.** An empty chart now draws the full scale it would use at its
+smallest real range, in muted ink with gridlines (₦0 to ₦1m for money, 0 to
+10 for counts), and no line or bar; its frame fills the panel's height, so no
+panel carries dead space under it.
+
 **390 (derived).** Rail becomes a drawer behind a rounded-square menu button
 (44x44) with a cyan waiting dot; strip one figure per row; cards and panels
 stack; tables scroll inside their panel; chart axes drop alternate labels in

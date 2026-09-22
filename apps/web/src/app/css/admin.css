@@ -2354,6 +2354,25 @@
     outline-offset: 2px;
   }
   /* The empty chart keeps its frame and height; the note sits on the plot. */
+  /* A panel is a column, so an empty chart can take the height the grid
+     row gives it and no panel carries dead space under its frame. */
+  .nf-admin-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .nf-admin-panel > .nf-chart--empty {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+  .nf-chart--empty .nf-chart__frame {
+    flex: 1 1 auto;
+  }
+  /* The waiting chart's scale, in muted ink: the axis it will draw on. */
+  .nf-chart--empty .nf-chart__yaxis,
+  .nf-chart--empty .nf-chart__xaxis {
+    color: var(--nf-content-muted);
+  }
   .nf-chart__empty-note {
     position: absolute;
     inset: 0;

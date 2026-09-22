@@ -299,14 +299,14 @@ export function EmptyChart({
         </ul>
       )}
       <div className="nf-chart__frame">
-        <div className="nf-chart__yaxis" aria-hidden="true" style={{ height }}>
+        <div className="nf-chart__yaxis" aria-hidden="true" style={{ minHeight: height }}>
           {yLabels.map((label, i) => (
             <span key={`${label}-${i}`} style={{ bottom: `${(i / Math.max(1, yLabels.length - 1)) * 100}%` }}>
               {label}
             </span>
           ))}
         </div>
-        <div className="nf-chart__plot" style={{ height }}>
+        <div className="nf-chart__plot" style={{ minHeight: height }}>
           {yLabels.map((label, i) => (
             <span
               key={`${label}-${i}`}

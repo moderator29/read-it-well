@@ -7,6 +7,7 @@ import type { Dictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NavIcon } from "./AdminGlyph";
 import {
+  ADMIN_NAV,
   ADMIN_PRIMARY,
   ADMIN_SECONDARY,
   ADMIN_SETTINGS,
@@ -50,7 +51,11 @@ function Row({
       <NavIcon icon={item.icon} size={child ? 16 : 20} />
       <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{label}</span>
       {count > 0 && (
-        <span className="nf-admin-nav__count" aria-label={`${count} waiting`}>
+        <span
+          className="nf-admin-nav__count"
+          title={`${count} ${item.countLabel ?? "waiting"}`}
+          aria-label={`${count} ${item.countLabel ?? "waiting"}`}
+        >
           {count}
         </span>
       )}
@@ -121,7 +126,15 @@ function AllDesks({
       <summary className="nf-admin-nav__row nf-admin-nav__row--child">
         <UiIcon name="grid" size={16} className="shrink-0" />
         <span className="min-w-0 flex-1">All desks</span>
-        {waiting > 0 && <span className="nf-admin-nav__count">{waiting}</span>}
+        {waiting > 0 && (
+          <span
+            className="nf-admin-nav__count"
+            title={`${waiting} waiting across the desks below`}
+            aria-label={`${waiting} waiting across the desks below`}
+          >
+            {waiting}
+          </span>
+        )}
         <UiIcon name="chevron-down" size={16} className="nf-admin-nav__more-chev shrink-0" />
       </summary>
       <ul className="nf-admin-nav__children">
@@ -254,7 +267,11 @@ export function AdminTabs({
   const button = useRef<HTMLButtonElement | null>(null);
   const panel = useRef<HTMLDivElement | null>(null);
   const current = currentDestination(pathname);
-  const waiting = [...ADMIN_PRIMARY].reduce((total, item) => total + countFor(item, counts), 0);
+  /* Every queue once, however many rows carry it. */
+  const waiting = [...new Set(ADMIN_NAV.flatMap((item) => item.countKeys ?? []))].reduce(
+    (total, key) => total + (counts[key] ?? 0),
+    0,
+  );
 
   useEffect(() => {
     if (!open) return;

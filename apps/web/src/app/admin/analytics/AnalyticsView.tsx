@@ -102,7 +102,7 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
         <Panel id="an-results" title="Searches vs results returned">
           <EmptyChart
             height={160}
-            yLabels={["0", "", "", "", ""]}
+            yLabels={niceTicks(10, 5).map((v) => String(v))}
             legend={["Searches", "Results"]}
             xLabels={[]}
             note={{
@@ -164,7 +164,7 @@ function DemandSupply({
       {total === 0 ? (
         <EmptyChart
           height={200}
-          yLabels={["0", "", "", "", ""]}
+          yLabels={niceTicks(10, 5).map((v) => String(v))}
           xLabels={supply.map((b, i) => (monthly || i % (range === "90d" ? 3 : 7) === 0 ? label(b.start, false) : ""))}
           note={{
             title: "No real listing created in this range",

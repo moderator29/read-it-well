@@ -70,9 +70,13 @@ the renders draw them: Overview, Listings, Supply, Verification, Money,
 Escrow, Bookings, Moderation, Support, Operations, Analytics, and Settings at
 the foot above your name and role ("Platform Operator", or "Platform Owner"
 for a super admin). The open row is the lit blue one. A cyan number on a row
-is work waiting there right now (listings to review, applications, held
-posts plus flags plus reports, open tickets, open alerts), read by
-`getQueueCounts()` on every page load.
+is work waiting on that one desk right now, read by `getQueueCounts()` on
+every page load: listings waiting on a review decision (Listings, the same
+figure as the overview's Open reviews), held posts, stories, comments and bios
+(Moderation), open or pending tickets (Support), open alerts (Operations and
+Alerts), and under their parents applications waiting (Applications),
+flagged messages (Message flags) and open reports (Reports). Hover a number,
+or listen to it, and it says what it counts. Rows without a queue carry none.
 
 **Desks inside a row.** The console has more desks than twelve. Each lives
 under the row it belongs to and is listed beneath that row while you are in

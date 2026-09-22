@@ -279,7 +279,7 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
         ) : activity.total === 0 ? (
           <EmptyChart
             height={180}
-            yLabels={["0", "", "", "", ""]}
+            yLabels={niceTicks(10, 5).map((v) => String(v))}
             xLabels={activity.perDay.map((p, i) => (i % 7 === 0 ? p.day.slice(5) : ""))}
             note={{
               title: "Nothing recorded in 30 days",
