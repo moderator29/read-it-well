@@ -4274,3 +4274,82 @@ says the two may not drift, so the desktop rail's theme control lost its label
 as well. **An eye on that at 1440 would be worth having** - the rail is a
 column of labelled destinations and this is now the one unlabelled thing in it.
 It is the only judgement in this section that a measurement did not decide.
+
+## 38. CHROME AUDITED: FOUR ITEMS, AND A DEFECT THAT FELL OUT OF THE MEASURING
+
+Items 2, 3, 4 and 5 of the founder's eight, landed at `71b000c`, `5e0802a`
+and `5dcdaad`. **The before and after proofs were in the scratchpad**, where a
+container reclaim takes them, so 21 of them are now in
+`docs/design/proofs/chrome/`, compressed 10.6MB to 2.5MB. Section 6 says a
+scope closes with its proof RECORDED, and a proof nobody else can open is not
+recorded. That is the second time today I have had to bring a worker's
+evidence inside the repository.
+
+### THE FOUNDER'S EYE WAS EXACT, TO THE PIXEL
+
+He said the dock object sat "raised above the bar" and looked "about 7px" too
+high, from looking at his phone. Measured: the capsule top was at 762 and the
+object began at 755. **762 minus 755 is 7.** After the change the object spans
+778 to 816 against its neighbours' content block at 778.5 to 815.5, half a
+pixel at each end, so "same height, same baseline" is arithmetic rather than a
+judgement. 38px is the odd size it takes to line up, which is why it is 38 and
+not 40.
+
+### A REAL DEFECT FELL OUT OF MEASURING THE DRAWER
+
+Asked to make the drawer consistent, CHROME measured first: row heights
+36/44/52/56/101/124, inline padding 8/12/14, gaps 10/12/14, glyphs 16 and 20,
+and glyph x at 31, 33 and 34, which is three columns pretending to be one.
+
+Then the finding nobody was looking for: **the drawer sized both the 24px slot
+AND the 24px `<svg>` down to 20, and `UiIcon` derives its stroke width from
+the size it was ASKED for, so every glyph in that panel drew at five sixths of
+the platform stroke.** Nothing was misaligned enough to see; the whole panel
+was simply drawn thinner than the rest of the product. That is the kind of
+defect only a ruler finds, and it was found because the instruction was
+"measure it first" rather than "tidy it up".
+
+After: one row height of 48, one glyph at 24 at the correct stroke, every
+glyph at x=33 and every label at x=69, and the foot gained the hairline every
+section above it already had.
+
+### ITEM 4 WAS A ONE-CONDITION BUG, NOT A DESIGN QUESTION
+
+`triggerBehaviour` returned `"toggle"` at exactly one workspace, so the sheet
+never opened for somebody holding one. The founder's words were "it behaves as
+though holding one means the question is settled", and that is precisely what
+the code said. It always opens now, proven by clicking through the exact
+defective state in both themes.
+
+**And the Verified mark is honest by construction:** it means `status =
+APPROVED` and nothing else, and **the console row deliberately draws no mark**,
+because its "active" is synthesised from the existence of a staff role row and
+no queue ever decided it. A badge that means two different things is a badge
+that means nothing.
+
+### ITEM 5: THE ROUTE WAS NEVER WRONG
+
+`/admin` was rendering the unified queue table underneath the overview's own
+heading. The queue moved intact to `/admin/queue` and `/admin` now draws seven
+desks with live counts. The headline is the SUM of those same seven numbers,
+so it cannot disagree with them, and there is no trend or movement figure
+because the schema records no point in time to draw one from. A failed read
+draws the unavailable panel rather than seven zeroes, and a real zero is drawn
+AND said.
+
+### Declared rather than buried, and one wants the founder's eye
+
+* **`AppRail` is one component for the drawer and the desktop rail**, so
+  removing the theme control's label removed it from the rail as well. The
+  founder's instruction was about the drawer. The rail is a column of
+  labelled destinations and this is now the one unlabelled thing in it. **His
+  call, and it is one line either way.**
+* Three rules live in `chrome.css` that belong in `controls.css`, overridden
+  from the file CHROME owns rather than reaching into IMG-A's. Someone folds
+  them back when that file is free.
+* `side-nav.css` and `admin.css` are not in section 24's partition table and
+  were taken because items 3 and 5 were impossible otherwise. The next
+  partition names an owner.
+* Two i18n keys and one `ThemeToggle` variant are now unused and were LEFT,
+  because removing a variant in another scope is a bigger call than the
+  instruction covered.
