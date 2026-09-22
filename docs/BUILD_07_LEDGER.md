@@ -1020,3 +1020,120 @@ in it, including whether an audit row is written per request or per viewing
 session, and it is worth more than the one call site: once it streams ranges it
 is the right answer for every private media file the console will ever show.
 It is mine, and it is not started.
+
+## 13. THE GLOW, MEASURED OFF THE RENDERS RATHER THAN GUESSED AT
+
+The founder's ruling: the primary blue control is lit in every reference image,
+the original set as much as the twelve new ones, and ours is flat. Bloom under
+it, a brighter rim along its top edge, a gradient fill rather than a flat one,
+and the same treatment at lower intensity on active tabs, selected cards, the
+raised centre switch, the glass icon plates and every wizard's selected state.
+Token layer once, never per component. Measured, not eyeballed, so the next
+person does not re-guess it.
+
+`scripts/design/measure-glow.mjs` is the instrument. It takes an image and a
+rectangle, or finds the control itself with `--find`, and prints the fill row
+by row, the rim's lift over the fill beneath it, and the excess brightness
+outside each edge sampled outwards until it dies. Anybody can re-run it and get
+the same numbers, which is the point.
+
+### Where these numbers come from
+
+`docs/design/references/roles/GOVERNING-03-register-owner.png`, screen one, the
+primary Continue, box `x=48 y=757 w=309 h=54`. It is the cleanest specimen in
+the set: full width, on flat dark panel, with nothing bright near it. Cross
+checked against the Explore Properties button in
+`docs/design/references/founder/landing-fullpage-target.png`, box
+`x=42 y=268 w=177 h=31`, which agrees on the structure at about half the scale.
+
+In `GOVERNING-03` a 390px phone is drawn about 328px wide, so **render px are
+about 0.84 of a CSS px**. Both are given below and the CSS figure is the one to
+implement.
+
+### The fill is NOT a one-way gradient. It is a curve.
+
+Row by row down the control, the mean fill reads:
+
+| Position | Render | Measured |
+| --- | --- | --- |
+| rim, rows 0 to 1 | 2px | `#0AACFA` to `#02B6FE`, L 143 to 149 |
+| top of fill | row 2 | `#0074FC`, L 101 |
+| deepest | about 45 per cent down | `#004AFD`, L 71.5 |
+| bottom of fill | last row | `#0074FB`, L 101 |
+| bottom rim | 1px | `#00A9FC`, L 139 |
+
+So it is **light, deep, light**: a specular curve reading as a cylinder lit
+from above, not the top-to-bottom ramp the instruction describes. The hue also
+rotates slightly with it, 212.4 degrees at the top stop and 222.4 at the
+deepest point, both inside the one blue family. `--nf-brand-primary` is
+`#0069FE` today, which is the top stop to within a shade, so the family already
+holds one end of this and only the deep middle is missing.
+
+**THE RIM IS CYAN IN THE RENDER AND THAT IS A PROBLEM WORTH NAMING.** The
+instruction says white at low alpha. The pixels say otherwise: `#02B6FE` has
+red at 2 out of 255, and white at any alpha over a blue fill lifts red first.
+It is a brighter, more cyan blue. But bright cyan is the PENDING state in this
+product and means one thing only, so painting a cyan rim on every primary
+control would spend that signal on decoration. **The translation is white at 30
+per cent**, which reproduces the measured lift of L +47 over the fill beneath
+it (white over `#0074FC` lifts L by 154 per unit alpha, so 47 divided by 154 is
+0.305) without putting a second meaning on cyan. That is a deliberate
+translation of a reference's off-brand detail, which the rules require, and the
+founder can overrule it in one line if he wants the literal cyan.
+
+### The bloom, and it is two shadows rather than one
+
+Sampled upward from the top edge over the control's middle 60 per cent, against
+a panel reading L 10:
+
+| Distance, render | Distance, CSS | Excess L | Implied alpha |
+| --- | --- | --- | --- |
+| 1 to 2px | 1 to 2px | +32.4 | 0.38 |
+| 4px | 5px | +21.4 | 0.25 |
+| 8px | 9.5px | +12.4 | 0.145 |
+| 16px | 19px | +5.9 | 0.069 |
+| 24px | 29px | +3.7 | 0.043 |
+| 32px | 38px | +2.8 | 0.033 |
+| 48px | 57px | +1.8 | 0.021 |
+| dies | about 62px | under 5 per cent of peak | |
+
+One Gaussian does not fit that: the near field halves every 9px and then the
+tail refuses to die for another 50. Two shadows do fit it, both at zero offset
+so they read as light rather than as a drop shadow:
+
+```
+0 0 24px rgba(12, 106, 239, 0.50),
+0 0 88px rgba(12, 106, 239, 0.14)
+```
+
+The tight one carries the edge and is most of what the eye reads as "lit". The
+wide one is what makes the surface underneath look like it is receiving light
+rather than wearing a halo, and it is the one that will be tempting to drop
+because it is nearly invisible on its own. Do not drop it.
+
+Left and right of the control could not be measured: the phone bezel in these
+renders is 13px away and is itself lit, so the horizontal numbers are noise.
+The bloom is taken as radial from a zero-offset shadow, which is what the image
+looks like, and that assumption is recorded here rather than buried.
+
+### NO REFERENCE IMAGE DRAWS LIGHT MODE, and that has to be said plainly
+
+All eighty nine indexed references are dark. The founder's three light captures
+in `references/founder/` are photographs of our own shipped defects and govern
+nothing. So there is no measurable light-mode target for any of this, and a
+glow tuned for a ground at L 10 washes out on paper at L 250: the same alpha
+that lifts a dark panel by a third of its brightness lifts a white one by
+almost nothing, and the wide shadow disappears entirely.
+
+Light values therefore have to be derived and then PROVEN on a real surface
+rather than measured off an image that does not exist. The derivation to start
+from: on paper the bloom must go darker rather than brighter to read at all, so
+the tight shadow keeps the brand hue and roughly doubles its alpha while the
+wide one becomes a genuine shadow in deep blue rather than a light, and the rim
+inverts from white to a top-edge darkening. That is a hypothesis, not a
+measurement, and it is labelled as one.
+
+### The shape law is not reopened by any of this
+
+Every text-bearing control stays a rounded rectangle on `--nf-radius-control`.
+A glow changes what a control is made of, never what shape it is.
