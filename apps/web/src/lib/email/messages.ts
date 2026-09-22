@@ -170,10 +170,14 @@ function message(
   preheader: string,
   blocks: readonly (Block | null | undefined | false)[],
   footerLines?: readonly string[],
+  footerLink?: { label: string; href: string },
 ): EmailMessage {
-  const { html, text } = compose(
-    footerLines ? { preheader, blocks, footerLines } : { preheader, blocks },
-  );
+  const { html, text } = compose({
+    preheader,
+    blocks,
+    ...(footerLines ? { footerLines } : {}),
+    ...(footerLink ? { footerLink } : {}),
+  });
   return { subject, html, text };
 }
 
@@ -209,14 +213,36 @@ export type WelcomeData = {
  * The general version is not a lesser one. It is the honest answer when
  * nothing was declared, and it names the two directions rather than guessing.
  */
+/**
+ * Every welcome, with the one footer line that says where the switch is.
+ *
+ * The settings card promises a person can turn Vallo's email off, so the very
+ * first email Vallo sends says where that is, in the small print, which is
+ * where somebody looks for it. It is not an unsubscribe and does not call
+ * itself one: this message is transactional, there is nothing to unsubscribe
+ * from, and an unsubscribe needs List-Unsubscribe headers the client does not
+ * send yet. Offering the real switch is the honest version of the gesture.
+ */
+function welcomeShell(
+  subject: string,
+  preheader: string,
+  blocks: readonly (Block | null | undefined | false)[],
+  footerLines: readonly string[],
+): EmailMessage {
+  return message(subject, preheader, blocks, footerLines, {
+    label: "Change what Vallo emails you",
+    href: appUrl("/settings/notifications"),
+  });
+}
+
 export function welcome(data: WelcomeData): EmailMessage {
   const greeting = hello(data.name);
 
   switch (data.role) {
     case "renter":
-      return message(
+      return welcomeShell(
         "Welcome to Vallo",
-        "Start with search, and read the move-in cost before you plan a viewing.",
+        "Start with search, and read the total move-in cost before you plan a viewing.",
         [
           heading("Welcome to Vallo"),
           paragraph(
@@ -246,7 +272,7 @@ export function welcome(data: WelcomeData): EmailMessage {
       );
 
     case "buyer":
-      return message(
+      return welcomeShell(
         "Welcome to Vallo",
         "Start with search, and never let money move before a lawyer has seen the title.",
         [
@@ -278,7 +304,7 @@ export function welcome(data: WelcomeData): EmailMessage {
       );
 
     case "landlord":
-      return message(
+      return welcomeShell(
         "Welcome to Vallo",
         "List your property, and get verified so people trust what you have written.",
         [
@@ -310,7 +336,7 @@ export function welcome(data: WelcomeData): EmailMessage {
       );
 
     case "seller":
-      return message(
+      return welcomeShell(
         "Welcome to Vallo",
         "List your property, and state the title you hold.",
         [
@@ -342,7 +368,7 @@ export function welcome(data: WelcomeData): EmailMessage {
       );
 
     case "agent":
-      return message(
+      return welcomeShell(
         "Welcome to Vallo",
         "Apply to be verified, then list. Verification is what earns reach here.",
         [
@@ -374,7 +400,7 @@ export function welcome(data: WelcomeData): EmailMessage {
       );
 
     default:
-      return message(
+      return welcomeShell(
         "Welcome to Vallo",
         "Everything here was listed by a real person. Here is how it works.",
         [

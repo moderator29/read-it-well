@@ -422,6 +422,21 @@ export type ComposeOptions = {
   blocks: readonly (Block | null | undefined | false)[];
   /** Muted footer lines above the sign-off. Plain text, escaped here. */
   footerLines?: readonly string[];
+  /**
+   * One linked footer line, under the plain ones.
+   *
+   * For the messages that a preference can switch off. The settings card
+   * promises those can be turned off, so the email that arrives because of one
+   * says where that switch is, in the small print, where a reader looks for
+   * it. It is NOT an unsubscribe: an unsubscribe belongs on the marketing
+   * channel and needs the List-Unsubscribe headers to go with it, which this
+   * client does not send yet. Saying "unsubscribe" and meaning "change a
+   * preference" is the kind of promise a footer should not make.
+   *
+   * A transactional message that nothing can switch off leaves this unset,
+   * because offering a switch that does not exist is worse than offering none.
+   */
+  footerLink?: { label: string; href: string };
 };
 
 export type Composed = {
@@ -491,6 +506,16 @@ export function compose(options: ComposeOptions): Composed {
     )
     .join("\n                ");
 
+  /*
+   * The linked footer line. Underlined as well as coloured, because a link
+   * distinguished by colour alone is invisible to a reader who cannot see the
+   * difference, and a mail client that recolours text takes the only signal
+   * away from everybody.
+   */
+  const footerLinkHtml = options.footerLink
+    ? `\n                <p class="rm-muted" style="margin:0 0 8px;font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${DARK.muted};"><a href="${escapeHtml(options.footerLink.href)}" target="_blank" style="color:${SKY};text-decoration:underline;">${escapeHtml(options.footerLink.label)}</a></p>`
+    : "";
+
   const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -540,7 +565,7 @@ export function compose(options: ComposeOptions): Composed {
                  small print by position as well as by size. -->
             <tr>
               <td style="padding:26px ${PAD_X - 12}px 0;">
-                ${footer}
+                ${footer}${footerLinkHtml}
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 0;">
                   <tr>
                     <td style="vertical-align:middle;padding-right:9px;">
@@ -582,6 +607,11 @@ export function compose(options: ComposeOptions): Composed {
       blocks.map(textBlock).join("\n\n"),
       "",
       ...(footerLines.length > 0 ? [footerLines.map((l) => wrap(l)).join("\n"), ""] : []),
+      // The same line in text, as "Label: url", because a bare label with no
+      // address is a link a text reader cannot follow.
+      ...(options.footerLink
+        ? [`${options.footerLink.label}: ${options.footerLink.href}`, ""]
+        : []),
       SIGN_OFF,
       LEGAL_LINE,
       siteUrl(),
