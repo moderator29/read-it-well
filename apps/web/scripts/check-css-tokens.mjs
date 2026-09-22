@@ -716,6 +716,26 @@ const DULL_ALLOWED = new Set([
   "src/app/css/chips.css  .nf-tag-pill--neutral",
   "src/app/css/controls.css  .nf-switch",
   "src/app/settings-rows.css  .nf-switch",
+  /*
+   * PERMANENT, and it arrived the day this check stopped excluding the paper
+   * twin by name. It is the SAME switch track as the two entries above it,
+   * reached through its light rule instead of its base rule. Grey off and
+   * brand on is the entire semantics of a switch in both themes, and a blue
+   * track on paper would say the switch is on before anybody touched it just
+   * as surely as it would at night. The rule the light twin actually owes is
+   * the THUMB, which `controls.css` paints white on `#EFF1F4` at 1.09:1, and
+   * that is a contrast defect rather than a dull-edge one.
+   */
+  'src/app/css/controls.css  :root[data-theme="light"] .nf-switch',
+  /*
+   * PERMANENT, and it is the SAME TRACK AGAIN, in its off state, written where
+   * the product keeps its cross-file paper answers. It raises the track's
+   * hairline from `--nf-border-default` at 1.31:1 to `--nf-border-strong` at
+   * 1.61:1, which is the strongest rung this check calls neutral, because on
+   * paper a white thumb on a `#EFF1F4` track measures 1.13:1 and an off switch
+   * had no visible thumb at all. A brand edge here would say the switch is on.
+   */
+  'src/app/css/light.css  :root[data-theme="light"] .nf-switch:not([aria-checked="true"])',
   "src/app/css/utilities.css  .nf-option",
   "src/app/css/catalogue.css  .nf-shelf-sort > summary",
   "src/app/css/catalogue.css  .nf-stay-card__chip",

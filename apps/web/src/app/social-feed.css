@@ -3473,7 +3473,7 @@
   }
   :root[data-theme="light"] .nf-feed-chip {
     background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge);
     box-shadow: var(--nf-elev-1);
   }
   :root[data-theme="light"] .nf-feed-chip:hover,

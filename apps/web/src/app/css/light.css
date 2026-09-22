@@ -173,7 +173,7 @@
      be a composited layer sampling a backdrop nothing can see. */
   :root[data-theme="light"] .nf-btn--glass {
     background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge);
     color: var(--nf-content-primary);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -558,6 +558,150 @@
   }
 
   /*
+   * ===================================================================
+   * THE GLASS FILL INVERTS ON PAPER, AND TWENTY THREE RULES DID NOT GET
+   * THE MEMO. TWELVE OF THEM ARE ROW HOVERS.
+   * ===================================================================
+   *
+   * `--nf-glass-fill` is white at 7.5 per cent at night and white at 86 per
+   * cent on paper. At night that is a faint lift on a dark ground, which is
+   * what every rule below was reaching for. On paper it is the page itself:
+   * MEASURED at 1.000:1 over a `--nf-surface-primary` card. Any rule that used
+   * a glass fill to make something VISIBLE now paints white on white.
+   *
+   * The diagnosis is not new and the file says so at :686 below, where the
+   * same fault was found for the Tailwind-utility form and patched THERE only:
+   * "simply the WRONG TOKEN ... `--nf-interactive-hover` is the token for 'a
+   * pointer is over this'". That analysis is right and the patch reached
+   * utilities and nothing else. These are the rules written directly in CSS.
+   *
+   * WHY THEY ARE ALL HERE AND NOT IN THEIR OWN PARTIALS. Eight stylesheets
+   * would have to be opened to fix twenty rules, and this is the sheet the
+   * product already keeps its cross-file paper answers in. One place also
+   * means one place to delete from on the day the fills are re-cut.
+   *
+   * THE HOVERS. Twelve of these are the only affordance their row has, so on
+   * paper hovering a row in the drawer, messages, the share picker, wallet
+   * transactions, settings, crypto and the admin rail produced NO visible
+   * change at all. `--nf-interactive-hover` measures 1.16:1 on the white card
+   * after the paper pair was raised to match the night pair's step, against
+   * the 1.00:1 they had. The ink on a hovered row goes 16.29:1 to 15.28:1.
+   */
+
+  /* --- the drawer ------------------------------------------------- */
+  :root[data-theme="light"] .nf-nav__close:hover,
+  :root[data-theme="light"] .nf-nav__who:hover,
+  :root[data-theme="light"] a.nf-nav__row:hover,
+  :root[data-theme="light"] .nf-nav__row--parent:hover {
+    background: var(--nf-interactive-hover);
+  }
+  /* The user card is a RESTING plate, not a hover, so it takes the recessed
+     grey rather than the pointer wash, and its hairline comes off the neutral
+     rung onto the brand edge with the rest of the containers. */
+  :root[data-theme="light"] .nf-nav__who {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-brand-edge-soft);
+  }
+
+  /* --- messages, the share picker --------------------------------- */
+  :root[data-theme="light"] .nf-inbox-row:hover,
+  :root[data-theme="light"] .nf-share-row:hover {
+    background: var(--nf-interactive-hover);
+  }
+
+  /* --- the money family ------------------------------------------- */
+  :root[data-theme="light"] .nf-tx-row:hover,
+  :root[data-theme="light"] button.nf-pay-row:hover,
+  :root[data-theme="light"] .nf-wallet-tile:hover {
+    background: var(--nf-interactive-hover);
+  }
+
+  /* --- settings rows ---------------------------------------------- */
+  :root[data-theme="light"] a.nf-srow:hover,
+  :root[data-theme="light"] button.nf-srow:not(:disabled):hover,
+  :root[data-theme="light"] .nf-srow:has(> .nf-srow__select:hover) {
+    background: var(--nf-interactive-hover);
+  }
+  :root[data-theme="light"] .nf-rows-sheet__close {
+    background: var(--nf-surface-inset);
+  }
+
+  /* --- crypto, admin ---------------------------------------------- */
+  :root[data-theme="light"] .nf-coin-row:hover,
+  :root[data-theme="light"] .nf-pair-row:hover,
+  :root[data-theme="light"] .nf-admin-nav__row:hover {
+    background: var(--nf-interactive-hover);
+  }
+  /* A keycap is a resting object and wants to look pressed into the page. */
+  :root[data-theme="light"] .nf-admin-kbd {
+    background: var(--nf-surface-inset);
+  }
+
+  /* --- the pill chip ---------------------------------------------- */
+  :root[data-theme="light"] .nf-chip--pill {
+    background: var(--nf-surface-inset);
+  }
+  :root[data-theme="light"] .nf-chip--pill:hover {
+    background: var(--nf-interactive-hover);
+  }
+
+  /*
+   * The two glass primitives that never got a paper answer while their four
+   * siblings above did. `--thin` is white at 72 per cent and `--strong` at 95,
+   * so on a white card both measured 1.000:1. `--strong` is what the pinned
+   * ActionBar and the listing detail's loading state are made of, and a pinned
+   * bar that content scrolls under has to be OPAQUE or the words behind it
+   * read through, so it takes the card white plus a lift rather than a tint.
+   */
+  :root[data-theme="light"] .nf-glass--thin {
+    background: var(--nf-surface-inset);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root[data-theme="light"] .nf-glass--strong {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-brand-edge);
+    box-shadow: var(--nf-elev-2);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /*
+   * THE SWITCH THUMB, WHICH IS WHITE ON NEARLY WHITE WHEN THE SWITCH IS OFF.
+   *
+   * `.nf-switch__thumb` is `--nf-content-on-brand`, which is `#FFFFFF`, and
+   * the OFF track on paper is `--nf-surface-inset`, `#EFF1F4`. MEASURED at
+   * 1.13:1, with only `--nf-elev-1` between them, and rung 1 on paper is ink
+   * at 5 per cent. So a switch that is OFF in daylight has no visible thumb,
+   * and a switch with no visible thumb does not say which way it is set. That
+   * is the founder's "switch stays that's showing" exactly.
+   *
+   * THE TRACK STAYS GREY AND THAT IS NOT A COMPROMISE. Grey off and brand on
+   * is the whole semantics of a switch, and `check-css-tokens.mjs` excuses
+   * this track in both themes for that reason. Making the track blue to find
+   * the thumb would say the switch is on before anybody touched it.
+   *
+   * So the THUMB gains an edge instead, and only when it is off, because on a
+   * brand track a white disc already reads. `--nf-content-muted` is `#676E76`
+   * on paper, MEASURED at 5.16:1 against the white thumb and 4.73:1 against
+   * the canvas, so the disc has a real outline at both ends. It is neutral
+   * ink, so nothing about it says "on".
+   *
+   * The track's own hairline comes off `--nf-border-default` at 1.31:1 onto
+   * `--nf-border-strong` at 1.61:1, which is the strongest NEUTRAL rung there
+   * is. The track fill is still only 1.13:1 against a white card and that is
+   * recorded in the ledger rather than solved by making a switch blue.
+   */
+  :root[data-theme="light"] .nf-switch:not([aria-checked="true"]) {
+    border-color: var(--nf-border-strong);
+  }
+  :root[data-theme="light"] .nf-switch:not([aria-checked="true"]) .nf-switch__thumb {
+    box-shadow:
+      inset 0 0 0 1px var(--nf-content-muted),
+      var(--nf-elev-1);
+  }
+
+  /*
    * The section glow on paper is the wash rung, not the halo. The daylight
    * glow note in tokens.css has the argument: a bloom is a light source and a
    * light source only reads against a dark ground, so on white the halo is a
@@ -580,7 +724,7 @@
   :root[data-theme="light"] select.nf-btn--primary {
     background: var(--nf-surface-primary);
     color: var(--nf-content-primary);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge);
     box-shadow: var(--nf-elev-1);
   }
   @media (hover: hover) {

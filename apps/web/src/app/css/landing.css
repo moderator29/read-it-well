@@ -1908,7 +1908,7 @@
   :root[data-theme="light"] .nf-landing-stat,
   :root[data-theme="light"] .nf-landing-tile {
     background: var(--nf-surface-raised);
-    border-color: var(--nf-border-subtle);
+    border-color: var(--nf-brand-edge);
     box-shadow: none;
   }
   :root[data-theme="light"] .nf-landing-orb {

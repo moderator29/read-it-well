@@ -877,7 +877,7 @@
   }
   :root[data-theme="light"] .nf-segmented--pill {
     background: var(--nf-surface-inset);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: none;

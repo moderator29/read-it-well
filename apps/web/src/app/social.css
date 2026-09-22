@@ -830,7 +830,7 @@
   }
   :root[data-theme="light"] .nf-belong__tile {
     background: var(--nf-surface-inset);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge);
     box-shadow: none;
   }
 }

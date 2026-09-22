@@ -985,8 +985,18 @@
    *
    * ONE: THE TWIN COUNT REACHES ZERO. `--twinned` below already sets
    * `background: none`, so a mark drops its chip the day its light twin lands
-   * and nothing here changes. 103 marks ship and 23 are twinned, so 80 are not;
-   * the live number is `103 - LIGHT_TWINS.size` in
+   * and nothing here changes.
+   *
+   * THE COUNT IN THIS PARAGRAPH WAS WRONG BY FIFTY ONE PER CENT AND IT WAS THE
+   * FILE TRACKING THE FINISH LINE. It said 103 marks ship and 80 are untwinned.
+   * Counted from disk on 22 September: `public/brand/glass/*.png` holds 144
+   * objects, `BRAND_ICONS` lists exactly 144 names, and `LIGHT_TWINS` holds 23,
+   * so 121 are untwinned. The number had been moving AWAY from zero since this
+   * was written, because the 41 render crops arrived after it and none of them
+   * can be twinned. `docs/ICON_SYSTEM.md:18` carried the same stale pair.
+   *
+   * So: 144 marks ship and 23 are twinned, so 121 are not; the live number is
+   * `144 - LIGHT_TWINS.size` in
    * `design-system/icons/BrandIcon.tsx`. When it reaches 0 this rule's
    * background has no consumer in either theme, and `--nf-icon-ground`,
    * `.nf-brand-icon-ground` and `.nf-brand-icon-ground--twinned` come out
@@ -1055,8 +1065,47 @@
    * as the strides, at the quiet rung, so the chip belongs to the containers
    * around it instead of sitting in front of them.
    */
+  /*
+   * AND ON PAPER THE PLATE IS LIT EVERYWHERE, NOT ONLY WHERE IT IS THE SUBJECT.
+   *
+   * This rule used to put a quiet `--nf-edge-stride-base` hairline on the
+   * daylight chip, and the reasoning below it, that a lit rim on every inline
+   * mark would be nested chrome, is the right worry aimed at the wrong theme.
+   *
+   * WHAT WAS MEASURED. 121 of 144 objects have no light twin, so on paper they
+   * keep painting their DARK artwork on `--nf-icon-ground`, which is `#052A6D`.
+   * The median object pixel falls from 2.42:1 against the night canvas to
+   * 1.60:1 against that navy chip, a 33 per cent median loss, and 45 of the 121
+   * fall under 1.5:1. The chip itself is 13.47:1 against the white page. So the
+   * eye resolves the SQUARE and not the object in it, by a factor of about six,
+   * and that is the whole mechanism of the founder's "images not showing": the
+   * image is there and the chip is louder than it.
+   *
+   * WHY THIS RULE AND NOT A RECOLOUR. The one surface in the product where the
+   * founder says the objects read correctly on paper is the home market grid,
+   * and the only thing different about it is the rule below: the chip is framed
+   * with `--nf-glow-edge` there, so it reads as a small dark plate CARRYING a
+   * mark rather than as a hole punched in a white card. That was designed in
+   * deliberately on three selectors and defaulted to everywhere else. It is the
+   * pattern, so it becomes the default.
+   *
+   * THE NESTED-CHROME ARGUMENT DOES NOT REACH PAPER. At night the chip paints
+   * nothing at all, `--nf-icon-ground` being `transparent`, so there is no
+   * plate for a rim to sit on and a lit rim there really would be chrome around
+   * nothing. In daylight the chip is ALWAYS an opaque navy square whether
+   * anybody wanted it or not, so the rim is not chrome added to a mark, it is
+   * the edge of a plate that is already being drawn. The choice on paper was
+   * never "plate or no plate", it was "plate that reads as a container" or
+   * "plate that reads as a hole".
+   *
+   * THIS IS A HOLDING ANSWER AND IT SAYS SO. It makes the 121 legible without
+   * new artwork, which is the whole of what this session can honestly do.
+   * Commissioning the missing light twins is a render order and the founder's
+   * to place; the surfaces still owed the real thing are listed in the ledger
+   * rather than left to be rediscovered.
+   */
   :root[data-theme="light"] .nf-brand-icon-ground {
-    box-shadow: inset 0 0 0 1px var(--nf-edge-stride-base);
+    box-shadow: var(--nf-glow-edge);
   }
   /*
    * THE PLATE IS LIT WHEREVER IT IS THE SUBJECT.

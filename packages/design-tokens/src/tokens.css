@@ -1019,9 +1019,49 @@
   --nf-content-on-paper-secondary: rgb(18 21 26 / 0.82);
   --nf-content-on-paper-muted: rgb(18 21 26 / 0.6);
   --nf-border-on-paper: rgb(18 21 26 / 0.14);
-  --nf-surface-on-paper: rgb(255 255 255 / 0.72);
-  --nf-surface-on-paper-hover: rgb(255 255 255 / 0.94);
-  --nf-shadow-on-paper: rgb(18 21 26 / 0.18);
+
+  /*
+   * THE PAPER PLATE AND ITS LIFT, AND BOTH OF THEM WERE WORTH NOTHING.
+   *
+   * These two are the fill and the shadow for the admin tables, the agent and
+   * host panels, the chat bubbles, the context cards and the inspection ladder
+   * on paper: eleven rules across four partials, every one of them inside a
+   * `:root[data-theme="light"]` block and every one of them chosen on purpose.
+   * The choices were wrong in two different ways and the surfaces had, between
+   * them, no fill and no shadow at all.
+   *
+   * THE FILL was `rgb(255 255 255 / 0.72)`. Those surfaces sit on a
+   * `--nf-surface-primary` card, which is `#FFFFFF`, so white at 72 per cent
+   * over white composites to white: 1.000:1, measured. On the `#F4F5F7` canvas
+   * it is 1.065:1. A plate that is invisible on the ground it is mostly drawn
+   * on is not a plate.
+   *
+   * THE SHADOW was `rgb(18 21 26 / 0.18)`, a shadow COLOUR carrying a shadow's
+   * NAME, written as the whole `box-shadow` value eleven times. CONFIRMED IN
+   * CHROMIUM: `box-shadow: rgb(18 21 26 / 0.18)` computes to `none` and never
+   * reaches the CSSOM, and an invalid layer invalidates the WHOLE declaration,
+   * so `admin.css`'s flagged stat card lost the 4px inset rule that IS its flag
+   * along with it. That is a loss of information and not of polish.
+   *
+   * WHAT THEY ARE NOW, AND THE ARITHMETIC BEHIND IT. On paper a fill cannot be
+   * the separator: the honest best a tint can do against `#FFFFFF` before it
+   * starts reading as a different material is about 1.10:1. So the fill does a
+   * little and the SHADOW does the work, which is the paper analogue of the
+   * night theme's rim.
+   *
+   * `#F2F5FA` measures 1.10:1 against the white card and 1.01:1 against the
+   * canvas, and `--nf-content-primary` (`#16181D`) on it measures 16.13:1
+   * against 17.76:1 on bare white. Both are far above the 4.5:1 floor, so the
+   * plate is now visible and costs the ink nothing anybody can see.
+   *
+   * The shadow keeps the author's chosen 0.18 of ink as its deep rung and adds
+   * the tight contact layer it always needed to be a shadow at all.
+   */
+  --nf-surface-on-paper: #F2F5FA;
+  --nf-surface-on-paper-hover: #E9EFF8;
+  --nf-shadow-on-paper:
+    0 1px 2px rgb(18 21 26 / 0.08),
+    0 8px 20px -8px rgb(18 21 26 / 0.18);
 
   /* The deep stop of the canvas bloom. It is not on the brand ramp and it is
      not meant to be: it is the blue the bloom decays THROUGH on its way to the
@@ -2869,8 +2909,22 @@
    * are the same overlays inverted to the neutral ink, so one set of class
    * names gives a visible response in both themes.
    */
-  --nf-interactive-hover: rgb(18 21 26 / 0.045);
-  --nf-interactive-active: rgb(18 21 26 / 0.085);
+  /*
+   * THE PAPER HOVER, WHICH WAS HALF THE STEP THE NIGHT ONE IS.
+   *
+   * Night hovers with white at 7 per cent on a near-black ground, which is a
+   * real change. Paper hovered with ink at 4.5 per cent on white, MEASURED at
+   * 1.09:1, which is at the edge of what an eye resolves, and it is the token
+   * the twenty-three dead white-on-white hovers are being moved ONTO. Moving a
+   * row from "nothing happens" to "almost nothing happens" is not the fix.
+   *
+   * 7.5 per cent measures 1.16:1 and 13 per cent measures 1.31:1, so the paper
+   * pair now takes the same shape as the night pair. The ink on a hovered row
+   * goes from 16.29:1 to 15.28:1, both of them far above the 4.5:1 floor, so
+   * the row's words cost nothing for the row's affordance.
+   */
+  --nf-interactive-hover: rgb(18 21 26 / 0.075);
+  --nf-interactive-active: rgb(18 21 26 / 0.13);
   --nf-interactive-disabled: rgb(18 21 26 / 0.035);
 
   --nf-overlay-backdrop: rgb(18 21 26 / 0.42);
@@ -3336,7 +3390,28 @@
      own outline, and an outline that fades on paper loses the object. Only the
      ink under them moves, which is the whole fix. */
   --nf-brand-edge-soft: color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
-  --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
+  /*
+   * THE WORKHORSE EDGE, AND ON PAPER IT WAS UNDER THE FLOOR.
+   *
+   * `--nf-brand-edge` is the border of `.nf-icon-tile`, `.nf-dock-island`, the
+   * flip cover's miniature, the drawer's "View profile", the card mark, and it
+   * is the middle layer of `--nf-glow-edge`, which is the ring every card and
+   * control now wears. At 50 per cent of `#094BA9` it flattened to `#84A5D4`,
+   * MEASURED at 2.53:1 on the white card and 2.45:1 on the canvas, under the
+   * 3:1 floor WCAG 1.4.11 sets for a user-interface boundary. So the resting
+   * edge of most of the product's containers was not a boundary in daylight,
+   * which is the measurable half of "containers color so bad".
+   *
+   * 60 per cent measures 3.15:1 on white and 3.04:1 on the canvas, so both
+   * grounds clear the floor with the smallest step that does. The ladder keeps
+   * its order and its spacing: soft 1.86, edge 3.15, strong 3.97, rim 6.42.
+   *
+   * THE HUE IS UNTOUCHED. The accent family was rotated onto 215.2 degrees and
+   * is settled; this is an alpha step on one rung of the paper ladder and it
+   * moves no hue anywhere. Measured in Chromium against both grounds, not
+   * computed from the source.
+   */
+  --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 60%, transparent);
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
@@ -3380,7 +3455,24 @@
    * catches land where the soft and the ordinary edge sit, so a white card is
    * a white card with light on two of its corners.
    */
-  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 90%, var(--nf-brand-edge));
+  /*
+   * AND THE STRIDE'S BASE RUNG, WHICH IS THREE QUARTERS OF EVERY CARD'S RING.
+   *
+   * `--nf-edge-stride-stops` puts `base` across 132 of the 360 degrees twice
+   * over, so most of the circumference of every `.nf-card` on paper was this
+   * token, and at 90 per cent of `--nf-glass-border` it MEASURED 1.31:1 on both
+   * grounds. That is not a line. With the shadow beneath it at ink 5 per cent,
+   * a daylight card's entire boundary was a 1.31:1 ring and a 1.06:1 shade.
+   *
+   * At 55 per cent it measures 1.82:1, which is the same rung the stride's LIT
+   * step occupies, so the ring is now visible around its whole circumference
+   * and the stride still reads as a stride because `lit` and `peak` moved with
+   * the edge above. It is still under the 3:1 boundary floor and that is
+   * recorded in the ledger rather than hidden: a conic decoration is not the
+   * card's only boundary, the shadow and the fill are there too, and taking
+   * this rung to 3:1 would make every card on paper wear a hard blue outline.
+   */
+  --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 55%, var(--nf-brand-edge));
   --nf-edge-stride-lit: var(--nf-brand-edge-soft);
   --nf-edge-stride-peak: var(--nf-brand-edge);
 
