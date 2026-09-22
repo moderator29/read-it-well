@@ -22,6 +22,9 @@ import {
   MAX_ESTATE_NAME,
   MAX_GATE_DIRECTIONS,
   MAX_PHOTOS,
+  MAX_PHOTO_BYTES,
+  PHOTO_MIME_TYPES,
+  rejectUpload,
   MAX_SECURITY_PHONE,
   MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_WORDS,
@@ -906,6 +909,27 @@ export function ListingWizard({
         const clean = await stripMetadata(file);
         if (!clean) {
           setPhotoNotice(copy.photos.notPrepared);
+          continue;
+        }
+
+        /*
+         * THE BUCKET'S OWN CEILING, CHECKED BEFORE THE BYTES LEAVE.
+         *
+         * `MAX_UPLOAD_BYTES` is fifty megabytes and the `listing-photos`
+         * bucket is capped at ten, so a photograph between the two was
+         * uploaded in full on somebody's mobile data and then refused by
+         * storage at the very end. The re-encode above usually lands well
+         * under ten, which is exactly why this is measured on the RE-ENCODED
+         * blob: that is the object that will be posted, and the original's
+         * size says nothing about it.
+         */
+        const tooBig = rejectUpload(
+          { type: "image/jpeg", size: clean.size },
+          PHOTO_MIME_TYPES,
+          MAX_PHOTO_BYTES,
+        );
+        if (tooBig) {
+          setPhotoNotice(tooBig);
           continue;
         }
 

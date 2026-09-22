@@ -42,9 +42,12 @@ import {
 import {
   GATE_SUMMARY_MESSAGE,
   MAX_PHOTOS,
+  MAX_PHOTO_BYTES,
+  MAX_PHOTO_LABEL,
   MAX_UPLOAD_BYTES,
   MAX_UPLOAD_LABEL,
   MAX_VIDEOS,
+  PHOTO_MIME_TYPES,
   VIDEO_MIME_TYPES,
   addPhotoSchema,
   addVideoSchema,
@@ -398,6 +401,45 @@ export async function addPhoto(input: {
   }
   if (slot < 0) {
     return fail(`A listing holds up to ${MAX_PHOTOS} photos. Remove one to add another.`);
+  }
+
+  /*
+   * THE THIRD CHECK THE SCHEMA PROMISES AND THIS ACTION NEVER PERFORMED.
+   *
+   * `listings-schema.ts:82-101` states the rule out loud: every media limit is
+   * enforced in three places, the browser, the bucket and the server action
+   * that reads the object's real size and type BACK FROM STORAGE. `addVideo`
+   * does all three. This one validated the path shape and the ownership prefix
+   * and then inserted the row, so the schema's own comment overstated what was
+   * enforced, and anything the browser checked and storage did not could be
+   * walked past by posting at this endpoint directly.
+   *
+   * `list` on the containing folder is the only way to see an object's size
+   * and mime through the storage client, so the path is split and the entry
+   * found by name. An object that is not there at all is the common honest
+   * case: the upload failed and the browser attached anyway.
+   */
+  const cut = storagePath.lastIndexOf("/");
+  const folder = cut < 0 ? "" : storagePath.slice(0, cut);
+  const fileName = cut < 0 ? storagePath : storagePath.slice(cut + 1);
+
+  const { data: objects, error: objectError } = await gate.supabase.storage
+    .from(PHOTO_BUCKET)
+    .list(folder, { search: fileName, limit: 100 });
+  if (objectError) return fail(PHOTO_FAILED_MESSAGE);
+
+  const object = (objects ?? []).find((entry) => entry.name === fileName);
+  if (!object) return fail("That upload did not finish. Try the photo again.");
+
+  const size = Number(object.metadata?.["size"] ?? 0);
+  const mime = String(object.metadata?.["mimetype"] ?? "");
+  if (size > MAX_PHOTO_BYTES) {
+    return fail(
+      `That photo is over ${MAX_PHOTO_LABEL}. Most phones can export a smaller copy.`,
+    );
+  }
+  if (!(PHOTO_MIME_TYPES as readonly string[]).includes(mime)) {
+    return fail("That file is not a photo we can show. Use JPEG, PNG or WebP.");
   }
 
   const { data: created, error } = await gate.supabase

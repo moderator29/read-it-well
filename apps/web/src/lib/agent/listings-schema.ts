@@ -102,9 +102,23 @@ export const MAX_PRICE_KOBO = 100_000_000_00;
    1080p phone video, which is what a walkthrough actually is.
    -------------------------------------------------------------------------- */
 
-/** The ceiling on any single upload, video or image. Fifty megabytes. */
+/**
+ * The ceiling on a WALKTHROUGH. Fifty megabytes, roughly a minute of 1080p.
+ *
+ * It was the ceiling on a photograph too, and that was wrong: the
+ * `listing-photos` bucket is capped at ten megabytes
+ * (`20260809051809_a_bucket_that_accepts_anything_of_any_size.sql:52-56`), so
+ * for every photograph between ten and fifty megabytes the browser said yes,
+ * the person spent Nigerian mobile data pushing it, and STORAGE refused it at
+ * the end. The three-layer rule above is only worth anything when the three
+ * layers agree, and these two did not.
+ */
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 export const MAX_UPLOAD_LABEL = "50MB";
+
+/** The ceiling on a PHOTOGRAPH, matching the bucket exactly. Ten megabytes. */
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+export const MAX_PHOTO_LABEL = "10MB";
 
 /** What a listing photo may be. HEIC is here because an iPhone shoots it. */
 export const PHOTO_MIME_TYPES = [
@@ -131,12 +145,18 @@ export const MAX_VIDEO_SECONDS = 1800;
 export function rejectUpload(
   file: { type: string; size: number },
   allowed: readonly string[],
+  /* The ceiling differs by kind and the caller is the only one that knows
+     which kind it holds. Defaulting to the video ceiling keeps every existing
+     caller reading the same way. */
+  maxBytes: number = MAX_UPLOAD_BYTES,
 ): string | null {
   if (!allowed.includes(file.type)) {
     return "That file type is not one we can accept. Choose a different file.";
   }
-  if (file.size > MAX_UPLOAD_BYTES) {
-    return `That file is over ${MAX_UPLOAD_LABEL}. Record a shorter clip, or export it at a lower resolution.`;
+  if (file.size > maxBytes) {
+    return maxBytes === MAX_PHOTO_BYTES
+      ? `That photo is over ${MAX_PHOTO_LABEL}. Most phones can export a smaller copy.`
+      : `That file is over ${MAX_UPLOAD_LABEL}. Record a shorter clip, or export it at a lower resolution.`;
   }
   return null;
 }
@@ -962,6 +982,27 @@ export type ListingStatus =
   | "REJECTED"
   | "SUSPENDED";
 
+/**
+ * The English fallback labels. THE LIVE COPY IS THE DICTIONARY.
+ *
+ * `agentListings.workspace.status` is what the lister actually reads and this
+ * record is re-exported and read by nothing, so these two strings must not be
+ * allowed to disagree: a second English copy that drifts is worse than no
+ * second copy.
+ *
+ * AND THERE IS A LIVE DEFECT IN BOTH OF THEM, recorded here rather than half
+ * fixed. `APPROVED` says "Approved", which is true and reads as finished. It
+ * is not finished: approve and publish are two separate acts and the second is
+ * OURS, so a lister sees a success-coloured "Approved" chip on a property that
+ * is not in search, with nothing saying a step is pending on our side. The
+ * notification that made it worse by telling them to publish it themselves is
+ * fixed (`lib/admin/actions.ts`), and so is the email. The CHIP is not, for
+ * two reasons that are both about not making things worse: the live string
+ * lives in a dictionary namespace this worker may only add to, and the colour
+ * comes from `toneForStatus`, which maps APPROVED to success for bookings,
+ * payments, support tickets and six other families at once. Both belong to
+ * whoever owns those, and both are in the report.
+ */
 export const STATUS_LABEL: Record<ListingStatus, string> = {
   DRAFT: "Draft",
   SUBMITTED: "Submitted",

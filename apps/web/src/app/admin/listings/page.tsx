@@ -8,10 +8,12 @@ import { adminUi, type AdminUi } from "../_components/ui";
 import { QueueTable, shortRef, type QueueRowData } from "../_components/QueueTable";
 import {
   QueueFilters,
+  QueuePager,
   queueNarrowed,
   readQueueQuery,
   type QueueStatusOption,
 } from "../_components/QueueFilters";
+import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import { Constants } from "@/lib/supabase/database.types";
 import { PERIOD_SUFFIX, SALE_STATUS_LABEL, TENURE_LABEL } from "@/lib/listings/pricing";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -468,8 +470,8 @@ export default async function AdminListingsPage({
   const ui = adminUi(t, locale);
 
   /* The shared queue frame. Search is over the title and the city, not the
-     address: see the note on `getListingSubmissions`. No pager, for the same
-     reason as the applications queue. */
+     address: see the note on `getListingSubmissions`. The WAITING bucket now
+     pages; "recently decided" is a glance backwards and stays at ten. */
   const params = await searchParams;
   const query = readQueueQuery(params);
   const narrowed = queueNarrowed(query);
@@ -478,6 +480,7 @@ export default async function AdminListingsPage({
     ...(query.status ? { status: query.status } : {}),
     ...(query.from ? { from: query.from } : {}),
     ...(query.to ? { to: query.to } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
   });
 
   if (listings.state !== "ok") {
@@ -489,7 +492,7 @@ export default async function AdminListingsPage({
     );
   }
 
-  const { waiting, decided } = listings.data;
+  const { waiting, decided, full } = listings.data;
   // Changes requested sits with the agent, not with us, so it stays visible in
   // the list but is not counted as work waiting on the console.
   const onUs = waiting.filter((listing) => listing.status !== "MORE_INFO_REQUIRED").length;
@@ -545,6 +548,18 @@ export default async function AdminListingsPage({
           }))}
         />
       )}
+
+      {/* THE PAGER, which this queue had none of. At the thirty-first waiting
+          listing one used to fall off the end with nothing on the screen to
+          say so. It draws itself only when there is another page or when the
+          operator is already past the first one. */}
+      <QueuePager
+        base="/admin/listings"
+        query={query}
+        pageSize={QUEUE_PAGE_SIZE}
+        full={full}
+        count={waiting.length}
+      />
 
       {decided.length > 0 && (
         <section className="mt-xl">
