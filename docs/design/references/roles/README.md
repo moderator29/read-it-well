@@ -58,6 +58,36 @@ the layout are the target. The shapes below are translated.**
 
 ---
 
+## THE RULE THAT OUTRANKS EVERY OTHER RULE IN THIS FILE
+
+**The images govern FORM. They never govern CLAIMS.**
+
+These renders are generated. A generator will happily draw a regulatory badge,
+a licence, a guarantee, a partner logo, a certification, a statistic or a
+product tile that has no counterpart in reality, because it is completing a
+picture rather than stating a fact.
+
+**So: anything in a render that asserts something about the world is not a
+design element. It is a statement, and statements come from us.** Insurance,
+licensing, certification, guarantees, partnerships, counts, percentages,
+awards, ratings, and features we do not sell. **None of it ships because a
+render drew it.** It ships only when somebody can point at the evidence.
+
+This was found live on 22 September, in a render of the send money screen that
+drew an **"NDIC INSURED" badge**. The Nigeria Deposit Insurance Corporation
+insures deposits at licensed institutions. **VALLO SPACES LTD is not a bank,
+holds no such cover, and drawing that badge would be a false statement to a
+user about whether their money is protected**, of exactly the kind a regulator
+reads literally. The same render carried **Buy Airtime, Pay Bills and Swap**
+tiles for products this platform does not sell, and Swap reads as crypto,
+which this build took dark on purpose.
+
+**When you meet one of these in a render, do not draw it, and write it into
+the ledger as refused with the reason.** If you think it should exist, it is a
+product decision for the founder, never a pixel decision for a worker.
+
+---
+
 ## What is NOT in these images, and inherits from them
 
 Every surface these twelve do not draw still has to read as the same product.
