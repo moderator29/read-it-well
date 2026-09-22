@@ -328,8 +328,39 @@ export function buildNav({
    * on the other side of this row is a verification ladder, not a job title,
    * and the icon should say what the flow actually is.
    */
-  if (signedIn && !isAgent && !stays) {
-    tail.push({ href: "/profile/setup", label: t.nav.becomeAgent, icon: "verified" });
+  /*
+   * AND THEN IT STOPPED SAYING "BECOME AN AGENT", WHICH IS THE WHOLE POINT.
+   *
+   * The row was right that a marketplace with no supply has exactly one
+   * conversion that matters and that it must be visible. It was wrong about
+   * what that conversion is. Most of the supply this platform now wants is
+   * LANDLORDS WHO ARE NOT AGENTS AND NEVER WILL BE, and the only door into
+   * the supply side was marked become an agent. There is exactly one `agents`
+   * row in the whole database and it is the example lister.
+   *
+   * It reads "Add a workspace" now, from `t.supply`, which is the same words
+   * the switch profile sheet uses for the same door, so the two entrances
+   * cannot say different things about one destination.
+   *
+   * TWO CONDITIONS CAME OFF, AND BOTH WERE WRONG RATHER THAN CAUTIOUS.
+   *
+   * `!isAgent` hid it from anybody who already had a supply account, on the
+   * argument that they should see the workspace row instead. That argument
+   * assumed one workspace per person, which is the model this direction
+   * exists to replace: a man who lets his own flat and agents another has two,
+   * and an agent whose firm joins Vallo gains a third. Adding a second is not
+   * a door into a room you are standing in.
+   *
+   * `!stays` hid it on the Stays side, where the founder has ruled the same
+   * control offers three different doors: we are a hotel, I run a shortlet, we
+   * are a restaurant. The chooser reads the side and draws the right three.
+   */
+  if (signedIn) {
+    tail.push({
+      href: stays ? "/profile/setup?side=stays" : "/profile/setup",
+      label: t.supply.addTitle,
+      icon: "plus",
+    });
   }
 
   if (signedIn) {
