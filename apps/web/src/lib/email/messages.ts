@@ -452,19 +452,34 @@ export type PasswordResetData = {
   expiresInMinutes: number;
 };
 
-/** The password reset link. */
+/**
+ * The password reset link.
+ *
+ * THIS ONE HAS A BUTTON AND THE CODE EMAIL DOES NOT, WHICH IS A DECISION
+ * RATHER THAN AN INCONSISTENCY. A reset genuinely needs a link, because there
+ * is no six digit recovery screen on this platform and the session the link
+ * creates is what `updatePassword` acts on. A code email needs nothing
+ * pressed, so it offers nothing pressable, and the two shapes stay different
+ * on purpose: the reader learns that Vallo never sends a button to press for a
+ * code, which is the habit that makes the phishing copy of a code email fail.
+ *
+ * The destination is also printed underneath, selectable. This button IS the
+ * message: if a mail gateway rewrites the anchor, or the reader wants to
+ * finish on a desktop, a dead button with no address beneath it is a locked
+ * account rather than an inconvenience.
+ */
 export function passwordReset(data: PasswordResetData): EmailMessage {
   return message(
-    "Reset your Vallo password",
-    `Your reset link expires in ${data.expiresInMinutes} minutes.`,
+    "Set a new Vallo password",
+    "A way back into your Vallo account.",
     [
-      heading("Reset your password"),
+      heading("Set a new password"),
       paragraph(
         `${hello(data.name)} Somebody asked to reset the password on this account. If that was you, set a new one here.`,
       ),
-      button("Set a new password", data.resetUrl),
+      button("Set a new password", data.resetUrl, true),
       paragraph(
-        `The link expires in ${data.expiresInMinutes} minutes and works once.`,
+        `The link expires in ${data.expiresInMinutes} minutes and works once. Open it on the same device you asked from.`,
       ),
       note(
         "If this was not you, ignore this email. Your password has not changed and nobody can change it without this link.",
@@ -783,6 +798,8 @@ export type ListingApprovedData = {
   listerName?: string | null;
   listingTitle: string;
   listingId: string;
+  /** The `VL-` code, once the listing is published. */
+  reference?: string | null;
 };
 
 /** To the lister when a listing passes review and goes live. */
@@ -797,6 +814,12 @@ export function listingApproved(data: ListingApprovedData): EmailMessage {
       ),
       rows([
         { label: "Listing", value: data.listingTitle },
+        /* THE CODE, IN THE PANEL BESIDE THE TITLE. This email is the one
+           artefact a lister keeps, so it is where the nine characters they
+           will later read down the phone belong. Omitted rather than left
+           blank when there is none, which on this message should never
+           happen: a code exists from the moment a listing is published. */
+        ...(data.reference ? [{ label: "Listing ID", value: data.reference, strong: true }] : []),
         { label: "Status", value: "Published", strong: true },
       ]),
       paragraph(
@@ -856,6 +879,194 @@ export function listingRejected(data: ListingRejectedData): EmailMessage {
       note("Nothing has happened to your account, and your other listings are unaffected."),
     ],
     ["You are receiving this because you submitted a listing on Vallo."],
+  );
+}
+
+export type ListingPassedReviewData = {
+  listerName?: string | null;
+  listingTitle: string;
+};
+
+/**
+ * To the lister when a listing passes the checklist and is NOT yet live.
+ *
+ * WHY THIS IS A SECOND BUILDER AND NOT A REUSE OF `listingApproved`.
+ *
+ * Approve and publish are two separate acts on this platform, deliberately:
+ * approve says the submission passes the admission checklist, publish is the
+ * separate act that puts it into public search. `listingApproved`'s copy is
+ * written for the second of those ("It is published and people can find it
+ * now"), so sending it on the first would tell a lister their property is in
+ * search when it is not.
+ *
+ * AND IT DOES NOT ASK THEM TO DO ANYTHING, which is the defect this fixes.
+ * The in-app notification said "Publish it to put it in front of guests", an
+ * action only an admin has. Somebody read that, went looking for a Publish
+ * button on their own console, and found none. The truthful sentence is that
+ * the next step is ours.
+ */
+export function listingPassedReview(data: ListingPassedReviewData): EmailMessage {
+  return message(
+    `Your listing passed review: ${data.listingTitle}`,
+    "It passed the checks. We put it live next, and there is nothing for you to do.",
+    [
+      heading("Your listing passed review"),
+      paragraph(
+        `${hello(data.listerName)} A person has been through this listing against our admission checklist and it passed.`,
+      ),
+      rows([
+        { label: "Listing", value: data.listingTitle },
+        { label: "Status", value: "Passed review", strong: true },
+      ]),
+      paragraph(
+        "Going live is a second step and it is ours, not yours. We do it once the listing has passed, and you get another message the moment it is in search along with the listing ID people can use to find it.",
+      ),
+      button("See your listings", appUrl("/agent/listings")),
+      note("Nothing is required from you. If anything needs changing we will say exactly what."),
+    ],
+    [
+      "You are receiving this because you submitted a listing on Vallo.",
+      LISTER_SAFETY_LINE,
+    ],
+  );
+}
+
+export type ListingChangesRequestedData = {
+  listerName?: string | null;
+  listingTitle: string;
+  /** The reviewer's own words. Always sent, never summarised away. */
+  reason: string;
+};
+
+/**
+ * To the lister when a reviewer wants something changed before it can go live.
+ *
+ * Separate from `listingRejected` because the two are different facts and the
+ * subject line has to say which. A rejection is a decision; this is a pause,
+ * and the listing goes straight back into the lister's hands in the state they
+ * left it. Telling somebody their listing "was not published" when the
+ * reviewer merely wants a clearer photograph costs this platform a lister for
+ * no reason.
+ *
+ * The reason is REQUIRED and printed verbatim, for the same reason it is on
+ * the rejection: an instruction nobody can act on is worse than silence,
+ * because it cannot even be argued with.
+ */
+export function listingChangesRequested(data: ListingChangesRequestedData): EmailMessage {
+  return message(
+    `One change needed: ${data.listingTitle}`,
+    "The reviewer asked for one thing. Here it is, in their words.",
+    [
+      heading("One change before this can go live"),
+      paragraph(
+        `${hello(data.listerName)} A person reviewed this listing and asked for a change before it is published. This is what they said.`,
+      ),
+      rows([
+        { label: "Listing", value: data.listingTitle },
+        { label: "What to change", value: data.reason, strong: true },
+      ]),
+      paragraph(
+        "The listing is back in your hands and editable now. Make the change and send it again; it goes into the same queue and is usually answered within a day.",
+      ),
+      button("Edit your listing", appUrl("/agent/listings")),
+      note("Nothing has happened to your account, and your other listings are unaffected."),
+    ],
+    ["You are receiving this because you submitted a listing on Vallo."],
+  );
+}
+
+/* ------------------------------------------------------ agent registration */
+
+export type AgentApplicationData = {
+  name?: string | null;
+  /** The VL-AGT reference support asks for. */
+  reference: string;
+};
+
+/**
+ * To an applicant when their agent registration is accepted.
+ *
+ * THE ONE WORD THIS MESSAGE MAY NOT USE IS "VERIFIED", and the in-app
+ * notification already learnt that lesson: at this instant the ladder is at
+ * tier 0 and the verification queue has not seen a document. Being admitted as
+ * a lister and having been checked as a person are two different facts, and
+ * first-party trust is sacred (BUILD 07 rule 12).
+ */
+export function agentApplicationApproved(data: AgentApplicationData): EmailMessage {
+  return message(
+    "Your Vallo agent application is approved",
+    "Agent Mode is open. Verification is a separate step.",
+    [
+      heading("You can start listing"),
+      paragraph(
+        `${hello(data.name)} Your application has been accepted, so Agent Mode is open on your account and you can put up your first property.`,
+      ),
+      rows([
+        { label: "Reference", value: data.reference },
+        { label: "Status", value: "Approved", strong: true },
+      ]),
+      paragraph(
+        "Verification is a separate step and it is worth doing early. It is what puts the checked badge on your listings, and people choose a checked lister over an unchecked one.",
+      ),
+      button("List your first property", appUrl("/agent/list")),
+      note("Keep your reference. It is the one string support will ask you for."),
+    ],
+    [
+      "You are receiving this because you applied to list on Vallo.",
+      LISTER_SAFETY_LINE,
+    ],
+  );
+}
+
+export type AgentApplicationRefusedData = AgentApplicationData & {
+  /** The reviewer's own words. */
+  reason: string;
+};
+
+/** To an applicant when their agent registration is refused. */
+export function agentApplicationRejected(data: AgentApplicationRefusedData): EmailMessage {
+  return message(
+    "Your Vallo agent application was not approved",
+    "Here is what the reviewer said.",
+    [
+      heading("Your application was not approved"),
+      paragraph(
+        `${hello(data.name)} A person reviewed your application and it was not accepted. This is what they said.`,
+      ),
+      rows([
+        { label: "Reference", value: data.reference },
+        { label: "Reason", value: data.reason, strong: true },
+      ]),
+      paragraph(
+        "If you think this is wrong, contact support with your reference and a person will look at it again. Your account is unaffected and you can carry on using Vallo to search, message and book.",
+      ),
+      button("Contact support", appUrl("/support")),
+    ],
+    ["You are receiving this because you applied to list on Vallo."],
+  );
+}
+
+/** To an applicant when the reviewer needs something more before deciding. */
+export function agentApplicationNeedsMore(data: AgentApplicationRefusedData): EmailMessage {
+  return message(
+    "One more thing on your Vallo agent application",
+    "The reviewer needs something before they can decide.",
+    [
+      heading("One more thing before we can decide"),
+      paragraph(
+        `${hello(data.name)} Your application is with a reviewer and they need something more from you before they can decide. This is what they asked for.`,
+      ),
+      rows([
+        { label: "Reference", value: data.reference },
+        { label: "What is needed", value: data.reason, strong: true },
+      ]),
+      paragraph(
+        "Open your application, add it, and send it back. It returns to the same queue and is usually answered within two working days.",
+      ),
+      button("Open your application", appUrl("/profile/application")),
+      note("Nothing has been decided. Your application is held, not refused."),
+    ],
+    ["You are receiving this because you applied to list on Vallo."],
   );
 }
 

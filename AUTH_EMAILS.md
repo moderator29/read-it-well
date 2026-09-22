@@ -49,6 +49,48 @@ retries. The hook is worth revisiting only if these five templates stop being
 enough, and the `.txt` twins are ready for it: the hook is the path on which we
 would attach a text part ourselves.
 
+## 1A. Which of the two routes is actually live, ruled 22 September
+
+**Two routes exist in this repository and only one of them can be in force.**
+Section 1 above rules for custom SMTP, "deliberately". The file header of
+`apps/web/src/app/api/auth/email-hook/route.ts` describes the other one, and
+its first sentence reads as a statement about production: "Supabase's Send
+Email Hook: every auth email leaves through here." Both cannot be true, and a
+reader who opens the route first walks away believing the wrong one.
+
+**THE RULING, AND IT IS SECTION 1's.** Custom SMTP through Resend is the live
+route. The Send Email Hook endpoint is BUILT AND NOT ENABLED: it is a finished
+piece of work waiting on a dashboard switch nobody has thrown. The route's
+header has been corrected to say so rather than to describe a deployment that
+does not exist.
+
+**WHAT THIS RULING RESTS ON, STATED EXACTLY, BECAUSE IT IS NOT A MEASUREMENT.**
+Nothing in this repository can observe the Supabase dashboard, and the
+Management API this project's tooling reaches does not return the auth mailer
+configuration. Three facts point one way and none of them is proof:
+
+1. Section 1 above is the only place where a decision was recorded, and it
+   records SMTP with its reasoning.
+2. `SUPABASE_AUTH_HOOK_SECRET` appears nowhere in `docs/ENVIRONMENT.md`, which
+   lists every other server variable and what breaks without it.
+   `RECOMMENDATIONS.md` already carries that omission as an open item
+   (`A2-152`). An unset secret makes the endpoint refuse every request with
+   401, by design, so if the hook WERE enabled with the secret unset, every
+   auth email on this platform would be failing silently.
+3. The auth logs carry no mail event in the last twenty four hours, which is
+   the whole window they hold, so behaviour cannot settle it either. Nobody
+   has signed up.
+
+**THE ONE CHECK THAT SETTLES IT, for the founder, in the dashboard.**
+Authentication, then Hooks. If "Send Email Hook" is off, this ruling is
+correct and nothing needs doing. If it is on, then either
+`SUPABASE_AUTH_HOOK_SECRET` is set in Vercel and the five templates in
+`supabase/templates` are dead files nobody renders, or it is unset and no auth
+email has left this platform at all. In both of those cases section 1 is what
+needs correcting, not the route.
+
+---
+
 ## 2. The templates, one per action
 
 **Authentication, Email Templates.** Paste each generated file into the editor

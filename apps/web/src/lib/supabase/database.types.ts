@@ -3331,6 +3331,7 @@ export type Database = {
           state_code: string | null
           surname: string | null
           updated_at: string
+          welcomed_at: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -3349,6 +3350,7 @@ export type Database = {
           state_code?: string | null
           surname?: string | null
           updated_at?: string
+          welcomed_at?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -3367,6 +3369,7 @@ export type Database = {
           state_code?: string | null
           surname?: string | null
           updated_at?: string
+          welcomed_at?: string | null
         }
         Relationships: [
           {

@@ -23,6 +23,18 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { createAdminClient } from "../supabase/admin";
 import { writeAudit, type AuditDetail } from "./audit";
 import { adminRefusal, requireAdmin } from "./guard";
+import { announce } from "../notify/junction";
+import {
+  agentApplicationApproved,
+  agentApplicationNeedsMore,
+  agentApplicationRejected,
+  listingApproved,
+  listingChangesRequested,
+  listingPassedReview,
+  listingRejected,
+} from "../email/messages";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../supabase/database.types";
 import {
   replySupportTicketSchema,
   resolveReportSchema,
@@ -351,16 +363,44 @@ export async function reviewAgentApplication(input: {
               body: notes ?? "Open your application to see what the reviewer needs.",
             };
 
-    await admin.from("notifications").insert({
-      user_id: application.user_id,
-      kind: "agent",
-      title: notice.title,
-      body: notice.body,
-      /* The application lives under the profile now: it is a fact about your
-         own account, not a page in the public marketing site. `/agents/status`
-         still redirects, but a notification written today should carry the
-         real address rather than lean on a compatibility hop. */
-      href: "/profile/application",
+    /*
+     * THE SAME JUNCTION, ON THE REGISTRATION SIDE. Three decisions, three
+     * builders, none of which existed: the registration half of the catalogue
+     * was empty, so an applicant approved at eleven in the morning learnt
+     * about it only by opening the app.
+     */
+    await announce(admin, {
+      recipient: { kind: "user", userId: application.user_id },
+      notice: {
+        kind: "agent",
+        title: notice.title,
+        body: notice.body,
+        /* The application lives under the profile now: it is a fact about your
+           own account, not a page in the public marketing site.
+           `/agents/status` still redirects, but a notification written today
+           should carry the real address rather than lean on a compatibility
+           hop. */
+        href: "/profile/application",
+      },
+      email: (contact) =>
+        decision === "approve"
+          ? agentApplicationApproved({
+              name: contact.name,
+              reference: application.reference,
+            })
+          : decision === "reject"
+            ? agentApplicationRejected({
+                name: contact.name,
+                reference: application.reference,
+                reason:
+                  notes ?? "The reviewer left no note. Contact support with your reference and a person will explain.",
+              })
+            : agentApplicationNeedsMore({
+                name: contact.name,
+                reference: application.reference,
+                reason:
+                  notes ?? "Open your application to see what the reviewer needs.",
+              }),
     });
 
     const detail: AuditDetail = {
@@ -387,6 +427,36 @@ export async function reviewAgentApplication(input: {
   return ok(null);
 }
 
+/**
+ * The listing's code, on the one decision that creates it.
+ *
+ * The row is read before the status update, so on the publish that takes a
+ * listing live for the first time `reference` is still null in hand while the
+ * database has just minted one. Rather than print nothing on the single
+ * message where the code matters most, this reads it back. Every other
+ * decision uses the value already held, and a failed read degrades to no code
+ * rather than to a failed decision.
+ */
+async function publishedReference(
+  admin: SupabaseClient<Database>,
+  listingId: string,
+  held: string | null,
+  decision: "approve" | "publish" | "reject" | "request_changes",
+): Promise<string | null> {
+  if (held) return held;
+  if (decision !== "publish") return null;
+  try {
+    const { data } = await admin
+      .from("listings")
+      .select("reference")
+      .eq("id", listingId)
+      .maybeSingle();
+    return data?.reference ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** ----------------------------------------------------------------- listings */
 
 export async function reviewListing(input: {
@@ -410,7 +480,7 @@ export async function reviewListing(input: {
 
   const { data: listing, error: readError } = await access.supabase
     .from("listings")
-    .select("id, title, status, agent_id, agents ( user_id )")
+    .select("id, title, status, agent_id, reference, agents ( user_id )")
     .eq("id", listingId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
@@ -453,16 +523,40 @@ export async function reviewListing(input: {
     const ownerId = listing.agents?.user_id ?? null;
 
     if (ownerId) {
+      /*
+       * THE CODE, APPENDED IN BRACKETS. A notification is often read on a
+       * lock screen, which is exactly the moment somebody is being asked for
+       * the code down the phone. It is only there once the listing has been
+       * published, because that is when the database issues it.
+       *
+       * On the publish branch `reference` is read from the row BEFORE the
+       * update, so it is null the first time a listing goes live. The row is
+       * re-read below for that one case rather than printing nothing.
+       */
+      const code = await publishedReference(admin, listing.id, listing.reference, decision);
+      const tag = code ? ` (${code})` : "";
+
       const notice =
         decision === "approve"
           ? {
-              title: "Listing approved",
-              body: `${listing.title} passed review. Publish it to put it in front of guests.`,
+              /*
+               * IT NO LONGER TELLS THEM TO PRESS A BUTTON THEY DO NOT HAVE.
+               *
+               * This told the lister to publish it themselves, to put it in
+               * front of guests. Publish
+               * is an ADMIN action: `reviewListing` refuses it from anybody
+               * who is not an admin and the agent console has no such
+               * control. So a lister read an instruction, went looking for
+               * the button, and found nothing. The next step here is ours and
+               * the sentence now says so.
+               */
+              title: "Listing passed review",
+              body: `${listing.title} passed review. We put it live next, and there is nothing for you to do.`,
             }
           : decision === "publish"
             ? {
                 title: "Listing is live",
-                body: `${listing.title} is now in search and open to guests.`,
+                body: `${listing.title}${tag} is now in search and open to guests.`,
               }
             : decision === "reject"
               ? {
@@ -474,12 +568,44 @@ export async function reviewListing(input: {
                   body: notes ?? `${listing.title} needs a change before it can go live.`,
                 };
 
-      await admin.from("notifications").insert({
-        user_id: ownerId,
-        kind: "listing",
-        title: notice.title,
-        body: notice.body,
-        href: "/agent/listings",
+      /*
+       * THE JUNCTION. Both halves of one decision, in one call. Until this
+       * line every listing decision wrote an in-app row and sent no email at
+       * all, while `listingApproved` and `listingRejected` sat complete in the
+       * catalogue with zero callers.
+       *
+       * WHICH BUILDER GOES WITH WHICH DECISION, and it is not one to one:
+       * `listingApproved`'s copy is written for PUBLISH ("It is published and
+       * people can find it now"), so approve gets its own builder rather than
+       * a message that would tell somebody their property is in search when it
+       * is not.
+       */
+      await announce(admin, {
+        recipient: { kind: "user", userId: ownerId },
+        notice: { kind: "listing", href: "/agent/listings", ...notice },
+        email: (contact) =>
+          decision === "publish"
+            ? listingApproved({
+                listerName: contact.name,
+                listingTitle: listing.title,
+                listingId: listing.id,
+                reference: code,
+              })
+            : decision === "approve"
+              ? listingPassedReview({ listerName: contact.name, listingTitle: listing.title })
+              : decision === "reject"
+                ? listingRejected({
+                    listerName: contact.name,
+                    listingTitle: listing.title,
+                    /* REJECTED is editable, so resubmission is the real path. */
+                    reason: notes ?? "The reviewer left no note. Contact support and a person will explain.",
+                    canResubmit: true,
+                  })
+                : listingChangesRequested({
+                    listerName: contact.name,
+                    listingTitle: listing.title,
+                    reason: notes ?? "The reviewer left no note. Contact support and a person will explain.",
+                  }),
       });
     }
 

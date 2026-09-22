@@ -144,6 +144,7 @@ export const EVERY_MESSAGE: NamedMessage[] = [
       listerName: "Chidi",
       listingTitle: LISTING,
       listingId: "0f1c9b2a-1111-2222-3333-444455556666",
+      reference: "VL-7K4MQP",
     }),
   },
   {
@@ -161,6 +162,45 @@ export const EVERY_MESSAGE: NamedMessage[] = [
       listingTitle: LISTING,
       reason: "This address already has a live listing from another lister.",
       canResubmit: false,
+    }),
+  },
+  {
+    name: "listingPassedReview",
+    message: messages.listingPassedReview({
+      listerName: "Chidi",
+      listingTitle: LISTING,
+    }),
+  },
+  {
+    name: "listingChangesRequested",
+    message: messages.listingChangesRequested({
+      listerName: "Chidi",
+      listingTitle: LISTING,
+      reason:
+        "The cover photograph is of the street rather than the property. Put a room first.",
+    }),
+  },
+  {
+    name: "agentApplicationApproved",
+    message: messages.agentApplicationApproved({
+      name: "Chidi",
+      reference: "VL-AGT-10023",
+    }),
+  },
+  {
+    name: "agentApplicationRejected",
+    message: messages.agentApplicationRejected({
+      name: "Chidi",
+      reference: "VL-AGT-10023",
+      reason: "The identity document and the name on the application are different people.",
+    }),
+  },
+  {
+    name: "agentApplicationNeedsMore",
+    message: messages.agentApplicationNeedsMore({
+      name: "Chidi",
+      reference: "VL-AGT-10023",
+      reason: "The photograph of the ID is too dark to read the number.",
     }),
   },
   {

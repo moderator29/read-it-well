@@ -13,6 +13,9 @@ import {
   subjectForIp,
 } from "@/lib/security/rate-limit";
 import { recordAlert } from "@/lib/alerts";
+import { recordTermsAcceptance } from "@/lib/legal/acceptance";
+import { TERMS_VERSION } from "@/lib/legal/versions";
+import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
@@ -401,6 +404,28 @@ export async function signUpWithEmail(
   }
 
   /*
+   * THE RECEIPT, AND IT IS WRITTEN HERE BECAUSE IT WAS WRITTEN NOWHERE.
+   *
+   * `terms_version` is passed into the auth metadata above, and the comment
+   * beside it said the sign-up trigger wrote `profiles.terms_accepted_at` from
+   * it. Measured on 22 September 2026: that column does not exist, nor does
+   * `profiles.terms_version`, and `handle_new_user` does not mention terms.
+   * Every acceptance this platform has ever taken was dropped.
+   *
+   * It is recorded now, against the account that was just created, with the
+   * version the form actually carried checked against the version this build
+   * serves. A mismatch means somebody submitted a hand-assembled request
+   * naming a version they were not shown, so no receipt is written: a wrong
+   * receipt is worse than a missing one, and the missing one raises an alert.
+   */
+  if (data.user) {
+    const submitted = field(formData, "termsVersion").trim();
+    if (submitted === TERMS_VERSION) {
+      await recordTermsAcceptance(data.user.id, "signup_email");
+    }
+  }
+
+  /*
    * With email confirmation switched on in Supabase there is no session yet.
    *
    * This used to end here, with "check your email, then sign in", and that
@@ -511,6 +536,11 @@ export async function verifySignUpCode(
   }
 
   await forgetPendingEmail();
+  /* THE FIRST EMAIL THIS PLATFORM SENDS, at the first moment the address is a
+     fact rather than a claim. Exactly once, whichever of the two confirmation
+     paths a person came down and however many times they came down it: see
+     `lib/notify/welcome.ts`. It cannot fail this action. */
+  if (data.user) await welcomeOnce(data.user.id);
   // The session cookies are set. Drop every cached render so the shell picks
   // the signed-in tree rather than the anonymous one it rendered a moment ago.
   revalidatePath("/", "layout");
@@ -644,6 +674,10 @@ export async function completeEmailVerification(input: {
   }
 
   await forgetPendingEmail();
+  /* The link half of the same moment. `welcomeOnce` is the thing that stops
+     two taps on one email becoming two welcomes. */
+  const { data: confirmed } = await supabase.auth.getUser();
+  if (confirmed.user) await welcomeOnce(confirmed.user.id);
   // The session cookies are set. Drop every cached render so the shell picks
   // the signed-in tree rather than the anonymous one behind this screen.
   revalidatePath("/", "layout");

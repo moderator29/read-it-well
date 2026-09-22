@@ -5,7 +5,22 @@ import { sendMessage } from "@/lib/email/client";
 import { verificationCode } from "@/lib/email/messages";
 
 /**
- * Supabase's Send Email Hook: every auth email leaves through here.
+ * Supabase's Send Email Hook, BUILT AND NOT ENABLED.
+ *
+ * ---------------------------------------------------------------------------
+ * READ THIS FIRST, BECAUSE THIS FILE USED TO CLAIM OTHERWISE.
+ *
+ * Its opening line was "every auth email leaves through here", which is a
+ * statement about production and is not true. Two routes exist in this
+ * repository and only one can be in force: custom SMTP through Resend, which
+ * `AUTH_EMAILS.md` section 1 rules for and explains, or this hook. The ruling
+ * of 22 September is SMTP, and `AUTH_EMAILS.md` section 1A records what that
+ * ruling rests on and the one dashboard check that settles it.
+ *
+ * So everything below describes what this endpoint WOULD do with the hook
+ * switched on in the Supabase dashboard and `SUPABASE_AUTH_HOOK_SECRET` set in
+ * the environment. Neither is believed to be the case today. The code is
+ * finished and correct and waiting; it is not the live path.
  *
  * ---------------------------------------------------------------------------
  * WHAT THIS REPLACES AND WHY IT IS WORTH A ROUTE.
