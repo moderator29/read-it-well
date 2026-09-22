@@ -953,7 +953,23 @@ export const en = {
          has been live and unlinked; this is the line that makes it findable. */
       deleteAccount: "Delete account",
       docs: "Docs",
-      becomeAgent: "Become an agent",
+      /*
+       * THE ONLY DOOR INTO THE SUPPLY SIDE ON THIS PAGE, AND IT WAS MARKED
+       * FOR THE WRONG PERSON.
+       *
+       * It read "Become an agent". Most of the supply this platform now wants
+       * is landlords who are not agents and never will be, and HANDOFF 09
+       * section 6A.2 names that label as the defect: the only door was marked
+       * for the one visitor who was least likely to be standing at it. The
+       * destination already changed under it. `/agents` redirects to
+       * `/profile?switch=owner`, which opens the chooser with the owner door
+       * first, so the label was also no longer describing where it goes.
+       *
+       * "List your property" is true for an owner, an agent and a firm, and
+       * it says what the person wants to do rather than what they must first
+       * agree to become.
+       */
+      becomeAgent: "List your property",
     },
   },
 
