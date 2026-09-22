@@ -11,16 +11,20 @@ import { verificationCode } from "@/lib/email/messages";
  * READ THIS FIRST, BECAUSE THIS FILE USED TO CLAIM OTHERWISE.
  *
  * Its opening line was "every auth email leaves through here", which is a
- * statement about production and is not true. Two routes exist in this
- * repository and only one can be in force: custom SMTP through Resend, which
- * `AUTH_EMAILS.md` section 1 rules for and explains, or this hook. The ruling
- * of 22 September is SMTP, and `AUTH_EMAILS.md` section 1A records what that
- * ruling rests on and the one dashboard check that settles it.
+ * statement about production and is not true.
+ *
+ * `AUTH_EMAILS.md` section 1A has the MEASUREMENT, and it is worse than a
+ * wrong route: NEITHER of this repository's two routes is configured on the
+ * hosted project. GoTrue's own `mail.send` events carry
+ * `mail_from: noreply@mail.app.supabase.io`, Supabase's built-in shared
+ * sender, which rules out custom SMTP (the from-address would be our domain)
+ * and rules out this hook at the same time (with the hook on, GoTrue does not
+ * send at all, so there would be no event to read).
  *
  * So everything below describes what this endpoint WOULD do with the hook
  * switched on in the Supabase dashboard and `SUPABASE_AUTH_HOOK_SECRET` set in
- * the environment. Neither is believed to be the case today. The code is
- * finished and correct and waiting; it is not the live path.
+ * the environment. Neither is the case. The code is finished and correct and
+ * waiting; it is not the live path, and nor is the other one.
  *
  * ---------------------------------------------------------------------------
  * WHAT THIS REPLACES AND WHY IT IS WORTH A ROUTE.
