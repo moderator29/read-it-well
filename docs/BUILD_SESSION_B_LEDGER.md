@@ -1370,43 +1370,64 @@ proven by code, the SQL introspection above and the unit tests
 (`components/app/inspections/status.test.ts`, `ladder.test.ts`, `grouping.test.ts`,
 `lib/inspections/*.test.ts`, 33 passing).
 
-### (b) The comparison, 390 dark
+### (b) The comparison, 390 dark (density round two, final)
 
-Scale: phone screen 668 render px (inner edge 177 to 845), so 1 CSS px = 0.584 render px.
-The render's type is far below any phone's floor at that scale (row sub line 6.5px, row
-title 7.8px, info labels 7px), so text is held at the platform rung for its role and
-containers grow about 1.6 times to carry it; radii are taken up by the same factor so
-every corner keeps the render's radius-to-height ratio. Built numbers are from
-`getBoundingClientRect` / computed style on the fixture harness.
+Scale: phone screen 668 render px (inner edge 177 to 845), so 1 CSS px at 390 = 0.584
+render px; "strict" below means render px x 0.584. The model, on the lead's review: TEXT
+takes the smallest readable size for its role (11px labels and sub lines, 13px row
+titles and values); CONTAINERS keep the render's own ratios to the row they hold (plate
+0.78 of the row, check circle 0.37, corner 0.22), not one uniform factor; anything
+pressed keeps a 44px target. Built numbers are `getBoundingClientRect` and computed
+style on the fixture harness at 390 x 844 (scripts in the session scratchpad, not
+committed). Side by side at matched scale:
+`docs/design/proofs/session-b/inspection/inspection-render-vs-built-390-dark.jpg`.
+
+**Overall height, title top to Submit bottom: render 1132 render px = 661 CSS; built
+912, 1.38 times.** Where the difference is: the built screen carries the outcome panel
+("How did it go?", 182px plus an 8px gap), which the render does not draw and the data
+model needs; without it the built column is 722, 1.09 times. The render's checklist has
+eight rows where the built one has four (request I1), so the like-for-like rows are
+compared per row below rather than by panel height.
 
 | Property | Image (measured) | Built (measured) | Match? |
 |---|---|---|---|
-| Page gutter | 16 CSS (card x 205 to 821) | 24 (the shared app shell's padding) | no: shell chrome, not this surface |
-| Back button | glass rounded square in the header row | 44 x 44 glass square (`nf-icon-btn--glass`) on its own row above the title | shape yes; placement differs, the render's header row is shared chrome |
-| Title | cap 28 render px = 16.4 CSS, about 23-24px, bold, white with a faint blue second word | 24px / 700, second word 82% white 18% brand quiet | yes |
-| Sub line | blue (#47d0f6 peak), two lines, about 10.5px strict | 14px, `--nf-brand-secondary`, two lines | colour and lines yes; size at floor |
-| Glass house | 153 render px object, 89 CSS, at the title's right, foot over the card's top edge | the render's own crop (`house-check.webp`), 108 x 81 box (object about 89), placed in the title block's top right and over the card edge by 8px, above it in z order | yes (crop, soft at 3x, see SOURCES.md) |
-| Listing card | 616 x 142 render (360 x 83 strict), radius about 16 render (9 strict), fill #000f49 with lit bands top and foot, lit top rim, brand edge | 342 x about 150, radius 14, the glow identity's lit card (bands of lit ink top and foot, dark middle, cyan top and left edge, deep blue right, rim lines, 4px and 12px bloom) through `--nf-glow-ink` and `--nf-state-warning` | anatomy yes; taller because of type floor |
-| Card photo | 180 x 129 render (105 x 75), radius about 10 render | 100 wide, stretches card height, radius 10 | width yes; aspect taller |
-| Scheduled badge | 91 x 24 render, radius about 8 (0.33), emerald fill #018d93 / text #0febef | 24px tall, radius 6 (0.25), `--nf-state-success` on its surface tint | shape yes, hue: token emerald (the render's teal is off-family) |
-| Card title | cap 14 render (about 12px strict), semibold white, one line, text face | 15px / 600 in the text face | yes at floor |
-| Place and kind lines | pin and house glyphs in brand blue, text light | 16px glyphs brand quiet, 13px secondary | yes |
-| Price | bold brand blue, "/ year" small | 16px / 700 brand quiet via `formatMoney`, "per year" 13px (the product's own `PERIOD_SUFFIX`) | yes; suffix wording is the product's |
-| Chevron | right, muted | right chevron, secondary ink, does not rotate | yes |
-| Info row | 616 x 88 render, three cells, hairlines, glyph left of text | 342 x about 124, three cells (1 : 1.25 : at least the badge), hairlines, glyph ABOVE text | no: at 12px floor the labels do not fit beside a glyph in 91px; side by side from 640px up |
-| Info labels / values | label 10 render cap muted cyan, value white | 12px secondary / 13px 600 primary, time 12px | yes at floor |
-| Pending badge | cyan, 72 x 24 render | cyan `--nf-state-warning` (the cyan rung), 24px, radius 6 | yes |
-| Checklist panel | 616 x 506 render, rim #2cabf6 on top, fill #000c30 | 342 x about 330, same glass class, radius 14 | yes |
-| Count and bar | "0 / 8 Completed" in blue, bar 124 x 6 render under the count only | "n / 4 Completed" 13px brand quiet, bar under the count only, 6px, round (a shape), identity progress on/off fills | yes; count is the record's four rungs |
-| Checklist rows | 54 render tall, radius 12 (0.22), fill #011f5b, edge #023982, 1-2px gap | 56-60 tall, radius 10 (0.17), brand-tint-1 over the panel, brand edge soft, 4px gap | yes |
-| Row icon plates | round glass discs 44 render px with cyan line glyphs | the render's own plates, cropped (house, shield, sofa, document), 40 CSS | yes (crop, soft at 3x) |
-| Row title / sub | cap 10 render white semibold / light blue #6fb6f5 | 14px 600 primary / 12px brand quiet | yes at floor |
-| Check circles | hollow, 20 render (12 strict), brand blue ring | 22px hollow, 1.5px brand ring; done = emerald fill with a drawn tick | yes |
-| Notes panel | pencil glyph, "Notes", textarea well a step lighter than the panel (#00154b on #00113d), radius about 8 render | document glyph, "Notes", read-only well with brand tint over well fill, radius 10 | shape yes; not a textarea (nothing stores it, I1) |
-| Add Photos | 616 x 56 render, gradient #016bfb / #0039fd / #0472f8, top rim, bloom below, camera + label centred, chevron right | 342 x 56 (`nf-btn--lg`), the identity's lit button: `--nf-gradient-cta` (#0074fc / #0042fd / #0069f7) under a pool of lit ink at its lower middle, cyan edge, `--nf-rim-primary`, bloom 0 6px 18px down and 0 -2px 10px up, picture glyph + label centred, chevron right | yes; glyph is picture (no camera in the stroked tier) |
-| Submit Inspection Report | 616 x 50 render, fill #001e62, edge #003ab1, muted label #447cd3, paper plane glyph | 342 x 48 (`nf-btn--md`), brand-tint glass, brand edge, label brand quiet at 55%, `telegram` paper plane | yes |
-| Radii ratio on text controls | 0.24 to 0.33 | 0.25 to 0.29 | yes |
-| Colours | electric blue, quiet blue, emerald, cyan; no warm hues | same four token families; rose only for Declined | yes |
+| Page gutter | 28 render = 16 CSS | 24 (the app shell's padding on every consumer page) | no, by decision: the shell's 24px is the platform standard and not this surface's to change |
+| Back button | glass rounded square in the header row | 44 x 44 glass square on its own row above the title | shape yes; the render's header row is shared chrome, so the back square is this page's own row |
+| Title | cap 28 render = 16.4 strict, so 23 to 24px, bold, second word faintly blue | 24px / 700, h 28, "Inspection" 82% white 18% brand quiet | yes |
+| Sub line | 2 lines, 10.5px strict, blue #47d0f6 peak | 13px / 400, 2 lines, h 36, `--nf-brand-secondary` | colour and lines yes; size at the readable minimum |
+| Title top to card top | 132 render = 77 CSS | 84 | yes (1.09) |
+| Glass house | object 153 render = 89 CSS, foot over the card's top edge | the render's own crop, box 100 x 75, foot 16px over the card edge, above it in z order | yes (crop, soft at 3x, SOURCES.md) |
+| Listing card | 616 x 142 render = 360 x 83 strict | 342 x 114 | proportion 1.37 in height, carrying 14/12/15px text |
+| Card radius | 16 render on 142 (0.11) | 14 on 114 (0.12) | yes |
+| Card photo | 180 x 129 render = 105 x 75, radius 10 render (0.08) | 104 x 96, radius 10 (0.10) | width yes; taller with the card |
+| Photo to text | 19 render = 11 CSS | 12 | yes |
+| Scheduled badge | 91 x 24 render = 53 x 14, corner 8 (0.33), teal fill, cyan text | 75 x 20, 11px / 600, corner 6 (0.30), emerald token on its tint | shape yes; hue: emerald token (the render's teal is off-family) |
+| Card title | cap 14 render = 12px strict, semibold, one line | 14px / 600, one line, h 18 | yes |
+| Place and kind lines | about 9px strict, pin and house glyphs in brand blue | 12px / 400, 16px glyphs brand quiet | yes at minimum |
+| Price | about 11px strict bold brand blue, "/ year" small | 15px / 700 via `formatMoney`, "per year" 12px / 500 (the product's `PERIOD_SUFFIX`) | yes; suffix wording is the product's |
+| Chevron | right, muted | right, secondary ink, does not rotate | yes |
+| Info row | 616 x 88 render = 360 x 51, three cells side by side, glyph left of text, hairlines | 342 x 84, three cells SIDE BY SIDE, glyph left of text, hairlines; date and status cells take their content's width, the middle takes the rest | yes; 1.65 in height only because the grouped phone number wraps to a second line (allowed by the lead); 66 without it |
+| Info glyphs | 38 render = 22 CSS strict | 16 | smaller: the three cells fit side by side only at 16 |
+| Info label / value / second line | about 7 / 8 / 7px strict | 11px / 400, 13px / 600, 11px / 400 | yes at minimum |
+| Phone | 7px strict, white | 11px / 500 link colour, 44px target via negative margin | yes; weight 500 so it is as narrow as it can be |
+| Pending badge | 72 x 24 render = 42 x 14, cyan | 20 tall, 11px / 600, corner 6, cyan `--nf-state-warning` | yes |
+| Checklist panel | 616 x 506 render (8 rows); inset 15 render = 9 CSS | 342 x 240 (4 rows); inset 8 | inset yes; row count per I1 |
+| Checklist head | title cap 13 render = about 10.7px, count about 8px, bar 124 x 6 render = 72 x 3.5 under the count only | title 15px / 600, count 12px / 500, bar 5px under the count only, identity fills | yes |
+| Checklist row | 54 render = 31.5 strict, corner 12 (0.22), 1 to 2 render apart | 44, corner 10 (0.23), 2px apart | height at the minimum for 13 + 11px text (1.40 per row); corner yes; gap yes |
+| Row plate | 42 of 54 (0.78), the render's glass disc | 34 of 44 (0.77), the render's own crop | yes |
+| Check circle | 20 of 54 (0.37), brand ring | 18 of 44 (0.41), 1.5px brand ring; done: emerald fill and a drawn tick | yes |
+| Row inset / plate to text | 9 render (0.17 of the row) / 22 render (0.41) | 4 / 12 | tighter, so the text column keeps its width |
+| Row title / row sub | about 7.8 / 6.5px strict, white / light blue #6fb6f5 | 13px / 600 primary, 11px / 400 brand quiet | yes at minimum |
+| Notes panel | 616 x 88 render = 360 x 51; well 545 x 45 render, corner 8 (0.18), a step lighter than the panel | 342 x 70; well h 28, corner 10 (0.36), brand tint over well fill; label 13px / 600, well text 12px | panel 1.37; the well's corner ratio is higher than the render's (a read-only box, not a control; noted); read-only, no textarea (I1) |
+| Outcome panel | not in the render | 342 x 182: head 15px / 600, three rows of 44 (the pressed minimum), 13px / 600, the checklist's ring, corner 10 (0.23), 2px apart | added, in the checklist's register and density |
+| Add Photos | 56 render = 33 strict, corner 14 (0.25), gradient #016bfb / #0039fd / #0472f8, bloom below, camera and label centred, chevron right | 46, corner 14 (0.30), label 14px / 650, identity lit button (token gradient #0074fc / #0042fd / #0069f7 with a lit pool, cyan edge, bloom down and up), picture glyph, chevron right | yes; picture not camera (no camera in the stroked tier) |
+| Submit | 50 render = 29 strict (0.89 of Add Photos), fill #001e62, edge #003ab1, muted label #447cd3, paper plane | 44 (0.96 of Add Photos), brand-tint glass, brand edge, label brand quiet at 55% while disabled, `telegram` paper plane, 14px / 650 | yes |
+| Block spacing | 13 to 16 render = 8 to 9 CSS; Add Photos to Submit 11 render = 6.5 | 8 throughout | yes |
+| Glass fill, rim, glow | fill #000f49 on ground #01071e with lit bands, top rim #2cabf6, soft blue bloom | the glow identity's lit card: bands of lit ink top and foot, dark middle, cyan top and left edge, deep blue right, rim lines, 4px and 12px bloom | yes |
+| Colours | electric blue, quiet blue, emerald, cyan; no warm hues | the same four token families; rose only for Declined | yes |
+
+Shape ratios of every text-bearing control, built: badges 0.30, options 0.23, Add
+Photos 0.30, Submit 0.32; the sweep (section d) reports none over 0.35.
 
 Added over the render, because the data model needs it: the outcome chooser ("How did
 it go?", three options) before Submit, and a hint line under Submit saying why it is
@@ -1476,7 +1497,8 @@ the four checklist rows in two columns, the outcome options in three. Proof:
 at 390 and 1536, dark and light: BREACHES 0; WORTH AN EYE (0.35 to 0.5) 0; round
 icon-only controls 0. `/inspections` and `/agent/inspections` themselves cannot be swept
 without a session (the tool refuses a route that redirects to /sign-in), so the sweep
-ran on the harness that renders the same components. `check-css-tokens.mjs`: clean.
+ran on the harness that renders the same components. Re-run after the density round (final
+build): same result, 0 / 0 / 0. `check-css-tokens.mjs`: clean.
 
 ### (e) Proofs, and what I could not verify
 
