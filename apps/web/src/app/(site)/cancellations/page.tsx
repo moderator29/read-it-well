@@ -33,7 +33,13 @@ export default function CancellationPolicyPage() {
         icon="calendar-clock"
         chip="Cancellations"
         title="One cancellation policy, on every stay"
-        lede="Not one policy per agent. The same three steps apply to every stay booked and paid for on Vallo, so you never have to work out which rules you agreed to. A restaurant table is not covered because nothing was taken for it: cancel a table at any hour, for nothing. A tenancy, a sale or a lease is settled in the agreement you sign with the agent, and is not covered by the schedule below either."
+        /* THE LEDE IS THE PROMISE, NOT THE EXCEPTIONS. A2.
+           It ran to four sentences and drew NINE CENTRED LINES at 390px, which
+           is a wall rather than an opening, and two of those sentences were
+           exclusions the page already answers in full further down. The hero
+           keeps the promise; the exclusions have their own sections, where
+           somebody looking for one will actually find it. */
+        lede="Not one policy per agent. The same three steps apply to every stay booked and paid for on Vallo, so you never have to work out which rules you agreed to."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
@@ -164,6 +170,27 @@ export default function CancellationPolicyPage() {
               spend it on your next stay or on the other side of the product. One
               wallet serves both. Card reversals are slower and depend on your
               bank, which is why they are not the default.
+            </p>
+          </div>
+        </section>
+
+        {/* ------------------------------------------- tenancies and sales */}
+        {/* THE ONE EXCLUSION THAT HAD NO SECTION. A2. The lede said a tenancy
+            is settled in its own agreement and then the page never mentioned
+            it again, so the only place that answer existed was a sentence in
+            the hero nobody scrolls back up to. */}
+        <section className="mt-section" aria-labelledby="tenancies">
+          <h2 id="tenancies" className="nf-h2 text-[1.375rem]">
+            A tenancy, a sale or a lease is different again
+          </h2>
+          <div className="nf-card mt-group p-card">
+            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              The schedule above is for stays: a room, a flat or a house taken by
+              the night. A year&apos;s rent, a purchase or a commercial lease is
+              settled in the agreement you sign with the agent, and the terms in
+              that agreement are the ones that apply. Vallo holds the
+              conversation, the inspection and the record of what was paid, and it
+              does not overwrite what the two of you agreed.
             </p>
           </div>
         </section>
