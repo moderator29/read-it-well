@@ -1,0 +1,61 @@
+== P-9, the float identity, against live project uccixoonmbhrnyczyigt
+== 22 September 2026
+
+-- FIRST RUN. The probe refused the check.
+
+ERROR:  42702: column reference "title" is ambiguous
+DETAIL:  It could refer to either a PL/pgSQL variable or a table column.
+QUERY:  not exists (
+      select 1 from public.risk_alerts
+       where status = 'open' and title = title and entity_type = 'escrow_invariant'
+    )
+CONTEXT:  PL/pgSQL function private.escrow_invariants_check() line 102 at IF
+PL/pgSQL function inline_code_block line 30 at assignment
+
+This is the bug the probe exists to find. Had the variable been called
+anything the table does not also use, the condition would have been a
+tautology and the deduplication would have gone silent after its first
+finding, which is a check that looks like it is passing.
+
+Fixed by replacing the body: the comparison is now on `ra.entity_id`.
+
+-- SECOND RUN.
+
+ERROR:  P0001: PROBE ALL PASS. Baseline clean. I-3a caught an agreement
+holding money the ledger never took. I-2 stayed quiet on a sound agreement and
+caught a 100 kobo disagreement with difference_minor = -100 exactly. I-3b
+caught a double hold. Five passes opened exactly one alert for I-2 and one for
+I-3a. Rolling back.
+CONTEXT:  PL/pgSQL function inline_code_block line 82 at RAISE
+
+-- ROLLBACK CONFIRMED, read back immediately afterwards:
+
+escrows                  0
+escrow wallet_entries    0
+escrow_invariant alerts  0
+probe references         0
+invariant audit rows     0
+float snapshots          0
+
+== The unit side of the same invariant: apps/web/src/lib/escrow/float.test.ts
+== 22 September 2026
+
+THE TEST WAS WATCHED FAILING BEFORE IT WAS BELIEVED. The commission
+subtraction inside `floatFromLedger` was removed on purpose and the suite run:
+
+ FAIL  src/lib/escrow/float.test.ts > holds across a full lifecycle mix, to the kobo
+ FAIL  src/lib/escrow/float.test.ts > counts the commission out of the float, because a release credits the net
+   AssertionError: expected 50000 to be +0
+ FAIL  src/lib/escrow/float.test.ts > stays in whole kobo and never produces a fraction
+   AssertionError: expected 16667 to be +0
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 4 passed (7)
+
+The subtraction was restored:
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+
+Three of seven assertions are genuinely connected to the arithmetic they name,
+and the identity itself is one of the three.
