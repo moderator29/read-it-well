@@ -28,15 +28,33 @@ it:
    `apps/web/src/lib/native/` covering status bar, splash, keyboard inset,
    hardware back, deep links, external link and theme, an offline fallback
    shell, an icon pipeline and a version sync script. `docs/MOBILE.md` is
-   the operating manual and it is complete.
-2. **A React Native rewrite means rebuilding everything.** 674 tsx files,
-   about 107,000 lines of TSX and 31,500 lines of CSS across 235 routes.
-   None of the CSS survives: not the token system, not the glass material,
-   not the motion system, not the flip.
-3. **There is no API for a React Native client to call.** 69 files declare
-   server actions; there are 18 API routes and nearly all are webhooks,
-   cron endpoints and the crypto proxy. React Native cannot call a server
-   action. The entire product data API would have to be built first.
+   the operating manual and it is complete. Shipping it on both stores is
+   **3 to 5 engineer-weeks and 130 to 200 US dollars of accounts**.
+2. **There is no API for a React Native client to call.** The decisive
+   fact. **233 server actions across 69 files**, 755 inline `.from()` read
+   sites against 53 exported query functions, and **exactly one product
+   data API route in the entire tree** (`app/api/map/listings`). React
+   Native cannot call a server action. Building the API layer it would need
+   is **19 to 30 engineer-weeks**, or 6 to 9 for a reduced scope.
+3. **The frontend does not survive the move.** 680 tsx files, 109,906
+   lines, 1,352 distinct `.nf-` selectors, 157 `backdrop-filter` usages,
+   54 `@keyframes`, 451 CSS custom properties, and 229 of 235 page files
+   are server components. The signature 3D side flip has no React Native
+   equivalent pattern. Parity is **76 to 115 engineer-weeks**.
+
+**The arithmetic that closes it.** A reduced-scope React Native version one
+is 82 to 124 engineer-weeks, which is **41,000 to 155,000 US dollars** at
+realistic contract rates and 7 to 28 months. The brief is 18 days and about
+2,200 dollars. This is not a trade-off to weigh; it is two orders of
+magnitude out.
+
+**Ship Android first.** Google Play is materially more tolerant of a
+remote-origin shell than Apple is. Releasing on Play first puts the product
+in real hands, earns real usage, and makes the Apple submission a stronger
+one when it comes. And on Apple: **plan for one guideline 4.2 rejection
+rather than contorting the product to avoid it.** A rejection is a
+conversation with review notes, not a death sentence, and the mitigation
+pack below is what wins that conversation.
 
 **If React Native is ever taken**, it is a fourth workspace package in this
 monorepo beside `@vallo/web`, `@vallo/design-tokens` and `@vallo/i18n`,
@@ -144,6 +162,14 @@ currently opens the system browser and cannot complete the return.
 `ng.vallo.app`, derived from a domain that was dropped. It becomes
 permanent the day a store record is created. Change it to
 `com.vallospaces.app` everywhere, with the drift test extended to cover it.
+
+**M3b. Two factual errors inside `capacitor.config.ts` itself.** Its
+header claims "40 files declare server actions" when the real count is 69,
+and it names `src/middleware.ts` as the session lock, **a file that does not
+exist anywhere in source**. Next 16 renamed it: the session lock is
+`apps/web/src/proxy.ts`, 244 lines. Correct both, because this file is the
+first thing any future session reads about the mobile architecture and it
+is currently teaching them something false.
 
 **M4. A real device pass.** Everything mobile in this repository has been
 verified in headless Chromium at 390px. Nothing has run on a phone. Once
