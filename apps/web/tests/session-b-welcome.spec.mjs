@@ -28,6 +28,18 @@ function check(name, condition, detail) {
   }
 }
 
+/* A click that lands before hydration does nothing, and the page gives no
+   signal for hydration, so a dot is pressed until it reports itself current. */
+async function goToSlide(page, n) {
+  const dot = page.getByTestId(`welcome-dot-${n}`);
+  for (let i = 0; i < 40; i++) {
+    await dot.click();
+    if ((await dot.getAttribute("aria-current")) === "step") return;
+    await page.waitForTimeout(250);
+  }
+  throw new Error(`slide ${n} never became current`);
+}
+
 const browser = await chromium.launch({ executablePath: EXECUTABLE_PATH });
 
 try {
@@ -50,6 +62,7 @@ try {
   const page = await ctx.newPage();
   await page.goto(`${BASE_URL}/welcome?next=%2Fsign-up`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("welcome-get-started").waitFor();
+  await goToSlide(page, 1);
   check("the first slide is the render's", (await page.locator("h1").innerText()).includes("One platform"));
   check("four dots, the first current", (await page.locator(".nf-gs-dot").count()) === 4 &&
     (await page.getByTestId("welcome-dot-1").getAttribute("aria-current")) === "step");
@@ -102,7 +115,7 @@ try {
   const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const p2 = await ctx2.newPage();
   await p2.goto(`${BASE_URL}/welcome`, { waitUntil: "domcontentloaded" });
-  await p2.getByTestId("welcome-dot-4").click();
+  await goToSlide(p2, 4);
   await p2.getByTestId("welcome-create").waitFor();
   check(
     "the last slide writes the memory without a skip",
@@ -113,7 +126,7 @@ try {
   const ctx3 = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const p3 = await ctx3.newPage();
   await p3.goto(`${BASE_URL}/welcome?next=%2Fsign-in%3Fnext%3D%252Fwallet`, { waitUntil: "domcontentloaded" });
-  await p3.getByTestId("welcome-dot-4").click();
+  await goToSlide(p3, 4);
   await p3.getByTestId("welcome-sign-in").waitFor();
   check(
     "a stranger headed for sign in meets Sign in as the lit door, with their destination kept",

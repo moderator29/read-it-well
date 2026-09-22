@@ -16,7 +16,177 @@ Every surface gets three sections before it can be called finished:
 
 ## 2. Get started
 
-(pending)
+Route `/welcome`, governing image `2A49E2F7` (root; the founder re-sent the same
+art as `images/1.jpg`). Files: `app/welcome/**`, `components/app/welcome/**`,
+`app/(auth)/start/route.ts`, one line of `proxy.ts`, the crops in
+`public/brand/session-b/welcome/` cut by `scripts/design/session-b-crops.mjs`.
+Proofs: `docs/design/proofs/session-b/welcome/`.
+
+### What it is now
+
+The real first run, not a splash. Four slides on one stage, the render's four
+dots: (1) Two worlds. One platform, Property and Stays with the coin between;
+(2) what the verified tick means; (3) talk first, pay on Vallo; (4) the choice:
+Create account, Sign in, Look around first. Skippable on every slide, seen
+once, reachable signed out, swipe, arrow keys and dots, each move announced in
+a polite live region, 44px tall taps, safe-area padding, reduced motion.
+
+Decisions recorded:
+- **The interests question stays** for a signed-in person who has not
+  answered it. It is the only answer the product acts on at the door (it ranks
+  home and search) and `InterestChoices` is its tested implementation, so it
+  follows the slides as a fifth beat with no dot. A member's last slide reads
+  "You are in. Make it yours." with Continue (to the question) or Go to home.
+- **Seen once**: a stranger's device holds the first-party cookie
+  `vallo_first_run=seen` (400 days, Lax, Secure on https), written on Skip, on
+  reaching the last slide, or on taking a door; never while rendering. The
+  server reads it before painting, so a returning stranger with `?next=` goes
+  straight there and one without lands on the choice. A member keeps
+  `profiles.settings.welcomeSeen`; a device that saw the slides before sign up
+  counts as seen, so the question follows sign up without the slides again.
+  If the browser refuses the cookie, exits carry `welcomed=1` so a page that
+  gates on it cannot loop.
+- **Intent is kept**: `/welcome?next=/sign-in?next=%2Fwallet` makes Sign in the
+  lit door with that address; Skip carries on to `next`.
+- **`/start` is a 307** to `/welcome?next=/sign-up` (a route handler, so no
+  loading frame streams first). Every landing Get started link already points
+  at `/start`, so the landing needed no change. StartCarousel is deleted.
+- **Dark in both themes**, by rule 22 (BUILD_06 12.2 names first run with sign
+  in and sign up). The stage pins `data-theme="dark"` and uses no shared class
+  that carries a `:root[data-theme="light"]` rule (not `.nf-aurora`,
+  `.nf-grid-veil` or `.nf-brand-icon-ground`, the three leaks the light survey
+  found on the old welcome), so paper cannot reach it.
+- **Header**: the render's page has only the lockup; there is no app chrome on
+  this screen by design, so no back button, dock or header is drawn.
+
+### (a) The chain
+
+| Link | What | State |
+|---|---|---|
+| Control | Get Started / Next / dots / arrows / swipe | client state only, nothing to write |
+| Control | Skip, stranger | `rememberFirstRunSeen()` writes the cookie, then `router.push(next)` or the choice slide. Proved by `tests/session-b-welcome.spec.mjs` |
+| Control | the three doors | real `<Link>`s to `/sign-up`, `/sign-in`, `/search`; the proxy leaves all three open signed out (checked live: 200) |
+| Query | `/welcome` page | `cookies()` + `loadInterestsState()` (profiles.interests, profiles.settings under the caller's RLS) into `planFirstRun` (pure, 14 unit tests in `app/welcome/plan.test.ts`) |
+| Proxy | `proxy.ts` | `welcome` removed from `PRODUCT_SEGMENTS` (claimed in scope first, 9b50916). Before this, a stranger was bounced to sign in and could never meet first run |
+| Server action | Continue / Skip, member | `markWelcomeSeen` and `skipInterests` in `lib/interests/actions.ts` (unchanged). No input, so no validation beyond the session |
+| RLS | `profiles` | `profiles_update_own` (auth.uid() = id, USING and WITH CHECK), `profiles_select_own`; read live with SELECT on pg_policies, 22 Sept |
+| Table | `profiles.settings` jsonb (`welcomeSeen`, `interestsAsked`), `profiles.interests` property_type[] | |
+| Triggers | `profiles_set_updated_at`, `profiles_sync_social_identity` (after update), two that fire only on place and name columns | none of them touch these keys |
+| Notification | none | none deserved: nothing another person needs to know |
+| Screen | `/home` redirects to `/welcome` while `askIntent`; `/welcome` sends a finished member home | |
+| Stats | none shown | the render shows none; `platform_stats` is not needed |
+
+Broken links found and where they went:
+- The proxy blocked the whole surface signed out: fixed (one line, in scope).
+- Sign up and sign in pages do not yet send a first-time visitor to first
+  run: requests **W1** (Session A, sign up) and **W2** (Session B signin
+  worker, sign in and the AuthChoices "What Vallo is" link). The helper they
+  call exists: `firstRunHref`, `isFirstRunSeen`, `FIRST_RUN_PASSED_PARAM` in
+  `components/app/welcome/first-run-seen.ts`.
+- The native app's first launch opens the landing, not first run: **W3**.
+  Found: `capacitor.config.ts` sets `server.url` from `CAPACITOR_SERVER_URL`
+  (the bare origin) and `webDir: native-shell` holds only the offline card
+  (`errorPath`), so a store install loads `/`. Fix is either the env value
+  with `/welcome` or a native-only replace on the landing.
+- `tests/gate.spec.mjs` is stale on main for reasons unrelated to this
+  surface (8 product routes now open by design, 13 unclassified segments, and
+  it reads `src/middleware.ts`, now `proxy.ts`): **W4**. Its public list, which
+  now holds `/welcome` and `/start`, passes: 23 of 23.
+
+### Claims on the slides, each one checked
+
+| Sentence | Evidence |
+|---|---|
+| Flip between Property and Stays with a single account | the side flip and one session (`lib/side.ts`, the drawer's flip coin) |
+| The tick means someone at Vallo checked the agent's government ID by hand. It is about the person, not the property | `agent_badges.verified := verification_tier >= 1`, rung 1 = identity, "a named member of staff's recorded decision" (`lib/trust/verification.ts`, `lib/trust/agent-badge-derivation.test.ts`). The older "it shows the date" wording was dropped: I could not find the date on a listing surface |
+| Message the agent or host and arrange a viewing first. When you pay, pay on Vallo, never to anybody outside it | messaging and inspections exist; the pay sentence is advice, not a guarantee. No "safe", "protected" or insurance wording anywhere |
+| An account lets you save, message and ask for viewings. Browsing needs none | the proxy's product list (saved, messages, inspections) against its open routes (`/search`) |
+
+### Refused from the render
+
+- The "HOTEL" lettering on the Stays building: retouched blank in the crop
+  (harmonic fill from the sign's own glass), the building otherwise as drawn.
+- PROPERTY and STAYS as pixels: retouched out and laid back as live text.
+- The capsule reading of the button: the render's corner is about 10 css on a
+  56 css bar (ratio 0.18, already a rectangle); built on
+  `--nf-radius-control` (14px, ratio 0.25) per the shape law.
+- The neon phone frame and the status bar: presentation, not drawn.
+- The active dot's cyan (#43e2fe): drawn as the brand quiet blue lifted to
+  ice, because cyan is the pending state colour in the one blue family.
+
+### (b) The comparison, 390 x 844 dark, measured
+
+Scale: screen inner edge x 185 to 837 = 652 source px, so 0.598 css per
+source px (390/652); screen top y 59, bottom 1458 (1399 px = 837 css).
+The web has no status bar, so vertical positions are compared from the top of
+the logo mark (render 63 css below the screen top, built 16 css below the
+viewport top). Built numbers from `getBoundingClientRect` on the production
+server.
+
+| Property | Image (measured) | Built (measured) | Match? |
+|---|---|---|---|
+| Logo mark | 74 x 70 src = 44 x 42 css | 44 x 42 | yes |
+| Wordmark | 166 src wide = 99 css | 99 x 22 | yes |
+| Headline line 1 "Two worlds." | cap 46 src = 27.5 css; width 355 src = 212 css; white, heavy | Poppins 700 37px, 212 wide | yes (face is Poppins, the brand display face; the render's reads like SF Display) |
+| Headline line 2 "One platform." | 419 src = 250 css; blue at left to ice at right | 249 wide; gradient brand primary, quiet, ice | width yes; hue end is ice not cyan (one blue family) |
+| Baseline spacing | 61 src = 36.5 css | line box 36.5 | yes |
+| Line 1 baseline from mark top | 107 css | 107 css | yes |
+| Sub-line | 2 lines, 224 css first line, lines 21.5 apart, #88cafa brightest stroke | 14.5px, 223 css first line, 21.5 line, quiet blue at 40% into primary | yes |
+| Sub cap top to line 2 baseline | 27 css | 13 css margin + half leading = 27 | yes |
+| Stage top (tile tops) from mark top | 262 css | 262 (scene top 253 + 24.5 inside the crop, minus 16) | yes |
+| Stage art | the render's | the render's own pixels, 636 x 530 src drawn 380 x 317 | yes, identical art |
+| Tile radius, rim, thickness, glass, pillars, plinth, reflection | as drawn | as drawn (cropped) | yes |
+| PROPERTY / STAYS | cap 15 src = 9 css, 116 src = 69 css wide, pale ice, glow | 11px, 0.19em, 70 css wide, ice with glow, turned with the tile | yes |
+| Coin | centre 49.4% / 62.3% of the stage, long axis ~165 src (99 css) once turned, top leaning left | same centre, 103 css box, turned 55 deg, leaning 34 deg, faces from the pack's `flip-coin` crop, the drawn orbit swirl kept | close: our face is the drawer render's coin, a little brighter than this render's darker face |
+| Coin motion | still in the render | turns once every 7 s, rests at the drawn pose 45% of the cycle; reduced motion holds the pose | by design |
+| Dots | 4, pitch 23 css, active 9.5, rest 7 | 4, pitch 28 css (44 tall buttons), active 10, rest 7 | pitch wider on purpose for the tap |
+| Dots centre from mark top | 583 css | 581 | yes |
+| Button | 323 x 56 css, 34 in from each side, top 620 below mark top | 324 x 56, x 33, top 618 | yes |
+| Button treatment | white rim along the top (#e4feff), bright edges (#0180fb sides), deeper core (#001fae), bloom below | gradient primary to deep core to primary, inset 1.5px lit rim, inset edge glow, 1px lit border, two-rung bloom | yes |
+| Button label | ~16px medium, "Get Started" 81 css wide, arrow | 16px 500, arrow 20px | yes |
+| Button radius | ~10 css | 14 (`--nf-radius-control`) | shape law, recorded |
+| Skip | centre 705 css below mark top, small, quiet (#345fb7 mean) | 13px, quiet blue at 78%, 44px tap, centre 702 | yes |
+| Ground | #000518 top, #000d3e at 36%, #00092d at 73%, #000926 foot, faint grid top | night ink stirred with strong blue in sRGB: #00041a, #000e3c, #00092f, #00072e; 28px grid fading by 55% | yes |
+| Glow identity (`docs/design/GLOW_IDENTITY.md`, revised d01a5d7) | | the lit button already has the identity's structure (gradient, top rim, edge glow, bloom); where the identity's numbers differ (its cyan lift), this surface keeps the values measured from `2A49E2F7`, as the lead's note allows | noted |
+
+Two re-audits were done with the render and the 390 dark shot open side by
+side. The first found: coin too face-on and too large, button label heavier
+and larger than drawn, Skip too loud, the desktop headline lines colliding at
+52px on a fixed line box, the desktop sub-line breaking after "and", the dot
+buttons drawing a 0.5 ratio in the sweep. All fixed and reshot. The second
+pass found no further difference I could fix within the rules above.
+
+Resolution, honestly: the stage is 636 source px for 380 css, 1.67 source px
+per css px. At 2x it is sharp; at 3x it is visibly softer than the live text
+around it. Nothing is upscaled.
+
+### (c) Light mode
+
+Checked on the production server with `nf_theme=light` (document
+`data-theme="light"`): the surface renders identically to dark, as rule 22
+requires. No light-keyed rule reaches it (no shared class with a daylight
+rule is used), the lockup, stage and buttons are unchanged, and the ground
+covers the viewport. Proof: `welcome-light-390.jpg`.
+
+### (d) Shape sweep
+
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3172
+--shape-sweep --routes /welcome --theme both`, 390 and 1536, dark and light:
+BREACHES 0, WORTH AN EYE 0. (The first run flagged the four dot buttons at
+14/28 = 0.50; they now use `--nf-radius-xs`.) `check-css-tokens.mjs`: clean.
+
+### (e) Skipped or not verified
+
+- Signed-in proof: no test account may be created, so the member path (slides,
+  Continue, the question) is proved by `planFirstRun`'s tests and by the
+  preview harness `/preview/f1/welcome` (fixture props), not by a live session.
+- Sign in / sign up first-time routing (W1, W2) and the native first launch
+  (W3) are requests, not built.
+- The translations for the new keys in ha, yo and ig are mine and need a
+  native speaker, like the rest of those files.
+- Git stash: I used `git stash` once (stash, pull, pop in one command) before
+  the lead's warning. The pop restored exactly my three files and the stash
+  list was empty afterwards; I have not used it since.
 
 ## 3. Welcome back
 
@@ -760,3 +930,8 @@ light variant by design (theme.ts: dark in the layer every client honours).
   reconciliation job's HTTP reply (`private.reconciliation_watch`) is not on
   the desks (scope request 10). Bookings and payments were not restyled beyond
   the shell's register. Escrow row photographs not drawn.
+- Get started: the signed-in path (slides, Continue, the interests question) is
+  proved by unit tests and the fixture harness, not a live session; sign in and
+  sign up do not yet route a first-time visitor to first run (scope W1, W2);
+  the native first launch still opens the landing (W3); gate.spec is stale on
+  main (W4); ha, yo and ig strings for the new keys need a native speaker.

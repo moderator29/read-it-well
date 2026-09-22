@@ -154,7 +154,7 @@ export function FirstRun({
       body: f.safe.body,
       art: {
         left: { icon: "chat-duo", label: f.safe.left },
-        right: { icon: "wallet-naira", label: f.safe.right },
+        right: { icon: "wallet", label: f.safe.right },
         centre: { kind: "object", icon: "calendar-check" },
         label: f.safe.art,
       },
@@ -369,6 +369,7 @@ export function FirstRun({
             right={slide.art.right}
             centre={slide.art.centre}
             label={slide.art.label}
+            renderObjects={slide.key === "worlds" || slide.key === "member"}
             priority={index === 0}
           />
         </div>

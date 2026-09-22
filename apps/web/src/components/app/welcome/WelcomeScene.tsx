@@ -1,68 +1,58 @@
 import Image from "next/image";
-import { LogoMark } from "@/design-system/brand/Logo";
 import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
 
 /**
- * The stage every slide stands on, to `2A49E2F7`: two glass tiles tilted
- * towards each other, a centre piece between them, all on a lit glass plinth.
+ * The stage every slide stands on, cut from `2A49E2F7` itself.
  *
- * WHY `next/image` ON THE GLASS PACK AND NOT `BrandIcon`. The objects are the
- * same files `BrandIcon` draws (`public/brand/glass/<name>.png`, typed by its
- * own name list). `BrandIcon` also wraps them in `.nf-brand-icon-ground`,
- * whose daylight rules in `glass.css` key on `:root[data-theme="light"]` and
- * so still match inside this permanently dark screen (LIGHT_MODE_SURVEY 9.5,
- * items 2 and 3): a stray hairline box, and the night artwork hidden for any
- * twinned mark. Drawing the file directly keeps the object and drops the leak.
+ * THE ART IS THE RENDER'S. The two tilted thick-glass tiles, the glowing
+ * plinth with its light pillars and reflection, the coin's orbit swirl and the
+ * haze behind them are one picture cropped from the governing image by
+ * `scripts/design/session-b-crops.mjs` (see `public/brand/session-b/welcome/
+ * SOURCES.md`), feathered at its edges so it melts into the page.
  *
- * NO LETTERING IN THE ART. The render's Stays object has "HOTEL" baked into
- * it; the pack's `stays-hotel-palms` is the same building between the same
- * palms with nothing written on it.
+ * WHAT IS LIVE OVER IT, and why each thing is not in the pixels:
+ *   the labels   PROPERTY and STAYS were retouched out of the glass and are
+ *                real text here, so they translate and read aloud.
+ *   the coin     the drawn coin's body was retouched out and a CSS 3D coin
+ *                stands exactly where it stood, and it turns. Its faces are
+ *                the pack's `flip-coin`, the same two-faced glass coin cut
+ *                from the drawer render. `prefers-reduced-motion` holds it at
+ *                the render's mid-turn pose.
+ *   the objects  slide one carries the render's own house and hotel (the
+ *                hotel's HOTEL sign retouched blank: no lettering in an
+ *                object). Slides two to four use the same stage with the
+ *                tiles emptied, and stand the pack's glass objects in them,
+ *                turned to the tiles' angle.
  *
- * THE COIN TURNS. It is two faces and a stacked edge in CSS 3D, spinning on
- * its vertical axis; `prefers-reduced-motion` holds it still at the mid-turn
- * angle the render draws. Decorative throughout: the slide's own text and
- * its `art` label carry the meaning for a reader.
+ * Decorative throughout: the slide's own text and the `label` below carry the
+ * meaning for a reader.
  */
 
 type Tile = { icon: BrandIconObject; label: string };
 
 export type SceneCentre = { kind: "coin" } | { kind: "object"; icon: BrandIconObject };
 
-function GlassObject({ name, size, priority }: { name: BrandIconObject; size: number; priority?: boolean }) {
-  return (
-    <Image
-      src={`/brand/glass/${name}.png`}
-      alt=""
-      width={size}
-      height={size}
-      priority={priority}
-      className="nf-gs-object"
-      style={{ width: size, height: size }}
-    />
-  );
-}
-
-const COIN_EDGE_LAYERS = 7;
+/* The crop is 636 x 530 source px (SOURCES.md). */
+const STAGE_W = 636;
+const STAGE_H = 530;
 
 export function WelcomeCoin() {
   return (
     <span className="nf-gs-coin">
-      <span className="nf-gs-coin__orbit nf-gs-coin__orbit--a" />
-      <span className="nf-gs-coin__orbit nf-gs-coin__orbit--b" />
       <span className="nf-gs-coin__tilt">
         <span className="nf-gs-coin__spin">
-          {Array.from({ length: COIN_EDGE_LAYERS }, (_, i) => (
+          {Array.from({ length: 7 }, (_, i) => (
             <span
               key={i}
               className="nf-gs-coin__edge"
-              style={{ "--nf-gs-layer": i - (COIN_EDGE_LAYERS - 1) / 2 } as React.CSSProperties}
+              style={{ "--nf-gs-layer": i - 3 } as React.CSSProperties}
             />
           ))}
           <span className="nf-gs-coin__face nf-gs-coin__face--front">
-            <LogoMark size={46} />
+            <Image src="/brand/glass/flip-coin.png" alt="" width={256} height={256} priority />
           </span>
           <span className="nf-gs-coin__face nf-gs-coin__face--back">
-            <LogoMark size={46} />
+            <Image src="/brand/glass/flip-coin.png" alt="" width={256} height={256} />
           </span>
         </span>
       </span>
@@ -75,6 +65,7 @@ export function WelcomeScene({
   right,
   centre,
   label,
+  renderObjects,
   priority,
 }: {
   left: Tile;
@@ -82,41 +73,50 @@ export function WelcomeScene({
   centre: SceneCentre;
   /** What the picture shows, for a reader. */
   label: string;
+  /** True on slide one: the render's own house and hotel are in the art. */
+  renderObjects: boolean;
   priority?: boolean;
 }) {
   return (
     <div className="nf-gs-scene" role="img" aria-label={label}>
-      <div className="nf-gs-plinth" aria-hidden="true">
-        <span className="nf-gs-plinth__side" />
-        <span className="nf-gs-plinth__top" />
-        <span className="nf-gs-plinth__ring" />
-        <span className="nf-gs-plinth__pool nf-gs-plinth__pool--left" />
-        <span className="nf-gs-plinth__pool nf-gs-plinth__pool--right" />
-      </div>
-      {[left, right].map((tile, i) => (
-        <div
-          key={tile.icon}
-          className={`nf-gs-tile ${i === 0 ? "nf-gs-tile--left" : "nf-gs-tile--right"}`}
-          aria-hidden="true"
-        >
-          <span className="nf-gs-tile__slab" />
-          <span className="nf-gs-tile__face">
-            <span className="nf-gs-tile__art" data-icon={tile.icon}>
-              <GlassObject name={tile.icon} size={104} priority={priority} />
-            </span>
-            <span className="nf-gs-tile__label">{tile.label}</span>
+      <Image
+        src={
+          renderObjects
+            ? "/brand/session-b/welcome/stage-worlds.webp"
+            : "/brand/session-b/welcome/stage-tiles.webp"
+        }
+        alt=""
+        width={STAGE_W}
+        height={STAGE_H}
+        sizes="(min-width: 48rem) 434px, 380px"
+        priority={priority}
+        className="nf-gs-scene__art"
+      />
+      {!renderObjects &&
+        [left, right].map((tile, i) => (
+          <span
+            key={tile.icon}
+            className={`nf-gs-scene__object ${i === 0 ? "nf-gs-scene__object--left" : "nf-gs-scene__object--right"}`}
+            aria-hidden="true"
+          >
+            <Image src={`/brand/glass/${tile.icon}.png`} alt="" width={256} height={256} />
           </span>
-        </div>
-      ))}
-      <div className="nf-gs-centre" aria-hidden="true">
+        ))}
+      <span className="nf-gs-scene__label nf-gs-scene__label--left" aria-hidden="true">
+        {left.label}
+      </span>
+      <span className="nf-gs-scene__label nf-gs-scene__label--right" aria-hidden="true">
+        {right.label}
+      </span>
+      <span className="nf-gs-centre" aria-hidden="true">
         {centre.kind === "coin" ? (
           <WelcomeCoin />
         ) : (
           <span className="nf-gs-medal">
-            <GlassObject name={centre.icon} size={92} priority={priority} />
+            <Image src={`/brand/glass/${centre.icon}.png`} alt="" width={256} height={256} />
           </span>
         )}
-      </div>
+      </span>
     </div>
   );
 }

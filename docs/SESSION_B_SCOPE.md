@@ -546,3 +546,46 @@ W5. **Stroked glyphs the design system does not have.** The two renders draw a
     shield with a tick and a padlock; `UiIcon` has none of them. They are drawn
     in `components/app/wallet/MoneyGlyph.tsx` on the same grid and stroke.
     If the design system adopts them, that file goes.
+### Requests from welcome (Get started, first run)
+
+`/welcome` is reachable signed out (the one proxy line above), `/start` is a
+307 to `/welcome?next=/sign-up`, and "seen once" lives in the first-party
+cookie `vallo_first_run=seen` for a stranger and in `settings.welcomeSeen` for
+an account. Every landing Get started link already goes through `/start`, so
+it meets first run with no change. What cannot be done from Session B's files:
+
+W1. **Sign up meets first run the first time.** `app/(auth)/sign-up/page.tsx`
+    and `app/(auth)/sign-up/email/page.tsx` (Session A's) render straight away.
+    Request, at the top of each page, for a signed-out visitor:
+    ```ts
+    import { cookies } from "next/headers";
+    import { FIRST_RUN_COOKIE, FIRST_RUN_PASSED_PARAM, firstRunHref, isFirstRunSeen } from "@/components/app/welcome/first-run-seen";
+    const seen = isFirstRunSeen((await cookies()).get(FIRST_RUN_COOKIE)?.value);
+    if (!seen && params[FIRST_RUN_PASSED_PARAM] !== "1") redirect(firstRunHref("/sign-up" + search));
+    ```
+    The `welcomed=1` escape is what first run appends when a browser refuses
+    the cookie, so the two pages can never bounce a visitor between them.
+W2. **Sign in, the same, for the Welcome back worker (Session B, signin).**
+    `app/(auth)/sign-in/page.tsx` with `firstRunHref("/sign-in" + search)`, and
+    `AuthChoices`' "What Vallo is" link to `/welcome?next=/sign-in` rather than
+    `/start` (which carries sign up as the destination). Recorded here so it
+    is not lost; it is Session B's own file, not a request of Session A.
+W3. **The native app's first launch.** `apps/web/capacitor.config.ts` loads
+    `server.url` = `CAPACITOR_SERVER_URL`, the origin, so a store install opens
+    `/`, the marketing landing, not first run (`native-shell/index.html` is only
+    the offline card). Request: point the shell at `/welcome` on launch, either
+    by setting `CAPACITOR_SERVER_URL` to `https://<origin>/welcome` in the
+    native build's environment, or by having the landing page replace itself
+    with `/welcome` when `looksNative()` (`lib/native/platform.ts`) is true.
+    `/welcome` is safe as the permanent start page: a signed-in person who is
+    done goes straight to `/home`, and a stranger who has seen it lands on the
+    three doors. Optional, same reasoning: the web manifest's `start_url`
+    (`app/manifest.ts`, today `/`) for an installed PWA.
+W4. **`tests/gate.spec.mjs` fails on main for reasons that are not first run.**
+    Run against a production server on 22 September: eight routes in its
+    PRODUCT list are open by design now (`/search`, `/listing/*`, `/rent`,
+    `/around`, `/u`, `/post/*`) or redirect elsewhere (`/agents/*`), thirteen
+    route segments are in neither list, and it reads `src/middleware.ts`,
+    which is now `src/proxy.ts`, so it throws at the end. Session B changed
+    only the `/welcome` and `/start` lines, and the public list (23 routes,
+    including both) passes. Request: bring the lists up to date.

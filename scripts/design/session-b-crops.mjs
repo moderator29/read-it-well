@@ -26,6 +26,7 @@
  */
 import sharp from "sharp";
 import { mkdir } from "node:fs/promises";
+import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -217,6 +218,180 @@ SURFACES.send = async () => {
 };
 
 /* ================================================================= run */
+
+/* ------------------------------------------------------------------ welcome */
+/*
+ * Worker "welcome" (Get started). Render: 2A49E2F7-F99C-47D3-BB79-075DCC1A0F5D.png
+ * (repo root). A STAGE crop, not an object: cut with its dark ground, the
+ * lettering and the coin body retouched out by a harmonic fill, edges
+ * feathered. See apps/web/public/brand/session-b/welcome/SOURCES.md.
+ */
+/** The render as a mutable float RGB buffer. */
+async function loadRender(file) {
+  const { data, info } = await sharp(path.join(ROOT, file))
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  return { w: info.width, h: info.height, px: Float32Array.from(data) };
+}
+
+/** A mask the size of the image, 1 where pixels are to be rebuilt. */
+function emptyMask(img) {
+  return new Uint8Array(img.w * img.h);
+}
+
+function maskRect(img, mask, [x0, y0, x1, y1]) {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) mask[y * img.w + x] = 1;
+}
+
+/** A rotated ellipse: centre, semi axes, angle of the first axis in degrees. */
+function maskEllipse(img, mask, { cx, cy, a, b, angle = 0 }) {
+  const t = (angle * Math.PI) / 180;
+  const c = Math.cos(t);
+  const s = Math.sin(t);
+  const r = Math.ceil(Math.max(a, b)) + 1;
+  for (let y = Math.floor(cy - r); y <= cy + r; y++) {
+    for (let x = Math.floor(cx - r); x <= cx + r; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const u = dx * c + dy * s;
+      const v = -dx * s + dy * c;
+      if ((u * u) / (a * a) + (v * v) / (b * b) <= 1) mask[y * img.w + x] = 1;
+    }
+  }
+}
+
+/**
+ * Rebuild the masked pixels from their surroundings: a harmonic fill, the
+ * smoothest surface that meets the unmasked pixels at the mask's edge. On a
+ * glass face or a glow this is indistinguishable from the artwork around it,
+ * which is exactly what retouching lettering out of glass needs. Seeded with
+ * the mean of the boundary so it converges in a few hundred passes.
+ */
+function harmonicFill(img, mask, passes = 1500) {
+  const { w, px } = img;
+  const idx = [];
+  for (let i = 0; i < mask.length; i++) if (mask[i]) idx.push(i);
+  const sum = [0, 0, 0];
+  let n = 0;
+  for (const i of idx) {
+    for (const j of [i - 1, i + 1, i - w, i + w]) {
+      if (!mask[j]) {
+        for (let k = 0; k < 3; k++) sum[k] += px[j * 3 + k];
+        n++;
+      }
+    }
+  }
+  for (const i of idx) for (let k = 0; k < 3; k++) px[i * 3 + k] = sum[k] / Math.max(1, n);
+  for (let p = 0; p < passes; p++) {
+    for (const i of idx) {
+      for (let k = 0; k < 3; k++) {
+        px[i * 3 + k] =
+          (px[(i - 1) * 3 + k] + px[(i + 1) * 3 + k] + px[(i - w) * 3 + k] + px[(i + w) * 3 + k]) / 4;
+      }
+    }
+  }
+}
+
+/**
+ * Cut a box out as RGBA with its edges feathered to transparent, so a stage
+ * sits in the page with no visible rectangle. `feather` is in source pixels
+ * per side; the ramp is a smoothstep, which reads as light falling off rather
+ * than as a gradient.
+ */
+async function stageCut(img, box, feather) {
+  const { left, top, width, height } = box;
+  const out = Buffer.alloc(width * height * 4);
+  const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const si = ((top + y) * img.w + (left + x)) * 3;
+      const di = (y * width + x) * 4;
+      const a =
+        smooth(x / feather.left) *
+        smooth((width - 1 - x) / feather.right) *
+        smooth(y / feather.top) *
+        smooth((height - 1 - y) / feather.bottom);
+      for (let k = 0; k < 3; k++) out[di + k] = Math.max(0, Math.min(255, Math.round(img.px[si + k])));
+      out[di + 3] = Math.round(a * 255);
+    }
+  }
+  return sharp(out, { raw: { width, height, channels: 4 } });
+}
+
+async function welcome() {
+  const RENDER = "2A49E2F7-F99C-47D3-BB79-075DCC1A0F5D.png";
+  const dir = path.join(OUT, "welcome");
+  await mkdir(dir, { recursive: true });
+
+  /*
+   * THE STAGE: the two tilted glass tiles, the glowing plinth, its light
+   * pillars and reflection, and the haze behind them. The box runs from just
+   * inside the phone's screen edge (the bezel's glow reaches x 194) to just
+   * inside the other, and from the tiles' glow to below the plinth's
+   * reflection. 636 x 530 source px, drawn 380 x 317 css at 390.
+   */
+  const BOX = { left: 194, top: 560, width: 636, height: 530 };
+  const FEATHER = { left: 12, right: 12, top: 44, bottom: 56 };
+
+  /* Retouched out, and why:
+     - PROPERTY and STAYS: live text is laid back over the art as HTML.
+     - HOTEL on the sign: lettering baked into an object ships blank
+       (DESIGN_DIRECTION rule 3), the panel keeps its glass.
+     - the coin's body: the coin is live, a CSS 3D coin that really turns,
+       laid exactly where the drawn one stood. Its orbit swirl stays in the
+       art and now circles the live coin. */
+  const retouch = (img, mask) => {
+    maskRect(img, mask, [290, 838, 418, 865]); // PROPERTY
+    maskRect(img, mask, [626, 840, 712, 866]); // STAYS
+    maskRect(img, mask, [647, 662, 685, 677]); // HOTEL
+    maskEllipse(img, mask, { cx: 508, cy: 890, a: 96, b: 68, angle: 56 }); // coin body
+  };
+
+  /* Slide one: the render's own two objects, the house and the hotel. */
+  const worlds = await loadRender(RENDER);
+  const m1 = emptyMask(worlds);
+  retouch(worlds, m1);
+  harmonicFill(worlds, m1);
+  await (await stageCut(worlds, BOX, FEATHER))
+    .webp({ quality: 90, alphaQuality: 90, effort: 6 })
+    .toFile(path.join(dir, "stage-worlds.webp"));
+
+  /* Slides two to four: the same stage with the tiles emptied, so each slide
+     stands its own glass object in the same tiles. */
+  const tiles = await loadRender(RENDER);
+  const m2 = emptyMask(tiles);
+  retouch(tiles, m2);
+  maskRect(tiles, m2, [266, 652, 434, 822]); // the house and its tree
+  maskRect(tiles, m2, [574, 644, 768, 822]); // the hotel and its palms
+  harmonicFill(tiles, m2, 2500);
+  await (await stageCut(tiles, BOX, FEATHER))
+    .webp({ quality: 90, alphaQuality: 90, effort: 6 })
+    .toFile(path.join(dir, "stage-tiles.webp"));
+
+  writeFileSync(
+    path.join(dir, "SOURCES.md"),
+    `# Get started crops
+
+Cut by \`scripts/design/session-b-crops.mjs\` (block WELCOME). Do not edit by
+hand; change the script and re-run it.
+
+| File | Render | Box (left, top, w, h, render px) | Treatment | Drawn at 390 |
+|---|---|---|---|---|
+| \`stage-worlds.webp\` | \`${RENDER}\` | ${BOX.left}, ${BOX.top}, ${BOX.width}, ${BOX.height} | Stage with its dark ground. PROPERTY, STAYS and the HOTEL lettering retouched out by harmonic fill from the surrounding glass; the coin's body retouched out (the live CSS coin stands there); edges feathered to transparent (${FEATHER.left}/${FEATHER.right}/${FEATHER.top}/${FEATHER.bottom} px, smoothstep). WebP q90 with alpha. | 380 x 317 css |
+| \`stage-tiles.webp\` | \`${RENDER}\` | same | As above, and the house and the hotel retouched out of the two tiles, so slides two to four stand their own glass objects in them. | 380 x 317 css |
+
+The coin's faces are \`public/brand/glass/flip-coin.png\`, the pack's crop of the
+same two-faced glass coin from the drawer render, so no new coin crop exists.
+
+Resolution: the source box is 636 px wide for 380 css px, 1.67 source px per
+css px. A 3x phone asks for 1140, so the stage is visibly softer than live
+text at 3x and matches it at 2x. Nothing is upscaled.
+`,
+  );
+}
+
+SURFACES.welcome = welcome;
 
 const only = process.argv.includes("--surface")
   ? process.argv[process.argv.indexOf("--surface") + 1]
