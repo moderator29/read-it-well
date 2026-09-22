@@ -136,8 +136,17 @@
    */
   :root {
     --nf-dock-offset: 0.75rem;
-    --nf-dock-height: 3.5rem;
-    --nf-dock-lift: 0.75rem;
+    /*
+     * 4.375rem, and it was 3.5rem, WHICH WAS NOT WHAT THE BAR DRAWS.
+     *
+     * Measured on a production server at 390px: the capsule runs 762 to 832,
+     * which is 70px, because 3.5rem is the TAB's height and the capsule adds
+     * its own 0.375rem of padding top and bottom and a hairline either side.
+     * The term named the wrong box. Left alone it under-reserved by 14px, in
+     * the one token whose whole job is not to under-reserve.
+     */
+    --nf-dock-height: 4.375rem;
+    --nf-dock-lift: 1rem;
     --nf-dock-gap: 0.75rem;
     --nf-tabbar-clearance: calc(
       var(--nf-dock-offset) + env(safe-area-inset-bottom, 0px) + var(--nf-dock-height) +
@@ -579,12 +588,27 @@
   .nf-tab--switch {
     position: relative;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    /* The object rises by the lift and the slot does not grow, so the row
-       height stays the capsule's and the neighbours do not move. */
-    margin-top: calc(-1 * var(--nf-dock-lift));
   }
+  /*
+   * THE RAISE IS A TRANSLATE AND IT USED TO BE A NEGATIVE MARGIN, AND THE
+   * MARGIN DID NOT RAISE IT.
+   *
+   * Measured on a production server: with `margin-top: calc(-1 * lift)` on the
+   * slot, the object's top sat THREE PIXELS BELOW the capsule's top edge. The
+   * margin shortens the slot, and a centred child in a shorter box moves half
+   * as far as the box, so half the lift was spent and the rest was eaten by
+   * the capsule's own padding. The render draws this object standing clear of
+   * the bar and it was sitting inside it.
+   *
+   * `translate` is layout-free, so the object moves by exactly the lift, the
+   * capsule keeps its height, and the four neighbours do not shift. What the
+   * object occupies ABOVE the bar is the lift, which is the term
+   * `--nf-tabbar-clearance` already reserves, so nothing is drawn over
+   * content. This is the same lesson as the token above: measure what the
+   * browser drew, never what the file said.
+   */
   .nf-tab--switch > * {
     display: flex;
   }

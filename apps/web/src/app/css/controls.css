@@ -626,6 +626,123 @@
    * thing from the rows above it: those are places you already have and this
    * makes a new one.
    */
+  /*
+   * THE PROGRESS ROW: small filled rectangles, which is how every screen in
+   * the roles reference set draws progress. Rectangles and not dots, because
+   * the set draws rectangles; a dot is a SHAPE and so is this, so the shape
+   * law does not reach either, and the set's own choice decides it.
+   */
+  .nf-steprow {
+    display: flex;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-steprow__bar {
+    width: 1.75rem;
+    height: 0.25rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-steprow__bar[data-on] {
+    background: var(--nf-brand-primary);
+    box-shadow: var(--nf-glow-edge);
+  }
+
+  /*
+   * A DOOR: one of the three supplier cards in `GOVERNING-02`.
+   *
+   * An object on a rounded plate, a title, one supporting line, and a chevron
+   * that becomes a tick when it is the chosen one. Quiet until chosen, then
+   * lit: the render draws exactly three quiet cards and one bright one, which
+   * is what makes the choice readable at a glance on a 390px screen.
+   *
+   * A ROUNDED RECTANGLE on the control radius. At 5.5rem tall against a 14px
+   * radius the ratio is 0.16, which is a rectangle by the only test that
+   * counts.
+   */
+  .nf-door {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    min-height: 5.5rem;
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background:
+      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
+      var(--nf-glass-card-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    text-align: left;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-door:hover {
+      border-color: var(--nf-border-brand);
+    }
+  }
+  .nf-door[data-on] {
+    border-color: var(--nf-brand-edge-strong);
+    background:
+      linear-gradient(180deg, var(--nf-wash-4) 0%, transparent 62%),
+      var(--nf-brand-tint-1);
+    box-shadow:
+      var(--nf-glow-edge),
+      inset 0 1px 0 var(--nf-glass-rim);
+  }
+  /* The overview rows are the same anatomy with nothing to press, so they lose
+     the hover and the lit state and keep the plate. */
+  .nf-door--calm {
+    min-height: 4.5rem;
+  }
+  .nf-door__mark {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-brand-primary);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-door {
+      transition: none;
+    }
+  }
+
+  /*
+   * THE CALM EXPLANATORY PANEL with its small ROUND glyph, which appears on
+   * almost every screen in the roles reference set and is the set's own way of
+   * saying something reassuring without shouting.
+   *
+   * The glyph is round and that is not an exception being taken: a bare glyph
+   * on a tint is a SHAPE and not a control, and the shape law says so in as
+   * many words. The panel around it is a rectangle like everything else.
+   */
+  .nf-calmpanel {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-calmpanel__glyph {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-brand-primary);
+    background: var(--nf-brand-tint-1);
+  }
+
   .nf-switch-add {
     margin-top: var(--nf-space-xs);
     padding-top: var(--nf-space-xs);
@@ -667,6 +784,9 @@
     box-shadow:
       var(--nf-glow-edge-strong),
       inset 0 1px 0 var(--nf-glass-rim-strong);
+    /* The raise, measured rather than assumed: see `.nf-tab--switch` in
+       chrome.css for why this is a translate and not a margin. */
+    translate: 0 calc(-1 * var(--nf-dock-lift));
     transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-tab__link--switch:active .nf-switch-dock {
