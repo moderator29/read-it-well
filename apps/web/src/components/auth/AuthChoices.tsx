@@ -138,10 +138,14 @@ export function AuthChoices({
       </p>
 
       {/* The intro for a first visit, kept as a quiet door beside the
-          sign-up link rather than a toll before it. */}
+          sign-up link rather than a toll before it. It goes to first run with
+          this door as the way back (request W2), not to `/start`, which is a
+          redirect and was prefetched on every render of this card. */}
       {isSignUp && (
         <p className="nf-auth__swap mt-xs">
-          <Link href="/start">{t.welcomeCards.label}</Link>
+          <Link href={`/welcome?next=${encodeURIComponent("/sign-up")}`} prefetch={false}>
+            {t.welcomeCards.label}
+          </Link>
         </p>
       )}
 
