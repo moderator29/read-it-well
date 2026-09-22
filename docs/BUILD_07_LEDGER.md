@@ -232,3 +232,77 @@ the worker. No row, no close, and the lead does not commit it.
 | Commit | What |
 | --- | --- |
 | `118bdfc` | The work four agents were holding when the week ran out. |
+| `167c0bc` | BUILD 07 opens, and the catalogue indexes both reference subfolders. |
+| `c6c03a9` | The RC number is a fact, and the landing search control stops drawing a quarter of itself as dead track. |
+| `e1a48b0` | The three checking tools can see the paper theme. |
+| `52560f8` | A toast primitive, where four surfaces had each invented one. |
+| `907498d` | A capsule that passed every grep, and eight English strings in a four locale product. |
+| `e59e780` | Freeing the track is not freeing the item: one cause, three symptoms. |
+| `7aa8003` | The four escrow doors are locked and the trust numbers stop answering strangers. |
+| `e1c8fd9` | The engine stops saying RentMe, and the migration that would have fixed it could never have run. |
+| `5d93fc1` | The offline card designed, because it is the first surface a store reviewer meets. |
+| `da1c629` | Three role vocabularies disagreed, and the assistant described a ladder with a rung that never existed. |
+
+---
+
+## 8. Verified by the lead, not taken on report
+
+The contract says no success report is believed without the lead's
+verification. This section records what was checked and what the check found,
+including where it disagreed with the report.
+
+**THE TWO REVOCATIONS, CONFIRMED AGAINST THE LIVE DATABASE.** Read off
+`has_function_privilege` rather than off the migration text:
+`escrow_fund_from_wallet`, `escrow_confirm`, `escrow_request_release` and
+`escrow_raise_dispute` are now callable by neither `authenticated` nor `anon`.
+`agent_trust` is closed to `anon` and still open to `authenticated`, which is
+correct because the product calls it signed in. `platform_stats` keeps its
+`anon` grant, which is deliberate and is the one the landing page needs.
+
+**THE BRAND SWEEP, AND THE NUMBER IS TWO RATHER THAN ZERO, WHICH IS THE RIGHT
+ANSWER.** Badge rows saying RentMe: zero. Cron jobs named `rentme_*`: zero.
+Functions whose body contains the word: TWO, and both must stay.
+`private.handle_seed` and `private.validate_social_handle` refuse any social
+handle containing `vallo`, `rentme` or `naijafinds`. That is a BLOCKLIST, not
+a brand mention: deleting the word from it would open handle squatting on a
+retired brand that still carries recognition, so somebody could register
+`@rentme` and be taken for us. A sweep that drove this to zero would have
+introduced a defect while reporting a success, which is exactly why the count
+is read with eyes rather than compared to zero.
+
+---
+
+## 9. Two faults in the lead's own method, found today
+
+Recorded because the first one may have been producing wrong gate results for
+days and the second cost real work.
+
+**THE ISOLATION HARNESS COULD KEEP A FILE THAT THE TREE HAD DELETED.** To gate
+a tranche without other workers' in-flight edits, the lead builds a tree object
+and loads it into a separate worktree. The order was `reset --hard`, `clean`,
+`read-tree`, `checkout-index`. `clean` ran BEFORE the new tree was read, so a
+file present in the OLD tree and absent from the new one SURVIVED.
+
+It surfaced as a FALSE RED: `WelcomeCards.tsx` does not exist in HEAD, the
+worktree still had it, and it failed the typecheck against locale keys that had
+been correctly deleted. The lead nearly "fixed" a deletion that was right.
+
+**The dangerous direction is the opposite one.** A stale file satisfying an
+import that the real tree does not have makes a broken tree gate GREEN. Every
+gate result from that harness before today should be treated as suspect. The
+order is now `reset --hard`, `read-tree`, `checkout-index`, `clean`, so
+anything absent from the tree is untracked when the clean runs.
+
+**AND THE SHARED TREE ATE SIX FILES OF UNCOMMITTED WORK.** A git operation by
+one of thirteen workers destroyed the lead's working copy of six files with no
+conflict and no warning. They were recovered only because they had been written
+into a tree object for gating, so `git cat-file` could read them back; no
+worker has that safety net.
+
+Four commands are now forbidden outright in this tree regardless of what a
+brief says: `git add -A`, `git stash` in any form including `--autostash`,
+`git checkout --` or `git restore` on a file the worker did not write, and
+`git reset --hard`. When `git pull --rebase` refuses on a dirty tree, that
+refusal is protecting twelve other people and is not to be forced past: commit
+your own files with an explicit pathspec first, then pull. All thirteen
+workers have been told.
