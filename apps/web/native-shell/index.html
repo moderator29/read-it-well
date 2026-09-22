@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#000612" />
     <title>Vallo</title>
     <!--
       The shell the binary carries.
@@ -18,33 +19,82 @@
       font file, no image file and no script beyond the few lines at the foot,
       so it paints instantly from the binary with the radio switched off.
 
+      A2, 22 September 2026: THIS IS A SHIPPED SURFACE AND IT WAS NOT DESIGNED.
+      A store reviewer on a bad hotel connection meets this before they meet
+      anything else we have made, and it carries the brand into the binary. It
+      was correct and it was plain: a flat ground, a generic house glyph, a
+      bare heading. It now reads in the register of the twelve governing
+      images, drawn with nothing but CSS and inline SVG so the no-request rule
+      still holds:
+
+        the deep navy ground with the aurora behind it,
+        the glass panel with its lit top rim,
+        the one blue family and nothing else,
+        the brand object on its rounded plate,
+        rounded rectangle controls on `--nf-radius-control`'s ratio,
+        and the calm explanatory panel with its small round glyph.
+
+      NO SHAPE HERE IS A CAPSULE. The test is the drawn radius over the drawn
+      short side, never the token name: the button is 14px on a 48px box
+      (0.29), the plate is 26px on 96px (0.27), the panel is 16px on its own
+      height, and the only circle is the explanatory glyph, which is a glyph
+      and not a control. The values are written as literals rather than as
+      tokens because this file cannot import the token sheet; they are copied
+      from it, and the comment beside each one says which rung it is.
+
       House rules apply here as they do everywhere: no em dashes, British
       spelling, dark by default, brand blue only, and every state designed
       rather than left to a browser default.
     -->
     <style>
       :root {
-        --navy: #010118;
-        --ink: #000010;
-        --glow: #0c39ef;
-        --paper: #f4f5f7;
-        --card: rgba(255, 255, 255, 0.04);
-        --hairline: rgba(255, 255, 255, 0.1);
+        /* The ground, from `--nf-canvas` / `--nf-surface-0`. */
+        --ground: #000612;
+        --ground-deep: #00030a;
+        /* The one blue family, from the brand ramp. */
+        --brand: #0257fd;
+        --brand-lift: #2f7dff;
+        --brand-deep: #012e78;
+        --brand-edge: rgba(2, 87, 253, 0.42);
+        --glow: rgba(2, 87, 253, 0.34);
+        /* Glass, from the `.nf-glass` ladder. */
+        --glass-fill: rgba(255, 255, 255, 0.045);
+        --glass-border: rgba(255, 255, 255, 0.09);
+        --glass-rim: rgba(255, 255, 255, 0.16);
+        --well: rgba(255, 255, 255, 0.03);
         --text: rgba(255, 255, 255, 0.94);
-        --muted: rgba(255, 255, 255, 0.6);
+        --muted: rgba(255, 255, 255, 0.62);
+        --faint: rgba(255, 255, 255, 0.46);
+        --on-brand: #ffffff;
       }
 
-      /* The paper twin, for a device set to light. The brand is dark by
-         default and nothing here overrides that silently, but a shell that
-         ignores the setting entirely reads as broken rather than as a choice. */
+      /*
+       * The paper twin, for a device set to light.
+       *
+       * The brand is dark by default and nothing here overrides that silently,
+       * but a shell that ignores the setting entirely reads as broken rather
+       * than as a choice. This is a designed paper surface and not an
+       * inversion: the ground becomes paper, the glass becomes white card on a
+       * hairline, and the blue family does not move.
+       *
+       * The auth screen's permanent dark (rule 22) is not this surface. That
+       * ruling is about the door to the product; this is the state the product
+       * could not be reached at all, and telling somebody their phone is in
+       * the wrong theme is not what this screen is for.
+       */
       @media (prefers-color-scheme: light) {
         :root {
-          --navy: var(--paper);
-          --ink: #ffffff;
-          --card: #ffffff;
-          --hairline: rgba(0, 0, 0, 0.1);
-          --text: #0b0b14;
-          --muted: rgba(11, 11, 20, 0.62);
+          --ground: #f4f6fb;
+          --ground-deep: #ffffff;
+          --brand-edge: rgba(2, 87, 253, 0.28);
+          --glow: rgba(2, 87, 253, 0.16);
+          --glass-fill: #ffffff;
+          --glass-border: rgba(10, 20, 45, 0.1);
+          --glass-rim: rgba(255, 255, 255, 0.9);
+          --well: rgba(10, 20, 45, 0.035);
+          --text: #05091a;
+          --muted: rgba(5, 9, 26, 0.66);
+          --faint: rgba(5, 9, 26, 0.5);
         }
       }
 
@@ -60,7 +110,8 @@
       }
 
       body {
-        background: var(--navy);
+        position: relative;
+        background: var(--ground);
         color: var(--text);
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
@@ -71,69 +122,226 @@
         justify-content: center;
         /* The notch and the home indicator. `viewport-fit=cover` above is what
            makes these resolve to anything other than zero. */
-        padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) 1.5rem
+        padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) 1.25rem
           calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
         min-height: 100dvh;
+        overflow-x: hidden;
+      }
+
+      /*
+       * THE AURORA, WHICH IS THE GROUND AND NOT DECORATION.
+       *
+       * Every surface in the product sits on a navy field with two soft blue
+       * lights in it, one high and one low. Two radial gradients is the whole
+       * of it, and it costs no request and no repaint: the element is fixed,
+       * pointer-transparent and painted once.
+       */
+      .aurora {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            72% 48% at 50% -6%,
+            rgba(2, 87, 253, 0.26) 0%,
+            rgba(2, 87, 253, 0.08) 42%,
+            transparent 72%
+          ),
+          radial-gradient(
+            120% 60% at 50% 112%,
+            rgba(1, 46, 120, 0.4) 0%,
+            transparent 68%
+          ),
+          linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
       }
 
       main {
+        position: relative;
         width: 100%;
-        max-width: 26rem;
+        max-width: 24rem;
         text-align: center;
       }
 
-      .mark {
-        width: 4rem;
-        height: 4rem;
-        margin: 0 auto 1.5rem;
+      /* ------------------------------------------------ the brand object */
+
+      /*
+       * The 3D object on its rounded plate, which is the register's signature.
+       *
+       * The renders put a glass object on a dark rounded square with a lit rim
+       * and a blue light under it. Here that is a 96px plate, the mark drawn
+       * into it with two gradients and a highlight, and a soft pool of brand
+       * light beneath. 26px on a 96px side is a ratio of 0.27, which is a
+       * rounded square and nowhere near a circle.
+       */
+      .plate {
+        position: relative;
+        width: 6rem;
+        height: 6rem;
+        margin: 0 auto 1.75rem;
+        display: grid;
+        place-items: center;
+        border-radius: 1.625rem;
+        border: 1px solid var(--brand-edge);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 45%),
+          linear-gradient(180deg, #071232 0%, #01081c 100%);
+        box-shadow:
+          0 0 34px var(--glow),
+          inset 0 1px 0 var(--glass-rim);
+      }
+
+      @media (prefers-color-scheme: light) {
+        .plate {
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(244, 246, 251, 1) 100%);
+        }
+      }
+
+      .plate svg {
+        width: 3.25rem;
+        height: 3.25rem;
         display: block;
       }
 
+      /* ------------------------------------------------------- the words */
+
       h1 {
-        margin: 0 0 0.75rem;
-        font-size: 1.375rem;
+        margin: 0 0 0.625rem;
+        font-size: 1.5rem;
+        line-height: 1.2;
         font-weight: 700;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
       }
 
-      p {
-        margin: 0 0 1rem;
+      .lede {
+        margin: 0;
         font-size: 0.9375rem;
         color: var(--muted);
       }
 
-      .card {
+      /* ---------------------------------------------------- the panel */
+
+      /*
+       * The calm explanatory panel with the small round glyph, which appears
+       * on almost every screen in the governing set. It is the place the
+       * product says the quiet true thing: here, that nothing was lost.
+       */
+      .note {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
         margin-top: 1.5rem;
-        padding: 1rem 1.25rem;
-        border: 1px solid var(--hairline);
-        border-radius: 1rem;
-        background: var(--card);
+        padding: 0.875rem 1rem;
         text-align: left;
+        border: 1px solid var(--glass-border);
+        border-radius: 1rem;
+        background: var(--well);
+        box-shadow: inset 0 1px 0 var(--glass-rim);
       }
 
-      .card p {
+      .note p {
         margin: 0;
         font-size: 0.8125rem;
+        color: var(--muted);
       }
 
+      .note strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      /* The one circle on this screen, and it is a glyph rather than a
+         control, which is the standing exception the shape law names. */
+      .note-glyph {
+        flex: none;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-top: 0.0625rem;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 1px solid var(--brand-edge);
+        background: rgba(2, 87, 253, 0.14);
+        color: var(--brand-lift);
+      }
+
+      .note-glyph svg {
+        width: 0.875rem;
+        height: 0.875rem;
+        display: block;
+      }
+
+      /* ---------------------------------------------------- the card */
+
+      /* The glass panel with its lit top rim. The card holds the words so the
+         plate above it reads as an object standing in front of the panel
+         rather than a picture printed on it. */
+      .card {
+        position: relative;
+        padding: 1.75rem 1.25rem 1.5rem;
+        border: 1px solid var(--glass-border);
+        border-radius: 1.5rem;
+        background: var(--glass-fill);
+        box-shadow:
+          inset 0 1px 0 var(--glass-rim),
+          0 24px 60px rgba(0, 4, 16, 0.55);
+      }
+
+      @media (prefers-color-scheme: light) {
+        .card {
+          box-shadow:
+            inset 0 1px 0 var(--glass-rim),
+            0 18px 44px rgba(10, 20, 45, 0.1);
+        }
+      }
+
+      /* ---------------------------------------------------- the control */
+
+      /*
+       * A ROUNDED RECTANGLE, NEVER A CAPSULE. 0.875rem of corner on a 3rem
+       * box is a ratio of 0.29. The gradient and the glow are the primary
+       * button's own, copied from `--nf-gradient-cta` and the glow scale.
+       */
       button {
         margin-top: 1.5rem;
         width: 100%;
-        /* 44px of pressable area, which the whole platform holds itself to. */
-        min-height: 2.75rem;
+        min-height: 3rem;
         padding: 0.75rem 1.5rem;
-        border: 0;
-        border-radius: 0.75rem;
-        background: var(--glow);
-        color: #ffffff;
+        border: 1px solid var(--brand-edge);
+        border-radius: 0.875rem;
+        background: linear-gradient(180deg, var(--brand-lift) 0%, var(--brand) 55%, var(--brand-deep) 100%);
+        color: var(--on-brand);
         font: inherit;
+        font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
+        box-shadow: 0 8px 24px var(--glow);
+        transition: transform 120ms ease-out;
+      }
+
+      button:active {
+        transform: scale(0.985);
       }
 
       button:focus-visible {
-        outline: 2px solid var(--glow);
+        outline: 2px solid var(--brand-lift);
         outline-offset: 3px;
+      }
+
+      /* Motion is physics and reduced motion turns all of it off. */
+      @media (prefers-reduced-motion: reduce) {
+        button {
+          transition: none;
+        }
+        button:active {
+          transform: none;
+        }
+      }
+
+      .footnote {
+        margin: 1rem 0 0;
+        font-size: 0.75rem;
+        color: var(--faint);
       }
 
       /* Shown only when the build carries no origin at all, which is a
@@ -147,37 +355,111 @@
       body[data-state="unconfigured"] #unconfigured {
         display: block;
       }
+      /* A packaging fault is ours to fix and there is nothing for the reader
+         to retry, so the plate carries the same object and the control says
+         what it actually does. */
+      body[data-state="unconfigured"] .footnote {
+        display: none;
+      }
+
+      .code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.8125rem;
+        color: var(--text);
+      }
     </style>
   </head>
   <body>
-    <main>
-      <!-- The mark, drawn rather than fetched, for the reason in the header. -->
-      <svg class="mark" viewBox="0 0 64 64" role="img" aria-label="Vallo">
-        <rect width="64" height="64" rx="16" fill="var(--glow)" />
-        <path d="M18 44V28l14-10 14 10v16h-10V34h-8v10Z" fill="#ffffff" />
-      </svg>
+    <div class="aurora" aria-hidden="true"></div>
 
-      <div id="offline">
-        <h1>No connection</h1>
-        <p>
-          Vallo needs a connection to show you homes, stays and your wallet.
-          Nothing has been lost. Everything is exactly where you left it.
-        </p>
-        <button type="button" id="retry">Try again</button>
+    <main>
+      <!--
+        The brand object, drawn rather than fetched, for the reason in the
+        header. It is the Vallo mark: three ascending forms on a glass plate,
+        lit from the top left, with the orbit beneath them. No text is baked
+        into it, which rule 5 forbids and which two of the reference renders
+        do.
+      -->
+      <div class="plate">
+        <svg viewBox="0 0 64 64" role="img" aria-label="Vallo">
+          <defs>
+            <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8fb9ff" />
+              <stop offset="55%" stop-color="#2f7dff" />
+              <stop offset="100%" stop-color="#0257fd" />
+            </linearGradient>
+            <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#2f7dff" />
+              <stop offset="100%" stop-color="#012e78" />
+            </linearGradient>
+          </defs>
+          <!-- The three forms, tallest in the middle, as the mark draws them. -->
+          <path d="M13 50V30l8-5v25Z" fill="url(#side)" />
+          <path d="M26 50V15l9-6v41Z" fill="url(#face)" />
+          <path d="M40 50V26l8 5v19Z" fill="url(#side)" />
+          <!-- The orbit: one stroke, open on the right, in the same family. -->
+          <path
+            d="M9 44c8 6 30 8 44 1"
+            fill="none"
+            stroke="#2f7dff"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            opacity="0.85"
+          />
+          <!-- The highlight that makes it glass rather than flat. -->
+          <path d="M26 15l9-6v4l-9 6Z" fill="#ffffff" opacity="0.55" />
+        </svg>
       </div>
 
-      <div id="unconfigured">
-        <h1>This build has no server</h1>
-        <p>
-          It was packaged without a live address, so there is nothing for it to
-          open. This is a build fault, not a fault with your phone or your
-          network.
-        </p>
-        <div class="card">
-          <p>
-            Set <strong>CAPACITOR_SERVER_URL</strong> to the production origin,
-            run <strong>npx cap sync</strong>, and build again. See docs/MOBILE.md.
+      <div class="card">
+        <div id="offline">
+          <h1>You are offline</h1>
+          <p class="lede">
+            Vallo needs a connection to show you homes, stays and your wallet.
+            Nothing has been lost.
           </p>
+
+          <div class="note">
+            <span class="note-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p>
+              <strong>Everything is where you left it.</strong>
+              Your saved places, your messages and your bookings live on your
+              account, not on this phone, so they are waiting the moment you
+              are back on a network.
+            </p>
+          </div>
+
+          <button type="button" id="retry">Try again</button>
+          <p class="footnote">Wi-Fi, mobile data or aeroplane mode, then try again.</p>
+        </div>
+
+        <div id="unconfigured">
+          <h1>This build has no server</h1>
+          <p class="lede">
+            It was packaged without a live address, so there is nothing for it
+            to open. This is a build fault, not a fault with your phone or your
+            network.
+          </p>
+
+          <div class="note">
+            <span class="note-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 8v5" />
+                <path d="M12 16.5v.01" />
+              </svg>
+            </span>
+            <p>
+              Set <span class="code">CAPACITOR_SERVER_URL</span> to the
+              production origin, run <span class="code">npx cap sync</span>,
+              and build again. See <span class="code">docs/MOBILE.md</span>.
+            </p>
+          </div>
+
+          <button type="button" id="reload">Reload the shell</button>
         </div>
       </div>
     </main>
@@ -210,6 +492,13 @@
             } else {
               window.location.reload();
             }
+          });
+        }
+
+        var reload = document.getElementById("reload");
+        if (reload) {
+          reload.addEventListener("click", function () {
+            window.location.reload();
           });
         }
       })();
