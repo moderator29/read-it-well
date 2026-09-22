@@ -84,31 +84,53 @@ policy, Session B writes it as a request below.
 - `apps/web/src/components/app/wallet/**`
 - `apps/web/src/app/css/wallet.css`
 
-### Admin console: shell, overview, operations, analytics (worker admin-shell)
-- `apps/web/src/app/admin/layout.tsx`, `apps/web/src/app/admin/page.tsx`,
-  `apps/web/src/app/admin/loading.tsx`, `apps/web/src/app/admin/error.tsx`
-- `apps/web/src/app/admin/_components/**`
-- `apps/web/src/app/css/admin.css`
-- `apps/web/src/app/admin/operations/**`, `apps/web/src/app/admin/analytics/**`,
-  `apps/web/src/app/admin/alerts/**`, `apps/web/src/app/admin/audit/**`
-- the register sweep of every admin route not claimed by another worker below
-  (agents, businesses, examples, fees, flags, reference, reports, social,
-  standing, stops, switches, payments), styling only unless a control is broken
-
-### Admin console: review desks (worker admin-review)
-- `apps/web/src/app/admin/listings/**`, `apps/web/src/app/admin/moderation/**`,
-  `apps/web/src/app/admin/kyc/**`, `apps/web/src/app/admin/queue/**`,
-  `apps/web/src/app/admin/support/**`
-
-### Admin console: money desks (worker admin-money)
-- `apps/web/src/app/admin/money/**`, `apps/web/src/app/admin/escrow/**`,
-  `apps/web/src/app/admin/supply/**`, `apps/web/src/app/admin/bookings/**`
-
-### Inspection (worker inspection)
+### 6. Inspections (worker inspection)
 - `apps/web/src/app/(app)/inspections/**`
 - `apps/web/src/components/app/inspections/**`
 - `apps/web/src/app/agent/inspections/**`
 - `apps/web/src/lib/inspections/**`
+- Governing images: `F6A8A482-657B-4836-B30A-1A0578BC3FBA.png` (root and
+  `docs/design/references/`), plus anything relevant in
+  `docs/design/references/founder/`.
+
+### 7. THE WHOLE ADMIN CONSOLE (founder instruction, 22 September)
+Session B owns **`apps/web/src/app/admin/**` in full**, every route under it,
+and the admin components:
+- `apps/web/src/app/admin/**` (every page, layout, loading, error, route
+  component and `_components/**`, including desks that do not exist yet)
+- `apps/web/src/app/css/admin.css`
+- `apps/web/src/components/admin/**` if it comes to exist
+- `apps/web/src/components/agent/charts/**`: ADDITIVE ONLY. New inline SVG
+  chart files beside `AreaSparkline.tsx` and `DonutChart.tsx`, and backwards
+  compatible extensions to those two; the agent console that uses them today
+  must render unchanged.
+- `docs/ADMIN_CONSOLE.md` (new, the operations handbook)
+- Governing images: `docs/design/references/admin/` (landing now; layout,
+  density and UX taken from them, never their purple palette) and the four
+  admin renders at the repo root.
+
+**Session B does NOT own `apps/web/src/lib/admin/**`.** The queries and the
+actions stay with the other session, which is adding new desks behind new
+backend work. Where a panel needs a query that does not exist or returns the
+wrong thing, Session B writes it below as a request and ships the honest
+state meanwhile.
+
+Standing rules for the console, from the founder:
+- Entering the console lands on the overview, every time, before any desk.
+- Charts obey the palette and never invent a number: single series on a blue
+  ramp for magnitude; one stacked status bar on the existing status four with a
+  word on every segment; no charting dependency; a trend panel with no data
+  behind it says so and draws nothing.
+- Desktop first for the console, then narrow.
+
+Internal split between Session B workers (for Session B's own coordination):
+- admin-shell: `layout.tsx`, `page.tsx` (overview), `loading.tsx`,
+  `error.tsx`, `_components/**`, `admin.css`, the chart primitives, and the
+  operations, analytics, alerts, audit, notifications and scheduled-job desks,
+  plus the register sweep of every admin route not listed below.
+- admin-review: listings (queue and the single listing under review),
+  moderation, kyc (verification), queue, support.
+- admin-money: money, escrow, supply, bookings, payments.
 
 ### Shared, additive only
 - `packages/i18n/**` dictionaries: ADDING keys inside the `sessionB` namespace or
@@ -119,6 +141,7 @@ policy, Session B writes it as a request below.
 
 ### Docs
 - `docs/SESSION_B_SCOPE.md` (this file)
+- `docs/ADMIN_CONSOLE.md`
 - `docs/BUILD_SESSION_B_LEDGER.md`
 - `docs/design/proofs/session-b/**` (screenshots and comparisons)
 
@@ -128,7 +151,8 @@ Design token files (`packages/design-tokens/**`), every stylesheet not listed
 above (including `globals.css`, `social.css`, `light.css`, `buttons.css`,
 `glass.css`), `packages/i18n` structure, `docs/DESIGN_DIRECTION.md`,
 `docs/CATALOGUE.md`, `docs/design/CATALOGUE.md`, `docs/BUILD_07_LEDGER.md`,
-every handoff document, every migration, and every listing, host, escrow or
+every handoff document, every migration, `apps/web/src/lib/admin/**`, and
+every listing, host, escrow or
 supply file OUTSIDE `apps/web/src/app/admin/**` (the admin pages for those
 areas are Session B's since the reassignment above; the user-facing and
 server-side listing, host, escrow and supply code is not).
@@ -137,5 +161,9 @@ server-side listing, host, escrow and supply code is not).
 
 Changes Session B needs in files it does not own. Session B has NOT made
 these; it is carrying on around them.
+
+Session B has read the other session's channel to it, `docs/BUILD_07_LEDGER.md`
+section 49 (R1: no NDIC badge; R2: no Buy Airtime, Pay Bills or Swap tiles), and
+agrees with both.
 
 1. (none yet; appended as they are found)
