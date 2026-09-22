@@ -67,7 +67,7 @@ export function SiteHeader({
               moreLabel={nav.more}
               extras={
                 <>
-                  <ThemeToggle />
+                  <ThemeToggle labels={t.uiCommon.theme} />
                   <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
                 </>
               }
@@ -99,6 +99,7 @@ export function SiteHeader({
               signUp={nav.getStarted}
               openLabel={t.a11y.openMenu}
               closeLabel={t.a11y.closeMenu}
+              themeLabels={t.uiCommon.theme}
             />
           </div>
         </div>

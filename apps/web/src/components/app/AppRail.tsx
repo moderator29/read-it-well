@@ -55,6 +55,7 @@ export function AppRail({
   isAdmin = false,
   signedIn = false,
   variant = "rail",
+  switchSlot,
   onNavigate,
   onClose,
 }: {
@@ -74,6 +75,16 @@ export function AppRail({
    */
   verified?: boolean;
   unreadNotifications?: number;
+  /**
+   * The "Switch profile" row, rendered by the shell.
+   *
+   * THE SAME CONTROL AS THE DOCK'S CENTRE SLOT AND THE SAME SHEET BEHIND IT.
+   * It arrives as an element because it needs the account's own workspace
+   * list, which the shell has already resolved once; building a second one
+   * here is how two entrances to one sheet become two slightly different
+   * lists.
+   */
+  switchSlot?: React.ReactNode;
   isAgent?: boolean;
   isAdmin?: boolean;
   signedIn?: boolean;
@@ -187,8 +198,19 @@ export function AppRail({
         with the coin in a lit ring; see `SideSwitch` and `SideFlip`.
       */}
       <div className="nf-nav__foot">
+        {/*
+          SWITCH PROFILE SITS ABOVE THE COIN, AND THE COIN ABOVE THE THEME ROW.
+
+          The foot already held the two controls that change how the product
+          looks rather than where you are. This is the third and it goes first,
+          because it is the biggest question of the three: the coin turns the
+          shelf over, and this changes who you are standing at it. It shows the
+          current profile and a chevron, exactly as `GOVERNING-01` screen three
+          draws it, and it opens the same sheet the dock's centre slot opens.
+        */}
+        {switchSlot}
         <SideSwitch t={t} onNavigate={onNavigate} />
-        <ThemeToggle variant="row" />
+        <ThemeToggle variant="row" labels={t.uiCommon.theme} />
         {/*
           THE LEGAL ROW AT THE FOOT OF THE DRAWER, which the drawer render
           draws and the product did not have: a divider, a shield, the

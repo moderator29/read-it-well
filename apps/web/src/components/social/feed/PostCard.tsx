@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -469,9 +469,21 @@ export function PostCard({
       {post.areaName && post.areaSlug && !isSystem ? (
         <Link
           href={`/around/${post.areaSlug}`}
-          className="mt-sm inline-flex h-6 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] px-sm text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
+          /*
+           * THE SHAPE LAW, AND THIS ONE PASSED EVERY GREP FOR A YEAR.
+           *
+           * It was `h-6` on `--nf-radius-control`: 14px of radius on a 24px
+           * box, a ratio of 0.583, which the browser draws as a capsule with a
+           * 4px straight edge down each side. The token name is the correct
+           * one and `check-css-tokens.mjs` rule 10 passed it, which is exactly
+           * why DESIGN_DIRECTION.md:80 makes the test the RATIO and not the
+           * name. 10 on 28 is 0.357, which matches `.nf-landing-float-badge`,
+           * the same object on the landing page, which already reasoned its
+           * way to this pair.
+           */
+          className="mt-sm inline-flex h-7 items-center rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-sm text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
         >
-          Around {post.areaName}
+          {getDictionary(locale).uiCommon.around.replace("{area}", post.areaName)}
         </Link>
       ) : null}
 

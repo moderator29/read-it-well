@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { markInboxRead } from "@/lib/messages/actions";
@@ -8,6 +9,7 @@ import { useInboxTyping } from "@/lib/messages/useRealtime";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
+import type { Dictionary } from "@vallo/i18n";
 import type { ThreadContextKind } from "@/lib/messages/db";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
@@ -60,11 +62,11 @@ const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
 
 type Tab = "all" | "primary" | "requests";
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "primary", label: "Primary" },
-  { key: "requests", label: "Requests" },
-];
+/* The order is the product's; the words are the dictionary's. They were three
+   English literals in a four locale product, which is the sharpest form of the
+   half translated control `QueueFilters.tsx:141` argues against: the rows below
+   these tabs are translated and the tabs above them were not. */
+const TAB_ORDER: Tab[] = ["all", "primary", "requests"];
 
 function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
   const glyph = row.contextKind ? CONTEXT_GLYPH[row.contextKind] : undefined;
@@ -173,8 +175,11 @@ export function Inbox({
   rows,
   meId = null,
   canMarkRead = false,
+  labels,
 }: {
   rows: InboxRow[];
+  /** The three tab words, where a server parent already holds the dictionary. */
+  labels?: Dictionary["uiCommon"]["inbox"];
   /** The signed-in user, for ignoring our own typing pings. Null when seeded. */
   meId?: string | null;
   /** Only a signed-in reader has read state the server can clear. */
@@ -185,6 +190,16 @@ export function Inbox({
   const [query, setQuery] = useState("");
   const [markError, setMarkError] = useState<string | null>(null);
   const [marking, startMarking] = useTransition();
+
+  /*
+   * The dictionary is read here rather than passed, which is the LAST RESORT
+   * the hook's own file describes and it qualifies on all three tests: this is
+   * a `"use client"` control, its only server parent holds no dictionary
+   * today, and the strings it needs are three tab labels. A caller that
+   * acquires a `t` can still beat it by passing `tabLabels`.
+   */
+  const clientInbox = useClientDictionary().uiCommon.inbox;
+  const tabLabels = labels ?? clientInbox;
 
   const typing = useInboxTyping(
     rows.map((r) => r.id),
@@ -320,18 +335,18 @@ export function Inbox({
       */}
       <div className="mt-heading">
         <Segmented<Tab>
-          label="Filter conversations"
+          label={tabLabels.filterLabel}
           /* The default `md` rung, not `sm`. `Segmented` paints its real
              height with no overflowing hit area the way `Chip` and `Switch`
              have, so `sm` is a genuine 36px target - under the 44pt floor, and
              `icons-and-targets` catches it. */
           full
-          options={TABS.map((entry) => ({
-            value: entry.key,
-            label: entry.label,
+          options={TAB_ORDER.map((key) => ({
+            value: key,
+            label: tabLabels[key],
             /* Requests is the only tab that carries a count, and only when
                somebody is actually waiting in it. */
-            ...(entry.key === "requests" && requests.length > 0
+            ...(key === "requests" && requests.length > 0
               ? { count: requests.length }
               : null),
           }))}

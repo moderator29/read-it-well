@@ -3968,6 +3968,329 @@ export const en = {
     notFoundBody: "It may have left the feed, or the address is wrong. The market list is one tap away.",
     priceIn: "Show prices in",
   },
+
+  /**
+   * TRACK H: what a tenant will actually pay.
+   *
+   * HANDOFF 09 section 4. The cost block on the listing detail page and the
+   * move-in sort in search read every word from here. The honesty rule is in
+   * the copy itself: a cost nobody declared says so in words, because zero is
+   * a claim and silence is not the same claim.
+   */
+  moveIn: {
+    title: "What you will actually pay",
+    lede: "Every cost this lister has declared, and every one they have not.",
+    rent: "Rent",
+    agencyFee: "Agency fee",
+    legalFee: "Legal fee",
+    agreementFee: "Agreement fee",
+    cautionDeposit: "Caution deposit",
+    cautionBasis: "refundable",
+    serviceCharge: "Service charge",
+    keptByLister: "Paid to the landlord",
+    keptByAgent: "Paid to the agent",
+    keptByEstate: "Paid to the estate",
+    notDeclared: "Not declared",
+    noAgencyFee: "No agency fee",
+    noAgencyFeeNote:
+      "This lister has declared no agency fee. Vallo does not cap anybody's fee. It publishes it.",
+    totalStated: "Total to move in",
+    totalFrom: "Move in from",
+    statedNote:
+      "The figure the lister says you need at the door, rent included. Anything not listed here is not part of their quote, so ask before you pay.",
+    summedNote:
+      "The lister has not given one total, so this is the sum of the parts they named. There may be more, so ask before you pay.",
+    undeclaredOne:
+      "One cost above has not been declared. It is not in the total, and you may still be asked for it.",
+    undeclaredMany:
+      "{count} of the costs above have not been declared. They are not in the total, and you may still be asked for them.",
+    sortMoveIn: "Move-in cost: low to high",
+    basisPrice: "Sorted on the headline price",
+    basisMoveIn: "Sorted on the total move-in cost",
+  },
+
+  /**
+   * TRACK P: the two home pages and the dock, rebuilt to GOVERNING-01 and
+   * GOVERNING-09.
+   *
+   * The greeting, the name and the location are NOT here: they are the
+   * reader's own facts and come from the account, not from a dictionary.
+   * Everything the page says about itself does.
+   */
+  directHome: {
+    heroTitle: "Find your next home",
+    heroLede: "Rent, buy or invest in verified properties across Nigeria.",
+    heroSearch: "Search by location, property type",
+    filters: "Filters",
+    featured: "Featured properties",
+    parkingOne: "1 parking",
+    parkingMany: "{count} parking",
+    buy: "Buy",
+    rent: "Rent",
+    manage: "Manage",
+    invest: "Invest",
+    investNote: "Properties presented for their yield. Vallo sells no investment product.",
+    stays: {
+      heroTitle: "Great stays. Better experiences.",
+      heroLede: "Hotels, shortlets and restaurants across Nigeria.",
+      heroSearch: "Where do you want to go?",
+      featured: "Featured stays",
+      hotels: "Hotels",
+      hotelsNote: "Comfortable stays",
+      shortlets: "Shortlets",
+      shortletsNote: "Feels like home",
+      restaurants: "Restaurants",
+      restaurantsNote: "Great food",
+      nearby: "Nearby",
+      nearbyNote: "Discover local",
+    },
+    dock: {
+      /* The raised centre slot. The sheet it opens is B1's; this is the word
+         under the object in GOVERNING-01. */
+      switchProfile: "Switch",
+    },
+  },
+  /**
+   * TRACK N: the code a person reads out over the phone.
+   *
+   * A published listing carries `VL-` plus six characters from an alphabet
+   * with no 0, O, 1, I, L or U, because those are the characters a person
+   * gets wrong reading a code down a Nigerian phone line. The database issues
+   * it at the moment the listing goes live and never at draft, so a listing
+   * that is still in review genuinely has none and the copy here says so
+   * rather than drawing an empty box.
+   */
+  listingReference: {
+    /** Above the one result a typed code found. GOVERNING-12 screen four. */
+    foundById: "Found by listing ID",
+    /** A well formed code that names nothing live. */
+    noneCarry: "No listing carries that code. These are the ordinary results for what you typed.",
+    /** The right shape, carrying a character we never mint. */
+    impossible:
+      "That code has a character we do not use. Our codes never contain zero, one, I, L, O or U.",
+    label: "Listing ID",
+    yours: "Your listing ID",
+    copy: "Copy ID",
+    copied: "Copied",
+    explain: "Anyone can find this listing by typing this ID into search.",
+    /** Said where there is no code yet, which is every listing in review. */
+    issuedWhenLive: "You will get a notification, and your listing ID, once it is live.",
+  },
+
+  /*
+   * THE STRINGS THAT WERE WRITTEN IN ENGLISH INSIDE A FOUR LOCALE PRODUCT.
+   *
+   * `docs/research/UI_UNIQUENESS_AND_ADMIN_RESEARCH.md` section 2.9 counted
+   * seventeen user visible English literals sitting in TSX. They are gathered
+   * here rather than spread into `social`, `nav`, `admin` and `stays`, because
+   * three groups are editing this file this week and two agents have already
+   * collided in it: one namespace added at the end is a change another worker's
+   * diff cannot silently swallow.
+   *
+   * `QueueFilters.tsx:141` already states the principle these close:
+   * "A control that is half translated is worse than one that is not, because
+   * the half that is translated is the half that tells the reader the rest is a
+   * bug."
+   *
+   * THIS NAMESPACE IS ENGLISH ONLY AND THAT IS DELIBERATE. `withFallback`
+   * already serves English to `ha`, `ig` and `yo` for any key they do not
+   * carry, so nothing here is missing at runtime in any locale. Copying the
+   * English sentences INTO the three translation files would make the key
+   * completeness count go up while the product still read in English, which is
+   * the exact defect that survey found: around fifty five full English
+   * sentences already sit inside each of those three dictionaries and are the
+   * reason a 97 per cent complete locale still renders a mixed language screen.
+   * A translation is written by somebody who speaks the language, and until
+   * then the honest state is the fallback.
+   */
+  uiCommon: {
+    /** The area chip on a post card. `{area}` is a place name from the database. */
+    around: "Around {area}",
+
+    theme: {
+      toLight: "Switch to light mode",
+      toDark: "Switch to dark mode",
+      light: "Light mode",
+      dark: "Dark mode",
+    },
+
+    /** The inbox's three tabs. */
+    inbox: {
+      all: "All",
+      primary: "Primary",
+      requests: "Requests",
+      /** Names the tablist itself, which had no name a screen reader could use. */
+      filterLabel: "Filter conversations",
+    },
+
+    /** Stay facilities that had no dictionary entry beside four that did. */
+    facilities: {
+      wifi: "Wi-Fi",
+      airConditioning: "Air conditioning",
+      parking: "Parking",
+    },
+
+    /**
+     * The operations console's own chrome. `app/admin/_components/nav.ts:22`
+     * records that its English was a stopgap taken because this file belonged
+     * to another owner; this is the key set that ends the stopgap.
+     */
+    console: {
+      title: "Operations Console",
+      short: "Admin",
+      notifications: "Notifications",
+      filterByStatus: "Filter by status",
+      allStatuses: "All",
+      table: {
+        id: "ID",
+        type: "Type",
+        titleOrUser: "Title / user",
+        status: "Status",
+        submitted: "Submitted",
+        action: "Action",
+        view: "View",
+      },
+    },
+
+    /**
+     * The console's charts. Every one of these names a real read; there is no
+     * label here for a chart that does not exist, because a legend for a
+     * missing series is an invented number with a caption.
+     */
+    charts: {
+      actionsPerDay: "Actions per day",
+      actionsByKind: "Actions by kind",
+      actionsByActor: "Busiest actors",
+      noData: "Nothing recorded in this window yet.",
+      /** Said on a chart whose read is capped, so the shape is true and the
+          total is a floor. See `money-queries.ts` RECENT_LIMIT. */
+      cappedWindow: "This chart draws the most recent {count} entries only.",
+      /** The axis of a daily series. `{count}` is the number of days drawn. */
+      lastDays: "Last {count} days",
+    },
+  },
+  /*
+   * THE SUPPLY SIDE: the switch profile sheet, and the add a workspace
+   * chooser behind it.
+   *
+   * `apps/web/src/lib/supply/roles.ts` is the machine readable source of
+   * truth for the STRUCTURE: which roles exist, which order the doors come
+   * in, what each one proves and on which subject. This is the same thing in
+   * four languages, keyed by the same ids, so a surface reads the ids from
+   * there and the words from here and neither holds a second copy of the
+   * other.
+   *
+   * No statutory figure, penalty or percentage appears anywhere in this
+   * namespace. HANDOFF 09 section 7 gates the LASRERA and tenancy numbers on
+   * a lawyer's confirmation, so what ships is the behaviour, which needs no
+   * citation.
+   */
+  supply: {
+    switchTitle: "Switch profile",
+    switchTrigger: "Switch profile",
+    personal: "Personal",
+    personalMeaning: "Use Vallo for your personal needs",
+    addTitle: "Add a workspace",
+    addMeaning: "Register as a supplier or business",
+    current: "Current",
+    empty:
+      "You have no workspaces yet. Add one to start listing property or taking bookings.",
+    kinds: {
+      owner: "List your own properties",
+      agent: "Act for property owners",
+      firm: "Registered real estate firm",
+      host: "Take bookings on Vallo Stays",
+      console: "Operations console",
+    },
+    /* Text, never colour alone. Three of these four are bad news and a reader
+       who cannot see colour must get the same news. */
+    standings: {
+      draft: "Not finished",
+      pending: "Pending review",
+      refused: "Not approved",
+      suspended: "Suspended",
+    },
+    chooser: {
+      title: "Add a workspace",
+      sub: "Tell us what kind of supplier you are. This helps us set up the right tools and verification for you.",
+      overviewTitle: "What we will ask you for",
+      overviewSub: "We need a few details to verify your workspace and get you set up.",
+      continueLabel: "Continue",
+      back: "Back",
+      howLongTitle: "How long it takes",
+      selected: "Selected",
+    },
+    doors: {
+      owner: {
+        title: "I own the property",
+        blurb: "List it yourself. No agency fee.",
+        needs: [
+          "Your name, phone number and where you live",
+          "A government issued ID, or your NIN",
+          "Whatever you hold on the property, and there is an honest answer if you hold nothing",
+          "A Nigerian bank account in your own name",
+        ],
+        howLong: "About five minutes.",
+      },
+      agent: {
+        title: "I am an agent",
+        blurb: "You act for owners and charge a fee.",
+        needs: [
+          "Your name, phone number and where you live",
+          "A government issued ID, or your NIN",
+          "Proof of your address, dated within three months",
+          "Your fees, in the open, where a tenant can read them",
+          "A Nigerian bank account in your own name",
+        ],
+        howLong: "About ten minutes.",
+      },
+      firm: {
+        title: "We are a registered firm",
+        blurb: "An agency with staff and a CAC number.",
+        needs: [
+          "Everything an agent gives us, about you",
+          "The registered name and RC number, as the CAC holds them",
+          "The CAC certificate",
+          "Something showing you work there, unless a colleague here admits you",
+        ],
+        howLong: "About fifteen minutes, and less if your firm is already on Vallo.",
+      },
+      hotel: {
+        title: "We are a hotel",
+        blurb: "Rooms, rates and a front desk.",
+        needs: [
+          "Who you are, and a government issued ID",
+          "The hotel's registered name and CAC number",
+          "Your rooms, your rates and your cancellation terms",
+          "Photographs of the place",
+        ],
+        howLong: "About fifteen minutes.",
+      },
+      shortlet: {
+        title: "I run a shortlet",
+        blurb: "One place or a few, let by the night.",
+        needs: [
+          "Who you are, and a government issued ID",
+          "Where the place is, and what is in it",
+          "Your nightly rate and your house rules",
+          "Photographs of the place",
+        ],
+        howLong: "About ten minutes.",
+      },
+      restaurant: {
+        title: "We are a restaurant",
+        blurb: "Tables, hours and a menu.",
+        needs: [
+          "Who you are, and a government issued ID",
+          "The restaurant's registered name and CAC number",
+          "Your tables, your hours and your cuisine",
+          "Photographs of the place",
+        ],
+        howLong: "About ten minutes.",
+      },
+    },
+  },
+
 };
 
 /**

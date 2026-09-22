@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DEFAULT_LOCALE, getDictionary, type Dictionary } from "@vallo/i18n";
 import { applyTheme } from "@/components/app/account/settings-store";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -17,11 +18,28 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * single writer of the theme: the storage key, the root attribute and the
  * browser chrome colour all move together or the three of them drift apart.
  */
+export type ThemeToggleLabels = Dictionary["uiCommon"]["theme"];
+
+/* The English default comes OUT OF THE DICTIONARY rather than being written
+   here as a literal. A hardcoded fallback is how the four strings this change
+   removes got written in the first place: every one of them was a reasonable
+   default at the call site that nobody came back to. */
+const FALLBACK_LABELS: ThemeToggleLabels = getDictionary(DEFAULT_LOCALE).uiCommon.theme;
+
 export function ThemeToggle({
   className,
   variant = "icon",
+  labels = FALLBACK_LABELS,
 }: {
   className?: string;
+  /**
+   * The four strings. Passed rather than read from a locale here, because this
+   * control is rendered inside three different chromes and each of them
+   * already holds the dictionary; threading a whole `Dictionary` into a client
+   * component to reach four strings puts the entire dictionary in the RSC
+   * payload for every page that draws a theme control.
+   */
+  labels?: ThemeToggleLabels;
   /**
    * `icon` is the bare glyph button the marketing header uses.
    *
@@ -58,7 +76,7 @@ export function ThemeToggle({
     applyTheme(next);
   };
 
-  const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+  const label = theme === "dark" ? labels.toLight : labels.toDark;
 
   if (variant === "row") {
     return (
@@ -89,7 +107,7 @@ export function ThemeToggle({
         {/* The label states the DESTINATION, not the current state: a row
             reading "Dark" leaves you guessing whether that is what you have or
             what you would get. */}
-        <span className="nf-nav__label">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+        <span className="nf-nav__label">{theme === "dark" ? labels.light : labels.dark}</span>
       </button>
     );
   }
