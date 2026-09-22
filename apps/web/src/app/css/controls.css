@@ -545,6 +545,143 @@
   }
 
   /*
+   * THE SWITCH PROFILE SHEET, and the raised dock object that opens it.
+   *
+   * `GOVERNING-01` screen two is the target. Two shapes and the difference is
+   * the standing exception, not a preference:
+   *
+   *   `.nf-switch-mark` is a ROUNDED SQUARE on the control radius, because
+   *   the render draws every workspace row's object on a glass TILE and
+   *   because the shape law's register is the rectangle. `.nf-role-mark`
+   *   beside it is a circle and stays one: it belongs to the older role sheet
+   *   and changing it is not this scope's to change.
+   *
+   *   `.nf-switch-mark__photo` is ROUND, and it is the one round thing here.
+   *   An avatar is the standing exception to the shape law, and the render
+   *   draws the Personal row with the account's own photograph.
+   */
+  .nf-switch-mark {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-brand-primary);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-switch-mark__photo {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    object-fit: cover;
+  }
+  /* The add row's object is the same tile, drawn quieter, because it is an
+     action rather than a thing you already hold. */
+  .nf-switch-mark--add {
+    color: var(--nf-content-secondary);
+    background: var(--nf-glass-fill-thin);
+  }
+
+  /*
+   * THE STANDING LABEL: Pending review, Not approved, Suspended, Not finished.
+   *
+   * A ROUNDED RECTANGLE on `--nf-radius-control`, and the render draws it as a
+   * capsule. The shape law wins and it is closed. The measurement, so it can
+   * be checked rather than argued: the label is 1.5rem tall drawn, the radius
+   * is 14px, and 14 over 24 is 0.58, which IS a capsule by the only test that
+   * counts. So the radius here is `--nf-radius-xs`, 6px, giving 6 over 24 =
+   * 0.25. THE RATIO IS THE TEST, NEVER THE TOKEN NAME, which is exactly how
+   * this law has been broken before with every source grep passing.
+   *
+   * TEXT AND NOT COLOUR ALONE. The colour is a second channel on top of words
+   * that already say it, so a reader who cannot see the hue loses nothing.
+   * Cyan is PENDING and nothing else; rose is the refusal and the stop; the
+   * unfinished state is quiet, because an unfinished form is not bad news.
+   */
+  .nf-switch-standing {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0.125rem var(--nf-space-2xs);
+    border-radius: var(--nf-radius-xs);
+    border: 1px solid currentcolor;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--nf-content-muted);
+  }
+  .nf-switch-standing[data-standing="pending"] {
+    color: var(--nf-status-pending);
+  }
+  .nf-switch-standing[data-standing="refused"],
+  .nf-switch-standing[data-standing="suspended"] {
+    color: var(--nf-status-rejected);
+  }
+
+  /*
+   * "Add a workspace", under a hairline, because it is a different KIND of
+   * thing from the rows above it: those are places you already have and this
+   * makes a new one.
+   */
+  .nf-switch-add {
+    margin-top: var(--nf-space-xs);
+    padding-top: var(--nf-space-xs);
+    border-top: 1px solid var(--nf-divider);
+  }
+
+  /*
+   * THE RAISED OBJECT IN THE DOCK'S CENTRE SLOT.
+   *
+   * The heaviest thing in the bar, by the founder's ruling, and drawn as the
+   * lit glass plate `GOVERNING-01` puts there: a rounded square standing proud
+   * of the capsule with the brand glow under it and a lit top rim.
+   *
+   * A ROUNDED SQUARE and not a circle. It carries no text, so the shape law's
+   * icon-only exception could allow a circle, but the exception is for a
+   * control a governing image draws round and this one is not: the render's
+   * object is a rounded plate. The register's control is the rectangle and
+   * this takes it.
+   *
+   * The lift is `--nf-dock-lift`, which `--nf-tabbar-clearance` already
+   * reserves, so the object never stands over content.
+   */
+  .nf-tab__link--switch {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    padding: 0;
+  }
+  .nf-switch-dock {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-strong);
+    background:
+      linear-gradient(180deg, var(--nf-wash-4) 0%, transparent 62%),
+      var(--nf-brand-tint-2);
+    box-shadow:
+      var(--nf-glow-edge-strong),
+      inset 0 1px 0 var(--nf-glass-rim-strong);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-tab__link--switch:active .nf-switch-dock {
+    transform: scale(0.96);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-switch-dock {
+      transition: none;
+    }
+    .nf-tab__link--switch:active .nf-switch-dock {
+      transform: none;
+    }
+  }
+
+  /*
    * A control shaped like a settings row: full width, hairline beneath, the
    * chevron on the right doing the work a border would otherwise do.
    */
@@ -746,7 +883,7 @@
   }
   :root[data-theme="light"] .nf-icon-btn.nf-icon-btn--glass {
     background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
+    border-color: var(--nf-brand-edge);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: var(--nf-elev-1);

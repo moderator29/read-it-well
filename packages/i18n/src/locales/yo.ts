@@ -322,10 +322,23 @@ export const yo: Dictionary = withFallback({
       },
       hero: {
         crumbs: ["Ohun ìní", "Ibùgbé", "Ilé oúnjẹ", "Ìṣàkóso"],
-        title1: "Real Estate",
-        title2: "reimagined.",
-        subtitle:
-          "Ṣàwárí, ṣàyẹ̀wò kí o sì ṣàkóso ilé tàbí ibùgbé tó yẹ jákèjádò Nàìjíríà, gbogbo rẹ̀ níbì kan.",
+        /*
+         * THE HEADLINE IS ABSENT HERE ON PURPOSE AND FALLS BACK TO ENGLISH.
+         *
+         * The three keys that stood here (`title1`, `title2`, `subtitle`)
+         * carried the old positioning: "Real Estate / reimagined." and a line
+         * about discovering, verifying and managing a home. The founder's new
+         * headline replaces all three and it names the same three actions as
+         * the search control below it, so a translation has to reach BOTH at
+         * once, in this language, or the page says one thing in the heading
+         * and another on the control.
+         *
+         * Nobody on this build writes Yoruba. An invented translation of a
+         * founder approved positioning line is worse than none, so the keys
+         * come out and `withFallback` serves the English until a native
+         * speaker writes them. When they are written, `buy`, `rent` and `stay`
+         * in `search` below are the three words the headline must use.
+         */
         explore: "Ṣàwárí àwọn ilé",
         stays: "Ṣàwárí ibùgbé",
         cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
@@ -3258,4 +3271,185 @@ export const yo: Dictionary = withFallback({
       roomsTitle: "Àwọn yàrá",
     },
   },
+
+  /* TRACK H: ohun tí ayálégbé yóò san ní tòótọ́. */
+  moveIn: {
+    title: "Ohun tí o máa san ní tòótọ́",
+    lede: "Gbogbo owó tí olùkéde yìí ti sọ, àti gbogbo èyí tí kò sọ.",
+    rent: "Owó ilé",
+    agencyFee: "Owó aṣojú",
+    legalFee: "Owó agbẹjọ́rò",
+    agreementFee: "Owó àdéhùn",
+    cautionDeposit: "Owó ìkìlọ̀",
+    cautionBasis: "a máa dá a padà",
+    serviceCharge: "Owó iṣẹ́",
+    keptByLister: "Sí ọwọ́ onílé",
+    keptByAgent: "Sí ọwọ́ aṣojú",
+    keptByEstate: "Sí ọwọ́ àdúgbò",
+    notDeclared: "Kò sọ",
+    noAgencyFee: "Kò sí owó aṣojú",
+    noAgencyFeeNote:
+      "Olùkéde yìí kò béèrè owó aṣojú kankan. Vallo kò dín owó ẹnìkan kù. Ó ń kéde rẹ̀ ni.",
+    totalStated: "Àpapọ̀ owó ìwọlé",
+    totalFrom: "Ìwọlé láti",
+    statedNote:
+      "Iye tí olùkéde sọ pé o nílò ní ẹnu-ọ̀nà, owó ilé wà nínú rẹ̀. Ohunkóhun tí kò sí níbí kò sí nínú iye wọn, béèrè kí o tó san.",
+    summedNote:
+      "Olùkéde kò fún wa ní àpapọ̀ kan, nítorí náà èyí ni àpapọ̀ àwọn apá tí wọ́n dárúkọ. Ó lè sí i, béèrè kí o tó san.",
+    undeclaredOne:
+      "Owó kan lókè kò tí ì sọ. Kò sí nínú àpapọ̀, wọ́n sì lè béèrè rẹ̀ lọ́wọ́ rẹ.",
+    undeclaredMany:
+      "Owó {count} lókè kò tí ì sọ. Wọn kò sí nínú àpapọ̀, wọ́n sì lè béèrè wọn lọ́wọ́ rẹ.",
+    sortMoveIn: "Owó ìwọlé: kékeré sí ńlá",
+    basisPrice: "A tò ó lórí iye orí-ọ̀rọ̀",
+    basisMoveIn: "A tò ó lórí àpapọ̀ owó ìwọlé",
+  },
+
+  /* TRACK P: àwọn ojú-ìwé ilé méjèèjì àti ìlà ìsàlẹ̀. */
+  directHome: {
+    heroTitle: "Wá ilé rẹ tó kàn",
+    heroLede: "Yá, rà tàbí dá owó sí ilé tí a ti ṣàyẹ̀wò kàkiri Nàìjíríà.",
+    heroSearch: "Wá nípa ibi, irú ilé",
+    filters: "Àwọn ìṣẹ́",
+    featured: "Àwọn ilé pàtàkì",
+    parkingOne: "ibùdó ọkọ̀ 1",
+    parkingMany: "ibùdó ọkọ̀ {count}",
+    buy: "Rà",
+    rent: "Yá",
+    manage: "Ṣàkóso",
+    invest: "Dá owó sí",
+    investNote: "Àwọn ilé tí a fi hàn fún èrè wọn. Vallo kò ta ohun ìdókòwò kankan.",
+    stays: {
+      heroTitle: "Ibùgbé tó dára. Ìrírí tó sàn.",
+      heroLede: "Hotẹ́lì, ilé ìgbà díẹ̀ àti ilé oúnjẹ kàkiri Nàìjíríà.",
+      heroSearch: "Níbo ni o fẹ́ lọ?",
+      featured: "Àwọn ibùgbé pàtàkì",
+      hotels: "Hotẹ́lì",
+      hotelsNote: "Ibùgbé tó tura",
+      shortlets: "Ilé ìgbà díẹ̀",
+      shortletsNote: "Ó dàbí ilé",
+      restaurants: "Ilé oúnjẹ",
+      restaurantsNote: "Oúnjẹ tó dùn",
+      nearby: "Nítòsí",
+      nearbyNote: "Ṣàwárí àdúgbò",
+    },
+    dock: {
+      switchProfile: "Yípadà",
+    },
+  },
+  listingReference: {
+    foundById: "A rí i nípasẹ̀ ID ìkéde",
+    noneCarry: "Kò sí ilé tí ó ní ID yẹn. Àwọn èsì lásán fún ohun tí o tẹ̀ ni wọ̀nyí.",
+    impossible: "ID yẹn ní lẹ́tà tí a kò lò. ID wa kò ní òdo, ọ̀kan, I, L, O tàbí U láé.",
+    label: "ID ìkéde",
+    yours: "ID ìkéde rẹ",
+    copy: "Ṣe àdàkọ ID",
+    copied: "A ti ṣe àdàkọ",
+    explain: "Ẹnikẹ́ni lè rí ilé yìí nípa títẹ ID yìí sínú àwárí.",
+    issuedWhenLive: "Wàá gba ìfitónilétí, àti ID ìkéde rẹ, ní kété tí ó bá gbé jáde.",
+  },
+  supply: {
+    switchTitle: "Yí profáìlì padà",
+    switchTrigger: "Yí profáìlì padà",
+    personal: "Ti ara ẹni",
+    personalMeaning: "Lo Vallo fún àìní ara ẹni rẹ",
+    addTitle: "Ṣàfikún ibi iṣẹ́",
+    addMeaning: "Forúkọsílẹ̀ gẹ́gẹ́ bí olùpèsè tàbí iṣẹ́ òwò",
+    current: "Lọ́wọ́lọ́wọ́",
+    empty:
+      "O kò tíì ní ibi iṣẹ́ kankan. Ṣàfikún ọ̀kan láti bẹ̀rẹ̀ kíkéde ilé tàbí gbígba ìwé àṣẹ.",
+    kinds: {
+      owner: "Kéde ilé tìrẹ",
+      agent: "Ṣiṣẹ́ fún àwọn onílé",
+      firm: "Ilé iṣẹ́ ilé tí a forúkọsílẹ̀",
+      host: "Gba ìwé àṣẹ lórí Vallo Stays",
+      console: "Ibi iṣẹ́ àbójútó",
+    },
+    standings: {
+      draft: "Kò tíì parí",
+      pending: "Ń dúró de àyẹ̀wò",
+      refused: "A kò fọwọ́sí",
+      suspended: "A dá dúró",
+    },
+    chooser: {
+      title: "Ṣàfikún ibi iṣẹ́",
+      sub: "Sọ fún wa irú olùpèsè tí o jẹ́. Èyí ràn wá lọ́wọ́ láti ṣètò àwọn irinṣẹ́ àti ìjẹ́rìísí tí ó tọ́ fún ọ.",
+      overviewTitle: "Ohun tí a máa béèrè lọ́wọ́ rẹ",
+      overviewSub: "A nílò àwọn àlàyé díẹ̀ láti jẹ́rìísí ibi iṣẹ́ rẹ kí a sì ṣètò rẹ.",
+      continueLabel: "Tẹ̀síwájú",
+      back: "Padà",
+      howLongTitle: "Bí ó ti pẹ́ tó",
+      selected: "A ti yàn",
+    },
+    doors: {
+      owner: {
+        title: "Èmi ni onílé náà",
+        blurb: "Kéde rẹ̀ fúnra rẹ. Kò sí owó agbẹ̀nusọ.",
+        needs: [
+          "Orúkọ rẹ, nọ́mbà fóònù rẹ àti ibi tí o ń gbé",
+          "Ìdánimọ̀ ìjọba, tàbí NIN rẹ",
+          "Ohunkóhun tí o ní lórí ilé náà, àti pé ìdáhùn òtítọ́ wà bí o kò bá ní nkankan",
+          "Àkàǹtì báǹkì Nàìjíríà ní orúkọ ara rẹ",
+        ],
+        howLong: "Nǹkan bí ìṣẹ́jú márùn-ún.",
+      },
+      agent: {
+        title: "Agbẹ̀nusọ ni mí",
+        blurb: "O ń ṣiṣẹ́ fún àwọn onílé o sì ń gba owó.",
+        needs: [
+          "Orúkọ rẹ, nọ́mbà fóònù rẹ àti ibi tí o ń gbé",
+          "Ìdánimọ̀ ìjọba, tàbí NIN rẹ",
+          "Ẹ̀rí àdírẹ́sì rẹ, tí ọjọ́ rẹ̀ kò ju oṣù mẹ́ta lọ",
+          "Owó rẹ, ní gbangba, níbi tí ayálégbé lè kà á",
+          "Àkàǹtì báǹkì Nàìjíríà ní orúkọ ara rẹ",
+        ],
+        howLong: "Nǹkan bí ìṣẹ́jú mẹ́wàá.",
+      },
+      firm: {
+        title: "Ilé iṣẹ́ tí a forúkọsílẹ̀ ni wá",
+        blurb: "Ilé iṣẹ́ pẹ̀lú òṣìṣẹ́ àti nọ́mbà CAC.",
+        needs: [
+          "Gbogbo ohun tí agbẹ̀nusọ ń fún wa, nípa rẹ",
+          "Orúkọ tí a forúkọsílẹ̀ àti nọ́mbà RC, gẹ́gẹ́ bí CAC ṣe ní wọn",
+          "Ìwé ẹ̀rí CAC",
+          "Nkan tí ó fi hàn pé o ń ṣiṣẹ́ níbẹ̀, àyàfi bí ẹlẹgbẹ́ rẹ níbí bá gbà ọ́ wọlé",
+        ],
+        howLong: "Nǹkan bí ìṣẹ́jú mẹ́ẹ̀ẹ́dógún, àti kékeré bí ilé iṣẹ́ rẹ bá wà lórí Vallo tẹ́lẹ̀.",
+      },
+      hotel: {
+        title: "Hotẹ́ẹ̀lì ni wá",
+        blurb: "Àwọn yàrá, owó àti tábìlì ìwọlé.",
+        needs: [
+          "Ẹni tí o jẹ́, àti ìdánimọ̀ ìjọba",
+          "Orúkọ tí a forúkọsílẹ̀ àti nọ́mbà CAC ti hotẹ́ẹ̀lì",
+          "Àwọn yàrá rẹ, owó rẹ àti àwọn òfin ìfagilé rẹ",
+          "Àwọn àwòrán ibẹ̀",
+        ],
+        howLong: "Nǹkan bí ìṣẹ́jú mẹ́ẹ̀ẹ́dógún.",
+      },
+      shortlet: {
+        title: "Mò ń ṣàkóso shortlet",
+        blurb: "Ibì kan tàbí díẹ̀, tí a yá ní alẹ́.",
+        needs: [
+          "Ẹni tí o jẹ́, àti ìdánimọ̀ ìjọba",
+          "Ibi tí ibẹ̀ wà, àti ohun tí ó wà nínú rẹ̀",
+          "Owó alẹ́ rẹ àti àwọn òfin ilé rẹ",
+          "Àwọn àwòrán ibẹ̀",
+        ],
+        howLong: "Nǹkan bí ìṣẹ́jú mẹ́wàá.",
+      },
+      restaurant: {
+        title: "Ilé oúnjẹ ni wá",
+        blurb: "Àwọn tábìlì, wákàtí àti àkójọ oúnjẹ.",
+        needs: [
+          "Ẹni tí o jẹ́, àti ìdánimọ̀ ìjọba",
+          "Orúkọ tí a forúkọsílẹ̀ àti nọ́mbà CAC ti ilé oúnjẹ",
+          "Àwọn tábìlì rẹ, wákàtí rẹ àti irú oúnjẹ rẹ",
+          "Àwọn àwòrán ibẹ̀",
+        ],
+        howLong: "Nǹkan bí ìṣẹ́jú mẹ́wàá.",
+      },
+    },
+  },
+
 } satisfies Translation);

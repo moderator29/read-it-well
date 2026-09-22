@@ -2,6 +2,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
+import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
 import { AppShell } from "@/components/app/AppShell";
 
 /**
@@ -31,8 +32,19 @@ export default async function AppLayout({
    * first paint of every shared route agree between server and client: no
    * hydration flash, no second render to correct the accent.
    */
-  const [side, { userName, userHandle, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin }] =
-    await Promise.all([getSide(), getShellIdentity()]);
+  /*
+   * The workspace list is the third server fact the shell cannot fetch itself,
+   * beside the session and the unread count. It is read here once per request
+   * (React's cache keeps it to one execution) and handed down, because the
+   * switch sits in two places in that shell and both must show the same list.
+   *
+   * IT IS WHAT THEY HOLD, NOT WHAT THEY MAY DO. Every route gates itself.
+   */
+  const [
+    side,
+    { userName, userHandle, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin },
+    { workspaces, current },
+  ] = await Promise.all([getSide(), getShellIdentity(), resolveWorkspaces()]);
 
   return (
     <AppShell
@@ -45,6 +57,8 @@ export default async function AppLayout({
       signedIn={signedIn}
       isAgent={isAgent}
       isAdmin={isAdmin}
+      workspaces={workspaces}
+      currentProfile={current}
     >
       {children}
     </AppShell>

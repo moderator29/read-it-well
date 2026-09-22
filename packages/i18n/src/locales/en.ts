@@ -408,18 +408,35 @@ export const en = {
            landing may not name a capability with no shipped surface;
            Restaurants takes the slot because /restaurants is shipped. */
         crumbs: ["Property", "Stays", "Restaurants", "Manage"],
-        title1: "Real Estate",
-        title2: "reimagined.",
-        /* The hero speaks for BOTH SIDES, which is the whole point of the
-           content truth sweep. The line it replaced said "property or stay
-           across Nigeria and beyond": one soft noun for two products, and a
-           reach ("beyond") the platform does not have.
-           KEPT SHORT ON PURPOSE (R1 finding A6): the first version of this
-           line ran to five lines at 390 and painted them across the lit
-           glazing of the villa. The scrim underneath it is now cut properly
-           and the line is three lines at that width. */
+        /*
+         * THE HEADLINE IS THE FOUNDER'S, WORD FOR WORD, AND IT IS COUPLED TO
+         * THE SEARCH CONTROL. DO NOT EDIT EITHER ONE ALONE.
+         *
+         * `title1` names the same three actions as the segments of the landing
+         * search control, in the same order, and that is not a coincidence to
+         * be tidied away: the headline teaches the control and the control
+         * proves the headline (HANDOFF 09 section 2.1). The segments are
+         * declared in `components/site/landing/segments.ts`. IF ONE CHANGES,
+         * THE OTHER CHANGES IN THE SAME COMMIT, and
+         * `components/site/landing/headline-coupling.test.ts` fails the build
+         * if they ever drift apart.
+         *
+         * The line it replaced was "Real Estate / reimagined.", which is the
+         * old positioning: it told a first time visitor nothing about what
+         * Vallo helps them do. The position now is one sentence. VALLO DOES
+         * NOT REMOVE THE AGENT. VALLO REMOVES THE RUNAROUND.
+         *
+         * NIGERIA, NOT AFRICA, and the word changes when the fact changes.
+         *
+         * The last clause is conditional on purpose. "Where there is one" is
+         * load bearing, because there are no owner listings in the catalogue
+         * today: the sentence is true on a catalogue that has none, and it
+         * stays true on the day the first one lands.
+         */
+        title1: "Rent, buy or stay.",
+        title2: "Without the runaround.",
         subtitle:
-          "Two sides, one account. Rent or buy from checked agents, or book a stay on Vallo Stays, and pay from one naira wallet.",
+          "Verified homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
         explore: "Explore Properties",
         stays: "Explore Stays",
         citiesLabel: "Popular Cities",

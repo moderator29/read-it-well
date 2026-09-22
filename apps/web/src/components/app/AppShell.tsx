@@ -14,6 +14,8 @@ import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
 import { SideSync } from "./SideSync";
+import { ProfileSwitcher, type ProfileSwitcherCopy } from "@/components/supply/ProfileSwitcher";
+import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
 
 /**
  * The consumer shell, for both sides.
@@ -67,6 +69,8 @@ export function AppShell({
   signedIn = false,
   isAgent = false,
   isAdmin = false,
+  workspaces = [],
+  currentProfile = { kind: "personal" },
   preview,
   children,
 }: {
@@ -81,6 +85,16 @@ export function AppShell({
   signedIn?: boolean;
   isAgent?: boolean;
   isAdmin?: boolean;
+  /**
+   * Every workspace this account actually holds, resolved on the server from
+   * the caller's own RLS bound reads and handed down.
+   *
+   * IT IS A LIST OF WHAT THEY HAVE, NEVER OF WHAT THEY MAY DO. The switch
+   * writes a cookie; every route re-gates for itself. An empty list is the
+   * ordinary state and the sheet has copy for it.
+   */
+  workspaces?: Workspace[];
+  currentProfile?: ProfileSelection;
   /**
    * The dev preview harness, and nothing else, ever.
    *
@@ -129,6 +143,48 @@ export function AppShell({
   const drawerPanel = useRef<HTMLDivElement | null>(null);
   const closeDrawer = useCallback(() => setDrawer(false), []);
   const openDrawer = useCallback(() => setDrawer(true), []);
+
+  /*
+   * THE SWITCH, BUILT ONCE AND PLACED TWICE.
+   *
+   * The founder ruled it lives in two places: the raised centre slot of the
+   * dock, and a row near the foot of the side drawer above the theme row. Both
+   * open THE SAME SHEET. Building it here rather than in each surface is what
+   * makes that literally true: one component, one workspace list, one set of
+   * copy, two placements. The mode switcher and the role switcher were two
+   * controls doing one job and they had already drifted apart.
+   *
+   * The copy is assembled from the dictionary rather than written inline,
+   * because this is new copy and new copy is going to be edited.
+   */
+  const switchCopy: ProfileSwitcherCopy = {
+    title: t.supply.switchTitle,
+    personal: t.supply.personal,
+    personalMeaning: t.supply.personalMeaning,
+    addTitle: t.supply.addTitle,
+    addMeaning: t.supply.addMeaning,
+    current: t.supply.current,
+    empty: t.supply.empty,
+    triggerLabel: t.supply.switchTrigger,
+    kinds: t.supply.kinds,
+    standings: t.supply.standings,
+  };
+
+  const switchControl = (variant: "dock" | "row") => (
+    <ProfileSwitcher
+      t={t}
+      copy={switchCopy}
+      workspaces={workspaces}
+      current={currentProfile}
+      side={effectiveSide}
+      avatarUrl={avatarUrl}
+      variant={variant}
+      /* The chooser is side dependent: three property doors or three stays
+         doors, which is the founder's ruling for Track O on both sides. */
+      addHref={effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+      onNavigate={variant === "row" ? closeDrawer : undefined}
+    />
+  );
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
 
   /*
@@ -225,6 +281,7 @@ export function AppShell({
           <div className="nf-drawer nf-drawer--left absolute overflow-y-auto">
             <AppRail
               t={t}
+              switchSlot={switchControl("row")}
               side={effectiveSide}
               active={active}
               activeType={activeType}
@@ -249,7 +306,7 @@ export function AppShell({
         className={
           immersive
             ? "flex h-dvh min-w-0 flex-1 flex-col overflow-hidden"
-            : `min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "pb-4xl" : "pb-xl"}`
+            : `min-w-0 flex-1 lg:pb-3xl ${showsTabBar(active) ? "nf-main--docked" : "pb-xl"}`
         }
       >
         {showsHeader && (
@@ -321,8 +378,7 @@ export function AppShell({
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
-          drawerOpen={drawer}
-          onMore={openDrawer}
+          switchSlot={switchControl("dock")}
         />
       )}
     </div>

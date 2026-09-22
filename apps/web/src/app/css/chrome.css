@@ -108,8 +108,53 @@
    * Sticky footers on tab-bar routes offset by this instead of guessing.
    * The previous guess was a flat 80px, which cleared nothing on a notch.
    */
+  /*
+   * THE CLEARANCE ARITHMETIC, AND THE THING IT WAS OUT BY.
+   *
+   * This token was one number spelled out in one place while `AppShell` spent
+   * a FLAT `pb-4xl`, which is 96px, on the same job. On a phone with no notch
+   * the dock occupied 80px and the shell reserved 96, so 16px of dead air sat
+   * under every tab route; on a notched phone the dock occupied 114 and the
+   * shell still reserved 96, so the last 18px of the page went under the bar.
+   * That is why the founder's listing counts were clipped, and HANDOFF 09
+   * section 6C.1 names it. `.nf-main--docked` below is the shell's side of the
+   * same number, so there is now exactly ONE arithmetic and both ends read it.
+   *
+   * The parts, named rather than added up in one expression, because the dock
+   * has grown a raised centre slot and the next person to change its geometry
+   * has to be able to see which term moved:
+   *
+   *   offset  how far the floating dock sits above the viewport edge, which
+   *           the component spends as `bottom-[calc(0.75rem + safe area)]`
+   *   height  the capsule itself
+   *   lift    how far the RAISED SWITCH stands proud of the capsule's top
+   *           edge (HANDOFF 09 Track P, GOVERNING-01). It is part of what the
+   *           dock occupies even though the capsule does not contain it, and
+   *           leaving it out would put content back under the one control the
+   *           founder called the heaviest thing in the bar.
+   *   gap     breathing room so a sticky footer does not touch the dock
+   */
   :root {
-    --nf-tabbar-clearance: calc(0.75rem + env(safe-area-inset-bottom, 0px) + 3.5rem + 0.75rem);
+    --nf-dock-offset: 0.75rem;
+    --nf-dock-height: 3.5rem;
+    --nf-dock-lift: 0.75rem;
+    --nf-dock-gap: 0.75rem;
+    --nf-tabbar-clearance: calc(
+      var(--nf-dock-offset) + env(safe-area-inset-bottom, 0px) + var(--nf-dock-height) +
+        var(--nf-dock-lift) + var(--nf-dock-gap)
+    );
+  }
+  /*
+   * The shell's bottom reservation on a route that carries the dock.
+   *
+   * A class rather than a Tailwind step because the value is an arithmetic
+   * with an environment variable in it, which no fixed step can express, and
+   * because a number that has to agree with the dock must be READ from the
+   * dock rather than kept in step by hand. It was kept in step by hand and it
+   * was wrong on every notched phone.
+   */
+  .nf-main--docked {
+    padding-bottom: var(--nf-tabbar-clearance);
   }
 
   /*
@@ -142,7 +187,7 @@
     --nf-keyboard-inset: 0px;
   }
   :root[data-keyboard="open"] {
-    --nf-tabbar-clearance: 0.75rem;
+    --nf-tabbar-clearance: var(--nf-dock-offset);
   }
   :root[data-keyboard="open"] .nf-dockrow {
     display: none;
@@ -244,6 +289,9 @@
     min-width: 0;
     gap: var(--nf-tab-gap);
     padding: var(--nf-tab-pad);
+    /* The raised centre slot stands proud of this capsule, so the capsule may
+       not clip. Nothing else in the bar overflows it. */
+    overflow: visible;
     /*
      * Nearer opaque than the rest of the chrome, and a TRUE PILL, both from
      * the founder's reference bar: a calm charcoal capsule whose ends are
@@ -513,6 +561,32 @@
   .nf-tab {
     flex: 1 1 0;
     min-width: 0;
+  }
+  /*
+   * THE RAISED CENTRE SLOT, and only the SLOT: the control inside it is
+   * `ProfileSwitcher`'s and its classes are its own.
+   *
+   * `GOVERNING-01` draws the switch standing proud of the capsule rather than
+   * sitting in it, which is how it becomes visually the heaviest thing in the
+   * bar without being any wider than its neighbours. The slot keeps its fifth
+   * of the row so the travelling pill's arithmetic is untouched; the object
+   * inside overflows upwards out of it.
+   *
+   * `overflow: visible` on the capsule is what lets it. The bar clips nothing
+   * else, and the raise is spent in `--nf-dock-lift`, which the clearance
+   * token above already reserves, so nothing is drawn over content.
+   */
+  .nf-tab--switch {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    /* The object rises by the lift and the slot does not grow, so the row
+       height stays the capsule's and the neighbours do not move. */
+    margin-top: calc(-1 * var(--nf-dock-lift));
+  }
+  .nf-tab--switch > * {
+    display: flex;
   }
   /*
     ONE RULE FOR THE TAB, AND THERE WERE TWO. This block set `height: 3.25rem`

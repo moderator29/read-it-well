@@ -324,10 +324,23 @@ export const ig: Dictionary = withFallback({
       },
       hero: {
         crumbs: ["Ụlọ", "Ebe obibi", "Ụlọ nri", "Njikwa"],
-        title1: "Real Estate",
-        title2: "reimagined.",
-        subtitle:
-          "Chọta, nyochaa ma jikwaa ụlọ ma ọ bụ ebe obibi kacha mma n'ofe Naịjirịa, niile n'otu ebe.",
+        /*
+         * THE HEADLINE IS ABSENT HERE ON PURPOSE AND FALLS BACK TO ENGLISH.
+         *
+         * The three keys that stood here (`title1`, `title2`, `subtitle`)
+         * carried the old positioning: "Real Estate / reimagined." and a line
+         * about discovering, verifying and managing a home. The founder's new
+         * headline replaces all three and it names the same three actions as
+         * the search control below it, so a translation has to reach BOTH at
+         * once, in this language, or the page says one thing in the heading
+         * and another on the control.
+         *
+         * Nobody on this build writes Igbo. An invented translation of a
+         * founder approved positioning line is worse than none, so the keys
+         * come out and `withFallback` serves the English until a native
+         * speaker writes them. When they are written, `buy`, `rent` and `stay`
+         * in `search` below are the three words the headline must use.
+         */
         explore: "Chọgharịa ụlọ",
         stays: "Chọgharịa ebe obibi",
         cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
@@ -3247,4 +3260,185 @@ export const ig: Dictionary = withFallback({
       roomsTitle: "Ime ụlọ",
     },
   },
+
+  /* TRACK H: ihe onye mgbazinye ga-akwụ n'ezie. */
+  moveIn: {
+    title: "Ihe ị ga-akwụ n'ezie",
+    lede: "Ụgwọ niile onye nkwupụta a kwuru, na nke ọ na-ekwughị.",
+    rent: "Ụgwọ mgbazinye",
+    agencyFee: "Ụgwọ onye nnọchiteanya",
+    legalFee: "Ụgwọ ọkàiwu",
+    agreementFee: "Ụgwọ nkwekọrịta",
+    cautionDeposit: "Ego nchekwa",
+    cautionBasis: "a na-eweghachi ya",
+    serviceCharge: "Ụgwọ ọrụ",
+    keptByLister: "Nye onye nwe ụlọ",
+    keptByAgent: "Nye onye nnọchiteanya",
+    keptByEstate: "Nye ndị na-elekọta ógbè",
+    notDeclared: "E kwupụtaghị",
+    noAgencyFee: "Enweghị ụgwọ onye nnọchiteanya",
+    noAgencyFeeNote:
+      "Onye nkwupụta a ekwughị ụgwọ onye nnọchiteanya ọ bụla. Vallo anaghị ebelata ụgwọ onye ọ bụla. Ọ na-ekwupụta ya.",
+    totalStated: "Mkpokọta ego ịbanye",
+    totalFrom: "Ịbanye site na",
+    statedNote:
+      "Ọnụọgụ onye nkwupụta kwuru na ị chọrọ n'ọnụ ụzọ, tinyere ụgwọ mgbazinye. Ihe ọ bụla na-adịghị ebe a adịghị na ọnụahịa ha, jụọ tupu ị kwụọ ụgwọ.",
+    summedNote:
+      "Onye nkwupụta enyeghị otu mkpokọta, ya mere nke a bụ mkpokọta akụkụ ndị ha kwuru. Enwere ike ịdị karịa, jụọ tupu ị kwụọ ụgwọ.",
+    undeclaredOne:
+      "Otu ụgwọ dị n'elu ka a na-ekwupụtabeghị. Ọ nọghị na mkpokọta, enwere ike ịrịọ gị ya.",
+    undeclaredMany:
+      "Ụgwọ {count} dị n'elu ka a na-ekwupụtabeghị. Ha anọghị na mkpokọta, enwere ike ịrịọ gị ha.",
+    sortMoveIn: "Ego ịbanye: obere ruo ukwu",
+    basisPrice: "Edobere ya n'ọnụahịa isiokwu",
+    basisMoveIn: "Edobere ya na mkpokọta ego ịbanye",
+  },
+
+  /* TRACK P: ibe ụlọ abụọ na ogwe ala. */
+  directHome: {
+    heroTitle: "Chọta ụlọ ọzọ gị",
+    heroLede: "Gbazinye, zụta maọbụ tinye ego n'ụlọ ndị a nyochara na Naịjirịa niile.",
+    heroSearch: "Chọọ site na ebe, ụdị ụlọ",
+    filters: "Nzacha",
+    featured: "Ụlọ ndị a kapịrị ọnụ",
+    parkingOne: "ebe ịdọba ụgbọala 1",
+    parkingMany: "ebe ịdọba ụgbọala {count}",
+    buy: "Zụta",
+    rent: "Gbazinye",
+    manage: "Lekọta",
+    invest: "Tinye ego",
+    investNote: "Ụlọ ndị e gosipụtara maka uru ha. Vallo anaghị ere ngwaahịa itinye ego ọ bụla.",
+    stays: {
+      heroTitle: "Ebe obibi ọma. Ahụmahụ ka mma.",
+      heroLede: "Họtel, ụlọ obibi nwa oge na ụlọ oriri na Naịjirịa niile.",
+      heroSearch: "Ebee ka ị chọrọ ịga?",
+      featured: "Ebe obibi ndị a kapịrị ọnụ",
+      hotels: "Họtel",
+      hotelsNote: "Ebe izu ike",
+      shortlets: "Ụlọ nwa oge",
+      shortletsNote: "Ọ dị ka ụlọ",
+      restaurants: "Ụlọ oriri",
+      restaurantsNote: "Nri dị ụtọ",
+      nearby: "Nso ebe a",
+      nearbyNote: "Chọpụta ógbè",
+    },
+    dock: {
+      switchProfile: "Gbanwee",
+    },
+  },
+  listingReference: {
+    foundById: "Achọtara ya site na ID ndepụta",
+    noneCarry: "Ọ dịghị ụlọ nwere ID ahụ. Ndị a bụ nsonaazụ nkịtị maka ihe ị pịrị.",
+    impossible: "ID ahụ nwere mkpụrụedemede anyị anaghị eji. ID anyị adịghị enwe efu, otu, I, L, O ma ọ bụ U.",
+    label: "ID ndepụta",
+    yours: "ID ndepụta gị",
+    copy: "Detuo ID",
+    copied: "Edetuola ya",
+    explain: "Onye ọ bụla nwere ike ịchọta ụlọ a site n'ịpị ID a na nchọta.",
+    issuedWhenLive: "Ị ga-enweta ọkwa, na ID ndepụta gị, ozugbo ọ dị ndụ.",
+  },
+  supply: {
+    switchTitle: "Gbanwee profaịlụ",
+    switchTrigger: "Gbanwee profaịlụ",
+    personal: "Nke onwe",
+    personalMeaning: "Jiri Vallo maka mkpa nke gị",
+    addTitle: "Tinye ebe ọrụ",
+    addMeaning: "Debanye aha dị ka onye na-eweta ma ọ bụ azụmahịa",
+    current: "Nke ugbu a",
+    empty:
+      "Ị nwebeghị ebe ọrụ. Tinye otu ka ị malite ịbanye ụlọ ma ọ bụ ịnara ndebanye.",
+    kinds: {
+      owner: "Bipụta ụlọ nke gị",
+      agent: "Rụọ ọrụ maka ndị nwe ụlọ",
+      firm: "Ụlọ ọrụ ụlọ edebanyere aha",
+      host: "Nara ndebanye na Vallo Stays",
+      console: "Ebe ọrụ ndị ọrụ",
+    },
+    standings: {
+      draft: "Emechabeghị",
+      pending: "Na-echere nyocha",
+      refused: "Anabataghị",
+      suspended: "Akwụsịtụrụ",
+    },
+    chooser: {
+      title: "Tinye ebe ọrụ",
+      sub: "Gwa anyị ụdị onye na-eweta ị bụ. Nke a na-enyere anyị aka ịhazi ngwá ọrụ na nkwenye kwesịrị ekwesị maka gị.",
+      overviewTitle: "Ihe anyị ga-arịọ gị",
+      overviewSub: "Anyị chọrọ nkọwa ole na ole iji nyochaa ebe ọrụ gị ma hazie gị.",
+      continueLabel: "Gaa n'ihu",
+      back: "Laghachi",
+      howLongTitle: "Oge ọ na-ewe",
+      selected: "Ahọrọla",
+    },
+    doors: {
+      owner: {
+        title: "Ọ bụ m nwe ụlọ ahụ",
+        blurb: "Bipụta ya n'onwe gị. Enweghị ụgwọ onye nnọchiteanya.",
+        needs: [
+          "Aha gị, nọmba ekwentị gị na ebe ị bi",
+          "Njirimara gọọmenti, ma ọ bụ NIN gị",
+          "Ihe ọ bụla ị ji n'ụlọ ahụ, e nwekwara azịza eziokwu ma ọ bụrụ na ị nweghị ihe ọ bụla",
+          "Akaụntụ ụlọ akụ Naịjirịa n'aha gị",
+        ],
+        howLong: "Ihe dịka nkeji ise.",
+      },
+      agent: {
+        title: "Abụ m onye nnọchiteanya",
+        blurb: "Ị na-arụ ọrụ maka ndị nwe ụlọ ma na-anara ụgwọ.",
+        needs: [
+          "Aha gị, nọmba ekwentị gị na ebe ị bi",
+          "Njirimara gọọmenti, ma ọ bụ NIN gị",
+          "Ihe àmà nke adreesị gị, nke edeturu n'ime ọnwa atọ",
+          "Ụgwọ gị, n'ihu ọha, ebe onye mgbazinye ụlọ nwere ike ịgụ ya",
+          "Akaụntụ ụlọ akụ Naịjirịa n'aha gị",
+        ],
+        howLong: "Ihe dịka nkeji iri.",
+      },
+      firm: {
+        title: "Anyị bụ ụlọ ọrụ edebanyere aha",
+        blurb: "Ụlọ ọrụ nwere ndị ọrụ na nọmba CAC.",
+        needs: [
+          "Ihe niile onye nnọchiteanya na-enye anyị, gbasara gị",
+          "Aha edebanyere na nọmba RC, dị ka CAC ji ha",
+          "Asambodo CAC",
+          "Ihe na-egosi na ị na-arụ ọrụ ebe ahụ, ma ọ bụrụ na onye ọrụ ibe gị ebe a anabataghị gị",
+        ],
+        howLong: "Ihe dịka nkeji iri na ise, ma belata ma ọ bụrụ na ụlọ ọrụ gị nọ na Vallo.",
+      },
+      hotel: {
+        title: "Anyị bụ họtelụ",
+        blurb: "Ụlọ, ọnụahịa na tebụl nnabata.",
+        needs: [
+          "Onye ị bụ, na njirimara gọọmenti",
+          "Aha họtelụ edebanyere na nọmba CAC",
+          "Ụlọ gị, ọnụahịa gị na usoro nkagbu gị",
+          "Foto ebe ahụ",
+        ],
+        howLong: "Ihe dịka nkeji iri na ise.",
+      },
+      shortlet: {
+        title: "Ana m elekọta shortlet",
+        blurb: "Otu ebe ma ọ bụ ole na ole, a na-agbazinye kwa abalị.",
+        needs: [
+          "Onye ị bụ, na njirimara gọọmenti",
+          "Ebe ahụ dị, na ihe dị n'ime ya",
+          "Ọnụahịa abalị gị na iwu ụlọ gị",
+          "Foto ebe ahụ",
+        ],
+        howLong: "Ihe dịka nkeji iri.",
+      },
+      restaurant: {
+        title: "Anyị bụ ụlọ oriri",
+        blurb: "Tebụl, oge na ndepụta nri.",
+        needs: [
+          "Onye ị bụ, na njirimara gọọmenti",
+          "Aha ụlọ oriri edebanyere na nọmba CAC",
+          "Tebụl gị, oge gị na ụdị nri gị",
+          "Foto ebe ahụ",
+        ],
+        howLong: "Ihe dịka nkeji iri.",
+      },
+    },
+  },
+
 } satisfies Translation);

@@ -393,6 +393,81 @@
     border-top: 0;
     padding-top: 0.75rem;
   }
+
+  /*
+   * SWITCH PROFILE, the drawer's own entrance to the sheet.
+   *
+   * `GOVERNING-01` screen three draws it as the LIT row of the foot: a glass
+   * card carrying the pack's switch object, the words "Switch profile" over
+   * the current profile's name in a quieter rung, and a chevron. It is one
+   * rung brighter than the coin below it, which is one rung brighter than the
+   * theme row, so the three read as a descending order of consequence rather
+   * than as three identical cards.
+   *
+   * A ROUNDED RECTANGLE on the control radius. The render draws this row with
+   * softened ends and the shape law wins: at 3.5rem tall on a 14px radius the
+   * ratio is 0.25, which is a rectangle by the only test that counts.
+   */
+  .nf-nav__switch {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: var(--nf-gap-row);
+    min-height: 3.5rem;
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge);
+    background:
+      linear-gradient(180deg, var(--nf-wash-4) 0%, transparent 62%),
+      var(--nf-glass-card-fill);
+    box-shadow:
+      var(--nf-glow-edge),
+      inset 0 1px 0 var(--nf-glass-rim),
+      inset 0 -1px 0 var(--nf-glass-floor);
+    text-align: left;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-nav__switch:hover {
+      border-color: var(--nf-border-brand);
+    }
+  }
+  .nf-nav__switchtile {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-nav__switchtext {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+  .nf-nav__switchtitle {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-nav__switchnow {
+    overflow: hidden;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-nav__switchchev {
+    flex-shrink: 0;
+    color: var(--nf-content-muted);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-nav__switch {
+      transition: none;
+    }
+  }
   /*
    * The theme row under the coin. The drawer render draws it as a glass card
    * with a lit edge, one rung quieter than the coin above it; this had

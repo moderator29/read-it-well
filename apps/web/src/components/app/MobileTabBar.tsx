@@ -231,25 +231,44 @@ export function MobileTabBar({
   active = "/home",
   unreadNotifications = 0,
   signedIn = false,
-  drawerOpen = false,
-  onMore,
+  switchSlot,
 }: {
   t: Dictionary;
   side?: Side;
   active?: string;
   unreadNotifications?: number;
   signedIn?: boolean;
-  /** Whether the side drawer the More slot opens is currently open. */
-  drawerOpen?: boolean;
-  /** Opens the side drawer. The More slot is a button, not a destination. */
-  onMore?: () => void;
+  /**
+   * The raised centre slot, rendered by the shell.
+   *
+   * It arrives as an element rather than as props because it is a CLIENT
+   * control that needs the account's own workspace list, and this component is
+   * a server component that has no business fetching one. The shell resolves
+   * the list once and hands the finished control down, which is the same
+   * arrangement `AppShell` already uses for the drawer.
+   */
+  switchSlot?: React.ReactNode;
 }) {
   /*
-    FIVE SLOTS, by the founder's ruling (DESIGN_DIRECTION section 3.1): Home
-    (Stays on the other side), Search, Feed, More, Profile. More opens the
-    drawer, so it is the one slot that is a button rather than a link. The
-    labels are back: the renders write them under every glyph, and a five-slot
-    bar with words is what the founder chose.
+    FIVE SLOTS, AND THE CENTRE ONE IS THE SWITCH.
+
+    Home (Stays on the other side), Search, THE SWITCH, Feed, Profile, on the
+    founder's ruling of 22 September and drawn as the raised glass object in
+    `GOVERNING-01`. It is visually the heaviest thing in the bar because it is
+    the most important control in it: everything else changes where you are,
+    and this changes who you are while you are there.
+
+    "MORE" LEAVES THE DOCK, AND NOTHING BECOMES UNREACHABLE. More was never a
+    destination: it was a second opener for the side drawer, and the drawer
+    still opens from the hamburger in the app header, which renders on every
+    route this dock renders on. So the More slot's entire contents are the
+    drawer's contents, they have not moved, and the drawer has gained a row
+    rather than lost one. Listed item by item in `BUILD_07_LEDGER.md`.
+
+    The renders label the fourth slot "Saved" and it ships as "Feed" on the
+    founder's correction of 22 September. The stays renders label the second
+    slot "Explore" and the property renders "Search": one word ships on both
+    sides and the word is Search.
   */
   const tabs: Tab[] =
     side === "stays"
@@ -288,10 +307,14 @@ export function MobileTabBar({
    * itself can be read out.
    */
   const root = tabRootFor(active);
-  /* Slot order: three links, More, Profile. The travelling pill counts More
-     as a slot so the geometry is one fifth per slot. */
-  const slots = [...tabs, null, profile];
-  const activeIndex = drawerOpen ? 3 : slots.findIndex((tab) => tab !== null && tab.href === root);
+  /*
+   * Slot order: two links, THE SWITCH, one link, Profile. The travelling pill
+   * counts the switch as a slot so the geometry stays one fifth per slot, and
+   * index 2 can never be active because the switch is not a destination: it
+   * opens a sheet over wherever you already are.
+   */
+  const slots = [tabs[0], tabs[1], null, tabs[2], profile];
+  const activeIndex = slots.findIndex((tab) => tab != null && tab.href === root);
 
   /* The profile slot is the way through to notifications on a phone. */
   const marked = signedIn && unreadNotifications > 0;
@@ -321,27 +344,18 @@ export function MobileTabBar({
             announces, so it is hidden from the tree. */}
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {slots.map((tab, index) => {
-          if (tab === null) {
+          if (tab == null) {
+            /* The raised centre slot. It carries no label under it: the render
+               draws the object alone, the object is the largest thing in the
+               bar, and the accessible name says both what the control does and
+               which profile is current. */
             return (
-              <li key="more" className="nf-tab">
-                <button
-                  type="button"
-                  className="nf-tab__link"
-                  aria-haspopup="dialog"
-                  aria-expanded={drawerOpen}
-                  aria-label={t.nav.more}
-                  onClick={onMore}
-                  data-on={drawerOpen || undefined}
-                >
-                  <span className="nf-tab__icon">
-                    <UiIcon name="menu" size="md" />
-                  </span>
-                  <span className="nf-tab__label">{t.nav.more}</span>
-                </button>
+              <li key="switch" className="nf-tab nf-tab--switch">
+                {switchSlot}
               </li>
             );
           }
-          const isActive = !drawerOpen && tab.href === root;
+          const isActive = tab.href === root;
           const isProfile = index === slots.length - 1;
           return (
             <li key={tab.href} className="nf-tab">

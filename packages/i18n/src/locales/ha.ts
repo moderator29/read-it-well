@@ -323,10 +323,23 @@ export const ha: Dictionary = withFallback({
       },
       hero: {
         crumbs: ["Gidaje", "Masauki", "Gidajen abinci", "Gudanarwa"],
-        title1: "Real Estate",
-        title2: "reimagined.",
-        subtitle:
-          "Gano, tabbatar da kuma gudanar da gida ko masauki mafi dacewa a faɗin Najeriya, duk a wuri ɗaya.",
+        /*
+         * THE HEADLINE IS ABSENT HERE ON PURPOSE AND FALLS BACK TO ENGLISH.
+         *
+         * The three keys that stood here (`title1`, `title2`, `subtitle`)
+         * carried the old positioning: "Real Estate / reimagined." and a line
+         * about discovering, verifying and managing a home. The founder's new
+         * headline replaces all three and it names the same three actions as
+         * the search control below it, so a translation has to reach BOTH at
+         * once, in this language, or the page says one thing in the heading
+         * and another on the control.
+         *
+         * Nobody on this build writes Hausa. An invented translation of a
+         * founder approved positioning line is worse than none, so the keys
+         * come out and `withFallback` serves the English until a native
+         * speaker writes them. When they are written, `buy`, `rent` and `stay`
+         * in `search` below are the three words the headline must use.
+         */
         explore: "Bincika gidaje",
         stays: "Bincika masauki",
         cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
@@ -3243,4 +3256,185 @@ export const ha: Dictionary = withFallback({
       roomsTitle: "Ɗakuna",
     },
   },
+
+  /* TRACK H: abin da mai haya zai biya da gaske. */
+  moveIn: {
+    title: "Abin da za ka biya da gaske",
+    lede: "Duk kuɗin da wannan mai sanarwa ya bayyana, da duk wanda bai bayyana ba.",
+    rent: "Kuɗin haya",
+    agencyFee: "Kuɗin wakili",
+    legalFee: "Kuɗin lauya",
+    agreementFee: "Kuɗin yarjejeniya",
+    cautionDeposit: "Ajiyar kariya",
+    cautionBasis: "ana mayar da shi",
+    serviceCharge: "Kuɗin hidima",
+    keptByLister: "Zuwa ga mai gida",
+    keptByAgent: "Zuwa ga wakili",
+    keptByEstate: "Zuwa ga gudanarwar unguwa",
+    notDeclared: "Ba a bayyana ba",
+    noAgencyFee: "Babu kuɗin wakili",
+    noAgencyFeeNote:
+      "Wannan mai sanarwa bai sanya kuɗin wakili ba. Vallo ba ya iyakance kuɗin kowa. Yana buga shi ne.",
+    totalStated: "Jimlar kuɗin shiga",
+    totalFrom: "Shiga daga",
+    statedNote:
+      "Adadin da mai sanarwa ya ce kana buƙata a ƙofa, hayar na ciki. Duk abin da ba a lissafa ba ba ya cikin farashinsu, ka tambaya kafin ka biya.",
+    summedNote:
+      "Mai sanarwa bai ba da jimla ɗaya ba, don haka wannan jimlar sassan da suka ambata ne. Akwai yiwuwar ƙari, ka tambaya kafin ka biya.",
+    undeclaredOne:
+      "Kuɗi ɗaya a sama ba a bayyana shi ba. Ba ya cikin jimlar, kuma ana iya neman ka da shi.",
+    undeclaredMany:
+      "Kuɗi {count} a sama ba a bayyana su ba. Ba sa cikin jimlar, kuma ana iya neman ka da su.",
+    sortMoveIn: "Kuɗin shiga: ƙarami zuwa babba",
+    basisPrice: "An tsara shi kan farashin kai",
+    basisMoveIn: "An tsara shi kan jimlar kuɗin shiga",
+  },
+
+  /* TRACK P: shafukan gida biyu da mashigin ƙasa. */
+  directHome: {
+    heroTitle: "Nemo gidanka na gaba",
+    heroLede: "Yi haya, saya ko saka jari a gidajen da aka tabbatar a faɗin Najeriya.",
+    heroSearch: "Nema ta wuri, nau'in gida",
+    filters: "Tacewa",
+    featured: "Gidaje na musamman",
+    parkingOne: "wurin ajiye mota 1",
+    parkingMany: "wuraren ajiye mota {count}",
+    buy: "Saya",
+    rent: "Haya",
+    manage: "Sarrafa",
+    invest: "Jari",
+    investNote: "Gidajen da aka gabatar saboda ribarsu. Vallo ba ya sayar da wani kayan jari.",
+    stays: {
+      heroTitle: "Kyawawan wurare. Kwarewa mafi kyau.",
+      heroLede: "Otal-otal, gidajen ɗan lokaci da gidajen abinci a faɗin Najeriya.",
+      heroSearch: "Ina kake son zuwa?",
+      featured: "Wurare na musamman",
+      hotels: "Otal-otal",
+      hotelsNote: "Wurin hutu mai daɗi",
+      shortlets: "Gidajen ɗan lokaci",
+      shortletsNote: "Kamar gida",
+      restaurants: "Gidajen abinci",
+      restaurantsNote: "Abinci mai daɗi",
+      nearby: "Kusa da kai",
+      nearbyNote: "Gano unguwa",
+    },
+    dock: {
+      switchProfile: "Sauya",
+    },
+  },
+  listingReference: {
+    foundById: "An same shi ta ID na talla",
+    noneCarry: "Babu gidan da ke da wannan ID. Ga sakamakon binciken abin da ka rubuta.",
+    impossible: "Wannan ID yana da harafi da ba ma amfani da shi. ID ɗinmu ba sa ƙunsar sifili, ɗaya, I, L, O ko U.",
+    label: "ID na talla",
+    yours: "ID na tallarka",
+    copy: "Kwafi ID",
+    copied: "An kwafa",
+    explain: "Kowa na iya samun wannan gida ta hanyar rubuta wannan ID a binciken.",
+    issuedWhenLive: "Za ka sami sanarwa, da kuma ID na tallarka, da zarar ta fito.",
+  },
+  supply: {
+    switchTitle: "Canza bayanin martaba",
+    switchTrigger: "Canza bayanin martaba",
+    personal: "Na kai",
+    personalMeaning: "Yi amfani da Vallo don bukatun kanka",
+    addTitle: "Ƙara wurin aiki",
+    addMeaning: "Yi rajista a matsayin mai bayarwa ko kasuwanci",
+    current: "Na yanzu",
+    empty:
+      "Ba ka da wurin aiki tukuna. Ƙara ɗaya don fara sanya gidaje ko karɓar ajiye wuri.",
+    kinds: {
+      owner: "Sanya gidajenka da kanka",
+      agent: "Yi aiki don masu gidaje",
+      firm: "Kamfanin gidaje mai rajista",
+      host: "Karɓi ajiye wuri a Vallo Stays",
+      console: "Wurin aikin ma'aikata",
+    },
+    standings: {
+      draft: "Bai kammala ba",
+      pending: "Ana jiran dubawa",
+      refused: "Ba a amince ba",
+      suspended: "An dakatar",
+    },
+    chooser: {
+      title: "Ƙara wurin aiki",
+      sub: "Gaya mana irin mai bayarwa da kake. Wannan yana taimaka mana mu shirya kayan aiki da tabbaci da suka dace da kai.",
+      overviewTitle: "Abin da za mu nema daga gare ka",
+      overviewSub: "Muna buƙatar bayanai kaɗan don tabbatar da wurin aikinka mu kuma shirya ka.",
+      continueLabel: "Ci gaba",
+      back: "Koma",
+      howLongTitle: "Tsawon lokacin da yake ɗauka",
+      selected: "An zaɓa",
+    },
+    doors: {
+      owner: {
+        title: "Ni ne mai gidan",
+        blurb: "Ka sanya shi da kanka. Babu kuɗin wakilci.",
+        needs: [
+          "Sunanka, lambar wayarka da inda kake zama",
+          "Shaidar gwamnati, ko NIN naka",
+          "Duk abin da kake riƙe a kan gidan, kuma akwai amsa ta gaskiya idan ba ka riƙe kome ba",
+          "Asusun banki na Najeriya a sunanka",
+        ],
+        howLong: "Kusan minti biyar.",
+      },
+      agent: {
+        title: "Ni wakili ne",
+        blurb: "Kana aiki don masu gidaje kuma kana karɓar kuɗi.",
+        needs: [
+          "Sunanka, lambar wayarka da inda kake zama",
+          "Shaidar gwamnati, ko NIN naka",
+          "Shaidar adireshinka, mai kwanan wata cikin watanni uku",
+          "Kuɗaɗenka, a fili, inda mai haya zai iya karantawa",
+          "Asusun banki na Najeriya a sunanka",
+        ],
+        howLong: "Kusan minti goma.",
+      },
+      firm: {
+        title: "Mu kamfani ne mai rajista",
+        blurb: "Kamfani mai ma'aikata da lambar CAC.",
+        needs: [
+          "Duk abin da wakili ke ba mu, game da kai",
+          "Sunan da aka yi rajista da lambar RC, kamar yadda CAC ke riƙe da su",
+          "Takardar shaidar CAC",
+          "Wani abu da ke nuna kana aiki a can, sai dai idan abokin aiki a nan ya shigar da kai",
+        ],
+        howLong: "Kusan minti goma sha biyar, kuma ƙasa da haka idan kamfaninka na kan Vallo riga.",
+      },
+      hotel: {
+        title: "Mu otel ne",
+        blurb: "Ɗakuna, farashi da teburin karɓa.",
+        needs: [
+          "Wanene kai, da shaidar gwamnati",
+          "Sunan otel ɗin da aka yi rajista da lambar CAC",
+          "Ɗakunanka, farashinka da sharuɗɗan sokewarka",
+          "Hotunan wurin",
+        ],
+        howLong: "Kusan minti goma sha biyar.",
+      },
+      shortlet: {
+        title: "Ina gudanar da shortlet",
+        blurb: "Wuri ɗaya ko kaɗan, ana ba da haya kowane dare.",
+        needs: [
+          "Wanene kai, da shaidar gwamnati",
+          "Inda wurin yake, da abin da ke ciki",
+          "Farashin daren ka da dokokin gidanka",
+          "Hotunan wurin",
+        ],
+        howLong: "Kusan minti goma.",
+      },
+      restaurant: {
+        title: "Mu gidan abinci ne",
+        blurb: "Teburori, lokuta da jerin abinci.",
+        needs: [
+          "Wanene kai, da shaidar gwamnati",
+          "Sunan gidan abinci da aka yi rajista da lambar CAC",
+          "Teburorinka, lokutanka da irin abincinka",
+          "Hotunan wurin",
+        ],
+        howLong: "Kusan minti goma.",
+      },
+    },
+  },
+
 } satisfies Translation);
