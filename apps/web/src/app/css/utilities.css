@@ -581,13 +581,78 @@
     }
   }
 
+  /*
+   * THE WIZARD'S SELECTED OPTION IS A LIT OUTLINE, NOT A FILLED OBJECT, and
+   * that is a deliberate reading of the register rather than an omission.
+   *
+   * `GOVERNING-10` screen four draws a selected tile as a LIT OUTLINE with a
+   * glowing icon, where a filled brand rectangle is what a selected CHIP is.
+   * The distinction is real: a chip is a small word you switch on, and a
+   * filled one still reads as a word. An option card is a large surface with
+   * a title and a description inside it, and filling it with brand blue means
+   * white body text on a saturated ground at card size, which is a different
+   * object, not a lit version of this one.
+   *
+   * So the wash stays, the edge goes to full strength, and the light is the
+   * same measured bloom every other selected surface now carries, one rung
+   * down. THAT IS THE TREATMENT AT LOWER INTENSITY: a lit outline is this
+   * light with no fill under it.
+   *
+   * The observation about screen four is C2's reading of that render. I did
+   * NOT independently re-measure the facility tile: my own search of the image
+   * could not isolate it from the surrounding CTAs with any confidence, and
+   * saying so is better than implying a measurement I do not have.
+   */
   .nf-option[aria-pressed="true"] {
     border-color: var(--nf-mode-agent);
-    /* A wash rather than a second ring. The ring the inline styles drew was a
-       1px box-shadow sitting directly on top of a 1px border, which is two
-       lines a pixel apart pretending to be one thicker one. */
     background: color-mix(in oklab, var(--nf-mode-agent) 12%, transparent);
+    box-shadow: var(--nf-bloom-lit-soft);
   }
+  /*
+   * ON PAPER THE WASH COMES DOWN, BECAUSE IT WAS COSTING THE TEXT ON TOP OF IT.
+   *
+   * Measured on a production server: the option's own description, "A
+   * self-contained flat let by the night.", reads rgb(103,110,118) on the
+   * selected wash's rgb(213,227,247), which is 3.97:1 and under the 4.5:1 that
+   * 14px needs. A selected state that makes its own body text harder to read
+   * is the wrong trade, and it was there before the light went on.
+   *
+   * 12 per cent of a mode colour over navy is a visible tint; the same 12 per
+   * cent over white is a solid pale blue that eats the ink's headroom. At 5
+   * per cent the ground returns to about L 0.91 and the muted ink clears the
+   * floor again.
+   *
+   * It can afford to, NOW, and that is the point of the lit outline: the
+   * selected option is carried by a full-strength edge and the measured bloom,
+   * so the wash is the third cue rather than the only one. Before the light it
+   * was doing the whole job alone and could not be reduced.
+   */
+  :root[data-theme="light"] .nf-option[aria-pressed="true"] {
+    background: color-mix(in oklab, var(--nf-mode-agent) 5%, transparent);
+  }
+  /*
+   * AND IT IS STILL 4.39:1, WHICH IS UNDER THE FLOOR, AND I CANNOT CLOSE IT
+   * FROM A STYLESHEET. Recorded here rather than left as a silent near-miss.
+   *
+   * 12 per cent measured 3.97:1 and 5 per cent measures 4.39:1. Fading the
+   * wash further would make the selected state invisible to buy a tenth of a
+   * ratio point, so the ink is the right side of the trade: the option a
+   * person has CHOSEN should be the most readable row in the list, not the
+   * least, and this description inherits the muted grey that UNSELECTED rows
+   * use.
+   *
+   * THE INK IS NOT REACHABLE FROM HERE. The span carries
+   * `text-[var(--nf-content-muted)]`, a Tailwind arbitrary utility, which
+   * lands in a later layer than this file and wins over any selector I can
+   * write short of `!important`, which the rules forbid. I wrote the rule,
+   * measured, found the ink unmoved at rgb(103,110,118), and deleted it:
+   * dead CSS that looks like a fix is worse than no CSS at all.
+   *
+   * THE FIX IS ONE WORD IN `app/agent/list/ListingWizard.tsx`: drop
+   * `text-[var(--nf-content-muted)]` from the description span on a selected
+   * option, or swap it for the primary ink. That file belongs to another
+   * scope, so it is named here rather than reached into.
+   */
 
   .nf-option:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);

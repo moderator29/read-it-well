@@ -267,6 +267,10 @@ the worker. No row, no close, and the lead does not commit it.
 | `/start`, `/sign-up/verify`, `/reset-password`, the ink | none; rule 22 locks the register | same server, both themes: heading ink rgb(255,255,255) on plate rgb(0,6,18) = 20.29:1 against 1.14:1 before, and the plate is rgb(0,6,18) in BOTH themes before and after | 0 breaches | B2, found by A2 |
 | The ratio sweep after Tracks L and M | DESIGN_DIRECTION section 1.4 | `compare-surface.mjs --shape-sweep --theme both`, 9 routes x 2 widths x 2 themes, on the same server | **0 breaches.** One at 0.36, the listing photo counter; the feed FAB at 0.50 is icon-only | B2 |
 | The lit primary control, `.nf-btn--primary` | `GOVERNING-03` screen one | `b2/cta-390-dark.png` and `b2/cta-390-light.png`, the 342x60 Continue on `/preview/e/send`, `next start` on `.next-b2`, build exit 0, gate at `cf6e56f`+ | fill top L 100.7 against the render's 100.4; deepest #0043FD L 66.2 at 63% against #0042FD L 65.5 at 64%; rim lift +42.4 against +48.1; bloom 20.2/16.4/11.2/7.0/4.5 at 2/4/8/12/16px against 32.2/21.2/12.3/8.2/5.9. 0 shape breaches | B2 |
+| The lit selected chip, `.nf-chip--active` / `.nf-chip--pill[aria-pressed]` | none draws it; extends the register one rung below the primary | measured on `next start`, `.next-b2`, build exit 0 | shadow resolves to `--nf-rim-primary` + `--nf-bloom-lit-soft`; ink 6.57:1 dark, 8.11:1 light | B2 |
+| The lit active tab, `.nf-feedtab[aria-current]` and the pill segmented link | none draws it; same object one rung down | compiled rule verified in the bundle: `background:var(--nf-gradient-cta);box-shadow:var(--nf-rim-primary), var(--nf-bloom-lit-soft)` | ink 18.82:1 dark, 16.71:1 light on the pill variant | B2 |
+| The wizard's selected option, `.nf-option[aria-pressed]` | `GOVERNING-10` screen four, as read by C2, NOT re-measured by me | same server, both themes | shadow resolves to `--nf-bloom-lit-soft` and its light twin; a LIT OUTLINE, no fill | B2 |
+| The calm panel glyph on paper, `.nf-calmpanel__glyph` | none; C2's defect | same server | ink/plate 4.72:1 dark, 8.11:1 light, with a new `--nf-border-brand` hairline; was a faint ring on near-white | B2 |
 | `/profile/setup/owner`, THE OWNER FORM, all four screens | `GOVERNING-03` | `b1b/owner-1-about-you`, `owner-2-where`, `owner-2-where-picker`, `owner-2-where-state-chosen`, `owner-3-proof`, `owner-3-proof-none`, `owner-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`. Taken on `next start` with `VALLO_PREVIEW_HARNESS=1` at port 3196, walked by `scratchpad/b1b/proof-owner.mjs`, which fills each screen and presses the control a person would | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** Measured in the browser: every one of the six answer rows 14 on 56 = 0.250, including "I have none of these"; the timing label 14 on 44 = 0.318; the calm panel's glyph is the only circle and it carries no text | B1b |
 | `/profile/setup/agent`, THE AGENT FORM, all four screens | `GOVERNING-04` | `b1b/agent-1-about-you`, `agent-1-about-you-filled`, `agent-2-identity`, `agent-3-fees`, `agent-3-fees-declared`, `agent-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`, walked by `scratchpad/b1b/proof-agent.mjs` on `next start` at port 3196 | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** The two upload cards 14 on 123 = 0.114; the fee control and its two step plates on `--nf-radius-control`; the timing label 14 on 44 = 0.318. The run also asserts the fee behaviour: both fees open NOT DECLARED with the minus disabled; twenty and ten presses read 10 per cent and 5 per cent through `Intl` and the total moves to the right figure; changing the example rent moves the total live; one step below the first rung reads a real zero and one more returns to not declared, and the undeclared line draws the words and never a nought | B1b |
 | `/profile/setup/firm`, THE FIRM FORM, all four screens | `GOVERNING-05` | `b1b/firm-1-your-firm`, `firm-1-your-firm-filled`, `firm-2-association`, `firm-2-association-principal`, `firm-2-association-letter`, `firm-3-team-empty`, `firm-3-team-one`, `firm-4-under-review`, each at `-390-dark`, `-390-light` and `-1536-dark`, walked by `scratchpad/b1b/proof-firm.mjs` | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** The two route cards 14 on 170 and 14 on 149 = 0.082 and 0.094; the team rows 14 on 56 = 0.250; "Usually three working days" 14 on 44 = 0.318. The run also asserts the copy law on the live page: LASRERA appears ONCE, as the field's own label, the word required never appears, and the hint says what the field is for | B1b |
@@ -1480,6 +1484,37 @@ showed a real darkening around the control and it would have been easy to
 record that as the derivation working. It was that rule. The override is gone
 and the light values live with the dark ones. A number measured off the wrong
 declaration proves nothing.
+
+### THE CONTAINERS, MEASURED BEFORE BEING ASSERTED (item 7, first pass)
+
+The founder's words are that containers across the platform are "not
+consistent and not professional... different edges, different fills, different
+glows, different blues". Enumerated from source across all 37 stylesheets,
+comments stripped so a documented value is never read as a live one. A
+container is a rule painting both an edge and a fill, or a fill and a radius.
+
+**430 container-ish rules. 270 DISTINCT (edge, fill, radius) COMBINATIONS.
+203 of those are used EXACTLY ONCE**, which is the founder's complaint in one
+number: a surface drawing its own container.
+
+| Property | Distinct values | Most used |
+| --- | --- | --- |
+| edge | 59 | `1px solid var(--nf-brand-edge)` 37x, `--nf-brand-edge-soft` 35x |
+| fill | 110 | `--nf-well-fill` 72x, `--nf-brand-primary` 33x, `--nf-surface-inset` 32x |
+| radius | 17 | `--nf-radius-circle` 64x, `--nf-radius-control` 55x, `--nf-radius-md` 38x |
+
+**AND "DIFFERENT BLUES" IS NOT RAW HEXES: ZERO of the 430 carries a raw colour
+literal.** Every one already names a token. The divergence is in WHICH RUNG
+each surface picks from a ladder that offers `--nf-brand-edge`, `-soft`,
+`-strong`, `--nf-brand-primary`, `--nf-border-brand` and `--nf-border-default`
+for the same job. That matters for the fix: this is not a sweep for stray
+hexes, which is what "different blues" sounds like and what somebody would
+otherwise go looking for. It is that no rule says which rung a container takes,
+so 430 rules each answered it alone and 203 answered it uniquely.
+
+**NOT YET DONE**, and it is the larger half: one container anatomy in the token
+layer, then all 430 rules moved onto it, then a sweep proving nothing draws its
+own. This entry is the measurement the work needs and nothing more.
 
 ### The shape law is not reopened by any of this
 
