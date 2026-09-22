@@ -639,51 +639,115 @@ agent", when most of the supply this platform now wants is landlords who are
 not agents and never will be.** That is Track G's whole purpose, and Track N
 depends on Track G landing first.
 
-### 6A.3 What is genuinely missing, and it is a lot
+### 6A.3 Corrections to the first draft of this section
 
-**1. There is no stays inventory creation at all.** `apps/web/src/app/host/`
-has exactly four pages: `apply`, `photos`, `reservations`, `transfer`. There is
-no page anywhere that lets a host create an accommodation, define room types,
-set rate plans, or set up a restaurant's tables and service windows. **A hotel
-can apply to Vallo, upload photographs, and then has nothing to put inventory
-into.** The stays read layer, the room type and rate plan tables and the
-oversell gate all exist and are waiting for a creation flow nobody wrote.
+Two things this handoff said before the audit ran are wrong, and both are
+corrected here rather than quietly edited away.
 
-**This is the largest unbuilt surface in the product.** Build three creation
-flows on the shared machinery, diverging exactly where the audit says they
-must: a hotel needs room types and rate plans, a shortlet needs one place with
-house rules and a cancellation policy, a restaurant needs opening hours, table
-inventory by seat count, and a sitting length.
+**In-app notifications already fire.** `lib/admin/actions.ts:354` and `:477`
+insert into `notifications` for all four listing decisions and all three
+registration decisions. This handoff said the approval loop was silent. It is
+not. **The EMAILS are silent**, which is a different and smaller thing.
+`docs/research/EMAIL_AND_NOTIFICATIONS_RESEARCH.md:1775-1776` is wrong on this
+same point and the audit corrects it there too.
 
-**2. There is no listing identifier.** Verified: no human readable public
-reference exists anywhere in the schema or the product.
+**The stays side is not empty, it is blocked.** There IS a nine step
+`HostWizard`, and **restaurants work end to end**, with the best written
+publish gate in the repository. The break is narrower and worse than "not
+built", and it is in 6A.4.
 
-Build it, and the format is specified rather than left open. A fixed prefix,
-then two groups of four, from an alphabet that **excludes I, O, 0 and 1**
-because those are misheard on a bad line and mistyped afterwards. For example
-`VL-7K4M-92`. Generated **at publish**, never at draft, so nothing unpublished
-carries one. Uniqueness guaranteed in the database rather than in application
-code. Indexed. Printed on the listing, in the lister's notification, in the
-approval email and on every receipt that references the listing. And the main
-search box accepts it: a query matching the reference pattern resolves to that
-one listing and says above the result that it was found by ID.
+**And the move-in fee model is already inside the listing wizard**
+(`ListingWizard.tsx:1854-1950`), summed live. Track H's remaining work is the
+listing DETAIL page, where `ListingMoveIn.tsx` is still the component nothing
+imports.
 
-**3. The approval loop is silent.** `messages.ts` exports a `listingApproved`
-builder that no code path calls, one of the ten built-but-never-sent emails.
-Every state change owes the lister a notification and, when they are not in the
-app, an email: submitted, more information needed with the reviewer's reason,
-approved, published with the ID, rejected with the reason. **The same applies
-to a person's REGISTRATION being accepted or refused** as an owner, agent, firm
-or host. None of it fires today. It rides the Track B shell and the Track C
-junction, which is the same junction, so it is built once.
+### 6A.4 What is genuinely missing
 
-**4. The creation form has real gaps** against what a Nigerian listing needs,
-named field by field in the audit. At minimum, Track H's move-in costs belong
-INSIDE this wizard rather than beside it, because the person typing the rent is
-the only person who knows the agency fee.
+**1. A host can fill in nine steps and can never press send.** This is the
+worst defect found anywhere in this platform and it is a hard dead end.
 
-**5. A reviewer who cannot see the photographs and play the video is not
-reviewing anything.** Check the admin desk and fix it.
+`lib/host/onboarding.ts:470` blocks submission when the accommodation has no
+photograph. **No accommodation photo upload exists anywhere in the
+application.** The table, the bucket, the RLS and the catalogue trigger are all
+built; no app code writes to them. `HostWizard.tsx:690` says so in its own
+words on the screen: photo upload for properties arrives with the next host
+release. So the gate demands a photograph and the product offers no way to give
+it one. Every hotel and every shortlet is stopped here, permanently.
+
+**Fix this first. It is one upload surface and it unblocks the entire stays
+supply side.**
+
+**2. Nothing ever publishes a room type.** They are inserted as DRAFT at
+`lib/host/actions.ts:471` and nothing moves them on, while the catalogue reads
+price, sleeps and categories from PUBLISHED room types only. **So a live hotel
+projects a null price.**
+
+**3. Nothing ever writes `room_inventory`**, and `stays_search` treats a
+missing row as not offered, **so a dated hotel search returns nothing.**
+
+Those three together are why the stays side has no supply and cannot get any.
+
+**4. There is no listing identifier**, and the precedent exists and was never
+applied: `agent_applications.reference` is already `NF-AGT-#####`, which also
+carries the dead brand prefix and is renamed in the same pass.
+
+Build it as `VL-` plus six characters from a thirty character alphabet
+**excluding I, L, O, U, 0 and 1**. **Random, never sequential**, because a
+sequence leaks the size of the catalogue and invites enumeration. A Postgres
+column default with a retry plus a unique index, so uniqueness is the
+database's promise and not the application's. Six display sites. A
+`byReference` repository method. And a normaliser that short circuits the
+existing `?q=` search box, so a person types the code into the field they
+already use and lands on the listing, with a line above the result saying it
+was found by ID.
+
+**5. Video is built at every layer except the two a human touches.** Bucket,
+table, Zod schemas, `addVideo` and `removeVideo` actions, the repository join,
+signed URL batching, the CSP entry, and `Listing.videos` on the model. **Zero
+`.tsx` callers and zero `<video>` elements in the entire product.** The
+approval email already advertises walkthroughs that cannot be uploaded or
+watched.
+
+**6. No email fires on any listing or registration decision.**
+`listingApproved`, `listingRejected` and `welcome` all exist unwired.
+
+**7. The reviewer cannot see what the lister filled in.** `LISTING_COLUMNS` at
+`lib/admin/queries.ts:779-780` omits power, water, size, toilets, access and
+video. So the reviewer is judging a listing without its utilities, which is the
+part of a Nigerian listing that decides whether anybody wants it.
+
+**8. Smaller, all named in the audit.** The sale side has no cost model. The
+admin queue has no pager and caps at thirty. `addPhoto` skips the storage read
+back that `addVideo` performs. The photo limit says 50MB in the schema and 10MB
+in the bucket. Three amenity codes exist in the interface and not in the
+database. And the "Approved" copy tells a lister to press a button that only an
+admin has.
+
+### 6A.5 The chain, measured
+
+The audit names **42 links** from the first keystroke to a card in search:
+**32 sound, 5 weak, 5 missing.** None of the five missing is an architecture
+failure. Every one is a last mile where the table, the action, the policy and
+the index all exist and nobody built the control or the call site.
+
+**The stays chain, by contrast, breaks at link 14.**
+
+That is the honest answer to the founder's question about whether frontend,
+backend, architecture and database are connected. On the property side they
+are, and the gaps are call sites. On the stays side they are not yet joined.
+
+### 6A.6 The order
+
+1. Accommodation photo upload, because it unblocks every hotel and shortlet.
+2. Publish room types and seed room inventory, because without them a hotel
+   that does get through shows no price and cannot be found by date.
+3. The listing reference, end to end.
+4. Wire the four emails.
+5. Video, with a resumable upload, because 50MB on a Nigerian connection will
+   not survive a single POST.
+6. The utilities on the admin card.
+7. `ListingMoveIn` on the listing detail page.
+8. The misleading approved copy.
 
 ---
 
