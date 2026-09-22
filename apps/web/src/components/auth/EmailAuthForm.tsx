@@ -352,7 +352,12 @@ export function EmailAuthForm({
               setAccepted(next);
               if (next) setAcceptError(false);
             }}
-            showError={acceptError}
+            /* The browser's refusal OR the server's. The server refuses a
+               sign-up that carries no current terms version, and that refusal
+               has to land on this control rather than vanish, because a form
+               that comes back unchanged with no visible reason reads as
+               broken. */
+            showError={acceptError || Boolean(state.fieldErrors?.acceptTerms)}
           />
         )}
 

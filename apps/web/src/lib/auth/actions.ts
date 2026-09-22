@@ -105,6 +105,35 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
 
   /* The English value, never the translated label. The select posts the one
      and shows the other, so this check is the same in all four languages. */
+  /*
+   * NO ACCOUNT WITHOUT AN AGREEMENT, AND THE SERVER DECIDES IT.
+   *
+   * This was enforced in the browser alone. `EmailAuthForm` called
+   * `preventDefault()` when the tick was missing, `AcceptTerms` rendered the
+   * hidden `termsVersion` only once it was ticked, and the form carries
+   * `noValidate`, so there was not even a native `required` behind the
+   * JavaScript. A request assembled by hand, or a browser running no script,
+   * arrived here with no version and THE ACCOUNT WAS CREATED, with null
+   * recorded where the agreement should be. The comment at the metadata was
+   * honest about recording nothing rather than a falsehood, which is right,
+   * and it answered the wrong question: the fault was not how an absent
+   * agreement is recorded, it is that an account existed without one.
+   *
+   * The test that was supposed to cover this asserted that
+   * `EmailAuthForm.tsx` CONTAINS the string `setAcceptError(true)`. It would
+   * pass with the submit never stopped. That is a mirror, and this is the
+   * behaviour it was standing in front of.
+   *
+   * The VERSION is checked and not the tick, because a tick says only that
+   * something was agreed and a version says what. A stale one is refused too:
+   * somebody sitting on a form opened before the documents changed has not
+   * agreed to the documents we would then record against their name.
+   */
+  if (field(formData, "termsVersion").trim() !== TERMS_VERSION) {
+    errors.acceptTerms =
+      "Please tick the box to say you agree to the terms, the privacy notice and the rules.";
+  }
+
   if (!hearAbout) errors.hearAbout = "Tell us where you heard about us.";
   else if (!HEAR_ABOUT_VALUES.includes(hearAbout))
     errors.hearAbout = "Choose one of the listed options.";

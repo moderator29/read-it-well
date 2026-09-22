@@ -32,7 +32,11 @@ export type AuthField =
   /* The six digits from the confirmation email. Part of the same union so the
      verify screen reports a bad code exactly the way every other field on
      every other auth form reports a bad value. */
-  | "code";
+  | "code"
+  /* The agreement tick on sign-up. It is in the union because the SERVER
+     refuses a sign-up that does not carry the current terms version, and a
+     server refusal has to be able to land on the control it is about. */
+  | "acceptTerms";
 
 export type AuthFormState = {
   ok: boolean;
