@@ -195,14 +195,88 @@ function tokensContainRun(tokens, run) {
   return false;
 }
 
-function proofsFor(route) {
-  /* The last non-parameter segment is the word a proof file would carry. */
+/*
+ * A LAST SEGMENT IS NOT A ROUTE, AND THE REGISTER WAS CREDITING ONE PICTURE
+ * TO EVERY ROUTE THAT ENDED IN THE SAME WORD.
+ *
+ * A2 wrote this down before anybody read it as coverage: `a2/privacy-390-dark.png`
+ * and `a2/terms-390-dark.png` are shots of the PUBLIC `/privacy` and `/terms`,
+ * and the matcher was also crediting them to `/legal/privacy` and `/legal/terms`,
+ * which nobody has ever photographed. It was never two routes. Matching on the
+ * last segment alone, twenty three keys in this tree are shared by two or more
+ * routes: `/start` and `/host/start`, `/verification` and `/agent/verification`,
+ * `/notifications` and `/settings/notifications`, `/search` and `/stays/search`,
+ * and so on down. `/host/start` appeared today and was born already counted as
+ * proven, off a picture of a screen in a different product area, without anybody
+ * touching it. That is the failure mode this file's own header calls harmful:
+ * not a stale count, a count that grows on its own.
+ *
+ * THE RULE NOW, AND IT ONLY BITES WHERE THERE IS A REAL COLLISION. A proof is
+ * still matched by the last real segment of a route, exactly as before, and
+ * where that segment belongs to ONE route the proof is credited to it and
+ * nothing changes: `e/send-390-dark.png` is still the proof of `/wallet/send`,
+ * because no other route in the tree ends in "send". Where the segment is
+ * shared, the file name has to say which one it means: the route whose WHOLE
+ * path appears in the name as a consecutive run takes it, longest path first,
+ * so `privacy-390-dark.png` proves `/privacy` and `agent-messages-390-dark.png`
+ * proves `/agent/messages`. Where the colliding routes differ only by a
+ * parameter segment, which a file name cannot speak to, the shallowest takes
+ * it: `bookings-390-dark.png` is the list, not somebody's booking. And where
+ * two genuinely different paths end in the same word and neither is named,
+ * NEITHER is credited, because the picture can only be of one of them.
+ *
+ * AND A DROPPED MATCH IS PRINTED RATHER THAN SWALLOWED. A proof whose name
+ * reaches a route's last segment but does not identify it is recorded against
+ * that route as AMBIGUOUS, naming the file, so the owner can rename it and
+ * recover the coverage. It counts as no proof, because it is not one, but it
+ * does not disappear.
+ */
+const all = routes();
+
+function runOf(route) {
   const parts = route.split("/").filter((p) => p && !p.startsWith("["));
-  const key = parts.length ? parts[parts.length - 1].toLowerCase() : "landing";
-  return proofs.filter((p) => tokensContainRun(p.stem.split(/[-_]/), key.split(/[-_]/)));
+  return parts.length ? parts.join("-").toLowerCase().split(/[-_]/) : ["landing"];
+}
+function depthOf(route) {
+  return route.split("/").filter(Boolean).length;
+}
+function lastKeyOf(route) {
+  const parts = route.split("/").filter((p) => p && !p.startsWith("["));
+  return (parts.length ? parts[parts.length - 1] : "landing").toLowerCase().split(/[-_]/);
 }
 
-const all = routes();
+const credited = new Map(all.map((r) => [r, []]));
+const ambiguous = new Map(all.map((r) => [r, []]));
+for (const proof of proofs) {
+  const tokens = proof.stem.split(/[-_]/);
+  const candidates = all.filter((r) => tokensContainRun(tokens, lastKeyOf(r)));
+  if (candidates.length === 0) continue;
+  let winners;
+  if (candidates.length === 1) {
+    winners = candidates;
+  } else {
+    const named = candidates.filter((r) => tokensContainRun(tokens, runOf(r)));
+    if (named.length) {
+      const longest = Math.max(...named.map((r) => runOf(r).length));
+      winners = named.filter((r) => runOf(r).length === longest);
+    } else if (new Set(candidates.map((r) => runOf(r).join("-"))).size === 1) {
+      /* They are one path with parameter children hanging off it. */
+      winners = candidates;
+    } else {
+      winners = [];
+    }
+    if (winners.length > 1) {
+      const shallowest = Math.min(...winners.map(depthOf));
+      winners = winners.filter((r) => depthOf(r) === shallowest);
+    }
+  }
+  for (const r of winners) credited.get(r).push(proof);
+  for (const r of candidates) if (!winners.includes(r)) ambiguous.get(r).push(proof);
+}
+
+function proofsFor(route) {
+  return credited.get(route) ?? [];
+}
 const byOwner = new Map();
 for (const route of all) {
   const owner = ownerOf(route);
@@ -243,6 +317,7 @@ lines.push("");
 
 let fresh = 0;
 let voided = 0;
+let unnamed = 0;
 let none = 0;
 for (const [owner, list] of [...byOwner.entries()].sort()) {
   lines.push(`## ${owner}`);
@@ -260,6 +335,12 @@ for (const [owner, list] of [...byOwner.entries()].sort()) {
     } else if (voidOnes.length) {
       state = `**VOID**, ${voidOnes.length} taken on the broken harness, must be retaken`;
       voided += 1;
+    } else if ((ambiguous.get(route) ?? []).length) {
+      const near = ambiguous.get(route);
+      state = `**AMBIGUOUS**, the name does not carry this whole path (${near
+        .map((p) => `${p.group}/${p.file}`)
+        .join(", ")}); rename it to \`${runOf(route).join("-")}-...\` to count it`;
+      unnamed += 1;
     } else {
       state = "none";
       none += 1;
@@ -273,17 +354,26 @@ lines.push("## The count");
 lines.push("");
 lines.push(`- ${fresh} surfaces carry at least one proof taken on the honest harness.`);
 lines.push(`- ${voided} surfaces carry only void proofs and must be retaken.`);
+lines.push(
+  `- ${unnamed} surfaces have a proof whose name reaches their last segment but not their whole path, and are counted as unproven until it is renamed.`,
+);
 lines.push(`- ${none} surfaces have no proof at all.`);
 lines.push("");
 lines.push(
-  "A proof is matched to a surface by the last real segment of its route appearing in the",
+  "A proof is matched to a surface by EVERY non-parameter segment of its route appearing in",
 );
 lines.push(
-  "file name, so a proof named for something else will not be counted even if it shows the",
+  "the file name as a consecutive run, so a proof named for something else will not be counted",
 );
 lines.push(
-  "right screen. That is deliberate: the register undercounts rather than overcounts, because",
+  "even if it shows the right screen, and `privacy-390-dark.png` proves `/privacy` without also",
 );
-lines.push("a register that flatters the sweep is worse than no register.");
+lines.push(
+  "being credited to `/legal/privacy` and `/settings/privacy`, which nobody has photographed.",
+);
+lines.push(
+  "That is deliberate: the register undercounts rather than overcounts, because a register",
+);
+lines.push("that flatters the sweep is worse than no register.");
 
 console.log(lines.join("\n"));

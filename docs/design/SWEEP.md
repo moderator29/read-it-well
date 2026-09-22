@@ -9,7 +9,7 @@ order of 19 September, because until that commit the screenshot harness was lyin
 separate ways. A void proof is counted here as no proof at all, which is the only honest
 way to count it.
 
-**131 surfaces.** A surface is DONE only when a fresh proof of it sits beside its
+**132 surfaces.** A surface is DONE only when a fresh proof of it sits beside its
 reference and a second pass has audited it, per the founder's standing order that every
 frontend scope is audited twice before it closes.
 
@@ -27,20 +27,20 @@ frontend scope is audited twice before it closes.
 | `/search` | founder/GOVERNING-search-filters-target.png | 6 fresh (lead/search-390-dark-shape-law.png, v1/prod-f3-search-dark.png, v1/prod-f3-search-filters-open-dark.png, v1/prod-f3-search-light.png, v1/prod-search-dark.png, v1/prod-search-filters-open-dark.png) |
 | `/stay/[id]` | none, inherits the register | 1 fresh (v1/prod-f3-stay-dark.png) |
 | `/stays` | none, inherits the register | 2 fresh (v1/prod-f3-stays-dark.png, v1/prod-stays-dark.png) |
-| `/stays/search` | none, inherits the register | 6 fresh (lead/search-390-dark-shape-law.png, v1/prod-f3-search-dark.png, v1/prod-f3-search-filters-open-dark.png, v1/prod-f3-search-light.png, v1/prod-search-dark.png, v1/prod-search-filters-open-dark.png) |
+| `/stays/search` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f3/search-390-dark.png, f3/search-390-light.png, f6/f6-03-search-grid-light.png, lead/search-390-dark-shape-law.png, v1/prod-f3-search-dark.png, v1/prod-f3-search-filters-open-dark.png, v1/prod-f3-search-light.png, v1/prod-search-dark.png, v1/prod-search-filters-open-dark.png); rename it to `stays-search-...` to count it |
 
 ## V2 money
 
 | surface | governing reference | proof |
 | --- | --- | --- |
-| `/bookings` | none, inherits the register | 1 fresh (v5/agent-bookings-390-dark.png) |
-| `/bookings/[bookingId]` | none, inherits the register | 1 fresh (v5/agent-bookings-390-dark.png) |
+| `/bookings` | none, inherits the register | **VOID**, 4 taken on the broken harness, must be retaken |
+| `/bookings/[bookingId]` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f3/bookings-390-dark.png, f3/bookings-390-light.png, f3/bookings-tenancy-390-dark.png, f3/bookings-tenancy-390-light.png, f5/agent-bookings-390-dark.png, v5/agent-bookings-390-dark.png); rename it to `bookings-...` to count it |
 | `/bookings/[bookingId]/review` | none, inherits the register | none |
 | `/checkout` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
-| `/checkout/[bookingId]` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
+| `/checkout/[bookingId]` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f6/f6-00-checkout-bar-blur-dark.png, f6/f6-00-checkout-bar-no-blur-dark.png); rename it to `checkout-...` to count it |
 | `/crypto` | none, inherits the register | **VOID**, 4 taken on the broken harness, must be retaken |
-| `/crypto/[id]` | none, inherits the register | **VOID**, 4 taken on the broken harness, must be retaken |
-| `/inspections` | none, inherits the register | 1 fresh (v5/agent-inspections-390-dark.png) |
+| `/crypto/[id]` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (e/crypto-390-dark.png, e/crypto-390-light.png, e/crypto-unconfigured-390-dark.png, f6/f6-09-crypto-coin-light.png); rename it to `crypto-...` to count it |
+| `/inspections` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
 | `/rent/move-in/[listingId]` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
 | `/rent/pay/[inspectionId]` | none, inherits the register | none |
 | `/trips` | none, inherits the register | **VOID**, 3 taken on the broken harness, must be retaken |
@@ -48,16 +48,16 @@ frontend scope is audited twice before it closes.
 | `/wallet/receive` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
 | `/wallet/send` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
 | `/wallet/transactions` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
-| `/wallet/transactions/[id]` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
+| `/wallet/transactions/[id]` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (e/transactions-390-dark.png); rename it to `wallet-transactions-...` to count it |
 
 ## V3 messages and assistant
 
 | surface | governing reference | proof |
 | --- | --- | --- |
 | `/assistant` | none, inherits the register | 2 fresh (v3/assistant-390-dark.png, v3/assistant-390-light.png) |
-| `/messages` | none, inherits the register | 1 fresh (v5/agent-messages-390-dark.png) |
-| `/messages/[id]` | GOVERNING-chat-booking-card.png, founder/GOVERNING-thread-hotel-booking.jpg, founder/GOVERNING-thread-rental-enquiry.jpg | 1 fresh (v5/agent-messages-390-dark.png) |
-| `/messages/new` | none, inherits the register | 1 fresh (v4/story-new-390-dark.png) |
+| `/messages` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f5/agent-messages-390-dark.png, v5/agent-messages-390-dark.png); rename it to `messages-...` to count it |
+| `/messages/[id]` | GOVERNING-chat-booking-card.png, founder/GOVERNING-thread-hotel-booking.jpg, founder/GOVERNING-thread-rental-enquiry.jpg | **AMBIGUOUS**, the name does not carry this whole path (f5/agent-messages-390-dark.png, v5/agent-messages-390-dark.png); rename it to `messages-...` to count it |
+| `/messages/new` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f4/story-new-390-dark.png, f4/story-new-390-light.png, v4/story-new-390-dark.png); rename it to `messages-new-...` to count it |
 | `/messages/share/[kind]/[id]` | none, inherits the register | 2 fresh (v3/share-picker-390-dark.png, v3/share-picker-390-light.png) |
 | `/notifications` | none, inherits the register | 2 fresh (v3/notifications-390-dark.png, v3/notifications-390-light.png) |
 
@@ -68,8 +68,8 @@ frontend scope is audited twice before it closes.
 | `/around` | none, inherits the register | none |
 | `/around/[slug]` | none, inherits the register | none |
 | `/around/manage` | none, inherits the register | none |
-| `/around/new` | none, inherits the register | 1 fresh (v4/story-new-390-dark.png) |
-| `/around/settings` | none, inherits the register | 5 fresh (v4/settings-390-dark.png, v4/settings-390-light.png, v4/settings-tile-doubling-before-2x.png, v4/settings-tile-single-after-2x.png, v5/agent-settings-390-dark.png) |
+| `/around/new` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f4/story-new-390-dark.png, f4/story-new-390-light.png, v4/story-new-390-dark.png); rename it to `around-new-...` to count it |
+| `/around/settings` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (e/payments-settings-390-dark.png, e/payments-settings-390-light.png, f4/settings-390-dark.png, f4/settings-390-light.png, f5/agent-settings-390-dark.png, v4/settings-390-dark.png, v4/settings-390-light.png, v4/settings-tile-doubling-before-2x.png, v4/settings-tile-single-after-2x.png, v5/agent-settings-390-dark.png); rename it to `around-settings-...` to count it |
 | `/auth/callback` | none, inherits the register | none |
 | `/forgot-password` | none, inherits the register | 2 fresh (a2/forgot-password-390-dark.png, a2/forgot-password-390-light.png) |
 | `/post/[id]` | none, inherits the register | 1 fresh (v4/post-thread-390-dark.png) |
@@ -78,54 +78,54 @@ frontend scope is audited twice before it closes.
 | `/profile/setup` | none, inherits the register | none |
 | `/profile/setup/[role]` | none, inherits the register | none |
 | `/reset-password` | none, inherits the register | 2 fresh (a2/reset-password-390-dark.png, a2/reset-password-390-light.png) |
-| `/settings` | none, inherits the register | 5 fresh (v4/settings-390-dark.png, v4/settings-390-light.png, v4/settings-tile-doubling-before-2x.png, v4/settings-tile-single-after-2x.png, v5/agent-settings-390-dark.png) |
-| `/settings/account` | none, inherits the register | 2 fresh (a2/delete-account-390-dark.png, a2/delete-account-390-light.png) |
+| `/settings` | none, inherits the register | 4 fresh (v4/settings-390-dark.png, v4/settings-390-light.png, v4/settings-tile-doubling-before-2x.png, v4/settings-tile-single-after-2x.png) |
+| `/settings/account` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (a2/delete-account-390-dark.png, a2/delete-account-390-light.png); rename it to `settings-account-...` to count it |
 | `/settings/appearance` | none, inherits the register | none |
 | `/settings/devices` | none, inherits the register | none |
-| `/settings/help` | none, inherits the register | 2 fresh (a2/help-390-dark.png, a2/help-390-light.png) |
+| `/settings/help` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (a2/help-390-dark.png, a2/help-390-light.png, f2/site-help-390-dark.png); rename it to `settings-help-...` to count it |
 | `/settings/interests` | none, inherits the register | none |
-| `/settings/notifications` | none, inherits the register | 2 fresh (v3/notifications-390-dark.png, v3/notifications-390-light.png) |
-| `/settings/payments` | none, inherits the register | **VOID**, 3 taken on the broken harness, must be retaken |
+| `/settings/notifications` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f1/notifications-390-dark.png, f1/notifications-390-light.png, f4/notifications-390-dark.png, f4/notifications-390-light.png, v3/notifications-390-dark.png, v3/notifications-390-light.png); rename it to `settings-notifications-...` to count it |
+| `/settings/payments` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (bd/payments-390-dark.png, e/payments-settings-390-dark.png, e/payments-settings-390-light.png); rename it to `settings-payments-...` to count it |
 | `/settings/place` | none, inherits the register | 1 fresh (v4/place-390-dark.png) |
-| `/settings/privacy` | none, inherits the register | 2 fresh (a2/privacy-390-dark.png, a2/privacy-390-light.png) |
-| `/sign-in` | none, inherits the register | 4 fresh (a2/sign-in-390-dark.png, a2/sign-in-390-light.png, a2/sign-in-email-390-dark.png, a2/sign-in-email-390-light.png) |
-| `/sign-in/email` | none, inherits the register | 4 fresh (a2/sign-in-email-390-dark.png, a2/sign-in-email-390-light.png, a2/sign-up-email-390-dark.png, a2/sign-up-email-390-light.png) |
-| `/sign-up` | none, inherits the register | 6 fresh (a2/sign-up-390-dark.png, a2/sign-up-390-light.png, a2/sign-up-email-390-dark.png, a2/sign-up-email-390-light.png, a2/sign-up-verify-390-dark.png, a2/sign-up-verify-390-light.png) |
-| `/sign-up/email` | none, inherits the register | 4 fresh (a2/sign-in-email-390-dark.png, a2/sign-in-email-390-light.png, a2/sign-up-email-390-dark.png, a2/sign-up-email-390-light.png) |
+| `/settings/privacy` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (a2/privacy-390-dark.png, a2/privacy-390-light.png); rename it to `settings-privacy-...` to count it |
+| `/sign-in` | none, inherits the register | 2 fresh (a2/sign-in-390-dark.png, a2/sign-in-390-light.png) |
+| `/sign-in/email` | none, inherits the register | 2 fresh (a2/sign-in-email-390-dark.png, a2/sign-in-email-390-light.png) |
+| `/sign-up` | none, inherits the register | 2 fresh (a2/sign-up-390-dark.png, a2/sign-up-390-light.png) |
+| `/sign-up/email` | none, inherits the register | 2 fresh (a2/sign-up-email-390-dark.png, a2/sign-up-email-390-light.png) |
 | `/sign-up/verify` | none, inherits the register | 2 fresh (a2/sign-up-verify-390-dark.png, a2/sign-up-verify-390-light.png) |
 | `/start` | none, inherits the register | 2 fresh (a2/start-390-dark.png, a2/start-390-light.png) |
 | `/stories/[id]` | GOVERNING-flip-mid-turn.png | none |
-| `/stories/new` | none, inherits the register | 1 fresh (v4/story-new-390-dark.png) |
+| `/stories/new` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f4/story-new-390-dark.png, f4/story-new-390-light.png, v4/story-new-390-dark.png); rename it to `stories-new-...` to count it |
 | `/u` | none, inherits the register | none |
 | `/u/[handle]` | GOVERNING-feed-plus-bloom.png | none |
-| `/u/[handle]/edit` | none, inherits the register | 1 fresh (v4/edit-profile-390-dark.png) |
+| `/u/[handle]/edit` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f4/edit-profile-390-dark.png, f4/edit-profile-390-light.png, v4/edit-profile-390-dark.png); rename it to `u-edit-...` to count it |
 | `/u/[handle]/followers` | none, inherits the register | none |
 | `/u/[handle]/following` | none, inherits the register | none |
-| `/verification` | none, inherits the register | 1 fresh (v5/agent-verification-390-dark.png) |
+| `/verification` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
 | `/welcome` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
 
 ## V5 agent, host and admin
 
 | surface | governing reference | proof |
 | --- | --- | --- |
-| `/admin` | none, inherits the register | 4 fresh (v5/admin-businesses-390-dark.png, v5/admin-desks-390-dark.png, v5/admin-frame-390-dark.png, v5/admin-queue-390-dark.png) |
+| `/admin` | none, inherits the register | 3 fresh (v5/admin-desks-390-dark.png, v5/admin-frame-390-dark.png, v5/admin-queue-390-dark.png) |
 | `/admin/agents` | none, inherits the register | none |
 | `/admin/alerts` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
 | `/admin/audit` | none, inherits the register | **VOID**, 3 taken on the broken harness, must be retaken |
-| `/admin/bookings` | none, inherits the register | 1 fresh (v5/agent-bookings-390-dark.png) |
-| `/admin/bookings/[bookingId]` | none, inherits the register | 1 fresh (v5/agent-bookings-390-dark.png) |
-| `/admin/bookings/reservations` | none, inherits the register | 1 fresh (v5/host-reservations-390-dark.png) |
+| `/admin/bookings` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f3/bookings-390-dark.png, f3/bookings-390-light.png, f3/bookings-tenancy-390-dark.png, f3/bookings-tenancy-390-light.png, f5/agent-bookings-390-dark.png, v5/agent-bookings-390-dark.png); rename it to `admin-bookings-...` to count it |
+| `/admin/bookings/[bookingId]` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f3/bookings-390-dark.png, f3/bookings-390-light.png, f3/bookings-tenancy-390-dark.png, f3/bookings-tenancy-390-light.png, f5/agent-bookings-390-dark.png, v5/agent-bookings-390-dark.png); rename it to `admin-bookings-...` to count it |
+| `/admin/bookings/reservations` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (bd/reservations-390-dark.png, v5/host-reservations-390-dark.png); rename it to `admin-bookings-reservations-...` to count it |
 | `/admin/businesses` | none, inherits the register | 1 fresh (v5/admin-businesses-390-dark.png) |
 | `/admin/escrow` | none, inherits the register | none |
 | `/admin/examples` | none, inherits the register | none |
 | `/admin/fees` | none, inherits the register | none |
 | `/admin/flags` | none, inherits the register | none |
 | `/admin/kyc` | none, inherits the register | none |
-| `/admin/listings` | none, inherits the register | 1 fresh (v5/agent-listings-390-dark.png) |
+| `/admin/listings` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (f5/agent-listings-390-dark.png, v5/agent-listings-390-dark.png); rename it to `admin-listings-...` to count it |
 | `/admin/moderation` | none, inherits the register | none |
 | `/admin/money` | none, inherits the register | none |
-| `/admin/payments` | none, inherits the register | **VOID**, 3 taken on the broken harness, must be retaken |
-| `/admin/reference` | none, inherits the register | 1 fresh (w3/landing-1536-beside-reference.png) |
+| `/admin/payments` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (bd/payments-390-dark.png, e/payments-settings-390-dark.png, e/payments-settings-390-light.png); rename it to `admin-payments-...` to count it |
+| `/admin/reference` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (w3/landing-1536-beside-reference.png); rename it to `admin-reference-...` to count it |
 | `/admin/reports` | none, inherits the register | none |
 | `/admin/social` | none, inherits the register | none |
 | `/admin/standing` | none, inherits the register | none |
@@ -142,13 +142,14 @@ frontend scope is audited twice before it closes.
 | `/agent/listings/[listingId]/calendar` | none, inherits the register | 1 fresh (v5/agent-calendar-390-dark.png) |
 | `/agent/messages` | none, inherits the register | 1 fresh (v5/agent-messages-390-dark.png) |
 | `/agent/reviews` | none, inherits the register | 1 fresh (v5/agent-reviews-390-dark.png) |
-| `/agent/settings` | none, inherits the register | 5 fresh (v4/settings-390-dark.png, v4/settings-390-light.png, v4/settings-tile-doubling-before-2x.png, v4/settings-tile-single-after-2x.png, v5/agent-settings-390-dark.png) |
+| `/agent/settings` | none, inherits the register | 1 fresh (v5/agent-settings-390-dark.png) |
 | `/agent/verification` | none, inherits the register | 1 fresh (v5/agent-verification-390-dark.png) |
-| `/host` | none, inherits the register | 4 fresh (v5/host-landing-390-dark.png, v5/host-reservations-390-dark.png, v5/host-transfer-390-dark.png, v5/host-wizard-390-dark.png) |
+| `/host` | none, inherits the register | 1 fresh (v5/host-wizard-390-dark.png) |
 | `/host/apply` | none, inherits the register | none |
 | `/host/photos` | none, inherits the register | none |
 | `/host/reservations` | none, inherits the register | 1 fresh (v5/host-reservations-390-dark.png) |
 | `/host/rooms` | none, inherits the register | none |
+| `/host/start` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (a2/start-390-dark.png, a2/start-390-light.png); rename it to `host-start-...` to count it |
 | `/host/transfer` | none, inherits the register | 1 fresh (v5/host-transfer-390-dark.png) |
 
 ## site, the lead
@@ -162,11 +163,11 @@ frontend scope is audited twice before it closes.
 | `/contact` | none, inherits the register | 2 fresh (a2/contact-390-dark.png, a2/contact-390-light.png) |
 | `/delete-account` | none, inherits the register | 2 fresh (a2/delete-account-390-dark.png, a2/delete-account-390-light.png) |
 | `/docs` | none, inherits the register | 2 fresh (a2/docs-390-dark.png, a2/docs-390-light.png) |
-| `/docs/[slug]` | none, inherits the register | 2 fresh (a2/docs-390-dark.png, a2/docs-390-light.png) |
+| `/docs/[slug]` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (a2/docs-390-dark.png, a2/docs-390-light.png); rename it to `docs-...` to count it |
 | `/eula` | none, inherits the register | none |
 | `/help` | none, inherits the register | 2 fresh (a2/help-390-dark.png, a2/help-390-light.png) |
-| `/legal/privacy` | none, inherits the register | 2 fresh (a2/privacy-390-dark.png, a2/privacy-390-light.png) |
-| `/legal/terms` | none, inherits the register | 2 fresh (a2/terms-390-dark.png, a2/terms-390-light.png) |
+| `/legal/privacy` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (a2/privacy-390-dark.png, a2/privacy-390-light.png); rename it to `legal-privacy-...` to count it |
+| `/legal/terms` | none, inherits the register | **AMBIGUOUS**, the name does not carry this whole path (a2/terms-390-dark.png, a2/terms-390-light.png); rename it to `legal-terms-...` to count it |
 | `/offline` | none, inherits the register | none |
 | `/privacy` | none, inherits the register | 2 fresh (a2/privacy-390-dark.png, a2/privacy-390-light.png) |
 | `/safety` | none, inherits the register | 2 fresh (a2/safety-390-dark.png, a2/safety-390-light.png) |
@@ -176,11 +177,14 @@ frontend scope is audited twice before it closes.
 
 ## The count
 
-- 75 surfaces carry at least one proof taken on the honest harness.
-- 18 surfaces carry only void proofs and must be retaken.
+- 51 surfaces carry at least one proof taken on the honest harness.
+- 16 surfaces carry only void proofs and must be retaken.
+- 27 surfaces have a proof whose name reaches their last segment but not their whole path, and are counted as unproven until it is renamed.
 - 38 surfaces have no proof at all.
 
-A proof is matched to a surface by the last real segment of its route appearing in the
-file name, so a proof named for something else will not be counted even if it shows the
-right screen. That is deliberate: the register undercounts rather than overcounts, because
-a register that flatters the sweep is worse than no register.
+A proof is matched to a surface by EVERY non-parameter segment of its route appearing in
+the file name as a consecutive run, so a proof named for something else will not be counted
+even if it shows the right screen, and `privacy-390-dark.png` proves `/privacy` without also
+being credited to `/legal/privacy` and `/settings/privacy`, which nobody has photographed.
+That is deliberate: the register undercounts rather than overcounts, because a register
+that flatters the sweep is worse than no register.
