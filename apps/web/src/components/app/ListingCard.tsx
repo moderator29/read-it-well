@@ -46,6 +46,7 @@ function fractionClass(minorUnits: number, whenKobo: string): string {
 const FACT_ICON: Record<string, UiIconName> = {
   beds: "bed",
   baths: "bath",
+  parking: "parking",
   size: "grid",
   kind: "house",
   instant: "bolt",
