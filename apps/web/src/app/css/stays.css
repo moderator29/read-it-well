@@ -1,0 +1,677 @@
+/*
+ * ===========================================================================
+ * THE STAYS SET-UP, DRAWN AS `GOVERNING-10` AND `GOVERNING-11` DRAW IT.
+ * ===========================================================================
+ *
+ * Six panels were governed by an image and none of them existed. A hotel got a
+ * generic property step, a shortlet got the same one with a hotel's questions
+ * on it, and a restaurant got a textarea for its cuisines. This file is the
+ * material those six panels are made of: the lit plate with its label inside
+ * it, the tile with its tick, the joined stepper, the rule row with its round
+ * glyph, the meal-plan list with its hairlines, the day row, the band.
+ *
+ * WHY A FILE OF ITS OWN. Six agents are in this tree and the unit of collision
+ * is the file, so the ledger gave the stays stylesheet one owner. Nothing here
+ * edits `tokens.css`, `buttons.css`, `chips.css`, `glass.css`, `light.css`,
+ * `chrome.css`, `controls.css` or `catalogue.css`, and nothing here edits
+ * `agent.css`, whose `nf-host-*` register this file deliberately INHERITS
+ * rather than restates: the plate below is the same well, the same
+ * `--nf-brand-edge`, the same `--nf-rim-lit` and the same single soft bloom as
+ * `.nf-host-group`, because the render draws one container anatomy across all
+ * twelve images and a second recipe for the same object is how two surfaces
+ * drift apart.
+ *
+ * THE SHAPE LAW, WHICH OUTRANKS THE RENDER AND IS APPLIED HERE THREE TIMES.
+ * A control carrying text is a rounded rectangle on `--nf-radius-control`,
+ * never a capsule, measured as drawn radius over drawn short side with 0.5 and
+ * above being a capsule. So `.nf-stays-chip` (a cuisine), `.nf-stays-band` (a
+ * price band) and `.nf-stays-tile` (a place type, a cancellation policy) are
+ * all `--nf-radius-control` however round the render drew them. The two round
+ * things that stay round carry NO text and are therefore outside the law: the
+ * switch's track, which is the platform's own `Switch` primitive and is not
+ * restyled here, and `.nf-stays-glyph`, a bare mark on a ring.
+ *
+ * Everything is inside `@layer components` so Tailwind's utilities stay
+ * authoritative over it, and every value is a layer two token.
+ */
+
+@layer components {
+  /* ------------------------------------------------------------ the header */
+
+  /*
+   * THE STEP HEAD, as all eight stays screens draw it: the way back at the
+   * left, and the progress segments on the same line beside it rather than
+   * under the title. That single line is most of what makes these screens read
+   * as one flow, and the wizard's own head put the count above a full-width bar
+   * instead.
+   *
+   * THE SEGMENTS ARE NOT A CONTROL AND CARRY NO TEXT, so they keep the pill
+   * radius the render draws them with. The count of them is the flow's real
+   * count and never the render's four: a bar that promises four steps to
+   * somebody who is going to be asked for ten is a lie told in geometry.
+   */
+  .nf-stays-head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-stays-head__track {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-stays-head__seg {
+    height: 0.625rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-1);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+  }
+  .nf-stays-head__seg[data-done="true"] {
+    background: linear-gradient(180deg, var(--nf-brand-primary), var(--nf-brand-primary-strong));
+    border-color: var(--nf-brand-edge-strong);
+  }
+  .nf-stays-head__seg[data-at="true"] {
+    box-shadow: 0 0 12px var(--nf-glow-3);
+  }
+  .nf-stays-title {
+    margin-top: var(--nf-space-md);
+    font-family: var(--nf-font-display);
+    font-weight: 800;
+    font-size: var(--nf-text-h2);
+    line-height: 1.1;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-stays-hint {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+
+  /* -------------------------------------------------------------- the hero */
+
+  /*
+   * THE GLASS OBJECT AT THE TOP OF A SET-UP SCREEN.
+   *
+   * `GOVERNING-10` screen one floats the hotel on the canvas with no container
+   * at all, which is deliberate in the render and worth keeping: a lit object
+   * inside a lit plate is two rims fighting. `--inline` is the restaurant's
+   * variant, where the object sits beside the heading instead of over it.
+   */
+  /*
+   * A BLOCK AND NOT A CENTRING GRID, AND THE REASON IS A MEASUREMENT.
+   *
+   * This was `display: grid; place-items: center`, and the object came back
+   * from the browser at 128px where `min(15rem, 62%)` should have given 212.
+   * A grid column sized `auto` takes its width from its item's max-content,
+   * and an item whose own width is a PERCENTAGE of that column is circular:
+   * the browser resolves it against the intrinsic size of the artwork instead
+   * of against the row. A block establishes a definite containing block, so
+   * the percentage means what it says, and `margin-inline: auto` centres it.
+   */
+  .nf-stays-hero {
+    display: block;
+    margin-top: var(--nf-space-lg);
+  }
+  .nf-stays-hero__object {
+    /*
+     * `display: block` IS LOAD BEARING AND IT WAS MISSING. `BrandIcon fill`
+     * sizes itself to its parent, and an inline `span` has no height to give
+     * it: the first shot of `GOVERNING-10` screen one came back with a 100px
+     * hotel where the render draws it at well over half the width, and the
+     * `aspect-ratio` above did nothing at all on an inline box.
+     */
+    display: block;
+    width: min(15rem, 62%);
+    margin-inline: auto;
+    aspect-ratio: 1 / 1;
+  }
+  .nf-stays-hero--inline {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-md);
+  }
+  .nf-stays-hero--inline .nf-stays-hero__object {
+    width: 5.5rem;
+    margin-inline: 0;
+    flex: 0 0 auto;
+  }
+
+  /* ------------------------------------------------------------- the plate */
+
+  /*
+   * THE LABELLED PLATE, which is the unit these six screens are built from:
+   * one lit well, the field's name small inside it at the top, and the value
+   * on its own inner plate under that. The label is INSIDE the container in
+   * every one of the twelve renders and outside it everywhere in the current
+   * product, which is most of why the built screens did not read as the drawn
+   * ones.
+   */
+  .nf-stays-plate {
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-md);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-1);
+  }
+  .nf-stays-plate__label {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-stays-plate__note {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * The inner plate a value sits on. Deeper than the well it is set into, so
+   * the two read as a box inside a box rather than as one flat field, which is
+   * exactly what the render draws.
+   */
+  .nf-stays-input,
+  .nf-stays-select {
+    display: block;
+    width: 100%;
+    min-height: var(--nf-pad-field-affordance);
+    margin-top: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill-deep);
+    box-shadow: var(--nf-rim-lit);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+  }
+  .nf-stays-select {
+    /*
+     * The render draws a chevron at the right of every select. A native select
+     * is kept (it is the only control that gets a phone's own wheel, which is
+     * the difference between a Nigerian host on a 4 inch screen finishing this
+     * step and abandoning it), so the chevron is painted as a background mark
+     * built from the border colour rather than as an overlaid element.
+     */
+    appearance: none;
+    padding-right: var(--nf-pad-field-affordance);
+    /*
+     * THE WELL IS RESTATED IN THIS LIST AND THAT IS NOT A DUPLICATE. The rule
+     * above paints the plate with `background`, whose image layer is
+     * `--nf-well-fill-deep`. Setting `background-image` here would REPLACE that
+     * layer, leaving every select on these screens with a chevron and no fill,
+     * which is the same silent-drop family as `.nf-rows-sheet` painting
+     * `background: var(--nf-elev-3)` and rendering transparent. The well is
+     * therefore the last layer of the list rather than a second declaration.
+     */
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--nf-content-secondary) 50%),
+      linear-gradient(135deg, var(--nf-content-secondary) 50%, transparent 50%),
+      var(--nf-well-fill-deep);
+    background-position:
+      calc(100% - 1.125rem) calc(50% - 1px),
+      calc(100% - 0.75rem) calc(50% - 1px),
+      0 0;
+    background-size:
+      0.375rem 0.375rem,
+      0.375rem 0.375rem,
+      auto;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+  }
+  /*
+   * A SELECT THAT ANSWERS A ROW rather than filling a plate: it sits at the
+   * row's right and takes only the width its longest option needs.
+   *
+   * IT IS DECLARED AFTER `.nf-stays-select` AND THAT ORDER IS THE RULE, not a
+   * convenience. Both selectors are one class, so they carry equal specificity
+   * and the later one wins; written above, its `width: auto` lost to the
+   * base rule's `width: 100%` and the variant did nothing at all.
+   */
+  .nf-stays-select--inline {
+    width: auto;
+    max-width: 11rem;
+    margin-top: 0;
+  }
+  .nf-stays-input:focus-visible,
+  .nf-stays-select:focus-visible {
+    outline: var(--nf-border-width-strong) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ------------------------------------------------------------- the rows */
+
+  /*
+   * A ROW INSIDE A PLATE: a name on the left, an answer and a chevron on the
+   * right. The address row of `GOVERNING-10` screen one and `GOVERNING-11`
+   * screen three, and the "Cancel up to" row of `GOVERNING-10` screen three.
+   */
+  .nf-stays-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: var(--nf-pad-field-affordance);
+    padding: var(--nf-space-xs) 0;
+    text-align: left;
+    color: inherit;
+  }
+  .nf-stays-row__value {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  .nf-stays-row__meta {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * A LIST OF ROWS ON ITS OWN INNER PLATE, separated by hairlines and not by
+   * borders: the meal-plan list of `GOVERNING-10` screen three and the day
+   * list of `GOVERNING-11` screen four are both drawn as one plate with a
+   * single line between rows, never as a stack of boxes.
+   */
+  .nf-stays-list {
+    margin-top: var(--nf-space-xs);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill-deep);
+    box-shadow: var(--nf-rim-lit);
+    overflow: hidden;
+  }
+  .nf-stays-list > * + * {
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+  }
+  .nf-stays-list .nf-stays-row {
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+  }
+
+  /* ---------------------------------------------------------- the steppers */
+
+  /*
+   * TWO STEPPERS ARE DRAWN AND BOTH ARE BUILT, because they are drawn on
+   * different questions. `GOVERNING-10` screen one joins minus and plus into
+   * one object at the right of a plate whose value is already printed on the
+   * left. `GOVERNING-11` screen one and `GOVERNING-11` screen four put the
+   * value BETWEEN them, because those rows have no other place for it.
+   */
+  .nf-stays-stepper {
+    display: flex;
+    align-items: stretch;
+    flex: 0 0 auto;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill-deep);
+    box-shadow: var(--nf-rim-lit);
+    overflow: hidden;
+  }
+  .nf-stays-stepper__btn {
+    display: grid;
+    place-items: center;
+    width: var(--nf-pad-field-affordance);
+    min-height: var(--nf-pad-field-affordance);
+    color: var(--nf-brand-secondary);
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-stays-stepper__btn:hover:not(:disabled) {
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-stays-stepper__btn:disabled {
+    color: var(--nf-content-muted);
+  }
+  .nf-stays-stepper__btn + .nf-stays-stepper__btn,
+  .nf-stays-stepper__value + .nf-stays-stepper__btn {
+    border-left: var(--nf-border-width) solid var(--nf-brand-edge);
+  }
+  .nf-stays-stepper__value {
+    display: grid;
+    place-items: center;
+    min-width: 3rem;
+    padding-inline: var(--nf-space-xs);
+    border-left: var(--nf-border-width) solid var(--nf-brand-edge);
+    font-size: var(--nf-text-body);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------- the tiles */
+
+  /*
+   * THE TILE, which is the render's way of asking a question with three or
+   * four answers: a glass mark, a word, a tick when it is the one chosen. The
+   * place types of `GOVERNING-11` screen one, the cancellation policies of
+   * screen two, the price bands of screen three.
+   *
+   * SHAPE LAW: it carries text, so `--nf-radius-control`, and at a 14px radius
+   * on a tile whose short side is never under 56px the ratio stays a quarter
+   * or less however wide the grid gets.
+   */
+  .nf-stays-tiles {
+    display: grid;
+    grid-template-columns: repeat(var(--nf-stays-tile-cols, 3), minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-stays-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    min-height: 3.5rem;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill-deep);
+    box-shadow: var(--nf-rim-lit);
+    text-align: left;
+    color: var(--nf-content-secondary);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-stays-tile[aria-pressed="true"],
+  .nf-stays-tile[aria-checked="true"] {
+    border-color: var(--nf-brand-edge-strong);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-primary);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 22px var(--nf-glow-3);
+  }
+  .nf-stays-tile__mark {
+    display: block;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-stays-tile__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-stays-tile__meta {
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+  }
+  /* The tick badge at the tile's top right, drawn only on the chosen one. */
+  .nf-stays-tile__tick {
+    position: absolute;
+    top: var(--nf-space-xs);
+    right: var(--nf-space-xs);
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  /*
+   * THE TICK NEVER LANDS ON A WORD. A tile with no mark above its title puts
+   * that title at the top left, exactly where the badge sits, and the first
+   * shot had the badge over the "e" of Flexible. Only the chosen tile carries
+   * a badge, so only the chosen tile gives up the room.
+   */
+  .nf-stays-tile[aria-checked="true"] .nf-stays-tile__title,
+  .nf-stays-tile[aria-pressed="true"] .nf-stays-tile__title {
+    padding-right: 1.25rem;
+  }
+
+  /* The band tile is a single centred mark and nothing else. */
+  .nf-stays-tile--band {
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+    /* Four naira marks wrapped onto two lines in the first shot. A band is one
+       word made of repeated marks and it never breaks. */
+    white-space: nowrap;
+  }
+
+  /* ------------------------------------------------------------- the chips */
+
+  /*
+   * THE CUISINE CHIP of `GOVERNING-11` screen three. Its own class rather than
+   * `.nf-chip`, because `chips.css` has one owner this stint and is not mine
+   * to change, and because the render's chip is a rounded rectangle at roughly
+   * a third of its height while the platform's chip is a pill.
+   *
+   * THE RENDER PUTS A CHEVRON INSIDE THE CHOSEN CHIPS. It is not drawn here: a
+   * chevron on a chip says the chip opens something, and it does not. The
+   * chosen state is the lit fill the render also draws.
+   */
+  .nf-stays-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-stays-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--nf-pad-field-affordance);
+    padding: var(--nf-pad-chip-block) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill-deep);
+    box-shadow: var(--nf-rim-lit);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-stays-chip[aria-pressed="true"] {
+    background: linear-gradient(180deg, var(--nf-brand-primary), var(--nf-brand-primary-strong));
+    border-color: var(--nf-brand-edge-strong);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-3);
+  }
+
+  /* ------------------------------------------------- the rule and day rows */
+
+  /*
+   * THE RULE ROW of `GOVERNING-11` screen two: a round outlined glyph, the
+   * rule in plain words, and the switch. Each rule is its own plate in the
+   * render rather than four rows in one well, which is the right call for a
+   * set of four independent yes-or-no answers.
+   */
+  .nf-stays-rule {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: 3.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 14px var(--nf-glow-1);
+  }
+  .nf-stays-rule__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+  /*
+   * The small round glyph the whole reference set carries. It holds a mark and
+   * never a word, which is why it is the one object on these screens the shape
+   * law leaves round.
+   */
+  .nf-stays-glyph {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill-deep);
+    box-shadow: var(--nf-rim-lit);
+  }
+
+  /* The day row of `GOVERNING-11` screen four: name, hours, switch. */
+  .nf-stays-day {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+  }
+  /*
+   * THE DAY ROW IS TUNED AT 390 FIRST AND THAT IS WHERE IT WAS WRONG. The
+   * first shot wrapped "8:00 AM to 11:00 PM" onto two lines on every one of
+   * the seven rows, which is not what `GOVERNING-11` screen four draws and is
+   * not what a week reads like. The name is narrower and the hours never
+   * break; both widen again at 40rem, where there is room.
+   */
+  .nf-stays-day__name {
+    flex: 0 0 4.75rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-stays-day__hours {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: var(--nf-text-caption);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+
+  /* -------------------------------------------------------- the rate card */
+
+  /*
+   * THE ROOM CARD of `GOVERNING-10` screen three: a thumbnail and a name at
+   * the top, then the meal-plan list, then the cancellation rows, all inside
+   * ONE outer plate per room type. The card is the room; everything inside it
+   * is that room's money.
+   */
+  .nf-stays-card {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-2xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 18px var(--nf-glow-1),
+      var(--nf-bloom-card);
+  }
+  .nf-stays-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-md);
+  }
+  .nf-stays-card__title {
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  /*
+   * The thumbnail. `GOVERNING-10` draws a photograph of the room itself, and
+   * `room_types` has no photographs: the only stay imagery this database holds
+   * hangs on the accommodation. So the property's cover is used when there is
+   * one and the room's glass mark when there is not, and neither invents a
+   * picture of a room nobody has photographed.
+   */
+  .nf-stays-thumb {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    flex: 0 0 auto;
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill-deep);
+    box-shadow: var(--nf-rim-lit);
+    overflow: hidden;
+  }
+  .nf-stays-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The price on a meal-plan row: the figure, then the unit, quieter. */
+  .nf-stays-price {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-stays-price__unit {
+    margin-left: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------ the calm panel */
+
+  /*
+   * THE CALM EXPLANATORY PANEL the whole reference set carries at the foot of
+   * a screen: the round glyph, and one honest sentence about what the screen
+   * just did. It is the only place on these six panels where a limit gets
+   * stated, and stating it is the point.
+   */
+  .nf-stays-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
+  }
+  .nf-stays-note__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The star rating of `GOVERNING-10` screen one: five marks, four lit. */
+  .nf-stays-stars {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    color: var(--nf-brand-secondary);
+  }
+
+  /* --------------------------------------------------------- wider screens */
+
+  /*
+   * 390 FIRST, THEN WIDER. Nothing above assumes a phone except the tile grid,
+   * which has room for the meaning line under each title once there is more
+   * than a phone's width to put it in.
+   */
+  @media (min-width: 40rem) {
+    .nf-stays-tile {
+      min-height: 4rem;
+    }
+    .nf-stays-day__name {
+      flex-basis: 7rem;
+      font-size: var(--nf-text-body-sm);
+    }
+    .nf-stays-day__hours {
+      font-size: var(--nf-text-body-sm);
+    }
+  }
+}

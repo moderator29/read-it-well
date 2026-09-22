@@ -67,16 +67,24 @@ export default async function HostApplyPage({
 
   const [draft, policiesRead] = await Promise.all([
     getMyHostDraft(),
-    session.supabase.from("cancellation_policies").select("id, name, summary").order("name").limit(20),
+    session.supabase
+      .from("cancellation_policies")
+      /* `is_free_until_hours` is what `GOVERNING-10` screen three's "Free
+         cancellation" switch and its "Cancel up to" row are made of. Null
+         means never free. */
+      .select("id, name, summary, is_free_until_hours")
+      .order("name")
+      .limit(20),
   ]);
   const policies: PolicyOption[] = (policiesRead.data ?? []).map((row) => ({
     id: row.id,
     name: row.name,
     summary: row.summary,
+    isFreeUntilHours: row.is_free_until_hours,
   }));
 
   return (
-    <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
+    <HostShell logoLabel={t.a11y.logoHome} fallback="/host" chromeBack={false}>
       <HostWizard
         initial={draft}
         userId={session.user.id}

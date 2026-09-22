@@ -80,6 +80,13 @@
 @import "./css/threads.css";
 @import "./css/admin.css";
 @import "./css/agent.css";
+/*
+ * The stays set-up screens of `GOVERNING-10` and `GOVERNING-11`: the labelled
+ * plate, the tile, the stepper, the rule row, the meal-plan list, the day row.
+ * Sits directly after agent.css because it INHERITS that file's `nf-host-*`
+ * register rather than restating it, and must therefore cascade after it.
+ */
+@import "./css/stays.css";
 @import "./css/wallet.css";
 @import "./css/crypto.css";
 @import "./css/system.css";

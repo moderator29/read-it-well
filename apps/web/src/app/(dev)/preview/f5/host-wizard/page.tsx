@@ -16,7 +16,14 @@ export default async function PreviewHostWizard() {
       <HostWizard
         initial={{ ...emptyHostDraft(), hostType: "business", kind: "hotel" }}
         userId={PERSON.id}
-        policies={[{ id: "00000000-0000-4000-8000-00000000e001", name: "Flexible", summary: "Free until 24 hours before" }]}
+        policies={[
+          {
+            id: "00000000-0000-4000-8000-00000000e001",
+            name: "Flexible",
+            summary: "Free until 24 hours before",
+            isFreeUntilHours: 24,
+          },
+        ]}
         locale={locale}
       />
     </HostShell>

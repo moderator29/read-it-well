@@ -3,28 +3,20 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { SelectField, TextArea, TextField } from "@/components/ui/Field";
-import { SegmentedProgress } from "@/components/ui/Progress";
 import { TYPE } from "@/components/app/Screen";
 import type { ActionResult } from "@/lib/actions/envelope";
-import {
-  addAccommodationDraft,
-  addRatePlanDraft,
-  addRoomTypeDraft,
-  addServiceWindowDraft,
-  saveHostDraft,
-  setRestaurantProfileDraft,
-  submitHostApplication,
-} from "@/lib/host/actions";
+import { saveHostDraft, submitHostApplication } from "@/lib/host/actions";
 import {
   BUSINESS_SECTIONS,
   CONSENTS,
   HOST_TYPE_DEFINITIONS,
   HOST_TYPES,
+  branchFor,
   hostsAccommodation,
   missingFrom,
   progressLabel,
@@ -43,8 +35,15 @@ import {
   resolveBankAccount,
 } from "@/lib/payments/bank-accounts-actions";
 import { HostDocumentUploader } from "./HostDocumentUploader";
-import { AccommodationPhotoManager } from "./AccommodationPhotoManager";
-import { FacilitiesPicker } from "./FacilitiesPicker";
+import { FacilitiesStep } from "./stays/FacilitiesStep";
+import { HotelStep } from "./stays/HotelStep";
+import { HouseRulesStep } from "./stays/HouseRulesStep";
+import { PlaceStep } from "./stays/PlaceStep";
+import { RatesStep } from "./stays/RatesStep";
+import { RestaurantStep } from "./stays/RestaurantStep";
+import { RoomTypesStep } from "./stays/RoomTypesStep";
+import { StaysHead } from "./stays/StaysParts";
+import { TablesStep } from "./stays/TablesStep";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -69,7 +68,20 @@ import { FacilitiesPicker } from "./FacilitiesPicker";
  * refuses with the list of what is missing, printed word for word.
  */
 
-export type PolicyOption = { id: string; name: string; summary: string };
+/**
+ * A cancellation policy a rate or a property may name.
+ *
+ * `isFreeUntilHours` rides along because `GOVERNING-10` screen three draws a
+ * switch called "Free cancellation" and a row that says how long it lasts, and
+ * `cancellation_policies.is_free_until_hours` is the only thing in this
+ * database that knows either. Null means a policy is never free.
+ */
+export type PolicyOption = {
+  id: string;
+  name: string;
+  summary: string;
+  isFreeUntilHours: number | null;
+};
 
 type Notice = { tone: "ok" | "error"; text: string } | null;
 
@@ -91,23 +103,13 @@ const TYPE_MARK: Record<HostType, BrandIconName> = {
   restaurant: "concierge-bell",
 };
 
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-const ROOM_CATEGORIES = [
-  { value: "single", label: "Single" },
-  { value: "double", label: "Double" },
-  { value: "twin", label: "Twin" },
-  { value: "suite", label: "Suite" },
-  { value: "family", label: "Family" },
-  { value: "dorm", label: "Dorm" },
-] as const;
-
-const MEAL_PLANS = [
-  { value: "room_only", label: "Room only" },
-  { value: "breakfast", label: "Breakfast included" },
-  { value: "half_board", label: "Half board" },
-  { value: "full_board", label: "Full board" },
-] as const;
+/*
+ * THE WEEKDAYS, THE ROOM CATEGORIES AND THE MEAL PLANS HAVE MOVED OUT OF THIS
+ * FILE. They were three lists typed into a component beside three forms that
+ * `GOVERNING-10` and `GOVERNING-11` replace; the lists themselves are now in
+ * `lib/host/stays-setup.ts`, pure and tested, beside the note saying which
+ * database enum each one has to agree with.
+ */
 
 /** The text fields of the draft, which is what the device keeps between saves. */
 type TextKeys =
@@ -143,12 +145,6 @@ function writeLocal(draft: LocalDraft) {
   } catch {
     /* Storage unavailable: the server draft still carries every save. */
   }
-}
-
-/** Naira typed in a box to integer kobo, once, at the boundary. */
-function toKobo(naira: string): number {
-  const value = Number.parseFloat(naira.replace(/[^0-9.]/g, ""));
-  return Number.isFinite(value) && value > 0 ? Math.round(value * 100) : 0;
 }
 
 export function HostWizard({
@@ -190,6 +186,20 @@ export function HostWizard({
   const [pending, start] = useTransition();
   const [notice, setNotice] = useState<Notice>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  /*
+   * THE HOTEL'S STATED TOTAL, WHICH HAS NO COLUMN ANYWHERE IN THIS DATABASE.
+   *
+   * `GOVERNING-10` screen one asks a hotelier how many rooms they have, and
+   * `accommodations` has nowhere to put the answer: the only room count this
+   * platform holds is the sum of `room_types.units_total`, which does not
+   * exist until screen two. So the number is held here, for the length of the
+   * flow, and SPENT on screen two as the first room type's unit count. Both
+   * screens say so on the screen itself rather than leaving somebody to find
+   * out. It is deliberately not written to the device's draft either: a number
+   * that survives a reload but never reaches the server is the worst of the
+   * three states, because it looks saved.
+   */
+  const [expectedRooms, setExpectedRooms] = useState(1);
 
   /* The device's copy of the typed fields, merged UNDER the server's: a
      field the server holds is the truth, a field it does not is what was
@@ -208,7 +218,12 @@ export function HostWizard({
     });
   }, []);
 
-  const steps = useMemo(() => stepsFor(draft.hostType), [draft.hostType]);
+  /*
+   * THE STEP LIST NOW DEPENDS ON THE KIND AS WELL AS THE HOST TYPE, because a
+   * shortlet operator and a hotelier are both accommodation hosts and
+   * `GOVERNING-10` and `GOVERNING-11` ask them entirely different questions.
+   */
+  const steps = useMemo(() => stepsFor(draft.hostType, draft.kind), [draft.hostType, draft.kind]);
   const step = steps[Math.min(at, steps.length - 1)]!;
   const submitted = draft.status === "SUBMITTED";
 
@@ -296,8 +311,20 @@ export function HostWizard({
   );
 
   const forward = () => setAt((i) => Math.min(steps.length - 1, i + 1));
+  /*
+   * ONE BACK CONTROL, AND IT WALKS OUT OF THE FLOW AT THE TOP OF IT.
+   *
+   * The drawn head carries the only way back on these screens, so on the first
+   * step it cannot simply be absent: a person who opened the wizard by mistake
+   * would have nothing to press. It leaves for the host's own landing, which
+   * is the declared parent of this route, rather than calling history back.
+   */
   const back = () => {
     setNotice(null);
+    if (at === 0) {
+      router.push("/host");
+      return;
+    }
     setAt((i) => Math.max(0, i - 1));
   };
 
@@ -336,12 +363,38 @@ export function HostWizard({
 
   if (submitted) return <Sent businessName={draft.name} />;
 
+  /*
+   * THE HEAD IS THE RENDER'S, FOR EVERY STEP AND NOT ONLY THE DRAWN ONES.
+   *
+   * `GOVERNING-09` through `GOVERNING-11` draw one head on every stays screen:
+   * the way back at the left, the progress segments on the SAME LINE beside
+   * it, then the question in display type and one sentence under it. What was
+   * here was a "Step 4 of 9" caption over a full width bar, with Back at the
+   * very bottom of the page under the fold. Two heads in one flow would be
+   * worse than either, so the drawn one is used throughout.
+   *
+   * THE SEGMENT COUNT IS `steps.length` AND NEVER THE RENDER'S FOUR. Each
+   * image shows a four-screen set-up; the real application also asks for an
+   * identity document, a payout account and three consents. Drawing four
+   * segments would promise a shorter flow than the person is going to get.
+   */
+  const drawn = DRAWN_STAYS_STEPS.has(step.id);
+
   return (
     <div>
-      <p className="nf-host-step__count">{progressLabel(at, steps.length)}</p>
-      <SegmentedProgress steps={steps.length} current={at + 1} label={progressLabel(at, steps.length)} />
-      <h1 className="nf-host-step__title">{step.title}</h1>
-      <p className="nf-host-step__hint">{step.hint}</p>
+      <StaysHead
+        /*
+         * `GOVERNING-11` screen three is the one drawn screen whose heading is
+         * beside the glass object rather than over the fields, so the panel
+         * draws its own and the head draws only the way back and the segments.
+         */
+        title={step.id === "restaurant" ? undefined : step.title}
+        hint={step.id === "restaurant" ? undefined : step.hint}
+        steps={steps.length}
+        current={at + 1}
+        label={progressLabel(at, steps.length)}
+        onBack={back}
+      />
 
       <div className="mt-lg flex flex-col gap-md" key={step.id}>
         <StepBody
@@ -356,6 +409,9 @@ export function HostWizard({
           run={run}
           saveText={saveText}
           setNotice={setNotice}
+          expectedRooms={expectedRooms}
+          onExpectedRooms={setExpectedRooms}
+          advance={forward}
           goTo={(id) => {
             const index = steps.findIndex((s) => s.id === id);
             if (index >= 0) setAt(index);
@@ -372,18 +428,30 @@ export function HostWizard({
         </p>
       )}
 
-      <div className="nf-host-foot">
-        {at > 0 && (
-          <Button variant="secondary" size="lg" onClick={back} disabled={pending}>
-            Back
-          </Button>
-        )}
-        {step.id !== "review" && (
-          <Button variant="primary" size="lg" onClick={next} disabled={!canAdvance || pending} loading={pending}>
-            Next
-          </Button>
-        )}
-      </div>
+      {/*
+        THE FOOT IS ONLY FOR THE STEPS THAT ARE NOT DRAWN. Every drawn panel
+        ends in its own Continue, inside the screen, because that is where the
+        render puts it and because a save and an advance are one act to the
+        person pressing it. Drawing a second forward control under one of them
+        would be two buttons for one intention.
+      */}
+      {!drawn && (
+        <div className="nf-host-foot">
+          {step.id !== "review" && (
+            <Button
+              variant="primary"
+              size="lg"
+              full
+              trailingIcon="chevron-right"
+              onClick={next}
+              disabled={!canAdvance || pending}
+              loading={pending}
+            >
+              Continue
+            </Button>
+          )}
+        </div>
+      )}
       <p className="nf-host-saved">
         <UiIcon name="verified" size={12} />
         {draft.businessId ? "Saved to your application as you go." : "Kept on this device until the business step saves."}
@@ -407,7 +475,30 @@ type StepProps = {
   saveText: (extra?: Record<string, unknown>, then?: () => void) => void;
   setNotice: (notice: Notice) => void;
   goTo: (id: HostStepId) => void;
+  /** Move on. Every drawn panel owns its own Continue and calls this. */
+  advance: () => void;
+  /** The hotel's stated total, held by the wizard. See its declaration. */
+  expectedRooms: number;
+  onExpectedRooms(next: number): void;
 };
+
+/**
+ * THE EIGHT STEPS `GOVERNING-10` AND `GOVERNING-11` DRAW.
+ *
+ * A set rather than a list of cases, because two things have to agree about
+ * it: `StepBody` renders the drawn panel, and the wizard's foot must NOT then
+ * draw a second forward control under a panel that already has one.
+ */
+const DRAWN_STAYS_STEPS = new Set<HostStepId>([
+  "hotel",
+  "room-types",
+  "rates",
+  "place",
+  "house-rules",
+  "facilities",
+  "restaurant",
+  "tables",
+]);
 
 function StepBody(props: StepProps) {
   switch (props.step) {
@@ -419,12 +510,27 @@ function StepBody(props: StepProps) {
       return <RegistrationStep {...props} />;
     case "representative":
       return <RepresentativeStep {...props} />;
-    case "property":
-      return <PropertyStep {...props} />;
-    case "rooms":
-      return <RoomsStep {...props} />;
-    case "service":
-      return <ServiceStep {...props} />;
+    case "hotel":
+      return <HotelStep {...props} />;
+    case "room-types":
+      return <RoomTypesStep {...props} />;
+    case "rates":
+      return <RatesStep {...props} />;
+    case "place":
+      return <PlaceStep {...props} />;
+    case "house-rules":
+      return <HouseRulesStep {...props} />;
+    case "facilities":
+      return <FacilitiesStep {...props} />;
+    case "restaurant":
+      return (
+        <>
+          <RestaurantStep {...props} />
+          <HygieneAttestation {...props} />
+        </>
+      );
+    case "tables":
+      return <TablesStep {...props} />;
     case "payout":
       return <PayoutStep {...props} />;
     case "consent":
@@ -621,402 +727,38 @@ function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
   );
 }
 
-function PropertyStep({ draft, userId, policies, pending, fieldErrors, run, setNotice }: StepProps) {
-  const [name, setName] = useState(draft.accommodation?.name ?? "");
-  const [description, setDescription] = useState("");
-  const [stars, setStars] = useState("");
-  const [checkIn, setCheckIn] = useState("14:00");
-  const [checkOut, setCheckOut] = useState("11:00");
-  const [rules, setRules] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
-  const [policy, setPolicy] = useState(policies[0]?.id ?? "");
-
-  const locate = () => {
-    if (!("geolocation" in navigator)) {
-      setNotice({ tone: "error", text: "This device cannot share its location. Type the coordinates instead." });
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLat(position.coords.latitude.toFixed(6));
-        setLng(position.coords.longitude.toFixed(6));
-      },
-      () => setNotice({ tone: "error", text: "Location was not shared. Type the coordinates instead." }),
-      { enableHighAccuracy: true, timeout: 10_000 },
-    );
-  };
-
-  const save = () =>
-    run(
-      () =>
-        addAccommodationDraft({
-          name,
-          ...(description ? { description } : {}),
-          starRating: stars ? Number(stars) : null,
-          checkInFrom: checkIn,
-          checkOutBy: checkOut,
-          ...(rules ? { houseRules: rules } : {}),
-          ...(lat && lng ? { latitude: Number(lat), longitude: Number(lng) } : {}),
-          ...(policy ? { cancellationPolicyId: policy } : {}),
-        }),
-      () => setNotice({ tone: "ok", text: "The property is saved." }),
-    );
-
+/**
+ * THE HEALTH PERMIT ATTESTATION.
+ *
+ * It lived at the foot of the old "Service and seating" step, which
+ * `GOVERNING-11` replaces with two screens that do not draw it. It could not
+ * simply go: `missingFrom` refuses to submit a restaurant without it, so
+ * deleting the control would have left every restaurant application
+ * unsubmittable, which is the exact shape of the defect this build has spent
+ * the week removing. It sits under "Your restaurant", which is the screen
+ * about the venue rather than the screen about its week.
+ */
+function HygieneAttestation({ draft, pending, saveText }: StepProps) {
   return (
-    <>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">The property</h2>
-        {draft.accommodation && (
-          <p className="nf-host-group__note">
-            On record: {draft.accommodation.name}, {draft.accommodation.photos.length} photo
-            {draft.accommodation.photos.length === 1 ? "" : "s"}, pin {draft.accommodation.hasPin ? "set" : "not set"}.
-          </p>
-        )}
-        <div className="mt-md flex flex-col gap-sm">
-          <TextField label="Property name" value={name} error={fieldErrors.name} onChange={(e) => setName(e.target.value)} />
-          <TextArea label="Description" optionalText="(optional)" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <SelectField label="Star rating" optionalText="(if claimed)" value={stars} onChange={(e) => setStars(e.target.value)}>
-            <option value="">No star rating</option>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
-                {n} star{n === 1 ? "" : "s"}
-              </option>
-            ))}
-          </SelectField>
-          <div className="grid grid-cols-2 gap-sm">
-            <TextField label="Check in from" type="time" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
-            <TextField label="Check out by" type="time" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-          </div>
-          <TextArea label="House rules" optionalText="(optional)" value={rules} onChange={(e) => setRules(e.target.value)} />
-          {policies.length > 0 && (
-            <SelectField label="Cancellation policy" value={policy} onChange={(e) => setPolicy(e.target.value)}>
-              {policies.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </SelectField>
-          )}
-        </div>
-      </section>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">The pin on the map</h2>
-        <p className="nf-host-group__note">Required before publish. Stand at the property and use your location, or type it.</p>
-        <div className="mt-md grid grid-cols-2 gap-sm">
-          <TextField label="Latitude" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} />
-          <TextField label="Longitude" inputMode="decimal" value={lng} onChange={(e) => setLng(e.target.value)} />
-        </div>
-        <Button variant="secondary" className="mt-sm" leadingIcon="location" onClick={locate}>
-          Use my location
-        </Button>
-      </section>
-      {/*
-        THE STEP THAT COULD NOT BE FINISHED, FINISHED.
-
-        This section read "Photo upload for properties arrives with the next
-        host release" while `missingFrom` refused to submit an accommodation
-        with no photograph, so a hotel or a shortlet host filled in nine steps
-        and could never press send. The manager below writes to
-        `accommodation_photos`, which has had its table, its bucket, its RLS
-        and its catalogue trigger since M3 and no writer until now.
-
-        Photographs hang on the property row, so the upload appears only once
-        the property has been saved: a drop target that could not name what it
-        was attaching to would fail on the server after the file had already
-        gone up.
-      */}
-      {draft.accommodation ? (
-        <>
-          {/* FACILITIES, the other half of GOVERNING-10 screen four, and the
-              fourth table on this spine that had no writer at all:
-              `accommodation_amenities` is read by the stay page, folded into
-              the catalogue and filtered on by the stays shelf, and every one
-              of those filters returned nothing for every hotel. */}
-          <FacilitiesPicker
-            accommodationId={draft.accommodation.id}
-            chosen={draft.accommodation.facilities}
-          />
-          <AccommodationPhotoManager
-            accommodationId={draft.accommodation.id}
-            userId={userId}
-            photos={draft.accommodation.photos}
-          />
-        </>
-      ) : (
-        <section className="nf-host-group">
-          <h2 className="nf-host-group__title">Photographs of the property</h2>
-          <p className="nf-host-group__note">
-            Save the property first and the photographs hang on it. At least one is needed before
-            you can send the application.
-          </p>
-        </section>
+    <section className="nf-stays-plate">
+      <span className="nf-stays-plate__label">Health permit</span>
+      <label className="mt-sm flex items-start gap-sm">
+        <input
+          type="checkbox"
+          className="mt-3xs h-5 w-5"
+          checked={Boolean(draft.hygieneAttestedAt)}
+          disabled={pending}
+          onChange={(e) => saveText({ hygieneAttested: e.target.checked })}
+        />
+        <span className={TYPE.body}>
+          This venue holds a current Local Government health permit and its food handlers hold
+          current medical certificates.
+        </span>
+      </label>
+      {draft.hygieneAttestedAt && (
+        <p className="nf-stays-plate__note">Attested and dated on your application.</p>
       )}
-      <Button variant="primary" size="lg" full onClick={save} disabled={pending || name.trim().length < 2} loading={pending}>
-        Save the property
-      </Button>
-    </>
-  );
-}
-
-function RoomsStep({ draft, policies, pending, fieldErrors, run, setNotice, locale }: StepProps) {
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState<(typeof ROOM_CATEGORIES)[number]["value"]>("double");
-  const [sleeps, setSleeps] = useState("2");
-  const [units, setUnits] = useState("1");
-  const [rate, setRate] = useState("");
-  const [plan, setPlan] = useState("Standard");
-  const [meal, setMeal] = useState<(typeof MEAL_PLANS)[number]["value"]>("room_only");
-  const [policy, setPolicy] = useState(policies[0]?.id ?? "");
-  const rateKobo = toKobo(rate);
-
-  if (!draft.accommodation) {
-    return (
-      <p className={TYPE.body}>Save the property first; rooms hang off it.</p>
-    );
-  }
-  const accommodationId = draft.accommodation.id;
-
-  const save = () =>
-    run(
-      async () => {
-        const room = await addRoomTypeDraft({
-          accommodationId,
-          name,
-          category,
-          sleeps: Number(sleeps),
-          unitsTotal: Number(units),
-          baseRateMinor: rateKobo,
-        });
-        if (!room.ok) return room;
-        return addRatePlanDraft({
-          roomTypeId: room.data.roomTypeId,
-          name: plan,
-          mealPlan: meal,
-          cancellationPolicyId: policy,
-          rateMinor: rateKobo,
-        });
-      },
-      () => {
-        setNotice({ tone: "ok", text: `${name} is saved with its ${plan} rate.` });
-        setName("");
-        setRate("");
-      },
-    );
-
-  return (
-    <>
-      {/*
-        YOUR ROOM TYPES, as `GOVERNING-10` screen two lists them. This section
-        printed two numbers and nothing else, so a host who had saved a Deluxe
-        Double and moved on had no way to tell, from this screen, whether the
-        one on record was the one they meant. The render lists them, and the
-        commonest onboarding mistake it prevents is adding the same room twice.
-      */}
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">Your room types</h2>
-        <p className="nf-host-group__note">
-          {draft.roomTypes.length === 0
-            ? "None yet. At least one room type with a rate is needed before the property can go on the shelf."
-            : "What guests can book. At least one needs a rate before the property can go on the shelf."}
-        </p>
-        {draft.roomTypes.length > 0 && (
-          <ul className="mt-md flex flex-col gap-row">
-            {draft.roomTypes.map((room) => (
-              <li key={room.id} className="nf-host-choice">
-                <span className="nf-host-choice__mark" aria-hidden="true">
-                  <BrandIcon name="hotel" fill />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className={`block ${TYPE.rowTitle}`}>{room.name}</span>
-                  <span className={`block ${TYPE.rowMeta}`}>
-                    {room.unitsTotal} room{room.unitsTotal === 1 ? "" : "s"} · sleeps {room.sleeps}
-                    {room.rateCount === 0
-                      ? " · no rate yet"
-                      : ` · ${room.rateCount} rate${room.rateCount === 1 ? "" : "s"}`}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">A room type</h2>
-        <div className="mt-md flex flex-col gap-sm">
-          <TextField label="Name" hint="For example Deluxe Double." value={name} error={fieldErrors.name} onChange={(e) => setName(e.target.value)} />
-          <SelectField label="Kind" value={category} onChange={(e) => setCategory(e.target.value as typeof category)}>
-            {ROOM_CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </SelectField>
-          <div className="grid grid-cols-2 gap-sm">
-            <TextField label="Sleeps" type="number" min={1} max={20} value={sleeps} onChange={(e) => setSleeps(e.target.value)} />
-            <TextField label="How many of this room" type="number" min={1} value={units} onChange={(e) => setUnits(e.target.value)} />
-          </div>
-          <TextField
-            label="Nightly rate (naira)"
-            inputMode="decimal"
-            value={rate}
-            error={fieldErrors.baseRateMinor ?? fieldErrors.rateMinor}
-            hint={rateKobo > 0 ? `Stored as ${formatMoney(rateKobo, locale)} a night.` : undefined}
-            onChange={(e) => setRate(e.target.value)}
-          />
-        </div>
-      </section>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">Its first rate</h2>
-        <div className="mt-md flex flex-col gap-sm">
-          <TextField label="Rate name" value={plan} onChange={(e) => setPlan(e.target.value)} />
-          <SelectField label="Meals" value={meal} onChange={(e) => setMeal(e.target.value as typeof meal)}>
-            {MEAL_PLANS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </SelectField>
-          <SelectField label="Cancellation policy" error={fieldErrors.cancellationPolicyId} value={policy} onChange={(e) => setPolicy(e.target.value)}>
-            {policies.length === 0 && <option value="">No policies to choose from yet</option>}
-            {policies.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </SelectField>
-        </div>
-      </section>
-      <Button
-        variant="primary"
-        size="lg"
-        full
-        onClick={save}
-        disabled={pending || name.trim().length < 2 || rateKobo <= 0 || !policy}
-        loading={pending}
-      >
-        Save this room and rate
-      </Button>
-    </>
-  );
-}
-
-function ServiceStep({ draft, pending, fieldErrors, run, setNotice, saveText }: StepProps) {
-  const [cuisines, setCuisines] = useState("");
-  const [band, setBand] = useState(String(draft.restaurant?.priceBand ?? ""));
-  const [parking, setParking] = useState(false);
-  const [power, setPower] = useState(false);
-  const [outdoor, setOutdoor] = useState(false);
-  const [weekday, setWeekday] = useState("5");
-  const [opens, setOpens] = useState("12:00");
-  const [last, setLast] = useState("21:30");
-  const [closes, setCloses] = useState("22:00");
-  const [covers, setCovers] = useState("40");
-
-  const saveProfile = () =>
-    run(
-      () =>
-        setRestaurantProfileDraft({
-          cuisines: cuisines.split(",").map((c) => c.trim()).filter(Boolean),
-          priceBand: band ? Number(band) : null,
-          parking,
-          powerBackup: power,
-          outdoor,
-        }),
-      () => setNotice({ tone: "ok", text: "The restaurant's facts are saved." }),
-    );
-
-  const saveWindow = () =>
-    run(
-      () =>
-        addServiceWindowDraft({
-          weekday: Number(weekday),
-          opens,
-          lastSeating: last,
-          closes,
-          covers: Number(covers),
-        }),
-      () => setNotice({ tone: "ok", text: `${WEEKDAYS[Number(weekday)]} ${opens} to ${closes} is saved.` }),
-    );
-
-  return (
-    <>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">The venue</h2>
-        <p className="nf-host-group__note">
-          On record: {draft.restaurant?.cuisineCount ?? 0} cuisine{(draft.restaurant?.cuisineCount ?? 0) === 1 ? "" : "s"},
-          {" "}price band {draft.restaurant?.priceBand ?? "not set"}, {draft.serviceWindowCount} service window
-          {draft.serviceWindowCount === 1 ? "" : "s"}.
-        </p>
-        <div className="mt-md flex flex-col gap-sm">
-          <TextField label="Cuisines" hint="Separate with commas: Nigerian, Grill, Seafood." value={cuisines} onChange={(e) => setCuisines(e.target.value)} />
-          <SelectField label="Price band" error={fieldErrors.priceBand} value={band} onChange={(e) => setBand(e.target.value)}>
-            <option value="">Choose a band</option>
-            <option value="1">1, the cheapest</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4, the dearest</option>
-          </SelectField>
-          <div className="flex flex-wrap gap-xs" role="group" aria-label="What the venue has">
-            {[
-              ["Parking", parking, setParking],
-              ["Power backup", power, setPower],
-              ["Outdoor seating", outdoor, setOutdoor],
-            ].map(([label, on, toggle]) => (
-              <button
-                key={label as string}
-                type="button"
-                aria-pressed={on as boolean}
-                className={`nf-chip${on ? " nf-chip--active" : ""}`}
-                onClick={() => (toggle as (v: boolean) => void)(!(on as boolean))}
-              >
-                {label as string}
-              </button>
-            ))}
-          </div>
-          <Button variant="secondary" onClick={saveProfile} disabled={pending} loading={pending}>
-            Save the venue
-          </Button>
-        </div>
-      </section>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">A service window</h2>
-        <div className="mt-md flex flex-col gap-sm">
-          <SelectField label="Day" value={weekday} onChange={(e) => setWeekday(e.target.value)}>
-            {WEEKDAYS.map((day, index) => (
-              <option key={day} value={index}>
-                {day}
-              </option>
-            ))}
-          </SelectField>
-          <div className="grid grid-cols-3 gap-sm">
-            <TextField label="Opens" type="time" value={opens} onChange={(e) => setOpens(e.target.value)} />
-            <TextField label="Last seating" type="time" error={fieldErrors.lastSeating} value={last} onChange={(e) => setLast(e.target.value)} />
-            <TextField label="Closes" type="time" error={fieldErrors.closes} value={closes} onChange={(e) => setCloses(e.target.value)} />
-          </div>
-          <TextField label="Covers" type="number" min={1} error={fieldErrors.covers} value={covers} onChange={(e) => setCovers(e.target.value)} />
-          <Button variant="secondary" onClick={saveWindow} disabled={pending} loading={pending}>
-            Save this window
-          </Button>
-        </div>
-      </section>
-      <section className="nf-host-group">
-        <h2 className="nf-host-group__title">Health permit</h2>
-        <label className="mt-sm flex items-start gap-sm">
-          <input
-            type="checkbox"
-            className="mt-3xs h-5 w-5"
-            checked={Boolean(draft.hygieneAttestedAt)}
-            disabled={pending}
-            onChange={(e) => saveText({ hygieneAttested: e.target.checked })}
-          />
-          <span className={TYPE.body}>
-            This venue holds a current Local Government health permit and its food handlers hold current medical certificates.
-          </span>
-        </label>
-        {draft.hygieneAttestedAt && <p className="mt-2xs nf-caption">Attested and dated on your application.</p>}
-      </section>
-    </>
+    </section>
   );
 }
 
@@ -1184,10 +926,13 @@ function ReviewStep({ draft, pending, run, goTo, set }: StepProps) {
             <Fact
               label="Property"
               value={draft.accommodation ? `${draft.accommodation.name}, ${draft.roomTypeCount} room type${draft.roomTypeCount === 1 ? "" : "s"}, ${draft.ratePlanCount} rate${draft.ratePlanCount === 1 ? "" : "s"}` : ""}
-              onEdit={() => goTo("property")}
+              /* The property's first drawn screen, whichever branch this
+                 host is on: a hotelier lands on "Your hotel" and a shortlet
+                 operator on "Your place". */
+              onEdit={() => goTo(branchFor(draft.kind) === "shortlet" ? "place" : "hotel")}
             />
           ) : (
-            <Fact label="Service" value={draft.serviceWindowCount > 0 ? `${draft.serviceWindowCount} window${draft.serviceWindowCount === 1 ? "" : "s"}` : ""} onEdit={() => goTo("service")} />
+            <Fact label="Service" value={draft.serviceWindowCount > 0 ? `${draft.serviceWindowCount} window${draft.serviceWindowCount === 1 ? "" : "s"}` : ""} onEdit={() => goTo("tables")} />
           )}
           <Fact label="Payouts" value={draft.hasBankAccount ? "Bank account on record" : ""} onEdit={() => goTo("payout")} />
         </dl>

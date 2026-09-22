@@ -54,10 +54,13 @@ import {
   hostDraftSchema,
   ratePlanDraftSchema,
   restaurantProfileDraftSchema,
+  openingHoursDraftSchema,
   roomNightsSchema,
   roomTypeDraftSchema,
   serviceWindowDraftSchema,
+  shortletPlaceDraftSchema,
 } from "./schema";
+import { placeTypeUnavailable } from "./stays-setup";
 
 type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
@@ -1094,4 +1097,154 @@ export async function setAccommodationFacilities(
 
   refreshPropertySurfaces();
   return ok({ codes });
+}
+
+/* -------------------------------------------------- the drawn stays set-up */
+
+/**
+ * THE SHORTLET'S PLACE, saved as the one bookable unit it is.
+ * `GOVERNING-11` screen one.
+ *
+ * CREATE OR UPDATE, AND THAT IS THE POINT. `addRoomTypeDraft` only inserts,
+ * which is right for a hotel adding its fourth room type and wrong for a
+ * shortlet: a host who corrects the bed count on their own flat must not end
+ * up with two flats. So this finds the property's existing unit and writes
+ * onto it, and only creates one when there is none.
+ *
+ * THE RATE RIDES WITH IT. The nightly price is `base_rate_minor` on the unit
+ * itself, in integer kobo, never a naira float and never printed here.
+ *
+ * WHY A REFUSAL FROM POSTGRES IS READ RATHER THAN SWALLOWED. The three place
+ * types are `room_category` values that
+ * `20260922190000_imgc_a_shortlet_is_not_a_hotel_room.sql` adds and that this
+ * estate's database does not have yet, because the project is INACTIVE and
+ * unreachable. Postgres answers an unknown enum label with `22P02`. Turning
+ * that one code into a sentence naming the migration is the difference between
+ * an operator reading "something went wrong" and an operator knowing exactly
+ * what to run. Every other code is a real fault and is reported as one.
+ */
+export async function setShortletPlaceDraft(
+  input: unknown,
+): Promise<ActionResult<{ roomTypeId: string }>> {
+  const guarded = await editableBusiness();
+  if (!guarded.ok) return guarded.result;
+
+  const parsed = validate(shortletPlaceDraftSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const data = parsed.data;
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+
+  const fields = {
+    name: data.name,
+    /* The cast is the point of this action: the label is one the generated
+       types do not carry yet, and the database is the thing that decides. */
+    category: data.placeType as Database["public"]["Enums"]["room_category"],
+    sleeps: data.maxGuests,
+    /* A shortlet operator lets this place, not fifty of it. The render asks
+       for bedrooms, beds and guests and never for a count of the unit. */
+    units_total: 1,
+    base_rate_minor: data.nightlyRateMinor,
+    beds: { bedrooms: data.bedrooms, beds: data.beds },
+  };
+
+  const { data: existing } = await session.supabase
+    .from("room_types")
+    .select("id")
+    .eq("accommodation_id", data.accommodationId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  const written = existing
+    ? await session.supabase
+        .from("room_types")
+        .update(fields)
+        .eq("id", existing.id)
+        .select("id")
+        .single()
+    : await session.supabase
+        .from("room_types")
+        .insert({ accommodation_id: data.accommodationId, status: "DRAFT", ...fields })
+        .select("id")
+        .single();
+
+  if (written.error || !written.data) {
+    if (placeTypeUnavailable(written.error?.code)) {
+      return fail(
+        "This database does not know that kind of place yet. The migration that adds it, 20260922190000_imgc_a_shortlet_is_not_a_hotel_room, has not been applied.",
+      );
+    }
+    if (written.error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    return fail(SERVICE_DOWN_MESSAGE);
+  }
+
+  refreshHostSurfaces();
+  return ok({ roomTypeId: written.data.id });
+}
+
+/**
+ * THE WEEK, set in one act. `GOVERNING-11` screen four.
+ *
+ * REPLACE, NOT ADD. The render's day rows have switches, and a switch that can
+ * only ever turn on is not a switch: closing on Sunday has to delete Sunday's
+ * window. So the whole week is written at once, which also means the covers
+ * arrived at from the table steppers land on every open day together rather
+ * than seven times with six chances to half-fail.
+ *
+ * THE DELETE IS SCOPED TO THIS BUSINESS AND RE-SCOPED BY RLS.
+ * `service_windows_owner_all` pins the rows to the owner through
+ * `private.owns_business`, so a crafted business id cannot reach another
+ * restaurant's week even though this action never trusts one: the id comes
+ * from `editableBusiness`, which read it from the session.
+ */
+export async function setOpeningHoursDraft(
+  input: unknown,
+): Promise<ActionResult<{ days: number }>> {
+  const guarded = await editableBusiness();
+  if (!guarded.ok) return guarded.result;
+
+  const parsed = validate(openingHoursDraftSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const data = parsed.data;
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+
+  const { error: clearError } = await session.supabase
+    .from("service_windows")
+    .delete()
+    .eq("business_id", guarded.businessId);
+  if (clearError) {
+    if (clearError.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    return fail(SERVICE_DOWN_MESSAGE);
+  }
+
+  if (data.days.length > 0) {
+    const { error } = await session.supabase.from("service_windows").insert(
+      data.days.map((day) => ({
+        business_id: guarded.businessId,
+        weekday: day.weekday,
+        opens: day.opens,
+        /*
+         * THE LAST SEATING IS THE CLOSING TIME AND THE SCREEN SAYS SO.
+         * `service_windows.last_seating` is NOT NULL and the render's day row
+         * draws one pair of times, not two. Taking the close as the last
+         * seating is the only reading that invents nothing: it says a table
+         * may be taken up to closing, which is what a host who set those two
+         * times has actually told us. A separate last seating is a question
+         * this screen does not ask, so this screen does not answer it.
+         */
+        last_seating: day.closes,
+        closes: day.closes,
+        covers: data.covers,
+      })),
+    );
+    if (error) {
+      if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
+      return fail(SERVICE_DOWN_MESSAGE);
+    }
+  }
+
+  refreshHostSurfaces();
+  return ok({ days: data.days.length });
 }

@@ -164,12 +164,46 @@ export type HostStepId =
   | "business"
   | "registration"
   | "representative"
-  | "property"
-  | "rooms"
-  | "service"
+  /* The hotel's four, `GOVERNING-10`. */
+  | "hotel"
+  | "room-types"
+  | "rates"
+  /* The shortlet's two, `GOVERNING-11` screens one and two. */
+  | "place"
+  | "house-rules"
+  /* Shared by both accommodation branches: `GOVERNING-10` screen four. */
+  | "facilities"
+  /* The restaurant's two, `GOVERNING-11` screens three and four. */
+  | "restaurant"
+  | "tables"
   | "payout"
   | "consent"
   | "review";
+
+/* ---------------------------------------------------------- stays branches */
+
+/**
+ * WHICH SET OF DRAWN SCREENS A STAYS HOST GETS.
+ *
+ * `GOVERNING-10` is a hotel's four screens. `GOVERNING-11` splits into a
+ * shortlet's two and a restaurant's two. A guest house and a serviced
+ * apartment block are run like a hotel, rooms with rates and several of each,
+ * so they take the hotel's screens; a shortlet operator lets one place at a
+ * time and gets its own.
+ *
+ * IT LIVES HERE RATHER THAN IN `stays-setup.ts` FOR ONE REASON: `stepsFor`
+ * below needs it, `stays-setup.ts` needs this file's `BusinessKind`, and a
+ * value import in both directions is a module cycle. `stays-setup.ts`
+ * re-exports it so the screens can read it from the file they already read
+ * everything else from.
+ */
+export type StaysBranch = "hotel" | "shortlet" | "restaurant";
+
+export function branchFor(kind: BusinessKind | null): StaysBranch {
+  if (kind === "restaurant") return "restaurant";
+  if (kind === "shortlet_operator") return "shortlet";
+  return "hotel";
+}
 
 export type HostStep = {
   id: HostStepId;
@@ -200,20 +234,50 @@ const STEPS: Record<HostStepId, HostStep> = {
     title: "You, the representative",
     hint: "One government issued ID, your name and your phone.",
   },
-  property: {
-    id: "property",
-    title: "The property",
-    hint: "Name, check-in and check-out times, house rules, photos, and the pin on the map.",
+  /*
+   * THE EIGHT DRAWN STAYS STEPS. Every title and every hint below is the
+   * render's own wording, because the render's wording is the question and
+   * this file is where the questions live.
+   */
+  hotel: {
+    id: "hotel",
+    title: "Your hotel",
+    hint: "Tell us about your hotel and its basic details.",
   },
-  rooms: {
-    id: "rooms",
-    title: "Rooms and rates",
-    hint: "At least one room type with a nightly rate and a cancellation policy.",
+  "room-types": {
+    id: "room-types",
+    title: "Your room types",
+    hint: "Tell us what kinds of rooms guests can book.",
   },
-  service: {
-    id: "service",
-    title: "Service and seating",
-    hint: "Cuisines, a price band, and at least one service window with covers.",
+  rates: {
+    id: "rates",
+    title: "Rates",
+    hint: "Set the nightly prices for each room type.",
+  },
+  place: {
+    id: "place",
+    title: "Your place",
+    hint: "What kind of shortlet are you listing?",
+  },
+  "house-rules": {
+    id: "house-rules",
+    title: "House rules and cancellation",
+    hint: "Set your house rules and cancellation policy.",
+  },
+  facilities: {
+    id: "facilities",
+    title: "Facilities and photos",
+    hint: "Show guests what the property has to offer, and where it is.",
+  },
+  restaurant: {
+    id: "restaurant",
+    title: "Your restaurant",
+    hint: "Tell us about your restaurant.",
+  },
+  tables: {
+    id: "tables",
+    title: "Tables and hours",
+    hint: "Set your opening hours and table inventory.",
   },
   payout: {
     id: "payout",
@@ -240,12 +304,27 @@ const STEPS: Record<HostStepId, HostStep> = {
  * promises a shorter flow than they are going to get and never pads the count
  * with a step somebody is not going to be asked.
  */
-export function stepsFor(hostType: HostType | null): HostStep[] {
+export function stepsFor(hostType: HostType | null, kind: BusinessKind | null = null): HostStep[] {
   const ids: HostStepId[] = ["host-type", "business"];
   if (hostType === "business") ids.push("registration");
   if (hostType !== null) ids.push("representative");
-  if (hostType === "individual" || hostType === "business") ids.push("property", "rooms");
-  if (hostType === "restaurant") ids.push("service");
+  if (hostType === "individual" || hostType === "business") {
+    /*
+     * THE BRANCH IS THE KIND'S AND NOT THE HOST TYPE'S, which is the one thing
+     * `stepsFor` did not know before. A shortlet operator can be an individual
+     * or a registered company, and either way they are letting a flat rather
+     * than running a hotel: `GOVERNING-11` asks them about bedrooms and beds
+     * where `GOVERNING-10` asks a hotelier about room types and rates. Passing
+     * no kind keeps the hotel's screens, which is where a host lands before
+     * they have told us anything.
+     */
+    const drawn: HostStepId[] =
+      branchFor(kind) === "shortlet"
+        ? ["place", "house-rules"]
+        : ["hotel", "room-types", "rates"];
+    ids.push(...drawn, "facilities");
+  }
+  if (hostType === "restaurant") ids.push("restaurant", "tables");
   ids.push("payout", "consent", "review");
   return ids.map((id) => STEPS[id]);
 }
@@ -397,6 +476,23 @@ export type HostDraft = {
      * shelf returned nothing for every hotel.
      */
     facilities: string[];
+    /*
+     * THE FIELDS `GOVERNING-10` SCREEN ONE AND `GOVERNING-11` SCREEN TWO DRAW,
+     * which the draft could not previously read back.
+     *
+     * Every one of them is a column that already exists on `accommodations`
+     * and every one of them was WRITABLE from the old property step and not
+     * READABLE afterwards, so a host who saved a check-in time and came back
+     * to the step was shown an empty box and could overwrite their own answer
+     * with a default. A form that cannot read back what it wrote is a form
+     * that loses work, and the drawn screens print these values rather than
+     * asking for them again.
+     */
+    starRating: number | null;
+    checkInFrom: string;
+    checkOutBy: string;
+    houseRules: string;
+    cancellationPolicyId: string | null;
   } | null;
   roomTypeCount: number;
   ratePlanCount: number;
@@ -410,12 +506,54 @@ export type HostDraft = {
    * the step DRAWS, and a room type saved and then forgotten is the commonest
    * reason a host adds the same room twice.
    */
-  roomTypes: { id: string; name: string; sleeps: number; unitsTotal: number; rateCount: number }[];
+  roomTypes: {
+    id: string;
+    name: string;
+    sleeps: number;
+    unitsTotal: number;
+    rateCount: number;
+    /* What kind of room, or for a shortlet what kind of place. */
+    category: string;
+    baseRateMinor: number;
+    /*
+     * THE RATES THEMSELVES, because `GOVERNING-10` screen three is a screen
+     * about them and a count cannot be drawn. Integer kobo, printed only
+     * through `formatMoney`.
+     */
+    rates: { id: string; name: string; mealPlan: string; rateMinor: number }[];
+    /**
+     * What is actually slept in, from `room_types.beds`.
+     *
+     * The column is jsonb and nothing constrains its shape, so this is what
+     * could be READ out of it and not a promise about what is in it: null
+     * where the row holds something this product did not write. The shortlet
+     * screen of `GOVERNING-11` asks for bedrooms and beds and there is nowhere
+     * else on `room_types` to put either.
+     */
+    beds: { bedrooms: number; beds: number } | null;
+  }[];
   restaurant: {
     priceBand: number | null;
     cuisineCount: number;
+    /* The cuisines themselves, which `GOVERNING-11` screen three draws as
+       chips and which a count cannot express. */
+    cuisines: string[];
   } | null;
   serviceWindowCount: number;
+  /*
+   * THE OPENING HOURS, as `GOVERNING-11` screen four lists them: one row a
+   * day, with the hours and a switch. Read back for the same reason as the
+   * accommodation's times above, and because a restaurant that has already
+   * said it opens on Friday must not be asked again.
+   */
+  serviceWindows: {
+    id: string;
+    weekday: number;
+    opens: string;
+    lastSeating: string;
+    closes: string;
+    covers: number;
+  }[];
   hygieneAttestedAt: string | null;
   licenceAttestedAt: string | null;
   hasBankAccount: boolean;
@@ -450,6 +588,7 @@ export function emptyHostDraft(): HostDraft {
     roomTypes: [],
     restaurant: null,
     serviceWindowCount: 0,
+    serviceWindows: [],
     hygieneAttestedAt: null,
     licenceAttestedAt: null,
     hasBankAccount: false,

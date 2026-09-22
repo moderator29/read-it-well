@@ -43,11 +43,26 @@ function complete(over: Partial<HostDraft> = {}): HostDraft {
         { id: "p3", url: "/brand/photos/bedroom-03.jpg" },
       ],
       facilities: ["wifi", "generator"],
+      starRating: null,
+      checkInFrom: "14:00",
+      checkOutBy: "11:00",
+      houseRules: "",
+      cancellationPolicyId: null,
     },
     roomTypeCount: 1,
     ratePlanCount: 1,
     roomTypes: [
-      { id: "rt1", name: "The whole flat", sleeps: 4, unitsTotal: 1, rateCount: 1 },
+      {
+        id: "rt1",
+        name: "The whole flat",
+        sleeps: 4,
+        unitsTotal: 1,
+        rateCount: 1,
+        category: "entire_flat",
+        baseRateMinor: 8_500_000,
+        rates: [{ id: "rp1", name: "Room only", mealPlan: "room_only", rateMinor: 8_500_000 }],
+        beds: { bedrooms: 2, beds: 3 },
+      },
     ],
     hasBankAccount: true,
     consents: {
@@ -70,17 +85,50 @@ describe("stepsFor", () => {
     ]);
   });
 
-  it("gives an individual host the property steps and no registration", () => {
+  it("gives an individual host the hotel's drawn steps when no kind is known", () => {
+    /* `GOVERNING-10` is the default because it is the branch that asks the
+       most: somebody whose kind we have not been told yet is shown the fuller
+       flow rather than the shorter one. */
     expect(stepsFor("individual").map((s) => s.id)).toEqual([
       "host-type",
       "business",
       "representative",
-      "property",
-      "rooms",
+      "hotel",
+      "room-types",
+      "rates",
+      "facilities",
       "payout",
       "consent",
       "review",
     ]);
+  });
+
+  it("gives a shortlet operator the two screens GOVERNING-11 draws", () => {
+    const ids = stepsFor("individual", "shortlet_operator").map((s) => s.id);
+    expect(ids).toEqual([
+      "host-type",
+      "business",
+      "representative",
+      "place",
+      "house-rules",
+      "facilities",
+      "payout",
+      "consent",
+      "review",
+    ]);
+    /* A shortlet host is never asked a hotelier's questions. */
+    expect(ids).not.toContain("hotel");
+    expect(ids).not.toContain("room-types");
+    expect(ids).not.toContain("rates");
+  });
+
+  it("branches on the kind and not on the host type alone", () => {
+    /* A shortlet operator may be a registered company, and is still letting a
+       flat rather than running a hotel. */
+    const ids = stepsFor("business", "shortlet_operator").map((s) => s.id);
+    expect(ids).toContain("registration");
+    expect(ids).toContain("place");
+    expect(ids).not.toContain("hotel");
   });
 
   it("gives a registered business one more step, the papers", () => {
@@ -89,11 +137,13 @@ describe("stepsFor", () => {
     expect(ids.length).toBe(stepsFor("individual").length + 1);
   });
 
-  it("gives a restaurant service and seating instead of rooms", () => {
+  it("gives a restaurant its two drawn screens instead of rooms", () => {
     const ids = stepsFor("restaurant").map((s) => s.id);
-    expect(ids).toContain("service");
-    expect(ids).not.toContain("property");
-    expect(ids).not.toContain("rooms");
+    expect(ids).toContain("restaurant");
+    expect(ids).toContain("tables");
+    expect(ids).not.toContain("hotel");
+    expect(ids).not.toContain("place");
+    expect(ids).not.toContain("room-types");
     expect(ids).not.toContain("registration");
   });
 
@@ -122,7 +172,18 @@ describe("missingFrom", () => {
   it("names the pin and the photos separately", () => {
     const missing = missingFrom(
       complete({
-        accommodation: { id: "a", name: "x", hasPin: false, photos: [], facilities: [] },
+        accommodation: {
+          id: "a",
+          name: "x",
+          hasPin: false,
+          photos: [],
+          facilities: [],
+          starRating: null,
+          checkInFrom: "14:00",
+          checkOutBy: "11:00",
+          houseRules: "",
+          cancellationPolicyId: null,
+        },
       }),
     );
     expect(missing).toContain("The pin on the map");

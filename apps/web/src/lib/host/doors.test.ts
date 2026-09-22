@@ -36,9 +36,21 @@ describe("the stays doors", () => {
   });
 
   it("sends the restaurant to tables rather than to rooms", () => {
-    const steps = stepsFor(doorFrom("restaurant")!.hostType).map((step) => step.id);
-    expect(steps).toContain("service");
-    expect(steps).not.toContain("rooms");
+    const restaurant = doorFrom("restaurant")!;
+    const steps = stepsFor(restaurant.hostType, restaurant.kind).map((step) => step.id);
+    expect(steps).toContain("tables");
+    expect(steps).not.toContain("room-types");
+  });
+
+  it("sends the shortlet door to GOVERNING-11's two screens and the hotel door to GOVERNING-10's three", () => {
+    const shortlet = doorFrom("shortlet")!;
+    const hotel = doorFrom("hotel")!;
+    const shortletSteps = stepsFor(shortlet.hostType, shortlet.kind).map((step) => step.id);
+    const hotelSteps = stepsFor(hotel.hostType, hotel.kind).map((step) => step.id);
+    expect(shortletSteps).toEqual(expect.arrayContaining(["place", "house-rules"]));
+    expect(hotelSteps).toEqual(expect.arrayContaining(["hotel", "room-types", "rates"]));
+    expect(shortletSteps).not.toContain("hotel");
+    expect(hotelSteps).not.toContain("place");
   });
 
   it("refuses anything that is not one of the three", () => {

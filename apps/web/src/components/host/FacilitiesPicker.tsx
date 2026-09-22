@@ -18,11 +18,20 @@ import { STAY_FACILITIES } from "@/lib/host/facilities";
  * nothing for every hotel on the platform. This is the control that fills the
  * table.
  *
- * THE RENDER DRAWS THESE AS GLOWING TILES WITH SOFT ENDS AND THEY SHIP AS
- * ROUNDED RECTANGLES. `nf-chip` is the existing control for exactly this act,
- * carries the selected state the render shows as a lit border, and draws at
- * 14px on a 44px control, a ratio of 0.32. The shape law wins over the image
- * and the folder's README names these tiles among the capsules it translates.
+ * THE RENDER DRAWS THESE AS TILES AND THEY NOW SHIP AS TILES.
+ *
+ * They shipped as `nf-chip`, a row of pills, under a note saying the shape law
+ * beat the image. That note answered the wrong question. The shape law is
+ * about RADIUS, measured as drawn radius over drawn short side: it says a
+ * control carrying text is a rounded rectangle and never a capsule, and it has
+ * nothing to say about whether a control is a pill-shaped row or a square tile
+ * with its mark above its word. `GOVERNING-10` screen four draws a three
+ * across grid of tiles, mark over label, and that is a layout the law never
+ * ruled on.
+ *
+ * SO BOTH ARE OBEYED HERE. `.nf-stays-tile` is the render's tile and it is on
+ * `--nf-radius-control`, 14px on a tile whose short side is never under 56px,
+ * a ratio of a quarter, which is a rounded rectangle by the law's own test.
  *
  * TWO TILES OF THE RENDER ARE ABSENT AND IT IS SAID IN `lib/host/facilities.ts`
  * RATHER THAN QUIETLY: "Restaurant" and "Airport shuttle" have no row in
@@ -83,7 +92,7 @@ export function FacilitiesPicker({
         shown the places that claim them, so a claim that is not true is a bad review waiting.
       </p>
 
-      <div className="mt-md flex flex-wrap gap-inline">
+      <div className="nf-stays-tiles" role="group" aria-label="What the property offers">
         {STAY_FACILITIES.map((facility) => {
           const on = picked.has(facility.code);
           return (
@@ -92,11 +101,11 @@ export function FacilitiesPicker({
               type="button"
               aria-pressed={on}
               disabled={pending}
-              className={`nf-chip${on ? " nf-chip--active" : ""}`}
+              className="nf-stays-tile items-center text-center"
               onClick={() => toggle(facility.code)}
             >
-              <UiIcon name={facility.mark} size={16} className="shrink-0" />
-              {facility.label}
+              <UiIcon name={facility.mark} size={24} className="shrink-0" />
+              <span className="nf-stays-tile__title">{facility.label}</span>
             </button>
           );
         })}

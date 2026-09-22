@@ -272,3 +272,74 @@ export const roomNightsSchema = z
     message: "The last night cannot come before the first.",
     path: ["to"],
   });
+
+/* --------------------------------------------------- the drawn stays set-up */
+
+/**
+ * THE SHORTLET'S PLACE, as `GOVERNING-11` screen one asks for it.
+ *
+ * ONE ROOM TYPE, NOT A LIST OF THEM. A shortlet operator lets a place, and the
+ * place is the bookable unit: `room_types` holds it with `sleeps` as the
+ * maximum guests and `units_total` as how many identical ones they let. The
+ * hotel branch keeps its list of room types untouched; this is the shortlet's
+ * own shape and it exists because a form that asked "how many of this room do
+ * you have" about somebody's flat was the wrong question asked eight times.
+ *
+ * `placeType` IS A `room_category` THE DATABASE MAY NOT HAVE YET. The three
+ * values are added additively by
+ * `20260922190000_imgc_a_shortlet_is_not_a_hotel_room.sql`, which has NOT been
+ * applied because the project is unreachable from here. The enum is not
+ * restated as a zod enum of the old six: it is exactly the three the render
+ * draws, so a refusal is a refusal from Postgres with a code the action can
+ * read and explain, rather than this file quietly writing "double" for a
+ * whole house.
+ */
+export const shortletPlaceDraftSchema = z.object({
+  accommodationId: z.uuid("That property could not be identified."),
+  placeType: z.enum(["entire_flat", "whole_house", "private_room"], {
+    message: "Pick what kind of place this is.",
+  }),
+  name: z.string().trim().min(2, "Give the place a name.").max(80),
+  bedrooms: z.number().int().min(0, "That cannot be fewer than none.").max(30),
+  beds: z.number().int().min(1, "A place has at least one bed.").max(60),
+  maxGuests: z.number().int().min(1, "A place sleeps at least one.").max(40),
+  /** Integer kobo. The naira boundary is the form's, never this schema's. */
+  nightlyRateMinor: z.number().int().min(0, "A rate cannot be negative."),
+});
+
+/**
+ * THE WEEK, as `GOVERNING-11` screen four sets it: seven switches and one
+ * pair of times a day.
+ *
+ * REPLACES THE SET RATHER THAN ADDING TO IT, which is the whole reason it is
+ * not seven calls to `addServiceWindowDraft`. Turning Sunday off has to DELETE
+ * Sunday's window, and an add-only action can only ever grow the week; a
+ * restaurant that opened on Sunday once could never close again.
+ */
+export const openingHoursDraftSchema = z.object({
+  days: z
+    .array(
+      z
+        .object({
+          weekday: z.number().int().min(0).max(6),
+          opens: z.string().trim().regex(/^\d{2}:\d{2}$/, "Use a time like 08:00."),
+          closes: z.string().trim().regex(/^\d{2}:\d{2}$/, "Use a time like 23:00."),
+        })
+        .refine((value) => value.opens < value.closes, {
+          message: "A service closes after it opens.",
+          path: ["closes"],
+        }),
+    )
+    .max(7, "There are seven days in a week."),
+  /**
+   * How many people the room seats, which is what the table steppers add up
+   * to. The same number goes on every open day, because this platform has
+   * never asked a restaurant whether Tuesday seats fewer people than Friday
+   * and inventing a per-day figure would be inventing a number.
+   */
+  covers: z
+    .number()
+    .int("Seats come in whole numbers.")
+    .min(1, "Say how many people you can seat.")
+    .max(2000, "That is more seats than any one room holds."),
+});

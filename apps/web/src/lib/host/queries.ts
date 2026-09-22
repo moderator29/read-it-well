@@ -35,6 +35,27 @@ import {
   type BusinessTier,
 } from "../admin/business-ladder";
 
+/**
+ * THE BEDROOMS AND BEDS A ROOM TYPE RECORDS, read out of jsonb defensively.
+ *
+ * `room_types.beds` has no shape constraint, so a row written by an older
+ * screen, by a seed or by hand holds whatever it holds. Anything that is not
+ * two finite non-negative whole numbers reads back as null, and the screen
+ * that draws it starts the host from a default rather than from a number it
+ * cannot stand behind. Nothing here throws: a malformed row must not be able
+ * to take down the step that would let somebody fix it.
+ */
+function readBeds(value: unknown): { bedrooms: number; beds: number } | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const whole = (input: unknown) =>
+    typeof input === "number" && Number.isInteger(input) && input >= 0 ? input : null;
+  const bedrooms = whole(record.bedrooms);
+  const beds = whole(record.beds);
+  if (bedrooms === null || beds === null) return null;
+  return { bedrooms, beds };
+}
+
 type BusinessRow = Database["public"]["Tables"]["businesses"]["Row"];
 type ListingStatus = Database["public"]["Enums"]["listing_status"];
 
@@ -103,7 +124,7 @@ export async function getMyHostDraft(): Promise<HostDraft> {
       session.supabase
         .from("accommodations")
         .select(
-          "id, name, latitude, longitude, accommodation_photos(id, storage_path, position), accommodation_amenities(amenities(code))",
+          "id, name, latitude, longitude, star_rating, check_in_from, check_out_by, house_rules, cancellation_policy_id, accommodation_photos(id, storage_path, position), accommodation_amenities(amenities(code))",
         )
         .eq("business_id", business.id)
         .order("created_at", { ascending: true })
@@ -115,8 +136,9 @@ export async function getMyHostDraft(): Promise<HostDraft> {
         .maybeSingle(),
       session.supabase
         .from("service_windows")
-        .select("id")
+        .select("id, weekday, opens, last_seating, closes, covers")
         .eq("business_id", business.id)
+        .order("weekday", { ascending: true })
         .limit(50),
       session.supabase
         .from("bank_accounts")
@@ -133,7 +155,9 @@ export async function getMyHostDraft(): Promise<HostDraft> {
     if (accommodation) {
       const { data: rows } = await session.supabase
         .from("room_types")
-        .select("id, name, sleeps, units_total, rate_plans(id)")
+        .select(
+          "id, name, category, sleeps, units_total, base_rate_minor, beds, rate_plans(id, name, meal_plan, rate_minor)",
+        )
         .eq("accommodation_id", accommodation.id)
         .limit(50);
       roomTypeCount = rows?.length ?? 0;
@@ -144,6 +168,15 @@ export async function getMyHostDraft(): Promise<HostDraft> {
         sleeps: row.sleeps,
         unitsTotal: row.units_total,
         rateCount: row.rate_plans.length,
+        category: row.category,
+        baseRateMinor: row.base_rate_minor,
+        beds: readBeds(row.beds),
+        rates: row.rate_plans.map((plan) => ({
+          id: plan.id,
+          name: plan.name,
+          mealPlan: plan.meal_plan,
+          rateMinor: plan.rate_minor,
+        })),
       }));
     }
 
@@ -189,6 +222,13 @@ export async function getMyHostDraft(): Promise<HostDraft> {
             facilities: accommodation.accommodation_amenities
               .map((link) => link.amenities?.code)
               .filter((code): code is string => typeof code === "string"),
+            starRating: accommodation.star_rating,
+            /* `time` comes back as `HH:MM:SS`; every screen and every schema on
+               this spine works in `HH:MM`, so it is cut once, here. */
+            checkInFrom: (accommodation.check_in_from ?? "").slice(0, 5),
+            checkOutBy: (accommodation.check_out_by ?? "").slice(0, 5),
+            houseRules: accommodation.house_rules ?? "",
+            cancellationPolicyId: accommodation.cancellation_policy_id,
           }
         : null,
       roomTypeCount,
@@ -198,9 +238,18 @@ export async function getMyHostDraft(): Promise<HostDraft> {
         ? {
             priceBand: restaurant.data.price_band,
             cuisineCount: restaurant.data.cuisines.length,
+            cuisines: restaurant.data.cuisines,
           }
         : null,
       serviceWindowCount: windows.data?.length ?? 0,
+      serviceWindows: (windows.data ?? []).map((row) => ({
+        id: row.id,
+        weekday: row.weekday,
+        opens: row.opens.slice(0, 5),
+        lastSeating: row.last_seating.slice(0, 5),
+        closes: row.closes.slice(0, 5),
+        covers: row.covers,
+      })),
       hygieneAttestedAt: business.hygiene_attested_at,
       licenceAttestedAt: business.licence_attested_at,
       hasBankAccount: (bankAccounts.data?.length ?? 0) > 0,

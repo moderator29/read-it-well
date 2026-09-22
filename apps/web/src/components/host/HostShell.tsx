@@ -13,16 +13,32 @@ export function HostShell({
   children,
   fallback = "/home",
   logoLabel,
+  chromeBack = true,
 }: {
   children: ReactNode;
   fallback?: string;
   logoLabel: string;
+  /**
+   * Whether the chrome bar draws its own way back.
+   *
+   * IT IS OFF FOR THE WIZARD AND THE REASON IS A COUNT. `GOVERNING-09` through
+   * `GOVERNING-11` draw exactly ONE back control on a set-up screen, inline
+   * with the progress segments, and the first shot of these panels came back
+   * with two arrows stacked eight pixels apart: this one, which leaves the
+   * flow, and the drawn one, which steps back through it. Two arrows in a
+   * column is not a choice a person can make confidently. The wizard's own
+   * head carries the single control and walks out of the flow when there is
+   * no previous step, so nothing is lost.
+   */
+  chromeBack?: boolean;
 }) {
   return (
     <div className="nf-host">
       <header className="nf-glass nf-glass--chrome nf-safe-top sticky top-0 z-40">
         <div className="flex h-header-sm items-center gap-inline px-gutter sm:h-header">
-          <BackButton fallback={fallback} className="h-10 w-10 shrink-0" />
+          {chromeBack ? (
+            <BackButton fallback={fallback} className="h-10 w-10 shrink-0" />
+          ) : null}
           <Link href="/" aria-label={logoLabel}>
             <LogoMark size={30} />
           </Link>
