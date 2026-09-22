@@ -208,6 +208,8 @@ work and nothing waits on it that can be built around.
 | **Auth email is not actually sending** | **MEASURED, not inferred, on 22 September.** Neither route is live. `auth_logs` carry two `mail.send` events, both `mail_from: noreply@mail.app.supabase.io`, which is Supabase's built-in non-production sender: custom SMTP was never applied, and the hook cannot be on or GoTrue would not be sending at all. Three consecutive sign-ups on 12 September then failed `429 over_email_send_rate_limit` at 09:41, 09:43 and 09:44, which is the built-in cap and not custom SMTP's thirty an hour. Real people could not create accounts and nothing said so. The fix is one dashboard settings page and the choice between the routes is his; the arguments are in the research file 1.8 and 1.9, and `AUTH_EMAILS.md` section 1A now records the measurement. Neither code path was deleted, because deleting the loser before he chooses would decide it by attrition. |
 | Whether the five auth templates were ever pasted in | The dashboard renders its Email Templates whichever sender carries them, so the generated files are live copy if they were pasted and Supabase's own default wording is live copy if they were not. This repository cannot read that, and it is the last open question about them. |
 | The completed credit colour | The render draws it cyan, ours is emerald, and our colour law reserves cyan for PENDING. Emerald stays and the render is recorded as carrying a mistake unless he rules otherwise. |
+| A live Paystack test card, and whether 3-D Secure renders INSIDE the iframe | Every Paystack host is 403 at this sandbox's proxy and there is no `PAYSTACK_SECRET_KEY` here, so N5 could prove neither. It refused to build the seven checkout call sites on an unproven assumption and it was right to: an in-app checkout that cannot complete a CHALLENGED card payment is worse than the redirect it replaces. Worse, the sweep's stated evidence for it turned out not to exist, see 8.2. One live test card answers it and the component is then one small commit. |
+| Google's and Apple's sign-in branding pages | `developers.google.com` and `gstatic.com` are EGRESS_BLOCKED at the proxy, and `developer.apple.com` serves a JavaScript shell with no guideline text. A3 therefore shipped NEITHER mark, because drawing a four colour Google G from memory is shipping a guess about somebody else's trademark. Sign in with Apple being absent while Google is present is guideline 4.8 and an automatic refusal, so this blocks submission. |
 | A live Paystack test card, in a browser we control | The in-app checkout cannot be proved in this sandbox. Every Paystack origin is refused by the egress proxy and no secret key exists here, so no transaction can be initialised and no frame can be loaded. Two of the three things the sweep asked to be proved before any UI is built remain unproved for that reason, and both are below. |
 | Whether a Nigerian bank's 3-D Secure step renders INSIDE the checkout iframe or opens a window | This decides whether the in-app checkout is the win it looks like or a regression. If a bank opens a window, an in-app checkout that cannot complete a challenged card payment is worse than the redirect it replaces. The sweep's own evidence for "inside" was `PopupTransaction.getStatus()` and its `auth` state; that method is documented in the README of `@paystack/inline-js` v2.25.0 and IS NOT PRESENT IN ANY OF THE THREE SHIPPED BUILDS of that version, so the sweep's central inference rests on a method that does not exist. The shim carries no `window.open` and sets no `sandbox` attribute on the frame, which means nothing structurally prevents the framed document opening one. One test card answers this and nothing else will. |
 | Whether a test card completes end to end inside the frame | Unproved, same reason. Until it is, no call site is moved off the hosted redirect: the CSP and the server half are landed, and the seven call sites are not. |
@@ -426,9 +428,48 @@ retired brand that still carries recognition, so somebody could register
 introduced a defect while reporting a success, which is exactly why the count
 is read with eyes rather than compared to zero.
 
+### 8.1 THE BUILD WAS RED ON MAIN AND THE RULE THAT FORBIDS IT HAD FIRED
+
+`next build` failed on `main` from `a315170` until `536a0cd`. One line:
+a re-export STATEMENT inside a `"use server"` module. Turbopack refuses it, and
+it does not fail in isolation: the module then compiles with NO EXPORTS AT ALL,
+so all fifteen vanish and every importer fails to resolve. One real error, 57
+cascade errors, nine consumers.
+
+**The project's own lint rule caught it and the commit landed anyway.**
+`nf/server-actions-export-only-actions` fired, and its message names the date
+this exact fault last took production down. A rule that fires and is passed is
+not a rule, it is a suggestion, and that is the finding under the finding.
+
+Three workers found it independently. It blocked far more than a deploy:
+section 6 closes a scope only on a proof taken from a PRODUCTION server, so
+while the build was red nobody could produce one, nobody could run the CSP
+browser walk and nobody could run a ratio sweep. One line was holding every
+worker's close criteria shut.
+
+The distinction that keeps being missed is now written into the file: a
+`"use server"` module MAY declare types and MAY import whatever it likes; what
+it may not do is EXPORT anything that is not an async function, and
+`export ... from` is an export statement whatever sits on the other side.
+
+### 8.2 A SWEEP'S EVIDENCE THAT DID NOT EXIST
+
+N5 was told to prove three things before building the in-app checkout. It
+proved the first from the shipped source of `@paystack/inline-js` at seven
+located offsets, and it DISPROVED the basis of the second: the research cited
+`PopupTransaction.getStatus()` and its `auth` state as evidence that 3-D Secure
+stays inside the iframe. That method **does not exist in the shipped package**.
+It appears in the README and `grep -c getStatus` returns 0 in all three built
+bundles. The frame also carries no `sandbox` attribute, so nothing structurally
+stops the framed document opening a window.
+
+Worth recording as method rather than trivia: a research file's honesty log is
+where this would have been caught earlier, and the instruction to read every
+honesty log is what made the worker check the primary source at all.
+
 ---
 
-## 9. Two faults in the lead's own method, found today
+## 9. Three faults in the lead's own method, found today
 
 Recorded because the first one may have been producing wrong gate results for
 days and the second cost real work.
@@ -462,6 +503,20 @@ brief says: `git add -A`, `git stash` in any form including `--autostash`,
 refusal is protecting twelve other people and is not to be forced past: commit
 your own files with an explicit pathspec first, then pull. All thirteen
 workers have been told.
+
+**AND THE SAME FAULT WITH THE SIGN REVERSED: A CONSUMER COMMITTED WITHOUT ITS
+PRODUCER.** `(app)/search/page.tsx` landed reading the sort key `"move-in-asc"`
+while the file DECLARING that member of the `SortKey` union stayed uncommitted
+in the shared tree. The author's tree typechecked perfectly. The branch tip was
+red for the other twelve, and NOBODY WHO PULLED COULD SEE WHY, because the
+missing half was in no commit to read. A3 found it and named the mechanism.
+
+Both faults come from the same root: gating against a working tree that
+thirteen people share. So the method changes. **GATE ON A WORKTREE CHECKED OUT
+AT THE TIP**, which is one `git worktree add <path> HEAD --detach` and a
+hardlinked `cp -al` of `node_modules`. It costs about four minutes and it is
+the only thing that sees this class of fault. The lead now does this and the
+tip is checked after every landing.
 
 ---
 
