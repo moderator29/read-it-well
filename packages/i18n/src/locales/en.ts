@@ -439,7 +439,12 @@ export const en = {
           "Verified homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
         explore: "Explore Properties",
         stays: "Explore Stays",
-        citiesLabel: "Popular Cities",
+        /* "Popular Cities" was the label and popularity is a claim: nothing
+           in this database counts a view, a search or a booking, so there is
+           no row anywhere that could say which city is popular. Rule 15 is
+           not only about digits. The four are doors into real searches and
+           the label now says exactly that much and no more. */
+        citiesLabel: "Start with a city",
         cities: ["Lagos", "Abuja", "Lekki", "Ikeja"],
       },
       search: {
@@ -682,6 +687,24 @@ export const en = {
     },
     hero: {
       /*
+       * SUPERSEDED ON 22 SEPTEMBER, AND ONLY `searchLabel` IS STILL READ.
+       *
+       * This block is the landing page BEFORE the rebuild to the founder's
+       * governing images; the live landing reads `landing.face` above. The
+       * one key anything still reads is `searchLabel`, which the signed-in
+       * home screen uses (`components/app/home/HomeScreen.tsx`). Every other
+       * key here, including the "Real Estate, / reimagined." headline and the
+       * "Nigeria's real estate marketplace" overline, is dead copy carrying
+       * the OLD POSITIONING and is left rather than deleted only because the
+       * three other locales mirror this shape and a namespace removal is not
+       * one worker's to make in a tree thirteen people are editing. IF YOU
+       * ARE ABOUT TO COPY A LINE OUT OF HERE, DO NOT. The position is
+       * "Rent, buy or stay. Without the runaround." and it lives in
+       * `landing.face.hero` above.
+       *
+       * The historical reasoning is kept below because it explains why the
+       * overline, the h1 and the subtitle were split across three jobs.
+       *
        * THE SLOGAN IS THE HEADLINE, AND THAT IS THE FOUNDER'S DIRECT CALL.
        *
        * The first rebuild made the h1 the offer ("Rent, buy or sell. The
@@ -4368,6 +4391,24 @@ export const en = {
         howLong: "About ten minutes.",
       },
     },
+  },
+
+  /**
+   * The consented departure.
+   *
+   * Vallo does not send anybody anywhere without saying where. The one place
+   * a user-supplied link genuinely has to leave the platform is somebody's
+   * own profile link, because "one place people can find you" is the whole
+   * feature. It gains this sheet instead of being a one tap jump out of a
+   * property marketplace into an origin nobody has checked.
+   */
+  offPlatform: {
+    title: "This link leaves Vallo",
+    body: "It goes to {host}. That is not ours and we have not checked what is on it.",
+    copy: "Copy the link",
+    copied: "Copied",
+    open: "Open it anyway",
+    close: "Close",
   },
 
 };

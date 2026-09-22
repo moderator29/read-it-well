@@ -36,7 +36,7 @@ const PAYING_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "The price you agree is the price you pay",
-    body: `${NO_FEES_LINE} The total you see before you commit is the agent's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs.`,
+    body: `${NO_FEES_LINE} The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing and not at the door, and it is named as theirs. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.`,
   },
   {
     title: "There is a record, permanently",
@@ -55,11 +55,11 @@ const PAYING_STEPS: { title: string; body: string }[] = [
 const INSPECTION_STEPS: { title: string; body: string }[] = [
   {
     title: "Message first",
-    body: "Open the listing and message the agent. Ask about light, water, the road, the gate and anything else that matters to you. Keep the whole conversation on Vallo: it is scanned for account numbers and payment wording, and it is the record if there is ever a dispute.",
+    body: "Open the listing and message whoever put it up, whether that is an owner, an agent or a host. Ask about light, water, the road, the gate and anything else that matters to you. Keep the whole conversation on Vallo: it is scanned for account numbers and payment wording, and it is the record if there is ever a dispute.",
   },
   {
     title: "Then inspect",
-    body: "For a rental or a sale, view the property before any money moves, in person or on a video call. Bring somebody with you if you can, and go in daylight. An agent who will not let you inspect before paying is telling you something. A stay is the other way round, because you cannot inspect a hotel room in Enugu from Lagos: there you pay on Vallo first, and the cancellation schedule and the report route are what protect you instead.",
+    body: "For a rental or a sale, view the property before any money moves, in person or on a video call. Bring somebody with you if you can, and go in daylight. Anybody who will not let you inspect before paying is telling you something. A stay is the other way round, because you cannot inspect a hotel room in Enugu from Lagos: there you pay on Vallo first, and the cancellation schedule and the report route are what protect you instead.",
   },
   {
     title: "Confirm the inspection in the thread",

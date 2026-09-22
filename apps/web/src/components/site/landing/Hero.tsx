@@ -11,11 +11,21 @@ import { SearchPill } from "./SearchPill";
 /**
  * The hero, to GOVERNING-landing-desktop-hero.png.
  *
- * Full-bleed dusk villa plate; the overline breadcrumb; "Real Estate" white
- * over "reimagined." in the brand ramp; the sub-line; Explore Properties
- * primary and Explore Stays glass; the four city capsules linking to real
- * searches; the floating listing card on the right of the photograph; and
- * the search pill hanging off the bottom edge.
+ * Full-bleed dusk villa plate; the overline breadcrumb; the headline, white
+ * over the brand ramp; the sub-line; Explore Properties primary and Explore
+ * Stays glass; the four city capsules linking to real searches; the floating
+ * listing card on the right of the photograph; and the search pill hanging
+ * off the bottom edge.
+ *
+ * THE HEADLINE AND THE PILL BELOW IT SAY THE SAME THREE WORDS, AND THAT IS
+ * NOT A COINCIDENCE TO BE TIDIED AWAY. "Rent, buy or stay. Without the
+ * runaround." is the founder's approved line, and it names the pill's Buy,
+ * Rent and Stay segments on purpose: the headline teaches the control and the
+ * control proves the headline. IF ONE CHANGES, THE OTHER CHANGES IN THE SAME
+ * COMMIT. The order lives in `segments.ts`, the words in `landing.face` in
+ * `packages/i18n`, and `headline-coupling.test.ts` fails the build if the two
+ * ever drift apart. The line this replaced was "Real Estate / reimagined.",
+ * which is the old positioning.
  *
  * UNDER 64REM THE SAME ELEMENTS STACK, AND THE PLATE BECOMES A BAND. The
  * founder's ruling: a full-viewport crop of the villa behind the headline
