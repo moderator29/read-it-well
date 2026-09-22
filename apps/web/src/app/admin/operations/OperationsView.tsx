@@ -3,14 +3,14 @@ import type { AuditActivity, AuditRowView } from "@/lib/admin/audit-queries";
 import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
-import type { JobHealth, NotificationActivity } from "../_components/console-shapes";
+import type { AlertTrend, JobHealth, NotificationActivity } from "@/lib/admin/reads/shapes";
 import {
   durationLabel,
   jobStatus,
   jobTitle,
   type DatabaseJobsSummary,
-} from "../_components/jobs";
-import { niceTicks, sinceLabel } from "../_components/metrics";
+} from "@/lib/admin/reads/jobs";
+import { niceTicks, periodDelta, sinceLabel } from "../_components/metrics";
 import { alertRows } from "../_components/OverviewView";
 import {
   AlertList,
@@ -35,7 +35,7 @@ import {
  * update, 22 September).
  *
  * The data is real today: each job's last run is read from `audit_log`
- * through `getAuditLog` (see `app/admin/_components/jobs.ts`), the alerts through
+ * through `lib/admin/reads/operations.ts`, the alerts through
  * `getRiskAlerts`, the log through `getAuditLog` and `getAuditActivity`. The
  * database's own pg_cron jobs are summarised from the platform's watch job
  * until Request A5 lists them; notification volumes need Request A6.
@@ -48,7 +48,9 @@ export type OperationsProps = {
   tab: OpsTab;
   jobs: JobHealth | null;
   database: DatabaseJobsSummary | null;
-  openAlerts: number | null;
+  /** Scheduled runs per day, fourteen days, for the jobs card's line. */
+  runDays: { day: string; runs: number; failed: number }[] | null;
+  trend: AlertTrend | null;
   alerts: AlertView[] | "unavailable";
   audit: AuditRowView[] | "unavailable";
   activity: AuditActivity | null;
@@ -96,22 +98,29 @@ export function OperationsView(props: OperationsProps) {
       label: "Jobs healthy",
       value: jobs ? `${healthy.length} / ${active.length}` : null,
       caption: jobs && active.length > 0 ? `${Math.round((healthy.length / active.length) * 100)}% on schedule` : undefined,
-      pending: "The job reads did not load",
+      spark: props.runDays
+        ? { id: "ops-runs", values: props.runDays.map((d) => d.runs - d.failed), label: "Scheduled runs that did not fail, per day, last 14 days" }
+        : null,
+      pending: "The job reads did not load; they retry every minute",
     },
     {
       key: "alerts",
       icon: { tier: "admin", name: "alert-triangle" },
       label: "Active alerts",
-      value: props.openAlerts === null ? null : formatNumber(props.openAlerts, locale),
-      caption: props.openAlerts === 0 ? "Nothing waiting on a person" : "Open, waiting on a person",
+      value: props.trend ? formatNumber(props.trend.openNow, locale) : null,
+      delta: props.trend ? periodDelta(props.trend.openNow, props.trend.openWeekAgo, { higherIsGood: false }) : null,
+      caption: props.trend ? "vs a week ago" : undefined,
+      spark: props.trend
+        ? { id: "ops-alerts", values: props.trend.daily.map((d) => d.opened), label: "Alerts raised per day, last 14 days" }
+        : null,
       href: "/admin/alerts",
-      pending: "getQueueCounts did not load",
+      pending: "The alert count did not load; it retries every minute",
     },
   ];
 
   const tabs = [
     { key: "jobs", label: "Scheduled jobs" },
-    { key: "alerts", label: "Alerts", count: props.openAlerts ?? undefined },
+    { key: "alerts", label: "Alerts", count: props.trend?.openNow },
     { key: "audit", label: "Audit log" },
     { key: "notifications", label: "Notifications" },
   ].map((t) => ({

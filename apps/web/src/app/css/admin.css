@@ -875,14 +875,12 @@
      it, the card bloom behind, per the founder's ruling on container
      edges; every token is the platform's own. */
   .nf-admin-table {
-    border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: var(--nf-admin-panel-fill);
     box-shadow:
-      var(--nf-rim-lit),
-      inset 0 -1px 0 var(--nf-glass-floor),
-      0 0 22px var(--nf-glow-2),
-      var(--nf-bloom-card);
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+      var(--nf-admin-panel-glow);
     overflow: hidden;
   }
   /* The phone row is two lines on a grid: the tile, then the title over
@@ -1196,13 +1194,17 @@
    * hairline, `--nf-rim-lit` for the catchlight inside it, one glow rung and
    * the card bloom behind, exactly as `.nf-glass--card` composes it.
    */
+  /* THE REGISTER SWEEP. Every desk's cards and tables take the panel's own
+     material (deep blue glass, the bright hairline, the top catchlight, the
+     soft bloom, 14px corners), so a desk that has not been rebuilt yet still
+     reads as the same object as the overview. */
   .nf-admin .nf-card {
-    background: var(--nf-well-fill);
-    border-color: var(--nf-brand-edge);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-admin-panel-fill);
+    border-color: var(--nf-admin-panel-edge);
     box-shadow:
-      var(--nf-rim-lit),
-      0 0 18px var(--nf-glow-1),
-      var(--nf-bloom-card);
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+      var(--nf-admin-panel-glow);
   }
   /*
    * THE STATUS CHIP IS A SMALL ROUNDED RECTANGLE, AND `278CC66A` IS THE
@@ -2149,6 +2151,18 @@
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-2xs);
+  }
+  .nf-chart__legend--static {
+    justify-content: flex-start;
+  }
+  .nf-chart__legend-off {
+    color: var(--nf-content-muted);
+  }
+  .nf-chart__swatch--off {
+    border: var(--nf-border-width) dashed var(--nf-content-muted);
+  }
+  .nf-admin-dist__row--area {
+    grid-template-columns: minmax(0, 1fr) minmax(4rem, 1.4fr) 4rem;
   }
   .nf-chart__swatch {
     display: inline-block;

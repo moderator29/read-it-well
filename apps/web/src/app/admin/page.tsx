@@ -1,9 +1,13 @@
 import { getLocale } from "@/lib/locale";
-import { getAuditLog } from "@/lib/admin/audit-queries";
 import { getQueueCounts, getRiskAlerts } from "@/lib/admin/queries";
-import { getPlatformStats } from "@/lib/platform-stats";
-import type { CollectedRange, JobHealth } from "./_components/console-shapes";
-import { VERCEL_JOBS, jobRow } from "./_components/jobs";
+import { getJobHealth } from "@/lib/admin/reads/operations";
+import {
+  getCollectedSeries,
+  getConsolePulse,
+  getNewListingsByRole,
+  getSupplyByType,
+} from "@/lib/admin/reads/overview";
+import type { CollectedRange } from "@/lib/admin/reads/shapes";
 import { LiveRefresh } from "./_components/LiveRefresh";
 import { OverviewView } from "./_components/OverviewView";
 
@@ -17,21 +21,15 @@ function requestTime(): number {
 }
 
 /**
- * The console's front door, and it is where entering the console always
- * lands (nothing under `app/admin` redirects away from `/admin`).
+ * The console's front door, and where entering the console always lands:
+ * nothing under `app/admin`, the proxy or the drawer sends an operator to a
+ * desk first (the drawer's Console row links `/admin`).
  *
- * THE READS, every one through `lib/admin` or an existing platform read,
- * under the admin gate the layout has already applied:
- * - `getPlatformStats()` for live listings (published, examples excluded);
- * - `getQueueCounts()` for the listings waiting on a decision;
- * - `getRiskAlerts()` for the five newest alerts;
- * - `getAuditLog()` once per scheduled job, newest first, for the last run
- *   of each (see `_components/jobs.ts`).
- *
- * The strip's sign-ups and money, the four cards' week-on-week changes, the
- * money chart, supply by type and the lister-role chart need queries that do
- * not exist yet. They are passed as null and each panel says so and names
- * its request (docs/SESSION_B_SCOPE.md, Requests A1 to A4).
+ * Every figure is read under the admin gate the layout already applied,
+ * through the operator's own session (`lib/admin/reads/`), plus the existing
+ * `getQueueCounts` and `getRiskAlerts`. A read that fails is drawn as not
+ * loaded on its own panel; the others still draw. The page refreshes itself
+ * every minute while it is open (`LiveRefresh`).
  */
 export default async function AdminOverviewPage({
   searchParams,
@@ -43,24 +41,17 @@ export default async function AdminOverviewPage({
   const range = RANGES.find((r) => r === params.range) ?? "12m";
   const now = requestTime();
 
-  const [stats, counts, alerts, jobReads] = await Promise.all([
-    getPlatformStats(),
+  const [pulse, collected, supply, byRole, jobs, counts, alerts] = await Promise.all([
+    getConsolePulse(now),
+    getCollectedSeries(range, now),
+    getSupplyByType(),
+    getNewListingsByRole(now),
+    getJobHealth(now),
     getQueueCounts(),
     getRiskAlerts(),
-    Promise.all(
-      VERCEL_JOBS.map((job) => getAuditLog({ status: job.audit.entityType, q: job.audit.term })),
-    ),
   ]);
-
-  const jobs: JobHealth | null = jobReads.every((read) => read.state === "ok")
-    ? {
-        checkedAt: new Date(now).toISOString(),
-        jobs: VERCEL_JOBS.map((job, i) => {
-          const read = jobReads[i]!;
-          return jobRow(job, read.state === "ok" ? (read.data.rows[0] ?? null) : null, now);
-        }),
-      }
-    : null;
+  const ok = <T,>(read: { state: "ok"; data: T } | { state: "unavailable" }): T | null =>
+    read.state === "ok" ? read.data : null;
 
   return (
     <>
@@ -69,13 +60,12 @@ export default async function AdminOverviewPage({
         locale={locale}
         now={now}
         range={range}
-        liveListings={stats ? stats.listings : null}
+        pulse={ok(pulse)}
         openReviews={counts.state === "ok" ? counts.data.listings : null}
-        pulse={null}
-        collected={null}
-        supply={null}
-        byRole={null}
-        jobs={jobs}
+        collected={ok(collected)}
+        supply={ok(supply)}
+        byRole={ok(byRole)}
+        jobs={jobs.state === "ok" ? jobs.data.health : null}
         alerts={alerts.state === "ok" ? alerts.data.rows : "unavailable"}
       />
     </>

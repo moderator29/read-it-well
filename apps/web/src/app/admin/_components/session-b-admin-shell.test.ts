@@ -9,8 +9,7 @@ import {
   isActiveHref,
   isSectionActive,
 } from "./nav";
-import { VERCEL_JOBS, durationLabel, jobRow, jobStatus, outcomeOf } from "./jobs";
-import type { AuditRowView } from "@/lib/admin/audit-queries";
+import { VERCEL_JOBS, durationLabel, jobRow, jobStatus, outcomeOf } from "@/lib/admin/reads/jobs";
 
 describe("periodDelta", () => {
   it("refuses a delta when either period is missing", () => {
@@ -109,8 +108,8 @@ describe("the console map", () => {
   });
 });
 
-function row(action: string, createdAt: string, metadata: Record<string, unknown> = {}): AuditRowView {
-  return { id: "x", createdAt, actorId: null, actorName: null, action, entityType: "cron_job", entityId: "j", metadata: metadata as never };
+function row(action: string, createdAt: string, metadata: Record<string, unknown> = {}) {
+  return { action, createdAt, metadata };
 }
 
 describe("scheduled jobs", () => {

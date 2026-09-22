@@ -17,7 +17,6 @@ import {
   AlertList,
   KpiGrid,
   KpiStrip,
-  NotWired,
   Panel,
   PanelEmpty,
   PanelLink,
@@ -33,18 +32,15 @@ import { RangeSelect } from "./RangeSelect";
  * who listed them, and the recent alerts.
  *
  * Every figure arrives as a prop from `admin/page.tsx`, which reads it under
- * the admin gate through `lib/admin`. A figure whose query does not exist yet
- * arrives as null and its tile or panel says so, naming the request that will
- * wire it (docs/SESSION_B_SCOPE.md, Requests A1 to A5). Nothing here computes
- * a number that was not handed to it, and no trend is drawn without both
- * periods behind it.
+ * the admin gate through `lib/admin/reads/overview.ts` and friends. A read
+ * that failed arrives as null and its tile or panel says so. Nothing here
+ * computes a number that was not handed to it, and no trend is drawn without
+ * both periods behind it.
  */
 export type OverviewProps = {
   locale: Locale;
   now: number;
   range: CollectedRange;
-  /** `platform_stats().listings`: published listings that are not examples. */
-  liveListings: number | null;
   /** `getQueueCounts().listings`: submitted, under review or approved and not yet live. */
   openReviews: number | null;
   pulse: ConsolePulse | null;
@@ -104,7 +100,7 @@ export function OverviewView(props: OverviewProps) {
   const { locale, pulse } = props;
   const n = (value: number) => formatNumber(value, locale);
   const money = (minor: number) => formatMoney(minor, locale);
-  const pending = (request: string) => `Needs request ${request}`;
+  const pending = (what: string) => `${what} did not load; it retries every minute`;
   const days = pulse?.daily ?? [];
   const spark = (id: string, pick: (d: ConsolePulse["daily"][number]) => number, label: string) =>
     pulse ? { id, values: days.map(pick), label } : null;
@@ -115,10 +111,10 @@ export function OverviewView(props: OverviewProps) {
       key: "live",
       icon: { tier: "admin", name: "clipboard" },
       label: "Listings live",
-      value: props.liveListings === null ? null : n(props.liveListings),
+      value: pulse ? n(pulse.listingsLive) : null,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
       spark: spark("strip-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
-      pending: pending("A1"),
+      pending: pending("This figure"),
     },
     {
       key: "signups",
@@ -127,7 +123,7 @@ export function OverviewView(props: OverviewProps) {
       value: pulse ? n(pulse.signupsToday) : null,
       delta: pulse ? periodDelta(pulse.signupsToday, pulse.signupsYesterday) : null,
       spark: spark("strip-signups", (d) => d.signups, "Sign-ups, last 14 days"),
-      pending: pending("A1"),
+      pending: pending("This figure"),
     },
     {
       key: "collected-today",
@@ -136,7 +132,7 @@ export function OverviewView(props: OverviewProps) {
       value: pulse ? money(pulse.collectedTodayMinor) : null,
       delta: pulse ? periodDelta(pulse.collectedTodayMinor, pulse.collectedYesterdayMinor) : null,
       spark: spark("strip-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
-      pending: pending("A1"),
+      pending: pending("This figure"),
     },
     {
       key: "jobs",
@@ -144,7 +140,7 @@ export function OverviewView(props: OverviewProps) {
       label: "Jobs healthy",
       value: jobs && jobs.total > 0 ? `${Math.round((jobs.healthy / jobs.total) * 100)}%` : null,
       caption: jobs ? `${jobs.healthy} of ${jobs.total} jobs` : undefined,
-      pending: pending("A5"),
+      pending: pending("The job reads"),
     },
   ];
 
@@ -153,12 +149,12 @@ export function OverviewView(props: OverviewProps) {
       key: "live-card",
       icon: { tier: "ui", name: "home" },
       label: "Live listings",
-      value: props.liveListings === null ? null : n(props.liveListings),
+      value: pulse ? n(pulse.listingsLive) : null,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
       caption: pulse ? "vs last week" : "Examples not counted",
       spark: spark("card-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
       href: "/admin/listings",
-      pending: pending("A1"),
+      pending: pending("This figure"),
     },
     {
       key: "supply-card",
@@ -169,7 +165,7 @@ export function OverviewView(props: OverviewProps) {
       caption: "vs last week",
       spark: spark("card-supply", (d) => d.submitted, "Listings submitted, last 14 days"),
       href: "/admin/supply",
-      pending: pending("A1"),
+      pending: pending("This figure"),
     },
     {
       key: "collected-card",
@@ -180,7 +176,7 @@ export function OverviewView(props: OverviewProps) {
       caption: "vs last week",
       spark: spark("card-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
       href: "/admin/money",
-      pending: pending("A1"),
+      pending: pending("This figure"),
     },
     {
       key: "reviews-card",
@@ -193,7 +189,7 @@ export function OverviewView(props: OverviewProps) {
       caption: "Listings waiting on a decision",
       spark: spark("card-reviews", (d) => d.submitted, "Listings submitted, last 14 days"),
       href: "/admin/listings",
-      pending: "getQueueCounts did not load",
+      pending: pending("The queue count"),
     },
   ];
 
@@ -261,12 +257,7 @@ function dayTick(start: string, locale: Locale, withYear = false): string {
 
 function CollectedChart({ series, locale }: { series: CollectedSeries | null; locale: Locale }) {
   if (!series) {
-    return (
-      <NotWired
-        what="Money collected over time needs a query that sums successful charges and completed wallet deposits per day, week or month."
-        request="Request A2 (getCollectedSeries) is open with the query layer."
-      />
-    );
+    return <PanelUnavailable what="Money collected over time" />;
   }
   const total = series.buckets.reduce((sum, b) => sum + b.amountMinor, 0);
   if (total === 0) {
@@ -299,12 +290,7 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
 
 function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: Locale }) {
   if (!supply) {
-    return (
-      <NotWired
-        what="Supply by type needs a grouped count of live listings by kind, examples excluded."
-        request="Request A3 (getSupplyByType) is open with the query layer."
-      />
-    );
+    return <PanelUnavailable what="Supply by type" />;
   }
   if (supply.total === 0) {
     return (
@@ -346,12 +332,7 @@ function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: 
 
 function RoleChart({ byRole, locale }: { byRole: ListingsByRole | null; locale: Locale }) {
   if (!byRole) {
-    return (
-      <NotWired
-        what="New listings per month by lister role needs a monthly count split by owner, agent and firm."
-        request="Request A4 (getNewListingsByRole) is open with the query layer."
-      />
-    );
+    return <PanelUnavailable what="New listings by lister role" />;
   }
   const total = byRole.months.reduce((sum, m) => sum + m.owner + m.agent + m.firm, 0);
   if (total === 0) {

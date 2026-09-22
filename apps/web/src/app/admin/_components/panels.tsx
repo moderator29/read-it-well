@@ -121,8 +121,10 @@ export type KpiItem = {
   caption?: string;
   spark?: KpiSpark | null;
   href?: string;
-  /** The request that will wire an unwired figure, named on the tile. */
+  /** Why there is no figure: the read failed, or the platform records nothing to read. */
   pending?: string;
+  /** The word in place of the figure: "Unavailable" by default, "Not recorded" for a metric with no source. */
+  missingWord?: string;
 };
 
 function Figure({ item, big }: { item: KpiItem; big: boolean }) {
@@ -130,7 +132,7 @@ function Figure({ item, big }: { item: KpiItem; big: boolean }) {
     return (
       <span className="nf-admin-kpi__unwired">
         <span className={big ? "nf-admin-kpi__value nf-admin-kpi__value--none" : "nf-admin-kpi__value nf-admin-kpi__value--none nf-admin-kpi__value--sm"}>
-          Not wired
+          {item.missingWord ?? "Unavailable"}
         </span>
         {item.pending && <span className="nf-admin-kpi__caption">{item.pending}</span>}
       </span>
