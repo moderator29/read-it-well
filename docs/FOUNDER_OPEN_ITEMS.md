@@ -77,7 +77,39 @@ appearance switches together. Three things were found while enumerating them:
   reader's theme is not the question.
 
 
-### THE SCHEDULER: THE VARIABLE IS SPELLED `CRONS_SECRET` AND VERCEL READS `CRON_SECRET`
+### `CRON_SECRET` HAS WHITESPACE ON IT, AND IT IS BREAKING EVERY PRODUCTION DEPLOY
+
+**Re-save it with no trailing newline or space. That is the whole fix, and it
+unblocks two things at once.**
+
+Vercel is refusing to build. Its own words, off the failed deployment:
+
+```
+errorCode:    INVALID_CRON_SECRET
+errorMessage: The `CRON_SECRET` environment variable contains leading or
+              trailing whitespace, which is not allowed in HTTP header values.
+```
+
+**Every production deployment since about 16:25 has failed**, four in a row and
+counting. The site is still serving the build from 16:23. So:
+
+* None of today's work is live, however green main is.
+* The cron jobs still get no bearer, because the deployment that is serving
+  them predates the variable entirely. That is exactly what the new refusal
+  field has been reporting as `no-bearer`.
+
+It was pasted with a newline, which is what happens when a secret is copied.
+Re-save the same value without it, and both problems end: the deploy goes
+through and the scheduler starts injecting the header.
+
+**The earlier newline diagnosis was right about the mechanism and wrong about
+the variable.** I said a pasted newline was making values differ and then
+withdrew it when the misspelt name turned up. The name was real and so was the
+whitespace; they were two faults stacked on the same afternoon, and I could
+not see the second because the API will not show a sensitive value. Vercel
+could see it, and said so in a field nobody had read.
+
+### THE OLDER DIAGNOSIS, SUPERSEDED: THE VARIABLE WAS SPELLED `CRONS_SECRET`
 
 **ONE LETTER. Rename it and the seven jobs come back.**
 

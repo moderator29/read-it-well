@@ -4904,3 +4904,53 @@ that the sampled rectangle's histogram contains the element's own computed
   dependency on the save callback. **No lint rule was disabled.** The file has
   zero errors, `tsc --noEmit` is clean and `check-css-tokens.mjs` reports no
   dull control and no unresolved reference from `catalogue.css`.
+
+## 42. PRODUCTION HAS NOT DEPLOYED SINCE 16:23, AND VERCEL SAID WHY IN A FIELD NOBODY READ
+
+The 17:05 run was refused with the new verdict `no-bearer`: Vercel injected
+nothing, although `CRON_SECRET` now exists and is correctly spelled. That
+pointed at the deployment rather than the variable, so I read the deployments.
+
+**The last four production deployments are `state: ERROR`.** The newest READY
+one was built at 16:23, and `CRON_SECRET` was created at 16:25. The site has
+been serving a build that predates the variable, which is precisely why no
+bearer is injected.
+
+**And the build is failing because of that same variable.** From Vercel's own
+deployment record:
+
+```
+errorCode:    INVALID_CRON_SECRET
+errorMessage: The `CRON_SECRET` environment variable contains leading or
+              trailing whitespace, which is not allowed in HTTP header values.
+errorStep:    buildStep
+```
+
+### Two lessons, and the first one is about me
+
+**I WITHDREW THE RIGHT DIAGNOSIS.** At 16:19 I said a pasted newline was making
+the values differ. When the misspelt `CRONS_SECRET` turned up I marked that
+reading "not proven, and not what is refusing these requests" and moved on.
+The name WAS a real fault. So was the whitespace. **They were two independent
+faults on the same afternoon, and finding one made me stop looking for the
+other.** A correct diagnosis that does not explain everything is not a wrong
+diagnosis; it is an incomplete one, and the difference matters.
+
+I also could not have proven it from here: the Vercel API will not return a
+sensitive value, so the whitespace was invisible to every check I ran. **Vercel
+could see it and had written it down.** I read the deployment list four times
+today for timestamps and never read `errorCode` on a failed row.
+
+**The build gate this session trusts has a hole in exactly this shape.** Every
+agent gates with `next build` in a worktree, and that build passed at this
+commit: I ran it to check. A local build cannot fail on `INVALID_CRON_SECRET`
+because the variable is not there to be invalid. **A green local build is not
+a green deployment**, and nothing in this build was watching the deployment.
+
+### What it means for today's work
+
+Everything landed since 16:25 is on main and is NOT live: the dock and drawer,
+the four registration images, the stays panels, the container ink, the cron
+verdict field itself. Main being green and production being current are two
+different claims, and this session has been reporting the first while implying
+the second.
