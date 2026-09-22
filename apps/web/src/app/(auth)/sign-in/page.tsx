@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
+import { signInFirstRunRedirect } from "./first-run-gate";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getProviderStates } from "@/lib/auth/providers";
@@ -35,11 +39,21 @@ const NOTICES: Record<string, string> = {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ notice?: string; next?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const params = await searchParams;
+  /* A device that has never met first run meets it now, and comes back here
+     with everything it asked for (`first-run-gate.ts`, request W2). */
+  const firstRun = signInFirstRunRedirect({
+    cookie: (await cookies()).get(FIRST_RUN_COOKIE)?.value,
+    params,
+  });
+  if (firstRun) redirect(firstRun);
+
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const { notice, next } = await searchParams;
+  const notice = typeof params.notice === "string" ? params.notice : undefined;
+  const next = typeof params.next === "string" ? params.next : undefined;
   const noticeText = notice ? NOTICES[notice] : undefined;
 
   return (
