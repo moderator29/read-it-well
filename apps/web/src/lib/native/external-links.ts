@@ -37,7 +37,10 @@ import { CHROME_COLOUR, currentTheme } from "./theme";
  *
  *   1. A capture-phase click on any anchor. Covers ordinary links, including
  *      `target="_blank"`, which never reaches the navigation handler below
- *      because it opens a window rather than navigating this one.
+ *      because it opens a window rather than navigating this one. It also
+ *      covers a blank target pointing at ONE OF OUR OWN SCREENS, which is not
+ *      an external link at all and was escaping for exactly that reason: see
+ *      `sameOriginBlankPath` below.
  *
  *   2. The Navigation API's `navigate` event. This is the one that matters for
  *      payments and OAuth, because both arrive as a programmatic assignment to
@@ -61,6 +64,35 @@ import { CHROME_COLOUR, currentTheme } from "./theme";
  * THE RETURN JOURNEY IS NOT IN THIS FILE. See `deep-links.ts`, which is the
  * other half and which states honestly what it cannot close on its own.
  */
+
+/**
+ * Our own page, opened with a blank target, as a path to navigate here.
+ *
+ * `externalHttpUrl` answers null for our own origin, correctly, because there
+ * is nothing to hand to the system browser. That left a hole: a `_blank`
+ * anchor pointing at one of our own screens never reaches the navigation
+ * handler, so the web view asks for a new window and Capacitor gives that
+ * window to the operating system. The host wizard's own terms link was
+ * throwing an applicant out of the application mid application, into Chrome,
+ * to read a Vallo page. There is no second window in a shell, so the honest
+ * answer is to navigate the one we have.
+ *
+ * Returns null for a foreign origin, for a non web protocol, for an anchor
+ * with no target and for an explicit `_self`, all of which are already
+ * handled correctly elsewhere or need no handling at all.
+ */
+function sameOriginBlankPath(anchor: HTMLAnchorElement): string | null {
+  const target = anchor.target.trim().toLowerCase();
+  if (target === "" || target === "_self") return null;
+  try {
+    const url = new URL(anchor.href, window.location.href);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (url.origin !== window.location.origin) return null;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return null;
+  }
+}
 
 /** A URL worth handing to the system browser, or null to leave it alone. */
 function externalHttpUrl(raw: string): string | null {
@@ -163,6 +195,14 @@ export function startExternalLinks(): () => void {
     if (!(anchor instanceof HTMLAnchorElement)) return;
     /* A download is a file, not a page. The web view saves it. */
     if (anchor.hasAttribute("download")) return;
+
+    /* Ours, asked for in a window this shell does not have. Keep it here. */
+    const internal = sameOriginBlankPath(anchor);
+    if (internal) {
+      event.preventDefault();
+      window.location.assign(internal);
+      return;
+    }
 
     const url = externalHttpUrl(anchor.href);
     if (!url) return;
