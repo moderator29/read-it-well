@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -39,10 +40,11 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 /** How the sheet should draw this one. Decided from the stored extension. */
 export type DocumentMediaKind = "image" | "pdf" | "file";
 
+/** Read in the sentence "Vallo does not draw ... on screen yet". */
 const WORDS: Record<DocumentMediaKind, string> = {
-  image: "Photograph",
-  pdf: "PDF",
-  file: "File",
+  image: "photographs",
+  pdf: "a PDF",
+  file: "this kind of file",
 };
 
 function DocumentCanvas({
@@ -81,18 +83,29 @@ function DocumentCanvas({
             that is stored.
           </span>
         </div>
-        <div className="overflow-auto rounded-[var(--nf-radius-control)] bg-[var(--nf-surface-sunken)]">
-          {/* A plain element on purpose. `next/image` optimises assets we ship;
-              this is one person's private document, served uncached from our
-              own route, and it must not pass through an image pipeline that
-              would write it to a cache directory on a server. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        {/* `unoptimized`, AND THAT IS THE WHOLE POINT OF THIS ELEMENT.
+            The optimiser CACHES what it optimises, on the server, on disc.
+            This is one person's identity document, served uncached from our
+            own route precisely so that nothing outlives the view, and putting
+            it through the pipeline would write a copy of somebody's passport
+            into a cache directory and leave it there. `unoptimized` emits the
+            source directly with no `/_next/image` round trip, which is the
+            same decision `RemoteImage` takes for a signed storage URL and
+            `CoinImage` takes for remote art.
+
+            `fill` rather than an aspect guess: a photographed document can be
+            any shape and the box below is ours, not a stylesheet another
+            worker owns, so there is no reason to promise a ratio we do not
+            know. */}
+        <div className="relative h-[62vh] w-full overflow-hidden rounded-[var(--nf-radius-control)] bg-[var(--nf-surface-sunken)]">
+          <Image
             src={source}
             alt={title}
+            fill
+            unoptimized
             onError={() => setFailed(true)}
             style={{ transform: `rotate(${upright}deg)` }}
-            className="mx-auto block max-h-[62vh] w-auto max-w-full object-contain"
+            className="object-contain"
           />
         </div>
       </div>
@@ -102,9 +115,9 @@ function DocumentCanvas({
   return (
     <div className="flex flex-col gap-xs">
       <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-        This one is a {WORDS[media]}. Vallo does not draw it on screen yet, so it opens
-        with whatever reads files on this device. It comes from Vallo and from nowhere
-        else, and the link below works once.
+        Vallo does not draw {WORDS[media]} on screen yet, so this one opens with
+        whatever reads files on this device. It comes from Vallo and from nowhere
+        else: no other company sees that you opened it.
       </p>
       <a
         href={source}
