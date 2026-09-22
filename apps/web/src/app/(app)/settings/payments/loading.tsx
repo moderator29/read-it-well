@@ -19,7 +19,7 @@ export default function LoadingPayments() {
               {Array.from({ length: group === 0 ? 2 : 3 }, (_, i) => (
                 <div
                   key={i}
-                  className="flex min-h-14 items-center gap-inline border-t border-[var(--nf-border-subtle)] px-lg py-row first:border-t-0"
+                  className="flex min-h-14 items-center gap-inline border-t border-[var(--nf-divider)] px-lg py-row first:border-t-0"
                 >
                   <Skeleton width="1.75rem" height="1.75rem" radius="sm" className="shrink-0" />
                   <div className="min-w-0 flex-1">

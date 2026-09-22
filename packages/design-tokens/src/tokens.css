@@ -2902,6 +2902,22 @@
   --nf-border-default: rgb(18 21 26 / 0.13);
   --nf-border-strong: rgb(18 21 26 / 0.22);
   --nf-divider: rgb(18 21 26 / 0.09);
+  /*
+   * THE ONE MEMBER OF THIS FAMILY THE PAPER BLOCK FORGOT.
+   *
+   * The four above all invert for daylight and `--nf-border-brand` was left
+   * out, so it stayed frozen at the night value and every one of its sixteen
+   * call sites wore it on white. MEASURED at 2.49:1, under the 3:1 floor WCAG
+   * 1.4.11 sets for a boundary, on the settings group, the profile card and
+   * the agent's KYC banner among others.
+   *
+   * A brand border cannot invert the way an ink hairline does, because the
+   * hue is the point of it, so what moves is the alpha: 70 per cent measures
+   * 3.34:1 on white and 3.17:1 on the canvas. THE HUE IS UNTOUCHED, as with
+   * `--nf-brand-edge` above. `--nf-content-primary` on it measures 5.32:1, so
+   * the few places that set ink against this colour are still clear.
+   */
+  --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 70%, transparent);
 
   /*
    * Interactive feedback on paper. The night values are white washes, and a

@@ -67,11 +67,29 @@
     }
   }
 
-  /* The figure. One rung above `nf-h0` on the phone, because it is the one
-     number the screen exists for, and clamped so it never runs under the
-     wallet object at 390px. */
+  /*
+   * The figure. One rung above `nf-h0` on the phone, because it is the one
+   * number the screen exists for, and clamped so it never runs under the
+   * wallet object at 390px.
+   *
+   * AND THE CLAMP WAS THIRTEEN PER CENT SHORT OF WHAT THE FILE ITSELF SAYS.
+   *
+   * `clamp(2rem, 8.6vw, 2.75rem)` resolves to 33.5px at a 390px viewport,
+   * because 8.6vw only reaches the 2.6rem this file's own comment names, at
+   * `:101` and again in `money.ts:8`, at a 484px viewport, which no phone in
+   * the target set is. MEASURED ON THE SHIPPED PROOF: the digits in
+   * `docs/design/proofs/e/wallet-390-dark.png` are 24.5 logical px of cap
+   * height against the render's 28.2, so the intent was right all along and
+   * the middle term of the clamp under-delivered on every phone.
+   *
+   * `10.3vw` paints 40.2px at 390, which is the render's size almost exactly,
+   * and reaches the 2.75rem ceiling at 427px instead of never. The floor comes
+   * up with it so a narrower phone does not fall further behind.
+   * `.nf-money-kobo--hero` stays at 0.6em: that ratio already matches the
+   * render's measured 0.58.
+   */
   .nf-wallet-figure {
-    font-size: clamp(2rem, 8.6vw, 2.75rem);
+    font-size: clamp(2.4rem, 10.3vw, 2.75rem);
     font-weight: 800;
     line-height: 1;
     letter-spacing: var(--nf-tracking-display);
@@ -98,7 +116,8 @@
     color: var(--nf-content-primary);
     opacity: 0.74;
   }
-  /* The hero figure is 2.6rem, so the same ratio would put its decimals at
+  /* The hero figure is 2.4rem at 390 and 2.75rem from 427 up, so the same ratio
+     would put its decimals at
      nearly a whole row title. One rung smaller against the naira, one rung
      brighter, because at that size the decimals are read rather than
      glanced at. Same recipe, different rung, one class. */
@@ -132,7 +151,21 @@
     align-items: center;
     justify-content: center;
     gap: var(--nf-gap-inline-tight);
-    min-height: 5.25rem;
+    /*
+     * THE TILES WERE PORTRAIT WHERE THE RENDER'S ARE LANDSCAPE, and that is
+     * the single most visible difference between the two screens.
+     *
+     * 5.25rem is 84px. MEASURED ON THE SHIPPED PROOF: the Send tile in
+     * `wallet-390-dark.png` is 83 logical px tall and about 71 wide, so 71 by
+     * 83, portrait. The render's measure 77 by 60, landscape: a squat band
+     * across the foot of the balance card rather than four tall boxes.
+     *
+     * 3.75rem is 60px, which is the render's height. The 44px tap floor is
+     * still clear by 16px, and the gap is deliberately NOT reduced: the
+     * render's inter-tile gap measures about 8px, which is `--nf-gap-inline`
+     * already.
+     */
+    min-height: 3.75rem;
     padding: var(--nf-space-sm) var(--nf-space-2xs);
     border-radius: var(--nf-radius-lg);
     border: 1px solid var(--nf-brand-edge);
@@ -234,9 +267,28 @@
    * title leaving one orphan word, and the fixed height is what keeps the
    * four plates level whatever their words do.
    */
+  /*
+   * AND THE QUICK CARDS WERE FIFTY PER CENT TOO TALL, WHICH IS WHY EVERY ONE
+   * OF THE FOUR TITLES WRAPPED.
+   *
+   * 7.75rem is 124px. MEASURED ON THE SHIPPED PROOF: the block in
+   * `wallet-390-dark.png` runs 127.5 logical px and all four titles have
+   * broken, "Send / Money", "Request / Money", "Withdraw / To your / bank",
+   * "Statement / Every / movement". The render's cards are about 85px with
+   * the title on ONE line and the sub on ONE line.
+   *
+   * 5.25rem is 84px. The paragraph above this rule argues that the title may
+   * take two lines and that the fixed height keeps the four plates level
+   * whatever their words do; the second half is right and the first half is
+   * what produced a ragged band where the render has a tidy one. The title
+   * drops a rung to `--nf-text-overline`, which is what a 71px card carries
+   * on one line, and keeps `text-wrap: balance` so a title that still has to
+   * break does not leave an orphan. The glyph plate comes to 1.875rem, which
+   * is the 30px the render measures rather than the 34 we drew.
+   */
   .nf-wallet-quick__card {
     display: flex;
-    min-height: 7.75rem;
+    min-height: 5.25rem;
     flex-direction: column;
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-space-sm) var(--nf-space-2xs);
@@ -245,7 +297,7 @@
   }
   .nf-wallet-quick__title {
     display: block;
-    font-size: var(--nf-text-caption);
+    font-size: var(--nf-text-overline);
     font-weight: 700;
     line-height: 1.25;
     text-wrap: balance;
@@ -262,8 +314,8 @@
   /* The plate on a quick card is smaller than the one a section head takes:
      four of them sit in the width one card used to have. */
   .nf-wallet-quick__card .nf-glyph-tile {
-    width: 2.125rem;
-    height: 2.125rem;
+    width: 1.875rem;
+    height: 1.875rem;
     border-radius: var(--nf-radius-sm);
   }
   .nf-wallet-quick__card:focus-visible {
@@ -323,6 +375,21 @@
     padding-inline: var(--nf-pad-card-sm);
     padding-bottom: var(--nf-space-2xs);
   }
+  /*
+   * A SECOND DAY INSIDE THE ONE STATEMENT CARD.
+   *
+   * The statement is one card now rather than one card per calendar day, so
+   * the days need separating from each other INSIDE it. The render separates
+   * its rows with hairlines and gives its days the same rhythm, so a day after
+   * the first takes the row hairline above its heading rather than a new
+   * container. `.nf-tx-card__head` carries top padding for the first day; the
+   * rest get theirs from here, above the rule instead of below it.
+   */
+  .nf-tx-group + .nf-tx-group .nf-tx-card__head {
+    margin-top: var(--nf-space-2xs);
+    border-top: 1px solid var(--nf-divider);
+    padding-top: var(--nf-pad-card-sm);
+  }
   .nf-tx-row {
     display: flex;
     width: 100%;
@@ -350,12 +417,20 @@
      plate holding one stroked glyph, so a column of movements reads as a
      column of directions rather than as a column of blue. The glass tier
      was here and is gone with its padding; see `kinds.ts` for why. */
+  /*
+   * The transaction glyph circle. 2.75rem is 44px and the render's measures
+   * about 36, MEASURED off `6AF37222` at its 1.70 image-pixels-per-logical
+   * scale. 2.25rem is 36px, and the 8px it gives back goes to the row's
+   * counterparty line, which wraps to two lines at 390 on any real Nigerian
+   * name. The row is not a tap target in its own right, so the 44px floor does
+   * not reach this: the whole ROW is the control and it is 75px tall.
+   */
   .nf-tx-tile {
     display: grid;
     place-items: center;
     flex: none;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
     border-radius: var(--nf-radius-circle);
     border: 1px solid var(--nf-brand-edge);
     background: var(--nf-brand-tint-2);

@@ -514,7 +514,7 @@ export function SendFlow({
         <SectionHead id="nf-send-bank" icon="building-apartment" title={copy.bankTitle} sub={copy.bankSub} />
         <Link
           href="/wallet?action=withdraw"
-          className="nf-tap mt-row flex min-h-12 items-center justify-between gap-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-row py-inline text-[var(--nf-content-primary)]"
+          className="nf-tap mt-row flex min-h-12 items-center justify-between gap-md rounded-[var(--nf-radius-md)] border border-[var(--nf-brand-edge)] bg-[var(--nf-surface-inset)] px-row py-inline text-[var(--nf-content-primary)]"
         >
           <span className="nf-body font-semibold">{copy.bankAction}</span>
           <UiIcon name="chevron-right" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />

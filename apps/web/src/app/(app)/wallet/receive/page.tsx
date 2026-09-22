@@ -42,6 +42,7 @@ export default async function WalletReceivePage() {
   return (
     <div className="nf-money mx-auto max-w-2xl">
       <PageHeader
+        layout="stacked"
         title={copy.title}
         subtitle={copy.tagline}
         fallback="/wallet"

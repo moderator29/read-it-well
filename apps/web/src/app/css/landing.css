@@ -621,7 +621,19 @@
     color: var(--nf-landing-accent);
   }
 
-  /* City chips: capsules, per ledger section 8, on the photograph. */
+  /*
+   * City chips on the photograph: ROUNDED RECTANGLES, and this comment used to
+   * say "capsules, per ledger section 8", which cites a withdrawn amendment as
+   * the authority for a value it does not describe. BUILD 06 section 8 added
+   * `--nf-radius-control-pill` as a second control role and DESIGN_DIRECTION
+   * section 1.4 withdrew it at the root.
+   *
+   * The shipped value was already right and only the citation was wrong. The
+   * founder's ruling of 19 September, taken with the governing hero open: not
+   * one capsule in that image. Measured off it, the chips are about 31 logical
+   * px tall with a radius near 10, a ratio of 0.33. Ours is 14px on a 44px
+   * minimum height, which is 0.32, and the ratio is the law.
+   */
   .nf-landing-city {
     display: inline-flex;
     align-items: center;

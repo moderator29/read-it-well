@@ -116,26 +116,61 @@ export function TransactionsSection({
       </div>
 
       {groups.length > 0 ? (
-        <div className="space-y-group">
-          {groups.map((group, i) => (
-            <Reveal key={`${filter}-${group.key}`} delay={Math.min(i * 70, 280)}>
-              <section className="nf-card" aria-label={dayLabel(group.firstIso, locale)}>
-                <h3 className="nf-tx-card__head nf-overline">{dayLabel(group.firstIso, locale)}</h3>
-                <ul className="nf-tx-list">
-                  {group.entries.map((e) => (
-                    <EntryRow
-                      key={e.id}
-                      entry={e}
-                      locale={locale}
-                      words={words}
-                      completedLabel={copy.completed}
-                    />
-                  ))}
-                </ul>
-              </section>
-            </Reveal>
-          ))}
-        </div>
+        /*
+         * ONE CARD FOR THE WHOLE STATEMENT, with the day as a heading INSIDE
+         * it, which is what the only render of a transaction list draws.
+         *
+         * This used to open a new `nf-card` per calendar day. MEASURED ON THE
+         * SHIPPED PROOF: in `docs/design/proofs/e/transactions-390-dark.png`
+         * four movements produced FOUR separate cards, each holding one row,
+         * each with its own lit rim and its own day heading. A statement read
+         * as a stack of near-empty boxes, and it gets worse the more typical
+         * the account: somebody who moves money once a day gets one box per
+         * movement forever.
+         *
+         * `6AF37222` draws ONE glass card with a head and five rows separated
+         * by hairlines, and `.nf-tx-card__head`, `.nf-tx-list` and the
+         * `.nf-tx-row + .nf-tx-row` hairline already implement that anatomy.
+         * So this is a change of NESTING and not of styling: the day heading
+         * keeps its overline, the rows keep their hairline, and the card
+         * becomes one.
+         *
+         * The `Reveal` moves to the card rather than the group, because four
+         * bands animating in one after another inside a single card is the
+         * decoration rule 10 forbids; the statement arrives as one object.
+         * Each day keeps its own `aria-labelledby` group so the heading is
+         * still announced with the rows under it.
+         */
+        <Reveal>
+          <section className="nf-card">
+            {groups.map((group) => {
+              const headingId = `nf-tx-day-${group.key}`;
+              return (
+                <div
+                  key={`${filter}-${group.key}`}
+                  className="nf-tx-group"
+                  role="group"
+                  aria-labelledby={headingId}
+                >
+                  <h3 id={headingId} className="nf-tx-card__head nf-overline">
+                    {dayLabel(group.firstIso, locale)}
+                  </h3>
+                  <ul className="nf-tx-list">
+                    {group.entries.map((e) => (
+                      <EntryRow
+                        key={e.id}
+                        entry={e}
+                        locale={locale}
+                        words={words}
+                        completedLabel={copy.completed}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </section>
+        </Reveal>
       ) : (
         <EmptyState
           icon="wallet-secure"

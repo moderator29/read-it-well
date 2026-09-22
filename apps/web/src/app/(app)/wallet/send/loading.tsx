@@ -29,7 +29,7 @@ export default function LoadingWalletSend() {
             <Skeleton className="mt-2xs" height="3rem" radius="lg" />
           </div>
         ))}
-        <div className="mt-block grid grid-cols-2 gap-x-lg border-t border-[var(--nf-border-subtle)] pt-row">
+        <div className="mt-block grid grid-cols-2 gap-x-lg border-t border-[var(--nf-divider)] pt-row">
           {Array.from({ length: 2 }, (_, i) => (
             <div key={i}>
               <Skeleton width="6rem" height="0.875rem" radius="sm" />

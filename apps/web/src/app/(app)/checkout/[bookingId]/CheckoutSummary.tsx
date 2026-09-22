@@ -26,7 +26,7 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
         </p>
       )}
 
-      <dl className="mt-md grid gap-xs border-t border-[var(--nf-border-subtle)] pt-md">
+      <dl className="mt-md grid gap-xs border-t border-[var(--nf-divider)] pt-md">
         <div className="flex items-start justify-between gap-md">
           <dt className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">Dates</dt>
           <dd className="text-right text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
@@ -51,7 +51,7 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
         ))}
       </dl>
 
-      <div className="mt-md border-t border-[var(--nf-border-subtle)] pt-md">
+      <div className="mt-md border-t border-[var(--nf-divider)] pt-md">
         <p className="nf-overline text-[var(--nf-content-muted)]">Total to pay</p>
         <p className="mt-2xs">
           <Amount

@@ -28,7 +28,7 @@ export default async function WalletTransactionsPage() {
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
-      <PageHeader title="Transactions" fallback="/wallet" />
+      <PageHeader layout="stacked" title="Transactions" fallback="/wallet" />
 
       {!wallet.live ? (
         <Reveal>

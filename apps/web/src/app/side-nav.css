@@ -276,8 +276,16 @@
        control rung and not a capsule. The founder's ruling of 19 September,
        taken against `GOVERNING-landing-desktop-hero.png`, in which every
        control carrying a word - both hero buttons, the city chips, the search
-       segments, Sign In, Get Started - is a rounded rectangle. */
-    border-radius: var(--nf-radius-control);
+       segments, Sign In, Get Started - is a rounded rectangle.
+
+       AND IT WAS DRAWING ONE ANYWAY, WITH THAT COMMENT ABOVE IT. The law is
+       the RATIO of the drawn radius to the drawn short side, never the token
+       name. At 5px of block padding on 13px type this draws about 27px tall,
+       and 14px over 27px is 0.52: a capsule, measured, with a comment
+       directly above it asserting it is not one and a proof row in BUILD 06
+       section 6 calling it "the View profile capsule". No grep could find it
+       and rule 10 passed it. `--nf-radius-xs` is 6px, ratio 0.22. */
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-brand-edge);
     background: var(--nf-brand-tint-1);
     color: var(--nf-brand-secondary);
@@ -708,8 +716,16 @@
        capsule and not a circle: at "12" this badge is about 30 by 22 and the
        corners were elliptical. map.css carries the same argument in full
        beside the price pin. One rung, one shape, both faults closed.
+
+       AND THE CONTROL RUNG IS ITSELF THE CAPSULE ON AN OBJECT THIS SMALL.
+       Moving off `--nf-radius-circle` was right in principle and the rung it
+       landed on is 14px on a badge that MEASURES 22 by 21 on a production
+       server: ratio 0.67, so the ellipse became a capsule and the shape law
+       is still broken. `.nf-badge` already made exactly this move down to
+       `--nf-radius-xs` at chips.css, for the reason spelled out there, and
+       this now follows it. 6px over 21px is 0.29.
     */
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-primary);
     color: var(--nf-content-on-brand);
     font-size: 0.6875rem;

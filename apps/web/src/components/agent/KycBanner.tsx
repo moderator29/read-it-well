@@ -77,7 +77,17 @@ const COPY: Record<
    token family, so a theme change moves them together and neither can end up
    tinting a surface it is not legible on. */
 const TONE_CLASS: Record<Tone, string> = {
-  brand: "border-[var(--nf-border-brand)] bg-[var(--nf-glass-fill-thin)] text-[var(--nf-brand-secondary)]",
+  /*
+   * `bg-[var(--nf-glass-fill-thin)]` WAS WHITE ON WHITE ON PAPER. The glass
+   * fills invert for daylight, thin going from white at 4.5 per cent to white
+   * at 72, so a banner that lifted off a dark ground at night had no material
+   * at all on a white page: MEASURED at 1.000:1 over the card. The other two
+   * tones use a `-surface` token that is answered in both theme blocks and
+   * this one reached for a glass lift instead. `--nf-brand-tint-1` is the
+   * brand's own wash and is answered in both, so the pair now behaves like
+   * info and warning do: both halves from one family, moving together.
+   */
+  brand: "border-[var(--nf-border-brand)] bg-[var(--nf-brand-tint-1)] text-[var(--nf-brand-secondary)]",
   info: "border-[var(--nf-state-info)] bg-[var(--nf-state-info-surface)] text-[var(--nf-state-info)]",
   warning:
     "border-[var(--nf-state-warning)] bg-[var(--nf-state-warning-surface)] text-[var(--nf-state-warning)]",

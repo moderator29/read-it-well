@@ -65,7 +65,7 @@ export default async function RoomCheckoutPage({
           <p className={`mt-2xs ${TYPE.rowMeta}`}>
             {plan.name} &middot; {copy.sleeps.replace("{count}", String(room.sleeps))}
           </p>
-          <dl className="mt-md grid gap-xs border-t border-[var(--nf-border-subtle)] pt-md">
+          <dl className="mt-md grid gap-xs border-t border-[var(--nf-divider)] pt-md">
             {checkIn && checkOut && (
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkIn}</dt>
@@ -93,7 +93,7 @@ export default async function RoomCheckoutPage({
               </dd>
             </div>
             {total !== null && nights !== null && (
-              <div className="flex items-start justify-between gap-md border-t border-[var(--nf-border-subtle)] pt-xs">
+              <div className="flex items-start justify-between gap-md border-t border-[var(--nf-divider)] pt-xs">
                 <dt className={TYPE.rowMeta}>{copy.totalFor.replace("{count}", String(nights))}</dt>
                 <dd className="nf-numeric text-right nf-h4 text-[var(--nf-content-primary)]">
                   <Amount minorUnits={total} locale={locale} />

@@ -480,7 +480,13 @@
     display: inline-flex;
     align-items: center;
     padding: var(--nf-space-2xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
+        /*
+     * THE RATIO, NOT THE NAME. This carries a word on 12px type with 4px of
+     * block padding, so it draws about 24px tall and 14px over 24px is 0.59:
+     * a capsule, and no grep can see it. `.nf-badge` beside it already moved
+     * to `--nf-radius-xs` for the same reason. 6px over 24px is 0.25.
+     */
+    border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
     font-weight: 800;
     letter-spacing: 0.02em;

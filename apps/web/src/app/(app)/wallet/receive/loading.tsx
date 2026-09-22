@@ -41,7 +41,7 @@ export default function LoadingWalletReceive() {
 
       <div className="mt-block">
         <Skeleton width="9rem" height="0.8125rem" radius="sm" />
-        <ul className="mt-heading divide-y divide-[var(--nf-border-subtle)]">
+        <ul className="mt-heading divide-y divide-[var(--nf-divider)]">
           {Array.from({ length: 3 }, (_, i) => (
             <li key={i} className="flex items-center gap-md py-row">
               <Skeleton width="2.5rem" height="2.5rem" radius="sm" className="shrink-0" />

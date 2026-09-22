@@ -77,7 +77,7 @@ export function PotsSection({ pots, locale }: { pots: Pot[]; locale: Locale }) {
           {pots.map((pot) => (
             <li
               key={pot.id}
-              className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] p-card-sm"
+              className="rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] p-card-sm"
             >
               <div className="flex items-baseline justify-between gap-md">
                 <p className={TYPE.rowTitle}>{pot.name}</p>

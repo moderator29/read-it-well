@@ -191,7 +191,7 @@ export function AddBankAccountSheet({
       {beat === "confirm" && bank && name && (
         <div className="px-2xs">
           <p className={TYPE.sectionTitle}>{copy.isThisYou}</p>
-          <div className="mt-row flex items-start gap-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] p-row">
+          <div className="mt-row flex items-start gap-row rounded-[var(--nf-radius-md)] border border-[var(--nf-brand-edge)] bg-[var(--nf-surface-inset)] p-row">
             <UiIcon
               name="verified"
               size={ICON.inline}

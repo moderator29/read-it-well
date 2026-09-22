@@ -38,7 +38,7 @@ export default function LoadingWallet() {
 
       <div className="nf-card mt-block p-card-sm">
         <Skeleton width="10rem" height="1.25rem" radius="sm" />
-        <ul className="mt-row divide-y divide-[var(--nf-border-subtle)]">
+        <ul className="mt-row divide-y divide-[var(--nf-divider)]">
           {Array.from({ length: 5 }, (_, i) => (
             <li key={i} className="flex items-center gap-md py-row">
               <Skeleton width="3rem" height="3rem" radius="pill" className="shrink-0" />

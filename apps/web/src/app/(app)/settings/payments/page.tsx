@@ -30,7 +30,7 @@ export default async function PaymentsPage() {
   if (session.state !== "signed-in") {
     return (
       <div className="nf-money mx-auto max-w-2xl">
-        <PageHeader title={copy.title} fallback="/settings" />
+        <PageHeader layout="stacked" title={copy.title} fallback="/settings" />
         <EmptyState
           icon="card-lock"
           title={copy.signInTitle}
@@ -43,8 +43,7 @@ export default async function PaymentsPage() {
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
-      <PageHeader title={copy.title} fallback="/settings" />
-      <p className={`mb-block ${TYPE.body}`}>{copy.lede}</p>
+      <PageHeader layout="stacked" title={copy.title} subtitle={copy.lede} fallback="/settings" />
       <PaymentMethodsBlock />
       <p className={`mt-row px-2xs ${TYPE.caption}`}>{copy.cardsNote}</p>
     </div>

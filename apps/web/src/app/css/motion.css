@@ -483,13 +483,23 @@
 
   /* A scene shown small inside the platform gets a rounded chip, never a hard
      square block sitting on the card. */
+  /*
+   * THE EDGE WAS INVERTED ON THE ONE THEME WHERE THE CHIP IS THE DARK OBJECT.
+   *
+   * The base rule gives this a `--nf-wash-2` border, ink at 6 per cent, and
+   * then `:root:not([data-theme="light"])` hands the brand edge to every theme
+   * EXCEPT paper. So at night, where the chip sits on a near-black ground, it
+   * got the lit brand ring; in daylight, where the chip is a dark object on a
+   * white card and needs its outline most, it kept a 6 per cent wash measuring
+   * about 1.18:1. That is the wrong way round.
+   *
+   * The brand edge is the resting edge of a container in both themes, so it is
+   * unconditional now and the wash is the fallback for nothing.
+   */
   .nf-scene-chip {
     border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-wash-2);
+    border: 1px solid var(--nf-brand-edge);
     overflow: hidden;
-  }
-  :root:not([data-theme="light"]) .nf-scene-chip {
-    border-color: color-mix(in oklab, var(--nf-brand-secondary) 28%, transparent);
   }
 
   /*

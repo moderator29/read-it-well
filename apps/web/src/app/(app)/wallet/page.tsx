@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { PageHeader } from "@/components/app/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
@@ -69,8 +68,6 @@ export default async function WalletPage({
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
-      <PageHeader title={t.nav.wallet} actions={<WalletSettingsSheet />} />
-
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
 
       {!wallet.live ? (
@@ -118,6 +115,7 @@ export default async function WalletPage({
               cryptoEnabled={isYellowCardConfigured()}
               usdRate={usdRate}
               initialAction={initialAction}
+              settings={<WalletSettingsSheet />}
             />
           </Reveal>
 

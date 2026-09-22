@@ -93,7 +93,7 @@ export function Receipt({
         circle the statement rows use, so the receipt and the row it came from
         are recognisably the same movement.
       */}
-      <div className="flex items-center gap-inline border-b border-[var(--nf-border-subtle)] p-card">
+      <div className="flex items-center gap-inline border-b border-[var(--nf-divider)] p-card">
         <span className="nf-tx-tile" aria-hidden="true">
           <UiIcon name={KIND_ICON[entry.kind]} size={20} />
         </span>
@@ -133,7 +133,7 @@ export function Receipt({
         )}
       </div>
 
-      <dl className="border-t border-[var(--nf-border-subtle)] px-card pb-card">
+      <dl className="border-t border-[var(--nf-divider)] px-card pb-card">
         <Row label="Date" value={when} />
         {entry.note && <Row label="Details" value={entry.note} />}
         {entry.property && <Row label="Property" value={entry.property} />}
@@ -164,7 +164,7 @@ export function Receipt({
         <Link
           href={`/listing/${paidFor.listingId}`}
           data-testid="receipt-paid-for"
-          className="nf-tap flex items-center gap-md border-t border-[var(--nf-border-subtle)] px-card py-row text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
+          className="nf-tap flex items-center gap-md border-t border-[var(--nf-divider)] px-card py-row text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
         >
           <span className="nf-glyph-tile" aria-hidden="true">
             <UiIcon name={paidFor.kind === "tenancy" ? "key" : "calendar-booking"} size={20} />
@@ -186,7 +186,7 @@ export function Receipt({
         </Link>
       )}
 
-      <div className="border-t border-[var(--nf-border-subtle)] p-card">
+      <div className="border-t border-[var(--nf-divider)] p-card">
         <ReceiptActions
           reference={entry.reference}
           summary={`${words.kind[entry.kind]} · ${when} · ${entry.reference}`}

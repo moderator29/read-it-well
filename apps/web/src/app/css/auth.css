@@ -17,7 +17,41 @@
   reflection) are stated once as custom properties under the root class.
 */
 @layer components {
+  /*
+   * THE ONE DECLARATION THAT KEEPS THIS SCREEN READABLE IN LIGHT MODE, AND
+   * THE MECHANISM IS WORTH MORE THAN THE FIX.
+   *
+   * `(auth)/layout.tsx` renders `<main class="nf-auth" data-theme="dark">` and
+   * argues, correctly, that "a custom property declared on a descendant wins
+   * for that subtree over the value it would otherwise inherit". That is true
+   * of CUSTOM PROPERTIES and it is not true of `color`.
+   *
+   * `color` is an ordinary inherited property and the cascade resolves it on
+   * `body`, which is ABOVE this element. With the document in light mode the
+   * body's `color` had already computed to the paper ink and it inherited
+   * straight down into the dark-locked subtree, past a `--nf-content-primary`
+   * that was sitting there holding `#fff` the whole time. The layout's guard
+   * was written against SELECTORS reaching in and there was nothing guarding
+   * against INHERITANCE coming down.
+   *
+   * MEASURED ON A RUNNING PAGE, at 390 in light, before and after this line:
+   *
+   *   /start            "Find your next place"    rgb(22,24,29) -> rgb(255,255,255)
+   *   /sign-up/verify   "Enter your code"         rgb(22,24,29) -> rgb(255,255,255)
+   *   /reset-password   "That link has expired"   rgb(22,24,29) -> rgb(255,255,255)
+   *
+   * Against the plate's own rgb(0,6,18) that is 1.14:1 before and 20.29:1
+   * after: three screens a person meets BEFORE they have an account were
+   * drawing near-black ink on navy, which is not dull, it is invisible.
+   *
+   * AND IT DOES NOT TOUCH THE DARK REGISTER, which rule 22 makes permanent.
+   * In dark the same measurement reads rgb(255,255,255) before and after, and
+   * `.nf-auth__plate` computes rgb(0,6,18) in BOTH themes before and after.
+   * The ink is re-rooted; the plate is not lightened. Found by A2, confirmed
+   * in Chromium here before shipping rather than reasoned about.
+   */
   .nf-auth {
+    color: var(--nf-content-primary);
     position: relative;
     display: flex;
     min-height: 100dvh;
