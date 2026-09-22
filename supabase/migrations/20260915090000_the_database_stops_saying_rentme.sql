@@ -145,10 +145,22 @@ $$;
  * Written as a targeted update rather than a re-seed so that a badge somebody
  * has already earned keeps its identity and its award history.
  */
+/*
+ * CORRECTED 22 SEPTEMBER 2026, BEFORE THIS FILE HAD EVER BEEN APPLIED.
+ *
+ * As written, this migration could not run. `public.badges` has no `label`
+ * column, it has `name`, and `public.wallet_entries` has no `note` column, it
+ * carries the note inside `metadata`. Both statements would have raised 42703
+ * and taken the handle guard above down with them, which means the finding
+ * the audit called the single most serious in the estate had a fix that would
+ * have failed on its first data statement. Correcting an unapplied file is
+ * allowed: an applied migration is a record of what ran, and this one never
+ * ran.
+ */
 update public.badges
-   set label = 'Vallo Elite'
+   set name = 'Vallo Elite'
  where code = 'rentme_elite'
-   and label = 'RentMe Elite';
+   and name = 'RentMe Elite';
 
 update public.badges
    set description = 'One year since joining Vallo.'
@@ -172,8 +184,8 @@ update public.badges
 -- The wallet ledger note on a booking payment, which appears on a receipt that
 -- somebody may open six months later.
 update public.wallet_entries
-   set note = 'Payment for a Vallo stay'
- where note = 'Payment for a RentMe stay';
+   set metadata = jsonb_set(metadata, '{note}', to_jsonb('Payment for a Vallo stay'::text))
+ where metadata->>'note' = 'Payment for a RentMe stay';
 
 -- The fallback author label on a review, used when a display name is empty.
 update public.reviews
@@ -193,11 +205,11 @@ commit;
 --   -- Properly: insert a profile with handle 'vallo_agent' and expect RM002.
 --
 --   -- 2. The badge label moved and the code did not.
---   select code, label from public.badges where code = 'rentme_elite';
+--   select code, name from public.badges where code = 'rentme_elite';
 --   -- expect: rentme_elite | Vallo Elite
 --
 --   -- 3. Nothing user-facing still says the dead name.
 --   select count(*) from public.badges
---    where label ilike '%rentme%' or description ilike '%rentme%';
+--    where name ilike '%rentme%' or description ilike '%rentme%';
 --   -- expect: 0
 -- ---------------------------------------------------------------------------

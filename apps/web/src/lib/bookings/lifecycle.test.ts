@@ -233,7 +233,7 @@ describe("the database's answers are read strictly", () => {
       failures: [
         {
           jobid: 3,
-          jobname: "rentme_release_stale_holds",
+          jobname: "vallo_release_stale_holds",
           runid: 900,
           status: "failed",
           start_time: "2026-09-18T02:15:00+00:00",
@@ -243,7 +243,7 @@ describe("the database's answers are read strictly", () => {
     });
     expect(parsed.failures[0]).toEqual({
       jobId: 3,
-      jobName: "rentme_release_stale_holds",
+      jobName: "vallo_release_stale_holds",
       runId: 900,
       status: "failed",
       startTime: "2026-09-18T02:15:00+00:00",
@@ -332,7 +332,7 @@ describe("what a sweep says about its run", () => {
       failures: [
         {
           jobId: 3,
-          jobName: "rentme_release_stale_holds",
+          jobName: "vallo_release_stale_holds",
           runId: 900,
           status: "failed",
           startTime: "2026-09-18T02:15:00+00:00",
@@ -343,7 +343,7 @@ describe("what a sweep says about its run", () => {
     expect(failed.outcome).toBe("attention");
     expect(failed.alert?.severity).toBe("critical");
     expect(failed.alert?.detail.failure_1).toBe(
-      "rentme_release_stale_holds run 900 at 2026-09-18T02:15:00+00:00: ERROR: something",
+      "vallo_release_stale_holds run 900 at 2026-09-18T02:15:00+00:00: ERROR: something",
     );
   });
 });

@@ -17,7 +17,7 @@ import { callServiceFunction, type AdminClient } from "../rpc";
  * that has been paid is never touched and comes back as an alert.
  *
  * pg_cron runs the same function every fifteen minutes as
- * rentme_release_stale_holds; this is its watched twin, so a database job
+ * vallo_release_stale_holds; this is its watched twin, so a database job
  * that quietly stops is noticed by the next scheduled request. Both are
  * idempotent: a hold is released once because the update is guarded on
  * PENDING, and a second run finds nothing.
