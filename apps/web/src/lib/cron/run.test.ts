@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { bearerMatches, fromPlatformScheduler } from "./auth";
+import { bearerMatches, cronAuthVerdict, fromPlatformScheduler } from "./auth";
 import { executeCronJob, refusalAlert, type CronDeps } from "./run";
 import type { CronRunRecord } from "./report";
 import type { AdminClient } from "./rpc";
@@ -78,6 +78,50 @@ describe("the bearer guard", () => {
   it("still refuses a secret that is whitespace and nothing else", () => {
     expect(bearerMatches("Bearer   ", "   ")).toBe(false);
     expect(bearerMatches("Bearer \n", "s3cret")).toBe(false);
+  });
+
+  /*
+   * THE THREE FAULTS THAT USED TO LOOK IDENTICAL.
+   *
+   * A 401 from this door was one undifferentiated event, and on 22 September
+   * three separate wrong diagnoses were offered before anybody read the
+   * variable list: the secret was rotated on one side, then a pasted newline
+   * made the values differ, and only the third reading was right, that the
+   * project held `CRONS_SECRET` while Vercel reads `CRON_SECRET`, so every
+   * request arrived carrying no bearer at all. The information was always
+   * there. Nothing was carrying it.
+   */
+  it("names WHICH refusal it was, because all three used to read the same", () => {
+    const withHeader = (value?: string) =>
+      new Request("https://vallo.test/api/cron/hold-sweep", {
+        headers: value === undefined ? {} : { authorization: value },
+      });
+
+    vi.stubEnv("RECONCILE_CRON_SECRET", "s3cret");
+    // The real fault: Vercel injected nothing, because its variable is misnamed.
+    expect(cronAuthVerdict(withHeader())).toBe("no-bearer");
+    expect(cronAuthVerdict(withHeader("Bearer   "))).toBe("no-bearer");
+    // The one everybody assumes first, and which was NOT what happened.
+    expect(cronAuthVerdict(withHeader("Bearer wrong"))).toBe("secret-mismatch");
+    expect(cronAuthVerdict(withHeader("Bearer s3cret"))).toBe("ok");
+
+    // And a door with no secret refuses everyone, including a correct caller.
+    vi.stubEnv("RECONCILE_CRON_SECRET", "");
+    expect(cronAuthVerdict(withHeader("Bearer s3cret"))).toBe("no-secret-configured");
+  });
+
+  it("tells the desk the fix for the fault it actually had", () => {
+    const bare = refusalAlert("hold-sweep", true, "no-bearer");
+    expect(String(bare.detail?.fix)).toContain("CRON_SECRET");
+    expect(String(bare.detail?.fix)).toContain("name");
+    expect(bare.detail?.reason).toBe("no-bearer");
+
+    const mismatch = refusalAlert("hold-sweep", true, "secret-mismatch");
+    expect(String(mismatch.detail?.fix)).toContain("must equal");
+    expect(mismatch.detail?.reason).toBe("secret-mismatch");
+
+    // The two say different things, which is the whole point.
+    expect(String(bare.detail?.fix)).not.toBe(String(mismatch.detail?.fix));
   });
 
   it("still refuses a secret that differs by more than whitespace", () => {

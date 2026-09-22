@@ -54,11 +54,48 @@ export function bearerMatches(header: string | null | undefined, expected: strin
   }
 }
 
+/**
+ * WHICH KIND OF "NOT AUTHORISED" THIS WAS.
+ *
+ * THE REASON THIS EXISTS, and it cost four days. A 401 from this door was one
+ * undifferentiated event, and at least three entirely different faults arrive
+ * wearing it:
+ *
+ *   NO BEARER AT ALL     the scheduler sent no Authorization header, which
+ *                        means Vercel is not injecting one, which means the
+ *                        variable it reads is absent or misnamed. This was
+ *                        the real fault on 22 September: the project held
+ *                        `CRONS_SECRET` and Vercel reads `CRON_SECRET`, so
+ *                        every request arrived bare.
+ *   NO SECRET HERE       the deployment has no RECONCILE_CRON_SECRET, so the
+ *                        door refuses everything, including a correct caller.
+ *   A DIFFERENT SECRET   both sides have one and they disagree, which is the
+ *                        rotation-gone-wrong everybody assumes first and
+ *                        which was NOT what happened.
+ *
+ * From inside the door all three said "not authorised", so the alert could
+ * not name any of them, and three separate wrong diagnoses were offered
+ * before somebody read the variable list. The information was always there;
+ * nothing was carrying it.
+ *
+ * IT IS FOR OUR OWN DESK AND NEVER FOR THE CALLER. The HTTP response stays a
+ * bare 401: telling a stranger WHY their bearer failed is a free oracle.
+ */
+export type CronAuthVerdict = "ok" | "no-bearer" | "no-secret-configured" | "secret-mismatch";
+
+export function cronAuthVerdict(request: Request): CronAuthVerdict {
+  const expected = (process.env.RECONCILE_CRON_SECRET ?? "").trim();
+  if (expected.length === 0) return "no-secret-configured";
+
+  const header = request.headers.get("authorization") ?? "";
+  const presented = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  if (presented.length === 0) return "no-bearer";
+
+  return bearerMatches(header, expected) ? "ok" : "secret-mismatch";
+}
+
 export function authorisedCron(request: Request): boolean {
-  return bearerMatches(
-    request.headers.get("authorization"),
-    process.env.RECONCILE_CRON_SECRET ?? "",
-  );
+  return cronAuthVerdict(request) === "ok";
 }
 
 /**

@@ -6,7 +6,7 @@ import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "../security/money-limit
 import { createAdminClient } from "../supabase/admin";
 import { isSupabaseConfigured } from "../supabase/env";
 import type { JobVerdict } from "../bookings/lifecycle";
-import { authorisedCron, fromPlatformScheduler } from "./auth";
+import { cronAuthVerdict, fromPlatformScheduler, type CronAuthVerdict } from "./auth";
 import { reportCronRun } from "./report";
 import type { AdminClient } from "./rpc";
 
@@ -150,7 +150,34 @@ function adminOrNull(): AdminClient | null {
  * `RECONCILE_CRON_SECRET` on the host equalling `CRON_SECRET` on the
  * scheduler (docs/DEPLOY.md, section 2).
  */
-export function refusalAlert(name: string, scheduler: boolean): AlertInput {
+/**
+ * The fix line, chosen by WHICH refusal this was rather than printed blind.
+ *
+ * The old line always read "RECONCILE_CRON_SECRET must equal CRON_SECRET",
+ * which is true, unhelpful when both are already set, and actively misleading
+ * on 22 September when the real fault was that the scheduler's variable was
+ * named `CRONS_SECRET` and therefore read by nobody. A fix line that is right
+ * in general and wrong in particular sends people to check the thing they
+ * have already checked.
+ */
+function fixFor(verdict: CronAuthVerdict): string {
+  switch (verdict) {
+    case "no-bearer":
+      return "The scheduler sent NO bearer at all, so Vercel is injecting nothing: the variable it reads must be named exactly CRON_SECRET, in this environment. Check the name before the value.";
+    case "no-secret-configured":
+      return "RECONCILE_CRON_SECRET is unset or empty on this deployment, so the door refuses every caller including a correct one.";
+    case "secret-mismatch":
+      return "A bearer arrived and did not match: RECONCILE_CRON_SECRET on the host must equal CRON_SECRET on the scheduler.";
+    default:
+      return "";
+  }
+}
+
+export function refusalAlert(
+  name: string,
+  scheduler: boolean,
+  verdict: CronAuthVerdict = "secret-mismatch",
+): AlertInput {
   const token = name.replace(/-/g, "_");
   return scheduler
     ? {
@@ -160,7 +187,8 @@ export function refusalAlert(name: string, scheduler: boolean): AlertInput {
           http_status: 401,
           scheduler: "vercel-cron",
           ran: false,
-          fix: "RECONCILE_CRON_SECRET on the host must equal CRON_SECRET on the scheduler",
+          reason: verdict,
+          fix: fixFor(verdict),
         },
         subjectId: name,
         subjectKind: "cron_job",
@@ -168,7 +196,7 @@ export function refusalAlert(name: string, scheduler: boolean): AlertInput {
     : {
         kind: `cron.${token}.unauthorised`,
         severity: "warning",
-        detail: { http_status: 401, scheduler: "unknown", ran: false },
+        detail: { http_status: 401, scheduler: "unknown", ran: false, reason: verdict },
         subjectId: name,
         subjectKind: "cron_job",
       };
@@ -186,11 +214,12 @@ export function refusalAlert(name: string, scheduler: boolean): AlertInput {
  * certain. The 429 still goes back; the alert goes up either way.
  */
 async function refusal(name: string, request: Request): Promise<CronDeps["refused"]> {
-  if (authorisedCron(request)) return null;
+  const verdict = cronAuthVerdict(request);
+  if (verdict === "ok") return null;
   const scheduler = fromPlatformScheduler(request);
   const spray = await countRouteFailure(ROUTE_FAILURE_LIMITS.cronBadSecret, request.headers);
   if (!spray.allowed && !scheduler) return { retryAfterSeconds: spray.retryAfterSeconds };
-  await recordAlert(refusalAlert(name, scheduler));
+  await recordAlert(refusalAlert(name, scheduler, verdict));
   if (!spray.allowed) return { retryAfterSeconds: spray.retryAfterSeconds };
   return { retryAfterSeconds: 0 };
 }
