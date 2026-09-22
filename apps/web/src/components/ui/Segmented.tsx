@@ -180,7 +180,28 @@ export function Segmented<T extends string>({
             tabIndex={semantics === "tabs" ? (selected ? 0 : -1) : 0}
             onClick={() => onChange(o.value)}
             className={[
-              "nf-segmented__item relative z-1 inline-flex items-center justify-center gap-inline rounded-[var(--nf-radius-control)] font-semibold transition-colors",
+              /*
+               * `min-w-0` IS THE WHOLE FIX AND IT IS THE SAME FIX IN THREE
+               * PLACES.
+               *
+               * `flex-1` is `flex: 1 1 0%`, which frees the BASIS. It does not
+               * touch the item's automatic minimum size, which is its
+               * min-content width, which with a nowrap label is the whole
+               * word. So when three translated labels are wider than the
+               * track, the ITEMS leave the track, and the capsule follows them
+               * out: `capsule.x` and `capsule.w` are read off
+               * `item.offsetLeft` and `item.offsetWidth`, and that measurement
+               * is honest, so it reports an item that is genuinely outside its
+               * own control. `.nf-segmented` declares no `overflow`, so
+               * nothing clips it.
+               *
+               * This is the same sentence as `minmax(0, 1fr)` on a grid track:
+               * FREEING THE TRACK IS NOT FREEING THE ITEM. It is the root
+               * cause of the landing search pill's escaping label, the dock's
+               * escaping label and this one, which the research filed as three
+               * separate defects.
+               */
+              "nf-segmented__item relative z-1 inline-flex min-w-0 items-center justify-center gap-inline rounded-[var(--nf-radius-control)] font-semibold transition-colors",
               seg,
               full ? "flex-1" : "",
               /* On the capsule the selected ink is on-brand and comes from the
@@ -195,7 +216,10 @@ export function Segmented<T extends string>({
               .join(" ")}
           >
             {o.icon ? <UiIcon name={o.icon} size={16} filled={selected} /> : null}
-            <span className="whitespace-nowrap">{o.label}</span>
+            {/* `truncate` is nowrap PLUS the clip. The nowrap was already
+                here and was doing half the job: it stopped the word wrapping
+                and had nothing to stop it escaping. */}
+            <span className="min-w-0 truncate">{o.label}</span>
             {typeof o.count === "number" ? (
               <span className="nf-numeric text-[0.75em] opacity-70">{o.count}</span>
             ) : null}
