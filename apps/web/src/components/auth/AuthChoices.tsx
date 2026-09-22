@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import type { ProviderId, ProviderState } from "@/lib/auth/providers";
@@ -72,7 +73,7 @@ export function AuthChoices({
         `next` rides along so the chain to the person's original destination
         does not break at this hop.
       */}
-      <form action={emailRoute} method="get" className="mt-lg" noValidate={false}>
+      <form action={emailRoute} method="get" className="nf-auth__form" noValidate={false}>
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <label htmlFor="auth-email" className="sr-only">
           {t.auth.emailLabel}
@@ -90,17 +91,17 @@ export function AuthChoices({
             inputMode="email"
             placeholder={t.auth.emailLabel}
             disabled={!emailReady}
-            className="nf-field"
+            className="nf-field nf-auth-input"
           />
         </div>
 
         {emailReady ? (
-          <button type="submit" className="nf-btn nf-btn--primary nf-btn--lg nf-btn--full mt-sm">
+          <button type="submit" className="nf-btn nf-btn--primary nf-btn--full nf-auth__cta">
             <span className="nf-btn__label">{t.common.continue}</span>
             <UiIcon name="arrow-right" size={20} />
           </button>
         ) : (
-          <p className="nf-auth__terms">{t.auth.providerUnavailable}</p>
+          <p className="nf-auth__notice">{t.auth.providerUnavailable}</p>
         )}
       </form>
 
@@ -113,13 +114,16 @@ export function AuthChoices({
             {next ? <input type="hidden" name="next" value={next} /> : null}
             <input type="hidden" name="intent" value={mode} />
             <button type="submit" className="nf-auth__door nf-tap">
-              {/* A typographic mark rather than the four-colour glyph: the
-                  palette holds one blue family and nothing in this tree draws
-                  a third party's colours. The word beside it says which door
-                  this is. */}
-              <span className="nf-auth__door-mark" aria-hidden="true">
-                G
-              </span>
+              {/*
+                THE GOOGLE G, IN GOOGLE'S OWN FOUR COLOURS, and it is the one
+                place the house palette steps aside. The render draws it this
+                way, and Google's sign-in branding rules require the standard
+                mark on a "Continue with Google" control. It is a third party's
+                logo standing for that party, the same exception the catalogue
+                makes for the Verve card mark. Nothing else on the screen takes
+                these colours.
+              */}
+              <GoogleMark />
               {t.auth.continueWithGoogle}
             </button>
           </form>
@@ -141,30 +145,25 @@ export function AuthChoices({
         </p>
       )}
 
-      {/*
-        THE NOTICE NAMES ALL THREE DOCUMENTS NOW, AND THE THIRD ONE EXISTS.
-
-        This line used to be `t.auth.termsNotice` alone: "By continuing you
-        agree to our Terms and Privacy Policy", with nothing linked and no
-        Community Rules to link to. The ACTIVE acceptance, a required tick
-        recorded against a version, lives on the email sign-up form, which is
-        where an account is actually created from this product's own system.
-
-        SAID PLAINLY BECAUSE IT IS NOT CLOSED: a person who creates their
-        account through a social provider from this screen passes no tick, so
-        `profiles.terms_accepted_at` stays null for them. Closing that needs
-        the social buttons themselves reworked, and this week those belong to
-        another worker. It is recorded in the build ledger rather than left to
-        be discovered.
-      */}
-      <p className="nf-auth__terms">
-        {t.auth.termsNotice} {t.safety.acceptRead}{" "}
-        <Link href="/terms">{t.safety.termsLink}</Link>
-        {", "}
-        <Link href="/privacy">{t.safety.privacyLink}</Link>
-        {", "}
-        <Link href="/eula">{t.safety.rulesLink}</Link>
-      </p>
     </div>
+  );
+}
+
+/**
+ * Google's standard "G". It lives as a file under `public/brand/third-party/`
+ * because its four colours are Google's and not ours: the house lint refuses a
+ * raw hex in a component, rightly, and this mark is the one thing on the
+ * screen that must not follow the theme.
+ */
+function GoogleMark() {
+  return (
+    <Image
+      src="/brand/third-party/google-g.svg"
+      alt=""
+      width={20}
+      height={20}
+      className="nf-auth__door-mark"
+      unoptimized
+    />
   );
 }

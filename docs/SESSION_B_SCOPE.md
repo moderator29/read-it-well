@@ -83,6 +83,8 @@ policy, Session B writes it as a request below.
 - `apps/web/src/components/auth/EmailAuthForm.tsx`
 - `apps/web/src/components/auth/fields.tsx`
 - `apps/web/src/app/css/auth.css`
+- `apps/web/public/brand/third-party/google-g.svg` (new): Google's standard G for the
+  Continue with Google door, as a file because its four colours are Google's, not tokens
 
 ### Wallet and Send money
 - `apps/web/src/app/(app)/wallet/**`

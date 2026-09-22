@@ -5,21 +5,31 @@ import { getLocale } from "@/lib/locale";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 
 /**
- * Auth shell, to its governing image (`docs/design/references/55A56F21`).
+ * Auth shell, to its governing image (`55A56F21`, "Welcome back").
  *
- * The app icon and the wordmark stacked over the aurora plate, the slogan
- * beneath them, the glass card standing on its podium with the podium's
- * reflection in the floor. Every auth screen renders inside the one card so
- * sign in, sign up, the code, the reset and the recovery all read as the same
- * object; only the card's contents change. `app/css/auth.css` is the whole
- * surface, both themes.
+ * Top to bottom, as the render stacks it: the aurora sky with its light
+ * curtains, the app icon tile, the chrome wordmark,
+ * the glass card, and the lit glass plinth the card stands on, with the
+ * horizon and the reflective ground behind it. Every auth screen renders
+ * inside the one card so sign in, sign up, the code, the reset and the
+ * recovery all read as the same object; only the card's contents change.
+ * `app/css/auth.css` is the whole surface.
  *
- * The plate is the reference photograph, sized and compressed through
- * next/image, and it sits UNDER the CSS aurora on purpose: until the file is
- * filed the page is still the designed aurora, and once it lands the aurora
- * simply gains its photograph. The lockup is the supplied tile rather than a
- * redraw, because this is the one place the logo is shown large, which is
- * exactly what the supplied artwork is for.
+ * THE SKY IS DRAWN, NOT PHOTOGRAPHED. The plate that stood here was
+ * `bg-blue-wave.jpg`, horizontal swells across a flat navy, which is a
+ * different sky from the render's vertical curtains and mirrored horizon.
+ * The render itself cannot be used as a plate because its card, lockup and
+ * words are painted into it. So the curtains are five blurred ribbons and the
+ * horizon is one element, all from tokens, and they sit in this subtree where
+ * no rule in `light.css` reaches them (the old `.nf-aurora` and
+ * `.nf-grid-veil` were switched off by `light.css` in light mode, which is
+ * the leak `docs/research/LIGHT_MODE_SURVEY.md` 9.5 names).
+ *
+ * THE RENDER'S SLOGAN DOES NOT SHIP, and nothing replaces it. The founder
+ * removed it on 22 September, and the standing rule in
+ * `docs/design/references/roles/README.md` is that the images govern FORM,
+ * never claims: a positioning line is a statement, and statements come from
+ * us. The wordmark keeps the space.
  */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
@@ -30,82 +40,69 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
      * `data-theme="dark"`, and it is a ruling rather than a preference.
      *
      * The auth screen stays dark in BOTH themes, permanently (rule 22). It is
-     * the register setter for a money product: the first thing a stranger sees
-     * of Vallo, and the screen that has to look like somewhere it is safe to
-     * put a naira balance. Every serious money app in this market does exactly
-     * this, and the founder has closed the question rather than left it open.
-     *
-     * The attribute works because `tokens.css` declares the dark palette on
-     * `:root, [data-theme="dark"]`, so this element and everything inside it
-     * take the dark values whatever the document is set to. It is not a
-     * specificity trick: a custom property declared on a descendant wins for
-     * that subtree over the value it would otherwise inherit.
+     * the register setter for a money product and the founder has closed the
+     * question. The attribute works because `tokens.css` declares the dark
+     * palette on `:root, [data-theme="dark"]`, so this element and everything
+     * inside it take the dark values whatever the document is set to.
      *
      * The second half of the ruling is that this surface carries NO LIGHT
      * TWIN, because a rule keyed on `:root[data-theme="light"] .nf-auth__x`
-     * still matches when the document really is light, attribute or no
-     * attribute. Anything left in `auth.css` under that selector would fight
-     * this and win, so it goes.
-     *
-     * A LIGHT INK WORDMARK IS STILL OWED, for the surfaces that are genuinely
-     * white: email headers, receipts and PDFs, the store listing and print.
-     * Until that render exists those surfaces use the TEXT wordmark, never a
-     * filtered version of the photographic one, because an ink version of a
-     * photographic render is a new render and not a filter. This screen is
-     * not one of those surfaces and never will be.
+     * still matches when the document really is light. What light mode owes
+     * this screen is that it renders IDENTICALLY, logo, sky and all, and the
+     * Session B ledger section 3 records the measurement.
      */
     <main id="main" className="nf-auth" data-theme="dark">
-      <div className="nf-auth__plate" aria-hidden="true">
-        <Image src="/brand/photos/bg-blue-wave.jpg" alt="" fill sizes="100vw" priority />
+      <div className="nf-auth__sky" aria-hidden="true">
+        <span className="nf-auth__ribbon nf-auth__ribbon--l1" />
+        <span className="nf-auth__ribbon nf-auth__ribbon--l2" />
+        <span className="nf-auth__ribbon nf-auth__ribbon--r1" />
+        <span className="nf-auth__ribbon nf-auth__ribbon--r2" />
+        <span className="nf-auth__ribbon nf-auth__ribbon--r3" />
       </div>
-      <div className="nf-aurora" aria-hidden="true" />
-      <div className="nf-grid-veil" aria-hidden="true" />
 
       <div className="nf-auth__lang">
         <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
       </div>
 
       <div className="nf-auth__stage">
+        <div className="nf-auth__ground" aria-hidden="true" />
+
         <Link href="/" aria-label={t.a11y.logoHome} className="nf-auth__brand">
           <Image
             src="/brand/vallo-icon.png"
             alt=""
-            width={112}
-            height={112}
+            width={296}
+            height={296}
             priority
             className="nf-auth__icon"
           />
           <Image
             src="/brand/vallo-wordmark.png"
             alt="Vallo"
-            width={192}
-            height={40}
+            width={432}
+            height={78}
             priority
             className="nf-auth__wordmark"
           />
-          {/*
-            NOTHING GOES BESIDE THE LOCKUP, and this is a ruling rather than a
-            tidy-up. "Real Estate reimagined!" stood here, and it is the line
-            that tells a first-time visitor nothing: it names no place, no
-            price and no thing they can do. The work it was pretending to do
-            is done one screen earlier by the headline, "Rent, buy or stay.
-            Without the runaround." A slogan repeated under a wordmark on the
-            screen where somebody is trying to get into their account is decor
-            in the way of a task.
-
-            It is REMOVED and not replaced. If a line ever earns this spot it
-            will be because somebody can say what it does for the person
-            reading it, not because the space looks empty.
-          */}
         </Link>
 
         <div className="nf-auth__card">{children}</div>
         <div className="nf-auth__podium" aria-hidden="true" />
-
-        <Link href="/" className="nf-tap nf-auth__back">
-          {t.auth.backToHome}
-        </Link>
       </div>
+
+      {/*
+        The small print, under the plinth rather than inside the card. The
+        render's card ends at the sign-up line; the notice still has to be on
+        the screen, because a person who makes an account with Google from
+        here passes no tick. Every auth screen gets it the same way.
+      */}
+      <p className="nf-auth__legal">
+        {t.auth.termsNotice} <Link href="/terms">{t.safety.termsLink}</Link>
+        {" · "}
+        <Link href="/privacy">{t.safety.privacyLink}</Link>
+        {" · "}
+        <Link href="/eula">{t.safety.rulesLink}</Link>
+      </p>
     </main>
   );
 }

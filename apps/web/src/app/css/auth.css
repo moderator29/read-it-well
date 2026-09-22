@@ -1,54 +1,29 @@
 /*
-  auth: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2.
+  auth: the "Welcome back" family, to its governing image `55A56F21` (repo
+  root; `docs/design/references/55A56F21-...png`). Owned by Session B, see
+  `docs/SESSION_B_SCOPE.md`.
 
   THIS FAMILY HAS ONE THEME. The auth screen and first run are dark in both
   themes, permanently (ledger rule 22), so there are no light-theme rules in
   this file and adding one would break the ruling rather than complete it.
-  The two "NO DAYLIGHT TWIN" notes below say why the ABSENCE is the
-  mechanism. The header used to promise the opposite.
+  Light mode's obligation here is to render the SAME screen, which the
+  Session B ledger measures.
 
-  The governing image is docs/design/references/55A56F21 (sign-in): the app
-  icon and the wordmark stacked over the aurora plate, the slogan, a glass card
-  with a lit blue rim standing on a glass podium, and the podium's reflection
-  in the floor. Sign-up, forgot and reset password render inside the same card
-  so the family reads as one object. Everything here draws from the tokens;
-  the two values that had no rung (the podium's lens and the card's floor
-  reflection) are stated once as custom properties under the root class.
+  THE NUMBERS. The render is a 1024x1536 poster with no phone frame, so its
+  full width is not a phone's width: at the brief's formula the card would be
+  241px wide and every control 27px tall. The scale is set instead by the card
+  spanning the phone column, 633 image px to 358 CSS px (390 less two 16px
+  gutters): s = 0.566. Every length below is the image measurement times s,
+  with two stated floors: controls never under 48px (the 44px tap rule), and
+  the card's type at 1.36 x s, because at s alone the render's card copy
+  measures 9 to 11px on a phone. Each number is written beside its rule.
 */
 @layer components {
   /*
-   * THE ONE DECLARATION THAT KEEPS THIS SCREEN READABLE IN LIGHT MODE, AND
-   * THE MECHANISM IS WORTH MORE THAN THE FIX.
-   *
-   * `(auth)/layout.tsx` renders `<main class="nf-auth" data-theme="dark">` and
-   * argues, correctly, that "a custom property declared on a descendant wins
-   * for that subtree over the value it would otherwise inherit". That is true
-   * of CUSTOM PROPERTIES and it is not true of `color`.
-   *
-   * `color` is an ordinary inherited property and the cascade resolves it on
-   * `body`, which is ABOVE this element. With the document in light mode the
-   * body's `color` had already computed to the paper ink and it inherited
-   * straight down into the dark-locked subtree, past a `--nf-content-primary`
-   * that was sitting there holding `#fff` the whole time. The layout's guard
-   * was written against SELECTORS reaching in and there was nothing guarding
-   * against INHERITANCE coming down.
-   *
-   * MEASURED ON A RUNNING PAGE, at 390 in light, before and after this line:
-   *
-   *   /start            "Find your next place"    rgb(22,24,29) -> rgb(255,255,255)
-   *   /sign-up/verify   "Enter your code"         rgb(22,24,29) -> rgb(255,255,255)
-   *   /reset-password   "That link has expired"   rgb(22,24,29) -> rgb(255,255,255)
-   *
-   * Against the plate's own rgb(0,6,18) that is 1.14:1 before and 20.29:1
-   * after: three screens a person meets BEFORE they have an account were
-   * drawing near-black ink on navy, which is not dull, it is invisible.
-   *
-   * AND IT DOES NOT TOUCH THE DARK REGISTER, which rule 22 makes permanent.
-   * In dark the same measurement reads rgb(255,255,255) before and after, and
-   * `.nf-auth__plate` computes rgb(0,6,18) in BOTH themes before and after.
-   * The ink is re-rooted; the plate is not lightened. Found by A2, confirmed
-   * in Chromium here before shipping rather than reasoned about.
+   * `color` is re-rooted here because it is an ordinary inherited property:
+   * with the document in light mode the body's paper ink would otherwise
+   * inherit straight into this dark-locked subtree (measured 1.14:1 on the
+   * plate before this line existed, 20.29:1 after).
    */
   .nf-auth {
     color: var(--nf-content-primary);
@@ -59,26 +34,29 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: var(--nf-space-2xl) var(--nf-space-md);
-    padding-top: max(var(--nf-space-2xl), env(safe-area-inset-top, 0px));
-    padding-bottom: max(var(--nf-space-xl), env(safe-area-inset-bottom, 0px));
-    /* The podium's lens and the card's floor reflection. One value each,
-       named here rather than typed twice below. */
-    --nf-auth-podium-h: 1.5rem;
-    --nf-auth-podium-lens: radial-gradient(
-      ellipse at 50% 50%,
-      var(--nf-glow-3) 0%,
-      var(--nf-glow-1) 46%,
-      transparent 72%
-    );
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    padding-top: max(var(--nf-space-lg), env(safe-area-inset-top, 0px));
+    padding-bottom: max(var(--nf-space-md), env(safe-area-inset-bottom, 0px));
+    /*
+     * The sky's ground colour, sampled from the render: #000214 at the
+     * edges, #001150 behind the lockup. Two mixes of the canvas with the
+     * brand ink rather than two new literals.
+     */
+    --nf-auth-sky-deep: var(--nf-surface-canvas);
+    --nf-auth-sky-mid: color-mix(in oklab, var(--nf-glow-ink) 22%, var(--nf-surface-canvas));
+    /* The render's lit rim colour, #9EE5FE: white leaning to the quiet blue. */
+    --nf-auth-rim-hot: color-mix(in oklab, var(--nf-content-primary) 62%, var(--nf-brand-quiet));
+    /* The card's glass, #001554 in the render: canvas and brand ink. */
+    --nf-auth-glass: color-mix(in oklab, var(--nf-glow-ink) 24%, var(--nf-surface-canvas));
+    background:
+      radial-gradient(ellipse 90% 45% at 50% 22%, var(--nf-auth-sky-mid), transparent 72%),
+      var(--nf-auth-sky-deep);
   }
 
   /*
-   * The aurora plate: the reference photograph behind the whole screen, sized
-   * and compressed through next/image inside this box. The plate sits UNDER
-   * the CSS aurora so that on the day the file is not there the page is still
-   * the designed aurora rather than a hole, and the scrim keeps the middle of
-   * the frame dark enough for the card to read at any exposure.
+   * THE PHOTOGRAPH PLATE, kept for the first-run stage (`WelcomeStage`),
+   * which is the welcome worker's surface and still renders it. The sign-in
+   * family no longer uses it: its sky is drawn below.
    */
   .nf-auth__plate {
     position: absolute;
@@ -100,14 +78,150 @@
       linear-gradient(180deg, var(--nf-overlay-media-soft) 0%, transparent 30%, transparent 70%, var(--nf-overlay-media) 100%);
   }
 
+  /* ------------------------------------------------------------------ sky */
+  /*
+   * The render's light curtains. Right of frame: a tall bright curtain from
+   * the top corner falling to the right edge at mid height, the brightest
+   * light on the screen after the button. Left of frame: two softer sweeps
+   * rising from the left edge towards the lockup. Each ribbon is an
+   * elongated ellipse of light, rotated and blurred; the core runs white
+   * into the brand ink so it reads as light, not as paint.
+   */
+  .nf-auth__sky {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .nf-auth__ribbon {
+    position: absolute;
+    display: block;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklab, var(--nf-content-primary) 30%, var(--nf-glow-ink)) 0%,
+      color-mix(in oklab, var(--nf-glow-ink) 78%, transparent) 34%,
+      color-mix(in oklab, var(--nf-glow-ink) 26%, transparent) 66%,
+      transparent 100%
+    );
+    filter: blur(14px);
+    mix-blend-mode: screen;
+  }
+  /* Right curtain: image x 780 to 1000, y 0 to 700. */
+  .nf-auth__ribbon--r1 {
+    right: -14%;
+    top: -6%;
+    width: 30%;
+    height: 62%;
+    rotate: -24deg;
+  }
+  /* Its brighter inner fold, thinner and nearer the edge. */
+  .nf-auth__ribbon--r2 {
+    right: -2%;
+    top: 8%;
+    width: 9%;
+    height: 44%;
+    rotate: -18deg;
+    filter: blur(8px);
+  }
+  /* The sweep running in from the right under the wordmark (image y 500 to 720). */
+  .nf-auth__ribbon--r3 {
+    right: -20%;
+    top: 34%;
+    width: 80%;
+    height: 12%;
+    rotate: -16deg;
+    opacity: 0.7;
+    filter: blur(22px);
+  }
+  /* Left: the long sweep from the edge at image y 700 up behind the icon. */
+  .nf-auth__ribbon--l1 {
+    left: -26%;
+    top: 16%;
+    width: 64%;
+    height: 14%;
+    rotate: -38deg;
+    opacity: 0.75;
+    filter: blur(22px);
+  }
+  /* Left: the low sweep at the horizon, image y 900 to 1000. */
+  .nf-auth__ribbon--l2 {
+    left: -20%;
+    top: 52%;
+    width: 46%;
+    height: 9%;
+    rotate: -20deg;
+    opacity: 0.6;
+    filter: blur(20px);
+  }
+
   .nf-auth__stage {
     position: relative;
     z-index: 1;
     display: flex;
     width: 100%;
-    max-width: 24rem;
+    /* 358 at 390: the card spans the phone column, and s is set from it. */
+    max-width: 26.25rem;
     flex-direction: column;
     align-items: center;
+  }
+
+  /*
+   * THE HORIZON AND THE GROUND. The render's horizon sits 136 image px above
+   * the card's foot (77 at s), with a dark ridge on it and a bright line of
+   * light, and below it the ground is a mirror: blue streaks, the plinth's
+   * glow pooled on it. Anchored to the stage rather than the viewport so the
+   * plinth always stands on it, and as wide as the screen.
+   */
+  .nf-auth__ground {
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    width: 100vw;
+    top: calc(100% - 7.75rem);
+    height: 100vh;
+    translate: -50% 0;
+    pointer-events: none;
+    background:
+      /* the pool of plinth light on the mirror floor */
+      radial-gradient(ellipse 60% 16% at 50% 13%, var(--nf-glow-4), transparent 70%),
+      /* the horizon's own line of light */
+      linear-gradient(
+        180deg,
+        transparent 0,
+        color-mix(in oklab, var(--nf-glow-ink) 30%, transparent) 0.9rem,
+        color-mix(in oklab, var(--nf-auth-rim-hot) 55%, transparent) 1.1rem,
+        color-mix(in oklab, var(--nf-glow-ink) 26%, var(--nf-surface-canvas)) 1.25rem,
+        color-mix(in oklab, var(--nf-glow-ink) 16%, var(--nf-surface-canvas)) 40%,
+        var(--nf-surface-canvas) 100%
+      );
+  }
+  /* The ridge on the horizon, left and right of the card (image y 1110 to 1200). */
+  .nf-auth__ground::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -0.9rem;
+    height: 2rem;
+    background:
+      radial-gradient(ellipse 22% 60% at 8% 100%, color-mix(in oklab, var(--nf-glow-ink) 14%, var(--nf-surface-canvas)) 60%, transparent 62%),
+      radial-gradient(ellipse 30% 45% at 92% 100%, color-mix(in oklab, var(--nf-glow-ink) 14%, var(--nf-surface-canvas)) 60%, transparent 62%);
+  }
+  /* Streaks of reflected light on the mirror ground. */
+  .nf-auth__ground::after {
+    content: "";
+    position: absolute;
+    inset: 1.25rem 0 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0 14px,
+      color-mix(in oklab, var(--nf-glow-ink) 16%, transparent) 14px 16px,
+      transparent 16px 37px
+    );
+    mask-image: linear-gradient(180deg, transparent 0, #000 10%, transparent 55%);
+    opacity: 0.7;
   }
 
   /* ---------------------------------------------------------------- brand */
@@ -118,62 +232,73 @@
     text-align: center;
     text-decoration: none;
   }
+  /*
+   * The app tile: 258 image px, 146 at s. The supplied tile carries its own
+   * thick lit edge; the halo is what lifts it off the sky, and the render's
+   * halo is strong (the edge reads #1E6BFF against a #001150 sky).
+   */
   .nf-auth__icon {
     display: block;
-    width: 6rem;
-    height: 6rem;
+    width: 9.25rem;
+    height: 9.25rem;
     border-radius: var(--nf-radius-squircle);
-    /* The tile carries its own lit edge; the halo underneath is what lifts it
-       off the plate the way the render does. */
-    filter: drop-shadow(0 0 22px var(--nf-glow-3));
+    filter: drop-shadow(0 0 10px var(--nf-glow-4)) drop-shadow(0 0 28px var(--nf-glow-3));
   }
+  /* The chrome wordmark: 382 by 70 image px, 216 by 40 at s, 38 below the tile (21). */
   .nf-auth__wordmark {
     display: block;
-    width: 10.5rem;
+    width: 13.5rem;
     height: auto;
-    margin-top: var(--nf-space-md);
-    filter: drop-shadow(0 0 14px var(--nf-glow-2));
+    margin-top: 1.25rem;
+    filter: drop-shadow(0 0 6px var(--nf-glow-3)) drop-shadow(0 0 18px var(--nf-glow-2));
   }
-  .nf-auth__slogan {
-    margin-top: var(--nf-space-xs);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 500;
-    letter-spacing: var(--nf-tracking-overline);
-    color: var(--nf-content-secondary);
-  }
-
   /* ----------------------------------------------------------------- card */
   /*
-   * A glass card with a sharp electric rim, over the plate. The fill is the
-   * canvas at 62 per cent so the aurora shows through the blur; the rim is
-   * the brand edge rather than a grey hairline, which is what the whole
-   * frontend sweep is about; the outer bloom is one glow rung, not a bespoke
-   * shadow. The inner top catchlight rides the glass rim token.
+   * The glass card. 633 by 630 image px, 358 wide at s; corner 42 image px
+   * (24 at s, the xl rung at 22); inner inset 60 image px (34). Its fill is
+   * the render's #001554 navy glass, its edge a crisp electric line all
+   * round, and its top edge carries the hot rim, brightest at the centre
+   * (#9EE5FE) and falling to the edge colour at the corners (#074292).
    */
   .nf-auth__card {
     position: relative;
     isolation: isolate;
     width: 100%;
-    margin-top: var(--nf-space-xl);
-    padding: var(--nf-space-lg);
-    border-radius: var(--nf-radius-2xl);
-    /* The rim is the strong brand edge and it is SHARP: the render's card is
-       identified by one crisp electric line, not by a blur. The bloom sits
-       outside it at one glow rung so the line stays a line. */
-    border: var(--nf-border-width) solid var(--nf-glow-ink);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 58%, transparent);
+    /* The render puts 98 image px between the wordmark's foot and the card
+       (55 at s), with its slogan in the middle. The slogan does not ship
+       (founder, 22 September), so the gap closes to 36 and the wordmark
+       keeps the space. */
+    margin-top: 2.25rem;
+    padding: 2.125rem 2.125rem 1.875rem;
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width-strong) solid transparent;
+    background:
+      linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--nf-auth-glass) 88%, transparent),
+          color-mix(in oklab, var(--nf-auth-glass) 94%, transparent)
+        )
+        padding-box,
+      linear-gradient(
+          180deg,
+          var(--nf-glow-brand-rim) 0%,
+          var(--nf-container-edge-lit) 30%,
+          var(--nf-container-edge-lit) 80%,
+          var(--nf-glow-brand-rim) 100%
+        )
+        border-box;
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
-      inset 0 1px 0 var(--nf-glow-brand-rim),
-      inset 0 0 0 1px var(--nf-glow-2),
-      inset 0 0 48px var(--nf-glow-1),
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      inset 0 0 36px var(--nf-glow-2),
+      inset 0 -18px 36px -18px var(--nf-glow-3),
       0 0 0 1px var(--nf-glow-2),
-      0 0 28px var(--nf-glow-3),
-      0 0 72px var(--nf-glow-2),
+      0 0 18px var(--nf-glow-4),
+      0 0 60px var(--nf-glow-3),
       var(--nf-elev-3);
   }
-  /* The specular sweep across the top-left, as on every glass object. */
+  /* The specular sweep inside, and the hot centre of the top rim. */
   .nf-auth__card::before {
     content: "";
     position: absolute;
@@ -181,56 +306,94 @@
     z-index: -1;
     border-radius: inherit;
     background: var(--nf-glass-specular);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .nf-auth__card::after {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: -1.5px;
+    height: 3px;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, var(--nf-content-primary), var(--nf-auth-rim-hot) 40%, transparent);
+    box-shadow: 0 0 14px 2px var(--nf-glow-4);
     pointer-events: none;
   }
 
   /* --------------------------------------------------------------- podium */
   /*
-   * The disc the card stands on, and the card's reflection in the floor. Two
-   * pseudo elements on one box: the box itself is the lens, `::before` is the
-   * podium's lit ellipse, `::after` is the reflection fading downwards.
+   * The glass plinth the card stands on: 725 by 84 image px, so wider than
+   * the card by 14 per cent and 47px tall at s. A lit elliptical top with a
+   * hot rim and an inner ring, a front band, and its light pooled on the
+   * ground (drawn by `.nf-auth__ground`).
    */
   .nf-auth__podium {
     position: relative;
-    width: 86%;
-    height: var(--nf-auth-podium-h);
-    margin-top: var(--nf-space-sm);
+    z-index: -1;
+    width: 104%;
+    height: 3.25rem;
+    margin-top: -0.625rem;
     pointer-events: none;
   }
+  /* The lit top face: an ellipse with a hot rim and an inner ring. */
   .nf-auth__podium::before {
     content: "";
     position: absolute;
-    inset: 0;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2.25rem;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-auth-podium-lens);
+    border: 2px solid var(--nf-auth-rim-hot);
+    background:
+      radial-gradient(ellipse 50% 60% at 50% 45%, color-mix(in oklab, var(--nf-glow-ink) 80%, transparent), transparent 80%),
+      color-mix(in oklab, var(--nf-glow-ink) 34%, var(--nf-surface-canvas));
     box-shadow:
-      inset 0 0 0 3px var(--nf-glow-1),
-      inset 0 1px 0 var(--nf-glow-3),
-      0 0 28px var(--nf-glow-2);
+      inset 0 0 0 5px color-mix(in oklab, var(--nf-glow-ink) 22%, var(--nf-surface-canvas)),
+      inset 0 0 0 6.5px var(--nf-glow-brand-rim),
+      inset 0 0 18px var(--nf-glow-4),
+      0 0 14px var(--nf-glow-4),
+      0 0 36px var(--nf-glow-3);
   }
-  /* The reflection is a soft ellipse of light under the disc, with no edge
-     to see; a rectangle here read as a second panel. */
+  /* The front band, from the face's middle to its lit foot. */
   .nf-auth__podium::after {
     content: "";
     position: absolute;
-    left: -10%;
-    right: -10%;
-    top: 40%;
-    height: 6rem;
-    border-radius: var(--nf-radius-circle);
-    background: radial-gradient(ellipse at 50% 0%, var(--nf-glow-2), transparent 68%);
-    filter: blur(6px);
+    left: 0;
+    right: 0;
+    top: 1.125rem;
+    bottom: 0;
+    border-radius: 0 0 50% 50% / 0 0 1rem 1rem;
+    border-bottom: var(--nf-border-width-strong) solid var(--nf-glow-brand-rim);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-glow-ink) 40%, var(--nf-surface-canvas)),
+      color-mix(in oklab, var(--nf-glow-ink) 18%, var(--nf-surface-canvas))
+    );
+    box-shadow:
+      0 4px 18px var(--nf-glow-4),
+      0 14px 40px var(--nf-glow-3);
   }
 
-  .nf-auth__back {
-    margin-top: var(--nf-space-xl);
-    font-size: var(--nf-text-caption);
+  /* The small print under the plinth. */
+  .nf-auth__legal {
+    position: relative;
+    z-index: 1;
+    margin-top: var(--nf-space-md);
+    max-width: 22rem;
+    text-align: center;
+    font-size: var(--nf-text-overline);
+    line-height: 1.5;
     color: var(--nf-content-muted);
-    text-underline-offset: 4px;
   }
-  .nf-auth__back:hover {
+  .nf-auth__legal a {
     color: var(--nf-content-secondary);
+    text-underline-offset: 3px;
+  }
+  .nf-auth__legal a:hover {
     text-decoration: underline;
   }
 
@@ -241,49 +404,12 @@
     z-index: 2;
   }
   /*
-   * The language control is the site's own switcher (F2's component) and it
-   * arrives as a filled brand pill. On this screen the lockup owns the top,
-   * so under this root it is restyled to the quiet glass square the header
-   * controls use: glass fill, hairline, the same 44px target. Scoped here
-   * rather than in the component so no other screen changes.
-   */
-  /*
-   * `select` IS IN THIS SELECTOR TO WIN A FIGHT, and the fight is the exact
-   * one rule 22's mechanism creates.
-   *
-   * Pinning `data-theme="dark"` on the auth root pins the TOKENS for the
-   * subtree. It does not stop a light-keyed rule from MATCHING, and
-   * `light.css` carries `:root[data-theme="light"] select.nf-btn--primary`
-   * for the site header's language pill, which at (0,3,1) outranked this
-   * rule at (0,3,0) and is in a later partial besides. Measured on the real
-   * page: in the light run this control came back `rgb(0, 0, 32)` with a
-   * `rgba(255,255,255,0.13)` edge where the dark run gave it the well fill
-   * and the brand edge. It looked nearly right only by accident - the light
-   * rule's own `var()`s were resolving against the pinned DARK tokens.
-   *
-   * THE FIRST ATTEMPT AT THIS WAS WRONG AND THE MEASUREMENT CAUGHT IT. I
-   * added the element type alone, `.nf-auth__lang select.nf-btn.nf-btn--primary`,
-   * calling it (0,4,1) against the light rule's (0,3,1). It is (0,3,1): I had
-   * forgotten that `:root` is itself a pseudo-class and counts. A tie goes to
-   * the later partial, `light.css` is imported eleven lines after this one,
-   * and the re-run came back with the same three differences. The arithmetic
-   * is only worth doing if the result is then checked against the page.
-   *
-   * So the selector leads with the PINNED ATTRIBUTE instead, which is both
-   * higher at (0,4,1) and the honest statement of the condition: inside a
-   * subtree that pins dark, this is the rule. That is the general shape for
-   * any surface rule 22 ever covers, not a trick particular to a language
-   * pill. NOT a light twin: there is no theme keyed here, the attribute is
-   * always present on this surface, and it paints one thing in both themes.
-   *
-   * The shared rule in `light.css` is left exactly as it is, because it is
-   * the right paper design for the site header, which is a genuinely white
-   * surface and always will be.
-   *
-   * THE GENERAL SHAPE IS WORTH SEEING. Any light-keyed rule more specific
-   * than a surface's own will leak into any subtree that pins dark. Fourteen
-   * of seventeen probes on this page came back identical without help; this
-   * was the one that did not.
+   * The language control is the site's own switcher and arrives as a filled
+   * brand pill. Here it is the quiet glass square the header controls use.
+   * The selector leads with the PINNED ATTRIBUTE because `light.css` carries
+   * `:root[data-theme="light"] select.nf-btn--primary` at (0,3,1), later in
+   * the bundle; this is (0,4,1) and it is the honest statement of the
+   * condition: inside a subtree that pins dark, this is the rule.
    */
   [data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary {
     min-height: 2.75rem;
@@ -308,12 +434,40 @@
     }
   }
 
+  /* ------------------------------------------------------ the card's type */
+  /*
+   * Title: caps 25 image px, Poppins semibold, 36 image px, which is 20 at s
+   * and 26 at the card's 1.36 type factor. Sub: caps 14 image px, Inter
+   * regular, 11 at s, 15 at the factor. 22 image px from the title's
+   * baseline to the sub's caps (12).
+   */
+  .nf-auth__title {
+    font-family: var(--nf-font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-auth__sub {
+    margin-top: 0.375rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+
+  /* 44 image px from the sub's baseline to the field (25). */
+  .nf-auth__form {
+    margin-top: 1.5rem;
+  }
+
   /* ---------------------------------------------------------- the fields */
   /*
-   * A field with a glyph inside it, to the render: the envelope sits in the
-   * well and the text starts after it. The well is the ordinary `.nf-field`
-   * so focus, error and daylight all come from the one control; only the
-   * inset and the glyph are added here.
+   * The email field: 70 image px tall (40 at s, floored to 50 so the three
+   * controls keep the render's 70:76:68 proportion above 48). Corner 12
+   * image px, the control rung. Fill #00144C, a shade under the card's glass;
+   * edge the electric line (#0B4FD0 on the render's left side); the envelope
+   * line glyph at 32 image px in from the edge (18), text after it.
    */
   .nf-auth-field {
     position: relative;
@@ -321,61 +475,144 @@
   .nf-auth-field > .nf-field {
     padding-left: var(--nf-pad-field-affordance);
   }
+  /*
+   * `.nf-auth[data-theme="dark"]` leads the field and button selectors for
+   * the reason the language control's note gives: `light.css` keys paper
+   * fills for `.nf-field` and the primary's edge on `:root[data-theme="light"]`,
+   * which still MATCH inside this pinned subtree. Measured before the prefix:
+   * in light the field came back rgb(0,0,32) and the button's edge
+   * transparent; after it, both are identical to dark.
+   */
+  .nf-auth[data-theme="dark"] .nf-auth__card .nf-field {
+    min-height: 3.125rem;
+    border: var(--nf-border-width) solid var(--nf-container-edge-lit);
+    background: color-mix(in oklab, var(--nf-auth-glass) 92%, var(--nf-surface-canvas));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      inset 0 0 18px var(--nf-glow-1),
+      0 0 10px var(--nf-glow-2);
+    font-size: var(--nf-text-body);
+  }
+  .nf-auth[data-theme="dark"] .nf-auth__card .nf-field::placeholder {
+    color: var(--nf-content-subtle);
+  }
+  .nf-auth[data-theme="dark"] .nf-auth__card .nf-field:focus {
+    border-color: var(--nf-auth-rim-hot);
+    background: color-mix(in oklab, var(--nf-auth-glass) 92%, var(--nf-surface-canvas));
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 0 3px var(--nf-glow-2),
+      0 0 22px var(--nf-glow-3);
+  }
   .nf-auth-field__glyph {
     position: absolute;
-    left: var(--nf-space-md);
+    left: 1.125rem;
     top: 50%;
     translate: 0 -50%;
     display: grid;
     place-items: center;
-    color: var(--nf-content-muted);
+    color: var(--nf-content-secondary);
     pointer-events: none;
     transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-auth-field:focus-within .nf-auth-field__glyph {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-content-primary);
   }
 
-  /* The rule between the two doors: two hairlines and one small word. */
+  /*
+   * THE CONTINUE BUTTON, LIT. 76 image px tall (54 here, see the field) and
+   * 42 image px under the field (24). The render's fill runs #0380FE at the
+   * top through #0038E8 to #004BFD at the foot, which is `--nf-gradient-cta`
+   * to within a few points; on it a near-white hairline along the top
+   * (#F6FEFE), a second lit line along the foot (#D7FAFE), and a blue bloom
+   * cast on the glass beneath. Label caps 16 image px: 17px semibold.
+   */
+  .nf-auth[data-theme="dark"] .nf-auth__card .nf-btn--primary {
+    font-weight: 600;
+    border-color: var(--nf-glow-brand-rim);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--nf-content-primary) 18%, transparent), transparent 42%),
+      var(--nf-gradient-cta);
+    box-shadow:
+      inset 0 1.5px 0 color-mix(in oklab, var(--nf-content-primary) 90%, transparent),
+      inset 0 -1.5px 0 color-mix(in oklab, var(--nf-auth-rim-hot) 70%, transparent),
+      inset 0 0 12px var(--nf-glow-3),
+      0 0 14px var(--nf-glow-4),
+      0 10px 32px var(--nf-glow-3);
+  }
+  @media (hover: hover) {
+    .nf-auth[data-theme="dark"] .nf-auth__card .nf-btn--primary:hover:not(:disabled) {
+      box-shadow:
+        inset 0 1.5px 0 var(--nf-content-primary),
+        inset 0 -1.5px 0 var(--nf-auth-rim-hot),
+        inset 0 0 14px var(--nf-glow-4),
+        0 0 20px var(--nf-glow-4),
+        0 12px 40px var(--nf-glow-4);
+    }
+  }
+  .nf-auth[data-theme="dark"] .nf-auth__card .nf-btn--primary:active:not(:disabled) {
+    box-shadow:
+      inset 0 1.5px 0 color-mix(in oklab, var(--nf-content-primary) 70%, transparent),
+      inset 0 0 12px var(--nf-glow-3),
+      0 0 10px var(--nf-glow-3);
+  }
+  /* The chooser's Continue: the render's height and its gap under the field. */
+  .nf-auth .nf-auth__cta {
+    --nf-btn-h: 3.375rem;
+    margin-top: 1.5rem;
+    font-size: 1.0625rem;
+  }
+
+  /*
+   * The rule between the two doors: two hairlines and one small word, 48
+   * image px under the button to its centre (27) and 40 above Google (23).
+   * The render sets OR in plain caps, regular weight, not spaced out.
+   */
   .nf-auth__rule {
     display: flex;
     align-items: center;
-    gap: var(--nf-space-sm);
-    margin-block: var(--nf-space-lg);
+    gap: var(--nf-space-md);
+    margin-block: 1.25rem;
     font-size: var(--nf-text-overline);
-    font-weight: 600;
-    letter-spacing: var(--nf-tracking-overline);
+    font-weight: 500;
     text-transform: uppercase;
-    color: var(--nf-content-muted);
+    color: var(--nf-content-subtle);
   }
   .nf-auth__rule::before,
   .nf-auth__rule::after {
     content: "";
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--nf-brand-edge-soft), transparent);
+    background: color-mix(in oklab, var(--nf-container-edge-lit) 70%, transparent);
   }
 
-  /* The other door: a glass row with a typographic mark, in the register of
-     the email row it replaces. Height is the large button's. */
+  /*
+   * Continue with Google: 68 image px (48 here), a glass outline, the edge
+   * the brighter electric line of the render (#1481DC at the top), the fill
+   * the card's own glass. Label 16px medium; the G at 20.
+   */
   .nf-auth__door {
     display: flex;
     width: 100%;
-    min-height: 3.5rem;
+    min-height: 3rem;
     align-items: center;
     justify-content: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-sm) var(--nf-space-md);
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-xs) var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill-thin);
+    border: var(--nf-border-width) solid var(--nf-glow-brand-rim);
+    background: color-mix(in oklab, var(--nf-auth-glass) 60%, transparent);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body);
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 10px var(--nf-glow-2);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-auth__door:active:not(:disabled) {
@@ -383,47 +620,28 @@
   }
   @media (hover: hover) {
     .nf-auth__door:hover:not(:disabled) {
-      border-color: var(--nf-brand-edge);
-      background: var(--nf-glass-fill);
+      border-color: var(--nf-auth-rim-hot);
+      box-shadow:
+        inset 0 1px 0 var(--nf-glass-rim),
+        0 0 16px var(--nf-glow-3);
     }
   }
   .nf-auth__door-mark {
-    display: grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-content-primary);
-    color: var(--nf-content-inverse);
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-body);
-    font-weight: 700;
-    line-height: 1;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: none;
   }
 
-  /* The card's own heading pair, left aligned to the render. */
-  .nf-auth__title {
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h2);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: var(--nf-tracking-tight);
-    color: var(--nf-content-primary);
-  }
-  .nf-auth__sub {
-    margin-top: var(--nf-space-2xs);
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
-  }
-
-  /* The link at the foot of the card: a sentence and a blue verb. */
+  /* "Do not have an account? Sign up": caps 12 image px, 54 image px under
+     Google to its centre (30). 13px at the card's factor. */
   .nf-auth__swap {
-    margin-top: var(--nf-space-lg);
+    margin-top: 1.5rem;
     text-align: center;
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-caption);
     color: var(--nf-content-secondary);
   }
   .nf-auth__swap a {
+    margin-left: 0.25rem;
     font-weight: 600;
     color: var(--nf-content-link);
     text-underline-offset: 4px;
@@ -448,12 +666,26 @@
     line-height: 1.5;
     color: var(--nf-content-secondary);
   }
+  /*
+   * A refusal from the server (wrong password, unconfirmed address, too many
+   * attempts), in the one colour for bad: rose. It used to wear the warning
+   * token, which in this palette is the pending cyan.
+   */
+  .nf-auth__alert {
+    margin-top: var(--nf-space-md);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 45%, transparent);
+    background: var(--nf-state-error-surface);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-primary);
+  }
 
   /*
    * The one link a refusal is allowed to carry, inside the sentence that
-   * earned it. Underlined rather than coloured alone, because it sits on a
-   * warning plate whose own ink is already a colour and rule 13 says colour
-   * is never the only signal.
+   * earned it. Underlined rather than coloured alone, because colour is
+   * never the only signal.
    */
   .nf-auth__notice-link {
     font-weight: 650;
@@ -474,21 +706,21 @@
   .nf-auth__brand,
   .nf-auth__card,
   .nf-auth__podium,
-  .nf-auth__back {
+  .nf-auth__legal {
     animation: nf-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
   }
   .nf-auth__card,
   .nf-auth__podium {
     animation-delay: 90ms;
   }
-  .nf-auth__back {
+  .nf-auth__legal {
     animation-delay: 180ms;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-auth__brand,
     .nf-auth__card,
     .nf-auth__podium,
-    .nf-auth__back {
+    .nf-auth__legal {
       animation: none;
     }
     .nf-auth__door,
@@ -497,56 +729,28 @@
     }
   }
 
-  /* Wider than a phone the stage is the same object, centred, with more air. */
+  /*
+   * Wider than a phone the stage is the same object, centred, a little
+   * larger: the card grows to 420 (s = 0.66), the tile and wordmark with it.
+   */
   @media (min-width: 640px) {
     .nf-auth {
-      padding-block: var(--nf-space-3xl);
+      padding-block: var(--nf-space-2xl);
     }
     .nf-auth__icon {
-      width: 7rem;
-      height: 7rem;
+      width: 10.5rem;
+      height: 10.5rem;
     }
     .nf-auth__wordmark {
-      width: 12rem;
+      width: 15.75rem;
     }
     .nf-auth__card {
-      padding: var(--nf-space-xl);
+      padding: 2.5rem 2.5rem 2.25rem;
+    }
+    .nf-auth__ribbon--r1 {
+      width: 22%;
     }
   }
-
-  /* ------------------------------------------------- NO DAYLIGHT TWIN
-   *
-   * THE AUTH SCREEN IS DARK IN BOTH THEMES, PERMANENTLY (ledger rule 22).
-   *
-   * A hundred and seventeen lines of paper twin stood here and are deleted:
-   * the plate's daylight exposure, the flat white card, the podium's grey
-   * lens, the door, the language control, the notice, the seated app tile.
-   * Most of it was written an hour before the ruling, by me, off real 390px
-   * shots. The reasoning was sound and the ground moved: the founder has
-   * closed the question rather than leaving it open, because this screen is
-   * the register setter for a money product and every serious one in this
-   * market keeps its door dark.
-   *
-   * THE DELETION IS THE WHOLE MECHANISM, NOT TIDYING UP AFTER IT.
-   *
-   * `app/(auth)/layout.tsx` and `WelcomeStage` carry `data-theme="dark"`, and
-   * `tokens.css` declares the dark palette on `:root, [data-theme="dark"]`,
-   * so the subtree takes dark values whatever the document is set to. That
-   * pins the TOKENS. It does not stop a rule keyed on
-   * `:root[data-theme="light"] .nf-auth__card` from matching, because when
-   * the document really is light that selector is true and it is more
-   * specific than anything the pinned tokens do. Every such rule left here
-   * would fight the attribute and win, on the exact screen the ruling is
-   * about. So there is nothing to keep behind a flag and nothing to revisit:
-   * the absence of these rules is what makes the ruling hold.
-   *
-   * IF A LIGHT AUTH SCREEN IS EVER WANTED AGAIN it is a new design against a
-   * new reference, not this block restored. It is in the history.
-   *
-   * WHAT DID NOT LIVE HERE AND IS NOT AFFECTED: `.nf-icon-btn`'s paper twin
-   * in light.css, which is about every header plate in the product, and the
-   * text wordmark that white surfaces use until the ink render exists.
-   * ------------------------------------------------------------------ */
 }
 
 /*

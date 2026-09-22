@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { AcceptTerms } from "./AcceptTerms";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
-import type { AuthFormState } from "@/lib/auth/form-state";
+import type { AuthFormState, EmailStatus } from "@/lib/auth/form-state";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { PlaceFields, type PlaceValues } from "@/components/app/place/PlaceFields";
 import type { StateOption } from "@/lib/places/reference";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field, FormGroup, PasswordField, SelectField, StrengthMeter } from "./fields";
 import { EmailTakenNotice } from "./EmailTakenNotice";
-import { signUpMethodForEmail } from "@/lib/auth/actions";
+import { signUpMethodForEmail, startGoogleOAuth } from "@/lib/auth/actions";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -43,6 +43,8 @@ export function EmailAuthForm({
   states = [],
   next,
   initialEmail = "",
+  accountMethod = "unknown",
+  googleReady = false,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
@@ -58,6 +60,18 @@ export function EmailAuthForm({
    * email twice. Anything not shaped like an address is ignored.
    */
   initialEmail?: string;
+  /**
+   * Sign-in only: how the address typed on the chooser signs in, read on the
+   * server by the page. "google" means there is no password to ask for, so
+   * the screen says so and offers the Google door instead of a password field
+   * that can only ever answer "do not match". "none" means no account uses the
+   * address, and the way on is sign-up with the address carried over.
+   * "unknown" (the default, and the answer whenever the lookup is refused or
+   * unavailable) draws the ordinary password step.
+   */
+  accountMethod?: EmailStatus;
+  /** Whether the Google door is switched on, from `getProviderStates`. */
+  googleReady?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, EMPTY);
   /*
@@ -146,7 +160,7 @@ export function EmailAuthForm({
           "back" to somebody who arrived here on a deep link. */}
       <Link
         href={isSignUp ? "/sign-up" : "/sign-in"}
-        className="nf-tap -ml-1 mb-3 inline-flex items-center gap-xs text-[0.8125rem] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
+        className="nf-tap -ml-1 mb-sm inline-flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="arrow-left" size={16} />
         {t.auth.otherWays}
@@ -156,6 +170,34 @@ export function EmailAuthForm({
       <p className="nf-auth__sub mb-lg">
         {isSignUp ? t.auth.signUpToStart : t.auth.signInToContinue}
       </p>
+
+      {!isSignUp && accountMethod === "google" && (
+        <div className="nf-auth__notice mb-md" role="status">
+          <p>{t.auth.accountUsesGoogle}</p>
+          {googleReady && (
+            <form action={startGoogleOAuth} className="mt-sm">
+              {next ? <input type="hidden" name="next" value={next} /> : null}
+              <input type="hidden" name="intent" value="sign-in" />
+              <button type="submit" className="nf-btn nf-btn--primary nf-btn--full">
+                {t.auth.continueWithGoogle}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+      {!isSignUp && accountMethod === "none" && (
+        <p className="nf-auth__notice mb-md" role="status">
+          {t.auth.accountNotFound}{" "}
+          <Link
+            href={`/sign-up/email?email=${encodeURIComponent(initialEmail)}${
+              next ? `&next=${encodeURIComponent(next)}` : ""
+            }`}
+            className="nf-auth__notice-link"
+          >
+            {t.auth.accountCreate}
+          </Link>
+        </p>
+      )}
 
       <form
         action={formAction}
@@ -315,10 +357,7 @@ export function EmailAuthForm({
         )}
 
         {state.message && (
-          <p
-            role="alert"
-            className="mt-4 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-state-warning)]"
-          >
+          <p role="alert" className="nf-auth__alert">
             {state.message}
             {/*
               THE WAY OUT, when the refusal has one and it is somewhere else.
@@ -371,7 +410,7 @@ export function EmailAuthForm({
           <p className="text-center">
             <Link
               href="/forgot-password"
-              className="text-[0.8125rem] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               {t.auth.forgotPassword}
             </Link>
@@ -386,10 +425,9 @@ export function EmailAuthForm({
         </Link>
       </p>
 
-      {/* The old passive notice stays on SIGN IN, where it is the right shape:
-          nothing new is being agreed to there. On sign up it has been replaced
-          by the tick above, which is the whole point. */}
-      {!isSignUp && <p className="nf-auth__terms">{t.auth.termsNotice}</p>}
+      {/* The passive notice for sign in now sits under the plinth in the
+          auth layout, for every auth screen alike. On sign up it is the tick
+          above, which is the whole point. */}
     </div>
   );
 }

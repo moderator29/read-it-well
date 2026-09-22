@@ -1055,6 +1055,12 @@ export const en = {
        `common.continue`; the rule between the two doors reuses `orDivider`. */
     signInSub: "Sign in to your Vallo account",
     signUpSub: "Create your Vallo account in a minute",
+    /* The password step, when the address typed on the chooser is not an
+       email-and-password account. Sign-in only; Session B ledger section 3. */
+    accountUsesGoogle:
+      "This address signs in with Google, so there is no password to type. Continue with Google to get in.",
+    accountNotFound: "No account uses this address yet.",
+    accountCreate: "Create one with it",
   },
 
   /**
