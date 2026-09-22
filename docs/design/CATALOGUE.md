@@ -1,6 +1,59 @@
 # Vallo design reference catalogue
 
-Source: `docs/design/references/` (66 PNGs: 61 UUID-named + 5 GOVERNING-*). Every UUID file was opened and inspected. Exact duplicates were confirmed by MD5 checksum, so "exact duplicate" below means byte-identical, not merely similar.
+Source: `docs/design/references/` and its two SUBFOLDERS. Every UUID file was opened and inspected. Exact duplicates were confirmed by MD5 checksum, so "exact duplicate" below means byte-identical, not merely similar.
+
+**THIS CATALOGUE INDEXED ONLY THE TOP LEVEL FOLDER UNTIL 22 SEPTEMBER, AND THAT WAS A MAP WITH THE MOST IMPORTANT ROADS MISSING.** Two subfolders hold twenty three files between them, eleven of them the founder's own corrective targets and twelve a complete new governing set, and this document had never mentioned either. Every worker doing image work has been reading a stale map. A FOUNDER TARGET BEATS A GENERATED RENDER, ALWAYS, and that is the ordering rule for every conflict below.
+
+---
+
+## `references/roles/`: the twelve governing images of 22 September
+
+**Read `docs/design/references/roles/README.md` before using any of them.** It is the authority on this set and it lists what is translated rather than copied. The table here exists so that somebody reading the catalogue cannot miss the folder; it does not replace that file.
+
+These twelve are the target for HANDOFF 09 Tracks G, N, O and P. Each is a row of phone screens carrying a whole flow rather than a single surface.
+
+| File | Screens | Governs |
+|---|---|---|
+| GOVERNING-01-switch-home-sheet-drawer.png | 3 | The property home page, the dock with the raised centre switch, the Switch profile sheet, the side drawer carrying the same switch |
+| GOVERNING-02-add-workspace-chooser.png | 3 | Add a workspace: the three supplier doors, the selected state, the "what we will ask you for" overview |
+| GOVERNING-03-register-owner.png | 4 | Owner registration, including proof of ownership with "I have none of these" as a first class answer |
+| GOVERNING-04-register-agent.png | 4 | Agent registration, including fees in the open with a live tenant total |
+| GOVERNING-05-register-firm.png | 4 | Firm registration: RC and LASRERA, prove you work here, your team, under review |
+| GOVERNING-06-list-property-1-the-property.png | 4 | Listing wizard: what, where with the map pin, the rooms, condition and availability |
+| GOVERNING-07-list-property-2-light-water-media.png | 4 | Listing wizard: light, water, amenities, photos with the video walkthrough uploading |
+| GOVERNING-08-list-property-3-money-and-id.png | 4 | Listing wizard: the price, what a tenant actually pays, check it over, and the listing ID screen |
+| GOVERNING-09-stays-home-switch-and-doors.png | 4 | The Stays home page, the Stays switch sheet, the three stays doors, the first hotel page |
+| GOVERNING-10-set-up-hotel.png | 4 | Hotel setup: details, room types, rates with cancellation, facilities and photos |
+| GOVERNING-11-set-up-shortlet-and-restaurant.png | 4 | Shortlet: your place and house rules. Restaurant: your restaurant, tables and hours |
+| GOVERNING-12-review-desk-notification-search-by-id.png | 4 | The admin review queue, the listing under review with its actions, the lister's notification centre, search by listing ID |
+
+**Translated rather than copied, from that README, repeated here because it is the part people skip:** every capsule becomes a rounded rectangle on `--nf-radius-control` and the test is the ratio of radius to short side, not the token name; round avatars stay round; the dock reads "Saved" in the renders and ships as "Feed"; the stays renders read "Explore" and ship as "Search"; "Short Let" is in image 01's category row and does not ship there; the Apple Maps mark in image 03 is not ours; and every count, price and statistic in them is example content.
+
+---
+
+## `references/founder/`: the founder's own targets and defect captures
+
+**Eleven files, and they split into two kinds that must never be confused.** A file named `-target` is what a surface SHOULD look like and governs the work. A file named `-as-shipped` is a photograph of OUR OWN LIVE PRODUCT that the founder sent to show a defect. An as-shipped file governs nothing. It is evidence. Building towards one would be building towards the bug.
+
+| File | Kind | Governs, or shows |
+|---|---|---|
+| GOVERNING-home-markets-target.png | TARGET, governing | The in-app phone home. The CHROME authority for the whole product: the desktop hero has no bottom dock and its header floats over a photograph, so the header, the dock, the market tiles and the city chips can only be read honestly here. Sampled values are recorded in BUILD_06_LEDGER 13.6. |
+| GOVERNING-home-markets-target-2.jpg | TARGET, variant | The same screen as a NINE tile grid (Rent, Buy, Shortlets, Hotels, Resorts, Guest Houses, Restaurants, Commercial, Land) over an invest band and a featured cities row. Useful for the tile anatomy and the arrow affordance. THREE THINGS ARE NOT COPIED: every tile carries an invented count ("12,450+ listings"), which rule 15 forbids and which the `platform_stats` fix exists to prevent; the hotel glyph has the word HOTEL baked into the artwork, which rule 5 forbids; and the body copy carries an em dash. |
+| GOVERNING-search-filters-target.png | TARGET, governing | The search surface and its filter sheet. |
+| GOVERNING-thread-hotel-booking.jpg | TARGET, governing | A stay booking thread. Paired with `GOVERNING-chat-booking-card.png` above; the bubble colours were sampled from this file. |
+| GOVERNING-thread-rental-enquiry.jpg | TARGET, governing | A property enquiry thread, including the role tag and the verified mark beside a name. |
+| landing-fullpage-target.png | TARGET, governing | The full desktop landing: hero with phone mockup, a six tile feature band, a community stats row, How Vallo Works in four steps, an eight tile category grid, the Stays band, the app download band and the footer. NOT COPIED: the stats row prints "10K+ Properties, 5K+ Happy Clients, 200+ Agents", the exact invented numbers `stat-tiles.ts` exists to refuse; the category tiles print counts for the same reason; and the AI-rendered body text is garbled in several bands and is never transcribed. |
+| home-as-shipped-0919.png | DEFECT CAPTURE | Our own in-app home as it shipped on 19 September. Evidence, not a target. |
+| landing-phone-as-shipped-0919.png | DEFECT CAPTURE | Our own landing on a phone, 19 September. Evidence, not a target. |
+| landing-feature-orbs-as-shipped.jpg | DEFECT CAPTURE | The landing feature band as it shipped, the founder's "wtf is that those our house image" complaint about the orbs. |
+| home-light-black-icon-plates-as-shipped.jpg | DEFECT CAPTURE | The home in LIGHT theme with black icon plates. This is the single best piece of evidence for the light mode track: 121 of 144 objects have no light twin, so they keep painting their dark artwork and land as a dark navy chip on a white page. |
+| broken-photo-and-fat-cards-as-shipped.png | DEFECT CAPTURE | A live capture from vallospaces.com at 07:29 showing four separate defects at once: a broken image placeholder inside a card, a card title overflowing on top of its own photograph, cards far taller than the reference, and capsules on "Get Started", "Per night" and "Third party". Every one of those four is a named item in a current track. |
+
+**Which target wins where.** For the in-app phone chrome, `GOVERNING-home-markets-target.png`. For the desktop landing, `landing-fullpage-target.png` beside `GOVERNING-landing-desktop-hero.png` below, and where they disagree the founder's file wins. For anything in Tracks G, N, O or P, the twelve in `roles/` win over both, because they are the newest and they were drawn for that work.
+
+---
+
+## The top level folder
 
 ## Governing references (already decided, keep as named)
 
