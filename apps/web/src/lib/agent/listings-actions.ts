@@ -140,7 +140,7 @@ async function ownedListing(
   const { data } = await supabase
     .from("listings")
     .select(
-      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, state_code, city, area, bedrooms, bathrooms",
+      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
     )
     .eq("id", listingId)
     .eq("agent_id", agentId)
@@ -237,6 +237,29 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     );
   }
 
+  /*
+   * The same check on the sale side, against `listings_total_purchase_covers_its_parts`.
+   *
+   * The price is one of the parts here, which is the difference from the
+   * tenancy model: "the total to buy" means the price plus everything on top,
+   * so a total below the asking price alone is already impossible.
+   */
+  const purchaseSum =
+    settled(value.salePriceNaira, existing?.sale_price_minor) +
+    settled(value.saleAgencyFeeNaira, existing?.sale_agency_fee_minor) +
+    settled(value.saleLegalFeeNaira, existing?.sale_legal_fee_minor) +
+    settled(value.governorsConsentFeeNaira, existing?.governors_consent_fee_minor) +
+    settled(value.stampDutyNaira, existing?.stamp_duty_minor) +
+    settled(value.surveyRegistrationFeeNaira, existing?.survey_registration_fee_minor);
+  if (value.totalPurchaseNaira !== undefined && value.totalPurchaseNaira < purchaseSum) {
+    return fail(
+      "The total to buy is less than the price and the fees you listed, so one of the figures is wrong.",
+      {
+        totalPurchaseNaira: `The price and the costs you have entered already come to ${formatKobo(purchaseSum)}. The total has to be at least that.`,
+      },
+    );
+  }
+
   // Shared column set. Undefined keys are dropped before the request, which is
   // exactly the "leave it as it was" behaviour a forgiving draft needs.
   const columns = {
@@ -296,6 +319,15 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
        listing somebody is putting up is one they are still selling. */
     sale_price_minor: value.salePriceNaira,
     price_negotiable: value.priceNegotiable,
+    /* The sale cost model. Written whatever the intent, for the same reason
+       the rent fields are: a lister who typed a legal fee, switched to a
+       tenancy and switched back must find their figure still there. */
+    sale_agency_fee_minor: value.saleAgencyFeeNaira,
+    sale_legal_fee_minor: value.saleLegalFeeNaira,
+    governors_consent_fee_minor: value.governorsConsentFeeNaira,
+    stamp_duty_minor: value.stampDutyNaira,
+    survey_registration_fee_minor: value.surveyRegistrationFeeNaira,
+    total_purchase_cost_minor: value.totalPurchaseNaira,
     tenure: value.tenure,
     year_built: value.yearBuilt,
     condition: value.condition,

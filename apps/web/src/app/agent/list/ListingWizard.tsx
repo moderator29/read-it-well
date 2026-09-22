@@ -167,6 +167,12 @@ type Values = {
 
   /* A sale. */
   salePriceNaira: string;
+  saleAgencyFeeNaira: string;
+  saleLegalFeeNaira: string;
+  governorsConsentFeeNaira: string;
+  stampDutyNaira: string;
+  surveyRegistrationFeeNaira: string;
+  totalPurchaseNaira: string;
   priceNegotiable: boolean;
   tenure: LandTenure | "";
   saleStatus: SaleStatus;
@@ -230,6 +236,12 @@ const EMPTY: Values = {
   furnished: "",
   rateNaira: "",
   salePriceNaira: "",
+  saleAgencyFeeNaira: "",
+  saleLegalFeeNaira: "",
+  governorsConsentFeeNaira: "",
+  stampDutyNaira: "",
+  surveyRegistrationFeeNaira: "",
+  totalPurchaseNaira: "",
   priceNegotiable: false,
   tenure: "",
   saleStatus: "available",
@@ -279,6 +291,12 @@ function valuesFrom(draft: WizardDraft): Values {
     furnished: draft.furnished,
     rateNaira: draft.rateNaira,
     salePriceNaira: draft.salePriceNaira,
+    saleAgencyFeeNaira: draft.saleAgencyFeeNaira,
+    saleLegalFeeNaira: draft.saleLegalFeeNaira,
+    governorsConsentFeeNaira: draft.governorsConsentFeeNaira,
+    stampDutyNaira: draft.stampDutyNaira,
+    surveyRegistrationFeeNaira: draft.surveyRegistrationFeeNaira,
+    totalPurchaseNaira: draft.totalPurchaseNaira,
     priceNegotiable: draft.priceNegotiable,
     tenure: draft.tenure,
     saleStatus: draft.saleStatus === "" ? "available" : draft.saleStatus,
@@ -483,6 +501,22 @@ export function ListingWizard({
   );
   const statedTotalMinor = parseNairaToKobo(values.totalMoveInNaira);
   const moveInMinor = statedTotalMinor ?? partsSumMinor;
+
+  /* THE SAME ARITHMETIC ON THE SALE SIDE, and the price is one of the parts.
+     "The total to buy" means the asking price plus everything on top of it, so
+     a hundred and eighty million asking price is routinely two hundred million
+     by the time the deed is signed, and until now this platform collected
+     none of the difference. */
+  const purchasePartsMinor = [
+    values.salePriceNaira,
+    values.saleAgencyFeeNaira,
+    values.saleLegalFeeNaira,
+    values.governorsConsentFeeNaira,
+    values.stampDutyNaira,
+    values.surveyRegistrationFeeNaira,
+  ].reduce((total, raw) => total + (parseNairaToKobo(raw) ?? 0), 0);
+  const statedPurchaseMinor = parseNairaToKobo(values.totalPurchaseNaira);
+  const purchaseMinor = statedPurchaseMinor ?? purchasePartsMinor;
 
   const words = countWords(values.description);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
@@ -707,6 +741,12 @@ export function ListingWizard({
       furnished: values.furnished === "" ? undefined : values.furnished,
       rateNaira: values.rateNaira === "" ? undefined : values.rateNaira,
       salePriceNaira: values.salePriceNaira === "" ? undefined : values.salePriceNaira,
+      saleAgencyFeeNaira: values.saleAgencyFeeNaira === "" ? undefined : values.saleAgencyFeeNaira,
+      saleLegalFeeNaira: values.saleLegalFeeNaira === "" ? undefined : values.saleLegalFeeNaira,
+      governorsConsentFeeNaira: values.governorsConsentFeeNaira === "" ? undefined : values.governorsConsentFeeNaira,
+      stampDutyNaira: values.stampDutyNaira === "" ? undefined : values.stampDutyNaira,
+      surveyRegistrationFeeNaira: values.surveyRegistrationFeeNaira === "" ? undefined : values.surveyRegistrationFeeNaira,
+      totalPurchaseNaira: values.totalPurchaseNaira === "" ? undefined : values.totalPurchaseNaira,
       priceNegotiable: values.priceNegotiable,
       tenure: values.tenure === "" ? undefined : values.tenure,
       saleStatus: values.saleStatus,
@@ -1746,6 +1786,132 @@ export function ListingWizard({
                   checked={values.priceNegotiable}
                   onCheckedChange={(v) => set("priceNegotiable", v)}
                 />
+
+                {/*
+                  WHAT A BUYER ACTUALLY PAYS.
+
+                  The tenancy side has had an honest cost model for weeks and
+                  the sale side had an asking price and nothing else, which is
+                  the same lie in a much bigger currency. Agency and legal are
+                  conventionally five per cent each, and Governor's consent,
+                  stamp duty and registration run to several per cent more of
+                  the value of the land. A buyer who plans around the asking
+                  price finds twenty million naira they had not budgeted for
+                  after they are committed.
+
+                  Nothing here is calculated from the price, although four of
+                  the five have a conventional percentage. A rate that is
+                  usually five per cent is not five per cent, and a number this
+                  platform worked out and printed as a fact would be an
+                  invented number. The lister states what they charge.
+                */}
+                <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
+                  <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                    What a buyer actually pays
+                  </p>
+                  <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
+                    Fill in whatever applies. Anything you leave blank is shown
+                    as not stated, never as zero, and a fee you do not charge is
+                    worth saying with a nought.
+                  </p>
+
+                  <div className="mt-group grid grid-cols-2 gap-row">
+                    <Field label="Agency fee" error={fieldErrors.saleAgencyFeeNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.saleAgencyFeeNaira}
+                        onChange={(e) => set("saleAgencyFeeNaira", e.target.value)}
+                        placeholder="9,000,000"
+                      />
+                    </Field>
+                    <Field label="Legal fee" error={fieldErrors.saleLegalFeeNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.saleLegalFeeNaira}
+                        onChange={(e) => set("saleLegalFeeNaira", e.target.value)}
+                        placeholder="9,000,000"
+                      />
+                    </Field>
+                    <Field
+                      label="Governor's consent"
+                      error={fieldErrors.governorsConsentFeeNaira}
+                    >
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.governorsConsentFeeNaira}
+                        onChange={(e) => set("governorsConsentFeeNaira", e.target.value)}
+                        placeholder="14,000,000"
+                      />
+                    </Field>
+                    <Field label="Stamp duty" error={fieldErrors.stampDutyNaira}>
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.stampDutyNaira}
+                        onChange={(e) => set("stampDutyNaira", e.target.value)}
+                        placeholder="1,440,000"
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="mt-row">
+                    <Field
+                      label="Survey and registration"
+                      error={fieldErrors.surveyRegistrationFeeNaira}
+                    >
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.surveyRegistrationFeeNaira}
+                        onChange={(e) => set("surveyRegistrationFeeNaira", e.target.value)}
+                        placeholder="900,000"
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="mt-group">
+                    <Field
+                      label="Total to buy"
+                      error={fieldErrors.totalPurchaseNaira}
+                      hint={
+                        statedPurchaseMinor === null
+                          ? purchasePartsMinor > 0
+                            ? `Leave blank and we show ${formatMoney(purchasePartsMinor, locale)}, which is the price plus the costs above.`
+                            : "The number a buyer has to find. Leave it blank and we add up the price and the costs above."
+                          : `${formatMoney(statedPurchaseMinor, locale)} all in. It has to be at least ${formatMoney(purchasePartsMinor, locale)}, which is the price plus the costs above.`
+                      }
+                    >
+                      <input
+                        className="nf-field"
+                        inputMode="decimal"
+                        value={values.totalPurchaseNaira}
+                        onChange={(e) => set("totalPurchaseNaira", e.target.value)}
+                        placeholder="205,000,000"
+                      />
+                    </Field>
+                  </div>
+
+                  {purchaseMinor > 0 && (
+                    <div className="mt-group flex items-baseline justify-between gap-inline border-t border-[var(--nf-border-subtle)] pt-row">
+                      <span className="nf-body-sm text-[var(--nf-content-secondary)]">
+                        Total to buy
+                      </span>
+                      <span className="nf-numeric nf-h4 font-bold">
+                        {formatMoney(purchaseMinor, locale)}
+                      </span>
+                    </div>
+                  )}
+                  {purchaseMinor > 0 && (
+                    <p className="nf-caption mt-inline-tight text-right text-[var(--nf-content-muted)]">
+                      {statedPurchaseMinor === null
+                        ? "from the price and the costs above"
+                        : "as you stated it"}
+                    </p>
+                  )}
+                </div>
 
                 {/*
                   The question every Nigerian buyer asks first, and the one a

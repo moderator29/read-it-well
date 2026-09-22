@@ -220,6 +220,12 @@ export type WizardDraft = {
 
   /* A sale: the asking price and the title being transferred with it. */
   salePriceNaira: string;
+  saleAgencyFeeNaira: string;
+  saleLegalFeeNaira: string;
+  governorsConsentFeeNaira: string;
+  stampDutyNaira: string;
+  surveyRegistrationFeeNaira: string;
+  totalPurchaseNaira: string;
   priceNegotiable: boolean;
   tenure: LandTenure | "";
   saleStatus: SaleStatus | "";
@@ -252,6 +258,8 @@ const LISTING_SELECT =
   "agreement_fee_minor, total_move_in_cost_minor, minimum_tenancy_months, available_from, " +
   "furnished, rate_minor, rate_period, sale_price_minor, price_negotiable, tenure, " +
   "sale_status, year_built, condition, size_sqm, toilets, parking_spaces, floor, total_floors, " +
+  "sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, " +
+  "stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, " +
   "state_code, city, area, address, landmark, bedrooms, bathrooms, submitted_at, " +
   "review_notes, updated_at, power_grid, power_backup, power_backup_hours, water_supply, " +
   "prepaid_meter, listing_photos(id, storage_path, position), " +
@@ -283,6 +291,12 @@ type ListingWithChildren = {
   rate_minor: number;
   rate_period: RatePeriod | null;
   sale_price_minor: number | null;
+  sale_agency_fee_minor: number | null;
+  sale_legal_fee_minor: number | null;
+  governors_consent_fee_minor: number | null;
+  stamp_duty_minor: number | null;
+  survey_registration_fee_minor: number | null;
+  total_purchase_cost_minor: number | null;
   price_negotiable: boolean | null;
   tenure: LandTenure | null;
   sale_status: SaleStatus | null;
@@ -467,6 +481,12 @@ async function toDraft(
     ratePeriod: row.rate_period ?? "",
 
     salePriceNaira: koboToNairaInput(row.sale_price_minor),
+    saleAgencyFeeNaira: koboToNairaInput(row.sale_agency_fee_minor),
+    saleLegalFeeNaira: koboToNairaInput(row.sale_legal_fee_minor),
+    governorsConsentFeeNaira: koboToNairaInput(row.governors_consent_fee_minor),
+    stampDutyNaira: koboToNairaInput(row.stamp_duty_minor),
+    surveyRegistrationFeeNaira: koboToNairaInput(row.survey_registration_fee_minor),
+    totalPurchaseNaira: koboToNairaInput(row.total_purchase_cost_minor),
     priceNegotiable: row.price_negotiable ?? false,
     tenure: row.tenure ?? "",
     saleStatus: row.sale_status ?? "",

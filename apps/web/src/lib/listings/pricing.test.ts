@@ -5,6 +5,8 @@ import {
   headlinePrice,
   moveInParts,
   moveInTotal,
+  purchaseParts,
+  purchaseTotal,
   PERIOD_NOUN,
   PERIOD_SUFFIX,
   PERIOD_SUFFIX_SHORT,
@@ -247,5 +249,80 @@ describe("the period suffixes", () => {
       // "1 years" at the floor of the stepper, which is where it starts.
       expect(noun.endsWith("s"), `PERIOD_NOUN.${period} must be singular`).toBe(false);
     }
+  });
+});
+
+/**
+ * WHAT A BUYER ACTUALLY PAYS.
+ *
+ * The sale side had no cost model at all: an asking price, a tenure and a sale
+ * status. These two functions are the twin of the move-in pair and they carry
+ * one difference that is easy to get backwards, so it is tested first: THE
+ * PRICE IS ONE OF THE PARTS. "Total to move in" sits beside the rent; "total to
+ * buy" includes the asking price, because that is the number a buyer has to
+ * find.
+ */
+const bareSale = {
+  sale_price_minor: null as number | null,
+  sale_agency_fee_minor: null as number | null,
+  sale_legal_fee_minor: null as number | null,
+  governors_consent_fee_minor: null as number | null,
+  stamp_duty_minor: null as number | null,
+  survey_registration_fee_minor: null as number | null,
+  total_purchase_cost_minor: null as number | null,
+};
+
+describe("the purchase cost model", () => {
+  it("counts the asking price as one of the parts", () => {
+    const row = { ...bareSale, sale_price_minor: 18_000_000_000, sale_legal_fee_minor: 900_000_000 };
+    expect(purchaseParts(row).map((part) => part.key)).toEqual(["price", "legal"]);
+    expect(purchaseTotal(row)).toEqual({ minor: 18_900_000_000, stated: false });
+  });
+
+  it("prefers the stated total over the sum, and says which it gave", () => {
+    const row = {
+      ...bareSale,
+      sale_price_minor: 18_000_000_000,
+      sale_legal_fee_minor: 900_000_000,
+      /* Above the parts, which is honest: the parts itemised are never all
+         the parts. The database refuses the other direction. */
+      total_purchase_cost_minor: 20_500_000_000,
+    };
+    expect(purchaseTotal(row)).toEqual({ minor: 20_500_000_000, stated: true });
+  });
+
+  /* Zero is a real answer and a selling point. An unstated cost is not zero
+     and must not appear at all. */
+  it("keeps a stated nought and drops an unstated cost", () => {
+    const row = { ...bareSale, sale_price_minor: 1_000_000_00, sale_agency_fee_minor: 0 };
+    const keys = purchaseParts(row).map((part) => part.key);
+    expect(keys).toContain("agency");
+    expect(keys).not.toContain("legal");
+  });
+
+  it("names all five costs in the order a buyer meets them", () => {
+    const row = {
+      sale_price_minor: 1,
+      sale_agency_fee_minor: 2,
+      sale_legal_fee_minor: 3,
+      governors_consent_fee_minor: 4,
+      stamp_duty_minor: 5,
+      survey_registration_fee_minor: 6,
+      total_purchase_cost_minor: null,
+    };
+    expect(purchaseParts(row).map((part) => part.key)).toEqual([
+      "price",
+      "agency",
+      "legal",
+      "consent",
+      "stamp",
+      "registration",
+    ]);
+    expect(purchaseTotal(row)).toEqual({ minor: 21, stated: false });
+  });
+
+  it("answers nothing for a row that states nothing", () => {
+    expect(purchaseParts(bareSale)).toEqual([]);
+    expect(purchaseTotal(bareSale)).toEqual({ minor: 0, stated: false });
   });
 });

@@ -652,6 +652,19 @@ export const draftInputSchema = z.object({
   /* -------------------------------------------------------------- for sale */
   salePriceNaira: optionalNaira("Enter the asking price in naira, for example 180,000,000."),
   priceNegotiable: z.preprocess(emptyToUndefined, z.boolean().optional()),
+
+  /* WHAT A BUYER ACTUALLY PAYS. The sale side's twin of the move-in model,
+     and it had none: an asking price, a tenure and a sale status were the
+     whole of it. A hundred and eighty million in Lagos is routinely two
+     hundred million by the time the deed is signed. Every field is optional
+     because sellers quote different subsets, and an unstated cost renders as
+     unstated and never as zero. */
+  saleAgencyFeeNaira: optionalNaira("Enter the agency fee in naira."),
+  saleLegalFeeNaira: optionalNaira("Enter the legal fee in naira."),
+  governorsConsentFeeNaira: optionalNaira("Enter the Governor's consent fee in naira."),
+  stampDutyNaira: optionalNaira("Enter the stamp duty in naira."),
+  surveyRegistrationFeeNaira: optionalNaira("Enter the survey and registration fee in naira."),
+  totalPurchaseNaira: optionalNaira("Enter the total cost to buy in naira."),
   tenure: z.preprocess(emptyToUndefined, z.enum(LAND_TENURE_VALUES).optional()),
   saleStatus: z.preprocess(emptyToUndefined, z.enum(SALE_STATUS_VALUES).optional()),
   yearBuilt: optionalCount(

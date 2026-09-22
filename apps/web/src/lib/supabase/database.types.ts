@@ -2468,6 +2468,7 @@ export type Database = {
           description: string | null
           featured: boolean
           floor: number | null
+          governors_consent_fee_minor: number | null
           furnished: Database["public"]["Enums"]["furnishing"] | null
           has_estate_access: boolean
           id: string
@@ -2500,6 +2501,8 @@ export type Database = {
           review_notes: string | null
           reviewed_at: string | null
           reviewer_id: string | null
+          sale_agency_fee_minor: number | null
+          sale_legal_fee_minor: number | null
           sale_price_minor: number | null
           sale_status: Database["public"]["Enums"]["sale_status"] | null
           service_charge_minor: number | null
@@ -2508,13 +2511,16 @@ export type Database = {
             | null
           size_sqm: number | null
           state_code: string | null
+          stamp_duty_minor: number | null
           status: Database["public"]["Enums"]["listing_status"]
           submitted_at: string | null
+          survey_registration_fee_minor: number | null
           tenure: Database["public"]["Enums"]["land_tenure"] | null
           title: string
           toilets: number | null
           total_floors: number | null
           total_move_in_cost_minor: number | null
+          total_purchase_cost_minor: number | null
           updated_at: string
           verified_by: string | null
           water_supply: Database["public"]["Enums"]["water_supply"] | null
@@ -2538,6 +2544,7 @@ export type Database = {
           description?: string | null
           featured?: boolean
           floor?: number | null
+          governors_consent_fee_minor?: number | null
           furnished?: Database["public"]["Enums"]["furnishing"] | null
           has_estate_access?: boolean
           id?: string
@@ -2570,6 +2577,8 @@ export type Database = {
           review_notes?: string | null
           reviewed_at?: string | null
           reviewer_id?: string | null
+          sale_agency_fee_minor?: number | null
+          sale_legal_fee_minor?: number | null
           sale_price_minor?: number | null
           sale_status?: Database["public"]["Enums"]["sale_status"] | null
           service_charge_minor?: number | null
@@ -2578,13 +2587,16 @@ export type Database = {
             | null
           size_sqm?: number | null
           state_code?: string | null
+          stamp_duty_minor?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
           submitted_at?: string | null
+          survey_registration_fee_minor?: number | null
           tenure?: Database["public"]["Enums"]["land_tenure"] | null
           title: string
           toilets?: number | null
           total_floors?: number | null
           total_move_in_cost_minor?: number | null
+          total_purchase_cost_minor?: number | null
           updated_at?: string
           verified_by?: string | null
           water_supply?: Database["public"]["Enums"]["water_supply"] | null
@@ -2608,6 +2620,7 @@ export type Database = {
           description?: string | null
           featured?: boolean
           floor?: number | null
+          governors_consent_fee_minor?: number | null
           furnished?: Database["public"]["Enums"]["furnishing"] | null
           has_estate_access?: boolean
           id?: string
@@ -2640,6 +2653,8 @@ export type Database = {
           review_notes?: string | null
           reviewed_at?: string | null
           reviewer_id?: string | null
+          sale_agency_fee_minor?: number | null
+          sale_legal_fee_minor?: number | null
           sale_price_minor?: number | null
           sale_status?: Database["public"]["Enums"]["sale_status"] | null
           service_charge_minor?: number | null
@@ -2648,13 +2663,16 @@ export type Database = {
             | null
           size_sqm?: number | null
           state_code?: string | null
+          stamp_duty_minor?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
           submitted_at?: string | null
+          survey_registration_fee_minor?: number | null
           tenure?: Database["public"]["Enums"]["land_tenure"] | null
           title?: string
           toilets?: number | null
           total_floors?: number | null
           total_move_in_cost_minor?: number | null
+          total_purchase_cost_minor?: number | null
           updated_at?: string
           verified_by?: string | null
           water_supply?: Database["public"]["Enums"]["water_supply"] | null

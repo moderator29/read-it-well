@@ -268,3 +268,59 @@ export function moveInTotal(row: MoveInColumns): { minor: number; stated: boolea
   const sum = moveInParts(row).reduce((total, part) => total + part.minor, 0);
   return { minor: sum, stated: false };
 }
+
+/* ------------------------------------------------------- what a buyer pays
+
+   The sale side's twin of the block above, and the reason it exists is the
+   same one with a bigger number attached. A hundred and eighty million naira
+   asking price in Lagos is routinely two hundred million by the time the deed
+   is signed: agency and legal are conventionally five per cent each, and
+   Governor's consent, stamp duty and registration run to several per cent
+   more of the value of the land. None of it was collected until now.
+
+   ONE DIFFERENCE FROM THE TENANCY MODEL, AND IT MATTERS. The price is one of
+   the parts here. "Total to move in" is a figure beside the rent; "total to
+   buy" INCLUDES the asking price, because that is what a buyer has to find.
+   -------------------------------------------------------------------------- */
+
+export type PurchaseColumns = {
+  sale_price_minor: number | null;
+  sale_agency_fee_minor: number | null;
+  sale_legal_fee_minor: number | null;
+  governors_consent_fee_minor: number | null;
+  stamp_duty_minor: number | null;
+  survey_registration_fee_minor: number | null;
+  total_purchase_cost_minor: number | null;
+};
+
+export function purchaseParts(row: PurchaseColumns): MoveInPart[] {
+  const parts: MoveInPart[] = [];
+  const push = (key: string, label: string, value: number | null) => {
+    if (value === null || value === undefined) return;
+    parts.push({ key, label, minor: Number(value) });
+  };
+  push("price", "Asking price", row.sale_price_minor);
+  push("agency", "Agency fee", row.sale_agency_fee_minor);
+  push("legal", "Legal fee", row.sale_legal_fee_minor);
+  push("consent", "Governor's consent", row.governors_consent_fee_minor);
+  push("stamp", "Stamp duty", row.stamp_duty_minor);
+  push("registration", "Survey and registration", row.survey_registration_fee_minor);
+  return parts;
+}
+
+/**
+ * Everything a buyer has to find, as the lister stated it.
+ *
+ * Never recomputed from the parts when a total was given, for the reason
+ * `moveInTotal` states: sellers fold these into each other, so a derived sum
+ * would invent a breakdown nobody quoted. When no total was stated, the sum of
+ * the named parts is the honest floor and the caller is told which of the two
+ * it received so it can say "from" rather than a flat figure.
+ */
+export function purchaseTotal(row: PurchaseColumns): { minor: number; stated: boolean } {
+  if (row.total_purchase_cost_minor !== null && row.total_purchase_cost_minor !== undefined) {
+    return { minor: Number(row.total_purchase_cost_minor), stated: true };
+  }
+  const sum = purchaseParts(row).reduce((total, part) => total + part.minor, 0);
+  return { minor: sum, stated: false };
+}

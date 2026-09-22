@@ -188,6 +188,39 @@ function ListingCard({
         </div>
       )}
 
+      {/*
+        WHAT A BUYER ACTUALLY PAYS, itemised.
+
+        The tenancy breakdown above has been on this card for weeks and the
+        sale side had an asking price and nothing else, which is the same lie
+        in a much bigger currency: agency and legal are conventionally five per
+        cent each, and Governor's consent, stamp duty and registration run to
+        several per cent more of the value of the land. The reviewer is the
+        last person who can catch an attractive asking price with twenty
+        million naira hiding behind it.
+      */}
+      {listing.purchase && (
+        <div className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
+          <p className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
+            To buy: {formatMoney(listing.purchase.totalMinor, locale)}
+            <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">
+              {listing.purchase.totalStated ? "as stated" : "summed from the parts"}
+            </span>
+          </p>
+          <ul className="mt-2xs space-y-3xs">
+            {listing.purchase.parts.map((part) => (
+              <li
+                key={part.key}
+                className="flex justify-between gap-sm text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
+              >
+                <span>{part.label}</span>
+                <span className="nf-numeric">{formatMoney(part.minor, locale)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* THE PHOTO STRIP PADS THE LIST AND NOT THE SCROLLPORT, and that is the
           whole of the change below. `.nf-scroll-x` gives every direct child
           `scroll-snap-align: start`, and a snap position aligns that child's

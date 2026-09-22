@@ -21,6 +21,8 @@ import {
   headlinePrice,
   moveInParts,
   moveInTotal,
+  purchaseParts,
+  purchaseTotal,
   type MoveInPart,
   type PricePeriod,
 } from "../listings/pricing";
@@ -757,6 +759,14 @@ export type ListingReviewView = {
   priceMinor: number;
   /** The rent breakdown, present only on a tenancy that stated any of it. */
   moveIn: { parts: MoveInPart[]; totalMinor: number; totalStated: boolean } | null;
+  /**
+   * What a buyer actually pays, present only on a sale that stated any of it.
+   *
+   * The reviewer approving a sale listing is the last person who can catch an
+   * asking price with twenty million naira of consent, stamp duty and agency
+   * hiding behind it.
+   */
+  purchase: { parts: MoveInPart[]; totalMinor: number; totalStated: boolean } | null;
   /** The title being transferred, present only on a sale. */
   tenure: Database["public"]["Enums"]["land_tenure"] | null;
   saleStatus: Database["public"]["Enums"]["sale_status"] | null;
@@ -822,7 +832,7 @@ export type ListingReviewView = {
 };
 
 const LISTING_COLUMNS =
-  "id, reference, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, review_notes, created_at, power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, size_sqm, toilets, parking_spaces, floor, total_floors, condition, year_built, furnished, agents ( display_name ), listing_photos ( storage_path, position ), listing_videos ( storage_path, poster_path, duration_seconds, position ), listing_amenities ( amenity_id ), listing_access ( estate_name, gate_directions, security_phone, access_code )";
+  "id, reference, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, review_notes, created_at, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, size_sqm, toilets, parking_spaces, floor, total_floors, condition, year_built, furnished, agents ( display_name ), listing_photos ( storage_path, position ), listing_videos ( storage_path, poster_path, duration_seconds, position ), listing_amenities ( amenity_id ), listing_access ( estate_name, gate_directions, security_phone, access_code )";
 
 type ListingRow = {
   id: string;
@@ -856,6 +866,12 @@ type ListingRow = {
   reviewed_at: string | null;
   review_notes: string | null;
   created_at: string;
+  sale_agency_fee_minor: number | null;
+  sale_legal_fee_minor: number | null;
+  governors_consent_fee_minor: number | null;
+  stamp_duty_minor: number | null;
+  survey_registration_fee_minor: number | null;
+  total_purchase_cost_minor: number | null;
   power_grid: Database["public"]["Enums"]["power_grid"] | null;
   power_backup: Database["public"]["Enums"]["power_backup"] | null;
   power_backup_hours: number | null;
@@ -1021,6 +1037,8 @@ function toListingView(
   const headline = headlinePrice(row);
   const parts = moveInParts(row);
   const total = moveInTotal(row);
+  const buying = purchaseParts(row);
+  const buyingTotal = purchaseTotal(row);
   const photos = [...row.listing_photos]
     .sort((a, b) => a.position - b.position)
     .map((photo) => photoUrl(admin, photo.storage_path));
@@ -1056,6 +1074,13 @@ function toListingView(
       row.listing_intent === "sale" || parts.length === 0
         ? null
         : { parts, totalMinor: total.minor, totalStated: total.stated },
+    /* The mirror image: only on a sale, and only when something was stated.
+       A sale that named nothing but its price draws nothing rather than a
+       breakdown of one row. */
+    purchase:
+      row.listing_intent !== "sale" || buying.length < 2
+        ? null
+        : { parts: buying, totalMinor: buyingTotal.minor, totalStated: buyingTotal.stated },
     tenure: row.tenure,
     saleStatus: row.sale_status,
     city: row.city,
