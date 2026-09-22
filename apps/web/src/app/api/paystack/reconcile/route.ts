@@ -8,7 +8,7 @@ import {
   runMoneyReconciliation,
 } from "@/lib/wallet/reconciliation";
 import { recordAlert } from "@/lib/alerts";
-import { fromPlatformScheduler } from "@/lib/cron/auth";
+import { cronAuthVerdict, fromPlatformScheduler } from "@/lib/cron/auth";
 import { refusalAlert } from "@/lib/cron/run";
 import { failureReason } from "@/lib/payments/observability";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
@@ -120,7 +120,12 @@ async function run(request: Request): Promise<NextResponse> {
        the level that means a person. The whole argument, and the 69 medium
        rows this route had already put on the desk saying the first thing while
        meaning the second, is in lib/cron/auth.ts. */
-    await recordAlert(refusalAlert(RECONCILE_SUBJECT, fromPlatformScheduler(request)));
+    /* The verdict is MEASURED here rather than left to a default. This call
+       site is the one that proved why: it inherited "secret-mismatch" and
+       reported it for a request that carried no bearer at all. */
+    await recordAlert(
+      refusalAlert(RECONCILE_SUBJECT, fromPlatformScheduler(request), cronAuthVerdict(request)),
+    );
     return refused("unauthorised", 401);
   }
 

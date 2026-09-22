@@ -173,10 +173,26 @@ function fixFor(verdict: CronAuthVerdict): string {
   }
 }
 
+/*
+ * THE VERDICT IS REQUIRED, AND IT USED TO HAVE A DEFAULT.
+ *
+ * It was `verdict: CronAuthVerdict = "secret-mismatch"`, and within the hour
+ * that default told its first lie. `/api/paystack/reconcile` calls this
+ * without a verdict, so at 17:10 on 22 September it reported
+ * `"reason":"secret-mismatch"` for a request that had presented NO BEARER AT
+ * ALL. The field built specifically to stop three wrong diagnoses produced a
+ * fourth, and it read exactly like a measurement.
+ *
+ * A DEFAULT ON A DIAGNOSTIC IS A LIE GENERATOR. Every other field in this
+ * object is observed; a caller that cannot be bothered to observe this one
+ * must be made to say so rather than quietly inheriting the most plausible
+ * answer. So there is no default: a caller supplies what it measured, and
+ * TypeScript refuses the ones that do not.
+ */
 export function refusalAlert(
   name: string,
   scheduler: boolean,
-  verdict: CronAuthVerdict = "secret-mismatch",
+  verdict: CronAuthVerdict,
 ): AlertInput {
   const token = name.replace(/-/g, "_");
   return scheduler

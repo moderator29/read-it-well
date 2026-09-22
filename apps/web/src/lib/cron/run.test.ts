@@ -110,6 +110,36 @@ describe("the bearer guard", () => {
     expect(cronAuthVerdict(withHeader("Bearer s3cret"))).toBe("no-secret-configured");
   });
 
+  /*
+   * THE DEFAULT THAT TOLD A LIE WITHIN THE HOUR.
+   *
+   * `refusalAlert` took `verdict: CronAuthVerdict = "secret-mismatch"`.
+   * `/api/paystack/reconcile` calls it without a verdict, so at 17:10 on 22
+   * September the desk recorded `"reason":"secret-mismatch"` for a request
+   * that had presented NO BEARER AT ALL. The field built to end three wrong
+   * diagnoses produced a fourth, and it read exactly like a measurement
+   * because every other field beside it was one.
+   *
+   * THIS ASSERTION READS THE COMPILER, NOT THE SOURCE. The first version of
+   * it grepped run.ts for the string `verdict: CronAuthVerdict =`, which is
+   * the very fault being swept for this week: a check that observes what was
+   * WRITTEN rather than what HAPPENS. It would have passed against a default
+   * spelled across two lines, against one moved into a wrapper, and against a
+   * file that no longer existed.
+   *
+   * `@ts-expect-error` is the behavioural form. The call below is missing an
+   * argument; if the parameter ever becomes optional again the error stops
+   * being raised, and `tsc` FAILS THE BUILD on the unused directive. The gate
+   * that catches a regression here is typecheck, not this file, which is why
+   * the assertion is written where typecheck can see it.
+   */
+  it("has no default verdict, because every caller must say what it measured", () => {
+    // @ts-expect-error the verdict is required: a caller must say what it measured.
+    const alert = refusalAlert("hold-sweep", true);
+    // And it is genuinely absent rather than silently filled in.
+    expect(alert.detail?.reason).toBeUndefined();
+  });
+
   it("tells the desk the fix for the fault it actually had", () => {
     const bare = refusalAlert("hold-sweep", true, "no-bearer");
     expect(String(bare.detail?.fix)).toContain("CRON_SECRET");
@@ -261,7 +291,7 @@ describe("a refused scheduler is not a refused stranger", () => {
   });
 
   it("calls a locked out scheduler critical, and says the job did not run", () => {
-    const alert = refusalAlert("hold-sweep", true);
+    const alert = refusalAlert("hold-sweep", true, "no-bearer");
     expect(alert.kind).toBe("cron.hold_sweep.locked_out");
     expect(alert.severity).toBe("critical");
     expect(alert.detail).toMatchObject({ http_status: 401, scheduler: "vercel-cron", ran: false });
@@ -270,7 +300,7 @@ describe("a refused scheduler is not a refused stranger", () => {
   });
 
   it("leaves a stranger at the level a stranger deserves", () => {
-    const alert = refusalAlert("hold-sweep", false);
+    const alert = refusalAlert("hold-sweep", false, "secret-mismatch");
     expect(alert.kind).toBe("cron.hold_sweep.unauthorised");
     expect(alert.severity).toBe("warning");
     expect(alert.detail).toMatchObject({ ran: false });
