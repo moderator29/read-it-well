@@ -131,9 +131,14 @@ on Google OAuth and two inventory providers that the product no longer has.
    is a support ticket, and `EMAIL_FROM` must be a verified sender or delivery
    is rejected outright.
 5. **Paystack.** Required before anyone can pay.
-6. **Supabase dashboard: turn on leaked password protection.** Authentication,
-   Policies. One toggle, and it is the only real item on the security advisor
-   list. `docs/DATABASE_AUDIT.md` section 1.1.
-7. **`NEXT_PUBLIC_MAPTILER_KEY`.** Wired now, see section 3. It is a
-   licensing item rather than a feature item, and it is the only one on this
-   list that can cost you a letter rather than a bug report.
+6. **Leaked password protection is NOT on this list any more, because it is
+   not free.** It stood here as "one toggle" and that was wrong: Supabase
+   gates it behind the **Pro plan**. It is a paid decision rather than a
+   dashboard visit, and calling it a toggle meant it sat on a launch checklist
+   for weeks looking like thirty seconds of somebody's time. Moved to the paid
+   items in `docs/FOUNDER_OPEN_ITEMS.md`. `docs/DATABASE_AUDIT.md` section 1.1
+   still describes what it does.
+7. **`NEXT_PUBLIC_MAPTILER_KEY`. DONE, 22 September.** Key created, origin
+   locked, and set in Vercel for production and preview. The origin list
+   deliberately includes a bare `?`, because the native shell sends no
+   ordinary web origin and the map would be blank inside the app without it.

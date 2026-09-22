@@ -18,7 +18,39 @@ ledger's needs-the-founder section; this file is his.
 
 ## Open, and urgent
 
-### ONE SECRET, AND IT HAS TAKEN THE WHOLE SCHEDULER DOWN SINCE 19 SEPTEMBER
+### THE SCHEDULER: A THIRD VARIABLE IS MISSING, AND IT IS `CRON_SECRET`
+
+**Measured at 15:10 today, after the two secrets were set and Vercel was
+redeployed: the jobs are STILL being refused.** Two fresh refusals at 15:05
+(hold sweep) and 15:10 (paystack reconcile). So this is not a redeploy that
+has not landed; it is a third value that has not been set.
+
+THREE values have to agree and only two of them were changed:
+
+| Where | Name | Role | Status |
+| --- | --- | --- | --- |
+| Vercel | **`CRON_SECRET`** | **what Vercel's own scheduler SENDS**, as `Authorization: Bearer <CRON_SECRET>` | **not changed. This is the one.** |
+| Vercel | `RECONCILE_CRON_SECRET` | what our own code COMPARES against | set to the new value |
+| Supabase Vault | `vallo_reconcile_secret` | what the pg_cron path sends | set to the new value |
+
+`lib/cron/auth.ts` compares the presented bearer against
+`process.env.RECONCILE_CRON_SECRET`, and its own header says it: "Vercel Cron
+sends `Authorization: Bearer <CRON_SECRET>`; the deploy must hold the same
+value under BOTH names." Setting one name and not the other leaves the
+platform scheduler presenting the old token to a door that now expects the new
+one, which is exactly what the 15:05 and 15:10 refusals show.
+
+**Set `CRON_SECRET` in Vercel to the same freshly generated value and
+redeploy.** Nothing else needs to change.
+
+**One thing that IS confirmed working:** those two refusals came through as
+"locked out" at HIGH severity, where every one of the previous 256 read
+"unauthorised" at medium. That is today's fix live in production: our own
+scheduler being locked out of our own platform no longer reads like a stranger
+probing a URL.
+
+### THE ORIGINAL ENTRY, KEPT FOR THE RECORD
+
 
 **`RECONCILE_CRON_SECRET` on the host no longer equals `CRON_SECRET` on the
 scheduler.** Everything below follows from that one mismatch, and setting them

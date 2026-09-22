@@ -2246,3 +2246,59 @@ forbids rewriting another scope's keys, so the measured widths are recorded
 rather than guessed at later. Two sets still mix artwork families,
 `host/page.tsx` and `RentalFace`. Stride ring 1.82:1 and switch track 1.13:1,
 both still under 3:1.
+
+## 21. THE PROBE ROWS ARE GONE, AND THE SCHEDULER NEEDS A THIRD VARIABLE
+
+### The three remaining rows, removed on the founder's explicit ruling
+
+"It was me testing, not business, and forged rows being the only reservation
+and conversation this platform has is the same dishonesty we spent today
+stripping off the front page."
+
+Removed: the venue `ac275023` ("Vallo House Kitchen", DRAFT), the reservation
+`88872013` (party of 4, CANCELLED), the conversation `2ad0ffaf`, and the one
+real message `df2a20d3` caught in the chain, sent 20 September 05:20 from the
+founder's own account. All four are named in section 15 with their contents,
+and again inside the migration itself, because a migration is the only record
+that travels with the database.
+
+**THE OBVIOUS ORDER WAS REFUSED BY THE PLATFORM'S OWN RULES, which is worth
+keeping.** Deleting the conversation first looks safest and fails:
+`reservations.conversation_id` is ON DELETE SET NULL, that null-out is an
+UPDATE on `reservations`, and `private.reservation_is_valid()` fires on it and
+raises **"that restaurant is not published"**, because the forged venue is a
+DRAFT. The probe left behind a row that the product's own validity rule would
+no longer let anybody edit. So the reservation went first and took its
+conversation by cascade, which the migration watches for rather than assumes.
+
+Measured afterwards: **0 reservations, 0 rows carrying the probe's timestamp**,
+and 7 businesses, 7 conversations and 15 messages, which are the seeded
+examples and real traffic, untouched. The platform now has no forged
+reservation because it has no reservation at all, which is the honest state.
+
+### THE SCHEDULER IS STILL LOCKED OUT, AND IT IS A THIRD VARIABLE
+
+Two secrets were set and Vercel redeployed. **Measured at 15:10: still
+refused.** Fresh refusals at 15:05 (hold sweep) and 15:10 (paystack
+reconcile), so this is not a redeploy in flight.
+
+THREE values have to agree and two were changed:
+
+| Where | Name | Role | Status |
+| --- | --- | --- | --- |
+| Vercel | **`CRON_SECRET`** | what Vercel's scheduler SENDS | **unchanged. This is the one.** |
+| Vercel | `RECONCILE_CRON_SECRET` | what our code COMPARES | set |
+| Supabase Vault | `vallo_reconcile_secret` | what the pg_cron path sends | set |
+
+`lib/cron/auth.ts` compares the bearer against
+`process.env.RECONCILE_CRON_SECRET`, and its own header says it: "Vercel Cron
+sends `Authorization: Bearer <CRON_SECRET>`; the deploy must hold the same
+value under BOTH names." One name was changed, so the scheduler now presents
+the old token to a door expecting the new one.
+
+**AND THE FIX FROM TODAY IS CONFIRMED LIVE BY THE SAME MEASUREMENT.** Those
+two refusals came through as **"locked out" at HIGH severity**, where all 256
+before them read "unauthorised" at medium. Our own scheduler being locked out
+of our own platform no longer reads like a stranger probing a URL. The signal
+was rebuilt and then immediately proved itself on a real event, which is the
+best evidence a monitoring change can have.
