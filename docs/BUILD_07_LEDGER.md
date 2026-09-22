@@ -1165,3 +1165,75 @@ measurement, and it is labelled as one.
 
 Every text-bearing control stays a rounded rectangle on `--nf-radius-control`.
 A glow changes what a control is made of, never what shape it is.
+
+## 14. MAIN WAS RED ON THE TEST GATE, AND THE THIRD COLLISION
+
+**Measured on `origin/main` in a clean worktree, not the shared tree**, which
+is the only reading that means anything while thirteen people are mid edit:
+`src/lib/i18n/locale-completeness.test.ts` fails with "yo now renders 336 keys
+in English, up from the recorded 212". Every worker's test floor was red and
+main auto-deploys.
+
+### How it happened, and it is a process fault rather than a translation one
+
+A3 came forward before I found it, which is the behaviour this stint needs
+more of. Its commit `1c6388d`, titled "the console stops being half
+translated", carries 182 added lines in `packages/i18n/src/locales/en.ts`. Two
+are its own. The other 180 are B1b's `supply` namespace, the three supplier
+registration forms of `GOVERNING-03`, `04` and `05`, which were sitting
+uncommitted in the shared tree when the file was staged.
+
+A3 used an explicit pathspec. It never ran `git add -A` and never `git add .`.
+The rule was followed and the rule was not enough, and its own sentence is the
+one worth keeping:
+
+> **THE UNIT OF COLLISION IS THE FILE, NOT THE CHANGE.**
+
+Nothing was lost and nothing was overwritten. What is damaged is
+reviewability: correct work landed early under a title that gives a reviewer
+no reason to open it, which is the same failure as a consumer committed
+without its producer. Unpicking it was correctly refused. History rewriting is
+on the stop list, and reverting an agent's in-flight work to tidy somebody
+else's commit is a worse fault than an untidy commit.
+
+### THE RULING: en.ts IS HELD BY ONE WORKER AT A TIME
+
+Not one file per namespace. Restructuring the dictionary is off limits this
+week, and a thirteen way restructure of the file everyone is mid edit in would
+cause more collisions than it prevents. `packages/i18n/src/locales/en.ts` is
+now held by ONE worker at a time and the lead names the holder. A3 holds it
+until its console work is committed. Everybody else asks.
+
+### A defect in the gate itself, which is not A3's judgement
+
+The ratchet fires on ordinary product growth. `englishValued` counts every key
+a locale does not carry, so ANY new English namespace raises it for all three
+incomplete locales even when nothing got worse and no English was copied into
+a translation file. The header names exactly one legitimate reason to raise a
+ceiling, moving a hardcoded English string out of TSX into the dictionary, and
+this was not that reason, yet the number had to rise anyway.
+
+So the measure conflates **the locale got worse** with **the product got
+bigger**. The gate is worth having and is the only reason anybody found this
+at all, but it needs to measure the thing it is named for. Not redesigned
+under a red test: the smallest correct change was the ceiling raise with its
+reason written beside it, which is what A3 wrote and what lands.
+
+### The finding underneath it, which is the one that matters to a person
+
+144 of those keys are English only. `yo.supply`, `ha.supply` and `ig.supply`
+are still the original 60. **A supplier registration form is the first thing a
+new agent, owner or firm ever reads on this platform, and today it reads in
+English on a Yoruba, Hausa or Igbo phone while the screen around it does
+not.** Either those 144 keys get translated or the honest answer is that the
+namespace ships English in every locale until a translator exists, and that is
+a decision rather than a bug.
+
+### The worker count, since this is the third collision
+
+The founder's instruction was to tighten the written scopes or come back to
+eight, and to come back to eight on a third collision. The three are the `h1`
+type scale, N1 sweeping C1's staged files, and this one. **The count is
+already back down**: C2, N2, A1, A2, B1, N1, N3, N4 and N5 have handed back,
+leaving C1, B2, B3, A3, B1b and A2b, which is six. The five extras are retired
+as they finish rather than being replaced, and nothing new is being spun up.
