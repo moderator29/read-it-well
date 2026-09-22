@@ -11,6 +11,7 @@ import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
 import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-schema";
 import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-schema";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
+import { SUPPLY_DOOR_HREF, doorsSentence } from "@/lib/supply/roles";
 
 /**
  * The documentation, as data.
@@ -199,7 +200,9 @@ export const CHAPTERS: DocChapter[] = [
               people there are saying today.
             </li>
             <li>
-              <strong>List a property.</strong> Apply as an agent, get verified,
+              {/* An owner listing their own flat does not "apply as an agent",
+                  and telling them they do is how the supply side stayed empty. */}
+              <strong>List a property.</strong> Own it or act for somebody who does,
               publish, manage a calendar and get paid.
             </li>
           </ul>
@@ -1731,13 +1734,21 @@ export const CHAPTERS: DocChapter[] = [
         heading: "Applying",
         body: (
           <>
+            {/* THE DOOR IS THE CHOOSER AND NOT AN AGENT'S JOB TITLE. Three
+                doors go into the supply side now, the owner's first, and this
+                chapter used to describe the six step agent application as the
+                only way in. The three titles come from `SUPPLY_DOORS`, so this
+                paragraph cannot drift from the screen it describes. */}
             <p>
               Start at{" "}
-              <Link href="/agents" className={A}>
-                Become an agent
-              </Link>
-              . The application is six short steps and your progress saves as you go, so
-              you can put it down and come back:
+              <Link href={SUPPLY_DOOR_HREF} className={A}>
+                Add a workspace
+              </Link>{" "}
+              and pick the door that fits: {doorsSentence()}. The owner form is four
+              short screens. The agent and firm forms ask for more, because more can go
+              wrong when somebody acts for another person. Your progress saves as you
+              go, so you can put it down and come back. Applying as an agent, the six
+              steps are:
             </p>
             <ol>
               <li>

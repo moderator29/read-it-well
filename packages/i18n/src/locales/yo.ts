@@ -1121,6 +1121,13 @@ export const yo: Dictionary = withFallback({
   },
 
   home: {
+    /* ENGLISH, AND SAID SO RATHER THAN HIDDEN. These four are not translated:
+       a speaker of this language has not been asked yet, and inventing a
+       translation would be worse than falling back. `withFallback` would serve
+       English anyway; carrying the keys here with English in them would raise
+       this locale's completeness count while the screen still reads in English,
+       which is the exact defect `locale-completeness.test.ts` exists to catch.
+       So the keys are deliberately ABSENT and this comment is the record. */
     greeting: "Káàbọ̀ padà",
     prompt: "Ibo ni o ń lọ lónìí?",
     searchPlaceholder: "Wá ibi, hòtẹ́lì, ilé oúnjẹ",

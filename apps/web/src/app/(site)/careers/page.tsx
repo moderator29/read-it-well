@@ -5,6 +5,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF } from "@/lib/support-email";
+import { SUPPLY_DOOR_HREF } from "@/lib/supply/roles";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -158,12 +159,17 @@ export default function CareersPage() {
         {/* ------------------------------------------------- cross links */}
         <Reveal as="section" className="mt-section">
           <div className="nf-card p-card text-center-lg">
+            {/* NOT "BECOME AN AGENT". Most of the supply this platform wants
+                is owners who are not agents and never will be, and the one door
+                we offered them was marked with somebody else's job title. The
+                destination is the chooser, which offers all three doors and
+                puts the owner first. */}
             <p className="text-[0.9375rem] text-[var(--nf-content-secondary)]">
               Not looking for a job, but want to earn on Vallo?
             </p>
             <div className="mt-group flex justify-center">
-              <ButtonLink href="/agents" variant="secondary">
-                Become an agent instead
+              <ButtonLink href={SUPPLY_DOOR_HREF} variant="secondary">
+                List your property instead
               </ButtonLink>
             </div>
           </div>

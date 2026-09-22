@@ -1698,6 +1698,27 @@ export const en = {
   },
 
   home: {
+    /*
+     * THE EMPTY SHELF, AND WHO IT SAYS FILLS IT.
+     *
+     * These four strings were inline English in
+     * `components/app/home/HomeScreen.tsx`, which is the dictionary rule broken
+     * four times on the one surface every signed-in person lands on. They are
+     * keys now and the component reads them.
+     *
+     * "Somebody" AND NOT "AN AGENT". The neighbouring empty state on search
+     * still says "Agents are still listing", on a brief whose entire point is
+     * that owners list too. Naming agents on an empty property shelf tells a
+     * landlord that filling it is somebody else's job, which is the same
+     * message the "Become an agent" door was sending. The action underneath
+     * offers him the owner door.
+     */
+    empty: {
+      title: "Nothing to show here yet",
+      body: "Nobody has published a property in your city yet. The shelf fills the minute somebody does.",
+      action: "List a property",
+      free: "Listing is free, and it stays free.",
+    },
     greeting: "Welcome back",
     prompt: "Where are you going today?",
     searchPlaceholder: "Search places, hotels, restaurants",

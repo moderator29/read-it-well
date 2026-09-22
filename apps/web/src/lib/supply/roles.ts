@@ -469,11 +469,64 @@ export function ladderSentence(): string {
  * The roles and the ladder as one paragraph, for any surface that needs prose:
  * the assistant, the help centre, the in product docs.
  */
+/**
+ * THE THREE DOORS AS ONE SENTENCE, FOR A SURFACE THAT CAN ONLY HOLD PROSE.
+ *
+ * The help centre, the careers cross link, the contact page and the in product
+ * docs all used to send a landlord to a page marked "Become an agent" and then
+ * describe the six step agent application as the only route in. A landlord with
+ * one flat in Bwari is not becoming an agent and never will be, and being shown
+ * that door is why the supply side of this platform has exactly one `agents`
+ * row in it.
+ *
+ * They are all plain strings rather than components, so they cannot render the
+ * chooser's cards. This builds the same three titles into a sentence FROM
+ * `SUPPLY_DOORS`, so those four surfaces read the one vocabulary instead of
+ * each keeping a paraphrase of it. Rename a door and all four change.
+ */
+export function doorsSentence(): string {
+  const titles = SUPPLY_DOOR_ORDER.map(
+    (id) => SUPPLY_DOORS[id as "owner" | "agent" | "firm"].title.toLowerCase(),
+  );
+  return `${titles.slice(0, -1).join(", ")} or ${titles[titles.length - 1]}`;
+}
+
+/** Where the three doors are, named once so four surfaces cannot disagree. */
+export const SUPPLY_DOOR_HREF = "/profile/setup";
+
 export function supplyPrimer(): string {
   return [
     "Vallo does not remove the agent, it removes the runaround.",
     "On the property side a supplier is either an owner listing their own place or an agent acting for owners, and an agent may have a registered firm behind them.",
-    "A listing says which of the three it came from, so a person searching can tell them apart.",
+    /*
+     * THIS SENTENCE WAS FALSE AND TWO AI SYSTEM PROMPTS WERE SAYING IT.
+     *
+     * It read: "A listing says which of the three it came from, so a person
+     * searching can tell them apart." `listings.listing_role` did not exist, so
+     * no listing said anything of the kind, and this primer is spliced into the
+     * system prompt of both `api/assistant/route.ts` and `api/support/route.ts`.
+     * Every user who asked either of them how Vallo works was told a fact about
+     * the product that the product did not have. That is the same class of
+     * fault as a badge that lies, and it is worse for being said by something
+     * people take to be authoritative.
+     *
+     * THE COLUMN NOW EXISTS. Track G migration 3 added `listings.listing_role`
+     * and it is not null on all 64 rows, and `ListerRoleLine` renders the
+     * sentence on the listing page's agent card. WHAT IS STILL MISSING IS THE
+     * MIDDLE OF THE CHAIN: the listing READ does not carry the column from the
+     * row to the component, because `lib/listings/types.ts` and
+     * `lib/listings/supabase-repository.ts` are another group's files. So a
+     * reader looking at a listing today still does not see it.
+     *
+     * So the sentence says what is true TODAY rather than what will be true on
+     * Thursday. It describes the three kinds of supplier, which is a fact about
+     * the platform, and it stops claiming a screen behaviour that no screen has
+     * yet. The moment the read carries `listing_role`, this becomes the
+     * stronger sentence again, and the handover naming the three lines that do
+     * it is in the report and in the ledger. A promise kept small is worth more
+     * than a promise that is wrong for a week.
+     */
+    "Which of the three a listing came from is recorded against that listing, so the difference is a fact about the property and not a guess about the person.",
     `Every supplier climbs the same four rung ladder: ${ladderSentence()}.`,
     "A rung not reached is drawn as not reached, with what it would take. Nothing is hidden and nothing is implied.",
   ].join(" ");

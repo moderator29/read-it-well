@@ -8,6 +8,7 @@ import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { ContactForm } from "./ContactForm";
 import { ButtonLink } from "@/components/ui/Button";
 import { CONTACT_TOPICS, DEFAULT_CONTACT_TOPIC, type ContactTopic } from "./topics";
+import { SUPPLY_DOOR_HREF } from "@/lib/supply/roles";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -170,14 +171,18 @@ export default async function ContactPage({
               </p>
             </div>
             <div className="nf-card p-card">
-              <p className="nf-overline">Agents and hosts</p>
+              {/* OWNERS FIRST, AND THE HEADING SAYS SO. "Agents and hosts"
+                  left out the largest group this product now wants, and sent
+                  every one of them to a page marked with an agent's job title.
+                  The chooser is the door and it offers all three. */}
+              <p className="nf-overline">Listing with us</p>
               <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                Applying to list a property, a place to let by the night or a
-                restaurant, or checking on an application? Start at{" "}
-                <Link href="/agents" className="font-semibold text-[var(--nf-content-link)] hover:underline">
-                  Become an agent
+                Listing a property you own, working as an agent, running a firm,
+                or letting a place by the night? Start at{" "}
+                <Link href={SUPPLY_DOOR_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">
+                  Add a workspace
                 </Link>
-                .
+                . Checking on an application you already sent is in your profile.
               </p>
             </div>
           </div>

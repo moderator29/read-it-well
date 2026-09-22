@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
@@ -16,6 +16,7 @@ import {
   type ProfileSelection,
   type Workspace,
 } from "@/lib/supply/workspaces";
+import { PROFILE_SWITCHER_EVENT } from "./profile-switcher-event";
 
 /**
  * ONE SHEET, ONE ENTRANCE, AND IT IS THE DOCK.
@@ -133,6 +134,7 @@ export function ProfileSwitcher({
   avatarUrl,
   addHref,
   onNavigate,
+  renderTrigger,
 }: {
   t: Dictionary;
   copy: ProfileSwitcherCopy;
@@ -143,10 +145,47 @@ export function ProfileSwitcher({
   /** Where "Add a workspace" goes, which is side dependent. */
   addHref: string;
   onNavigate?: () => void;
+  /**
+   * DRAW YOUR OWN TRIGGER INSTEAD OF THE DOCK SLOT.
+   *
+   * Session B asked for this and the request was right. `/profile` has a
+   * "Switch role" row that must open this sheet, and the only way it could was
+   * to find the dock's button by its class name and click it:
+   *
+   *     document.querySelector(".nf-tab__link--switch")?.click()
+   *
+   * That is a component reaching into another component's CSS. Rename the class
+   * in `chrome.css` and the profile row silently stops working, with nothing
+   * failing anywhere, which is the same shape of fault as a constant with no
+   * consumer passing its own test.
+   *
+   * THE SWITCH STILL LIVES IN ONE PLACE AND THIS DOES NOT REOPEN THAT. The
+   * founder ruled on 22 September that the sheet has one entrance, the dock,
+   * and the drawer row is removed rather than moved. This prop does not add an
+   * entrance: it lets ONE INSTANCE of this component be mounted with a
+   * different trigger, which is how the profile row opens THE SAME SHEET. What
+   * is forbidden is two entrances rendered at once, and that is a call site
+   * decision rather than something this file can or should police.
+   */
+  renderTrigger?: (open: () => void) => React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  /*
+   * ANY SURFACE MAY ASK FOR THE SHEET, WITHOUT KNOWING HOW IT IS DRAWN.
+   *
+   * See `profile-switcher-event.ts` for why this is an event. In short: the
+   * profile's Switch role row used to open this sheet by querying the dock's
+   * own class name and clicking it, and a class rename would have broken it
+   * silently. A caller now fires a named event that both sides import.
+   */
+  useEffect(() => {
+    const onAsk = () => setOpen(true);
+    window.addEventListener(PROFILE_SWITCHER_EVENT, onAsk);
+    return () => window.removeEventListener(PROFILE_SWITCHER_EVENT, onAsk);
+  }, []);
 
   const currentName =
     current.kind === "personal" ? copy.personal : current.workspace.name;
@@ -188,7 +227,17 @@ export function ProfileSwitcher({
 
   const triggerName = `${copy.triggerLabel}: ${currentName}`;
 
-  const trigger = (
+  /*
+   * THE CALLER'S OWN TRIGGER WINS, AND THE DOCK SLOT IS THE DEFAULT.
+   *
+   * `renderTrigger` is handed `open` rather than a boolean, so the caller
+   * decides what the control looks like and this file keeps deciding what
+   * opening means. A caller cannot force the sheet shut, cannot open it into a
+   * state this component did not choose, and cannot skip the transition.
+   */
+  const trigger = renderTrigger ? (
+    renderTrigger(() => setOpen(true))
+  ) : (
     <button
       type="button"
       /*

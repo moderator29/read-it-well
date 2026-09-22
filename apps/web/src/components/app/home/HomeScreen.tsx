@@ -235,15 +235,28 @@ export function HomeScreen({
           */
           <EmptyState
             icon="home-search"
-            title="Nothing to show here yet"
-            body="Nobody has published a property in your city yet. The shelf fills the minute somebody does."
+            /*
+             * FOUR INLINE ENGLISH STRINGS, NOW FOUR KEYS. This is the surface
+             * every signed-in person lands on and it broke the dictionary rule
+             * four times in one block.
+             *
+             * AND IT DOES NOT NAME AGENTS. The sibling empty state on search
+             * still reads "Agents are still listing", on a brief whose entire
+             * point is that OWNERS LIST TOO. Naming agents on an empty property
+             * shelf tells a landlord that filling it is somebody else's job,
+             * which is the same thing the "Become an agent" door was telling
+             * him. "Somebody" is true of all three of them, and the action
+             * underneath offers him the owner door.
+             */
+            title={t.home.empty.title}
+            body={t.home.empty.body}
             action={
-              <EmptyActions primary={{ label: "List a property", href: "/profile?switch=owner" }} />
+              <EmptyActions
+                primary={{ label: t.home.empty.action, href: "/profile?switch=owner" }}
+              />
             }
             secondary={
-              <p className="nf-caption text-[var(--nf-content-muted)]">
-                Listing is free, and it stays free.
-              </p>
+              <p className="nf-caption text-[var(--nf-content-muted)]">{t.home.empty.free}</p>
             }
           />
         }

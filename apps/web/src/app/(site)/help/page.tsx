@@ -6,6 +6,7 @@ import { SupportChat } from "@/components/app/account/SupportChat";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { HelpSearch, type Faq } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
+import { doorsSentence } from "@/lib/supply/roles";
 
 export const metadata: Metadata = {
   title: "Help centre",
@@ -167,8 +168,14 @@ const FAQS: Faq[] = [
     category: "Listing your property",
     q: "How do I list my property on Vallo?",
     /* "Agent dashboard" is not a Vallo word: the agent surface is the
-       workspace, called Agent Mode in the product. PRODUCT.md section 7. */
-    a: "Apply through the Become an agent page. The application has six short steps: personal details, identity verification, business type, documents, payout account and review. Your progress saves as you go, and once approved you publish listings from your agent workspace.",
+       workspace, called Agent Mode in the product. PRODUCT.md section 7.
+       AND IT NO LONGER SENDS A LANDLORD TO BECOME AN AGENT. This answer
+       described the six step agent application as the only route in, which is
+       the exact reason this platform has one `agents` row in it: a man with one
+       flat in Bwari is not becoming an agent and never will be, and we were
+       showing him the door rather than the room. The three doors are named from
+       `SUPPLY_DOORS`, so renaming one changes this sentence too. */
+    a: `Add a workspace from your profile and pick the door that fits: ${doorsSentence()}. The owner form takes about five minutes and asks for your name, an ID and whatever you hold on the property, and there is an honest answer if you hold no document at all. Once you are through you publish from that workspace.`,
   },
   {
     category: "Listing your property",
