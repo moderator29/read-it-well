@@ -379,6 +379,19 @@ it.
    question for the founder rather than a breach, and it is recorded rather
    than changed.
 
+**TWO OF THOSE THREE ARE ALREADY CLOSED, AND THE LEDGER WAS STILL CARRYING
+THEM AS OPEN.** A2b checked each one against the tree rather than against the
+report. Finding 1 is fixed: `auth.css:54` now reads
+`.nf-auth { color: var(--nf-content-primary); }`, which is the exact
+declaration A2 prescribed, landed at `95cef40`. Finding 2 is fixed:
+`site.css:206` now reads `border-radius: var(--nf-radius-control)` on
+`.nf-site-newsletter-field button`, 14px on 40px for a ratio of 0.35, and the
+note above it records the reasoning and credits A2 by name. Finding 3 stands
+unchanged, which is correct, because A2 filed it as a question for the founder
+rather than as a breach. A finding that has been fixed and is still written
+down as outstanding sends the next reader to re-fix it, so the state is
+recorded beside the finding rather than left to be rediscovered.
+
 **And one for whoever owns the app chrome.** The signed-out app header
 overflows at 390 and CLIPS its primary control. Measured on `/verification`:
 the actions group's right edge is 407px in a 390px viewport, so about 17px of
