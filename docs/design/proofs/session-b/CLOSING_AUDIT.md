@@ -22,7 +22,7 @@ resemblance is a FAIL. A missing measured row is a FAIL. A claim is a FAIL.
 
 | Surface | Owner | Gate | The deciding reasons |
 |---|---|---|---|
-| Profile `/profile` | profile | **FAIL** | row glow not measured on the image side; plates still 27 blue levels under the render; rows lack the render's lit foot |
+| Profile `/profile` | profile | **FAIL** (one decision from a pass) | every text role at 1.16 times the render by choice, not by a law; `21425a5e` closed the row, plate and glow gaps |
 | Get started `/welcome`, `/start` | welcome | **FAIL** | lockup glow not measured and visibly weaker; coin face "close, not identical" by its own ledger |
 | Welcome back `/sign-in`, `/sign-in/email` (+ `/sign-up`, `/forgot-password`) | signin | **FAIL** | one open departure that no law requires: card 78 per cent of the width against the render's 62 |
 | Wallet `/wallet` | wallet | **FAIL** | a claim kept in a Session B component and the wallet dictionary, rendered on the committed harness (`TrustStrip`: "256-bit TLS", "Encrypted in transit", "Your money is safe"); no side-by-side; proof shot mid-animation; "Add money" overflows its tile |
@@ -34,8 +34,9 @@ resemblance is a FAIL. A missing measured row is a FAIL. A claim is a FAIL.
 | Welcome email | email | **FAIL** | two unevidenced statements in the copy |
 | Handbook `docs/ADMIN_CONSOLE.md` | admin-shell, admin-review, admin-money | **FAIL** | thirteen acting desks have one line each |
 
-Nothing passes today. Sign in is closest: its ledger is complete and one
-decision stands between it and a pass. Welcome and profile are close. The
+Nothing passes today. Sign in and profile are closest: each ledger is
+complete and one stated departure stands between it and a pass. Welcome is
+close. The
 wallet claim, the admin landing rule, section 7 and the handbook's thin desks
 are real faults, not paperwork.
 
@@ -225,32 +226,34 @@ note), desktop; a render-vs-built side-by-side. Then my own reading of the
 side-by-side (or, where there is none, the governing image beside the 390
 dark proof), naming the three largest visual differences that remain.
 
-### 1. Profile (`/profile`), owner: profile. GATE FAIL
+### 1. Profile (`/profile`), owner: profile. GATE FAIL (one decision from a pass)
+
+Re-judged after `21425a5e` ("Profile rows and plates lit to the render,
+point by point"), which landed while this audit was being committed.
 
 | Check | Result |
 |---|---|
 | Chain | Yes (1.2); requests 1 and 1d open, 1b and 1c withdrawn (done) |
-| Comparison rows | radii, rim, fill, plates, every text role (sizes and weights now in one row), spacing, button, badges, colours sampled per element: measured. **Row glow: image side still "soft blue bloom round the row", no radius or alpha measured.** |
-| Light | Yes (1.5), the same five objects in their paper rendition |
-| Sweep numbers | Yes, harness `/zz-pfs` 0 / 0 / 0; committed `/preview/f4/profile` 0 / 0 / 0 in this audit |
+| Comparison rows | radii, rim, fill, plates, every text role with size and weight, spacing, button, badges, colours; round three adds 30 sampled points (row fill top to foot, rims, halo 4 px out, plate body, inner light, side light), every one within 10 per channel of the render. Glow now measured on both sides. |
+| Light | Yes (1.5), the same five objects in their paper rendition; paper resets the round-three layers |
+| Sweep numbers | Worker: harness `/zz-pfs` 0 / 0 / 0. This audit: committed `/preview/f4/profile` 0 / 0 / 0 on `486cb23`, before `21425a5e`, which changed only row and plate painting in `profile.css` (no text-bearing control) |
 | Refused list | Yes |
 | Skipped list | Yes |
-| Proofs | 390 dark and light, 1280 dark and light, `profile-side-by-side-390-dark.jpg`: present |
+| Proofs | 390 dark and light, 1280 dark and light, `profile-side-by-side-390-dark.jpg` (re-shot in round three): present |
 
-Three largest differences (from `profile-side-by-side-390-dark.jpg`):
-1. The rows are flatter than drawn: the render's rows carry a lit foot edge
-   and a luminous band along the bottom that separates each from the next;
-   the built rows have a thin even border and a faint bloom.
-2. The plate glass is still dimmer and bluer-grey than the render's lit
-   squares (the ledger's own sample: blue channel 27 under), so the icons sit
-   quieter in their rows.
-3. Type is 1.16 times the render and the name heavier, so the text column and
-   the rows read larger and the Switch role row ends lower (a stated choice,
-   1.1; the image governs). The gear joining the header row and the back
-   square dropping are chrome decisions, recorded.
+Three largest differences (from the round-three `profile-side-by-side-390-dark.jpg`):
+1. Type is 1.16 times the render on every text role and the name is heavier,
+   so the text column, the tabs and the rows read larger and the Switch role
+   row ends about 60 px lower than drawn. Ledger 1.1 calls it a choice (the
+   longest subtitle still fits one line); no law requires it.
+2. The glyphs inside the plates read smaller and quieter than the render's,
+   which fill their squares (the plate glass itself now matches within 10).
+3. At the foot of the side-by-side the next group's heading ("More of your
+   account") shows through the translucent dock; harmless in use, but it is
+   in the proof.
 
-Fail reasons: the unmeasured glow row; differences 1 and 2 are fixable in
-`profile.css`.
+Fail reason: difference 1 is a departure the image does not make and no rule
+requires. If the founder accepts the 1.16 type step, profile passes.
 
 ### 2. Get started (`/welcome`, `/start` redirect), owner: welcome. GATE FAIL
 
