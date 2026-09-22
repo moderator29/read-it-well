@@ -12,6 +12,7 @@ import {
   subjectForEmail,
   subjectForIp,
 } from "@/lib/security/rate-limit";
+import { recordAlert } from "@/lib/alerts";
 import { authOrigin } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
@@ -171,15 +172,41 @@ function authMessage(raw: string): string {
  * sign-up writes a row and sends mail, a reset sends mail to an address the
  * request chose.
  *
- * WHY SIGN-IN IS COUNTED BY ADDRESS AND SIGN-IN ONLY IS NOT. Counting reset
- * requests per address protects the owner of that address from having their
- * inbox used as a weapon, and costs them nothing, because a throttled reset
- * never stops them signing in normally. Counting sign-in attempts per address
- * would do the opposite: anybody who knows a person's email could spend that
- * allowance on purpose and hold them out of their own account for as long as
- * they cared to keep it up. So sign-in is counted per address of origin, and
- * the address typed into the form is not a key here.
+ * WHY A RESET IS COUNTED BY ADDRESS. It protects the owner of that address
+ * from having their inbox used as a weapon, and costs them nothing, because a
+ * throttled reset never stops them signing in normally.
+ *
+ * SIGN-IN IS COUNTED BOTH WAYS, AND THE SECOND COUNT WAS ADDED ON 22 SEPTEMBER
+ * 2026 AFTER A MEASUREMENT. This comment used to argue that sign-in must NEVER
+ * be counted per address, because anybody who knows somebody's email could
+ * spend the allowance on purpose and hold them out of their own account. That
+ * argument is correct about a TIGHT per-address limit and it left a hole the
+ * per-connection count cannot cover: ten guesses a minute from one place is
+ * ten guesses a minute from EACH place, so a botnet had UNLIMITED guesses
+ * against any one account on a platform that holds people's wallet balances.
+ * Unlimited guessing is the larger of the two harms, and it is the one an
+ * attacker can act on without knowing anything about the victim except their
+ * address, which they already needed for the denial.
+ *
+ * So the address ceiling is set where no person can reach it and a guessing
+ * run hits it immediately: SIXTY attempts an hour. A person signing in sixty
+ * times in an hour from one address does not exist; a stuffing run spends that
+ * in seconds. The denial it creates is real and it is bounded to the window,
+ * it is recorded as a risk alert the moment it trips so nobody has to guess
+ * why somebody cannot get in, and it is smaller than the denial the reset
+ * limiter three lines down has always accepted.
+ *
+ * THIS IS A TRADE AND IT IS THE FOUNDER'S TO REVERSE. Both halves are written
+ * out here rather than one of them being quietly chosen, because the previous
+ * decision went the other way and a reader deserves to know that.
  */
+/**
+ * How many sign-in attempts one email address may make in an hour, from
+ * anywhere at all. Set where no person reaches it and a guessing run hits it
+ * at once. See the argument above.
+ */
+const SIGN_IN_PER_ADDRESS_HOURLY = 60;
+
 async function throttle(
   bucket: string,
   subject: string,
@@ -239,10 +266,41 @@ export async function signInWithEmail(
   const paced = await throttle("sign_in", subjectForIp(await callerIp()), 10, 60);
   if (paced) return paced;
 
+  /* And the ceiling on one account, whatever it is guessed from. Sixty an
+     hour, for the reasons argued in full above the throttle helper. */
+  const email = field(formData, "email").trim();
+  const address = subjectForEmail(email);
+  const perAddress = await consume({
+    bucket: "sign_in_address",
+    subject: address,
+    limit: SIGN_IN_PER_ADDRESS_HOURLY,
+    windowSeconds: 3_600,
+  });
+  if (!perAddress.allowed) {
+    /* One alert per address per dedup window, so a sustained run is one row on
+       the desk rather than thousands. The subject is the SHA-256 the limiter
+       counts by, never the address itself: rule 16. */
+    await recordAlert({
+      kind: "auth.sign_in.address_ceiling",
+      severity: "warning",
+      detail: {
+        ceiling: SIGN_IN_PER_ADDRESS_HOURLY,
+        window_seconds: 3_600,
+        retry_after_seconds: perAddress.retryAfterSeconds,
+      },
+      subjectId: address,
+      subjectKind: "auth_address",
+    });
+    return {
+      ok: false,
+      message: `Too many attempts just now. Try again ${perAddress.retryIn}.`,
+    };
+  }
+
   const supabase = await createClient();
   const landing = landingAfterAuth(formData);
   const { error } = await supabase.auth.signInWithPassword({
-    email: field(formData, "email").trim(),
+    email,
     password: field(formData, "password"),
   });
 
@@ -300,6 +358,17 @@ export async function signUpWithEmail(
         display_name: nickname.length > 0 ? nickname : [firstName, surname].join(" ").trim(),
         hear_about: field(formData, "hearAbout"),
         referral_code: field(formData, "referralCode").trim() || null,
+        /*
+         * WHAT THEY ACCEPTED, AND WHEN, RECORDED RATHER THAN ASSUMED.
+         *
+         * The sign-up form carries a required tick and a hidden version
+         * string. `handle_new_user` writes `profiles.terms_accepted_at` with
+         * the SERVER's clock, and only when a version arrived, so a request
+         * assembled by hand without this field records no acceptance instead
+         * of a false one. Null here is therefore a real answer and it means
+         * exactly what it says: we cannot show that this person agreed.
+         */
+        terms_version: field(formData, "termsVersion").trim() || null,
       },
     },
   });
@@ -786,6 +855,13 @@ export async function updatePassword(
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
   if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
+
+  /* The recovery session is the authorisation, and it is a real one, so this
+     is the lightest of the four doors. It is still a door: every submit is a
+     Supabase call, and a link that has been opened can be submitted against
+     until the session expires. Ten an hour from one place. */
+  const pacedReset = await throttle("password_update_ip", subjectForIp(await callerIp()), 10, 3_600);
+  if (pacedReset) return pacedReset;
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
