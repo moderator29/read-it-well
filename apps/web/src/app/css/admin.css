@@ -1,49 +1,72 @@
 /*
-  admin: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  admin: the console's own partial, owned by Session B worker admin-shell
+  (docs/SESSION_B_SCOPE.md section 7). Light-theme rules for this family live
+  here too, under :root[data-theme="light"], so the partial is the whole
+  surface.
 
-  The governing images are 278CC66A (the queue at 390px) and CDA4B82B (the
-  console at desktop). One frame, built once: a rail with counts, a glass bar
-  with the search and its shortcut hint, the headline and its sub-line, the
-  count tabs, the glass search with the filter control, the status chips in
-  the on-palette colours, the dense row table with a type glyph, a status
-  pill, the submitted stamp, View and the kebab, then the pager and the
-  Operations Console footer. Every desk inherits it through
-  `app/admin/_components`. Everything here is scoped under `.nf-admin`.
-
-  Every container edge is lit glass, on the founder's ruling: the brand
-  hairline (`--nf-brand-edge`), the blue-white catchlight inside it
-  (`--nf-rim-lit`), a rung of the glow ladder and `--nf-bloom-card` behind
-  the panes. A flat grey border survives nowhere on a container here; the
-  hairlines that divide rows and cells inside one object are brand-tinted.
+  The governing images are the four admin renders at the repository root:
+  5EAA44CB (overview, one full desktop window), 01F7DFC7 (moderation,
+  operations, analytics), 8E9602E2 (escrow, verification, supply) and
+  C1D98B3C (listings queue, listing under review, money). One shell, built
+  once: a floating lit glass rail with the twelve rows, Settings and the
+  operator at its foot; a bar with the search, the clock, the bell and the
+  operator; lit glass panels, KPI strip and cards with sparklines, status
+  badges, tabs, tables and charts in the blue family. Every desk inherits it
+  through app/admin/_components. The older desk furniture below (count tabs,
+  filters, chips, the row table, the pager) is kept and restyled into the same
+  register so the desks the other workers rebuild keep working meanwhile.
 */
 @layer components {
-  /* ------------------------------------------------------------ the frame */
+  /* ------------------------------------------------------------ the frame
+
+     Measured off 5EAA44CB (one full window, 1586 image px for a 1440 CSS px
+     window, so 1 image px = 0.908 CSS px) and checked against the rail and
+     bar in the three-panel renders. The numbers in the comments are the
+     measured CSS values; the ledger (section 6) has the table. */
 
   .nf-admin {
+    --nf-admin-panel-fill: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-canvas)),
+      color-mix(in oklab, var(--nf-brand-primary) 8%, var(--nf-surface-canvas))
+    );
+    --nf-admin-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
+    --nf-admin-panel-glow: 0 0 22px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    --nf-admin-hair: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    --nf-admin-gap: var(--nf-space-md);
     display: flex;
     min-height: 100dvh;
-    background: var(--nf-surface-canvas);
+    gap: var(--nf-space-lg);
+    padding: 0;
+    background:
+      radial-gradient(120% 60% at 60% -10%, color-mix(in oklab, var(--nf-brand-primary) 10%, transparent), transparent 60%),
+      var(--nf-surface-canvas);
+  }
+  @media (min-width: 1024px) {
+    .nf-admin {
+      padding: var(--nf-space-md) var(--nf-space-md) var(--nf-space-md) var(--nf-space-md);
+    }
   }
 
-  /* The rail: a glass column with the lockup, the bands, and the console
-     card at its foot. Desktop only; the phone carries the same map behind
-     the header's disclosure. */
+  /* The rail: a floating lit glass column, 200px wide (measured 197), 14px
+     corners (measured 13), the lockup, the rows, Settings and the operator. */
   .nf-admin-rail {
     position: sticky;
-    top: 0;
+    top: var(--nf-space-md);
     display: none;
     flex-direction: column;
-    height: 100dvh;
-    width: var(--nf-rail-width);
+    height: calc(100dvh - 2 * var(--nf-space-md));
+    width: 200px;
     flex-shrink: 0;
-    padding: var(--nf-space-md);
-    border-right: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset -1px 0 0 var(--nf-rim-lit-ink),
-      0 0 32px var(--nf-glow-1);
+    padding: var(--nf-space-sm) var(--nf-space-xs);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 9%, var(--nf-surface-canvas)),
+      color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-canvas))
+    );
+    box-shadow: var(--nf-rim-lit), var(--nf-admin-panel-glow);
   }
   @media (min-width: 1024px) {
     .nf-admin-rail {
@@ -51,47 +74,92 @@
     }
   }
   .nf-admin-rail__brand {
-    display: flex;
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-sm);
+    margin-bottom: var(--nf-space-xs);
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+  }
+  .nf-admin-brand {
+    display: inline-flex;
     align-items: center;
     gap: var(--nf-space-xs);
-    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-md);
-    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
-    margin-bottom: var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+  }
+  /* The render sets "Vallo" as white type beside the mark, 28px bold
+     (measured 30); set in the display face so it follows the theme's ink and
+     never vanishes on paper the way a white raster wordmark would. */
+  .nf-admin-brand__word {
+    font-family: var(--nf-font-display);
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
   }
   .nf-admin-rail__scroll {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-width: thin;
   }
-  /* A rail row: glyph, label, count. The active row is a lit brand plate. */
+  .nf-admin-nav__list,
+  .nf-admin-nav__children {
+    display: grid;
+    gap: 2px;
+  }
+  .nf-admin-nav__children {
+    margin: 2px 0 var(--nf-space-2xs) var(--nf-space-md);
+    padding-left: var(--nf-space-2xs);
+    border-left: var(--nf-border-width) solid var(--nf-admin-hair);
+  }
+
+  /* A rail row: 42px tall (measured 42), 14px glyph gap, 15px medium label.
+     The open row is the render's lit blue rounded rectangle: the brand
+     gradient, a brighter rim along its top edge and a blue bloom beneath. */
   .nf-admin-nav__row {
     display: flex;
     align-items: center;
     gap: var(--nf-space-sm);
-    min-height: 2.75rem;
-    padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-md);
+    min-height: 2.625rem;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid transparent;
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-content-secondary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--nf-content-primary);
     transition:
       background var(--nf-duration-fast) var(--nf-ease-standard),
       color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  .nf-admin-nav__row--child {
+    min-height: 2.25rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
   @media (hover: hover) {
     .nf-admin-nav__row:hover {
-      background: var(--nf-glass-fill);
+      background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
       color: var(--nf-content-primary);
     }
   }
-  .nf-admin-nav__row--on {
-    color: var(--nf-content-primary);
-    background: var(--nf-brand-tint-2);
-    border-color: var(--nf-brand-edge-strong);
+  .nf-admin-nav__row:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 1px;
+  }
+  .nf-admin-nav__row--on,
+  .nf-admin-nav__row--on:hover {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-gradient-cta);
+    border-color: color-mix(in oklab, var(--nf-rim-lit-ink) 60%, var(--nf-brand-primary));
     box-shadow:
-      var(--nf-rim-lit),
-      0 0 18px var(--nf-glow-2);
+      inset 0 1px 0 color-mix(in oklab, white 55%, transparent),
+      0 0 18px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent),
+      0 6px 16px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  }
+  .nf-admin-nav__row--child.nf-admin-nav__row--on {
+    background: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
+    border-color: var(--nf-admin-panel-edge);
+    box-shadow: var(--nf-rim-lit);
+    color: var(--nf-content-primary);
   }
   .nf-admin-nav__count {
     display: inline-flex;
@@ -100,105 +168,180 @@
     min-width: 1.5rem;
     height: 1.375rem;
     padding-inline: var(--nf-space-2xs);
-    /*
-      THE SHAPE LAW, and this badge carries text. The founder's ruling of
-      19 September closes the amended control law: anything that carries TEXT
-      is a rounded rectangle, and only a genuinely icon-only round control (an
-      avatar, a bare glyph button) stays circular. The governing hero draws the
-      one badge it has, the listing card's Verified mark, as a rounded
-      rectangle, and `278CC66A` draws its four status chips the same way, so a
-      count wearing a capsule was the odd shape on the surface rather than the
-      consistent one.
-
-      THE RUNG WAS WRONG AND THE ARGUMENT WAS RIGHT, which is the dock's fault
-      exactly (ledger 13.5). This badge is 1.375rem, 22px, tall. It carried
-      `--nf-radius-control`, 14px, so twice the radius was 28px against a 22px
-      height: the corners met in the middle and it drew the capsule the comment
-      above is arguing against, reached by the token the comment chose. Rule
-      ten could not see it, because the source text was correct, and no grep
-      could either. It was caught by measuring the live page.
-      THE RUNG IS `--nf-radius-xs`, 6px, AND `--nf-radius-sm` WAS TRIED FIRST
-      AND MEASURED. 10px against a 22px box leaves two pixels of straight edge
-      on each side, which is a capsule with a rounding error rather than a
-      rectangle; 6px leaves ten, and ten is what the eye reads as a corner. The
-      founder's clarification names `sm` for a chip under about 32px and it was
-      written about a 28px chip, so this is that same ratio rule carried one
-      rung further rather than a departure from it.
-    */
+    /* 6px on a 22px badge: 0.27 of the short side, a rectangle. */
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
+    background: var(--nf-status-pending);
+    color: var(--nf-surface-canvas);
     font-size: var(--nf-text-overline);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
-  .nf-admin-nav__heading {
-    padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-2xs);
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-overline);
-    text-transform: uppercase;
-    color: var(--nf-content-muted);
+  .nf-admin-nav__row--on .nf-admin-nav__count {
+    background: var(--nf-content-on-brand);
+    color: var(--nf-brand-primary);
   }
-  /* The console card at the rail's foot: the glass mark, the name, the role. */
-  .nf-admin-rail__foot {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-sm);
-    margin-top: var(--nf-space-md);
-    padding: var(--nf-space-sm);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 16px var(--nf-glow-1);
+  .nf-admin-nav__more {
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-xs);
+    border-top: var(--nf-border-width) solid var(--nf-admin-hair);
   }
-  /* The glass object, smaller than it was: a content object is a mark beside
-     the words, not a tile competing with them (the founder's ruling). */
-  .nf-admin-rail__foot-mark {
-    width: 2.5rem;
-    height: 2.5rem;
-    flex-shrink: 0;
+  .nf-admin-nav__more > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  .nf-admin-nav__more > summary::-webkit-details-marker {
+    display: none;
+  }
+  .nf-admin-nav__more[open] .nf-admin-nav__more-chev {
+    transform: rotate(180deg);
   }
 
-  /* The bar: the glass chrome with the search, the bell and the person. */
+  /* Settings over the operator, pinned to the rail's foot. */
+  .nf-admin-rail__foot {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+  }
+  .nf-admin-rail__me {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-control);
+  }
+  @media (hover: hover) {
+    .nf-admin-rail__me:hover {
+      background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+    }
+  }
+
+  /* The operator: avatar (a circle, the one round thing the renders draw),
+     name over role. */
+  .nf-admin-id {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-admin-id__avatar {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-surface-canvas));
+    color: var(--nf-content-primary);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  }
+  .nf-admin-id__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-admin-id--compact .nf-admin-id__avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .nf-admin-id__text {
+    display: grid;
+    min-width: 0;
+  }
+  .nf-admin-id__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-id__role {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-id--compact .nf-admin-id__name {
+    font-size: var(--nf-text-caption);
+  }
+
+  /* ------------------------------------------------------------ the bar */
+
+  .nf-admin-main {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
   .nf-admin-bar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
     display: flex;
     align-items: center;
     gap: var(--nf-space-sm);
-    min-height: var(--nf-header-height-sm);
-    padding-inline: var(--nf-pad-shell);
+    min-height: 3.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur));
+    backdrop-filter: blur(var(--nf-glass-blur));
   }
-  @media (min-width: 640px) {
+  @media (min-width: 1024px) {
     .nf-admin-bar {
-      min-height: var(--nf-header-height);
+      position: static;
+      padding: 0 0 var(--nf-space-sm);
+      border-bottom: 0;
+      background: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
+  }
+  .nf-admin-bar__brand {
+    display: inline-flex;
+  }
+  .nf-admin-bar__brand .nf-admin-brand__word {
+    font-size: 1.375rem;
+  }
+  @media (min-width: 1024px) {
+    .nf-admin-bar__brand {
+      display: none;
+    }
+  }
+  .nf-admin-bar__spacer {
+    flex: 1 1 auto;
   }
   .nf-admin-bar__search {
     position: relative;
     display: none;
-    flex: 1 1 auto;
-    max-width: 40rem;
+    flex: 0 1 22rem;
     align-items: center;
   }
-  @media (min-width: 640px) {
+  @media (min-width: 768px) {
     .nf-admin-bar__search {
       display: flex;
     }
   }
+  /* The render's field: a quiet glass well with a thin lit edge, 40px tall. */
   .nf-admin-bar__search input {
     width: 100%;
-    min-height: 2.75rem;
-    padding: var(--nf-space-xs) 4.5rem var(--nf-space-xs) 2.75rem;
+    min-height: 2.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.5rem;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body-sm);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 14px var(--nf-glow-1);
+    box-shadow: var(--nf-rim-lit);
+  }
+  .nf-admin-bar__search input::placeholder {
+    color: var(--nf-content-secondary);
   }
   .nf-admin-bar__search input:focus {
     outline: none;
@@ -208,54 +351,156 @@
   .nf-admin-bar__search-glyph {
     position: absolute;
     left: var(--nf-space-sm);
-    color: var(--nf-content-muted);
-    pointer-events: none;
-  }
-  /* The keyboard hint: a small glass key cap, desktop only, and it is true:
-     the shortcut focuses the field. */
-  .nf-admin-kbd {
-    position: absolute;
-    right: var(--nf-space-xs);
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    padding: 2px var(--nf-space-2xs);
-    border-radius: var(--nf-radius-xs);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill);
-    font-size: var(--nf-text-overline);
-    font-weight: 600;
     color: var(--nf-content-secondary);
     pointer-events: none;
   }
-  .nf-admin-bar__person {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-    min-height: 2.75rem;
-    padding: var(--nf-space-2xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
-  }
-  .nf-admin-bar__avatar {
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    color: var(--nf-brand-secondary);
-    font-weight: 700;
+  .nf-admin-clock {
+    display: none;
+    text-align: right;
     font-size: var(--nf-text-caption);
-    box-shadow: 0 0 10px var(--nf-glow-1);
+    line-height: 1.35;
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-clock__time {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  @media (min-width: 1280px) {
+    .nf-admin-clock {
+      display: block;
+    }
+  }
+  .nf-admin-bar__me {
+    display: none;
+    min-width: 0;
+    max-width: 14rem;
+  }
+  @media (min-width: 640px) {
+    .nf-admin-bar__me {
+      display: flex;
+    }
   }
 
-  /* The console body and its footer line. */
+  /* An icon-only square button (bell, menu, close): a rounded square on the
+     control radius, never a circle, per the shape law. */
+  .nf-admin-icon-btn,
+  .nf-admin-menu {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid transparent;
+    color: var(--nf-content-primary);
+  }
+  @media (hover: hover) {
+    .nf-admin-icon-btn:hover,
+    .nf-admin-menu:hover {
+      background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+    }
+  }
+  .nf-admin-icon-btn:focus-visible,
+  .nf-admin-menu:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  }
+  .nf-admin-menu {
+    border-color: var(--nf-admin-panel-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
+  }
+  @media (min-width: 1024px) {
+    .nf-admin-menu {
+      display: none;
+    }
+  }
+  /* The unread and waiting dots: shapes, not controls, so round. */
+  .nf-admin-bell__dot,
+  .nf-admin-menu__dot {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.6rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-error);
+    box-shadow: 0 0 0 2px var(--nf-surface-canvas);
+  }
+  .nf-admin-menu__dot {
+    background: var(--nf-status-pending);
+  }
+
+  /* The phone drawer: the rail again, sliding in from the left over a scrim. */
+  .nf-admin-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+  }
+  .nf-admin-drawer__scrim {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  .nf-admin-drawer__panel {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: flex;
+    flex-direction: column;
+    width: min(20rem, 86vw);
+    padding: calc(var(--nf-space-sm) + env(safe-area-inset-top)) var(--nf-space-sm)
+      calc(var(--nf-space-sm) + env(safe-area-inset-bottom));
+    border-right: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas)),
+      var(--nf-surface-canvas)
+    );
+    box-shadow: var(--nf-admin-panel-glow);
+    animation: nf-admin-drawer-in var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @keyframes nf-admin-drawer-in {
+    from {
+      transform: translateX(-24px);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-admin-drawer__panel {
+      animation: none;
+    }
+  }
+  .nf-admin-drawer__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--nf-space-sm);
+    margin-bottom: var(--nf-space-xs);
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+  }
+  .nf-admin-drawer__head .nf-admin-brand__word {
+    font-size: 1.5rem;
+  }
+  .nf-admin-drawer__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* The body: the desk. 16px gutter on a phone, the rail's own gap beside it
+     on a desktop. */
   .nf-admin-body {
-    padding: var(--nf-space-lg) var(--nf-pad-shell) calc(var(--nf-space-2xl) + env(safe-area-inset-bottom));
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: var(--nf-space-md) var(--nf-space-md) calc(var(--nf-space-2xl) + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 1024px) {
+    .nf-admin-body {
+      padding: 0 0 var(--nf-space-xl);
+    }
   }
   .nf-admin-foot {
     display: flex;
@@ -270,24 +515,38 @@
     color: var(--nf-content-muted);
   }
 
-  /* ------------------------------------------------------- the headline */
+  /* ------------------------------------------------------- the headline
 
-  .nf-admin-head {
-    margin-bottom: var(--nf-gap-heading);
+     The renders' page head: a 26px bold title and a one-line blue lede
+     ("Monitor jobs, alerts and system health."). Every desk's QueueHeader
+     draws the same, so the register holds across the console. */
+
+  .nf-admin-head,
+  .nf-admin-page-head {
+    margin-bottom: var(--nf-space-md);
   }
-  .nf-admin-head__title {
+  .nf-admin-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-admin-head__title,
+  .nf-admin-page-head__title {
     font-family: var(--nf-font-display);
-    font-weight: 800;
-    font-size: var(--nf-text-h1);
-    line-height: 1.1;
+    font-weight: 700;
+    font-size: clamp(1.375rem, 1.1rem + 0.7vw, 1.625rem);
+    line-height: 1.15;
     letter-spacing: var(--nf-tracking-tight);
     color: var(--nf-content-primary);
   }
-  .nf-admin-head__sub {
-    margin-top: var(--nf-space-2xs);
+  .nf-admin-head__sub,
+  .nf-admin-page-head__lede {
+    margin-top: var(--nf-space-3xs);
     max-width: 68ch;
     font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
+    color: var(--nf-brand-secondary);
   }
 
   /* The count tabs: a scrolling row of glass pills, the active one filled. */
@@ -1003,6 +1262,900 @@
       transition: none;
     }
   }
+
+  /* ------------------------------------------------ the shared furniture
+
+     Panels, KPI strip and cards, plates, badges, tabs, data tables, alert
+     rows, meters, charts and the honest states. Every value measured off
+     5EAA44CB unless the comment says otherwise. */
+
+  .nf-admin-grid {
+    display: grid;
+    gap: var(--nf-admin-gap);
+  }
+  @media (min-width: 1100px) {
+    .nf-admin-grid--wide-left {
+      grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr);
+    }
+    .nf-admin-grid--halves {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .nf-admin-stack {
+    display: grid;
+    gap: var(--nf-admin-gap);
+  }
+
+  /* The lit glass panel: deep blue glass, a thin bright blue edge (measured
+     #004EBE on #00173A), a catchlight along the top edge, a soft blue bloom,
+     14px corners (measured 13). */
+  .nf-admin-panel {
+    position: relative;
+    min-width: 0;
+    padding: var(--nf-space-md) var(--nf-space-md) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: var(--nf-admin-panel-fill);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+      var(--nf-admin-panel-glow);
+  }
+  .nf-admin-panel--flush {
+    padding-inline: 0;
+    padding-bottom: var(--nf-space-2xs);
+  }
+  .nf-admin-panel--flush > .nf-admin-panel__head {
+    padding-inline: var(--nf-space-md);
+  }
+  .nf-admin-panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    margin-bottom: var(--nf-space-sm);
+  }
+  /* Panel title: 16px semibold (measured 16). */
+  .nf-admin-panel__title {
+    font-family: var(--nf-font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-panel__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-height: 2rem;
+    padding-inline: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-panel__link:hover {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-admin-panel__note {
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* The icon plate: a 44px blue glass square with 10px corners (measured
+     44 and 9), a light line glyph, a lit top edge. A plate is a shape. */
+  .nf-admin-plate {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 48%, var(--nf-surface-canvas)),
+      color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-canvas))
+    );
+    color: var(--nf-content-primary);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, white 35%, transparent),
+      0 0 14px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
+  }
+  .nf-admin-plate--md {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-admin-plate--sm {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-admin-plate--success {
+    border-color: color-mix(in oklab, var(--nf-state-success) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-state-success) 22%, var(--nf-surface-canvas));
+    color: var(--nf-state-success);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-success) 30%, transparent);
+  }
+  .nf-admin-plate--error {
+    border-color: color-mix(in oklab, var(--nf-state-error) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-state-error) 22%, var(--nf-surface-canvas));
+    color: var(--nf-state-error);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-error) 30%, transparent);
+  }
+  .nf-admin-plate--pending {
+    border-color: color-mix(in oklab, var(--nf-status-pending) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-status-pending) 18%, var(--nf-surface-canvas));
+    color: var(--nf-status-pending);
+  }
+  .nf-admin-plate--info {
+    border-color: color-mix(in oklab, var(--nf-state-info) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-state-info) 18%, var(--nf-surface-canvas));
+    color: var(--nf-state-info);
+  }
+
+  /* A status badge: 24px tall, 6px corners (0.25 of the short side), the
+     state's ink on its own tint, a word always. */
+  .nf-admin-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.5rem;
+    min-width: 4rem;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid currentColor;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .nf-admin-badge--success {
+    color: var(--nf-state-success);
+    background: var(--nf-state-success-surface);
+  }
+  .nf-admin-badge--pending {
+    color: var(--nf-status-pending);
+    background: var(--nf-state-warning-surface);
+  }
+  .nf-admin-badge--error {
+    color: var(--nf-state-error);
+    background: var(--nf-state-error-surface);
+  }
+  .nf-admin-badge--info {
+    color: var(--nf-state-info);
+    background: var(--nf-state-info-surface);
+  }
+  /* The render fills a failed job's badge solid, which is the loudest thing
+     in the table on purpose. */
+  .nf-admin-badge--solid.nf-admin-badge--error {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-state-error);
+  }
+
+  /* The strip: four figures in one lit pane, 88px tall (measured 88), split
+     by hairlines, each a plate, a label, the figure and its change. */
+  .nf-admin-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: var(--nf-admin-panel-fill);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 70%, transparent),
+      0 -2px 18px -6px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
+      var(--nf-admin-panel-glow);
+  }
+  @media (min-width: 1100px) {
+    .nf-admin-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-admin-strip__cell {
+    container-type: inline-size;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 5.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+  }
+  .nf-admin-strip__cell + .nf-admin-strip__cell {
+    border-left: var(--nf-border-width) solid var(--nf-admin-hair);
+  }
+  @media (max-width: 1099.98px) {
+    .nf-admin-strip__cell:nth-child(3) {
+      border-left: 0;
+    }
+    .nf-admin-strip__cell:nth-child(n + 3) {
+      border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+    }
+  }
+  .nf-admin-strip__body {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 2px;
+  }
+  .nf-admin-strip__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-2xs) var(--nf-space-xs);
+  }
+  .nf-admin-strip__spark {
+    flex-shrink: 0;
+  }
+  /* The strip's sparkline only where the cell has room for it beside the
+     figure; a sparkline that squeezes the number is the wrong trade. */
+  @container (max-width: 300px) {
+    .nf-admin-strip__spark {
+      display: none;
+    }
+  }
+  .nf-admin-strip__body .nf-admin-kpi__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The KPI card: 148px tall (measured 147), plate beside a 15px semibold
+     title, a 34px bold figure (measured 34), the change in 14px bold and
+     "vs last week" under it, the sparkline bottom right. */
+  .nf-admin-kpis {
+    display: grid;
+    gap: var(--nf-admin-gap);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .nf-admin-kpi {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    min-height: 9.25rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: var(--nf-admin-panel-fill);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+      var(--nf-admin-panel-glow);
+    transition: box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  a.nf-admin-kpi:hover {
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 70%, transparent),
+      0 0 30px color-mix(in oklab, var(--nf-brand-primary) 32%, transparent);
+  }
+  a.nf-admin-kpi:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-admin-kpi__body {
+    display: grid;
+    min-width: 0;
+    gap: var(--nf-space-2xs);
+    padding-top: var(--nf-space-2xs);
+  }
+  .nf-admin-kpi__body .nf-admin-kpi__delta-wrap,
+  .nf-admin-kpi__body > .nf-admin-kpi__caption {
+    padding-right: 6.5rem;
+  }
+  .nf-admin-kpi__spark {
+    position: absolute;
+    right: var(--nf-space-md);
+    bottom: var(--nf-space-md);
+  }
+  .nf-admin-kpi__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-kpi__label--card {
+    font-family: var(--nf-font-display);
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  .nf-admin-kpi__value {
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.625rem, 1.2rem + 0.9vw, 2.125rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+  }
+  .nf-admin-kpi__value--sm {
+    font-size: 1.375rem;
+  }
+  .nf-admin-kpi__value--none {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-kpi__unwired {
+    display: grid;
+    gap: 2px;
+  }
+  .nf-admin-kpi__delta-wrap {
+    display: grid;
+    gap: 1px;
+  }
+  .nf-admin-kpi__caption {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-delta--good {
+    color: var(--nf-state-success);
+  }
+  .nf-admin-delta--bad {
+    color: var(--nf-state-error);
+  }
+  .nf-admin-delta--flat {
+    color: var(--nf-content-secondary);
+  }
+
+  /* The segmented tabs (Scheduled jobs / Alerts / Audit log): links on the
+     control radius, the open one the lit blue rectangle the rail uses. */
+  .nf-admin-seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-admin-seg__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-rim-lit);
+  }
+  @media (hover: hover) {
+    .nf-admin-seg__item:hover {
+      background: color-mix(in oklab, var(--nf-brand-primary) 18%, var(--nf-surface-canvas));
+    }
+  }
+  .nf-admin-seg__item:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-admin-seg__item--on,
+  .nf-admin-seg__item--on:hover {
+    color: var(--nf-content-on-brand);
+    background: var(--nf-gradient-cta);
+    border-color: color-mix(in oklab, var(--nf-rim-lit-ink) 60%, var(--nf-brand-primary));
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, white 55%, transparent),
+      0 0 18px color-mix(in oklab, var(--nf-brand-primary) 50%, transparent);
+  }
+  .nf-admin-seg__count {
+    display: inline-flex;
+    min-width: 1.375rem;
+    height: 1.375rem;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 4px;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-status-pending);
+    color: var(--nf-surface-canvas);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+  }
+
+  /* The data table: a real table, a quiet header row, brand-tinted
+     hairlines, 13.5px cells, 44px rows (measured 31 at the panel's scale). */
+  .nf-admin-dt-wrap {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .nf-admin-dt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--nf-text-body-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-admin-dt th {
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    background: color-mix(in oklab, var(--nf-brand-primary) 8%, transparent);
+    text-align: left;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+  }
+  .nf-admin-dt td {
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    min-height: 2.75rem;
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    color: var(--nf-content-primary);
+    vertical-align: middle;
+  }
+  .nf-admin-dt tr:last-child td {
+    border-bottom: 0;
+  }
+  .nf-admin-dt__num {
+    text-align: right;
+  }
+  .nf-admin-dt__name {
+    color: var(--nf-brand-secondary);
+    font-weight: 500;
+  }
+  .nf-admin-dt__muted {
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-dt__sub {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* The distribution table (Supply by type): dot, name, count, share, meter. */
+  .nf-admin-dist {
+    display: grid;
+  }
+  .nf-admin-dist__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) 3.5rem 3.5rem minmax(4rem, 1.6fr);
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.5rem;
+    padding: 0 var(--nf-space-2xs);
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-dist__row:last-child {
+    border-bottom: 0;
+  }
+  .nf-admin-dist__row--head {
+    min-height: 2rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-dist__name {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-admin-dist__dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  }
+  .nf-admin-dist__num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The meter: a 10px track and a lit fill (measured 11 and 12). A shape. */
+  .nf-meter {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 0.625rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-canvas));
+  }
+  .nf-meter__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--nf-brand-primary), var(--nf-brand-secondary));
+    box-shadow: 0 0 10px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  }
+  .nf-meter--success .nf-meter__fill {
+    background: var(--nf-state-success);
+  }
+  .nf-meter--error .nf-meter__fill {
+    background: var(--nf-state-error);
+  }
+  .nf-meter--pending .nf-meter__fill {
+    background: var(--nf-status-pending);
+  }
+
+  /* The alert rows: plate, title over sub-line, the time, the badge. */
+  .nf-admin-alerts {
+    display: grid;
+  }
+  .nf-admin-alerts__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3.25rem;
+    padding: var(--nf-space-2xs) var(--nf-space-2xs);
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-admin-alerts > li:last-child .nf-admin-alerts__row {
+    border-bottom: 0;
+  }
+  @media (hover: hover) {
+    a.nf-admin-alerts__row:hover {
+      background: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
+    }
+  }
+  .nf-admin-alerts__text {
+    display: grid;
+    min-width: 0;
+  }
+  .nf-admin-alerts__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-alerts__sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-admin-alerts__when {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+  }
+  @media (max-width: 480px) {
+    .nf-admin-alerts__row {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+    .nf-admin-alerts__when {
+      display: none;
+    }
+  }
+
+  /* The honest states: nothing to draw, not wired yet, did not load. */
+  .nf-admin-state {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) dashed var(--nf-admin-hair);
+    text-align: center;
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-state > svg {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-admin-state--error > svg {
+    color: var(--nf-state-error);
+  }
+  .nf-admin-state__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-state__body {
+    max-width: 46ch;
+    font-size: var(--nf-text-caption);
+  }
+
+  /* The range select (Last 12 months): a native select on the control
+     radius, 32px tall as drawn, so the keyboard and screen reader get the
+     platform's own control. */
+  .nf-admin-select {
+    min-height: 2.25rem;
+    padding: 0 2rem 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-admin-select:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  }
+  .nf-admin-filterbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+
+  /* A hub row: a whole panel that is one link to a desk. */
+  .nf-admin-hub {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3rem;
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-hub:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 4px;
+  }
+  .nf-admin-hub__text {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 2px;
+  }
+  .nf-admin-hub__lede {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-panel__pad {
+    padding: 0 var(--nf-space-md) var(--nf-space-md);
+  }
+  .nf-admin-kinds {
+    display: grid;
+  }
+  .nf-admin-kinds > li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 2.5rem;
+    align-items: center;
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-admin-kinds > li:last-child {
+    border-bottom: 0;
+  }
+  @media (min-width: 1100px) {
+    .nf-admin-grid__full {
+      grid-column: 1 / -1;
+    }
+    .nf-admin-ops-kpis {
+      max-width: 44rem;
+    }
+  }
+
+  /* ------------------------------------------------------------ charts
+
+     components/agent/charts draws the marks; the frame, axes, readout and
+     series ramp live here so every console chart shares them. */
+
+  .nf-chart {
+    margin: 0;
+  }
+  .nf-chart__frame {
+    display: flex;
+    gap: var(--nf-space-xs);
+  }
+  .nf-chart__yaxis {
+    position: relative;
+    flex: 0 0 auto;
+    min-width: 2.75rem;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-chart__yaxis > span {
+    position: absolute;
+    right: 0;
+    transform: translateY(50%);
+    white-space: nowrap;
+  }
+  .nf-chart__plot {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    touch-action: pan-y;
+  }
+  .nf-chart__plot:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 4px;
+  }
+  .nf-chart__plot > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .nf-chart__line {
+    filter: drop-shadow(0 0 5px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent));
+  }
+  .nf-chart__cross {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: color-mix(in oklab, var(--nf-brand-secondary) 60%, transparent);
+    pointer-events: none;
+  }
+  .nf-chart__dot {
+    position: absolute;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin: -0.375rem 0 0 -0.375rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid var(--nf-content-primary);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px var(--nf-brand-primary);
+    pointer-events: none;
+  }
+  .nf-chart__readout {
+    position: absolute;
+    z-index: 2;
+    display: grid;
+    gap: 2px;
+    min-width: 8.5rem;
+    margin-left: var(--nf-space-sm);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-canvas));
+    box-shadow: var(--nf-rim-lit), 0 8px 24px -8px color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
+    pointer-events: none;
+    transform: translateY(-100%);
+  }
+  .nf-chart__readout[data-side="left"] {
+    margin-left: 0;
+    transform: translate(calc(-100% - var(--nf-space-sm)), -100%);
+  }
+  .nf-chart__readout-when {
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-chart__readout-value {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-chart__readout-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-chart__readout-row b {
+    margin-left: auto;
+    padding-left: var(--nf-space-sm);
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-chart__xaxis {
+    position: relative;
+    height: 1.5rem;
+    margin-left: calc(2.75rem + var(--nf-space-xs));
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-chart__xaxis > span {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .nf-chart__xaxis > span:first-child {
+    transform: none;
+  }
+  .nf-chart__xaxis > span:last-child {
+    transform: translateX(-100%);
+  }
+  .nf-chart__xaxis--bars {
+    display: flex;
+  }
+  .nf-chart__xaxis--bars > span,
+  .nf-chart__xaxis--bars > span:first-child,
+  .nf-chart__xaxis--bars > span:last-child {
+    position: static;
+    flex: 1 1 0;
+    transform: none;
+    text-align: center;
+  }
+  .nf-chart__grid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--nf-admin-hair);
+  }
+  .nf-chart__plot--bars {
+    display: flex;
+    align-items: flex-end;
+  }
+  .nf-chart__group {
+    position: relative;
+    display: flex;
+    height: 100%;
+    flex: 1 1 0;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-chart__group.is-on {
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
+  }
+  .nf-chart__group:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+  }
+  .nf-chart__group .nf-chart__readout {
+    bottom: 100%;
+    left: 50%;
+    transform: none;
+  }
+  .nf-chart__group .nf-chart__readout[data-side="left"] {
+    left: auto;
+    right: 50%;
+    transform: none;
+  }
+  /* Bars: 3px corners on top only, one blue family by strength, the third
+     series also hatched, so the series never rest on hue alone. */
+  .nf-chart__bar {
+    width: min(0.75rem, 26%);
+    min-height: 1px;
+    border-radius: 3px 3px 0 0;
+  }
+  .nf-chart__bar--s0 {
+    background: linear-gradient(180deg, var(--nf-brand-secondary), var(--nf-brand-primary));
+    box-shadow: 0 0 8px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+  }
+  .nf-chart__bar--s1 {
+    background: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
+  }
+  .nf-chart__bar--s2 {
+    background:
+      repeating-linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent) 0 2px,
+        transparent 2px 5px
+      ),
+      color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  }
+  /* In a panel on a wide screen the legend sits in the panel's head, on
+     the title's line, as the render draws it. */
+  @media (min-width: 768px) {
+    .nf-admin-panel > .nf-chart > .nf-chart__legend {
+      position: absolute;
+      top: var(--nf-space-md);
+      right: var(--nf-space-md);
+      min-height: 1.5rem;
+      align-items: center;
+    }
+  }
+  .nf-chart__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    margin-bottom: var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  .nf-chart__legend > li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-chart__swatch {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 3px;
+  }
 }
 
 /* ------------------------------------------------------------ paper twin */
@@ -1013,9 +2166,6 @@
   are already the deep daylight values. The filled tab and the active page
   keep the brand fill because on-brand ink stays white.
 */
-:root[data-theme="light"] .nf-admin-rail,
-:root[data-theme="light"] .nf-admin-rail__foot,
-:root[data-theme="light"] .nf-admin-bar__search input,
 :root[data-theme="light"] .nf-admin-search__field input,
 :root[data-theme="light"] .nf-admin-tab,
 /*
@@ -1054,14 +2204,11 @@
   one for the founder's container ruling takes the paper shadow instead.
 */
 :root[data-theme="light"] .nf-admin-table,
-:root[data-theme="light"] .nf-admin-rail__foot,
 :root[data-theme="light"] .nf-admin-tab,
 :root[data-theme="light"] .nf-admin-chip,
 :root[data-theme="light"] .nf-admin-row__tile,
 :root[data-theme="light"] .nf-admin-row__view,
 :root[data-theme="light"] .nf-admin-pager__page,
-:root[data-theme="light"] .nf-admin-bar__person,
-:root[data-theme="light"] .nf-admin-bar__search input,
 :root[data-theme="light"] .nf-admin-search__field input,
 :root[data-theme="light"] .nf-admin-more__body {
   box-shadow: var(--nf-shadow-on-paper);
@@ -1114,10 +2261,90 @@
   background: var(--nf-gradient-cta);
   border-color: var(--nf-brand-edge);
 }
-:root[data-theme="light"] .nf-admin-nav__row--on {
-  background: var(--nf-brand-tint-2);
+:root[data-theme="light"] .nf-admin-nav__row--on:hover,
+:root[data-theme="light"] .nf-admin-seg__item--on:hover {
+  background: var(--nf-gradient-cta);
 }
 :root[data-theme="light"] .nf-admin-row > summary:hover,
 :root[data-theme="light"] .nf-admin-table__head {
+  background: var(--nf-surface-raised);
+}
+
+/*
+  THE SHELL AND THE FURNITURE ON PAPER. Same anatomy: the rail and every panel
+  are paper with a brand hairline and the paper shadow instead of deep glass
+  and a bloom; the open rail row and the open tab keep the lit brand fill
+  (white on brand clears AA); plates become a pale brand tint with brand ink,
+  never a dark tile on a white page; the wordmark is type in the page's ink,
+  so it cannot vanish.
+*/
+:root[data-theme="light"] .nf-admin {
+  --nf-admin-panel-fill: var(--nf-surface-on-paper);
+  --nf-admin-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
+  --nf-admin-panel-glow: var(--nf-shadow-on-paper);
+  --nf-admin-hair: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  background: var(--nf-surface-canvas);
+}
+:root[data-theme="light"] .nf-admin-rail,
+:root[data-theme="light"] .nf-admin-drawer__panel {
+  background: var(--nf-surface-on-paper);
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-admin-panel,
+:root[data-theme="light"] .nf-admin-kpi,
+:root[data-theme="light"] .nf-admin-strip {
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-admin-bar {
+  background: color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent);
+}
+:root[data-theme="light"] .nf-admin-bar__search input,
+:root[data-theme="light"] .nf-admin-menu,
+:root[data-theme="light"] .nf-admin-seg__item:not(.nf-admin-seg__item--on),
+:root[data-theme="light"] .nf-admin-select,
+:root[data-theme="light"] .nf-chart__readout {
+  background: var(--nf-surface-on-paper);
+  box-shadow: var(--nf-shadow-on-paper);
+}
+:root[data-theme="light"] .nf-admin-plate:not(.nf-admin-plate--success):not(.nf-admin-plate--error):not(.nf-admin-plate--pending):not(.nf-admin-plate--info) {
+  border-color: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper));
+  color: var(--nf-brand-primary);
+  box-shadow: none;
+}
+:root[data-theme="light"] .nf-admin-plate--success,
+:root[data-theme="light"] .nf-admin-plate--error,
+:root[data-theme="light"] .nf-admin-plate--pending,
+:root[data-theme="light"] .nf-admin-plate--info {
+  background: var(--nf-surface-on-paper);
+  box-shadow: none;
+}
+:root[data-theme="light"] .nf-admin-id__avatar {
+  background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-on-paper));
+  color: var(--nf-brand-primary);
+  box-shadow: none;
+}
+:root[data-theme="light"] .nf-admin-nav__row--child.nf-admin-nav__row--on {
+  background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  box-shadow: none;
+}
+:root[data-theme="light"] .nf-meter {
+  background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper));
+}
+:root[data-theme="light"] .nf-meter__fill,
+:root[data-theme="light"] .nf-chart__bar--s0 {
+  box-shadow: none;
+}
+:root[data-theme="light"] .nf-chart__line {
+  filter: none;
+}
+:root[data-theme="light"] .nf-chart__dot {
+  border-color: var(--nf-surface-on-paper);
+}
+:root[data-theme="light"] .nf-admin-nav__count,
+:root[data-theme="light"] .nf-admin-seg__count {
+  color: var(--nf-content-on-brand);
+}
+:root[data-theme="light"] .nf-admin-dt th {
   background: var(--nf-surface-raised);
 }

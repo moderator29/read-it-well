@@ -1,226 +1,159 @@
 import type { Dictionary } from "@vallo/i18n";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
+import type { AdminGlyphName, AdminIcon } from "./AdminGlyph";
+
+export type { AdminIcon };
 
 /**
- * The console's destinations, in the order an operator works them: the
- * overview, then the two safety queues that must never sit unread, then the
- * two supply queues, then the human queues, then the switches. One list, shared
- * by the desktop rail and the phone tab strip, so the two cannot drift.
+ * The console's map, in the order the governing renders draw it (5EAA44CB,
+ * 01F7DFC7, 8E9602E2, C1D98B3C): Overview, Listings, Supply, Verification,
+ * Money, Escrow, Bookings, Moderation, Support, Operations, Analytics, and
+ * Settings on its own at the foot.
  *
- * The list carries no words. Each key names a dictionary entry, so the rail, the
- * tab strip and the queue counts all read from the same place and the labels
- * follow the reader's language.
+ * The renders draw twelve rows. The console has more desks than that, and
+ * none of them is dropped: every desk that is not one of the twelve is a
+ * CHILD of the row it belongs to. A child is listed under its parent while
+ * the operator is inside that section, it lights the parent while it is open,
+ * and every child is also in the "All desks" list at the foot of the rail, so
+ * no working desk is ever more than one click away.
+ *
+ * The words are English. The twelve names are the renders' own and the
+ * dictionary's `admin.nav` shape predates them; a destination whose key the
+ * dictionary does carry still reads the translated label first.
  */
 export type AdminNavKey = keyof Dictionary["admin"]["nav"];
 
 export type AdminDestination = {
-  key: AdminNavKey | MoneyNavKey;
-  href: string;
-  icon: UiIconName;
-  /**
-   * An English label, for a destination the dictionary does not carry yet.
-   *
-   * The four money sections were added after the dictionary was written, and
-   * packages/i18n is not this app's to change. A hardcoded English string is
-   * honest about that; inventing a key that resolves to undefined and renders a
-   * blank rail entry would not be. When the translations land, the key moves
-   * into Dictionary["admin"]["nav"] and this field comes off.
-   */
-  label?: string;
-};
-
-/** Destinations whose labels are not in the dictionary yet. See `label` above. */
-type MoneyNavKey =
-  | "queue"
-  | "money"
-  | "escrow"
-  | "kyc"
-  | "fees"
-  | "payments"
-  | "examples"
-  | "audit"
-  | "businesses";
-
-/**
- * A band of the rail, and the reason the rail has bands at all.
- *
- * There are nineteen destinations. As one unbroken column that is nineteen
- * labels to read before the eye finds the one it wants, and the ordering
- * argument that the comments below spend paragraphs making - safety first,
- * then supply, then people, then money, then settings - was invisible on
- * screen. It existed only in this file, for whoever opened this file.
- *
- * The bands make it visible. Nothing moved: the order is exactly what it was,
- * and the headings name the reasoning that was already here.
- *
- * THE HEADINGS ARE ENGLISH, for the same reason the money destinations carry
- * an English `label`. `Dictionary` is a closed type and ha, ig and yo are all
- * declared as one, so a new key is four translations or a type error, and
- * inventing three of them is worse than one honest English word. When the
- * console's copy is next translated these move into the dictionary with the
- * rest of `admin.nav`.
- */
-export type AdminGroup = {
   key: string;
-  /** Null for the first band: the overview needs no heading above it. */
-  heading: string | null;
-  items: AdminDestination[];
+  href: string;
+  icon: AdminIcon;
+  label: string;
+  /** The queue count keys whose sum this row carries as its badge. */
+  countKeys?: readonly string[];
+  children?: AdminDestination[];
 };
 
-export const ADMIN_NAV_GROUPS: AdminGroup[] = [
-  /*
-   * THE OVERVIEW AND THE QUEUE ARE TWO DESTINATIONS NOW, AND THEY USED TO BE
-   * ONE.
-   *
-   * `/admin` was the unified queue table wearing the overview's name, so the
-   * rail had a row called Overview that opened an area. On the founder's
-   * item 5 the console lands on a map of itself and the queue has its own
-   * route, so the rail says both, in the order they are met.
-   *
-   * `queue` carries an English `label` for the reason the money rows do: a
-   * new key in `Dictionary["admin"]["nav"]` is four translations or a type
-   * error, and `admin.overview.queueTitle` IS translated in all four - it is
-   * simply not in the `nav` shape, which carries a label and a short. One
-   * honest English word here beats a machine guess in three languages.
-   */
+const ui = (name: UiIconName): AdminIcon => ({ tier: "ui", name });
+const glyph = (name: AdminGlyphName): AdminIcon => ({ tier: "admin", name });
+
+export const ADMIN_PRIMARY: AdminDestination[] = [
   {
-    key: "start",
-    heading: null,
-    items: [
-      { key: "overview", href: "/admin", icon: "grid" },
-      { key: "queue", href: "/admin/queue", icon: "panel-left", label: "Queue" },
-    ],
+    key: "overview",
+    href: "/admin",
+    icon: glyph("home-solid"),
+    label: "Overview",
+    children: [{ key: "queue", href: "/admin/queue", icon: ui("panel-left"), label: "Unified queue" }],
   },
   {
-    key: "safety",
-    heading: "Safety",
-    items: [
-      { key: "flags", href: "/admin/flags", icon: "chat-bubble" },
-      // Held sits with the safety queues and immediately after the message
-      // flags, because a held post is somebody's words stopped mid-sentence and
-      // the author has already been told a person is looking at them.
-      { key: "moderation", href: "/admin/moderation", icon: "sliders" },
-      { key: "alerts", href: "/admin/alerts", icon: "bell" },
-      { key: "reports", href: "/admin/reports", icon: "search" },
-    ],
+    key: "listings",
+    href: "/admin/listings",
+    icon: glyph("clipboard"),
+    label: "Listings",
+    countKeys: ["listings"],
   },
   {
     key: "supply",
-    heading: "Supply",
-    items: [
-      { key: "applications", href: "/admin/agents", icon: "user" },
-      // Stops sits immediately after applications, because it is the other half
-      // of the same relationship: one screen decides whether somebody may
-      // trade, this one decides whether they still may. It carries a count, and
-      // the count is people currently stopped rather than work waiting, because
-      // an agent left stopped and forgotten is the failure this screen exists
-      // to prevent.
-      { key: "stops", href: "/admin/stops", icon: "shield-stop" },
-      { key: "listings", href: "/admin/listings", icon: "building-apartment" },
-      /*
-       * Businesses sits between the listings queue and the stays board,
-       * because it is the queue that FEEDS both: an operator is a hotel with
-       * rooms or a restaurant with tables, and until this desk existed neither
-       * could be put in front of a guest by anything in the product. It
-       * carries no badge yet: the applications count the layout passes is the
-       * agent queue's, and a second count would need `getQueueCounts` to learn
-       * about businesses, which is another owner's file. The desk's own header
-       * shows what is waiting.
-       */
-      { key: "businesses", href: "/admin/businesses", icon: "building-hotel", label: "Businesses" },
-      // Stays sits between the supply queues and the human ones, because it is
-      // both: a stay is a property's calendar and somebody's money at once. It
-      // carries no badge, deliberately. Nothing on it is waiting on a decision,
-      // and a number beside it would read as work that is not there.
-      { key: "bookings", href: "/admin/bookings", icon: "calendar-booking" },
+    href: "/admin/supply",
+    icon: glyph("list-doc"),
+    label: "Supply",
+    countKeys: ["applications"],
+    children: [
+      { key: "applications", href: "/admin/agents", icon: ui("user"), label: "Applications", countKeys: ["applications"] },
+      { key: "businesses", href: "/admin/businesses", icon: ui("building-hotel"), label: "Businesses" },
+      { key: "stops", href: "/admin/stops", icon: ui("shield-stop"), label: "Stops" },
     ],
   },
-  {
-    key: "people",
-    heading: "People",
-    items: [
-      { key: "tickets", href: "/admin/support", icon: "ticket" },
-      // Around sits with the human queues rather than the safety ones: a place
-      // waiting to open is somebody hoping for an answer, not an incident.
-      { key: "social", href: "/admin/social", icon: "compass" },
-      // Standing sits with the human queues: granting a badge by hand is a
-      // judgement about a person, not an incident to clear.
-      { key: "standing", href: "/admin/standing", icon: "star" },
-    ],
-  },
-  /*
-   * The money block, and it sits here rather than at the top for a reason.
-   *
-   * The safety queues above it are things that must never sit unread: a flagged
-   * message, a held post, a risk alert. Money is not that shape. An operator
-   * comes to these because somebody asked them a question, or because they are
-   * looking at a dispute. Putting a wallet list above a message flag would push
-   * the queues that decay down the rail.
-   *
-   * Escrow carries the dispute count as a badge and Money, Fees and Verification
-   * carry nothing, deliberately. A wallet list and a rate table are not work
-   * waiting.
-   */
+  { key: "kyc", href: "/admin/kyc", icon: glyph("check-square"), label: "Verification" },
   {
     key: "money",
-    heading: "Money",
-    items: [
-      { key: "money", href: "/admin/money", icon: "wallet", label: "Wallets" },
-      { key: "escrow", href: "/admin/escrow", icon: "shield-stop", label: "Escrow" },
-      /*
-       * Payments sits directly under escrow, and it is the one entry in this
-       * block that CAN carry work waiting.
-       *
-       * The note above says a wallet list and a rate table are not a queue, and
-       * that is still true of Wallets and Fees. Payments is different in kind:
-       * an overdrawn wallet and a withdrawal frozen past its window are both
-       * somebody short of their own money right now, which is the same shape as
-       * a dispute and belongs beside it rather than below the reference data.
-       */
-      { key: "payments", href: "/admin/payments", icon: "wallet", label: "Payments" },
-      { key: "kyc", href: "/admin/kyc", icon: "verified", label: "Verification" },
-      { key: "fees", href: "/admin/fees", icon: "document", label: "Fees" },
+    href: "/admin/money",
+    icon: glyph("naira-square"),
+    label: "Money",
+    children: [
+      { key: "payments", href: "/admin/payments", icon: ui("wallet"), label: "Payments" },
+      { key: "fees", href: "/admin/fees", icon: ui("document"), label: "Fees" },
     ],
   },
-  /*
-   * Settings, which is where the platform's own configuration lives rather than
-   * anybody's work. Reference data is the vocabulary every profile picks from:
-   * the occupations and the local governments. Examples is the seeded stock,
-   * and the badge it carries counts rows past the date somebody recorded for
-   * them rather than people waiting on an answer.
-   */
+  { key: "escrow", href: "/admin/escrow", icon: glyph("shield-lock"), label: "Escrow" },
+  { key: "bookings", href: "/admin/bookings", icon: ui("calendar-booking"), label: "Bookings" },
   {
-    key: "platform",
-    heading: "Platform",
-    items: [
-      /*
-       * THE AUDIT LOG, WHICH HAD NO DOOR (R2 finding 12).
-       *
-       * /admin/audit has existed since the audit reader landed and was
-       * reachable only by typing the URL or from the dev preview harness: the
-       * route inventory found no link to it from anywhere in the console. The
-       * one screen that answers "who did this, and when" was the one screen an
-       * operator could not find, which is the same as not having it.
-       *
-       * It sits first in Platform because it is the entry an operator actually
-       * opens: Examples, Reference and Switches are configuration somebody
-       * changes rarely, and the log is what somebody reads the moment a
-       * decision is questioned. It carries no badge, because a record is not
-       * work waiting.
-       */
-      { key: "audit", href: "/admin/audit", icon: "history", label: "Audit log" },
-      { key: "examples", href: "/admin/examples", icon: "building-apartment", label: "Examples" },
-      { key: "reference", href: "/admin/reference", icon: "grid" },
-      { key: "switches", href: "/admin/switches", icon: "key" },
+    key: "moderation",
+    href: "/admin/moderation",
+    icon: glyph("moderation"),
+    label: "Moderation",
+    countKeys: ["moderation", "flags", "reports"],
+    children: [
+      { key: "flags", href: "/admin/flags", icon: ui("chat-bubble"), label: "Message flags", countKeys: ["flags"] },
+      { key: "reports", href: "/admin/reports", icon: ui("flag"), label: "Reports", countKeys: ["reports"] },
+      { key: "social", href: "/admin/social", icon: ui("compass"), label: "Around" },
+      { key: "standing", href: "/admin/standing", icon: ui("star"), label: "Standing" },
     ],
   },
+  { key: "tickets", href: "/admin/support", icon: glyph("support"), label: "Support", countKeys: ["tickets"] },
+  {
+    key: "operations",
+    href: "/admin/operations",
+    icon: glyph("operations"),
+    label: "Operations",
+    countKeys: ["alerts"],
+    children: [
+      { key: "alerts", href: "/admin/alerts", icon: ui("bell"), label: "Alerts", countKeys: ["alerts"] },
+      { key: "audit", href: "/admin/audit", icon: ui("history"), label: "Audit log" },
+    ],
+  },
+  { key: "analytics", href: "/admin/analytics", icon: glyph("bars"), label: "Analytics" },
 ];
 
-/**
- * The same destinations, flat, in the same order.
- *
- * The phone tab strip is a single scrollable row and has nowhere to put a
- * heading, so it reads this. Derived rather than written out, so the two can
- * never come to hold different destinations.
- */
-export const ADMIN_NAV: AdminDestination[] = ADMIN_NAV_GROUPS.flatMap((group) => group.items);
+export const ADMIN_SETTINGS: AdminDestination = {
+  key: "settings",
+  href: "/admin/settings",
+  icon: ui("settings-gear"),
+  label: "Settings",
+  children: [
+    { key: "switches", href: "/admin/switches", icon: ui("key"), label: "Switches" },
+    { key: "reference", href: "/admin/reference", icon: ui("grid"), label: "Reference data" },
+    { key: "examples", href: "/admin/examples", icon: ui("building-apartment"), label: "Examples" },
+  ],
+};
+
+/** Every destination, parents first then their children, in rail order. */
+export const ADMIN_NAV: AdminDestination[] = [...ADMIN_PRIMARY, ADMIN_SETTINGS].flatMap((item) => [
+  item,
+  ...(item.children ?? []),
+]);
+
+/** The desks that are not one of the twelve rows, for the "All desks" list. */
+export const ADMIN_SECONDARY: AdminDestination[] = [...ADMIN_PRIMARY, ADMIN_SETTINGS].flatMap(
+  (item) => item.children ?? [],
+);
+
+export function isActiveHref(pathname: string, href: string): boolean {
+  if (href === "/admin") return pathname === "/admin";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** A parent row is lit when it, or any of its children, is the open page. */
+export function isSectionActive(pathname: string, item: AdminDestination): boolean {
+  if (isActiveHref(pathname, item.href)) return true;
+  return (item.children ?? []).some((child) => isActiveHref(pathname, child.href));
+}
+
+export function countFor(item: AdminDestination, counts: Record<string, number>): number {
+  return (item.countKeys ?? []).reduce((total, key) => total + (counts[key] ?? 0), 0);
+}
+
+/** The destination the open page belongs to, child first. */
+export function currentDestination(pathname: string): AdminDestination | undefined {
+  const child = ADMIN_SECONDARY.find((item) => isActiveHref(pathname, item.href));
+  if (child) return child;
+  return [...ADMIN_PRIMARY, ADMIN_SETTINGS].find((item) => isSectionActive(pathname, item));
+}
+
+export function labelFor(item: AdminDestination, labels?: Dictionary["admin"]["nav"]): string {
+  const entry = labels
+    ? (labels as Record<string, { label?: string } | undefined>)[item.key]
+    : undefined;
+  /* The twelve rows keep the renders' names; a child reads the dictionary. */
+  const primary = [...ADMIN_PRIMARY, ADMIN_SETTINGS].some((row) => row.key === item.key);
+  return primary ? item.label : (entry?.label ?? item.label);
+}

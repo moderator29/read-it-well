@@ -1,143 +1,196 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Chip } from "@/components/ui/Chip";
-import { ADMIN_NAV, ADMIN_NAV_GROUPS, type AdminDestination } from "./nav";
+import { NavIcon } from "./AdminGlyph";
+import {
+  ADMIN_PRIMARY,
+  ADMIN_SECONDARY,
+  ADMIN_SETTINGS,
+  countFor,
+  currentDestination,
+  isActiveHref,
+  isSectionActive,
+  labelFor,
+  type AdminDestination,
+} from "./nav";
 
 type NavCopy = Dictionary["admin"]["nav"];
 
 /**
- * Console navigation, one definition, two form factors.
- *
- * On desktop it is a banded rail. Below lg the same five bands live behind one
- * control that says where you are and how much work is waiting, and open out as
- * wrapping chips rather than a sideways scroller. Both forms read
- * `ADMIN_NAV_GROUPS`, so the order `nav.ts` argues for is the order both of them
- * show. The queue counts ride along as badges so an operator can see where the
- * work is without opening anything.
- *
- * The labels arrive from the layout, which is where the locale is resolved: a
- * client component never reads the dictionary itself.
+ * The console rail, drawn the way the four admin renders draw it: twelve line
+ * glyph rows, the open one a lit blue rounded rectangle, Settings on its own
+ * above the operator at the foot. One definition (`nav.ts`) serves the
+ * desktop rail and the phone drawer, so the two cannot come to disagree.
  */
-/**
- * A destination's words.
- *
- * Most come from the dictionary and follow the reader's language. The four
- * money sections carry an English label of their own until packages/i18n gains
- * their keys, and resolving the dictionary first means the moment those keys
- * land the hardcoded string stops being used without anybody editing this.
- */
-function labelFor(item: AdminDestination, labels: NavCopy): string {
-  const fromDictionary = (labels as Record<string, { label?: string } | undefined>)[item.key];
-  return fromDictionary?.label ?? item.label ?? item.key;
+function Row({
+  item,
+  counts,
+  labels,
+  active,
+  child = false,
+}: {
+  item: AdminDestination;
+  counts: Record<string, number>;
+  labels?: NavCopy;
+  active: boolean;
+  child?: boolean;
+}) {
+  const count = countFor(item, counts);
+  const label = labelFor(item, labels);
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={`nf-admin-nav__row${child ? " nf-admin-nav__row--child" : ""}${active ? " nf-admin-nav__row--on" : ""}`}
+    >
+      <NavIcon icon={item.icon} size={child ? 16 : 20} />
+      <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{label}</span>
+      {count > 0 && (
+        <span className="nf-admin-nav__count" aria-label={`${count} waiting`}>
+          {count}
+        </span>
+      )}
+    </Link>
+  );
 }
 
-/** The same, for the phone tab strip, where the words are shorter. */
-function shortFor(item: AdminDestination, labels: NavCopy): string {
-  const fromDictionary = (labels as Record<string, { short?: string } | undefined>)[item.key];
-  return fromDictionary?.short ?? item.label ?? item.key;
-}
-
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/admin") return pathname === "/admin";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
+/** The twelve rows, the open section's desks under it, and every desk at the foot. */
 export function AdminRail({
   counts,
   labels,
   navLabel,
 }: {
   counts: Record<string, number>;
-  labels: NavCopy;
+  labels?: NavCopy;
   navLabel: string;
 }) {
-  const pathname = usePathname();
-
+  const pathname = usePathname() ?? "/admin";
   return (
-    /*
-      The rail is banded, and the bands are the whole point of this pass.
-      Nineteen destinations in one unbroken column is nineteen labels to read
-      before the eye finds the one it wants, and `nav.ts` had already spent
-      several paragraphs arguing an order - safety, then supply, then people,
-      then money, then settings - that was visible only to somebody reading
-      `nav.ts`. Nothing moved. The headings just say out loud what the order
-      already meant.
-
-      `role="group"` with `aria-labelledby` rather than five separate `<nav>`
-      elements: it is one navigation with five sections, and five landmarks
-      would make a screen reader announce five menus.
-    */
-    <nav aria-label={navLabel} className="hidden lg:block">
-      {ADMIN_NAV_GROUPS.map((group) => (
-        <div
-          key={group.key}
-          role="group"
-          {...(group.heading ? { "aria-labelledby": `admin-nav-${group.key}` } : null)}
-          className="mt-inline first:mt-0"
-        >
-          {group.heading && (
-            <p id={`admin-nav-${group.key}`} className="nf-admin-nav__heading">
-              {group.heading}
-            </p>
-          )}
-          <ul className="space-y-3xs">
-            {group.items.map((item) => {
-              const active = isActive(pathname, item.href);
-              const count = counts[item.key] ?? 0;
-              return (
-                <li key={item.key}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`nf-admin-nav__row${active ? " nf-admin-nav__row--on" : ""}`}
-                  >
-                    <UiIcon name={item.icon} size={20} className="shrink-0" />
-                    {/* A destination's name does not clip. The rail is the
-                        console's map and a clipped label is a map with a road
-                        name half painted. */}
-                    <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-                      {labelFor(item, labels)}
-                    </span>
-                    {count > 0 && (
-                      /*
-                        CYAN, NOT BRAND BLUE, AND THIS IS THE WHOLE REASON AN
-                        OPERATOR SCANS THE RAIL.
-
-                        The badge was `--nf-brand-primary` against an active row
-                        filled with `color-mix(brand-primary 22%)`, so the count
-                        of work waiting on the destination you are standing on
-                        was the hardest one on the rail to see. It also said
-                        "brand" rather than "attention", and attention is what a
-                        work-waiting count means: cyan is this product's
-                        attention colour by rule.
-                      */
-                      <span className="nf-admin-nav__count">{count}</span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+    <nav aria-label={navLabel} className="nf-admin-nav">
+      <ul className="nf-admin-nav__list">
+        {ADMIN_PRIMARY.map((item) => {
+          const sectionOpen = isSectionActive(pathname, item);
+          const onParent = isActiveHref(pathname, item.href);
+          return (
+            <li key={item.key}>
+              <Row item={item} counts={counts} labels={labels} active={sectionOpen} />
+              {sectionOpen && item.children && item.children.length > 0 && (
+                <ul className="nf-admin-nav__children" aria-label={`${item.label} desks`}>
+                  {item.children.map((child) => (
+                    <li key={child.key}>
+                      <Row
+                        item={child}
+                        counts={counts}
+                        labels={labels}
+                        active={!onParent && isActiveHref(pathname, child.href)}
+                        child
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <AllDesks counts={counts} labels={labels} pathname={pathname} />
     </nav>
   );
 }
 
 /**
- * The console search in the glass bar, with the keyboard hint that is true:
- * Command-K (Control-K elsewhere) focuses the field, Enter searches the
- * queue the operator is standing on through that desk's own `?q=`. On the
- * overview it searches the unified queue. No desk gains a search it did
- * not have: a desk without one (verification) is left alone.
+ * Every desk that is not one of the twelve rows, behind one disclosure, so a
+ * desk is never an orphan reachable only by typing its address.
+ */
+function AllDesks({
+  counts,
+  labels,
+  pathname,
+}: {
+  counts: Record<string, number>;
+  labels?: NavCopy;
+  pathname: string;
+}) {
+  const waiting = ADMIN_SECONDARY.reduce((total, item) => total + countFor(item, counts), 0);
+  return (
+    <details className="nf-admin-nav__more">
+      <summary className="nf-admin-nav__row nf-admin-nav__row--child">
+        <UiIcon name="grid" size={16} className="shrink-0" />
+        <span className="min-w-0 flex-1">All desks</span>
+        {waiting > 0 && <span className="nf-admin-nav__count">{waiting}</span>}
+        <UiIcon name="chevron-down" size={16} className="nf-admin-nav__more-chev shrink-0" />
+      </summary>
+      <ul className="nf-admin-nav__children">
+        {ADMIN_SECONDARY.map((item) => (
+          <li key={item.key}>
+            <Row
+              item={item}
+              counts={counts}
+              labels={labels}
+              active={isActiveHref(pathname, item.href)}
+              child
+            />
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+export type AdminIdentity = { name: string; role: string; initial: string; avatarUrl: string | null };
+
+export function IdentityBlock({ identity, compact = false }: { identity: AdminIdentity; compact?: boolean }) {
+  return (
+    <span className={`nf-admin-id${compact ? " nf-admin-id--compact" : ""}`}>
+      <span className="nf-admin-id__avatar" aria-hidden="true">
+        {identity.avatarUrl ? (
+          // A person's own uploaded picture, sized by CSS; next/image would need
+          // every storage host allow-listed for a 36px circle.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={identity.avatarUrl} alt="" />
+        ) : (
+          <UiIcon name="user" size={20} />
+        )}
+      </span>
+      <span className="nf-admin-id__text">
+        <span className="nf-admin-id__name">{identity.name}</span>
+        <span className="nf-admin-id__role">{identity.role}</span>
+      </span>
+    </span>
+  );
+}
+
+/** Settings and the operator, which the renders pin to the rail's foot. */
+export function AdminRailFoot({
+  identity,
+  counts = {},
+}: {
+  identity: AdminIdentity;
+  counts?: Record<string, number>;
+}) {
+  const pathname = usePathname() ?? "/admin";
+  return (
+    <div className="nf-admin-rail__foot">
+      <Row item={ADMIN_SETTINGS} counts={counts} active={isSectionActive(pathname, ADMIN_SETTINGS)} />
+      <Link href="/profile" className="nf-admin-rail__me">
+        <IdentityBlock identity={identity} />
+        <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * The console search. Enter searches the desk under the cursor through that
+ * desk's own `?q=`; on a page with no desk of its own (the overview, the
+ * charts) it searches the unified queue. Command-K or Control-K focuses it.
  */
 export function ConsoleSearch({ label, placeholder }: { label: string; placeholder: string }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/admin";
   const router = useRouter();
   const input = useRef<HTMLInputElement | null>(null);
 
@@ -152,18 +205,12 @@ export function ConsoleSearch({ label, placeholder }: { label: string; placehold
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  /*
-   * The desk under the cursor: `/admin/listings/abc` searches
-   * `/admin/listings`.
-   *
-   * ON THE OVERVIEW IT SEARCHES THE QUEUE, and that fallback used to be
-   * `/admin` because `/admin` WAS the queue. Since the founder's item 5 it is
-   * a map with no rows in it and no `?q=`, so a search typed on the front
-   * door would have navigated to the front door and thrown the words away.
-   * The unified queue is where a search with no desk behind it belongs.
-   */
   const segments = pathname.split("/").filter(Boolean);
-  const base = segments.length >= 2 ? `/${segments[0]}/${segments[1]}` : "/admin/queue";
+  const NO_SEARCH = new Set(["operations", "analytics", "settings"]);
+  const base =
+    segments.length >= 2 && !NO_SEARCH.has(segments[1] ?? "")
+      ? `/${segments[0]}/${segments[1]}`
+      : "/admin/queue";
 
   return (
     <form
@@ -175,174 +222,125 @@ export function ConsoleSearch({ label, placeholder }: { label: string; placehold
         router.push(q ? `${base}?q=${encodeURIComponent(q)}` : base);
       }}
     >
-      <UiIcon name="search" size={18} className="nf-admin-bar__search-glyph" />
+      <UiIcon name="search" size={16} className="nf-admin-bar__search-glyph" />
       <label className="sr-only" htmlFor="admin-console-search">
         {label}
       </label>
       <input id="admin-console-search" ref={input} type="search" placeholder={placeholder} />
-      <span className="nf-admin-kbd" aria-hidden="true">
-        <UiIcon name="key" size={10} />K
-      </span>
     </form>
   );
 }
 
+/**
+ * The phone's way into the same map: a menu button in the console bar that
+ * opens the rail as a drawer. The drawer closes on the way through a link, on
+ * Escape and on the scrim, and it hands focus back to the button.
+ */
 export function AdminTabs({
   counts,
   labels,
   navLabel,
+  identity,
+  brand,
 }: {
   counts: Record<string, number>;
-  labels: NavCopy;
+  labels?: NavCopy;
   navLabel: string;
+  identity?: AdminIdentity;
+  brand?: ReactNode;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/admin";
   const [open, setOpen] = useState(false);
+  const button = useRef<HTMLButtonElement | null>(null);
+  const panel = useRef<HTMLDivElement | null>(null);
+  const current = currentDestination(pathname);
+  const waiting = [...ADMIN_PRIMARY].reduce((total, item) => total + countFor(item, counts), 0);
 
-  const current = ADMIN_NAV.find((item) => isActive(pathname, item.href));
-  const waiting = ADMIN_NAV.reduce((total, item) => total + (counts[item.key] ?? 0), 0);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        button.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panel.current?.querySelector<HTMLElement>("a, button, summary")?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
 
   return (
-    /*
-      THE PHONE GOT A SCROLLER AND THE DESKTOP GOT THE THINKING.
-
-      `nav.ts` spends several paragraphs arguing an order - safety, then supply,
-      then people, then money, then settings - and the rail makes that visible
-      as five bands. Below lg the same nineteen destinations were a single flat
-      `ChipRow` over `ADMIN_NAV`, bands discarded, so reaching Switches meant
-      swiping past eighteen chips with nothing on screen saying how many more
-      there were or what order they were in. By this file's own account the
-      console is used on a phone at eleven at night.
-
-      ONE CONTROL THAT OPENS THE MAP, rather than a rail you drag through. Shut,
-      it is a single row saying where you are and how much work is waiting
-      anywhere, which is the two things an operator wants at a glance and is
-      less vertical space than the scroller it replaces. Open, it is the rail's
-      own five bands with their own headings, and the chips WRAP rather than
-      scrolling sideways, so every destination is on screen at 390px at once.
-      A person cannot choose a destination they cannot see.
-
-      WHY A BUTTON AND STATE RATHER THAN `<details>`. A native disclosure needs
-      no JavaScript and was the first attempt, and it stays open after a tap:
-      client navigation keeps the DOM, so every destination you chose left the
-      whole map hanging over the page you had just asked for. This component was
-      already a client component for `usePathname`, so the state costs nothing
-      that was not already being paid.
-    */
-    <nav
-      aria-label={navLabel}
-      className="-mx-md border-b border-[var(--nf-border-subtle)] px-md py-xs lg:hidden"
-    >
+    <>
       <button
+        ref={button}
         type="button"
+        className="nf-admin-menu"
         aria-expanded={open}
-        aria-controls="admin-sections"
-        onClick={() => setOpen((was) => !was)}
-        className="flex w-full items-center gap-inline rounded-[var(--nf-radius-md)] px-row py-inline text-left text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
+        aria-controls="admin-drawer"
+        aria-label={`${navLabel}${current ? `, ${current.label}` : ""}${waiting > 0 ? `, ${waiting} waiting` : ""}`}
+        onClick={() => setOpen(true)}
       >
-        <UiIcon name={current?.icon ?? "grid"} size={20} className="shrink-0" />
-        {/* The label does not clip, for the same reason the rail's does not. */}
-        <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-          {current ? labelFor(current, labels) : navLabel}
-        </span>
-        {waiting > 0 && (
-          /*
-             Everything waiting anywhere in the console, in the attention
-             colour, so a shut control still answers "is there work". Cyan
-             rather than brand blue for the same reason the rail's badge is:
-             a work-waiting count means attention, not brand.
-
-             AND IT SAYS WHICH NUMBER IT IS (R1 finding A37). This is a bare
-             figure sitting beside the name of the destination you are standing
-             on, which is exactly how it gets read as that destination's count.
-             On the overview it sat directly above a tab reading "All (42)"
-             while itself reading 41, and two numbers that disagree on an
-             operations surface cost more trust than either one is worth. The
-             race behind that shot is gone (`getQueueCounts` is now one read per
-             request), but the two figures still answer different questions: this
-             one counts every destination, including moderation and alerts,
-             where the overview's "All" counts the five queues its table folds
-             in. So the badge names itself, and a reader who wonders why it is
-             the larger number has the answer in the tooltip and the screen
-             reader has it in the label.
-          */
-          /*
-             SQUARED OFF, AND THE ARGUMENT THAT KEPT IT ROUND IS RECORDED HERE
-             SO NOBODY MAKES IT TWICE.
-
-             It read: a count badge is not a control, nothing is pressed here,
-             the disclosure around it is the control and it is a rectangle, so
-             this is a sibling of the reaction dot which the ruling names as
-             correct. That is a fair reading of the exemption list and it loses
-             to the picture. `278CC66A` is the governing image for this console
-             and there is no circular count on it: its counts sit inside the tab
-             label, "All (42)", and the only round thing on the whole screen is
-             the avatar. Measured on a live page this badge is 20px tall at a
-             9999px radius, so it drew a cyan capsule in the console header, the
-             single loudest object above the fold, beside tabs that are rounded
-             rectangles. The rung is `--nf-radius-xs`, 6px: this badge is 20px
-             tall and `--nf-radius-sm`, 10px, is exactly half of that, so `sm`
-             draws the same capsule back. The founder's rung of `sm` for a chip
-             under about 32px (ledger 13.1) was written about a 28px chip, and
-             this is the ratio rule carried one step further.
-
-             A dot stays round because a dot carries no word. This carries a
-             number, which is a word made of digits.
-          */
-          <span
-            title={`${waiting} waiting across the console`}
-            aria-label={`${waiting} waiting across the console`}
-            className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-[var(--nf-radius-xs)] bg-[var(--nf-status-pending)] px-xs text-[length:var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]"
-          >
-            {waiting}
-          </span>
-        )}
-        <UiIcon
-          name="chevron-down"
-          size={16}
-          className={`shrink-0 transition-transform${open ? " rotate-180" : ""}`}
-        />
+        <UiIcon name="menu" size={20} />
+        {waiting > 0 && <span className="nf-admin-menu__dot" aria-hidden="true" />}
       </button>
-
       {open && (
-        /* The tap closes the map on its way through, so choosing a destination
-           does not leave the whole console hanging over the page it opened. */
-        <div id="admin-sections" className="pb-inline pt-inline" onClick={() => setOpen(false)}>
-          {ADMIN_NAV_GROUPS.map((group) => (
-            <div
-              key={group.key}
-              role="group"
-              {...(group.heading ? { "aria-labelledby": `admin-tabs-${group.key}` } : null)}
-              className="mt-row first:mt-0"
-            >
-              {group.heading && (
-                <p id={`admin-tabs-${group.key}`} className="nf-overline mb-inline-tight">
-                  {group.heading}
-                </p>
-              )}
-              <ul className="flex flex-wrap gap-inline-tight">
-                {group.items.map((item) => {
-                  const count = counts[item.key] ?? 0;
-                  return (
-                    <li key={item.key}>
-                      <Chip
-                        behaviour="link"
-                        href={item.href}
-                        selected={isActive(pathname, item.href)}
-                        size="sm"
-                        icon={item.icon}
-                        {...(count > 0 ? { count } : null)}
-                      >
-                        {shortFor(item, labels)}
-                      </Chip>
-                    </li>
-                  );
-                })}
-              </ul>
+        <div className="nf-admin-drawer" id="admin-drawer">
+          <button
+            type="button"
+            className="nf-admin-drawer__scrim"
+            aria-label="Close the console menu"
+            onClick={() => {
+              setOpen(false);
+              button.current?.focus();
+            }}
+          />
+          <div
+            ref={panel}
+            className="nf-admin-drawer__panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label={navLabel}
+          >
+            <div className="nf-admin-drawer__head">
+              {brand}
+              <button
+                type="button"
+                className="nf-admin-icon-btn"
+                aria-label="Close the console menu"
+                onClick={() => {
+                  setOpen(false);
+                  button.current?.focus();
+                }}
+              >
+                <UiIcon name="close" size={20} />
+              </button>
             </div>
-          ))}
+            <div
+              className="nf-admin-drawer__scroll"
+              onClick={(event) => {
+                /* A chosen destination closes the drawer on its way through. */
+                if ((event.target as HTMLElement).closest("a")) setOpen(false);
+              }}
+            >
+              <AdminRail counts={counts} labels={labels} navLabel={navLabel} />
+            </div>
+            {identity && (
+              <div
+                onClick={(event) => {
+                  if ((event.target as HTMLElement).closest("a")) setOpen(false);
+                }}
+              >
+                <AdminRailFoot identity={identity} counts={counts} />
+              </div>
+            )}
+          </div>
         </div>
       )}
-    </nav>
+    </>
   );
 }

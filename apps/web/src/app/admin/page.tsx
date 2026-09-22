@@ -1,38 +1,83 @@
-import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getQueueCounts } from "@/lib/admin/queries";
-import { adminUi } from "./_components/ui";
-import { ConsoleOverview } from "./_components/ConsoleOverview";
+import { getAuditLog } from "@/lib/admin/audit-queries";
+import { getQueueCounts, getRiskAlerts } from "@/lib/admin/queries";
+import { getPlatformStats } from "@/lib/platform-stats";
+import type { CollectedRange, JobHealth } from "./_components/console-shapes";
+import { VERCEL_JOBS, jobRow } from "./_components/jobs";
+import { LiveRefresh } from "./_components/LiveRefresh";
+import { OverviewView } from "./_components/OverviewView";
 
 export const dynamic = "force-dynamic";
 
+const RANGES: readonly CollectedRange[] = ["30d", "90d", "12m"];
+
+/** The request's clock, read once so every "12m ago" on the page agrees. */
+function requestTime(): number {
+  return Date.now();
+}
+
 /**
- * What the console opens on, every time: the overview, before any desk.
+ * The console's front door, and it is where entering the console always
+ * lands (nothing under `app/admin` redirects away from `/admin`).
  *
- * This page's whole job is the READ. It runs `getQueueCounts` under the same
- * admin gate the layout has already applied, and hands the result to
- * `ConsoleOverview`, which is where the argument for this surface is written
- * and where the drawing lives.
+ * THE READS, every one through `lib/admin` or an existing platform read,
+ * under the admin gate the layout has already applied:
+ * - `getPlatformStats()` for live listings (published, examples excluded);
+ * - `getQueueCounts()` for the listings waiting on a decision;
+ * - `getRiskAlerts()` for the five newest alerts;
+ * - `getAuditLog()` once per scheduled job, newest first, for the last run
+ *   of each (see `_components/jobs.ts`).
  *
- * THE UNREADABLE CASE IS DRAWN AS UNREADABLE. If the counts do not come back
- * the page says so instead of rendering seven zeroes, because seven zeroes on
- * a console front door means "there is no work" and an operator who reads
- * that goes home.
+ * The strip's sign-ups and money, the four cards' week-on-week changes, the
+ * money chart, supply by type and the lister-role chart need queries that do
+ * not exist yet. They are passed as null and each panel says so and names
+ * its request (docs/SESSION_B_SCOPE.md, Requests A1 to A4).
  */
-export default async function AdminOverviewPage() {
+export default async function AdminOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
   const locale = await getLocale();
-  const t = getDictionary(locale);
-  const counts = await getQueueCounts();
+  const params = await searchParams;
+  const range = RANGES.find((r) => r === params.range) ?? "12m";
+  const now = requestTime();
 
-  if (counts.state !== "ok") {
-    const ui = adminUi(t, locale);
-    return (
-      <div className="nf-console">
-        <ui.QueueHeader title={t.admin.overview.title} lede={t.admin.overview.lede} />
-        <ui.QueueUnavailable />
-      </div>
-    );
-  }
+  const [stats, counts, alerts, jobReads] = await Promise.all([
+    getPlatformStats(),
+    getQueueCounts(),
+    getRiskAlerts(),
+    Promise.all(
+      VERCEL_JOBS.map((job) => getAuditLog({ status: job.audit.entityType, q: job.audit.term })),
+    ),
+  ]);
 
-  return <ConsoleOverview t={t} locale={locale} counts={counts.data} />;
+  const jobs: JobHealth | null = jobReads.every((read) => read.state === "ok")
+    ? {
+        checkedAt: new Date(now).toISOString(),
+        jobs: VERCEL_JOBS.map((job, i) => {
+          const read = jobReads[i]!;
+          return jobRow(job, read.state === "ok" ? (read.data.rows[0] ?? null) : null, now);
+        }),
+      }
+    : null;
+
+  return (
+    <>
+      <LiveRefresh />
+      <OverviewView
+        locale={locale}
+        now={now}
+        range={range}
+        liveListings={stats ? stats.listings : null}
+        openReviews={counts.state === "ok" ? counts.data.listings : null}
+        pulse={null}
+        collected={null}
+        supply={null}
+        byRole={null}
+        jobs={jobs}
+        alerts={alerts.state === "ok" ? alerts.data.rows : "unavailable"}
+      />
+    </>
+  );
 }
