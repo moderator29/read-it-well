@@ -668,7 +668,52 @@ async function openSurface(url, viewport, theme = THEMES[0]) {
       /* A storage-blocked context still gets the attribute below. */
     }
   }, theme);
-  await page.goto(`${BASE}${url}`, { waitUntil: "networkidle", timeout: 60_000 });
+  const response = await page.goto(`${BASE}${url}`, {
+    waitUntil: "networkidle",
+    timeout: 60_000,
+  });
+
+  /*
+   * WHAT THE BROWSER ACTUALLY GOT, BEFORE ANYTHING IS MEASURED ON IT.
+   *
+   * This is the seventh harness lie and it is the worst of them, because this
+   * tool is the design law's only enforcement. `page.goto` returned a
+   * response nobody read. A route that 404s, 500s, or redirects a signed out
+   * visitor to `/sign-in` was swept exactly like a healthy one, and it
+   * reported ZERO BREACHES, because a sign-in screen genuinely has no capsules
+   * on it. Every "0 breaches at 390 and 1536" in the ledger came through here.
+   * A clean sweep of a page that never rendered is the strongest false green
+   * this build can produce: it is not a missing signal, it is a confident
+   * wrong one.
+   *
+   * Its sibling `verify-shots.mjs` learned the same lesson the expensive way,
+   * writing five PNGs of the sign-in screen under five other routes' names,
+   * three of them byte identical, with every assertion passing.
+   *
+   * So: refuse rather than measure. A sweep that throws is a sweep somebody
+   * fixes; a sweep that lies is one somebody quotes.
+   */
+  const status = response?.status() ?? 0;
+  if (status < 200 || status >= 300) {
+    throw new Error(
+      `REFUSING TO SWEEP ${url}: the server answered ${status}. ` +
+        `Measuring a page the browser never got is how a 404 reports zero breaches.`,
+    );
+  }
+
+  /* WHERE IT LANDED, not where it was sent. A 307 to /sign-in is followed by
+     the browser and arrives here as a healthy 200 on a different page, which
+     is exactly the shape that wrote five false proofs. The query string is
+     dropped because `?next=` is noise, and a trailing slash is not a
+     difference. */
+  const landed = new URL(page.url()).pathname.replace(/\/$/, "") || "/";
+  const asked = new URL(`${BASE}${url}`).pathname.replace(/\/$/, "") || "/";
+  if (landed !== asked) {
+    throw new Error(
+      `REFUSING TO SWEEP ${url}: the browser ended up at ${landed}. ` +
+        `A gated route redirected, and the page measured would not be the page named.`,
+    );
+  }
   /* And again from here, because the seed above loses a race with any route
      that rendered before the init script landed. Dark carries NO attribute,
      which is the platform default and is how the token sheet is keyed. */
