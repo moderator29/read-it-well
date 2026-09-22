@@ -29,9 +29,15 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
+import { subjectForUser } from "../security/rate-limit";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
+import {
+  cardDefaultChangedNotice,
+  cardRemovedNotice,
+} from "./notices";
 import { paymentMethodIdSchema, toPaymentMethod, type PaymentMethod } from "./methods";
 import { logMoney } from "./observability";
 import { PaystackError, initializeTransaction, isPaystackConfigured } from "./paystack";
@@ -84,7 +90,25 @@ export async function listPaymentMethods(): Promise<ActionResult<PaymentMethod[]
   return ok((data ?? []).map(toPaymentMethod));
 }
 
-/** Make one card the one charged by default. The database keeps it single. */
+/**
+ * Make one card the one charged by default.
+ *
+ * THE DATABASE KEEPS IT SINGLE, and that is not a figure of speech. There is a
+ * `BEFORE INSERT OR UPDATE` trigger on the table, `payment_methods_single_default`,
+ * running `private.soft_deleting_single_default()`, which demotes every other
+ * live row for the same person in the same statement; and behind it a partial
+ * unique index, `payment_methods_one_default_uq ON (user_id) WHERE is_default
+ * AND deleted_at IS NULL`, which would refuse a second default if the trigger
+ * ever stopped running. This action therefore sets one flag and lets the
+ * database do the rest, which is why it does not clear the old default itself.
+ * Both objects were read back off the live database on 22 September 2026.
+ *
+ * COUNTED, now. No money moves here, but this decides which card the next
+ * charge lands on, so it is on the table in `lib/security/money-limits.ts`
+ * like everything else that decides where money goes.
+ *
+ * ANNOUNCED, now. Nothing told anybody their default card had changed.
+ */
 export async function setDefaultPaymentMethod(id: string): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -93,6 +117,39 @@ export async function setDefaultPaymentMethod(id: string): Promise<ActionResult<
   const parsed = validate(paymentMethodIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
+  const limit = await guardMoney("setDefaultPaymentMethod", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
+  /* Read the row before the write, through the caller's own client, for two
+     reasons that are both about honesty. It turns "no rows matched" into a
+     sentence about THIS person's cards rather than a database count, and it
+     is where the brand and last four for the notice come from: the notice is
+     written from the row the database holds, never from anything a caller
+     passed in. */
+  const { data: card, error: readError } = await session.supabase
+    .from("payment_methods")
+    .select("id, card_type, last4, is_default, reusable")
+    .eq("id", parsed.data.id)
+    .eq("user_id", session.user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (readError) return fail(CARDS_DOWN_MESSAGE);
+  // Under RLS a row that is not the caller's simply is not there.
+  if (!card) return fail(NOT_YOUR_CARD_MESSAGE);
+  if (!card.reusable) {
+    return fail(
+      "That card can no longer be charged, so it cannot be your default one. Add a card to replace it.",
+    );
+  }
+  /* Already the default: nothing to write, and nothing to announce. Saying
+     "your default card changed" when it did not is the kind of notification
+     that teaches people to ignore the ones that matter. */
+  if (card.is_default) {
+    revalidatePath("/settings");
+    revalidatePath("/settings/payments");
+    return ok(null);
+  }
+
   const { error, count } = await session.supabase
     .from("payment_methods")
     .update({ is_default: true }, { count: "exact" })
@@ -100,15 +157,43 @@ export async function setDefaultPaymentMethod(id: string): Promise<ActionResult<
     .eq("user_id", session.user.id)
     .is("deleted_at", null);
   if (error) return fail(CARDS_DOWN_MESSAGE);
-  // Under RLS a row that is not the caller's simply is not matched.
   if (count === 0) return fail(NOT_YOUR_CARD_MESSAGE);
+
+  const admin = getAdminClient();
+  if (admin) {
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "payments.card.default_changed",
+      reference: null,
+      subjectUserId: session.user.id,
+      outcome: "changed",
+      detail: { method_id: parsed.data.id },
+    });
+    await cardDefaultChangedNotice(admin, session.user.id, {
+      cardType: card.card_type,
+      last4: card.last4,
+    });
+  }
 
   revalidatePath("/settings");
   revalidatePath("/settings/payments");
   return ok(null);
 }
 
-/** Remove a card from the account. Soft: the row stays for support. */
+/**
+ * Remove a card from the account. Soft: the row stays for support.
+ *
+ * REMOVING THE DEFAULT PROMOTES A SURVIVOR, in the database, in the same
+ * statement: `payment_methods_promote_default`, an `AFTER UPDATE` trigger
+ * running `private.soft_deleting_promote_default()`, picks the newest
+ * remaining live row and makes it the default. So a person who removes the
+ * only card they were paying with is not silently left with no default at
+ * all. Read off the live database on 22 September 2026.
+ *
+ * A SECOND TAP IS NOT A SECOND REMOVAL. The `is("deleted_at", null)` filter
+ * makes the write idempotent by construction: the second one matches nothing
+ * and the person is told the card is not on their account, which is true.
+ */
 export async function removePaymentMethod(id: string): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -116,6 +201,19 @@ export async function removePaymentMethod(id: string): Promise<ActionResult<null
 
   const parsed = validate(paymentMethodIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const limit = await guardMoney("removePaymentMethod", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
+  const { data: card, error: readError } = await session.supabase
+    .from("payment_methods")
+    .select("id, card_type, last4")
+    .eq("id", parsed.data.id)
+    .eq("user_id", session.user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (readError) return fail(CARDS_DOWN_MESSAGE);
+  if (!card) return fail(NOT_YOUR_CARD_MESSAGE);
 
   const { error, count } = await session.supabase
     .from("payment_methods")
@@ -125,6 +223,22 @@ export async function removePaymentMethod(id: string): Promise<ActionResult<null
     .is("deleted_at", null);
   if (error) return fail(CARDS_DOWN_MESSAGE);
   if (count === 0) return fail(NOT_YOUR_CARD_MESSAGE);
+
+  const admin = getAdminClient();
+  if (admin) {
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "payments.card.removed",
+      reference: null,
+      subjectUserId: session.user.id,
+      outcome: "removed",
+      detail: { method_id: parsed.data.id },
+    });
+    await cardRemovedNotice(admin, session.user.id, {
+      cardType: card.card_type,
+      last4: card.last4,
+    });
+  }
 
   revalidatePath("/settings");
   revalidatePath("/settings/payments");
@@ -140,9 +254,29 @@ export async function removePaymentMethod(id: string): Promise<ActionResult<null
  * is resolved and refused on BEFORE the charge is opened, so a checkout can
  * never be started that nothing on our side can account for.
  */
-export async function startCardSetup(): Promise<
-  ActionResult<{ authorizationUrl: string; accessCode: string; reference: string }>
-> {
+export type CardSetup = {
+  /**
+   * Paystack's hosted page. Kept, and no longer the way this is meant to go:
+   * see `accessCode`. It is the recovery route for a browser that cannot run
+   * the inline checkout at all, and the honest fallback is still better than
+   * a dead button.
+   */
+  authorizationUrl: string;
+  /**
+   * The handle that keeps the person on our own page.
+   *
+   * `PaystackPop.resumeTransaction(accessCode, callbacks)` resumes THIS
+   * transaction inside an iframe on our own origin, with our own URL bar.
+   * Paystack has returned this field on every transaction this platform has
+   * ever initialised and, until this week, nothing read it.
+   */
+  accessCode: string;
+  reference: string;
+};
+
+export async function startCardSetup(
+  input: { idempotencyKey?: string } = {},
+): Promise<ActionResult<CardSetup>> {
   if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF_MESSAGE);
 
   const session = await resolveSession();
@@ -176,6 +310,41 @@ export async function startCardSetup(): Promise<
   const limit = await guardMoney("startCardSetup", session.user.id);
   if (!limit.allowed) return fail(limit.message);
 
+  /* IDEMPOTENT FROM THIS LINE DOWN.
+     Everything below opens a real NGN 100 charge. A dropped request on a
+     Lagos network followed by a second tap used to mint a second reference
+     and a second charge, and the person got two hundred naira of wallet they
+     did not ask for and two card fees. The key is the client's, one per tap,
+     so a genuine retry of the SAME tap replays the first access code and the
+     same reference, while a deliberate second attempt carries a new key and
+     is allowed through. `shouldRecord: (r) => r.ok` keeps a refusal
+     retryable: a rate-limit answer must never be replayed for the whole TTL
+     as though it were the outcome of a payment. */
+  const run = await withIdempotency<ActionResult<CardSetup>>(
+    {
+      scope: CARD_SETUP_SCOPE,
+      key: input.idempotencyKey ?? null,
+      subject: subjectForUser(session.user.id),
+      shouldRecord: (result) => result.ok,
+    },
+    () => openCardSetupCharge(session.user.id, email, admin),
+  );
+  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  return run.result;
+}
+
+/** The action family this desk's retries are remembered under. */
+const CARD_SETUP_SCOPE = "payments.card.setup";
+
+/**
+ * Open the setup charge. Split out so the whole of it sits inside the
+ * idempotency guard and nothing that spends money sits outside it.
+ */
+async function openCardSetupCharge(
+  userId: string,
+  email: string,
+  admin: NonNullable<ReturnType<typeof getAdminClient>>,
+): Promise<ActionResult<CardSetup>> {
   const reference = `${FUND_PREFIX}${randomUUID()}`;
   const callbackUrl = `${await siteOrigin()}/wallet?funded=1&reference=${reference}`;
 
@@ -185,7 +354,17 @@ export async function startCardSetup(): Promise<
       amountMinor: CARD_SETUP_AMOUNT_MINOR,
       reference,
       callbackUrl,
-      metadata: { user_id: session.user.id, purpose: "card-setup", save_card: true },
+      /* CARD ONLY, AND ONLY HERE.
+         Every other charge on this platform sends no `channels` array at all,
+         which is deliberate: Paystack then offers every channel the merchant
+         account has, and narrowing that silently would be a revenue decision
+         disguised as a technical one. This one charge is different because it
+         is not really a payment. Its entire purpose is to make Paystack hand
+         back a reusable card authorisation, and a bank transfer or a USSD
+         push returns none: the person would pay their hundred naira, watch it
+         land in their wallet, and still have no saved card. */
+      channels: ["card"],
+      metadata: { user_id: userId, purpose: "card-setup", save_card: true },
     });
     logMoney({
       surface: "fund",
@@ -193,14 +372,14 @@ export async function startCardSetup(): Promise<
       reason: "card_setup_checkout_opened",
       reference,
       amountMinor: CARD_SETUP_AMOUNT_MINOR,
-      userId: session.user.id,
+      userId,
     });
     await recordMoneyAudit(admin, {
-      actor: { kind: "user", userId: session.user.id },
+      actor: { kind: "user", userId },
       action: "wallet.funding.started",
       reference,
       amountMinor: CARD_SETUP_AMOUNT_MINOR,
-      subjectUserId: session.user.id,
+      subjectUserId: userId,
       outcome: "started",
       detail: { purpose: "card-setup" },
     });
@@ -218,7 +397,7 @@ export async function startCardSetup(): Promise<
       reason: "card_setup_checkout_could_not_open",
       reference,
       amountMinor: CARD_SETUP_AMOUNT_MINOR,
-      userId: session.user.id,
+      userId,
     });
     const said =
       e instanceof PaystackError && e.status !== 401 && e.message.trim().length > 0

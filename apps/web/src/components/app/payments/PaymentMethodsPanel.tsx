@@ -20,8 +20,10 @@ import {
   type BankAccount,
 } from "@/lib/payments/bank-accounts-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
+import { paymentState } from "@/lib/payments/payment-state";
 import { cardBrandLabel, cardExpired, cardExpiry, maskNumber } from "./format";
 import { AddBankAccountSheet } from "./AddBankAccountSheet";
+import { PaystackCheckout, type ConfirmOutcome } from "./PaystackCheckout";
 
 /**
  * PAYMENT METHODS, to the block at the foot of the settings render
@@ -48,6 +50,25 @@ import { AddBankAccountSheet } from "./AddBankAccountSheet";
 
 type PaymentsCopy = Dictionary["paymentsPage"];
 
+/**
+ * The setup charge, in kobo, so the pending sheet can say the amount.
+ *
+ * Kept in step with `CARD_SETUP_AMOUNT_MINOR` in
+ * `lib/payments/methods-actions.ts` by the test beside this file. It is not
+ * imported from there because that module is `"use server"`: importing it into
+ * a client component would drag a server action boundary across a constant.
+ */
+export const CARD_SETUP_AMOUNT_MINOR = 100_00;
+
+/** One key per submit. `crypto.randomUUID` exists in every browser this ships to. */
+function newIdempotencyKey(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `k-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+  }
+}
+
 export function PaymentMethodsPanel({
   cards,
   accounts,
@@ -70,6 +91,17 @@ export function PaymentMethodsPanel({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [addingCard, setAddingCard] = useState(false);
+  /* The transaction the in-app checkout is resuming, once the server has
+     minted it. Null until then, which is also what closes the popup. */
+  const [setup, setSetup] = useState<{
+    accessCode: string;
+    reference: string;
+    authorizationUrl: string;
+  } | null>(null);
+  /* ONE KEY PER TAP. A dropped response followed by a second tap replays the
+     first answer instead of opening a second NGN 100 charge; a deliberate
+     second attempt takes a fresh key and is allowed through. */
+  const [setupKey, setSetupKey] = useState(() => newIdempotencyKey());
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>, then?: () => void) {
     setError(null);
@@ -84,19 +116,54 @@ export function PaymentMethodsPanel({
     });
   }
 
+  /**
+   * ADD A CARD, ON THIS PAGE.
+   *
+   * This used to be `window.location.assign(authorizationUrl)`: the settings
+   * page was destroyed and the person landed on Paystack's own domain to pay
+   * NGN 100. Now the server's answer carries the access code it has always
+   * returned, and `PaystackCheckout` resumes that same transaction in an
+   * iframe over this page. Our URL, our page underneath, our sheet before and
+   * after.
+   */
   const addCard = () => {
     setError(null);
     setAddingCard(true);
     setChooser(false);
     startTransition(async () => {
-      const result = await startCardSetup();
+      const result = await startCardSetup({ idempotencyKey: setupKey });
       if (!result.ok) {
         setAddingCard(false);
         setError(result.error);
         return;
       }
-      window.location.assign(result.data.authorizationUrl);
+      setSetup({
+        accessCode: result.data.accessCode,
+        reference: result.data.reference,
+        authorizationUrl: result.data.authorizationUrl,
+      });
     });
+  };
+
+  /**
+   * Ask OUR OWN server whether the setup charge has landed.
+   *
+   * `paymentState` reads the `wallet_entries` row the webhook writes, keyed on
+   * the same unique reference. It does not call Paystack: this runs every two
+   * seconds and `verifyFunding`, which was the obvious thing to reach for,
+   * would have spent the person's whole verification allowance inside one
+   * payment. The card itself is filed by the webhook exactly as before;
+   * nothing about tokenisation changes because the window moved.
+   */
+  const confirmSetup = async (reference: string): Promise<ConfirmOutcome> => {
+    const result = await paymentState(reference);
+    return result.ok ? result.data : "pending";
+  };
+
+  const closeSetup = () => {
+    setSetup(null);
+    setAddingCard(false);
+    setSetupKey(newIdempotencyKey());
   };
 
   const close = () => {
@@ -380,6 +447,26 @@ export function PaymentMethodsPanel({
           </div>
         )}
       </Sheet>
+
+      {setup && (
+        <PaystackCheckout
+          key={setup.reference}
+          accessCode={setup.accessCode}
+          reference={setup.reference}
+          authorizationUrl={setup.authorizationUrl}
+          amountMinor={CARD_SETUP_AMOUNT_MINOR}
+          confirm={confirmSetup}
+          onPaid={() => {
+            closeSetup();
+            router.refresh();
+          }}
+          onCancelled={closeSetup}
+          onFailed={(message) => {
+            closeSetup();
+            setError(message);
+          }}
+        />
+      )}
 
       {addingAccount && (
         <AddBankAccountSheet

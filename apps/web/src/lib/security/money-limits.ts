@@ -24,6 +24,11 @@ import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-lim
  * | addBankAccount             | money_bank_add          |     5 |    1 h | Each one is a paid account resolution at Paystack          |
  * | resolveBankAccount, lookupAccountName | money_bank_resolve | 20 | 10 m | Paid per call; a person fixing a typo needs a handful   |
  * | startCardSetup             | card_setup              |     5 |    1 h | Each one is a small live charge to tokenise a card         |
+ * | setDefaultPaymentMethod    | card_default            |    20 |   10 m | No money moves, but it decides which card the next charge hits |
+ * | removePaymentMethod        | card_remove             |    10 |    1 h | A scripted loop here empties somebody's wallet of its cards |
+ * | setDefaultBankAccount      | bank_default            |    20 |   10 m | It decides where the next payout lands, which is the whole account |
+ * | removeBankAccount          | bank_remove             |    10 |    1 h | Same shape as removing a card, on the side money leaves by |
+ * | paymentState               | money_state_poll        |    40 |   10 m | Polled on a backoff: one in-app checkout spends about 12   |
  * | openHeldPayment            | money_hold_open         |     5 |    1 h | Each one takes an amount out of a spendable balance and locks the wallet row |
  * | signature failures, per IP | webhook_bad_signature   |    30 |   10 m | Unauthenticated: a sprayed webhook URL is answered from cache |
  * | cron secret failures, per IP | cron_bad_secret       |    30 |   10 m | Unauthenticated: same shape for the reconcile route        |
@@ -59,7 +64,12 @@ export type MoneyAction =
   | "addBankAccount"
   | "resolveBankAccount"
   | "startCardSetup"
-  | "openHeldPayment";
+  | "openHeldPayment"
+  | "setDefaultPaymentMethod"
+  | "removePaymentMethod"
+  | "setDefaultBankAccount"
+  | "removeBankAccount"
+  | "paymentState";
 
 export type MoneyLimit = {
   bucket: string;
@@ -156,6 +166,84 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     limit: 5,
     windowSeconds: HOUR,
     refusal: "You have held money several times in the last hour, so this one was not opened. Your balance is untouched.",
+  },
+
+  /* ---------------------------------------------------------------------
+     THE FOUR BELOW SPEND NOTHING, AND THEY ARE HERE ANYWAY.
+
+     Everything above this line is priced: a processor call, a held balance,
+     a locked row. These four are ordinary database updates and cost us a
+     fraction of a penny each. They are counted because of what they DECIDE
+     rather than what they spend. The default card is the card the next
+     charge lands on; the default bank account is where the next payout
+     lands. An attacker with a stolen session cannot read a card token and
+     cannot file a bank account whose name the bank did not confirm, but
+     until now they could flip which of somebody's own rows is the default
+     as many times a second as the network allowed, and soft-delete every
+     card on the account in one loop with nothing counting.
+
+     The windows are wider than the money rows because a person genuinely
+     tidying their cards taps more often than a person paying: twenty
+     default changes in ten minutes is already a person who has stopped
+     meaning it, and ten removals in an hour is more cards than anybody on
+     this platform has.
+     --------------------------------------------------------------------- */
+
+  setDefaultPaymentMethod: {
+    bucket: "card_default",
+    limit: 20,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have changed your default card several times just now, so this change was not made. Your cards are as they were.",
+  },
+  removePaymentMethod: {
+    bucket: "card_remove",
+    limit: 10,
+    windowSeconds: HOUR,
+    refusal: "You have removed several cards in the last hour, so this one was not removed. Your cards are as they were.",
+  },
+  setDefaultBankAccount: {
+    bucket: "bank_default",
+    limit: 20,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have changed your default account several times just now, so this change was not made. Your accounts are as they were.",
+  },
+  removeBankAccount: {
+    bucket: "bank_remove",
+    limit: 10,
+    windowSeconds: HOUR,
+    refusal: "You have removed several accounts in the last hour, so this one was not removed. Your accounts are as they were.",
+  },
+
+  /*
+   * THE ONE ROW SIZED FOR A MACHINE RATHER THAN A PERSON, AND THE TEST THAT
+   * REFUSED THE FIRST ATTEMPT AT IT.
+   *
+   * `paymentState` is polled by the in-app checkout, so unlike every other
+   * row here it is not sized for a human tapping. The first version polled
+   * every two seconds for ninety and therefore wanted an allowance of a
+   * hundred and fifty. `money-limits.test.ts` refused it: no row may exceed
+   * sixty, and that guardrail is right. A limit high enough to accommodate
+   * any loop somebody writes is not a limit, it is a formality, and the whole
+   * complaint about this platform's fourteen money guards was that not one of
+   * them had ever refused anything.
+   *
+   * So the LOOP changed rather than the ceiling. The checkout now backs off
+   * (two seconds, then easing out to ten) and reaches the same ninety-second
+   * horizon in about twelve requests instead of forty-five. That is better
+   * engineering regardless: the webhook usually lands inside two seconds, so
+   * the early checks are where the answer actually is and the late ones are
+   * only waiting. Forty is three complete payments inside the window, and it
+   * still stops an open loop dead.
+   *
+   * The refusal copy is written for the person, not the poll, because that is
+   * who ends up reading it: it must not say the payment failed, because this
+   * action has never known that and the money may well have moved.
+   */
+  paymentState: {
+    bucket: "money_state_poll",
+    limit: 40,
+    windowSeconds: TEN_MINUTES,
+    refusal: "We have checked that payment many times in the last few minutes and have stopped for now. This does not mean it failed: if it went through, this page updates on its own.",
   },
 };
 

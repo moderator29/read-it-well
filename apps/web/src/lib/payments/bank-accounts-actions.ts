@@ -18,16 +18,27 @@
  * Removing an account is a soft delete. There is no delete policy.
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import type { Database } from "../supabase/database.types";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
   resolveSession,
 } from "../actions/session";
+import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
+import { subjectForUser } from "../security/rate-limit";
+import { recordMoneyAudit } from "../wallet/audit";
+import { getAdminClient } from "../wallet/ledger";
 import type { BankAccountRow } from "./db";
+import {
+  bankAccountAddedNotice,
+  bankAccountRemovedNotice,
+  bankDefaultChangedNotice,
+} from "./notices";
 import {
   PaystackError,
   isPaystackConfigured,
@@ -156,6 +167,11 @@ export async function resolveBankAccount(input: {
 export async function addBankAccount(input: {
   bankCode: string;
   accountNumber: string;
+  /**
+   * One key per tap, from the client. A dropped response followed by a second
+   * tap replays the first answer instead of paying for a second resolution.
+   */
+  idempotencyKey?: string;
 }): Promise<ActionResult<BankAccount>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -168,6 +184,35 @@ export async function addBankAccount(input: {
 
   const limit = await guardMoney("addBankAccount", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+
+  /* IDEMPOTENT FROM HERE. The resolution below is a paid call to Paystack and
+     the insert below that is the row somebody gets paid into. The allowance
+     is five an hour, so a network that eats two responses costs a person
+     nearly half their allowance for the day unless a retry of the same tap
+     replays rather than repeats. `shouldRecord: (r) => r.ok` keeps a genuine
+     refusal retryable: a person who mistyped one digit must be able to fix it
+     immediately rather than be handed the same refusal for the whole TTL. */
+  const run = await withIdempotency<ActionResult<BankAccount>>(
+    {
+      scope: BANK_ACCOUNT_SCOPE,
+      key: input.idempotencyKey ?? null,
+      subject: subjectForUser(session.user.id),
+      shouldRecord: (result) => result.ok,
+    },
+    () => addBankAccountWork(session.user.id, session.supabase, parsed),
+  );
+  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  return run.result;
+}
+
+/** The action family this desk's retries are remembered under. */
+const BANK_ACCOUNT_SCOPE = "payments.bank.add";
+
+async function addBankAccountWork(
+  userId: string,
+  supabase: SupabaseClient<Database>,
+  parsed: { data: { bankCode: string; accountNumber: string } },
+): Promise<ActionResult<BankAccount>> {
 
   let bankName: string | null = null;
   try {
@@ -190,10 +235,10 @@ export async function addBankAccount(input: {
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
-  const { data: created, error } = await session.supabase
+  const { data: created, error } = await supabase
     .from("bank_accounts")
     .insert({
-      user_id: session.user.id,
+      user_id: userId,
       bank_code: parsed.data.bankCode,
       bank_name: bankName,
       account_number: parsed.data.accountNumber,
@@ -220,15 +265,48 @@ export async function addBankAccount(input: {
     return fail(SERVICE_DOWN_MESSAGE);
   }
 
+  const account = toBankAccount(created);
+
+  const admin = getAdminClient();
+  if (admin) {
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId },
+      action: "payments.bank_account.added",
+      reference: null,
+      subjectUserId: userId,
+      outcome: "added",
+      /* The bank's code, never the account number. `audit_log` is readable by
+         every admin, which is a wider audience than the server log, and a
+         NUBAN is exactly the kind of datum rule 16 keeps out of both. */
+      detail: { account_id: account.id, bank_code: account.bankCode },
+    });
+    await bankAccountAddedNotice(admin, userId, { bankName: account.bankName });
+  }
+
   revalidatePath("/settings");
   revalidatePath("/settings/payments");
   revalidatePath("/wallet");
-  return ok(toBankAccount(created));
+  return ok(account);
 }
 
 /* ---------------------------------------------------------- default, remove */
 
-/** Make one account the one money is sent to. The database keeps it single. */
+/**
+ * Make one account the one money is sent to.
+ *
+ * THE DATABASE KEEPS IT SINGLE. `bank_accounts_single_default`, a
+ * `BEFORE INSERT OR UPDATE` trigger running
+ * `private.soft_deleting_single_default()`, demotes every other live row for
+ * the same person in the same statement, and `bank_accounts_one_default_uq ON
+ * (user_id) WHERE is_default AND deleted_at IS NULL` refuses a second default
+ * if that trigger ever stops running. Both read off the live database on 22
+ * September 2026. That is why this sets one flag and clears nothing.
+ *
+ * THIS IS THE LOUDEST NOTICE ON THE DESK. Changing the default payout account
+ * is how a stolen session turns into stolen money, and it is the single
+ * change on this platform a person most needs to hear about while it is still
+ * reversible.
+ */
 export async function setDefaultBankAccount(id: string): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -236,6 +314,28 @@ export async function setDefaultBankAccount(id: string): Promise<ActionResult<nu
 
   const parsed = validate(bankAccountIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const limit = await guardMoney("setDefaultBankAccount", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
+  const { data: account, error: readError } = await session.supabase
+    .from("bank_accounts")
+    .select("id, bank_name, bank_code, is_default")
+    .eq("id", parsed.data.id)
+    .eq("user_id", session.user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (!account) return fail(NOT_YOURS_MESSAGE);
+  /* Already the default: nothing changed, so nothing is announced. A notice
+     that says money now goes somewhere it already went is noise, and noise is
+     how a person learns to swipe past the one that matters. */
+  if (account.is_default) {
+    revalidatePath("/settings");
+    revalidatePath("/settings/payments");
+    revalidatePath("/wallet");
+    return ok(null);
+  }
 
   const { error, count } = await session.supabase
     .from("bank_accounts")
@@ -246,13 +346,38 @@ export async function setDefaultBankAccount(id: string): Promise<ActionResult<nu
   if (error) return fail(SERVICE_DOWN_MESSAGE);
   if (count === 0) return fail(NOT_YOURS_MESSAGE);
 
+  const admin = getAdminClient();
+  if (admin) {
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "payments.bank_account.default_changed",
+      reference: null,
+      subjectUserId: session.user.id,
+      outcome: "changed",
+      detail: { account_id: account.id, bank_code: account.bank_code },
+    });
+    await bankDefaultChangedNotice(admin, session.user.id, { bankName: account.bank_name });
+  }
+
   revalidatePath("/settings");
   revalidatePath("/settings/payments");
   revalidatePath("/wallet");
   return ok(null);
 }
 
-/** Remove an account from the list. Soft: the database promotes a survivor. */
+/**
+ * Remove an account from the list. Soft: the database promotes a survivor.
+ *
+ * `bank_accounts_promote_default`, an `AFTER UPDATE` trigger running
+ * `private.soft_deleting_promote_default()`, makes the newest remaining live
+ * account the default when the one being removed was it. So removing the
+ * account you were being paid into never leaves you with no payout account
+ * while another one is sitting right there.
+ *
+ * A SECOND TAP IS NOT A SECOND REMOVAL: `is("deleted_at", null)` makes the
+ * write idempotent by construction, and the second tap is told the account is
+ * not on the list, which is the truth.
+ */
 export async function removeBankAccount(id: string): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -260,6 +385,19 @@ export async function removeBankAccount(id: string): Promise<ActionResult<null>>
 
   const parsed = validate(bankAccountIdSchema, { id });
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const limit = await guardMoney("removeBankAccount", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
+  const { data: account, error: readError } = await session.supabase
+    .from("bank_accounts")
+    .select("id, bank_name, bank_code")
+    .eq("id", parsed.data.id)
+    .eq("user_id", session.user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (!account) return fail(NOT_YOURS_MESSAGE);
 
   const { error, count } = await session.supabase
     .from("bank_accounts")
@@ -269,6 +407,19 @@ export async function removeBankAccount(id: string): Promise<ActionResult<null>>
     .is("deleted_at", null);
   if (error) return fail(SERVICE_DOWN_MESSAGE);
   if (count === 0) return fail(NOT_YOURS_MESSAGE);
+
+  const admin = getAdminClient();
+  if (admin) {
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "payments.bank_account.removed",
+      reference: null,
+      subjectUserId: session.user.id,
+      outcome: "removed",
+      detail: { account_id: account.id, bank_code: account.bank_code },
+    });
+    await bankAccountRemovedNotice(admin, session.user.id, { bankName: account.bank_name });
+  }
 
   revalidatePath("/settings");
   revalidatePath("/settings/payments");

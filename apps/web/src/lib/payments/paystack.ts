@@ -112,6 +112,22 @@ export async function initializeTransaction(params: {
   reference: string;
   callbackUrl: string;
   metadata?: Record<string, unknown>;
+  /**
+   * Which ways of paying to offer, or nothing at all to offer them all.
+   *
+   * ABSENT BY DEFAULT, ON PURPOSE. With no `channels` key Paystack offers
+   * every channel enabled on the merchant account: card, bank, bank transfer,
+   * USSD, QR, EFT, Apple Pay. Narrowing that quietly is a revenue decision
+   * dressed as a technical one, and a Nigerian customer refused a bank
+   * transfer is a Nigerian customer who does not pay. So this is passed only
+   * where the transaction genuinely cannot work on another channel, and the
+   * caller has to write down why beside the line.
+   *
+   * There is exactly one such caller today: `startCardSetup`, whose whole
+   * purpose is to obtain a reusable card authorisation that only a card can
+   * produce.
+   */
+  channels?: readonly string[];
 }): Promise<InitializedTransaction> {
   if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
     throw new PaystackError("The amount must be a positive integer number of kobo.");
@@ -128,6 +144,9 @@ export async function initializeTransaction(params: {
       currency: "NGN",
       reference: params.reference,
       callback_url: params.callbackUrl,
+      ...(params.channels && params.channels.length > 0
+        ? { channels: [...params.channels] }
+        : {}),
       ...(params.metadata ? { metadata: params.metadata } : {}),
     },
   });
