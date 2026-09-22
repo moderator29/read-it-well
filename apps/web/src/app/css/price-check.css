@@ -1,0 +1,410 @@
+/*
+  price-check: the Price Check surface, `/price` and its preview harness.
+
+  Imported by `components/app/price/PriceCheckScreen.tsx`, never by
+  globals.css, so no shared stylesheet is touched and nothing outside this
+  feature can be reached from here. Every class is `nf-pc-*`.
+
+  390 DARK FIRST, AND LIGHT IS A DESIGNED TWIN AT THE FOOT OF THIS FILE.
+  Nothing here is a raw colour and nothing is a raw spacing value: every value
+  is a layer-two token or a mix of two, per ADR-002 and rule 9. The rem
+  literals are OBJECT sizes - the map frame, the strip plot, the tick - which
+  are drawings rather than layout rhythm.
+
+  THE SHAPE LAW. Every control that carries text is a rounded rectangle on
+  --nf-radius-control. The only round things below are the map pin's head and
+  a strip plot tick, both of which are shapes rather than controls and carry
+  no text.
+
+  THE BLUE FAMILY RULE BITES ON THE CONFIDENCE ROW, and it is the one place a
+  designer's instinct goes wrong. Green, amber and red is the obvious
+  treatment for a confidence indicator and DESIGN_DIRECTION forbids the warm
+  hues outright. So confidence is expressed as FILL and SATURATION inside one
+  blue: "quite sure" is filled, "fairly" is outlined, "not very" is a muted
+  outline. The word carries the meaning and the colour reinforces it, which is
+  also what makes it survive greyscale and colour blindness.
+*/
+@layer components {
+  /* ---------------------------------------------------------- the ladder */
+
+  .nf-pc-ladder {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-row);
+  }
+
+  /* The rung marker: a small numeral, because a five rung ladder that does
+     not say which rung you are on is five fields in a column. */
+  .nf-pc-rung {
+    display: flex;
+    align-items: baseline;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-pc-rung__index {
+    flex: none;
+    width: 1.5rem;
+    font-family: var(--nf-font-display);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-muted);
+  }
+  .nf-pc-rung__body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .nf-pc-rung--done .nf-pc-rung__index {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------- the map */
+
+  /* The pin rung is the one that matters, so it is the one object on the
+     screen that gets height. 15rem at 390 leaves the submit button above the
+     fold on a small phone; taller than that and the facts panel below it
+     stops being discoverable. */
+  .nf-pc-map {
+    position: relative;
+    height: 15rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    box-shadow: var(--nf-glow-edge);
+    background: var(--nf-surface-inset);
+  }
+  .nf-pc-map__canvas {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* The pin itself. A head and a stem, drawn rather than imported, because a
+     marker image would be a raster asset for two shapes. The head is round:
+     it carries no text, so the shape law's avatar exception is not needed and
+     the ratio test does not apply to it. */
+  .nf-pc-pin {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1.5rem;
+    height: 2rem;
+    margin-left: -0.75rem;
+    margin-top: -2rem;
+    pointer-events: none;
+    z-index: var(--nf-z-content);
+  }
+  .nf-pc-pin__head {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    border: var(--nf-border-width-strong) solid var(--nf-content-on-brand);
+    box-shadow: var(--nf-glow-brand);
+  }
+  .nf-pc-pin__stem {
+    width: var(--nf-border-width-strong);
+    height: 0.5rem;
+    margin-inline: auto;
+    background: var(--nf-brand-primary);
+  }
+
+  /* The attribution the tile providers' terms require. It travels with the
+     tile URL in lib/maps/tiles.ts; this is only where it sits. */
+  .nf-pc-map__credit {
+    position: absolute;
+    right: var(--nf-space-2xs);
+    bottom: var(--nf-space-2xs);
+    display: flex;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-overlay-media-soft);
+    color: var(--nf-content-on-media-muted);
+    font-size: var(--nf-text-caption);
+  }
+
+  /* When the tile engine cannot be reached. The pin still works, because the
+     pin is a coordinate rather than a picture, and saying so is better than a
+     grey void with a marker floating in it. */
+  .nf-pc-map--offline {
+    display: grid;
+    place-items: center;
+    padding: var(--nf-pad-card);
+    text-align: center;
+    background: var(--nf-well-fill);
+  }
+
+  /* ------------------------------------------------------- the typeahead */
+
+  .nf-pc-suggest {
+    position: relative;
+  }
+  .nf-pc-suggest__list {
+    margin-top: var(--nf-space-2xs);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-surface-elevated);
+    overflow: hidden;
+  }
+  .nf-pc-suggest__item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-gap-inline);
+    padding: var(--nf-pad-row-block) var(--nf-pad-row-inline);
+    text-align: start;
+    color: var(--nf-content-primary);
+    cursor: pointer;
+  }
+  .nf-pc-suggest__item + .nf-pc-suggest__item {
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-pc-suggest__item:hover,
+  .nf-pc-suggest__item:focus-visible {
+    background: var(--nf-interactive-hover);
+  }
+  .nf-pc-suggest__count {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+
+  /* --------------------------------------------------------- the figure */
+
+  /* THE MIDPOINT IS NOT LARGER THAN THE BOUNDS, and that is a ruling rather
+     than a preference: a range whose middle is emphasised is a point estimate
+     with decoration, which is the thing this feature refuses to build. All
+     three numbers are set at the same size and the word "to" between them is
+     muted. */
+  .nf-pc-range {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-pc-range__join {
+    color: var(--nf-content-muted);
+  }
+  .nf-pc-range__suffix {
+    color: var(--nf-content-muted);
+  }
+
+  /* Always present, never behind a tap. */
+  .nf-pc-basis {
+    margin-top: var(--nf-space-xs);
+    color: var(--nf-content-muted);
+  }
+
+  /* ----------------------------------------------------- the confidence */
+
+  /* One blue, three weights. See the note at the top of this file for why
+     this is not green, amber and red. A rounded rectangle, never a capsule:
+     it carries a word. */
+  .nf-pc-confidence {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    padding: var(--nf-pad-chip-block) var(--nf-pad-chip-inline);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid transparent;
+  }
+  .nf-pc-confidence--high {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    border-color: var(--nf-brand-primary);
+  }
+  .nf-pc-confidence--medium {
+    background: var(--nf-brand-quiet);
+    color: var(--nf-brand-secondary);
+    border-color: var(--nf-brand-edge);
+  }
+  .nf-pc-confidence--low {
+    background: transparent;
+    color: var(--nf-content-muted);
+    border-color: var(--nf-border-subtle);
+  }
+
+  /* ------------------------------------------------------ the disclaimer */
+
+  /* ON the surface, never behind a Disclosure, and the first sentence is
+     never truncated. A thing a person needs in order to decide whether to act
+     stays on the page. */
+  .nf-pc-disclaimer {
+    margin-top: var(--nf-gap-section-tight);
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pc-disclaimer__lead {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+
+  /* ------------------------------------------------------ the strip plot */
+
+  /* The `wide_dispersion` refusal draws the set instead of a figure: one tick
+     per comparable on a price axis, no number anywhere. The reader SEES the
+     disagreement rather than being told about it, which is the only honest
+     way to render a market that does not agree with itself. */
+  .nf-pc-strip {
+    position: relative;
+    height: 3.5rem;
+    margin-top: var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-well-fill);
+  }
+  .nf-pc-strip__axis {
+    position: absolute;
+    left: var(--nf-space-sm);
+    right: var(--nf-space-sm);
+    top: 50%;
+    height: var(--nf-border-width);
+    background: var(--nf-divider);
+  }
+  .nf-pc-strip__tick {
+    position: absolute;
+    top: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: -0.25rem;
+    margin-top: -0.25rem;
+    border-radius: var(--nf-radius-circle);
+    /* No glow on the tick, and the CSS token checker is why: --nf-glow-brand-rim
+       is a COLOUR and box-shadow takes a shadow list, so the declaration would
+       have been dropped at computed-value time and the tick would have looked
+       correct while carrying nothing. It does not need one anyway: the brand
+       secondary fill separates it from the well on its own at this size. */
+    background: var(--nf-brand-secondary);
+  }
+  .nf-pc-strip__end {
+    position: absolute;
+    top: calc(50% + 0.75rem);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-pc-strip__end--low {
+    left: var(--nf-space-sm);
+  }
+  .nf-pc-strip__end--high {
+    right: var(--nf-space-sm);
+  }
+
+  /* ------------------------------------------------------- the facts grid */
+
+  /* Power and water. Two columns at 390, because each cell is a short label
+     and a short value and one column wastes the width. Nothing here is a
+     percentage: every figure is "7 of 19", because a percentage over
+     nineteen listings is a figure pretending to be a survey. */
+  .nf-pc-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-gap-row);
+  }
+  .nf-pc-fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+  }
+  .nf-pc-fact__label {
+    color: var(--nf-content-muted);
+  }
+  .nf-pc-fact__value {
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-pc-fact__count {
+    color: var(--nf-content-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ------------------------------------------------------- the area rows */
+
+  .nf-pc-area-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-gap-inline);
+    padding-block: var(--nf-pad-row-block);
+  }
+  .nf-pc-area-row + .nf-pc-area-row {
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-pc-area-row__what {
+    min-width: 0;
+    color: var(--nf-content-primary);
+  }
+  .nf-pc-area-row__basis {
+    color: var(--nf-content-muted);
+  }
+  .nf-pc-area-row__range {
+    flex: none;
+    text-align: end;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* -------------------------------------------------- the comparables rail */
+
+  .nf-pc-rail {
+    display: flex;
+    gap: var(--nf-gap-row);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: var(--nf-space-xs);
+    -webkit-overflow-scrolling: touch;
+  }
+  .nf-pc-rail > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+    width: 15rem;
+  }
+
+  @media (min-width: 40rem) {
+    .nf-pc-facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .nf-pc-map {
+      height: 20rem;
+    }
+  }
+}
+
+/*
+  THE LIGHT TWIN.
+
+  A designed paper theme rather than an inversion, per rule 7. Only the
+  surfaces that stop reading correctly on paper are restated: the map frame,
+  which loses its glow, the confidence row, whose outlined variants need a
+  stronger edge against white, and the strip plot's well.
+*/
+@layer components {
+  :root[data-theme="light"] .nf-pc-map {
+    border-color: var(--nf-border-on-paper);
+    box-shadow: var(--nf-shadow-on-paper);
+  }
+  :root[data-theme="light"] .nf-pc-confidence--medium {
+    border-color: var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-pc-confidence--low {
+    border-color: var(--nf-border-on-paper);
+    color: var(--nf-content-on-paper-muted);
+  }
+  :root[data-theme="light"] .nf-pc-strip,
+  :root[data-theme="light"] .nf-pc-fact,
+  :root[data-theme="light"] .nf-pc-disclaimer {
+    background: var(--nf-surface-on-paper);
+  }
+  :root[data-theme="light"] .nf-pc-disclaimer {
+    border-color: var(--nf-border-on-paper);
+    color: var(--nf-content-on-paper-secondary);
+  }
+  :root[data-theme="light"] .nf-pc-disclaimer__lead {
+    color: var(--nf-content-on-paper);
+  }
+}

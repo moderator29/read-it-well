@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { createAdminClient } from "../supabase/admin";
 import type { createClient } from "../supabase/server";
 
 /**
@@ -33,7 +34,17 @@ import type { createClient } from "../supabase/server";
  * default in this engine is a wider radius or a missing bedroom filter.
  */
 
-type Db = Awaited<ReturnType<typeof createClient>>;
+/*
+ * Both clients, because the reads go through the caller's own RLS-bound client
+ * and the two writes go through the service-role one. The writers are BORN
+ * LOCKED per rule 21 - `record_price_check_event` and
+ * `create_price_check_share` revoke EXECUTE from anon and authenticated in
+ * their own migrations - so a browser cannot reach them and the server action
+ * holding the service-role client is the only door.
+ */
+type Db =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>;
 
 export type PriceCheckRpcArgs = {
   estimate_value: {
@@ -150,4 +161,44 @@ export async function priceCheckRpc<Name extends keyof PriceCheckRpcArgs>(
   args: PriceCheckRpcArgs[Name],
 ): Promise<{ data: unknown; error: unknown }> {
   return (supabase as unknown as LooseRpc).rpc(name, args as Record<string, unknown>);
+}
+
+/**
+ * The one table this feature writes through the CALLER's own client, and the
+ * same narrow cast for the same reason as the RPC door above.
+ *
+ * `price_check_watches` carries `price_check_watches_own`: a person may insert,
+ * read and delete their own rows and nobody else's, decided by RLS rather than
+ * by this function. The point has already been coarsened by the action; the
+ * column type is `numeric(9,3)`, so a caller that sends full precision by
+ * another route is stored coarse rather than reviewed by a person.
+ *
+ * NOTE WHAT THE ROW TYPE HAS NO FIELD FOR: an address, a free text hint, or a
+ * point at full precision. The absence is the enforcement.
+ */
+export type PriceCheckWatchRow = {
+  user_id: string;
+  lat: number;
+  lng: number;
+  state_code: string;
+  lga_code: string | null;
+  area: string | null;
+  property_type: string;
+  listing_intent: string;
+  bedrooms: number | null;
+};
+
+type LooseInsert = {
+  from: (table: string) => {
+    insert: (row: Record<string, unknown>) => PromiseLike<{ error: { code?: string } | null }>;
+  };
+};
+
+export async function insertPriceCheckWatch(
+  supabase: Db,
+  row: PriceCheckWatchRow,
+): Promise<{ error: { code?: string } | null }> {
+  return (supabase as unknown as LooseInsert)
+    .from("price_check_watches")
+    .insert(row as unknown as Record<string, unknown>);
 }
