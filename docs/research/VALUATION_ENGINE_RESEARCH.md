@@ -732,6 +732,11 @@ of them, and until then they get a refusal.
 
 ### 3.3.3 The gate, the statistics, and the range, in one call
 
+One function, one loop over the radius ladder, one metric selector. The
+per-square-metre pass and the per-property pass differ only in which column is
+ordered and whether the quantiles are multiplied by the subject's size, so they
+share a body rather than being written twice.
+
 ```sql
 create or replace function public.estimate_value(
   p_lat            double precision,
@@ -743,19 +748,15 @@ create or replace function public.estimate_value(
   p_exclude_id     uuid default null
 )
 returns table (
-  -- 'answered' or one of the refusal codes in 3.6.
-  outcome           text,
+  outcome           text,      -- 'answered', or 'refused' with a code below
   refusal_code      text,
   radius_m          integer,
   comparable_count  integer,
-  -- The unit the estimate was built in: 'per_sqm' or 'per_property'.
-  basis             text,
-  low_minor         bigint,
-  mid_minor         bigint,
-  high_minor        bigint,
-  -- Interquartile range over the median, as a proportion. The dispersion the
-  -- range is derived FROM, exposed so the UI never has to recompute it.
-  dispersion        numeric,
+  basis             text,      -- 'per_sqm' or 'per_property'
+  low_minor         bigint,    -- 25th percentile
+  mid_minor         bigint,    -- median
+  high_minor        bigint,    -- 75th percentile
+  dispersion        numeric,   -- (q3 - q1) / q2, the spread the range came FROM
   confidence        text,
   median_age_days   integer,
   median_distance_m integer,
@@ -766,87 +767,72 @@ stable
 set search_path = ''
 as $$
 declare
-  rungs   integer[] := array[750, 1500, 3000];
-  r       integer;
   minimum constant integer := 5;
+  r       integer;
+  b       text;
+  scale   numeric;
   cmp     record;
 begin
-  foreach r in array rungs loop
-    -- Per-square-metre set: only rows that STATE a size.
-    if p_size_sqm is not null and p_size_sqm > 0 then
+  foreach r in array array[750, 1500, 3000] loop
+    -- 'per_sqm' first when the subject stated a size, then 'per_property'.
+    -- The per_sqm pass counts only comparables that STATE a size, so a set of
+    -- six of which two state one is a set of two for that pass.
+    foreach b in array (case when p_size_sqm > 0
+                             then array['per_sqm', 'per_property']
+                             else array['per_property'] end) loop
+      scale := case when b = 'per_sqm' then p_size_sqm else 1 end;
+
       select
         count(*)::integer                                            as n,
-        percentile_cont(0.25) within group (order by c.price_per_sqm_minor) as q1,
-        percentile_cont(0.50) within group (order by c.price_per_sqm_minor) as q2,
-        percentile_cont(0.75) within group (order by c.price_per_sqm_minor) as q3,
-        percentile_cont(0.50) within group (order by c.age_days)      as age50,
-        percentile_cont(0.50) within group (order by c.distance_m)    as dist50,
-        array_agg(c.id order by c.distance_m)                         as ids
+        percentile_cont(0.25) within group (order by m.metric)        as q1,
+        percentile_cont(0.50) within group (order by m.metric)        as q2,
+        percentile_cont(0.75) within group (order by m.metric)        as q3,
+        percentile_cont(0.50) within group (order by m.age_days)      as age50,
+        percentile_cont(0.50) within group (order by m.distance_m)    as dist50,
+        array_agg(m.id order by m.distance_m)                         as ids
       into cmp
-      from public.comparable_listings(
-             p_lat, p_lng, p_property_type, p_intent, p_bedrooms,
-             r, 365, p_exclude_id, 60) c
-      where c.price_per_sqm_minor is not null;
+      from (
+        select c.id, c.age_days, c.distance_m,
+               case when b = 'per_sqm'
+                    then c.price_per_sqm_minor
+                    else c.price_minor::numeric end as metric
+        from public.comparable_listings(
+               p_lat, p_lng, p_property_type, p_intent, p_bedrooms,
+               r, 365, p_exclude_id, 60) c
+      ) m
+      where m.metric is not null;
 
       if cmp.n >= minimum then
         return query select
-          'answered'::text,
-          null::text,
-          r,
-          cmp.n,
-          'per_sqm'::text,
-          round(cmp.q1 * p_size_sqm)::bigint,
-          round(cmp.q2 * p_size_sqm)::bigint,
-          round(cmp.q3 * p_size_sqm)::bigint,
+          'answered'::text, null::text, r, cmp.n, b,
+          round(cmp.q1 * scale)::bigint,
+          round(cmp.q2 * scale)::bigint,
+          round(cmp.q3 * scale)::bigint,
           round((cmp.q3 - cmp.q1) / nullif(cmp.q2, 0), 4),
-          public.confidence_band(cmp.n, (cmp.q3 - cmp.q1) / nullif(cmp.q2, 0),
-                                 cmp.age50, r),
-          cmp.age50::integer,
-          cmp.dist50::integer,
-          cmp.ids;
+          public.confidence_band(cmp.n,
+            (cmp.q3 - cmp.q1) / nullif(cmp.q2, 0), cmp.age50, r),
+          cmp.age50::integer, cmp.dist50::integer, cmp.ids;
         return;
       end if;
-    end if;
-
-    -- Per-property set: every row in the band, size or not.
-    select
-      count(*)::integer                                        as n,
-      percentile_cont(0.25) within group (order by c.price_minor) as q1,
-      percentile_cont(0.50) within group (order by c.price_minor) as q2,
-      percentile_cont(0.75) within group (order by c.price_minor) as q3,
-      percentile_cont(0.50) within group (order by c.age_days)  as age50,
-      percentile_cont(0.50) within group (order by c.distance_m) as dist50,
-      array_agg(c.id order by c.distance_m)                     as ids
-    into cmp
-    from public.comparable_listings(
-           p_lat, p_lng, p_property_type, p_intent, p_bedrooms,
-           r, 365, p_exclude_id, 60) c;
-
-    if cmp.n >= minimum then
-      return query select
-        'answered'::text, null::text, r, cmp.n, 'per_property'::text,
-        round(cmp.q1)::bigint, round(cmp.q2)::bigint, round(cmp.q3)::bigint,
-        round((cmp.q3 - cmp.q1) / nullif(cmp.q2, 0), 4),
-        public.confidence_band(cmp.n, (cmp.q3 - cmp.q1) / nullif(cmp.q2, 0),
-                               cmp.age50, r),
-        cmp.age50::integer, cmp.dist50::integer, cmp.ids;
-      return;
-    end if;
+    end loop;
   end loop;
 
   -- Nothing satisfied the gate at any rung. Say which wall we hit.
   return query select
     'refused'::text,
-    case
-      when cmp.n is null or cmp.n = 0 then 'no_comparables'
-      else 'too_few_comparables'
-    end,
+    case when coalesce(cmp.n, 0) = 0 then 'no_comparables'
+         else 'too_few_comparables' end,
     3000, coalesce(cmp.n, 0), null::text,
     null::bigint, null::bigint, null::bigint, null::numeric,
     null::text, null::integer, null::integer, '{}'::uuid[];
 end;
 $$;
 ```
+
+The `wide_dispersion` and `stale` refusals in 3.6 are checked by the caller
+against the returned `dispersion` and `median_age_days` rather than inside this
+function, so that the comparables are still available to draw when the figure is
+withheld.
 
 ### 3.3.4 The confidence band, derived and not decorated
 
