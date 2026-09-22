@@ -46,8 +46,9 @@
     --nf-auth-sky-mid: color-mix(in oklab, var(--nf-glow-ink) 22%, var(--nf-surface-canvas));
     /* The render's lit rim colour, #9EE5FE: white leaning to the quiet blue. */
     --nf-auth-rim-hot: color-mix(in oklab, var(--nf-content-primary) 62%, var(--nf-brand-quiet));
-    /* The card's glass, #001554 in the render: canvas and brand ink. */
-    --nf-auth-glass: color-mix(in oklab, var(--nf-glow-ink) 24%, var(--nf-surface-canvas));
+    /* The card's glass, #001554 in the render: canvas and brand ink, mixed
+       in sRGB because an oklab mix of these two lifts red and greys it. */
+    --nf-auth-glass: color-mix(in srgb, var(--nf-glow-ink) 26%, var(--nf-surface-canvas));
     background:
       radial-gradient(ellipse 90% 45% at 50% 22%, var(--nf-auth-sky-mid), transparent 72%),
       var(--nf-auth-sky-deep);
@@ -153,44 +154,33 @@
     margin-top: calc(100% * 78 / 633);
     padding: 2.125rem 2.125rem 1.625rem;
     border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width-strong) solid transparent;
-    background:
-      linear-gradient(
-          180deg,
-          color-mix(in oklab, var(--nf-auth-glass) 88%, transparent),
-          color-mix(in oklab, var(--nf-auth-glass) 94%, transparent)
-        )
-        padding-box,
-      linear-gradient(
-          180deg,
-          var(--nf-glow-brand-rim) 0%,
-          var(--nf-container-edge-lit) 30%,
-          var(--nf-container-edge-lit) 80%,
-          var(--nf-glow-brand-rim) 100%
-        )
-        border-box;
+    /* The edge is a border colour and not a border-box background layer: a
+       layer under translucent glass shows through it, and the hot rim under
+       an 88 per cent glass greyed the whole card to #172E52. */
+    border: var(--nf-border-width) solid var(--nf-auth-rim-hot);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-auth-glass) 88%, transparent),
+      color-mix(in oklab, var(--nf-auth-glass) 94%, transparent)
+    );
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    /* Measured across the render's left edge at y 1000: outside #000B4C,
+       the edge itself one hot line #9BE2FE, then an electric band
+       #0551D0 > #0040D8 > #0137BC three px deep, then the glass. So the edge
+       is a hot hairline with a blue band inside it, and the bloom outside is
+       tight rather than wide. */
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      inset 0 0 36px var(--nf-glow-2),
+      inset 0 0 0 2px var(--nf-glow-brand-rim),
+      inset 0 0 14px var(--nf-glow-4),
       inset 0 -18px 36px -18px var(--nf-glow-3),
-      0 0 0 1px var(--nf-glow-2),
-      0 0 18px var(--nf-glow-4),
-      0 0 60px var(--nf-glow-3),
+      0 0 6px var(--nf-glow-4),
+      0 0 26px var(--nf-glow-3),
       var(--nf-elev-3);
   }
-  /* The specular sweep inside, and the hot centre of the top rim. */
-  .nf-auth__card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: var(--nf-glass-specular);
-    opacity: 0.35;
-    pointer-events: none;
-  }
+  /* The hot centre of the top rim. The render's glass carries no white
+     specular sweep: sampled at three points its fill has no red at all
+     (#001554, #01154A), and the shared specular greyed it to #172E52. */
   .nf-auth__card::after {
     content: "";
     position: absolute;
@@ -229,6 +219,9 @@
     font-size: var(--nf-text-overline);
     line-height: 1.5;
     color: var(--nf-content-muted);
+    /* It sits on the mirror floor's reflections; a soft dark halo keeps it
+       readable over the brightest streaks. */
+    text-shadow: 0 0 6px var(--nf-surface-canvas), 0 0 2px var(--nf-surface-canvas);
   }
   .nf-auth__legal a {
     color: var(--nf-content-secondary);
