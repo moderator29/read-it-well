@@ -230,7 +230,7 @@ export function ProfileSwitcher({
               disabled={pending}
               onClick={choosePersonal}
               aria-current={current.kind === "personal" ? "true" : undefined}
-              className="nf-row nf-row--tap w-full px-1 text-left disabled:opacity-60"
+              className="nf-row nf-row--tap w-full px-2xs text-left disabled:opacity-60"
             >
               <span className="nf-switch-mark" aria-hidden="true">
                 {avatarUrl ? (
@@ -263,7 +263,7 @@ export function ProfileSwitcher({
               </span>
               <span className="min-w-0 flex-1">
                 <span className={`block ${TYPE.rowTitle}`}>{copy.personal}</span>
-                <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{copy.personalMeaning}</span>
+                <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.personalMeaning}</span>
               </span>
               {current.kind === "personal" ? (
                 /* THE CIRCULAR BADGE, NOT THE SHIELD. `GOVERNING-01` draws
@@ -300,13 +300,13 @@ export function ProfileSwitcher({
                   disabled={pending}
                   onClick={() => chooseWorkspace(workspace)}
                   aria-current={isCurrent ? "true" : undefined}
-                  className="nf-row nf-row--tap w-full px-1 text-left disabled:opacity-60"
+                  className="nf-row nf-row--tap w-full px-2xs text-left disabled:opacity-60"
                 >
                   <span className="nf-switch-mark" aria-hidden="true">
                     <UiIcon name={KIND_ICON[workspace.kind]} size="md" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-x-2">
+                    <span className="flex flex-wrap items-center gap-inline">
                       <span className={TYPE.rowTitle}>{workspace.name}</span>
                       {/* TEXT, never colour alone. Three of these five states
                           are bad news and a reader who cannot see colour must
@@ -320,7 +320,7 @@ export function ProfileSwitcher({
                         </span>
                       )}
                     </span>
-                    <span className={`mt-0.5 block ${TYPE.rowMeta}`}>
+                    <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>
                       {copy.kinds[workspace.kind]}
                     </span>
                   </span>
@@ -348,17 +348,17 @@ export function ProfileSwitcher({
             nearly every account on this platform is in and a blank space under
             a heading teaches nobody anything. */}
         {workspaces.length === 0 && (
-          <p className={`mt-3 px-1 ${TYPE.rowMeta}`}>{copy.empty}</p>
+          <p className={`mt-group px-2xs ${TYPE.rowMeta}`}>{copy.empty}</p>
         )}
 
         <div className="nf-switch-add">
-          <Link href={addHref} onClick={() => setOpen(false)} className="nf-row nf-row--tap px-1">
+          <Link href={addHref} onClick={() => setOpen(false)} className="nf-row nf-row--tap px-2xs">
             <span className="nf-switch-mark nf-switch-mark--add" aria-hidden="true">
               <UiIcon name="plus" size="md" />
             </span>
             <span className="min-w-0 flex-1">
               <span className={`block ${TYPE.rowTitle}`}>{copy.addTitle}</span>
-              <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{copy.addMeaning}</span>
+              <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.addMeaning}</span>
             </span>
             <UiIcon
               name="chevron-right"
