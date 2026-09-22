@@ -616,6 +616,102 @@ describe("the password reset always leaves a way through", () => {
   });
 });
 
+/* --------------------------------------------------- the two security notices */
+
+/**
+ * THE TWO MESSAGES WHOSE ABSENCE IS ONLY NOTICED AFTER AN ACCOUNT IS TAKEN.
+ *
+ * "Your password was changed" and "A new sign-in to your Vallo account" did
+ * not exist here in any form. They are the pair a security reviewer asks about
+ * first, and the pair that turns a silent takeover into a loud one: somebody
+ * who phishes a password changes it at once, and if nothing leaves the
+ * building at that moment the real owner finds out when they next try to sign
+ * in, which can be weeks.
+ */
+describe("a security notice is always sent and never invents a fact", () => {
+  const SECURITY = ["passwordChanged", "newDeviceSignIn:bare", "newDeviceSignIn:detailed"];
+  const notices = EVERY_MESSAGE.filter((m) => SECURITY.includes(m.name));
+
+  it("both of them exist", () => {
+    expect(notices.map((m) => m.name).sort()).toEqual([...SECURITY].sort());
+  });
+
+  /** The text part wraps at 72 characters, so a phrase is asserted unwrapped. */
+  const unwrapped = (value: string) => value.replace(/\s+/g, " ");
+
+  it.each(SECURITY)("%s says plainly that it cannot be switched off", (name) => {
+    /*
+     * `emailMuted` exists so the settings card's promise is checkable, and
+     * these two must never be given a channel. A person who switched Vallo's
+     * email off switched off news about their bookings, not the only signal
+     * that somebody else is inside the account holding their payment history.
+     * The footer says so, so that nobody wiring a call site later has to guess
+     * and nobody receiving one wonders why it arrived.
+     */
+    const found = EVERY_MESSAGE.find((m) => m.name === name);
+    expect(unwrapped(String(found?.message.text))).toContain("cannot be switched off");
+  });
+
+  it.each(SECURITY)("%s prints no IP address", (name) => {
+    /*
+     * A city and a parsed device name tell a reader what they need in order to
+     * recognise themselves. A raw address tells them nothing they can act on,
+     * is personal data sitting in an unencrypted mailbox, and is exactly the
+     * sort of thing that gets pasted into a support thread. Rule 16 is about
+     * never logging or pasting a personal datum, and this is the email-shaped
+     * version of it.
+     */
+    const found = EVERY_MESSAGE.find((m) => m.name === name);
+    const body = String(found?.message.text);
+    expect(body).not.toMatch(/\b\d{1,3}(\.\d{1,3}){3}\b/);
+    // And no IPv6 either, which a naive dotted-quad check walks straight past.
+    expect(body).not.toMatch(/\b(?:[0-9a-f]{1,4}:){3,}[0-9a-f]{1,4}\b/i);
+  });
+
+  it("drops the facts panel entirely when there are no facts", () => {
+    /*
+     * The sign-in notice takes four optional details, and a user agent parse
+     * can fail. A panel of labels with nothing beside them reads as a bug, and
+     * on a security email it reads worse than that: as though the answer to
+     * "where from" were blank rather than unknown. Rule 15 says a fact the
+     * database cannot produce is not printed, and an empty row is a printed
+     * absence.
+     */
+    const bare = EVERY_MESSAGE.find((m) => m.name === "newDeviceSignIn:bare");
+    const full = EVERY_MESSAGE.find((m) => m.name === "newDeviceSignIn:detailed");
+
+    for (const label of ["When", "Device", "Near"]) {
+      expect(String(bare?.message.text)).not.toContain(`${label}:`);
+      expect(String(full?.message.text)).toContain(`${label}:`);
+    }
+    expect(String(bare?.message.html).length).toBeLessThan(
+      String(full?.message.html).length,
+    );
+  });
+
+  it.each(SECURITY)("%s leaves a way to act that does not need the account", (name) => {
+    /*
+     * A reader who did not make the change cannot sign in to go looking for
+     * the reset screen, so the address is printed as well as linked, the same
+     * rule the reset email follows and for the same reason.
+     */
+    const found = EVERY_MESSAGE.find((m) => m.name === name);
+    const stripped = String(found?.message.html)
+      .replace(/<a\b[^>]*>[\s\S]*?<\/a>/g, "")
+      .replace(/<img\b[^>]*>/g, "");
+    expect(stripped).toMatch(/https:\/\/[^\s<]+/);
+  });
+
+  it.each(SECURITY)("%s never asks the reader for a secret", (name) => {
+    // The message that warns about a takeover is the message a phishing copy
+    // imitates, so it says what we will never ask for, and asks for nothing.
+    const found = EVERY_MESSAGE.find((m) => m.name === name);
+    const body = unwrapped(String(found?.message.text));
+    expect(body).toMatch(/Vallo will never ask you for your password/);
+    expect(body).not.toMatch(/\b(reply with|send us|enter your password below)\b/i);
+  });
+});
+
 /* --------------------------------------------------------------- the copy */
 
 describe("the copy rules hold in the markup that ships", () => {

@@ -515,6 +515,149 @@ export function passwordReset(data: PasswordResetData): EmailMessage {
   );
 }
 
+/* ----------------------------------------------------------- security notices */
+
+/**
+ * THE TWO MESSAGES BELOW ARE NEVER MUTED, AND WHOEVER WIRES THEM MUST NOT PUT
+ * THEM BEHIND A CHANNEL.
+ *
+ * `emailMuted` exists so the promise on the settings card is checkable: turn
+ * Bookings off and no booking email is sent. These two are not on a channel
+ * and must never be given one. A person who has switched Vallo's email off has
+ * switched off news about their bookings, not the only signal that somebody
+ * else is inside their account, and the account they would lose is the one
+ * holding their payment history. There is no quiet hours rule on them either:
+ * a notice that somebody took your account is worth a phone lighting up at
+ * three in the morning, which is the entire point of it.
+ *
+ * Both are written to be read in four seconds by somebody who is already
+ * alarmed. One sentence saying what happened, one saying what to do if it was
+ * them, which is nothing, and one saying what to do if it was not.
+ *
+ * Neither prints an IP address. A city and a parsed device name tell the
+ * reader what they need in order to recognise themselves; the raw address
+ * tells them nothing they can act on, is personal data in an unencrypted
+ * mailbox, and is the sort of thing that ends up quoted in a support thread.
+ */
+
+/** Only the rows we actually have. A fact we cannot produce is not printed. */
+function securityRows(data: {
+  date?: string | null;
+  time?: string | null;
+  device?: string | null;
+  place?: string | null;
+}): ReceiptRow[] {
+  const list: ReceiptRow[] = [];
+  const when = [data.date ? prettyDate(data.date) : null, data.time?.trim() || null]
+    .filter(Boolean)
+    .join(", ");
+  if (when) list.push({ label: "When", value: when });
+  if (data.device?.trim()) list.push({ label: "Device", value: data.device.trim() });
+  if (data.place?.trim()) list.push({ label: "Near", value: data.place.trim() });
+  return list;
+}
+
+export type PasswordChangedData = {
+  name?: string | null;
+  /** ISO date of the change. Omitted when the caller cannot say. */
+  date?: string | null;
+  /** "14:05", already resolved to the reader's own time zone by the caller. */
+  time?: string | null;
+};
+
+/**
+ * The password on this account was changed.
+ *
+ * Every product owes this one and this product did not have it. It is the
+ * message that turns a silent takeover into a loud one: somebody who phishes a
+ * password changes it immediately, and if nothing leaves the building at that
+ * moment the real owner finds out when they next try to sign in, which can be
+ * weeks. The window this email opens is the difference between an account
+ * recovered and an account gone.
+ *
+ * It carries a way back in, and prints the address as well as linking it. A
+ * reader who did not make this change cannot sign in to find the reset screen,
+ * so telling them to go and look for it is telling them to do the one thing
+ * they cannot do.
+ */
+export function passwordChanged(data: PasswordChangedData): EmailMessage {
+  const when = securityRows({ date: data.date, time: data.time });
+  return message(
+    "Your Vallo password was changed",
+    "If this was not you, there is a way back in.",
+    [
+      heading("Your password was changed"),
+      paragraph(`${hello(data.name)} The password on your Vallo account has been changed.`),
+      rows(when),
+      paragraph("If that was you, there is nothing to do and you can ignore this message."),
+      paragraph(
+        "If it was not you, somebody else knows your password. Set a new one now, before anything else.",
+      ),
+      button("Set a new password", appUrl("/forgot-password"), true),
+      note(
+        "Vallo will never ask you for your password, by phone, by message or by email. If somebody does, it is not us.",
+      ),
+    ],
+    [
+      "You are receiving this because the password on this address was changed.",
+      "This is a security notice. It is always sent and it cannot be switched off.",
+    ],
+  );
+}
+
+export type NewDeviceSignInData = {
+  name?: string | null;
+  /** ISO date of the sign-in. */
+  date?: string | null;
+  /** "14:05", already resolved to the reader's own time zone by the caller. */
+  time?: string | null;
+  /** "Chrome on Windows", parsed. Never the raw user agent string. */
+  device?: string | null;
+  /** "Abuja, Nigeria". City level at most, and never an IP address. */
+  place?: string | null;
+};
+
+/**
+ * Somebody signed in from a device this account has not seen before.
+ *
+ * The other half of the pair, and the earlier warning of the two: a stolen
+ * password is used before it is changed. It is deliberately not alarming in
+ * its own right, because most of these are the owner on a new phone, and an
+ * email that shouts at somebody for buying a laptop is an email they learn to
+ * delete unread. It states the facts and puts the two actions in order.
+ *
+ * Its button goes to the device list rather than to a password reset. That
+ * list is first party, it shows the real sessions rather than asking the
+ * reader to take this email's word for anything, and it is where a person who
+ * does recognise the device has nothing to do and a person who does not can
+ * remove it. The reset is named in the copy for the case that needs it.
+ */
+export function newDeviceSignIn(data: NewDeviceSignInData): EmailMessage {
+  return message(
+    "A new sign-in to your Vallo account",
+    "A device that has not signed in before just did.",
+    [
+      heading("A new sign-in"),
+      paragraph(
+        `${hello(data.name)} Somebody signed in to your Vallo account from a device it has not seen before.`,
+      ),
+      rows(securityRows(data)),
+      paragraph("If that was you, there is nothing to do and you can ignore this message."),
+      paragraph(
+        "If it was not you, set a new password first, then remove the device from your account.",
+      ),
+      button("Review your devices", appUrl("/settings/devices"), true),
+      note(
+        "Vallo will never ask you for your password or a sign-in code, by phone, by message or by email.",
+      ),
+    ],
+    [
+      "You are receiving this because a device signed in to this account for the first time.",
+      "This is a security notice. It is always sent and it cannot be switched off.",
+    ],
+  );
+}
+
 /* ------------------------------------------------------------------ wallet */
 
 export type WalletFundedData = {

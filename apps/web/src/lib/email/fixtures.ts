@@ -46,6 +46,26 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     }),
   },
   {
+    name: "passwordChanged",
+    message: messages.passwordChanged({ name: "Ada", date: "2026-09-22", time: "14:05" }),
+  },
+  {
+    // Every optional fact absent, which is the shape when the parse failed.
+    // The rows block must disappear rather than print empty labels.
+    name: "newDeviceSignIn:bare",
+    message: messages.newDeviceSignIn({ name: "Ada" }),
+  },
+  {
+    name: "newDeviceSignIn:detailed",
+    message: messages.newDeviceSignIn({
+      name: "Ada",
+      date: "2026-09-22",
+      time: "14:05",
+      device: "Chrome on Windows",
+      place: "Abuja, Nigeria",
+    }),
+  },
+  {
     name: "walletFunded",
     // Carries kobo, so the receipt has to stay exact to the last kobo.
     message: messages.walletFunded({
