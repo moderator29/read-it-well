@@ -29,7 +29,6 @@ import {
   POST_FAILURE,
   POST_LIMITS,
   attachMediaSchema,
-  blockSchema,
   dropPostSchema,
   editPostSchema,
   markSchema,
@@ -42,6 +41,7 @@ import {
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
 import { parseFeedCursor } from "./posts-cursor";
+import { blockUserSafely, unblockUserSafely } from "../safety/blocks-actions";
 
 function paced(seconds: number): string {
   return `You have done that a few times already. Try again ${retryIn(seconds)}.`;
@@ -611,7 +611,42 @@ export async function reportProfile(input: {
  * these two re-exports keep every existing import in the social layer working
  * against that one implementation rather than a second copy.
  */
-export { blockUserSafely as blockUser, unblockUserSafely as unblockUser } from "../safety/blocks-actions";
+/*
+ * WRAPPED, NOT RE-EXPORTED, AND THE DIFFERENCE TOOK PRODUCTION DOWN ONCE.
+ *
+ * This was `export { blockUserSafely as blockUser, ... } from "../safety/..."`,
+ * and a re-export STATEMENT in a `"use server"` module is refused outright by
+ * Turbopack: "Only async functions are allowed to be exported in a `use server`
+ * file". It does not fail in isolation either. The module then compiles with NO
+ * EXPORTS AT ALL, so every importer fails to resolve, and four components on
+ * the social spine went down together with fifty eight errors from one line.
+ * `next build` was red on main from the moment it landed. BUILD_06_LEDGER 7.0
+ * records the same fault on 19 September and the lint rule's own message names
+ * that date.
+ *
+ * The distinction that matters, because it is subtle and it is the one people
+ * get wrong: a `"use server"` module MAY DECLARE types and MAY import whatever
+ * it likes. What it may not do is EXPORT anything that is not an async
+ * function, and `export ... from` is an export statement whatever sits on the
+ * other side of it. So the import moves to the top of the file and these two
+ * become real async functions that call through.
+ *
+ * The reasoning that put them here is unchanged and is good: `blockUser` used
+ * to open with the `isSocialEnabled()` guard every other action in this file
+ * opens with, which is right for a post and WRONG FOR A BLOCK, because a person
+ * being harassed inside a listing conversation was refused the control on the
+ * grounds that a different feature was switched off. The implementation lives
+ * in `lib/safety/blocks-actions.ts` with no flag in front of it, and these two
+ * keep every existing import in the social layer pointing at that one
+ * implementation rather than a second copy.
+ */
+export async function blockUser(input: { userId: string }): Promise<ActionResult<null>> {
+  return blockUserSafely(input);
+}
+
+export async function unblockUser(input: { userId: string }): Promise<ActionResult<null>> {
+  return unblockUserSafely(input);
+}
 
 /** Mute. One way silence: they are not told, and you stay visible to them. */
 export async function muteTarget(input: {
