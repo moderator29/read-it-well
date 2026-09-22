@@ -576,7 +576,7 @@ export const en = {
       categories: {
         overline: "Explore by category",
         title: "Find exactly what you're looking for.",
-        body: "Apartments, houses and land on the Property side; hotels, resorts and guest houses on Vallo Stays.",
+        body: "Apartments, houses and land on the Property side; hotels, resorts and guest houses on Vallo Stays. Every tile opens a real search across Nigeria.",
         join: "Join Vallo",
         apartments: "Apartments",
         houses: "Houses",
@@ -638,7 +638,12 @@ export const en = {
       },
       footer: {
         legalName: "VALLO SPACES LTD",
-        legalLine: "A Nigerian technology company building property and stays on one account.",
+        /* The one line on the footer that says what the company is for. It
+           sits under VALLO SPACES LTD, which is a legal surface, so it stays
+           a sentence about the company rather than a slogan, and it carries
+           the position because the foot of the page is where a reader who
+           has scrolled the whole thing is still working out what this is. */
+        legalLine: "A Nigerian technology company, building a way to rent, buy or stay without the runaround.",
         stayConnected: "Stay connected",
         newsletterBody: "New listings, product news and the occasional honest update.",
         emailLabel: "Email address",
