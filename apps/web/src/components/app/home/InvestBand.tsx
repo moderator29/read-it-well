@@ -34,7 +34,7 @@ export function InvestBand({ t, feature }: { t: Dictionary; feature: InvestFeatu
           <span className="nf-home__invest-accent">{copy.titleAccent}</span>
         </h2>
         <p className="nf-home__invest-text">{copy.body}</p>
-        <Link href="/search?intent=sale" className="nf-btn nf-btn--primary nf-btn--sm nf-tap">
+        <Link href="/search?market=buy" className="nf-btn nf-btn--primary nf-btn--sm nf-tap">
           {copy.action}
           <UiIcon name="arrow-right" size={16} />
         </Link>

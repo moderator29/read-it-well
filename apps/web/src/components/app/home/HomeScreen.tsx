@@ -99,10 +99,16 @@ export function HomeScreen({
    *
    * `MarketTiles` linked at `/search?intent=rent` and `/search?intent=sale`.
    * `parseShelfQuery` reads `market=buy|rent` and reads NOTHING called
-   * `intent`, so both of those tiles have been landing on the unfiltered
-   * catalogue since the day the market parameter was introduced. Recorded here
-   * rather than quietly corrected, because the same dead parameter is spelled
-   * in four other places that belong to other scopes.
+   * `intent`, so both of those tiles landed on the unfiltered catalogue from
+   * the day the market parameter was introduced: somebody tapping Buy saw
+   * rentals mixed into the results.
+   *
+   * FIXED, and the count is smaller than it first looked. Only TWO tiles were
+   * wrong, not the row: the other seven spell `type`, and `parseDiscoveryQuery`
+   * does read `type` through `parseKind`, with every one of their six values
+   * present in `KIND_NOUN`. The dead spelling survived in exactly three links,
+   * these two and the Invest band's call to action, and all three now spend
+   * `market`.
    *
    * BUY AND INVEST REACH THE SAME SHELF TODAY, ON PURPOSE AND SAID OUT LOUD.
    * Invest is a browse filter over properties presented for their yield, and

@@ -40,13 +40,18 @@ export type Market = {
   key: MarketKey;
   /** The glass object at the tile's top left. */
   icon: BrandIconName;
-  /** A real search, in the vocabulary `parseKind` and `parseIntent` accept. */
+  /** A real search, in the vocabulary `parseKind` and `parseShelfQuery` accept. */
   href: string;
 };
 
 export const MARKETS: Market[] = [
-  { key: "rent", icon: "keys-home", href: "/search?intent=rent" },
-  { key: "buy", icon: "home-check", href: "/search?intent=sale" },
+  /* `market`, NOT `intent`. `parseShelfQuery` reads `market=buy|rent` and
+     reads nothing called `intent`, so these two tiles spent a parameter that
+     was never parsed and landed on the unfiltered catalogue: somebody tapping
+     Buy saw rentals mixed into the results. The other seven tiles spell
+     `type`, which IS parsed, which is why only these two were wrong. */
+  { key: "rent", icon: "keys-home", href: "/search?market=rent" },
+  { key: "buy", icon: "home-check", href: "/search?market=buy" },
   { key: "shortlet", icon: "shortlet", href: "/search?type=shortlet" },
   { key: "hotel", icon: "hotel", href: "/search?type=hotel" },
   { key: "villa", icon: "villa", href: "/search?type=villa" },
