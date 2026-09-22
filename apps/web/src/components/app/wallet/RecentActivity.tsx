@@ -40,16 +40,13 @@ export function RecentActivity({
   const words = walletWords(locale);
 
   return (
-    <section aria-labelledby="nf-wallet-recent" className="nf-card">
+    <section aria-labelledby="nf-wallet-recent" className="nf-card nf-tx-panel">
       <div className="nf-tx-card__head">
-        <h2 id="nf-wallet-recent" className={TYPE.sectionTitle}>
+        <h2 id="nf-wallet-recent" className="nf-wallet-section__title">
           {title ?? copy.recentTitle}
         </h2>
         {entries.length > 0 && (
-          <Link
-            href="/wallet/transactions"
-            className="nf-tap inline-flex shrink-0 items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-          >
+          <Link href="/wallet/transactions" className="nf-wallet-link nf-tap">
             {copy.seeAll}
             <span className="sr-only"> ({entries.length})</span>
             <UiIcon name="arrow-right" size={16} />
@@ -58,7 +55,7 @@ export function RecentActivity({
       </div>
 
       {recent.length > 0 ? (
-        <ul className="nf-tx-list mt-inline-tight">
+        <ul className="nf-tx-list">
           {recent.map((entry) => (
             <EntryRow
               key={entry.id}

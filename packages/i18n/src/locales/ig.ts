@@ -2062,6 +2062,18 @@ export const ig: Dictionary = withFallback({
       REVERSED: "A tụgharịrị ya",
     },
     home: {
+      actionsLabel: "Omume akpa ego",
+      quickSend: "Zipu",
+      quickSendSub: "N'akpa ego",
+      quickStatementSub: "Mmegharị ọ bụla",
+      quickCards: "Kaadị",
+      quickCardsSub: "Na ụlọ akụ",
+      addMoneyTile: "Tinye ego",
+      historyTile: "Akụkọ",
+      quickRequest: "Rịọ",
+      quickRequestSub: "Zipu njikọ",
+      settingsLink: "Ntọala",
+      quickSettingsSub: "Akpa ego gị",
       totalBalance: "Ego niile dị",
       hideBalance: "Zoo ego dị",
       showBalance: "Gosi ego dị",
@@ -2918,6 +2930,12 @@ export const ig: Dictionary = withFallback({
   /* Build 05, FE-2. Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
+    availableBalance: "Ego dị ugbu a",
+    sendSub: "Gaa n'akpa ego Vallo ọ bụla, site na email ha",
+    instantChip: "Nzipu ozugbo",
+    narrationLabel: "Nkọwa (nhọrọ)",
+    narrationPlaceholder: "Tinye obere ederede",
+    sendCta: "Zipu ego",
     title: "Zipu ego",
     lede: "To another Vallo wallet, by the email on their account. It lands the moment you confirm.",
     recipientLabel: "Email ha",

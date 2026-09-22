@@ -2057,6 +2057,18 @@ export const ha: Dictionary = withFallback({
       REVERSED: "An juya baya",
     },
     home: {
+      actionsLabel: "Ayyukan walat",
+      quickSend: "Aika",
+      quickSendSub: "Zuwa walat",
+      quickStatementSub: "Kowane motsi",
+      quickCards: "Katuna",
+      quickCardsSub: "Da bankuna",
+      addMoneyTile: "Ƙara kuɗi",
+      historyTile: "Tarihi",
+      quickRequest: "Nema",
+      quickRequestSub: "Aika hanyar haɗi",
+      settingsLink: "Saituna",
+      quickSettingsSub: "Walat ɗinka",
       totalBalance: "Jimlar ma'auni",
       hideBalance: "Ɓoye ma'auni",
       showBalance: "Nuna ma'auni",
@@ -2914,6 +2926,12 @@ export const ha: Dictionary = withFallback({
   /* Build 05, FE-2. Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
+    availableBalance: "Ma'aunin da ake da shi",
+    sendSub: "Zuwa kowane walat na Vallo, ta imel ɗinsu",
+    instantChip: "Aika nan take",
+    narrationLabel: "Bayani (na zaɓi)",
+    narrationPlaceholder: "Ƙara ɗan bayani",
+    sendCta: "Aika kuɗi",
     title: "Aika kuɗi",
     lede: "To another Vallo wallet, by the email on their account. It lands the moment you confirm.",
     recipientLabel: "Imel ɗinsu",

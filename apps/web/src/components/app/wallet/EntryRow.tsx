@@ -3,9 +3,9 @@ import { formatDate, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
-import { TYPE } from "@/components/app/Screen";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { KIND_ICON, type WalletWords } from "./kinds";
+import { counterpartyLine } from "./counterparty";
 
 /**
  * One ledger movement as a row, the way the governing wallet render draws
@@ -46,7 +46,7 @@ export function EntryRow({
     minute: "2-digit",
     timeZone: "Africa/Lagos",
   });
-  const counterparty = entry.note ?? entry.property;
+  const counterparty = counterpartyLine(entry.note ?? entry.property);
 
   return (
     <li>
@@ -54,32 +54,21 @@ export function EntryRow({
         <span className="nf-tx-tile" aria-hidden="true">
           <UiIcon name={KIND_ICON[entry.kind]} size={20} />
         </span>
-        <span className="min-w-0 flex-1 leading-tight">
-          <span className={`block ${TYPE.rowTitle}`}>{words.kind[entry.kind]}</span>
-          {/* Wrapped, not truncated. "Transfer to Tunde Adebayo" became
-              "Transfer to Tunde ..." at 390px, which cuts the one fact the
-              row exists to carry: who the money went to. */}
-          {counterparty && (
-            <span className="nf-body-sm mt-3xs block text-[var(--nf-content-secondary)]">
-              {counterparty}
-            </span>
-          )}
-          {/* One line, never two. "15 Sept 2026 · 10:03" broke over two lines
-              in the column the amount and the status pill leave, which made
-              one row in a column of five a head taller than the rest. */}
-          <span className="nf-caption mt-3xs block whitespace-nowrap">
+        <span className="min-w-0 flex-1">
+          <span className="nf-tx-row__title">{words.kind[entry.kind]}</span>
+          {/* Wrapped, not truncated: the counterparty is the one fact the
+              row exists to carry, and a real name is often longer than the
+              render's. Blue, as the render sets it. */}
+          {counterparty && <span className="nf-tx-row__party">{counterparty}</span>}
+          <span className="nf-tx-row__when">
             {day}
             <span aria-hidden="true"> · </span>
             <span className="sr-only">, </span>
             {time}
           </span>
         </span>
-        <span className="nf-numeric flex shrink-0 flex-col items-end gap-inline-tight text-right leading-tight">
-          <span
-            className={`nf-body font-semibold ${
-              credit ? "text-[var(--nf-state-success)]" : "text-[var(--nf-content-primary)]"
-            }`}
-          >
+        <span className="nf-numeric flex shrink-0 flex-col items-end gap-inline-tight text-right">
+          <span className={`nf-tx-row__amount ${credit ? "nf-tx-row__amount--in" : ""}`}>
             {credit ? "+ " : "- "}
             <Amount
               minorUnits={entry.amountMinor}
@@ -89,9 +78,13 @@ export function EntryRow({
             />
           </span>
           {entry.status === "COMPLETED" ? (
-            <StatusPill tone="success">{completedLabel}</StatusPill>
+            <StatusPill tone="success" className="nf-tx-badge">
+              {completedLabel}
+            </StatusPill>
           ) : (
-            <StatusPill tone={toneForStatus(entry.status)}>{words.status[entry.status]}</StatusPill>
+            <StatusPill tone={toneForStatus(entry.status)} className="nf-tx-badge">
+              {words.status[entry.status]}
+            </StatusPill>
           )}
         </span>
       </Link>

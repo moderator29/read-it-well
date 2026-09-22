@@ -4,7 +4,7 @@ import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Odometer } from "@/components/site/Odometer";
 import { Amount } from "@/components/ui/Amount";
@@ -35,30 +35,29 @@ import { CryptoTopUpForm } from "@/components/app/wallet/CryptoTopUp";
 import { ErrorNotice, fieldError } from "@/components/app/wallet/ErrorNotice";
 import { mintIdempotencyKey } from "@/components/app/wallet/idempotency";
 import { useMoneyWait, WaitNotice } from "@/components/app/wallet/MoneyWait";
+import { useBalanceMask } from "@/components/app/wallet/balance-mask";
+import { type MoneyGlyphName } from "@/components/app/wallet/MoneyGlyph";
+import { QuickPlate } from "@/components/app/wallet/QuickPlate";
+import { WalletTiles } from "@/components/app/wallet/WalletTiles";
 
 /**
- * The wallet's hero, to its governing render: the balance card carrying the
- * label with its eye, the figure, the week's change when the ledger can say
- * one, the glass wallet object, and the four tiles; then the quick actions
- * rail; then the three money sheets those controls open.
+ * The wallet home above the transactions, to its governing render
+ * (6AF37222): the balance card carrying the label with its eye, the figure
+ * with its kobo set smaller, the week's change when the ledger can say one,
+ * the glass wallet object and the four tiles; then the Quick Actions row;
+ * then the money sheets those controls open.
  *
- * WHAT THE FOUR TILES REALLY DO. Send and Receive are pages. Top Up opens the
- * funding sheet: a saved card when there is one, or the hosted Paystack
- * window. The fourth tile is labelled by what it does: the render says
- * "Swap" and this product has no swap, so the tile says "Crypto" and goes to
- * the Crypto surface, where the real Yellow Card top-up lives. Nothing here
- * is a picture of a feature.
+ * NOTHING HERE IS A PICTURE OF A FEATURE. Send and Receive are pages, Add
+ * money opens the funding sheet (a saved card or the hosted Paystack window),
+ * History is the statement. The render's Swap, Buy Airtime and Pay Bills are
+ * products Vallo does not sell and are not drawn; every refusal and
+ * substitution is recorded where it is made and in the Session B ledger,
+ * section 4. The withdraw sheet is still reachable by `?action=withdraw` and
+ * is not drawn as a tile while bank payouts do not complete.
  *
- * THE QUICK ACTIONS ARE ONLY THE ONES WITH A PATH, AND THERE ARE FOUR OF
- * THEM. The render shows airtime and bills; neither exists here, so neither
- * is drawn. Send, request (the receive page with its share link), withdraw
- * (the sheet) and the statement are the four that are real, and four is also
- * the row the render draws. The crypto top-up used to join them as a
- * conditional fifth; it lives on the Crypto surface now, which the balance
- * card's fourth tile opens.
- *
- * Every money form posts to the wallet actions untouched; this file changes
- * what is around them, never what they do.
+ * The eye is remembered on this device (`balance-mask.ts`), and the send
+ * page reads the same choice. Every money form posts to the wallet actions
+ * untouched; this file changes what is around them, never what they do.
  */
 
 type SheetKey = "fund" | "withdraw" | "crypto";
@@ -84,9 +83,9 @@ export function WalletDeck({
   breakdown: BalanceBreakdown;
   live: boolean;
   /**
-   * The wallet's settings control, rendered in the balance card's corner
-   * rather than in a page header row of its own. See the note at its call
-   * site: the governing render draws ONE header row and then the card.
+   * The wallet's settings control, drawn as the fourth Quick Actions card.
+   * The governing render draws ONE header row and then the card, so the
+   * control has no row of its own.
    */
   settings?: ReactNode;
   /** The viewer's saved cards, for the Top Up sheet. Empty when none or unreadable. */
@@ -106,7 +105,7 @@ export function WalletDeck({
   const [open, setOpen] = useState<SheetKey | null>(
     initialAction === "crypto" && !cryptoEnabled ? null : initialAction,
   );
-  const [hidden, setHidden] = useState(false);
+  const [hidden, toggleHidden] = useBalanceMask();
   const [inUsd, setInUsd] = useState(false);
 
   const { whole, kobo } = formatKoboExact(balanceMinor, locale);
@@ -148,26 +147,21 @@ export function WalletDeck({
       <section
         aria-labelledby="nf-wallet-balance-label"
         data-pulse={pulse ?? undefined}
-        className="nf-card nf-wallet-hero nf-balance-pulse p-card-sm sm:p-card"
+        className="nf-wallet-hero nf-balance-pulse"
       >
         <span className="nf-wallet-hero__object" aria-hidden="true">
-          <BrandIcon name="wallet" fill priority />
+          <BrandIcon name="wallet-naira" fill priority />
         </span>
 
         <div className="relative">
-          <div className="flex items-center gap-inline">
-            <p
-              id="nf-wallet-balance-label"
-              className="nf-body-sm font-semibold text-[var(--nf-content-secondary)]"
-            >
-              {copy.totalBalance}
-            </p>
+          <div className="nf-wallet-hero__label">
+            <p id="nf-wallet-balance-label">{copy.totalBalance}</p>
             <button
               type="button"
-              onClick={() => setHidden((h) => !h)}
+              onClick={toggleHidden}
               aria-pressed={hidden}
               aria-label={hidden ? copy.showBalance : copy.hideBalance}
-              className="nf-tap -my-2xs grid h-9 w-9 place-items-center rounded-[var(--nf-radius-sm)] text-[var(--nf-brand-secondary)]"
+              className="nf-wallet-eye nf-tap"
             >
               <UiIcon name={hidden ? "eye-off" : "eye"} size={20} />
             </button>
@@ -177,31 +171,21 @@ export function WalletDeck({
                 onClick={() => setInUsd((v) => !v)}
                 aria-pressed={inUsd}
                 aria-label={inUsd ? "Show balance in naira" : "Show balance in US dollars"}
-                className="nf-tap -my-2xs grid h-9 min-w-9 place-items-center rounded-[var(--nf-radius-sm)] px-2xs font-bold text-[var(--nf-brand-secondary)]"
+                className="nf-wallet-eye nf-tap font-bold"
               >
                 {inUsd ? "$" : "₦"}
               </button>
             ) : null}
-            {/*
-             * The wallet's own settings, in the balance card's corner.
-             *
-             * It used to sit in a `PageHeader` row under the app bar, and
-             * `6AF37222` draws no such row: one header, then the balance card.
-             * MEASURED ON THE SHIPPED PROOF, that row cost about 68 logical px
-             * and started the balance card at y=160 where the render starts it
-             * at y=122, which is why the whole screen read lower and looser
-             * than the image. The app bar already carries the render's header,
-             * so the row was a second one and the control needed a home. Here
-             * it costs no vertical space at all: it joins the row the label,
-             * the mask toggle and the currency toggle already occupy.
-             */}
-            {settings ? <span className="ml-auto flex items-center">{settings}</span> : null}
           </div>
 
           {/* The figure. Masked, it is six discs behind the locale's own
               symbol; in dollars it is a static Amount, because a change of
               display currency is not a change of balance and must not roll. */}
-          <p className="nf-wallet-figure nf-numeric mt-inline max-w-[62%] sm:max-w-[68%]">
+          <p
+            className={`nf-wallet-figure nf-numeric ${
+              whole.length + kobo.length > 12 ? "nf-wallet-figure--long" : ""
+            }`}
+          >
             {hidden ? (
               <span>
                 {inUsd ? "$" : lead}
@@ -224,12 +208,10 @@ export function WalletDeck({
             )}
           </p>
 
+          {/* The week's change, only when the ledger can say one; otherwise
+              the honest line about what this wallet is. */}
           {change && !hidden ? (
-            <p
-              className={`nf-wallet-change mt-inline ${
-                change.netMinor < 0 ? "nf-wallet-change--down" : ""
-              }`}
-            >
+            <p className={`nf-wallet-change ${change.netMinor < 0 ? "nf-wallet-change--down" : ""}`}>
               <UiIcon name={change.netMinor < 0 ? "arrow-down" : "arrow-up"} size={16} />
               {change.percent !== null ? (
                 <span className="nf-numeric">
@@ -242,10 +224,10 @@ export function WalletDeck({
                   <Amount minorUnits={Math.abs(change.netMinor)} locale={locale} />
                 </span>
               )}
-              <span className="font-medium text-[var(--nf-content-secondary)]">{copy.thisWeek}</span>
+              <span>{copy.thisWeek}</span>
             </p>
           ) : (
-            <p className="nf-caption mt-inline">
+            <p className="nf-wallet-hero__note">
               {inUsd && usdRate
                 ? `Converted at ₦${formatNumber(usdRate, locale)} to $1. Your wallet is held in naira.`
                 : copy.nairaWallet}
@@ -255,71 +237,54 @@ export function WalletDeck({
           {/* Where the rest of the money is, only when some of it is
               elsewhere or the answer could not be read. */}
           {(anyHeld || breakdown.readFailed) && (
-            <div className="mt-row">
+            <div className="mt-inline">
               <BalanceBreakdownSheet breakdown={breakdown} locale={locale} hidden={hidden} />
             </div>
           )}
 
-          <nav aria-label="Wallet actions" className="nf-wallet-tiles mt-block">
-            <Link href="/wallet/send" className="nf-wallet-tile nf-wallet-tile--primary">
-              <span className="nf-wallet-tile__glyph">
-                <UiIcon name="arrow-up" size={24} className="rotate-45" />
-              </span>
-              {copy.send}
-            </Link>
-            <Link href="/wallet/receive" className="nf-wallet-tile">
-              <span className="nf-wallet-tile__glyph">
-                <UiIcon name="arrow-down" size={24} />
-              </span>
-              {copy.receive}
-            </Link>
-            <button
-              type="button"
-              className="nf-wallet-tile"
-              aria-haspopup="dialog"
-              onClick={() => setOpen("fund")}
-            >
-              <span className="nf-wallet-tile__glyph">
-                <UiIcon name="plus" size={24} />
-              </span>
-              {copy.topUp}
-            </button>
-            {/*
-              THE CRYPTO TOP-UP TILE POINTED AT A ROUTE THAT IS NOW A 404.
-              `/crypto` returns `notFound()` for version one (HANDOFF 08
-              section 5.2), so this tile would have taken a reviewer from the
-              wallet straight into a not-found page. DEFERRED, NOT CANCELLED:
-              `copy.crypto` stays in the dictionary, the Yellow Card client
-              stays, and this comment is where the tile comes back.
-            */}
-          </nav>
+          <WalletTiles copy={copy} current="wallet" onAddMoney={() => setOpen("fund")} />
         </div>
       </section>
 
-      <section aria-labelledby="nf-wallet-quick" className="mt-block">
-        <h2 id="nf-wallet-quick" className={`mb-heading ${TYPE.sectionTitle}`}>
-          {copy.quickActions}
-        </h2>
+      {/*
+        QUICK ACTIONS, FOUR REAL ONES IN THE RENDER'S FOUR SLOTS.
+        6AF37222 draws Send Money, Buy Airtime, Pay Bills and Request Money.
+        Airtime and bills are products Vallo does not sell and are refused.
+        Send and Request are real as drawn; the other two slots carry real
+        wallet destinations in the same anatomy: the saved cards and bank
+        accounts (/settings/payments) and the wallet's settings sheet. The
+        render's "See all" is refused too: all four are already on screen, so
+        it would lead nowhere.
+      */}
+      <section aria-labelledby="nf-wallet-quick" className="nf-wallet-section">
+        <div className="nf-wallet-section__head">
+          <h2 id="nf-wallet-quick" className="nf-wallet-section__title">
+            {copy.quickActions}
+          </h2>
+        </div>
         <div className="nf-wallet-quick">
-          <QuickLink href="/wallet/send" icon="arrow-up" rotate title={copy.sendMoney} sub={copy.sendMoneySub} />
-          <QuickLink href="/wallet/receive" icon="user" title={copy.requestMoney} sub={copy.requestMoneySub} />
-          <QuickButton
-            icon="wallet"
-            title={copy.withdraw}
-            sub={copy.withdrawSub}
-            onClick={() => setOpen("withdraw")}
+          <QuickLink
+            href="/wallet/send"
+            art="send-plane-tile"
+            icon="plane"
+            title={copy.quickSend}
+            sub={copy.quickSendSub}
           />
-          {/*
-            THE CRYPTO TOP-UP TILE STOOD HERE AND IS GONE, on the screenshot.
-            The render draws these four across in one row; a fifth tile,
-            which is what the crypto top-up made when the keys exist, wrapped
-            alone onto a second row and squeezed the other four until "Top up
-            with crypto" broke over three lines. Nothing is lost: the balance
-            card's fourth tile goes to the Crypto surface and the real Yellow
-            Card top-up card sits at the foot of it, so the same funding is
-            one tap away and is drawn once instead of twice.
-          */}
-          <QuickLink href="/wallet/transactions" icon="document" title={copy.statement} sub={copy.statementSub} />
+          <QuickLink
+            href="/wallet/receive"
+            art="person-card"
+            uiIcon="user"
+            title={copy.quickRequest}
+            sub={copy.quickRequestSub}
+          />
+          <QuickLink
+            href="/settings/payments"
+            art="card-tile"
+            icon="card"
+            title={copy.quickCards}
+            sub={copy.quickCardsSub}
+          />
+          {settings}
         </div>
       </section>
 
@@ -350,73 +315,28 @@ export function WalletDeck({
 
 /* ------------------------------------------------------------ quick cards */
 
-function QuickInner({
-  icon,
-  rotate,
-  title,
-  sub,
-}: {
-  icon: UiIconName;
-  rotate?: boolean;
-  title: string;
-  sub: string;
-}) {
-  return (
-    <>
-      <span className="nf-glyph-tile" aria-hidden="true">
-        <UiIcon name={icon} size={18} className={rotate ? "rotate-45" : undefined} />
-      </span>
-      {/* Four to a row at 390px, so the pair is sized for 83 pixels rather
-          than for a full-width card. The sizes are the partial's, beside the
-          measurement that chose them. */}
-      <span className="block">
-        <span className="nf-wallet-quick__title">{title}</span>
-        <span className="nf-wallet-quick__sub">{sub}</span>
-      </span>
-    </>
-  );
-}
-
+/** A quick-action card: the plate, one title line, one sub line. */
 function QuickLink({
   href,
+  art,
   icon,
-  rotate,
+  uiIcon,
   title,
   sub,
 }: {
   href: string;
-  icon: UiIconName;
-  rotate?: boolean;
+  art: BrandIconName;
+  icon?: MoneyGlyphName;
+  uiIcon?: UiIconName;
   title: string;
   sub: string;
 }) {
   return (
-    <Link href={href} className="nf-card nf-card--interactive nf-wallet-quick__card">
-      <QuickInner icon={icon} rotate={rotate} title={title} sub={sub} />
+    <Link href={href} className="nf-wallet-quick__card">
+      <QuickPlate art={art} glyph={icon} uiIcon={uiIcon} />
+      <span className="nf-wallet-quick__title">{title}</span>
+      <span className="nf-wallet-quick__sub">{sub}</span>
     </Link>
-  );
-}
-
-function QuickButton({
-  icon,
-  title,
-  sub,
-  onClick,
-}: {
-  icon: UiIconName;
-  title: string;
-  sub: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-haspopup="dialog"
-      onClick={onClick}
-      className="nf-card nf-card--interactive nf-wallet-quick__card"
-    >
-      <QuickInner icon={icon} title={title} sub={sub} />
-    </button>
   );
 }
 

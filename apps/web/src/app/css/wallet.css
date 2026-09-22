@@ -27,193 +27,248 @@
   this file came down one rung; the stroked tier keeps the small controls.
 */
 @layer components {
+  /* ------------------------------------------------------------ the glass */
+
+  /*
+   * THE MONEY GLASS, MEASURED OFF 6AF37222 AND 77A54EA3.
+   *
+   * The phone screen in both renders spans 667 image px, so 1.71 image px
+   * make one CSS px at 390. Sampled down the balance card at x=560: the fill
+   * is a BLUE glass, rgb(0 39 123) under the top rim falling to
+   * rgb(0 17 63) by the middle and lifting to rgb(0 21 96) at the foot, over
+   * a page of rgb(0 7 37). The card is brighter and bluer than the page.
+   * Ours was rgb(3 10 26), darker than the page, which is why the wallet read
+   * as black boxes where the render reads as lit blue glass.
+   *
+   * The rim is one bright pixel all round, cyan-blue rather than white:
+   * rgb(14 125 204) along the top, rgb(6 172 246) down the sides and
+   * rgb(37 188 255) along the foot, where the light pools. It is drawn as a
+   * gradient in the border box so the three readings are one edge. The
+   * render's sky-blue rim is nearest `--nf-state-info`, used here as a colour
+   * and never as a state.
+   *
+   * The corner is 24 image px, 14 CSS px, which is `--nf-radius-md`; the
+   * shared card's 22px reads as a softer, rounder object than the render.
+   * The glow is a soft blue bloom off every edge, not a drop shadow.
+   */
+  .nf-money {
+    --nf-wallet-glass-top: color-mix(in srgb, var(--nf-brand-primary) 44%, var(--nf-surface-canvas));
+    --nf-wallet-glass-mid: color-mix(in srgb, var(--nf-brand-primary) 20%, var(--nf-surface-canvas));
+    --nf-wallet-glass-foot: color-mix(in srgb, var(--nf-brand-primary) 27%, var(--nf-surface-canvas));
+    --nf-wallet-tile-fill: color-mix(in srgb, var(--nf-brand-primary) 32%, var(--nf-surface-canvas));
+    --nf-wallet-rim-top: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-state-info));
+    --nf-wallet-rim-side: color-mix(in oklab, var(--nf-brand-primary) 45%, var(--nf-state-info));
+    --nf-wallet-rim-foot: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-state-info));
+  }
+  .nf-wallet-hero,
+  .nf-money .nf-card {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: var(--nf-radius-md);
+    background:
+      linear-gradient(
+          180deg,
+          var(--nf-wallet-glass-top) 0%,
+          var(--nf-wallet-glass-mid) 46%,
+          var(--nf-wallet-glass-foot) 100%
+        )
+        padding-box,
+      linear-gradient(
+          180deg,
+          var(--nf-wallet-rim-top) 0%,
+          var(--nf-wallet-rim-side) 45%,
+          var(--nf-wallet-rim-foot) 100%
+        )
+        border-box;
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 22px -4px var(--nf-glow-3),
+      0 14px 36px -14px var(--nf-glow-4);
+  }
+
   /* ------------------------------------------------------------- the hero */
 
   /*
-   * The balance card. `.nf-card` is the material; this adds the one bloom the
-   * render carries in its top right corner, behind the glass wallet object,
-   * and holds the object in that corner so the figure and the label keep the
-   * left two thirds to themselves.
+   * The balance card, 364 x 185 CSS px in the render. Padding measured: the
+   * label's cap top sits 23px under the rim, the text starts 19px in from
+   * the left, and the tile band ends 12px above the foot.
    */
   .nf-wallet-hero {
-    position: relative;
     overflow: hidden;
-    border-radius: var(--nf-radius-xl);
+    padding: 0.875rem 1.125rem var(--nf-space-sm);
   }
-  .nf-wallet-hero::before {
+  /* The render's deep blue bloom sits behind the wallet object, top right. */
+  .nf-wallet-hero::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-      radial-gradient(70% 55% at 88% 12%, var(--nf-glow-2) 0%, transparent 62%),
-      var(--nf-gradient-surface);
+    background: radial-gradient(52% 60% at 82% 30%, var(--nf-glow-3) 0%, transparent 70%);
   }
+  /*
+   * The glass wallet object. Drawn at 138 x 150 image px in the render, so
+   * about 81 x 88 CSS px, its top 15px under the rim and its right side 30px
+   * in from the card's edge. The PNG (`wallet-naira`, the render's own wallet
+   * with the naira on its face) carries about 22 per cent of transparent
+   * margin on every side, so the box is 128px to draw a mark of about 72,
+   * and it hangs past the card's right edge (clipped by the card) so the
+   * mark sits clear of a 40px figure. The render's face is condensed and
+   * ours is not, so the mark is 72 against the render's 81 to keep that gap.
+   */
   .nf-wallet-hero__object {
     position: absolute;
-    top: var(--nf-space-sm);
-    right: var(--nf-space-sm);
-    width: 6rem;
-    height: 6rem;
+    z-index: 1;
+    top: -0.625rem;
+    right: -1rem;
+    width: 8rem;
+    height: 8rem;
     pointer-events: none;
-    filter: drop-shadow(0 14px 26px var(--nf-glow-3));
+    /* The render's object is lit from inside, brighter than the pack's
+       artwork draws it; a lift in brightness and saturation, and its glow. */
+    filter: brightness(1.3) saturate(1.25) drop-shadow(0 10px 22px var(--nf-glow-4));
   }
   @media (min-width: 640px) {
     .nf-wallet-hero__object {
-      top: var(--nf-space-md);
-      right: var(--nf-space-md);
-      width: 7rem;
-      height: 7rem;
+      width: 9rem;
+      height: 9rem;
+      right: 0;
     }
+  }
+  .nf-wallet-hero > .relative {
+    z-index: 2;
+  }
+
+  /* "Total Balance" at 14px regular in soft white, the eye in quiet blue. */
+  .nf-wallet-hero__label {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--nf-content-secondary);
+  }
+  .nf-wallet-eye {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-block: calc(var(--nf-space-xs) * -1);
+    border-radius: var(--nf-radius-sm);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-wallet-eye:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
   }
 
   /*
-   * The figure. One rung above `nf-h0` on the phone, because it is the one
-   * number the screen exists for, and clamped so it never runs under the
-   * wallet object at 390px.
-   *
-   * AND THE CLAMP WAS THIRTEEN PER CENT SHORT OF WHAT THE FILE ITSELF SAYS.
-   *
-   * `clamp(2rem, 8.6vw, 2.75rem)` resolves to 33.5px at a 390px viewport,
-   * because 8.6vw only reaches the 2.6rem this file's own comment names, at
-   * `:101` and again in `money.ts:8`, at a 484px viewport, which no phone in
-   * the target set is. MEASURED ON THE SHIPPED PROOF: the digits in
-   * `docs/design/proofs/e/wallet-390-dark.png` are 24.5 logical px of cap
-   * height against the render's 28.2, so the intent was right all along and
-   * the middle term of the clamp under-delivered on every phone.
-   *
-   * `10.3vw` paints 40.2px at 390, which is the render's size almost exactly,
-   * and reaches the 2.75rem ceiling at 427px instead of never. The floor comes
-   * up with it so a narrower phone does not fall further behind.
-   * `.nf-money-kobo--hero` stays at 0.6em: that ratio already matches the
-   * render's measured 0.58.
+   * The figure. The render's digits have a cap height of 28.2 CSS px, which
+   * is a 40px face; `10.3vw` paints 40.2px at 390 and reaches the 2.75rem
+   * ceiling at 427px. It never wraps: the kobo stay on the naira's line, as
+   * the render sets them, and a long balance scales down rather than
+   * breaking (`.nf-wallet-figure--long`, set by WalletDeck on a long figure).
    */
   .nf-wallet-figure {
+    margin-top: 0.375rem;
     font-size: clamp(2.4rem, 10.3vw, 2.75rem);
     font-weight: 800;
     line-height: 1;
     letter-spacing: var(--nf-tracking-display);
+    white-space: nowrap;
     color: var(--nf-content-primary);
   }
   /*
-   * THE KOBO ARE SMALLER, NOT GREYER, AND THIS IS THE ONLY PLACE THAT SAYS
-   * SO.
-   *
-   * The render draws "₦245,680.00" with the decimals at about six tenths of
-   * the naira and in the same white; at muted ink they read as a disabled
-   * fragment of the balance rather than as part of the figure. Hierarchy by
-   * size, which is what the render does.
-   *
-   * Four surfaces were each writing their own version of this as an
-   * arbitrary value: 0.62em at opacity 60, 0.72em at opacity 70, 0.62em in
-   * muted ink. Same job, four answers, and the result sheet's answer was a
-   * visibly different grey from the wallet's. One class, one rung down for
+   * THE KOBO ARE SMALLER, NOT GREYER. The render draws "₦245,680.00" with
+   * the decimals at 0.58 of the naira and in the same white. Four surfaces
+   * used to write their own version of this; one class, one rung down for
    * the smaller figures.
    */
+  .nf-wallet-figure--long {
+    font-size: clamp(1.75rem, 7.6vw, 2.25rem);
+  }
   .nf-money-kobo {
     font-size: 0.68em;
     font-weight: 600;
     color: var(--nf-content-primary);
     opacity: 0.74;
   }
-  /* The hero figure is 2.4rem at 390 and 2.75rem from 427 up, so the same ratio
-     would put its decimals at
-     nearly a whole row title. One rung smaller against the naira, one rung
-     brighter, because at that size the decimals are read rather than
-     glanced at. Same recipe, different rung, one class. */
   .nf-money-kobo--hero {
     font-size: 0.6em;
-    opacity: 0.82;
+    opacity: 0.9;
   }
+  /* "+12.5% this week": 14px, 10px under the figure, the whole line in the
+     good colour as the render sets it, words included. */
   .nf-wallet-change {
     display: inline-flex;
     align-items: center;
-    gap: var(--nf-gap-inline-tight);
+    gap: var(--nf-space-2xs);
+    margin-top: 0.375rem;
     font-size: var(--nf-text-body-sm);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--nf-state-success);
   }
   .nf-wallet-change--down {
     color: var(--nf-state-error);
   }
+  .nf-wallet-hero__note {
+    margin-top: 0.625rem;
+    max-width: 62%;
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    color: var(--nf-content-secondary);
+  }
 
-  /* The four tiles inside the card. Rectangles with the large radius, because
-     the render shows rectangles here; the first one is filled brand and lit. */
+  /*
+   * The four tiles. 76 x 63 CSS px in the render with an 8px gap, 18px under
+   * the change line: glyph above a one-word label. The render draws a corner
+   * of 8 CSS px; the shape law puts every control that carries a word on
+   * `--nf-radius-control`, 14px, which on a 63px tile is a ratio of 0.22 and
+   * still reads as the render's rounded rectangle.
+   */
   .nf-wallet-tiles {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--nf-gap-inline);
+    gap: var(--nf-space-xs);
+    margin-top: 0.875rem;
   }
   .nf-wallet-tile {
     position: relative;
     display: flex;
+    min-height: 3.875rem;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--nf-gap-inline-tight);
-    /*
-     * THE TILES WERE PORTRAIT WHERE THE RENDER'S ARE LANDSCAPE, and that is
-     * the single most visible difference between the two screens.
-     *
-     * 5.25rem is 84px. MEASURED ON THE SHIPPED PROOF: the Send tile in
-     * `wallet-390-dark.png` is 83 logical px tall and about 71 wide, so 71 by
-     * 83, portrait. The render's measure 77 by 60, landscape: a squat band
-     * across the foot of the balance card rather than four tall boxes.
-     *
-     * 3.75rem is 60px, which is the render's height. The 44px tap floor is
-     * still clear by 16px, and the gap is deliberately NOT reduced: the
-     * render's inter-tile gap measures about 8px, which is `--nf-gap-inline`
-     * already.
-     */
-    min-height: 3.75rem;
-    /*
-     * AND THE MIN-HEIGHT WAS NOT WHAT WAS HOLDING IT OPEN, which the first
-     * pass at this got wrong and the browser corrected. With `min-height` at
-     * 3.75rem the tile still MEASURED 70.8px on a production server, because
-     * the CONTENT is taller than the floor: 12 padding + 24 glyph + 4 gap +
-     * 16.8 label + 12 padding + 2 border. A minimum only binds when the
-     * content is shorter than it, so lowering it changed nothing at all and
-     * the tile stayed portrait.
-     *
-     * 8px of block padding and the render's own 22px glyph give
-     * 8 + 22 + 4 + 16.8 + 8 + 2 = 60.8, which is the render's 60. The tile is
-     * still 60.8 tall against 71 wide, so it is landscape, and it clears the
-     * 44px tap floor by 16.
-     */
-    padding: var(--nf-space-xs) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge);
-    /* The render's three resting tiles are blue-tinted glass, not grey. */
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-xs) 0.125rem;
+    border: 1px solid var(--nf-wallet-rim-side);
+    border-radius: var(--nf-radius-control);
+    /* Resting tiles are a lighter blue glass than the card: rgb(0 22 80)
+       against the card's rgb(0 17 63) at the same height, with a brighter
+       edge that glows inward. */
     background:
-      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 62%),
-      var(--nf-brand-tint-1);
+      linear-gradient(180deg, var(--nf-wash-2) 0%, transparent 55%),
+      var(--nf-wallet-tile-fill);
     color: var(--nf-content-primary);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
     line-height: 1.2;
     text-align: center;
+    white-space: nowrap;
+    letter-spacing: -0.02em;
     box-shadow:
       var(--nf-rim-lit),
-      inset 0 -1px 0 var(--nf-glass-floor),
-      0 8px 22px -14px var(--nf-glow-3);
+      inset 0 0 12px -4px var(--nf-glow-4),
+      0 8px 20px -14px var(--nf-glow-4);
     transition:
       transform var(--nf-duration-press) var(--nf-ease-press),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
-      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* The render's glyph measures 22px. */
   .nf-wallet-tile__glyph {
-    display: grid;
-    place-items: center;
-    color: var(--nf-brand-secondary);
-    /* The render's glyph measures about 22px. The component asks for 24 and
-       this is what the band's height is built on, so it is held here rather
-       than left to four call sites to agree about. */
     width: 1.375rem;
     height: 1.375rem;
-  }
-  .nf-wallet-tile__glyph > svg {
-    width: 100%;
-    height: 100%;
+    color: var(--nf-brand-secondary);
   }
   .nf-wallet-tile:active {
     transform: scale(var(--nf-press-scale));
@@ -224,32 +279,30 @@
   }
   @media (hover: hover) {
     .nf-wallet-tile:hover {
-      background: var(--nf-glass-fill-strong);
       box-shadow:
-        inset 0 1px 0 var(--nf-glow-2),
-        0 10px 24px -14px var(--nf-glow-3);
+        var(--nf-rim-lit),
+        inset 0 0 16px -4px var(--nf-glow-4),
+        0 10px 24px -12px var(--nf-glow-4);
     }
   }
-  /* The active tile in the render is a saturated blue block with a bloom
-     under it, which is the same treatment the primary capsule takes. */
+  /*
+   * THE LIT TILE. The render's Send is a saturated electric block: sampled
+   * rgb(0 125 255) under the top rim, rgb(0 49 247) through the middle,
+   * rgb(0 139 253) along the foot, a white-hot top edge and a bloom cast on
+   * the card beneath it. Gradient fill, bright rim, bloom: lit, not flat.
+   */
   .nf-wallet-tile--primary {
-    border-color: var(--nf-brand-edge-strong);
+    border-color: var(--nf-wallet-rim-foot);
     background: var(--nf-gradient-cta);
     color: var(--nf-content-on-brand);
     box-shadow:
-      var(--nf-rim-lit),
-      0 12px 32px -10px var(--nf-glow-4);
+      inset 0 1px 0 var(--nf-rim-specular),
+      inset 0 -8px 14px -8px var(--nf-wallet-rim-foot),
+      0 10px 24px -8px var(--nf-glow-4),
+      0 0 18px -4px var(--nf-glow-4);
   }
   .nf-wallet-tile--primary .nf-wallet-tile__glyph {
     color: inherit;
-  }
-  @media (hover: hover) {
-    .nf-wallet-tile--primary:hover {
-      background: var(--nf-brand-primary-strong);
-      box-shadow:
-        inset 0 1px 0 var(--nf-glow-2),
-        0 14px 36px -10px var(--nf-glow-4);
-    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-wallet-tile {
@@ -260,115 +313,151 @@
     }
   }
 
+  /* ------------------------------------------------------ section heads */
+
+  /*
+   * "Quick Actions" and "Recent Transactions": a heading on the left and a
+   * brand link with a trailing glyph on the right. The render sets these at
+   * about 14px; the platform scale does not go below its h4 for a section
+   * head (DESIGN_DRIFT_SURVEY part six, item 1), so they take h4, which is
+   * the smallest rung that is still a heading.
+   */
+  .nf-wallet-section {
+    margin-top: 1.25rem;
+  }
+  .nf-wallet-section__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    margin-bottom: 0.625rem;
+  }
+  .nf-wallet-section__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-wallet-link {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.25rem;
+    padding-inline: var(--nf-space-2xs);
+    margin-inline-end: calc(var(--nf-space-2xs) * -1);
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-link);
+  }
+  @media (hover: hover) {
+    .nf-wallet-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+  .nf-wallet-link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
   /* --------------------------------------------------------- quick actions */
 
   /*
-   * FOUR ACROSS, NOT A RAIL, because that is what the governing render shows.
-   *
-   * This was a bleeding rail of 10.5rem cards, so at 390px two and a half
-   * cards filled the width where the render fits four inside the gutters with
-   * the glyph plate on top and the two lines wrapped beneath it. A rail also
-   * hid the fourth action behind a swipe on the one screen where every action
-   * is meant to be seen at once. A fifth action (the crypto top-up, when the
-   * keys exist) wraps onto a second row of the same grid.
+   * Four across, 87 x 70 CSS px each in the render with an 8px gap: a 31px
+   * plate at the top left, then ONE line of title and ONE line of sub. At
+   * our 24px page gutter each card is 79px, so the strings were chosen to fit
+   * one line each at 12px (see `quickSendSub` and friends in the dictionary).
    */
   .nf-wallet-quick {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--nf-gap-inline);
-    padding-block: var(--nf-space-2xs);
+    gap: var(--nf-space-xs);
   }
-  /*
-   * FOUR ACROSS AT 390px LEAVES EACH CARD ABOUT 83 PIXELS, AND THE TYPE HAS
-   * TO KNOW THAT.
-   *
-   * At the shared small-body size the titles broke wherever they liked:
-   * "Send Money" over two lines, "Request Money" over two, and the card
-   * heights stopped agreeing. The governing render sets this row's title a
-   * good deal smaller than a row title and lets it take two lines, so the
-   * four read as one band. `text-wrap: balance` is what stops a two-line
-   * title leaving one orphan word, and the fixed height is what keeps the
-   * four plates level whatever their words do.
-   */
-  /*
-   * AND THE QUICK CARDS WERE FIFTY PER CENT TOO TALL, WHICH IS WHY EVERY ONE
-   * OF THE FOUR TITLES WRAPPED.
-   *
-   * 7.75rem is 124px. MEASURED ON THE SHIPPED PROOF: the block in
-   * `wallet-390-dark.png` runs 127.5 logical px and all four titles have
-   * broken, "Send / Money", "Request / Money", "Withdraw / To your / bank",
-   * "Statement / Every / movement". The render's cards are about 85px with
-   * the title on ONE line and the sub on ONE line.
-   *
-   * 5.25rem is 84px. The paragraph above this rule argues that the title may
-   * take two lines and that the fixed height keeps the four plates level
-   * whatever their words do; the second half is right and the first half is
-   * what produced a ragged band where the render has a tidy one. The title
-   * drops a rung to `--nf-text-overline`, which is what a 71px card carries
-   * on one line, and keeps `text-wrap: balance` so a title that still has to
-   * break does not leave an orphan. The glyph plate comes to 1.875rem, which
-   * is the 30px the render measures rather than the 34 we drew.
-   */
   .nf-wallet-quick__card {
     display: flex;
-    min-height: 5.25rem;
+    min-width: 0;
     flex-direction: column;
-    gap: var(--nf-gap-inline-tight);
-    /*
-     * THE SAME LESSON AS THE TILE ABOVE, AND HERE IT ONLY GETS PART OF THE WAY.
-     *
-     * With `min-height` at 5.25rem the card still MEASURED 123.2px, because
-     * the content is 12 + 30 glyph + 4 gap + 63.2 text + 12 + 2. Taking the
-     * block padding to 8 brings it to 115.2 against the render's 85, and NO
-     * FURTHER CHANGE TO THIS FILE CAN CLOSE THE REST. The 63.2 is two lines of
-     * title plus two lines of sub, and MEASURED on a production server at the
-     * shipped 12px:
-     *
-     *   available width 69.5px
-     *   "Send Money" 73.1   "Request Money" 91.2   "Withdraw" 57.1
-     *   "To a Vallo wallet" 91.6   "Share your link" 84.4   "Every movement" 95
-     *
-     * Four cards across a 390px screen cannot give a title 91.2px, and the gap
-     * trick buys 3px per card. The strings are the constraint, not the CSS,
-     * which is what the drift survey concluded: shorten `sendMoney` and
-     * `requestMoney` to "Send" and "Request" and the subs to fit, and the card
-     * falls to about 85 with one line each. THAT EDIT IS NOT THIS WORKER'S TO
-     * MAKE: the i18n rule for this build is that a worker may only ADD keys
-     * inside its own namespace, never rewrite another scope's, and two agents
-     * have already collided in that file once. It is recorded in the ledger
-     * with these measurements so whoever owns the wallet copy can close it in
-     * one edit rather than re-deriving the numbers.
-     */
-    padding: var(--nf-space-xs) var(--nf-space-2xs);
+    align-items: flex-start;
+    padding: 0.375rem;
+    border: 1px solid transparent;
+    border-radius: var(--nf-radius-control);
+    background:
+      linear-gradient(180deg, var(--nf-wallet-glass-top) 0%, var(--nf-wallet-glass-mid) 70%) padding-box,
+      linear-gradient(180deg, var(--nf-wallet-rim-side), var(--nf-wallet-rim-top)) border-box;
+    color: var(--nf-content-primary);
     text-align: left;
-    color: var(--nf-content-primary);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 16px -6px var(--nf-glow-3);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  .nf-wallet-quick__title {
-    display: block;
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    line-height: 1.25;
-    text-wrap: balance;
-    color: var(--nf-content-primary);
-  }
-  .nf-wallet-quick__sub {
-    display: block;
-    margin-top: var(--nf-space-3xs);
-    font-size: var(--nf-text-overline);
-    line-height: 1.3;
-    text-wrap: balance;
-    color: var(--nf-content-muted);
-  }
-  /* The plate on a quick card is smaller than the one a section head takes:
-     four of them sit in the width one card used to have. */
-  .nf-wallet-quick__card .nf-glyph-tile {
-    width: 1.875rem;
-    height: 1.875rem;
-    border-radius: var(--nf-radius-sm);
+  .nf-wallet-quick__card:active {
+    transform: scale(var(--nf-press-scale));
   }
   .nf-wallet-quick__card:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
+  }
+  /*
+   * The plate: the render's 31px glass tile. At night it is the pack's crop
+   * of the render's own tile (see QuickPlate.tsx), drawn in a 52px box
+   * because the crop carries its glow as margin, so the tile itself lands
+   * at the render's 31px. On paper it is a stroked
+   * glyph on a brand-tinted plate, because the crop would sit on a navy chip.
+   */
+  .nf-wallet-quick__plate {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    margin: -0.6875rem 0 -0.4375rem -0.6875rem;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-wallet-quick__art {
+    position: absolute;
+    inset: 0;
+  }
+  .nf-wallet-quick__stroke {
+    display: none;
+  }
+
+  .nf-wallet-quick__title,
+  .nf-wallet-quick__sub {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-overline);
+    line-height: 1.2;
+  }
+  .nf-wallet-quick__title {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-wallet-quick__sub {
+    margin-top: 0.0625rem;
+    color: var(--nf-content-muted);
+  }
+  @media (min-width: 640px) {
+    .nf-wallet-quick__title {
+      font-size: var(--nf-text-body-sm);
+    }
+    .nf-wallet-quick__sub {
+      font-size: var(--nf-text-caption);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-wallet-quick__card {
+      transition: none;
+    }
+    .nf-wallet-quick__card:active {
+      transform: none;
+    }
   }
 
   /* A stroked glyph on a small brand-tinted plate. Used where the glyph is a
@@ -412,66 +501,94 @@
 
   /* ---------------------------------------------------------- transactions */
 
+  /*
+   * RECENT TRANSACTIONS, one glass panel as the render draws it: 322 CSS px
+   * for a head and five rows, so each row is 57px, with hairlines between.
+   * Three tight lines at the left (title, the counterparty in blue, the date
+   * and time), the signed amount over the status badge at the right.
+   */
   .nf-tx-card__head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-pad-card-sm) var(--nf-pad-card-sm) 0;
+    gap: var(--nf-space-sm);
+    padding: 0.875rem 0.875rem 0.25rem;
   }
   .nf-tx-list {
-    padding-inline: var(--nf-pad-card-sm);
+    padding-inline: 0.875rem;
     padding-bottom: var(--nf-space-2xs);
   }
-  /*
-   * A SECOND DAY INSIDE THE ONE STATEMENT CARD.
-   *
-   * The statement is one card now rather than one card per calendar day, so
-   * the days need separating from each other INSIDE it. The render separates
-   * its rows with hairlines and gives its days the same rhythm, so a day after
-   * the first takes the row hairline above its heading rather than a new
-   * container. `.nf-tx-card__head` carries top padding for the first day; the
-   * rest get theirs from here, above the rule instead of below it.
-   */
   .nf-tx-group + .nf-tx-group .nf-tx-card__head {
     margin-top: var(--nf-space-2xs);
     border-top: 1px solid var(--nf-divider);
-    padding-top: var(--nf-pad-card-sm);
+    padding-top: 0.875rem;
   }
   .nf-tx-row {
     display: flex;
     width: 100%;
     align-items: center;
-    gap: var(--nf-gap-row);
-    padding-block: var(--nf-pad-row-block);
+    gap: var(--nf-space-sm);
+    min-height: 3.5rem;
+    padding-block: 0.3125rem;
     text-align: left;
     color: var(--nf-content-primary);
     border-radius: var(--nf-radius-sm);
-    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-tx-row + .nf-tx-row {
+  li + li > .nf-tx-row {
     border-top: 1px solid var(--nf-divider);
   }
   @media (hover: hover) {
-    .nf-tx-row:hover {
-      background: var(--nf-glass-fill-thin);
+    .nf-tx-row:hover .nf-tx-row__title {
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
   }
   .nf-tx-row:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: calc(var(--nf-focus-ring-offset) * -1);
   }
-  /* The mark's circle, exactly as the governing render draws it: a tinted
-     plate holding one stroked glyph, so a column of movements reads as a
-     column of directions rather than as a column of blue. The glass tier
-     was here and is gone with its padding; see `kinds.ts` for why. */
+  .nf-tx-row__title {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-tx-row__party {
+    display: block;
+    margin-top: 0.0625rem;
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    color: var(--nf-content-link);
+  }
+  .nf-tx-row__when {
+    display: block;
+    margin-top: 0.0625rem;
+    white-space: nowrap;
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+  }
+  .nf-tx-row__amount {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-tx-row__amount--in {
+    color: var(--nf-state-success);
+  }
+  /* The render's badge is 17 CSS px tall: the shared pill, one line tighter.
+     A 6px corner on 18px is a ratio of 0.33, a rounded rectangle. */
+  .nf-tx-badge {
+    padding-block: 0.0625rem;
+    line-height: 1.25;
+  }
   /*
-   * The transaction glyph circle. 2.75rem is 44px and the render's measures
-   * about 36, MEASURED off `6AF37222` at its 1.70 image-pixels-per-logical
-   * scale. 2.25rem is 36px, and the 8px it gives back goes to the row's
-   * counterparty line, which wraps to two lines at 390 on any real Nigerian
-   * name. The row is not a tap target in its own right, so the 44px floor does
-   * not reach this: the whole ROW is the control and it is 75px tall.
+   * The transaction glyph circle: 61 image px, 36 CSS px, a tinted plate
+   * holding one stroked glyph. A shape, not a control: the whole row is the
+   * control and it is 57px tall.
    */
   .nf-tx-tile {
     display: grid;
@@ -480,12 +597,278 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: var(--nf-radius-circle);
-    border: 1px solid var(--nf-brand-edge);
+    border: 1px solid var(--nf-wallet-rim-side);
     background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
     box-shadow:
       var(--nf-rim-lit),
-      0 6px 16px -12px var(--nf-glow-3);
+      0 0 12px -4px var(--nf-glow-4);
+  }
+
+  /* ------------------------------------------------------------ send money */
+
+  /*
+   * /wallet/send to 77A54EA3, measured at the same 1.71 image px per CSS px.
+   * Under the balance card: the head (a 20px title, a 15px quiet-blue line,
+   * the Instant transfer chip at the right), then ONE glass panel holding a
+   * row per field, the lit button and the reassurance card.
+   */
+  .nf-send-balance-line {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: 0.625rem;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-send-balance-line > svg {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-send-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    margin: 1.25rem 0 0.75rem;
+  }
+  .nf-send-head__title {
+    font-family: var(--nf-font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+  }
+  .nf-send-head__sub {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-link);
+  }
+  /* The chip: 30px in the render; 36 here so a 10px corner stays a rounded
+     rectangle (ratio 0.28). A statement, not a control, and true. */
+  .nf-send-chip-instant {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.25rem;
+    padding-inline: var(--nf-space-sm);
+    border: 1px solid var(--nf-wallet-rim-side);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-link);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: var(--nf-rim-lit), 0 0 14px -6px var(--nf-glow-4);
+  }
+  .nf-send-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 0.625rem;
+  }
+  /* Each row is a glass sub-panel: plate, label over the control. */
+  .nf-send-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--nf-space-sm);
+    min-height: 3.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--nf-wallet-rim-side);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-wallet-glass-mid);
+    box-shadow: var(--nf-rim-lit);
+  }
+  .nf-send-row:focus-within {
+    border-color: var(--nf-wallet-rim-foot);
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 0 3px var(--nf-glow-2);
+  }
+  .nf-send-row__body {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+  .nf-send-row__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+  }
+  .nf-send-row__input {
+    width: 100%;
+    min-height: 1.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+    outline: none;
+  }
+  .nf-send-row__input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-send-row__count {
+    align-self: end;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-send-row__notes {
+    margin: calc(var(--nf-space-2xs) * -1) var(--nf-space-2xs) 0;
+  }
+  .nf-send-row__notes:empty {
+    display: none;
+  }
+  .nf-send-row__hint {
+    font-size: var(--nf-text-overline);
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+  }
+  .nf-send-row__error {
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-state-error);
+  }
+  /* The amount row carries the four quick amounts on a line of their own. */
+  .nf-send-row--amount {
+    row-gap: var(--nf-space-xs);
+  }
+  .nf-send-chips {
+    grid-column: 2 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
+  }
+  /* 24px tall in the render; 36 here, the smallest height at which a 10px
+     corner is still a rectangle and a thumb still hits it. */
+  .nf-send-chip {
+    min-height: 2.25rem;
+    padding-inline: 0.125rem;
+    border: 1px solid var(--nf-wallet-rim-side);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-wallet-tile-fill);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: var(--nf-rim-lit);
+  }
+  .nf-send-chip[aria-pressed="true"] {
+    border-color: var(--nf-wallet-rim-foot);
+    background: var(--nf-gradient-cta);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-send-chip:focus-visible,
+  .nf-send-cta:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The row plates: 57 image px, 34 CSS px, round glass. A shape, not a control. */
+  .nf-send-plate {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+  }
+  .nf-send-row--amount > .nf-send-plate {
+    align-self: start;
+    margin-top: 0.25rem;
+  }
+  /* The crop is 77px for a 57px plate, so it is drawn 36 per cent larger
+     than the box to land the plate itself at the render's 34px. */
+  .nf-send-plate__art {
+    position: absolute;
+    inset: -0.375rem;
+    width: calc(100% + 0.75rem);
+    height: calc(100% + 0.75rem);
+    max-width: none;
+  }
+  .nf-send-plate__stroke {
+    display: none;
+  }
+  /*
+   * THE LIT BUTTON. 44.5 CSS px tall in the render, sampled rgb(0 137 254)
+   * under the top rim, rgb(0 89 253) through the middle and rgb(0 165 251)
+   * along the foot, a white-hot top edge and a blue bloom under it.
+   */
+  .nf-send-cta {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3rem;
+    margin-top: 0.25rem;
+    padding: 0.375rem 1rem 0.375rem 0.375rem;
+    border: 1px solid var(--nf-wallet-rim-foot);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-gradient-cta);
+    color: var(--nf-content-on-brand);
+    text-align: left;
+    box-shadow:
+      inset 0 1px 0 var(--nf-rim-specular),
+      inset 0 -8px 16px -8px var(--nf-wallet-rim-foot),
+      0 12px 28px -10px var(--nf-glow-4),
+      0 0 22px -6px var(--nf-glow-4);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-send-cta:active:not(:disabled) {
+    transform: scale(var(--nf-press-scale));
+  }
+  .nf-send-cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: inset 0 1px 0 var(--nf-rim-specular);
+  }
+  .nf-send-cta__plate {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary-strong);
+    box-shadow: inset 0 1px 0 var(--nf-rim-specular-soft);
+  }
+  .nf-send-cta__label {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 600;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-send-cta {
+      transition: none;
+    }
+    .nf-send-cta:active:not(:disabled) {
+      transform: none;
+    }
+  }
+  /* The reassurance card, inside the panel at its foot. */
+  .nf-send-trust {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--nf-space-sm);
+    padding: 0.75rem;
+    border: 1px solid var(--nf-wallet-rim-side);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-wallet-glass-mid);
+    box-shadow: var(--nf-rim-lit);
+  }
+  .nf-send-trust__title {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-send-trust__facts {
+    margin-top: var(--nf-space-2xs);
+    display: grid;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
   }
 
   /* --------------------------------------------- send and receive sections */
@@ -744,24 +1127,8 @@
   :root[data-theme="light"] .nf-money .nf-odometer-figure {
     color: var(--nf-content-primary);
   }
-  /*
-   * EVERY CONTAINER ON THESE SURFACES READS AS LIT GLASS, AND THE
-   * COMPOSITION IS NO LONGER WRITTEN HERE.
-   *
-   * This rule used to spell out the ring, the rim and the bloom by hand.
-   * The same three parts are now composed once in the token layer as
-   * `--nf-glow-edge`, which the lead put on `.nf-glass--card`,
-   * `.nf-glass--tile` and `.nf-icon-btn`. `.nf-card` is a different material
-   * (a stride-gradient border box) and was NOT promoted with them, so the
-   * money surfaces still have to ask for the edge; what they ask for is the
-   * shared recipe, so there is one composition and not two. The card's own
-   * float rides underneath, exactly as `.nf-glass--card` arranges it.
-   */
-  .nf-money .nf-card {
-    box-shadow:
-      var(--nf-glow-edge),
-      var(--nf-bloom-card);
-  }
+  /* The money cards' material is `.nf-money .nf-card` under "the glass" at
+     the top of this file, measured off the renders. */
   /* The four presets in the send render sit four across inside the gutters.
      At the shared chip padding the fourth ran off the screen. */
   .nf-money .nf-send-presets .nf-chip {
@@ -788,38 +1155,112 @@
 
   /* -------------------------------------------------------------- daylight */
 
-  :root[data-theme="light"] .nf-wallet-hero::before {
-    background: var(--nf-gradient-surface);
-  }
-  :root[data-theme="light"] .nf-wallet-hero__object,
-  :root[data-theme="light"] .nf-money-hero__object {
-    filter: drop-shadow(0 10px 18px var(--nf-glow-1));
-  }
   /*
-   * Paper keeps the anatomy and loses the bloom (rule 7, and the light law).
-   * The edge stays brand-tinted rather than grey, so the family reads as the
-   * same design in daylight, but nothing here glows: a blurred blue halo on
-   * white paper reads as a printing fault rather than as light.
+   * PAPER KEEPS THE ANATOMY. The page is white, so the panels become white
+   * glass with a brand-tinted top and a brand hairline, no bloom (a blurred
+   * blue halo on white reads as a printing fault, not as light).
+   *
+   * THE BALANCE CARD STAYS A DEEP BLUE CARD ON PAPER, deliberately. It is the
+   * one object on the screen that is a card in the physical sense, the glass
+   * wallet object needs something to be glass against, and on a white panel
+   * the untwinned object would sit on the pack's blue chip, a dark square
+   * punched into white paper. On deep blue the object reads as it does at
+   * night and the chip is switched off inside the card only. The card's text
+   * is therefore white in both themes.
    */
-  :root[data-theme="light"] .nf-wallet-tile {
-    background: var(--nf-surface-inset);
-    border-color: var(--nf-brand-edge-soft);
+  :root[data-theme="light"] .nf-money {
+    --nf-wallet-glass-top: color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-primary));
+    --nf-wallet-glass-mid: var(--nf-surface-primary);
+    --nf-wallet-glass-foot: var(--nf-surface-primary);
+    --nf-wallet-tile-fill: var(--nf-surface-primary);
+    --nf-wallet-rim-top: color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-primary));
+    --nf-wallet-rim-side: color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-primary));
+    --nf-wallet-rim-foot: color-mix(in oklab, var(--nf-brand-primary) 22%, var(--nf-surface-primary));
+  }
+  :root[data-theme="light"] .nf-money .nf-card,
+  :root[data-theme="light"] .nf-wallet-quick__card {
+    box-shadow: 0 6px 18px -12px var(--nf-glow-2);
+  }
+  :root[data-theme="light"] .nf-wallet-hero {
+    background:
+      linear-gradient(
+          180deg,
+          var(--nf-brand-primary) 0%,
+          color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-content-primary)) 100%
+        )
+        padding-box,
+      linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-primary)),
+          var(--nf-brand-primary)
+        )
+        border-box;
+    box-shadow: 0 14px 30px -16px var(--nf-glow-4);
+  }
+  :root[data-theme="light"] .nf-wallet-hero::after {
+    background: radial-gradient(52% 60% at 82% 30%, var(--nf-wash-on-media-1) 0%, transparent 70%);
+  }
+  :root[data-theme="light"] .nf-wallet-hero__object .nf-brand-icon-ground {
+    background: none;
     box-shadow: none;
   }
+  :root[data-theme="light"] .nf-wallet-hero__object {
+    filter: drop-shadow(0 10px 18px var(--nf-glow-3));
+  }
+  :root[data-theme="light"] .nf-wallet-hero,
+  :root[data-theme="light"] .nf-wallet-hero .nf-wallet-figure,
+  :root[data-theme="light"] .nf-wallet-hero .nf-money-kobo,
+  :root[data-theme="light"] .nf-money .nf-wallet-hero .nf-odometer-figure {
+    color: var(--nf-content-on-brand);
+  }
+  :root[data-theme="light"] .nf-wallet-hero__label,
+  :root[data-theme="light"] .nf-wallet-hero__note {
+    color: var(--nf-content-on-media-secondary);
+  }
+  :root[data-theme="light"] .nf-wallet-eye {
+    color: var(--nf-content-on-media-accent);
+  }
+  :root[data-theme="light"] .nf-wallet-change {
+    color: var(--nf-content-on-media-accent);
+  }
+  :root[data-theme="light"] .nf-wallet-tile {
+    border-color: var(--nf-wash-on-media-2);
+    background: var(--nf-wash-on-media-1);
+    color: var(--nf-content-on-brand);
+    box-shadow: inset 0 1px 0 var(--nf-wash-on-media-2);
+  }
+  :root[data-theme="light"] .nf-wallet-tile__glyph {
+    color: var(--nf-content-on-media-accent);
+  }
   :root[data-theme="light"] .nf-wallet-tile--primary {
-    background: var(--nf-brand-primary);
-    border-color: transparent;
-    box-shadow: var(--nf-glow-accent);
+    border-color: var(--nf-content-on-media-muted);
+    background: var(--nf-content-on-brand);
+    color: var(--nf-brand-primary);
+    box-shadow: 0 8px 18px -10px var(--nf-glow-4);
+  }
+  :root[data-theme="light"] .nf-wallet-tile--primary .nf-wallet-tile__glyph {
+    color: var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-wallet-quick__art {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-wallet-quick__stroke {
+    display: grid;
+    place-items: center;
+    width: 1.9375rem;
+    height: 1.9375rem;
+    border: 1px solid var(--nf-brand-edge-soft);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-primary);
   }
   :root[data-theme="light"] .nf-glyph-tile,
   :root[data-theme="light"] .nf-tx-tile,
   :root[data-theme="light"] .nf-recipient__avatar {
     background: var(--nf-brand-tint-1);
     border-color: var(--nf-brand-edge-soft);
+    color: var(--nf-brand-primary);
     box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-money .nf-card {
-    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
   }
   :root[data-theme="light"] .nf-recipient[aria-pressed="true"] .nf-recipient__avatar {
     background: var(--nf-brand-primary);
@@ -833,5 +1274,39 @@
   }
   :root[data-theme="light"] .nf-result-mark--lit::before {
     display: none;
+  }
+  :root[data-theme="light"] .nf-send-plate__art {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-send-plate__stroke {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--nf-brand-edge-soft);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-send-balance-line,
+  :root[data-theme="light"] .nf-send-balance-line > svg {
+    color: var(--nf-content-on-media-secondary);
+  }
+  :root[data-theme="light"] .nf-send-row,
+  :root[data-theme="light"] .nf-send-trust,
+  :root[data-theme="light"] .nf-send-chip {
+    background: var(--nf-surface-primary);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-send-chip[aria-pressed="true"] {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  :root[data-theme="light"] .nf-send-chip-instant {
+    background: var(--nf-brand-tint-1);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-send-cta {
+    box-shadow: 0 10px 22px -12px var(--nf-glow-4);
   }
 }

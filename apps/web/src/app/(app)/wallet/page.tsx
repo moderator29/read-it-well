@@ -5,7 +5,8 @@ import { Reveal } from "@/components/site/Reveal";
 import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { RecentActivity } from "@/components/app/wallet/RecentActivity";
-import { TrustStrip } from "@/components/app/wallet/TrustStrip";
+import { LiveWallet } from "@/components/app/wallet/LiveWallet";
+import { resolveSession } from "@/lib/actions/session";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
 import { getWalletForViewer } from "@/lib/wallet/repository";
 import { isYellowCardConfigured } from "@/lib/payments/yellowcard";
@@ -20,9 +21,12 @@ export const metadata: Metadata = { title: "Wallet" };
 /**
  * Wallet.
  *
- * The balance hero with its four tiles, the quick actions, the pots when
- * the migration is applied, the recent transactions card and the trust
- * strip. Every figure is the viewer's real ledger: the balance derived by
+ * To its governing render (6AF37222): the balance card with its four tiles,
+ * Quick Actions, then Recent Transactions; the savings pots follow, below
+ * what the render draws, because they are real money and the render has no
+ * place for them. The render's header row (back, lockup, bell, profile) is
+ * the shared app bar, not this page. The trust strip belongs to the send
+ * render and is drawn there, not here. Every figure is the viewer's real ledger: the balance derived by
  * the wallet_balances view and the newest entries under RLS, so the number
  * on screen and the rows beneath it can never disagree.
  *
@@ -35,6 +39,10 @@ export const metadata: Metadata = { title: "Wallet" };
  * return trip lands here as ?funded=1&reference=rm-fund-..., where the
  * verifier credits the ledger idempotently in case the webhook has not
  * arrived yet. `?action=fund|withdraw|crypto` opens that sheet on arrival.
+ *
+ * LIVE. `LiveWallet` listens for this person's wallet notifications (the
+ * ledger trigger writes one for every settled movement) and re-reads the
+ * page, so money that lands while the page is open appears without a reload.
  */
 export default async function WalletPage({
   searchParams,
@@ -45,7 +53,8 @@ export default async function WalletPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.wallet.home;
-  const wallet = await getWalletForViewer();
+  const [wallet, session] = await Promise.all([getWalletForViewer(), resolveSession()]);
+  const userId = session.state === "signed-in" ? session.user.id : null;
   /* Pots answer "unavailable" until their migration is applied and are
      simply not drawn in that state. */
   const pots = await readPots();
@@ -115,23 +124,21 @@ export default async function WalletPage({
               cryptoEnabled={isYellowCardConfigured()}
               usdRate={usdRate}
               initialAction={initialAction}
-              settings={<WalletSettingsSheet />}
+              settings={<WalletSettingsSheet card={{ title: copy.settingsLink, sub: copy.quickSettingsSub }} />}
             />
           </Reveal>
 
+          <Reveal delay={120} className="nf-wallet-section">
+            <RecentActivity entries={wallet.entries} locale={locale} copy={copy} />
+          </Reveal>
+
           {pots.state === "ok" && (
-            <Reveal delay={120} className="mt-block">
+            <Reveal delay={160} className="mt-block">
               <PotsSection pots={pots.pots} locale={locale} />
             </Reveal>
           )}
 
-          <Reveal delay={140} className="mt-block">
-            <RecentActivity entries={wallet.entries} locale={locale} copy={copy} />
-          </Reveal>
-
-          <Reveal delay={180} className="mt-block">
-            <TrustStrip copy={copy} />
-          </Reveal>
+          <LiveWallet userId={userId} />
         </>
       )}
     </div>

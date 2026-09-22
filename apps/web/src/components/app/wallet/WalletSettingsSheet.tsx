@@ -5,27 +5,29 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
 import { Row, RowList } from "@/components/app/Screen";
+import { QuickPlate } from "./QuickPlate";
 
 /**
  * Wallet settings.
  *
- * The trust strip - bank-level encryption, kobo-exact ledger, PIN and 2FA -
+ * The wallet's protections (writes only on our servers, a kobo-exact ledger)
  * used to sit as three tiles at the very bottom of the wallet, below the
  * transaction history. That is the wrong place for it twice over: it is the
  * last thing a user reaches on a screen whose whole point is the money above
  * it, and it is reference material rather than something you act on, so it was
  * competing for space with the ledger.
  *
- * It belongs in the wallet's own settings, reached from the top of the screen,
- * which is also where the rest of the wallet's controls will land: transaction
- * PIN, two-factor, payout account, statements. The sheet is the container for
- * all of that rather than a one-off panel for the trust copy.
+ * It belongs in the wallet's own settings. Only what is true today is said
+ * here: the render-style claims ("bank-level encryption", a PIN "at launch")
+ * were removed on 22 September under the rule that the images govern form and
+ * never claims (docs/design/references/roles/README.md). What the wallet is
+ * NOT is said as plainly as the terms say it (lib/legal/terms.tsx, section 15).
  */
 
 const PROTECTIONS: { icon: BrandIconName; title: string; body: string }[] = [
   {
     icon: "shield-lock",
-    title: "Bank-level encryption",
+    title: "Moved only by our servers",
     body: "Wallet writes happen only on our servers, never from a browser.",
   },
   {
@@ -33,28 +35,42 @@ const PROTECTIONS: { icon: BrandIconName; title: string; body: string }[] = [
     title: "Ledger-recorded to the kobo",
     body: "Every movement lives in a permanent, kobo-exact ledger.",
   },
-  {
-    icon: "doc-shield",
-    title: "PIN and 2FA at launch",
-    body: "A transaction PIN and two-factor authentication ship with launch.",
-  },
 ];
 
-export function WalletSettingsSheet() {
+/**
+ * `card` draws the trigger as a Quick Actions card on the wallet home (the
+ * plate, one title line, one sub line), which is where it lives now.
+ * Without it the trigger is the square icon button.
+ */
+export function WalletSettingsSheet({ card }: { card?: { title: string; sub: string } } = {}) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Wallet settings"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        className="nf-icon-btn shrink-0"
-      >
-        <UiIcon name="settings-gear" size={20} />
-      </button>
+      {card ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          className="nf-wallet-quick__card"
+        >
+          <QuickPlate art="shield-check-tile" glyph="shield-check" />
+          <span className="nf-wallet-quick__title">{card.title}</span>
+          <span className="nf-wallet-quick__sub">{card.sub}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Wallet settings"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          className="nf-icon-btn shrink-0"
+        >
+          <UiIcon name="settings-gear" size={20} />
+        </button>
+      )}
 
       <Sheet open={open} onOpenChange={setOpen} title="Wallet settings">
         <section aria-labelledby="wallet-protection-heading">
@@ -98,8 +114,8 @@ export function WalletSettingsSheet() {
           settings sheet full of dead switches is worse than a short one.
         */}
         <p className="nf-body-sm mt-block leading-relaxed text-[var(--nf-content-muted)]">
-          Transaction PIN, two-factor authentication and payout accounts will
-          appear here as they ship.
+          A Vallo wallet balance is a record in naira, not a bank deposit, and it
+          is not insured by the Nigeria Deposit Insurance Corporation. There is no transaction PIN on the wallet today.
         </p>
       </Sheet>
     </>

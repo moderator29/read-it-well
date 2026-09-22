@@ -2804,6 +2804,20 @@ export const en = {
      * 18 September 2026 (Build 06, E).
      */
     home: {
+      /* Session B, wallet home (22 September 2026): the tiles' label, the
+         quick-action cards that fit one line each at 390px, the settings link. */
+      actionsLabel: "Wallet actions",
+      quickSend: "Send",
+      quickSendSub: "To a wallet",
+      quickStatementSub: "All history",
+      quickCards: "Cards",
+      quickCardsSub: "And banks",
+      addMoneyTile: "Add money",
+      historyTile: "History",
+      quickRequest: "Request",
+      quickRequestSub: "Send a link",
+      settingsLink: "Settings",
+      quickSettingsSub: "Your wallet",
       totalBalance: "Total Balance",
       hideBalance: "Hide balance",
       showBalance: "Show balance",
@@ -3744,6 +3758,19 @@ export const en = {
    * Added 18 September 2026 (Build 05, FE-2).
    */
   walletSend: {
+    /* Session B, send money to 77A54EA3 (22 September 2026). The three
+       reassurance lines are the only claims on the page and each is true
+       of the code and the terms (lib/legal/terms.tsx section 15). */
+    availableBalance: "Available Balance",
+    sendSub: "Wallet to wallet, by email",
+    instantChip: "Instant transfer",
+    narrationLabel: "Narration (optional)",
+    narrationPlaceholder: "Add a short note",
+    sendCta: "Send Money",
+    trustTitle: "How a send works",
+    trustHolds: "Your wallet is Vallo's naira record of your money, not a bank deposit.",
+    trustFails: "If a send fails, nothing leaves your wallet: both sides move together or not at all.",
+    trustRecall: "A completed send cannot be recalled. Only the person you paid can send it back.",
     title: "Send money",
     lede: "To another Vallo wallet, by the email on their account. It lands the moment you confirm.",
     recipientLabel: "Their email",

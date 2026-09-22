@@ -2057,6 +2057,18 @@ export const yo: Dictionary = withFallback({
       REVERSED: "A ti yí padà",
     },
     home: {
+      actionsLabel: "Ìṣe àpò owó",
+      quickSend: "Fi ránṣẹ́",
+      quickSendSub: "Sí àpò owó",
+      quickStatementSub: "Gbogbo ìṣílọ",
+      quickCards: "Káàdì",
+      quickCardsSub: "Àti báńkì",
+      addMoneyTile: "Fi owó kún",
+      historyTile: "Ìtàn",
+      quickRequest: "Béèrè",
+      quickRequestSub: "Fi ìjápọ̀ ránṣẹ́",
+      settingsLink: "Ètò",
+      quickSettingsSub: "Àpò owó rẹ",
       totalBalance: "Àpapọ̀ owó tó kù",
       hideBalance: "Fi owó tó kù pamọ́",
       showBalance: "Fi owó tó kù hàn",
@@ -2929,6 +2941,12 @@ export const yo: Dictionary = withFallback({
   /* Build 05, FE-2. Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
+    availableBalance: "Owó tó wà",
+    sendSub: "Sí àpò owó Vallo èyíkéyìí, pẹ̀lú ímeèlì wọn",
+    instantChip: "Ìfiránṣẹ́ lẹ́sẹ̀kẹsẹ̀",
+    narrationLabel: "Àlàyé (àṣàyàn)",
+    narrationPlaceholder: "Kọ àkọsílẹ̀ kúkúrú",
+    sendCta: "Fi owó ránṣẹ́",
     title: "Fi owó ránṣẹ́",
     lede: "To another Vallo wallet, by the email on their account. It lands the moment you confirm.",
     recipientLabel: "Ímeèlì wọn",
