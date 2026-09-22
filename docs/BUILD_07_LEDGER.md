@@ -206,6 +206,9 @@ work and nothing waits on it that can be built around.
 | The solicitor's answer on custody | No code path that places the company in custody of third party naira ships until it is recorded here. |
 | `agents.verified` | Now a derived copy of `agent_badges.verified`. Dropping the column is data-losing and on the stop list. |
 | The completed credit colour | The render draws it cyan, ours is emerald, and our colour law reserves cyan for PENDING. Emerald stays and the render is recorded as carrying a mistake unless he rules otherwise. |
+| The LASRERA figures, before a single string ships | B1. `ROLE_ARCHITECTURE_RESEARCH.md`'s honesty log records that `lasrera.lagosstate.gov.ng` was refused by the egress proxy and that every Nigerian legal claim in Parts 3 and 4 rests on a search index's summary of a page nobody read. So the penalty figures, the document set, the fee schedule, and whether registration binds a private landlord letting their own property at all, are all unconfirmed. **Nothing B1 shipped prints any of them.** LASRERA is named in the checklist copy as a field a person may fill in and as something a reader may filter on, and the copy never states what the law requires or what ignoring it costs. A spec in `lib/supply/roles.test.ts` fails if a percentage, a naira figure or a regulator's name reaches the door copy. It stays that way until a lawyer has read the statute and the register. |
+| The two titling figures | B1. "Over 97 per cent of Nigerian land untitled" and "71.4 per cent of landlords with no title, 8.1 per cent with a C of O" measure different things, land area against sampled landlords, and both come through a search summary. The design conclusion holds under either, so what shipped is the BEHAVIOUR and not the number: "I have none of these" is a first class answer that reaches a published listing and never earns the words "ownership verified". No figure is printed anywhere in the product. |
+| The ESVARBON section number and the tenancy percentages | B1, inherited from HANDOFF 09 section 7. Not reached by this scope, named here so the list is complete rather than only carrying what one worker touched. |
 
 ---
 
@@ -223,7 +226,91 @@ the worker. No row, no close, and the lead does not commit it.
 
 | Surface | Governing image | Proof | Ratio sweep | Worker |
 | --- | --- | --- | --- | --- |
-| (none closed yet this build) | | | | |
+| `/start` | none, inherits the register | `a2/start-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/sign-in` | none, inherits the register | `a2/sign-in-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/sign-in/email` | none, inherits the register | `a2/sign-in-email-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/sign-up` | none, inherits the register | `a2/sign-up-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/sign-up/email` | none, inherits the register | `a2/sign-up-email-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/sign-up/verify` | none, inherits the register | `a2/sign-up-verify-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/forgot-password` | none, inherits the register | `a2/forgot-password-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/reset-password` | none, inherits the register | `a2/reset-password-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/about` | none, inherits the register | `a2/about-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/help` | none, inherits the register | `a2/help-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/contact` | none, inherits the register | `a2/contact-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/safety` | none, inherits the register | `a2/safety-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/standards` | none, inherits the register | `a2/standards-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/careers` | none, inherits the register | `a2/careers-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/docs` | none, inherits the register | `a2/docs-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/delete-account` | none, inherits the register | `a2/delete-account-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/cancellations` | none, inherits the register | `a2/cancellations-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/privacy` | none, inherits the register | `a2/privacy-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/terms` | none, inherits the register | `a2/terms-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| `/verification` | none, inherits the register | `a2/verification-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
+| The offline card, `apps/web/native-shell/index.html` | none, inherits the register; drawn to it for the first time | `a2/native-shell-no-connection-390-{dark,light}.png`, `a2/native-shell-no-server-390-{dark,light}.png` | measured in the browser: plate 0.27, button 0.28, card 0.07, note 0.12; the only circle is the explanatory glyph | A2 |
+| The dock with the raised centre switch, on `/home` | `GOVERNING-01` screen one | `b1/dock-390-dark.png`, taken on `next start` at `6b7e21f` | dock object 18 on 52 = 0.346 | B1 |
+| The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png` | row marks 14 on 44 = 0.318; standing label 6 on 25 = 0.244 | B1 |
+| The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png` | row 14 on 56 = 0.25 | B1 |
+
+
+**A2's register extensions, recorded so the founder can check them.** The
+twelve governing images draw none of the surfaces above, so every one of them
+inherits. Four screens were given the register's brand object behind their
+first line, which every other own-data screen in the product already had and
+these four did not: `/notifications` (bell-badge), `/saved/searches`
+(search-ring), `/verification` (shield-check) and `/profile/setup`
+(keys-home). The offline card was drawn to the register from scratch: navy
+ground with the aurora, the glass panel with its lit top rim, the brand
+object on its rounded plate, the rounded rectangle control, and the calm
+explanatory panel with its small round glyph.
+
+**What A2 did NOT close, said plainly.** `/welcome`, `/saved`,
+`/saved/searches`, `/trips`, `/notifications`, `/profile/setup`,
+`/legal/privacy`, `/legal/terms` and `/docs/[slug]` carry no row above.
+Everything except the last two is behind the signed-in gate in `proxy.ts` and
+a stranger is redirected to `/sign-in`, so no proof of the route itself can be
+taken without a session this worker does not have. Where a proof of the same
+components exists it comes off the preview harness and says so; a preview is
+not the route, and the two had drifted apart, which is recorded below.
+
+**B1, Track O: every item that lived on the More surface, with its new home,
+and the proof each one resolves.** The founder's instruction was that nothing
+on More may become unreachable. The honest finding is that **More had no
+contents of its own**: it was a `<button>` in the dock calling `openDrawer`,
+not a destination, and there is no `/more` route anywhere in the tree
+(`find apps/web/src/app -ipath "*more*"` returns nothing). So its contents are
+the side drawer's contents, they have not moved, and the drawer now holds one
+row MORE than it did rather than one fewer. The drawer's other opener, the
+hamburger in the app header, renders on every route the dock renders on
+(`AppShell` draws it whenever `showsHeader`, which is every in-app page that
+is not immersive or edge to edge), so the surface is one tap away exactly as
+it was. Item by item, from `buildNav`: Home `/home`, Search `/search`, Feed
+`/around` (all three dock rows, hidden in the drawer below `lg` because the
+dock carries them); Bookings `/bookings`, Inspections `/inspections`, Messages
+`/messages`, Notifications `/notifications`, Saved `/saved`, Wallet `/wallet`,
+Crypto `/crypto`, AI Assistant `/assistant`; the workspace rows Agent Mode
+`/agent/dashboard` and Console `/admin` for those who hold them; and the tail,
+Add a workspace `/profile/setup` and Settings `/settings`. On the Stays side
+Stays `/stays`, Explore `/stays/search` and Trips `/trips` replace their three
+twins. Plus the foot: Switch profile (new), the coin, the theme row and the
+legal row. `b1/more-proof` walks the open drawer on a production server and
+fetches every `href` it draws.
+
+**B1's register extensions, recorded so they can be checked.** `GOVERNING-01`
+and `02` govern everything this scope drew except three pieces of anatomy the
+set uses everywhere and draws nowhere in isolation: the progress row of small
+filled rectangles (`.nf-steprow`), the calm explanatory panel with its small
+round glyph (`.nf-calmpanel`), and the workspace standing label
+(`.nf-switch-standing`). All three are built from the register and the last is
+the one the renders draw as a capsule.
+
+**And the preview harness was quietly lying about two of them.**
+`/preview/f3/saved` and `/preview/f3/trips` drew their boards in a bare
+`max-w-3xl` while the real pages draw them inside `nf-cat-surface` with a
+`PageScene` behind the heading. `nf-cat-surface` is what lights every
+`.nf-card` under it with the brand ring and its bloom, so every proof taken
+off those two routes showed cards DULLER than the ones a person meets, with
+the scene absent. Both now carry the real wrapper. A harness that drifts from
+the page is the same failure as a screenshot of a 404, only quieter.
 
 ---
 
