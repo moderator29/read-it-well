@@ -26,7 +26,7 @@
  */
 import sharp from "sharp";
 import { mkdir } from "node:fs/promises";
-import { writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -216,6 +216,480 @@ SURFACES.send = async () => {
     await cutObject(render, [left, top, 64, 64], path.join(dir, `plate-${name}`), { feather: 0.04 });
   }
 };
+
+/* ======================================================================== */
+/* roles: the platform identity pack (worker "identity")                     */
+/* Governing: docs/design/references/roles/GOVERNING-01 to 12.               */
+/* ======================================================================== */
+
+/*
+ * THE KEY IS THE SHARED PIPELINE'S OWN CODE, NOT A COPY OF IT.
+ *
+ * `scripts/cut-icon-ground.mjs` exports nothing and runs its whole cut over
+ * `assets/brand-sliced` the moment it is imported, so an `import` would rewrite
+ * `assets/brand-cut` as a side effect. Instead this reads that file's text and
+ * evaluates only its keying section: from the FLOOR constant down to, and not
+ * including, `cutOne`. That is `keyRender` (the two-pass plane fit of the ground
+ * on a ring at the box edge, then the brightest-channel key with the hue kept
+ * by scaling all three channels by one number), `dropEdgeStrays` and
+ * `squareWithMargin`, byte for byte as the shared pack runs them. If the shared
+ * file is ever restructured so these markers move, this throws rather than
+ * silently keying with something else.
+ */
+function sharedKeying() {
+  const src = readFileSync(path.join(ROOT, "scripts/cut-icon-ground.mjs"), "utf8");
+  const from = src.indexOf("/** Below this, on its brightest channel");
+  const to = src.indexOf("async function cutOne(");
+  if (from < 0 || to < 0 || to <= from) {
+    throw new Error("cut-icon-ground.mjs moved: the roles block cannot find the shared keying section");
+  }
+  const body = src.slice(from, to);
+  // eslint-disable-next-line no-new-func
+  return new Function(
+    "Buffer",
+    `${body}\nreturn { keyRender, dropEdgeStrays, squareWithMargin, RENDER_MARGIN, CEIL, RENDER_FLOOR };`,
+  )(Buffer);
+}
+
+const ROLES_DIR = "docs/design/references/roles";
+const R = {
+  "01": "GOVERNING-01-switch-home-sheet-drawer.png",
+  "02": "GOVERNING-02-add-workspace-chooser.png",
+  "03": "GOVERNING-03-register-owner.png",
+  "04": "GOVERNING-04-register-agent.png",
+  "05": "GOVERNING-05-register-firm.png",
+  "06": "GOVERNING-06-list-property-1-the-property.png",
+  "07": "GOVERNING-07-list-property-2-light-water-media.png",
+  "08": "GOVERNING-08-list-property-3-money-and-id.png",
+  "09": "GOVERNING-09-stays-home-switch-and-doors.png",
+  "10": "GOVERNING-10-set-up-hotel.png",
+  "11": "GOVERNING-11-set-up-shortlet-and-restaurant.png",
+  "12": "GOVERNING-12-review-desk-notification-search-by-id.png",
+};
+
+/*
+ * THE OBJECTS. Box is left, top, width, height in the render's own pixels
+ * (every roles render is 1536 x 1024; 10 is 1535). Each box stops short of the
+ * card border, the caption and any neighbouring control, so its edge ring is
+ * the render's surface and the plane fit reads ground, not object.
+ *
+ * Optional treatments, all applied to the render BEFORE the key:
+ *   retouch  ellipses [cx, cy, rx, ry] or rects [x0, y0, x1, y1] rebuilt by a
+ *            harmonic fill from the pixels around them (tick badges that
+ *            overlap an object, lettering on a sign).
+ *   keep     an ellipse [cx, cy, rx, ry] outside which alpha fades to zero
+ *            over 4 px; only used where the ground is a drawn map whose
+ *            street lines would otherwise survive the key.
+ *   clip     alpha below this (0 to 255) is dropped after the key, then the
+ *            stray pass runs again; same purpose as `keep`.
+ */
+const ROLES_OBJECTS = [
+  /* 01: home, switch sheet, drawer */
+  { name: "home-buy-tile", r: "01", box: [77, 387, 75, 76], what: "House glyph on a lit glass tile, the home Buy quick tile", screen: "01 home" },
+  { name: "home-rent-tile", r: "01", box: [159, 387, 75, 76], what: "Key glyph on a lit glass tile, the home Rent quick tile", screen: "01 home" },
+  { name: "home-manage-tile", r: "01", box: [241, 387, 75, 76], what: "Building glyph on a lit glass tile, the home Manage quick tile", screen: "01 home" },
+  { name: "home-invest-tile", r: "01", box: [405, 387, 75, 76], what: "Rising chart glyph on a lit glass tile, the home Invest quick tile", screen: "01 home" },
+  { name: "switch-owner-orb", r: "01", box: [1080, 582, 74, 74], what: "House glyph in a glass orb, the Owner workspace (drawer Switch profile row; the sheet's Owner row draws the same orb smaller)", screen: "01 sheet, 01 drawer" },
+  { name: "switch-agent-orb", r: "01", box: [578, 497, 62, 64], what: "Key glyph in a glass orb, the Agent workspace row", screen: "01 sheet" },
+  { name: "switch-firm-orb", r: "01", box: [578, 587, 62, 64], what: "Building glyph in a glass orb, the firm workspace row", screen: "01 sheet" },
+  { name: "switch-add-orb", r: "01", box: [578, 708, 62, 64], what: "Plus in a glass orb, Add a workspace (05 team and 09 sheet draw the same orb)", screen: "01 sheet, 05, 09" },
+
+  /* 02: add a workspace, what we will ask */
+  { name: "door-owner-house", r: "02", box: [112, 294, 114, 110], what: "3D glass house on its glass tile, the I own the property door", screen: "02 chooser" },
+  { name: "door-agent-key", r: "02", box: [114, 446, 108, 96], what: "3D glass key on its glass tile, the I am an agent door", screen: "02 chooser" },
+  { name: "door-firm-building", r: "02", box: [114, 583, 112, 104], what: "3D glass office block on its glass tile, the registered firm door", screen: "02 chooser" },
+  { name: "ask-person-tile", r: "02", box: [1078, 303, 84, 86], what: "Person glyph on a glass tile, Who you are", screen: "02 what we will ask" },
+  { name: "ask-pin-tile", r: "02", box: [1078, 439, 84, 86], what: "Map pin on a glass tile, Where the property is", screen: "02 what we will ask" },
+  { name: "ask-doc-shield-tile", r: "02", box: [1078, 573, 84, 86], what: "Document with a shield on a glass tile, What proves it is yours", screen: "02 what we will ask" },
+  { name: "ask-clock-tile", r: "02", box: [1077, 711, 54, 56], what: "Clock on a small glass tile, About five minutes", screen: "02 what we will ask" },
+
+  /* 03: owner registration */
+  { name: "owner-house-orb", r: "03", box: [282, 146, 76, 78], what: "House glyph in a lit glass orb, the owner registration header", screen: "03 about you" },
+  { name: "owner-shield-tile", r: "03", box: [56, 585, 56, 62], what: "Split shield on a glass tile, We check who you are", screen: "03 about you" },
+  { name: "owner-map-pin", r: "03", box: [552, 336, 54, 62], keep: [579, 367, 22, 29], what: "Glass map pin, drawn over the map", screen: "03 where do you own" },
+  { name: "doc-certificate-orb", r: "03", box: [810, 284, 52, 52], what: "Document glyph in a glass orb, Certificate of Occupancy (Deed and I have none of these draw the same)", screen: "03 proof of ownership" },
+  { name: "doc-consent-orb", r: "03", box: [810, 400, 52, 52], what: "Document with a seal in a glass orb, Governor's consent", screen: "03 proof of ownership" },
+  { name: "doc-survey-orb", r: "03", box: [810, 457, 52, 52], what: "Plan sheet in a glass orb, Survey plan", screen: "03 proof of ownership" },
+  { name: "doc-utility-orb", r: "03", box: [810, 513, 52, 52], what: "Bill sheet in a glass orb, Utility bill in your name", screen: "03 proof of ownership" },
+  { name: "ownership-proof-orb", r: "03", box: [1043, 148, 72, 72], what: "House outline with a key in a dark glass orb, the proof of ownership header", screen: "03 proof of ownership" },
+  { name: "info-orb", r: "03", box: [816, 666, 40, 40], what: "Lit round info glyph, the calm info panel", screen: "03, 04, 05, 08 info panels" },
+  { name: "owner-set-up-house", r: "03", box: [1228, 222, 212, 168], what: "3D glass house with a tick badge on a glowing plinth, You are set up as an owner", screen: "03 submitted" },
+
+  /* 04: agent registration */
+  { name: "agent-id-card", r: "04", box: [459, 360, 94, 90], what: "3D glass ID card, Take a photo of your ID", screen: "04 prove who you are" },
+  { name: "agent-selfie-orb", r: "04", box: [462, 495, 88, 92], what: "Person in a lit glass orb, Take a selfie", screen: "04 prove who you are" },
+  { name: "agent-key-plinth", r: "04", box: [1210, 240, 228, 150], what: "3D glass key on a glass plinth, We are checking your details", screen: "04 submitted" },
+
+  /* 05: firm registration */
+  { name: "firm-building-plinth", r: "05", box: [1200, 280, 248, 178], what: "3D glass office block on a glowing plinth (05 screen 1 draws the same smaller)", screen: "05 your firm, 05 under review" },
+  { name: "firm-letter", r: "05", box: [446, 311, 88, 88], what: "3D glass letter on a stand, Upload a letter from your principal", screen: "05 prove you work here" },
+  { name: "firm-stamp", r: "05", box: [448, 452, 82, 94], what: "3D glass rubber stamp, Have your principal confirm you", screen: "05 prove you work here" },
+
+  /* 06: listing wizard, the property */
+  { name: "list-rent-house", r: "06", box: [60, 278, 90, 94], retouch: [[140, 289, 13, 13]], what: "3D glass house on a plinth, To rent (tick badge retouched out)", screen: "06 what are you listing" },
+  { name: "list-sale-sign", r: "06", box: [176, 282, 82, 86], retouch: [[206, 318, 238, 333], [216, 334, 227, 344]], what: "3D glass for-sale sign on a plinth, For sale (the lettering on the board retouched blank)", screen: "06 what are you listing" },
+  { name: "list-land-plot", r: "06", box: [279, 280, 84, 90], what: "Glass land plot with a tree, Land", screen: "06 what are you listing" },
+  { name: "type-flat", r: "06", box: [66, 508, 70, 72], what: "Glass apartment block, Flat", screen: "06 property type" },
+  { name: "type-duplex", r: "06", box: [178, 508, 70, 72], what: "Glass two-storey house, Duplex", screen: "06 property type" },
+  { name: "type-bungalow", r: "06", box: [287, 510, 70, 72], what: "Glass bungalow, Bungalow", screen: "06 property type" },
+  { name: "type-self-contain", r: "06", box: [68, 638, 70, 70], what: "Glass small house, Self contain", screen: "06 property type" },
+  { name: "type-shop", r: "06", box: [176, 645, 70, 68], what: "Glass shop front with an awning, Shop", screen: "06 property type" },
+  { name: "type-office", r: "06", box: [288, 648, 70, 68], what: "Glass office block, Office", screen: "06 property type" },
+  { name: "room-bedrooms", r: "06", box: [806, 258, 56, 58], what: "Bed glyph on a soft glass tile, Bedrooms", screen: "06 the rooms" },
+  { name: "room-bathrooms", r: "06", box: [806, 343, 56, 60], what: "Shower glyph on a soft glass tile, Bathrooms", screen: "06 the rooms" },
+  { name: "room-toilets", r: "06", box: [806, 425, 56, 60], what: "Toilet glyph on a soft glass tile, Toilets", screen: "06 the rooms" },
+  { name: "room-size", r: "06", box: [806, 512, 56, 66], what: "Measured square glyph on a soft glass tile, Size", screen: "06 the rooms" },
+  { name: "room-furnishing", r: "06", box: [806, 616, 56, 64], what: "Sofa glyph on a soft glass tile, Furnishing", screen: "06 the rooms" },
+  { name: "room-floor", r: "06", box: [806, 712, 56, 62], what: "Stair glyph on a soft glass tile, Floor", screen: "06 the rooms" },
+  { name: "condition-fair", r: "06", box: [1182, 312, 56, 56], what: "House glyph in a glass orb, Fair condition", screen: "06 condition" },
+  { name: "condition-good", r: "06", box: [1352, 312, 74, 58], what: "Glass house, Good condition", screen: "06 condition" },
+  { name: "condition-new", r: "06", box: [1182, 444, 58, 62], what: "Glass house with a bow, New", screen: "06 condition" },
+  { name: "condition-off-plan", r: "06", box: [1352, 444, 76, 62], what: "Glass tower crane, Off plan", screen: "06 condition" },
+
+  /* 07: light, water, amenities, media */
+  { name: "light-bulb-plinth", r: "07", box: [282, 152, 94, 114], what: "3D glass light bulb on a plinth, the Light step header", screen: "07 light" },
+  { name: "power-sun", r: "07", box: [64, 306, 42, 42], what: "Sun glyph, 24 hours", screen: "07 light" },
+  { name: "power-clock-orb", r: "07", box: [228, 306, 42, 42], what: "Alarm clock in a glass orb, 16 to 20 hours (8 to 12 draws the same)", screen: "07 light" },
+  { name: "none-orb", r: "07", box: [228, 411, 42, 42], what: "Prohibition circle in a glass orb, Less than 8 hours, None, No running water", screen: "07 light, 07 water" },
+  { name: "power-inverter", r: "07", box: [64, 642, 42, 42], what: "Inverter glyph, Inverter", screen: "07 light" },
+  { name: "power-solar", r: "07", box: [229, 643, 44, 40], what: "Solar panel glyph, Solar", screen: "07 light" },
+  { name: "water-drop-plinth", r: "07", box: [650, 162, 94, 90], what: "3D glass water drop on a plinth, the Water step header", screen: "07 water" },
+  { name: "water-borehole", r: "07", box: [604, 324, 54, 52], what: "Borehole pump on a base, Borehole (water source)", screen: "07 water" },
+  { name: "water-well", r: "07", box: [444, 440, 50, 50], what: "Well with a bucket, Well", screen: "07 water" },
+  { name: "amenity-parking", r: "07", box: [818, 280, 60, 46], what: "Car glyph, Parking", screen: "07 amenities" },
+  { name: "amenity-security", r: "07", box: [934, 278, 48, 50], what: "Shield glyph, Security", screen: "07 amenities" },
+  { name: "amenity-water-heater", r: "07", box: [1044, 278, 46, 50], what: "Water heater glyph, Water heater", screen: "07 amenities" },
+  { name: "amenity-air-conditioning", r: "07", box: [818, 388, 60, 40], what: "Split unit glyph, Air conditioning", screen: "07 amenities" },
+  { name: "amenity-wifi", r: "07", box: [928, 384, 52, 48], what: "Wi-Fi glyph, WiFi", screen: "07 amenities" },
+  { name: "amenity-fitted-kitchen", r: "07", box: [1036, 382, 52, 50], what: "Cooker glyph, Fitted kitchen", screen: "07 amenities" },
+  { name: "amenity-wardrobe", r: "07", box: [826, 488, 44, 50], what: "Wardrobe glyph, Wardrobe", screen: "07 amenities" },
+  { name: "amenity-balcony", r: "07", box: [930, 488, 50, 50], what: "Balcony glyph, Balcony", screen: "07 amenities" },
+  { name: "amenity-gated-estate", r: "07", box: [1036, 490, 54, 48], what: "Gate glyph, Gated estate", screen: "07 amenities" },
+  { name: "amenity-borehole", r: "07", box: [828, 596, 44, 50], what: "Wellhead glyph, Borehole (amenity)", screen: "07 amenities" },
+  { name: "amenity-generator", r: "07", box: [928, 600, 52, 46], what: "Generator glyph, Generator (the backup power row draws the same smaller)", screen: "07 amenities, 07 light" },
+  { name: "amenity-running-water", r: "07", box: [1040, 596, 52, 48], what: "Tap glyph, Running water (Treated mains draws the same tap)", screen: "07 amenities, 07 water" },
+  { name: "amenity-pop-ceiling", r: "07", box: [818, 700, 60, 42], what: "Recessed ceiling glyph, POP ceiling", screen: "07 amenities" },
+  { name: "amenity-tiled-floor", r: "07", box: [926, 704, 56, 42], what: "Floor tiles glyph, Tiled floor", screen: "07 amenities" },
+  { name: "amenity-garden", r: "07", box: [1046, 698, 42, 52], what: "Potted plant glyph, Garden", screen: "07 amenities" },
+  { name: "media-camera-plinth", r: "07", box: [1444, 166, 54, 66], what: "Glass camera on a small plinth, the Photos step header", screen: "07 photos" },
+  { name: "media-video-tile", r: "07", box: [1188, 606, 48, 52], what: "Film strip glyph on a glass tile, Video walkthrough", screen: "07 photos" },
+
+  /* 08: money and the listing ID */
+  { name: "price-rent-house", r: "08", box: [436, 292, 52, 52], what: "House glyph on a soft glass tile, Rent (annual)", screen: "08 what a tenant pays" },
+  { name: "price-agency-person", r: "08", box: [436, 367, 52, 48], what: "Person at a desk glyph on a soft glass tile, Agency fee", screen: "08 what a tenant pays" },
+  { name: "price-legal-doc", r: "08", box: [436, 440, 52, 52], what: "Document and pen glyph on a soft glass tile, Legal fee", screen: "08 what a tenant pays" },
+  { name: "price-caution-shield", r: "08", box: [436, 514, 52, 52], what: "Shield glyph on a soft glass tile, Caution deposit", screen: "08 what a tenant pays" },
+  { name: "price-service-gear", r: "08", box: [436, 594, 52, 52], what: "Gear glyph on a soft glass tile, Service charge", screen: "08 what a tenant pays" },
+  { name: "price-total-coins", r: "08", box: [437, 682, 64, 68], what: "Stacked coins on a glass tile, Total to move in", screen: "08 what a tenant pays" },
+  { name: "review-sent-house", r: "08", box: [1238, 168, 186, 146], what: "3D glass house with a tick badge on a glowing plinth, Sent for review", screen: "08 listing ID" },
+
+  /* 09: stays home, sheet, doors */
+  { name: "stays-hotels-bed", r: "09", box: [76, 472, 94, 74], what: "3D glass bed on a plinth, Hotels", screen: "09 stays home" },
+  { name: "stays-shortlets-house", r: "09", box: [248, 470, 94, 72], what: "3D glass house on a plinth, Shortlets", screen: "09 stays home" },
+  { name: "stays-restaurants-cloche", r: "09", box: [82, 604, 90, 74], what: "3D glass cloche on a plinth, Restaurants", screen: "09 stays home" },
+  { name: "stays-nearby-pin", r: "09", box: [258, 604, 76, 74], what: "3D glass map pin on a plinth, Nearby (06 where is it draws the same pin on its disc, over the map, where it cannot be keyed clean)", screen: "09 stays home, 06 where is it" },
+  { name: "stays-switch-person-orb", r: "09", box: [434, 292, 70, 70], what: "Person in a glass orb, Personal (stays sheet)", screen: "09 switch profile" },
+  { name: "stays-switch-hotel-orb", r: "09", box: [434, 396, 70, 70], what: "Hotel block in a glass orb, a hotel workspace", screen: "09 switch profile" },
+  { name: "stays-door-hotel", r: "09", box: [806, 280, 92, 94], what: "Glass hotel block in a glass orb, We are a hotel", screen: "09 stays doors" },
+  { name: "stays-door-shortlet", r: "09", box: [806, 402, 92, 94], what: "Glass bed in a glass orb, I run a shortlet", screen: "09 stays doors" },
+  { name: "stays-door-restaurant", r: "09", box: [806, 524, 92, 94], what: "Glass cloche in a glass orb, We are a restaurant", screen: "09 stays doors" },
+
+  /* 10: hotel setup */
+  { name: "facility-pool", r: "10", box: [1192, 278, 52, 42], what: "Pool ladder glyph, Pool", screen: "10 facilities" },
+  { name: "facility-gym", r: "10", box: [1302, 278, 54, 40], what: "Dumbbell glyph, Gym", screen: "10 facilities" },
+  { name: "facility-parking", r: "10", box: [1413, 278, 52, 42], what: "Car glyph, Parking (hotel)", screen: "10 facilities" },
+  { name: "facility-restaurant", r: "10", box: [1199, 364, 38, 48], what: "Fork and knife glyph, Restaurant", screen: "10 facilities" },
+  { name: "facility-airport-shuttle", r: "10", box: [1305, 366, 50, 46], what: "Minibus glyph, Airport shuttle", screen: "10 facilities" },
+  { name: "facility-generator", r: "10", box: [1416, 366, 46, 46], what: "Generator with a bolt glyph, Generator (hotel)", screen: "10 facilities" },
+  { name: "facility-wifi", r: "10", box: [1214, 457, 54, 44], what: "Wi-Fi glyph, WiFi (hotel)", screen: "10 facilities" },
+  { name: "facility-air-conditioning", r: "10", box: [1382, 456, 46, 46], what: "Snowflake glyph, Air conditioning (hotel)", screen: "10 facilities" },
+  { name: "add-tile", r: "10", box: [443, 556, 44, 44], what: "Plus on a small glass tile, Add a room type", screen: "10 room types" },
+
+  /* 11: shortlet and restaurant */
+  { name: "shortlet-entire-flat", r: "11", box: [86, 186, 66, 64], retouch: [[154, 200, 11, 11]], what: "Glass apartment block on a plinth, Entire flat (tick badge retouched out)", screen: "11 your place" },
+  { name: "shortlet-whole-house", r: "11", box: [196, 188, 62, 60], what: "Glass house on a plinth, Whole house", screen: "11 your place" },
+  { name: "shortlet-private-room", r: "11", box: [293, 188, 62, 60], what: "Glass object on a plinth captioned Private room; the render drew a car", screen: "11 your place" },
+  { name: "restaurant-plate-orb", r: "11", box: [812, 108, 110, 106], what: "Plate, fork and knife before a glass cloche, Your restaurant header", screen: "11 your restaurant" },
+
+  /* 12: review desk and notification centre */
+  { name: "notify-listing-live", r: "12", box: [813, 261, 54, 54], what: "House on a lit glass tile, Your listing is live", screen: "12 notification centre" },
+  { name: "notify-message", r: "12", box: [813, 345, 54, 54], what: "Speech bubble on a glass tile, New message", screen: "12 notification centre" },
+  { name: "notify-viewed", r: "12", box: [813, 416, 54, 54], what: "Eye on a glass tile, Your listing was viewed", screen: "12 notification centre" },
+  { name: "notify-approved", r: "12", box: [813, 486, 54, 54], what: "Tick in a ring on an emerald glass tile, Listing approved", screen: "12 notification centre" },
+  { name: "notify-reminder", r: "12", box: [813, 553, 54, 54], what: "Bell on a glass tile, Reminder", screen: "12 notification centre" },
+  { name: "notify-follower", r: "12", box: [813, 619, 54, 54], what: "Person on a glass tile, New follower", screen: "12 notification centre" },
+  { name: "notify-system", r: "12", box: [813, 750, 54, 54], what: "Info glyph on a glass tile, System update", screen: "12 notification centre" },
+  { name: "admin-avatar-orb", r: "12", box: [307, 96, 40, 42], what: "Person in a glass orb, the review desk's admin chip", screen: "12 review queue" },
+];
+
+/* The one stage: cut WITH its night ground and feathered, never keyed. */
+const ROLES_STAGES = [
+  {
+    name: "hotel-scene",
+    r: "10",
+    box: [55, 256, 310, 122],
+    feather: { left: 34, right: 34, top: 18, bottom: 14 },
+    /* three small lettering-like panels on the facade and over the door, blanked */
+    retouch: [[161, 276, 181, 287], [201, 273, 224, 284], [214, 334, 228, 341]],
+    what: "The glowing glass hotel before its palms and pool at night, Your hotel header (09 draws the same scene smaller). Three small lettering-like panels on the facade retouched blank",
+    screen: "10 your hotel, 09 set up a hotel",
+  },
+];
+
+/** Harmonic fill of masked pixels, on a float RGB copy of the render. */
+function rolesRetouch(px, w, h, shapes) {
+  const mask = new Uint8Array(w * h);
+  for (const s of shapes) {
+    if (s.rect) {
+      const [x0, y0, x1, y1] = s.rect;
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) mask[y * w + x] = 1;
+    } else {
+      const [cx, cy, rx, ry] = s.ellipse;
+      for (let y = Math.floor(cy - ry - 1); y <= cy + ry + 1; y++) {
+        for (let x = Math.floor(cx - rx - 1); x <= cx + rx + 1; x++) {
+          if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1) mask[y * w + x] = 1;
+        }
+      }
+    }
+  }
+  const idx = [];
+  for (let i = 0; i < mask.length; i++) if (mask[i]) idx.push(i);
+  const sum = [0, 0, 0];
+  let n = 0;
+  for (const i of idx) {
+    for (const j of [i - 1, i + 1, i - w, i + w]) {
+      if (!mask[j]) {
+        for (let k = 0; k < 3; k++) sum[k] += px[j * 3 + k];
+        n++;
+      }
+    }
+  }
+  for (const i of idx) for (let k = 0; k < 3; k++) px[i * 3 + k] = sum[k] / Math.max(1, n);
+  for (let p = 0; p < 2000; p++) {
+    for (const i of idx) {
+      for (let k = 0; k < 3; k++) {
+        px[i * 3 + k] = (px[(i - 1) * 3 + k] + px[(i + 1) * 3 + k] + px[(i - w) * 3 + k] + px[(i + w) * 3 + k]) / 4;
+      }
+    }
+  }
+}
+
+/** Retouch shapes are [cx, cy, rx, ry] (an ellipse, rx < cx) or [x0, y0, x1, y1] (a rect, x1 > x0). */
+function rolesShapes(list) {
+  return (list ?? []).map((s) => (s[2] > s[0] ? { rect: s } : { ellipse: s }));
+}
+
+/*
+ * THE PAPER RENDITION. A night object keyed for a dark ground goes green and
+ * washed on white, and its faint outer bloom shows as a pale square, so every
+ * roles object also ships a `-day` file for the light theme, from the same
+ * key: bloom below alpha 50 is dropped, and each pixel is re-inked on the brand
+ * ramp by how lit it was, from #9CC2FF (the glass body) to #06379A (the
+ * brightest edges). The object then reads as blue glass drawn on paper and
+ * sits on the pale icon tile of docs/design/GLOW_IDENTITY.md section 4, never
+ * on a dark plate. A derived rendition, not commissioned light artwork.
+ */
+const ROLES_DAY_BODY = [156, 194, 255];
+const ROLES_DAY_EDGE = [6, 55, 154];
+const ROLES_DAY_FLOOR = 50;
+function rolesDay(rgba) {
+  const out = Buffer.alloc(rgba.length);
+  for (let i = 0; i < rgba.length; i += 4) {
+    const a = rgba[i + 3];
+    if (a < ROLES_DAY_FLOOR) continue;
+    const r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
+    const lit = Math.min(1, (Math.min(r, g) / 255) * 1.2 + (Math.max(r, g, b) / 255) * 0.35);
+    for (let k = 0; k < 3; k++) out[i + k] = Math.round(ROLES_DAY_BODY[k] + (ROLES_DAY_EDGE[k] - ROLES_DAY_BODY[k]) * lit);
+    out[i + 3] = Math.min(255, Math.round(((a - ROLES_DAY_FLOOR) / (255 - ROLES_DAY_FLOOR)) * 255 * 1.1));
+  }
+  return out;
+}
+
+async function rolesLoad(file) {
+  const { data, info } = await sharp(path.join(ROOT, ROLES_DIR, file)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  return { w: info.width, h: info.height, px: Float32Array.from(data) };
+}
+
+function rolesExtract(img, [left, top, width, height]) {
+  const out = Buffer.alloc(width * height * 3);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const s = ((top + y) * img.w + left + x) * 3;
+      const d = (y * width + x) * 3;
+      for (let k = 0; k < 3; k++) out[d + k] = Math.max(0, Math.min(255, Math.round(img.px[s + k])));
+    }
+  }
+  return out;
+}
+
+SURFACES.roles = async function roles() {
+  const K = sharedKeying();
+  const dir = path.join(OUT, "roles");
+  mkdirSync(dir, { recursive: true });
+  const cache = new Map();
+  const rows = [];
+
+  /* `--stages-only` re-cuts the stage without re-keying the objects. */
+  for (const o of process.argv.includes("--stages-only") ? [] : ROLES_OBJECTS) {
+    const file = R[o.r];
+    const key = `${file}|${JSON.stringify(o.retouch ?? [])}`;
+    if (!cache.has(key)) {
+      const img = await rolesLoad(file);
+      if (o.retouch) rolesRetouch(img.px, img.w, img.h, rolesShapes(o.retouch));
+      cache.set(key, img);
+    }
+    const img = cache.get(key);
+    const [left, top, width, height] = o.box;
+    const rgb = rolesExtract(img, o.box);
+    const keyed = K.keyRender(rgb, width, height, 3);
+    if (o.keep) {
+      const [cx, cy, rx, ry] = o.keep;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const d = Math.sqrt(((left + x - cx) / rx) ** 2 + ((top + y - cy) / ry) ** 2);
+          const f = d <= 1 ? 1 : Math.max(0, 1 - ((d - 1) * Math.min(rx, ry)) / 4);
+          const q = (y * width + x) * 4 + 3;
+          keyed[q] = Math.round(keyed[q] * f);
+        }
+      }
+    }
+    if (o.clip) for (let q = 3; q < keyed.length; q += 4) if (keyed[q] < o.clip) keyed[q] = 0;
+    K.dropEdgeStrays(keyed, width, height);
+    const { data: sq, edge } = K.squareWithMargin(keyed, width, height);
+    const raw = { raw: { width: edge, height: edge, channels: 4 } };
+    await sharp(sq, raw).png({ compressionLevel: 9 }).toFile(path.join(dir, `${o.name}.png`));
+    await sharp(sq, raw).webp({ quality: 92, alphaQuality: 100, effort: 6 }).toFile(path.join(dir, `${o.name}.webp`));
+    const big = sharp(sq, raw).resize(256, 256, { kernel: "lanczos3" });
+    await big.clone().png({ compressionLevel: 9 }).toFile(path.join(dir, `${o.name}-256.png`));
+    await big.clone().webp({ quality: 92, alphaQuality: 100, effort: 6 }).toFile(path.join(dir, `${o.name}-256.webp`));
+    const day = rolesDay(sq);
+    await sharp(day, raw).png({ compressionLevel: 9 }).toFile(path.join(dir, `${o.name}-day.png`));
+    await sharp(day, raw).webp({ quality: 92, alphaQuality: 100, effort: 6 }).toFile(path.join(dir, `${o.name}-day.webp`));
+    const bigDay = sharp(day, raw).resize(256, 256, { kernel: "lanczos3" });
+    await bigDay.clone().png({ compressionLevel: 9 }).toFile(path.join(dir, `${o.name}-day-256.png`));
+    await bigDay.clone().webp({ quality: 92, alphaQuality: 100, effort: 6 }).toFile(path.join(dir, `${o.name}-day-256.webp`));
+    rows.push({ ...o, file, edge, native: Math.max(width, height) });
+  }
+
+  const stageRows = [];
+  for (const s of ROLES_STAGES) {
+    const img = await rolesLoad(R[s.r]);
+    if (s.retouch) rolesRetouch(img.px, img.w, img.h, rolesShapes(s.retouch));
+    const [left, top, width, height] = s.box;
+    const out = Buffer.alloc(width * height * 4);
+    const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const si = ((top + y) * img.w + left + x) * 3;
+        const di = (y * width + x) * 4;
+        const a =
+          smooth(x / s.feather.left) *
+          smooth((width - 1 - x) / s.feather.right) *
+          smooth(y / s.feather.top) *
+          smooth((height - 1 - y) / s.feather.bottom);
+        for (let k = 0; k < 3; k++) out[di + k] = Math.round(img.px[si + k]);
+        out[di + 3] = Math.round(a * 255);
+      }
+    }
+    const raw = { raw: { width, height, channels: 4 } };
+    await sharp(out, raw).png({ compressionLevel: 9 }).toFile(path.join(dir, `${s.name}.png`));
+    await sharp(out, raw).webp({ quality: 90, alphaQuality: 90, effort: 6 }).toFile(path.join(dir, `${s.name}.webp`));
+    stageRows.push({ ...s, file: R[s.r] });
+  }
+
+  if (rows.length) writeFileSync(path.join(dir, "SOURCES.md"), rolesSources(rows, stageRows));
+};
+
+function rolesSources(rows, stageRows) {
+  const table = rows
+    .map(
+      (o) =>
+        `| \`${o.name}\` | \`${o.file.slice(0, 12)}\` | ${o.box.join(", ")} | ${o.native} | ${o.edge} | ${o.screen} | ${o.what} |`,
+    )
+    .join("\n");
+  const manifest = rows
+    .map(
+      (o) =>
+        `  "${o.name}": {\n    render: "roles/${o.file}",\n    box: { left: ${o.box[0]}, top: ${o.box[1]}, width: ${o.box[2]}, height: ${o.box[3]} },\n    native: ${o.native},\n    what: "${o.what.replace(/"/g, '\\"')}",\n  },`,
+    )
+    .join("\n");
+  const stages = stageRows
+    .map((s) => `| \`${s.name}\` | \`${s.file.slice(0, 12)}\` | ${s.box.join(", ")} | ${s.box[2]} x ${s.box[3]} | ${s.screen} | ${s.what} |`)
+    .join("\n");
+  return `# The roles icon pack
+
+Every 3D glass object and glass icon tile drawn in the twelve renders in
+\`docs/design/references/roles/\`, cut by \`scripts/design/session-b-crops.mjs\`
+(block roles). Do not edit these files by hand: change the script and re-run
+\`node scripts/design/session-b-crops.mjs --surface roles\`.
+
+**Key.** The shared pipeline's own \`keyRender\` from \`scripts/cut-icon-ground.mjs\`
+(read from that file and evaluated, not copied): a two-pass plane fit of the
+ground on a ring at the box edge, subtracted only to find how much of each
+pixel's brightest channel is object, then the brightest-channel key with all
+three channels scaled by one number so the hue is the render's hue. Then
+\`dropEdgeStrays\` and \`squareWithMargin\`, the same 10 per cent margin as the
+pack's 41 render crops.
+
+**Files per object.** \`<name>.png\` and \`<name>.webp\` at native size (the
+square edge column), \`<name>-256.png\` and \`<name>-256.webp\` at the pack's 256
+edge. Where native is under 256 the 256 file is an upsample (Lanczos) and reads
+exactly as soft as the native number says; nothing sharper was invented.
+
+**Sizes, honestly.** Native is the object's longer side in render pixels. At
+a 3x phone a crop is pin sharp up to native / 3 CSS px and acceptably soft to
+native / 2. So: 40 to 60 native (the glyph tiles, orbs and amenities) belong
+in 20 to 32 CSS px slots; 70 to 115 (the doors, the plinth objects) up to
+40 to 56; the four hero objects (\`owner-set-up-house\`, \`agent-key-plinth\`,
+\`firm-building-plinth\`, \`review-sent-house\`) up to 96 to 120.
+
+**Duplicates.** Checked against all 144 objects in \`public/brand/glass\`: none of
+them is the same drawing as any object here (the nearest, \`home-ring\`,
+\`key-ring\`, \`chart-ring\`, \`building-chip\`, \`doc-shield\`, \`pin-map\`,
+\`land-plot\`, \`duplex\`, \`bungalow\`, \`mini-flat\`, \`shop-retail\`,
+\`office-space\`, \`id-card-check\`, \`hotel-bed\`, \`concierge-bell\`, \`info\`,
+\`home-check\`, \`camera\`, are different drawings in a different style), so
+nothing was skipped as already filed. Within the set, where two screens draw
+the same object only the larger drawing was cut, and its row names both screens.
+
+**Light theme.** No render draws these on paper, and a night object on white
+goes green and washed, with its faint bloom showing as a pale square. So each
+object also ships \`<name>-day.png\` / \`.webp\` and \`-day-256\`: the same key
+with the faint bloom (alpha under 50) dropped and every pixel re-inked on the
+brand ramp by how lit it was, \`#9CC2FF\` for the glass body to \`#06379A\` for
+the brightest edges. On paper it sits bare, or on the PALE icon tile of
+\`docs/design/GLOW_IDENTITY.md\` section 4. Never on a dark plate (the light
+survey's condemned defect). It is a derived rendition, not commissioned light
+artwork. See \`docs/design/proofs/session-b/identity/roles-pack-paper.png\`.
+
+## Objects
+
+| Name | Render | Box (left, top, w, h) | Native px | Square edge | Screen | What it is |
+| --- | --- | --- | ---: | ---: | --- | --- |
+${table}
+
+## Stage (cut with its ground, feathered, not keyed)
+
+| Name | Render | Box (left, top, w, h) | Source px | Screen | What it is |
+| --- | --- | --- | --- | --- | --- |
+${stages}
+
+## Suggested \`RENDER_CROPS\` entries for \`scripts/icon-manifest.mjs\`
+
+Paste inside \`RENDER_CROPS\`. The \`render\` path is relative to
+\`docs/design/references/\`, as every existing entry is. Three need a
+treatment the manifest pipeline does not have yet: \`list-rent-house\` and
+\`shortlet-entire-flat\` (a tick badge retouched out), \`list-sale-sign\` (the
+board's lettering retouched blank), and \`owner-map-pin\` (a \`keep\` mask against the drawn map). Until
+the slicer grows a retouch step, take those four from this folder rather than
+re-cutting them raw.
+
+\`\`\`js
+  /* roles/: the platform identity pack (Session B, docs/SESSION_B_SCOPE.md section 10). */
+${manifest}
+\`\`\`
+`;
+}
 
 /* ================================================================= run */
 
