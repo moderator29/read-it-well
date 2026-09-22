@@ -7,6 +7,7 @@ import {
   STALE_HOLD_MINUTES,
 } from "@/lib/admin/payments-queries";
 import { findAdminSubject } from "@/lib/admin/queries";
+import { getTermsStanding } from "@/lib/admin/legal-queries";
 import { adminUi } from "../_components/ui";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { SweepHolds } from "./SweepHolds";
@@ -63,10 +64,16 @@ export default async function AdminPaymentsPage({
     getPaymentHealth(STALE_HOLD_MINUTES),
     term.length > 0 ? findAdminSubject(term) : Promise.resolve(null),
   ]);
-  const methods =
+  const found =
     lookup && lookup.state === "ok" && lookup.data?.state === "found"
-      ? await getSavedMethods(lookup.data.subject.userId)
+      ? lookup.data.subject.userId
       : null;
+  /* Both reads for the same person, started together: the panel draws one
+     block and a second round trip for the legal row would show as a stall. */
+  const [methods, standing] = await Promise.all([
+    found ? getSavedMethods(found) : Promise.resolve(null),
+    found ? getTermsStanding(found) : Promise.resolve(null),
+  ]);
   /* The moment this page's rows were read, handed to the sweep control so its
      age arithmetic runs against the same clock the list was built from. */
   const asOf = new Date().toISOString();
@@ -302,7 +309,13 @@ export default async function AdminPaymentsPage({
         </ui.Section>
       )}
 
-      <LookupPanel term={term} lookup={lookup} methods={methods} ui={ui} />
+      <LookupPanel
+        term={term}
+        lookup={lookup}
+        methods={methods}
+        standing={standing}
+        ui={ui}
+      />
     </div>
   );
 }

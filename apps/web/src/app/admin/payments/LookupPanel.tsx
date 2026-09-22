@@ -1,4 +1,5 @@
 import type { SavedMethods } from "@/lib/admin/payments-queries";
+import type { TermsStanding } from "@/lib/admin/legal-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { AdminRead, SubjectLookup } from "@/lib/admin/queries";
 import type { AdminUi } from "../_components/ui";
@@ -22,12 +23,19 @@ export function LookupPanel({
   term,
   lookup,
   methods,
+  standing = null,
   ui,
   base = "/admin/payments",
 }: {
   term: string;
   lookup: AdminRead<SubjectLookup | null> | null;
   methods: AdminRead<SavedMethods> | null;
+  /**
+   * What this person agreed to and when. Optional, and null is a real state
+   * that the row below says out loud, so a caller that has not fetched it and
+   * a person who has nothing on file are never confused for one another.
+   */
+  standing?: AdminRead<TermsStanding> | null;
   ui: AdminUi;
   /** Where the GET lands. The desk's own path unless a harness says otherwise. */
   base?: string;
@@ -53,7 +61,9 @@ export function LookupPanel({
         </button>
       </form>
 
-      {term.length > 0 && <LookupResult lookup={lookup} methods={methods} ui={ui} />}
+      {term.length > 0 && (
+        <LookupResult lookup={lookup} methods={methods} standing={standing} ui={ui} />
+      )}
     </ui.Section>
   );
 }
@@ -61,10 +71,12 @@ export function LookupPanel({
 export function LookupResult({
   lookup,
   methods,
+  standing = null,
   ui,
 }: {
   lookup: AdminRead<SubjectLookup | null> | null;
   methods: AdminRead<SavedMethods> | null;
+  standing?: AdminRead<TermsStanding> | null;
   ui: AdminUi;
 }) {
   if (!lookup || lookup.state !== "ok") {
@@ -112,6 +124,8 @@ export function LookupResult({
       <p className="font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
         {subject.userId}
       </p>
+
+      <TermsRow standing={standing} />
 
       {saved === null ? (
         <div className="mt-sm">
@@ -202,5 +216,54 @@ export function LookupResult({
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * What this person agreed to, and when.
+ *
+ * THE FIRST QUESTION ASKED IN EVERY DISPUTE, and until `terms_acceptances`
+ * existed the console could not answer it, because nothing had ever written it
+ * down: the sign-up form carried a version string, the auth metadata carried
+ * it onward, and `profiles` had no column to put it in.
+ *
+ * Three states, said apart rather than collapsed. A read that failed is not an
+ * empty answer. An account with nothing on file is not an account that
+ * refused: every account made before 22 September 2026 has nothing on file
+ * because nothing was being recorded, and the row says exactly that instead of
+ * implying somebody declined.
+ */
+function TermsRow({ standing }: { standing: AdminRead<TermsStanding> | null }) {
+  if (!standing || standing.state !== "ok") {
+    return (
+      <p className="nf-body-sm mt-row text-content-2">
+        What this person accepted could not be read just now.
+      </p>
+    );
+  }
+  if (standing.data.nothingOnFile) {
+    return (
+      <p className="nf-body-sm mt-row text-content-2">
+        Nothing on file. Acceptances have been recorded since 22 September 2026,
+        so an account opened before then has no receipt to show.
+      </p>
+    );
+  }
+  return (
+    <ul className="nf-rows mt-row">
+      {standing.data.accepted.map((accepted) => (
+        <li key={`${accepted.document}-${accepted.version}`} className="nf-row flex-wrap">
+          <span className="min-w-0 flex-1">
+            <span className="nf-body-sm block font-semibold text-content">
+              Accepted the {accepted.document === "privacy" ? "privacy notice" : "terms"}, version{" "}
+              {accepted.version}
+            </span>
+            <span className="nf-body-sm block text-content-2">
+              {new Date(accepted.acceptedAt).toISOString().slice(0, 10)} · {accepted.source}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

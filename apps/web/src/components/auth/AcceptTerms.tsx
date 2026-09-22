@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
+import { TERMS_VERSION } from "@/lib/legal/versions";
 
 /**
  * The tick that turns a notice into an acceptance.
@@ -21,22 +22,30 @@ import type { Dictionary } from "@vallo/i18n";
  *
  * WHAT THIS COMPONENT IS AND IS NOT. It is the control and the hidden version
  * field. It is NOT the enforcement: the form it sits in refuses to submit
- * until it is ticked, and `public.profiles.terms_accepted_at` is written by
- * the sign-up trigger only when a version arrived with the metadata, so a
- * request assembled by hand without the field records no acceptance rather
- * than a false one.
+ * until it is ticked, and the server writes the receipt.
+ *
+ * THE COMMENT HERE USED TO BE WRONG, AND IT WAS WRONG IN THE MOST EXPENSIVE
+ * DIRECTION. It said `public.profiles.terms_accepted_at` was written by the
+ * sign-up trigger when a version arrived with the metadata. Measured against
+ * the live database on 22 September 2026: `public.profiles` has no
+ * `terms_accepted_at` column and no `terms_version` column, and
+ * `handle_new_user` does not mention terms at all. The hidden field below was
+ * submitted, carried into the auth metadata, and dropped. NOBODY'S ACCEPTANCE
+ * HAD EVER BEEN RECORDED, while three comments and a test said it had.
+ *
+ * It is recorded now, in `public.terms_acceptances`, written by the server
+ * through `lib/legal/acceptance.ts` at the moment the account is created.
  */
 
 /**
- * The version string recorded against an acceptance.
+ * Re-exported so the tick box and its hidden field keep one import.
  *
- * It is the date the three documents last changed together, not a number, so
- * a row in `profiles.terms_version` says which text was on screen without
- * anybody having to keep a separate table of what version meant what. Change
- * it whenever the Terms, the Privacy policy or the Community Rules change in
- * a way a person should be asked about again.
+ * The constant itself moved to `lib/legal/versions.ts` when the acceptance was
+ * given a table: a version string that two files can each declare is a version
+ * string that will eventually disagree with itself, and this one already had a
+ * second declaration by the time it was looked for.
  */
-export const TERMS_VERSION = "2026-09-22";
+export { TERMS_VERSION };
 
 export function AcceptTerms({
   t,
