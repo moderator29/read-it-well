@@ -158,7 +158,7 @@
   /* The active tab is the lit blue button: gradient fill, a brighter top rim,
      and a soft bloom cast below it. */
   .nf-rv-tab[aria-current="page"] {
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand));
+    border-color: var(--nf-admin-cta-edges, var(--nf-brand-primary));
     background: linear-gradient(
       180deg,
       color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)) 0%,
@@ -176,22 +176,22 @@
   }
 
   /* ------------------------------------------------------------ the panel */
+  /* The glow identity (docs/design/GLOW_IDENTITY.md) as admin-shell applies
+     it to every console container: the lit fill, the per-side lit edges, the
+     rim along the top and the quiet field glow, all read from the variables
+     `.nf-admin` defines for both themes, so this desk inherits the identity
+     rather than restating a flatter copy of it. */
   .nf-rv-panel {
     position: relative;
     min-width: 0;
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-sm); /* 6.5 image px x1.5 = 10 */
+    border-radius: var(--nf-radius-md);
     border: 1px solid var(--nf-border-brand);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-brand-primary) 13%, var(--nf-surface-primary)) 0%,
-        color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-primary)) 100%
-      );
+    border-color: var(--nf-admin-panel-edges, var(--nf-border-brand));
+    background: var(--nf-admin-panel-fill, var(--nf-surface-primary));
     box-shadow:
-      var(--nf-rim-lit),
-      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 8%, transparent),
-      0 18px 40px -24px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+      var(--nf-admin-panel-glow, none);
   }
 
   .nf-rv-panel--flush {
@@ -233,7 +233,9 @@
     align-items: flex-start;
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-xs);
-    border: 1px dashed var(--nf-brand-edge-soft);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+    box-shadow: var(--nf-rim-lit);
     font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-secondary);
@@ -711,7 +713,7 @@
   }
 
   .nf-rv-pager__item[aria-current="page"] {
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand));
+    border-color: var(--nf-admin-cta-edges, var(--nf-brand-primary));
     background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)), var(--nf-brand-primary-strong));
     color: var(--nf-content-on-brand);
     box-shadow:
@@ -840,6 +842,7 @@
     height: 32px;
     border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-border-brand);
+    border-color: var(--nf-admin-tile-edges, var(--nf-border-brand));
     background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-surface-primary)), color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-primary)));
     box-shadow: var(--nf-rim-lit), 0 0 12px -4px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
     color: var(--nf-content-on-brand);
@@ -1212,13 +1215,6 @@
  * glyphs become pale brand wells with brand ink so no dark tile sits on a
  * white page.
  */
-:root[data-theme="light"] .nf-rv-panel {
-  background: var(--nf-surface-primary);
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 6%, transparent),
-    0 12px 28px -20px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
-}
-
 :root[data-theme="light"] .nf-rv-tab,
 :root[data-theme="light"] .nf-rv-pager__item,
 :root[data-theme="light"] .nf-rv-back,
