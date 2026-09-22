@@ -998,6 +998,20 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
   if (error) {
     if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
     if (error.code === "23514") {
+      /* TWO TRIGGERS RAISE THIS CODE AND THEY MEAN DIFFERENT THINGS, so the
+         one sentence a host reads is chosen by which of them spoke.
+         `private.room_inventory_within_total` refuses more rooms than the type
+         holds, which the check above normally catches and which can still
+         arrive if the room type shrank between the two. The column's own CHECK
+         refuses leaving fewer open than are already sold, which means a guest
+         has booked that night and the host is looking at the wrong number
+         rather than at a fault. */
+      if (/cannot be offered/i.test(error.message ?? "")) {
+        return fail(
+          "That is more rooms than this type has. Change how many of this room there are first, then set the nights.",
+          { unitsOpen: "More than the room type holds." },
+        );
+      }
       return fail(
         "One of those nights already has more rooms booked than you are leaving open. Open at least as many as are sold, or pick a different run of nights.",
       );

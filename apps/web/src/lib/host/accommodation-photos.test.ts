@@ -40,6 +40,9 @@ function shortletDraft(photos: { id: string; url: string }[]) {
     accommodation: { id: UUID, name: "Ada's Place", hasPin: true, photos, facilities: [] },
     roomTypeCount: 1,
     ratePlanCount: 1,
+    roomTypes: [
+      { id: "rt1", name: "The whole flat", sleeps: 4, unitsTotal: 1, rateCount: 1 },
+    ],
     hasBankAccount: true,
     consents: {
       accuracy: "2026-09-22T08:00:00Z",

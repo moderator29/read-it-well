@@ -129,14 +129,22 @@ export async function getMyHostDraft(): Promise<HostDraft> {
     const accommodation = accommodations.data?.[0] ?? null;
     let roomTypeCount = 0;
     let ratePlanCount = 0;
+    let roomTypes: HostDraft["roomTypes"] = [];
     if (accommodation) {
-      const { data: roomTypes } = await session.supabase
+      const { data: rows } = await session.supabase
         .from("room_types")
-        .select("id, rate_plans(id)")
+        .select("id, name, sleeps, units_total, rate_plans(id)")
         .eq("accommodation_id", accommodation.id)
         .limit(50);
-      roomTypeCount = roomTypes?.length ?? 0;
-      ratePlanCount = (roomTypes ?? []).reduce((total, row) => total + row.rate_plans.length, 0);
+      roomTypeCount = rows?.length ?? 0;
+      ratePlanCount = (rows ?? []).reduce((total, row) => total + row.rate_plans.length, 0);
+      roomTypes = (rows ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        sleeps: row.sleeps,
+        unitsTotal: row.units_total,
+        rateCount: row.rate_plans.length,
+      }));
     }
 
     const present: Partial<Record<HostDocumentKind, true>> = {};
@@ -185,6 +193,7 @@ export async function getMyHostDraft(): Promise<HostDraft> {
         : null,
       roomTypeCount,
       ratePlanCount,
+      roomTypes,
       restaurant: restaurant.data
         ? {
             priceBand: restaurant.data.price_band,

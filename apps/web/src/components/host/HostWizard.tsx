@@ -806,12 +806,40 @@ function RoomsStep({ draft, policies, pending, fieldErrors, run, setNotice, loca
 
   return (
     <>
+      {/*
+        YOUR ROOM TYPES, as `GOVERNING-10` screen two lists them. This section
+        printed two numbers and nothing else, so a host who had saved a Deluxe
+        Double and moved on had no way to tell, from this screen, whether the
+        one on record was the one they meant. The render lists them, and the
+        commonest onboarding mistake it prevents is adding the same room twice.
+      */}
       <section className="nf-host-group">
-        <h2 className="nf-host-group__title">On record</h2>
+        <h2 className="nf-host-group__title">Your room types</h2>
         <p className="nf-host-group__note">
-          {draft.roomTypeCount} room type{draft.roomTypeCount === 1 ? "" : "s"}, {draft.ratePlanCount} rate
-          {draft.ratePlanCount === 1 ? "" : "s"}. At least one of each is needed before publish.
+          {draft.roomTypes.length === 0
+            ? "None yet. At least one room type with a rate is needed before the property can go on the shelf."
+            : "What guests can book. At least one needs a rate before the property can go on the shelf."}
         </p>
+        {draft.roomTypes.length > 0 && (
+          <ul className="mt-md flex flex-col gap-row">
+            {draft.roomTypes.map((room) => (
+              <li key={room.id} className="nf-host-choice">
+                <span className="nf-host-choice__mark" aria-hidden="true">
+                  <BrandIcon name="hotel" fill />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={`block ${TYPE.rowTitle}`}>{room.name}</span>
+                  <span className={`block ${TYPE.rowMeta}`}>
+                    {room.unitsTotal} room{room.unitsTotal === 1 ? "" : "s"} · sleeps {room.sleeps}
+                    {room.rateCount === 0
+                      ? " · no rate yet"
+                      : ` · ${room.rateCount} rate${room.rateCount === 1 ? "" : "s"}`}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
       <section className="nf-host-group">
         <h2 className="nf-host-group__title">A room type</h2>

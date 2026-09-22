@@ -400,6 +400,17 @@ export type HostDraft = {
   } | null;
   roomTypeCount: number;
   ratePlanCount: number;
+  /**
+   * The room types on record, as `GOVERNING-10` screen two lists them: what a
+   * guest can book, how many there are of it, and how many it sleeps.
+   *
+   * BESIDE THE COUNTS RATHER THAN INSTEAD OF THEM. `missingFrom` asks only
+   * whether there is at least one of each, which is a count question, and the
+   * counts come from a read that also carries the rate plans. The list is what
+   * the step DRAWS, and a room type saved and then forgotten is the commonest
+   * reason a host adds the same room twice.
+   */
+  roomTypes: { id: string; name: string; sleeps: number; unitsTotal: number; rateCount: number }[];
   restaurant: {
     priceBand: number | null;
     cuisineCount: number;
@@ -436,6 +447,7 @@ export function emptyHostDraft(): HostDraft {
     accommodation: null,
     roomTypeCount: 0,
     ratePlanCount: 0,
+    roomTypes: [],
     restaurant: null,
     serviceWindowCount: 0,
     hygieneAttestedAt: null,
