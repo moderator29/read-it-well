@@ -248,11 +248,17 @@ export function ProfileSwitcher({
                 <span className={`mt-0.5 block ${TYPE.rowMeta}`}>{copy.personalMeaning}</span>
               </span>
               {current.kind === "personal" ? (
+                /* THE CIRCULAR BADGE, NOT THE SHIELD. `GOVERNING-01` draws
+                   the current row's mark as a filled blue disc with a white
+                   tick, and this product has already ruled that the shield
+                   means a CHECKED LISTING and nothing else (`AppRail`, R1
+                   finding A12). Borrowing it here would teach that shape a
+                   second meaning inside the one sheet whose whole job is
+                   saying which of several things you are. */
                 <UiIcon
-                  name="verified"
+                  name="verified-badge"
                   size="md"
-                  filled
-                  className="shrink-0 text-[var(--nf-status-verified)]"
+                  className="shrink-0 text-[var(--nf-brand-primary)]"
                   label={copy.current}
                 />
               ) : (
@@ -302,10 +308,9 @@ export function ProfileSwitcher({
                   </span>
                   {isCurrent ? (
                     <UiIcon
-                      name="verified"
+                      name="verified-badge"
                       size="md"
-                      filled
-                      className="shrink-0 text-[var(--nf-status-verified)]"
+                      className="shrink-0 text-[var(--nf-brand-primary)]"
                       label={copy.current}
                     />
                   ) : (

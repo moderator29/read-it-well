@@ -149,13 +149,15 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
                   </span>
                   {/* The tick replaces the chevron on the chosen one, exactly
                       as the render's second screen draws it. */}
+                  {/* The circular badge and not the shield, for the reason
+                      `ProfileSwitcher` gives: the shield means a checked
+                      listing in this product and a mark means one thing. */}
                   <UiIcon
-                    name={selected ? "verified" : "chevron-right"}
+                    name={selected ? "verified-badge" : "chevron-right"}
                     size={selected ? "md" : "sm"}
-                    filled={selected || undefined}
                     className={
                       selected
-                        ? "shrink-0 text-[var(--nf-status-verified)]"
+                        ? "shrink-0 text-[var(--nf-brand-primary)]"
                         : "shrink-0 text-[var(--nf-content-muted)]"
                     }
                     label={selected ? copy.selected : undefined}
