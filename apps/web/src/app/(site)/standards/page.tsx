@@ -209,15 +209,16 @@ export default function StandardsPage() {
         {/* --------------------------------------------- the agent ladder */}
         <section className="mt-section" aria-labelledby="agent-ladder">
           <h2 id="agent-ladder" className="nf-h2 text-[1.375rem]">
-            How far an agent has been checked
+            How far the person behind a listing has been checked
           </h2>
           <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            Approval is where an agent starts, not where they finish. Four checks
+            Approval is where somebody starts, not where they finish. Four checks
             sit above it, in this order, and each one is a decision a named member
-            of our team recorded. An agent cannot skip a step: passing the last
-            one while the first is outstanding counts for nothing. The same ladder
-            governs a host who lets rooms by the night and a restaurant that takes
-            tables, because it is the person being checked and not the product.
+            of our team recorded. Nobody skips a step: passing the last one while
+            the first is outstanding counts for nothing. One ladder governs all of
+            them, an agent acting for owners, an owner letting their own place, a
+            host who lets rooms by the night and a restaurant that takes tables,
+            because it is the person being checked and not the product.
           </p>
           <ol className="mt-group space-y-row">
             {VERIFICATION_ORDER.map((rung) => (

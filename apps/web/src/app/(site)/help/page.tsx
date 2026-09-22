@@ -50,7 +50,24 @@ const TRUST_LINKS: { href: string; icon: BrandIconName; title: string; body: str
 
 const FAQS: Faq[] = [
   /*
-   * THE TWO SIDES COME FIRST, because until the content truth sweep of 19
+   * WHAT VALLO IS FOR COMES FIRST, added 22 September when the platform's
+   * position changed. A help centre that explains every control and never
+   * says what the thing is for leaves the commonest question on the page
+   * unanswered, and this one is the question the founder's own co-founder
+   * asked: what does Vallo actually help me do.
+   *
+   * The answer states the position and nothing beyond it. It does NOT say a
+   * person can buy or rent direct from an owner today, because there is no
+   * owner listing in the catalogue yet; it says what happens where there is
+   * one, which is true now and stays true then.
+   */
+  {
+    category: "Property and Stays",
+    q: "What is Vallo actually for?",
+    a: "Vallo does not remove the agent. Vallo removes the runaround. The runaround is the part everybody in Nigeria recognises: agent fees stacked on agent fees, a chain of agents on one property, the same flat listed four times at four prices, and a total cost nobody will state until you have spent a Saturday in traffic. Agents hold most of the property offered in this market and their fee is theirs to charge. What Vallo is for is that you know who you are dealing with, what you will actually pay and whether the property is real, before you call anybody. Where an owner lists a property directly, you deal with the owner; where an agent lists it, you deal with the agent, and either way the costs are written down on the listing.",
+  },
+  /*
+   * THE TWO SIDES COME NEXT, because until the content truth sweep of 19
    * September this page answered as though Vallo sold property and nothing
    * else, and the three questions a person actually arrives with on a
    * two-sided product were nowhere on it: what the switch is, how paying for
@@ -222,7 +239,7 @@ export default function HelpPage() {
         icon="support-chat"
         chip="Help centre"
         title="How can we help?"
-        lede="Straight answers about both sides of Vallo: the switch, booking a stay, holding a table, payments, refunds, listing and verification. Search below, or browse by topic."
+        lede="Straight answers about both sides of Vallo: what the platform is for, the switch, booking a stay, holding a table, payments, refunds, listing and verification. Search below, or browse by topic."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">

@@ -64,7 +64,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 1,
     title: "What Vallo is, and who it is for",
     summary:
-      "One app with two sides, Property and Vallo Stays: rent, buy, book a room or a table, with one account, one naira wallet and no platform fee anywhere.",
+      "Rent, buy or stay across Nigeria without the runaround. One app with two sides, Property and Vallo Stays, one account, one naira wallet and no platform fee anywhere.",
     icon: "house-sparkle",
     sections: [
       {
@@ -73,15 +73,27 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              Vallo is Nigeria&apos;s property marketplace, and it has two sides.{" "}
-              <strong>Property</strong> is renting, buying and selling: annual
-              rentals, homes, villas, shops, offices and land, listed by agents a
-              person has checked, with inspections before any money moves.{" "}
-              <strong>Vallo Stays</strong> is the nightly side: hotels, apartments,
-              guest houses, resorts, serviced apartments, shortlets and restaurant
-              tables. One account carries both, along with your wallet, your
-              bookings, your messages and your conversations about the areas you
-              live in.
+              <strong>
+                Vallo does not remove the agent. Vallo removes the runaround.
+              </strong>{" "}
+              The runaround is the part of finding a place in Nigeria that nobody
+              defends: agent fees stacked on agent fees, a chain of agents on one
+              property, the same flat listed four times at four prices, and a total
+              cost nobody will state until you have spent a Saturday in traffic.
+              Agents hold most of the property offered in this market and their fee
+              is theirs to charge. What this platform is for is that you know who you
+              are dealing with, what you will actually pay and whether the property is
+              real, before you call anybody.
+            </p>
+            <p>
+              It has two sides. <strong>Property</strong> is renting, buying and
+              selling across Nigeria: annual rentals, homes, villas, shops, offices
+              and land, listed by people a person has checked, with inspections before
+              any money moves. <strong>Vallo Stays</strong> is the nightly side:
+              hotels, apartments, guest houses, resorts, serviced apartments,
+              shortlets and restaurant tables. One account carries both, along with
+              your wallet, your bookings, your messages and your conversations about
+              the areas you live in.
             </p>
             <p>
               It is built for how renting and staying actually works here. That means
