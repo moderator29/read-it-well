@@ -133,6 +133,21 @@ them, and a report of harassment is evidenced by them.
 | Notifications | `public.notifications` | Read, or creation if never read | 12 months [L] | Purge |
 | Places cache | `public.places_cache` | Entry date | Per the provider's terms | Purge |
 | Application and error logs | The hosting provider | Entry date | 90 days [L] | Purge |
+| Price Check funnel rows | `public.price_check_events` | Entry date | 24 months [L] | Purge |
+| A watched Price Check spot | `public.price_check_watches` | The watcher's account closes | Cascade | Purge |
+
+**`price_check_events` holds a five character geohash and never a point, and
+that is why 24 months is a defensible period rather than a long one.** The
+table exists to answer where people are asking, where demand is outrunning
+supply, and which areas to recruit in next, and every one of those questions
+needs a year-on-year comparison to mean anything. It carries no address, no
+coordinate and no free-text hint: there are no such columns, which is the
+enforcement rather than a rule somebody has to remember. The cell is roughly
+five kilometres across at Nigerian latitudes, measured in
+`apps/web/src/lib/price-check/geohash.test.ts` rather than asserted. The purge
+is run rather than written down: `private.sweep_price_check_events` is
+scheduled nightly in `cron.job` as `vallo_sweep_price_check_events`, because a
+retention period nothing enforces is a sentence in a policy.
 
 **The audit log is the one table that must never be purged on a user's
 request.** It is the record that proves the company did what it says it did,

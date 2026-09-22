@@ -190,11 +190,25 @@ export function offersNotifyMe(code: RefusalCode): boolean {
 }
 
 /**
- * The refusals that MORE LISTINGS WOULD NOT FIX, which is why they carry no
- * notify me: an unsupported type stays unsupported, a monthly let stays
- * monthly, a missing pin is the reader's next tap rather than our supply
- * problem, and a market that disagrees with itself disagrees with itself at
- * any density.
+ * The refusals that carry no notify me, and a sentence for each, because
+ * "which ones offer it" is a product decision somebody will want to revisit
+ * and a list with no reasons beside it invites the wrong revision.
+ *
+ *   no_location         a missing pin is the reader's own next tap, not our
+ *                       supply problem. Telling them we will write to them
+ *                       when they have dropped it would be absurd.
+ *   unsupported_type    land stays land. Two plots on the same street can be
+ *                       worth very different amounts whatever our density is.
+ *   unsupported_period  a monthly let stays monthly.
+ *   wide_dispersion     more listings in a genuinely mixed area widen the
+ *                       spread as often as they narrow it, so this is a
+ *                       promise about other people's asking prices.
+ *   too_few_sized       its natural home is a NOTE beside an answered figure
+ *                       rather than a screen of its own, and offering to tell
+ *                       somebody when we can answer, under an answer, is
+ *                       nonsense. The gap it names is size coverage on
+ *                       listings, which the wizard closes and recruitment
+ *                       does not.
  */
 export const NOT_A_SUPPLY_PROBLEM: readonly RefusalCode[] = REFUSAL_CODES.filter(
   (code) => !offersNotifyMe(code),
