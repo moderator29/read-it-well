@@ -110,6 +110,23 @@ export type CheckoutInput = {
 export type CardCheckout = {
   /** Where to send the guest to pay. */
   authorizationUrl: string;
+  /**
+   * The same transaction, addressed the other way.
+   *
+   * `authorizationUrl` is where to SEND somebody; this is the handle that
+   * resumes the very same transaction in a checkout drawn on our own page,
+   * which is what stops paying being a departure from Vallo. Paystack has
+   * returned it on every initialise this platform has ever made
+   * (`initializeTransaction` populates it) and until now nothing read it.
+   *
+   * IT DISCLOSES NOTHING NEW TO THE BROWSER. The hosted URL beside it is
+   * literally `https://checkout.paystack.com/<access code>`: the code has
+   * always been the last path segment of a URL we hand the browser and then
+   * navigate it to. Returning it under its own name is a rename, not a leak.
+   * It is a per-transaction handle, never a key, and it must not be confused
+   * with the secret key, which is server-only and stays there.
+   */
+  accessCode: string;
   reference: string;
   amountMinor: number;
 };
@@ -319,7 +336,12 @@ async function startCardCheckoutWork(
         purpose: "booking_payment",
       },
     });
-    return ok({ authorizationUrl: tx.authorizationUrl, reference, amountMinor });
+    return ok({
+      authorizationUrl: tx.authorizationUrl,
+      accessCode: tx.accessCode,
+      reference,
+      amountMinor,
+    });
   } catch (e) {
     // The page never opened, so this attempt is dead. Marking it FAILED keeps
     // the reconciliation view honest; the booking itself is untouched.

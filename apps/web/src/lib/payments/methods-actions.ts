@@ -141,7 +141,7 @@ export async function removePaymentMethod(id: string): Promise<ActionResult<null
  * never be started that nothing on our side can account for.
  */
 export async function startCardSetup(): Promise<
-  ActionResult<{ authorizationUrl: string; reference: string }>
+  ActionResult<{ authorizationUrl: string; accessCode: string; reference: string }>
 > {
   if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF_MESSAGE);
 
@@ -204,7 +204,13 @@ export async function startCardSetup(): Promise<
       outcome: "started",
       detail: { purpose: "card-setup" },
     });
-    return ok({ authorizationUrl: tx.authorizationUrl, reference: tx.reference });
+    /* See the note on CardCheckout.accessCode: the same transaction, resumable
+       in a checkout drawn on our own page instead of on Paystack's. */
+    return ok({
+      authorizationUrl: tx.authorizationUrl,
+      accessCode: tx.accessCode,
+      reference: tx.reference,
+    });
   } catch (e) {
     logMoney({
       surface: "fund",

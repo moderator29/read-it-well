@@ -120,3 +120,87 @@ describe("chargeSavedCard at the card_charge limit", () => {
     expect(written).not.toContain("example.invalid");
   });
 });
+
+describe("the 3-D Secure fallback carries both addresses for one transaction", () => {
+  /*
+   * WHY THIS TEST EXISTS. Paystack has answered every initialise this platform
+   * has ever made with an access code, and until now the field was populated
+   * and read by nobody: `initializeTransaction` returned it, and every caller
+   * dropped it on the floor and navigated the whole browser to the hosted URL
+   * instead. That is the server half of an in-app checkout, already written
+   * and already thrown away, and this test is what stops it being thrown away
+   * again by a later refactor that cannot see a consumer for the field.
+   *
+   * THE REFERENCE IS THE LOAD-BEARING PART. A bank asking to authenticate is
+   * not a new payment. The hosted URL and the access code must address the
+   * SAME reference the declined charge used, because two references is two
+   * charges, and the webhook settles by reference. That is asserted here
+   * explicitly rather than left to be read out of the source.
+   */
+  const HOSTED = "https://checkout.paystack.com/abc123xyz";
+
+  beforeEach(() => {
+    seam.guardMoney.mockResolvedValue({ allowed: true, degraded: false });
+    seam.chargeAuthorization.mockReset().mockResolvedValue({
+      status: "failed",
+      gatewayResponse: "Please authenticate with your bank",
+    });
+    seam.initializeTransaction.mockResolvedValue({
+      authorizationUrl: HOSTED,
+      accessCode: "abc123xyz",
+      reference: PARAMS.reference,
+    });
+  });
+
+  it("returns the access code beside the hosted url, under the declined reference", async () => {
+    const { chargeSavedCard } = await import("./charge-saved-card");
+
+    const result = await chargeSavedCard(PARAMS);
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        kind: "needs_hosted_checkout",
+        authorizationUrl: HOSTED,
+        accessCode: "abc123xyz",
+      },
+    });
+    expect(seam.initializeTransaction).toHaveBeenCalledTimes(1);
+    expect(seam.initializeTransaction.mock.calls[0]?.[0]?.reference).toBe(PARAMS.reference);
+  });
+
+  it("never mints a second reference for one authentication", async () => {
+    /*
+     * The failure this guards against is the expensive one: a challenge
+     * handled as a fresh payment charges somebody twice and leaves the webhook
+     * two rows to settle where there was one thing to buy. One initialise,
+     * one reference, and the amount unchanged from the charge that declined.
+     */
+    const { chargeSavedCard } = await import("./charge-saved-card");
+
+    await chargeSavedCard(PARAMS);
+
+    const sent = seam.initializeTransaction.mock.calls[0]?.[0];
+    expect(seam.initializeTransaction).toHaveBeenCalledTimes(1);
+    expect(sent?.reference).toBe(PARAMS.reference);
+    expect(sent?.amountMinor).toBe(PARAMS.amountMinor);
+  });
+
+  it("puts no card, token or address anywhere in the outcome", async () => {
+    /*
+     * The outcome now carries one more field than it did, so the no-secrets
+     * assertion is re-run over the widened shape rather than assumed to still
+     * hold. An access code is a per-transaction handle and is not any of the
+     * things rule 16 forbids, but the way that stops being true is somebody
+     * adding a fourth field, and this is what notices.
+     */
+    const { chargeSavedCard } = await import("./charge-saved-card");
+
+    const result = await chargeSavedCard(PARAMS);
+
+    const written = JSON.stringify(result);
+    expect(written).not.toContain("4081");
+    expect(written).not.toContain("AUTH_x");
+    expect(written).not.toContain("example.invalid");
+  });
+});

@@ -36,7 +36,10 @@ import {
 
 export type ChargeSavedCardOutcome =
   | { kind: "charged" }
-  | { kind: "needs_hosted_checkout"; authorizationUrl: string };
+  /* The bank asked to authenticate. Both addresses for the SAME reference are
+     carried: the hosted URL, and the access code that resumes that identical
+     transaction in a checkout on our own page. Neither mints a second charge. */
+  | { kind: "needs_hosted_checkout"; authorizationUrl: string; accessCode: string };
 
 const NOT_REUSABLE_RE = /not\s+reusable|reusable/i;
 
@@ -201,7 +204,11 @@ export async function chargeSavedCard(params: {
         `${(process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "")}/wallet?funded=1&reference=${params.reference}`,
       metadata,
     });
-    return ok({ kind: "needs_hosted_checkout", authorizationUrl: tx.authorizationUrl });
+    return ok({
+      kind: "needs_hosted_checkout",
+      authorizationUrl: tx.authorizationUrl,
+      accessCode: tx.accessCode,
+    });
   } catch (e) {
     const said =
       e instanceof PaystackError && e.status !== 401 && e.message.trim().length > 0
