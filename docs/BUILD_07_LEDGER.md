@@ -1485,6 +1485,48 @@ record that as the derivation working. It was that rule. The override is gone
 and the light values live with the dark ones. A number measured off the wrong
 declaration proves nothing.
 
+### THE ICON PLATES ON PAPER (item 6b): THE TOKEN IS NOT THE CAUSE
+
+The founder: "The plates behind our icons are dull navy on white... It looks
+dirty. The icon ground token is the cause and it needs a real paper value, not
+the dark one carried over."
+
+**The symptom is real and the diagnosis is not, and this is measured rather
+than argued.** Sampled off a real light-theme plate on `/preview/f1/home`,
+62x62, 1,516 object pixels against the plate they sit on. The test is the share
+of artwork pixels falling under 1.5:1, which is the point a mark stops being
+visible at all:
+
+| Plate luminance | Artwork lost | Median contrast |
+| --- | --- | --- |
+| **navy, as shipped, L 0.029** | **12.0%** | **3.48:1** |
+| L 0.35 | 33.8% | 1.94:1 |
+| L 0.60 | 23.9% | 2.37:1 |
+| L 0.80 | 18.9% | 3.10:1 |
+| L 0.90 | 15.7% | 3.46:1 |
+| L 0.95 | 14.3% | 3.65:1 |
+| L 1.00, pure white | 13.4% | 3.83:1 |
+
+**EVERY LIGHTER PLATE IS WORSE AND THE MIDDLE IS WORST OF ALL.** The curve is
+U-shaped because this artwork holds both bright highlights and dark strokes: a
+mid-grey plate hides both ends at once and loses nearly three times as much as
+the navy. Even pure white, the best light value available, loses more artwork
+than the navy does.
+
+So there is NO paper value for this token that improves the plates, and
+changing it is a day spent making the product worse. The plate is dark because
+the ARTWORK is drawn for a dark ground, and the founder is seeing the 121
+objects that have no light twin. `data-twinned` now says which those are, at
+the call site and in the browser: all six on the home grid read
+`data-twinned="false"`.
+
+**What would actually fix it is the artwork**, which is a render order and the
+founder's to place. Until it exists the framed lit plate is the best available
+treatment, and it is already shipped. If the founder wants the navy changed
+anyway, the honest trade is: a cleaner, more saturated navy at a similar
+luminance costs nothing, and anything lighter costs legibility. That is a
+question about how the square LOOKS, not about whether the mark in it reads.
+
 ### THE CONTAINERS, MEASURED BEFORE BEING ASSERTED (item 7, first pass)
 
 The founder's words are that containers across the platform are "not
