@@ -152,6 +152,44 @@ for (const route of routes) {
       continue;
     }
 
+    /*
+     * THE FIFTH CHECK, AND IT IS THE FOURTH ONE'S TWIN.
+     *
+     * The status check above refuses an error page and the marker check
+     * refuses a not-found body served on a 200. Neither of them looks at
+     * WHERE THE BROWSER ENDED UP, and a redirect is neither of those things:
+     * it is a 200, with a real page of ours, that is simply not the page that
+     * was asked for.
+     *
+     * Measured on a production server at 6c621e3, with Supabase configured so
+     * the gate in `proxy.ts` is live. Every product route answers 307 to
+     * `/sign-in` for a visitor with no session. Asked for `/notifications`,
+     * `/saved/searches`, `/profile/setup`, `/legal/privacy` and `/legal/terms`,
+     * this harness followed all five redirects and wrote five PNGs of the SIGN
+     * IN SCREEN under those five names. Every assertion in this file passed on
+     * every one of them, because the sign-in screen is a real page of ours:
+     * right theme, stylesheets loaded, no stuck Reveal band, 200, no
+     * not-found marker. Three of them were byte identical to each other.
+     *
+     * That is the same failure as the 404 shots the check below this one
+     * exists for, arriving by a different door, and it is worse in one way:
+     * a picture of the sign-in screen looks like a screen somebody designed,
+     * so it survives a human glance at the file as well as the machine's.
+     *
+     * A proof of a gated route needs a session. It cannot be taken by asking
+     * politely and photographing the refusal.
+     */
+    const landed = new URL(page.url()).pathname.replace(/\/+$/, "") || "/";
+    const asked = (route.startsWith("/") ? route : `/${route}`).split("?")[0].replace(/\/+$/, "") || "/";
+    if (landed !== asked) {
+      console.error(
+        `FAIL ${route}: the server answered ${status} but the browser ended on ${landed}. That is a redirect, almost always the signed-in gate, and a picture of where you were sent is not a proof of where you asked to go. No file written.`,
+      );
+      failures += 1;
+      await page.close();
+      continue;
+    }
+
     await page.waitForTimeout(2500);
 
     // Prove the shot is worth looking at before writing a file that claims it

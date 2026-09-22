@@ -253,13 +253,14 @@ the worker. No row, no close, and the lead does not commit it.
 | `/careers` | none, inherits the register | `a2/careers-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
 | `/docs` | none, inherits the register | `a2/docs-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
 | `/delete-account` | none, inherits the register | `a2/delete-account-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
-| `/cancellations` | none, inherits the register | `a2/cancellations-390-{dark,light}.png`, taken BEFORE the copy change below; the shape is unchanged, the hero is now two sentences rather than four, so the picture is one revision stale | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/cancellations` | none, inherits the register | `a2/cancellations-390-{dark,light}.png`, RETAKEN by A2b at `6c621e3`, so it is no longer a revision stale and shows the two sentence hero | 0 breaches at 390 and 1536, dark and light | A2, proof by A2b |
+| `/verification` | none, inherits the register | `a2/verification-390-{dark,light}.png`, taken by A2b at `6c621e3`; the signed-out face, which is the one a stranger meets and the one that carries the `PageScene` shield-check | 0 breaches at 390 and 1536, dark and light | A2, proof by A2b |
 | `/privacy` | none, inherits the register | `a2/privacy-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
 | `/terms` | none, inherits the register | `a2/terms-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
 | The offline card, `apps/web/native-shell/index.html` | none, inherits the register; drawn to it for the first time | `a2/native-shell-no-connection-390-{dark,light}.png`, `a2/native-shell-no-server-390-{dark,light}.png` | measured in the browser: plate 0.27, button 0.28, card 0.07, note 0.12; the only circle is the explanatory glyph | A2 |
-| The dock with the raised centre switch, on `/home` | `GOVERNING-01` screen one | `b1/dock-390-dark.png`, taken on `next start` at `6b7e21f` | dock object 18 on 52 = 0.346 | B1 |
-| The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png` | row marks 14 on 44 = 0.318; standing label 6 on 25 = 0.244 | B1 |
-| The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png` | row 14 on 56 = 0.25 | B1 |
+| The dock with the raised centre switch | `GOVERNING-01` screen one | `b1/dock-390-dark.png`, RETAKEN by A2b on `next start` at `6c621e3`, on `/search` because `/home` is behind the gate | dock object 18 on 52 = 0.346, measured; bar 22 on 70 = 0.314; the object rises 7px above the bar; five slots, Home, Search, Switch profile, Feed, Sign up | B1, proof by A2b |
+| The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png`, RETAKEN by A2b at `6c621e3` | row mark 14 on 44 = 0.318, measured. THE STANDING LABEL IS NOT IN THIS PROOF: it only draws on a workspace row, a visitor with no session has none, so B1's 6 on 25 = 0.244 is UNVERIFIED and needs a session | B1, proof by A2b |
+| The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png`, RETAKEN by A2b at `6c621e3` | row 14 on 56 = 0.25, measured; and the sheet it opens is the same sheet the dock opens, asserted in the run | B1, proof by A2b |
 
 
 **THE GATE'S OWN MEASUREMENT, TAKEN BY A2b ON A CLEAN CHECKOUT OF `6c621e3`.**
@@ -371,6 +372,33 @@ taken without a session this worker does not have. Where a proof of the same
 components exists it comes off the preview harness and says so; a preview is
 not the route, and the two had drifted apart, which is recorded below.
 
+**A SIXTH HARNESS LIE, AND IT WROTE FIVE PROOFS OF THE SIGN IN SCREEN BEFORE
+IT WAS CAUGHT.** `verify-shots.mjs` checks the HTTP status and it checks the
+`data-nf-not-found` marker, and neither of those looks at WHERE THE BROWSER
+ENDED UP. On a production server at `6c621e3` with Supabase configured, the
+gate in `proxy.ts` is live and every product route answers 307 to `/sign-in`
+for a visitor with no session. Asked for `/notifications`, `/saved/searches`,
+`/profile/setup`, `/legal/privacy` and `/legal/terms`, the harness followed all
+five redirects and wrote five PNGs of the SIGN IN SCREEN under those five
+names. Every assertion in the file passed on every one of them, because the
+sign-in screen is a real page of ours: right theme, stylesheets loaded, no
+stuck `Reveal` band, 200, no not-found marker. Three were byte identical to
+each other. It is the same failure as the 404 shots the file's fourth check
+exists for, arriving through a different door, and worse in one way: a picture
+of the sign-in screen looks like a screen somebody designed, so it survives a
+human glance as well as the machine's. Those five files were deleted rather
+than filed. `verify-shots.mjs` now compares the landed pathname with the one
+asked for and refuses the difference, and the refusal is demonstrated: the same
+five routes now produce no file and name the redirect.
+
+**AND THAT IS WHY THE FOUR `PageScene` SCREENS STILL CARRY NO ROW.** A2 said
+this plainly and A2 was right: `/notifications`, `/saved/searches` and
+`/profile/setup` are behind the signed-in gate and a proof of them needs a
+session that no worker in this stint has. The reason A2 gave for the blockage
+has changed, because `next build` is green on a clean checkout of the tip, but
+the conclusion has not. `/verification` was the one of the four that IS
+reachable without a session, and it now has a row above.
+
 **B1, Track O: every item that lived on the More surface, with its new home,
 and the proof each one resolves.** The founder's instruction was that nothing
 on More may become unreachable. The honest finding is that **More had no
@@ -403,6 +431,25 @@ argument that a drawer row pointing at a 404 is worse than no row. So the
 route is unreachable ON PURPOSE and the promise is not broken by it, but the
 list had to stop naming it, because a row that does not exist cannot be proved
 to still resolve and nobody reading this should go looking for one.
+
+**TRACK O, MEASURED ON A PRODUCTION SERVER BY A2b, AND THE PROOF AS WRITTEN
+COULD NOT HAVE ANSWERED IT.** `more-proof.mjs` opens the drawer and fetches
+every `href` it draws. With the gate live, an anonymous drawer draws three rows
+and a foot, because `buildNav` builds the whole account block, both workspaces
+and the tail behind `if (signedIn)`; and every href it would fetch answers 307.
+Run as written it reports nothing reachable, which is not an answer to the
+founder's question. Asked properly, of the eighteen destinations in the list
+above, read off the DOM on a production server rather than off the HTML text:
+**four render to a stranger** (`/search`, `/around`, `/stays`,
+`/stays/search`), **thirteen answer 307 to `/sign-in`**, which is the gate
+doing its job and proves the route exists rather than that it is missing, and
+**one is not-found**, `/crypto`, which is the deliberate closure recorded
+above. Nothing on More became unreachable. One caution for whoever runs this
+next: the not-found marker must be read from the DOM after the page settles,
+never by searching the response body for the string, because Next ships the
+segment's not-found template inside the flight payload of pages that are
+perfectly fine, and this worker briefly mis-read four healthy routes as 404s
+that way.
 
 **B1's register extensions, recorded so they can be checked.** `GOVERNING-01`
 and `02` govern everything this scope drew except three pieces of anatomy the
