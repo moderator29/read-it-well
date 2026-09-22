@@ -628,7 +628,165 @@ signed-in screenshot.
 
 ## 9. Inspection
 
-(pending)
+Governing image `F6A8A482-657B-4836-B30A-1A0578BC3FBA.png` (catalogue: "Checklist
+progress bar and disabled-until-complete submit are the patterns to keep"), plus the
+founder folder (`GOVERNING-thread-rental-enquiry.jpg` for the thread that Add Photos
+opens, `home-light-black-icon-plates-as-shipped.jpg` for what light mode must not do).
+Routes: `/inspections` (both sides of every inspection the reader is party to) and
+`/agent/inspections` (the lister's side inside the agent console), both drawing
+`components/app/inspections/InspectionSheet.tsx` from `app/css/inspection.css`
+(classes `nf-ix-*`; the old `nf-insp-*` rules in `threads.css` no longer reach it,
+scope request I4).
+
+**Who the screen is for.** The render shows an inspection being carried out with the
+assigned agent named, so it reads as the inspector's view. In the data model either
+party may move a CONFIRMED inspection to COMPLETED (`private.guard_inspection_transition`
+allows `COMPLETED` from `CONFIRMED` for requester or lister), so the same sheet serves
+both: the requester sees "Listed by" and the lister's number, the lister sees
+"Requested by" and the requester's, and the controls follow whose move it is.
+
+### (a) The chain
+
+| Link | What is there | State |
+|---|---|---|
+| Controls | Confirm, Offer another time, Decline (lister, REQUESTED/PROPOSED); Take that time, Withdraw (requester); outcome radio group and Submit Inspection Report (either, CONFIRMED); Add Photos (link to the thread) | wired |
+| Server actions | `lib/inspections/actions.ts`: `answerInspection`, `acceptProposedTime`, `closeInspection` (COMPLETED with `outcome`, or WITHDRAWN), `requestInspection` | wired, unchanged |
+| Validation | zod in each action (uuid, state enum, future time within 90 days, note max 400, outcome only with COMPLETED) | wired |
+| RLS | `inspection_requests_select_party`, `_update_party` (requester_id or lister_id = auth.uid()), `_insert_requester` (published listing, not own), admin all. Read live 22 Sept | verified by SQL |
+| Table | `public.inspection_requests` (state, requested_at, slot_at, note, lister_note, outcome, conversation_id) | verified by SQL |
+| Triggers | `guard_transition` (who may move what), `freeze_parties`, `set_lister`, `never_against_a_demo_listing`, `set_updated_at`, `notify` | verified by SQL |
+| Notification | `private.notify_inspection_change`: INSERT tells the lister; CONFIRMED, PROPOSED, DECLINED tell the requester; WITHDRAWN tells the lister; COMPLETED tells both. Links `/inspections` and `/agent/inspections` | verified by reading the function |
+| Query | `lib/inspections/queries.ts` `readInspectionsForRequester` / `ForLister` under the caller's RLS; names from `social_profiles`; numbers through `lib/security/counterpart-contact.ts`; listing facts (place, kind, price through `formatMoney`, cover photo, `is_demo`) from `app/(app)/inspections/facts.ts` | wired |
+| Screen, own action | `router.refresh()` after every successful action plus `revalidatePath` in the action | wired |
+| Screen, the other side's action | `InspectionsLive`: subscribes to the reader's own `notifications` INSERTs (the table IS in `supabase_realtime`; `inspection_requests` is NOT, checked by SQL) and re-reads when the href is an inspection link; also re-reads on tab return | wired; publication of the table itself is request I2 |
+| Checklist rows, report notes, report photos | no table, column or bucket in production | BROKEN, not drawn: request I1 (exact migration written) |
+| Add Photos | goes to `/messages/<id>?attach=1`, the one real photo path an inspection has (message-attachments bucket) | works; the thread ignores `?attach=1`, request I3 |
+
+Nothing in this chain was written to production. The live write path (a real party
+completing a real inspection) was not exercised: there is no test user I may create and
+every listing is `is_demo`, so the demo trigger refuses any new inspection. The wiring is
+proven by code, the SQL introspection above and the unit tests
+(`components/app/inspections/status.test.ts`, `ladder.test.ts`, `grouping.test.ts`,
+`lib/inspections/*.test.ts`, 33 passing).
+
+### (b) The comparison, 390 dark
+
+Scale: phone screen 668 render px (inner edge 177 to 845), so 1 CSS px = 0.584 render px.
+The render's type is far below any phone's floor at that scale (row sub line 6.5px, row
+title 7.8px, info labels 7px), so text is held at the platform rung for its role and
+containers grow about 1.6 times to carry it; radii are taken up by the same factor so
+every corner keeps the render's radius-to-height ratio. Built numbers are from
+`getBoundingClientRect` / computed style on the fixture harness.
+
+| Property | Image (measured) | Built (measured) | Match? |
+|---|---|---|---|
+| Page gutter | 16 CSS (card x 205 to 821) | 24 (the shared app shell's padding) | no: shell chrome, not this surface |
+| Back button | glass rounded square in the header row | 44 x 44 glass square (`nf-icon-btn--glass`) on its own row above the title | shape yes; placement differs, the render's header row is shared chrome |
+| Title | cap 28 render px = 16.4 CSS, about 23-24px, bold, white with a faint blue second word | 24px / 700, second word 82% white 18% brand quiet | yes |
+| Sub line | blue (#47d0f6 peak), two lines, about 10.5px strict | 14px, `--nf-brand-secondary`, two lines | colour and lines yes; size at floor |
+| Glass house | 153 render px object, 89 CSS, at the title's right, foot over the card's top edge | the render's own crop (`house-check.webp`), 108 x 81 box (object about 89), placed in the title block's top right and over the card edge by 8px, above it in z order | yes (crop, soft at 3x, see SOURCES.md) |
+| Listing card | 616 x 142 render (360 x 83 strict), radius about 16 render (9 strict), fill #000f49 with lit bands top and foot, lit top rim, brand edge | 342 x about 150, radius 14, the glow identity's lit card (bands of lit ink top and foot, dark middle, cyan top and left edge, deep blue right, rim lines, 4px and 12px bloom) through `--nf-glow-ink` and `--nf-state-warning` | anatomy yes; taller because of type floor |
+| Card photo | 180 x 129 render (105 x 75), radius about 10 render | 100 wide, stretches card height, radius 10 | width yes; aspect taller |
+| Scheduled badge | 91 x 24 render, radius about 8 (0.33), emerald fill #018d93 / text #0febef | 24px tall, radius 6 (0.25), `--nf-state-success` on its surface tint | shape yes, hue: token emerald (the render's teal is off-family) |
+| Card title | cap 14 render (about 12px strict), semibold white, one line, text face | 15px / 600 in the text face | yes at floor |
+| Place and kind lines | pin and house glyphs in brand blue, text light | 16px glyphs brand quiet, 13px secondary | yes |
+| Price | bold brand blue, "/ year" small | 16px / 700 brand quiet via `formatMoney`, "per year" 13px (the product's own `PERIOD_SUFFIX`) | yes; suffix wording is the product's |
+| Chevron | right, muted | right chevron, secondary ink, does not rotate | yes |
+| Info row | 616 x 88 render, three cells, hairlines, glyph left of text | 342 x about 124, three cells (1 : 1.25 : at least the badge), hairlines, glyph ABOVE text | no: at 12px floor the labels do not fit beside a glyph in 91px; side by side from 640px up |
+| Info labels / values | label 10 render cap muted cyan, value white | 12px secondary / 13px 600 primary, time 12px | yes at floor |
+| Pending badge | cyan, 72 x 24 render | cyan `--nf-state-warning` (the cyan rung), 24px, radius 6 | yes |
+| Checklist panel | 616 x 506 render, rim #2cabf6 on top, fill #000c30 | 342 x about 330, same glass class, radius 14 | yes |
+| Count and bar | "0 / 8 Completed" in blue, bar 124 x 6 render under the count only | "n / 4 Completed" 13px brand quiet, bar under the count only, 6px, round (a shape), identity progress on/off fills | yes; count is the record's four rungs |
+| Checklist rows | 54 render tall, radius 12 (0.22), fill #011f5b, edge #023982, 1-2px gap | 56-60 tall, radius 10 (0.17), brand-tint-1 over the panel, brand edge soft, 4px gap | yes |
+| Row icon plates | round glass discs 44 render px with cyan line glyphs | the render's own plates, cropped (house, shield, sofa, document), 40 CSS | yes (crop, soft at 3x) |
+| Row title / sub | cap 10 render white semibold / light blue #6fb6f5 | 14px 600 primary / 12px brand quiet | yes at floor |
+| Check circles | hollow, 20 render (12 strict), brand blue ring | 22px hollow, 1.5px brand ring; done = emerald fill with a drawn tick | yes |
+| Notes panel | pencil glyph, "Notes", textarea well a step lighter than the panel (#00154b on #00113d), radius about 8 render | document glyph, "Notes", read-only well with brand tint over well fill, radius 10 | shape yes; not a textarea (nothing stores it, I1) |
+| Add Photos | 616 x 56 render, gradient #016bfb / #0039fd / #0472f8, top rim, bloom below, camera + label centred, chevron right | 342 x 56 (`nf-btn--lg`), the identity's lit button: `--nf-gradient-cta` (#0074fc / #0042fd / #0069f7) under a pool of lit ink at its lower middle, cyan edge, `--nf-rim-primary`, bloom 0 6px 18px down and 0 -2px 10px up, picture glyph + label centred, chevron right | yes; glyph is picture (no camera in the stroked tier) |
+| Submit Inspection Report | 616 x 50 render, fill #001e62, edge #003ab1, muted label #447cd3, paper plane glyph | 342 x 48 (`nf-btn--md`), brand-tint glass, brand edge, label brand quiet at 55%, `telegram` paper plane | yes |
+| Radii ratio on text controls | 0.24 to 0.33 | 0.25 to 0.29 | yes |
+| Colours | electric blue, quiet blue, emerald, cyan; no warm hues | same four token families; rose only for Declined | yes |
+
+Added over the render, because the data model needs it: the outcome chooser ("How did
+it go?", three options) before Submit, and a hint line under Submit saying why it is
+disabled. Refused from the render: see below.
+
+### Refused from the render
+
+- **"Assigned Agent".** Nobody is assigned on this platform: the other party is whoever
+  lists the property, owner or agent. The cell says "Listed by" (requester side) or
+  "Requested by" (lister side).
+- **The eight room rows with 0 / 8** (Exterior to Overall Condition). A tick nothing
+  stores would be a picture of a feature; the panel counts the four things the row can
+  prove. Request I1 carries the migration; whether a room checklist should exist is the
+  founder's product decision.
+- **The notes textarea and Add Photos as part of a report.** No column or bucket holds
+  them (I1). The notes shown are the two on the record, read-only; Add Photos opens the
+  conversation, where photos are real.
+- **Every figure in the render** (the address, "2 Bedroom Apartment", 2,500,000 per year,
+  Jun 24 2025 10:00 AM, Tunde Adebayo, +234 801 234 5678). All of them come from the
+  row, the listing and the counterpart read; nothing is typed in.
+- **The teal fill of the Scheduled badge.** Off the blue family; drawn in the emerald
+  token.
+- **The app icon tile, VALLO wordmark, bell and profile.** Shared app header, not this
+  page; not cropped, not rebuilt.
+
+Examples: a listing with `is_demo` shows an "Example listing" badge beside its state
+badge on the card (read from `listings.is_demo` in `facts.ts`), so an example can never
+pass as a property somebody is going to see. The trigger already refuses a new
+inspection against one.
+
+**Glow identity.** `docs/design/GLOW_IDENTITY.md` (d01a5d7) is applied in
+`inspection.css` with surface classes: lit card, progress on/off, lit button, and
+their paper answers. Its values are raw colours and a stylesheet may not carry one
+(`check-css-tokens.mjs` rule 3), so each is expressed as a `color-mix` of
+`--nf-glow-ink` (the identity's lit ink), `--nf-state-warning` (its cyan) and
+`black`/`white`; the hues land within a few steps of the identity's hexes, not on
+them. Where F6A8A482 differs the render wins and is noted: container radius 14
+(identity 12); the icon slot is the render's own round cropped plate, not the
+identity's square 64px tile; the selected-card treatment is not used because this
+screen has no selectable card (the outcome options use it only as a checked border).
+
+### (c) Light mode
+
+Same anatomy on paper: containers become `--nf-surface-on-paper` with
+`--nf-shadow-on-paper` and the brand hairline; rows and options `--nf-surface-raised`;
+no bloom. The glass house swaps to its daylight cut (floor lifted from 12 to 70 so the
+night bloom does not smudge the white) and stands on the paper with no chip. The row
+plates do NOT use their daylight cut: at 48 render px the glass disc keys to a pale
+bubble on white and its cyan glyph all but vanishes (the "Outcome recorded" plate was
+unreadable in the first light proof), so on paper each plate is drawn as a pale brand
+disc with the brand edge and the stroked glyph (house, shield, bed, document), same
+anatomy, crisp. No daylight plate is cut. For the house: `home-check` has no light twin in the pack, so `BrandIcon` would have put it on
+a navy chip, which is exactly the rejected "black icon plate". Lit CTA keeps the token
+gradient's light twin. Badges take the daylight state colours from the tokens
+(2596ed9), not re-derived hexes. Proof: `docs/design/proofs/session-b/inspection/inspection-390-light.jpg`.
+
+### Desktop
+
+Derived from the phone: the same column held at 42rem by the page, the title at 32px, the
+house at 136px, the info cells side by side (glyph left of text, as the render draws it),
+the four checklist rows in two columns, the outcome options in three. Proof:
+`inspection-1280-dark.jpg`.
+
+### (d) Shape sweep
+
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3178 --shape-sweep --routes /ix-harness --theme both`
+at 390 and 1536, dark and light: BREACHES 0; WORTH AN EYE (0.35 to 0.5) 0; round
+icon-only controls 0. `/inspections` and `/agent/inspections` themselves cannot be swept
+without a session (the tool refuses a route that redirects to /sign-in), so the sweep
+ran on the harness that renders the same components. `check-css-tokens.mjs`: clean.
+
+### (e) Proofs, and what I could not verify
+
+- Every screenshot is FIXTURE-BACKED: a throwaway harness route (not committed)
+  rendering `InspectionHero` and `InspectionSheet` with the F5 fixture inspection
+  (CONFIRMED, requester side) and listing facts. No signed-in production render exists.
+- Not verified live: a real party moving a real inspection, the notification arriving,
+  and `InspectionsLive` refreshing the other screen. No test user may be created and all
+  64 listings are examples, so no inspection can be created.
+- Crops are soft at 3x (house 0.56, plates 0.42 of the pixels needed); numbers in
+  `public/brand/session-b/inspection/SOURCES.md`.
 
 ## 10. The welcome email
 
@@ -1154,3 +1312,8 @@ light variant by design (theme.ts: dark in the layer every client honours).
   tests, not by a signed-in browser. Switch role pressing the dock trigger not exercised signed
   in. `saved_places` and the two storage buckets' policies not re-read. New English copy not yet
   in `packages/i18n` (scope request 1b). No side-by-side composite image made. Details in 1.6.
+- Inspection (section 9): proofs are fixture-backed (throwaway harness, not committed);
+  the live write path and `InspectionsLive` were not exercised against production (no
+  test user, every listing an example). `/inspections` and `/agent/inspections` could not
+  be shape-swept directly (redirect to sign-in). The eight-row room checklist, report notes
+  and report photos are not built (scope request I1). Crops soft at 3x.

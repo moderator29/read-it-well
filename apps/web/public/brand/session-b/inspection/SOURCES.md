@@ -8,17 +8,20 @@ render px). Boxes are left, top, width, height in render px.
 Treatment for every file: plane-fit ground subtraction on a ring at the box
 edge, brightest-channel key to alpha (floor 12, ceiling 210), unpremultiplied,
 alpha feathered over the outer band of the box, WebP with alpha, never
-upscaled. Each object also has a `-day` cut with the floor lifted (house 70,
-plates 40) so the faint night bloom, which reads as a smudge on paper, drops
-out; the light theme swaps to it. No lettering in any of them.
+upscaled. The house also has a `-day` cut with the floor lifted to 70 so the
+faint night bloom, which reads as a smudge on paper, drops out; the light
+theme swaps to it. The plates have no daylight cut: keyed at 48px they turn
+into pale bubbles with an unreadable glyph on white, so the light theme draws
+them as a pale brand disc with the stroked glyph instead. No lettering in any
+of them.
 
 | File | Box | Source size | Displayed at 390 | Sharpness at 2x / 3x |
 |---|---|---|---|---|
-| `house-check.webp`, `-day` | 622, 196, 186, 140 | 186 x 140 | 110 x 83 CSS px | 0.85 / 0.56 of the pixels needed: slightly soft at 3x |
-| `plate-exterior.webp`, `-day` | 226, 663, 50, 50 | 50 x 50 | 40 x 40 | 0.63 / 0.42: visibly soft at 3x |
-| `plate-interior.webp`, `-day` | 226, 717, 50, 50 | 50 x 50 | 40 x 40 | same |
-| `plate-safety.webp`, `-day` | 226, 989, 50, 50 | 50 x 50 | 40 x 40 | same |
-| `plate-overall.webp`, `-day` | 226, 1045, 50, 50 | 50 x 50 | 40 x 40 | same |
+| `house-check.webp`, `house-check-day.webp` | 622, 196, 186, 140 | 186 x 140 | 110 x 83 CSS px | 0.85 / 0.56 of the pixels needed: slightly soft at 3x |
+| `plate-exterior.webp` | 226, 663, 50, 50 | 50 x 50 | 40 x 40 | 0.63 / 0.42: visibly soft at 3x |
+| `plate-interior.webp` | 226, 717, 50, 50 | 50 x 50 | 40 x 40 | same |
+| `plate-safety.webp` | 226, 989, 50, 50 | 50 x 50 | 40 x 40 | same |
+| `plate-overall.webp` | 226, 1045, 50, 50 | 50 x 50 | 40 x 40 | same |
 
 The softness is the render's own resolution: the plates are 48 render px
 across, so no crop of them can be sharper than that. Nothing was sharpened or

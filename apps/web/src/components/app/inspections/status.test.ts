@@ -10,9 +10,9 @@ describe("statusFor", () => {
 
   it("says whose move it is from the reader's side, and both sides agree", () => {
     expect(statusFor({ state: "REQUESTED", outcome: null }, "lister").label).toBe("Your move");
-    expect(statusFor({ state: "REQUESTED", outcome: null }, "requester").label).toBe("Awaiting reply");
+    expect(statusFor({ state: "REQUESTED", outcome: null }, "requester").label).toBe("Waiting");
     expect(statusFor({ state: "PROPOSED", outcome: null }, "requester").label).toBe("Your move");
-    expect(statusFor({ state: "PROPOSED", outcome: null }, "lister").label).toBe("Awaiting reply");
+    expect(statusFor({ state: "PROPOSED", outcome: null }, "lister").label).toBe("Waiting");
   });
 
   it("names the outcome on a completed one, in emerald", () => {

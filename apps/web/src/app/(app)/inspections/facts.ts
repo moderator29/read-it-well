@@ -60,7 +60,7 @@ export async function readListingFacts(
     const { data } = await session.supabase
       .from("listings")
       .select(
-        "id, area, city, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, listing_photos(storage_path, position)",
+        "id, is_demo, area, city, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, listing_photos(storage_path, position)",
       )
       .in("id", wanted);
     for (const row of data ?? []) {
@@ -77,6 +77,7 @@ export async function readListingFacts(
         periodLabel: period === "sale" ? "" : PERIOD_SUFFIX[period],
         photo: cover ? photoUrl(cover.storage_path) : null,
         hue: hueOf(row.id),
+        isDemo: row.is_demo === true,
       });
     }
   } catch {

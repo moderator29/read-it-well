@@ -29,11 +29,14 @@
     position: relative;
     margin-bottom: var(--nf-space-md);
   }
+  /* The house is placed, not flowed: in the render the title runs to within
+     a few pixels of it, which a flex row with a 108px column cannot give a
+     24px title on a 342px card. So the text owns the row and the house sits
+     in its top right corner, over the edge of the text box. */
   .nf-ix-hero__row {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--nf-space-xs);
+    position: relative;
     margin-top: var(--nf-space-md);
+    min-height: 4.5rem;
   }
   .nf-ix-hero__title {
     font-family: var(--nf-font-display);
@@ -51,21 +54,34 @@
   }
   .nf-ix-hero__sub {
     margin-top: var(--nf-space-xs);
-    max-width: 17rem;
+    max-width: 15rem;
     font-size: var(--nf-text-body-sm);
     line-height: 1.45;
     color: var(--nf-brand-secondary);
   }
-  /* The glass house with the tick. Render: 153 image px, 89 CSS px, its
-     foot resting on the listing card's top edge. */
+  /* The glass house with the tick, the render's own pixels. Crop box 186
+     by 140 render px is 109 by 82 CSS px at the render's scale; its foot
+     rests on the listing card's top edge as drawn. The crop carries its own
+     glow, so no filter is added over it. */
   .nf-ix-hero__mark {
-    width: 5.5rem;
-    height: 5.5rem;
-    flex-shrink: 0;
-    margin-left: auto;
-    margin-top: calc(var(--nf-space-xs) * -1);
-    margin-bottom: calc(var(--nf-space-md) * -1);
-    filter: drop-shadow(0 0 18px var(--nf-glow-3));
+    position: absolute;
+    bottom: calc(var(--nf-space-lg) * -1);
+    right: calc(var(--nf-space-xs) * -1);
+    /* Over the card's top edge, as drawn; it takes no pointer events. */
+    z-index: 1;
+    display: block;
+    width: 6.75rem;
+    aspect-ratio: 186 / 140;
+    pointer-events: none;
+  }
+  .nf-ix-crop {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .nf-ix-crop--day {
+    display: none;
   }
 
   .nf-ix-list {
@@ -102,24 +118,56 @@
    * blue bloom off the edge. Radius: 16 image px on a 142px card, which is
    * 9 CSS px strict and 14 once the card is carrying real type.
    */
+  /*
+   * THE PLATFORM GLOW IDENTITY (docs/design/GLOW_IDENTITY.md section 9, the
+   * lit card), expressed through existing tokens because a raw colour may
+   * not live in a stylesheet: the lit ink is `--nf-glow-ink` (#0069FE
+   * against the identity's 0 90 255), the cyan edge and catchlight are
+   * `--nf-state-warning` (the cyan rung). Bands of lit ink along the top and
+   * the foot with a dark middle, a per-side edge (cyan top and left, deep
+   * blue right, mid blue foot), tight rim lines and a short bloom.
+   *
+   * Where F6A8A482 differs, it wins: the radius stays 14 (the render's 16
+   * on a 142px card, scaled with the card) rather than the identity's 12.
+   */
   .nf-ix-glass {
     position: relative;
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid;
+    border-color:
+      color-mix(in oklab, var(--nf-state-warning) 85%, white)
+      color-mix(in oklab, var(--nf-glow-ink) 70%, black)
+      color-mix(in oklab, var(--nf-glow-ink) 88%, var(--nf-state-warning))
+      color-mix(in oklab, var(--nf-glow-ink) 45%, var(--nf-state-warning));
     background:
-      linear-gradient(180deg, var(--nf-brand-tint-2), var(--nf-brand-tint-1) 60%),
-      var(--nf-well-fill);
+      radial-gradient(55% 16px at 50% 0, color-mix(in oklab, var(--nf-state-warning) 28%, transparent), transparent),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-glow-ink) 80%, transparent) 0px,
+        color-mix(in oklab, var(--nf-glow-ink) 52%, transparent) 4px,
+        color-mix(in oklab, var(--nf-glow-ink) 31%, transparent) 11px,
+        color-mix(in oklab, var(--nf-glow-ink) 19%, transparent) 34px,
+        color-mix(in oklab, var(--nf-glow-ink) 10%, transparent) 50%,
+        color-mix(in oklab, var(--nf-glow-ink) 14%, transparent) calc(100% - 22px),
+        color-mix(in oklab, var(--nf-glow-ink) 24%, transparent) calc(100% - 9px),
+        color-mix(in oklab, var(--nf-glow-ink) 50%, transparent) 100%
+      );
     box-shadow:
-      var(--nf-rim-lit),
-      inset 0 -1px 0 var(--nf-glass-floor),
-      0 0 18px var(--nf-glow-2);
+      inset 0 1px 0 color-mix(in oklab, var(--nf-glow-ink) 90%, transparent),
+      inset 1px 0 0 color-mix(in oklab, var(--nf-glow-ink) 80%, black),
+      0 -1px 0 color-mix(in oklab, var(--nf-glow-ink) 80%, transparent),
+      0 1px 0 color-mix(in oklab, var(--nf-glow-ink) 75%, black),
+      0 0 4px color-mix(in oklab, var(--nf-glow-ink) 38%, transparent),
+      0 0 12px color-mix(in oklab, var(--nf-glow-ink) 18%, transparent);
   }
 
   /* The listing card: photo left, badge, title, place, kind, price, chevron. */
   .nf-ix-card {
     display: flex;
     align-items: stretch;
-    gap: var(--nf-space-xs);
+    /* 8px photo to text (the render's 19 render px is 11; the three pixels
+       are what keep a four-word title on one line beside the photo). */
+    column-gap: var(--nf-space-xs);
     padding: var(--nf-space-sm);
     color: inherit;
   }
@@ -130,7 +178,6 @@
     width: 6.25rem;
     min-height: 6.5rem;
     flex-shrink: 0;
-    margin-right: var(--nf-space-2xs);
     overflow: hidden;
     border-radius: var(--nf-radius-sm);
     background: var(--nf-surface-inset);
@@ -142,9 +189,15 @@
     flex-direction: column;
     align-items: flex-start;
   }
+  .nf-ix-card__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs);
+  }
+  /* The render sets this in the text face, not the display face, which is
+     also what lets a four-word title sit on one line beside the photo. */
   .nf-ix-card__title {
     margin-top: var(--nf-space-2xs);
-    font-family: var(--nf-font-display);
     font-weight: 600;
     font-size: 0.9375rem;
     line-height: 1.25;
@@ -227,7 +280,7 @@
     display: grid;
     /* Uneven on purpose: the middle cell carries a name and a number and
        the render gives it the most room; the status cell holds one badge. */
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 0.9fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(min-content, 0.95fr);
     padding: var(--nf-space-sm) 0;
   }
   .nf-ix-fact {
@@ -274,12 +327,7 @@
   .nf-ix-fact__badge {
     margin-top: var(--nf-space-2xs);
   }
-  .nf-ix-fact__badge > .nf-ix-badge {
-    max-width: 100%;
-    padding-block: var(--nf-space-3xs);
-    white-space: normal;
-    line-height: 1.2;
-  }
+
   /* The call line: a number is something to act on, so it is a link with a
      full 44px target, drawn only when the read handed one over. */
   .nf-ix-fact__phone {
@@ -348,14 +396,23 @@
     height: 0.375rem;
     overflow: hidden;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-tint-3);
+    /* Identity progress, off: a deep blue with its own edge. */
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-glow-ink) 45%, black), color-mix(in oklab, var(--nf-glow-ink) 38%, black));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-glow-ink) 50%, black);
   }
   .nf-ix-bar > span {
     position: absolute;
     inset: 0 auto 0 0;
     border-radius: inherit;
-    background: var(--nf-gradient-brand);
-    box-shadow: 0 0 8px var(--nf-glow-3);
+    /* Identity progress, on: cyan catchlight over the lit blue. */
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-state-warning) 70%, var(--nf-glow-ink)) 0,
+      color-mix(in oklab, var(--nf-glow-ink) 80%, var(--nf-state-warning)) 20%,
+      color-mix(in oklab, var(--nf-glow-ink) 80%, var(--nf-state-warning)) 80%,
+      color-mix(in oklab, var(--nf-glow-ink) 70%, var(--nf-state-warning)) 100%
+    );
+    box-shadow: 0 0 4px color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
     transition: width var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-ix-check__rows {
@@ -376,22 +433,17 @@
     background: var(--nf-brand-tint-1);
     box-shadow: var(--nf-rim-lit);
   }
-  /* The round glass plate. Render: 42 image px, 25 CSS strict; 2.5rem so
-     the 20px glyph sits in it as the render's does. */
+  /* The round glass plate, cropped from the render with its glyph (48
+     render px, 28 CSS strict); held at 2.5rem to sit beside two lines of
+     real type, as the render's sits beside its two. */
   .nf-ix-step__plate {
-    display: grid;
-    place-items: center;
+    display: block;
     width: 2.5rem;
     height: 2.5rem;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background:
-      radial-gradient(circle at 50% 30%, var(--nf-brand-tint-3), var(--nf-brand-tint-1) 70%);
-    color: var(--nf-brand-secondary);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 10px var(--nf-glow-2);
+  }
+  .nf-ix-plate-paper {
+    display: none;
   }
   .nf-ix-step__text {
     min-width: 0;
@@ -437,9 +489,6 @@
     border: solid var(--nf-content-on-brand);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
-  }
-  .nf-ix-step--done .nf-ix-step__plate {
-    color: var(--nf-state-success);
   }
 
   /* --------------------------------------------------------- the notes */
@@ -551,12 +600,23 @@
    * further down onto the surface than the token's, so this surface adds one
    * wider, zero-offset layer under the token's own.
    */
+  /* The identity's lit button: the token gradient with a pool of light in
+     its lower middle, a cyan edge, and a bloom thrown down onto the page
+     with a softer one up. */
   .nf-ix .nf-ix-cta {
     justify-content: center;
+    border-color:
+      color-mix(in oklab, var(--nf-state-warning) 90%, white)
+      color-mix(in oklab, var(--nf-state-warning) 60%, var(--nf-glow-ink))
+      color-mix(in oklab, var(--nf-state-warning) 85%, white)
+      color-mix(in oklab, var(--nf-state-warning) 60%, var(--nf-glow-ink));
+    background:
+      radial-gradient(45% 75% at 50% 88%, color-mix(in oklab, var(--nf-glow-ink) 75%, transparent), transparent),
+      var(--nf-gradient-cta);
     box-shadow:
       var(--nf-rim-primary),
-      var(--nf-bloom-lit),
-      0 0 28px var(--nf-glow-2);
+      0 6px 18px -2px color-mix(in oklab, var(--nf-glow-ink) 45%, transparent),
+      0 -2px 10px color-mix(in oklab, var(--nf-glow-ink) 20%, transparent);
   }
   .nf-ix .nf-ix-cta__end {
     margin-left: auto;
@@ -616,17 +676,23 @@
     .nf-ix-hero__title {
       font-size: 2rem;
     }
+    .nf-ix-hero__row {
+      min-height: 6.5rem;
+    }
     .nf-ix-hero__sub {
       max-width: 24rem;
       font-size: var(--nf-text-body);
     }
     .nf-ix-hero__mark {
-      width: 7rem;
-      height: 7rem;
+      width: 8.5rem;
     }
     .nf-ix-check__rows {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .nf-ix-outcome__options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
@@ -647,9 +713,31 @@
   because a blurred halo on white reads as a smudge. The lit CTA keeps its
   gradient, which has its own light twin in the tokens.
 */
+/* The identity's paper card: white with a breath of brand at the top, a
+   brand top edge and softer sides, a small cast shadow; no bloom. */
 :root[data-theme="light"] .nf-ix-glass {
-  background: var(--nf-surface-on-paper);
-  box-shadow: var(--nf-shadow-on-paper);
+  border-color:
+    var(--nf-brand-primary)
+    color-mix(in oklab, var(--nf-brand-primary) 30%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 40%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--nf-brand-primary) 10%, white) 0,
+    white 12px,
+    white 60%,
+    color-mix(in oklab, var(--nf-brand-primary) 5%, white) 100%
+  );
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--nf-brand-primary) 12%, transparent),
+    0 6px 16px -8px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+}
+:root[data-theme="light"] .nf-ix-bar {
+  background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 25%, transparent);
+}
+:root[data-theme="light"] .nf-ix-bar > span {
+  background: var(--nf-brand-primary);
 }
 :root[data-theme="light"] .nf-ix-step,
 :root[data-theme="light"] .nf-ix-option {
@@ -659,22 +747,37 @@
 :root[data-theme="light"] .nf-ix-option[aria-checked="true"] {
   background: var(--nf-brand-tint-2);
 }
-:root[data-theme="light"] .nf-ix-step__plate {
+:root[data-theme="light"] .nf-ix-crop--night {
+  display: none;
+}
+:root[data-theme="light"] .nf-ix-crop--day {
+  display: block;
+}
+:root[data-theme="light"] .nf-ix-plate-paper {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--nf-radius-circle);
+  border: var(--nf-border-width) solid var(--nf-brand-edge);
   background: var(--nf-brand-tint-1);
-  box-shadow: none;
+  color: var(--nf-brand-primary);
 }
 :root[data-theme="light"] .nf-ix-notes__well {
   background: var(--nf-surface-raised);
 }
-:root[data-theme="light"] .nf-ix-fact__glyph,
-:root[data-theme="light"] .nf-ix-hero__mark {
+:root[data-theme="light"] .nf-ix-fact__glyph {
   filter: none;
 }
 :root[data-theme="light"] .nf-ix-bar > span {
   box-shadow: none;
 }
 :root[data-theme="light"] .nf-ix .nf-ix-cta {
-  box-shadow: var(--nf-rim-primary), var(--nf-bloom-lit);
+  border-color: color-mix(in oklab, var(--nf-brand-primary) 70%, white) var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary);
+  background: var(--nf-gradient-cta);
+  box-shadow:
+    var(--nf-rim-primary),
+    0 6px 16px -6px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
 }
 :root[data-theme="light"] .nf-ix .nf-ix-submit {
   background: var(--nf-surface-on-paper);
@@ -683,4 +786,14 @@
 :root[data-theme="light"] .nf-ix .nf-ix-submit:disabled {
   background: var(--nf-surface-raised);
   color: var(--nf-content-muted);
+}
+/*
+  The glass house on paper: the render's own crop, in its daylight cut (the
+  floor lifted so the night bloom does not smudge the white), standing on
+  the paper with a soft brand shadow for an edge. No chip behind it: a navy
+  plate on a white page is what the founder rejected
+  (docs/design/references/founder/home-light-black-icon-plates-as-shipped.jpg).
+*/
+:root[data-theme="light"] .nf-ix-hero__mark {
+  filter: drop-shadow(0 4px 10px var(--nf-glow-2));
 }

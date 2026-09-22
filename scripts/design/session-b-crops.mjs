@@ -171,7 +171,7 @@ SURFACES.inspection = async () => {
   await mkdir(dir, { recursive: true });
   /* The glass house with the tick, beside the title. The box stops above the
      listing card's lit top edge, which runs under the house's foot. */
-  await cutObject(render, [622, 196, 186, 140], path.join(dir, "house-check"), { feather: 0.06, dayFloor: 70 });
+  await cutObject(render, [622, 196, 186, 140], path.join(dir, "house-check"), { feather: 0.03, dayFloor: 70 });
   /* The checklist's round glass plates, glyph included (line art, no
      lettering). Centres at x 251 on the row pitch; each box is the 48px disc
      plus a pixel of ground. Only the four the built checklist draws are cut:
@@ -185,7 +185,7 @@ SURFACES.inspection = async () => {
     overall: 1070,
   };
   for (const [name, cy] of Object.entries(plates)) {
-    await cutObject(render, [226, cy - 25, 50, 50], path.join(dir, `plate-${name}`), { feather: 0.04, dayFloor: 40 });
+    await cutObject(render, [226, cy - 25, 50, 50], path.join(dir, `plate-${name}`), { feather: 0.04 });
   }
 };
 

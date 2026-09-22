@@ -43,5 +43,6 @@ export function statusFor(
   if (inspection.state === "CONFIRMED") return { label: "Pending", tone: "pending" };
   const waiting = waitingOn(inspection.state);
   if (waiting === side) return { label: "Your move", tone: "pending" };
-  return { label: "Awaiting reply", tone: "pending" };
+  /* One word, so the status cell never has to wrap its badge. */
+  return { label: "Waiting", tone: "pending" };
 }

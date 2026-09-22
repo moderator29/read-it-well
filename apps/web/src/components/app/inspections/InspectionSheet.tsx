@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDate, type Locale } from "@vallo/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
@@ -66,6 +65,12 @@ export type InspectionListingFacts = {
   periodLabel: string;
   photo: string | null;
   hue: number;
+  /**
+   * The listing is one of the catalogue's examples (`listings.is_demo`).
+   * Optional because fixtures predate it. Drawn as its own badge so an
+   * example can never pass as a real property someone is going to see.
+   */
+  isDemo?: boolean;
 };
 
 /** The listing card's badge: what the appointment is. */
@@ -87,12 +92,57 @@ const STATE_TONE: Record<InspectionState, BadgeTone> = {
   WITHDRAWN: "quiet",
 };
 
-const RUNG: Record<LadderKey, { icon: UiIconName; name: string; detail: string }> = {
-  asked: { icon: "calendar-booking", name: "Viewing requested", detail: "The request is on both sides' lists" },
-  agreed: { icon: "history", name: "Time agreed", detail: "A day and a time both sides took" },
-  visited: { icon: "house", name: "Viewing happened", detail: "Somebody stood in the property" },
-  recorded: { icon: "document", name: "Outcome recorded", detail: "How it went, written on the record" },
+/*
+ * Each rung wears one of the render's own glass plates, cropped from F6A8A482
+ * (`public/brand/session-b/inspection/SOURCES.md`), chosen for what the rung
+ * means: the house for the request, the shield with its tick for the agreed
+ * time, the room for the visit, the document for the outcome.
+ */
+const RUNG: Record<LadderKey, { plate: string; paper: UiIconName; name: string; detail: string }> = {
+  asked: { plate: "exterior", paper: "house", name: "Viewing requested", detail: "The request is on both sides' lists" },
+  agreed: { plate: "safety", paper: "verified", name: "Time agreed", detail: "A day and a time both sides took" },
+  visited: { plate: "interior", paper: "bed", name: "Viewing happened", detail: "Somebody stood in the property" },
+  recorded: { plate: "overall", paper: "document", name: "Outcome recorded", detail: "How it went, written on the record" },
 };
+
+const CROPS = "/brand/session-b/inspection";
+
+/** A crop from the render, with its daylight cut; the theme picks one. */
+function Crop({
+  name,
+  width,
+  height,
+  className,
+  night = false,
+}: {
+  name: string;
+  width: number;
+  height: number;
+  className?: string;
+  /** Night only: daylight draws something else in its place. */
+  night?: boolean;
+}) {
+  return (
+    <>
+      <Image
+        src={`${CROPS}/${name}.webp`}
+        alt=""
+        width={width}
+        height={height}
+        unoptimized
+        className={`nf-ix-crop nf-ix-crop--night ${className ?? ""}`}
+      />
+      {!night && <Image
+        src={`${CROPS}/${name}-day.webp`}
+        alt=""
+        width={width}
+        height={height}
+        unoptimized
+        className={`nf-ix-crop nf-ix-crop--day ${className ?? ""}`}
+      />}
+    </>
+  );
+}
 
 const OUTCOME_LABEL: Record<InspectionOutcome, string> = {
   inspected: "I inspected it",
@@ -163,7 +213,10 @@ export function InspectionSheet({
             {facts?.photo && <Image src={facts.photo} alt="" fill sizes="(min-width: 640px) 160px, 116px" className="object-cover" />}
           </div>
           <div className="nf-ix-card__text">
-            <Badge tone={STATE_TONE[inspection.state]}>{STATE_LABEL[inspection.state]}</Badge>
+            <span className="nf-ix-card__badges">
+              <Badge tone={STATE_TONE[inspection.state]}>{STATE_LABEL[inspection.state]}</Badge>
+              {facts?.isDemo && <Badge tone="quiet">Example listing</Badge>}
+            </span>
             <p className="nf-ix-card__title">{inspection.listingTitle ?? "A property that is no longer listed"}</p>
             {facts && (facts.area || facts.city) && (
               <p className="nf-ix-card__line">
@@ -205,7 +258,10 @@ export function InspectionSheet({
               <UiIcon name="user" size={22} />
             </span>
             <div className="nf-ix-fact__text">
-              <dt className="nf-ix-fact__label">{side === "requester" ? "Assigned Agent" : "Requested by"}</dt>
+              {/* The render says "Assigned Agent". Nobody is assigned: the other
+                  party is whoever lists the property, owner or agent, so the
+                  label says that and no more (CLAIMS_RULE; ledger 9, refused). */}
+              <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
               <dd className="nf-ix-fact__value">{inspection.counterpartName ?? "Not named yet"}</dd>
               {/*
                 THE NUMBER, when this reader is allowed to have it.
@@ -267,7 +323,13 @@ export function InspectionSheet({
               return (
                 <li key={rung.key} className={`nf-ix-step${rung.done ? " nf-ix-step--done" : ""}`}>
                   <span className="nf-ix-step__plate" aria-hidden="true">
-                    <UiIcon name={words.icon} size={20} />
+                    <Crop name={`plate-${words.plate}`} width={50} height={50} night />
+                    {/* On paper the 48px glass disc keys to a pale bubble with
+                        a glyph too faint to read, so daylight draws the same
+                        plate as a pale brand disc with the stroked glyph. */}
+                    <span className="nf-ix-plate-paper">
+                      <UiIcon name={words.paper} size={20} />
+                    </span>
                   </span>
                   <span className="nf-ix-step__text">
                     <span className="nf-ix-step__name">{words.name}</span>
@@ -543,8 +605,9 @@ export function InspectionHero({
           </h1>
           <p className="nf-ix-hero__sub">{sub}</p>
         </div>
+        {/* The render's own glass house, cropped and keyed (SOURCES.md). */}
         <span className="nf-ix-hero__mark" aria-hidden="true">
-          <BrandIcon name="home-check" fill />
+          <Crop name="house-check" width={186} height={140} />
         </span>
       </div>
     </div>
