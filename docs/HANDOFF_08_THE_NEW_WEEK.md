@@ -7,6 +7,12 @@ That brief is still live and five of the seven workers stay on it. This file is
 the SECOND brief: the new work the founder added this week, plus the re-audit
 findings that the build session must fold into what it is already doing.
 
+**A THIRD BRIEF NOW EXISTS AND IT OUTRANKS THIS ONE WHERE THEY DISAGREE:**
+`docs/HANDOFF_09_THE_DIRECT_PLATFORM.md`, written the same day on the
+founder's ruling. It changes what Vallo IS: the positioning, the supply
+roles, the fee transparency layer, Price Check, and escrow end to end.
+Read it after this file and before you plan.
+
 **Read in this order before touching anything:**
 
 1. This file, whole.
@@ -95,11 +101,16 @@ user over PostgREST. No surface opens an escrow and no surface releases one.
 `wallet_entries.metadata`, which breaks the dead-brand rule and the
 no-escrow-promise rule in the same string.
 
-**Build instruction.** `REVOKE EXECUTE ... FROM authenticated` on all four, in
-a migration, with a comment saying why and saying plainly that the machinery
-stays for the day escrow becomes a designed feature. Fix the note string in
-the same pass. Do NOT delete the functions. Do NOT build an escrow product:
-that is a founder decision and it has not been made.
+**THE FOUNDER HAS SINCE MADE THAT DECISION: escrow is built, fully, end to
+end.** See `docs/HANDOFF_09_THE_DIRECT_PLATFORM.md` section 6, which is the
+governing text and which carries a hard regulatory gate on the custody path.
+
+**Build instruction, unchanged by that decision.** `REVOKE EXECUTE ... FROM
+authenticated` on all four, in a migration, and replace them with guarded
+server actions. An unguarded money path with no product behind it is a hole
+whatever the eventual structure turns out to be, so this does not wait on
+anybody. Fix the dead brand note string in the same pass. Never delete the
+functions.
 
 ### 1.4 One function leaks to strangers
 
@@ -665,6 +676,225 @@ handoff. They were found in this re-audit and they belong in this week.
 
 ---
 
+## 8A. Track L: light mode, which has never been tested once
+
+**The full survey is `docs/research/LIGHT_MODE_SURVEY.md`, 1,588 lines with 378
+citations. It is the work list. This is the ruling.**
+
+The founder's report, verbatim: "our light mode in our platform is so fucking
+worst ... images not showing icons bad containers color so bad switch stays
+that's showing icon don't show ... it's many many areas".
+
+He is right, and it is not many small bugs. It is **five root causes**, and one
+of them explains most of the symptoms at once.
+
+### 8A.1 Eighty four per cent of the object artwork has no light version
+
+Counted from disk rather than from the documentation: **144 objects, 23 with a
+light twin, so 121 have none.** `docs/ICON_SYSTEM.md:18` says 103 and 23, and
+`glass.css:989` states the exit condition as `103 - LIGHT_TWINS.size`. The live
+arithmetic is `144 - 23`, so the stated finish line has moved fifty one per
+cent further away than the file tracking it believes.
+
+**Nothing 404s.** `BrandIcon.tsx:431-444` only applies the night treatment when
+an object is twinned, so an untwinned object keeps painting its dark artwork.
+What kills it is the chip underneath: `--nf-icon-ground` is `transparent` at
+night and a dark navy on paper, verified at `tokens.css:771` and `:2990`.
+Measured across all 121, the median object pixel falls from 2.42:1 against the
+night canvas to **1.60:1 against the navy chip, a thirty three per cent median
+loss**, and 45 of them fall below 1.5:1. The chip itself is 13.47:1 against the
+white page, so the eye resolves the square and not the object inside it. 89 of
+100 static call sites take that chip.
+
+**The fix model already exists in the product**: `glass.css:1073-1077` is the
+one place the chip was designed in deliberately rather than inherited, which is
+why the founder's home page tiles are the one thing in his screenshots that
+reads correctly. Follow that pattern.
+
+Commissioning the missing light artwork is a separate, larger job and is named
+in the founder's list, not here. What this session does is make the 121
+untwinned objects **legible on paper without new artwork**, and record which
+surfaces still need the real thing.
+
+### 8A.2 Eleven light rules are invalid CSS and are thrown away
+
+`--nf-shadow-on-paper` at `tokens.css:1024` is a bare colour,
+`rgb(18 21 26 / 0.18)`, with no length values. Eleven light theme rules write
+it as the entire `box-shadow` value, verified in `threads.css` (six),
+`admin.css` (three plus one inset) and `agent.css` (one). The grammar requires
+the lengths, so **every one of those declarations is invalid and dropped by the
+parser.**
+
+At `admin.css:941-945` the dropped layer takes the flagged stat card's inset
+rule down with it, so **the flagged admin card loses its flag on paper**, while
+the comment above it explains why the flag matters. The fill beneath all eleven
+measures 1.000:1. So admin, agent, host, messages and inspections have neither
+fill nor shadow in light mode.
+
+`check-css-tokens.mjs:456` already has the machinery for this and only tests for
+a gradient in `box-shadow`. Changing `=== "gradient"` to `!== "shadow"` fails
+all eleven today. Do that, then fix them.
+
+**One caveat the survey states and this handoff repeats:** that a bare colour
+in `box-shadow` is invalid follows from the CSS grammar and was not observed in
+a browser. It is one line to confirm. Confirm it first.
+
+### 8A.3 The container ladder collapses, and the glass fill inverts
+
+`--nf-brand-edge`, the edge on every card, control, dock island and icon plate,
+measures **2.53:1 on white**, under the 3:1 interface floor.
+`--nf-edge-stride-base`, three quarters of every card's ring, measures
+**1.31:1**. The light elevation rims are white on white and paint nothing. The
+whole surface ladder spans 1.09:1. That is "containers color so bad", measured.
+
+`--nf-glass-fill` is white at 7.5 per cent at night and **86 per cent on
+paper**. Twenty three CSS rules plus `KycBanner.tsx:80` never got a light
+override and now paint white on white, twelve of them row hovers, which is why
+hovering a row in the drawer, messages, the share picker, wallet transactions,
+settings, crypto and the admin rail does nothing visible on paper.
+`light.css:686-706` already diagnoses this exact fault for the Tailwind utility
+form and patches only that, and its call site list is stale in both directions.
+
+### 8A.4 Four stylesheets have no paper twin
+
+`side-flip.css` (590 lines), `chrome.css` (844) and `overlays.css` (328) have
+no light version. `ambient.css` (644) correctly has none.
+
+**The flip is the worst served surface in the product and
+`DESIGN_DIRECTION.md:2` calls it the signature.**
+
+### 8A.5 The founder's four screenshots, resolved
+
+1. **The Stays cover.** `SideCover.tsx:76` draws
+   `<BrandIcon name="hotel" size={128}>`, which takes the navy chip. The blue
+   halo is `side-flip.css:273-278`, whose `drop-shadow` falls on the opaque
+   chip and therefore renders a **square** glow. What looks like a step
+   indicator is the three tile miniature, near white cards each holding a 40px
+   navy chip, and the two that look flat measure 1.67:1 and 2.11:1.
+2. **The drawer.** The avatar is the no photo initial on the brand gradient
+   with a rim that flattens to the disc's own blue, so ring and disc merge. The
+   coin is two faults stacked: the 44px coin is white at 95 per cent with a
+   white rim on a white card, so it vanishes and leaves only the 30px navy chip
+   inside it. **And `flip-coin`, the object commissioned for exactly that card,
+   is used nowhere: the card draws `hotel` instead.** Console draws
+   `shield-stop`, which `AppRail.tsx:207-213` forbids two lines earlier for the
+   same reason.
+4. **The dock.** `AppShell.tsx:252` reserves a fixed 96px while
+   `--nf-tabbar-clearance` at `chrome.css:112` computes 80px plus the safe area
+   inset, which is 114px on a notched phone. The token has five consumers and
+   the app shell is not one of them. That is why the listing counts are clipped.
+
+### 8A.6 The reason nobody caught any of it
+
+**Nothing in the checks ever looks at paper.** `check-css-tokens.mjs:587-589`
+excludes `[data-theme]` from the resting edge check **by name**, reasoning that
+the default theme is the one that matters. `probe-contrast.mjs:33` measures four
+elements on one route. `compare-surface.mjs` has no theme switch at all.
+
+**So the theme every daylight user sees has never been tested once.** Fix the
+three tools first, then fix what they find. A light defect that ships after
+this week is a tooling failure, not an oversight.
+
+Worst confirmed text failure is **1.00:1**, the settings hub avatar initials,
+which are invisible. Then the example disclosure chip at 1.34:1, the switch
+thumb when off at 1.09:1, the heart at 3.35:1.
+
+**One piece of good news worth saying out loud:** there is zero raw hex or
+`rgb()` outside comments across all 37 stylesheets. Every single defect is a
+correctly tokenised rule reaching for the wrong token on paper. The discipline
+is sound; the light half of the map was never drawn.
+
+---
+
+## 8B. Track M: the drift from the reference images, and the wallet
+
+**The full survey is `docs/research/DESIGN_DRIFT_SURVEY.md`. This is the
+ruling.**
+
+The founder: "a lot of areas that need fixing on the frontend that other
+session did that didn't look like the files we told it to follow ... especially
+the wallet features".
+
+### 8B.1 The wallet, four compounding proportion defects, all P1
+
+1. **The balance figure is about thirteen per cent short.** `wallet.css:74`
+   paints `clamp(2rem, 8.6vw, 2.75rem)`, which is 33.5px at 390. The render
+   measures about 40px. The file's own comments at `wallet.css:101` and
+   `money.ts:8` both say 2.6rem, so the intent was right: **the clamp only
+   reaches 2.6rem at a 484px viewport**, which no phone is.
+2. **The action tiles have a flipped aspect.** Shipped 71 by 83, portrait. The
+   render is 77 by 60, landscape. This is the single most visible difference on
+   the surface.
+3. **The quick action cards are fifty per cent too tall**, 127.5px against
+   85px, which is why all four titles wrap onto two lines.
+4. **Every money page draws a second header row** under the app bar, costing
+   about 68px the render does not spend.
+
+Beside those: send, receive, transactions and payments all use the inline page
+top where three renders show the **stacked** one that `PageHeader.tsx:98`
+already implements, which is one prop in four files. The statement draws one
+card per calendar day where the render draws one card with hairlines. And
+sixteen banned grey borders sit across the money family in violation of a rule
+written at the top of `wallet.css:17`.
+
+### 8B.2 The structural cause, which matters more than any of them
+
+`BUILD_06_LEDGER.md` section 6 opens with the words **"a scope closes only with
+its row here"**, and it has **no row for wallet, send, receive, transactions or
+payments.** Thirteen screenshots sit in `docs/design/proofs/e/` with no verdict
+ever written against a governing image.
+
+**The one family the founder named as worst is the one family that never went
+through the gate.** Reinstate the gate and hold it: a scope without its row is
+not closed, and the lead does not commit it.
+
+### 8B.3 The reference folder nobody indexed
+
+**`docs/design/references/founder/` holds eleven images, five of them named
+GOVERNING, and `docs/design/CATALOGUE.md` does not mention that folder once.**
+Verified.
+
+Those are the founder's own corrective targets, sent after he saw what shipped,
+and they are invisible to every session that reads the catalogue. The drift
+survey nearly filed two false findings against them, and in both cases the
+shipped code was right and it is `DESIGN_DIRECTION.md` section 2 that has gone
+stale.
+
+**First hour job: index that folder into the catalogue and give it explicit
+precedence over the older renders. A founder target beats a generated render,
+always.**
+
+### 8B.4 Three capsules that pass every name check
+
+`.nf-nav__whocta` at **0.52**, which is the drawer's "View profile" and which
+has a comment directly above it claiming it is not a capsule, plus a proof row
+in the ledger calling it one. `.nf-nav__badge` at **0.77**.
+`.nf-detail-capsule` at **0.56**. Eleven more sit above 0.35. No grep finds
+them and rule 10 passes all of them. Only the ratio sweep sees them.
+
+### 8B.5 Two things not to touch
+
+**Off brand leaks: essentially none.** No gold or warm hues anywhere, the
+lettered hotel icon never copied, no garbled render text, real brand names
+correctly translated. That discipline held.
+
+**Nine places where the shipped code is better than the image**, listed in the
+survey specifically so nobody "corrects" them back. Read that list before
+touching any governed surface.
+
+### 8B.6 One founder decision, carried here unanswered
+
+In the render, a completed credit is drawn in **cyan**, measured. Ours is
+emerald. Our own colour law says emerald means success and cyan means pending,
+so following the image breaks the semantics everywhere else. The catalogue
+recorded that colour as emerald, which was a misreading.
+
+**Recommendation: keep emerald, treat the render as carrying a mistake, and
+record it in the catalogue's off brand table.** If the founder rules otherwise,
+the whole status palette moves together or not at all.
+
+---
+
 ## 9. How this session runs: seven workers
 
 The founder's instruction: it is a new week, the session is back up, restart
@@ -684,6 +914,38 @@ as the audit and recommendation agent.
 - **Worker 7: Track B and Track E.** The emails and the interface uniqueness,
   toggles, sign-in marks and the admin console. One worker because both are
   presentation and both touch the token layer.
+
+**A THIRD BRIEF ARRIVED AFTER THAT SPLIT WAS WRITTEN, AND SEVEN WORKERS NO
+LONGER COVERS THE GROUND.** `docs/HANDOFF_09_THE_DIRECT_PLATFORM.md` adds four
+tracks: the supply roles, the fee transparency layer, Price Check and escrow.
+Two more tracks arrived in this file as well: Track L, light mode, and Track M,
+the reference drift.
+
+**Raise to nine workers if the session can carry nine.** The allocation:
+
+- **Worker 8: Track G and Track H**, the supply roles and the fee transparency
+  layer. One worker because Track H is the visible proof of Track G and they
+  touch the same listing surfaces. **This is the largest single scope in any of
+  the three briefs and it is the positioning**, so it gets the strongest worker.
+- **Worker 9: Track J**, escrow end to end, everything in HANDOFF 09 section
+  6.3, and nothing from 6.2 until the solicitor's answer is in the ledger.
+- **Track L, light mode, goes to Worker 7**, because it is the token layer and
+  Worker 7 already owns the token layer. It starts with the three checking
+  tools, because HANDOFF 08 section 8A.6 is why nobody caught any of it.
+- **Track M, the drift and the wallet, goes to the enhancement worker** if
+  `HANDOFF_05` section 2's tenth worker still exists, and to Worker 7
+  otherwise. Its first hour job is indexing
+  `docs/design/references/founder/` into the catalogue, because until that
+  happens every worker on the image sweep is reading a stale map.
+- **Track I, Price Check, waits** until Track H and Track G are landed, per
+  HANDOFF 09 section 8. Do not open it early. Its stage one instrumentation is
+  shared with HANDOFF 08 section 8 item 1, so build that analytics table once,
+  for both, whoever gets there first.
+
+**If the session genuinely cannot run more than seven**, keep the seven, and
+take the order in HANDOFF 09 section 8 literally rather than starting
+everything. Report which tracks are not staffed rather than letting them look
+staffed.
 - **The audit worker is worker 5 resuming its old post**, and it is not a
   builder. It re-audits every scope as it closes, it owns Track D's checklist,
   it keeps the ledger's verification column honest, and it re-audits every
@@ -716,7 +978,12 @@ number can be checked rather than believed:
 | `ON_PLATFORM_SWEEP.md` | 32 | 24 departures to close, 8 half built flows, plus 4 permanent exceptions not counted here |
 | `UI_UNIQUENESS_AND_ADMIN_RESEARCH.md` | 32 | 8 toggle and geometry defects, 24 uniqueness inconsistencies |
 | `EMAIL_AND_NOTIFICATIONS_RESEARCH.md` | 28 | 10 built but unreachable, 18 not built at all |
-| **Total** | **157** | |
+| `LIGHT_MODE_SURVEY.md` | 5 root causes, 121 twinless objects, 23 white-on-white rules, 11 invalid shadows, 4 untwinned stylesheets | the five root causes are the unit that matters |
+| `DESIGN_DRIFT_SURVEY.md` | 8 pick-up blocks | 4 wallet P1s inside block A |
+| `ROLE_ARCHITECTURE_RESEARCH.md` | the whole of Track G | 3 forms, 2 axes, 3 badges, 15 surfaces on one vocabulary |
+| `VALUATION_ENGINE_RESEARCH.md` | the whole of Track I | 3 stages, 9 refusal states |
+| `ESCROW_END_TO_END_RESEARCH.md` | 15 defects plus 9 probes | E-1 to E-15, and no naira moves until all 9 pass |
+| **Total, the countable rows** | **157** | the five newer files are tracks, not rows, and are counted by their own completion |
 
 A further **16 items belong to the founder**, listed in the store research
 file's founder section. They are not this session's work and nothing waits on
