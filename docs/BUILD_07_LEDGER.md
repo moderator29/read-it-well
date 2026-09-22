@@ -5451,3 +5451,69 @@ The `refusalAlert` default, which answered a question it had not asked. This
 resolver, which reported two faults that were not there. And, from CHROME's
 sweep, `probe-contrast.mjs`, whose full-page capture cannot see past roughly
 4,700 CSS pixels and scores everything below that against the wrong pixels.
+
+## 47. FOUR STATE COLOURS THAT WERE MEASURED AGAINST THE WRONG BACKGROUND
+
+CHROME's contrast sweep confirmed one defect by viewport re-measure: the
+`Verified`-style badge in its success colours at **4.04:1** in daylight, on 21
+routes. I reproduced that number from the token arithmetic alone, to two
+decimals, and it turned out to be one instance of a fault in all four state
+colours.
+
+### The mistake was in the comment, not only in the colour
+
+`--nf-state-success` carried the note "5.36:1 on white, 4.85:1 on its own
+tint". The badge tint is `color-mix(in oklab, <colour> 12%, transparent)`, so
+what actually sits under the ink is 12% of the colour composited over
+**whichever surface the badge happens to be on**, and this product has four
+light surfaces of which exactly one is white:
+
+| ink `#0A7A51` on its 12% tint over | ratio |
+|---|---|
+| `#FFFFFF` surface-primary | 4.54:1 (not the 4.85 claimed) |
+| `#F7F8FA` surface-raised | 4.29:1 |
+| `#F4F5F7` surface-canvas | 4.18:1 |
+| `#EFF1F4` surface-inset | **4.04:1** |
+
+`.nf-badge` is `--nf-text-overline` at weight 700, which is 12px bold: ordinary
+text for the floor, needing 4.5:1 rather than 3:1. So it cleared on one surface
+out of four. The bottom row is CHROME's measured number.
+
+### Sweeping the other three found two more
+
+The value that was found is never the only one. Checking all four state inks
+the same way:
+
+| pair | white | raised | canvas | inset | verdict |
+|---|---|---|---|---|---|
+| warning `#0E6E8C` | 5.09 | 4.82 | 4.70 | 4.55 | scraped through |
+| error `#C10E32` | 5.04 | 4.75 | 4.64 | **4.48** | under the floor |
+| info `#0369A1` | 4.98 | 4.70 | 4.59 | **4.43** | under the floor |
+
+Error is the sharpest one. Its comment reads "6.22:1 on white", which is true
+and is the wrong question, and the same comment already records that its
+predecessor `#DC143C` "fell to 3.95:1 on the rose badge tint". **It had learnt
+half the lesson and then quoted the replacement against white anyway.**
+
+### After
+
+Every ink keeps its hue and saturation and is stepped down in lightness only,
+until the worst surface clears with real headroom rather than by 0.05.
+
+| pair | primary | raised | canvas | inset |
+|---|---|---|---|---|
+| success `#096946` | 5.61 | 5.30 | 5.17 | 4.99 |
+| warning `#0D6784` | 5.61 | 5.31 | 5.19 | 5.02 |
+| error `#B40D2F` | 5.57 | 5.26 | 5.13 | 4.95 |
+| info `#036195` | 5.55 | 5.25 | 5.12 | 4.94 |
+
+`--nf-status-approved` aliases success, so approved badges move with it.
+
+### The rule this leaves behind
+
+**A token whose background is a transparent tint has no single contrast number.
+Quoting one against white is quoting the best case as though it were the
+measurement.** Check the darkest surface the thing can actually land on. Three
+of these four comments quoted a real number that was real about a background
+the component is rarely on, which is a more convincing way to be wrong than
+having no number at all.

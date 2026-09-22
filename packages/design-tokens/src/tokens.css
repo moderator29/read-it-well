@@ -3472,16 +3472,58 @@
      overridden here rather than the class being overridden in globals.css, so
      there is one place the gradient's ink is decided. */
   --nf-gradient-text: linear-gradient(135deg, #0950B6 0%, #003A8C 100%);
-  /* 5.36:1 on white, 4.85:1 on its own tint. Was #0B8A5C, which measured
-     4.37:1 on white and dropped to 3.79:1 once the badge tint sat under it. */
-  --nf-state-success: #0A7A51;
+  /*
+   * THE OLD NUMBER WAS MEASURED AGAINST WHITE AND THE BADGE IS ALMOST NEVER ON
+   * WHITE, WHICH IS THE WHOLE FAULT.
+   *
+   * This said "5.36:1 on white, 4.85:1 on its own tint" and was #0A7A51. The
+   * tint is `color-mix(in oklab, ... 12%, transparent)`, so what sits under the
+   * ink is 12% of the colour composited over WHATEVER SURFACE THE BADGE IS ON,
+   * and this product has four light surfaces, only one of which is white.
+   * Recomputed for #0A7A51 across all four:
+   *
+   *   on #FFFFFF surface-primary  4.54:1   (not the 4.85 claimed)
+   *   on #F7F8FA surface-raised   4.29:1
+   *   on #F4F5F7 surface-canvas   4.18:1
+   *   on #EFF1F4 surface-inset    4.04:1
+   *
+   * `.nf-badge` is `--nf-text-overline` at weight 700, which is 12px bold and
+   * therefore ordinary text for the floor: it needs 4.5:1, not 3:1. So the
+   * badge cleared on exactly one of the four surfaces and failed on the other
+   * three. A whole-product sweep on 22 September measured 4.04:1 in daylight on
+   * 21 routes and the number reproduced to two decimals from this arithmetic.
+   *
+   * #096946 is the same hue (158 degrees) and the same saturation, stepped down
+   * in lightness until the WORST surface clears with headroom:
+   *
+   *   on #FFFFFF  5.61:1     on #F4F5F7  5.17:1
+   *   on #F7F8FA  5.30:1     on #EFF1F4  4.99:1
+   *
+   * THE RULE THIS LEAVES BEHIND: a token whose surface is a transparent tint
+   * has no single contrast number, and quoting one against white is quoting the
+   * best case as though it were the measurement. Check the darkest surface the
+   * thing can land on.
+   *
+   * `--nf-status-approved` aliases this token, so approved badges move with it.
+   */
+  --nf-state-success: #096946;
   /* Deep cyan, not the burnt orange this used to be. The bright cyan the dark
      theme uses is invisible on white, so daylight steps it down until small
-     bold text clears 4.5:1, exactly as success and error do. */
-  --nf-state-warning: #0E6E8C;
-  /* 6.22:1 on white. Was --nf-crimson-500 (#DC143C), which cleared white at
-     4.99:1 but fell to 3.95:1 on the rose badge tint. */
-  --nf-state-error: #C10E32;
+     bold text clears 4.5:1, exactly as success and error do.
+     Was #0E6E8C, which cleared white at 5.09:1 and scraped the inset surface at
+     4.55:1. Its tint mixes from the ACCENT rather than from this ink, so this
+     one was the closest of the four to being honest. Stepped down anyway,
+     because 0.05 of headroom is not headroom. Now 5.61 / 5.31 / 5.19 / 5.02
+     across primary, raised, canvas and inset. */
+  --nf-state-warning: #0D6784;
+  /* Was #C10E32, and the comment here said "6.22:1 on white", which was true
+     and was the wrong question: on its own 12% tint it measured 5.04 on white,
+     4.75 on raised, 4.64 on canvas and 4.48 ON THE INSET SURFACE, so the error
+     badge sat 0.02 under the floor wherever the page went grey. This one had
+     already learnt half the lesson, recording that #DC143C "fell to 3.95:1 on
+     the rose badge tint", and then quoted its replacement against white again.
+     Now 5.57 / 5.26 / 5.13 / 4.95. */
+  --nf-state-error: #B40D2F;
   /* The unread mark on paper. #C10E32 measures 6.22:1 on white, so the dot is
      legible rather than a pale smudge, and it is the same hue the dark theme
      draws so the mark does not change meaning between themes. Stated on its
@@ -3493,7 +3535,10 @@
    * it stayed on --nf-sky-400 (#38BDF8) at 2.14:1, less than half the AA floor.
    * #0369A1 measures 5.93:1 on white and 5.44:1 on canvas.
    */
-  --nf-state-info: #0369A1;
+  /* Was #0369A1: 4.98 on white but 4.43 on the inset surface, under the floor
+     on the greyest of the four light surfaces and nowhere else. Now
+     5.55 / 5.25 / 5.12 / 4.94. */
+  --nf-state-info: #036195;
 
   /*
    * PENDING HAD NO ENERGY ON PAPER, AND THE CONTRAST REASONING ABOVE IS WHY.
