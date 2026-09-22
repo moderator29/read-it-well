@@ -811,7 +811,271 @@ Proofs: `docs/design/proofs/session-b/send/send-390-dark.jpg` (empty), `send-fil
 
 ## 6. Admin shell, overview, operations, analytics
 
-(pending)
+Worker admin-shell. Governing images: `5EAA44CB` (overview, one full desktop
+window, 1586 image px for a 1440 CSS px window, so 1 image px = 0.908 CSS px),
+`01F7DFC7` panels two and three (operations, analytics; each panel window is
+about 492 image px wide and drawn at a much smaller scale, so it governed
+composition and anatomy while `5EAA44CB` governed every size), and
+`8E9602E2` and `C1D98B3C` for the shell every desk shares (rail, bar,
+identity at the foot). Built desktop first at 1440, then 390, then light.
+
+Files: `app/admin/layout.tsx`, `page.tsx`, `loading.tsx`, `_components/**`
+(AdminFrame, AdminNav, AdminGlyph, panels, metrics, nav, ConsoleClock,
+LiveRefresh, RangeSelect, OverviewView, console-shapes), `operations/**`,
+`analytics/**`, `settings/page.tsx` (new: the render's Settings row had no
+page), `app/css/admin.css`, `components/agent/charts/{Sparkline,
+AreaTimeChart, GroupedBarChart, MeterBar}.tsx` (additive; `AreaSparkline` and
+`DonutChart` untouched), `lib/admin/reads/{shared, overview, operations,
+analytics, jobs, shapes}.ts` with `overview.test.ts`, and
+`_components/session-b-admin-shell.test.ts`.
+
+### 6.1 The chain, per page
+
+Every link is a READ; none of these three desks writes anything. Reads run
+through `requireAdmin()` and the operator's own session client
+(`lib/admin/reads/shared.ts: adminReader`), never the service role, so the
+admin SELECT policies decide. Checked live in `pg_policies` on 22 September:
+`listings_admin_all`, `profiles_select_admin`, `transactions_admin_select`,
+`wallet_entries_select_admin`, `audit_log_admin_select`,
+`risk_alerts_admin_all`, `agents_select_admin`,
+`agent_applications_select_admin`, `bookings_admin_all`.
+
+**Access.** `/admin/*` -> `app/admin/layout.tsx` -> `requireAdmin()`
+(`user_roles` has `admin` or `super_admin`) -> otherwise `AccessScreen`, no
+data markup. Unchanged from before. **Landing:** `/admin` is the overview; no
+redirect exists in `app/admin`, the proxy (`admin` is only in the
+signed-in list) or `components/app/nav-model.ts` (Console row -> `/admin`).
+The founder's "drops straight into an area" was the previous overview (a wall
+of desk tiles); it is now the overview the render draws.
+
+**Shell.** Rail counts: `getQueueCounts()` (existing, seven exact counts) ->
+row badges (listings; applications on Supply; held + flags + reports on
+Moderation; tickets on Support; open alerts on Operations). Identity:
+`getShellIdentity()` (existing) for name, avatar and unread count ->
+`IdentityBlock`, bell dot. Search -> the current desk's `?q=` or
+`/admin/queue`. `LiveRefresh` -> `router.refresh()` every 60s while visible
+and on return to the tab (the "real time" link: new rows appear without a
+manual reload).
+
+**Overview.** Strip and cards -> `getConsolePulse(now)`: exact counts of
+live listings (`status='PUBLISHED' and is_demo=false`) now and with
+`published_at` seven days back; `readAll` of `profiles.created_at`,
+`listings.submitted_at` (examples out), `listings.published_at` (live, for the
+daily live line), `transactions` (SUCCESSFUL) and `wallet_entries` (deposit,
+COMPLETED) over fourteen Lagos days -> `assemblePulse` (tested). Open reviews
+-> `getQueueCounts().listings`. Jobs healthy -> `getJobHealth(now)` (below).
+Money chart -> `getCollectedSeries(range)` with `rangeBuckets` (30 days, 13
+weeks, 12 months) and the `?range=` select. Supply by type ->
+`getSupplyByType()`, seven exact counts. Lister role ->
+`getNewListingsByRole()`: listings (examples out) + `agents` embedding
+`agent_applications(supply_role)` -> `listerRole` (tested). Recent alerts ->
+`getRiskAlerts()` (existing), first five. **Broken links: none in the chain;**
+the approximations are stated on screen and in the handbook ("live a week ago"
+counts listings live now that were live then, because nothing records a
+withdrawal date).
+
+**Operations.** Jobs -> `getJobHealth`: one `audit_log` read per Vercel job,
+newest first (`entity_type='cron_job' and entity_id=<job>`, or
+`action='wallet.reconciliation.run'` for the reconcile job), -> `jobRow`,
+`jobStatus`, `durationLabel` (tested); schedules from `VERCEL_JOBS`, which a
+test holds equal to `vercel.json`. Database jobs -> the newest
+`pg-cron-watch` row's metadata -> `databaseJobsSummary`. **Broken link:** the
+eight pg_cron jobs cannot be listed one by one (cron schema not exposed,
+`cron_job_failures` is service role only) -> **Request A5**. Jobs line ->
+`getRunDays` (every cron audit row for 14 days, `readAll`). Active alerts ->
+`getAlertTrend`: exact open count now and open a week ago from `created_at`
+and `resolved_at`, daily raised. Alerts tab and panel -> `getRiskAlerts()`.
+Audit tab and panel -> `getAuditLog()` and `getAuditActivity()` (existing;
+the activity read's 5,000 row cap is shown on screen when hit).
+Notifications tab -> **broken link:** `notifications` has only
+`notifications_select_own` -> **Request A6**; the tab says so.
+
+**Analytics.** Successful bookings -> `getBookingOutcomes(range)`, two exact
+counts (confirmed or completed, this window and the one before). Demand vs
+supply -> `getSupplySeries(range)` for the supply line. Areas with fewest
+listings -> `getThinAreas(5)` -> `thinnest` (tested). **Broken links:**
+searches (A7), listing views (A8), refusal reasons (A11) are not recorded
+anywhere; Total searches, Listing views and Conversion read "Not recorded",
+Top areas by searches, Searches vs results and Top common refusals read "Not
+wired yet", each naming its request.
+
+**Demo rows.** Every supply figure on these desks filters `is_demo = false`.
+The 64 example listings appear only on the Examples desk. Decided and stated
+in the handbook section 1.
+
+### 6.2 Comparison tables (measured)
+
+Built values measured with `getComputedStyle` and `getBoundingClientRect` on
+the running production build at 1440x900 (`atools/measure.mjs`), on the
+fixture harness. Image values are image px x 0.908.
+
+**Overview (`5EAA44CB`)**
+
+| Property | Image (measured) | Built (measured) | Match |
+|---|---|---|---|
+| Canvas | #000921 | #000612 (`--nf-surface-canvas`) plus a faint blue radial | yes |
+| Rail | floating panel, 197 wide, 11px corners, edge #004EBE, fill #001031 | 200 wide, 14px (`--nf-radius-md`), edge brand 62%, fill brand 9% to 5% over canvas | yes (radius on the nearest rung) |
+| Rail row | 42 tall, 44 pitch, 15px label, line glyph 18 | 42 tall, 44 pitch, 15px/500, glyph 20 | yes |
+| Open row | solid #0065FD, brighter top #0298FC, blue bloom, ~7px corners | `--nf-gradient-cta`, inset white top rim, 18px bloom, 14px `--nf-radius-control` | yes, radius per the shape law (0.33 of 42) |
+| Wordmark | "Vallo" white bold, 28 | 28px/700 display face, content-primary | yes |
+| V mark | cyan line V | the product's own mark (`/brand/vallo-mark.png`) | no: brand asset kept, the render's glyph is not our mark |
+| Pulse strip | 88 tall, 14 corners, lit top edge glow | 96 tall, 14px, inset rim + top glow | yes |
+| Strip plate | 44, 9 corners, lit blue | 44, 10px, brand 66% to 40%, white rim | yes |
+| Strip label / figure | 14 / 22 bold | 14px/500 / 22px/700 | yes |
+| KPI card | 147 tall, 298 wide, 11 corners | 148 tall, 284 wide, 14px | yes |
+| Card title / figure / change / caption | 15 semibold / 34 bold / 14 bold emerald / 12.5 | 15px/600 / 32.2px/700 (clamp; 34 at 1536) / 14px/700 #10B981 / 13px | yes |
+| Sparkline | glowing blue line, bottom right | same, `drop-shadow` glow, bottom right | yes |
+| Panel | 13 corners, edge #004EBE, fill #00173A to #002E77 | 14px, brand 62% edge, brand 14% to 8% fill, top catchlight, bloom | yes |
+| Panel title | 16 semibold | 16px/600 | yes |
+| Area chart | glowing line, blue fill fading down, grid, M axis, hover card | same; axis `formatMoney` compact ("₦80m"); crosshair, dot and card on hover or arrow keys | yes |
+| Range select | "Last 12 months", 32 tall | native select, 36 tall, 10px | yes |
+| Supply by type | coloured dots (blue, green, grey-green, rose), cyan and blue bars | one blue ramp by rank for dots and meters (10px track, 6px) | translated: off-palette dots refused |
+| Grouped bars | three blues, round legend dots | one blue at three strengths, third hatched, square swatches, readout on hover | translated (research 4.2) |
+| Alert rows | tinted plates, title, blue sub-line, time, badge | same; plates tinted fill | yes |
+| Badges | capsules ("Info", "High", "Success") | 24 tall, 6px (0.25), word + tint + border | shape law, deliberate |
+| Top bar | date and time, bell; no search on this render | search, Lagos date and time, bell, operator (the three-panel renders' bar) | partial, deliberate: one bar for every desk |
+
+**Operations (`01F7DFC7` panel two)**
+
+| Property | Image | Built | Match |
+|---|---|---|---|
+| Page head | "Operations", 26ish bold; blue lede | 26px/700; 14px `--nf-brand-secondary` | yes |
+| Two KPI cards, no plate | Jobs healthy "24 / 27", 89%, line; Active alerts, change, line | real "6 / 7" style count, share, runs line; open count, change vs a week ago, raised line | yes |
+| Tabs | Scheduled jobs (lit), Alerts, Audit log | same plus Notifications; 44 tall, 14px, lit gradient on the open one | yes (+1 tab by founder update) |
+| Jobs table | Job name, Schedule, Last run, Duration, Status; Healthy tinted emerald; Failed solid rose | same columns; Healthy/Attention/Overdue/No run yet/Failed (solid rose) | yes |
+| Recent alerts / Audit log panels | two panels side by side, View all | same | yes |
+
+**Analytics (`01F7DFC7` panel three)**
+
+| Property | Image | Built | Match |
+|---|---|---|---|
+| Page head and filters | title, blue lede, date range, All areas | title, lede, range select | partial: area filter not built |
+| KPI row | four cards with figures and changes | Successful bookings real; three "Not recorded" with the request | honest, not the render's figures |
+| Demand vs supply | two series, hover card | supply line real; searches named missing on the legend | partial by data |
+| Top areas / fewest listings | two tables with bars | fewest listings real (empty today); top areas not wired (A7) | partial by data |
+| Searches vs results / refusals | bars; list | not wired (A7, A11) | by data |
+
+**390 (derived).** Rail becomes a drawer behind a rounded-square menu button
+(44x44) with a cyan waiting dot; strip one figure per row; cards and panels
+stack; tables scroll inside their panel; chart axes drop alternate labels in
+a container query. `overflowX` measured 0 on every proof.
+
+### 6.3 Light mode
+
+Same anatomy on paper: the canvas `#F4F5F7`, rail and panels on
+`--nf-surface-on-paper` with a brand hairline at 26% and the paper shadow
+instead of blooms; the open row and open tab keep the lit brand fill (white on
+brand); plates become a pale brand tint with brand ink (no dark tile on white);
+status plates keep their ink on paper; badges keep word, ink and tint; the
+wordmark is type in the page ink, so it never vanishes; chart glow filters are
+removed on paper. Proofs: `overview-1440-light-fixture.jpg`,
+`overview-390-light-fixture.jpg`, `operations-1440-light.jpg`,
+`analytics-1440-light.jpg`.
+
+### 6.4 Shape sweep
+
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3175 --shape-sweep --routes /preview/sbadmin/overview,/preview/sbadmin/operations,/preview/sbadmin/analytics --theme both`
+(the harness renders the real shell and views; the live `/admin` routes
+answer the access screen without a session, which the tool rightly refuses):
+
+```
+at 390px, 1536px in dark and light
+BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
+WORTH AN EYE, over 0.35 but not a capsule: 5
+  the console search input, 352x40, radius 14px, ratio 0.35 (overview, operations, analytics; dark and light)
+ROUND ICON-ONLY CONTROLS: 0
+no text-bearing control is a capsule.
+```
+
+The search field sits exactly at 0.35: a 40px field on `--nf-radius-control`,
+drawn 40 tall because the render's field is 36 to 40. Accepted and recorded.
+An earlier sweep also flagged the rail's 36px child rows at 0.39; they moved
+to `--nf-radius-sm` (0.28) in c237af4.
+
+`apps/web/scripts/check-css-tokens.mjs`: clean (0 layer-1 references, 0 raw
+colour literals, 0 capsules on a control). `tsc --noEmit`: clean. eslint on
+every changed file: 0 errors (one existing warning in `AdminActions.tsx`,
+not introduced here). vitest: `session-b-admin-shell.test.ts` (16) and
+`lib/admin/reads/overview.test.ts` (11) pass.
+
+### 6.4a Glow identity and the designed empty state
+
+`docs/design/GLOW_IDENTITY.md` section 9 (revised, d01a5d7) is applied in
+`admin.css` for every desk, built from existing tokens because the sheet takes
+no raw colour: the lit card fill (bright top 4px and 11px, dark middle, lifting
+foot, cyan catchlight), per-side lit edges, the inset rims and near glow, the
+icon tile (lit centre, inset edges, glowing glyph; a pale tile on paper, never
+a dark plate), the lit primary edges on the open rail row and tab, and the calm
+info panel. Where the admin renders measure differently they win for the
+console's density: 14px corners (render 13) rather than the identity's 12, a
+middle of about 11% lit (render #00173A) rather than 10%.
+
+Every empty panel on these desks is the calm note (round glyph disc, what
+fills the panel, what creates that data, a link to the producing desk) and a
+chart keeps its height, axis, grid, bucket labels and legend with no data
+mark: see `overview-1440-dark-empty.jpg`, `overview-390-dark-empty.jpg`,
+`analytics-1440-dark-empty.jpg`. The primitives (`CalmNote`, `EmptyChart`)
+are shared in `_components/panels.tsx` for the other admin workers.
+
+### 6.5 Refused from the render
+
+- Every count, figure, percentage and change in the three renders (1,248
+  listings, 342 sign-ups, ₦18,450,000, 98%, 24 / 27, 3 alerts, 48,732
+  searches, the ₦52,780,000 tooltip). The database on 22 September has 0 real
+  listings and 0 money collected; the empty state is the designed state
+  (`overview-1440-dark-empty.jpg`, `analytics-1440-dark-empty.jpg`).
+- The render's job names ("Sync listings", "Update search index", "Payout
+  processing", "Image optimization") are jobs the platform does not run; the
+  real seven Vercel jobs and eight database jobs are listed instead.
+- The render's alert rows ("Payment webhook failed", "Search index delay")
+  and audit rows ("Tunde A. approved listing") are not drawn; the real rows
+  are.
+- Off-palette dots (grey-green Hotels, rose Restaurants, green Land) and a
+  rose "+9%" on Open reviews; capsule badges; the render's cyan V glyph in
+  place of the product mark.
+- Analytics figures whose source does not exist (searches, views,
+  conversion, refusal reasons): drawn as "Not recorded" with requests, never
+  estimated. Question for the founder: should search and view logging be
+  built (A7, A8)? That is a product decision, not a pixel one.
+
+### 6.6 Proofs
+
+Side by side, render left and built right, re-shot after the final change:
+`side-by-side-overview.jpg`, `side-by-side-operations.jpg`,
+`side-by-side-analytics.jpg`. Desktop 1440 dark and light, 390 dark and light,
+for all three desks, plus the empty (real database) variants.
+
+`docs/design/proofs/session-b/admin/`, all from the running production build
+on the uncommitted fixture harness (`app/(dev)/preview/sbadmin/**`, which
+renders the real `AdminFrame`, `OverviewView`, `OperationsView` and
+`AnalyticsView` on fixture props, because no admin session can be created on
+the production database). The `-fixture` shots use figures shaped like the
+render to compare composition; the `-empty` shots use the production
+database's real state on 22 September (0 live, 0 money, 1 sign-up, alerts all
+resolved). In the proofs the open rail row is lit by adding its class in the
+browser, because the harness path is not `/admin`; the class is exactly the
+one `AdminRail` sets.
+
+### 6.7 Skipped or not verified
+
+- No proof from the live `/admin` pages with a real admin session (none may be
+  created). The reads are proven by SQL introspection of the tables and
+  policies, typecheck against `database.types.ts`, and unit tests of every
+  aggregation; the PostgREST calls themselves were not executed as an admin.
+- The "All areas" filter on Analytics is not built.
+- The register sweep of the other desks (agents, businesses, examples, fees,
+  flags, reference, reports, social, standing, stops, switches, alerts, audit)
+  is styling through the shared stylesheet only (their cards and tables now
+  take the panel material, their heads the new page head); no desk's logic
+  was changed and none was screenshotted with a session.
+- i18n: the new console copy is English in the components, like the rail's
+  existing English labels; not added to the four dictionaries.
+- Coverage of "every notification" is blocked by RLS (Request A6); the eight
+  notification kinds are listed on the tab and in the handbook, not counted.
+- The other swept desks have no admin render of their own; they inherit the
+  register through the shared stylesheet and carry no measured table.
+- The pg_cron schedules in the handbook are read from `cron.job` and assumed
+  to be UTC (pg_cron's default).
 
 ## 7. Admin review desks: listings queue, listing under review, moderation, verification
 
@@ -1726,3 +1990,9 @@ light variant by design (theme.ts: dark in the layer every client honours).
   three reassurance lines are English in ha, ig and yo until translated. Who
   holds the wallet's money and how long a refund takes are founder questions,
   not stated.
+
+- (admin-shell) No live `/admin` proof with an admin session; reads proven by
+  SQL introspection, typecheck and unit tests, not executed as an admin.
+  Analytics "All areas" filter not built. Notification volumes blocked by RLS
+  (A6); database jobs summarised, not listed (A5); searches, views and refusal
+  reasons not recorded (A7, A8, A11). New console copy is English only.
