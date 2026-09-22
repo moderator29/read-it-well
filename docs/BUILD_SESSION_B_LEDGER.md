@@ -12,7 +12,221 @@ Every surface gets three sections before it can be called finished:
 
 ## 1. Profile
 
-(pending)
+Route `/profile`. Governing image `50E032EA-4141-4237-88D5-01B3720D87B6.png` (repo root;
+re-sent by the founder as `images/2.jpg`). Worker: profile. Files: `app/(app)/profile/`
+`page.tsx`, `AccountHero.tsx`, `AccountBody.tsx`, `SignedOutHero.tsx`, `loading.tsx`,
+`profile.css` (new, `nf-pf-*`), `belongings.ts`, `belongings-queries.ts`,
+`SwitchRoleRow.tsx`, `belongings.test.ts` (all new except the first five).
+
+### 1.1 What was decided
+
+- **Own classes.** The page used the social layer's classes from `social.css` (the other
+  session's file), shared with `/u/[handle]`, so any change to one moved the other. It now
+  draws from `profile.css` (`nf-pf-*`), imported by the route and its components. `social.css`
+  and `/u/[handle]` are untouched.
+- **Header.** The render's back square and gear sit where a phone status bar would be; in the
+  product the global app header (hamburger, lockup, bell, avatar; not Session B's) owns that
+  band. The cover runs up behind the header (the header is transparent at rest, so it floats on
+  the photograph as the render's status bar does) and the back and gear squares sit 8px under
+  it. Everything below them keeps the render's spacing relative to the person.
+- **Dock.** Global chrome, not built here. The render's four-tab dock is not copied.
+- **Cover.** The person's own `social_profiles.cover_path` when set. Otherwise
+  `/brand/photos/villa-pool-skyline-02.jpg` (the same file as `scenes/villa.jpg`): the dusk
+  villa on the water with the skyline to its left, the scene the render opens on. Chosen over
+  cropping the render because the render's cover has the back and gear squares, the avatar and
+  the status bar painted into it (not clean), and its source is 658 image px across for a
+  390 CSS px band, 1.69 px per CSS px, which is soft at 2x and 3x. A `color` blend brand
+  wash leans the plate's sky blue, as the render's is; the lower third fades into the canvas.
+- **Row icons.** Exactly the shared pack's crops of this render, through `BrandIcon`:
+  `calendar-grid`, `bookmark-ribbon`, `wallet-tile`, `shield-check-tile`, `role-switch-tile`.
+  Each is drawn at 68px (62 for Switch role) so its glass square, 72 per cent of the artwork,
+  lands on the render's 49px plate. No new crops were needed. On paper those objects have no
+  light twins, so the same slot draws a pale brand plate carrying the stroked `UiIcon`
+  equivalent (`calendar-booking`, `bookmark`, `wallet`, `verified`, `switch-profile`); CSS
+  chooses by theme, so there is never a dark square on white.
+- **Type scale.** Measured render type is small for its phone (row subtitle 9.5px, row title
+  10.7px at 390). Every text role ships at measured x 1.16, snapped to a step, which puts the
+  subtitle on 11px (the dock label's size) and is the largest factor that still sets the
+  render's longest subtitle ("Manage your balance, cards and transactions") on one line inside
+  the row the render draws. Geometry (radii, plates, rows, gaps, avatar) ships at 1x.
+- **Cover photo control.** The render draws nothing on the cover but back and gear, so the
+  quiet change-cover square that used to sit on the cover is now a "Cover photo" row below the
+  fold. Tapping the face still opens the avatar picker.
+- **Nothing lost below the fold.** Edit profile, Your public page, Cover photo, Your details
+  (sheet), Email, Where you are, What you do, Member since, Reviews (with its count), Messages,
+  Notifications, Help: all kept, in the register's grouped rows after Switch role.
+- **The old role sheet.** `/profile?switch=owner|professional` is a live link (`/agents`
+  redirects to it; the home and search empty states point at it). The page answers it with a
+  server redirect to where the old sheet sent the person, decided from the account's real
+  `agents` row: not set up goes to `/profile/setup/<role>`, set up and unverified to
+  `/profile/application`, verified to `/agent/dashboard` (`switchParamTarget`, tested).
+
+### 1.2 The chain
+
+| Control | Action / read | Validation | RLS policy | Table | Trigger / notification | Screen |
+|---|---|---|---|---|---|---|
+| Name | `loadProfileState` | none (read) | `profiles_select_own` | `profiles.display_name` (first and surname fallback) | `profiles_sync_display_name`, `profiles_sync_social_identity` keep the social row in step | `AccountHero` h1 |
+| Handle, bio, cover, counts, tick | `loadAccountSocialIdentity` | none | `social_profiles_select` (not blocked) | `social_profiles` (`handle, bio, cover_path, follower_count, following_count, is_agent`) | `follows_count` -> `bump_follow_counts` increments and decrements both counts on every follow and unfollow; `follows_notify_after_insert` -> `notify_follow` tells the followee; `agents_sync_social_flag` sets `is_agent = (status = 'APPROVED')` | name tick and avatar tick only when `is_agent`; counts compact from 10,000 (12.4K) |
+| Followers, Following | links to `/u/<handle>/followers`, `/following` | | `follows_select` (true) | `follows` | | existing routes |
+| Avatar tap | canvas re-encode (strips GPS) -> storage `avatars` -> `setAvatar` | type, size (10MB), re-encode must succeed | storage policy on `avatars` (not re-checked live) | `profiles.avatar_url` | | face |
+| Cover photo row | re-encode -> storage `social-covers` -> `setSocialCover` | same | same, `social-covers` | `social_profiles.cover_path` | | cover |
+| Back | `useBack("/home")` (declared parent, or history) | | | | | |
+| Gear | link `/settings` | | | | | |
+| Belongings / Posts | client tab state | | | | | |
+| My Bookings | link `/bookings`; value from `loadBelongings` head count, `guest_id = me`, status `PENDING`/`CONFIRMED`, `check_out > today (Lagos)` | | `bookings_guest_select` | `bookings` | | "N upcoming", nothing at 0 or on a failed read |
+| Saved | link `/saved`; head counts of `saved_items` (`user_id = me`) plus `saved_places` (`accommodation`, `restaurant`) | | `saved_items_own`; `saved_places` owner policy (not listed in the policy read, see 1.6) | | | "N saved" |
+| Wallet | link `/wallet`; `wallet_balances` (`wallet_id, balance_minor, currency`) | | view is `security_invoker = true`, so the ledger's own policies decide | `wallet_balances` view | | balance through `formatMoney` (kobo), only when a wallet row exists |
+| Inspections | link `/inspections`; head count `requester_id = me`, state `REQUESTED`/`PROPOSED`/`CONFIRMED` | | `inspection_requests_select_party` | `inspection_requests` | | "N open" |
+| Switch role | `SwitchRoleRow` presses the dock's own trigger, opening `ProfileSwitcher` (Personal, every workspace held with its standing, the operations console for staff, Add a workspace); falls back to `/profile/setup` | the sheet writes view cookies only; every `/agent/*` and `/admin` route re-gates server side | `agents_select_own`, `businesses_owner_all`, `user_roles_select_own` | `agents`, `businesses`, `user_roles` via `resolveWorkspaces` (React-cached, shared with the layout) | | sub-line from `switchRoleLine(held)`: "admin" appears only when a `user_roles` admin row exists |
+| Posts tab | `getProfileFeed(userId)` -> `ProfilePosts` (the public page's own panel) | | posts policies (unchanged) | `posts` | | real posts; unclaimed handle gets the honest claim empty state |
+| Claim your handle | link `/u/me/edit` | | | | | shown only with no `social_profiles` row |
+| Verify prompt | `VerifyPrompt` from the `agents` row | | | | | only for an owner or agent who applied and is unverified |
+
+**Broken or weak links.**
+1. Switch role opens the sheet by clicking the dock's trigger (a class-name coupling). Scope
+   request 1 asks for a trigger prop.
+2. New English copy lives in `COPY` (`belongings.ts`), not in `packages/i18n`. Scope request 1b.
+3. `tests/profile.spec.mjs` asserts `.nf-social-cover`; the profile now draws `.nf-pf-cover`.
+   Scope request 1c.
+Nothing else in the chain is broken as far as code and the policy read can show.
+
+### 1.3 Refused from the render
+
+| Render element | Why refused |
+|---|---|
+| 12.4K followers, 482 following | Example figures. The built counts are `social_profiles` values; only the format (compact from 10,000) follows the render. |
+| Blue tick beside the name, tick badge on the avatar | Drawn only when `social_profiles.is_agent` is true, which the `agents_sync_social_flag` trigger sets only for an APPROVED agent row. Everybody else gets no name tick and a quiet picture badge that says the face is a control. |
+| "Change between user, agent or admin" | Printed only for an account holding an agent workspace and a staff role. Otherwise the line names exactly what is held ("Change between user and owner"), or, with nothing held, what can be applied for ("Add an owner, agent or firm workspace"). Never "admin" to a non-admin (tested). |
+| The person's photograph | A fixture has no face; the product draws the person's own `avatar_url`, or their initial. |
+| Four-tab dock (Home, Search, Saved, Profile) | Global chrome, the platform's five-slot dock stays as it is. |
+| Status bar, phone frame, neon frame glow | Presentation, not UI. |
+| "&" in the row subtitles | The dictionary's own wording ("and") is used, in all four locales. |
+
+No invented counts are drawn anywhere. The row values the render does not draw appear only
+where the database returns a non-zero figure (the wallet balance also at zero, when a wallet
+exists).
+
+### 1.4 The comparison (390 x 844, dark)
+
+Scale: phone screen 658 image px wide (inner edge 182 to 840), so CSS px = image px x 0.593.
+Built values measured in Chromium off the running page (`getBoundingClientRect` and pixel
+samples of the screenshot at 2x). Proof screenshots are fixture-backed (see 1.6).
+
+Vertical positions in the render are from the screen's top edge, which includes a 44px status
+bar; in the product the 60px app header takes that band, so every built position sits about
+22px lower and the spacing between elements is what is compared.
+
+| Property | Image (measured) | Built (measured) | Match? |
+|---|---|---|---|
+| Page gutter | 30 image px: 18 | 18 | yes |
+| Cover | full bleed, dusk villa and skyline, fades out by 164 from screen top | full bleed, `villa-pool-skyline-02`, runs behind the header, fades out by 206 (header shift) | yes (plate, not a crop; see 1.1) |
+| Back and gear squares | 55 image px: 33 square, radius about 10, navy glass (0 36 130) with a blue rim | 34 square, `--nf-radius-sm` 10, navy glass (sampled 45 59 99 over the sky), 1px blue rim, 44 target by hit area | yes |
+| Avatar | ROUND, 149 image px: 88, left 18, ring about 3.5 lit blue with glow, 1px seam | 88 round, left 18, 3px gradient ring, glow `--nf-glow-3` | yes |
+| Avatar tick | filled blue disc about 21 at the ring's lower right (71 158 251) | 22 disc, brand blue tick on white, canvas cut-out; only for an approved agent | yes (claims rule) |
+| Avatar top to name cap | 28 | 26 | yes |
+| Text column start | 17 right of the ring | 17 | yes |
+| Name | cap 21 image px: 17px, semibold, near white (238 241 249) | 20px Poppins 600 (x1.16), 246 246 247 | size by the translation, weight and colour yes |
+| Name tick | blue verified disc beside the name (110 190 252) | `verified-badge` 20, brand blue with glow; only when `is_agent` | yes |
+| Handle | about 10.3px, mist blue (160 198 239) | 13px, 161 194 243 | size by the translation, colour yes |
+| Bio | 10px, one line, mist blue (162 201 242) | 12px, one line at 390, 159 191 238 | yes |
+| Count value | 11.5px semibold, near white | 14px 600, 245 246 247 | size by the translation |
+| Count label | 10px mist (148 193 236) | 12px, 155 187 235 | yes |
+| Counts gap and hairline | 24 each side of a 22 tall hairline (15 134 203) | 24 each side, 22 tall, 9 78 182 | position yes; the built hairline is dimmer |
+| Counts to tabs | 24 | 22 | yes |
+| Tab control | 598 x 71 image px: 355 x 42, radius about 14, one track, live half fills the full height | 354 x 44 (44 for the thumb), `--nf-radius-control` 14 (ratio 0.32), live half full height | yes |
+| Live tab | lit: 1 126 254 top, 0 61 246 middle, 0 101 254 bottom, bright top rim (3 146 251), bloom | `--nf-gradient-cta`: 0 113 252, 27 96 253, 0 99 248; `--nf-rim-primary`; `--nf-bloom-lit-soft` | yes; middle a little lighter |
+| Resting tab | glass 0 21 67, label 175 203 238, rim 1 46 134 | 0 16 74, label mist, rim 0 54 142 | yes |
+| Tab label | 11.5px, 500 to 600, house and chat glyphs | 14px, 600 live and 500 resting, `home` and `chat-bubble` 24 | yes |
+| Tabs to first row | 20 | 20 | yes |
+| Row | 598 x 112 image px: 355 x 66, radius 23 image px: 14 (ratio 0.21) | 354 x 67, `--nf-radius-control` 14 (ratio 0.21) | yes |
+| Row gap | 13 image px: 8 | 8 | yes |
+| Row fill | 0 30 95 under the top, 0 17 59 middle, 1 26 82 at the foot, page 0 8 36 | 0 33 79, 0 21 52, 0 29 69, page 6 11 38 | yes |
+| Row rim | top 0 42 126, sides 0 53 142, foot brighter 1 73 160, no white catchlight | top 0 54 133, side 0 56 138, foot 0 77 185 | yes |
+| Row glow | soft blue bloom round the row | `0 6px 18px -10px` and `0 0 16px -8px` of `--nf-glow-2` | yes |
+| Icon plate | 83 image px: 49, glass square with a blue line glyph about 27 (the render's objects) | 49, the pack crops of this very render (`calendar-grid`, `bookmark-ribbon`, `wallet-tile`, `shield-check-tile`) drawn so their square is 49 | yes; the plate interior samples 0 39 128 against the render's 1 52 167, a little dimmer |
+| Plate to title | 24 image px: 14 | 14 | yes |
+| Row title | 10.7px, 500 to 600, near white | 13px 600, 241 242 244 | size by the translation |
+| Row subtitle | 9.5px, one line, mist (159 194 231) | 11px, one line for all four at 390, 154 187 234 | yes |
+| Chevron | right edge 18 from the row edge, near white | 20px `chevron-right`, 12 padding plus the glyph's own margin | yes |
+| Gap before Switch role | 39 image px: 23 | 23 | yes |
+| Switch role row | 101 image px: 60, quieter plate (0 24 82), fill 0 16 59 | 62, `role-switch-tile` at 82 per cent, fill 0 20 50 | yes |
+| Status badges | none on this screen | none | yes |
+| Buttons | the lit segment is the only lit control | the lit segment; Claim your handle (no handle only) wears the same gradient, top rim and bloom | yes |
+| Colours | one blue family | one blue family; the plate's sunset is photographic and graded towards blue | yes |
+
+**Differences that remain, honestly.** (1) Everything below the back and gear squares sits
+about 22 to 35px lower than in the render: the app header takes the status bar's band, and
+the scaled type makes the text column 10px taller. (2) Type is 1.16 times the render's, on
+purpose (1.1). (3) The plate interiors and the counts hairline sample dimmer than the render.
+(4) The fixture has no photograph, so the face is a monogram; the product draws the person's
+own `avatar_url`. (5) The glow identity (`docs/design/GLOW_IDENTITY.md`) proposes a cyan top
+edge and a lit interior for cards and tiles; this render measures a dim blue top edge
+(0 42 126) and a brighter foot, and its tiles are its own crops, so the governing image wins
+here. The lit segment reads `--nf-gradient-cta`, `--nf-rim-primary` and `--nf-bloom-lit-soft`
+and will follow the identity when Session A adopts it into the tokens. The paper plate follows
+the identity's pale tile.
+
+**Re-audit gate.** Pass one (image beside `v3`): the plate objects drew a second, lighter
+square inside a brand wash, the back square read as a pale blue wash over the sky, and a third
+glass square (change cover) sat on the cover where the render has none. Fixed: the wash went,
+the objects were sized so their own square is the plate, the back and gear went navy, and the
+cover control moved to a row. Pass two (image beside `v4`): the objects had collapsed to 16px
+when the absolute centring lost its size. Fixed and re-shot (`v5`, the proofs). Final read of
+the image beside `profile-390-dark.jpg`: composition, order, containers, radii and glow read as
+the same design, with the differences listed above.
+
+### 1.5 Light mode
+
+Screens: `profile-390-light.jpg`, `profile-390-light-full.jpg`,
+`profile-390-light-nohandle.jpg`, `profile-390-light-signedout.jpg`, `profile-1280-light.jpg`.
+Same anatomy on paper, with explicit `:root[data-theme="light"]` rules in `profile.css`:
+- The cover is still the photograph, with a lighter blue grade, fading into the paper canvas.
+- Back and gear: white glass on a brand hairline with ink glyphs.
+- The ring stays lit (brand accent to primary) round a white seam; the tick badge sits on white.
+- Tabs: a white track on a brand hairline; the live half keeps the lit gradient.
+- Rows: white, `--nf-border-brand` edge, `--nf-elev-2` shadow in place of the bloom.
+- Plates: the glow identity's PALE tile (near white to pale brand blue, a brighter top edge,
+  white rim, short brand shadow) carrying the stroked `UiIcon` in brand blue. The night objects
+  have no light twins, so they are hidden on paper by CSS; there is no dark square on white
+  anywhere on the page.
+- Second lines are `--nf-content-secondary`, the chevron `--nf-content-muted`.
+Checked by eye in all five screens. No white-on-white and no vanishing mark found.
+
+### 1.6 Shape sweep, checks, and what was not verified
+
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3171 --shape-sweep --routes "/zz-pf,/zz-pf?v=nohandle,/zz-pf?v=signedout" --theme both`
+(the throwaway harness renders the real components; `/profile` itself redirects to sign in
+without a session and the sweep refuses to measure a redirected page):
+
+```
+shape sweep: /zz-pf, /zz-pf?v=nohandle, /zz-pf?v=signedout at 390px, 1536px in dark and light
+BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
+WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 0
+ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 0
+```
+
+`check-css-tokens.mjs`: clean. `tsc --noEmit`: clean. `eslint` on the profile folder: 0
+errors, 1 warning (the set-state-in-effect warning in the unchanged details sheet, present
+before this work). `vitest run src/app/(app)/profile`: 12 passed.
+
+**Not verified, and why.**
+- **Every proof is fixture-backed.** There is no test account on production and none may be
+  created, so the screenshots come from a throwaway harness route (never committed) that renders
+  `AccountHero`, `AccountBody` and `SignedOutHero` with fixture props inside the real app shell.
+  Its header is the SIGNED-OUT header (Sign in, Sign up); a signed-in person sees the hamburger,
+  lockup, bell and avatar there. The fixture counts (12,400 and 482) are fixture props, not a
+  claim about anybody.
+- The live wiring is proven by code, by the RLS and trigger read above, and by the unit tests,
+  not by a signed-in browser. The Switch role row pressing the dock's trigger was not exercised
+  in a signed-in browser.
+- `saved_places` policies were not in the policy read (the query listed the seven tables it
+  named); the count uses the same filter `getSavedPlaces` already reads under the same session.
+- Storage policies on `avatars` and `social-covers` were not re-read; the upload code is
+  unchanged.
+- Row values (upcoming, saved, balance, open) were shot with fixture facts
+  (`profile-390-dark-values.jpg`); against production the read returns what the account has.
+- No side-by-side composite image was made; the comparison was done by reading the render and
+  the screenshot together, twice, as recorded above.
 
 ## 2. Get started
 
@@ -935,3 +1149,8 @@ light variant by design (theme.ts: dark in the layer every client honours).
   sign up do not yet route a first-time visitor to first run (scope W1, W2);
   the native first launch still opens the landing (W3); gate.spec is stale on
   main (W4); ha, yo and ig strings for the new keys need a native speaker.
+- **Profile.** Every proof is fixture-backed (throwaway harness, never committed; its header is
+  the signed-out header). The live wiring is proven by code, the RLS and trigger read, and unit
+  tests, not by a signed-in browser. Switch role pressing the dock trigger not exercised signed
+  in. `saved_places` and the two storage buckets' policies not re-read. New English copy not yet
+  in `packages/i18n` (scope request 1b). No side-by-side composite image made. Details in 1.6.

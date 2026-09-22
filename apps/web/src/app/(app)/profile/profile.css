@@ -811,14 +811,20 @@
     color: var(--nf-content-muted);
     opacity: 1;
   }
+  /* The glow identity's pale paper tile (docs/design/GLOW_IDENTITY.md, 9):
+     near white at the top deepening to a pale brand blue, a brighter top
+     edge, a white rim and a short brand shadow. Never a dark plate. */
   :root[data-theme="light"] .nf-pf-plate {
     background: linear-gradient(
       180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary)) 0%,
-      color-mix(in oklab, var(--nf-brand-primary) 6%, var(--nf-surface-primary)) 100%
+      color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-primary)) 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 15%, var(--nf-surface-primary)) 100%
     );
-    border: 1px solid var(--nf-border-brand);
-    box-shadow: var(--nf-rim-lit);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-primary) 38%, transparent);
+    border-block-start-color: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-primary));
+    box-shadow:
+      var(--nf-rim-lit),
+      0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
   :root[data-theme="light"] .nf-pf-plate__object {
     display: none;
