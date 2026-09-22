@@ -117,7 +117,49 @@ describe("contentSecurityPolicy", () => {
     expect(directive(value, "object-src")).toBe("object-src 'none'");
     expect(directive(value, "base-uri")).toBe("base-uri 'self'");
     expect(directive(value, "frame-ancestors")).toBe("frame-ancestors 'none'");
-    expect(directive(value, "frame-src")).toBe("frame-src 'none'");
+  });
+
+  it("frames the two Paystack checkout hosts and nothing else", () => {
+    /*
+     * `frame-src` was `'none'` and that was the right value for as long as
+     * paying meant leaving: eight call sites navigated the whole tab to an
+     * authorization_url and no iframe existed to allow. The in-app checkout
+     * draws Paystack's own checkout in a frame on our page instead, so the
+     * directive is narrowed rather than removed, and this test is what stops
+     * the narrowing drifting into a wildcard later.
+     *
+     * Three assertions, because the interesting failures are all different.
+     * The two checkout hosts must be present, or the checkout is a blank
+     * rectangle with a console refusal and no server-side trace. The two
+     * redirect-chain hops `form-action` names must be ABSENT, because framing
+     * is a strictly larger grant than navigating and the two lists are not
+     * the same list. And no wildcard of any spelling: not `*`, not bare
+     * `https:`, not a scheme-only source, however it got there.
+     */
+    const value = directive(policy(), "frame-src") ?? "";
+    expect(value).toContain("https://checkout.paystack.com");
+    expect(value).toContain("https://checkout.paystack.co");
+
+    expect(value).not.toContain("https://standard.paystack.co");
+    expect(value).not.toContain("https://paystack.com ");
+    expect(value.endsWith("https://paystack.com")).toBe(false);
+
+    expect(value).not.toContain("*");
+    expect(/(^|\s)https:(\s|$)/.test(value)).toBe(false);
+    expect(value).not.toContain("'none'");
+  });
+
+  it("keeps frame-ancestors shut while frame-src is open", () => {
+    /*
+     * The grant is one-directional and it must stay that way. We may frame
+     * Paystack; nobody may frame us. These two directives are four lines
+     * apart in `csp.ts` and the plausible mistake is editing the wrong one,
+     * which would turn a checkout change into a clickjacking hole on every
+     * screen in the product, including the ones that hold KYC documents.
+     */
+    const value = policy();
+    expect(directive(value, "frame-ancestors")).toBe("frame-ancestors 'none'");
+    expect(directive(value, "frame-src")).not.toBe("frame-src 'none'");
   });
 
   it("lets a deposit reach Paystack, and nowhere else", () => {

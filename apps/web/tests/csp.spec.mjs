@@ -276,6 +276,30 @@ async function auditRoute(page, refusals, route) {
   check(`${route} form-action is not a wildcard`, !/[\s]\*|https:(\s|$)/.test(formAction), formAction);
 
   /*
+   * `frame-src` is no longer `'none'` and this is the walk that has to notice
+   * if it ever becomes a wildcard on a real server rather than in a unit test.
+   *
+   * It carries exactly the two Paystack checkout hosts, because the in-app
+   * checkout draws their checkout in an iframe on our page instead of
+   * navigating the whole tab away. Two named hosts is the whole grant. A `*`
+   * or a bare `https:` here would let an injected iframe load any document on
+   * the web inside our chrome, which is a phishing surface wearing our URL
+   * bar, and it is the exact failure this line exists to catch.
+   *
+   * `frame-ancestors 'none'` is asserted above and stays asserted: the grant
+   * is one-directional and the two directives are four lines apart in the
+   * source, which is precisely why both are checked.
+   */
+  const frameSrc = directive(policy, "frame-src") ?? "";
+  check(`${route} sets frame-src`, frameSrc.startsWith("frame-src "), frameSrc || "absent");
+  check(
+    `${route} frame-src names Paystack checkout`,
+    frameSrc.includes("https://checkout.paystack.com") && frameSrc.includes("https://checkout.paystack.co"),
+    frameSrc,
+  );
+  check(`${route} frame-src is not a wildcard`, !/[\s]\*|https:(\s|$)/.test(frameSrc), frameSrc);
+
+  /*
    * The hand-written theme script has to be stamped by hand. If this is missing
    * the light theme flashes dark on every load for the people who chose it.
    *

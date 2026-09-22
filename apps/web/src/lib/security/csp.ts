@@ -147,16 +147,57 @@ const IMAGE_HOSTS: readonly string[] = [
 /**
  * Where a payment is allowed to take somebody.
  *
- * Read by `form-action`, and by nothing else: no Paystack script runs in this
- * app and no browser code calls their API, so these origins are not in
- * `script-src` or `connect-src` and must not be added there without a reason
- * written down beside them.
+ * Read by `form-action` and by `PAYSTACK_FRAME_ORIGINS` below, and by nothing
+ * else: no Paystack script runs in this app and no browser code calls their
+ * API, so these origins are not in `script-src` or `connect-src` and must not
+ * be added there without a reason written down beside them.
  */
 const PAYSTACK_ORIGINS: readonly string[] = [
   "https://checkout.paystack.com",
   "https://checkout.paystack.co",
   "https://standard.paystack.co",
   "https://paystack.com",
+];
+
+/**
+ * The origins the in-app checkout is allowed to put in an IFRAME.
+ *
+ * TWO of the four above, and the two that are left out are left out on
+ * purpose. `standard.paystack.co` and `paystack.com` are hops in the redirect
+ * chain a form POST follows, which is `form-action`'s business; neither is
+ * ever loaded as a framed document, so neither belongs here. Framing is a
+ * strictly larger grant than navigating, and the two lists are kept apart so
+ * that widening one can never silently widen the other.
+ *
+ * WHY THIS IS NOT `'none'` ANY MORE. Paying used to leave our origin
+ * entirely: `window.location.assign(authorization_url)` at eight call sites,
+ * and the tab that was Vallo became the tab that was Paystack. Paystack's
+ * Inline v2 shim resumes the very transaction we already initialise server
+ * side and draws the checkout in one iframe on our own page instead, so the
+ * person keeps our URL bar. `initializeTransaction` has always returned the
+ * access code that shim needs. `'none'` is the single directive that forbids
+ * it, so it is narrowed here rather than removed.
+ *
+ * WHAT THIS DOES NOT GRANT, said plainly because a money product holding KYC
+ * documents does not get to carry an exception nobody can explain. It is two
+ * named hosts and never a wildcard. `frame-ancestors 'none'` is untouched, so
+ * the grant is one-directional: we may frame Paystack, nobody may frame us.
+ * No card detail crosses our code either way; the PAN is typed into Paystack's
+ * own document inside the frame, exactly as it was typed into Paystack's own
+ * page before, so PCI scope is unchanged by this line.
+ *
+ * WHAT IS STILL UNPROVEN, recorded beside the grant rather than in a commit
+ * message that scrolls away. Nobody has yet put a live test card through this
+ * frame, and nobody has yet watched a Nigerian bank's 3-D Secure step decide
+ * whether to render inside it or to open a window. The shim carries no
+ * `window.open` and sets no `sandbox` attribute on the frame, which means
+ * nothing structurally stops the framed document opening one. If a bank does
+ * open a window, this directive is still correct and still narrow; it is the
+ * checkout built on top of it that has to keep the hosted page reachable.
+ */
+const PAYSTACK_FRAME_ORIGINS: readonly string[] = [
+  "https://checkout.paystack.com",
+  "https://checkout.paystack.co",
 ];
 
 /**
@@ -364,8 +405,10 @@ export function contentSecurityPolicy(nonce: string): string {
     // spelling. Both are sent: the old header for browsers that only read it.
     ["frame-ancestors", ["'none'"]],
 
-    // We frame nothing either. No embedded checkout, no third-party widget.
-    ["frame-src", ["'none'"]],
+    // The in-app checkout's iframe, and nothing else in the world. Two named
+    // Paystack checkout hosts, never a wildcard, and the full reason is
+    // written beside PAYSTACK_FRAME_ORIGINS above.
+    ["frame-src", [...PAYSTACK_FRAME_ORIGINS]],
 
     // A `<base>` tag rewrite turns every relative URL on the page into an
     // attacker's, which is why this is pinned even though nothing sets one.
