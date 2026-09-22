@@ -38,13 +38,13 @@
   .nf-ix-hero__row {
     position: relative;
     margin-top: var(--nf-space-sm);
-    min-height: 4.25rem;
+    min-height: 3.75rem;
   }
   .nf-ix-hero__title {
     font-family: var(--nf-font-display);
     font-weight: 700;
-    /* Render: cap height 28 image px, 16.4 CSS px, so 23 to 24px. */
-    font-size: 1.5rem;
+    /* Render: cap height 28 render px, 16.4 CSS px, so 23px (R-A). */
+    font-size: 1.4375rem;
     line-height: 1.15;
     letter-spacing: -0.01em;
     color: var(--nf-content-primary);
@@ -56,10 +56,10 @@
   }
   .nf-ix-hero__sub {
     /* Render: two lines at 10.5px strict; 13px, the same two lines. */
-    margin-top: var(--nf-space-xs);
+    margin-top: var(--nf-space-2xs);
     max-width: 15rem;
-    font-size: var(--nf-text-caption);
-    line-height: 1.4;
+    font-size: 0.6875rem;
+    line-height: 1.35;
     color: var(--nf-brand-secondary);
   }
   /* The glass house with the tick, the render's own pixels. Crop box 186
@@ -172,7 +172,7 @@
     /* 8px photo to text (the render's 19 render px is 11; the three pixels
        are what keep a four-word title on one line beside the photo). */
     column-gap: var(--nf-space-sm);
-    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-2xs) var(--nf-space-2xs);
     color: inherit;
   }
   /* Render: 180 by 129 render px, 105 by 75 CSS strict, a 1.4 landscape;
@@ -180,7 +180,7 @@
   .nf-ix-card__photo {
     position: relative;
     width: 6.5rem;
-    min-height: 5.5rem;
+    min-height: 4.75rem;
     flex-shrink: 0;
     overflow: hidden;
     border-radius: var(--nf-radius-sm);
@@ -203,7 +203,7 @@
   .nf-ix-card__title {
     margin-top: var(--nf-space-3xs);
     font-weight: 600;
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-overline);
     line-height: 1.25;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
@@ -214,8 +214,8 @@
     align-items: center;
     gap: var(--nf-space-2xs);
     margin-top: var(--nf-space-3xs);
-    font-size: var(--nf-text-overline);
-    line-height: 1.35;
+    font-size: 0.6875rem;
+    line-height: 1.3;
     color: var(--nf-content-secondary);
   }
   .nf-ix-card__line > svg {
@@ -226,13 +226,13 @@
     margin-top: var(--nf-space-3xs);
     font-family: var(--nf-font-display);
     font-weight: 700;
-    font-size: 0.9375rem;
+    font-size: var(--nf-text-overline);
     line-height: 1.2;
     color: var(--nf-brand-secondary);
     font-variant-numeric: tabular-nums;
   }
   .nf-ix-card__price small {
-    font-size: var(--nf-text-overline);
+    font-size: 0.6875rem;
     font-weight: 500;
   }
   .nf-ix-card__chev {
@@ -244,15 +244,16 @@
 
   /*
    * THE BADGE, a rounded rectangle (shape law). Render: "Scheduled" is 91 by
-   * 24 render px with an 8px corner, a ratio of 0.33; drawn here 20px tall
-   * with 11px type and the 6px rung, 0.30. Emerald for scheduled and done, bright cyan for
+   * 24 render px (14 CSS) with an 8px corner, a ratio of 0.33; drawn here
+   * 18px tall with 11px type and the 6px rung, 0.33. Emerald for scheduled and done, bright cyan for
    * pending and waiting, rose for refused, quiet for withdrawn.
    */
   .nf-ix-badge {
     display: inline-flex;
     align-items: center;
-    min-height: 1.25rem;
-    padding: 0 var(--nf-space-xs);
+    /* 18px so the 6px corner stays under the 0.35 review line (R-D). */
+    min-height: 1.125rem;
+    padding: 0 var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid color-mix(in oklab, currentColor 45%, transparent);
     font-size: 0.6875rem;
@@ -288,7 +289,7 @@
        content's width and the middle cell (a name and a number) takes the
        rest, wrapping a long name rather than stacking the row. */
     grid-template-columns: max-content minmax(0, 1fr) max-content;
-    padding: var(--nf-space-xs) 0;
+    padding: var(--nf-space-2xs) 0;
   }
   .nf-ix-fact {
     display: flex;
@@ -296,6 +297,9 @@
     gap: var(--nf-space-2xs);
     min-width: 0;
     padding-inline: var(--nf-space-xs) var(--nf-space-3xs);
+  }
+  .nf-ix-fact:last-child {
+    padding-inline-end: var(--nf-space-xs);
   }
   .nf-ix-fact + .nf-ix-fact {
     border-left: var(--nf-border-width) solid var(--nf-brand-edge-soft);
@@ -325,7 +329,7 @@
   .nf-ix-fact__value {
     display: block;
     margin-top: var(--nf-space-3xs);
-    font-size: var(--nf-text-caption);
+    font-size: 0.6875rem;
     line-height: 1.3;
     font-weight: 600;
     color: var(--nf-content-primary);
@@ -342,21 +346,28 @@
     margin-top: var(--nf-space-2xs);
   }
 
-  /* The call line: a number is something to act on, so it is a link with a
-     full 44px target, drawn only when the read handed one over. */
-  .nf-ix-fact__phone {
-    display: inline-flex;
+  /* The call control (lead's ruling): a phone glyph on the name's line,
+     the number in its accessible name and its tel: link, so the row never
+     wraps. A 44px target drawn around a 16px glyph by padding and negative
+     margin, so it takes no height from the row. */
+  .nf-ix-fact__who {
+    display: flex;
     align-items: center;
-    gap: var(--nf-space-2xs);
-    min-height: 2.75rem;
-    margin-block: calc(var(--nf-space-sm) * -1);
-    font-size: 0.6875rem;
-    /* 500 not 600: at 600 the grouped number is two pixels wider than the
-       middle cell and breaks onto a second line. */
-    font-weight: 500;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+  }
+  .nf-ix-fact__call {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -0.875rem -0.875rem -0.875rem -0.75rem;
     color: var(--nf-content-link);
-    /* May wrap between its groups on a narrow phone, never inside one. */
-    overflow-wrap: normal;
+  }
+  .nf-ix-fact__call:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: -8px;
   }
   @media (min-width: 640px) {
     .nf-ix-fact {
@@ -371,14 +382,14 @@
      title, and at the right the count with its bar under it (124 by 6 image
      px, 72 by 3.5 CSS). Rows inset 15 image px, 54 image px each. */
   .nf-ix-check {
-    padding: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
   }
   .nf-ix-check__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--nf-space-sm);
-    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-2xs);
   }
   .nf-ix-check__title {
     display: flex;
@@ -386,7 +397,7 @@
     gap: var(--nf-space-xs);
     font-family: var(--nf-font-display);
     font-weight: 600;
-    font-size: 0.9375rem;
+    font-size: 0.6875rem;
     color: var(--nf-content-primary);
     white-space: nowrap;
   }
@@ -399,7 +410,7 @@
     align-items: stretch;
     gap: var(--nf-space-2xs);
     flex-shrink: 0;
-    font-size: var(--nf-text-overline);
+    font-size: 0.6875rem;
     font-weight: 500;
     color: var(--nf-brand-secondary);
     font-variant-numeric: tabular-nums;
@@ -408,7 +419,7 @@
   /* The bar is a shape, so it is round-ended; it is not a control. */
   .nf-ix-bar {
     position: relative;
-    height: 0.3125rem;
+    height: 0.25rem;
     overflow: hidden;
     border-radius: var(--nf-radius-circle);
     /* Identity progress, off: a deep blue with its own edge. */
@@ -443,9 +454,9 @@
   .nf-ix-step {
     display: flex;
     align-items: center;
-    gap: var(--nf-space-sm);
-    min-height: 2.75rem;
-    padding: var(--nf-space-3xs) var(--nf-space-sm) var(--nf-space-3xs) var(--nf-space-2xs);
+    gap: var(--nf-space-xs);
+    min-height: 2rem;
+    padding: 1px var(--nf-space-xs) 1px var(--nf-space-3xs);
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background: var(--nf-brand-tint-1);
@@ -455,8 +466,8 @@
      the row's 54 render px (0.78), so 34px on a 44px row. */
   .nf-ix-step__plate {
     display: block;
-    width: 2.125rem;
-    height: 2.125rem;
+    width: 1.5rem;
+    height: 1.5rem;
     flex-shrink: 0;
   }
   .nf-ix-plate-paper {
@@ -469,15 +480,15 @@
   .nf-ix-step__name {
     display: block;
     font-weight: 600;
-    font-size: var(--nf-text-caption);
-    line-height: 1.25;
+    font-size: 0.6875rem;
+    line-height: 1.2;
     color: var(--nf-content-primary);
   }
   .nf-ix-step__detail {
     display: block;
-    margin-top: 1px;
+    margin-top: 0;
     font-size: 0.6875rem;
-    line-height: 1.3;
+    line-height: 1.2;
     color: var(--nf-brand-secondary);
   }
   /* The check circle, a shape: hollow brand ring until the step happened,
@@ -486,8 +497,8 @@
   .nf-ix-step__ring {
     display: grid;
     place-items: center;
-    width: 1.125rem;
-    height: 1.125rem;
+    width: 0.875rem;
+    height: 0.875rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
@@ -502,11 +513,11 @@
   .nf-ix-step--done .nf-ix-step__ring::after,
   .nf-ix-option[aria-checked="true"] .nf-ix-step__ring::after {
     content: "";
-    width: 0.25rem;
-    height: 0.5rem;
-    margin-top: -0.125rem;
+    width: 0.1875rem;
+    height: 0.375rem;
+    margin-top: -1px;
     border: solid var(--nf-content-on-brand);
-    border-width: 0 2px 2px 0;
+    border-width: 0 1.5px 1.5px 0;
     transform: rotate(45deg);
   }
 
@@ -517,8 +528,8 @@
      record, read-only, because no action writes a note after the fact. */
   .nf-ix-notes {
     display: flex;
-    gap: var(--nf-space-sm);
-    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) var(--nf-space-xs);
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
   }
   .nf-ix-notes__glyph {
     padding-top: var(--nf-space-3xs);
@@ -527,13 +538,13 @@
   }
   .nf-ix-notes__label {
     font-weight: 600;
-    font-size: var(--nf-text-caption);
+    font-size: 0.6875rem;
     color: var(--nf-content-primary);
   }
   .nf-ix-notes__well {
     margin-top: var(--nf-space-2xs);
-    padding: var(--nf-space-2xs) var(--nf-space-sm);
-    min-height: 1.75rem;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    min-height: 1.375rem;
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     /* Render: the well is a step LIGHTER than its panel (#00154b on
@@ -541,7 +552,7 @@
     background:
       linear-gradient(var(--nf-brand-tint-1), var(--nf-brand-tint-1)),
       var(--nf-well-fill);
-    font-size: var(--nf-text-overline);
+    font-size: 0.6875rem;
     line-height: 1.4;
     color: var(--nf-content-secondary);
     white-space: pre-wrap;
@@ -566,33 +577,35 @@
      panel, a head in the checklist head's type, rows of 44px (the least a
      pressed control may be) with the same ring, 2px apart. */
   .nf-ix-outcome {
-    padding: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
   }
   .nf-ix-outcome__head {
-    padding: var(--nf-space-3xs) var(--nf-space-2xs) var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-2xs);
     line-height: 1.2;
     font-family: var(--nf-font-display);
     font-weight: 600;
-    font-size: 0.9375rem;
+    font-size: 0.6875rem;
     color: var(--nf-content-primary);
   }
+  /* Lead ruling R-F: one row of three, as compact as the render's own
+     nearest element, so the primary actions stay on the first screen. */
   .nf-ix-outcome__options {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-space-3xs);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
   }
-  /* A text-bearing control: the 10px rung on a 44px box (0.23), the
-     checklist row's own corner. */
+  /* A text-bearing control at the 44px floor (R-B): the 10px rung, 0.23. */
   .nf-ix-option {
     display: flex;
     align-items: center;
-    gap: var(--nf-space-sm);
+    justify-content: center;
+    gap: var(--nf-space-2xs);
     min-height: 2.75rem;
-    padding: 0 var(--nf-space-sm);
+    padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background: var(--nf-brand-tint-1);
-    font-size: var(--nf-text-caption);
+    font-size: 0.6875rem;
     font-weight: 600;
     color: var(--nf-content-primary);
     text-align: left;
@@ -634,12 +647,13 @@
   /* The identity's lit button: the token gradient with a pool of light in
      its lower middle, a cyan edge, and a bloom thrown down onto the page
      with a softer one up. */
-  /* Render: Add Photos 56 render px, Submit 50 (0.89 of it). Here 46 and
-     44, the least a pressed control may be; 14px labels. */
+  /* Render: Add Photos 56 render px (33 CSS), Submit 50 (29). Both under
+     the 44px floor, so both are 44 (R-B); labels 11px, the floor for a
+     label (R-A; the render's are about 9). */
   .nf-ix .nf-ix-cta {
-    --nf-btn-h: 2.875rem;
+    --nf-btn-h: 2.75rem;
     padding-block: 0;
-    font-size: var(--nf-text-body-sm);
+    font-size: 0.6875rem;
     justify-content: center;
     border-color:
       color-mix(in oklab, var(--nf-state-warning) 90%, white)
@@ -666,7 +680,7 @@
   .nf-ix .nf-ix-submit {
     --nf-btn-h: 2.75rem;
     padding-block: 0;
-    font-size: var(--nf-text-body-sm);
+    font-size: 0.6875rem;
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background:
       linear-gradient(180deg, var(--nf-brand-tint-3), var(--nf-brand-tint-1)),
@@ -685,7 +699,7 @@
     cursor: not-allowed;
   }
   .nf-ix-hint {
-    font-size: var(--nf-text-overline);
+    font-size: 0.6875rem;
     color: var(--nf-content-muted);
     text-align: center;
   }
@@ -728,10 +742,6 @@
     .nf-ix-check__rows {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .nf-ix-outcome__options {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 

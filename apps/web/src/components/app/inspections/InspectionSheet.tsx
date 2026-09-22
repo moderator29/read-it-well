@@ -144,10 +144,18 @@ function Crop({
   );
 }
 
+/* The full meaning, which is the accessible name of each choice. */
 const OUTCOME_LABEL: Record<InspectionOutcome, string> = {
   inspected: "I inspected it",
   deal_done: "Inspected, and we have a deal",
   no_deal: "Inspected, no deal",
+};
+
+/* The drawn words: short, so the three sit in one row (lead ruling R-F). */
+const OUTCOME_SHORT: Record<InspectionOutcome, string> = {
+  inspected: "Inspected",
+  deal_done: "Deal done",
+  no_deal: "No deal",
 };
 
 function whenLine(value: string, locale: Locale): { day: string; time: string } {
@@ -220,13 +228,13 @@ export function InspectionSheet({
             <p className="nf-ix-card__title">{inspection.listingTitle ?? "A property that is no longer listed"}</p>
             {facts && (facts.area || facts.city) && (
               <p className="nf-ix-card__line">
-                <UiIcon name="location" size={16} />
+                <UiIcon name="location" size={12} />
                 <span className="truncate">{[facts.area, facts.city].filter(Boolean).join(", ")}</span>
               </p>
             )}
             {facts && (
               <p className="nf-ix-card__line">
-                <UiIcon name="house" size={16} />
+                <UiIcon name="house" size={12} />
                 <span className="truncate">{facts.kindLabel}</span>
               </p>
             )}
@@ -262,23 +270,26 @@ export function InspectionSheet({
                   party is whoever lists the property, owner or agent, so the
                   label says that and no more (CLAIMS_RULE; ledger 9, refused). */}
               <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
-              <dd className="nf-ix-fact__value">{inspection.counterpartName ?? "Not named yet"}</dd>
-              {/*
-                THE NUMBER, when this reader is allowed to have it.
-                `lib/security/counterpart-contact.ts` decides; null means the
-                line is not drawn at all rather than drawn as a dead control.
-              */}
-              {inspection.counterpartPhone && (
-                <dd>
+              <dd className="nf-ix-fact__value nf-ix-fact__who">
+                <span className="min-w-0">{inspection.counterpartName ?? "Not named yet"}</span>
+                {/*
+                  THE NUMBER, when this reader is allowed to have it.
+                  `lib/security/counterpart-contact.ts` decides; null means no
+                  control is drawn at all. Drawn as a phone glyph on the name's
+                  line (lead's ruling), the grouped number in its accessible
+                  name and its tel: link, so the row never wraps.
+                */}
+                {inspection.counterpartPhone && (
                   <a
                     href={`tel:${inspection.counterpartPhone}`}
-                    className="nf-ix-fact__phone nf-numeric"
-                    aria-label={`Call ${inspection.counterpartName ?? "them"}`}
+                    className="nf-ix-fact__call"
+                    aria-label={`Call ${inspection.counterpartName ?? "them"} on ${formatPhone(inspection.counterpartPhone)}`}
+                    data-testid="inspection-call"
                   >
-                    {formatPhone(inspection.counterpartPhone)}
+                    <UiIcon name="phone" size={16} />
                   </a>
-                </dd>
-              )}
+                )}
+              </dd>
             </div>
           </div>
           <div className="nf-ix-fact">
@@ -298,7 +309,7 @@ export function InspectionSheet({
         <section className="nf-ix-glass nf-ix-check" aria-label="Inspection checklist">
           <div className="nf-ix-check__head">
             <p className="nf-ix-check__title">
-              <UiIcon name="document" size={20} />
+              <UiIcon name="document" size={16} />
               Inspection Checklist
             </p>
             <div className="nf-ix-check__count">
@@ -328,7 +339,7 @@ export function InspectionSheet({
                         a glyph too faint to read, so daylight draws the same
                         plate as a pale brand disc with the stroked glyph. */}
                     <span className="nf-ix-plate-paper">
-                      <UiIcon name={words.paper} size={20} />
+                      <UiIcon name={words.paper} size={12} />
                     </span>
                   </span>
                   <span className="nf-ix-step__text">
@@ -345,7 +356,7 @@ export function InspectionSheet({
 
         {/* ------------------------------------------------------------ notes */}
         <section className="nf-ix-glass nf-ix-notes" aria-label="Notes">
-          <UiIcon name="document" size={20} className="nf-ix-notes__glyph" />
+          <UiIcon name="document" size={16} className="nf-ix-notes__glyph" />
           <div className="min-w-0 flex-1">
             <p className="nf-ix-notes__label">Notes</p>
             {inspection.note && (
@@ -380,12 +391,13 @@ export function InspectionSheet({
                     type="button"
                     role="radio"
                     aria-checked={chosen}
+                    aria-label={OUTCOME_LABEL[value]}
                     className="nf-ix-option"
                     onClick={() => setOutcome(value)}
                     data-testid={`inspection-outcome-${value}`}
                   >
                     <span className="nf-ix-step__ring" aria-hidden="true" />
-                    {OUTCOME_LABEL[value]}
+                    {OUTCOME_SHORT[value]}
                   </button>
                 );
               })}
@@ -457,10 +469,10 @@ export function InspectionSheet({
               aria-label="Add Photos, in the conversation about this viewing"
               data-testid="inspection-add-photos"
             >
-              <UiIcon name="chevron-right" size={20} className="nf-ix-cta__start" />
-              <UiIcon name="picture" size={20} />
+              <UiIcon name="chevron-right" size={16} className="nf-ix-cta__start" />
+              <UiIcon name="picture" size={16} />
               Add Photos
-              <UiIcon name="chevron-right" size={20} className="nf-ix-cta__end" />
+              <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
             </Link>
           )}
 
