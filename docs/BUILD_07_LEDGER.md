@@ -3121,3 +3121,44 @@ of back behaviour is unproven.
 without it: that handler only calls the injected `goBack` once it has decided
 not to exit, so a change confined to `NativeRuntime.tsx` would have left the
 shell closing on every deep link. Declaring it beats burying it.
+
+## 29. THE SALE COST MODEL'S PROBE HAS NOW RUN, AND IT PASSED
+
+Section 25 recorded that the buyer's cost model shipped with its probe
+unexecuted, so the ONE LAW was not closed on it. It is closed now.
+
+Run by the lead against `uccixoonmbhrnyczyigt`, unchanged from the file:
+
+> PROBE ALL PASS sale cost model: 1 six columns bigint and nullable; 2
+> validated checks incl covers_its_parts; 3 anon selects all six; 4 64
+> existing rows 0 broken; 5 fixture copied from live sale row
+> `ed000000-0000-4000-8000-000000000004`; 6 zero accepted and reads back as
+> zero on all six; 7 undeclared stays undeclared on all six; 8 all six refuse
+> -1 with a check violation; 9 total above parts accepted, one kobo below
+> refused; 10 rows 64 to 65 only the fixture; ROLLED BACK, nothing committed
+
+**And the rollback was verified rather than trusted**, which is the whole
+lesson of section 15: `public.listings` reads 64 rows afterwards, the same as
+before, with no row carrying a declared agency fee. A probe that says it
+rolled back and a database that shows it rolled back are two different claims.
+
+### Why it had not run, and it was nobody's fault
+
+The agent that wrote it was reaching a DIFFERENT Supabase project,
+`oepdbzejvrrqxgynfcdh`, which is inactive, and every call timed out. Its
+reading of that timeout was honest and its refusal to call `restore_project`
+on somebody else's infrastructure was correct. The project was simply not this
+one. **Naming the project a probe ran against is now part of running it**, and
+the file says which one it passed on.
+
+### The two assertions worth pointing at
+
+**7, undeclared stays undeclared.** Null goes in and null comes back on all
+six columns, and nothing anywhere quietly turns it into a nought. That is the
+entire feature: a cost nobody has declared and a cost declared as zero are
+different facts, and a buyer is entitled to see which one they are looking at.
+
+**9, the total may not undercut its own parts.** A total one kobo below the
+sum of its parts is refused; a total above them is stored. That is the shape a
+listing takes when an attractive all-in figure is advertised over fees that
+say otherwise, and the database now refuses to hold that lie.

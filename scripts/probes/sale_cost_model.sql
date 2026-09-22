@@ -46,10 +46,25 @@
 -- here. If one is ever added, the revoke goes in the same migration and this
 -- probe gains an assertion for it.
 --
--- STATUS AT THE TIME OF WRITING: NOT YET RUN. Every Supabase call from this
--- box times out against an INACTIVE project ("Failed to initialise history
--- table: Connection terminated due to connection timeout"). The file is here
--- so it can be run unchanged the moment the project answers.
+-- STATUS: RUN AND PASSED, 22 September 2026, against project
+-- `uccixoonmbhrnyczyigt`, unchanged from the file as written.
+--
+--   PROBE ALL PASS sale cost model: 1 six columns bigint and nullable;
+--   2 validated checks incl covers_its_parts; 3 anon selects all six;
+--   4 64 existing rows 0 broken; 5 fixture copied from live sale row
+--   ed000000-0000-4000-8000-000000000004; 6 zero accepted and reads back as
+--   zero on all six; 7 undeclared stays undeclared on all six; 8 all six
+--   refuse -1 with a check violation; 9 total above parts accepted, one kobo
+--   below refused; 10 rows 64 to 65 only the fixture; ROLLED BACK, nothing
+--   committed
+--
+-- The rollback was verified afterwards rather than trusted: `public.listings`
+-- reads 64 rows, the same as before, and no row carries a declared agency fee.
+--
+-- IT WAS WRITTEN AS NOT RUN because the agent that wrote it was reaching a
+-- DIFFERENT project, `oepdbzejvrrqxgynfcdh`, which is inactive. The timeout
+-- was real and its reading of it was honest; the project was simply not this
+-- one. Naming the project a probe ran against is now part of running it.
 
 do $probe$
 declare
