@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { PageHeader } from "@/components/app/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
+import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
+import { resolveSession } from "@/lib/actions/session";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import {
   readInspectionsForLister,
@@ -56,10 +57,12 @@ export default async function InspectionsPage({
   const changedRaw = Array.isArray(params.changed) ? params.changed[0] : params.changed;
   const changed = changedRaw && UUID_RE.test(changedRaw) ? changedRaw : null;
 
-  const [asked, shown] = await Promise.all([
+  const [asked, shown, session] = await Promise.all([
     readInspectionsForRequester(),
     readInspectionsForLister(),
+    resolveSession(),
   ]);
+  const userId = session.state === "signed-in" ? session.user.id : null;
   const readFailed = asked.readFailed || shown.readFailed;
   const groups = groupInspections([
     ...tagSide(asked.inspections, "requester"),
@@ -75,8 +78,10 @@ export default async function InspectionsPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={copy.title} fallback="/home" />
-      <InspectionHero title="inspection" sub="Check the property, confirm the details, record how it went." />
+      {/* The render's top row (logo, bell, profile) is the shared app header;
+          the back square, the title and the glass house are this page's. */}
+      <InspectionHero sub="Check the property, confirm details, submit your report." fallback="/home" />
+      <InspectionsLive userId={userId} />
 
       {readFailed ? (
         <Reveal>
@@ -103,7 +108,7 @@ export default async function InspectionsPage({
           <Stack>
             {groups.open.length > 0 && (
               <Section title={copy.openTitle} description={copy.openDescription}>
-                <div className="flex flex-col gap-row">
+                <div className="nf-ix-list">
                   {groups.open.map((row) => (
                     <InspectionSheet
                       key={row.id}
@@ -119,7 +124,7 @@ export default async function InspectionsPage({
             )}
             {groups.closed.length > 0 && (
               <Section title={copy.closedTitle} divided={groups.open.length > 0}>
-                <div className="flex flex-col gap-row">
+                <div className="nf-ix-list">
                   {groups.closed.map((row) => (
                     <InspectionSheet
                       key={row.id}

@@ -4,8 +4,11 @@ import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import { readInspectionsForLister } from "@/lib/inspections/queries";
-import { InspectionRows } from "@/components/app/inspections/InspectionRows";
+import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
+import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
+import { resolveSession } from "@/lib/actions/session";
+import { readListingFacts } from "@/app/(app)/inspections/facts";
 import { ButtonLink } from "@/components/ui/Button";
 import { isOpen } from "@/lib/inspections/types";
 
@@ -50,9 +53,18 @@ export default async function AgentInspectionsPage() {
     );
   }
 
-  const list = await readInspectionsForLister();
+  const [list, session] = await Promise.all([readInspectionsForLister(), resolveSession()]);
+  const userId = session.state === "signed-in" ? session.user.id : null;
   const open = list.inspections.filter((one) => isOpen(one.state));
   const settled = list.inspections.filter((one) => !isOpen(one.state));
+  const facts = await readListingFacts(
+    list.inspections.map((one) => one.listingId),
+    locale,
+  );
+  /* The first one waiting on somebody arrives expanded, as on /inspections;
+     failing that the first scheduled one, which is the render's own case. */
+  const expanded =
+    open[0]?.id ?? list.inspections.find((one) => one.state === "CONFIRMED")?.id ?? null;
 
   return (
     <AgentShell
@@ -62,16 +74,18 @@ export default async function AgentInspectionsPage() {
       profile={agentProfileFrom(context.agent)}
     >
       <div className="nf-console">
-        <h1 className="nf-h1">Inspections</h1>
-        <p className={`mt-2xs ${TYPE.bodyLg}`}>
-          Somebody wanting to see a property is the closest thing to a deal this platform has.
-          Both of you see the same state on the same request.
-        </p>
+        {/* F6A8A482 as the lister sees it: the console shell draws the way
+            back, so the hero here carries the title and the house only. */}
+        <InspectionHero
+          back={false}
+          sub="Check the property, confirm details, submit your report."
+        />
+        <InspectionsLive userId={userId} />
 
         {list.readFailed ? (
           /* The wallet's rule, applied here: an empty list and an unreadable
              one look identical and mean opposite things. */
-          <p className={`mt-xl ${TYPE.body}`}>
+          <p className={`mt-xl ${TYPE.body}`} role="status">
             We could not load your inspections just now, so this is not showing you an empty
             list that might not be true. Nothing has been lost. Try again in a moment.
           </p>
@@ -87,19 +101,41 @@ export default async function AgentInspectionsPage() {
             }
           />
         ) : (
-          <Stack className="mt-xl">
+          <Stack className="mt-lg">
             {open.length > 0 && (
               <Section
                 title="Waiting on somebody"
                 description="These are the ones with a person on the other end of them."
               >
-                <InspectionRows inspections={open} side="lister" locale={locale} />
+                <div className="nf-ix-list">
+                  {open.map((one) => (
+                    <InspectionSheet
+                      key={one.id}
+                      inspection={one}
+                      side="lister"
+                      facts={facts.get(one.listingId) ?? null}
+                      locale={locale}
+                      open={one.id === expanded}
+                    />
+                  ))}
+                </div>
               </Section>
             )}
 
             {settled.length > 0 && (
               <Section title="Done" divided={open.length > 0}>
-                <InspectionRows inspections={settled} side="lister" locale={locale} />
+                <div className="nf-ix-list">
+                  {settled.map((one) => (
+                    <InspectionSheet
+                      key={one.id}
+                      inspection={one}
+                      side="lister"
+                      facts={facts.get(one.listingId) ?? null}
+                      locale={locale}
+                      open={one.id === expanded}
+                    />
+                  ))}
+                </div>
               </Section>
             )}
           </Stack>

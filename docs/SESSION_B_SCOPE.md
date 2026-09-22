@@ -97,6 +97,10 @@ policy, Session B writes it as a request below.
 - Governing images: `F6A8A482-657B-4836-B30A-1A0578BC3FBA.png` (root and
   `docs/design/references/`), plus anything relevant in
   `docs/design/references/founder/`.
+- `apps/web/src/app/css/inspection.css` (new, imported by
+  `components/app/inspections/InspectionSheet.tsx`, so `globals.css` is not
+  touched; its classes are `nf-ix-*`, so the old `nf-insp-*` rules in
+  `threads.css` no longer reach this surface)
 
 ### 7. THE WHOLE ADMIN CONSOLE (founder instruction, 22 September)
 Session B owns **`apps/web/src/app/admin/**` in full**, every route under it,
@@ -392,3 +396,80 @@ AR-9. **`getKycQueue` counts `pendingCount` over a 300-document cap** and
    `decided` is sliced to twenty subjects. Request: `pendingCount` from its own
    exact count read, and `capped: boolean` on the result so the desk can say
    when the list is not all of it.
+
+### Requests from inspection (the property inspection surface)
+
+Session B has not made these; the surface ships the honest state around each.
+Checked by read-only SQL against production on 22 September.
+
+I1. **The room-by-room checklist, the report notes and the report photos have
+   nowhere to live.** F6A8A482 draws eight ticked rows (Exterior, Interior,
+   Kitchen, Bathrooms, Utilities, Appliances, Safety, Overall Condition), a
+   notes field and Add Photos, all belonging to one inspection. Production has
+   `inspection_requests` (state, two times, two notes, outcome) and
+   `inspection_confirmations`, and no table, column or bucket for any of the
+   three. The surface therefore shows the four-rung ladder the row can prove
+   and the two notes read-only. Migration requested:
+   ```sql
+   create table public.inspection_reports (
+     inspection_id uuid primary key references public.inspection_requests(id) on delete cascade,
+     author_id uuid not null references auth.users(id),
+     notes text check (char_length(notes) <= 2000),
+     submitted_at timestamptz,
+     created_at timestamptz not null default now(),
+     updated_at timestamptz not null default now()
+   );
+   create table public.inspection_report_items (
+     inspection_id uuid not null references public.inspection_reports(inspection_id) on delete cascade,
+     item text not null check (item in ('exterior','interior','kitchen','bathrooms','utilities','appliances','safety','overall')),
+     checked boolean not null default false,
+     note text check (char_length(note) <= 400),
+     checked_at timestamptz,
+     primary key (inspection_id, item)
+   );
+   create table public.inspection_report_photos (
+     id uuid primary key default gen_random_uuid(),
+     inspection_id uuid not null references public.inspection_reports(inspection_id) on delete cascade,
+     item text,
+     storage_path text not null,
+     created_at timestamptz not null default now()
+   );
+   ```
+   RLS on all three: select for either party of the parent
+   `inspection_requests` row (requester_id or lister_id = auth.uid()) and for
+   admins; insert and update only while the parent is `CONFIRMED`, and only by
+   a party; no update once `submitted_at` is set; no delete policy. A private
+   bucket `inspection-photos` with path `<inspection_id>/<uuid>.<ext>` and the
+   same party rule on `storage.objects`. A trigger on `inspection_reports`
+   when `submitted_at` goes from null to a value: move the parent to
+   `COMPLETED` in the same transaction (so the existing
+   `notify_inspection_change` tells both sides) and refuse it unless all eight
+   items are checked, which is the render's disabled-until-complete rule held
+   in the database rather than only in the button. When it lands, Session B
+   adds `saveReportItem`, `saveReportNotes`, `addReportPhoto` and
+   `submitReport` to `lib/inspections/actions.ts` and swaps the ladder for the
+   eight rows.
+
+I2. **Add `public.inspection_requests` to the `supabase_realtime`
+   publication.** Today only `notifications` is published. The surface
+   re-reads when a notification about an inspection arrives for the reader
+   (`InspectionsLive`), which covers every state change because
+   `notify_inspection_change` writes one to the other party; publishing the
+   table itself would also cover a party who has muted that notification
+   kind. `alter publication supabase_realtime add table public.inspection_requests;`
+   (row visibility already follows `inspection_requests_select_party`).
+
+I3. **The thread does not read `?attach=1`.** Add Photos links to
+   `/messages/<conversation>?attach=1`, meaning "open with the photo picker
+   up". `app/(app)/messages/[id]/ThreadView.tsx` (not Session B's) ignores the
+   parameter, so the person lands in the thread and taps the paperclip
+   themselves. Request: open the composer's attach control on arrival when
+   the parameter is present.
+
+I4. **`threads.css` carries dead `nf-insp-*` rules** (the hero, card, facts,
+   ladder, notes and their light twins, roughly lines 1020 to 1400 and 1429
+   to 1455) that only `InspectionSheet` used. The sheet now draws from
+   `app/css/inspection.css` under `nf-ix-*`. `InspectionRows` still uses
+   `nf-insp-row__state` and `nf-insp-row__controls`, so those two stay; the
+   rest can be deleted by whoever owns `threads.css`.
+
