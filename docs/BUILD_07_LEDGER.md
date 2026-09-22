@@ -5930,3 +5930,309 @@ ROLES. Told both; PRICE CHECK moved to `234000` and the block is ROLES's.
 that is convenient to read.** A reconciliation that matches on a field the
 restore path ignores is a green light aimed at the wrong wall, and it is the
 eighth of that shape found today.
+
+---
+
+## 51. THE IN-APP CHECKOUT: WHAT LANDED, WHAT THE THREE OPEN QUESTIONS ANSWER TO, AND WHAT IS STILL OWED
+
+Written by the payments worker, 22 September 2026. Track A rows 1 to 8 of the
+sweep's master table, plus the payment-method and bank-account desks.
+
+### 51.1 The five departures that closed, and the three that did not
+
+| Row | Call site | State |
+| --- | --- | --- |
+| 1 | `checkout/[bookingId]/PayPanel.tsx` "Pay by card" | **Closed.** `PaystackCheckout`, resumed on our own page |
+| 2 | `checkout/[bookingId]/PayPanel.tsx` 3-D Secure fallback | **Closed.** Same component, same reference |
+| 3 | `rent/pay/[inspectionId]/PayPanel.tsx` "Pay by card" | **Closed.** Same component |
+| 4 | `rent/pay/[inspectionId]/PayPanel.tsx` 3-D Secure fallback | **Closed.** Same component, same reference |
+| 5 | `wallet/WalletDeck.tsx:386` hosted top-up | **OPEN. Session B's file.** See R8 |
+| 6 | `wallet/WalletDeck.tsx:395` saved-card 3DS step | **OPEN. Session B's file.** See R8 |
+| 7 | `components/app/payments/PaymentMethodsPanel.tsx` "Add a card" | **Closed.** |
+| 8 | `components/app/wallet/CryptoTopUp.tsx:36` Yellow Card | **OPEN. Session B's file.** See R9 |
+
+`window.location.assign` to a payment now appears at exactly three call sites
+in the tree, all three in Session B's files, all three listed above.
+
+### 51.2 THE THREE QUESTIONS THE SWEEP SAID TO TEST FIRST
+
+The brief asked for a real test card against Paystack test keys. **That could
+not be done from this session and I am not going to dress up what I did do as
+if it were.** Two independent blocks:
+
+1. **Every Paystack host is refused by this session's egress policy.** Measured,
+   not assumed: `js.paystack.co`, `api.paystack.co`, `checkout.paystack.com`,
+   `standard.paystack.co` and `paystack.com` each answer
+   `CONNECT tunnel failed, response 403`. The proxy's own guidance is to report
+   a blocked host rather than route around it, so no sandbox, tunnel or third
+   party was used to get out.
+2. **There is no Paystack key of any kind in this environment.** `.env.local`
+   holds two Supabase values and nothing else. There is no test secret key to
+   initialise a transaction with and therefore no access code to resume.
+
+So the answers below come from the ONE primary source that was reachable: the
+published `@paystack/inline-js` 2.25.0 tarball, pulled from the npm registry
+and read directly. That is the code that will actually run in our browser, so
+it is strong evidence. It is not a card completing a payment. Each answer says
+which it is.
+
+**Q1. Does `resumeTransaction` work without a public key? YES. SETTLED.**
+
+This one is genuinely answered, because it is a question about the library's
+own control flow and the library is in our hands. In `es/inline.js`:
+
+- `resumeTransaction(e, {onSuccess, onCancel, onLoad, onError})` calls
+  `this.newTransaction({accessCode: e, ...})`. There is no key parameter.
+- `newTransaction` constructs the transaction through a validator whose FIRST
+  statement is `if ("accessCode" in n) return { accessCode: n.accessCode }`.
+  **It returns before the required-parameter loop ever runs.** No key is
+  required, and none is read.
+- The only `publicKey` in the whole bundle is a hard-coded RSA PEM belonging to
+  Paystack, used to encrypt card data. It is not a merchant key and is not ours
+  to supply.
+- With an access code, `requestInline()` would `GET
+  api.paystack.co/transaction/verify_access_code/<code>` **with no
+  authorisation header at all**. The access code IS the credential. That is why
+  no key is needed.
+
+Consequence: `docs/ENVIRONMENT.md:101` and `docs/DEPLOY.md:125`, which both say
+`NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` is not needed, **stay true as written.** No
+env var was added. Nothing in this work reads one.
+
+**Q2. Does 3-D Secure render inside the iframe? STRONG EVIDENCE, NOT PROOF.**
+
+What is settled from the bundle:
+
+- **`window.open` occurs zero times in the entire 65KB bundle.** Not in a
+  string, not as a property access. The library has no mechanism for opening
+  anything.
+- Exactly one checkout iframe is created, `src =
+  https://checkout.paystack.com/popup?precheckout=true`, appended to
+  `document.body`, fixed and full viewport.
+- The parent page listens for `message` events and accepts them only from that
+  origin or that iframe's `contentWindow`.
+
+What is NOT settled: the bank's ACS page is served **into Paystack's checkout
+document**, which is cross-origin and which this side cannot read. Paystack's
+own code cannot open a window; whether their checkout page does is not visible
+from here. **A live 3DS test card remains the only proof and it is owed.**
+
+The cost of being wrong is bounded and worth stating: if 3DS did open a window,
+rows 2 and 4 would degrade to the behaviour they already had before this work,
+and the in-app checkout would still have closed rows 1, 3 and 7.
+
+**Q3. Does a real card complete? NOT ANSWERED. Nothing was charged and nothing
+could be.** No key, no egress. Do not read any green test in this tree as an
+answer to this question: every test here mocks the processor.
+
+**The exact test that settles Q2 and Q3, for whoever has egress and a test
+key**, so nobody re-derives it:
+
+1. Set `PAYSTACK_SECRET_KEY` to a `sk_test_` key.
+2. Sign in, open `/settings/payments`, tap Add, tap "Save a card".
+3. Watch for a full-viewport iframe on `checkout.paystack.com` with the Vallo
+   page still behind it and `vallospaces.com` still in the address bar.
+4. Pay with Paystack's 3DS test card `5060 6666 6666 6666 666`, which forces a
+   challenge. **Watch whether the bank's page appears inside that iframe or
+   anywhere else.** That is Q2.
+5. Complete it. The card should appear on the desk within a few seconds, put
+   there by the webhook, and the sheet should settle from `paymentState`
+   reading our own `wallet_entries` row. That is Q3.
+
+### 51.3 THREE THINGS THE SWEEP DID NOT FIND, ALL FROM READING THE BUNDLE
+
+1. **`connect-src` needs no change, and that is a load-bearing fact.** The
+   sweep assumed an in-app checkout would need Paystack in `connect-src`. It
+   does not: `requestInline()`, the only `fetch` to `api.paystack.co` in the
+   bundle, is reached ONLY from `checkout()` and `paymentRequest()`. The
+   `resumeTransaction` path makes no network call from our page at all. The
+   comment at `csp.ts:355-357` stays true and the directive stays `'self'` plus
+   Supabase.
+2. **`checkout.paystack.co` in `PAYSTACK_FRAME_ORIGINS` (`csp.ts:198-201`) is
+   an over-grant.** The bundle's production config names exactly one checkout
+   origin, `https://checkout.paystack.com/`, and the iframe src is built from
+   it. The `.co` spelling is never framed. Not changed here because `csp.ts` is
+   not this worker's file; it is one line to delete and it should be deleted.
+3. **`Permissions-Policy` is a silent trip wire.** The checkout iframe is
+   created with `allow="payment; clipboard-read; clipboard-write"`.
+   `next.config.ts:206` currently sets `camera=(), microphone=(),
+   geolocation=(self), interest-cohort=()` and does NOT name `payment`, so
+   delegation works today. **The day somebody adds `payment=()` to that header,
+   Apple Pay inside the Paystack iframe dies with no server-side trace and the
+   CSP will be suspected first.** Noted here so the next person finds it.
+
+### 51.4 THE PAYMENT METHOD AND BANK ACCOUNT DESKS
+
+Six actions, all of which decide where money goes and four of which were
+unlimited, unaudited and unannounced: `setDefaultPaymentMethod`,
+`removePaymentMethod`, `setDefaultBankAccount`, `removeBankAccount`. All four
+now carry a row in `lib/security/money-limits.ts`, write to `audit_log`, and
+announce themselves through `lib/notify/junction.ts`.
+
+`startCardSetup` and `addBankAccount` are idempotent per tap. The first opened
+a second live NGN 100 charge on a double submit; the second spent a second of
+the five paid account resolutions an hour.
+
+`startCardSetup` asks Paystack for `channels: ["card"]`, and it is the ONLY
+call site on this platform that narrows channels. Every other charge sends no
+`channels` key, deliberately: a Nigerian customer refused a bank transfer is a
+Nigerian customer who does not pay. The setup charge is different because its
+entire purpose is to obtain a reusable authorisation, which only a card
+returns. The reason is written beside the line.
+
+**No email yet, said plainly.** Every notice passes `email: null`.
+`lib/email/messages.ts` has builders for a password change and a new device
+sign-in, which are the same class of event, and none for a payment instrument.
+Writing one belongs to whoever owns `lib/email`. When it lands, only the
+`email` field on each announcement in `lib/payments/notices.ts` changes.
+
+### 51.5 PROVED AGAINST THE LIVE DATABASE, ROLLED BACK, NOT GREPPED
+
+Fourteen money call sites carried rate limits and not one had ever been watched
+refusing anything. Four were asked to refuse on purpose, against
+`public.consume_rate_limit` on `uccixoonmbhrnyczyigt`, in a probe that ends in
+`raise exception 'PROBE ALL PASS ...'` and therefore wrote nothing. Verbatim:
+
+```
+PROBE ALL PASS
+  card_setup 5/h  : 1=TRUE 2=TRUE 3=TRUE 4=TRUE 5=TRUE 6=FALSE 7=FALSE 8=FALSE
+  card_setup first refusal: attempt 6
+  card_default 20/10m first refusal: attempt 21
+  buckets isolated: yes (bank_default still allowed after 9 bank_remove)
+  rule 21 consume_rate_limit: anon=f authenticated=f
+  authorization_code as authenticated: REFUSED (permission denied for table payment_methods)
+  is_default as authenticated: ALLOWED (no rows matched, which is the point)
+  rate_limits rows written by this probe: 4 (all rolled back)
+```
+
+Confirmed afterwards: zero probe rows in `rate_limits`, zero probe rows in
+`payment_methods`, and no migration recorded.
+
+**AND THE INSTRUMENT LIED TWICE BEFORE IT TOLD THE TRUTH.** Asking
+`information_schema.role_table_grants` from the MCP SQL role returned an empty
+set for `payment_methods` and `bank_accounts`, which reads as "authenticated
+has no privileges at all". Then `has_table_privilege('authenticated', ...,
+'UPDATE')` returned **false**, which reads as "the whole payments desk is dead,
+every update permission denied". Both were artefacts. `role_table_grants` is
+filtered by the reader's own role membership, and `has_table_privilege` answers
+about TABLE-level grants only. The right instrument is
+`has_any_column_privilege`, which says true, and `pg_attribute.attacl`, which
+shows `is_default`, `deleted_at` and `updated_at` granted to `authenticated`
+and nothing else. **I was one paragraph away from filing a four-action outage
+that does not exist.** A catalogue view is as capable of a blind green light as
+a test is, and a privilege question has a different right function for tables
+and for columns.
+
+### 51.6 A TEST THAT PASSED WHILE THE THING IT NAMED WAS BROKEN
+
+`transfer-idempotency.test.ts` was proved able to fail, twice, on purpose.
+Removing the guard turned the headline assertion red: *expected [2 moves] to
+have a length of 1 but got 2*. **Removing the schema field did not.** That is a
+finding rather than a pass: the fix reads the key straight off the `FormData`
+exactly as the funding door does, so it never depended on the schema at all.
+The schema field is still named, because a validator that silently bins a field
+somebody is posting is a trap for the next person, but it is not what holds the
+money in place and a commit message claiming it was would have been false.
+
+### 51.7 WHAT IS STILL OWED, NAMED RATHER THAN LEFT
+
+1. **Q2 and Q3 above.** A live test card. Section 51.2 has the exact steps.
+2. **`startCryptoDeposit` has a third variant of the double-send bug.** It
+   parses with `fundSchema`, which DOES carry `idempotencyKey`, `CryptoTopUp`
+   DOES mint and post one, and the action never calls `withIdempotency`. So the
+   key survives the schema and is then ignored. Not fixed with the send-money
+   blocker because Yellow Card is not configured on any deployment and that
+   commit needed to stay one change. It is six lines.
+3. **`withdraw` and `withdrawToSavedAccount` take no key at all.** The schema
+   now names the field and the server is ready; no withdrawal form mints one,
+   so the guard steps aside. See R10.
+4. **No email on any payment-instrument change.** Section 51.4.
+5. **`csp.ts` over-grant and the `Permissions-Policy` trip wire.** Section 51.3.
+
+---
+
+### R8. BLOCKER. The wallet deck still leaves the platform twice, and the component to stop it is built and merged
+
+`app/(app)/wallet/WalletDeck.tsx:386` and `:395` are the last two Paystack
+departures on the platform. Both are `window.location.assign`. They are rows 5
+and 6 of the sweep's master table and they are Session B's files, so this
+session has not touched them.
+
+**Everything needed is already on main.** The server side has returned what you
+need the whole time and now says so:
+
+- `fundWallet` and `fundWalletWithSavedCard` already return `accessCode` beside
+  `authorizationUrl` (`lib/wallet/actions.ts:283`, `:380`). Nothing reads it.
+- `components/app/payments/PaystackCheckout.tsx` is merged and is the component
+  both checkout panels and the payments desk now use.
+- `lib/payments/payment-state.ts` exports `paymentState(reference)`, which
+  reads our own `wallet_entries` row and never calls Paystack. Use this to
+  settle, NOT `verifyFunding`: the sheet polls, and `verifyFunding` costs a
+  Paystack round trip and takes the `money_verify` allowance of thirty in ten
+  minutes, so one payment would spend the person's whole allowance and then be
+  refused mid-payment, which reads on screen as a failure.
+
+What to do, at `:386`:
+
+```tsx
+{step?.kind === "checkout" && (
+  <PaystackCheckout
+    key={step.reference}
+    accessCode={step.accessCode}
+    reference={step.reference}
+    authorizationUrl={step.authorizationUrl}
+    amountMinor={step.amountMinor}
+    locale={locale}
+    confirm={async (r) => { const s = await paymentState(r); return s.ok ? s.data : "pending"; }}
+    onPaid={() => { /* close, router.refresh() */ }}
+    onCancelled={() => { /* back to idle; the reference stays open */ }}
+    onFailed={(message) => { /* show it verbatim, it is already true */ }}
+  />
+)}
+```
+
+And at `:395`, `FundingStep` (`components/app/wallet/funding-step.ts:17-28`)
+changes from `{kind:"hosted"; url}` to carrying `{accessCode, reference,
+authorizationUrl}`, exactly as the sweep's row 6 says. `funding-step.test.ts`
+moves with it.
+
+**Do not mount it with an `open` boolean.** It has no such prop on purpose:
+one mount is one transaction, so render it only while a transaction is live and
+give it `key={reference}`.
+
+### R9. NOTE. The crypto top-up is row 8 and it is not urgent
+
+`components/app/wallet/CryptoTopUp.tsx:36` assigns Yellow Card's `paymentUrl`.
+Nothing here is live: `isYellowCardConfigured()` needs three env vars that no
+deployment sets. The sweep's answer (section 7) is to change `createCollection`
+to request the structured collection and draw a Vallo deposit sheet, and it is
+a library change in `lib/payments/yellowcard.ts`, which is this session's file.
+**Say the word and it is done**; it was left alone because building a sheet
+against an API shape nobody has ever executed would be building against a
+guess.
+
+While you are in that file: `startCryptoDeposit` in `lib/wallet/actions.ts`
+never calls `withIdempotency` even though `CryptoTopUp` mints and posts a key
+and `fundSchema` carries it through. Same class as the send-money blocker. That
+one IS this session's file and is listed as owed in 51.7.
+
+### R10. NOTE. No withdrawal form mints an idempotency key
+
+`withdrawSchema` now names `idempotencyKey` and `withdraw` is ready for it, so
+this is a one-line change on your side and needs no backend work: mint a key
+per mount and post it as a hidden input, exactly as `SendFlow.tsx:116,313`
+already does.
+
+Until then the guard steps aside and a double tap on Withdraw places two
+holds. It is a smaller hole than Send was, because a withdrawal is a PENDING
+debit hold that support can reverse rather than money already in somebody
+else's wallet, but it is the same shape and it is the last one of its family.
+
+### R11. NOTE. What the send-money fix means for SendFlow, which is yours
+
+Nothing to change. `SendFlow.tsx` was already right: it mints the key and posts
+it, and had been doing so the whole time. The bug was `transferSchema` not
+naming the field and `transferToUser` not using it, both this session's files,
+both fixed and pushed. **Your component was the only part of that chain that
+was correct.** Worth saying, because the first instinct on a double-send bug is
+to change the form.
