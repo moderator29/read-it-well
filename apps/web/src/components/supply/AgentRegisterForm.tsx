@@ -17,6 +17,7 @@ import {
   type ExperienceBand,
 } from "@/lib/supply/registration";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
+import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
@@ -94,7 +95,10 @@ export function AgentRegisterForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [screenError, setScreenError] = useState<string | null>(null);
-  const [filed, setFiled] = useState<{ reference: string; attached: boolean } | null>(null);
+  const [filed, setFiled] = useState<{
+    reference: string;
+    attached: boolean;
+  } | null>(null);
   const [pending, startTransition] = useTransition();
 
   /* Naira in, kobo out, rounded once, at the boundary and nowhere else. */
@@ -105,7 +109,7 @@ export function AgentRegisterForm({
 
   const total = useMemo(
     () => tenantTotal({ rentMinor, agencyFeeBps, legalFeeBps }),
-    [rentMinor, agencyFeeBps, legalFeeBps],
+    [rentMinor, agencyFeeBps, legalFeeBps]
   );
 
   const percent = useMemo(
@@ -114,7 +118,7 @@ export function AgentRegisterForm({
         style: "percent",
         maximumFractionDigits: 2,
       }),
-    [locale],
+    [locale]
   );
 
   function back() {
@@ -165,7 +169,10 @@ export function AgentRegisterForm({
         return;
       }
       setErrors({});
-      setFiled({ reference: result.data.reference, attached: result.data.documentsAttached });
+      setFiled({
+        reference: result.data.reference,
+        attached: result.data.documentsAttached,
+      });
       setStep(3);
     });
   }
@@ -179,39 +186,50 @@ export function AgentRegisterForm({
       heading: mine.you.title,
       sub: mine.you.sub,
       body: (
-        <div className="grid gap-group">
-          <TextField
-            label={mine.you.name}
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            autoComplete="name"
-            required
-            {...(errors.fullName ? { error: errors.fullName } : {})}
-          />
-          <TextField
-            label={mine.you.phone}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            required
-            {...(errors.phone ? { error: errors.phone } : {})}
-          />
-          <SelectField
-            label={mine.you.experience}
-            value={experience}
-            onChange={(e) => setExperience(e.target.value as ExperienceBand)}
-            required
-            {...(errors.experience ? { error: errors.experience } : {})}
-          >
-            <option value="" disabled />
-            {EXPERIENCE_BANDS.map((band) => (
-              <option key={band} value={band}>
-                {mine.you.bands[band]}
-              </option>
-            ))}
-          </SelectField>
+        <div className="grid gap-row">
+          {/* ONE PANEL AROUND THE THREE QUESTIONS, which is how `GOVERNING-04`
+              screen one draws them: a single glass card, each question keeping
+              its own name over its own well. */}
+          <RegFieldGroup>
+            <RegField>
+              <TextField
+                label={mine.you.name}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+                required
+                {...(errors.fullName ? { error: errors.fullName } : {})}
+              />
+            </RegField>
+            <RegField>
+              <TextField
+                label={mine.you.phone}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                {...(errors.phone ? { error: errors.phone } : {})}
+              />
+            </RegField>
+            <RegField>
+              <SelectField
+                label={mine.you.experience}
+                value={experience}
+                onChange={(e) => setExperience(e.target.value as ExperienceBand)}
+                required
+                {...(errors.experience ? { error: errors.experience } : {})}
+              >
+                <option value="" disabled />
+                {EXPERIENCE_BANDS.map((band) => (
+                  <option key={band} value={band}>
+                    {mine.you.bands[band]}
+                  </option>
+                ))}
+              </SelectField>
+            </RegField>
+          </RegFieldGroup>
           <CalmPanel body={mine.you.assurance} />
         </div>
       ),
@@ -223,6 +241,23 @@ export function AgentRegisterForm({
         <div className="grid gap-group">
           <UploadCard
             t={t}
+            /* `id-card-check`, AND THE FIRST PASS OF THIS BUILD GOT IT WRONG
+               IN THE OTHER DIRECTION, so the reasoning is written down rather
+               than quietly reversed.
+
+               The glass library has TWO axes and they are not the same axis.
+               23 objects ship a light twin and the rest do not, which shows up
+               on paper only. Separately, some objects are solid three
+               dimensional glass and a few are flat outlines, which shows up in
+               BOTH themes and at every size. `id-card-check` is solid and
+               twinned; `user-check` beneath it is solid and untwinned;
+               `person-card` is untwinned and FLAT.
+
+               Swapping to `person-card` made the pair agree about paper and
+               disagree about artwork, which is the louder fault and visible to
+               everybody. So the pair is solid-and-solid, and the paper gap is
+               reported as what it is: `user-check` needs a light twin
+               commissioning, which is artwork and not a code change. */
             object="id-card-check"
             title={mine.identity.idTitle}
             body={mine.identity.idBody}
@@ -244,16 +279,18 @@ export function AgentRegisterForm({
             accept="image/png,image/jpeg"
             {...(errors.selfiePath ? { error: errors.selfiePath } : {})}
           />
-          <TextField
-            label={mine.identity.nin}
-            hint={mine.identity.ninHint}
-            optionalText={copy.optional}
-            value={nin}
-            onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
-            inputMode="numeric"
-            autoComplete="off"
-            {...(errors.nin ? { error: errors.nin } : {})}
-          />
+          <RegField optional={copy.optional}>
+            <TextField
+              label={mine.identity.nin}
+              placeholder={mine.identity.ninPlaceholder}
+              hint={mine.identity.ninHint}
+              value={nin}
+              onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
+              inputMode="numeric"
+              autoComplete="off"
+              {...(errors.nin ? { error: errors.nin } : {})}
+            />
+          </RegField>
         </div>
       ),
     },
@@ -261,37 +298,47 @@ export function AgentRegisterForm({
       heading: mine.fees.title,
       sub: mine.fees.sub,
       body: (
-        <div className="grid gap-group">
-          <FeeStepper
-            label={mine.fees.agency}
-            meaning={mine.fees.agencyMeaning}
-            value={agencyFeeBps}
-            onChange={setAgencyFeeBps}
-            lessLabel={mine.fees.less}
-            moreLabel={mine.fees.more}
-            undeclaredLabel={copy.notDeclared}
-            percent={percent}
-            {...(errors.agencyFeeBps ? { error: errors.agencyFeeBps } : {})}
-          />
-          <FeeStepper
-            label={mine.fees.legal}
-            meaning={mine.fees.legalMeaning}
-            value={legalFeeBps}
-            onChange={setLegalFeeBps}
-            lessLabel={mine.fees.less}
-            moreLabel={mine.fees.more}
-            undeclaredLabel={copy.notDeclared}
-            percent={percent}
-            {...(errors.legalFeeBps ? { error: errors.legalFeeBps } : {})}
-          />
+        <div className="grid gap-row">
+          {/* Both fees in one panel, as `GOVERNING-04` screen three draws
+              them, with the lit total below on its own. */}
+          <RegFieldGroup>
+            <RegField>
+              <FeeStepper
+                label={mine.fees.agency}
+                meaning={mine.fees.agencyMeaning}
+                value={agencyFeeBps}
+                onChange={setAgencyFeeBps}
+                lessLabel={mine.fees.less}
+                moreLabel={mine.fees.more}
+                undeclaredLabel={copy.notDeclared}
+                percent={percent}
+                {...(errors.agencyFeeBps ? { error: errors.agencyFeeBps } : {})}
+              />
+            </RegField>
+            <RegField>
+              <FeeStepper
+                label={mine.fees.legal}
+                meaning={mine.fees.legalMeaning}
+                value={legalFeeBps}
+                onChange={setLegalFeeBps}
+                lessLabel={mine.fees.less}
+                moreLabel={mine.fees.more}
+                undeclaredLabel={copy.notDeclared}
+                percent={percent}
+                {...(errors.legalFeeBps ? { error: errors.legalFeeBps } : {})}
+              />
+            </RegField>
+          </RegFieldGroup>
 
-          <TextField
-            label={mine.fees.exampleLabel}
-            hint={mine.fees.exampleHint}
-            value={exampleRent}
-            onChange={(e) => setExampleRent(e.target.value.replace(/[^\d]/g, ""))}
-            inputMode="numeric"
-          />
+          <RegField>
+            <TextField
+              label={mine.fees.exampleLabel}
+              hint={mine.fees.exampleHint}
+              value={exampleRent}
+              onChange={(e) => setExampleRent(e.target.value.replace(/[^\d]/g, ""))}
+              inputMode="numeric"
+            />
+          </RegField>
 
           {/* THE LIVE TENANT TOTAL. Everything in it moves the moment either
               control moves, which is the whole point: the agent is looking at
@@ -446,7 +493,10 @@ function FeeStepper({
         </button>
       </div>
       {error ? (
-        <p role="alert" className="nf-arrive mt-xs text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]">
+        <p
+          role="alert"
+          className="nf-arrive mt-xs text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+        >
           {error}
         </p>
       ) : null}
@@ -483,7 +533,10 @@ export function AgentDoneScreen({
       stepOfLabel={copy.stepOf.replace("{step}", String(steps)).replace("{total}", String(steps))}
       backLabel={copy.back}
       onBack={() => router.push("/home")}
-      primary={{ label: copy.trackIt, onClick: () => router.push("/profile/application") }}
+      primary={{
+        label: copy.trackIt,
+        onClick: () => router.push("/profile/application"),
+      }}
       secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
     >
       <RegisterDone

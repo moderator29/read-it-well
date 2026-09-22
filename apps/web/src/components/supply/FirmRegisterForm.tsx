@@ -16,6 +16,7 @@ import {
   type AssociationProof,
 } from "@/lib/supply/registration";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
+import { RegField } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
@@ -94,7 +95,10 @@ export function FirmRegisterForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [screenError, setScreenError] = useState<string | null>(null);
-  const [filed, setFiled] = useState<{ reference: string; attached: boolean } | null>(null);
+  const [filed, setFiled] = useState<{
+    reference: string;
+    attached: boolean;
+  } | null>(null);
   const [pending, startTransition] = useTransition();
 
   function back() {
@@ -157,7 +161,10 @@ export function FirmRegisterForm({
         return;
       }
       setErrors({});
-      setFiled({ reference: result.data.reference, attached: result.data.documentsAttached });
+      setFiled({
+        reference: result.data.reference,
+        attached: result.data.documentsAttached,
+      });
       setStep(3);
     });
   }
@@ -171,56 +178,83 @@ export function FirmRegisterForm({
       heading: mine.details.title,
       sub: mine.details.sub,
       body: (
-        <div className="grid gap-group">
+        <div className="grid gap-row">
           {/* The glass building the render stands at the top of this screen,
               on its pool of brand light. It carries no text and is not a
               control. */}
-          <div className="nf-regobject">
-            <BrandIcon name="apartment-block" size={96} priority />
+          <div className="nf-regobject nf-regobject--inline">
+            <BrandIcon name="apartment-block" size={176} priority />
           </div>
-          <TextField
-            label={mine.details.name}
-            placeholder={mine.details.namePlaceholder}
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
-            required
-            {...(errors.businessName ? { error: errors.businessName } : {})}
-          />
-          <TextField
-            label={mine.details.rc}
-            value={rcNumber}
-            onChange={(e) => setRcNumber(e.target.value)}
-            required
-            {...(errors.rcNumber ? { error: errors.rcNumber } : {})}
-          />
-          <TextField
-            label={mine.details.office}
-            value={officeAddress}
-            onChange={(e) => setOfficeAddress(e.target.value)}
-            required
-            {...(errors.officeAddress ? { error: errors.officeAddress } : {})}
-          />
-          <TextField
-            label={mine.details.yourName}
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            autoComplete="name"
-            required
-            {...(errors.fullName ? { error: errors.fullName } : {})}
-          />
+          <RegField>
+            <TextField
+              label={mine.details.name}
+              placeholder={mine.details.namePlaceholder}
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              required
+              {...(errors.businessName ? { error: errors.businessName } : {})}
+            />
+          </RegField>
+          <RegField>
+            <TextField
+              label={mine.details.rc}
+              placeholder={mine.details.rcPlaceholder}
+              value={rcNumber}
+              onChange={(e) => setRcNumber(e.target.value)}
+              required
+              {...(errors.rcNumber ? { error: errors.rcNumber } : {})}
+            />
+          </RegField>
+          {/* The pin inside the well is the render's own: `GOVERNING-05`
+              screen one draws it at the right of the office address and
+              nowhere else on the screen. It is decoration on a field that
+              already says what it wants, so it is hidden from the reader who
+              is being read to rather than announced as a second thing. */}
+          <RegField>
+            <TextField
+              label={mine.details.office}
+              placeholder={mine.details.officePlaceholder}
+              value={officeAddress}
+              onChange={(e) => setOfficeAddress(e.target.value)}
+              required
+              trailing={
+                <span aria-hidden="true">
+                  <UiIcon name="location" size={18} />
+                </span>
+              }
+              {...(errors.officeAddress ? { error: errors.officeAddress } : {})}
+            />
+          </RegField>
+          <RegField>
+            <TextField
+              label={mine.details.yourName}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              autoComplete="name"
+              required
+              {...(errors.fullName ? { error: errors.fullName } : {})}
+            />
+          </RegField>
           {/*
             OPTIONAL IN THE FORM, IN THE SCHEMA AND IN THE DATABASE, and the
             hint says what the field is for rather than what the law is. See
             the note at the head of this file.
+
+            THE TAG AND THE NOTE ARE BOTH THE RENDER'S. `GOVERNING-05` draws
+            "Optional" in the container's top right corner and a line with a
+            small round glyph under the well. The corner and the glyph are the
+            target; the capsule is not, and the tag ships at 0.250. The note
+            carries the hint the field already had, so nothing new is claimed
+            and no statutory word is printed.
           */}
-          <TextField
-            label={mine.details.lasrera}
-            hint={mine.details.lasreraHint}
-            optionalText={copy.optional}
-            value={lasreraNumber}
-            onChange={(e) => setLasreraNumber(e.target.value)}
-            {...(errors.lasreraNumber ? { error: errors.lasreraNumber } : {})}
-          />
+          <RegField optional={copy.optional} note={mine.details.lasreraHint}>
+            <TextField
+              label={mine.details.lasrera}
+              value={lasreraNumber}
+              onChange={(e) => setLasreraNumber(e.target.value)}
+              {...(errors.lasreraNumber ? { error: errors.lasreraNumber } : {})}
+            />
+          </RegField>
         </div>
       ),
     },
@@ -243,7 +277,16 @@ export function FirmRegisterForm({
                     data-on={chosen || undefined}
                   >
                     <span className="nf-door__mark" aria-hidden="true">
-                      <BrandIcon name={route === "letter" ? "doc-shield" : "seal-check"} size={40} />
+                      {/* BOTH TWINNED, AND THAT IS THE POINT. `doc-shield` has no light
+                          twin and `seal-check` has one, so in daylight these two
+                          cards were a frosted object beside dark artwork on a navy
+                          plate. `contract-sign` is a letter carrying a signature,
+                          which is what the row asks for, and it is twinned like the
+                          seal beside it. */}
+                      <BrandIcon
+                        name={route === "letter" ? "contract-sign" : "seal-check"}
+                        size={40}
+                      />
                     </span>
                     <span className="min-w-0 flex-1 text-left">
                       <span className={`block ${TYPE.rowTitle}`}>
@@ -281,16 +324,18 @@ export function FirmRegisterForm({
             />
           ) : null}
           {proof === "principal" ? (
-            <TextField
-              label={mine.association.principalEmail}
-              value={principalEmail}
-              onChange={(e) => setPrincipalEmail(e.target.value)}
-              type="email"
-              inputMode="email"
-              autoComplete="off"
-              required
-              {...(errors.principalEmail ? { error: errors.principalEmail } : {})}
-            />
+            <RegField>
+              <TextField
+                label={mine.association.principalEmail}
+                value={principalEmail}
+                onChange={(e) => setPrincipalEmail(e.target.value)}
+                type="email"
+                inputMode="email"
+                autoComplete="off"
+                required
+                {...(errors.principalEmail ? { error: errors.principalEmail } : {})}
+              />
+            </RegField>
           ) : null}
         </div>
       ),
@@ -306,7 +351,13 @@ export function FirmRegisterForm({
             <ul className="grid gap-inline">
               {team.map((person, index) => (
                 <li key={`${person.name}-${index}`} className="nf-door nf-door--compact">
-                  <span className="nf-door__mark" aria-hidden="true">
+                  {/* ROUND, and it is the reference set's own standing
+                      exception rather than one being taken: "the round avatars
+                      stay round" is written into its translation rules in as
+                      many words. `GOVERNING-05` screen three draws a
+                      photograph here; nobody has uploaded one, so the plate
+                      carries the person glyph and never a made up face. */}
+                  <span className="nf-door__mark nf-door__mark--avatar" aria-hidden="true">
                     <UiIcon name="user" size="md" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -330,20 +381,23 @@ export function FirmRegisterForm({
           )}
 
           {team.length < MAX_DECLARED_TEAM ? (
-            <div className="grid gap-inline">
-              <TextField
-                label={mine.team.name}
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-              />
-              <TextField
-                label={mine.team.email}
-                optionalText={copy.optional}
-                value={draftEmail}
-                onChange={(e) => setDraftEmail(e.target.value)}
-                type="email"
-                inputMode="email"
-              />
+            <div className="grid gap-row">
+              <RegField>
+                <TextField
+                  label={mine.team.name}
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                />
+              </RegField>
+              <RegField optional={copy.optional}>
+                <TextField
+                  label={mine.team.email}
+                  value={draftEmail}
+                  onChange={(e) => setDraftEmail(e.target.value)}
+                  type="email"
+                  inputMode="email"
+                />
+              </RegField>
               <Button
                 variant="secondary"
                 size="md"
@@ -419,7 +473,10 @@ export function FirmDoneScreen({
       stepOfLabel={copy.stepOf.replace("{step}", String(steps)).replace("{total}", String(steps))}
       backLabel={copy.back}
       onBack={() => router.push("/home")}
-      primary={{ label: copy.trackIt, onClick: () => router.push("/profile/application") }}
+      primary={{
+        label: copy.trackIt,
+        onClick: () => router.push("/profile/application"),
+      }}
       secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
     >
       <RegisterDone

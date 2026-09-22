@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { TYPE } from "@/components/app/Screen";
 import { SUPPLY_DOOR_ORDER, STAYS_DOOR_ORDER } from "@/lib/supply/roles";
@@ -59,29 +60,75 @@ import type { Side } from "@/lib/side.constants";
  * application, which several older surfaces still link to.
  */
 
-const DOOR_ICON: Record<string, UiIconName> = {
-  owner: "home",
-  agent: "key",
-  firm: "building-apartment",
-  hotel: "building-hotel",
-  shortlet: "bed",
-  restaurant: "utensils",
+/**
+ * THE OBJECT ON EACH DOOR'S PLATE, AND IT IS A GLASS OBJECT RATHER THAN A LINE
+ * ICON.
+ *
+ * `GOVERNING-02` draws a lit three dimensional house, key and building sitting
+ * on the three plates, which is the icon style the whole reference set is
+ * built from. What shipped was the flat `UiIcon` outline, which is the right
+ * mark in a row of text and the wrong one on a plate this size: the render's
+ * door is an OBJECT you are being offered, and a 24px stroke drawing does not
+ * read as one.
+ *
+ * NONE OF THE SIX HAS A LIGHT TWIN, and that is checked rather than assumed.
+ * A row holding one twinned object and one untwinned one is two artwork
+ * families side by side the moment somebody opens it in daylight, which is
+ * exactly what `--twin-sweep` exists to catch. All six are untwinned, so the
+ * set agrees with itself in both themes.
+ */
+const DOOR_OBJECT: Record<string, BrandIconName> = {
+  owner: "home-ring",
+  agent: "key-ring",
+  firm: "apartment-block",
+  hotel: "hotel",
+  shortlet: "shortlet",
+  /* The nearest object this set holds. There is no restaurant in the glass
+     library and one needs commissioning; a bell on a desk is at least the
+     right room, and it is untwinned like the five above it. */
+  restaurant: "concierge-bell",
 };
 
-/** The overview's four rows, which are the same four questions for every door. */
-const OVERVIEW_ICONS: UiIconName[] = ["user", "location", "document", "history"];
+/**
+ * THE OBJECT ON EACH OVERVIEW ROW.
+ *
+ * `GOVERNING-02` screen three draws a glass object on a plate beside every
+ * line, and then a clock beside the timing. The clock is NOT in this list: the
+ * timing is the calm panel below the rows, which is where the image puts it,
+ * and an earlier pass had the clock landing on "a Nigerian bank account in
+ * your own name" because the list was clamped to its last entry.
+ *
+ * The rows are free text and they differ per door, so this is positional and
+ * approximate by construction: who you are, what proves who you are, what you
+ * hold, and the account the money lands in. It is clamped to the document
+ * rather than to the wallet, because a door with more rows than this is asking
+ * for more paperwork and never for more accounts.
+ *
+ * All four are untwinned, like the six doors, so the column is one artwork
+ * family in both themes.
+ */
+const OVERVIEW_OBJECTS: BrandIconName[] = [
+  "user-check",
+  /* `id-card-check` and not `person-card`: the latter is the library's flat
+     outline family and stands beside three solid glass objects as a different
+     material in both themes. It is the one twinned object in this column and
+     that is a paper nuance rather than a both-themes fault, so it loses to
+     the artwork family. See the note on the agent form's identity cards. */
+  "id-card-check",
+  "doc-shield",
+  "wallet-naira",
+];
+const OVERVIEW_FALLBACK: BrandIconName = "doc-shield";
 
 export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) {
   const router = useRouter();
-  const doors: readonly string[] =
-    side === "stays" ? STAYS_DOOR_ORDER : SUPPLY_DOOR_ORDER;
+  const doors: readonly string[] = side === "stays" ? STAYS_DOOR_ORDER : SUPPLY_DOOR_ORDER;
 
   const [chosen, setChosen] = useState<string | null>(null);
   const [step, setStep] = useState<"choose" | "overview">("choose");
 
   const copy = t.supply.chooser;
-  const doorCopy = (id: string) =>
-    t.supply.doors[id as keyof typeof t.supply.doors];
+  const doorCopy = (id: string) => t.supply.doors[id as keyof typeof t.supply.doors];
 
   function onContinue() {
     if (!chosen) return;
@@ -97,13 +144,40 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
         /* The fourth row of the render is a clock over "it should not take
            long", so the fourth glyph is the clock whatever the fourth need
            says, and any fifth need takes the document glyph. */
-        icon: OVERVIEW_ICONS[Math.min(index, OVERVIEW_ICONS.length - 1)] ?? "document",
+        object: OVERVIEW_OBJECTS[index] ?? OVERVIEW_FALLBACK,
         label: need,
       }))
     : [];
 
   return (
     <div className="mx-auto max-w-2xl">
+      {/*
+        THE HEADER THE IMAGE DRAWS, AND IT IS NOT THE ONE THIS PAGE HAD.
+
+        `GOVERNING-02` puts a bare back control on its own row, then the
+        progress row, then the screen's name in DISPLAY type, then one
+        supporting line. The route used to hand that name to `PageHeader`,
+        which sets it small on the top row beside the back square, so the
+        loudest thing in the image was the quietest thing on the page, and the
+        overview step then carried a second, smaller heading underneath it.
+
+        So the chooser owns its whole top, exactly as `RegisterShell` owns the
+        top of the three forms this screen leads into, and for the same reason:
+        one anatomy across the four screens of one flow. ONE BACK CONTROL, and
+        it steps back to the doors from the overview and leaves the chooser
+        from the doors, which is what a person pressing it expects.
+      */}
+      <div className="mb-heading flex items-center">
+        <button
+          type="button"
+          aria-label={copy.back}
+          onClick={() => (step === "overview" ? setStep("choose") : router.push("/profile"))}
+          className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
+        >
+          <UiIcon name="arrow-left" size={20} />
+        </button>
+      </div>
+
       {/*
         THE PROGRESS ROW: small filled rectangles, which is how every screen in
         the governing set draws progress. Rectangles and not dots, because the
@@ -116,14 +190,10 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
         <span className="nf-steprow__bar" />
       </div>
 
-      {/* The page's own `PageHeader` carries the h1, so this is the second
-          level: the overview is a step WITHIN "Add a workspace" rather than a
-          separate page, and two h1s on one screen is a heading order a screen
-          reader cannot make sense of. */}
-      {step === "overview" && (
-        <h2 className={`mt-heading ${TYPE.sectionTitle}`}>{copy.overviewTitle}</h2>
-      )}
-      <p className={`mt-inline-tight max-w-[52ch] ${TYPE.body}`}>
+      <h1 className={`mt-heading ${TYPE.display}`}>
+        {step === "overview" ? copy.overviewTitle : copy.title}
+      </h1>
+      <p className={`mt-inline-tight max-w-[52ch] ${TYPE.bodyLg}`}>
         {step === "overview" ? copy.overviewSub : copy.sub}
       </p>
 
@@ -142,7 +212,7 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
                   data-on={selected || undefined}
                 >
                   <span className="nf-door__mark" aria-hidden="true">
-                    <UiIcon name={DOOR_ICON[id] ?? "home"} size="lg" />
+                    <BrandIcon name={DOOR_OBJECT[id] ?? "home-ring"} size={44} />
                   </span>
                   <span className="min-w-0 flex-1 text-left">
                     <span className={`block ${TYPE.rowTitle}`}>{door.title}</span>
@@ -155,7 +225,7 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
                       listing in this product and a mark means one thing. */}
                   <UiIcon
                     name={selected ? "verified-badge" : "chevron-right"}
-                    size={selected ? "md" : "sm"}
+                    size={selected ? "lg" : "sm"}
                     className={
                       selected
                         ? "shrink-0 text-[var(--nf-brand-primary)]"
@@ -174,7 +244,7 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
             {overviewRows.map((row) => (
               <li key={row.label} className="nf-door nf-door--calm">
                 <span className="nf-door__mark" aria-hidden="true">
-                  <UiIcon name={row.icon} size="md" />
+                  <BrandIcon name={row.object} size={44} />
                 </span>
                 <span className={`min-w-0 flex-1 ${TYPE.body}`}>{row.label}</span>
               </li>
@@ -207,14 +277,11 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
           own second screen: three quiet cards, then one lit control. */}
       {chosen && (
         <div className="mt-heading flex flex-col gap-inline">
-          <Button onClick={onContinue} variant="primary" size="lg" full>
+          {/* The chevron the image draws on this control, and the same one the
+              three forms it leads into carry on theirs. */}
+          <Button onClick={onContinue} variant="primary" size="lg" full trailingIcon="arrow-right">
             {copy.continueLabel}
           </Button>
-          {step === "overview" && (
-            <Button onClick={() => setStep("choose")} variant="ghost" size="md" full>
-              {copy.back}
-            </Button>
-          )}
         </div>
       )}
     </div>

@@ -16,6 +16,7 @@ import {
   type OwnershipAnswer,
 } from "@/lib/supply/registration";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
+import { RegField } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 
 /**
@@ -110,9 +111,11 @@ export function OwnerRegisterForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [screenError, setScreenError] = useState<string | null>(null);
-  const [filed, setFiled] = useState<{ reference: string; mark: boolean; attached: boolean } | null>(
-    null,
-  );
+  const [filed, setFiled] = useState<{
+    reference: string;
+    mark: boolean;
+    attached: boolean;
+  } | null>(null);
   const [pending, startTransition] = useTransition();
 
   const loadLgas = useCallback(async (code: string) => {
@@ -123,8 +126,16 @@ export function OwnerRegisterForm({
       const result = await fetchLocalGovernments(code);
       setLgas(
         result.ok && result.data.length > 0
-          ? [{ category: "", options: result.data.map((r) => ({ code: r.code, name: r.name })) }]
-          : [],
+          ? [
+              {
+                category: "",
+                options: result.data.map((r) => ({
+                  code: r.code,
+                  name: r.name,
+                })),
+              },
+            ]
+          : []
       );
     } catch {
       /* The picker's own empty state explains that the list would not load. */
@@ -136,8 +147,13 @@ export function OwnerRegisterForm({
   }, []);
 
   const stateGroups: ChoiceGroup[] = useMemo(
-    () => [{ category: "", options: states.map((s) => ({ code: s.code, name: s.name })) }],
-    [states],
+    () => [
+      {
+        category: "",
+        options: states.map((s) => ({ code: s.code, name: s.name })),
+      },
+    ],
+    [states]
   );
 
   const stateName = states.find((s) => s.code === stateCode)?.name ?? "";
@@ -212,45 +228,50 @@ export function OwnerRegisterForm({
       sub: own.you.sub,
       mark: "home-ring" as const,
       body: (
-        <div className="grid gap-group">
-          <TextField
-            label={own.you.name}
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            autoComplete="name"
-            required
-            {...(errors.fullName ? { error: errors.fullName } : {})}
-          />
-          <TextField
-            label={own.you.phone}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            required
-            {...(errors.phone ? { error: errors.phone } : {})}
-          />
+        <div className="grid gap-row">
+          <RegField>
+            <TextField
+              label={own.you.name}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              autoComplete="name"
+              required
+              {...(errors.fullName ? { error: errors.fullName } : {})}
+            />
+          </RegField>
+          <RegField>
+            <TextField
+              label={own.you.phone}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+              {...(errors.phone ? { error: errors.phone } : {})}
+            />
+          </RegField>
           {/*
-            OPTIONAL, AND THE MARKER IS THE FIELD PRIMITIVE'S OWN.
-            `GOVERNING-05` draws "Optional" as a capsule. It ships as the
-            primitive's plain muted word beside the label, with no container at
-            all, because a 14px radius on a 22px tag draws a capsule whatever
-            the token is called and a container that small has no honest
-            rectangle available to it.
+            OPTIONAL, AND IT IS BACK IN THE CORNER THE IMAGE DRAWS IT IN.
+            `GOVERNING-05` draws "Optional" as a capsule at the top right of
+            the field's own container. The corner is the target and the capsule
+            is not: it ships at 6px on a 24px box, which is 0.250 and a
+            rectangle by the only test that counts. The word is not passed down
+            to the primitive as well, or it would be drawn twice.
           */}
-          <TextField
-            label={own.you.nin}
-            hint={own.you.ninHint}
-            optionalText={copy.optional}
-            value={nin}
-            onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
-            inputMode="numeric"
-            /* Never autofilled, never remembered by the browser, and never
-               logged anywhere by this platform. */
-            autoComplete="off"
-            {...(errors.nin ? { error: errors.nin } : {})}
-          />
+          <RegField optional={copy.optional}>
+            <TextField
+              label={own.you.nin}
+              hint={own.you.ninHint}
+              value={nin}
+              onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
+              inputMode="numeric"
+              /* Never autofilled, never remembered by the browser, and never
+                 logged anywhere by this platform. */
+              autoComplete="off"
+              {...(errors.nin ? { error: errors.nin } : {})}
+            />
+          </RegField>
           <CalmPanel icon="shield-stop" body={own.you.assurance} />
         </div>
       ),
@@ -260,49 +281,54 @@ export function OwnerRegisterForm({
       sub: own.where.sub,
       mark: undefined,
       body: (
-        <div className="grid gap-group">
-          <ChoicePicker
-            t={t}
-            name="stateCode"
-            label={t.pickers.stateLabel}
-            placeholder={t.pickers.statePlaceholder}
-            searchPlaceholder={t.pickers.stateSearch}
-            value={stateCode}
-            groups={stateGroups}
-            onChange={(code) => {
-              setLgas([]);
-              loadedState.current = "";
-              setStateCode(code);
-              setLgaCode("");
-              if (code) void loadLgas(code);
-            }}
-            {...(errors.stateCode ? { error: errors.stateCode } : {})}
-          />
-          <ChoicePicker
-            t={t}
-            name="lgaCode"
-            label={t.pickers.lgaLabel}
-            placeholder={stateCode ? t.pickers.lgaPlaceholder : t.pickers.lgaLocked}
-            searchPlaceholder={
-              stateName ? t.pickers.searchIn.replace("{place}", stateName) : t.pickers.search
-            }
-            value={lgaCode}
-            groups={lgas}
-            loading={lgaLoading}
-            disabled={stateCode === ""}
-            disabledHint={t.pickers.lgaDisabledHint}
-            onChange={setLgaCode}
-            onOpen={() => void loadLgas(stateCode)}
-            {...(errors.lgaCode ? { error: errors.lgaCode } : {})}
-          />
-          <TextField
-            label={own.where.area}
-            hint={own.where.areaHint}
-            optionalText={copy.optional}
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            {...(errors.area ? { error: errors.area } : {})}
-          />
+        <div className="grid gap-row">
+          <RegField>
+            <ChoicePicker
+              t={t}
+              name="stateCode"
+              label={t.pickers.stateLabel}
+              placeholder={t.pickers.statePlaceholder}
+              searchPlaceholder={t.pickers.stateSearch}
+              value={stateCode}
+              groups={stateGroups}
+              onChange={(code) => {
+                setLgas([]);
+                loadedState.current = "";
+                setStateCode(code);
+                setLgaCode("");
+                if (code) void loadLgas(code);
+              }}
+              {...(errors.stateCode ? { error: errors.stateCode } : {})}
+            />
+          </RegField>
+          <RegField>
+            <ChoicePicker
+              t={t}
+              name="lgaCode"
+              label={t.pickers.lgaLabel}
+              placeholder={stateCode ? t.pickers.lgaPlaceholder : t.pickers.lgaLocked}
+              searchPlaceholder={
+                stateName ? t.pickers.searchIn.replace("{place}", stateName) : t.pickers.search
+              }
+              value={lgaCode}
+              groups={lgas}
+              loading={lgaLoading}
+              disabled={stateCode === ""}
+              disabledHint={t.pickers.lgaDisabledHint}
+              onChange={setLgaCode}
+              onOpen={() => void loadLgas(stateCode)}
+              {...(errors.lgaCode ? { error: errors.lgaCode } : {})}
+            />
+          </RegField>
+          <RegField optional={copy.optional}>
+            <TextField
+              label={own.where.area}
+              hint={own.where.areaHint}
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              {...(errors.area ? { error: errors.area } : {})}
+            />
+          </RegField>
         </div>
       ),
     },
@@ -348,10 +374,7 @@ export function OwnerRegisterForm({
             of Occupancy.
           */}
           {held === "none" ? (
-            <CalmPanel
-              title={own.proof.stillListTitle}
-              body={own.proof.stillListBody}
-            />
+            <CalmPanel title={own.proof.stillListTitle} body={own.proof.stillListBody} />
           ) : null}
         </>
       ),
@@ -421,12 +444,13 @@ export function OwnerDoneScreen({
       heading=""
       steps={steps}
       current={steps - 1}
-      stepOfLabel={copy.stepOf
-        .replace("{step}", String(steps))
-        .replace("{total}", String(steps))}
+      stepOfLabel={copy.stepOf.replace("{step}", String(steps)).replace("{total}", String(steps))}
       backLabel={copy.back}
       onBack={() => router.push("/home")}
-      primary={{ label: copy.trackIt, onClick: () => router.push("/profile/application") }}
+      primary={{
+        label: copy.trackIt,
+        onClick: () => router.push("/profile/application"),
+      }}
       secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
     >
       <RegisterDone

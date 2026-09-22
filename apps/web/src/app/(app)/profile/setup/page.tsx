@@ -3,7 +3,6 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getSide } from "@/lib/side";
 import { isSide, type Side } from "@/lib/side.constants";
-import { PageHeader } from "@/components/app/PageHeader";
 import { AddWorkspaceChooser } from "@/components/supply/AddWorkspaceChooser";
 
 export const metadata: Metadata = {
@@ -51,10 +50,10 @@ export default async function AddWorkspacePage({
   const t = getDictionary(locale);
   const side: Side = isSide(asked) ? asked : cookieSide;
 
-  return (
-    <>
-      <PageHeader title={t.supply.chooser.title} />
-      <AddWorkspaceChooser t={t} side={side} />
-    </>
-  );
+  /* No `PageHeader`. `GOVERNING-02` draws a bare back control, the progress
+     row, and then the screen's name in display type, so the chooser owns its
+     whole top the way `RegisterShell` owns the top of the three forms it leads
+     into. A `PageHeader` here would set that name small on the top row and
+     draw a second, competing heading under it. */
+  return <AddWorkspaceChooser t={t} side={side} />;
 }
