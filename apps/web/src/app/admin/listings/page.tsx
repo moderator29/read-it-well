@@ -563,6 +563,7 @@ export default async function AdminListingsPage({
         )
       ) : (
         <QueueTable
+          heads={t.uiCommon.console.table}
           label="Listing review"
           rows={waiting.map((listing) => ({
             ...listingRow(listing, ui),
@@ -598,6 +599,7 @@ export default async function AdminListingsPage({
         <section className="mt-xl">
           <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
           <QueueTable
+          heads={t.uiCommon.console.table}
           label="Listing review"
           rows={decided.map((listing) => ({
             ...listingRow(listing, ui),

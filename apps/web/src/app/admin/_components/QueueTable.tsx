@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { DEFAULT_LOCALE, getDictionary, type Dictionary } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
 
@@ -67,26 +68,49 @@ export type QueueRowData = {
   open?: boolean;
 };
 
+/* The English default comes OUT OF THE DICTIONARY, not out of a literal here.
+   A literal fallback is how these seven got written in the first place. */
+const DEFAULT_WORDS = getDictionary(DEFAULT_LOCALE).uiCommon.console.table;
+const DETAILS_FALLBACK = "Details";
+
 export function QueueTable({
   rows,
   label,
-  columns = { detail: "Details" },
+  columns = { detail: DETAILS_FALLBACK },
+  heads = DEFAULT_WORDS,
 }: {
   rows: QueueRowData[];
   /** The accessible name of the table. */
   label: string;
   columns?: { detail?: string };
+  /** `t.uiCommon.console.table`. Optional so an un-threaded caller still
+      compiles and still renders correct English. */
+  heads?: Dictionary["uiCommon"]["console"]["table"];
 }) {
+  const words = heads;
   return (
     <div className="nf-admin-table" role="region" aria-label={label}>
+      {/*
+        THE SEVEN COLUMN HEADS OF EVERY CONSOLE TABLE WERE ENGLISH LITERALS,
+        in a four locale product, above rows whose contents are translated.
+        `QueueFilters.tsx:141` already states why that is worse than not
+        translating at all: "the half that is translated is the half that
+        tells the reader the rest is a bug."
+
+        `heads` is optional and defaults to the DICTIONARY's English rather
+        than to a literal, so an un-threaded caller renders exactly what it
+        rendered before and a caller holding a `t` passes
+        `t.uiCommon.console.table` and gets the reader's language. Six of the
+        six product callers hold one.
+      */}
       <div className="nf-admin-table__head" aria-hidden="true">
-        <span>ID</span>
-        <span>Type</span>
-        <span>Title / user</span>
-        <span>{columns.detail ?? "Details"}</span>
-        <span>Status</span>
-        <span>Submitted</span>
-        <span className="text-right">Action</span>
+        <span>{words.id}</span>
+        <span>{words.type}</span>
+        <span>{words.titleOrUser}</span>
+        <span>{columns.detail ?? DETAILS_FALLBACK}</span>
+        <span>{words.status}</span>
+        <span>{words.submitted}</span>
+        <span className="text-right">{words.action}</span>
       </div>
       <ul className="m-0 list-none p-0">
         {rows.map((row) => (
@@ -94,13 +118,13 @@ export function QueueTable({
             {row.children ? (
               <details className="nf-admin-row" open={row.open}>
                 <summary>
-                  <RowGrid row={row} />
+                  <RowGrid row={row} view={words.view} />
                 </summary>
                 <div className="nf-admin-row__body">{row.children}</div>
               </details>
             ) : (
               <div className="nf-admin-row">
-                <RowGrid row={row} />
+                <RowGrid row={row} view={words.view} />
               </div>
             )}
           </li>
@@ -110,14 +134,14 @@ export function QueueTable({
   );
 }
 
-function RowGrid({ row }: { row: QueueRowData }) {
+function RowGrid({ row, view: viewWord = DEFAULT_WORDS.view }: { row: QueueRowData; view?: string }) {
   const view = row.href ? (
     <Link href={row.href} className="nf-admin-row__view">
-      View
+      {viewWord}
     </Link>
   ) : (
     <span className="nf-admin-row__view" aria-hidden="true">
-      View
+      {viewWord}
     </span>
   );
   return (
@@ -224,7 +248,7 @@ export function QueueTabs({ tabs, label }: { tabs: QueueTab[]; label: string }) 
 export function ConsoleFooter({ note }: { note: string }) {
   return (
     <footer className="nf-admin-foot">
-      <span>Vallo Operations Console</span>
+      <span>{getDictionary(DEFAULT_LOCALE).uiCommon.console.consoleName}</span>
       <span>{note}</span>
     </footer>
   );

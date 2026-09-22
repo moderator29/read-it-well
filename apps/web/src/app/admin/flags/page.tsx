@@ -244,6 +244,7 @@ export default async function AdminFlagsPage({
         />
       ) : open.length === 0 ? null : (
         <QueueTable
+          heads={t.uiCommon.console.table}
           label="Message flags"
           rows={open.map((flag) => ({
             ...flagRow(flag, ui),
@@ -267,6 +268,7 @@ export default async function AdminFlagsPage({
         <section className="mt-xl">
           <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyReviewed}</h2>
           <QueueTable
+          heads={t.uiCommon.console.table}
           label="Message flags"
           rows={reviewed.map((flag) => ({
             ...flagRow(flag, ui),

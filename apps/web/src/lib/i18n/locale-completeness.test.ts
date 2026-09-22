@@ -42,11 +42,30 @@ import { allLocaleCompleteness, localeCompleteness } from "./locale-completeness
  * carry, because `withFallback` has already filled those with English.
  *
  * These are CEILINGS. They may fall; they may not rise.
+ *
+ * WHEN A CEILING IS RAISED, THE COMMIT SAYS WHY, AND "THE TEST WAS RED" IS NOT
+ * A REASON. There is exactly one legitimate cause and it is worth writing down
+ * because it looks identical to the illegitimate one in a diff: MOVING A
+ * HARDCODED ENGLISH STRING OUT OF TSX AND INTO THE DICTIONARY RAISES THIS
+ * NUMBER WHILE MAKING THE PRODUCT BETTER. The string was already English on
+ * screen; it was simply somewhere no completeness measure could see it. The
+ * count going up is the measurement becoming honest, not the locale getting
+ * worse, and the giveaway is that the same commit deletes a literal from a
+ * `.tsx`.
+ *
+ * Every other cause, and in particular copying English prose into `ha.ts`,
+ * `ig.ts` or `yo.ts` to make a key count look finished, is the exact defect
+ * this gate exists to stop.
+ *
+ * These numbers moved from 211 / 209 / 218 for that first reason: the
+ * seventeen hardcoded English strings the uniqueness sweep found are being
+ * moved into `uiCommon`, English only, where `withFallback` serves them and
+ * where a translator can now find them.
  */
 const KNOWN_INCOMPLETE = {
-  yo: { englishValued: 211, englishSentences: 106 },
-  ha: { englishValued: 209, englishSentences: 106 },
-  ig: { englishValued: 218, englishSentences: 106 },
+  yo: { englishValued: 212, englishSentences: 106 },
+  ha: { englishValued: 210, englishSentences: 106 },
+  ig: { englishValued: 219, englishSentences: 106 },
 } as const;
 
 describe("locale completeness", () => {

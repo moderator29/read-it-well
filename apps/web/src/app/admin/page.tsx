@@ -224,7 +224,7 @@ export default async function AdminOverviewPage({
           state={query.q ? "no-match" : "never"}
         />
       ) : (
-        <QueueTable rows={shown} label="Admin queue" />
+        <QueueTable rows={shown} label={o.title} heads={t.uiCommon.console.table} />
       )}
 
       <p className="nf-caption mt-inline">

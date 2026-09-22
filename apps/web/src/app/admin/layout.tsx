@@ -73,7 +73,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <span className="block nf-body-sm font-semibold text-[var(--nf-content-primary)]">
               {t.admin.console.title}
             </span>
-            <span className="block nf-caption">Operations Console</span>
+            <span className="block nf-caption">{t.uiCommon.console.title}</span>
           </span>
         </div>
       </aside>
@@ -87,7 +87,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             </Link>
             <ConsoleSearch label={t.admin.common.searchLabel} placeholder={t.admin.common.searchPlaceholder} />
             <span className="flex-1 lg:hidden" />
-            <Link href="/notifications" aria-label="Notifications" className="nf-icon-btn h-10 w-10">
+            <Link href="/notifications" aria-label={t.uiCommon.console.notifications} className="nf-icon-btn h-10 w-10">
               <UiIcon name="bell" size={20} />
             </Link>
             <span className="nf-admin-bar__person">
@@ -98,7 +98,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
                 <span className="block max-w-[18ch] truncate nf-caption font-semibold text-[var(--nf-content-primary)]">
                   {email}
                 </span>
-                <span className="block nf-caption">Admin</span>
+                <span className="block nf-caption">{t.uiCommon.console.short}</span>
               </span>
             </span>
           </div>

@@ -394,6 +394,7 @@ export default async function AdminAgentsPage({
         )
       ) : (
         <QueueTable
+          heads={t.uiCommon.console.table}
           label="Agent applications"
           rows={waiting.map((application) => ({
             ...applicationRow(application, ui),
@@ -418,6 +419,7 @@ export default async function AdminAgentsPage({
         <section className="mt-xl">
           <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
           <QueueTable
+          heads={t.uiCommon.console.table}
           label="Agent applications"
           rows={decided.map((application) => ({
             ...applicationRow(application, ui),

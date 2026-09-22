@@ -230,6 +230,7 @@ export default async function AdminReportsPage({
         <>
           {open.length > 0 && (
             <QueueTable
+          heads={t.uiCommon.console.table}
           label="Reports"
           rows={open.map((report) => ({
             ...reportRow(report, ui),
@@ -246,6 +247,7 @@ export default async function AdminReportsPage({
             <section className="mt-xl">
               <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyClosed}</h2>
               <QueueTable
+          heads={t.uiCommon.console.table}
           label="Reports"
           rows={closed.map((report) => ({
             ...reportRow(report, ui),

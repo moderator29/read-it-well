@@ -4305,6 +4305,8 @@ export const en = {
         action: "Action",
         view: "View",
       },
+      /** The footer line on every console page. Rule 14: the brand is Vallo. */
+      consoleName: "Vallo Operations Console",
     },
 
     /**
@@ -4445,6 +4447,186 @@ export const en = {
           "Photographs of the place",
         ],
         howLong: "About ten minutes.",
+      },
+    },
+    /*
+     * THE THREE REGISTRATION FORMS, `GOVERNING-03`, `04` AND `05`.
+     *
+     * `apps/web/src/lib/supply/registration.ts` holds the STRUCTURE: which
+     * screens each form has, which answers each question accepts, and what the
+     * server will refuse. This is the same thing in words, keyed by the same
+     * ids, so neither file holds a second copy of the other.
+     *
+     * NO PERCENTAGE, NO NAIRA FIGURE AND NO STATUTORY CLAIM APPEARS HERE.
+     * `registration.test.ts` fails if one does. LASRERA is named once, as the
+     * name of a field somebody may fill in, and the copy beside it says what
+     * the field is for and never what the law requires or what ignoring it
+     * costs: the register was unreachable from this build and every claim
+     * about it is unconfirmed, so a lawyer rules before any of it is printed.
+     */
+    register: {
+      back: "Back",
+      continue: "Continue",
+      submit: "Finish",
+      submitting: "Filing",
+      stepOf: "Step {step} of {total}",
+      notDeclared: "Not declared",
+      whatNext: "What happens next",
+      filedAs: "Filed as {reference}",
+      aPersonReads: "A person reads this and we will tell you the moment it comes back.",
+      documentsMissed:
+        "Your application is filed, but the files did not attach. Contact us with that reference and we will add them.",
+      trackIt: "See how it stands",
+      backHome: "Back to home",
+      reviewDays: "Usually two working days",
+      reviewDaysFirm: "Usually three working days",
+      addFile: "Choose a file",
+      replaceFile: "Choose a different file",
+      uploading: "Uploading",
+      fileReady: "Ready to send",
+      fileTooBig: "That file is over 10MB. Please choose a smaller photo or PDF.",
+      fileFailed: "That upload did not go through. Please try again.",
+      signInFirst: "Please sign in before uploading, so the file is filed to your account.",
+      owner: {
+        title: "Register as an owner",
+        you: {
+          title: "About you",
+          sub: "Tell us a bit about yourself.",
+          name: "Full name",
+          phone: "Phone number",
+          nin: "National identity number (NIN)",
+          ninHint: "Eleven digits. You can add it later if you do not have it to hand.",
+          assurance: "We check who you are before anything is published.",
+        },
+        where: {
+          title: "Where do you own?",
+          sub: "The state and the local government are enough for now.",
+          area: "Area or neighbourhood",
+          areaHint: "The exact spot on the map belongs to the property itself, and you set it when you list.",
+        },
+        proof: {
+          title: "Proof of ownership",
+          sub: "Choose what you hold on the property.",
+          docs: {
+            certificate_of_occupancy: "Certificate of Occupancy",
+            deed_of_assignment: "Deed of assignment",
+            governors_consent: "Governor's consent",
+            survey_plan: "Survey plan",
+            utility_bill: "Utility bill in your name",
+            none: "I have none of these",
+          },
+          stillListTitle: "You can still list",
+          stillListBody:
+            "That is a normal answer in Nigeria and it does not stop you listing. Your listing goes live the same way; it just will not carry the ownership mark until you can show us something.",
+        },
+        done: {
+          title: "Your owner registration is filed",
+          sub: "Nobody has looked at it yet, and this screen will not pretend otherwise.",
+          nextOne: "A person reads what you sent.",
+          nextTwo: "We write to you with the answer, whichever way it goes.",
+          nextThree: "Your listings open the moment it is approved.",
+          markPending: "You chose a document, so your listing can carry the ownership mark once we have seen it.",
+          markNone: "Your listing will not carry the ownership mark, and nothing else about it changes.",
+        },
+      },
+      agent: {
+        title: "Register as an agent",
+        you: {
+          title: "About you",
+          sub: "Tell us a little about yourself.",
+          name: "Full name",
+          phone: "Phone number",
+          experience: "How long have you been working as an agent?",
+          bands: {
+            under_1: "Under a year",
+            "1_2": "One to two years",
+            "3_5": "Three to five years",
+            "6_10": "Six to ten years",
+            over_10: "Over ten years",
+            unstated: "I would rather not say",
+          },
+          assurance:
+            "Agents are checked harder than owners, because you are handling somebody else's property.",
+        },
+        identity: {
+          title: "Prove who you are",
+          sub: "Send a photo of your ID and one of your face, then add your National Identity Number.",
+          idTitle: "A photo of your ID",
+          idBody: "National ID, driver's licence or international passport.",
+          selfieTitle: "A photo of your face",
+          selfieBody: "Clear, well lit, and taken now rather than found.",
+          nin: "National identity number (NIN)",
+          ninHint: "Eleven digits.",
+        },
+        fees: {
+          title: "Your fees, in the open",
+          sub: "Set what you charge. Every client sees it before they ever ring you.",
+          agency: "Agency fee",
+          agencyMeaning: "What you charge the landlord.",
+          legal: "Legal fee",
+          legalMeaning: "What you charge for the legal work.",
+          less: "Less",
+          more: "More",
+          exampleLabel: "Try it on a rent of",
+          exampleHint: "Change this to any rent you work with. It is only a worked example and it is not saved.",
+          totalLead: "On that rent, a tenant pays",
+          totalTrail: "to move in",
+          partRent: "Rent",
+          partAgency: "Agency fee",
+          partLegal: "Legal fee",
+          perListing:
+            "The caution deposit, the service charge and the agreement fee belong to a property, so they are set on the listing and they are not in this figure.",
+          weTakeNone: "Vallo takes none of this. We only show it.",
+        },
+        done: {
+          title: "We are checking your details",
+          sub: "Here is what happens next.",
+          nextOne: "We check who you are.",
+          nextTwo: "We confirm that you work as an agent.",
+          nextThree: "We may write to you for one more thing.",
+        },
+      },
+      firm: {
+        title: "Register a firm",
+        details: {
+          title: "Your firm",
+          sub: "Tell us about the registered company and where it works from.",
+          name: "Registered company name",
+          namePlaceholder: "As the CAC holds it",
+          rc: "RC number",
+          office: "Office address",
+          lasrera: "LASRERA registration number",
+          lasreraHint:
+            "Give it if you have one. A renter looking for a firm that holds one will be able to find you by it.",
+          yourName: "Your own full name",
+        },
+        association: {
+          title: "Prove you work here",
+          sub: "Choose how you would like to show that you work with this firm.",
+          letterTitle: "Upload a letter from your principal",
+          letterBody: "On the firm's paper, naming you and your position, and signed.",
+          principalTitle: "Have your principal confirm you",
+          principalBody: "We write to them and they say yes or no.",
+          principalEmail: "Your principal's email address",
+        },
+        team: {
+          title: "Your team",
+          sub: "Add the colleagues who will work on Vallo. You can do this later instead.",
+          name: "Their name",
+          email: "Their email address",
+          add: "Add this person",
+          remove: "Remove",
+          none: "Nobody added yet, and that is fine. You can invite your colleagues once the firm is approved.",
+          each: "Each person is checked on their own. Your firm's standing does not pass to them.",
+        },
+        done: {
+          title: "Your firm is under review",
+          sub: "Here is what we are checking.",
+          nextOne: "The company registration.",
+          nextTwo: "Your own role in the firm.",
+          nextThree: "Everybody you added.",
+          underReview: "Under review",
+        },
       },
     },
   },
