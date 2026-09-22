@@ -194,9 +194,16 @@ export default async function SearchPage({
    * no second screen and no "enter a code here" field nobody would find.
    *
    * `readListingReference` guesses NOTHING, because guessing a code is how
-   * somebody lands on the wrong house. It returns one of three answers and
-   * each gets its own sentence below: this is a code, this is the shape of a
-   * code but carries a character we never mint, or this is ordinary text.
+   * somebody lands on the wrong house. It returns one of three answers: this
+   * is a code, this is the shape of a code but carries a character we never
+   * mint, or this is ordinary text.
+   *
+   * AND IT ONLY EXPLAINS ITSELF WHEN THEY TYPED THE `VL`. Six letters is a
+   * common length for a Nigerian place name and several of the commonest
+   * carry a character we never mint, so a search for Ibadan would otherwise
+   * be answered with "that code has a character we do not use". A bare six
+   * characters is still looked up, because a hit is unambiguous; a miss falls
+   * through to ordinary results in silence.
    *
    * A code that matches replaces the results rather than redirecting, because
    * GOVERNING-12 screen four draws the found listing under a line saying how
@@ -272,7 +279,11 @@ export default async function SearchPage({
           {t.listingReference.foundById}
         </p>
       )}
-      {codeRead.state === "code" && !codeHit && (
+      {/* A MISS IS ONLY WORTH A SENTENCE WHEN THEY TYPED THE VL. A bare six
+          characters could be a place name, and answering a search for a
+          place with "no listing carries that code" is worse than saying
+          nothing. `explicit` is the field that knows the difference. */}
+      {codeRead.state === "code" && codeRead.explicit && !codeHit && (
         <p data-testid="reference-miss" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
           {t.listingReference.noneCarry}
         </p>

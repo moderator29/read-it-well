@@ -28,7 +28,8 @@ describe("reading a code somebody typed", () => {
 
   /* The whole point of the short alphabet: a code carrying a character we
      never mint is somebody reading a real code badly, and saying so is more
-     use than searching for the string. */
+     use than searching for the string. Only when they typed the VL, though:
+     see the next test for why. */
   it("refuses a character we never mint, and says that is what happened", () => {
     for (const bad of ["VL-1K4MQP", "VL-7K4MQ0", "VL-IK4MQP", "VL-LK4MQP", "VL-OK4MQP", "VL-UK4MQP"]) {
       expect(readListingReference(bad)).toEqual({ state: "impossible" });
@@ -36,9 +37,36 @@ describe("reading a code somebody typed", () => {
     }
   });
 
+  /*
+   * THE TEST THIS MODULE MOST NEEDED, and the first version failed it.
+   *
+   * Six letters is a common length for a Nigerian place name and several of
+   * the commonest carry a character we never mint. Without this rule a search
+   * for IBADAN answered "that code has a character we do not use", over the
+   * results for Ibadan.
+   */
+  it("says nothing about codes when somebody searched for a six letter place", () => {
+    for (const place of ["Ibadan", "Kaduna", "Owerri", "Lokoja", "Minna2"]) {
+      expect(readListingReference(place).state).toBe("none");
+    }
+  });
+
+  it("records whether the VL was typed, because only then did they mean a code", () => {
+    expect(readListingReference("VL-7K4MQP")).toEqual({
+      state: "code",
+      value: "VL-7K4MQP",
+      explicit: true,
+    });
+    expect(readListingReference("7K4MQP")).toEqual({
+      state: "code",
+      value: "VL-7K4MQP",
+      explicit: false,
+    });
+  });
+
   it("leaves ordinary search text alone", () => {
     for (const text of ["Lekki", "3 bedroom flat", "", "VL-7K4MQ", "VL-7K4MQPX", "Ikoyi duplex"]) {
-      expect(readListingReference(text)).toEqual({ state: "none" });
+      expect(readListingReference(text).state).toBe("none");
       expect(asListingReference(text)).toBeNull();
     }
   });
@@ -47,9 +75,15 @@ describe("reading a code somebody typed", () => {
      a code, and that is correct: the lookup misses and the page falls through
      to ordinary results, which is the same answer either way. */
   it("reads a six character word as a code when every character is in the alphabet", () => {
+    /* Looked up, because a hit is unambiguous and lands them on the right
+       house. A miss falls through to ordinary results in silence. */
     expect(asListingReference("BADGE2")).toBe("VL-BADGE2");
     // And not when one of them is not. "Lagos" carries an L and an O.
-    expect(readListingReference("LAGOSX")).toEqual({ state: "impossible" });
+    expect(readListingReference("LAGOSX").state).toBe("none");
+    /* But with the VL in front of it they plainly meant a code, so it is
+       named as one we could not have minted rather than searched for. */
+    expect(readListingReference("VL-LAGOSX").state).toBe("impossible");
+    expect(readListingReference("VLLAGOS").state).toBe("none");
   });
 });
 

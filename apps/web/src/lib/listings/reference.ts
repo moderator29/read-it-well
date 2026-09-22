@@ -23,7 +23,7 @@
 export const LISTING_REFERENCE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 /** Six body characters, with the `VL` prefix optional because people drop it. */
-const SHAPE = /^(?:VL)?([A-Z0-9]{6})$/;
+const SHAPE = /^(VL)?([A-Z0-9]{6})$/;
 
 /**
  * What a piece of typed text turned out to be.
@@ -32,21 +32,37 @@ const SHAPE = /^(?:VL)?([A-Z0-9]{6})$/;
  * page can say WHY nothing matched. "VL-100000" is somebody reading a real
  * code badly, and telling them our codes never contain a one is more useful
  * than searching for the string and finding no houses.
+ *
+ * `explicit` IS THE FIELD THAT STOPS THIS EMBARRASSING SOMEBODY, and it was
+ * added after the first version of this module would have printed "that code
+ * has a character we do not use" over a search for IBADAN. Six letters is a
+ * common length for a Nigerian place name and several of them carry an I, an O
+ * or a U: Ibadan, Kaduna, Owerri. Without the `VL` the six characters are not
+ * evidence of anything, so the page may only explain itself when the person
+ * typed the prefix and therefore plainly meant a code. A bare six characters
+ * is still LOOKED UP, because a hit is unambiguous and lands them on the right
+ * house; a miss simply falls through to ordinary results in silence.
  */
 export type ListingReferenceRead =
   | { state: "none" }
-  | { state: "code"; value: string }
+  /** `explicit` when the text carried the `VL` prefix. */
+  | { state: "code"; value: string; explicit: boolean }
   | { state: "impossible" };
 
 export function readListingReference(raw: string): ListingReferenceRead {
   const cleaned = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
   const match = SHAPE.exec(cleaned);
   if (!match) return { state: "none" };
-  const body = match[1] ?? "";
+  const explicit = match[1] === "VL";
+  const body = match[2] ?? "";
   for (const character of body) {
-    if (!LISTING_REFERENCE_ALPHABET.includes(character)) return { state: "impossible" };
+    if (!LISTING_REFERENCE_ALPHABET.includes(character)) {
+      /* Only a person who typed VL was reaching for a code. Anybody else
+         typed a word, and a word is an ordinary search. */
+      return explicit ? { state: "impossible" } : { state: "none" };
+    }
   }
-  return { state: "code", value: `VL-${body}` };
+  return { state: "code", value: `VL-${body}`, explicit };
 }
 
 /**
