@@ -2683,3 +2683,68 @@ that decides which lockup a surface gets, keyed on theme, so every appearance
 switches together and a real asset drops in with one edit. If a designed light
 wordmark has to come from the founder, the answer is to name the file and the
 sizes needed rather than to ship a filtered dark mark and call it done.
+
+## 25. THE MONEY JOB WAS KILLED BY A PASTED NEWLINE, AND THE TRIM THAT LOOKED SAFE WAS NOT
+
+The founder set both secrets and redeployed. The 15:47 run still failed, and
+the cause was not the one either of us expected.
+
+`cron.job_run_details`, jobid 33, 15:47:
+
+```
+ERROR: invalid URL "https://www.vallospaces.com
+/api/paystack/reconcile?hours=48&apply=1": Malformed input to a URL function
+```
+
+`vallo_site_url` had just been re-saved with a **trailing newline**, which is
+what happens when a URL is pasted from anywhere. And the function already
+handled that, or appeared to, with `btrim(site_url)`.
+
+### `btrim(text)` WITH ONE ARGUMENT STRIPS SPACES AND NOTHING ELSE
+
+Not a newline, not a tab, not a carriage return. Measured rather than assumed:
+
+| Expression | Result |
+| --- | --- |
+| `btrim(E'https://x.com\n')` | unchanged, **length 14** |
+| `btrim(E'https://x.com\n', E' \t\r\n')` | trimmed, length 13 |
+
+So every guard in that function was whitespace-blind: the emptiness checks,
+the URL build and the bearer alike. **A SECRET pasted with a newline would
+have sent `Bearer <secret>\n` and been refused 401 by our own door**, which is
+the same symptom from a different cause and would have been just as hard to
+read. That possibility is still open, because the read-only role cannot
+decrypt a Vault value to check it.
+
+Fixed and applied: every Vault read trims an explicit `E' \t\r\n'`. Rule 21
+restated rather than assumed, because `create or replace` preserves grants:
+EXECUTE revoked from `public`, `anon` and `authenticated`, with the revoke
+proved inside the same migration. The read-only role is now refused when it
+tries to call the function, which is itself evidence the lock holds.
+
+**The lesson generalises past this one function.** A person pasting a URL into
+a form is not making a mistake. Infrastructure that breaks on it is the one at
+fault, and a default that trims less than it appears to is worse than no trim,
+because it buys the reader's confidence without earning it. Anywhere this
+codebase reads a human-entered value out of configuration, the characters
+being trimmed should be named.
+
+**What this does NOT fix**, and it is the founder's own standing question: the
+reply is still never read. `net.http_get` is asynchronous, the response lands
+in `net._http_response`, and nothing looks at it. That is the defect that let
+this job report success every hour for three weeks while every call answered
+404. It stays open and it is the next thing on this file.
+
+### A correction to section 19
+
+Section 19 recorded the sale cost model as unstaffed and nobody's. **That was
+stale within the hour.** C1's `b84391c` had landed the whole schema at 13:45:
+six columns, their non-negative checks, the covers-its-parts check, the
+partial index, the anon grant, the draft schema, the wizard's sale branch and
+the admin card. What was missing was the READING surface, and the agent I
+staffed found that out by checking the tree rather than believing the ledger,
+which is the right instinct and cost nothing.
+
+The honest version: the seller could declare and the buyer could not read. The
+buyer can now read. The ONE LAW is not closed on it, because the probe has not
+run against a live database.
