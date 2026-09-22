@@ -4612,3 +4612,62 @@ entry per bed kind with a count. A shortlet's bedroom count is a different
 fact about the property and has nowhere honest to live in that array, so the
 choices are a column of its own or a deliberate widening of what `beds`
 means. Routed back to the author, who has the screens and the tests.
+
+## 41. THE WHOLE PRODUCT'S SMALL PRINT IS RENDERING AT BODY SIZE, ON 924 ELEMENTS
+
+IMG-A found it in one component. **I compiled it to check, and it is
+everywhere.**
+
+### The proof, run rather than reasoned
+
+Tailwind v4.3.3, both spellings compiled from the same probe:
+
+```
+.text-\[var\(--nf-text-caption\)\]          { color: var(--nf-text-caption); }
+.text-\[length\:var\(--nf-text-caption\)\]  { font-size: var(--nf-text-caption); }
+```
+
+`text-[var(--x)]` is read as a **COLOUR**. It emits no font-size at all, and
+it emits a `color` declaration whose value is a LENGTH, which is not a valid
+colour, so that is discarded too. The element gets neither. It inherits the
+16px `base.css` sets on `body`.
+
+### The count
+
+```
+924  text-[var(--nf-text-*)]  across apps/web/src
+     287  overline
+     280  body-sm
+     246  caption
+      50  body-lg
+      50  body
+      11  h4, 3 h3/h2
+```
+
+**That is the entire small-print vocabulary of this product, and all of it is
+drawing at body size.** A field's name at 13px with its own hint at 16px,
+measured in the browser, means the small print explaining a thing is LARGER
+than the thing. Overlines, captions and secondary text across 924 elements are
+all the same size as body copy.
+
+### Why nobody saw it, which is the same reason as everything else today
+
+It fails silently and it fails CONSISTENTLY. Nothing is misaligned, nothing
+overflows, no test goes red, and every screen is wrong in the same direction
+at once, so there is no odd one out to notice. The class name reads correctly
+in the source: somebody scanning `text-[var(--nf-text-caption)]` sees a
+caption size being applied, and the source is the only place that is true.
+
+**It also explains a complaint nobody could pin down.** The founder has said
+repeatedly that the product reads as inconsistent and unprofessional next to
+the renders. A type scale of twelve rungs that resolves to one rung on 924
+elements is exactly what that looks like.
+
+### The fix is mechanical and the risk is not
+
+`text-[length:var(--x)]` is the correct spelling and it is a find and replace.
+But it is a find and replace that will CHANGE THE RENDERED SIZE OF MOST TEXT
+ON MOST SCREENS, from 16px to whatever the token actually says, which is the
+point and is also a large visual change to make in one commit. It is staffed
+with the requirement to measure before and after on real screens rather than
+land it blind.
