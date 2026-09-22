@@ -2159,3 +2159,90 @@ now exists for a tenant has no equivalent for a buyer: the one place a Nigerian
 buyer is most often surprised by a number is the one place this platform
 cannot yet show them one. B3 handed it to Group C and **both supply workers
 have since handed back**, so it is nobody's. It is on the lead's board.
+
+## 20. B2, TRACKS L AND M, AUDITED
+
+Five commits, all verified ancestors of `origin/main`: `e1a48b0`, `8b07618`,
+`95cef40`, `bfd8d2a`, `cf6e56f`.
+
+### THE P1: THREE SCREENS A PERSON MEETS BEFORE THEY HAVE AN ACCOUNT WERE UNREADABLE ON PAPER
+
+Sign in, sign up verify and reset password drew `rgb(22,24,29)` ink on the
+plate's own `rgb(0,6,18)`. **1.14:1.** That is not dull, it is invisible: in
+light mode, on the three screens somebody meets before they are a user at all,
+the words were not there.
+
+The cause is worth keeping because it will happen again. `color` is an
+ordinary INHERITED property and it was resolving on `body`, which sits OUTSIDE
+the `data-theme="dark"` element the auth shell pins. So the paper theme's ink
+inherited straight past the dark lock: the tokens were pinned, the colour was
+not. The fix is one declaration, `color: var(--nf-content-primary)` re-rooted
+on `.nf-auth` itself, inside the lock.
+
+Verified by reading the rule rather than the claim: the declaration is at
+`auth.css:54` inside `.nf-auth`, which is the element carrying the pin. **1.14
+to 20.29:1**, and rule 22 holds, because `.nf-auth__plate` computes
+`rgb(0,6,18)` in both themes before and after. The ink is re-rooted; the plate
+is not lightened.
+
+### THE TOOLS WENT FIRST, AND THAT IS NOW HOUSE PRACTICE
+
+B2 pushed the instruments before touching a single defect, so every number it
+then quoted meant something. Three faults in the checks themselves:
+
+* **`check-css-tokens.mjs` excluded the paper twin BY NAME.** `\[data-theme`
+  sat in its resting-edge exclusion list, so the gate for light mode skipped
+  light mode. That is the cleanest example this build has produced of a check
+  that could not see the thing it was named for, and it belongs beside the
+  scheduler that reported success on dispatch and the sweep that measured
+  404s.
+* Its shadow clause read `shape === "gradient"`, passing the case that
+  happened eleven times. `box-shadow: rgb(18 21 26 / 0.18)` computes to `none`
+  and takes valid sibling layers with it, confirmed in Chromium rather than
+  inferred. Ten found by the fix, the eleventh by a new comma-layer scan.
+* **`compare-surface.mjs` had no theme switch at all**, so every "both themes"
+  sweep before this was one theme twice. It now takes `--theme`, and its
+  colour checks REFUSE `--theme light`, because every hex they compare against
+  was sampled from a dark render. Refusing is the right answer: a comparison
+  against the wrong reference is worse than no comparison.
+
+### THE LARGEST MEASURED OPEN DEFECT ON THE PLATFORM
+
+With the probe widened from 4 elements on 1 route to every text-bearing leaf
+on 98 routes in both themes, 7,467 leaves: **150 below the contrast floor, 51
+dark and 99 light.** B2 called it a baseline and not a pass, which is exactly
+right, and it is recorded here as the largest open defect we have a number for.
+
+It is deliberately NOT being worked next. A lit primary control changes the
+ground under a good number of those 99, so measuring them again before the
+glow lands would be measuring twice.
+
+### TWO THINGS B2 REFUSED TO FIX, WHICH ARE THE MOST VALUABLE LINES IN ITS REPORT
+
+* The settings hub initials reading 1.00:1 are **correct**: they sit on a
+  brand-gradient span, and the 1.00:1 came from the ancestor blindness that
+  survey's own honesty log declares.
+* The drift survey's "eleven above 0.35" were inferred from padding. The live
+  sweep finds **one**, at 0.36.
+
+Not fixing something that is not broken is harder than fixing it, and chasing
+an ancestor-blind 1.00:1 would have cost somebody a day.
+
+### Corrections B2 made against itself, unprompted
+
+Its first wallet-tile pass lowered `min-height`, which is what the drift survey
+prescribes and which moved nothing, because a minimum only binds when the
+content is shorter than it. It measured 70.8px unchanged and fixed it properly.
+And its own new sweep first reported 214 failures by counting reveal bands at
+opacity 0 as 1.00:1: `compare-surface`'s own documented harness lie arriving in
+a second tool. 214 to 150, with 68 quarantined as nothing painted.
+
+### Still owed, with numbers
+
+The 121 objects need real artwork; the framed plate makes them legible, not
+right. The quick-action cards are 115px against 85 and the remaining 30px are
+in the STRINGS: "Request Money" needs 91.2px in 69.5px, and the i18n rule
+forbids rewriting another scope's keys, so the measured widths are recorded
+rather than guessed at later. Two sets still mix artwork families,
+`host/page.tsx` and `RentalFace`. Stride ring 1.82:1 and switch track 1.13:1,
+both still under 3:1.
