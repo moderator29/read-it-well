@@ -1,40 +1,33 @@
-import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
-import { getLocale } from "@/lib/locale";
-import { PageHeader } from "@/components/app/PageHeader";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { CryptoMarket } from "@/components/app/crypto/CryptoMarket";
-import { isYellowCardConfigured } from "@/lib/payments/yellowcard";
-
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: getDictionary(await getLocale()).crypto.title };
-}
+import { notFound } from "next/navigation";
 
 /**
- * /crypto. The market surface in the side drawer: prices, movers, pairs,
- * and the entry to fund the wallet with crypto. Display only.
+ * /crypto GOES DARK FOR VERSION ONE, AND IT IS A `notFound()` RATHER THAN AN
+ * ENVIRONMENT GATE. THIS IS DEFERRED, NOT CANCELLED.
  *
- * The market feed is read on the client from BD's proxy, so the page shell
- * arrives at once and the four feed states are drawn by the surface. The
- * one server decision here is whether the Yellow Card keys exist, because
- * that answer must never reach a browser as an environment variable.
+ * The ruling, from HANDOFF 08 section 5.2: a token price table inside a
+ * property application invites the content aggregator refusal on Apple and
+ * the Cryptocurrency Exchanges and Software Wallets declarations on both
+ * stores, for zero launch value.
+ *
+ * WHY NOT AN ENVIRONMENT GATE, WHICH WOULD HAVE BEEN ONE LINE LESS. An
+ * environment gate is a route that EXISTS and is switched off. A reviewer who
+ * finds it asks what it is, and the answer is a crypto surface, which is the
+ * conversation this ruling exists to avoid having. `notFound()` is the route
+ * not existing.
+ *
+ * B6 IN `HANDOFF_05` IS DEFERRED, NOT CANCELLED. The proxy work stops; it is
+ * not deleted, and neither is anything under `components/app/crypto/`, the
+ * Yellow Card client, `/api/crypto/*` or the preview surfaces under
+ * `(dev)/preview/e/`. All of it still builds and still has its tests. Turning
+ * this back on for v1.1 is deleting this file's body and restoring the two
+ * lines below, and nobody should read a dark route as permission to remove
+ * the work behind it.
+ *
+ * THE TWO LINES THAT COME BACK when the founder rules that crypto ships:
+ *   the original body is in git at `a315170^`, and the route was
+ *   `<CryptoMarket locale={locale} copy={t.crypto} cryptoEnabled={...} />`
+ *   under a `PageHeader` with `t.crypto.title`.
  */
-export default async function CryptoPage() {
-  const locale = await getLocale();
-  const t = getDictionary(locale);
-  return (
-    <div className="nf-crypto-surface mx-auto max-w-2xl">
-      <PageHeader
-        title={t.crypto.title}
-        subtitle={t.crypto.lede}
-        fallback="/home"
-        actions={
-          <span className="nf-money-hero__object block" aria-hidden="true">
-            <BrandIcon name="chart-growth" fill priority />
-          </span>
-        }
-      />
-      <CryptoMarket locale={locale} copy={t.crypto} cryptoEnabled={isYellowCardConfigured()} />
-    </div>
-  );
+export default function CryptoPage() {
+  notFound();
 }

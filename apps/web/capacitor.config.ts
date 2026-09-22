@@ -151,6 +151,34 @@ const config: CapacitorConfig = {
              HSTS with preload on the web precisely so that cannot happen. */
           androidScheme: "https",
           cleartext: false,
+          /*
+           * THE AIRPLANE MODE TEST, WHICH WE FAILED FOR ONE MISSING LINE.
+           *
+           * App Review puts the device into airplane mode and rejects an
+           * application that shows a blank white view or a browser error page
+           * instead of a native offline state. `native-shell/index.html`
+           * carries a real offline card and, without this line, IT COULD
+           * NEVER BE REACHED IN A SHIPPING BUILD: `webDir` is only what the
+           * binary loads when `CAPACITOR_SERVER_URL` is unset, and in a
+           * shipping build it is set, so the web view is pointed at the live
+           * origin and a failed load is a blank view.
+           *
+           * VERIFIED AGAINST THE BRIDGE SOURCE RATHER THAN THE DOCUMENTATION,
+           * because the store research could only confirm the option exists.
+           * On iOS, `WebViewDelegationHandler.swift` loads
+           * `bridge.config.errorPathURL` from BOTH `didFail` and
+           * `didFailProvisionalNavigation`, which is exactly the failure a
+           * remote origin that cannot be reached produces. On Android,
+           * `BridgeWebViewClient.onReceivedError` loads the error URL whenever
+           * `request.isForMainFrame()`. And `CAPInstanceConfiguration.swift`
+           * resolves `errorPathURL` against `localURL`, not against
+           * `server.url`, so this path is the PACKAGED shell rather than a
+           * page on an origin that is by definition unreachable.
+           *
+           * The card itself belongs to the worker designing that surface.
+           * This line is only what makes it reachable.
+           */
+          errorPath: "index.html",
         },
       }
     : {}),

@@ -5,9 +5,13 @@
         "appIDs": ["PLACEHOLDER_REPLACE_WITH_APPLE_TEAM_ID.com.vallospaces.app"],
         "components": [
           {
+            "/": "/auth/callback*",
+            "comment": "THE OAUTH RETURN, AND IT MUST BE HANDED TO THE APP. This entry reverses what the file said before it, and the reversal is the whole of Google sign-in working on the native shell. startOAuth runs as a SERVER ACTION from the web view (src/lib/auth/actions.ts), so Supabase's PKCE verifier cookie is set on the WEB VIEW's jar, not Safari's. If the in-app tab loads this URL, the exchange runs in a jar with no verifier, the single-use code is spent, and the person is returned to an application that is still signed out. src/lib/native/deep-links.ts describes exactly this and is the file that matches the code. Ordered FIRST, because an AASA components array is read in order and the exclusion below would otherwise swallow it."
+          },
+          {
             "/": "/auth/*",
             "exclude": true,
-            "comment": "Excluded first, because order decides. OAuth finishes in the system browser where the PKCE verifier and the cookies for the exchange live, so pulling the callback into the app would hand it a code it cannot redeem."
+            "comment": "Everything else under /auth stays out. Only the callback is a return journey; a sign-in page, a password reset form and an email confirmation are all pages a person should meet wherever they opened them."
           },
           {
             "/": "/api/*",

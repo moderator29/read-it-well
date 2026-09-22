@@ -245,10 +245,9 @@ the worker. No row, no close, and the lead does not commit it.
 | `/careers` | none, inherits the register | `a2/careers-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
 | `/docs` | none, inherits the register | `a2/docs-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
 | `/delete-account` | none, inherits the register | `a2/delete-account-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
-| `/cancellations` | none, inherits the register | `a2/cancellations-390-{dark,light}.png` | 0 breaches at 390 and 1536, dark and light | A2 |
+| `/cancellations` | none, inherits the register | `a2/cancellations-390-{dark,light}.png`, taken BEFORE the copy change below; the shape is unchanged, the hero is now two sentences rather than four, so the picture is one revision stale | 0 breaches at 390 and 1536, dark and light | A2 |
 | `/privacy` | none, inherits the register | `a2/privacy-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
 | `/terms` | none, inherits the register | `a2/terms-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
-| `/verification` | none, inherits the register | `a2/verification-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
 | The offline card, `apps/web/native-shell/index.html` | none, inherits the register; drawn to it for the first time | `a2/native-shell-no-connection-390-{dark,light}.png`, `a2/native-shell-no-server-390-{dark,light}.png` | measured in the browser: plate 0.27, button 0.28, card 0.07, note 0.12; the only circle is the explanatory glyph | A2 |
 | The dock with the raised centre switch, on `/home` | `GOVERNING-01` screen one | `b1/dock-390-dark.png`, taken on `next start` at `6b7e21f` | dock object 18 on 52 = 0.346 | B1 |
 | The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png` | row marks 14 on 44 = 0.318; standing label 6 on 25 = 0.244 | B1 |
@@ -266,9 +265,30 @@ ground with the aurora, the glass panel with its lit top rim, the brand
 object on its rounded plate, the rounded rectangle control, and the calm
 explanatory panel with its small round glyph.
 
+**AND THE REGISTER NOW OVERCOUNTS TWO OF MY ROUTES, WHICH IS WORTH SAYING
+BEFORE SOMEBODY READS IT AS COVERAGE.** A proof is matched to a surface by the
+last real segment of its route appearing in the file name, so
+`a2/privacy-390-dark.png` and `a2/terms-390-dark.png`, which are shots of the
+PUBLIC `/privacy` and `/terms`, are also credited to `/legal/privacy` and
+`/legal/terms`. Those two are the same documents inside the product shell and
+they are behind the signed-in gate, so neither was photographed. The register
+cannot tell the difference and there is no file name that would make it, since
+any name carrying the word is credited to both. They are unproven.
+
 **What A2 did NOT close, said plainly.** `/welcome`, `/saved`,
 `/saved/searches`, `/trips`, `/notifications`, `/profile/setup`,
-`/legal/privacy`, `/legal/terms` and `/docs/[slug]` carry no row above.
+`/verification`, `/legal/privacy`, `/legal/terms` and `/docs/[slug]` carry no
+row above.
+
+`/verification` is the painful one, because it is the one of these that IS
+reachable without a session and it was swept clean at both widths. It carries
+no row only because the four surfaces given a `PageScene` cannot be
+photographed after the change: **`next build` has been failing on `main` since
+`a315170`**, on a re-export in a `"use server"` file
+(`src/lib/social/posts-actions.ts:614`), which Turbopack refuses outright and
+which then leaves that module with no exports at all, cascading to 58 errors
+across the social tree. It is not my file and I have not touched it. Until it
+is fixed nobody on this box can take a production proof of anything.
 Everything except the last two is behind the signed-in gate in `proxy.ts` and
 a stranger is redirected to `/sign-in`, so no proof of the route itself can be
 taken without a session this worker does not have. Where a proof of the same
@@ -305,6 +325,50 @@ filled rectangles (`.nf-steprow`), the calm explanatory panel with its small
 round glyph (`.nf-calmpanel`), and the workspace standing label
 (`.nf-switch-standing`). All three are built from the register and the last is
 the one the renders draw as a capsule.
+
+**A2's three findings for Group B, who own every stylesheet.** Written here as
+well as in the report, because a finding that lives only in a report dies with
+it.
+
+1. **The light theme puts near-black ink on the permanently dark auth screen,
+   and it is a P1.** Measured on a production server: inside
+   `main.nf-auth[data-theme="dark"]`, with the document in light, `color`
+   computes to `rgb(22,24,29)` where dark gives `rgb(255,255,255)`. It reaches
+   every element that inherits rather than setting its own colour, so
+   "Find your next place" on `/start`, "Enter your code" on `/sign-up/verify`
+   and "That link has expired" on `/reset-password` are all drawn black on
+   navy. Proofs: `a2/start-390-light.png`, `a2/sign-up-verify-390-light.png`,
+   `a2/reset-password-390-light.png`. The cause is that `color` is resolved on
+   `body`, ABOVE the auth element, and redeclaring custom properties on a
+   descendant cannot move a value that has already been resolved above it. The
+   fix is one declaration in `auth.css` that re-resolves it inside the subtree,
+   `.nf-auth { color: var(--nf-content-primary); }`. The layout's own comment
+   predicted this class of leak and guarded only against selectors, not against
+   inheritance.
+2. **The footer's newsletter submit is a circle on every page that draws the
+   footer.** `site.css`, `.nf-site-newsletter-field button`, `border-radius:
+   var(--nf-radius-circle)`. Measured 40x40 with a 20px radius, ratio 0.50, on
+   `/about`, `/help`, `/contact`, `/safety`, `/standards`, `/careers`, `/docs`,
+   `/delete-account` and `/cancellations`, at 390 and 1536, in both themes. The
+   design direction allows exactly one round icon-only control, the landing
+   nav's search glyph. It cannot be fixed from the call site: the rule is an
+   element selector inside a class, which outranks any class a component could
+   add, and putting a style in the component is not mine to do.
+3. **`/start`'s carousel pager draws its steps as pills** (`999px` on a 6px
+   bar and a 6px dot) while the register's progress is a row of small filled
+   rectangles, which is what `/verification`'s own step bar already draws. The
+   token layer sanctions `--nf-radius-pill` for a progress cap, so this is a
+   question for the founder rather than a breach, and it is recorded rather
+   than changed.
+
+**And one for whoever owns the app chrome.** The signed-out app header
+overflows at 390 and CLIPS its primary control. Measured on `/verification`:
+the actions group's right edge is 407px in a 390px viewport, so about 17px of
+"Sign up" is cut off, and `document.scrollWidth` is 390, so nothing scrolls and
+there is no way to reach the rest of it. `AppShell.tsx`, the row holding the
+hamburger, the lockup, the spacer and `SignedOutActions`. It is on every
+signed-out `(app)` route, not only mine, which is why A2 did not change shared
+chrome unilaterally.
 
 **And the preview harness was quietly lying about two of them.**
 `/preview/f3/saved` and `/preview/f3/trips` drew their boards in a bare

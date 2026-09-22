@@ -9,7 +9,7 @@ order of 19 September, because until that commit the screenshot harness was lyin
 separate ways. A void proof is counted here as no proof at all, which is the only honest
 way to count it.
 
-**129 surfaces.** A surface is DONE only when a fresh proof of it sits beside its
+**131 surfaces.** A surface is DONE only when a fresh proof of it sits beside its
 reference and a second pass has audited it, per the founder's standing order that every
 frontend scope is audited twice before it closes.
 
@@ -41,7 +41,7 @@ frontend scope is audited twice before it closes.
 | `/crypto` | none, inherits the register | **VOID**, 4 taken on the broken harness, must be retaken |
 | `/crypto/[id]` | none, inherits the register | **VOID**, 4 taken on the broken harness, must be retaken |
 | `/inspections` | none, inherits the register | 1 fresh (v5/agent-inspections-390-dark.png) |
-| `/rent/move-in/[listingId]` | none, inherits the register | none |
+| `/rent/move-in/[listingId]` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
 | `/rent/pay/[inspectionId]` | none, inherits the register | none |
 | `/trips` | none, inherits the register | **VOID**, 3 taken on the broken harness, must be retaken |
 | `/wallet` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
@@ -71,29 +71,29 @@ frontend scope is audited twice before it closes.
 | `/around/new` | none, inherits the register | 1 fresh (v4/story-new-390-dark.png) |
 | `/around/settings` | none, inherits the register | 5 fresh (v4/settings-390-dark.png, v4/settings-390-light.png, v4/settings-tile-doubling-before-2x.png, v4/settings-tile-single-after-2x.png, v5/agent-settings-390-dark.png) |
 | `/auth/callback` | none, inherits the register | none |
-| `/forgot-password` | none, inherits the register | none |
+| `/forgot-password` | none, inherits the register | 2 fresh (a2/forgot-password-390-dark.png, a2/forgot-password-390-light.png) |
 | `/post/[id]` | none, inherits the register | 1 fresh (v4/post-thread-390-dark.png) |
 | `/profile` | none, inherits the register | 5 fresh (v4/edit-profile-390-dark.png, v4/profile-390-dark.png, v4/profile-390-light.png, v4/profile-badges-rectangle-after-2x.png, v4/public-profile-390-dark.png) |
 | `/profile/application` | none, inherits the register | none |
 | `/profile/setup` | none, inherits the register | none |
 | `/profile/setup/[role]` | none, inherits the register | none |
-| `/reset-password` | none, inherits the register | none |
+| `/reset-password` | none, inherits the register | 2 fresh (a2/reset-password-390-dark.png, a2/reset-password-390-light.png) |
 | `/settings` | none, inherits the register | 5 fresh (v4/settings-390-dark.png, v4/settings-390-light.png, v4/settings-tile-doubling-before-2x.png, v4/settings-tile-single-after-2x.png, v5/agent-settings-390-dark.png) |
-| `/settings/account` | none, inherits the register | none |
+| `/settings/account` | none, inherits the register | 2 fresh (a2/delete-account-390-dark.png, a2/delete-account-390-light.png) |
 | `/settings/appearance` | none, inherits the register | none |
 | `/settings/devices` | none, inherits the register | none |
-| `/settings/help` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
+| `/settings/help` | none, inherits the register | 2 fresh (a2/help-390-dark.png, a2/help-390-light.png) |
 | `/settings/interests` | none, inherits the register | none |
 | `/settings/notifications` | none, inherits the register | 2 fresh (v3/notifications-390-dark.png, v3/notifications-390-light.png) |
 | `/settings/payments` | none, inherits the register | **VOID**, 3 taken on the broken harness, must be retaken |
 | `/settings/place` | none, inherits the register | 1 fresh (v4/place-390-dark.png) |
-| `/settings/privacy` | none, inherits the register | none |
-| `/sign-in` | none, inherits the register | none |
-| `/sign-in/email` | none, inherits the register | none |
-| `/sign-up` | none, inherits the register | none |
-| `/sign-up/email` | none, inherits the register | none |
-| `/sign-up/verify` | none, inherits the register | none |
-| `/start` | none, inherits the register | none |
+| `/settings/privacy` | none, inherits the register | 2 fresh (a2/privacy-390-dark.png, a2/privacy-390-light.png) |
+| `/sign-in` | none, inherits the register | 4 fresh (a2/sign-in-390-dark.png, a2/sign-in-390-light.png, a2/sign-in-email-390-dark.png, a2/sign-in-email-390-light.png) |
+| `/sign-in/email` | none, inherits the register | 4 fresh (a2/sign-in-email-390-dark.png, a2/sign-in-email-390-light.png, a2/sign-up-email-390-dark.png, a2/sign-up-email-390-light.png) |
+| `/sign-up` | none, inherits the register | 6 fresh (a2/sign-up-390-dark.png, a2/sign-up-390-light.png, a2/sign-up-email-390-dark.png, a2/sign-up-email-390-light.png, a2/sign-up-verify-390-dark.png, a2/sign-up-verify-390-light.png) |
+| `/sign-up/email` | none, inherits the register | 4 fresh (a2/sign-in-email-390-dark.png, a2/sign-in-email-390-light.png, a2/sign-up-email-390-dark.png, a2/sign-up-email-390-light.png) |
+| `/sign-up/verify` | none, inherits the register | 2 fresh (a2/sign-up-verify-390-dark.png, a2/sign-up-verify-390-light.png) |
+| `/start` | none, inherits the register | 2 fresh (a2/start-390-dark.png, a2/start-390-light.png) |
 | `/stories/[id]` | GOVERNING-flip-mid-turn.png | none |
 | `/stories/new` | none, inherits the register | 1 fresh (v4/story-new-390-dark.png) |
 | `/u` | none, inherits the register | none |
@@ -125,7 +125,7 @@ frontend scope is audited twice before it closes.
 | `/admin/moderation` | none, inherits the register | none |
 | `/admin/money` | none, inherits the register | none |
 | `/admin/payments` | none, inherits the register | **VOID**, 3 taken on the broken harness, must be retaken |
-| `/admin/reference` | none, inherits the register | none |
+| `/admin/reference` | none, inherits the register | 1 fresh (w3/landing-1536-beside-reference.png) |
 | `/admin/reports` | none, inherits the register | none |
 | `/admin/social` | none, inherits the register | none |
 | `/admin/standing` | none, inherits the register | none |
@@ -148,35 +148,37 @@ frontend scope is audited twice before it closes.
 | `/host/apply` | none, inherits the register | none |
 | `/host/photos` | none, inherits the register | none |
 | `/host/reservations` | none, inherits the register | 1 fresh (v5/host-reservations-390-dark.png) |
+| `/host/rooms` | none, inherits the register | none |
 | `/host/transfer` | none, inherits the register | 1 fresh (v5/host-transfer-390-dark.png) |
 
 ## site, the lead
 
 | surface | governing reference | proof |
 | --- | --- | --- |
-| `/` | GOVERNING-landing-desktop-hero.png, GOVERNING-landing-desktop-fullpage.png | 2 fresh (lead/landing-390-dark-shape-law.png, v5/host-landing-390-dark.png) |
-| `/about` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
-| `/cancellations` | none, inherits the register | none |
-| `/careers` | none, inherits the register | none |
-| `/contact` | none, inherits the register | none |
-| `/delete-account` | none, inherits the register | none |
-| `/docs` | none, inherits the register | none |
-| `/docs/[slug]` | none, inherits the register | none |
-| `/help` | none, inherits the register | **VOID**, 1 taken on the broken harness, must be retaken |
-| `/legal/privacy` | none, inherits the register | none |
-| `/legal/terms` | none, inherits the register | none |
+| `/` | GOVERNING-landing-desktop-hero.png, GOVERNING-landing-desktop-fullpage.png | 4 fresh (lead/landing-390-dark-shape-law.png, v5/host-landing-390-dark.png, w3/landing-1536-beside-reference.png, w3/landing-1536-dark.png) |
+| `/about` | none, inherits the register | 2 fresh (a2/about-390-dark.png, a2/about-390-light.png) |
+| `/cancellations` | none, inherits the register | 2 fresh (a2/cancellations-390-dark.png, a2/cancellations-390-light.png) |
+| `/careers` | none, inherits the register | 2 fresh (a2/careers-390-dark.png, a2/careers-390-light.png) |
+| `/contact` | none, inherits the register | 2 fresh (a2/contact-390-dark.png, a2/contact-390-light.png) |
+| `/delete-account` | none, inherits the register | 2 fresh (a2/delete-account-390-dark.png, a2/delete-account-390-light.png) |
+| `/docs` | none, inherits the register | 2 fresh (a2/docs-390-dark.png, a2/docs-390-light.png) |
+| `/docs/[slug]` | none, inherits the register | 2 fresh (a2/docs-390-dark.png, a2/docs-390-light.png) |
+| `/eula` | none, inherits the register | none |
+| `/help` | none, inherits the register | 2 fresh (a2/help-390-dark.png, a2/help-390-light.png) |
+| `/legal/privacy` | none, inherits the register | 2 fresh (a2/privacy-390-dark.png, a2/privacy-390-light.png) |
+| `/legal/terms` | none, inherits the register | 2 fresh (a2/terms-390-dark.png, a2/terms-390-light.png) |
 | `/offline` | none, inherits the register | none |
-| `/privacy` | none, inherits the register | none |
-| `/safety` | none, inherits the register | none |
-| `/standards` | none, inherits the register | none |
+| `/privacy` | none, inherits the register | 2 fresh (a2/privacy-390-dark.png, a2/privacy-390-light.png) |
+| `/safety` | none, inherits the register | 2 fresh (a2/safety-390-dark.png, a2/safety-390-light.png) |
+| `/standards` | none, inherits the register | 2 fresh (a2/standards-390-dark.png, a2/standards-390-light.png) |
 | `/styleguide` | none, inherits the register | **VOID**, 2 taken on the broken harness, must be retaken |
-| `/terms` | none, inherits the register | none |
+| `/terms` | none, inherits the register | 2 fresh (a2/terms-390-dark.png, a2/terms-390-light.png) |
 
 ## The count
 
-- 49 surfaces carry at least one proof taken on the honest harness.
-- 20 surfaces carry only void proofs and must be retaken.
-- 60 surfaces have no proof at all.
+- 75 surfaces carry at least one proof taken on the honest harness.
+- 18 surfaces carry only void proofs and must be retaken.
+- 38 surfaces have no proof at all.
 
 A proof is matched to a surface by the last real segment of its route appearing in the
 file name, so a proof named for something else will not be counted even if it shows the

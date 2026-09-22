@@ -101,12 +101,31 @@
                 The path prefixes are the shareable half of the product and
                 nothing else. A listing forwarded on WhatsApp is the case that
                 pays for this whole feature, and the others are the addresses
-                the product itself tells people to share. Deliberately absent:
-                `/checkout/`, `/wallet` and `/auth/`. Those three are return
-                paths from Paystack and from OAuth, they complete in the system
-                browser where their cookies and PKCE verifier live, and pulling
-                them into the application mid-flow would break the very
-                transaction it interrupted.
+                the product itself tells people to share, PLUS ONE RETURN PATH
+                that had to be added and is the reason Google sign-in could not
+                complete on the native shell at all.
+
+                `/auth/callback` IS IN, AND THIS PARAGRAPH USED TO SAY THE
+                OPPOSITE. It said `/auth/` was deliberately absent because OAuth
+                "completes in the system browser where their cookies and PKCE
+                verifier live". That is false for this codebase and the file it
+                contradicted was right: `startOAuth` runs as a SERVER ACTION
+                from the web view (`src/lib/auth/actions.ts`), so Supabase's
+                PKCE verifier cookie is set on the WEB VIEW's cookie jar. If
+                the in-app tab loads the callback, the exchange runs in a jar
+                with no verifier, the single-use code is spent, and the person
+                lands back in an application that is still signed out. See
+                `src/lib/native/deep-links.ts`, which says this in its own
+                words, and the matching include in
+                `public/.well-known/apple-app-site-association`.
+
+                STILL deliberately absent: `/checkout/` and `/wallet`. Those
+                two are Paystack returns and they are settled by the
+                server-to-server webhook rather than by the return trip, so the
+                money is already recorded and the journey back is cosmetic. The
+                REST of `/auth/` is absent too: a sign-in page, a password reset
+                form and an email confirmation are pages a person should meet
+                wherever they opened them.
 
                 WHY EACH PREFIX IS IN OR OUT, because this list was wrong once
                 and the way it was wrong was invisible. Until R3's F-02 this
@@ -133,7 +152,8 @@
                 inside the app, which is a worse first meeting than a browser
                 tab; `/home` and `/search` are the Property roots, which the
                 app opens on anyway; `/checkout/`, `/wallet` and `/auth/` are
-                the return paths named above.
+                the Paystack return paths named above, and everything under
+                `/auth/` except the callback.
 
                 The bare roots `/stays` and `/restaurants` without a trailing
                 slash are not listed, matching `/home` and `/search`: a shelf
@@ -164,6 +184,10 @@
                 <data android:pathPrefix="/u/" />
                 <data android:pathPrefix="/post/" />
                 <data android:pathPrefix="/stories/" />
+                <!-- The OAuth return. Last in the list and first in importance:
+                     without it, Continue with Google cannot complete on this
+                     platform. See the long note above. -->
+                <data android:pathPrefix="/auth/callback" />
             </intent-filter>
         </activity>
 
@@ -201,18 +225,44 @@
         Location. COARSE is what the product needs, and the FINE line below it
         is not a contradiction. Read both comments before changing either.
 
-        WHAT THE PRODUCT NEEDS. There is exactly one consumer of location on
-        this platform, the locate-me control in
-        `src/components/app/search/MapCanvas.tsx`, and all it does with the fix
-        is `setView([lat, lng], 13)`. Zoom 13 shows several kilometres of a city
-        across a 390px screen, so a coarse fix of one to three kilometres lands
-        inside the same view a precise one would have produced. Nothing routes,
-        nothing measures a distance to a listing, nothing geofences and nothing
-        stores the position: it is read in the browser and never posted, which
-        is what the data inventory in `docs/MOBILE_READINESS.md` section 5
-        records. That control does pass `enableHighAccuracy: true`, but that is
-        only ever a hint, and at reduced precision the same callback fires and
-        the map still recentres. So coarse is the honest ask.
+        WHAT THE PRODUCT NEEDS, CORRECTED. This paragraph used to say there was
+        "exactly one consumer of location on this platform" and that "nothing
+        stores the position: it is read in the browser and never posted". Both
+        were false, and a false statement in this file is worse than a false
+        statement almost anywhere else, because the paragraph at the bottom
+        told whoever fills Play's Data safety form what to answer.
+
+        THE TWO CONSUMERS, WHICH IS NOW THE WHOLE LIST:
+
+          1. The locate-me control in
+             `src/components/app/search/MapCanvas.tsx:489`. All it does with the
+             fix is `setView([lat, lng], 13)`. Zoom 13 shows several kilometres
+             of a city across a 390px screen, so a coarse fix of one to three
+             kilometres lands inside the same view a precise one would have
+             produced. Nothing is posted. This one always matched the old
+             description.
+
+          2. The drop-the-pin control in
+             `src/components/host/HostWizard.tsx:616`. A host standing in the
+             property they are listing taps it, and the coordinate is rounded
+             to six decimals and SAVED THROUGH `addAccommodationDraft` AS THE
+             LATITUDE AND LONGITUDE OF THAT PROPERTY. It leaves the device, it
+             is stored, and it is published on the listing as the property's
+             address. That is the whole point of the control, and it is a fact
+             about a property rather than a trail behind a person, but it is
+             still location that leaves the device and the form has to say so.
+
+        A third consumer, `TravelTime`, posted a precise fix to
+        `/api/travel-time`, a route that has never existed in this tree. It has
+        been deleted rather than described.
+
+        So coarse is still the honest ask: consumer 1 does not need precision,
+        and consumer 2 is a host deliberately marking a building they are
+        standing in, where an approximate fix plus the address they type is the
+        real answer and the coordinate is a convenience. Both controls pass
+        `enableHighAccuracy: true`, but that is only ever a hint, and on
+        Android 12 and above this application cannot request precise location
+        at all, because of the `maxSdkVersion` cap below.
 
         `ACCESS_BACKGROUND_LOCATION` is absent and must stay absent. Nothing
         runs when the application is not in front of the person.
@@ -251,12 +301,24 @@
         want, and it is stripped from the merged manifest everywhere else. On a
         modern handset this application cannot request precise location at all.
 
-        Play's data safety form should be answered accordingly: approximate
-        location, used for app functionality, not shared, not stored.
+        THE DATA SAFETY INSTRUCTION THAT USED TO BE HERE WAS WRONG AND
+        FOLLOWING IT WOULD HAVE BEEN A FALSE DECLARATION TO GOOGLE. It read:
+        "approximate location, used for app functionality, not shared, not
+        stored". "Not stored" is false, because of consumer 2 above.
 
-        None of the above has been on a handset. It is read from the bridge
-        source in `node_modules/@capacitor/android`, and it is the kind of claim
-        that deserves a real device before the first release.
+        DO NOT ANSWER THE FORM FROM THIS FILE. The row by row answers, derived
+        from what the code actually does rather than from a comment, are in
+        `docs/research/STORE_REJECTION_RISK_RESEARCH.md` Part D.5, and they are
+        the only place that answer is maintained. The one thing worth repeating
+        here, because it is the thing this file got wrong: LOCATION IS
+        COLLECTED AND IT IS STORED. Approximate location, collected, stored,
+        used for app functionality, and published on a listing when a host uses
+        the drop-the-pin control. Precise location is not collected on Android
+        12 and above and cannot be, because of the cap above.
+
+        None of the bridge reasoning above has been on a handset. It is read
+        from the bridge source in `node_modules/@capacitor/android`, and it is
+        the kind of claim that deserves a real device before the first release.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
 

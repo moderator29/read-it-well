@@ -9,6 +9,7 @@
     "lint": "eslint . && node scripts/check-css-tokens.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "check:deep-links": "node scripts/check-deep-links.mjs",
     "prebuild": "node ../../scripts/build-scene-manifest.mjs"
   },
   "dependencies": {

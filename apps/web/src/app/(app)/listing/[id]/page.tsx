@@ -28,7 +28,6 @@ import { lagosToday } from "@/lib/bookings/schema";
 import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
-import { TravelTime } from "@/components/app/listing/TravelTime";
 import { ReservePanel } from "./ReservePanel";
 import { RentalPanel } from "./RentalPanel";
 import { ReserveTable } from "./ReserveTable";
@@ -1002,13 +1001,19 @@ export default async function ListingDetailPage({
                       <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
                       <span className="min-w-0">{where}</span>
                     </p>
-                    {!isExample && (
-                      <TravelTime
-                        listingId={listing.id}
-                        label={t.common.travelTime}
-                        workingLabel={t.common.loading}
-                      />
-                    )}
+                    {/*
+                      TRAVEL TIME WAS REMOVED AND IT IS NOT COMING BACK AS A
+                      STUB. It posted to `/api/travel-time`, a route that has
+                      never existed in this tree, and its designed failure was
+                      to hide itself. So the whole of it, from a person's side,
+                      was: tap a control, grant a location permission whose
+                      alert promised the position stayed on the device, and
+                      watch the control vanish. A bug, a broken promise and a
+                      permission prompt with no payoff, in one tap. Building
+                      the routing integration is a feature with its own
+                      provider key, not a rejection fix. See the store research
+                      file, A.3 fix 1.
+                    */}
                   </div>
                 </Section>
 
@@ -1160,11 +1165,6 @@ function RestaurantPanel({
         Message
       </ButtonLink>
 
-      <TravelTime
-        listingId={listing.id}
-        label={t.common.travelTime}
-        workingLabel={t.common.loading}
-      />
     </div>
   );
 }

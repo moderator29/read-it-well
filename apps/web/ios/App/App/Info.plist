@@ -81,14 +81,47 @@
 		capability something in `src/` actually reaches for.
 	-->
 	<!--
-		Read by WKWebView when the locate-me control in
-		`src/components/app/search/MapCanvas.tsx` calls `getCurrentPosition`. It
-		is `WhenInUse` and there is deliberately no `Always` variant: nothing
-		runs in the background, and asking for background location would be a
-		review question with no answer.
+		THIS COMMENT AND THE STRING UNDER IT WERE BOTH FALSE, AND THE STRING IS
+		THE KIND OF FALSE THAT IS A 5.1.1(ii) AND 5.1.5 REFUSAL.
+
+		It said, in the alert a person reads before they decide: "Your position
+		is used on this device only and is never sent to Vallo." This comment
+		said MapCanvas was the only consumer. Neither was true. Two other
+		surfaces took a position and sent it to our own origin, one of them
+		storing a six decimal fix on a database row. Apple 5.1.1(ii) is one
+		sentence, "Ensure your purpose strings clearly and completely describe
+		your use of the data", and a string that promises the opposite of what
+		the code does is the clearest way there is to fail it.
+
+		WHICH OF THE TWO ANSWERS THIS IS. The instruction was: stop sending it
+		or tell the truth, and say which and why. Both, in fact, and split by
+		whether the surface was a real capability or a broken one.
+
+		  - `TravelTime` was DELETED. It posted a precise fix to
+		    `/api/travel-time`, a route that has never existed, and its designed
+		    failure was to hide itself. It took a permission and gave nothing
+		    back. There was nothing there to describe honestly.
+
+		  - `HostWizard` STAYS and the string now describes it. A host standing
+		    in the property they are listing taps a control to drop the pin, and
+		    the coordinate becomes THE PROPERTY'S address on the listing. That
+		    is not us following a person around; it is the one datum the listing
+		    is about. Removing a real capability to make a false sentence true
+		    would have been the worse trade.
+
+		THE TWO CONSUMERS, WHICH IS NOW THE WHOLE LIST:
+		  1. `src/components/app/search/MapCanvas.tsx:489` recentres the map and
+		     posts nothing. This one always matched the old promise.
+		  2. `src/components/host/HostWizard.tsx:616` reads a fix, rounds it to
+		     six decimals and saves it through `addAccommodationDraft` as the
+		     latitude and longitude of the property being listed.
+
+		`WhenInUse` with deliberately no `Always` variant: nothing runs in the
+		background, and asking for background location would be a review
+		question with no answer.
 	-->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Vallo centres the search map on where you are when you tap the locate button, so you can see homes and places near you without typing an address. Your position is used on this device only and is never sent to Vallo.</string>
+	<string>Vallo uses your location in two places, and only when you tap for it. Tapping locate on the search map centres it on where you are, and that stays on this device. Tapping use my location while you are listing a property saves those coordinates as the address of that property, so they are sent to Vallo and kept on the listing.</string>
 	<!--
 		Read when the person picks an existing image or document from the file
 		inputs behind listing photos, profile pictures, message attachments and

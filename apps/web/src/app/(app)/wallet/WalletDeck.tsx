@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
@@ -75,6 +75,7 @@ export function WalletDeck({
   cryptoEnabled = false,
   usdRate = null,
   initialAction = null,
+  settings = null,
 }: {
   locale: Locale;
   copy: HomeCopy;
@@ -82,6 +83,12 @@ export function WalletDeck({
   entries: WalletEntry[];
   breakdown: BalanceBreakdown;
   live: boolean;
+  /**
+   * The wallet's settings control, rendered in the balance card's corner
+   * rather than in a page header row of its own. See the note at its call
+   * site: the governing render draws ONE header row and then the card.
+   */
+  settings?: ReactNode;
   /** The viewer's saved cards, for the Top Up sheet. Empty when none or unreadable. */
   cards?: PaymentMethod[];
   /**
@@ -175,6 +182,20 @@ export function WalletDeck({
                 {inUsd ? "$" : "₦"}
               </button>
             ) : null}
+            {/*
+             * The wallet's own settings, in the balance card's corner.
+             *
+             * It used to sit in a `PageHeader` row under the app bar, and
+             * `6AF37222` draws no such row: one header, then the balance card.
+             * MEASURED ON THE SHIPPED PROOF, that row cost about 68 logical px
+             * and started the balance card at y=160 where the render starts it
+             * at y=122, which is why the whole screen read lower and looser
+             * than the image. The app bar already carries the render's header,
+             * so the row was a second one and the control needed a home. Here
+             * it costs no vertical space at all: it joins the row the label,
+             * the mask toggle and the currency toggle already occupy.
+             */}
+            {settings ? <span className="ml-auto flex items-center">{settings}</span> : null}
           </div>
 
           {/* The figure. Masked, it is six discs behind the locale's own
@@ -263,12 +284,14 @@ export function WalletDeck({
               </span>
               {copy.topUp}
             </button>
-            <Link href="/crypto#fund" className="nf-wallet-tile">
-              <span className="nf-wallet-tile__glyph">
-                <UiIcon name="repost" size={24} />
-              </span>
-              {copy.crypto}
-            </Link>
+            {/*
+              THE CRYPTO TOP-UP TILE POINTED AT A ROUTE THAT IS NOW A 404.
+              `/crypto` returns `notFound()` for version one (HANDOFF 08
+              section 5.2), so this tile would have taken a reviewer from the
+              wallet straight into a not-found page. DEFERRED, NOT CANCELLED:
+              `copy.crypto` stays in the dictionary, the Yellow Card client
+              stays, and this comment is where the tile comes back.
+            */}
           </nav>
         </div>
       </section>
@@ -682,7 +705,7 @@ function WithdrawForm({
         </p>
       )}
       {holder.state === "found" && (
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-sm">
+        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-brand-edge)] bg-[var(--nf-surface-inset)] px-sm py-sm">
           <p className="nf-overline">Name on the account</p>
           <p className="nf-body mt-3xs font-semibold text-[var(--nf-content-primary)]">{holder.name}</p>
         </div>
@@ -709,7 +732,7 @@ function BalanceLine({ balanceMinor, locale }: { balanceMinor: number; locale: L
   const digitAt = amount.whole.search(/\d/);
   const lead = digitAt === -1 ? amount.whole : amount.whole.slice(0, digitAt);
   return (
-    <p className="nf-body-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-row py-inline text-[var(--nf-content-muted)]">
+    <p className="nf-body-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-brand-edge)] bg-[var(--nf-surface-inset)] px-row py-inline text-[var(--nf-content-muted)]">
       Available balance{" "}
       <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
         {lead}
