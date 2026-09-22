@@ -143,6 +143,24 @@ Internal split between Session B workers (for Session B's own coordination):
   moderation, kyc (verification), queue, support.
 - admin-money: money, escrow, supply, bookings, payments.
 
+### 8. The welcome email (founder instruction, 22 September)
+Session B owns the welcome email's DESIGN AND WORDS. Session A owns wiring the
+send (`lib/notify/welcome.ts`, `welcomeOnce`, the `welcomed_at` guard, the
+callers in `lib/auth/actions.ts`) and Session B does not touch any of that.
+- `apps/web/src/lib/email/welcome-message.ts` (new): the welcome template moves
+  here, all role versions, HTML, preheader and plain text.
+- `apps/web/src/lib/email/welcome-message.test.ts` (new)
+- `apps/web/src/lib/email/messages.ts`: ONLY the `welcome` function, its
+  `WelcomeData` type and the helpers used by nothing else, until the move lands;
+  after it, the single re-export line. **Session A: please do not edit the
+  welcome template while this entry stands.** Every other message in that file
+  stays yours.
+- NOT `lib/email/shell.ts`, `render.ts`, `theme.ts`, `client.ts`,
+  `recipients.ts`, `fixtures.ts`: shared, Session A's. Anything the welcome
+  needs there is raised below as a request.
+- The screen the email's button lands on is a Session B surface (`/welcome` or
+  another listed above), so the tap-through feels like the email that sent it.
+
 ### Shared, additive only
 - `packages/i18n/**` dictionaries: ADDING keys inside the `sessionB` namespace or
   inside the existing `wallet`, `profile`, `auth`, `welcome`, `admin` and `inspections` namespaces, in all
