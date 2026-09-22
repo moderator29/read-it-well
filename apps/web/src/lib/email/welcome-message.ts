@@ -1,281 +1,611 @@
 /**
  * The welcome email: the first thing Vallo ever sends somebody unprompted.
  *
- * Moved here from `messages.ts` so its design and words have one home of their
- * own. `messages.ts` re-exports `welcome` and its types, so no caller changes:
- * `lib/notify/welcome.ts` (the send, the `welcomed_at` guard) still imports
- * from the catalogue exactly as before.
+ * WHAT IT IS FOR. Every other message in the catalogue answers something the
+ * reader did: a booking, a payment, a code they asked for. This one answers
+ * nothing. It arrives because a person confirmed their address, and it is the
+ * first time Vallo speaks to them in their inbox, so it is written as a door
+ * opening rather than a receipt: their name, what Vallo is in one sentence
+ * worth reading, the two sides of the account, three first steps in their own
+ * terms, and one lit button that takes them to `/welcome`, the first run
+ * screen, whose "Two worlds. One platform." this message echoes.
+ *
+ * WHY IT HAS ITS OWN DOCUMENT RATHER THAN `compose`. The shared shell in
+ * `render.ts` renders a closed set of blocks, which is right for a receipt and
+ * too plain for this. The welcome needs the two world tiles, numbered step
+ * plates, a lit button with a bright top edge and a bloom, and mobile stacking.
+ * It is built here from the SAME palette, type stack, measurements, lockup,
+ * sign-off and legal line (`theme.ts`) and the same escaping and URL helpers
+ * (`render.ts`), so it is visibly the same family, and it satisfies every
+ * structural rule `shell.test.ts` holds the whole catalogue to: tables only,
+ * one style block that nothing depends on, the ground painted three times,
+ * exactly two images (the lockup), a hidden inbox line, 600px and fluid.
+ *
+ * WHO SENDS IT. Not this file. `lib/notify/welcome.ts` (`welcomeOnce`) sends
+ * it once, on confirmation, guarded by `profiles.welcomed_at`, and picks the
+ * version from `profiles.signup_role`. That wiring is Session A's; this file
+ * is the design and the words.
+ *
+ * THE WORDS NEVER CLAIM WHAT NOBODY CAN STAND BEHIND. No counts, no promise
+ * about what the platform holds, nothing insured or guaranteed, nothing
+ * verified that is not. Every first step resolves to a route that exists, and
+ * `welcome-message.test.ts` checks each one against the app directory.
  */
 
 import type { EmailMessage } from "./messages";
+import { appUrl, escapeHtml, greetingName, hello, siteUrl } from "./render";
 import {
-  appUrl,
-  bullets,
-  button,
-  compose,
-  heading,
-  hello,
-  note,
-  paragraph,
-  type Block,
-} from "./render";
-
-/** The safety line for somebody about to pay or about to meet a lister. */
-const MONEY_SAFETY_LINE =
-  "Keep your chats and your payments inside Vallo, and pay only after you have inspected the property.";
-
-/** The same guidance, stated to a lister about the people contacting them. */
-const LISTER_SAFETY_LINE =
-  "Vallo asks everybody to keep chats and payments inside Vallo and to pay only after inspecting.";
+  DARK,
+  ELECTRIC,
+  FONT_SANS,
+  GLOW,
+  GRADIENT,
+  GRADIENT_CAP,
+  LEGAL_LINE,
+  MARK_HEIGHT,
+  MARK_PATH,
+  MARK_WIDTH,
+  MAX_WIDTH,
+  PAD_X,
+  SIGN_OFF,
+  SKY,
+  WORDMARK_ALT,
+  WORDMARK_HEIGHT,
+  WORDMARK_PATH,
+  WORDMARK_WIDTH,
+} from "./theme";
 
 /**
  * What somebody said they came here to do.
  *
  * Mirrors `public.signup_role`. A DECLARATION and never a permission: choosing
  * "agent" here does not make anybody an agent, which still needs the
- * application, the ID and the approval. It decides which welcome this is.
+ * registration, the ID and a person at Vallo approving it. It decides which
+ * welcome this is.
  */
 export type SignupRole = "renter" | "buyer" | "landlord" | "seller" | "agent";
 
 export type WelcomeData = {
   name?: string | null;
+  /**
+   * The public handle, used to greet somebody only when there is no name.
+   * Optional: the send site passes the display name today.
+   */
+  handle?: string | null;
   /** Null when they were never asked, or skipped. That is an ordinary state. */
   role?: SignupRole | null;
 };
 
 /**
- * The welcome, written five times over plus a general one.
+ * Every path this message may link to, and nothing else.
  *
- * A single welcome that lists everything the platform does is a brochure, and
- * a brochure is what people archive without reading. Somebody who came here to
- * find a flat has one useful next step and it is not "list your property".
- *
- * Each version says the same three things in the reader's own terms: what to
- * do next, what protects them, and one true thing about how this market works
- * that they will be glad to know before they start. The last of those is the
- * part a generic welcome cannot do at all.
- *
- * The general version is not a lesser one. It is the honest answer when
- * nothing was declared, and it names the two directions rather than guessing.
+ * Each one is a page in `apps/web/src/app`, and the test file proves it by
+ * looking for the page file. Query strings are allowed on top of a path here.
  */
-/**
- * Every welcome, with the one footer line that says where the switch is.
- *
- * The settings card promises a person can turn Vallo's email off, so the very
- * first email Vallo sends says where that is, in the small print, which is
- * where somebody looks for it. It is not an unsubscribe and does not call
- * itself one: this message is transactional, there is nothing to unsubscribe
- * from, and an unsubscribe needs List-Unsubscribe headers the client does not
- * send yet. Offering the real switch is the honest version of the gesture.
+export const WELCOME_ROUTES = [
+  "/welcome",
+  "/search",
+  "/stays",
+  "/saved",
+  "/inspections",
+  "/safety",
+  "/profile/setup",
+  "/profile/setup/owner",
+  "/verification",
+  "/agent/list",
+  "/settings/notifications",
+] as const;
+
+export type WelcomeRoute = (typeof WELCOME_ROUTES)[number];
+
+/** Where the lit button goes: the first run screen, `/welcome`. */
+export const WELCOME_LANDING: WelcomeRoute = "/welcome";
+
+type Step = {
+  title: string;
+  body: string;
+  link: { label: string; path: WelcomeRoute; query?: string };
+};
+
+type Version = {
+  preheader: string;
+  /** The one sentence that says we heard what they came for. */
+  opening: string;
+  steps: readonly [Step, Step, Step];
+  /** The one safety sentence, in the calm panel under the button. */
+  note: string;
+};
+
+/* ------------------------------------------------------------------ words */
+
+const HEADLINE_TWO = "Make yourself at home.";
+
+const EYEBROW = "Welcome to Vallo";
+
+const WHAT_VALLO_IS =
+  "Vallo is one account with two sides to it, and you can flip between them whenever you like.";
+
+const WORLDS = [
+  { name: "Property", line: "Homes to rent, buy or sell." },
+  { name: "Stays", line: "Hotels, shortlets and restaurant tables." },
+] as const;
+
+const SECTION_LABEL = "Where to begin";
+
+const BUTTON_LABEL = "Step inside";
+
+/*
+ * TRUE OF BOTH WAYS THE BUTTON CAN LAND. Signed in, `/welcome` shows the first
+ * run (or goes on home once it has been seen). Signed out on another device, it
+ * shows the same slides ending on Sign in, so all the reader needs is the
+ * address this email went to.
  */
-function welcomeShell(
-  subject: string,
-  preheader: string,
-  blocks: readonly (Block | null | undefined | false)[],
-  footerLines: readonly string[],
-): EmailMessage {
-  const { html, text } = compose({
-    preheader,
-    blocks,
-    footerLines,
-    footerLink: {
-      label: "Change what Vallo emails you",
-      href: appUrl("/settings/notifications"),
-    },
-  });
-  return { subject, html, text };
+const BUTTON_AFTER = "Opening this on another device? Sign in there with this same address.";
+
+const PAY_INSIDE =
+  "One thing worth knowing from day one: nobody from Vallo will ever ask you to pay outside Vallo. If somebody does, report them from the listing.";
+
+const LISTER_NOTE =
+  "Keep your conversations and payments inside Vallo. It is the record both sides can point to if anything is ever in question.";
+
+const FOOTER_REASON = "You are receiving this because you created a Vallo account with this address.";
+
+const FOOTER_LINK_LABEL = "Change what Vallo emails you";
+
+const REGISTER_OWNER: Step = {
+  title: "Register as an owner",
+  body: "A few short screens about you and the property. A person at Vallo reads every registration before listings go up, so what people see has somebody behind it.",
+  link: { label: "Register as an owner", path: "/profile/setup/owner" },
+};
+
+const VERIFY: Step = {
+  title: "Verify who you are",
+  body: "Identity, then address, then your payout account, then a check in person. Each step you complete shows on your listings.",
+  link: { label: "Start verification", path: "/verification" },
+};
+
+const SEE_IT: Step = {
+  title: "Ask, then go and see it",
+  body: "Message the lister from the listing and keep your questions in writing. When you are ready, request an inspection and see the place in person before any money moves.",
+  link: { label: "Your inspections", path: "/inspections" },
+};
+
+const VERSIONS: Record<SignupRole | "general", Version> = {
+  renter: {
+    preheader: "Your account is ready. Here is where we would start looking for somewhere to live.",
+    opening: "You told us you are looking for somewhere to live. Here is where we would start.",
+    steps: [
+      {
+        title: "Search where you want to live",
+        body: "Filter by area and budget. Where a listing states its total move-in cost, sort by that rather than the rent, because the rent is rarely the whole of what it takes to move in.",
+        link: { label: "Search homes to rent", path: "/search", query: "market=rent&sort=move-in-asc" },
+      },
+      SEE_IT,
+      {
+        title: "Keep what you like",
+        body: "Save homes and searches as you go, so they are waiting for you when you come back.",
+        link: { label: "Your saved homes", path: "/saved" },
+      },
+    ],
+    note: PAY_INSIDE,
+  },
+
+  buyer: {
+    preheader: "Your account is ready. Start with search, and read the title before the price.",
+    opening: "You told us you are looking to buy. Here is where we would start, and the one thing we would want you to know first.",
+    steps: [
+      {
+        title: "Search property for sale",
+        body: "Filter by area and price, and read each listing's title before its photographs.",
+        link: { label: "Browse property for sale", path: "/search", query: "market=buy" },
+      },
+      {
+        title: "Read the title first",
+        body: "Every listing for sale states the title the seller claims, or says plainly that none was given. We record the claim and we cannot verify it. Have your lawyer search it at the land registry before any money moves.",
+        link: { label: "How Vallo thinks about safety", path: "/safety" },
+      },
+      {
+        title: "See it in person",
+        body: "Message the seller inside Vallo, keep every answer in writing, and inspect the property before you commit to anything.",
+        link: { label: "Your inspections", path: "/inspections" },
+      },
+    ],
+    note: PAY_INSIDE,
+  },
+
+  landlord: {
+    preheader: "Your account is ready. Here is how your property gets onto Vallo.",
+    opening: "You told us you have property to let. Here is how it gets onto Vallo.",
+    steps: [
+      REGISTER_OWNER,
+      VERIFY,
+      {
+        title: "Put the whole cost in",
+        body: "When your listing goes up, state the total a tenant needs to move in, not only the rent. Photographs earn a viewing; a walkthrough video answers the questions before anybody asks them.",
+        link: { label: "Open the listing form", path: "/agent/list" },
+      },
+    ],
+    note: LISTER_NOTE,
+  },
+
+  seller: {
+    preheader: "Your account is ready. Here is how your property gets onto Vallo, title first.",
+    opening: "You told us you have property to sell. Here is how it gets onto Vallo, starting with the part buyers read first.",
+    steps: [
+      REGISTER_OWNER,
+      {
+        title: "State the title you hold",
+        body: "Buyers read the title before the price. Name the certificate of occupancy, governor's consent or deed you hold, and have the document to hand.",
+        link: { label: "Open the listing form", path: "/agent/list" },
+      },
+      VERIFY,
+    ],
+    note: LISTER_NOTE,
+  },
+
+  agent: {
+    preheader: "Your account is ready. Register as an agent or a firm, then list.",
+    opening: "You do this for a living, so here is the short route in.",
+    steps: [
+      {
+        title: "Register as an agent or a firm",
+        body: "Tell us who you are, where you work and what you charge. Agents are checked more closely than owners, because you handle other people's property, and a person at Vallo reads every registration.",
+        link: { label: "Choose agent or firm", path: "/profile/setup" },
+      },
+      VERIFY,
+      {
+        title: "List, and state the full cost",
+        body: "Once you are approved, the listing form walks you through a property from the photographs to the total a tenant will actually pay to move in.",
+        link: { label: "Open the listing form", path: "/agent/list" },
+      },
+    ],
+    note: LISTER_NOTE,
+  },
+
+  general: {
+    preheader: "Your account is ready. Two sides, one account, and three good places to begin.",
+    opening: "You have not told us what brought you here, and you do not need to. Any of these is a good place to begin.",
+    steps: [
+      {
+        title: "Look for a home",
+        body: "Rent or buy, filtered by area and budget, with the full move-in cost shown wherever the lister has stated it.",
+        link: { label: "Search homes", path: "/search" },
+      },
+      {
+        title: "Find somewhere to stay",
+        body: "Hotels, shortlets and restaurant tables live on the Stays side of the same account.",
+        link: { label: "Open Stays", path: "/stays" },
+      },
+      {
+        title: "Have property to let or sell",
+        body: "Register as an owner, an agent or a firm. A person at Vallo reads every registration before listings go up.",
+        link: { label: "Register your property", path: "/profile/setup" },
+      },
+    ],
+    note: PAY_INSIDE,
+  },
+};
+
+/* ---------------------------------------------------------------- helpers */
+
+/** A theme hex as an rgba() string, so the bloom stays on the palette. */
+function rgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
-export function welcome(data: WelcomeData): EmailMessage {
-  const greeting = hello(data.name);
+function href(link: Step["link"]): string {
+  return appUrl(link.path) + (link.query ? `?${link.query}` : "");
+}
 
-  switch (data.role) {
-    case "renter":
-      return welcomeShell(
-        "Welcome to Vallo",
-        "Start with search, and read the total move-in cost before you plan a viewing.",
-        [
-          heading("Welcome to Vallo"),
-          paragraph(
-            `${greeting} You are here to find somewhere to live, so here is what is worth knowing before you start looking.`,
-          ),
-          paragraph(
-            "Every listing on Vallo was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message and somebody to inspect the place with.",
-          ),
-          paragraph(
-            "The rent is rarely the whole number. Caution deposit, agency fee, legal fee, agreement fee and service charge are normal here, and together they are often half as much again. Where a listing states its total move-in cost, that is the figure to plan around.",
-          ),
-          bullets([
-            "Search by area, then filter on the total move-in cost rather than the rent.",
-            "Message the lister inside Vallo and ask your questions in writing.",
-            "Inspect the property in person before any money moves.",
-            "Pay through Vallo, so there is a record of what you paid, to whom and when. Never send money outside the platform, whatever the reason given.",
-          ]),
-          button("Start searching", appUrl("/search")),
-          note(
-            "Nobody at Vallo will ever ask you to pay outside the platform. If somebody does, report them from the listing.",
-          ),
-        ],
-        [
-          "You are receiving this because you created a Vallo account.",
-          MONEY_SAFETY_LINE,
-        ],
-      );
+/**
+ * The name to greet by: the first name, else the handle, else nobody.
+ * `hello()` owns the fallback, so "Hello ," cannot happen here either.
+ */
+function greeting(data: WelcomeData): string {
+  if (greetingName(data.name) !== null) return hello(data.name);
+  const handle = (data.handle ?? "").trim().replace(/^@+/, "");
+  return hello(handle.length > 0 ? handle : null);
+}
 
-    case "buyer":
-      return welcomeShell(
-        "Welcome to Vallo",
-        "Start with search, and never let money move before a lawyer has seen the title.",
-        [
-          heading("Welcome to Vallo"),
-          paragraph(
-            `${greeting} You are here to buy, so the most useful thing we can tell you first is about title.`,
-          ),
-          paragraph(
-            "Certificate of occupancy, governor's consent, deed of assignment, gazette, freehold and leasehold are not interchangeable words. Every listing for sale on Vallo states which one the seller claims, and states plainly when none was given.",
-          ),
-          paragraph(
-            "We record the claim. We cannot verify it, and nobody who is not a lawyer at the land registry can. Have yours do a search before any money moves, however good the paperwork looks.",
-          ),
-          bullets([
-            "Search by area and filter on the title you are willing to accept.",
-            "Message the seller inside Vallo and keep every answer in writing.",
-            "Inspect the property, and have a lawyer verify title at the registry.",
-            "Pay through Vallo, so there is a record of what you paid, to whom and when. Never send money outside the platform, whatever the reason given.",
-          ]),
-          button("Browse property for sale", appUrl("/search")),
-          note(
-            "Nobody at Vallo will ever ask you to pay outside the platform. If somebody does, report them from the listing.",
-          ),
-        ],
-        [
-          "You are receiving this because you created a Vallo account.",
-          MONEY_SAFETY_LINE,
-        ],
-      );
-
-    case "landlord":
-      return welcomeShell(
-        "Welcome to Vallo",
-        "List your property, and get verified so people trust what you have written.",
-        [
-          heading("Welcome to Vallo"),
-          paragraph(
-            `${greeting} You have property to let, so here is what makes a listing on Vallo work.`,
-          ),
-          paragraph(
-            "State the whole cost. Rent, caution deposit, agency, legal, agreement and service charge, and the total somebody actually has to find. Listings that state the total get far fewer wasted viewings, because the people who arrive have already decided they can afford it.",
-          ),
-          paragraph(
-            "Then get verified. The badge is not decoration: it is how somebody scrolling past decides that you are real. The ladder runs from your phone number to your ID, then your address, then a physical inspection of the property.",
-          ),
-          bullets([
-            "Add the property, with photographs and a walkthrough video if you can.",
-            "Answer the light, water and gate questions. People filter on them.",
-            "State the total move-in cost, not only the rent.",
-            "Work up the verification ladder from Settings.",
-          ]),
-          button("List your property", appUrl("/agent/listings/new")),
-          note(
-            "Keep every conversation and payment inside Vallo. It is the record that protects you as much as it protects your tenant.",
-          ),
-        ],
-        [
-          "You are receiving this because you created a Vallo account.",
-          LISTER_SAFETY_LINE,
-        ],
-      );
-
-    case "seller":
-      return welcomeShell(
-        "Welcome to Vallo",
-        "List your property, and state the title you hold.",
-        [
-          heading("Welcome to Vallo"),
-          paragraph(
-            `${greeting} You have property to sell, so state your title first and everything else follows.`,
-          ),
-          paragraph(
-            "Buyers on Vallo filter on title before they filter on price. A listing that names its certificate of occupancy or its governor's consent is taken seriously; one that says nothing is assumed to have nothing, whether or not that is fair.",
-          ),
-          paragraph(
-            "Photographs sell a viewing, a walkthrough video sells the property. A continuous walk through the building and out to the gate answers more questions than twenty stills, and it is the thing a serious buyer asks for.",
-          ),
-          bullets([
-            "Add the property, the asking price and the title you hold.",
-            "Upload photographs, and a walkthrough video where you can.",
-            "Work up the verification ladder from Settings.",
-            "Answer enquiries inside Vallo, so the conversation is on the record.",
-          ]),
-          button("List your property", appUrl("/agent/listings/new")),
-          note(
-            "Keep every conversation and payment inside Vallo. It is the record that protects you as much as it protects your buyer.",
-          ),
-        ],
-        [
-          "You are receiving this because you created a Vallo account.",
-          LISTER_SAFETY_LINE,
-        ],
-      );
-
-    case "agent":
-      return welcomeShell(
-        "Welcome to Vallo",
-        "Apply to be verified, then list. Verification is what earns reach here.",
-        [
-          heading("Welcome to Vallo"),
-          paragraph(
-            `${greeting} You do this for a living, so the part worth your attention is verification.`,
-          ),
-          paragraph(
-            "Vallo carries no listings from outside feeds. Everything here was put up by somebody here, and the verification ladder is how a reader tells one lister from another: phone, then identity document, then address, then a physical inspection of a property.",
-          ),
-          paragraph(
-            "Reach follows the ladder. A verified agent's listings rank above an unverified one at equal relevance, and that is the only thing on this platform that money cannot buy.",
-          ),
-          bullets([
-            "Apply from your profile: your details, your business area and a valid ID.",
-            "Applications and verification documents are answered within 3 days.",
-            "Once approved, publish listings and answer enquiries inside Vallo.",
-            "State the full move-in cost on every rental. It is what people shop on.",
-          ]),
-          button("Apply to be an agent", appUrl("/agent/apply")),
-          note(
-            "Vallo charges you nothing to list or to be verified.",
-          ),
-        ],
-        [
-          "You are receiving this because you created a Vallo account.",
-          LISTER_SAFETY_LINE,
-        ],
-      );
-
-    default:
-      return welcomeShell(
-        "Welcome to Vallo",
-        "Everything here was listed by a real person. Here is how it works.",
-        [
-          heading("Welcome to Vallo"),
-          paragraph(
-            `${greeting} Vallo is a Nigerian property marketplace for renting, buying and selling.`,
-          ),
-          paragraph(
-            "Every listing was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the place with, and somebody accountable for what a listing says.",
-          ),
-          paragraph(
-            "Pay inside Vallo and there is a record of what you paid, to whom and when, which is what we can act on when something goes wrong. The person behind a listing climbs a verification ladder you can see: phone, identity document, address, then a physical inspection.",
-          ),
-          bullets([
-            "Looking for somewhere: start with search and filter on the total move-in cost.",
-            "Have property: add it from your profile and work up the verification ladder.",
-          ]),
-          button("Start searching", appUrl("/search")),
-          note("Nobody at Vallo will ever ask you to pay outside the platform."),
-        ],
-        [
-          "You are receiving this because you created a Vallo account.",
-          MONEY_SAFETY_LINE,
-        ],
-      );
+/** Wrap plain text to a readable measure, with an optional hanging indent. */
+function wrap(text: string, width = 72, indent = ""): string {
+  const words = text.split(/\s+/).filter((w) => w.length > 0);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    if (line.length === 0) line = word;
+    else if (indent.length + line.length + 1 + word.length <= width) line += " " + word;
+    else {
+      lines.push(indent + line);
+      line = word;
+    }
   }
+  if (line.length > 0) lines.push(indent + line);
+  return lines.join("\n");
+}
+
+/* ------------------------------------------------------------------- html */
+
+const TEXT = `font-family:${FONT_SANS};`;
+
+/**
+ * The style block. Nothing the message depends on lives here: it re-asserts
+ * the inline palette for the clients that repaint a dark email (Apple Mail and
+ * iOS by the media query, Outlook.com by `[data-ogsc]`; Gmail strips both and
+ * the inline layer holds it), and it stacks the two world tiles and tightens
+ * the card on a phone. A client that drops it still gets a complete, legible,
+ * fluid message.
+ */
+const STYLE = `
+      :root { color-scheme: dark; supported-color-schemes: dark; }
+      @media (prefers-color-scheme: dark) {
+        .rm-base   { background: ${DARK.ground} !important; }
+        .rm-card   { background: ${DARK.card} !important; border-color: ${DARK.rim} !important; }
+        .rm-panel  { background: ${DARK.panel} !important; border-color: ${DARK.edge} !important; }
+        .rm-title  { color: ${DARK.text} !important; }
+        .rm-body   { color: ${DARK.body} !important; }
+        .rm-muted  { color: ${DARK.muted} !important; }
+        .rm-brand  { color: ${SKY} !important; }
+      }
+      [data-ogsc] .rm-base   { background: ${DARK.ground} !important; }
+      [data-ogsc] .rm-card   { background: ${DARK.card} !important; border-color: ${DARK.rim} !important; }
+      [data-ogsc] .rm-panel  { background: ${DARK.panel} !important; border-color: ${DARK.edge} !important; }
+      [data-ogsc] .rm-title  { color: ${DARK.text} !important; }
+      [data-ogsc] .rm-body   { color: ${DARK.body} !important; }
+      [data-ogsc] .rm-muted  { color: ${DARK.muted} !important; }
+      [data-ogsc] .rm-brand  { color: ${SKY} !important; }
+      @media only screen and (max-width: 480px) {
+        .wm-card  { padding: 30px 22px 32px !important; }
+        .wm-h1    { font-size: 27px !important; }
+        .wm-world { display: block !important; width: auto !important; }
+        .wm-gap   { display: block !important; width: 100% !important; height: 10px !important; }
+        .wm-steps { padding: 16px 16px 2px !important; }
+        .wm-plate { width: 36px !important; padding-right: 10px !important; }
+        .wm-btn   { width: 100% !important; }
+        .wm-btn a { display: block !important; }
+      }`;
+
+function worldTile(world: (typeof WORLDS)[number]): string {
+  /* The panel is painted on the row's own cell, not on a nested table, so the
+     two tiles share one height the way the first run screen's cards do. */
+  return `<td class="wm-world rm-panel" width="50%" valign="top" bgcolor="${DARK.panel}" style="width:50%;vertical-align:top;background:${DARK.panel};border:1px solid ${DARK.edge};border-top:1px solid ${DARK.rim};border-radius:16px;padding:16px 18px 17px;">
+                      <p class="rm-brand" style="margin:0 0 6px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${SKY};">${escapeHtml(world.name)}</p>
+                      <p class="rm-body" style="margin:0;${TEXT}font-size:14px;line-height:1.5;color:${DARK.body};">${escapeHtml(world.line)}</p>
+                    </td>`;
+}
+
+function stepRow(step: Step, index: number): string {
+  const top = index === 0 ? "" : `border-top:1px solid ${DARK.edge};`;
+  return `<tr>
+                          <td class="wm-plate" width="44" valign="top" style="width:44px;vertical-align:top;padding:${index === 0 ? "4px" : "18px"} 14px 18px 0;${top}">
+                            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                              <td class="rm-brand" align="center" valign="middle" width="36" height="36" style="width:36px;height:36px;background:${DARK.card};border:1px solid ${DARK.edge};border-top:1px solid ${SKY};border-radius:10px;${TEXT}font-size:15px;line-height:36px;font-weight:700;text-align:center;color:${SKY};mso-line-height-rule:exactly;">${index + 1}</td>
+                            </tr></table>
+                          </td>
+                          <td valign="top" style="vertical-align:top;padding:${index === 0 ? "4px" : "18px"} 0 18px;${top}">
+                            <p class="rm-title" style="margin:0 0 6px;${TEXT}font-size:16px;line-height:1.4;font-weight:700;letter-spacing:-0.01em;color:${DARK.text};">${escapeHtml(step.title)}</p>
+                            <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:15px;line-height:1.6;color:${DARK.body};">${escapeHtml(step.body)}</p>
+                            <p style="margin:0;${TEXT}font-size:14px;line-height:20px;font-weight:600;"><a class="rm-brand" href="${escapeHtml(href(step.link))}" target="_blank" style="color:${SKY};text-decoration:underline;text-underline-offset:3px;">${escapeHtml(step.link.label)}&nbsp;&rarr;</a></p>
+                          </td>
+                        </tr>`;
+}
+
+/**
+ * The lit button, bulletproof.
+ *
+ * Every client but classic Outlook draws the HTML anchor: a gradient over a
+ * solid brand blue declared FIRST (Word drops background images and keeps the
+ * colour), a brighter top edge from a lighter border and an inset highlight,
+ * and a soft bloom from box-shadow where the client renders it (Apple Mail,
+ * iOS, most webmail; Gmail drops it, which leaves the lit fill). Classic
+ * Outlook gets a VML rounded rectangle in the same electric blue with the
+ * same label, because Word ignores padding on an anchor and would otherwise
+ * draw a text link. 14px radius on a 52px button: a rounded rectangle, never a
+ * capsule.
+ */
+function litButton(label: string, url: string): string {
+  const safeUrl = escapeHtml(url);
+  const safeLabel = escapeHtml(label);
+  return `<!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeUrl}" style="height:52px;v-text-anchor:middle;width:240px;" arcsize="27%" strokecolor="${SKY}" strokeweight="1px" fillcolor="${GLOW}">
+                    <w:anchorlock/>
+                    <center style="color:#FFFFFF;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;">${safeLabel}</center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <table role="presentation" class="wm-btn" cellpadding="0" cellspacing="0" style="margin:6px 0 0;">
+                    <tr>
+                      <td align="center" bgcolor="${GLOW}" style="border-radius:14px;background-color:${GLOW};background-image:${GRADIENT};box-shadow:0 12px 28px -8px ${rgba(GLOW, 0.65)},0 0 0 1px ${rgba(ELECTRIC, 0.6)},inset 0 1px 0 ${rgba("#FFFFFF", 0.32)};">
+                        <a href="${safeUrl}" target="_blank" style="display:inline-block;padding:15px 36px 16px;${TEXT}font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;border-top:1px solid ${SKY};">${safeLabel}&nbsp;&nbsp;&rarr;</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <!--<![endif]-->`;
+}
+
+function renderHtml(version: Version, greetingLine: string): string {
+  const worlds = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 28px;">
+                  <tr>
+                    ${worldTile(WORLDS[0])}
+                    <td class="wm-gap" width="12" style="width:12px;font-size:0;line-height:0;">&nbsp;</td>
+                    ${worldTile(WORLDS[1])}
+                  </tr>
+                </table>`;
+
+  const steps = version.steps.map(stepRow).join("\n                        ");
+
+  return `<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
+    <title>Welcome to Vallo</title>
+    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+    <style>${STYLE}
+    </style>
+  </head>
+  <body class="rm-base" bgcolor="${DARK.ground}" style="margin:0;padding:0;width:100%;background:${DARK.ground};color:${DARK.body};${TEXT}-webkit-font-smoothing:antialiased;">
+    <!-- The hidden inbox line, with spacer entities after it so a client does
+         not pull the first words of the body in behind it. -->
+    <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;max-width:0;overflow:hidden;font-size:1px;line-height:1px;mso-hide:all;">${escapeHtml(version.preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</span>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" bgcolor="${DARK.ground}" style="width:100%;background:${DARK.ground};">
+      <tr>
+        <td align="center" style="padding:36px 12px 44px;">
+          <!--[if mso]><table role="presentation" width="${MAX_WIDTH}" cellpadding="0" cellspacing="0" align="center"><tr><td><![endif]-->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:${MAX_WIDTH}px;width:100%;">
+            <!-- The lit rim: a luminous rule along the top edge of the glass
+                 card, brightest at its centre. A solid electric blue first, for
+                 Outlook, which drops the gradient. -->
+            <tr><td style="height:4px;line-height:4px;font-size:0;background-color:${GLOW};background-image:${GRADIENT_CAP};border-radius:20px 20px 0 0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
+            <tr>
+              <td class="rm-card wm-card" bgcolor="${DARK.card}" style="background:${DARK.card};border:1px solid ${DARK.rim};border-top:0;border-radius:0 0 20px 20px;padding:${PAD_X}px ${PAD_X}px 38px;">
+                <!-- The lockup. The mark carries no words (alt empty); the
+                     wordmark is the word (alt Vallo), so with images off the
+                     reader sees the name once, in its place. -->
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="vertical-align:middle;padding-right:10px;">
+                      <img src="${siteUrl()}${MARK_PATH}" width="${MARK_WIDTH}" height="${MARK_HEIGHT}" alt="" style="display:block;width:${MARK_WIDTH}px;height:${MARK_HEIGHT}px;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                    <td style="vertical-align:middle;">
+                      <img src="${siteUrl()}${WORDMARK_PATH}" width="${WORDMARK_WIDTH}" height="${WORDMARK_HEIGHT}" alt="${WORDMARK_ALT}" class="rm-brand" style="display:block;width:${WORDMARK_WIDTH}px;height:${WORDMARK_HEIGHT}px;border:0;outline:none;text-decoration:none;${TEXT}font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.025em;color:${SKY};" />
+                    </td>
+                  </tr>
+                </table>
+                <div style="height:34px;line-height:34px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
+                <p class="rm-brand" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${SKY};">${escapeHtml(EYEBROW)}</p>
+                <h1 class="wm-h1" style="margin:0 0 18px;${TEXT}font-size:31px;line-height:1.18;font-weight:700;letter-spacing:-0.025em;color:${DARK.text};"><span class="rm-title" style="color:${DARK.text};">${escapeHtml(greetingLine)}</span><br /><span class="rm-brand" style="color:${SKY};">${escapeHtml(HEADLINE_TWO)}</span></h1>
+                <p class="rm-body" style="margin:0 0 22px;${TEXT}font-size:17px;line-height:1.6;color:${DARK.body};">${escapeHtml(WHAT_VALLO_IS)}</p>
+                ${worlds}
+                <p class="rm-body" style="margin:0 0 26px;${TEXT}font-size:16px;line-height:1.65;color:${DARK.body};">${escapeHtml(version.opening)}</p>
+                <p class="rm-muted" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${DARK.muted};">${escapeHtml(SECTION_LABEL)}</p>
+                <!-- The first steps, on a glass panel with a lit top edge. -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 30px;">
+                  <tr>
+                    <td class="rm-panel wm-steps" bgcolor="${DARK.panel}" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-top:1px solid ${DARK.rim};border-radius:18px;padding:20px 22px 4px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+                        ${steps}
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+                ${litButton(BUTTON_LABEL, appUrl(WELCOME_LANDING))}
+                <p class="rm-muted" style="margin:14px 0 30px;${TEXT}font-size:13px;line-height:1.6;color:${DARK.muted};">${escapeHtml(BUTTON_AFTER)}</p>
+                <!-- The calm panel: one safety sentence and a small round glyph. -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+                  <tr>
+                    <td class="rm-panel" bgcolor="${DARK.panel}" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-radius:14px;padding:14px 16px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr>
+                        <td width="34" valign="top" style="width:34px;vertical-align:top;padding-top:1px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                            <td class="rm-brand" align="center" width="22" height="22" style="width:22px;height:22px;border:1px solid ${SKY};border-radius:11px;${TEXT}font-size:13px;line-height:22px;font-weight:700;text-align:center;color:${SKY};mso-line-height-rule:exactly;">i</td>
+                          </tr></table>
+                        </td>
+                        <td valign="top" class="rm-body" style="vertical-align:top;${TEXT}font-size:14px;line-height:1.6;color:${DARK.body};">${escapeHtml(version.note)}</td>
+                      </tr></table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <!-- The small print sits on the ground outside the card. -->
+            <tr>
+              <td style="padding:26px ${PAD_X - 12}px 0;">
+                <p class="rm-muted" style="margin:0 0 8px;${TEXT}font-size:13px;line-height:20px;color:${DARK.muted};">${escapeHtml(FOOTER_REASON)}</p>
+                <p class="rm-muted" style="margin:0 0 8px;${TEXT}font-size:13px;line-height:20px;color:${DARK.muted};"><a href="${escapeHtml(appUrl("/settings/notifications"))}" target="_blank" style="color:${SKY};text-decoration:underline;">${escapeHtml(FOOTER_LINK_LABEL)}</a></p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 0;">
+                  <tr>
+                    <td style="vertical-align:middle;padding-right:9px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                        <td style="width:18px;height:2px;line-height:2px;font-size:0;background-color:${GLOW};background-image:${GRADIENT};border-radius:1px;mso-line-height-rule:exactly;">&nbsp;</td>
+                      </tr></table>
+                    </td>
+                    <td style="vertical-align:middle;">
+                      <p class="rm-muted" style="margin:0;${TEXT}font-size:13px;line-height:20px;font-weight:600;color:${DARK.muted};">${SIGN_OFF}</p>
+                    </td>
+                  </tr>
+                </table>
+                <p class="rm-muted" style="margin:10px 0 0;${TEXT}font-size:12px;line-height:18px;color:${DARK.muted};">${LEGAL_LINE}</p>
+              </td>
+            </tr>
+          </table>
+          <!--[if mso]></td></tr></table><![endif]-->
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`;
+}
+
+/* ------------------------------------------------------------------- text */
+
+function renderText(version: Version, greetingLine: string): string {
+  const steps = version.steps
+    .map(
+      (step, i) =>
+        `${i + 1}. ${step.title}\n${wrap(step.body, 72, "   ")}\n   ${step.link.label}: ${href(step.link)}`,
+    )
+    .join("\n\n");
+
+  return (
+    [
+      "Vallo",
+      "",
+      EYEBROW,
+      "-".repeat(EYEBROW.length),
+      "",
+      greetingLine,
+      HEADLINE_TWO,
+      "",
+      wrap(WHAT_VALLO_IS),
+      "",
+      ...WORLDS.map((w) => `${w.name}: ${w.line}`),
+      "",
+      wrap(version.opening),
+      "",
+      SECTION_LABEL,
+      "-".repeat(SECTION_LABEL.length),
+      "",
+      steps,
+      "",
+      `${BUTTON_LABEL}:`,
+      appUrl(WELCOME_LANDING),
+      wrap(BUTTON_AFTER),
+      "",
+      wrap(version.note),
+      "",
+      wrap(FOOTER_REASON),
+      `${FOOTER_LINK_LABEL}: ${appUrl("/settings/notifications")}`,
+      "",
+      SIGN_OFF,
+      LEGAL_LINE,
+      siteUrl(),
+    ].join("\n") + "\n"
+  );
+}
+
+/* ----------------------------------------------------------------- public */
+
+/**
+ * The welcome, in six versions: five declared roles and the general one.
+ *
+ * The general version is not a lesser one. It is the honest answer when
+ * nothing was declared, and it names both sides rather than guessing.
+ */
+export function welcome(data: WelcomeData): EmailMessage {
+  const version = VERSIONS[data.role ?? "general"] ?? VERSIONS.general;
+  const hi = greeting(data);
+  const first =
+    greetingName(data.name) ?? greetingName((data.handle ?? "").trim().replace(/^@+/, ""));
+  return {
+    subject: first ? `Welcome to Vallo, ${first}` : "Welcome to Vallo",
+    html: renderHtml(version, hi),
+    text: renderText(version, hi),
+  };
 }
