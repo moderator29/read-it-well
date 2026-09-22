@@ -13,19 +13,150 @@ here and raised as a request in the scope file.
 
 ## 1. Before you start
 
-(admin-shell: who can enter the console, how access is checked, roles, what an
-operator sees on entry, how to read a panel, the status colours and words, what
-"no data yet" means on a chart and why the console never draws a number the
-database did not return)
+**Who can enter.** Anyone whose account holds the `admin` or `super_admin`
+role in `public.user_roles`. The check is `requireAdmin()` in
+`lib/admin/guard.ts`, called once in `app/admin/layout.tsx` before a single
+figure is read. Signed out, you are asked to sign in; signed in without the
+role, you see "This area is for the Vallo operations team" and nothing else.
+No console page renders its data for anyone else, and every read on the
+overview, operations and analytics desks runs through your own session, so
+the database's row level security (the `*_select_admin` and `*_admin_all`
+policies) decides what you may read, not the page. Roles are granted by a
+super admin; the console has no screen for granting them.
+
+**Where you land.** Entering the console always opens the Overview at
+`/admin`. Nothing redirects you to a desk first: the side drawer's Console row
+links `/admin`, and no page, layout or proxy rule under the console sends you
+anywhere else.
+
+**How to read a panel.** Every panel is one of four things, and it always says
+which:
+
+| What you see | What it means |
+|---|---|
+| Figures, a chart or rows | Read from the database just now. Every number came back from a query; none is typed into the page. |
+| A quiet panel with a title such as "No money has moved yet in this range" | The read worked and there is genuinely nothing to count. On 22 September that is the normal state: no real listing is live, no booking has been made, no money has been collected. |
+| "Not recorded" (on a figure) or "Not wired yet" (on a panel) | The platform does not record this yet. The panel names the request in `docs/SESSION_B_SCOPE.md` that would start recording it. It is not a fault of the platform or of your data. |
+| "Unavailable" or "This did not load" | A read failed. Nothing has changed; the page re-reads every minute, or reload. If it persists, check Operations for a failed job or a locked-out scheduler. |
+
+**The console never draws a number the database did not return.** A change
+("+12%") is drawn only when both periods were counted from real rows. From a
+previous period of zero it is drawn as a count ("+3"), never as an invented
+percentage. A chart with nothing behind it says so in words and draws no line.
+
+**Examples are never supply.** The 64 example listings that show the product
+before real owners arrive (`listings.is_demo = true`) are counted on the
+Examples desk and nowhere on the Overview or Analytics.
+
+**The status words and colours**, used on every desk:
+
+| Word | Colour | Means |
+|---|---|---|
+| Healthy, Resolved, Passed, Success | emerald | good, or done |
+| Pending, Medium, No run yet, Under review | cyan | in flight, needs a look |
+| Info, Attention, System, Admin | blue | information |
+| High, Failed, Overdue, Rejected | rose | wrong, act now |
+
+Every badge carries its word as well as its colour, so nothing depends on
+telling two colours apart.
+
+**Time.** Every date and every "per day" is Lagos time (UTC+1, no daylight
+saving). "12m ago" is measured from when the page was read.
 
 ## 2. The shell
 
-(admin-shell: navigation, the platform pulse strip, search, notifications bell,
-identity block, keyboard use, narrow screens)
+**The rail** (left, desktop). The Vallo mark, then twelve rows in the order
+the renders draw them: Overview, Listings, Supply, Verification, Money,
+Escrow, Bookings, Moderation, Support, Operations, Analytics, and Settings at
+the foot above your name and role ("Platform Operator", or "Platform Owner"
+for a super admin). The open row is the lit blue one. A cyan number on a row
+is work waiting there right now (listings to review, applications, held
+posts plus flags plus reports, open tickets, open alerts), read by
+`getQueueCounts()` on every page load.
+
+**Desks inside a row.** The console has more desks than twelve. Each lives
+under the row it belongs to and is listed beneath that row while you are in
+it: Overview holds the Unified queue; Supply holds Applications, Businesses
+and Stops; Money holds Payments and Fees; Moderation holds Message flags,
+Reports, Around and Standing; Operations holds Alerts and the Audit log;
+Settings holds Switches, Reference data and Examples. Every one of them is
+also in **All desks** at the foot of the rail, so no desk is ever more than
+one click away.
+
+**The bar** (top). The search field: type and press Enter to search the desk
+you are on (its own `?q=`); on a page with no search of its own (Overview,
+Operations, Analytics, Settings) it searches the Unified queue. Command-K or
+Control-K jumps to it. Then the Lagos date and time, the bell (your own
+notifications; a rose dot means unread), and you.
+
+**Keeping current.** Overview, Operations and Analytics re-read themselves
+every minute while the tab is visible, and at once when you come back to the
+tab, without losing your place. Every decision taken on a desk refreshes the
+pages it affects.
+
+**Narrow screens.** Below 1024px the rail folds into a drawer behind the menu
+button at the top left (a cyan dot on it means work is waiting). The drawer
+closes when you choose a destination, on Escape, or on a tap outside it.
+Panels stack one per row; tables scroll sideways inside their panel rather
+than the page.
 
 ## 3. Overview
 
-(admin-shell)
+Drawn from the render `5EAA44CB`. Reads: `lib/admin/reads/overview.ts`
+(`getConsolePulse`, `getCollectedSeries`, `getSupplyByType`,
+`getNewListingsByRole`), `lib/admin/reads/operations.ts` (`getJobHealth`),
+and the existing `getQueueCounts` and `getRiskAlerts`.
+
+**The pulse strip.**
+
+| Figure | Where it comes from | The change |
+|---|---|---|
+| Listings live | exact count of `listings` with `status = 'PUBLISHED'` and `is_demo = false` | against the same count of listings that were already live seven days ago (`published_at` on or before then) |
+| Sign-ups today | `profiles.created_at` on today's Lagos date | against yesterday |
+| Naira transacted today | money collected today (see below) | against yesterday |
+| Jobs healthy | the share of the seven Vercel Cron jobs whose last run was on time and did not fail (Operations has the table) | none; a job count has no history |
+
+**The four cards.** Live listings (as above), New supply this week (listings
+submitted for review in the last seven days, examples excluded, against the
+seven before), Naira transacted (money collected in the last seven days,
+against the seven before), Open reviews (listings submitted, under review or
+approved and not yet live, from `getQueueCounts`; no change is drawn because
+an open count has no history). Each sparkline is the last fourteen Lagos days
+of the same figure. Each card opens its desk.
+
+**"Naira transacted" means money collected**, counted once on its way in:
+successful charges (`transactions.status = 'SUCCESSFUL'`) plus completed
+wallet top-ups (`wallet_entries.kind = 'deposit'`, `status = 'COMPLETED'`).
+Money moving inside the platform (a wallet paying an escrow, a release, a
+transfer between people) is not counted again.
+
+**Naira transacted over time.** The same money, per day (Last 30 days), per
+week (Last 90 days) or per month (Last 12 months), chosen with the select at
+the top right (it is in the address, `?range=`, so a view can be shared).
+Hover or focus the chart and use the arrow keys for each bucket's amount and
+number of payments.
+
+**Supply by type.** Live listings, examples excluded, in six kinds that do not
+overlap: Land, Hotels, Shortlets and Restaurants by property type, then every
+other listing as Buy when it is for sale and Rent otherwise. Each is an exact
+count; the bar is its share of the largest.
+
+**New listings per month.** Listings created in each of the last twelve
+months, examples excluded, split by who listed them: Owner, Agent or Firm, from
+the door the lister came through (`agent_applications.supply_role`), or for
+older listers from the agent record (`business` is a firm). The three are one
+blue at three strengths with the third hatched, and hovering a month names
+each.
+
+**Recent alerts.** The five newest rows in `risk_alerts`, open or resolved.
+The badge says Resolved (emerald) once somebody has cleared it, otherwise
+High, Medium or Info. View all opens the Alerts desk, where alerts are
+resolved.
+
+**What the overview cannot tell you yet.** How many listings were withdrawn
+last week (nothing records when a listing stops being live, so "live a week
+ago" counts today's live listings that were already live then), and anything
+about searches or views (see Analytics).
 
 ## 4. Listings: the review queue and the single listing under review
 
@@ -364,16 +495,120 @@ wears the console register from the shell.
 
 ## 13. Operations: scheduled jobs, alerts, audit log, notifications
 
-(admin-shell: every scheduled job, every alert, every notification the platform sends)
+Drawn from the render `01F7DFC7`, panel two. `/admin/operations`, with four
+tabs in the address (`?tab=alerts`, `?tab=audit`, `?tab=notifications`).
+Reads: `lib/admin/reads/operations.ts` (`getJobHealth`, `getRunDays`,
+`getAlertTrend`) and the existing `getRiskAlerts`, `getAuditLog` and
+`getAuditActivity`. Nothing on this desk changes anything; it reads.
+
+**Jobs healthy.** How many of the seven Vercel Cron jobs are on schedule and
+did not fail on their last run, with the share in words and a line of the
+scheduled runs that did not fail per day for fourteen days.
+
+**Active alerts.** Open rows in `risk_alerts`, against how many were open a
+week ago (an alert was open then if it had been raised by then and was not yet
+resolved; both are exact counts from the alerts' own dates). Fewer is good, so
+a fall is emerald. The line is alerts raised per day.
+
+**Every scheduled job.** The platform has two schedulers.
+
+| Job | Scheduler | When (Lagos) | Allowed silence | What it does |
+|---|---|---|---|---|
+| hold-sweep | Vercel Cron `5 * * * *` | hourly at :05 | 3 h | releases wallet holds past their window |
+| paystack-reconcile | Vercel Cron `10 * * * *` | hourly at :10 | 3 h | matches Paystack charges to the ledger |
+| pg-cron-watch | Vercel Cron `20 * * * *` | hourly at :20 | 3 h | watches the database's own jobs and raises failures |
+| complete-stays | Vercel Cron `30 2 * * *` | daily 03:30 | 26 h | completes stays whose check-out has passed |
+| inventory-drift | Vercel Cron `45 2 * * *` | daily 03:45 | 26 h | checks room inventory against bookings |
+| account-purge | Vercel Cron `15 3 * * *` | daily 04:15 | 26 h | honours account deletions after thirty days |
+| saved-search-alerts | Vercel Cron `40 7 * * *` | daily 08:40 | 26 h | tells people about new matches for saved searches |
+| vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
+| vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
+| vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
+| vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
+| vallo_purge_idempotency | pg_cron `10 2 * * *` | daily 03:10 | | clears old idempotency records |
+| vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
+| vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
+| vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
+
+The Vercel jobs' schedules come from `apps/web/vercel.json` (a test fails if
+the console's copy drifts from it) and their allowances from `WATCHED_JOBS` in
+`lib/cron/freshness.ts`. **Last run, duration and status** come from the
+audit row every run writes (`lib/cron/report.ts`: `entity_type = 'cron_job'`,
+`action = cron.<job>.<ok|attention|failed>`, `metadata.duration_ms`; the money
+reconcile writes `wallet.reconciliation.run` with `metadata.outcome`, and
+records no duration). The console reads the newest row per job, so "last run"
+is exact however long ago it was. Status: **Healthy** (on time, last run ok),
+**Attention** (on time, the run reported something to look at), **Failed**
+(the last run failed, solid rose), **Overdue** (silent past its allowance),
+**No run yet** (never reported).
+
+The **database jobs** are one summary row until Request A5 lands: the newest
+`pg-cron-watch` run's own counts of failures in the last day, how many of
+those have since recovered, how many have not run yet and how many are
+overdue.
+
+**Alerts tab.** The forty newest alerts. Resolving one happens on the Alerts
+desk (`/admin/alerts`), which records who resolved it and when.
+
+**Audit log tab.** Entries per day for thirty days (the read counts up to
+5,000 rows and says so if it hits that cap), the kinds of thing recorded,
+and the latest entries. Each entry opens the Audit log desk filtered to that
+record. The Audit log desk searches by id, by words in the action, by kind
+and by date.
+
+**Notifications tab.** Every notification the platform sends has one of eight
+kinds: booking, message, wallet, listing, agent, support, system, social. An
+admin cannot read the notifications table today (its only read policy is the
+recipient's own), so this tab says "Not wired yet" and names Request A6.
+
+**Recent alerts and Audit log** sit beneath every tab: the four newest alerts
+and the five newest audit entries.
 
 ## 14. Analytics
 
-(admin-shell)
+Drawn from the render `01F7DFC7`, panel three. `/admin/analytics?range=30d`
+(or `90d`, `12m`). Reads: `lib/admin/reads/analytics.ts`
+(`getBookingOutcomes`, `getSupplySeries`, `getThinAreas`).
+
+| Panel | Source | State today |
+|---|---|---|
+| Total searches | nothing records a search | Not recorded, Request A7 |
+| Listing views | nothing records a listing view | Not recorded, Request A8 |
+| Successful bookings | exact count of `bookings` confirmed or completed, created in the range, against the same length of time before it | real; zero on 22 September |
+| Conversion rate | needs searches or views | Not recorded, A7 and A8 |
+| Demand vs supply | supply: listings created per bucket, examples excluded; demand: not recorded | the supply line is real; searches are named as missing on the legend |
+| Top areas by searches | nothing records a search | Not wired yet, A7 |
+| Areas with fewest listings | live listings grouped by area and city, fewest first, examples excluded | real; empty while no real listing is live |
+| Searches vs results returned | nothing records a search or its result count | Not wired yet, A7 |
+| Top common refusals | declines carry free text or nothing | Not wired yet, A11 |
+
+The render also draws an "All areas" filter; it is not built, because no
+figure on the page that exists today varies by area except the thin areas
+table, which already lists them.
 
 ## 15. The other desks
 
-(admin-shell: agents, businesses, examples, fees, flags, reference, reports,
-social, standing, stops, switches, and anything else under `app/admin`)
+These desks keep their own behaviour and were brought into the console's
+register (panel material, page head, status badges) without changing what
+they do. Each is reached from its parent row or from All desks.
+
+| Desk | Where | What it is for |
+|---|---|---|
+| Unified queue | Overview > Unified queue, `/admin/queue` | every waiting item from the listing, application, report, flag and ticket queues in one table |
+| Applications | Supply > Applications, `/admin/agents` | admit or refuse people who asked to list as an agent or owner |
+| Businesses | Supply > Businesses, `/admin/businesses` | hotels and restaurants, their verification ladder and going live |
+| Stops | Supply > Stops, `/admin/stops` | stop and reinstate a lister's right to trade |
+| Payments | Money > Payments, `/admin/payments` | overdrawn wallets, frozen withdrawals, holds to sweep |
+| Fees | Money > Fees, `/admin/fees` | the fee rates in force |
+| Message flags | Moderation > Message flags, `/admin/flags` | messages the safety scan flagged |
+| Reports | Moderation > Reports, `/admin/reports` | reports people filed |
+| Around | Moderation > Around, `/admin/social` | places waiting to open on the social side |
+| Standing | Moderation > Standing, `/admin/standing` | badges granted by hand |
+| Alerts | Operations > Alerts, `/admin/alerts` | resolve risk alerts |
+| Audit log | Operations > Audit log, `/admin/audit` | who did what, when |
+| Switches | Settings > Switches, `/admin/switches` | turn a surface off in an incident |
+| Reference data | Settings > Reference data, `/admin/reference` | occupations and local governments |
+| Examples | Settings > Examples, `/admin/examples` | the example listings and their retirement dates |
 
 ## 16. Everyday procedures
 
@@ -450,6 +685,29 @@ first: a PENDING debit older than 30 minutes is at the top. Then the ledger
 narrowed to them, their wallet in Wallets, any refund in Refunds, and any
 escrow they are party to on `/admin/escrow` (search by the property).
 
+### Operations runbooks (admin-shell)
+
+**A job reads Overdue or Failed.**
+1. Open Operations. Note the job, its last run and its schedule.
+2. Open the Alerts tab: a failed run raises a `cron.<job>.failed` alert with
+   the reason; a scheduler that could not get in raises `cron.<job>.locked_out`
+   with the fix in its detail.
+3. Locked out: the scheduler's secret does not match. `CRON_SECRET` on the
+   scheduler must equal `RECONCILE_CRON_SECRET` on the host, and the
+   scheduler's variable must be named exactly `CRON_SECRET` (docs/DEPLOY.md,
+   section 2). This is an engineering fix; hand it on with the alert.
+4. Failed: the reason in the alert is the job's own error. Hand it on.
+5. When the next run succeeds the row turns Healthy on its own within a
+   minute; resolve the alert on the Alerts desk so the count comes down.
+
+**The database jobs row reads Attention.** The watch found a failure that has
+not recovered, or a job overdue. The per-job list needs Request A5; until then
+the `cron.pg_cron.job_failed` alert names the job.
+
+**A figure reads Unavailable.** A read failed. Reload once. If it persists on
+every desk, the database is unreachable (check the Alerts tab and the
+platform status); if only one panel, report it with the panel's name.
+
 ## 17. What the console cannot do, and the open requests
 
 (each worker: honest limits, and the scope-file request numbers for data the
@@ -492,6 +750,21 @@ console needs and does not have yet)
   schema yet.
 - **Nothing on these desks writes except the escrow ruling,** which is
   Session A's mutation.
+
+### Overview and analytics limits (admin-shell)
+
+- "Live a week ago" counts the listings live now that were already live then.
+  A listing withdrawn during the week is not in it, because nothing records
+  when a listing stops being live.
+- Searches, listing views and refusal reasons are not recorded (Requests A7,
+  A8, A11), so demand, conversion, top areas by searches, searches against
+  results and common refusals cannot be shown.
+- The database's own eight scheduled jobs are summarised, not listed
+  (Request A5).
+- Notification volumes cannot be read by an admin (Request A6).
+- Open reviews has no week-on-week change: an open count has no history until
+  something snapshots it.
+- The render's "All areas" filter on Analytics is not built.
 
 ## 18. Options considered and rejected
 
@@ -552,3 +825,33 @@ part four belong here)
   previous because the old read had no total. The render draws numbered
   pages, and `getEscrowDesk` has an exact total, so the desk uses numbered
   pages.
+
+### Shell, overview, operations and analytics (admin-shell)
+
+- **A charting library** (Recharts, Nivo, Chart.js, ECharts, Tremor): rejected
+  for the reasons in `docs/research/UI_UNIQUENESS_AND_ADMIN_RESEARCH.md` part
+  four: each makes every chart a client component, fights the CSS custom
+  property themes, ships a banned default palette and costs 90 to 200KB. The
+  charts are hand drawn inline SVG in `components/agent/charts/` beside the
+  two that were already there, with only the hover readout on the client.
+- **Four colours for Owner, Agent and Firm**, as the render draws them:
+  rejected; a four slot palette cannot pass the colour-blind checks inside the
+  colour law. One blue at three strengths, the third hatched, with a legend
+  and a readout naming each.
+- **Counting example listings as supply**: rejected; seeded stock read as a
+  market is exactly the false window the founder condemned. Examples live on
+  the Examples desk.
+- **"Naira transacted" as every wallet movement**: rejected; a payment from a
+  wallet into escrow and its release would count the same naira three times.
+  Money is counted once, on its way in.
+- **Deriving job health from a page of recent audit rows**: rejected; a daily
+  job falls off a forty row page of hourly runs and would read as missing. One
+  read per job, newest first.
+- **Drawing a flat line through an empty series**: rejected; an empty chart
+  says in words that nothing has happened and what will fill it.
+- **Keeping the banded nineteen-row rail**: replaced by the renders' twelve
+  rows with every other desk as a child and in All desks, so the rail matches
+  the images and no desk is orphaned.
+- **Putting the pulse strip in the top bar**, as the overview render does:
+  rejected in favour of the three-panel renders' bar (search, bell, operator)
+  shared by every desk; the strip leads the overview page instead.
