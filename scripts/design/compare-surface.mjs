@@ -944,11 +944,34 @@ if (SHAPE_SWEEP) {
   const widths = (arg("widths", "390,1536") ?? "390,1536").split(",").map((w) => Number(w.trim()));
   let worst = 0;
   const findings = [];
+  /*
+   * A REFUSED ROUTE IS RECORDED, NOT FATAL, AND THAT IS WHY THIS SWEEP HAD ONLY
+   * EVER COVERED NINE ROUTES OF NINETY-EIGHT.
+   *
+   * `openSurface` refuses correctly on a non-2xx, on a redirect and on a page
+   * that never revealed, and every one of those refusals used to throw straight
+   * out of this loop and end the whole run. So the first gated route in the list
+   * stopped the sweep, and the only way anybody could get an answer was to hand
+   * it a short list of routes they already knew were open. The law's own
+   * definition of done asks for a sweep of the platform that returns zero, and a
+   * sweep that dies on route ten cannot answer it either way.
+   *
+   * Refusals are now collected and PRINTED as their own section, with the
+   * reason. A refused route is not a clean route: it is a route nothing is
+   * claimed about, and the run's exit code says so.
+   */
+  const refused = [];
   for (const route of routes) {
     for (const width of widths) {
      for (const theme of THEMES) {
       const vp = { width, height: width < 900 ? 844 : 1024 };
-      const p = await openSurface(route, vp, theme);
+      let p;
+      try {
+        p = await openSurface(route, vp, theme);
+      } catch (e) {
+        refused.push({ route, width, theme, why: String(e.message).split("\n")[0] });
+        continue;
+      }
       const found = await p.evaluate(
         ({ control, exempt, failAt, warnAt }) => {
           const out = [];
@@ -1049,7 +1072,7 @@ if (SHAPE_SWEEP) {
   const watch = findings.filter((f) => f.hasText && !f.capsule);
   const roundIcons = findings.filter((f) => !f.hasText && f.capsule);
   if (JSON_OUT) {
-    console.log(JSON.stringify({ breaches, watch, roundIcons }, null, 2));
+    console.log(JSON.stringify({ breaches, watch, roundIcons, refused }, null, 2));
   } else {
     console.log(
       `shape sweep: ${routes.join(", ")} at ${widths.join("px, ")}px in ${THEMES.join(" and ")}\n`,
@@ -1062,6 +1085,15 @@ if (SHAPE_SWEEP) {
     watch.forEach((f) => console.log(line(f)));
     console.log(`\nROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: ${roundIcons.length}`);
     roundIcons.forEach((f) => console.log(line(f)));
+    console.log(
+      `\nROUTES REFUSED, so nothing is claimed about them either way: ${refused.length}`,
+    );
+    refused.forEach((r) => console.log(`  ${r.route} @${r.width} ${r.theme}: ${r.why}`));
+    const opened = new Set(findings.map((f) => `${f.route}|${f.width}|${f.theme}`)).size;
+    console.log(
+      `\nCOVERED: ${routes.length} route(s) asked for, ${refused.length} refusal(s), ` +
+        `${opened} route/width/theme combination(s) actually measured.`,
+    );
     console.log(
       `\n${breaches.length === 0 ? "no text-bearing control is a capsule." : `${breaches.length} text-bearing control(s) are capsules. The shape law is broken here.`}`,
     );
