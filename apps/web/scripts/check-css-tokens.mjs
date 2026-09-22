@@ -446,6 +446,28 @@ const WANTS_SHADOW = new Set(["box-shadow", "text-shadow"]);
  */
 const SOLE_VAR = /^\s*([a-z-]+)\s*:\s*var\(\s*(--nf-[a-z0-9-]+)\s*\)\s*;/;
 
+/** A whole `box-shadow` / `text-shadow` declaration, value captured, across line breaks. */
+const SHADOW_DECLARATION = /\b(box-shadow|text-shadow)\s*:\s*([^;{}]+);/g;
+
+/** Split a shadow value on its top-level commas; `color-mix()` has its own. */
+function topLevelLayers(value) {
+  const out = [];
+  let depth = 0;
+  let current = "";
+  for (const ch of value) {
+    if (ch === "(") depth += 1;
+    else if (ch === ")") depth -= 1;
+    if (ch === "," && depth === 0) {
+      out.push(current);
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  out.push(current);
+  return out;
+}
+
 function typeFault(property, token) {
   const shape = shapeOf.get(token);
   if (!shape || shape === "unknown") return null;
@@ -453,8 +475,24 @@ function typeFault(property, token) {
     return `a ${shape} value in \`${property}\`, which only takes a colour`;
   if (WANTS_PAINT.has(property) && shape === "shadow")
     return `a shadow value in \`${property}\`, which takes a colour or an image`;
-  if (WANTS_SHADOW.has(property) && shape === "gradient")
-    return `a gradient in \`${property}\`, which takes a shadow list`;
+  /*
+   * A SHADOW PROPERTY TAKES A SHADOW, AND A BARE COLOUR IS NOT ONE.
+   *
+   * This clause used to read `shape === "gradient"`, which failed the case
+   * nobody wrote and passed the case that actually happened eleven times.
+   * `--nf-shadow-on-paper` is `rgb(18 21 26 / 0.18)`, a shadow COLOUR with a
+   * shadow's NAME, and eleven light-theme rules wrote it as the whole
+   * `box-shadow` value. CONFIRMED IN CHROMIUM on 22 September rather than read
+   * off the grammar: `box-shadow: rgb(18 21 26 / 0.18)` computes to `none`,
+   * the declaration never reaches the CSSOM, and an invalid layer takes its
+   * VALID siblings down with it, so
+   * `box-shadow: inset 4px 0 0 <ink>, var(--nf-shadow-on-paper)` also computes
+   * to `none` and the flagged admin stat card lost the 4px rule that is its
+   * flag. So the test is the positive one: anything that is not a shadow is a
+   * fault here.
+   */
+  if (WANTS_SHADOW.has(property) && shape !== "shadow")
+    return `a ${shape} value in \`${property}\`, which takes a shadow list (a bare colour is dropped by the parser, confirmed in Chromium, and it takes any valid layer beside it with it)`;
   return null;
 }
 
@@ -475,13 +513,51 @@ for (const dir of ROOTS) {
         unresolved.push(`${where}:${index + 1}  var(${hit[1]})`);
       }
       const sole = SOLE_VAR.exec(line);
-      if (sole) {
+      /* A shadow property's sole var() IS a one-layer list, and the layer scan
+         below reports it, so reporting it here too would name every one twice. */
+      if (sole && !WANTS_SHADOW.has(sole[1])) {
         const fault = typeFault(sole[1], sole[2]);
         if (fault) {
           mistyped.push(`${where}:${index + 1}  ${sole[1]}: var(${sole[2]})  -  ${fault}`);
         }
       }
     });
+
+    /*
+     * AND THE SAME FAULT INSIDE A MULTI-LAYER SHADOW LIST, WHICH IS WHERE THE
+     * WORST INSTANCE OF IT LIVED AND WHERE `SOLE_VAR` CANNOT REACH.
+     *
+     * `SOLE_VAR` only sees `property: var(--nf-x);` alone on its line. The
+     * eleventh and most expensive instance of the bare-colour shadow was
+     * `admin.css:941-945`, which writes TWO layers:
+     *
+     *   box-shadow:
+     *     inset var(--nf-admin-stat-rule) 0 0 var(--nf-admin-stat-ink),
+     *     var(--nf-shadow-on-paper);
+     *
+     * One invalid layer invalidates the WHOLE declaration, so the first
+     * layer - the 4px inset rule that IS the flagged card's flag - was dropped
+     * with it. Confirmed in Chromium: that exact pair computes to `none`. A
+     * check that catches ten of eleven and misses the one that loses
+     * information is not the check this was written for.
+     *
+     * So: gather each `box-shadow` / `text-shadow` declaration whole, split it
+     * on TOP-LEVEL commas only (a `color-mix(in oklab, a, b)` carries commas of
+     * its own), and report any layer that is nothing but a var() whose token is
+     * not a shadow. A var() that is one PART of a layer, such as the colour in
+     * `0 1px 2px var(--nf-shadow-on-paper)`, is correct and is not reported.
+     */
+    for (const hit of source.matchAll(SHADOW_DECLARATION)) {
+      const line = source.slice(0, hit.index).split("\n").length;
+      for (const layer of topLevelLayers(hit[2])) {
+        const lone = /^var\(\s*(--nf-[a-z0-9-]+)\s*\)$/.exec(layer.trim());
+        if (!lone) continue;
+        const fault = typeFault(hit[1], lone[1]);
+        if (fault) {
+          mistyped.push(`${where}:${line}  ${hit[1]} layer: var(${lone[1]})  -  ${fault}`);
+        }
+      }
+    }
 
     /*
      * A MASK CHANNEL IS NOT A COLOUR, and this is the exception that says so.
@@ -584,9 +660,22 @@ for (const dir of ROOTS) {
  */
 const CONTROL_SELECTOR =
   /(__btn|-btn\b|--btn|\bbtn\b|chip|__tab\b|--tab\b|__tile|-tile\b|toggle|switch|__pill|-pill\b|island|__option|__control)/;
-/* A state, or the paper twin. Neither is the resting edge this check is about. */
+/*
+ * A STATE. NOT A THEME.
+ *
+ * `\[data-theme` used to sit in this list, and the sentence above it argued
+ * that a designed paper twin is legitimate, which is true, and then drew the
+ * wrong conclusion from it. A paper twin is legitimate; a paper twin edged in a
+ * neutral border token is the SAME defect this check exists to catch, wearing
+ * the one selector the check could not see. The reasoning at the head of this
+ * block, "in the theme that is the product's default", is exactly how the theme
+ * every daylight user sees went untested for the whole of its life.
+ *
+ * A resting rule is a resting rule in both themes, so the theme attribute is
+ * out of the exclusion list and only genuine STATES remain in it.
+ */
 const NOT_RESTING =
-  /(:hover|:active|:focus|:disabled|\[aria-pressed|\[aria-current|\[aria-disabled|\[data-on\b|\[data-loading|\[data-theme|\[disabled)/;
+  /(:hover|:active|:focus|:disabled|\[aria-pressed|\[aria-current|\[aria-disabled|\[data-on\b|\[data-loading|\[disabled)/;
 const BORDER_GLASS =
   /border(?:-[a-z]+)?\s*:[^;]*var\(\s*--nf-(?:glass-border|border-subtle|border-default|border-strong)\s*\)/;
 const POINTER = /cursor\s*:\s*pointer/;

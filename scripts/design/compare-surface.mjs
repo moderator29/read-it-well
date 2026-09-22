@@ -22,6 +22,11 @@
  * Usage:
  *   node scripts/design/compare-surface.mjs --base http://127.0.0.1:3170 [--surface dock] [--json]
  *   node scripts/design/compare-surface.mjs --base ... --scan ".nf-tabbar" --url /preview/lead/dock --axis x
+ *   node scripts/design/compare-surface.mjs --base ... --shape-sweep --routes /wallet,/settings --theme both
+ *
+ * `--theme dark|light|both` picks the theme every page is opened in, and it
+ * defaults to dark. Until 22 September this script had no theme switch at all,
+ * which is half the reason the paper twin had never been tested once.
  *
  * `--scan` prints a scanline across an element instead of running the checks,
  * which is how you find an empty spot to sample before you write a check down.
@@ -34,6 +39,40 @@ const arg = (name, fallback = null) => {
 };
 const BASE = arg("base", "http://127.0.0.1:3170").replace(/\/$/, "");
 const JSON_OUT = process.argv.includes("--json");
+
+/*
+ * THE THEME, WHICH THIS SCRIPT DID NOT HAVE AND WHICH IS WHY NOTHING IN THE
+ * BUILD HAS EVER LOOKED AT PAPER.
+ *
+ * The founder's report on light mode was five root causes deep and every one
+ * of them had survived because the only two browser-driven checks in the tree
+ * ran in the default theme: this script had no theme switch at all, and the
+ * contrast probe covered four elements on one route. A ratio is not
+ * theme-neutral either - a light rule can change a control's padding, its
+ * font, whether its label wraps, and therefore its drawn short side and
+ * therefore its ratio.
+ *
+ * `--theme dark|light|both`. `both` sweeps each route in each theme and
+ * reports the theme on every line, because a breach that exists on paper only
+ * is still a breach and a reader has to be told which theme they are looking
+ * at.
+ *
+ * HOW THE THEME IS SET, AND WHY IT IS SET TWICE. `settings-store.ts:219` and
+ * the before-paint script in the root layout read `nf_theme` from storage and
+ * put `data-theme="light"` on the root, with NO attribute for dark. So an
+ * init script seeds storage before the first byte of the document, which is
+ * what stops the page painting dark and then correcting itself, and the
+ * attribute is set again after load in case a route rendered before the seed
+ * landed. Both, because either alone has a hydration race in it.
+ */
+const THEME_ARG = arg("theme", "dark");
+const THEMES = THEME_ARG === "both" ? ["dark", "light"] : [THEME_ARG];
+for (const t of THEMES) {
+  if (t !== "dark" && t !== "light") {
+    console.error(`--theme takes dark, light or both. Got "${t}".`);
+    process.exit(2);
+  }
+}
 
 const PHONE = { width: 390, height: 844 };
 const DESKTOP = { width: 1536, height: 1024 };
@@ -614,9 +653,30 @@ const hex = ([r, g, b]) =>
   "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
 const parse = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 
-async function openSurface(url, viewport) {
-  const page = await browser.newPage({ viewport, deviceScaleFactor: 2 });
+async function openSurface(url, viewport, theme = THEMES[0]) {
+  const page = await browser.newPage({
+    viewport,
+    deviceScaleFactor: 2,
+    colorScheme: theme,
+  });
+  /* Seeded BEFORE the first navigation, so the before-paint script in the root
+     layout reads it and the page is never painted in the wrong theme first. */
+  await page.addInitScript((t) => {
+    try {
+      window.localStorage.setItem("nf_theme", t);
+    } catch {
+      /* A storage-blocked context still gets the attribute below. */
+    }
+  }, theme);
   await page.goto(`${BASE}${url}`, { waitUntil: "networkidle", timeout: 60_000 });
+  /* And again from here, because the seed above loses a race with any route
+     that rendered before the init script landed. Dark carries NO attribute,
+     which is the platform default and is how the token sheet is keyed. */
+  await page.evaluate((t) => {
+    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    else document.documentElement.removeAttribute("data-theme");
+  }, theme);
+  await page.waitForTimeout(200);
   /*
    * A Reveal band that never animates in is the third harness lie: the page is
    * "loaded" and the content is at opacity 0, so every sample reads the ground.
@@ -758,8 +818,9 @@ if (SHAPE_SWEEP) {
   const findings = [];
   for (const route of routes) {
     for (const width of widths) {
+     for (const theme of THEMES) {
       const vp = { width, height: width < 900 ? 844 : 1024 };
-      const p = await openSurface(route, vp);
+      const p = await openSurface(route, vp, theme);
       const found = await p.evaluate(
         ({ control, exempt, failAt, warnAt }) => {
           const out = [];
@@ -849,9 +910,10 @@ if (SHAPE_SWEEP) {
       );
       await p.close();
       for (const f of found) {
-        findings.push({ route, width, ...f });
+        findings.push({ route, width, theme, ...f });
         if (f.hasText && f.ratio > worst) worst = f.ratio;
       }
+     }
     }
   }
   await browser.close();
@@ -861,9 +923,11 @@ if (SHAPE_SWEEP) {
   if (JSON_OUT) {
     console.log(JSON.stringify({ breaches, watch, roundIcons }, null, 2));
   } else {
-    console.log(`shape sweep: ${routes.join(", ")} at ${widths.join("px, ")}px\n`);
+    console.log(
+      `shape sweep: ${routes.join(", ")} at ${widths.join("px, ")}px in ${THEMES.join(" and ")}\n`,
+    );
     const line = (f) =>
-      `  ${f.route} @${f.width}  ${f.label}  "${f.text}"  ${f.w}x${f.h}  radius ${f.radius}px  ratio ${f.ratio.toFixed(2)}`;
+      `  ${f.route} @${f.width} ${f.theme}  ${f.label}  "${f.text}"  ${f.w}x${f.h}  radius ${f.radius}px  ratio ${f.ratio.toFixed(2)}`;
     console.log(`BREACHES, a text-bearing control drawn as a capsule (ratio at or above ${FAIL_AT}): ${breaches.length}`);
     breaches.forEach((f) => console.log(line(f)));
     console.log(`\nWORTH AN EYE, text-bearing and over ${WARN_AT} but not yet a capsule: ${watch.length}`);
@@ -877,9 +941,22 @@ if (SHAPE_SWEEP) {
   process.exit(breaches.length === 0 ? 0 : 1);
 }
 
+/* The colour checks below compare our pixels against hexes sampled out of the
+   governing PNGs, and every one of those renders is a DARK render, so a light
+   run would be measuring our paper twin against night targets. `--theme light`
+   is therefore honest for `--shape-sweep` and for `--scan`, and for the colour
+   checks it is refused rather than quietly reporting nonsense. */
+if (!SCAN && !FALLOFF && THEMES[0] !== "dark") {
+  console.error(
+    "the colour checks compare against hexes sampled from the governing renders, which are all dark.\n" +
+      "Run them with --theme dark. --theme light and --theme both are for --shape-sweep and --scan.",
+  );
+  process.exit(2);
+}
 const page = await openSurface(
   SCAN || FALLOFF ? arg("url", surface.url) : surface.url,
   surface.viewport,
+  THEMES[0],
 );
 /* `let`, because a check whose element is below the fold scrolls the page
    and the shot has to be retaken. See `ensureInView`. */
