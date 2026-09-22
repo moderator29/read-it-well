@@ -5821,3 +5821,55 @@ earlier sweep reported that `flip-coin` appears exactly once in the tree, in
 `BrandIcon.tsx`'s name list, and is drawn nowhere. **The retake corroborates
 it**: the card the object was commissioned for is drawing something else. Named
 here, not fixed, because it belongs to whoever holds the icon set.
+
+## 51. SIX WRITERS IN ONE TREE, AND THE PARTITION THAT KEEPS THEM APART
+
+Five workers opened on the founder's five blocks, alongside Session B. Six
+concurrent writers on one repository is how six files were eaten once already
+today, so the partition is written down before any of them commits.
+
+**Every worker pulls `--rebase` before every push and pushes small.** No worker
+force-pushes, runs `git add -A`, `git stash`, `git reset --hard`, or restores a
+file it did not write. No worker runs `pkill -f next` or `pkill -f chromium`:
+several servers are up at once and the pattern matches somebody else's.
+
+| Worker | Owns | Block |
+|---|---|---|
+| **ESCROW** | `lib/escrow/**`, `components/app/escrow/**`, `app/(app)/escrow/**`, `lib/email/escrow-messages.ts` (new), `lib/admin/escrow-actions.ts`, `app/css/escrow.css`, `scripts/probes/escrow_*` | Escrow to industry standard, everything but custody |
+| **PAYMENTS** | `lib/payments/**`, `lib/wallet/**` (library, not routes), `components/app/payments/**`, `app/(app)/settings/payments/**`, `app/(app)/checkout/**`, `app/(app)/rent/pay/**`, `lib/security/money-limits.ts`, `app/api/paystack/**` except reconcile | Cards, bank accounts, and the eight open money departures |
+| **PRICE CHECK** | `lib/price-check/**`, `app/(app)/price/**`, `components/app/price/**`, `app/css/price-check.css`, `scripts/check-valuation-words.mjs`, `app/(dev)/preview/price/**` | Stage one, from zero |
+| **ROLES** | `lib/supply/**`, `components/supply/**`, `components/roles/**`, `lib/admin/actions.ts`, `profile/setup/**`, `lib/notify/welcome.ts`, `components/host/**`, `app/host/**`, `(site)/help`, `careers`, `contact`, `(site)/docs/**`, `HomeScreen.tsx` | Track G's structural half, Track O, and the flagged gaps |
+| **PROVE** | `scripts/design/**`, `apps/web/scripts/probe-contrast.mjs`, `docs/design/proofs/**`, `scripts/probes/**`, `docs/PROOF_RUN_2026-09-22.md` (new) | The unproven register, and an end-to-end walk |
+| **the lead** | `docs/PLATFORM_STATUS.md`, this ledger, `lib/cron/**`, coordination | Everything above, and the record |
+
+**SESSION B, and nobody crosses it:** `app/admin/**`, `lib/admin/reads/**`,
+`app/(app)/wallet/**`, `components/app/wallet/**`, `app/(app)/profile/**`
+(but NOT `profile/setup/**`), `app/welcome/**`, `app/(auth)/**`,
+`components/auth/**`, `lib/inspections/**`, `app/agent/inspections/**`,
+`app/css/{admin,wallet,auth,inspection}.css`, the `welcome` function in
+`lib/email/messages.ts`, and its own two documents.
+
+**The two boundaries that are easy to get wrong**, because they split a
+directory rather than owning it:
+
+1. **`lib/admin/`**: `reads/**` is Session B's, and every other file in it,
+   including `actions.ts`, is ours. A mutation is asked for; a read is written.
+2. **`lib/email/messages.ts`**: the `welcome` function and its type are Session
+   B's while it moves them to `welcome-message.ts`. Every other message in that
+   file is ours. ESCROW was given its own new file rather than a share of this
+   one, deliberately.
+
+**Where a worker needs something outside its scope it writes a request instead
+of making the change**, into section 49 of this ledger for Session B, or back to
+the lead. Session B's own requests arrive in `docs/SESSION_B_SCOPE.md` and are
+read every cycle.
+
+### One request answered here, because it resolved itself
+
+Session B asked for nine money reads and a set of review-desk reads in
+`lib/admin/**`. It then took `lib/admin/reads/**` for itself, which is the
+right split and makes those requests its own to write. **Nothing is owed on
+them.** Its remaining request, a `renderTrigger(open)` prop or an
+`openProfileSwitcher()` event on `components/supply/ProfileSwitcher.tsx` so its
+profile row stops coupling to the dock's `.nf-tab__link--switch` class name,
+is assigned to ROLES, which owns that file.
