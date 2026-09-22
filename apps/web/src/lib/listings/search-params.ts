@@ -12,7 +12,7 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *   q          free text
  *   type       category, one of the real ListingKind values
  *              (legacy aliases: "property" is apartment, "rent" is rental)
- *   sort       recommended | top-rated | price-asc | price-desc
+ *   sort       recommended | top-rated | price-asc | price-desc | move-in-asc
  *   view       list | map
  *   min, max   budget bounds in WHOLE NAIRA, the one place naira appears
  *   beds       minimum bedrooms
@@ -41,14 +41,43 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  * address full of rubbish renders the unfiltered page rather than an error.
  */
 
-export type SortKey = "recommended" | "top-rated" | "price-asc" | "price-desc";
+export type SortKey =
+  | "recommended"
+  | "top-rated"
+  | "price-asc"
+  | "price-desc"
+  | "move-in-asc";
 
-export const SORTS: { key: SortKey; label: string }[] = [
-  { key: "recommended", label: "Recommended" },
-  { key: "top-rated", label: "Top rated" },
-  { key: "price-asc", label: "Price: low to high" },
-  { key: "price-desc", label: "Price: high to low" },
+/**
+ * THE FOUR SORTS ALL READ THE HEADLINE PRICE, AND THAT IS THE DEFECT.
+ *
+ * HANDOFF 09 section 4.2: a renter with six million naira was being shown four
+ * and a half million naira flats that need seven million to move into, because
+ * every ordering this shelf offered read `priceMinor`. `move-in-asc` reads the
+ * total move in cost instead, which is the number a Nigerian tenant actually
+ * shops on, and `listings_move_in_cost_idx` has existed in the database since
+ * August with nothing querying it.
+ *
+ * `basis` is why this is a list of objects rather than a list of labels. A
+ * silent switch between two money columns is worse than either column alone,
+ * so every sort states in the interface which number it ordered on, and the
+ * shelf prints that sentence under the count. Nothing may be added here
+ * without answering that question.
+ */
+export type SortBasis = "price" | "move-in" | "rating" | "mixed";
+
+export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
+  { key: "recommended", label: "Recommended", basis: "mixed" },
+  { key: "top-rated", label: "Top rated", basis: "rating" },
+  { key: "price-asc", label: "Price: low to high", basis: "price" },
+  { key: "price-desc", label: "Price: high to low", basis: "price" },
+  { key: "move-in-asc", label: "Move-in cost: low to high", basis: "move-in" },
 ];
+
+/** The basis a sort key orders on, defaulting to the shelf's opening order. */
+export function sortBasisOf(sort: SortKey): SortBasis {
+  return SORTS.find((entry) => entry.key === sort)?.basis ?? "mixed";
+}
 
 export type ViewKey = "list" | "map";
 
