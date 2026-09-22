@@ -39,6 +39,53 @@
    rather than assumed, so this migration can be applied to a fresh database. */
 create schema if not exists private;
 
+/*
+ * ===========================================================================
+ * THE LEDGER'S DIRECTION CHECK HAD NEVER HEARD OF A POT, AND THAT IS WHY THIS
+ * MIGRATION HAD TO BE PROBED RATHER THAN APPLIED.
+ * ===========================================================================
+ *
+ * Found on 22 September 2026, inside a rolled back transaction, before this
+ * file was applied for the first time. `wallet_entries_direction_chk` names
+ * every kind that may be a credit and every kind that may be a debit, and both
+ * lists were written before pots existed. So this migration would have applied
+ * perfectly cleanly, the two functions would have been created, the grants
+ * would have been correct, and the FIRST TIME A PERSON MOVED MONEY INTO A POT
+ * the insert would have raised 23514 and the whole thing would have failed in
+ * front of them.
+ *
+ * That is exactly the fault this build's probe rule exists for: a migration
+ * succeeding does not mean the function works. The constraint is widened here,
+ * in the same file as the kinds that need it, and the probe moved money in and
+ * out to prove it.
+ *
+ * The new constraint is a strict superset of the old one, so no existing row
+ * can fail it and nothing is lost by replacing it.
+ */
+alter table public.wallet_entries drop constraint if exists wallet_entries_direction_chk;
+alter table public.wallet_entries add constraint wallet_entries_direction_chk check (
+  (kind = any (array[
+     'deposit'::public.wallet_entry_kind,
+     'refund'::public.wallet_entry_kind,
+     'transfer_in'::public.wallet_entry_kind,
+     'escrow_release'::public.wallet_entry_kind,
+     'escrow_refund'::public.wallet_entry_kind,
+     /* Money coming back out of a pot lands in spendable, so it is a credit,
+        exactly like an escrow release. */
+     'pot_release'::public.wallet_entry_kind
+   ]) and direction = 'credit'::public.wallet_entry_direction)
+  or
+  (kind = any (array[
+     'withdrawal'::public.wallet_entry_kind,
+     'payment'::public.wallet_entry_kind,
+     'transfer_out'::public.wallet_entry_kind,
+     'escrow_hold'::public.wallet_entry_kind,
+     /* Money set aside has left spendable, so it is a debit, exactly like an
+        escrow hold. The pair is named for that pair on purpose. */
+     'pot_hold'::public.wallet_entry_kind
+   ]) and direction = 'debit'::public.wallet_entry_direction)
+);
+
 create table if not exists public.wallet_pots (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references auth.users (id) on delete cascade,
@@ -142,6 +189,15 @@ begin
   return new;
 end;
 $$;
+
+/*
+ * RULE 21, ADDED 22 SEPTEMBER 2026 BEFORE THIS FILE WAS EVER APPLIED. The
+ * grants at the foot of this migration lock the two money paths and always
+ * did, but the guard is SECURITY DEFINER too and had no revoke of its own.
+ * It lives in `private`, which PostgREST does not expose, so nothing was
+ * reachable; the rule is still absolute and it says the SAME migration.
+ */
+revoke all on function private.wallet_pots_guard() from public, anon, authenticated;
 
 drop trigger if exists wallet_pots_guard on public.wallet_pots;
 create trigger wallet_pots_guard
