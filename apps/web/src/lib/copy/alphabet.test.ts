@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { LOCALES, getDictionary } from "@vallo/i18n";
+
 /**
  * NO LETTER FROM AN ALPHABET THESE LANGUAGES DO NOT USE.
  *
@@ -87,5 +89,56 @@ describe("every locale uses only its own alphabet", () => {
 
   it("passes the four Hausa hooked letters and the Yoruba dotted vowels", () => {
     expect(offences("ɓ ɗ ƙ ƴ Ɓ Ɗ Ƙ Ƴ ẹ ọ ṣ ị ụ àáèé")).toEqual([]);
+  });
+});
+
+/**
+ * AND THE SAME QUESTION ASKED OF THE STRINGS THEMSELVES, BECAUSE THE FILE SWEEP
+ * ABOVE CANNOT SEE THE ONE SPELLING THAT MATTERS MOST.
+ *
+ * The sweep reads the locale files as TEXT. `"bu\u04B3atar"` is eleven ASCII
+ * characters on disk and it serves the Cyrillic ha with descender to a reader
+ * in Kano, so the sweep passes it and the screen is wrong: the exact defect
+ * this file was written for, in the one spelling it was blind to. A model
+ * writing a translation reaches for an escape whenever a character is awkward
+ * to type, so this is not a hypothetical shape.
+ *
+ * So the dictionary is asked as well, as VALUES, after the module has resolved
+ * every escape and after `withFallback` has filled the gaps. What the sweep
+ * above adds over this one is the keys and the comments; what this adds over
+ * the sweep is every string a person is actually served. Neither replaces the
+ * other and the pair is cheap.
+ */
+describe("and every string a reader is actually served", () => {
+  /** Every leaf string in a dictionary, with the path that reaches it. */
+  function strings(node: unknown, at = "", out: [string, string][] = []): [string, string][] {
+    if (typeof node === "string") {
+      out.push([at, node]);
+      return out;
+    }
+    if (node && typeof node === "object") {
+      for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+        strings(value, at ? `${at}.${key}` : key, out);
+      }
+    }
+    return out;
+  }
+
+  it.each([...LOCALES])("%s serves no character from another alphabet", (locale) => {
+    const bad: string[] = [];
+    for (const [path, value] of strings(getDictionary(locale))) {
+      const found = offences(value);
+      if (found.length > 0) bad.push(`${path}: ${found.join(", ")}  ${JSON.stringify(value)}`);
+    }
+    expect(bad, `\n${bad.join("\n")}\n`).toEqual([]);
+  });
+
+  it("reads a believable number of strings, so a green result is never an empty walk", () => {
+    expect(strings(getDictionary("en")).length).toBeGreaterThan(1000);
+  });
+
+  it("catches the escape the file sweep cannot see", () => {
+    /* Written as an escape on purpose: this is the shape that gets through. */
+    expect(offences("bu\u04B3atar")).toHaveLength(1);
   });
 });

@@ -1,9 +1,29 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { REPORT_TARGETS } from "@/lib/reports/schema";
 import { EULA_ZERO_TOLERANCE } from "@/lib/legal/eula-copy";
 import { BLOCK_CONFIRM_COPY } from "@/lib/safety/blocks-copy";
+import { withoutComments } from "@/lib/copy/source-scan";
+
+/**
+ * The seams the acceptance writer reaches through, replaced so the receipt
+ * below is a real call with real arguments rather than a string in a file.
+ * Nothing else in this file imports either module.
+ */
+const seam = vi.hoisted(() => ({ upsert: vi.fn(), alert: vi.fn() }));
+
+vi.mock("@/lib/alerts", () => ({ recordAlert: seam.alert }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({ from: () => ({ upsert: seam.upsert }) }),
+}));
+
+beforeEach(() => {
+  seam.upsert.mockReset();
+  seam.alert.mockReset();
+  seam.upsert.mockResolvedValue({ error: null });
+  seam.alert.mockResolvedValue({ ok: true });
+});
 
 /**
  * THE FOUR PRECAUTIONS, GUARDED SO THEY CANNOT QUIETLY COME BACK OUT.
@@ -27,6 +47,15 @@ import { BLOCK_CONFIRM_COPY } from "@/lib/safety/blocks-copy";
 
 const ROOT = join(__dirname, "..", "..");
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
+
+/**
+ * A source file with its prose taken out, which is the only form any source
+ * assertion in this file may be made against.
+ *
+ * WHY, IN ONE SENTENCE: the assertion this replaced was satisfied by a
+ * comment. See "an acceptance is recorded, not merely announced" below.
+ */
+const code = (p: string) => withoutComments(read(p));
 
 describe("reporting reaches a conversation", () => {
   it("accepts a conversation and a message as report targets", () => {
@@ -102,12 +131,93 @@ describe("the agreement exists and is accepted rather than announced", () => {
     expect(form).toContain("{!isSignUp && <p className=\"nf-auth__terms\">");
   });
 
-  it("records the version that was on screen, not merely that a box was ticked", () => {
-    const accept = read("components/auth/AcceptTerms.tsx");
+});
+
+/**
+ * AN ACCEPTANCE IS RECORDED, NOT MERELY ANNOUNCED.
+ *
+ * WHAT USED TO BE HERE, AND WHY IT WAS WORTHLESS. One assertion,
+ * `expect(read("lib/auth/actions.ts")).toContain("terms_version")`, stood for
+ * the whole of this. It was green for weeks. The string it matched was
+ * `terms_version:` in the auth metadata object, a field written into
+ * `auth.users.raw_user_meta_data` and read by nothing: there is no
+ * `profiles.terms_version` column and `handle_new_user` has never mentioned
+ * terms. Not one acceptance was recorded for any account on this platform
+ * while that test was green.
+ *
+ * It was worse than it looks. `read` returns the file WITH its comments, and
+ * the block above the metadata field discusses `terms_version` at length, so
+ * the assertion would have gone on passing with every line of the receipt
+ * deleted, on the prose about the receipt alone.
+ *
+ * So the claim is now made where it can be proved. The receipt is a real call
+ * with real arguments against a replaced writer, which is the only thing that
+ * can say WHAT is recorded. The two halves that cannot be reached from a node
+ * test, the field the form submits and the call the sign-up action makes, are
+ * asserted against source with its prose stripped, and are named for what they
+ * are rather than for what the receipt would be.
+ *
+ * WHAT IS STILL NOT PROVED HERE, SAID PLAINLY: that `public.terms_acceptances`
+ * exists in the database this build talks to. A node test cannot know that,
+ * and it is exactly the gap the original defect fell through. It is held by
+ * the migration's own probe and by the alert the writer raises when the upsert
+ * is refused, which is asserted in `lib/legal/acceptance.test.ts`.
+ */
+describe("an acceptance is recorded, not merely announced", () => {
+  it("writes a receipt for both documents at the versions this build serves", async () => {
+    const { recordTermsAcceptance } = await import("@/lib/legal/acceptance");
+    const { TERMS_VERSION, PRIVACY_VERSION } = await import("@/lib/legal/versions");
+    const userId = "11111111-1111-4111-8111-111111111111";
+
+    await recordTermsAcceptance(userId, "signup_email");
+
+    expect(seam.upsert).toHaveBeenCalledTimes(1);
+    const [rows] = seam.upsert.mock.calls[0] as [
+      { user_id: string; document: string; version: string; source: string }[],
+    ];
+    expect(rows.map((row) => row.document).sort()).toEqual(["privacy", "terms"]);
+    expect(rows.find((row) => row.document === "terms")?.version).toBe(TERMS_VERSION);
+    expect(rows.find((row) => row.document === "privacy")?.version).toBe(PRIVACY_VERSION);
+    expect(rows.every((row) => row.user_id === userId)).toBe(true);
+  });
+
+  it("says so on the desk when the receipt cannot be written, rather than losing it", async () => {
+    /*
+     * The half that makes the gap above survivable. A missing compliance
+     * record nobody knows is missing is the worst of the outcomes, so the
+     * failure the original defect had, a write that went nowhere, is now
+     * loud even though the write still cannot be proved from here.
+     */
+    seam.upsert.mockResolvedValue({ error: { message: "relation does not exist" } });
+    const { recordTermsAcceptance } = await import("@/lib/legal/acceptance");
+
+    await recordTermsAcceptance("11111111-1111-4111-8111-111111111111", "signup_email");
+
+    expect(seam.alert).toHaveBeenCalledTimes(1);
+    const [raised] = seam.alert.mock.calls[0] as [{ kind: string }];
+    expect(raised.kind).toBe("legal.acceptance.unrecorded");
+  });
+
+  it("is asked for by the sign-up action, and only at the version that was served", () => {
+    /*
+     * Source, with the prose stripped, and named as the call site check it is.
+     * It would miss a call that is unreachable, and it would not notice the
+     * table going away. It catches the edit that deletes the receipt, which is
+     * the edit that has already been made here once.
+     */
+    const actions = code("lib/auth/actions.ts");
+    expect(actions).toMatch(/await recordTermsAcceptance\(\s*data\.user\.id/);
+    expect(actions).toContain("submitted === TERMS_VERSION");
+    /* And the metadata field is not evidence of anything. If it is ever the
+       only mention of terms left in this file, the two assertions above have
+       already failed and this one says why. */
+    expect(actions).toMatch(/recordTermsAcceptance/);
+  });
+
+  it("submits the version the tick box was showing", () => {
+    const accept = code("components/auth/AcceptTerms.tsx");
     expect(accept).toContain("TERMS_VERSION");
     expect(accept).toContain('name="termsVersion"');
-    const actions = read("lib/auth/actions.ts");
-    expect(actions).toContain("terms_version");
   });
 });
 
@@ -125,10 +235,34 @@ describe("the filter knows abuse as well as fraud", () => {
     "utf8",
   );
 
-  it("adds an objectionable content branch to both scanners", () => {
-    expect(migration).toContain("private.objectionable_pattern()");
-    expect(migration).toContain("create or replace function private.scan_post()");
-    expect(migration).toContain("create or replace function private.scan_social_profile()");
+  /** The migration with its commentary taken out, which is the half that runs. */
+  const body = migration
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("--"))
+    .join("\n");
+
+  /** The executable body of one function this migration creates. */
+  function functionBody(name: string): string {
+    const start = body.indexOf(`create or replace function ${name}`);
+    expect(start, `${name} is created by this migration`).toBeGreaterThan(-1);
+    const rest = body.slice(start);
+    const end = rest.indexOf("$$;");
+    return end === -1 ? rest : rest.slice(0, end);
+  }
+
+  it("adds an objectionable content branch to both scanners, and both CALL it", () => {
+    /*
+     * Named and called, which are two facts and used to be one. The three
+     * assertions this replaced were satisfied by a migration that declares
+     * `objectionable_pattern` and two scanners that never ask it anything,
+     * which is a filter that exists and does not run.
+     */
+    expect(body).toContain("create or replace function private.objectionable_pattern()");
+    for (const scanner of ["private.scan_post()", "private.scan_social_profile()"]) {
+      expect(functionBody(scanner), `${scanner} asks the pattern`).toContain(
+        "private.objectionable_pattern()",
+      );
+    }
   });
 
   it("is born locked", () => {
@@ -144,8 +278,14 @@ describe("the filter knows abuse as well as fraud", () => {
     expect(migration).toContain("alter table public.blocked_terms enable row level security");
   });
 
-  it("ships the term list empty and says so", () => {
+  it("ships the term list empty, and the emptiness is in the SQL and not only the comment", () => {
+    /*
+     * The assertion on `-- SEED REQUIRED` is kept because the note is what a
+     * reader needs, but it is a COMMENT and proves nothing about the table.
+     * What proves it is that the executable half inserts no term at all.
+     */
     expect(migration).toContain("-- SEED REQUIRED");
+    expect(body).not.toMatch(/insert\s+into\s+public\.blocked_terms/i);
     expect(migration).not.toMatch(/insert into public\.blocked_terms \(term, severity\) values \('[a-z]/);
   });
 });

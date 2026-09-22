@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -151,9 +152,81 @@ describe("the files in the tree, whatever state they are in", () => {
     for (const problem of problems) {
       expect(problem.whoSuppliesIt).toContain("founder");
     }
-    // And the build gate must agree with this verdict, so a green suite and a
-    // red native build can never mean two different things.
-    const gate = readFileSync(join(__dirname, "..", "..", "..", "scripts", "check-deep-links.mjs"), "utf8");
-    expect(gate).toContain("process.exit(warnOnly ? 0 : 1)");
+  });
+
+  /**
+   * THE GATE IS RUN, NOT READ.
+   *
+   * This assertion used to be `expect(gate).toContain("process.exit(warnOnly ? 0 : 1)")`,
+   * which is a string in a file and is not a verdict. The gate re-states the
+   * rules in plain JavaScript rather than importing the TypeScript checker, on
+   * purpose and for a good reason written in its own header, and a hand copy of
+   * a rule is exactly the thing that drifts. The one assertion that could have
+   * caught the drift was the one asserting the copy exists.
+   *
+   * So the gate is executed and its exit code is compared with the checker's
+   * answer about the same two files. A gate that stops refusing a placeholder,
+   * or that starts refusing a clean pair, now fails here whatever its source
+   * says. The day the founder's values land, both sides go green together,
+   * which is the property the original comment claimed and did not hold.
+   */
+  const GATE = join(__dirname, "..", "..", "..", "scripts", "check-deep-links.mjs");
+
+  /** Run the gate over the real files and report what it did, not what it says. */
+  function runGate(args: string[] = []): { status: number; output: string } {
+    try {
+      const stdout = execFileSync(process.execPath, [GATE, ...args], {
+        stdio: "pipe",
+        encoding: "utf8",
+      });
+      return { status: 0, output: stdout };
+    } catch (error) {
+      const failure = error as { status?: number; stdout?: string; stderr?: string };
+      return {
+        status: failure.status ?? -1,
+        output: `${failure.stdout ?? ""}${failure.stderr ?? ""}`,
+      };
+    }
+  }
+
+  it("refuses, or passes, exactly as the checker's verdict says", () => {
+    const clean = deepLinkProblems(aasa, assetlinks).length === 0;
+    const gate = runGate();
+    expect(
+      gate.status,
+      clean
+        ? "the checker finds nothing wrong with the association files and the gate still refuses them"
+        : "the checker finds a placeholder in the association files and the gate lets it through",
+    ).toBe(clean ? 0 : 1);
+  });
+
+  it("names the same problems, one for one, so neither copy of the rules can drift", () => {
+    /*
+     * THE ASSERTION THIS REPLACED WAS `expect(gate).toContain("process.exit(warnOnly ? 0 : 1)")`,
+     * which is a string in a file and is not a verdict.
+     *
+     * It mattered more here than it usually would. The gate RE-STATES the
+     * rules in plain JavaScript rather than importing this checker, on purpose
+     * and for a reason written in its own header: a build gate that needs a
+     * compile step is a build gate that gets taken out of the build. A hand
+     * copy of a rule is the thing that drifts, and the only test standing
+     * between the two copies was one asserting that the copy existed.
+     *
+     * Counted and matched per file rather than merely "both unhappy". A gate
+     * whose Team ID rule is loosened while the fingerprint rule still refuses
+     * goes on exiting 1 on today's tree, so an exit code alone cannot see the
+     * drift. The file each problem is raised against can.
+     */
+    const expected = deepLinkProblems(aasa, assetlinks).map((problem) => problem.file);
+    const reported = [...runGate().output.matchAll(/^\s*(\S+)\n\s*what:/gm)].map(
+      (match) => match[1] ?? "",
+    );
+    expect(reported.sort(), "the gate and the checker disagree about the association files").toEqual(
+      [...expected].sort(),
+    );
+  });
+
+  it("never refuses under --warn, which is the web-only deployment door", () => {
+    expect(runGate(["--warn"]).status).toBe(0);
   });
 });

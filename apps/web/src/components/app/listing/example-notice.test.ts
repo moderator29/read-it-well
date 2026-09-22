@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { EXAMPLE_STATEMENT } from "@/lib/listings/syndication";
 import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
+import { withoutComments } from "@/lib/copy/source-scan";
 
 /**
  * THE DISCLOSURE, GUARDED BY SOURCE.
@@ -28,7 +29,24 @@ import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phr
  */
 
 const SRC = join(process.cwd(), "src");
-const read = (path: string) => readFileSync(join(SRC, path), "utf8");
+
+/**
+ * A component's source with its prose taken out.
+ *
+ * EVERY ASSERTION IN THIS FILE IS MADE AGAINST THIS AND NOT AGAINST THE RAW
+ * FILE, and the reason is the one that cost this platform a compliance record
+ * elsewhere in the tree: a source assertion that reads comments is satisfied by
+ * a comment. `expect(NOTICE).toContain("EXAMPLE_STATEMENT")` passed on the doc
+ * block above the component as readily as on the component, so the disclosure
+ * could have been deleted entirely and left a green suite behind, with the
+ * paragraph explaining why it must never be deleted doing the work of proving
+ * it had not been. The same went for every `not.toContain` below: a comment
+ * mentioning `hover:` or `<button` failed a test about code that was clean.
+ *
+ * `withoutComments` keeps line numbers and does not mistake a URL or a regular
+ * expression for a comment. It is the same reader the copy sweep uses.
+ */
+const read = (path: string) => withoutComments(readFileSync(join(SRC, path), "utf8"));
 
 const NOTICE = read("components/app/listing/ExampleNotice.tsx");
 
