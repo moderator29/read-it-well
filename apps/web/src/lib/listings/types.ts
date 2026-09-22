@@ -155,6 +155,32 @@ export type Listing = {
   /** ISO date the property can be occupied from. */
   availableFrom?: string;
   furnished?: Furnishing;
+  /**
+   * WHAT A BUYER ACTUALLY PAYS, in kobo, as the lister stated it.
+   *
+   * The sale side's twin of `moveInCostMinor` and the five fields under it,
+   * and it exists for the same reason with a much bigger number attached: an
+   * asking price in Lagos is routinely twenty million naira short of what the
+   * buyer has to find by the time the deed is signed, once agency, legal,
+   * Governor's consent, stamp duty and registration are counted.
+   *
+   * ONE DIFFERENCE FROM THE TENANCY MODEL AND IT IS EASY TO GET BACKWARDS:
+   * THE ASKING PRICE IS ONE OF THE PARTS. "Total to move in" sits beside the
+   * rent; "total to buy" includes the price, because that is the number a
+   * buyer has to find.
+   *
+   * Every one of them is absent rather than zero when the lister declared
+   * nothing, because an undeclared cost and a declared zero are different
+   * facts and nothing downstream may collapse them.
+   */
+  purchaseCostMinor?: number;
+  /** True when `purchaseCostMinor` is the lister's own total rather than a sum of parts. */
+  purchaseCostStated?: boolean;
+  saleAgencyFeeMinor?: number;
+  saleLegalFeeMinor?: number;
+  governorsConsentFeeMinor?: number;
+  stampDutyMinor?: number;
+  surveyRegistrationFeeMinor?: number;
   /** The title a buyer would be taking. Present on sale listings that state one. */
   tenure?: LandTenure;
   saleStatus?: SaleStatus;

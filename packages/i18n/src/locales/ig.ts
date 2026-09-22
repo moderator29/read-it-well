@@ -3308,6 +3308,38 @@ export const ig: Dictionary = withFallback({
     basisMoveIn: "Edobere ya na mkpokọta ego ịbanye",
   },
 
+  /* Ihe onye na-azụ ga-akwụ n'ezie: nwanne `moveIn` n'akụkụ ire ere. */
+  purchase: {
+    title: "Ihe ịzụta ga-efu gị",
+    lede: "Ụgwọ niile onye nkwupụta a kwuru, na nke ọ na-ekwughị.",
+    askingPrice: "Ọnụahịa a rịọrọ",
+    agencyFee: "Ụgwọ onye nnọchiteanya",
+    legalFee: "Ụgwọ ọkàiwu",
+    governorsConsent: "Nkwenye Gọvanọ",
+    consentBasis: "nnyefe adịghị eru eru n'enweghị ya",
+    stampDuty: "Ụtụ stampụ",
+    surveyRegistration: "Nlele ala na ndebanye aha",
+    keptBySeller: "Nye onye na-ere ya",
+    keptByAgent: "Nye onye nnọchiteanya",
+    keptByState: "Nye ọchịchị",
+    notDeclared: "E kwupụtaghị",
+    noAgencyFee: "Enweghị ụgwọ onye nnọchiteanya",
+    noAgencyFeeNote:
+      "Onye nkwupụta a ekwughị ụgwọ onye nnọchiteanya ọ bụla. Vallo anaghị ebelata ụgwọ onye ọ bụla. Ọ na-ekwupụta ya.",
+    totalStated: "Mkpokọta ego ịzụta",
+    totalFrom: "Ịzụta site na",
+    statedNote:
+      "Ọnụọgụ onye nkwupụta kwuru na ị chọrọ iji nweta ya, tinyere ọnụahịa a rịọrọ. Ihe ọ bụla na-adịghị ebe a adịghị na ọnụahịa ha, jụọ tupu ị kwụọ ụgwọ.",
+    summedNote:
+      "Onye nkwupụta enyeghị otu mkpokọta, ya mere nke a bụ mkpokọta akụkụ ndị ha kwuru. Enwere ike ịdị karịa, jụọ tupu ị kwụọ ụgwọ.",
+    undeclaredOne:
+      "Otu ụgwọ dị n'elu ka a na-ekwupụtabeghị. Ọ nọghị na mkpokọta, enwere ike ịrịọ gị ya.",
+    undeclaredMany:
+      "Ụgwọ {count} dị n'elu ka a na-ekwupụtabeghị. Ha anọghị na mkpokọta, enwere ike ịrịọ gị ha.",
+    statutoryNote:
+      "Nkwenye Gọvanọ, ụtụ stampụ na ndebanye aha ka a na-akwụ ọchịchị. Ọ dịghị onye nọ na Vallo nwere ike ịhapụ ha ma ọ bụ keta òkè na ha.",
+  },
+
   /* TRACK P: ibe ụlọ abụọ na ogwe ala. */
   directHome: {
     heroTitle: "Chọta ụlọ ọzọ gị",

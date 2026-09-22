@@ -3319,6 +3319,38 @@ export const yo: Dictionary = withFallback({
     basisMoveIn: "A tò ó lórí àpapọ̀ owó ìwọlé",
   },
 
+  /* Ohun tí olùrà máa san ní tòótọ́: ìbejì `moveIn` ní ẹ̀gbẹ́ títà. */
+  purchase: {
+    title: "Ohun tí rírà yóò ná ọ",
+    lede: "Gbogbo owó tí olùkéde yìí ti sọ, àti gbogbo èyí tí kò sọ.",
+    askingPrice: "Iye tí wọ́n béèrè",
+    agencyFee: "Owó aṣojú",
+    legalFee: "Owó agbẹjọ́rò",
+    governorsConsent: "Ìfọwọ́sí Gómìnà",
+    consentBasis: "ìyípadà kò péye láìsí rẹ̀",
+    stampDuty: "Owó òǹtẹ̀",
+    surveyRegistration: "Ìwọ̀n ilẹ̀ àti ìforúkọsílẹ̀",
+    keptBySeller: "Sí ọwọ́ ẹni tó ń tà",
+    keptByAgent: "Sí ọwọ́ aṣojú",
+    keptByState: "Sí ọwọ́ ìjọba",
+    notDeclared: "Kò sọ",
+    noAgencyFee: "Kò sí owó aṣojú",
+    noAgencyFeeNote:
+      "Olùkéde yìí kò béèrè owó aṣojú kankan. Vallo kò dín owó ẹnìkan kù. Ó ń kéde rẹ̀ ni.",
+    totalStated: "Àpapọ̀ owó rírà",
+    totalFrom: "Rírà láti",
+    statedNote:
+      "Iye tí olùkéde sọ pé o nílò láti ní i, iye tí wọ́n béèrè wà nínú rẹ̀. Ohunkóhun tí kò sí níbí kò sí nínú iye wọn, béèrè kí o tó san.",
+    summedNote:
+      "Olùkéde kò fún wa ní àpapọ̀ kan, nítorí náà èyí ni àpapọ̀ àwọn apá tí wọ́n dárúkọ. Ó lè sí i, béèrè kí o tó san.",
+    undeclaredOne:
+      "Owó kan lókè kò tí ì sọ. Kò sí nínú àpapọ̀, wọ́n sì lè béèrè rẹ̀ lọ́wọ́ rẹ.",
+    undeclaredMany:
+      "Owó {count} lókè kò tí ì sọ. Wọn kò sí nínú àpapọ̀, wọ́n sì lè béèrè wọn lọ́wọ́ rẹ.",
+    statutoryNote:
+      "Ìfọwọ́sí Gómìnà, owó òǹtẹ̀ àti ìforúkọsílẹ̀ ni a ń san fún ìjọba. Kò sí ẹni kan lórí Vallo tó lè yọ wọ́n kúrò tàbí kó pín nínú wọn.",
+  },
+
   /* TRACK P: àwọn ojú-ìwé ilé méjèèjì àti ìlà ìsàlẹ̀. */
   directHome: {
     heroTitle: "Wá ilé rẹ tó kàn",

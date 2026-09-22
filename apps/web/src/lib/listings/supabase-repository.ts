@@ -9,6 +9,7 @@ import { diversePick, matchesFilter } from "./filter";
 import {
   headlinePrice,
   moveInTotal,
+  purchaseTotal,
   type BuildCondition,
   type Furnishing,
   type LandTenure,
@@ -174,6 +175,12 @@ const LISTING_SELECT = `
   legal_fee_minor,
   agreement_fee_minor,
   total_move_in_cost_minor,
+  sale_agency_fee_minor,
+  sale_legal_fee_minor,
+  governors_consent_fee_minor,
+  stamp_duty_minor,
+  survey_registration_fee_minor,
+  total_purchase_cost_minor,
   minimum_tenancy_months,
   available_from,
   furnished,
@@ -241,6 +248,12 @@ const LISTING_DETAIL_SELECT = `
   legal_fee_minor,
   agreement_fee_minor,
   total_move_in_cost_minor,
+  sale_agency_fee_minor,
+  sale_legal_fee_minor,
+  governors_consent_fee_minor,
+  stamp_duty_minor,
+  survey_registration_fee_minor,
+  total_purchase_cost_minor,
   minimum_tenancy_months,
   available_from,
   furnished,
@@ -304,6 +317,12 @@ type ListingRow = {
   legal_fee_minor: number | null;
   agreement_fee_minor: number | null;
   total_move_in_cost_minor: number | null;
+  sale_agency_fee_minor: number | null;
+  sale_legal_fee_minor: number | null;
+  governors_consent_fee_minor: number | null;
+  stamp_duty_minor: number | null;
+  survey_registration_fee_minor: number | null;
+  total_purchase_cost_minor: number | null;
   minimum_tenancy_months: number | null;
   available_from: string | null;
   furnished: string | null;
@@ -696,6 +715,7 @@ function mapRow(
 
   const headline = headlinePrice(row);
   const moveIn = moveInTotal(row);
+  const purchase = purchaseTotal(row);
 
   return {
     id: row.id,
@@ -749,6 +769,28 @@ function mapRow(
     ...(row.agreement_fee_minor === null
       ? {}
       : { agreementFeeMinor: Number(row.agreement_fee_minor) }),
+    /* WHAT A BUYER ACTUALLY PAYS. Carried only for a sale listing, and only
+       when somebody stated something, for the same reason the move-in total
+       is: an unstated total renders as unstated and never as zero, because
+       "no fees" and "we did not say" are different promises. The five parts
+       are carried whatever the total says, because the itemised block lists
+       every cost a buyer meets and draws the silent ones as silent. */
+    ...(row.listing_intent === "sale" && (purchase.stated || purchase.minor > 0)
+      ? { purchaseCostMinor: purchase.minor, purchaseCostStated: purchase.stated }
+      : {}),
+    ...(row.sale_agency_fee_minor === null
+      ? {}
+      : { saleAgencyFeeMinor: Number(row.sale_agency_fee_minor) }),
+    ...(row.sale_legal_fee_minor === null
+      ? {}
+      : { saleLegalFeeMinor: Number(row.sale_legal_fee_minor) }),
+    ...(row.governors_consent_fee_minor === null
+      ? {}
+      : { governorsConsentFeeMinor: Number(row.governors_consent_fee_minor) }),
+    ...(row.stamp_duty_minor === null ? {} : { stampDutyMinor: Number(row.stamp_duty_minor) }),
+    ...(row.survey_registration_fee_minor === null
+      ? {}
+      : { surveyRegistrationFeeMinor: Number(row.survey_registration_fee_minor) }),
     ...(row.minimum_tenancy_months === null
       ? {}
       : { minimumTenancyMonths: row.minimum_tenancy_months }),

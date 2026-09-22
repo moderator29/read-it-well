@@ -4156,6 +4156,56 @@ export const en = {
   },
 
   /**
+   * WHAT A BUYER ACTUALLY PAYS: the sale side's twin of `moveIn`.
+   *
+   * The same honesty rule, with a much bigger number attached. Every cost a
+   * buyer meets is named whether or not the lister declared it; an undeclared
+   * one carries the words and never a figure; a declared zero says so in
+   * words, because "no agency fee" is a promise and "we did not say" is not
+   * the same promise.
+   *
+   * THE ASKING PRICE IS ONE OF THE PARTS HERE, which is the one thing that
+   * differs from the tenancy side. A move-in total sits beside the rent; a
+   * purchase total includes the price, because that is what a buyer has to
+   * find.
+   *
+   * NOTHING HERE STATES A PERCENTAGE. Agency and legal are conventionally
+   * five per cent each and the statutory charges run to several per cent
+   * more, but a rate that is usually five per cent is not five per cent, so
+   * the lister states what they charge and this dictionary never guesses.
+   */
+  purchase: {
+    title: "What it will cost you to buy",
+    lede: "Every cost this lister has declared, and every one they have not.",
+    askingPrice: "Asking price",
+    agencyFee: "Agency fee",
+    legalFee: "Legal fee",
+    governorsConsent: "Governor's consent",
+    consentBasis: "a transfer is not valid without it",
+    stampDuty: "Stamp duty",
+    surveyRegistration: "Survey and registration",
+    keptBySeller: "Paid to the seller",
+    keptByAgent: "Paid to the agent",
+    keptByState: "Paid to the state",
+    notDeclared: "Not declared",
+    noAgencyFee: "No agency fee",
+    noAgencyFeeNote:
+      "This lister has declared no agency fee. Vallo does not cap anybody's fee. It publishes it.",
+    totalStated: "Total to buy",
+    totalFrom: "Buy from",
+    statedNote:
+      "The figure the lister says you need to own it, the asking price included. Anything not listed here is not part of their quote, so ask before you pay.",
+    summedNote:
+      "The lister has not given one total, so this is the sum of the parts they named. There may be more, so ask before you pay.",
+    undeclaredOne:
+      "One cost above has not been declared. It is not in the total, and you may still be asked for it.",
+    undeclaredMany:
+      "{count} of the costs above have not been declared. They are not in the total, and you may still be asked for them.",
+    statutoryNote:
+      "Governor's consent, stamp duty and registration are paid to the state. Nobody on Vallo can waive them or take a share of them.",
+  },
+
+  /**
    * TRACK P: the two home pages and the dock, rebuilt to GOVERNING-01 and
    * GOVERNING-09.
    *

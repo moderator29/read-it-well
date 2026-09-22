@@ -3304,6 +3304,38 @@ export const ha: Dictionary = withFallback({
     basisMoveIn: "An tsara shi kan jimlar kuɗin shiga",
   },
 
+  /* Abin da mai saye zai biya da gaske: tagwayen `moveIn` a gefen sayarwa. */
+  purchase: {
+    title: "Abin da sayen zai ci ka",
+    lede: "Duk kuɗin da wannan mai sanarwa ya bayyana, da duk wanda bai bayyana ba.",
+    askingPrice: "Farashin da aka nema",
+    agencyFee: "Kuɗin wakili",
+    legalFee: "Kuɗin lauya",
+    governorsConsent: "Izinin Gwamna",
+    consentBasis: "mika mulki ba ya inganta ba tare da shi ba",
+    stampDuty: "Kuɗin tambari",
+    surveyRegistration: "Awon ƙasa da rajista",
+    keptBySeller: "Zuwa ga mai sayarwa",
+    keptByAgent: "Zuwa ga wakili",
+    keptByState: "Zuwa ga gwamnati",
+    notDeclared: "Ba a bayyana ba",
+    noAgencyFee: "Babu kuɗin wakili",
+    noAgencyFeeNote:
+      "Wannan mai sanarwa bai sanya kuɗin wakili ba. Vallo ba ya iyakance kuɗin kowa. Yana buga shi ne.",
+    totalStated: "Jimlar kuɗin saye",
+    totalFrom: "Saye daga",
+    statedNote:
+      "Adadin da mai sanarwa ya ce kana buƙata ka mallake shi, farashin da aka nema na ciki. Duk abin da ba a lissafa ba ba ya cikin farashinsu, ka tambaya kafin ka biya.",
+    summedNote:
+      "Mai sanarwa bai ba da jimla ɗaya ba, don haka wannan jimlar sassan da suka ambata ne. Akwai yiwuwar ƙari, ka tambaya kafin ka biya.",
+    undeclaredOne:
+      "Kuɗi ɗaya a sama ba a bayyana shi ba. Ba ya cikin jimlar, kuma ana iya neman ka da shi.",
+    undeclaredMany:
+      "Kuɗi {count} a sama ba a bayyana su ba. Ba sa cikin jimlar, kuma ana iya neman ka da su.",
+    statutoryNote:
+      "Izinin Gwamna, kuɗin tambari da rajista ana biyan su ga gwamnati. Babu wanda ke kan Vallo da zai iya yafe su ko ya ci rabo a cikinsu.",
+  },
+
   /* TRACK P: shafukan gida biyu da mashigin ƙasa. */
   directHome: {
     heroTitle: "Nemo gidanka na gaba",

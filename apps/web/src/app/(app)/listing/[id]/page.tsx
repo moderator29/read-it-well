@@ -38,6 +38,7 @@ import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
+import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
@@ -896,6 +897,29 @@ export default async function ListingDetailPage({
                     className="scroll-mt-16"
                   >
                     <ListingMoveIn listing={listing} locale={locale} t={t} />
+                  </Section>
+                )}
+
+                {/* ------------------- 6b. AND THE SAME ANSWER FOR A BUYER */}
+                {/*
+                  WHAT IT WILL ACTUALLY COST TO BUY, which until this commit
+                  this platform could not show anybody. The tenancy block above
+                  has listed every cost a tenant meets, declared or not, since
+                  Track H; a buyer got an asking price and nothing else, and
+                  buying is where a Nigerian is most often surprised by a
+                  number. Same anatomy, same honesty rule, and the three
+                  statutory charges named as the state's rather than as
+                  anybody's on this platform.
+                */}
+                {isSale && (
+                  <Section
+                    id="cost"
+                    title={t.purchase.title}
+                    description={t.purchase.lede}
+                    divided
+                    className="scroll-mt-16"
+                  >
+                    <ListingPurchase listing={listing} locale={locale} t={t} />
                   </Section>
                 )}
 
