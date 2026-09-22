@@ -19,6 +19,7 @@ import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
+import { CONFIRMATION_CODE_RE, codeLengthWord } from "./confirmation-code";
 import {
   deactivatedAccountNotice,
   isDeactivatedAccountError,
@@ -482,22 +483,28 @@ async function forgetPendingEmail(): Promise<void> {
   store.delete(PENDING_EMAIL_COOKIE);
 }
 
-/** A confirmation code is six digits. Nothing else is worth sending upstream. */
-const SIGNUP_CODE_RE = /^\d{6}$/;
+/*
+ * THE LENGTH IS NOT WRITTEN HERE. It was, as `/^\d{6}$/`, beside two sentences
+ * of copy that also said six and an input that truncated at six, and then the
+ * Supabase project was set to issue EIGHT. The field cut the last two digits
+ * off in silence, this regex refused what was left, and the person was told
+ * their code was wrong while looking at the right code in their email. One
+ * number in `./confirmation-code`, read by the regex, the copy and the input.
+ */
 
 /**
  * Turn the code from the confirmation email into a session, and go inside.
  *
  * This is the half of sign-up that did not exist. `verifyOtp` with type
  * "signup" both confirms the address and issues a session, so there is no
- * second sign-in and no dead end: the person types six digits and is in the
+ * second sign-in and no dead end: the person types the code and is in the
  * product on the next paint. The server client writes the session cookies, the
  * same ones the middleware reads, which is why this cannot be done from the
  * browser.
  *
  * A wrong code must not say whether the address is known. It says the code did
  * not match, which is true either way, and the throttle underneath is what
- * stops six digits being guessed.
+ * stops a short code being guessed.
  */
 export async function verifySignUpCode(
   _prev: AuthFormState,
@@ -508,15 +515,15 @@ export async function verifySignUpCode(
 
   const fieldErrors: Partial<Record<AuthField, string>> = {};
   if (!EMAIL_RE.test(email)) fieldErrors.email = "Enter the email address you signed up with.";
-  if (!SIGNUP_CODE_RE.test(token)) {
-    fieldErrors.code = "The code is the six digits in the email we sent you.";
+  if (!CONFIRMATION_CODE_RE.test(token)) {
+    fieldErrors.code = `The code is the ${codeLengthWord()} digits in the email we sent you.`;
   }
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
   if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
 
   /* Ten a minute per address and twenty a minute per connection. A million
-     codes against one address is the attack, and a person mistyping six digits
+     codes against one address is the attack, and a person mistyping the code
      three times is the case that must not be caught by it. */
   const pacedEmail = await throttle("sign_up_verify", subjectForEmail(email), 10, 60);
   if (pacedEmail) return pacedEmail;
@@ -530,7 +537,7 @@ export async function verifySignUpCode(
     return {
       ok: false,
       fieldErrors: {
-        code: "That code did not match. Check the six digits in the email, or send a new one.",
+        code: `That code did not match. Check the ${codeLengthWord()} digits in the email, or send a new one.`,
       },
     };
   }

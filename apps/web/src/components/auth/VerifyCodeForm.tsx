@@ -8,29 +8,38 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "./fields";
 import { useRouter } from "next/navigation";
 import { VerifyingPanel } from "./VerifyingPanel";
+import {
+  CONFIRMATION_CODE_PLACEHOLDER,
+  codeLengthWord,
+  readCode,
+  surplusMessage,
+} from "@/lib/auth/confirmation-code";
 
 /**
- * The six digits from the confirmation email.
+ * The code from the confirmation email.
  *
  * This screen is the half of sign-up that never existed. The email has always
  * carried a code as well as a link, under the words "Or enter this code", and
  * there was nowhere to enter it. Somebody who read the code rather than tapping
  * the link had no way forward at all.
  *
- * Typing the last digit submits. Not as a flourish: a six digit code has a
- * known length, so waiting for somebody to reach for a button after they have
+ * Typing the last digit submits. Not as a flourish: the code has a known
+ * length, so waiting for somebody to reach for a button after they have
  * already given you everything you need is a step that exists for the form's
  * benefit and not for theirs. The button stays for a keyboard, for a paste that
  * lands short, and for anybody who does not trust a form that moves on its own.
  *
- * Pasting works from the code field alone rather than from six separate boxes.
- * Six boxes look considered and then fight every password manager, every "copy"
- * from a mail client that brings a trailing space, and every screen reader,
- * which reads them as six unlabelled inputs.
+ * Pasting works from the code field alone rather than from one box per digit.
+ * Separate boxes look considered and then fight every password manager, every
+ * "copy" from a mail client that brings a trailing space, and every screen
+ * reader, which reads them as a row of unlabelled inputs.
+ *
+ * HOW LONG THE CODE IS LIVES IN ONE PLACE, `lib/auth/confirmation-code`. This
+ * file used to carry its own `const CODE_LENGTH = 6` and its own sentences
+ * saying "six digits", and neither moved when the project began issuing eight.
  */
 
 const EMPTY: AuthFormState = { ok: false };
-const CODE_LENGTH = 6;
 
 export function VerifyCodeForm({
   t,
@@ -50,6 +59,9 @@ export function VerifyCodeForm({
   const [resendState, resendAction, resending] = useActionState(resend, EMPTY);
   const [address, setAddress] = useState(email);
   const [code, setCode] = useState("");
+  /* Set when somebody hands us more digits than a code has. Ours to say, not
+     the server's: the server never sees a value this field refused to send. */
+  const [surplus, setSurplus] = useState<string | null>(null);
   const form = useRef<HTMLFormElement>(null);
   const router = useRouter();
 
@@ -75,12 +87,23 @@ export function VerifyCodeForm({
     return <VerifyingPanel />;
   }
 
-  /* Digits only, and never more than six, so a pasted "  123 456 " arrives as
-     123456 rather than as a value the server has to refuse. */
+  /*
+   * Digits only, and NEVER FEWER THAN THEY GAVE US.
+   *
+   * The spacing goes, because "  123 456 " and "123-456" are both somebody
+   * pasting out of an email and the punctuation is not part of what they meant.
+   * The digits stay, all of them. This line used to end `.slice(0, 6)`, which
+   * is a decision to throw away part of what a person typed and say nothing
+   * about it, and it was only safe while six was true. When the project started
+   * issuing eight, the field ate the last two, the server refused the six that
+   * were left, and the screen told somebody their code was wrong while showing
+   * them the first six digits of the right one. A surplus is now SAID.
+   */
   function onCode(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, CODE_LENGTH);
-    setCode(digits);
-    if (digits.length === CODE_LENGTH && !verifying) {
+    const reading = readCode(value);
+    setCode(reading.digits);
+    setSurplus(surplusMessage(reading));
+    if (reading.complete && !verifying) {
       /* requestSubmit rather than submit, so the form's own validation and the
          action both run exactly as they would on a press. */
       form.current?.requestSubmit();
@@ -93,14 +116,14 @@ export function VerifyCodeForm({
       <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {address.length > 0 ? (
           <>
-            We sent six digits to{" "}
+            We sent {codeLengthWord()} digits to{" "}
             <span className="font-semibold text-[var(--nf-content-primary)]">{address}</span>. Type
             them here and you are in. No second sign-in.
           </>
         ) : (
           <>
-            We sent six digits to the address you signed up with. Type them here and you are in. No
-            second sign-in.
+            We sent {codeLengthWord()} digits to the address you signed up with. Type them here
+            and you are in. No second sign-in.
           </>
         )}
       </p>
@@ -132,13 +155,18 @@ export function VerifyCodeForm({
           name="code"
           type="text"
           label="Confirmation code"
-          placeholder="123456"
+          placeholder={CONFIRMATION_CODE_PLACEHOLDER}
           /* `one-time-code` is what makes iOS and Android offer the code from
              the message above the keyboard, which is the difference between
-             one tap and copying six digits by hand. */
+             one tap and copying the digits by hand. */
           autoComplete="one-time-code"
           inputMode="numeric"
-          error={state.fieldErrors?.code}
+          /* The surplus first. It is about what is in the field right now,
+             where the server's refusal is about the last thing sent, and the
+             newer fact is the one worth reading. `Field` already wires
+             aria-invalid and aria-describedby off this prop, so saying it here
+             says it to a screen reader too. */
+          error={surplus ?? state.fieldErrors?.code}
           value={code}
           onChange={onCode}
           className="nf-numeric text-[1.25rem] tracking-[0.32em]"

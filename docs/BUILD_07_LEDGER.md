@@ -773,3 +773,55 @@ read. It has been read now, and it was the item that mattered.
 * **The "reports older than 24 hours" counter** on the admin dashboard, work
   order 23, is not built. The commitment is written and the queue exists; the
   measurement of it does not.
+
+## 10. THE CONFIRMATION CODE LENGTH, FIXED BY THE LEAD
+
+The founder reported it directly: the length six was hardcoded in four places,
+the Supabase project had been issuing eight, and the input truncated instead of
+warning, so the field silently dropped two digits and the screen then told
+somebody their code was wrong while they were looking at the right code in
+their email. Every layer behaved exactly as written and the product lied.
+
+**Where the four copies were.** `lib/auth/actions.ts` held `const
+SIGNUP_CODE_RE = /^\d{6}$/`, and two sentences of copy either side of it that
+said "six digits" in words, so nobody changing a number would ever grep them.
+`components/auth/VerifyCodeForm.tsx` held `const CODE_LENGTH = 6`, the
+`.slice(0, CODE_LENGTH)` that did the cutting, two more "six digits" sentences
+and the placeholder `"123456"`. Four numbers and four words for one fact.
+
+**Where it lives now.** `apps/web/src/lib/auth/confirmation-code.ts`, one
+constant with the regex, the placeholder and the word all derived from it.
+`codeLengthWord()` exists because the copy says "six" and not "6": spelling the
+number out is the house voice and is also exactly how the copy drifted, so the
+word is now computed from the number rather than typed beside it.
+
+**Why it is not a constant inside `actions.ts`.** That file is a `"use server"`
+module, and such a module may export nothing that is not an async function. A
+non-function export there is the fault that took this build down twice today,
+the second time stripping every export and failing nine consumers with fifty
+eight errors (section 8.1). The shared fact therefore lives in an ordinary
+module that both the server action and the client component import.
+
+**The truncation is gone and is not coming back.** `readCode()` strips spacing,
+because "  123 456 " is somebody pasting out of an email, and keeps every
+digit, because the digits were the code. Too many digits now sets a field error
+that names both numbers, so the person can recount against their own email,
+and the form does NOT auto-submit, which is what sent the cut value before. The
+surplus message takes precedence over the server's refusal in the field,
+because it describes what is on the screen now rather than what was last sent,
+and it goes through the same `error` prop as every other field so a screen
+reader is told as well.
+
+**Gated on a worktree at the tip, not on the shared tree**, which at the time
+carried another worker's half-finished file. `tsc --noEmit` exit 0. `eslint` on
+the four paths: 0 errors, 8 warnings, all of them pre-existing spacing and font
+size warnings on lines this change did not touch. `vitest` over `src/lib/auth`
+and `src/components/auth`: 39 passed, including ten new ones that assert the
+regex, the placeholder and the word all follow the constant, and that a surplus
+survives the read rather than being eaten.
+
+**What is NOT closed.** The application now has one copy of the length and the
+Supabase dashboard has another, and they can still disagree. That is one place
+instead of four, and it is the honest floor: the dashboard setting is what
+actually generates the code, and nothing in this repository can read it. If the
+project's setting changes, change `CONFIRMATION_CODE_LENGTH` and nothing else.
