@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { getMyHostDraft } from "@/lib/host/queries";
+import { doorFrom } from "@/lib/host/doors";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
@@ -22,14 +23,32 @@ export const dynamic = "force-dynamic";
  * A thin server shell: the signed-in person's own draft (or an empty one),
  * the cancellation policies a rate can name, and the wizard. Signed out, the
  * way in carries the intent home so the person lands back here.
+ *
+ * `?door=` IS THE ANSWER TO THE FIRST QUESTION, given on the previous screen.
+ * `/host/start` draws the three stays doors of `GOVERNING-09`, and a door
+ * carries the host type and the business kind the wizard would otherwise ask
+ * for. It is read here and never trusted: `doorFrom` returns null for anything
+ * that is not one of the three, and the wizard's own first step is still there
+ * behind the Back control for anybody whose door turned out to be wrong.
  */
-export default async function HostApplyPage() {
+export default async function HostApplyPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const session = await resolveSession();
 
+  const params = await searchParams;
+  const askedDoor = params.door;
+  const doorId = Array.isArray(askedDoor) ? askedDoor[0] : askedDoor;
+  const door = doorFrom(doorId);
+
   if (session.state !== "signed-in") {
-    const next = returnHref("/host/apply", "", "list");
+    /* The door travels through sign in, so a person who picked "we are a
+       hotel", signed in and came back does not have to pick it again. */
+    const next = returnHref(door ? `/host/apply?door=${door.id}` : "/host/apply", "", "list");
     return (
       <HostShell logoLabel={t.a11y.logoHome}>
         <EmptyState
@@ -58,7 +77,13 @@ export default async function HostApplyPage() {
 
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
-      <HostWizard initial={draft} userId={session.user.id} policies={policies} locale={locale} />
+      <HostWizard
+        initial={draft}
+        userId={session.user.id}
+        policies={policies}
+        locale={locale}
+        door={door}
+      />
     </HostShell>
   );
 }

@@ -36,6 +36,7 @@ import {
   type HostStepId,
   type HostType,
 } from "@/lib/host/onboarding";
+import type { StaysDoor } from "@/lib/host/doors";
 import {
   addBankAccount,
   listBanks,
@@ -154,15 +155,37 @@ export function HostWizard({
   userId,
   policies,
   locale,
+  door = null,
 }: {
   initial: HostDraft;
   userId: string;
   policies: PolicyOption[];
   locale: Locale;
+  /**
+   * The stays door this host came through, from `/host/start`.
+   *
+   * IT ANSWERS THE FIRST STEP, IT DOES NOT REMOVE IT. The host type and the
+   * business kind are filled in and the wizard opens on the second step, so
+   * somebody who told us "we are a hotel" is not then asked whether they are a
+   * registered hospitality business. Back still lands on that step with the
+   * door's answer showing, because a hotel that turns out not to be registered
+   * has to be able to say so.
+   *
+   * A DOOR NEVER OVERRIDES A DRAFT IN PROGRESS. Somebody returning to an
+   * application they have already started keeps what they answered; the door
+   * only fills a blank.
+   */
+  door?: StaysDoor | null;
 }) {
   const router = useRouter();
-  const [draft, setDraft] = useState<HostDraft>(initial);
-  const [at, setAt] = useState(0);
+  const [draft, setDraft] = useState<HostDraft>(() =>
+    door && initial.hostType === null && initial.kind === null
+      ? { ...initial, hostType: door.hostType, kind: door.kind }
+      : initial,
+  );
+  const [at, setAt] = useState(
+    door && initial.hostType === null && initial.kind === null ? 1 : 0,
+  );
   const [pending, start] = useTransition();
   const [notice, setNotice] = useState<Notice>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
