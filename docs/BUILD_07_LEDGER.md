@@ -273,10 +273,18 @@ keys in English against a recorded ceiling of 211. `d6e00c9` added
 and `ig.ts` untranslated, on the argument that the approved position carries
 the same three words in every locale. That argument may well be right, but the
 gate exists precisely to catch an English string entering a translation file,
-so it has to be answered rather than walked past: either the string is
-translated, or the ceiling is raised deliberately with the reason written
-beside it. That commit's message reports "The site component tests pass"; the
-full suite was not run. It is not this worker's file and it is not changed
+so it has to be answered rather than walked past. And the answer is probably
+that the ceiling should rise: the test's own header names exactly one
+legitimate cause for raising it, which is an English string that was ALREADY
+on screen moving somewhere a completeness measure can see it, and that is what
+happened here. The phone mock read `landing.slogan`, which yo does not
+translate either, so it was drawing English before this commit and draws
+English after it. Nothing on screen changed language; the count did. What is
+missing is the deliberate act the header demands: the ceiling was never
+raised, the reason was never written beside it, and the suite was never run.
+That commit's message reports "The site component tests pass". It also touched
+`ha.ts` and `ig.ts` with the same string, and the assertion stops at the first
+failure, so those two ceilings want checking in the same move. It is not this worker's file and it is not changed
 here. **The test floor in section 1 is red until whoever owns `d6e00c9`
 answers it.**
 
