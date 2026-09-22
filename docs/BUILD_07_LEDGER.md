@@ -3338,3 +3338,34 @@ gate worktree, never symlinked.** Turbopack refuses a symlink that points out
 of the project root, and it panics rather than failing cleanly, so the build
 is the one gate that silently cannot be isolated. `cp -al` at both the root
 and `apps/web`.
+
+## 33. THE SCHEDULER OUTAGE COST NOTHING, AND I AM CORRECTING MY OWN ALARM
+
+I told the founder that deletion requests past their thirty day promise were
+going unpurged, and that wallet holds were not being released. Both statements
+implied there were some. **Measured:**
+
+| Table | Rows |
+| --- | --- |
+| `account_deletion_requests` | **0** |
+| `bookings` | **0** |
+| `saved_searches` | **0** |
+| `reservations` | **0**, since the forged one was removed today |
+
+No promise has been broken. No hold is sitting on anybody's money. Nothing is
+owed to a real person by any of the seven refused jobs, and **the purge
+backlog does not need a manual first run because there is no backlog**, which
+was the founder's explicit question.
+
+**The outage is still worth every minute spent on it**, and the reason is
+worth stating rather than assuming. A scheduler that has never once succeeded
+is not a scheduler anybody should trust with the first real deletion request,
+and the first real user is the one who would otherwise have paid for
+discovering this. Cheap to fix now, expensive to find later.
+
+**The alarm itself was right in shape and wrong in scale, and the scale is the
+part I should have measured before raising it.** "Deletion requests are not
+purged" and "the machinery that purges deletion requests has never run" are
+different sentences, and only the second one was true. I reached for the first
+because it is the one that conveys urgency, which is exactly the habit this
+ledger keeps catching in other people's work.

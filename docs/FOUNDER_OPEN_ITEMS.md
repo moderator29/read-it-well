@@ -98,11 +98,29 @@ All seven jobs, every one refused at the door with 401: hold sweep 87 times,
 pg cron watch 87, reconcile 69, inventory drift 4, account purge 3, saved
 search alerts 3, complete stays 3.
 
-**What has not been happening for four days.** Deletion requests past their
-thirty day promise are not purged, which is a commitment in the privacy
-notice. Wallet holds are not released. The money sweep is refused on both its
-routes at once. Stays are not completed, inventory drift is not caught, and
-saved search alerts are not sent.
+**What has not been happening for four days, and what it has actually cost,
+which are different questions.** The jobs that are refused are: the account
+purge, the hold sweep, the money sweep on both its routes, stays completion,
+inventory drift and saved search alerts.
+
+**MEASURED, THE HARM TO DATE IS NIL, and I am correcting my own alarm.** I
+wrote that deletion requests past their thirty day promise were going
+unpurged, which implied there were some. There are none:
+
+| Table | Rows |
+| --- | --- |
+| `account_deletion_requests` | **0** |
+| `bookings` | **0** |
+| `saved_searches` | **0** |
+| `reservations` | **0** |
+
+So no promise has been broken, no hold is stuck on anybody's money, and **the
+purge backlog does not need a manual first run, because there is no backlog**.
+
+That does not make the outage less worth fixing. It makes it cheap to fix
+NOW rather than expensive to discover later: the first real user is the one
+who would have paid for it, and a scheduler that has never once succeeded is
+not a scheduler anybody should trust with the first deletion request.
 
 **And the way it was reported is the exact pattern you named.** Each refusal
 raised a MEDIUM alert reading "unauthorised", which looks like a stranger
