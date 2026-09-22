@@ -166,7 +166,21 @@
      * already.
      */
     min-height: 3.75rem;
-    padding: var(--nf-space-sm) var(--nf-space-2xs);
+    /*
+     * AND THE MIN-HEIGHT WAS NOT WHAT WAS HOLDING IT OPEN, which the first
+     * pass at this got wrong and the browser corrected. With `min-height` at
+     * 3.75rem the tile still MEASURED 70.8px on a production server, because
+     * the CONTENT is taller than the floor: 12 padding + 24 glyph + 4 gap +
+     * 16.8 label + 12 padding + 2 border. A minimum only binds when the
+     * content is shorter than it, so lowering it changed nothing at all and
+     * the tile stayed portrait.
+     *
+     * 8px of block padding and the render's own 22px glyph give
+     * 8 + 22 + 4 + 16.8 + 8 + 2 = 60.8, which is the render's 60. The tile is
+     * still 60.8 tall against 71 wide, so it is landscape, and it clears the
+     * 44px tap floor by 16.
+     */
+    padding: var(--nf-space-xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-lg);
     border: 1px solid var(--nf-brand-edge);
     /* The render's three resting tiles are blue-tinted glass, not grey. */
@@ -191,6 +205,15 @@
     display: grid;
     place-items: center;
     color: var(--nf-brand-secondary);
+    /* The render's glyph measures about 22px. The component asks for 24 and
+       this is what the band's height is built on, so it is held here rather
+       than left to four call sites to agree about. */
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+  .nf-wallet-tile__glyph > svg {
+    width: 100%;
+    height: 100%;
   }
   .nf-wallet-tile:active {
     transform: scale(var(--nf-press-scale));
@@ -291,7 +314,32 @@
     min-height: 5.25rem;
     flex-direction: column;
     gap: var(--nf-gap-inline-tight);
-    padding: var(--nf-space-sm) var(--nf-space-2xs);
+    /*
+     * THE SAME LESSON AS THE TILE ABOVE, AND HERE IT ONLY GETS PART OF THE WAY.
+     *
+     * With `min-height` at 5.25rem the card still MEASURED 123.2px, because
+     * the content is 12 + 30 glyph + 4 gap + 63.2 text + 12 + 2. Taking the
+     * block padding to 8 brings it to 115.2 against the render's 85, and NO
+     * FURTHER CHANGE TO THIS FILE CAN CLOSE THE REST. The 63.2 is two lines of
+     * title plus two lines of sub, and MEASURED on a production server at the
+     * shipped 12px:
+     *
+     *   available width 69.5px
+     *   "Send Money" 73.1   "Request Money" 91.2   "Withdraw" 57.1
+     *   "To a Vallo wallet" 91.6   "Share your link" 84.4   "Every movement" 95
+     *
+     * Four cards across a 390px screen cannot give a title 91.2px, and the gap
+     * trick buys 3px per card. The strings are the constraint, not the CSS,
+     * which is what the drift survey concluded: shorten `sendMoney` and
+     * `requestMoney` to "Send" and "Request" and the subs to fit, and the card
+     * falls to about 85 with one line each. THAT EDIT IS NOT THIS WORKER'S TO
+     * MAKE: the i18n rule for this build is that a worker may only ADD keys
+     * inside its own namespace, never rewrite another scope's, and two agents
+     * have already collided in that file once. It is recorded in the ledger
+     * with these measurements so whoever owns the wallet copy can close it in
+     * one edit rather than re-deriving the numbers.
+     */
+    padding: var(--nf-space-xs) var(--nf-space-2xs);
     text-align: left;
     color: var(--nf-content-primary);
   }

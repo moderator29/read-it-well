@@ -1175,6 +1175,30 @@
     font-weight: 650;
     color: var(--nf-brand-secondary);
   }
+  /*
+   * THIS CLASS MOVED FROM AN `<a>` ONTO A `<button>` and was checked at 390 in
+   * dark rather than reasoned about. IT DRAWS CORRECTLY: the font resolves to
+   * Inter at 16px and weight 650, not the UA button face, the colour is the
+   * brand's quiet blue, the background is transparent and the border is 0,
+   * because Tailwind v4's preflight resets `font`, `background` and `border`
+   * on buttons and the rule above wins for everything else.
+   *
+   * TWO UA DEFAULTS SURVIVE PREFLIGHT AND THIS IS THE GUARD FOR THEM, not a
+   * fix for a visible fault. A button computes `text-align: center` and
+   * `appearance: button`, and an anchor computes neither. Today both are inert
+   * HERE: the element is `inline-flex` and content-sized, so it hugs its text
+   * at 84 by 25 and `text-align` positions nothing, while `appearance` has
+   * nothing to paint over a transparent background with no border.
+   *
+   * They are written down because the day somebody gives this a width, or
+   * changes `inline-flex` to `block`, the label silently centres where it used
+   * to sit left, and the diff that did it will not mention this file. It is
+   * the same precaution `chips.css` takes by naming `button.nf-chip`.
+   */
+  button.nf-social-link {
+    text-align: inherit;
+    appearance: none;
+  }
   .nf-social-link::before {
     content: "";
     position: absolute;
