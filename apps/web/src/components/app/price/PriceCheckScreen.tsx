@@ -5,11 +5,10 @@ import "@/app/css/price-check.css";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { Segmented } from "@/components/ui/Segmented";
 import { Section, Stack, TYPE } from "@/components/app/Screen";
-import { EmptyActions } from "@/components/app/EmptyActions";
 import { coarsenPoint, withinNigeria } from "@/lib/price-check/address";
 import { fetchAreaSuggestions, recordPriceCheckStage, watchThisSpot } from "@/lib/price-check/actions";
 import type { PriceCheckResult } from "@/lib/price-check/gate";
@@ -276,7 +275,7 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
   return (
     <Stack>
       {/* ------------------------------------------------- rung 1 to 5 */}
-      <Section title={copy.ladder.heading}>
+      <Section id="nf-pc-where" title={copy.ladder.heading}>
         <div className="nf-pc-ladder">
           <Rung index={1} done={stateCode.length > 0}>
             <SelectField
@@ -463,30 +462,15 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
                 result={result}
                 refusalCopy={refusalCopy}
                 actions={
-                  spec?.actions.includes("notifyMe") && point ? (
-                    <div className="flex w-full max-w-sm flex-col gap-row">
-                      {props.signedIn ? (
-                        <Button
-                          variant="primary"
-                          full
-                          onClick={notifyMe}
-                          loading={watched === "saving"}
-                          disabled={watched === "saved"}
-                        >
-                          {watched === "saved" ? copy.notify.saved : copy.actions.notifyMe}
-                        </Button>
-                      ) : (
-                        <EmptyActions
-                          primary={{ label: copy.actions.notifyMeSignedOut, href: "/sign-in" }}
-                        />
-                      )}
-                      {watched === "failed" && (
-                        <p className="nf-body-sm text-[var(--nf-state-error)]">
-                          {copy.notify.failed}
-                        </p>
-                      )}
-                    </div>
-                  ) : undefined
+                  <RefusalActions
+                    spec={spec}
+                    copy={copy}
+                    hasPoint={point !== null}
+                    signedIn={props.signedIn}
+                    watched={watched}
+                    onNotify={notifyMe}
+                    onAnnualRent={() => setRentPeriod("year")}
+                  />
                 }
               />
               {spec?.showsStripPlot && (
@@ -510,16 +494,134 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
       )}
 
       {/* ----------------------------------- what stage one actually is */}
-      <AreaReport
-        rows={areaRows}
-        census={areaCensus}
-        locale={locale}
-        copy={copy.area}
-        typeNames={typeNames}
-      />
+      <div id="nf-pc-area">
+        <AreaReport
+          rows={areaRows}
+          census={areaCensus}
+          locale={locale}
+          copy={copy.area}
+          typeNames={typeNames}
+        />
+      </div>
 
       <NeighbourhoodFacts facts={facts} copy={copy.facts} />
     </Stack>
+  );
+}
+
+/**
+ * EVERY REFUSAL LEAVES THE READER SOMEWHERE TO GO, AND ONE OF THEM CANNOT YET.
+ *
+ * Eight of the nine next actions have a real destination on this screen: the
+ * map rung, the area report below, the comparables already drawn, the notify
+ * me, and the period control. They are anchors and handlers rather than links
+ * to new routes, because the whole check is one page.
+ *
+ * `registeredFirm` IS THE ONE THAT HAS NONE, and it is skipped rather than
+ * rendered dead. The next action for land is a hand-off to a registered estate
+ * surveyor and valuer, and Vallo has no directory of them: an ESVARBON
+ * register lookup is a conversation somebody has to have, not a component.
+ * A button that goes nowhere is a dead end dressed as a way forward, which is
+ * the exact thing `EmptyActions` was written to stop, so the refusal for land
+ * offers the area report and says nothing it cannot keep. The hand-off is
+ * recorded as outstanding rather than faked.
+ */
+function RefusalActions({
+  spec,
+  copy,
+  hasPoint,
+  signedIn,
+  watched,
+  onNotify,
+  onAnnualRent,
+}: {
+  spec: (typeof REFUSALS)[keyof typeof REFUSALS] | null;
+  copy: Dictionary["priceCheck"];
+  hasPoint: boolean;
+  signedIn: boolean;
+  watched: "idle" | "saving" | "saved" | "failed";
+  onNotify(): void;
+  onAnnualRent(): void;
+}) {
+  if (!spec) return null;
+
+  const rendered: React.ReactNode[] = [];
+
+  for (const action of spec.actions) {
+    if (action === "notifyMe") {
+      /* A watch needs a point to re-run the gate at. Without one the honest
+         thing is to offer nothing rather than to save a watch on nowhere. */
+      if (!hasPoint) continue;
+      rendered.push(
+        signedIn ? (
+          <Button
+            key="notify"
+            variant={rendered.length === 0 ? "primary" : "ghost"}
+            full
+            onClick={onNotify}
+            loading={watched === "saving"}
+            disabled={watched === "saved"}
+          >
+            {watched === "saved" ? copy.notify.saved : copy.actions.notifyMe}
+          </Button>
+        ) : (
+          <ButtonLink key="notify" href="/sign-in" variant="ghost" full>
+            {copy.actions.notifyMeSignedOut}
+          </ButtonLink>
+        ),
+      );
+      continue;
+    }
+
+    if (action === "dropPin") {
+      rendered.push(
+        <ButtonLink key={action} href="#nf-pc-where" variant={rendered.length === 0 ? "primary" : "ghost"} full>
+          {copy.actions.dropPin}
+        </ButtonLink>,
+      );
+      continue;
+    }
+
+    if (action === "areaReport" || action === "showNearby") {
+      rendered.push(
+        <ButtonLink
+          key={action}
+          href="#nf-pc-area"
+          variant={rendered.length === 0 ? "primary" : "ghost"}
+          full
+        >
+          {action === "areaReport" ? copy.actions.areaReport : copy.actions.showNearby}
+        </ButtonLink>,
+      );
+      continue;
+    }
+
+    if (action === "changePeriod") {
+      rendered.push(
+        <Button
+          key={action}
+          variant={rendered.length === 0 ? "primary" : "ghost"}
+          full
+          onClick={onAnnualRent}
+        >
+          {copy.actions.changePeriod}
+        </Button>,
+      );
+      continue;
+    }
+
+    /* `registeredFirm` falls through on purpose. See the header. */
+  }
+
+  if (rendered.length === 0) return null;
+
+  return (
+    <div className="flex w-full max-w-sm flex-col gap-row">
+      {rendered}
+      {watched === "failed" && (
+        <p className="nf-body-sm text-[var(--nf-state-error)]">{copy.notify.failed}</p>
+      )}
+    </div>
   );
 }
 
