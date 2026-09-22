@@ -1376,3 +1376,126 @@ so nothing is lost by the record either way. Moving the message to another
 thread was considered and refused: re-parenting somebody's message to a
 conversation they did not send it in is forging data in the opposite
 direction, which is the same fault this is undoing.
+
+## 16. C1, C2, A3 AND A2b, AUDITED BY THE LEAD
+
+Four hand-backs. What follows is what I checked myself against a primary
+source, not what I was told.
+
+### C1, the property pipeline: the listing identifier, verified in the database
+
+C1 claimed `VL-` codes minted by trigger at PUBLISH only, never at draft, never
+changed afterwards, and all 64 published rows carrying one. Queried live:
+
+| Measure | Result |
+| --- | --- |
+| Published listings | 64 |
+| Published carrying a well formed `^VL-[A-Z0-9]{6}$` | **64** |
+| Published with no code | **0** |
+| Non-published carrying a code | **0** |
+| Distinct codes | **64**, so no collision |
+
+Every number is what was claimed. `ListingCodePanel`, the component C1 says it
+wrote and then deleted for having no callers, has no reference anywhere in the
+tree, so that is true as well.
+
+**Its proofs were outside the repository and are now inside it.** Eleven
+captures were written to `/home/user/c1-proof`, where a container reclaim
+loses them and where no reviewer would look. Section 6 says a scope closes
+with its proof RECORDED, and a proof nobody else can open is not recorded.
+Compressed 15.4MB to 2.4MB and committed to `docs/design/proofs/c1/`.
+
+**C1 corrected one of its own rulings unprompted and the correction is the
+useful part.** It had declared custom SMTP configured, reasoning from auth
+logs that "carry no mail event in the last twenty four hours, which is the
+whole window they hold". Twenty four hours is the maximum span of ONE QUERY,
+not the retention. Passing an explicit start and end finds events ten days
+back. It declared a check impossible that was one parameter away, and said so
+rather than leaving the ruling standing.
+
+### C2, the stays pipeline: the guard I asked for came back narrower and better
+
+I routed a check constraint refusing any fulfilment but `vallo` until the
+partner label exists. C2 took it, and measured the ground first rather than
+implementing what I asked: `accommodations_first_party_is_vallo_chk` already
+existed and covers the FIRST PARTY row. It left that alone, because it stays
+true after partner support ships, and wrote the new constraint for the row that
+is NOT first party, which is exactly the partner row and exactly what the stop
+list is about. Its probe went through `apply_migration`, chose its fixture by
+the predicate under test, and ended in a deliberate raise. Seven checks,
+including an UPDATE into a forbidden value, because a guard on inserts alone
+lets a live row change into one the interface cannot describe, and including an
+honest row still writing, because a constraint that refuses everything passes
+every other check and breaks the product.
+
+That is better than what I asked for, and the difference came from measuring.
+
+### A3: two things it got wrong, both of which it reported before I found them
+
+The `en.ts` collision is section 14. The ratchet's defect is section 14 as
+well. What is worth adding here is the pattern: **both were caught because A3
+volunteered them.** Neither was in a diff I would have read.
+
+Its own measurement of the i18n blocker stands and is worse than a key count
+suggests: roughly 100 keys per locale are PRESENT with English inside them,
+invisible to a key count and identical on screen. The home grid's `listingOne`
+and `listingMany`, the count line under every tile on the first screen of the
+product, are missing from all three locales.
+
+**And its browser-versus-source finding is a small masterpiece of method.** Its
+TSX scanner found a capsule on every post card in the feed that carries an
+area. A real browser sweep of the same route at both widths reported ZERO,
+because no fixture post in the harness carries an area. The check the design
+direction names could not see the defect. Two checks see more than either
+alone, and where they disagree the browser wins.
+
+### A2b: A SIXTH HARNESS LIE, AND IT HAD ALREADY WRITTEN FIVE FALSE PROOFS
+
+`verify-shots.mjs` checked the status and the not-found marker and never
+checked WHERE THE BROWSER ENDED UP. With the auth gate live it followed five
+redirects and wrote five PNGs **of the sign-in screen** under the names
+`/notifications`, `/saved/searches`, `/profile/setup`, `/legal/privacy` and
+`/legal/terms`. Every assertion passed. Three of the files were byte
+identical, which is the tell nobody looked for. A2b deleted them rather than
+filing them and added a landed-path check.
+
+This is the sixth lie from the same harness family and it is the founder's
+pattern exactly: a green light that could not see the thing it was reporting
+on. It is now evidence for the named sweep rather than an anecdote.
+
+A2b also found that **B1's proof runner was telling harness lie number one**:
+Chromium launched with `--no-sandbox` alone silently drops `backdrop-filter`,
+on three surfaces that are entirely glass. Those shots could not have been
+honest even if the disk had held them, and the disk had not: one was truncated
+with no IEND chunk and two were zero bytes. All three retaken on a production
+server, and **B1's three ratios are confirmed to the digit**.
+
+One claim did not survive: B1's standing label at 0.244 is UNVERIFIED, because
+it only draws on a workspace row and a visitor with no session has none. The
+row now says so.
+
+### A grant audit nobody asked for, because rule 21 deserved a measurement
+
+Rule 21 says every migration creating a `SECURITY DEFINER` function revokes
+`EXECUTE` from `anon` and `authenticated` in the same migration. I measured
+the live database rather than reading migrations, because a migration proves
+what was written and a grant proves what is true.
+
+**96 SECURITY DEFINER functions are executable by `anon` or `authenticated`.**
+Most are `private.*` trigger functions, which PostgREST does not expose, so
+they cannot be reached over the API whatever their grants. The ones that
+matter are the nine in `public` that `authenticated` can call, and I read every
+one of them:
+
+* Seven check `private.has_role` internally before doing anything.
+* `public.platform_stats` is deliberately public and is the stats band.
+* `public.business_transfer_board` carries a self-only guard, returning empty
+  lists rather than an error to anyone who is neither the subject nor the
+  service role. My first grep for a role check missed it because the guard is
+  a self check, which is the RIGHT guard for a self-serving read.
+
+**So nothing is exposed today, and rule 21's revoke is defence in depth rather
+than the only line.** The honest summary is the one worth writing down: the
+guard held everywhere I checked, the revoke did not. A function that ever
+ships without its own internal check would be reachable, and the rule exists
+so that day never arrives.
