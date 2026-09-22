@@ -156,11 +156,17 @@ export function currentDestination(pathname: string): AdminDestination | undefin
   return [...ADMIN_PRIMARY, ADMIN_SETTINGS].find((item) => isSectionActive(pathname, item));
 }
 
-export function labelFor(item: AdminDestination, labels?: Dictionary["admin"]["nav"]): string {
-  const entry = labels
-    ? (labels as Record<string, { label?: string } | undefined>)[item.key]
-    : undefined;
-  /* The twelve rows keep the renders' names; a child reads the dictionary. */
-  const primary = [...ADMIN_PRIMARY, ADMIN_SETTINGS].some((row) => row.key === item.key);
-  return primary ? item.label : (entry?.label ?? item.label);
+export type ShellCopy = Dictionary["admin"]["shell"];
+
+/** A destination's name in the reader's language, English where none is written yet. */
+export function labelFor(item: AdminDestination, shell?: ShellCopy): string {
+  const fromDictionary = shell ? (shell.nav as Record<string, string | undefined>)[item.key] : undefined;
+  return fromDictionary ?? item.label;
+}
+
+/** What a destination's badge counts, in the reader's language. */
+export function countLabelFor(item: AdminDestination, shell?: ShellCopy): string {
+  const key = item.countKeys?.[0];
+  const fromDictionary = shell && key ? (shell.counts as Record<string, string | undefined>)[key] : undefined;
+  return fromDictionary ?? item.countLabel ?? "waiting";
 }

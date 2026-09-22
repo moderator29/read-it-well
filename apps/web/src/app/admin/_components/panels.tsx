@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { getDictionary, type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sparkline, type SparkTone } from "@/components/agent/charts/Sparkline";
@@ -339,14 +340,15 @@ export function NotWired({ what, request, title = "Not recorded yet" }: { what: 
   return <CalmNote kind="unwired" title={title} fills={what} creates={request} />;
 }
 
-/** The panel state for a read that failed. */
-export function PanelUnavailable({ what }: { what: string }) {
+/** The panel state for a read that failed. Pass `locale` for the reader's language. */
+export function PanelUnavailable({ what, locale }: { what: string; locale?: Locale }) {
+  const c = getDictionary(locale ?? "en").admin.shell.states;
   return (
     <CalmNote
       kind="error"
-      title="This did not load"
-      fills={`${what} could not be read just now. Nothing has changed.`}
-      creates="The page reads again every minute; reload to try at once."
+      title={c.unavailableTitle}
+      fills={c.unavailableBody.replace("{what}", what)}
+      creates={c.unavailableRetry}
     />
   );
 }

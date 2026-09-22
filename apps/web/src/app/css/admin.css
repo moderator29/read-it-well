@@ -608,7 +608,8 @@
   .nf-admin-page-head__lede {
     margin-top: var(--nf-space-3xs);
     max-width: 68ch;
-    font-size: var(--nf-text-body-sm);
+    /* 13px: Operations' panel measures 12.8, Analytics' 11.9 (ledger 6.2). */
+    font-size: var(--nf-text-caption);
     color: var(--nf-brand-secondary);
   }
 

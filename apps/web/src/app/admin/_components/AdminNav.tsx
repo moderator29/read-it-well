@@ -15,7 +15,9 @@ import {
   currentDestination,
   isActiveHref,
   isSectionActive,
+  countLabelFor,
   labelFor,
+  type ShellCopy,
   type AdminDestination,
 } from "./nav";
 
@@ -30,18 +32,19 @@ type NavCopy = Dictionary["admin"]["nav"];
 function Row({
   item,
   counts,
-  labels,
+  shell,
   active,
   child = false,
 }: {
   item: AdminDestination;
   counts: Record<string, number>;
-  labels?: NavCopy;
+  shell?: ShellCopy;
   active: boolean;
   child?: boolean;
 }) {
   const count = countFor(item, counts);
-  const label = labelFor(item, labels);
+  const label = labelFor(item, shell);
+  const counted = countLabelFor(item, shell);
   return (
     <Link
       href={item.href}
@@ -53,8 +56,8 @@ function Row({
       {count > 0 && (
         <span
           className="nf-admin-nav__count"
-          title={`${count} ${item.countLabel ?? "waiting"}`}
-          aria-label={`${count} ${item.countLabel ?? "waiting"}`}
+          title={`${count} ${counted}`}
+          aria-label={`${count} ${counted}`}
         >
           {count}
         </span>
@@ -66,12 +69,13 @@ function Row({
 /** The twelve rows, the open section's desks under it, and every desk at the foot. */
 export function AdminRail({
   counts,
-  labels,
   navLabel,
+  shell,
 }: {
   counts: Record<string, number>;
   labels?: NavCopy;
   navLabel: string;
+  shell?: ShellCopy;
 }) {
   const pathname = usePathname() ?? "/admin";
   return (
@@ -82,15 +86,15 @@ export function AdminRail({
           const onParent = isActiveHref(pathname, item.href);
           return (
             <li key={item.key}>
-              <Row item={item} counts={counts} labels={labels} active={sectionOpen} />
+              <Row item={item} counts={counts} shell={shell} active={sectionOpen} />
               {sectionOpen && item.children && item.children.length > 0 && (
-                <ul className="nf-admin-nav__children" aria-label={`${item.label} desks`}>
+                <ul className="nf-admin-nav__children" aria-label={labelFor(item, shell)}>
                   {item.children.map((child) => (
                     <li key={child.key}>
                       <Row
                         item={child}
                         counts={counts}
-                        labels={labels}
+                        shell={shell}
                         active={!onParent && isActiveHref(pathname, child.href)}
                         child
                       />
@@ -102,7 +106,7 @@ export function AdminRail({
           );
         })}
       </ul>
-      <AllDesks counts={counts} labels={labels} pathname={pathname} />
+      <AllDesks counts={counts} shell={shell} pathname={pathname} />
     </nav>
   );
 }
@@ -113,24 +117,26 @@ export function AdminRail({
  */
 function AllDesks({
   counts,
-  labels,
+  shell,
   pathname,
 }: {
   counts: Record<string, number>;
-  labels?: NavCopy;
+  shell?: ShellCopy;
   pathname: string;
 }) {
+  const allWaiting = (n: number) =>
+    (shell?.nav.allDesksWaiting ?? "{count} waiting across the desks below").replace("{count}", String(n));
   const waiting = ADMIN_SECONDARY.reduce((total, item) => total + countFor(item, counts), 0);
   return (
     <details className="nf-admin-nav__more">
       <summary className="nf-admin-nav__row nf-admin-nav__row--child">
         <UiIcon name="grid" size={16} className="shrink-0" />
-        <span className="min-w-0 flex-1">All desks</span>
+        <span className="min-w-0 flex-1">{shell?.nav.allDesks ?? "All desks"}</span>
         {waiting > 0 && (
           <span
             className="nf-admin-nav__count"
-            title={`${waiting} waiting across the desks below`}
-            aria-label={`${waiting} waiting across the desks below`}
+            title={allWaiting(waiting)}
+            aria-label={allWaiting(waiting)}
           >
             {waiting}
           </span>
@@ -143,7 +149,7 @@ function AllDesks({
             <Row
               item={item}
               counts={counts}
-              labels={labels}
+              shell={shell}
               active={isActiveHref(pathname, item.href)}
               child
             />
@@ -181,14 +187,16 @@ export function IdentityBlock({ identity, compact = false }: { identity: AdminId
 export function AdminRailFoot({
   identity,
   counts = {},
+  shell,
 }: {
   identity: AdminIdentity;
   counts?: Record<string, number>;
+  shell?: ShellCopy;
 }) {
   const pathname = usePathname() ?? "/admin";
   return (
     <div className="nf-admin-rail__foot">
-      <Row item={ADMIN_SETTINGS} counts={counts} active={isSectionActive(pathname, ADMIN_SETTINGS)} />
+      <Row item={ADMIN_SETTINGS} counts={counts} shell={shell} active={isSectionActive(pathname, ADMIN_SETTINGS)} />
       <Link href="/profile" className="nf-admin-rail__me">
         <IdentityBlock identity={identity} />
         <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
@@ -251,17 +259,19 @@ export function ConsoleSearch({ label, placeholder }: { label: string; placehold
  */
 export function AdminTabs({
   counts,
-  labels,
   navLabel,
   identity,
   brand,
+  shell,
 }: {
   counts: Record<string, number>;
   labels?: NavCopy;
   navLabel: string;
   identity?: AdminIdentity;
   brand?: ReactNode;
+  shell?: ShellCopy;
 }) {
+  const closeLabel = shell?.nav.closeMenu ?? "Close the console menu";
   const pathname = usePathname() ?? "/admin";
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement | null>(null);
@@ -299,7 +309,7 @@ export function AdminTabs({
         className="nf-admin-menu"
         aria-expanded={open}
         aria-controls="admin-drawer"
-        aria-label={`${navLabel}${current ? `, ${current.label}` : ""}${waiting > 0 ? `, ${waiting} waiting` : ""}`}
+        aria-label={`${navLabel}${current ? `, ${labelFor(current, shell)}` : ""}${waiting > 0 ? `, ${waiting} waiting` : ""}`}
         onClick={() => setOpen(true)}
       >
         <UiIcon name="menu" size={20} />
@@ -310,7 +320,7 @@ export function AdminTabs({
           <button
             type="button"
             className="nf-admin-drawer__scrim"
-            aria-label="Close the console menu"
+            aria-label={closeLabel}
             onClick={() => {
               setOpen(false);
               button.current?.focus();
@@ -328,7 +338,7 @@ export function AdminTabs({
               <button
                 type="button"
                 className="nf-admin-icon-btn"
-                aria-label="Close the console menu"
+                aria-label={closeLabel}
                 onClick={() => {
                   setOpen(false);
                   button.current?.focus();
@@ -344,7 +354,7 @@ export function AdminTabs({
                 if ((event.target as HTMLElement).closest("a")) setOpen(false);
               }}
             >
-              <AdminRail counts={counts} labels={labels} navLabel={navLabel} />
+              <AdminRail counts={counts} shell={shell} navLabel={navLabel} />
             </div>
             {identity && (
               <div
@@ -352,7 +362,7 @@ export function AdminTabs({
                   if ((event.target as HTMLElement).closest("a")) setOpen(false);
                 }}
               >
-                <AdminRailFoot identity={identity} counts={counts} />
+                <AdminRailFoot identity={identity} counts={counts} shell={shell} />
               </div>
             )}
           </div>

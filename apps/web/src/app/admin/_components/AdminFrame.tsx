@@ -26,6 +26,7 @@ export function AdminFrame({
   navLabels,
   searchLabel,
   bellLabel,
+  shell,
   children,
 }: {
   identity: AdminIdentity;
@@ -35,11 +36,13 @@ export function AdminFrame({
   navLabels?: Dictionary["admin"]["nav"];
   searchLabel: string;
   bellLabel: string;
+  /** The console's own copy (`admin.shell`), in the reader's language. */
+  shell?: Dictionary["admin"]["shell"];
   children: ReactNode;
 }) {
   const badges = counts;
   const brand = (
-    <Link href="/admin" className="nf-admin-brand" aria-label="Vallo console overview">
+    <Link href="/admin" className="nf-admin-brand" aria-label={shell?.nav.brandHome ?? "Vallo console overview"}>
       <LogoMark size={40} />
       <span className="nf-admin-brand__word" aria-hidden="true">
         Vallo
@@ -52,9 +55,9 @@ export function AdminFrame({
       <aside className="nf-admin-rail" aria-label={navLabel}>
         <div className="nf-admin-rail__brand">{brand}</div>
         <div className="nf-admin-rail__scroll">
-          <AdminRail counts={badges} labels={navLabels} navLabel={navLabel} />
+          <AdminRail counts={badges} labels={navLabels} navLabel={navLabel} shell={shell} />
         </div>
-        <AdminRailFoot identity={identity} counts={badges} />
+        <AdminRailFoot identity={identity} counts={badges} shell={shell} />
       </aside>
 
       <div className="nf-admin-main">
@@ -62,12 +65,13 @@ export function AdminFrame({
           <AdminTabs
             counts={badges}
             labels={navLabels}
+            shell={shell}
             navLabel={navLabel}
             identity={identity}
             brand={brand}
           />
           <span className="nf-admin-bar__brand">{brand}</span>
-          <ConsoleSearch label={searchLabel} placeholder="Search anything..." />
+          <ConsoleSearch label={searchLabel} placeholder={shell?.bar.search ?? "Search anything..."} />
           <span className="nf-admin-bar__spacer" />
           <ConsoleClock />
           <Link

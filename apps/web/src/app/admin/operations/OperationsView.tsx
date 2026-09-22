@@ -1,4 +1,5 @@
-import { formatDate, formatNumber, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
+import { tx } from "@/app/admin/_components/shell-text";
 import type { AuditActivity, AuditRowView } from "@/lib/admin/audit-queries";
 import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
@@ -91,15 +92,17 @@ export function auditRows(rows: readonly AuditRowView[], now: number, locale: Lo
 
 export function OperationsView(props: OperationsProps) {
   const { locale, jobs } = props;
+  const shell = getDictionary(locale).admin.shell;
+  const c = shell.operations;
   const active = jobs?.jobs.filter((j) => j.active) ?? [];
   const healthy = active.filter((j) => jobStatus(j).tone === "success" || jobStatus(j).tone === "info");
 
   const kpis: KpiItem[] = [
     {
       key: "jobs",
-      label: "Jobs healthy",
+      label: shell.overview.jobsHealthy,
       value: jobs ? `${healthy.length} / ${active.length}` : null,
-      caption: jobs && active.length > 0 ? `${Math.round((healthy.length / active.length) * 100)}% on schedule` : undefined,
+      caption: jobs && active.length > 0 ? c.onSchedule.replace("{percent}", String(Math.round((healthy.length / active.length) * 100))) : undefined,
       spark: props.runDays
         ? { id: "ops-runs", values: props.runDays.map((d) => d.runs - d.failed), label: "Scheduled runs that did not fail, per day, last 14 days" }
         : null,
@@ -107,10 +110,10 @@ export function OperationsView(props: OperationsProps) {
     },
     {
       key: "alerts",
-      label: "Active alerts",
+      label: c.activeAlerts,
       value: props.trend ? formatNumber(props.trend.openNow, locale) : null,
       delta: props.trend ? periodDelta(props.trend.openNow, props.trend.openWeekAgo, { higherIsGood: false }) : null,
-      caption: props.trend ? "vs a week ago" : undefined,
+      caption: props.trend ? c.vsWeekAgo : undefined,
       spark: props.trend
         ? { id: "ops-alerts", values: props.trend.daily.map((d) => d.opened), label: "Alerts raised per day, last 14 days" }
         : null,
@@ -120,11 +123,11 @@ export function OperationsView(props: OperationsProps) {
   ];
 
   const tabs = [
-    { key: "jobs", label: "Scheduled jobs" },
-    { key: "alerts", label: "Alerts", count: props.trend?.openNow },
-    { key: "audit", label: "Audit log" },
-    { key: "notifications", label: "Notifications" },
-    { key: "inflight", label: "In flight" },
+    { key: "jobs", label: c.tabJobs },
+    { key: "alerts", label: c.tabAlerts, count: props.trend?.openNow },
+    { key: "audit", label: c.tabAudit },
+    { key: "notifications", label: c.tabNotifications },
+    { key: "inflight", label: c.tabInFlight },
   ].map((t) => ({
     ...t,
     href: t.key === "jobs" ? "/admin/operations" : `/admin/operations?tab=${t.key}`,
@@ -133,15 +136,15 @@ export function OperationsView(props: OperationsProps) {
 
   return (
     <div className="nf-admin-stack">
-      <PageHead title="Operations" lede="Monitor jobs, alerts and system health." />
+      <PageHead title={c.title} lede={c.lede} />
       <div className="nf-admin-ops-kpis">
-        <KpiGrid items={kpis} label="System health" />
+        <KpiGrid items={kpis} label={c.lede} />
       </div>
-      <TabRow items={tabs} label="Operations views" />
+      <TabRow items={tabs} label={c.title} />
 
       {props.tab === "jobs" && <JobsPanel {...props} />}
       {props.tab === "alerts" && (
-        <Panel id="ops-alerts-all" title="Alerts" action={<PanelLink href="/admin/alerts">Open the alert desk</PanelLink>}>
+        <Panel id="ops-alerts-all" title={tx(locale, "opsAlerts")} action={<PanelLink href="/admin/alerts">{tx(locale, "opsOpenTheAlertDesk")}</PanelLink>}>
           <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={40} />
         </Panel>
       )}
@@ -150,16 +153,16 @@ export function OperationsView(props: OperationsProps) {
       {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="ops-recent-alerts" title="Recent alerts" action={<PanelLink href="/admin/alerts">View all</PanelLink>}>
+        <Panel id="ops-recent-alerts" title={shell.overview.alertsTitle} action={<PanelLink href="/admin/alerts">{shell.states.viewAll}</PanelLink>}>
           <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={4} />
         </Panel>
-        <Panel id="ops-recent-audit" title="Audit log" action={<PanelLink href="/admin/audit">View all</PanelLink>}>
+        <Panel id="ops-recent-audit" title={c.tabAudit} action={<PanelLink href="/admin/audit">{shell.states.viewAll}</PanelLink>}>
           {props.audit === "unavailable" ? (
-            <PanelUnavailable what="The audit log" />
+            <PanelUnavailable what={tx(locale, "opsTheAuditLog")} locale={locale} />
           ) : props.audit.length === 0 ? (
             <CalmNote
-              title="Nothing recorded yet"
-              fills="Every decision taken on this console and every scheduled run is written here with who or what took it."
+              title={tx(locale, "opsNothingRecordedYet")}
+              fills={tx(locale, "opsEveryDecisionTakenOnThis")}
               action={{ href: "/admin/audit", label: "Open the audit log" }}
             />
           ) : (
@@ -182,14 +185,14 @@ function AlertsBody({
   locale: Locale;
   limit: number;
 }) {
-  if (alerts === "unavailable") return <PanelUnavailable what="The alert desk" />;
+  if (alerts === "unavailable") return <PanelUnavailable what={tx(locale, "opsTheAlertDesk")} locale={locale} />;
   if (alerts.length === 0) {
     return (
       <CalmNote
         kind="clear"
-        title="No alerts raised"
-        fills="A failed job, a money mismatch or a safety check that needs a person raises an alert here."
-        creates="The scheduled jobs, the money reconcile and the safety scan raise them on their own."
+        title={tx(locale, "opsNoAlertsRaised")}
+        fills={tx(locale, "opsAFailedJobAMoney")}
+        creates={tx(locale, "opsTheScheduledJobsTheMoney")}
         action={{ href: "/admin/alerts", label: "Open the alert desk" }}
       />
     );
@@ -198,11 +201,19 @@ function AlertsBody({
 }
 
 function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
+  const c = getDictionary(locale).admin.shell.operations;
+  const word: Record<string, string> = {
+    Healthy: c.healthy,
+    Attention: c.attention,
+    Failed: c.failed,
+    Overdue: c.overdue,
+    "No run yet": c.noRunYet,
+  };
   return (
     <Panel id="ops-jobs" flush className="nf-admin-panel--table">
       {!jobs ? (
         <div className="nf-admin-panel__pad">
-          <PanelUnavailable what="The scheduled job runs" />
+          <PanelUnavailable what={tx(locale, "opsTheScheduledJobRuns")} locale={locale} />
         </div>
       ) : (
         <div className="nf-admin-dt-wrap">
@@ -210,11 +221,11 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
             <caption className="sr-only">Scheduled jobs, their schedule in Lagos time, last run, duration and status</caption>
             <thead>
               <tr>
-                <th scope="col">Job name</th>
-                <th scope="col">Schedule</th>
-                <th scope="col">Last run</th>
-                <th scope="col">Duration</th>
-                <th scope="col">Status</th>
+                <th scope="col">{c.jobName}</th>
+                <th scope="col">{c.schedule}</th>
+                <th scope="col">{c.lastRun}</th>
+                <th scope="col">{c.duration}</th>
+                <th scope="col">{c.status}</th>
               </tr>
             </thead>
             <tbody>
@@ -238,7 +249,7 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                     <td className="nf-numeric">{durationLabel(job.lastDurationMs)}</td>
                     <td>
                       <Badge tone={status.tone} solid={status.word === "Failed"}>
-                        {status.word}
+                        {word[status.word] ?? status.word}
                       </Badge>
                     </td>
                   </tr>
@@ -246,7 +257,7 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
               })}
               <tr>
                 <th scope="row" className="nf-admin-dt__name">
-                  Database jobs
+                  {c.databaseJobs}
                   <span className="nf-admin-dt__sub">pg_cron, eight scheduled in the database</span>
                 </th>
                 <td colSpan={3} className="nf-admin-dt__muted">
@@ -257,12 +268,12 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                 <td>
                   {database ? (
                     database.failures - database.recovered > 0 || database.stale > 0 ? (
-                      <Badge tone="error">Attention</Badge>
+                      <Badge tone="error">{c.attention}</Badge>
                     ) : (
-                      <Badge tone="success">Healthy</Badge>
+                      <Badge tone="success">{c.healthy}</Badge>
                     )
                   ) : (
-                    <Badge tone="pending">No run yet</Badge>
+                    <Badge tone="pending">{c.noRunYet}</Badge>
                   )}
                 </td>
               </tr>
@@ -277,17 +288,17 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
 function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
   return (
     <div className="nf-admin-grid nf-admin-grid--wide-left">
-      <Panel id="ops-audit-chart" title="Recorded actions per day">
+      <Panel id="ops-audit-chart" title={tx(locale, "opsRecordedActionsPerDay")}>
         {!activity ? (
-          <PanelUnavailable what="The audit activity" />
+          <PanelUnavailable what={tx(locale, "opsTheAuditActivity")} locale={locale} />
         ) : activity.total === 0 ? (
           <EmptyChart
             height={180}
             yLabels={niceTicks(10, 5).map((v) => String(v))}
             xLabels={activity.perDay.map((p, i) => (i % 7 === 0 ? p.day.slice(5) : ""))}
             note={{
-              title: "Nothing recorded in 30 days",
-              fills: "Each decision and each scheduled run adds one entry on the day it happens.",
+              title: tx(locale, "opsNothingRecordedIn30Days"),
+              fills: tx(locale, "opsEachDecisionAndEachScheduled"),
             }}
           />
         ) : (
@@ -318,9 +329,9 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
           </>
         )}
       </Panel>
-      <Panel id="ops-audit-kinds" title="By kind">
+      <Panel id="ops-audit-kinds" title={tx(locale, "opsByKind")}>
         {!activity || activity.byKind.length === 0 ? (
-          <CalmNote title="Nothing to group yet" fills="Kinds appear here as actions are recorded." />
+          <CalmNote title={tx(locale, "opsNothingToGroupYet")} fills={tx(locale, "opsKindsAppearHereAsActions")} />
         ) : (
           <ul className="nf-admin-kinds">
             {activity.byKind.slice(0, 6).map((k) => (
@@ -332,11 +343,11 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
           </ul>
         )}
       </Panel>
-      <Panel id="ops-audit-rows" title="Latest entries" action={<PanelLink href="/admin/audit">Search the log</PanelLink>} className="nf-admin-grid__full">
+      <Panel id="ops-audit-rows" title={tx(locale, "opsLatestEntries")} action={<PanelLink href="/admin/audit">{tx(locale, "opsSearchTheLog")}</PanelLink>} className="nf-admin-grid__full">
         {audit === "unavailable" ? (
-          <PanelUnavailable what="The audit log" />
+          <PanelUnavailable what={tx(locale, "opsTheAuditLog")} locale={locale} />
         ) : audit.length === 0 ? (
-          <CalmNote title="Nothing recorded yet" fills="Every decision taken on this console is written here with the name of whoever took it." />
+          <CalmNote title={tx(locale, "opsNothingRecordedYet")} fills={tx(locale, "opsEveryDecisionTakenOnThis2")} />
         ) : (
           <AlertList rows={auditRows(audit.slice(0, 12), now, locale)} />
         )}
@@ -347,15 +358,15 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
 
 function NotificationsPanel({ activity, locale }: { activity: NotificationActivity | null; locale: Locale }) {
   return (
-    <Panel id="ops-notifications" title="Notifications sent">
+    <Panel id="ops-notifications" title={tx(locale, "opsNotificationsSent")}>
       {!activity ? (
         <NotWired
-          title="Not readable by an admin yet"
-          what="Every notification the platform sends, by kind (booking, message, wallet, listing, agent, support, system, social), with how many were read."
-          request="Admins cannot read the notifications table today; Request A6 asks for an admin read of the volumes."
+          title={tx(locale, "opsNotReadableByAnAdmin")}
+          what={tx(locale, "opsEveryNotificationThePlatformSends")}
+          request={tx(locale, "opsAdminsCannotReadTheNotifications")}
         />
       ) : activity.total === 0 ? (
-        <CalmNote title="No notifications sent in this window" fills="Each notification the platform sends is counted here by kind." />
+        <CalmNote title={tx(locale, "opsNoNotificationsSentInThis")} fills={tx(locale, "opsEachNotificationThePlatformSends")} />
       ) : (
         <div className="nf-admin-dt-wrap">
           <table className="nf-admin-dt">

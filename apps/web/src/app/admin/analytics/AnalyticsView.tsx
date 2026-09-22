@@ -1,4 +1,5 @@
-import { formatDate, formatNumber, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
+import { tx } from "@/app/admin/_components/shell-text";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
 import type { BookingOutcomes, CollectedRange, ThinAreas } from "@/lib/admin/reads/shapes";
@@ -37,50 +38,48 @@ export type AnalyticsProps = {
   thin: ThinAreas | null;
 };
 
-const RANGE_LABEL: Record<CollectedRange, string> = {
-  "30d": "Last 30 days",
-  "90d": "Last 90 days",
-  "12m": "Last 12 months",
-};
-const PERIOD_WORD: Record<CollectedRange, string> = {
-  "30d": "vs the 30 days before",
-  "90d": "vs the 90 days before",
-  "12m": "vs the year before",
-};
 
 export function AnalyticsView({ locale, range, bookings, supply, thin }: AnalyticsProps) {
-  const notRecorded = (request: string) => ({ value: null, missingWord: "Not recorded", pending: `Nothing records this yet. Request ${request}.` });
+  const shell = getDictionary(locale).admin.shell;
+  const c = shell.analytics;
+  const notRecorded = (request: string) => ({ value: null, missingWord: shell.states.notRecorded, pending: `Nothing records this yet. Request ${request}.` });
   const kpis: KpiItem[] = [
-    { key: "searches", icon: { tier: "ui", name: "search" }, label: "Total searches", ...notRecorded("A7") },
-    { key: "views", icon: { tier: "ui", name: "eye" }, label: "Listing views", ...notRecorded("A8") },
+    { key: "searches", icon: { tier: "ui", name: "search" }, label: c.totalSearches, ...notRecorded("A7") },
+    { key: "views", icon: { tier: "ui", name: "eye" }, label: c.listingViews, ...notRecorded("A8") },
     {
       key: "bookings",
       icon: { tier: "ui", name: "calendar-booking" },
-      label: "Successful bookings",
+      label: c.successfulBookings,
       value: bookings ? formatNumber(bookings.successful, locale) : null,
       delta: bookings ? periodDelta(bookings.successful, bookings.successfulPrev) : null,
-      caption: PERIOD_WORD[range],
+      caption: { "30d": c.vsPrev30, "90d": c.vsPrev90, "12m": c.vsPrev12 }[range],
       href: "/admin/bookings",
       pending: "The booking count did not load; it retries every minute",
     },
-    { key: "conversion", icon: { tier: "admin", name: "bars" }, label: "Conversion rate", ...notRecorded("A7 and A8") },
+    { key: "conversion", icon: { tier: "admin", name: "bars" }, label: c.conversion, ...notRecorded("A7 and A8") },
   ];
 
   return (
     <div className="nf-admin-stack">
       <PageHead
-        title="Analytics"
-        lede="Understand demand, supply and performance."
-        action={<RangeSelect value={range} options={RANGE_LABEL} label="Range" />}
+        title={c.title}
+        lede={c.lede}
+        action={
+          <RangeSelect
+            value={range}
+            options={{ "30d": shell.overview.range30, "90d": shell.overview.range90, "12m": shell.overview.range12 }}
+            label={shell.overview.range30}
+          />
+        }
       />
-      <KpiGrid items={kpis} label="Performance" />
+      <KpiGrid items={kpis} label={c.title} />
 
-      <Panel id="an-demand" title="Demand vs supply">
+      <Panel id="an-demand" title={c.demandSupply}>
         <DemandSupply supply={supply} range={range} locale={locale} />
       </Panel>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="an-top-areas" title="Top areas by searches">
+        <Panel id="an-top-areas" title={c.topAreas}>
           <div className="nf-admin-dist" aria-hidden="true">
             <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area">
               <span>Area</span>
@@ -89,17 +88,17 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
             </div>
           </div>
           <NotWired
-            what="The areas people search most, fed by every search recorded with its area."
-            request="Nothing records a search yet; Request A7 asks for a search log."
+            what={tx(locale, "anTheAreasPeopleSearchMost")}
+            request={tx(locale, "anNothingRecordsASearchYet")}
           />
         </Panel>
-        <Panel id="an-thin" title="Areas with fewest listings">
+        <Panel id="an-thin" title={c.thinAreas}>
           <ThinAreasTable thin={thin} locale={locale} />
         </Panel>
       </div>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="an-results" title="Searches vs results returned">
+        <Panel id="an-results" title={c.searchesResults}>
           <EmptyChart
             height={160}
             yLabels={niceTicks(10, 5).map((v) => String(v))}
@@ -107,13 +106,13 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
             xLabels={[]}
             note={{
               kind: "unwired",
-              title: "Not recorded yet",
-              fills: "Searches against the searches that returned results, fed by every search with its result count.",
-              creates: "Nothing records a search yet; Request A7 asks for a search log.",
+              title: tx(locale, "anNotRecordedYet"),
+              fills: tx(locale, "anSearchesAgainstTheSearchesThat"),
+              creates: tx(locale, "anNothingRecordsASearchYet"),
             }}
           />
         </Panel>
-        <Panel id="an-refusals" title="Top common refusals">
+        <Panel id="an-refusals" title={c.refusals}>
           <div className="nf-admin-dist" aria-hidden="true">
             <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area">
               <span>Reason</span>
@@ -122,8 +121,8 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
             </div>
           </div>
           <NotWired
-            what="Why owners and hosts decline, fed by a reason chosen from a fixed list at each decline."
-            request="Today a decline carries free text or nothing; Request A11 asks for the list."
+            what={tx(locale, "anWhyOwnersAndHostsDecline")}
+            request={tx(locale, "anTodayADeclineCarriesFree")}
           />
         </Panel>
       </div>
@@ -140,7 +139,7 @@ function DemandSupply({
   range: CollectedRange;
   locale: Locale;
 }) {
-  if (!supply) return <PanelUnavailable what="New supply over time" />;
+  if (!supply) return <PanelUnavailable what={tx(locale, "anNewSupplyOverTime")} locale={locale} />;
   const total = supply.reduce((sum, b) => sum + b.listings, 0);
   const monthly = range === "12m";
   const label = (start: string, withYear: boolean) =>
@@ -167,9 +166,9 @@ function DemandSupply({
           yLabels={niceTicks(10, 5).map((v) => String(v))}
           xLabels={supply.map((b, i) => (monthly || i % (range === "90d" ? 3 : 7) === 0 ? label(b.start, false) : ""))}
           note={{
-            title: "No real listing created in this range",
-            fills: "The line counts each new listing from an owner, agent or firm; examples are not counted.",
-            creates: "Searches are drawn beside it once they are recorded (Request A7).",
+            title: tx(locale, "anNoRealListingCreatedIn"),
+            fills: tx(locale, "anTheLineCountsEachNew"),
+            creates: tx(locale, "anSearchesAreDrawnBesideIt"),
             action: { href: "/admin/supply", label: "Open Supply" },
           }}
         />
@@ -193,7 +192,7 @@ function DemandSupply({
 }
 
 function ThinAreasTable({ thin, locale }: { thin: ThinAreas | null; locale: Locale }) {
-  if (!thin) return <PanelUnavailable what="Supply by area" />;
+  if (!thin) return <PanelUnavailable what={tx(locale, "anSupplyByArea")} locale={locale} />;
   if (thin.rows.length === 0) {
     return (
       <>
@@ -205,9 +204,9 @@ function ThinAreasTable({ thin, locale }: { thin: ThinAreas | null; locale: Loca
           </div>
         </div>
         <CalmNote
-          title="No real listing live in any area yet"
-          fills="The areas with the least on offer are named here, fewest first, so supply can be sought there."
-          creates="Areas appear as owners, agents and firms list in them."
+          title={tx(locale, "anNoRealListingLiveIn")}
+          fills={tx(locale, "anTheAreasWithTheLeast")}
+          creates={tx(locale, "anAreasAppearAsOwnersAgents")}
           action={{ href: "/admin/listings", label: "Open the listings queue" }}
         />
       </>

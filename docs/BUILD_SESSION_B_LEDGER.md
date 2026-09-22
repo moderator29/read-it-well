@@ -1118,7 +1118,7 @@ are `getComputedStyle` on the production build at 1440 x 900.
 | Property | Image (measured, CSS px) | Built (measured) | Match |
 |---|---|---|---|
 | Page title "Operations" | cap 43 crop px, 25.6px bold | 26px/700 | yes |
-| Lede | 12.8px, cyan-blue #3FB8F5 | 14px, `--nf-brand-secondary` #5C9FFF | 1.2px over (not yet brought to 12.8, recorded as a difference); hue translated into the blue family |
+| Lede | 12.8px, cyan-blue #3FB8F5 | 13px, `--nf-brand-secondary` #5C9FFF | yes (0.2px); hue translated into the blue family |
 | KPI card box | 223 x 122.5, corner 7.7 | 343 x 148, corner 14 | width follows the wider window (two cards in a 44rem row); height +25 because the build carries a caption line the render does not; corner deliberately the console's 14 (render 13 on 5EAA44CB) |
 | Card plate | none | none | yes (plates removed in 1636070) |
 | Card label | 12.8px, medium | 15px/600 | larger: the console's one card type size from 5EAA44CB (15) |
@@ -1138,7 +1138,7 @@ are `getComputedStyle` on the production build at 1440 x 900.
 | Property | Image (measured, CSS px) | Built (measured) | Match |
 |---|---|---|---|
 | Page title "Analytics" | cap 35 crop, 20.8px bold | 26px/700 | larger: one page title size across the console (operations measures 25.6) |
-| Lede | 11.9px | 14px | 2.1px over, the same lede component as Operations; a difference, recorded |
+| Lede | 11.9px | 13px | 1.1px over: one lede component, sized to Operations' 12.8 |
 | Date range field | 257 x 35, corner 5 | range select 158 x 36, corner 10 (0.28) | height yes; one select, not a date field plus area select (area filter not built, 6.7) |
 | KPI card | 110 x 117 (four in a narrow window) | 284 x 148 | wider window; same four-across grid at 1440 |
 | Card label | 12px | 15px/600 | the console's card label size |

@@ -2859,6 +2859,32 @@ export const ha: Dictionary = withFallback({
         successBody: "Sashen a kashe ne ga kowa kuma canjin na cikin audit log.",
       },
     },
+
+    /*
+     * The console shell (Session B, admin-shell). Additive. Only the rail's
+     * destination names are carried here, taken word for word from this
+     * file's own admin.nav above so they read the same in both places; every
+     * other shell string falls back to English through withFallback until a
+     * speaker translates it. NATIVE REVIEW: the rest of admin.shell.
+     */
+    shell: {
+      nav: {
+        overview: "Taƙaitawa",
+        listings: "Nazarin jeri",
+        bookings: "Zaman baƙi",
+        tickets: "Tallafi",
+        moderation: "An riƙe",
+        alerts: "Faɗakarwar haɗari",
+        flags: "Flag na saƙonni",
+        reports: "Ƙorafi",
+        applications: "Bukatun wakilci",
+        stops: "Dakatarwa",
+        social: "Yanki",
+        standing: "Matsayi",
+        reference: "Bayanan tunani",
+        switches: "Switch",
+      },
+    },
   },
 
   a11y: {

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NavIcon } from "../_components/AdminGlyph";
 import { PageHead, Panel } from "../_components/panels";
-import { ADMIN_SETTINGS } from "../_components/nav";
+import { ADMIN_SETTINGS, labelFor } from "../_components/nav";
 
 /**
  * Settings, the row the renders pin to the rail's foot.
@@ -18,10 +20,11 @@ const LEDES: Record<string, string> = {
   examples: "The example listings that show the product before real supply arrives, and the date each is due to retire.",
 };
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const shell = getDictionary(await getLocale()).admin.shell;
   return (
     <div className="nf-admin-stack">
-      <PageHead title="Settings" lede="The platform's own configuration, one desk each." />
+      <PageHead title={shell.settings.title} lede={shell.settings.lede} />
       <div className="nf-admin-grid nf-admin-grid--halves">
         {(ADMIN_SETTINGS.children ?? []).map((desk) => (
           <Panel key={desk.key}>
@@ -30,7 +33,7 @@ export default function AdminSettingsPage() {
                 <NavIcon icon={desk.icon} size={24} />
               </span>
               <span className="nf-admin-hub__text">
-                <span className="nf-admin-panel__title">{desk.label}</span>
+                <span className="nf-admin-panel__title">{labelFor(desk, shell)}</span>
                 <span className="nf-admin-hub__lede">{LEDES[desk.key] ?? ""}</span>
               </span>
               <UiIcon name="chevron-right" size={20} />

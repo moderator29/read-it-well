@@ -1,4 +1,5 @@
-import { formatDate, formatMoney, formatNumber, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
+import { tx } from "@/app/admin/_components/shell-text";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
 import { GroupedBarChart } from "@/components/agent/charts/GroupedBarChart";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
@@ -10,7 +11,6 @@ import type {
   JobHealth,
   ListingsByRole,
   SupplyByType,
-  SupplyKind,
 } from "./console-shapes";
 import { alertBadge, alertSubline, niceTicks, periodDelta, sinceLabel } from "./metrics";
 import {
@@ -26,21 +26,21 @@ import {
   type KpiItem,
 } from "./panels";
 import { RangeSelect } from "./RangeSelect";
-import { currentDestination } from "./nav";
+import { currentDestination, labelFor, type ShellCopy } from "./nav";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /** "You were heading to Money": the desk the address asked for, one tap away. */
-function HeadingTo({ href }: { href: string }) {
+function HeadingTo({ href, copy, shell }: { href: string; copy: { headingTo: string; continue: string }; shell: ShellCopy }) {
   const desk = currentDestination(href.split("?")[0] ?? href);
   return (
     <Link href={href} className="nf-admin-heading-to">
       <span className="nf-admin-heading-to__text">
-        <span className="nf-admin-heading-to__over">You were heading to</span>
-        <span className="nf-admin-heading-to__desk">{desk?.label ?? href}</span>
+        <span className="nf-admin-heading-to__over">{copy.headingTo}</span>
+        <span className="nf-admin-heading-to__desk">{desk ? labelFor(desk, shell) : href}</span>
       </span>
       <span className="nf-admin-heading-to__go">
-        Continue
+        {copy.continue}
         <UiIcon name="arrow-right" size={16} />
       </span>
     </Link>
@@ -72,21 +72,6 @@ export type OverviewProps = {
   byRole: ListingsByRole | null;
   jobs: JobHealth | null;
   alerts: AlertView[] | "unavailable";
-};
-
-const KIND_LABEL: Record<SupplyKind, string> = {
-  rent: "Rent",
-  buy: "Buy",
-  land: "Land",
-  hotels: "Hotels",
-  shortlets: "Shortlets",
-  restaurants: "Restaurants",
-};
-
-const RANGE_LABEL: Record<CollectedRange, string> = {
-  "30d": "Last 30 days",
-  "90d": "Last 90 days",
-  "12m": "Last 12 months",
 };
 
 export function alertRows(alerts: readonly AlertView[], now: number, locale: Locale): AlertRow[] {
@@ -121,6 +106,8 @@ function jobsHealthy(jobs: JobHealth): { healthy: number; total: number } {
 
 export function OverviewView(props: OverviewProps) {
   const { locale, pulse } = props;
+  const shell = getDictionary(locale).admin.shell;
+  const c = shell.overview;
   const n = (value: number) => formatNumber(value, locale);
   const money = (minor: number) => formatMoney(minor, locale);
   const pending = (what: string) => `${what} did not load; it retries every minute`;
@@ -133,7 +120,7 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "live",
       icon: { tier: "admin", name: "clipboard" },
-      label: "Listings live",
+      label: c.listingsLive,
       value: pulse ? n(pulse.listingsLive) : null,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
       spark: spark("strip-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
@@ -142,7 +129,7 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "signups",
       icon: { tier: "ui", name: "user" },
-      label: "Sign-ups today",
+      label: c.signupsToday,
       value: pulse ? n(pulse.signupsToday) : null,
       delta: pulse ? periodDelta(pulse.signupsToday, pulse.signupsYesterday) : null,
       spark: spark("strip-signups", (d) => d.signups, "Sign-ups, last 14 days"),
@@ -151,7 +138,7 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "collected-today",
       icon: { tier: "admin", name: "naira" },
-      label: "Naira transacted today",
+      label: c.collectedToday,
       value: pulse ? money(pulse.collectedTodayMinor) : null,
       delta: pulse ? periodDelta(pulse.collectedTodayMinor, pulse.collectedYesterdayMinor) : null,
       spark: spark("strip-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
@@ -160,9 +147,9 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "jobs",
       icon: { tier: "admin", name: "shield-check" },
-      label: "Jobs healthy",
+      label: c.jobsHealthy,
       value: jobs && jobs.total > 0 ? `${Math.round((jobs.healthy / jobs.total) * 100)}%` : null,
-      caption: jobs ? `${jobs.healthy} of ${jobs.total} jobs` : undefined,
+      caption: jobs ? c.jobsOf.replace("{healthy}", String(jobs.healthy)).replace("{total}", String(jobs.total)) : undefined,
       pending: pending("The job reads"),
     },
   ];
@@ -171,10 +158,10 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "live-card",
       icon: { tier: "ui", name: "home" },
-      label: "Live listings",
+      label: c.liveListings,
       value: pulse ? n(pulse.listingsLive) : null,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
-      caption: pulse ? "vs last week" : "Examples not counted",
+      caption: pulse ? c.vsLastWeek : c.examplesNotCounted,
       spark: spark("card-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
       href: "/admin/listings",
       pending: pending("This figure"),
@@ -182,10 +169,10 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "supply-card",
       icon: { tier: "ui", name: "plus" },
-      label: "New supply this week",
+      label: c.newSupply,
       value: pulse ? n(pulse.newSupplyWeek) : null,
       delta: pulse ? periodDelta(pulse.newSupplyWeek, pulse.newSupplyPrevWeek) : null,
-      caption: "vs last week",
+      caption: c.vsLastWeek,
       spark: spark("card-supply", (d) => d.submitted, "Listings submitted, last 14 days"),
       href: "/admin/supply",
       pending: pending("This figure"),
@@ -193,10 +180,10 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "collected-card",
       icon: { tier: "admin", name: "naira" },
-      label: "Naira transacted",
+      label: c.collected,
       value: pulse ? money(pulse.collectedWeekMinor) : null,
       delta: pulse ? periodDelta(pulse.collectedWeekMinor, pulse.collectedPrevWeekMinor) : null,
-      caption: "vs last week",
+      caption: c.vsLastWeek,
       spark: spark("card-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
       href: "/admin/money",
       pending: pending("This figure"),
@@ -204,12 +191,12 @@ export function OverviewView(props: OverviewProps) {
     {
       key: "reviews-card",
       icon: { tier: "ui", name: "document" },
-      label: "Open reviews",
+      label: c.openReviews,
       value: props.openReviews === null ? null : n(props.openReviews),
       /* No delta: an open count has no history to compare against until
          something snapshots it. The caption says what the number is instead. */
       delta: null,
-      caption: "Waiting on a decision",
+      caption: c.waitingDecision,
       spark: spark("card-reviews", (d) => d.submitted, "Listings submitted, last 14 days"),
       href: "/admin/listings",
       pending: pending("The queue count"),
@@ -218,39 +205,39 @@ export function OverviewView(props: OverviewProps) {
 
   return (
     <div className="nf-admin-stack">
-      <h1 className="sr-only">Console overview</h1>
-      {props.headingTo && <HeadingTo href={props.headingTo} />}
-      <KpiStrip items={strip} label="Platform pulse" />
-      <KpiGrid items={cards} label="This week" />
+      <h1 className="sr-only">{c.title}</h1>
+      {props.headingTo && <HeadingTo href={props.headingTo} copy={shell.entry} shell={shell} />}
+      <KpiStrip items={strip} label={c.pulse} />
+      <KpiGrid items={cards} label={c.week} />
 
       <div className="nf-admin-grid nf-admin-grid--wide-left">
         <Panel
           id="ov-collected"
-          title="Naira transacted over time"
-          action={<RangeSelect value={props.range} options={RANGE_LABEL} label="Range" />}
+          title={c.chartTitle}
+          action={<RangeSelect value={props.range} options={{ "30d": c.range30, "90d": c.range90, "12m": c.range12 }} label={c.range12} />}
         >
           <CollectedChart series={props.collected} locale={locale} />
         </Panel>
 
-        <Panel id="ov-supply" title="Supply by type">
+        <Panel id="ov-supply" title={c.supplyTitle}>
           <SupplyTable supply={props.supply} locale={locale} />
         </Panel>
       </div>
 
       <div className="nf-admin-grid nf-admin-grid--wide-left">
-        <Panel id="ov-roles" title="New listings per month">
+        <Panel id="ov-roles" title={c.rolesTitle}>
           <RoleChart byRole={props.byRole} locale={locale} />
         </Panel>
 
-        <Panel id="ov-alerts" title="Recent alerts" action={<PanelLink href="/admin/alerts">View all</PanelLink>}>
+        <Panel id="ov-alerts" title={c.alertsTitle} action={<PanelLink href="/admin/alerts">{shell.states.viewAll}</PanelLink>}>
           {props.alerts === "unavailable" ? (
-            <PanelUnavailable what="The alert desk" />
+            <PanelUnavailable what={tx(locale, "ovTheAlertDesk")} locale={locale} />
           ) : props.alerts.length === 0 ? (
             <CalmNote
               kind="clear"
-              title="No alerts raised"
-              fills="When a scheduled job, a payment or a safety check needs a person, the alert lands here and on the Alerts desk."
-              creates="Jobs, the money reconcile and the safety scan raise them on their own."
+              title={c.noAlertsTitle}
+              fills={c.noAlertsFills}
+              creates={c.noAlertsCreates}
               action={{ href: "/admin/operations", label: "Open Operations" }}
             />
           ) : (
@@ -282,8 +269,9 @@ function dayTick(start: string, locale: Locale, withYear = false): string {
 }
 
 function CollectedChart({ series, locale }: { series: CollectedSeries | null; locale: Locale }) {
+  const c = getDictionary(locale).admin.shell.overview;
   if (!series) {
-    return <PanelUnavailable what="Money collected over time" />;
+    return <PanelUnavailable what={tx(locale, "ovMoneyCollectedOverTime")} locale={locale} />;
   }
   const total = series.buckets.reduce((sum, b) => sum + b.amountMinor, 0);
   const monthly = series.range === "12m";
@@ -296,9 +284,9 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
           monthly || i % (series.range === "90d" ? 3 : 7) === 0 ? (monthly ? monthTick(b.start, locale) : dayTick(b.start, locale)) : "",
         )}
         note={{
-          title: "No money collected in this range",
-          fills: "Each successful card payment and completed wallet top-up is counted here on the day it clears.",
-          creates: "Money arrives when guests book stays and tenants pay rent through Vallo.",
+          title: c.emptyMoneyTitle,
+          fills: c.emptyMoneyFills,
+          creates: c.emptyMoneyCreates,
           action: { href: "/admin/money", label: "Open Money" },
         }}
       />
@@ -316,7 +304,7 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
     <AreaTimeChart
       points={points}
       yTicks={ticks.map((v) => ({ value: v, label: formatMoney(v, locale, "NGN", { compact: true }) }))}
-      label="Naira transacted over time"
+      label={c.chartTitle}
       height={220}
       tickEvery={monthly ? 1 : series.range === "90d" ? 2 : 5}
     />
@@ -324,8 +312,9 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
 }
 
 function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: Locale }) {
+  const c = getDictionary(locale).admin.shell.overview;
   if (!supply) {
-    return <PanelUnavailable what="Supply by type" />;
+    return <PanelUnavailable what={tx(locale, "ovSupplyByType")} locale={locale} />;
   }
   const empty = supply.total === 0;
   const rows = [...supply.rows].sort((a, b) => b.count - a.count);
@@ -344,7 +333,7 @@ function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: 
           <div key={row.kind} className="nf-admin-dist__row" role="row">
             <span className="nf-admin-dist__name" role="cell">
               <span className="nf-admin-dist__dot" style={{ opacity: [1, 0.84, 0.69, 0.55, 0.42][Math.min(i, 4)] }} aria-hidden="true" />
-              {KIND_LABEL[row.kind]}
+              {c.kinds[row.kind]}
             </span>
             <span className="nf-admin-dist__num nf-numeric" role="cell">{formatNumber(row.count, locale)}</span>
             <span className="nf-admin-dist__num nf-numeric" role="cell">{share}%</span>
@@ -357,9 +346,9 @@ function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: 
       {empty && (
         <div className="nf-admin-dist__note">
           <CalmNote
-            title="No real supply live yet"
-            fills="Live listings from owners, agents and firms are counted here by type. Example listings are not; they are on the Examples desk."
-            creates="Supply arrives when a lister is approved and their listing passes review."
+            title={c.emptySupplyTitle}
+            fills={c.emptySupplyFills}
+            creates={c.emptySupplyCreates}
             action={{ href: "/admin/listings", label: "Open the listings queue" }}
           />
         </div>
@@ -369,8 +358,9 @@ function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: 
 }
 
 function RoleChart({ byRole, locale }: { byRole: ListingsByRole | null; locale: Locale }) {
+  const c = getDictionary(locale).admin.shell.overview;
   if (!byRole) {
-    return <PanelUnavailable what="New listings by lister role" />;
+    return <PanelUnavailable what={tx(locale, "ovNewListingsByListerRole")} locale={locale} />;
   }
   const total = byRole.months.reduce((sum, m) => sum + m.owner + m.agent + m.firm, 0);
   if (total === 0) {
@@ -378,12 +368,12 @@ function RoleChart({ byRole, locale }: { byRole: ListingsByRole | null; locale: 
       <EmptyChart
         height={200}
         yLabels={niceTicks(10, 5).map((v) => String(v))}
-        legend={["Owner", "Agent", "Firm"]}
+        legend={[c.owner, c.agent, c.firm]}
         xLabels={byRole.months.map((m) => monthTick(m.month, locale))}
         note={{
-          title: "No real listing created in these months",
-          fills: "Each new listing is counted in the month it was made, under Owner, Agent or Firm by who listed it.",
-          creates: "Listings come from owners, agents and firms whose applications were approved.",
+          title: c.emptyRolesTitle,
+          fills: c.emptyRolesFills,
+          creates: c.emptyRolesCreates,
           action: { href: "/admin/supply", label: "Open Supply" },
         }}
       />
@@ -392,11 +382,11 @@ function RoleChart({ byRole, locale }: { byRole: ListingsByRole | null; locale: 
   const max = Math.max(...byRole.months.flatMap((m) => [m.owner, m.agent, m.firm]));
   return (
     <GroupedBarChart
-      label="New listings per month by lister role"
+      label={c.rolesTitle}
       series={[
-        { key: "owner", label: "Owner" },
-        { key: "agent", label: "Agent" },
-        { key: "firm", label: "Firm" },
+        { key: "owner", label: c.owner },
+        { key: "agent", label: c.agent },
+        { key: "firm", label: c.firm },
       ]}
       groups={byRole.months.map((m) => ({
         key: m.month,

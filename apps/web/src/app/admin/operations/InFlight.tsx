@@ -1,4 +1,5 @@
-import { formatDate, formatNumber, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
+import { tx } from "@/app/admin/_components/shell-text";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
 import type { InspectionActivity, InspectionState } from "@/lib/admin/reads/shapes";
 import { Badge, CalmNote, NotWired, Panel, PanelUnavailable, type BadgeTone } from "../_components/panels";
@@ -25,12 +26,13 @@ const STATE_WORD: Record<InspectionState, { word: string; tone: BadgeTone; means
 const ORDER: InspectionState[] = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLETED", "DECLINED", "WITHDRAWN"];
 
 export function InFlight({ locale, inspections }: { locale: Locale; inspections: InspectionActivity | null }) {
+  const c = getDictionary(locale).admin.shell.operations;
   return (
     <div className="nf-admin-stack">
       <div className="nf-admin-grid nf-admin-grid--wide-left">
-        <Panel id="ops-inspections" title="Inspections">
+        <Panel id="ops-inspections" title={c.inspections}>
           {!inspections ? (
-            <PanelUnavailable what="The inspections" />
+            <PanelUnavailable what={tx(locale, "inflightTheInspections")} locale={locale} />
           ) : (
             <>
               <div className="nf-admin-dist" role="table" aria-label="Inspections by state">
@@ -63,20 +65,20 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
               {inspections.total === 0 && (
                 <div className="nf-admin-dist__note">
                   <CalmNote
-                    title="No inspection requested yet"
-                    fills="Every inspection is counted here by state, from the request to the visit."
-                    creates="A renter asks to view a listing from its page; the lister confirms, proposes a time or declines."
+                    title={tx(locale, "inflightNoInspectionRequestedYet")}
+                    fills={tx(locale, "inflightEveryInspectionIsCountedHere")}
+                    creates={tx(locale, "inflightARenterAsksToView")}
                   />
                 </div>
               )}
             </>
           )}
         </Panel>
-        <Panel id="ops-inspections-recent" title="Newest requests">
+        <Panel id="ops-inspections-recent" title={c.newestRequests}>
           {!inspections ? (
-            <PanelUnavailable what="The inspections" />
+            <PanelUnavailable what={tx(locale, "inflightTheInspections")} locale={locale} />
           ) : inspections.recent.length === 0 ? (
-            <CalmNote title="Nothing requested yet" fills="The eight newest inspection requests appear here with their listing and state." />
+            <CalmNote title={tx(locale, "inflightNothingRequestedYet")} fills={tx(locale, "inflightTheEightNewestInspectionRequests")} />
           ) : (
             <ul className="nf-admin-kinds">
               {inspections.recent.map((row) => (
@@ -103,30 +105,30 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
       </div>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="ops-deletions" title="Account deletions">
+        <Panel id="ops-deletions" title={c.accountDeletions}>
           <NotWired
-            title="Not readable by an admin yet"
-            what="People who asked to close their account, by state (scheduled, purging), with the date each purge is due."
-            request="Only the account holder may read these rows today; Request A12 asks for an admin read. The purge job's own runs are on the Scheduled jobs tab."
+            title={tx(locale, "inflightNotReadableByAnAdmin")}
+            what={tx(locale, "inflightPeopleWhoAskedToClose")}
+            request={tx(locale, "inflightOnlyTheAccountHolderMay")}
           />
         </Panel>
-        <Panel id="ops-transfers" title="Business transfers">
+        <Panel id="ops-transfers" title={c.businessTransfers}>
           <NotWired
-            title="Not readable by an admin yet"
-            what="Businesses offered from one owner to another and waiting on an answer, with when each offer expires."
-            request="Only the two parties may read these rows today; Request A13 asks for an admin read."
+            title={tx(locale, "inflightNotReadableByAnAdmin")}
+            what={tx(locale, "inflightBusinessesOfferedFromOneOwner")}
+            request={tx(locale, "inflightOnlyTheTwoPartiesMay")}
           />
         </Panel>
-        <Panel id="ops-db-jobs" title="Database jobs, one by one">
+        <Panel id="ops-db-jobs" title={tx(locale, "inflightDatabaseJobsOneByOne")}>
           <NotWired
-            what="Each of the eight database jobs with its last run, outcome and failures in the last day: release stale holds, purge rate limits, escrow timeouts, reconcile payments, nightly badges, purge idempotency, announce completed stays, the daily note."
-            request="The database does not expose its job table to the console; Request A5 asks for an admin read. The Scheduled jobs tab carries their summary."
+            what={tx(locale, "inflightEachOfTheEightDatabase")}
+            request={tx(locale, "inflightTheDatabaseDoesNotExpose")}
           />
         </Panel>
-        <Panel id="ops-recon" title="Money reconciliation watch">
+        <Panel id="ops-recon" title={tx(locale, "inflightMoneyReconciliationWatch")}>
           <NotWired
-            what="The money reconcile's last request, its reply and its verdict, from the watch the database keeps."
-            request="That watch is not readable by an admin; admin-money's request 10 asks for it. The reconcile's runs are on the Scheduled jobs tab."
+            what={tx(locale, "inflightTheMoneyReconcileSLast")}
+            request={tx(locale, "inflightThatWatchIsNotReadable")}
           />
         </Panel>
       </div>

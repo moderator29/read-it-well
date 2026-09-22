@@ -49,7 +49,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const name = shell.userName && shell.userName !== "Guest" ? shell.userName : email.split("@")[0] || "Admin";
   const identity: AdminIdentity = {
     name,
-    role: access.isSuperAdmin ? "Platform Owner" : "Platform Operator",
+    role: access.isSuperAdmin ? t.admin.shell.bar.owner : t.admin.shell.bar.operator,
     initial: name.charAt(0).toUpperCase() || "V",
     avatarUrl: shell.avatarUrl || null,
   };
@@ -63,8 +63,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       navLabels={t.admin.nav}
       searchLabel={t.admin.common.searchLabel}
       bellLabel={t.uiCommon.console.notifications}
+      shell={t.admin.shell}
     >
-      <EntryGate entered={entered} userId={access.user.id}>
+      <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
         {children}
       </EntryGate>
     </AdminFrame>

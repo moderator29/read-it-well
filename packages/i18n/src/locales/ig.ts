@@ -2863,6 +2863,32 @@ export const ig: Dictionary = withFallback({
         successBody: "Akụkụ ahụ gbanyụrụ maka onye ọ bụla, mgbanwe ahụ dịkwa n'ime audit log.",
       },
     },
+
+    /*
+     * The console shell (Session B, admin-shell). Additive. Only the rail's
+     * destination names are carried here, taken word for word from this
+     * file's own admin.nav above so they read the same in both places; every
+     * other shell string falls back to English through withFallback until a
+     * speaker translates it. NATIVE REVIEW: the rest of admin.shell.
+     */
+    shell: {
+      nav: {
+        overview: "Nchịkọta",
+        listings: "Nyocha ndepụta",
+        bookings: "Ọnọdụ ọbịa",
+        tickets: "Nkwado",
+        moderation: "Ejidere",
+        alerts: "Ọkwa ihe egwu",
+        flags: "Flag ozi",
+        reports: "Mkpesa",
+        applications: "Arịrịọ onye nnọchi",
+        stops: "Nkwụsị",
+        social: "Ógbè",
+        standing: "Ọnọdụ",
+        reference: "Data ntụaka",
+        switches: "Switch",
+      },
+    },
   },
 
   a11y: {

@@ -17,10 +17,12 @@ import { ENTRY_COOKIE, entryRedirect } from "./entry";
 export function EntryGate({
   entered,
   userId,
+  opening = "Opening the overview first.",
   children,
 }: {
   entered: boolean;
   userId: string;
+  opening?: string;
   children: ReactNode;
 }) {
   const pathname = usePathname() ?? "/admin";
@@ -46,7 +48,7 @@ export function EntryGate({
   if (target) {
     return (
       <p className="nf-admin-entry" role="status">
-        Opening the overview first.
+        {opening}
       </p>
     );
   }
