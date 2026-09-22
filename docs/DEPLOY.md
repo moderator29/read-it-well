@@ -112,6 +112,50 @@ applied and reads Google identity metadata on signup: provider secrets went into
 the Supabase dashboard and never into this application, which only ever read
 which buttons to draw.
 
+### 2.4 THE TWO CRON SECRETS, AND THE SPELLING THAT COST FOUR DAYS
+
+`lib/cron/auth.ts` has pointed readers at "docs/DEPLOY.md, section 2" for
+these since it was written, **and this section never mentioned them**. A
+person following that pointer arrived at a list of variables the code does NOT
+read and concluded nothing. That is why this subsection exists.
+
+Two variables, and they are not the same variable:
+
+| Name | Who reads it | What it does |
+| --- | --- | --- |
+| **`CRON_SECRET`** | **Vercel itself**, never our code | Vercel's scheduler sends `Authorization: Bearer $CRON_SECRET` on every cron invocation. The name is fixed by Vercel and cannot be chosen |
+| **`RECONCILE_CRON_SECRET`** | our code, in `lib/cron/auth.ts` | the value the door compares that bearer against |
+
+**They must hold the SAME VALUE.** A grep for `CRON_SECRET` in this repository
+finds only the second one, because the first is never read by us, which is
+exactly what makes it easy to get wrong.
+
+**THE SPELLING IS EXACT AND THERE IS NO WARNING WHEN IT IS NOT.** On 22
+September this project held a variable named **`CRONS_SECRET`**, with an S.
+Vercel does not read that name, so it injected no header at all, so every one
+of the seven scheduled jobs was refused by our own door with a 401. It ran for
+four days and raised 262 alerts. Nothing anywhere said "that variable is not
+the one I read", because nothing is watching for a variable that does not
+exist.
+
+If the jobs are refused, **check the NAME before the value**. The refusal
+alert now tells you which fault it is in `detail.reason`: `no-bearer` means
+Vercel is injecting nothing and the name is wrong or the variable is absent;
+`secret-mismatch` means both exist and disagree; `no-secret-configured` means
+`RECONCILE_CRON_SECRET` is empty here.
+
+**Whitespace is trimmed on both sides now, deliberately.** A secret reaches a
+dashboard by being pasted, and a paste brings a trailing newline more often
+than not. Before 22 September neither side was trimmed, so a newline on either
+value produced this same silent 401. The same fault in SQL, where `btrim` with
+one argument strips spaces only, broke the database half of this on the same
+day.
+
+`vercel.json` declares the seven scheduled paths. If a job is missing from
+there, no secret will help it.
+
+---
+
 ### 2.5 Removed from the template, and why
 
 This document previously told you to set the eleven groups below. **The code
