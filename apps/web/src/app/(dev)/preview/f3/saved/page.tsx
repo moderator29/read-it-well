@@ -3,6 +3,7 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ListingCard } from "@/components/app/ListingCard";
 import { StayCard } from "@/components/app/stays/StayCard";
+import { PageScene } from "@/components/app/PageScene";
 import { SavedBoard, type SavedBoardItem } from "@/app/(app)/saved/SavedBoard";
 import { RESTAURANTS, SHELF, STAYS } from "../fixtures";
 
@@ -56,8 +57,22 @@ export default async function SavedPreview() {
     })),
   ];
   return (
-    <div className="mx-auto max-w-3xl">
-      <PageHeader title={t.nav.saved} fallback="/preview/f3" />
+    /*
+     * THE REAL PAGE'S WRAPPER, AND IT IS NOT DECORATION. A2.
+     *
+     * This preview drew the board inside a bare `max-w-3xl`, while
+     * `/saved` draws it inside `nf-cat-surface` with a `PageScene` behind the
+     * heading. `nf-cat-surface` is what gives every `.nf-card` under it the
+     * brand ring and its bloom, so a proof taken off this route showed cards
+     * that were DULLER than the ones a person meets, and the scene was absent
+     * entirely. A harness that drifts from the page is the same lie as a
+     * screenshot of a 404, only quieter.
+     */
+    <div className="nf-cat-surface mx-auto max-w-3xl">
+      <div className="relative">
+        <PageScene art="globe-pin" />
+        <PageHeader title={t.nav.saved} fallback="/preview/f3" />
+      </div>
       <SavedBoard items={items} />
     </div>
   );
