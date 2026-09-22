@@ -117,6 +117,7 @@ export default async function PreviewListingReview() {
           common={t.admin.common}
           ui={ui}
           locale={locale}
+          sqm={t.catalogue.card.sqm}
         />
       </ul>
     </div>

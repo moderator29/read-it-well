@@ -100,12 +100,16 @@ export function ListingCard({
   common,
   ui,
   locale,
+  sqm,
 }: {
   listing: ListingReviewView;
   copy: AdminCopy["listings"];
   common: AdminCommon;
   ui: AdminUi;
   locale: Locale;
+  /** `m²`, from the catalogue's dictionary, so the console prints the unit the
+      product prints rather than a second spelling of it. */
+  sqm: string;
 }) {
   const decidable = listing.status !== "PUBLISHED" && listing.status !== "REJECTED";
   const failing = listing.checks.filter((check) => !check.pass).length;
@@ -366,9 +370,16 @@ export function ListingCard({
         land, so a land submission could not be judged at all without it.
       */}
       <ui.DetailSection title="The property itself">
+        {/* `m²` from the dictionary, which is where the catalogue's card and
+            the listing page already read it, so the console and the product
+            print the same unit. */}
         <ui.DetailRow
           label="Size"
-          value={listing.facts.sizeSqm === null ? null : `${listing.facts.sizeSqm} m2`}
+          value={
+            listing.facts.sizeSqm === null
+              ? null
+              : `${listing.facts.sizeSqm} ${sqm}`
+          }
         />
         <ui.DetailRow
           label="Toilets"
@@ -379,7 +390,9 @@ export function ListingCard({
           value={
             listing.facts.parkingSpaces === null
               ? null
-              : `${listing.facts.parkingSpaces} spaces`
+              : listing.facts.parkingSpaces === 1
+                ? "1 space"
+                : `${listing.facts.parkingSpaces} spaces`
           }
         />
         <ui.DetailRow
@@ -583,6 +596,7 @@ export default async function AdminListingsPage({
                   common={common}
                   ui={ui}
                   locale={locale}
+                  sqm={t.catalogue.card.sqm}
                 />
               </ul>
             ),
@@ -619,6 +633,7 @@ export default async function AdminListingsPage({
                     common={common}
                     ui={ui}
                     locale={locale}
+                    sqm={t.catalogue.card.sqm}
                   />
               </ul>
             ),
