@@ -230,9 +230,17 @@ describe("the held payment emails", () => {
     }
     /* And the stripping does not hide a word that is genuinely in the prose. */
     expect(bannedWordsIn(withoutUrls("Held in escrow. https://x/escrow/1"))).toEqual(["escrow"]);
-    /* The list is not empty, so the assertion above is doing work. */
-    expect(BANNED_IN_ESCROW_COPY.length).toBeGreaterThan(5);
+    /* The list is not empty, so the assertion above is doing work, and it
+       carries the house ban as well as escrow's own. */
+    expect(BANNED_IN_ESCROW_COPY.length).toBeGreaterThan(8);
     expect(bannedWordsIn("Held in escrow by Vallo")).toContain("escrow");
+    expect(bannedWordsIn("Your money is guaranteed and fully insured")).toEqual([
+      "guarantee",
+      "insured",
+    ]);
+    /* A word inside another word is not a match, which a substring list got
+       wrong: "escrowing" is, "screwdriver" is not. */
+    expect(bannedWordsIn("a protective screwdriver")).toEqual([]);
   });
 
   it("names no holder of the money in any email", () => {

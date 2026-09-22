@@ -37,6 +37,8 @@
 
 import { formatDate, formatMoney } from "@vallo/i18n";
 
+import { BANNED_IN_EXAMPLE_COPY } from "../copy/banned-phrases";
+
 /** The nine states, as the database spells them. */
 export type EscrowState =
   | "INITIATED"
@@ -277,30 +279,41 @@ export function settlementLines(input: {
 /**
  * The words no sentence in this feature may contain.
  *
- * Checked by a test over every string this module and the email builders
- * produce. `escrow` is here because it is a legal term of art that means
- * something specific and unproven about who holds the money; `guarantee`,
- * `safe`, `protected` and `insured` are here because they are promises the
- * platform cannot keep and a lawyer would strike out.
+ * THE HOUSE LIST IS IMPORTED, NOT RETYPED. `lib/copy/banned-phrases.ts` holds
+ * the platform's own ban on unreal words and schedule promises, and a source
+ * scan in `banned-phrases.test.ts` fails any file that contains one of them as
+ * a literal. Writing them out again here would break that scan, and it did:
+ * the first version of this file listed them as plain strings and the house
+ * test refused the build. Composing the list is both correct and the only way
+ * to state it once.
+ *
+ * WHAT ESCROW ADDS ON TOP, as patterns rather than substrings so a word inside
+ * another word does not trip them:
+ *
+ *   The legal term of art itself, because it means something specific and
+ *   unproven about who holds the money, and because it is not a word anybody
+ *   uses about their own naira.
+ *
+ *   Every promise the platform cannot keep. Guaranteed, insured, protected,
+ *   risk free, completely safe. A lawyer would strike each one out, and each
+ *   one is the sentence a person quotes back when it goes wrong.
  */
-export const BANNED_IN_ESCROW_COPY: readonly string[] = [
-  "escrow",
-  "guarantee",
-  "guaranteed",
-  "insured",
-  "protected",
-  "100% safe",
-  "risk free",
-  "demo",
-  "sample",
-  "preview",
-  "not live",
-  "coming soon",
-  "lorem",
+export const ESCROW_ONLY_BANNED: readonly { label: string; pattern: RegExp }[] = [
+  { label: "escrow", pattern: /\bescrows?\b/i },
+  { label: "guarantee", pattern: /\bguarantee[ds]?\b/i },
+  { label: "insured", pattern: /\binsur(ed|ance)\b/i },
+  { label: "protected", pattern: /\bprotect(ed|ion)\b/i },
+  { label: "risk free", pattern: /\brisk[- ]free\b/i },
+  { label: "completely safe", pattern: /\b(completely|totally|100%)\s+safe\b/i },
 ] as const;
+
+/** The house ban and escrow's own, in one vocabulary. */
+export const BANNED_IN_ESCROW_COPY: readonly { label: string; pattern: RegExp }[] = [
+  ...BANNED_IN_EXAMPLE_COPY,
+  ...ESCROW_ONLY_BANNED,
+];
 
 /** Every banned word a string contains, for a test to fail on by name. */
 export function bannedWordsIn(text: string): readonly string[] {
-  const haystack = text.toLowerCase();
-  return BANNED_IN_ESCROW_COPY.filter((word) => haystack.includes(word));
+  return BANNED_IN_ESCROW_COPY.filter(({ pattern }) => pattern.test(text)).map((r) => r.label);
 }
