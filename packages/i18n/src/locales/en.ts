@@ -3030,6 +3030,14 @@ export const en = {
       title: "Operations overview",
       lede:
         "Every trust signal Vallo produces ends here: what the safety scan caught, what members reported, who is waiting to be approved, and what is waiting to go live. Each number is a queue you can clear.",
+      /* The queue moved to `/admin/queue` so the console opens on the
+         overview. It needs a name of its own: the overview's title is the
+         overview's. */
+      deskTitle: "Where the work is",
+      queueTitle: "The queue",
+      queueLink: "Open the queue",
+      queueLinkLede: "Everything waiting across the five desks that share a table, newest first.",
+      deskLede: "Choose a desk. Every number is a live count from the database, and every one of them is work waiting.",
       queueLede: "Listings, agent applications, reports, support and flagged messages, newest first. Every View opens the desk that decides it.",
       queueClear: "This queue is clear.",
       tiles: {

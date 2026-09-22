@@ -2235,6 +2235,11 @@ export const ha: Dictionary = withFallback({
       title: "Taƙaitawar aiki",
       lede:
         "Kowace alamar amincin da Vallo ke samarwa tana ƙarewa nan: abin da binciken tsaro ya kama, abin da mambobi suka ƙorafta, wanda ke jiran amincewa, da abin da ke jiran fara aiki. Kowace lamba layi ce da za ka iya kammalawa.",
+      deskTitle: "Inda aikin yake",
+      queueTitle: "Layin aiki",
+      queueLink: "Buɗe layin aiki",
+      queueLinkLede: "Duk abin da ke jira a teburori biyar da ke raba tebur ɗaya, sabbi a farko.",
+      deskLede: "Zaɓi tebur. Kowace lamba ƙidaya ce kai tsaye daga bayanai, kuma kowanne aiki ne da ke jira.",
       queueLede: "Lissafi, neman wakilai, ƙorafe-ƙorafe, tallafi da saƙonnin da aka yi wa alama, sabbi a farko. Kowane Duba yana buɗe teburin da ke yanke shawara.",
       queueClear: "Wannan layin babu abu.",
       tiles: {

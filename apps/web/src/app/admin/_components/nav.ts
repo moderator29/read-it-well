@@ -31,6 +31,7 @@ export type AdminDestination = {
 
 /** Destinations whose labels are not in the dictionary yet. See `label` above. */
 type MoneyNavKey =
+  | "queue"
   | "money"
   | "escrow"
   | "kyc"
@@ -67,7 +68,29 @@ export type AdminGroup = {
 };
 
 export const ADMIN_NAV_GROUPS: AdminGroup[] = [
-  { key: "start", heading: null, items: [{ key: "overview", href: "/admin", icon: "grid" }] },
+  /*
+   * THE OVERVIEW AND THE QUEUE ARE TWO DESTINATIONS NOW, AND THEY USED TO BE
+   * ONE.
+   *
+   * `/admin` was the unified queue table wearing the overview's name, so the
+   * rail had a row called Overview that opened an area. On the founder's
+   * item 5 the console lands on a map of itself and the queue has its own
+   * route, so the rail says both, in the order they are met.
+   *
+   * `queue` carries an English `label` for the reason the money rows do: a
+   * new key in `Dictionary["admin"]["nav"]` is four translations or a type
+   * error, and `admin.overview.queueTitle` IS translated in all four - it is
+   * simply not in the `nav` shape, which carries a label and a short. One
+   * honest English word here beats a machine guess in three languages.
+   */
+  {
+    key: "start",
+    heading: null,
+    items: [
+      { key: "overview", href: "/admin", icon: "grid" },
+      { key: "queue", href: "/admin/queue", icon: "panel-left", label: "Queue" },
+    ],
+  },
   {
     key: "safety",
     heading: "Safety",

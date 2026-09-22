@@ -2240,6 +2240,11 @@ export const ig: Dictionary = withFallback({
       title: "Nchịkọta ọrụ",
       lede:
         "Akara ntụkwasị obi ọ bụla Vallo na-emepụta na-akwụsị ebe a: ihe nyocha nchekwa jidere, ihe ndị òtù kpesara, onye na-echere nkwado, na ihe na-echere ịmalite ọrụ. Ọnụọgụ ọ bụla bụ ahịrị ị nwere ike ikpocha.",
+      deskTitle: "Ebe ọrụ dị",
+      queueTitle: "Ahịrị ọrụ",
+      queueLink: "Mepee ahịrị ọrụ",
+      queueLinkLede: "Ihe niile na-echere n'ofe tebụl ise ahụ na-ekere otu tebụl, nke ọhụrụ na mbụ.",
+      deskLede: "Họrọ tebụl. Ọnụọgụ ọ bụla bụ ọnụọgụ dị ndụ sitere na nchekwa data, ọ bụkwa ọrụ na-echere.",
       queueLede: "Ndepụta, akwụkwọ ndị nnọchianya, mkpesa, nkwado na ozi ndị e debere, nke ọhụrụ na mbụ. Lelee ọ bụla na-emeghe tebụl nke na-ekpebi ya.",
       queueClear: "Ahịrị a dị ọcha.",
       tiles: {

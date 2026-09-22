@@ -92,7 +92,14 @@ export default async function PreviewAdminQueue() {
 
         <div className="nf-admin-body">
           <div className="nf-console">
-            <ui.QueueHeader title={t.admin.overview.title} lede={t.admin.overview.lede} count={total} />
+            {/* The QUEUE's own name, not the overview's. They were one screen and one
+                heading until the founder's item 5 split them; this preview draws
+                the queue, so it says so. */}
+            <ui.QueueHeader
+              title={t.admin.overview.queueTitle}
+              lede={t.admin.overview.queueLede}
+              count={total}
+            />
             <QueueTabs
               label="Queues"
               tabs={[

@@ -152,9 +152,18 @@ export function ConsoleSearch({ label, placeholder }: { label: string; placehold
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  /* The desk under the cursor: `/admin/listings/abc` searches `/admin/listings`. */
+  /*
+   * The desk under the cursor: `/admin/listings/abc` searches
+   * `/admin/listings`.
+   *
+   * ON THE OVERVIEW IT SEARCHES THE QUEUE, and that fallback used to be
+   * `/admin` because `/admin` WAS the queue. Since the founder's item 5 it is
+   * a map with no rows in it and no `?q=`, so a search typed on the front
+   * door would have navigated to the front door and thrown the words away.
+   * The unified queue is where a search with no desk behind it belongs.
+   */
   const segments = pathname.split("/").filter(Boolean);
-  const base = segments.length >= 2 ? `/${segments[0]}/${segments[1]}` : "/admin";
+  const base = segments.length >= 2 ? `/${segments[0]}/${segments[1]}` : "/admin/queue";
 
   return (
     <form

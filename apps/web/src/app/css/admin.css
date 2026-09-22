@@ -405,6 +405,111 @@
   .nf-admin-more > summary::-webkit-details-marker {
     display: none;
   }
+  /*
+   * ------------------------------------------------- THE OVERVIEW'S TILES
+   *
+   * The console opens on a map of itself now (the founder's item 5), and a
+   * map is a grid of desks with their live counts rather than a table. These
+   * are LINKS drawn on the platform's own card material, not a new admin
+   * look: the fill, the edge and the bloom are `--nf-glass-card-fill` and
+   * `--nf-glow-edge`, exactly as `.nf-card` composes them, so the console
+   * keeps reading as part of Vallo.
+   *
+   * A ROUNDED RECTANGLE on the control radius. It carries text, so the shape
+   * law's register is the rectangle: 14px on a tile that draws at least 92px
+   * tall is a ratio of 0.15.
+   *
+   * `auto-fit` with a 15rem floor rather than a fixed column count, because
+   * the console is used on a phone at eleven at night and on a desk at nine
+   * in the morning, and seven tiles should be one column on the first and
+   * three on the second without a breakpoint deciding it.
+   */
+  .nf-admin-tiles {
+    display: grid;
+    gap: var(--nf-gap-row);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+  .nf-admin-tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    height: 100%;
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-glass-card-fill);
+    box-shadow: var(--nf-glow-edge);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    .nf-admin-tile:hover {
+      border-color: var(--nf-border-brand);
+      box-shadow: var(--nf-glow-edge-strong);
+    }
+  }
+  .nf-admin-tile:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-admin-tile {
+      transition: none;
+    }
+  }
+  .nf-admin-tile__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-gap-inline);
+  }
+  .nf-admin-tile__glyph {
+    flex: none;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-admin-tile__label {
+    min-width: 0;
+    flex: 1 1 auto;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  /* The figure is the thing an operator scans, so it is the biggest thing in
+     the tile. `--nf-content-primary` at every value including zero: a count
+     is not a status and does not get a temperature. */
+  .nf-admin-tile__count {
+    flex: none;
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-tile__chev {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-tile__lede {
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+  .nf-admin-tile--wide {
+    display: flex;
+  }
+  /* The three facts a new operator has to be told, set as a list rather than
+     three paragraphs so they read as a set. */
+  .nf-admin-how {
+    display: grid;
+    gap: var(--nf-space-xs);
+    max-width: 72ch;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.6;
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-how > li {
+    padding-inline-start: var(--nf-space-sm);
+    border-inline-start: var(--nf-border-width) solid var(--nf-brand-edge);
+  }
   .nf-admin-status {
     display: flex;
     align-items: center;

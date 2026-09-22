@@ -2236,6 +2236,11 @@ export const yo: Dictionary = withFallback({
       title: "Àkọ́sórí iṣẹ́",
       lede:
         "Gbogbo àmì ìgbẹ́kẹ̀lé tí Vallo ń mú jáde parí síbí: ohun tí ẹ̀rọ ààbò rí, ohun tí àwọn ọmọ ẹgbẹ́ ròyìn, ẹni tí ó ń dúró de ìfọwọ́sí, àti ohun tí ó ń dúró láti ṣiṣẹ́. Nọ́mbà kọ̀ọ̀kan jẹ́ ìlà tí o lè pé.",
+      deskTitle: "Ibi tí iṣẹ́ wà",
+      queueTitle: "Ìlà iṣẹ́",
+      queueLink: "Ṣí ìlà iṣẹ́",
+      queueLinkLede: "Gbogbo ohun tí ó ń dúró ní àwọn tábìlì márùn-ún tí ó pín tábìlì kan, tuntun ni àkọ́kọ́.",
+      deskLede: "Yan tábìlì. Nọ́mbà kọ̀ọ̀kan jẹ́ ìkà tààrà láti inú ibi ìpamọ́ data, ìṣẹ́ tí ó ń dúró ni gbogbo wọn.",
       queueLede: "Àwọn àtòjọ, ìbéèrè aṣojú, ìròyìn, àtìlẹ́yìn àti ìfiránṣẹ́ tí a fi àmì sí, tuntun ni àkọ́kọ́. Wíwo kọ̀ọ̀kan ń ṣí tábìlì tí ó pinnu rẹ̀.",
       queueClear: "Ìlà yìí mọ́.",
       tiles: {
