@@ -57,7 +57,9 @@ export function AuthChoices({
   const emailRoute = isSignUp ? "/sign-up/email" : "/sign-in/email";
 
   return (
-    <div className="w-full">
+    /* `nf-auth--narrow`: this card is drawn at the render's measured width
+       (ledger R-C); the stage reads it with `:has()`. */
+    <div className="nf-auth--narrow w-full">
       <h1 className="nf-auth__title">{isSignUp ? t.auth.createAccount : t.auth.welcomeBack}</h1>
       <p className="nf-auth__sub">{isSignUp ? t.auth.signUpSub : t.auth.signInSub}</p>
 
