@@ -47,7 +47,33 @@ appearance switches together. Three things were found while enumerating them:
   reader's theme is not the question.
 
 
-### THE SCHEDULER: A THIRD VARIABLE IS MISSING, AND IT IS `CRON_SECRET`
+### THE SCHEDULER: THE VARIABLE IS SPELLED `CRONS_SECRET` AND VERCEL READS `CRON_SECRET`
+
+**ONE LETTER. Rename it and the seven jobs come back.**
+
+Read off the project's own environment: there is a production variable named
+**`CRONS_SECRET`**, updated today at about 15:12, and **no variable named
+`CRON_SECRET` at all**.
+
+Vercel's scheduler sends `Authorization: Bearer $CRON_SECRET`, spelled exactly
+that way. A variable called `CRONS_SECRET` is read by nobody: not by Vercel,
+and not by us either, since nothing in this codebase mentions it. So the cron
+requests arrive carrying no bearer at all, and our own door refuses them, which
+is precisely the 401 we have been reading all day.
+
+**THE FIX:** rename `CRONS_SECRET` to `CRON_SECRET`, production, same value as
+`RECONCILE_CRON_SECRET`. A redeploy is not needed for the scheduler to pick it
+up, but one happens on every push anyway.
+
+I could not do this myself: the value is sensitive and the API will not hand it
+over, so I cannot copy it into a correctly named variable. The name is the only
+thing I can see, and the name is the fault.
+
+`vercel.json` declares exactly the seven paths that are failing, so nothing
+else about the wiring is wrong.
+
+### The older diagnosis, superseded
+
 
 **Measured at 15:10 today, after the two secrets were set and Vercel was
 redeployed: the jobs are STILL being refused.** Two fresh refusals at 15:05

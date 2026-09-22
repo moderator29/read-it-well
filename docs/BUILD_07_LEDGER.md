@@ -3421,3 +3421,47 @@ purged" and "the machinery that purges deletion requests has never run" are
 different sentences, and only the second one was true. I reached for the first
 because it is the one that conveys urgency, which is exactly the habit this
 ledger keeps catching in other people's work.
+
+## 34. THE SCHEDULER WAS LOCKED OUT BY ONE LETTER
+
+Four days, 261 alerts, seven jobs, and the cause is a variable name.
+
+Read off the project's environment rather than guessed at: there is a
+production variable named **`CRONS_SECRET`**, updated today at about 15:12,
+and **no variable named `CRON_SECRET` at all**.
+
+Vercel's scheduler sends `Authorization: Bearer $CRON_SECRET`, spelled exactly
+that way. `CRONS_SECRET` is read by nobody: not by Vercel, and not by this
+codebase either, where a grep for it returns nothing. So every cron request
+arrived with NO bearer, and our own door refused it. `vercel.json` declares
+exactly the seven paths that are failing, so nothing else in the wiring is
+wrong.
+
+**Three diagnoses were offered today and only the third was right**, which is
+worth keeping because the first two were reasonable and both were wrong:
+
+1. "The secret was rotated on one side only." Wrong: both were set.
+2. "A pasted newline makes the values differ." Not proven, and it remains
+   possible, but it is not what is refusing these requests, because with the
+   variable misnamed there is no bearer to compare at all.
+3. The name. One letter.
+
+**The newline fix stands on its own merits and is not wasted.** The bearer
+comparison trimmed neither side, so a pasted newline on either value would
+have produced this same 401 with the same silence. It was a real hole whether
+or not it was this hole, and it is the same fault that took the database side
+down an hour earlier, where `btrim` with one argument strips spaces only.
+Fixing that in SQL and not in the app would have left half the door open.
+
+**WHY NOBODY COULD SEE IT, which is the part that generalises.** From inside
+the door, these are the same event: a wrong secret, a right secret with a
+newline attached, and no secret at all. All three arrive as "not authorised".
+The refusal that WATCHTOWER rebuilt this morning made the job loud, and it
+still could not say which of the three it was, because the information is not
+there to say it with. A guard that can distinguish "you sent nothing" from
+"you sent the wrong thing" would have answered this in one reading, and that
+is a real improvement to make rather than an observation.
+
+**I could not fix this myself.** The value is sensitive and the API will not
+return it, so I cannot copy it into a correctly named variable. The name is
+the only thing visible, and the name is the fault.
