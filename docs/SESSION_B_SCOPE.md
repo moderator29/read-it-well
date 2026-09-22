@@ -485,3 +485,51 @@ E3. **Fixtures.** `fixtures.ts` still renders the welcome with
     `{ name: "Ada", role }`, which is enough for `shell.test.ts`. No change
     needed; noted so nobody "fixes" the welcome back into `compose()` to make
     the shell tests easier. It already passes all of them on its own document.
+
+### Requests from wallet (wallet home and send money)
+
+Checked by read-only SQL against production on 22 September. Session B has not
+made these; the surfaces ship the honest state around each.
+
+W1. **A second tap on Send sends twice.** `SendFlow` posts an
+    `idempotencyKey` minted once per mount, and `transferSchema`
+    (`lib/wallet/schema.ts`) drops it, so `transferToUser`
+    (`lib/wallet/actions.ts`) never sees it. The pair id is a fresh
+    `randomUUID()` per call, so the database's duplicate guard (a unique
+    violation on the leg references) only stops a retry of the SAME request,
+    never a second submit. Request: add `idempotencyKey: idempotencyKeySchema`
+    to `transferSchema`, and in `transferToUser` either wrap the movement in
+    `withIdempotency` as `fundWallet` does, or derive the pair id from
+    `(sender id, key)` (a v5-style hash) so a replay lands on the same two
+    references and comes back `duplicate`. The confirm step's button is
+    disabled while pending, which narrows the window but does not close it.
+W2. **MIGRATION. Publish the ledger.** `public.wallet_entries` is not in the
+    `supabase_realtime` publication, which on 22 September held `messages`
+    and `notifications`. The wallet and send pages re-read on a `kind = 'wallet'`
+    notification (`LiveWallet`), which covers every COMPLETED movement,
+    because `private.notify_wallet_entry()` writes one. A PENDING row (a
+    withdrawal hold) notifies nobody and is only seen on the next read.
+    `alter publication supabase_realtime add table public.wallet_entries;`
+    (row visibility already follows `wallet_entries_select_own`).
+W3. **MIGRATION. A transfer's notifications do not say who.** Both legs of a
+    transfer notify through the generic branch of
+    `private.notify_wallet_entry()`: "Wallet credited / NGN 10,000.00 has
+    landed in your wallet." and "Wallet debited / NGN 10,000.00 has left your
+    wallet." A person paid by somebody deserves the name. Request: for
+    `kind in ('transfer_in','transfer_out')`, read
+    `metadata->>'counterparty_user_id'`, look up the display name the same way
+    `displayNameFor` does, and write "{name} sent you ₦10,000.00" and "You sent
+    ₦10,000.00 to {name}", href `/wallet/transactions/{id}`. Keep every other
+    branch as it is.
+W4. **Bank payouts do not complete in production.** The only withdrawal in the
+    ledger (`rm-wd-c0426a...`, 10 August) FAILED with Paystack's "You cannot
+    initiate third party payouts as a starter business". So the wallet does
+    not draw Withdraw as a tile or a quick action, and the send render's Bank
+    row is not drawn. This is a founder and Paystack account question, not
+    code: when the Paystack business is upgraded, say so here and the tile
+    comes back (the sheet is still reachable at `/wallet?action=withdraw`).
+W5. **Stroked glyphs the design system does not have.** The two renders draw a
+    paper plane, a plus in a rounded square, a bank, a card, a scan frame, a
+    shield with a tick and a padlock; `UiIcon` has none of them. They are drawn
+    in `components/app/wallet/MoneyGlyph.tsx` on the same grid and stroke.
+    If the design system adopts them, that file goes.
