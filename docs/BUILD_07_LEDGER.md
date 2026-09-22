@@ -1536,14 +1536,17 @@ one green light was measuring nothing, others are.
 
 | Verdict | Rows |
 | --- | --- |
-| 1. SOUND | 12 |
-| 2. WEAK BUT HONEST | 13 |
-| 3. A MIRROR, still standing | 8 |
+| 1. SOUND | 9 |
+| 2. WEAK BUT HONEST | 12 |
+| 3. A MIRROR, still standing | 7 |
 | 4. FIXED, now asserts on behaviour | 6 |
 
-Rows are claims rather than files, because several files hold a sound sweep
-and a mirror in the same `describe`. The Playwright survey is counted
-separately below, since it was sampled rather than read in full.
+**34 rows, and a row is a claim rather than a file**, because several files
+hold a sound sweep and a mirror in the same `describe`. The count covers the
+two tables below: the sixteen vitest files that read source, claim by claim,
+and the four Playwright specs read in full. The nineteen surveyed specs carry
+no individual verdict and are not counted, because a verdict taken from a grep
+is not a verdict.
 
 ### The vitest suite, claim by claim
 
