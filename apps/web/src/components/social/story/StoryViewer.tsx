@@ -22,6 +22,7 @@ import { blockUser, muteTarget, reportProfile } from "@/lib/social/posts-actions
 import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 import { STORY_COPY } from "@/lib/social/stories-schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 /**
  * A story, full bleed.
@@ -64,7 +65,7 @@ export function StoryViewer({
   const [menuOpen, setMenuOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [commenting, setCommenting] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const { toast, show } = useToast();
   const [, startTransition] = useTransition();
   const counted = useRef(false);
 
@@ -102,12 +103,6 @@ export function StoryViewer({
     return () => window.clearTimeout(timer);
   }, [story.id]);
 
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
-
   const who = story.author.label;
 
   const requireSignIn = () => {
@@ -136,7 +131,7 @@ export function StoryViewer({
           setSaved(!on);
           setSaveCount((n) => n + (on ? -1 : 1));
         }
-        setNotice(result.error);
+        show(result.error, "error");
         return;
       }
       router.refresh();
@@ -152,7 +147,7 @@ export function StoryViewer({
       return;
     }
     void navigator.clipboard?.writeText(url);
-    setNotice(POST_COPY.copied);
+    show(POST_COPY.copied);
   };
 
   const onPerson = (action: "mute" | "block") => {
@@ -160,7 +155,7 @@ export function StoryViewer({
     if (requireSignIn()) return;
     const target = story.author.id;
     if (!target) {
-      setNotice("There is nobody to do that to on this story.");
+      show("There is nobody to do that to on this story.", "error");
       return;
     }
     startTransition(async () => {
@@ -169,7 +164,7 @@ export function StoryViewer({
           ? await blockUser({ userId: target })
           : await muteTarget({ targetKind: "USER", targetId: target });
       if (!result.ok) {
-        setNotice(result.error);
+        show(result.error, "error");
         return;
       }
       if (action === "block") {
@@ -180,7 +175,7 @@ export function StoryViewer({
         router.replace("/around");
         return;
       }
-      setNotice(POST_COPY.mutedDone);
+      show(POST_COPY.mutedDone);
       router.refresh();
     });
   };
@@ -191,7 +186,7 @@ export function StoryViewer({
     startTransition(async () => {
       const result = await removeStory({ storyId: story.id });
       if (!result.ok) {
-        setNotice(result.error);
+        show(result.error, "error");
         return;
       }
       router.replace("/around");
@@ -480,11 +475,7 @@ export function StoryViewer({
 
       <StoryRail stories={more} currentId={story.id} />
 
-      {notice ? (
-        <p role="status" className="nf-social-toast">
-          {notice}
-        </p>
-      ) : null}
+      {toast ? <Toast message={toast.message} tone={toast.tone} /> : null}
 
       {commenting ? (
         <CommentsSheet

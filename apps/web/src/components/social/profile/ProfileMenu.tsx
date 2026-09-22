@@ -15,6 +15,7 @@ import {
 import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 import { displayHost } from "@/lib/brand-domain";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -65,7 +66,7 @@ export function ProfileMenu({
   const [confirmBlock, setConfirmBlock] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [reporting, setReporting] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const { toast, show } = useToast(5000);
   const [pending, startTransition] = useTransition();
   const menuRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
@@ -114,12 +115,6 @@ export function ProfileMenu({
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 5000);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
-
   /**
    * Copy, not share. Share is its own control beside this one now, and two
    * menu rows that open the same sheet is one row too many. Copying is a
@@ -131,10 +126,10 @@ export function ProfileMenu({
     const url = `${window.location.origin}/u/${handle}`;
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       void navigator.clipboard.writeText(url);
-      setNotice(POST_COPY.copied);
+      show(POST_COPY.copied);
       return;
     }
-    setNotice(`The address is ${displayHost()}/u/${handle}`);
+    show(`The address is ${displayHost()}/u/${handle}`);
   };
 
   const requireSignIn = () => {
@@ -152,11 +147,11 @@ export function ProfileMenu({
         ? await muteTarget({ targetKind: "USER", targetId: userId })
         : await unmuteTarget({ targetKind: "USER", targetId: userId });
       if (!result.ok) {
-        setNotice(result.error);
+        show(result.error, "error");
         return;
       }
       setMuted(next);
-      setNotice(
+      show(
         next
           ? POST_COPY.mutedDone
           : `Unmuted. ${who} will show up in your feeds again.`,
@@ -170,7 +165,7 @@ export function ProfileMenu({
       const result = await blockUser({ userId });
       if (!result.ok) {
         setConfirmBlock(false);
-        setNotice(result.error);
+        show(result.error, "error");
         return;
       }
       setConfirmBlock(false);
@@ -182,7 +177,7 @@ export function ProfileMenu({
     startTransition(async () => {
       const result = await unblockUser({ userId });
       if (!result.ok) {
-        setNotice(result.error);
+        show(result.error, "error");
         return;
       }
       setBlocked(false);
@@ -224,14 +219,11 @@ export function ProfileMenu({
             </button>
           </div>
 
-          {notice ? (
-            <p
-              role="alert"
-              className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
-            >
-              {notice}
-            </p>
-          ) : null}
+          {/* The toast outranks this sheet on z-index, which is the whole
+              reason the material was raised past the overlays. So the message
+              a failed undo produces is the same object here as everywhere
+              else, rather than a fifth inline shape. */}
+          {toast ? <Toast message={toast.message} tone={toast.tone} /> : null}
         </div>
       </div>
     );
@@ -325,11 +317,7 @@ export function ProfileMenu({
         ) : null}
       </div>
 
-      {notice ? (
-        <p role="status" className="nf-social-toast">
-          {notice}
-        </p>
-      ) : null}
+      {toast ? <Toast message={toast.message} tone={toast.tone} /> : null}
 
       {/* ------------------------------------------------ before the block */}
       {confirmBlock ? (

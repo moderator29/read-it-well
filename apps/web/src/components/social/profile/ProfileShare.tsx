@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { displayHost } from "@/lib/brand-domain";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 /**
  * Share, floating on the cover beside the `…`.
@@ -35,14 +35,8 @@ export function ProfileShare({
   handle: string;
   displayLabel: string;
 }) {
-  const [notice, setNotice] = useState<string | null>(null);
+  const { toast, show } = useToast();
   const who = displayLabel || `@${handle}`;
-
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
 
   const share = () => {
     const url = `${window.location.origin}/u/${handle}`;
@@ -54,13 +48,13 @@ export function ProfileShare({
     }
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       void navigator.clipboard.writeText(url);
-      setNotice(POST_COPY.copied);
+      show(POST_COPY.copied);
       return;
     }
     /* No share sheet and no clipboard, which is an old browser on a hotel wifi
        rather than a hypothetical. The address is the thing being shared, so
        say it rather than failing silently. */
-    setNotice(`The address is ${displayHost()}/u/${handle}`);
+    show(`The address is ${displayHost()}/u/${handle}`);
   };
 
   return (
@@ -74,11 +68,7 @@ export function ProfileShare({
         <UiIcon name="share" size={19} />
       </button>
 
-      {notice ? (
-        <p role="status" className="nf-social-toast">
-          {notice}
-        </p>
-      ) : null}
+      {toast ? <Toast message={toast.message} tone={toast.tone} /> : null}
     </>
   );
 }
