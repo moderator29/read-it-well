@@ -413,9 +413,12 @@ export const en = {
          * THE SEARCH CONTROL. DO NOT EDIT EITHER ONE ALONE.
          *
          * `title1` names the same three actions as the segments of the landing
-         * search control, in the same order, and that is not a coincidence to
-         * be tidied away: the headline teaches the control and the control
-         * proves the headline (HANDOFF 09 section 2.1). The segments are
+         * search control, and that is not a coincidence to be tidied away:
+         * the headline teaches the control and the control proves the
+         * headline (HANDOFF 09 section 2.1). The headline reads them rent,
+         * buy, stay and the control draws them buy, rent, stay, which is the
+         * founder's own wording of each kept as he approved it: the rule is
+         * the same three words, never the same sequence. The segments are
          * declared in `components/site/landing/segments.ts`. IF ONE CHANGES,
          * THE OTHER CHANGES IN THE SAME COMMIT, and
          * `components/site/landing/headline-coupling.test.ts` fails the build
