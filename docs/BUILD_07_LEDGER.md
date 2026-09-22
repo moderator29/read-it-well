@@ -262,6 +262,67 @@ the worker. No row, no close, and the lead does not commit it.
 | The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png`, RETAKEN by A2b at `6c621e3` | row mark 14 on 44 = 0.318, measured. THE STANDING LABEL IS NOT IN THIS PROOF: it only draws on a workspace row, a visitor with no session has none, so B1's 6 on 25 = 0.244 is UNVERIFIED and needs a session | B1, proof by A2b |
 | The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png`, RETAKEN by A2b at `6c621e3` | row 14 on 56 = 0.25, measured; and the sheet it opens is the same sheet the dock opens, asserted in the run | B1, proof by A2b |
 | `/profile/setup/owner`, THE OWNER FORM, all four screens | `GOVERNING-03` | `b1b/owner-1-about-you`, `owner-2-where`, `owner-2-where-picker`, `owner-2-where-state-chosen`, `owner-3-proof`, `owner-3-proof-none`, `owner-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`. Taken on `next start` with `VALLO_PREVIEW_HARNESS=1` at port 3196, walked by `scratchpad/b1b/proof-owner.mjs`, which fills each screen and presses the control a person would | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** Measured in the browser: every one of the six answer rows 14 on 56 = 0.250, including "I have none of these"; the timing label 14 on 44 = 0.318; the calm panel's glyph is the only circle and it carries no text | B1b |
+| The PROPERTY HOME PAGE, everything below the location selector | `GOVERNING-01` screen one | `b3/home-390-dark.png`, `b3/home-390-light.png`, taken on `next start` at port 3185 from a clean tree at `origin/main` plus the four B3 commits. The route itself is behind the signed-in gate in `proxy.ts` and this box reaches no database, so the proof is `/preview/f1/home`, which mounts the SAME `HomeScreen` from fixtures. A preview is not the route and that is said rather than glossed | **0 breaches at 390 and 1536, dark and light.** Measured in the browser: place chip 6 on 30 = 0.20, hero field 14 on 52 = 0.27, filter control 14 on 44 = 0.32, tile plate 18 on 64 = 0.28. Nothing over 0.35 on this route | B3 |
+| The STAYS HOME PAGE, the whole screen | `GOVERNING-09` screen one | `b3/stays-390-dark.png`, `b3/stays-390-light.png`, taken on the same server on the REAL `/stays` route, which is open to a stranger. The featured band is EMPTY in both shots and that is the product being honest: `stays_search` returns nothing on this box, so nothing is drawn | **0 breaches at 390 and 1536, dark and light.** Same four objects as the property side, same numbers, because they are the same three components | B3 |
+| The MOVE-IN COST BLOCK on `/listing/[id]` | `GOVERNING-08` screen two, carried onto a surface that image does not draw | `b3/listing-cost-390-dark.png`, `b3/listing-cost-390-light.png`. Same reason as the home page: the live route needs a database. `/preview/f3/listing` mounts the block TWICE, once with the fixture as it stands and once with a declared zero agency fee and no stated total, because the block exists to show the difference between a declared cost and an undeclared one | **0 breaches at 390 and 1536, dark and light.** Cost row 14 on 56 = 0.25, total panel 14 on 96 = 0.15 | B3 |
+| The SIGNED-OUT APP HEADER, every `(app)` route | none, inherits the register | `b3/signed-out-header-390-dark.png`, taken on the real `/verification` | Not a shape finding. MEASURED: actions' right edge 366 in a 390 viewport, exactly the 24px gutter, with `document.scrollWidth` 390. It was 407 with `scrollWidth` 390, which is 17px of the primary control unreachable by any gesture | B3 |
+
+**B3's More-surface audit, item by item, because the slot left the dock.**
+"More" was never a destination. It was a second opener for the side drawer, and
+the drawer still opens from the hamburger in the app header. The reachability
+proof is structural rather than a list of taps: `showsHeader` is
+`!immersive && !edgeToEdge`, the dock is drawn only where `tabRootFor` returns
+non-null, and `tabRootFor` returns null for every immersive route; the three
+`edgeToEdge` routes (`/listing/[id]`, `/stay/[id]`, `/restaurant/[id]`) are not
+in `TAB_BAR_ROUTES` at all, so none of them draws a dock either. **Every route
+that draws the dock therefore draws the header, and the hamburger with it.** The
+drawer has not lost a row. It has GAINED the Switch profile row.
+
+| What was reachable through the More slot | Where it is now |
+| --- | --- |
+| Home, or Stays after the flip | The dock's first slot. The drawer's own copy of it is `hideWhenDocked` and always was. |
+| Search, which the stays renders call Explore | The dock's second slot, named Search on both sides. |
+| Feed | The dock's fourth slot, which the renders label "Saved" and which ships as Feed. |
+| Bookings, or Trips on the stays side | Drawer, Account section. |
+| Inspections | Drawer, Account section, property side. |
+| Messages | Drawer, Account section. |
+| Notifications, with its unread count | Drawer, Account section, and the bell in the header on every screen the dock appears on. |
+| Saved | Drawer, Account section. |
+| Wallet | Drawer, Account section. |
+| AI Assistant | Drawer, Account section. |
+| Agent Mode | Drawer, Workspaces section, for somebody who holds it. |
+| Console | Drawer, Workspaces section, for staff. |
+| Add a workspace | Drawer tail, and now also the raised centre slot of the dock. |
+| Settings | Drawer tail. |
+| The side coin | Drawer foot, unmoved. |
+| Theme | Drawer foot, unmoved. |
+| Log out | Drawer foot, unmoved. |
+
+**B3's register extensions, recorded so the founder can check them.** Three
+objects were drawn for `GOVERNING-01` and `GOVERNING-09` and then used where
+those two images do not reach, which is the register being extended rather than
+a second look being invented.
+
+- `.nf-hero-plate`, the photographed container with the place chip, the heavy
+  headline and the field INSIDE it. Both home pages draw it and nothing else
+  does yet. Any future "browse this thing" landing surface takes this rather
+  than inventing a fourth hero.
+- `.nf-cat-tile`, the 3D object on its rounded plate with the label under it. It
+  is the same object every one of the twelve images puts on a door, so a door
+  anywhere else in the product takes this class.
+- `.nf-movein__row`, the cost row of `GOVERNING-08` screen two, used on the
+  listing DETAIL page, which that image does not draw. Same anatomy, same
+  plate, same lit rim; only the surface is new.
+
+**AND THE ONE FINDING FROM THIS SCOPE THAT REACHES EVERY OTHER SCOPE.** Twenty
+three of the 144 glass objects ship a LIGHT TWIN and 121 do not. A call site
+cannot see which is which, so a row that mixes them draws one pale frosted mark
+beside three navy chips in daylight and looks correct at night. It happened
+twice in this scope, on the category row (`keys-handover`) and in the cost block
+(`contract-sign`, `doc-review`), and it is the mirror of the founder's own
+`home-light-black-icon-plates-as-shipped.jpg`. **A SET OF OBJECTS DRAWN SIDE BY
+SIDE IS ALL TWINNED OR NONE.** Nothing in the type system or the lint rules can
+say so today, which is why it is here.
 
 
 **B1b's THREE DEPARTURES FROM `GOVERNING-03`, RECORDED SO THE FOUNDER CAN
