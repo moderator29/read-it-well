@@ -1720,8 +1720,9 @@ Three verdicts, and only the middle one is a finding.
   with this reading green.
 * **FIXED.** It now observes the outcome, and this says what it reads.
 
-Counts: **26 examined, 13 SEES, 6 FIXED, 7 BLIND and marked.** The gate for
-every fix is at the foot of this section.
+Counts: **31 examined, 17 SEES, 7 FIXED, 7 BLIND and marked.** Counted one by
+one rather than in groups, so the number can be checked against the lists
+below. The gate for every fix is at the foot of this section.
 
 ### 18.1 What the live database says, measured before anything was written
 
@@ -1767,7 +1768,7 @@ fleet being down, reported hourly, in the colour of a nuisance.
 
 ### 18.2 The findings, one line each
 
-#### FIXED, six
+#### FIXED, seven
 
 | What | It used to observe | It now observes |
 | --- | --- | --- |
@@ -1825,7 +1826,7 @@ fleet being down, reported hourly, in the colour of a nuisance.
    independent of Vercel is pg_cron, and putting the watch there is a
    migration.
 
-#### SEES, thirteen, in one line each
+#### SEES, seventeen, in one line each
 
 `executeCronJob` reads the verdict and answers 500, 503 or 200 on it.
 `callServiceFunction` reads the PostgREST error and throws, so a failed RPC is
@@ -1845,6 +1846,16 @@ against real database state after the fact, under `set -euo pipefail`, and
 `m5_oversell.sh` reads the final inventory rather than the exit codes of the
 two sessions that raced for it. `lib/alerts/record.test.ts` asserts the row
 that was inserted and the outcome returned, not that a function was called.
+`pgCronWatch`'s own half reads what `public.cron_job_failures` returned and
+raises on the rows in it, and a read it cannot make throws rather than
+answering clean. And the seven pg_cron jobs that act INSIDE Postgres
+(`release_stale_booking_holds`, `purge_rate_limits`, `purge_idempotency_records`,
+`announce_completed_stays`, `post_daily_note`, `escrow_sweep_timeouts`,
+`sweep_badges`) see their own outcomes by construction: the work and the report
+are the same transaction, so a failure rolls back and the scheduler records
+"failed". That is not theory. `vallo-nightly-badges` recorded three failed runs
+on 16, 17 and 18 September and recovered by itself, which is also finding 5
+below, because nobody was reading them.
 
 ### 18.3 The gate
 
