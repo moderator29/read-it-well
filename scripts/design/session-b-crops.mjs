@@ -843,6 +843,58 @@ async function welcome() {
     .webp({ quality: 90, alphaQuality: 90, effort: 6 })
     .toFile(path.join(dir, "stage-tiles.webp"));
 
+  /*
+   * THE COIN FACE, cut from this render's own coin. The drawn coin is seen
+   * mid-turn, so its front face is an ellipse: fitted by eye in a 3x overlay
+   * to centre (515, 884), semi axes 80 and 52 render px, the long axis 20
+   * degrees from the vertical with its foot to the right. The face is
+   * un-projected to the circle it is a view of (the short axis stretched by
+   * 80/52 after turning the long axis upright), sampled bilinearly from the
+   * untouched render, and masked to the circle with a one pixel soft edge.
+   * 160 px across, the render's own resolution along the long axis; nothing
+   * is invented. The live coin turns this face back to the drawn pose.
+   */
+  const COIN = { cx: 515, cy: 884, a: 80, b: 52, deg: 20 };
+  {
+    const src = await loadRender(RENDER);
+    const R = COIN.a;
+    const N = 2 * R;
+    const t = (COIN.deg * Math.PI) / 180;
+    const ux = Math.sin(t);
+    const uy = Math.cos(t);
+    const out = Buffer.alloc(N * N * 4);
+    const at = (x, y, k) => src.px[(y * src.w + x) * 3 + k];
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const px = i + 0.5 - R;
+        const py = j + 0.5 - R;
+        const d = Math.hypot(px, py);
+        const alpha = Math.max(0, Math.min(1, R - d));
+        const q = (j * N + i) * 4;
+        if (alpha === 0) continue;
+        const m = (px * COIN.b) / COIN.a;
+        const sx = COIN.cx + py * ux + m * uy;
+        const sy = COIN.cy + py * uy - m * ux;
+        const x0 = Math.floor(sx);
+        const y0 = Math.floor(sy);
+        const fx = sx - x0;
+        const fy = sy - y0;
+        for (let k = 0; k < 3; k++) {
+          const v =
+            at(x0, y0, k) * (1 - fx) * (1 - fy) +
+            at(x0 + 1, y0, k) * fx * (1 - fy) +
+            at(x0, y0 + 1, k) * (1 - fx) * fy +
+            at(x0 + 1, y0 + 1, k) * fx * fy;
+          out[q + k] = Math.round(v);
+        }
+        out[q + 3] = Math.round(alpha * 255);
+      }
+    }
+    await sharp(out, { raw: { width: N, height: N, channels: 4 } })
+      .webp({ quality: 92, alphaQuality: 100, effort: 6 })
+      .toFile(path.join(dir, "coin-face.webp"));
+  }
+
   writeFileSync(
     path.join(dir, "SOURCES.md"),
     `# Get started crops
@@ -855,8 +907,7 @@ hand; change the script and re-run it.
 | \`stage-worlds.webp\` | \`${RENDER}\` | ${BOX.left}, ${BOX.top}, ${BOX.width}, ${BOX.height} | Stage with its dark ground. PROPERTY, STAYS and the HOTEL lettering retouched out by harmonic fill from the surrounding glass; the coin's body retouched out (the live CSS coin stands there); edges feathered to transparent (${FEATHER.left}/${FEATHER.right}/${FEATHER.top}/${FEATHER.bottom} px, smoothstep). WebP q90 with alpha. | 380 x 317 css |
 | \`stage-tiles.webp\` | \`${RENDER}\` | same | As above, and the house and the hotel retouched out of the two tiles, so slides two to four stand their own glass objects in them. | 380 x 317 css |
 
-The coin's faces are \`public/brand/glass/flip-coin.png\`, the pack's crop of the
-same two-faced glass coin from the drawer render, so no new coin crop exists.
+| \`coin-face.webp\` | \`${RENDER}\` | ellipse centre ${COIN.cx}, ${COIN.cy}, semi axes ${COIN.a} and ${COIN.b}, long axis ${COIN.deg} deg from vertical | The drawn coin's front face, un-projected from its mid-turn ellipse to the circle it is a view of (short axis x ${COIN.a}/${COIN.b}), bilinear, masked to the circle with a 1 px soft edge. WebP q92 with alpha. Both faces of the live CSS coin. | 160 px source for a 96 css face: sharp at 1x, the browser scales it 2x at 2x |
 
 Resolution: the source box is 636 px wide for 380 css px, 1.67 source px per
 css px. A 3x phone asks for 1140, so the stage is visibly softer than live
