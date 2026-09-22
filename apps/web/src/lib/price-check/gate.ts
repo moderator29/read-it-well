@@ -89,6 +89,27 @@ export function isSupportedType(type: ListingPropertyType): type is PriceCheckPr
  */
 export type PriceCheckResult =
   | {
+      /**
+       * WE COULD NOT ASK, WHICH IS NOT A REFUSAL AND MUST NEVER LOOK LIKE ONE.
+       *
+       * This state exists because the first version of this function did not
+       * have it, and the cost was found by rendering the page rather than by
+       * any test. A null verdict was folded into `no_location`, so a reader
+       * whose pin was perfectly good, on a build that simply could not reach
+       * the database, was told "we could not place this address on the map"
+       * and offered "drop a pin". It blamed them for our outage, and the next
+       * action it gave them could not possibly work.
+       *
+       * Every refusal code in this feature is a CLAIM ABOUT OUR DATA - there
+       * is nothing here, there are only examples, these listings are too old.
+       * Making one of those claims because a query threw is exactly the
+       * invented statement this whole feature exists to avoid, and
+       * `queries.ts` says so in its own header while `page.tsx` was quietly
+       * ignoring the `reachable` flag it returns.
+       */
+      kind: "unreachable";
+    }
+  | {
       kind: "answered";
       basis: EstimateBasis;
       /** Integer kobo. `formatMoney` and `Amount` are the only printers. */
@@ -158,7 +179,11 @@ export function priceCheckOutcome(
   /* 2. WHETHER WE CAN LOOK AT ALL. There is no geocoder in this tree, so a
         missing point is a missing pin and the next action is to drop one. */
   if (subject.lat === null || subject.lng === null) return refusal("no_location");
-  if (verdict === null) return refusal("no_location");
+
+  /* AND WHETHER WE COULD ASK. A point we have and an answer we do not is our
+     problem, not the reader's, and it gets its own outcome rather than
+     borrowing a refusal code. See the note on `kind: "unreachable"`. */
+  if (verdict === null) return { kind: "unreachable" };
 
   /* 3. WHAT WE HOLD. */
   if (verdict.outcome === "refused") {

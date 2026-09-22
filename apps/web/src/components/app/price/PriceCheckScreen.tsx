@@ -8,7 +8,7 @@ import type { Dictionary, Locale } from "@vallo/i18n";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { Segmented } from "@/components/ui/Segmented";
-import { Section, Stack, TYPE } from "@/components/app/Screen";
+import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
 import { coarsenPoint, withinNigeria } from "@/lib/price-check/address";
 import { fetchAreaSuggestions, recordPriceCheckStage, watchThisSpot } from "@/lib/price-check/actions";
 import type { PriceCheckResult } from "@/lib/price-check/gate";
@@ -158,6 +158,10 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
 
   useEffect(() => {
     if (!result) return;
+    /* An outage is not a funnel outcome. Recording it as one would put a
+       refusal code beside a check nobody actually ran, and the refusal rate is
+       the number this table exists to produce. */
+    if (result.kind === "unreachable") return;
     if (result.kind === "answered") {
       record("outcome", {
         outcome: "answered",
@@ -270,7 +274,7 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
     [copy.refusals],
   );
 
-  const spec = result && result.kind === "refused" ? REFUSALS[result.code] : null;
+  const spec = result?.kind === "refused" ? REFUSALS[result.code] : null;
 
   return (
     <Stack>
@@ -444,7 +448,18 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
       {/* --------------------------------------------------- the answer */}
       {result !== null && (
         <Section>
-          {result.kind === "answered" ? (
+          {result.kind === "unreachable" ? (
+            /* NOT A REFUSAL. No refusal copy, no refusal icon, no next action
+               and no notify me: there is nothing the reader can do about our
+               outage and offering them something would be worse than saying
+               so plainly. */
+            <EmptyState
+              icon="home-ring"
+              title={copy.result.unreachableTitle}
+              body={copy.result.unreachableBody}
+              data-testid="nf-pc-unreachable"
+            />
+          ) : result.kind === "answered" ? (
             <>
               <AnsweredResult
                 result={result}

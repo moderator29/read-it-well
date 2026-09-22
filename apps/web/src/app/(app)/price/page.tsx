@@ -151,8 +151,8 @@ export default async function PriceCheckPage({
   const drawsComparables =
     result !== null &&
     (result.kind === "answered" ||
-      REFUSALS[result.code].showsComparables ||
-      REFUSALS[result.code].showsStripPlot);
+      (result.kind === "refused" &&
+        (REFUSALS[result.code].showsComparables || REFUSALS[result.code].showsStripPlot)));
 
   if (drawsComparables && lat !== null && lng !== null) {
     comparables = await comparablesFor(

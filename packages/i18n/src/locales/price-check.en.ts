@@ -128,6 +128,14 @@ export const priceCheckEn = {
     listedAgo: "Listed {months} months ago",
     listedRecently: "Listed this month",
     spreadHeading: "What each one is asking",
+    /* NOT A REFUSAL AND IT MUST NOT READ LIKE ONE. Every refusal code is a
+       claim about our data; this is a statement about us. It says the fault is
+       ours, that nothing they entered was lost, and it offers no next action,
+       because there is nothing they can do and pretending otherwise would be
+       worse than saying so. */
+    unreachableTitle: "We cannot check prices right now",
+    unreachableBody:
+      "This is on our side, not yours, and it is not a statement about what is near you. Nothing you entered has been lost. Try again in a few minutes.",
   },
 
   refusals: {

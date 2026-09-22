@@ -137,9 +137,39 @@ describe("no pin, no per property check", () => {
     const result = priceCheckOutcome(subject({ lat: null, lng: null }), null, null);
     expect(result).toMatchObject({ kind: "refused", code: "no_location" });
   });
+});
 
-  it("refuses with no_location when the pin is there but the verdict is not", () => {
-    expect(priceCheckOutcome(subject(), null, NOTHING)).toMatchObject({ code: "no_location" });
+describe("a point we have and an answer we do not is OUR problem", () => {
+  it("is unreachable, not a refusal, and this is why the state exists", () => {
+    /*
+     * THE FIRST VERSION OF THIS FUNCTION FOLDED THIS INTO `no_location`, AND
+     * THE COST WAS FOUND BY RENDERING THE PAGE rather than by any test here.
+     * On a build that could not reach Supabase, a reader whose pin was
+     * perfectly good was told "we could not place this address on the map"
+     * and offered "drop a pin" - blamed for our outage, and handed a next
+     * action that could not possibly work.
+     *
+     * Every refusal code in this feature is a CLAIM ABOUT OUR DATA: there is
+     * nothing here, there are only examples, these listings are too old.
+     * Making one of those claims because a query threw is the invented
+     * statement the whole feature exists to avoid.
+     */
+    const result = priceCheckOutcome(subject(), null, NOTHING);
+    expect(result).toEqual({ kind: "unreachable" });
+    expect(result).not.toMatchObject({ kind: "refused" });
+  });
+
+  it("still says no_location when there is genuinely no pin, even if we could not ask", () => {
+    /* Order matters: a reader with no pin gets the action they can take,
+       whatever the database is doing. */
+    expect(priceCheckOutcome(subject({ lat: null, lng: null }), null, null)).toMatchObject({
+      code: "no_location",
+    });
+  });
+
+  it("carries no code, no count and no figure, because it is not about our data", () => {
+    const result = priceCheckOutcome(subject(), null, null);
+    expect(Object.keys(result)).toEqual(["kind"]);
   });
 });
 
