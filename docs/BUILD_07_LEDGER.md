@@ -407,6 +407,30 @@ the page is the same failure as a screenshot of a 404, only quieter.
 
 ---
 
+## 7A. THE TWELVE CHEAP BLEEDING FIXES, AUDITED ONE BY ONE
+
+The founder listed twelve things that were small and were bleeding. This is
+where each one stands, checked by reading the tree rather than by reading a
+report. Two of them were corrected by the worker who did them, and both
+corrections were improvements on the instruction.
+
+| # | Item | State |
+| --- | --- | --- |
+| 1 | `ListingMoveIn.tsx`, 161 tested lines nothing imported | With Track H. The move-in model was ALREADY inside the wizard, summed live; the gap is the listing DETAIL page. |
+| 2 | Search's four sorts all read the headline price | Landed. `move-in-asc` is in `SortKey` and the move in cost index is queried at last. The producer had to be landed by the lead because its consumer was committed without it. |
+| 3 | Three segments, four columns, a quarter of the control dead | **LANDED.** Driven from `ORDER.length` through `--nf-seg-count`, the way `.nf-glass-seg` already did it. |
+| 4 | `frame-src 'none'` blocks the in-app checkout | **LANDED**, narrowed to the two Paystack checkout hosts, never a wildcard, in a SEPARATE constant from the four-origin list `form-action` reads so widening one cannot silently widen the other. Both test surfaces moved in the same commit. |
+| 5 | The access code thrown away on every payment | **HALF, DELIBERATELY.** The code is carried through all four envelopes. The component was NOT built, because two of its three preconditions could not be proved here. See 8.2: the research's stated evidence for the 3-D Secure question turned out not to exist in the shipped package. |
+| 6 | `externalHttpUrl` throws applicants into Chrome | **LANDED, AND THE BRIEF WAS WRONG ABOUT THE CAUSE.** Returning null for our own origin is CORRECT: there is nothing to hand the system browser. The real hole is that a `_blank` anchor at our own screen never reaches the navigation handler at all, so the web view asks for a new window and Capacitor gives it to the operating system. Fixed with `sameOriginBlankPath`, which navigates the one window a shell has. |
+| 7 | The offline card unreachable, no `errorPath` | **LANDED**, and the surface was designed properly as well, with a paper twin, drawn in CSS and inline SVG so the file still makes no network request. |
+| 8 | `COMPANY_RC_NUMBER` null | **LANDED.** RC 9870413 reaches both legal documents through `COMPANY_FORMAL_NAME` and the email footer through a test that ties the three copies together. |
+| 9 | Four escrow doors executable by `authenticated` | **LANDED AND VERIFIED LIVE.** Bodies moved into `_as` siblings taking the actor explicitly, `service_role` only; the originals are one-line delegates so there is one implementation. Rule 11 travelled with it: the note a user can read no longer says escrow. |
+| 10 | `agent_trust` readable by `anon` | **LANDED, AND THE SURVEY WAS WRONG.** "Nothing in the product calls it signed out" is false: every public profile asks it for a signed-out visitor, so a naive revoke would have silently removed the trust band from every agent's page. The band is kept and the enumeration is closed by serving the read from the server after the profile row has come back. |
+| 11 | Three checking tools that had never looked at light mode | **LANDED.** The token checker excluded the paper theme BY NAME; the contrast probe measured four elements on one route and now sweeps every text-bearing leaf on 89; the surface comparer had no theme switch. Its colour checks now REFUSE `--theme light` rather than reporting nonsense, because every hex they compare against was sampled from a dark render. |
+| 12 | `platform_stats()` counting example stock | **LANDED, PROBED AND VERIFIED LIVE.** 64 published, all 64 examples, so every figure on the landing described stock nobody can transact. One predicate per count, and it returns zero today. |
+
+---
+
 ## 8. Verified by the lead, not taken on report
 
 The contract says no success report is believed without the lead's
