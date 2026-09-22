@@ -243,6 +243,57 @@ file says what replaces it. Every email has a plain text alternative and a
 preheader. Nothing is under 4.5:1 contrast and nothing depends on images
 loading.
 
+### 3.1 Three corrections that must be made before a template ships
+
+**The blue in the research file is the OLD blue, and it is my error, not the
+research agent's.** I briefed it with `#0C39EF` and `#5C7CFF`. Those values
+were retuned on 19 September and the reason is written into
+`packages/design-tokens/src/tokens.css:137` and `:239`: the old electric blue
+failed contrast at 2.75:1 against the new 4.18:1, and the old quiet blue sat
+thirteen degrees of hue away from its own family, towards violet, which the
+palette forbids. The live tokens are `--nf-electric-400: #0C6AEF` at `:161`
+and `--nf-brand-quiet: #5C9FFF` at `:267`. **Every hex in every email template
+is re-derived from the live tokens before anything is sent.** An email cannot
+read a CSS custom property, so the hex is baked, and that is exactly why it
+goes stale: add the test that asserts the baked email hex still equals the
+token, so this cannot happen a second time.
+
+**The RC number is missing from our own legal line.**
+`apps/web/src/lib/legal/company.ts:54` has `COMPANY_RC_NUMBER = null`, so
+`COMPANY_FORMAL_NAME` renders with no RC anywhere in the product or in any
+email. The company was incorporated on 18 September 2026 and the number is
+**RC 9870413**, recorded in `docs/HANDOFF_01_COMPANY.md`. Set it. It is a
+fact, not a decision. Three files move together and `shell.test.ts` asserts
+the legal line, so the test moves with them.
+
+**The repository disagrees with itself about how Supabase sends auth mail.**
+`docs/AUTH_EMAILS.md` documents custom SMTP as the chosen route and argues
+against the hook. `apps/web/src/app/api/auth/email-hook/route.ts` is a
+complete, signature verified Send Email Hook. Both cannot be live. **Establish
+which one is actually configured before touching either**, then rewrite
+`AUTH_EMAILS.md` to match reality and delete whichever path lost. Note the
+consequence the research file records: custom SMTP imposes a thirty messages
+per hour ceiling the moment it is saved, and the hook makes the five generated
+templates dead weight. The configuration itself is a dashboard action and
+therefore the founder's; the code and the document are this session's.
+
+### 3.2 What the research found about our email layer
+
+The machinery was never the gap. There is already a hand written Resend client
+over `fetch` with no SDK, a block based renderer that emits HTML and plain
+text from one description, and a twenty message catalogue. **Ten of those
+twenty messages can never be reached by any code path**, and the reason is
+structural rather than careless: every message that does send hangs off a
+server action or an API route, and every message that does not belongs to an
+event whose in-app notification is written by a database trigger. The email
+layer and the trigger layer have never met. That junction is the real work of
+Track B, and it is the same junction Track C needs for push, so build it once.
+
+Two emails that do not exist anywhere and must: **"Your password was
+changed"** and **"New sign-in on a new device"**. Those are security
+obligations, not nice to have, and a marketplace moving money without them is
+negligent.
+
 **Do not invent copy.** The research file carries the approved copy. If a
 sentence is missing, write it in the product's voice: short, warm, no
 exclamation marks, no marketing adjectives, no em dashes.
