@@ -1275,3 +1275,301 @@ owner" reading `listing_role = 'owner'` against the new
 `components/app/filters/FilterDrawer.tsx`. The budget filter should read the
 move-in total rather than the rent when the sort is `move-in-asc`, and say which
 it is filtering on: a silent switch between two bases is worse than either one.
+
+---
+
+# PART 5. THE CONTROL
+
+## 5.1 The three axes, and the rule that keeps them apart
+
+| Axis | Question | State | Today |
+| --- | --- | --- | --- |
+| **SIDE** | What am I browsing? | `nf_side`, `property` or `stays` | Built. `lib/side.constants.ts:19`, `:21`; read by `getSide()` (`side.ts:20`); overridden by `sideOfPath` (`side.constants.ts:58`); switched by the coin (`SideSwitch.tsx:27`) through the flip (`components/app/flip/SideFlip.tsx`) |
+| **MODE** | Am I using the product or running a business on it? | `nf_mode`, `personal` or `agent` | Built, and **misnamed**: `mode.constants.ts:10` gives the working value a role's name |
+| **ROLE** | Who am I when working? | nowhere | Not built. Derived in TypeScript from `agents.type` (`roles.ts:191`) |
+
+**The rule, stated three times in the codebase and never to be broken: a view
+preference is never an authorisation.** `side.constants.ts:15`: "THE SIDE IS A
+VIEW PREFERENCE, NEVER AN AUTHORISATION. Nothing reads it to decide what somebody
+may do." Repeated at `side.ts:14` and `mode.ts:14`, and enforced in the mapping at
+`roles.ts:205`. The workspace gate is an RLS-bound read of the caller's own
+`agents` row (`listings-queries.ts:78`), and the navigation is built from another
+(`shell-queries.ts:96`, failing closed at `:123`).
+
+## 5.2 The hypothesis, tested
+
+**Confirmed, and the code is most of the way there.** `roleStateFrom(agent, mode)`
+(`roles.ts:190`) takes the cookie and the account's own facts and returns a
+current role (`:213`). That is exactly "mode resolves into a role".
+`RoleSwitcher.choose` (`:112`) writes the cookie back, mapping any non-renter role
+to `nf_mode=agent` (`:131`).
+
+The three symptoms of the missing third axis are all in that one file. **The
+cookie cannot say which workspace:** an owner and an agent both carry
+`nf_mode=agent`, and a person who is both is unrepresentable because
+`agents.user_id` is unique (Part 2.2). **The role list is fixed at three**
+(`ROLE_ORDER`, `:51`) and one of the three, `renter`, is not a workspace at all;
+its `href` is `/home` (`:88`). **Stays is missing entirely:** a Host has no row,
+so the one switch-profile surface knows about two of the product's three supply
+shapes.
+
+**So role is not a fourth switch. It is what the second one resolves into, and
+the second one needs one more bit of state to resolve correctly.** The coin keeps
+doing exactly what it does now; nothing in `SideFlip` or `sideOfPath` changes.
+
+## 5.3 The cookie contract
+
+```
+nf_side       property | stays                       unchanged
+nf_mode       personal | working                     'agent' accepted on read, written as 'working'
+nf_workspace  supply:<agents.id> | firm:<businesses.id>
+              | stays:<businesses.id> | admin        new, meaningful only when nf_mode=working
+```
+
+`nf_mode` takes `working` and **keeps reading `agent`** for one release, so no
+signed-in person is thrown back to personal mode by a deploy; `isMode`
+(`mode.constants.ts:14`) widens and `getMode` normalises. `nf_workspace` is an
+**opaque key, never an authorisation**: the server resolves it against the
+caller's own RLS-bound reads on every request, and an unresolvable key falls back
+to their single workspace or to personal mode. A hand-edited cookie changes what a
+control displays and nothing else, the doctrine `RoleSwitcher.tsx:126` already
+states. **The URL wins over the cookie**, exactly as `sideOfPath`
+(`side.constants.ts:58`) does for the side: a deep link to
+`/agent/listings/abc` resolves the workspace from the listing's own owner, and a
+workspace the caller does not hold is a refusal from the route's own gate, not a
+redirect. Cookie attributes follow `writeSideCookie` (`side.constants.ts:68`):
+`path=/`, one year, `samesite=lax`, not `HttpOnly`, because the switch writes it
+on the client as both existing cookies do.
+
+## 5.4 The control
+
+**One sheet, "Switch profile", opened from the side navigation and the bottom
+navigation**, replacing `RoleSwitcher`'s fixed three rows with a list built from
+what the account holds:
+
+```
+  Personal                              [tick, when nf_mode=personal]
+  Using Vallo for yourself
+
+  WORKSPACES
+  Chidi Okeke, owner                    Property
+  Acme Properties Ltd                   Property, firm    [Pending]
+  Sunrise Apartments                    Stays
+  Operations console                    Staff
+
+  + Add a workspace
+```
+
+The side navigation's foot already holds the two controls that "change how the
+product looks rather than where you are" (`AppRail.tsx:183`), the coin and the
+theme row. **Switch profile is the third and goes above the coin**, because it is
+the bigger question: the coin turns the shelf over, this changes who you are on
+it. On the bottom navigation it is the profile island (`MobileTabBar.tsx:14`),
+opened by a long press or a chevron; the `/profile` row stays, because a settings
+surface should list everything the account has. The sheet is the existing `Sheet`
+with `detents={[0.6, 0.92]}` (`RoleSwitcher.tsx:185`) and the same row anatomy the
+file argues for at `:48`: rows in one surface with inset hairlines, an icon in a
+tinted circle, a label, a one-line description, a tick on the current one.
+
+## 5.5 Every state
+
+| Workspaces | Personal row | Workspace rows | "Add a workspace" | The nav trigger |
+| --- | --- | --- | --- | --- |
+| **Zero** | Present, ticked | None. One line: "You have no workspaces yet. Add one to start listing property or taking bookings." | Primary | Reads "Start listing", what `nav-model.ts:326` already offers, and opens the sheet rather than navigating |
+| **One** | Present | The one, with its side and role | Quiet | Reads the workspace's name. Tapping **toggles directly** between personal and it, with the sheet on a long press: one tap for the only two states somebody has |
+| **Several** | Present | All, grouped by side, Property before Stays, console last | Quiet | Reads the current profile's name and always opens the sheet |
+
+**Pending.** A workspace whose application is `SUBMITTED` or `UNDER_REVIEW`
+appears with a **Pending** label and is **selectable**, which is already the
+product's position: `roles.ts:159` keeps `setUp` and `verified` separate precisely
+because "a seller mid-review is set up and not verified, and that is a real,
+common, WORKING state: they can fill in a listing, they cannot publish it."
+Selecting it shows `KycBanner` (`dashboard/page.tsx:76`) and a publish control
+that explains rather than refuses silently.
+
+**Rejected.** Labelled **Not approved**, selectable, opening on
+`/agent/verification`, which shows the failed rung at the same weight as a passed
+one with the reviewer's note in full (`verification/page.tsx:39`).
+
+**Suspended.** Labelled **Suspended**, selectable, opening on a screen carrying
+the suspension reason, which is `not null` by constraint (`20260805110426:41`);
+their listings are already down and their confirmed stays untouched (`:19`), so
+the screen says both. **The sheet never hides a suspended workspace**, because a
+person who has been stopped and cannot find out why is the exact failure the
+suspension design exists to prevent.
+
+**Revoked firm membership.** The firm row disappears and the person's own agent
+workspace remains. Listings published under the firm stay with the firm, which is
+why `listings.firm_id` is denormalised (Part 2.4, Migration 3).
+
+## 5.6 Where "view preference is never authorisation" bites
+
+1. **The navigation must not be built from the cookie.** `buildNav`
+   (`nav-model.ts:106`) takes `isAgent` and `isAdmin` resolved from RLS-bound
+   reads (`shell-queries.ts:96`), never from `nf_mode`. The workspace list must
+   come from the same place; building it from `nf_workspace` would offer somebody
+   a door into a room they do not have.
+2. **The route gate stays where it is.** Every `/agent/*` page calls
+   `getAgentContext()` (`listings-queries.ts:73`) and nothing may short-circuit it
+   on a cookie.
+3. **`nf_workspace` is re-resolved every request.** A membership revoked at 10am
+   stops resolving at 10:01, not at cookie expiry in a year; the resolution joins
+   `firm_members` on `status = 'active'`, so revocation is immediate by
+   construction.
+4. **A publish is never gated on the cookie.** The gate is `submitRequirements`
+   plus the Migration 6 trigger, both server side. A person in personal mode who
+   posts a publish must be refused by RLS, not by a missing button.
+5. **The badge is never a function of the current workspace.** It is
+   `agent_badges.verified` from the tier. Switching into a firm workspace does not
+   confer the firm's standing; the firm's standing renders as the **firm's**,
+   beside the person's own.
+
+## 5.7 Accessibility and honesty
+
+The trigger is a `button` with `aria-haspopup="dialog"` (`RoleSwitcher.tsx:145`)
+whose accessible name is the current profile plus what the control does, never an
+icon alone. The current row carries `aria-current="true"` (`:216`) and a visible
+tick. Pending, Not approved and Suspended are **text**, not colour alone, as
+`:235` already renders "Not set up" and "Unverified". Switching announces itself:
+the flip already has a live region (`SideFlip.tsx:31`) and the profile switch
+needs the twin. **A workspace that is not set up is a question, never a
+navigation** (`:113`), and the explanation behind it itemises what will be asked
+for as a checklist, for the reason at `:284`: a checklist "can be CHECKED, which
+is what somebody deciding whether to start actually wants to do."
+
+## 5.8 What changes in the code
+
+| File | Change |
+| --- | --- |
+| `lib/mode.constants.ts:10` | `Mode` becomes `personal` or `working`; `isMode` accepts `agent` as legacy |
+| `lib/mode.ts:17` | `getMode` normalises `agent`; new `getWorkspace()` reads `nf_workspace` |
+| new `lib/workspaces.ts` | `resolveWorkspaces()`, RLS-bound: the caller's `agents` row, their active `firm_members`, their `businesses`, their staff role. One cached read, the `getShellIdentity` pattern (`shell-queries.ts:71`) |
+| `components/roles/roles.ts` | `RoleId` retires; `ROLE_COPY` becomes copy per **workspace kind** (owner, agent, firm, host, console) plus the personal row |
+| `components/roles/RoleSwitcher.tsx` | Becomes `ProfileSwitcher`, built from `resolveWorkspaces()` |
+| `components/agent/ModeSwitcher.tsx` | Retired. Two controls doing one job is the duplication `SideSwitch.tsx:18` already complains about |
+| `components/app/AppRail.tsx:189` | `ProfileSwitcher` above `SideSwitch` in `nf-nav__foot` |
+| `components/app/MobileTabBar.tsx` | The profile island gains the sheet |
+| `components/app/nav-model.ts:325` | The `becomeAgent` tail row becomes "Start listing", opening the sheet on zero workspaces |
+
+**One asymmetry to be careful about.** `buildNav` shows the agent workspace only
+when `!stays` (`nav-model.ts:262`), explaining at `:258` that "the mode cookie is
+left alone and the row returns on the flip back". A switcher listing a Property
+workspace while the reader is on Stays must either flip the coin for them or show
+a row that does nothing. **Recommendation: selecting a workspace on the other side
+flips the coin too**, through the existing `useSideFlip`, so the transition is the
+product's own signature animation rather than a jump, and the row names the side.
+
+## 5.10 The single source of truth
+
+**The precedent exists and works.** `apps/web/src/lib/trust/verification.ts` is
+one file of data read by five surfaces: `admin/agents/page.tsx:6`,
+`agent/verification/page.tsx:13`, `(site)/standards/page.tsx:10`,
+`(site)/docs/chapters.tsx:7` and `lib/trust/agent-badge-derivation.test.ts`. Its
+header (`:5`) gives the reason: a ladder whose public description and internal
+checklist are written separately ends up promising something the reviewer never
+looked at.
+
+**The drift it prevents is already visible where it is absent.** The AI
+assistant's system prompt at `apps/web/src/app/api/assistant/route.ts:123` tells
+every user the ladder is "phone, then identity document, then address, then a
+physical inspection of the property". The ladder is identity, address, payout,
+in person (`verification.ts:19`). There is no phone rung and there never was, and
+the payout rung, the strongest automated check the platform has, is missing from
+what the assistant says. One hardcoded paragraph, already wrong, already shipped.
+
+**Recommendation: one new module, `apps/web/src/lib/supply/roles.ts`**, built like
+`verification.ts`: client-safe, importing nothing, exporting data. It holds the
+role ids, the listing-role ids, each one's label and one-line description, what
+each proves and how, the document specs per role, the copy for each rung and each
+dated fact, and the sentence each role's listing shows a reader.
+**`docs/PRODUCT.md` section 4 is the prose source of truth** (it already claims
+that job at `:6`) and `lib/supply/roles.ts` is the machine-readable one.
+
+Every surface that must read from it, and none may hold its own copy:
+
+| Surface | File | Takes |
+| --- | --- | --- |
+| The switch sheet | `components/roles/RoleSwitcher.tsx` | labels, descriptions, icons, setup checklists |
+| The setup chooser | `app/(app)/profile/setup/page.tsx:45` | the same, as cards |
+| The three forms | `components/agent/ApplyWizard.tsx` | steps per role, document specs |
+| The listing wizard | `app/agent/list/ListingWizard.tsx` | the listing-role step, the mandate step, the owner fee rule |
+| The listing page | `components/app/listing/ListingAgentCard.tsx` | "Listed by the owner" or "Listed by an agent", and the fee sentence |
+| The card and map pin | `components/app/listing-card-model.ts` | the owner-direct mark |
+| The filter drawer | `components/app/filters/FilterDrawer.tsx` | the role filter's label and help |
+| The agent's own ladder | `app/agent/verification/page.tsx` | the dated facts beside the four rungs |
+| The console | `app/admin/agents/page.tsx`, `app/admin/kyc/` | what a reviewer confirms, per role |
+| The standards page | `app/(site)/standards/page.tsx` | what each role's marks mean to a reader |
+| The in-product docs | `app/(site)/docs/chapters.tsx` | the same, in the chapter |
+| The help centre | `app/(site)/help/page.tsx:154` | **currently wrong**: it describes the six-step agent application as the only route in |
+| The AI assistant | `app/api/assistant/route.ts:101`, `:123` | **currently wrong**: the ladder is misdescribed and the roles are prose |
+| The dictionary | `packages/i18n/src/locales/*.ts` | every string above, in four languages. `roles.ts:39` already calls the missing keys "a real gap and it is stated rather than hidden" |
+| The specs | the model is `lib/trust/agent-badge-derivation.test.ts` | a test that fails when a surface holds its own copy |
+
+**The assistant needs a mechanism rather than a habit**, because a system prompt
+is a hardcoded string by nature. Build its roles and ladder paragraph from
+`lib/supply/roles.ts` at module load, so the assistant's description cannot drift
+from the ladder again.
+
+---
+
+## Honesty log
+
+**Egress-blocked hosts.** Every `WebFetch` in this session was refused by the
+network egress proxy: `lasrera.lagosstate.gov.ng`, `pavestoneslegal.com`,
+`ownkey.com`, `www.mondaq.com`, `www.gelias.com`, `www.premiumtimesng.com`,
+`nairametrics.com`, `oal.law`, `businessday.ng`, `www.esvarbon.gov.ng`,
+`www.cac.gov.ng`. **Every Nigerian legal and market claim in Parts 3 and 4
+therefore rests on the search index's summaries of the named pages and is marked
+"(via search)" inline. No primary source was read directly.** A lawyer should
+check every figure in section 3.2 and Part 4 against the statute, the Blue Book
+and the LASRERA register before any of it is printed in the product.
+
+**UNVERIFIED.** That the Lagos Tenancy and Recovery of Premises Bill 2025 is still
+a bill and not a law (reported so as of September 2026, not confirmed against the
+Assembly record); its 5 per cent commission cap; the exact LASRERA document set
+and fee schedule (the portal was unreachable); whether LASRERA registration binds
+a private landlord letting their own property as opposed to a practitioner (the
+sources address practitioners and are silent on owners); the 2026 Lagos Blue Book
+percentages and their 1 May 2026 effective date; the 0.78 per cent tenancy stamp
+duty figure; whether the ESVARBON register is publicly searchable; whether any
+Nigerian identity or CAC lookup API is contracted (none is, per
+`docs/API_INVENTORY.md` section 6).
+
+**Two titling figures are quoted in section 3.2 and they do not agree.** "Over 97
+per cent of land untitled" (attributed to the Federal Ministry of Housing and
+Urban Development) and "71.4 per cent of sampled landlords without title, 8.1 per
+cent with a C of O" (NLSS 2018/19) measure different things, land area against
+sampled landlords. Both are quoted as reported; the design conclusion, do not
+require a C of O, holds under either.
+
+**Repository claims I could not close.** `public.agent_badges` is a live table
+whose `create table` is not in `supabase/migrations/`; it is evidenced only by
+`database.types.ts:376`, three later migrations and three docs.
+`private.sync_agent_badge`, named in `docs/HANDOFF_04_MARKETPLACE.md:154`, is
+likewise absent. I did not query the database to resolve either.
+
+**Row counts are second-hand.** The 64 listings, 64 demo, 1 agent and 8 businesses
+figures come from `docs/PLATFORM_SURVEY_2026-09-22.md:26`, dated the same day as
+this document.
+
+**Not measured.** How many of the twenty-five files under `apps/web/src/lib/agent/`
+would need editing for the two-role change; I inventoried the surfaces, not the
+diff. The cost of the `supply_profiles` view in PostgREST embeds. Whether
+`catalogue_entries` can carry `lister_role` without a rebuild.
+
+**Opinion, marked as opinion.** The verdict (two person roles, not three; the firm
+as an entity; no fourth role) is a design judgement from the evidence in Parts 1
+and 3, not a finding. The founder may reasonably decide a Nigerian renter wants to
+see "firm" as a first-class choice in the switch sheet, in which case the
+listing-level `firm` value can be surfaced as a third card in the setup chooser
+without changing a line of the data model proposed here. That is the test of
+whether this design is right: the three forms survive either decision, and only
+the vocabulary moves.
+
+**Not legal advice.** Nothing in Parts 3 or 4 is a compliance opinion. The
+regulatory picture is layered and partly contested, the tenancy bill is in
+committee, and a Nigerian lawyer should review the role definitions, the
+attestation wording and every statutory percentage before launch.
+
+**Nothing was run against the database, no product code was modified, git was not
+run, and this file is the only one written.**
