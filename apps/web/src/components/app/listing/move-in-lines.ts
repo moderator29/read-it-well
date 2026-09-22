@@ -37,7 +37,32 @@ export type Part = {
  * line in the order appears whether or not it was declared, because the
  * silence is itself the finding a renter needs.
  */
-export function moveInLines(listing: Listing, copy: Dictionary["moveIn"]): Part[] {
+/**
+ * The eight columns this function reads, and nothing else.
+ *
+ * WIDENED FROM `Listing` SO THE WIZARD CAN REUSE THE RULE RATHER THAN COPY IT.
+ * `GOVERNING-08` screen two is drawn twice on this platform: once for the
+ * searcher on the listing page, and once for the agent inside the listing
+ * wizard, under "What will a tenant actually pay?". The agent's copy is a
+ * form in progress and has no `Listing` to hand. The alternative was a second
+ * implementation of the declared / undeclared / declared-zero distinction,
+ * and the whole reason this file exists is that the distinction may live in
+ * exactly one place. `Listing` satisfies this shape, so no existing caller
+ * changes.
+ */
+export type MoveInFacts = Pick<
+  Listing,
+  | "priceMinor"
+  | "pricePeriod"
+  | "agencyFeeMinor"
+  | "legalFeeMinor"
+  | "agreementFeeMinor"
+  | "cautionDepositMinor"
+  | "serviceChargeMinor"
+  | "serviceChargePeriod"
+>;
+
+export function moveInLines(listing: MoveInFacts, copy: Dictionary["moveIn"]): Part[] {
   const rentPeriod: RentPeriod =
     listing.pricePeriod === "month" || listing.pricePeriod === "quarter"
       ? listing.pricePeriod

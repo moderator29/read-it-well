@@ -1348,6 +1348,16 @@ export const ig: Dictionary = withFallback({
      * which is the safe direction.
      */
     drawn: {
+      titles: {
+        basics: "Gịnị ka ị na-edepụta?",
+        photos: "Foto na vidiyo njem",
+        location: "Ebee ka ọ dị?",
+        amenities: "Gịnị ọzọ dị ebe ahụ?",
+        utilities: "Ọkụ na mmiri",
+        pricing: "Ọnụahịa",
+        guestView: "Lelee ya anya",
+        submit: "Zipu ya maka nyocha",
+      },
       subtitles: {
         basics: "Gwa anyị ụdị ihe onwunwe ọ bụ, ihe ị chọrọ ide ya dịka, na ọnụ ụlọ ndị dị n'ime ya.",
         photos: "Tinye foto doro anya nke ụlọ ahụ na obere vidiyo njem.",
@@ -1360,6 +1370,8 @@ export const ig: Dictionary = withFallback({
       },
       rooms: {
         title: "Ọnụ ụlọ",
+        toilets: "Ụlọ mposi",
+        parking: "Ebe ịdọba ụgbọala",
         bedroomsAsk: "Ọnụ ụlọ ihi ụra ole?",
         bathroomsAsk: "Ụlọ ịsa ahụ ole?",
         toiletsAsk: "Ụlọ mposi ole?",

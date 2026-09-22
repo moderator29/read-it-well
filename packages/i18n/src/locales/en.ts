@@ -1993,6 +1993,23 @@ export const en = {
      * every key already in this namespace still says what it said.
      */
     drawn: {
+      /*
+       * The title each step wears, which is the render's own and is NOT the
+       * short name in `wizard.steps`. The short name still labels the rail
+       * and names the step to a screen reader; these are the words the three
+       * governing images print across the top of each screen, and they ask
+       * rather than label: "Where is it?" rather than "Location".
+       */
+      titles: {
+        basics: "What are you listing?",
+        photos: "Photos and a walkthrough",
+        location: "Where is it?",
+        amenities: "What else is there?",
+        utilities: "Light and water",
+        pricing: "The price",
+        guestView: "Check it over",
+        submit: "Send it for review",
+      },
       /* The sentence under each step's title. One line, plain, and it says
          what the step is for rather than selling it. */
       subtitles: {
@@ -2009,6 +2026,8 @@ export const en = {
          rather than a noun, because the render asks rather than labels. */
       rooms: {
         title: "The rooms",
+        toilets: "Toilets",
+        parking: "Parking spaces",
         bedroomsAsk: "How many bedrooms?",
         bathroomsAsk: "How many bathrooms?",
         toiletsAsk: "How many toilets?",

@@ -1342,6 +1342,16 @@ export const yo: Dictionary = withFallback({
      * which is the safe direction.
      */
     drawn: {
+      titles: {
+        basics: "Kí ni o ń kéde?",
+        photos: "Àwòrán àti fídíò ìrìnkiri",
+        location: "Níbo ni ó wà?",
+        amenities: "Kí ni ó tún wà níbẹ̀?",
+        utilities: "Iná àti omi",
+        pricing: "Iye",
+        guestView: "Yẹ̀ ẹ́ wò",
+        submit: "Fi ránṣẹ́ fún àyẹ̀wò",
+      },
       subtitles: {
         basics: "Sọ fún wa irú ohun ìní tó jẹ́, ohun tí o fẹ́ kéde rẹ̀ sí, àti àwọn yàrá inú rẹ̀.",
         photos: "Fi àwòrán tó ṣe kedere kún un, àti fídíò ìrìnkiri kúkúrú.",
@@ -1354,6 +1364,8 @@ export const yo: Dictionary = withFallback({
       },
       rooms: {
         title: "Àwọn yàrá",
+        toilets: "Ilé ìgbọ̀nsẹ̀",
+        parking: "Ibùdó ọkọ̀",
         bedroomsAsk: "Yàrá ìsùn mélòó?",
         bathroomsAsk: "Yàrá ìwẹ̀ mélòó?",
         toiletsAsk: "Ilé ìgbọ̀nsẹ̀ mélòó?",

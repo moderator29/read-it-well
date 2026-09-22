@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
-import { ResultScreen } from "@/components/app/ResultSheet";
 import { Switch } from "@/components/ui/Switch";
 import {
   addPhoto,
@@ -39,7 +38,6 @@ import {
   isRental,
   isTenancy,
   LISTING_INTENT_CHOICES,
-  MAX_FLOORS,
   parseNairaToKobo,
   POWER_BACKUP_CHOICES,
   POWER_GRID_CHOICES,
@@ -60,11 +58,14 @@ import {
   type SaleStatus,
   type WaterSupply,
 } from "@/lib/agent/listings-schema";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { Amount } from "@/components/ui/Amount";
+import { moveInLines } from "@/components/app/listing/move-in-lines";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/VideoWalkthrough";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { SegmentedProgress } from "@/components/ui/Progress";
+import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
 
 /**
@@ -360,52 +361,393 @@ function Field({
   );
 }
 
-/** Big plus and minus counter: a comfortable one-handed control. */
-function Counter({
-  label,
-  fewerLabel,
-  moreLabel,
+/* ------------------------------------------------- the drawn furniture
+ *
+ * GOVERNING-06, -07 and -08 share one anatomy across all twelve screens, and
+ * until now the wizard had none of it: a back chevron beside a row of small
+ * filled rectangles, a display title with one quiet sentence under it and a
+ * glass object on the right, a calm explanatory panel with a small round
+ * glyph, and option cards that carry an object, a word, a line and a tick.
+ * Each of those is one component here so a step cannot draw its own version.
+ */
+
+/** The object each step's header carries, where the set has an honest one. */
+const STEP_OBJECT: Partial<Record<(typeof STEP_KEYS)[number], BrandIconName>> = {
+  basics: "apartment-block",
+  photos: "camera",
+  location: "pin-map",
+  pricing: "naira-coins",
+  guestView: "home-search",
+  submit: "seal-pending",
+  /*
+   * `amenities` and `utilities` carry NO object, and that is a decision
+   * rather than an omission. The render heads Light with a lightbulb and
+   * Water with a droplet, and the 144-object glass pack has neither. The
+   * nearest candidates mean something else in this product, and this codebase
+   * already ruled that a glyph meaning the wrong thing is worse than no glyph
+   * because the reader does not know they have misread it. Two objects are
+   * named for the artwork list in the ledger instead.
+   */
+};
+
+/** The object on each property type's card. 06 screen one draws all six. */
+const TYPE_OBJECT: Record<PropertyType, BrandIconName> = {
+  apartment: "apartment-block",
+  shortlet: "shortlet",
+  home: "modern-house",
+  villa: "villa",
+  hotel: "hotel",
+  rental: "keys-home",
+  shop: "shop-retail",
+  office: "office-space",
+  land: "land-plot",
+  restaurant: "concierge-bell",
+};
+
+/** 06 screen four's four build conditions. */
+const CONDITION_OBJECT: Record<BuildCondition, BrandIconName> = {
+  newly_built: "home-check",
+  renovated: "home-ring",
+  old: "townhouse",
+  off_plan: "doc-home",
+};
+
+/* 07 screens one and two. These are the stroked tier: they are small marks
+   inside a card rather than the card's subject, which is what UiIcon is for. */
+const GRID_GLYPH: Record<PowerGrid, UiIconName> = {
+  BAND_A: "bolt",
+  MOSTLY_ON: "bolt",
+  PATCHY: "bolt",
+  RARELY: "bolt",
+  NONE: "block",
+};
+const BACKUP_GLYPH: Record<PowerBackup, UiIconName> = {
+  NONE: "block",
+  GENERATOR: "bolt",
+  INVERTER: "bolt",
+  SOLAR: "sun",
+  GENERATOR_INVERTER: "bolt",
+};
+const WATER_GLYPH: Record<WaterSupply, UiIconName> = {
+  TREATED_MAINS: "bath",
+  BOREHOLE: "bath",
+  PUMPED_STORAGE: "bath",
+  TANKER: "bath",
+  NONE: "block",
+};
+
+/** 07 screen three's twelve tiles. Same mapping the listing page tiles use. */
+const AMENITY_GLYPH: Record<string, UiIconName> = {
+  wifi: "wifi",
+  ac: "sparkle",
+  tv: "picture",
+  kitchen: "kitchen",
+  parking: "parking",
+  pool: "pool",
+  gym: "bolt",
+  security: "verified",
+  elevator: "arrow-up",
+  furnished: "home",
+  balcony: "building-apartment",
+  garden: "map",
+  laundry: "sparkle",
+  generator: "bolt",
+  water: "bath",
+  shower: "bath",
+  breakfast: "utensils",
+  workspace: "document",
+};
+
+/** The step header: title, one sentence, and the object where there is one. */
+function StepHead({
+  title,
+  sub,
+  object,
+}: {
+  title: string;
+  sub?: string;
+  object?: BrandIconName | "" | undefined;
+}) {
+  return (
+    <div className="nf-lw-head">
+      <div className="min-w-0">
+        {/* aria-live because the heading is what tells a screen reader the
+            step changed, and this is the only heading on the screen. */}
+        <h1 className="nf-lw-head__title" aria-live="polite">
+          {title}
+        </h1>
+        {sub && <p className="nf-lw-head__sub">{sub}</p>}
+      </div>
+      {object && (
+        <span className="nf-lw-head__object" aria-hidden="true">
+          <BrandIcon name={object} fill />
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The calm explanatory panel.
+ *
+ * The roles README names this as part of the register every surface inherits:
+ * "the calm explanatory panel with a small round glyph that appears on almost
+ * every screen in this set". The wizard had the sentences and drew them as
+ * loose grey paragraphs, so the one piece of furniture the whole reference set
+ * agrees on was the piece this flow did not have.
+ */
+function Note({
+  children,
+  glyph = "info",
+  role,
+}: {
+  children: React.ReactNode;
+  glyph?: UiIconName;
+  role?: "status";
+}) {
+  return (
+    <div className="nf-lw-note" role={role}>
+      <span className="nf-lw-note__glyph" aria-hidden="true">
+        <UiIcon name={glyph} size={16} />
+      </span>
+      <p className="nf-lw-note__body">{children}</p>
+    </div>
+  );
+}
+
+/** One option card: an object, a word, a line under it, and the tick. */
+function Choice({
+  name,
+  sub,
+  object,
+  glyph,
+  chosen,
+  centred,
+  onClick,
+}: {
+  name: string;
+  sub?: string;
+  object?: BrandIconName;
+  glyph?: UiIconName;
+  chosen: boolean;
+  centred?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={chosen}
+      className={`nf-lw-choice${centred ? " nf-lw-choice--centred" : ""}`}
+    >
+      {object ? (
+        <span className="nf-lw-choice__object" aria-hidden="true">
+          <BrandIcon name={object} fill />
+        </span>
+      ) : glyph ? (
+        <span className="nf-lw-choice__glyph" aria-hidden="true">
+          <UiIcon name={glyph} size={24} />
+        </span>
+      ) : null}
+      <span className="nf-lw-choice__name">{name}</span>
+      {sub && <span className="nf-lw-choice__sub">{sub}</span>}
+      {chosen && (
+        <span className="nf-lw-choice__tick" aria-hidden="true">
+          <UiIcon name="verified-badge" size={20} />
+        </span>
+      )}
+    </button>
+  );
+}
+
+/**
+ * The stepper of 06 screen three and 07 screen one: one rounded rectangle
+ * holding minus, the figure and plus.
+ *
+ * The two ends are 44px, which is the whole reason this replaces the old
+ * `.nf-icon-btn` pair: the drawn control is a single object and a thumb has
+ * to be able to hit either end of it without looking.
+ */
+function Stepper({
   value,
   min,
   max,
+  fewerLabel,
+  moreLabel,
+  inline,
   onChange,
 }: {
-  label: string;
-  fewerLabel: string;
-  moreLabel: string;
   value: number;
   min: number;
   max: number;
+  fewerLabel: string;
+  moreLabel: string;
+  inline?: boolean;
   onChange: (next: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-row border-b border-[var(--nf-border-subtle)] py-row last:border-b-0">
-      <span className="text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">{label}</span>
-      <span className="flex items-center gap-md">
-        <button
-          type="button"
-          className="nf-icon-btn"
-          aria-label={fewerLabel}
-          disabled={value <= min}
-          onClick={() => onChange(Math.max(min, value - 1))}
-        >
-          <span aria-hidden="true" className="text-[var(--nf-text-h4)] leading-none">
-            &minus;
-          </span>
-        </button>
-        <span className="nf-numeric w-7 text-center text-[var(--nf-text-body)] font-bold">{value}</span>
-        <button
-          type="button"
-          className="nf-icon-btn"
-          aria-label={moreLabel}
-          disabled={value >= max}
-          onClick={() => onChange(Math.min(max, value + 1))}
-        >
-          <span aria-hidden="true" className="text-[var(--nf-text-h4)] leading-none">
-            +
-          </span>
-        </button>
+    <div className={`nf-lw-step${inline ? " nf-lw-step--inline" : ""}`}>
+      <button
+        type="button"
+        className="nf-lw-step__end"
+        aria-label={fewerLabel}
+        disabled={value <= min}
+        onClick={() => onChange(Math.max(min, value - 1))}
+      >
+        <UiIcon name="minus" size={20} />
+      </button>
+      <span className="nf-lw-step__value">{value}</span>
+      <button
+        type="button"
+        className="nf-lw-step__end"
+        aria-label={moreLabel}
+        disabled={value >= max}
+        onClick={() => onChange(Math.min(max, value + 1))}
+      >
+        <UiIcon name="plus" size={20} />
+      </button>
+    </div>
+  );
+}
+
+/** A fact row: the object on its plate, the fact, the question, the control. */
+function FactRow({
+  glyph,
+  name,
+  ask,
+  optional,
+  children,
+  stacked,
+}: {
+  glyph: UiIconName;
+  name: string;
+  ask: string;
+  optional?: string;
+  children: React.ReactNode;
+  stacked?: boolean;
+}) {
+  return (
+    <div className={`nf-lw-fact${stacked ? " nf-lw-fact--stacked" : ""}`}>
+      <span className="nf-lw-fact__plate" aria-hidden="true">
+        <UiIcon name={glyph} size={22} />
       </span>
+      <span className="nf-lw-fact__head">
+        <span className="min-w-0">
+          <span className="nf-lw-fact__name">{name}</span>
+          <span className="nf-lw-fact__ask">{ask}</span>
+        </span>
+        {/* The Optional mark rides the head line, which is where the render
+            puts it: top right of the card, level with the fact's name. */}
+        {optional && <span className="nf-lw-fact__optional">{optional}</span>}
+      </span>
+      <div className="nf-lw-fact__control">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * WHAT A TENANT WILL ACTUALLY PAY, on the agent's own screen.
+ *
+ * GOVERNING-08 screen two, which this platform drew for the SEARCHER on the
+ * listing page and never drew for the person setting the figures. So the
+ * lister typed six amounts into six boxes and never once saw the sentence
+ * those boxes make. This is that sentence, live, under the boxes.
+ *
+ * IT SHARES THE MODEL RATHER THAN MIRRORING IT. `moveInLines` is the single
+ * place the honesty rule lives and the only reason it is a separate file: an
+ * UNDECLARED cost is still LISTED, drawn with the words "Not declared", with
+ * no figure, and contributes nothing to the total; a DECLARED ZERO agency fee
+ * is a different fact and is drawn as "No agency fee" in the success ink. A
+ * second implementation here is exactly what that file exists to prevent, so
+ * the wizard builds the eight facts the model reads and hands them over.
+ *
+ * The total is never recomputed from the parts. The agent's own stated total
+ * wins where they gave one, because agents fold fees into each other; where
+ * they did not, the sum of the named parts is the honest FLOOR and it is
+ * labelled "from" so it cannot read as a quote. That is the same rule the
+ * listing page follows, in the same words.
+ *
+ * AND THE PLATFORM CHARGES NOTHING HERE. Every line is the agent's, the
+ * landlord's or the estate's. There is no Vallo row because there is no Vallo
+ * fee.
+ */
+function TenantPays({
+  facts,
+  currency,
+  locale,
+  copy,
+  moveInCopy,
+}: {
+  facts: Parameters<typeof moveInLines>[0];
+  currency: string;
+  locale: Locale;
+  copy: WizardCopy;
+  moveInCopy: Dictionary["moveIn"];
+}) {
+  const lines = moveInLines(facts, moveInCopy);
+  const declared = lines.filter((line) => line.minor !== undefined && line.minor !== null);
+  const total = declared.reduce((sum, line) => sum + (line.minor ?? 0), 0);
+
+  /* Nothing has been named yet, so there is nothing honest to draw. The panel
+     says where the breakdown will appear rather than drawing an empty one. */
+  if (declared.length === 0) {
+    return <Note>{copy.drawn.tenantPays.empty}</Note>;
+  }
+
+  return (
+    <div className="nf-movein" data-testid="wizard-tenant-pays">
+      <ul className="nf-movein__list">
+        {lines.map((line) => {
+          const isDeclared = line.minor !== undefined && line.minor !== null;
+          return (
+            <li
+              key={line.key}
+              className="nf-movein__row"
+              data-declared={isDeclared || undefined}
+              data-testid={`wizard-pays-${line.key}`}
+            >
+              <span className="nf-movein__plate" aria-hidden="true">
+                <BrandIcon name={line.icon} fill />
+              </span>
+              <span className="nf-movein__name">
+                <span className="nf-movein__label">
+                  {line.label}
+                  {line.basis && <span className="nf-movein__basis"> ({line.basis})</span>}
+                </span>
+                {/* A declared ZERO does not also say who keeps it: "No agency
+                    fee" over "Paid to the agent" is two halves of a sentence
+                    that contradict each other. */}
+                {isDeclared && line.minor !== 0 && line.keeper && (
+                  <span className="nf-movein__keeper">{line.keeper}</span>
+                )}
+              </span>
+              <span className="nf-movein__figure">
+                {isDeclared ? (
+                  line.key === "agency" && line.minor === 0 ? (
+                    <span className="nf-movein__free">{moveInCopy.noAgencyFee}</span>
+                  ) : (
+                    <Amount minorUnits={line.minor as number} locale={locale} currency={currency} />
+                  )
+                ) : (
+                  <span className="nf-movein__undeclared">{moveInCopy.notDeclared}</span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="nf-movein__total" data-testid="wizard-pays-total">
+        <span className="nf-movein__plate nf-movein__plate--total" aria-hidden="true">
+          <BrandIcon name="naira-coins" fill />
+        </span>
+        <span className="min-w-0">
+          <span className="nf-movein__total-label">{moveInCopy.totalFrom}</span>
+          <span className="nf-movein__total-figure">
+            <Amount minorUnits={total} locale={locale} currency={currency} />
+          </span>
+        </span>
+      </div>
     </div>
   );
 }
@@ -415,27 +757,44 @@ function Counter({
 export function ListingWizard({
   copy,
   reference,
+  moveInCopy,
   locale,
   userId,
   states,
   amenities,
   initial,
   canPersist,
+  startAt = 0,
 }: {
   copy: WizardCopy;
   /* Its own slice rather than a key inside `agentListings`, because the same
      words are read by the search page, the public listing page and the
      lister's console, and one namespace owns them. */
   reference: Dictionary["listingReference"];
+  /* The move-in slice, for the same reason `reference` is its own slice: the
+     breakdown GOVERNING-08 screen two draws is the searcher's block turned
+     round to face the agent, and it has to read in exactly the same words. */
+  moveInCopy: Dictionary["moveIn"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
   amenities: { code: string; label: string }[];
   initial: WizardDraft | null;
   canPersist: boolean;
+  /**
+   * The step to open on, zero based and clamped.
+   *
+   * The preview harness passes it so every one of the eight steps can be
+   * photographed beside its governing image; nothing in the product passes it
+   * today, and the default is the first step, which is what /agent/list has
+   * always done.
+   */
+  startAt?: number;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() =>
+    Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
+  );
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
   const [photos, setPhotos] = useState<Photo[]>(initial?.photos ?? []);
   const [chosenAmenities, setChosenAmenities] = useState<string[]>(initial?.amenityCodes ?? []);
@@ -461,6 +820,22 @@ export function ListingWizard({
   const [pending, startTransition] = useTransition();
   const restored = useRef(false);
   const fileInput = useRef<HTMLInputElement | null>(null);
+
+  /* The two counts the render draws as steppers and this form stored as
+     text. Empty stays empty in `values` so a blank is still a blank to the
+     save path; the stepper only ever sees a number. */
+  /* `step` is clamped by `go`, so this is never undefined in practice. The
+     narrowing is the compiler's, not a defence against a real case. */
+  const stepKey = STEP_KEYS[step];
+  const availableFromDate = (() => {
+    const parts = values.availableFrom.split("-").map(Number);
+    const [year, month, day] = parts;
+    if (parts.length !== 3 || !year || !month || !day) return null;
+    return new Date(year, month - 1, day);
+  })();
+  const toiletCount = Number(values.toilets) || 0;
+  const backupHours = Number(values.powerBackupHours) || 0;
+  const parkingCount = Number(values.parkingSpaces) || 0;
 
   const rental = isRental(values.propertyType);
   /*
@@ -499,8 +874,27 @@ export function ListingWizard({
     (total, raw) => total + (parseNairaToKobo(raw) ?? 0),
     0,
   );
+  /*
+   * The eight facts `moveInLines` reads, straight off the form.
+   *
+   * `parseNairaToKobo` returns null for an EMPTY box and a number for a typed
+   * one, including a typed zero. That is exactly the declared / undeclared
+   * distinction the model needs, so `?? undefined` is the whole translation:
+   * a blank stays absent and a typed 0 stays 0. Collapsing null to 0 here
+   * would turn every silence into a claim of "free", which is the one thing
+   * this model exists to stop.
+   */
+  const paysFacts = {
+    priceMinor: rentMinor,
+    pricePeriod: values.rentPeriod,
+    agencyFeeMinor: parseNairaToKobo(values.agencyFeeNaira) ?? undefined,
+    legalFeeMinor: parseNairaToKobo(values.legalFeeNaira) ?? undefined,
+    agreementFeeMinor: parseNairaToKobo(values.agreementFeeNaira) ?? undefined,
+    cautionDepositMinor: parseNairaToKobo(values.cautionDepositNaira) ?? undefined,
+    serviceChargeMinor: parseNairaToKobo(values.serviceChargeNaira) ?? undefined,
+    serviceChargePeriod: values.serviceChargePeriod,
+  };
   const statedTotalMinor = parseNairaToKobo(values.totalMoveInNaira);
-  const moveInMinor = statedTotalMinor ?? partsSumMinor;
 
   /* THE SAME ARITHMETIC ON THE SALE SIDE, and the price is one of the parts.
      "The total to buy" means the asking price plus everything on top of it, so
@@ -1001,10 +1395,22 @@ export function ListingWizard({
     });
   }
 
-  function makeCover(index: number) {
-    const chosen = photos[index];
-    if (!chosen || index === 0) return;
-    orderPhotos([chosen, ...photos.filter((_, i) => i !== index)]);
+  /*
+   * Move one photograph one place, which is what the grid's two arrows do.
+   *
+   * It replaces `makeCover`, and it can do that because the cover IS the
+   * first photograph: walking one to the front makes it the cover, and the
+   * Cover mark on the grid says so while it moves. That is one control doing
+   * one thing instead of a "Make cover" button and a separate ordering that
+   * could disagree with each other.
+   */
+  function movePhoto(from: number, to: number) {
+    if (to < 0 || to >= photos.length || from === to) return;
+    const next = photos.slice();
+    const [moved] = next.splice(from, 1);
+    if (!moved) return;
+    next.splice(to, 0, moved);
+    orderPhotos(next);
   }
 
   function dropPhoto(index: number) {
@@ -1049,48 +1455,7 @@ export function ListingWizard({
   /* ----------------------------------------------------------- the render */
 
   if (submitted) {
-    return (
-      /*
-       * THE LAST `MomentScreen` ON THE PLATFORM, AND IT IS GONE WITH THIS.
-       *
-       * `ResultSheet` and `ResultScreen` replaced forty three bespoke
-       * confirmation states with one component driven by a state, and this was
-       * the single caller left holding the old one. No copy changes: the same
-       * three strings, the same two destinations, the same argument about
-       * `?new=1` below. What changes is that a submitted listing now tells the
-       * agent it went through in the same voice, with the same mark and the
-       * same rhythm, as every other confirmation in the product.
-       */
-      <ResultScreen
-        state="confirmed"
-        verdict={copy.submitted.title}
-        consequence={copy.submitted.body}
-        actions={[
-          { label: copy.submitted.goToListings, href: "/agent/listings", tone: "primary" },
-          /* "List another" is the one control on the platform that means a
-             blank wizard and nothing else, so it says so. Bare /agent/list
-             resumes an open draft now, which is right for the navigation
-             entry and would be wrong here. */
-          { label: copy.submitted.another, href: "/agent/list?new=1", tone: "quiet" },
-        ]}
-        /*
-         * THE LISTING ID, AND WHY IT IS A SENTENCE HERE RATHER THAN A CODE.
-         *
-         * GOVERNING-08 screen four prints the code on this exact screen, under
-         * "Your listing ID", with a Copy control. It cannot, and the render is
-         * translated rather than copied: a code is a PUBLIC handle and this
-         * listing has not been published. The database issues one at the
-         * moment it goes live, so printing anything here would mean either
-         * inventing a code or drawing an empty box, and rule 15 forbids the
-         * first while the second is worse than saying nothing.
-         *
-         * So the panel's promise is kept in words and the code appears the
-         * moment it exists: on the workspace row, on the public page, in the
-         * notification and in the email.
-         */
-        footnote={reference.issuedWhenLive}
-      />
-    );
+    return <ListingSentForReview copy={copy} reference={reference} />;
   }
 
   const price = priceMinor > 0 ? formatMoney(priceMinor, locale) : null;
@@ -1099,72 +1464,94 @@ export function ListingWizard({
   return (
     <div className="mx-auto max-w-2xl pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
       {/*
-        The step rail.
+        THE RAIL, DRAWN AS THE THREE GOVERNING IMAGES DRAW IT.
 
-        The bar itself is `SegmentedProgress`, which is the platform's one
-        wizard bar: it carries `role="progressbar"` with the real position
-        (there were zero progressbar roles in this codebase, so a screen reader
-        was told nothing about how far through an eight-step form somebody was)
-        and it fills by a composited transform rather than jumping between
-        renders.
+        A back chevron, then the row of small filled rectangles, on one line.
+        `SegmentedProgress` is gone from this surface and is untouched for its
+        other callers: it draws a full-width track of `--nf-radius-pill`
+        segments, and the roles README calls this row "small filled
+        rectangles" and translates every capsule in these renders to a rounded
+        rectangle. The ARIA contract it carried is kept exactly, because a
+        screen reader being told where it is in an eight step form was the
+        whole reason that component was written.
 
-        The jump-back-to-a-finished-step control is kept, as a transparent row
-        of buttons laid over the bar. Its geometry is the whole point: each of
-        these used to BE the 6px painted segment, which is a 6px tap target -
-        the worst on the platform, on the control that undoes a wrong turn.
-        Overlaying instead of inflating means the target is 44pt while the bar
-        stays 6px, so nothing about the picture changes.
+        The jump-back control keeps its geometry too: a transparent row of
+        44pt buttons laid OVER a 10px bar, rather than 10px tap targets on the
+        control that undoes a wrong turn.
       */}
-      <div className="relative py-lg">
-        <SegmentedProgress
-          steps={STEP_KEYS.length}
-          current={step + 1}
-          label={fill(copy.wizard.stepCounter, { current: step + 1, total: STEP_KEYS.length })}
-        />
-        <ol
-          className="absolute inset-0 flex items-stretch gap-inline-tight"
-          aria-label={copy.wizard.stepsLabel}
+      <div className="nf-lw-rail py-lg">
+        <button
+          type="button"
+          className="nf-lw-back"
+          onClick={() => go(step - 1)}
+          disabled={step === 0 || pending}
+          aria-label={copy.wizard.back}
         >
-          {stepNames.map((name, index) => (
-            <li key={name} className="flex-1">
-              <button
-                type="button"
-                onClick={() => index <= step && go(index)}
-                disabled={index > step}
-                aria-current={index === step ? "step" : undefined}
-                aria-label={fill(copy.wizard.stepAria, { number: index + 1, name })}
-                className="block h-full w-full"
+          <UiIcon name="arrow-left" size={20} />
+        </button>
+        <div className="relative flex-1">
+          <div
+            role="progressbar"
+            aria-label={fill(copy.wizard.stepCounter, {
+              current: step + 1,
+              total: STEP_KEYS.length,
+            })}
+            aria-valuemin={1}
+            aria-valuemax={STEP_KEYS.length}
+            aria-valuenow={step + 1}
+            className="nf-lw-rail__track"
+          >
+            {stepNames.map((name, index) => (
+              <span
+                key={name}
+                className="nf-lw-rail__seg"
+                data-done={index <= step ? "" : undefined}
+                data-at={index === step ? "" : undefined}
               />
-            </li>
-          ))}
-        </ol>
+            ))}
+          </div>
+          <ol
+            className="absolute inset-0 flex items-stretch gap-inline-tight"
+            aria-label={copy.wizard.stepsLabel}
+          >
+            {stepNames.map((name, index) => (
+              <li key={name} className="flex-1">
+                <button
+                  type="button"
+                  onClick={() => index <= step && go(index)}
+                  disabled={index > step}
+                  aria-current={index === step ? "step" : undefined}
+                  aria-label={fill(copy.wizard.stepAria, { number: index + 1, name })}
+                  className="block h-full w-full"
+                />
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
-      {/* The step name is the page's heading: a seven step form needs a real
-          document outline, and a screen reader announcing the step is how
-          someone knows where they are. aria-live tells them it changed. */}
-      <div className="mt-heading flex items-baseline justify-between gap-md">
-        <h1 className="nf-h3" aria-live="polite">
-          {stepNames[step]}
-        </h1>
-        <span className="nf-numeric shrink-0 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-          {fill(copy.wizard.stepCounter, { current: step + 1, total: STEP_KEYS.length })}
-        </span>
-      </div>
+
+      {/* The title and its one sentence, with the step's object on the right.
+          The "3 of 8" counter is gone from the picture and kept in the rail's
+          accessible name, which is where the renders put that information:
+          the row of rectangles says it to a sighted reader already. */}
+      <StepHead
+        title={(stepKey && copy.drawn.titles[stepKey]) || (stepNames[step] ?? "")}
+        sub={stepKey && copy.drawn.subtitles[stepKey]}
+        object={stepKey && STEP_OBJECT[stepKey]}
+      />
 
       {!canPersist && (
-        <p className="nf-card nf-body-sm mt-group p-card leading-relaxed text-[var(--nf-content-secondary)]">
-          {copy.wizard.unconfiguredNotice}
-        </p>
+        <div className="mt-group">
+          <Note>{copy.wizard.unconfiguredNotice}</Note>
+        </div>
       )}
 
       {notice && (
-        <p
-          className="nf-body-sm mt-group rounded-[var(--nf-radius-md)] p-row font-medium"
-          style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
-          role="status"
-        >
-          {notice}
-        </p>
+        <div className="mt-group">
+          <Note glyph="flag" role="status">
+            {notice}
+          </Note>
+        </div>
       )}
 
       <div className="nf-card mt-group p-card sm:p-cell">
@@ -1192,37 +1579,39 @@ export function ListingWizard({
 
             <div>
               <span className="nf-label">{copy.basics.propertyTypeLabel}</span>
-              <div className="grid grid-cols-2 gap-inline">
-                {TYPE_ORDER.map((type) => {
-                  const active = values.propertyType === type;
-                  const card = copy.propertyTypes[type];
-                  return (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => set("propertyType", type)}
-                      aria-pressed={active}
-                      /* `nf-option`, not `nf-card`. This grid sits INSIDE the
-                         step's own glass surface, and eight cards inside a card
-                         is the one nesting rule the surface language has no
-                         exceptions to. The selected look moved out of an inline
-                         style object and onto `[aria-pressed="true"]`, so the
-                         ARIA this control already carried is what paints it and
-                         the two grids on this screen cannot drift apart. */
-                      className="nf-option"
-                    >
-                      <span className="nf-body block font-semibold">{card.label}</span>
-                      <span className="nf-body-sm mt-inline-tight block leading-snug text-[var(--nf-content-muted)]">
-                        {card.blurb}
-                      </span>
-                    </button>
-                  );
-                })}
+              {/*
+                06 screen one draws the property types THREE ACROSS, each one
+                a centred glass object over a single word, with no description
+                inside the card and a tick on the one chosen. They were two
+                across with the blurb inside them, which is the same
+                information at twice the height and none of the drawn grid.
+
+                THE BLURB IS NOT DROPPED, it moves. A card that only says
+                "Rental" cannot tell somebody it means a yearly tenancy rather
+                than a house let by the night, and that distinction is the
+                whole reason both cards exist. So the chosen type's line sits
+                in the calm panel under the grid, which is where the reader
+                needs it: after choosing, not before.
+              */}
+              <div className="nf-lw-choices nf-lw-choices--3">
+                {TYPE_ORDER.map((type) => (
+                  <Choice
+                    key={type}
+                    centred
+                    name={copy.propertyTypes[type].label}
+                    object={TYPE_OBJECT[type]}
+                    chosen={values.propertyType === type}
+                    onClick={() => set("propertyType", type)}
+                  />
+                ))}
+              </div>
+              <div className="mt-row">
+                <Note glyph="info">{copy.propertyTypes[values.propertyType].blurb}</Note>
               </div>
               {rental && (
-                <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
-                  {copy.basics.rentalNote}
-                </p>
+                <div className="mt-row">
+                  <Note>{copy.basics.rentalNote}</Note>
+                </div>
               )}
             </div>
 
@@ -1240,102 +1629,176 @@ export function ListingWizard({
             />
 
             {/*
-              Bedrooms and bathrooms, then the four facts a Nigerian listing is
-              expected to state and never could.
+              THE ROOMS, DRAWN AS GOVERNING-06 SCREEN THREE DRAWS THEM.
 
-              Guests and beds are gone with the short-stay model: `max_guests`
-              and `beds` are no longer columns, and asking for a number nothing
-              stores is asking somebody to type into a void. Toilets, parking,
-              floor and size took their place, which is what a person reading a
-              listing here actually asks after the rent.
+              Every fact is a row: the object on its plate, the fact's name,
+              the question it is asking under that, and the control on the
+              right. The three counts get the stepper the render draws as one
+              rounded rectangle; the three that are not counts get a field or
+              a select on a line of their own inside the same row. Size
+              carries the Optional mark, which is a capsule in the render and
+              a rounded rectangle here.
+
+              What this replaces is six bare inputs in a two column grid with
+              their labels floating above them, which shares no anatomy with
+              the render at all. Guests and beds are still gone with the
+              short-stay model, for the reason recorded before: asking for a
+              number nothing stores is asking somebody to type into a void.
             */}
-            <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-row">
-              <Counter
-                label={copy.basics.counters.bedrooms}
-                fewerLabel={counterAria("fewer", copy.basics.counters.bedrooms)}
-                moreLabel={counterAria("more", copy.basics.counters.bedrooms)}
-                value={values.bedrooms}
-                min={0}
-                max={20}
-                onChange={(v) => set("bedrooms", v)}
-              />
-              <Counter
-                label={copy.basics.counters.bathrooms}
-                fewerLabel={counterAria("fewer", copy.basics.counters.bathrooms)}
-                moreLabel={counterAria("more", copy.basics.counters.bathrooms)}
-                value={values.bathrooms}
-                min={0}
-                max={20}
-                onChange={(v) => set("bathrooms", v)}
-              />
-            </div>
+            <div>
+              <span className="nf-label">{copy.drawn.rooms.title}</span>
+              <div className="nf-lw-facts">
+                <FactRow
+                  glyph="bed"
+                  name={copy.basics.counters.bedrooms}
+                  ask={copy.drawn.rooms.bedroomsAsk}
+                >
+                  <Stepper
+                    inline
+                    value={values.bedrooms}
+                    min={0}
+                    max={20}
+                    fewerLabel={counterAria("fewer", copy.basics.counters.bedrooms)}
+                    moreLabel={counterAria("more", copy.basics.counters.bedrooms)}
+                    onChange={(v) => set("bedrooms", v)}
+                  />
+                </FactRow>
+                <FactRow
+                  glyph="bath"
+                  name={copy.basics.counters.bathrooms}
+                  ask={copy.drawn.rooms.bathroomsAsk}
+                >
+                  <Stepper
+                    inline
+                    value={values.bathrooms}
+                    min={0}
+                    max={20}
+                    fewerLabel={counterAria("fewer", copy.basics.counters.bathrooms)}
+                    moreLabel={counterAria("more", copy.basics.counters.bathrooms)}
+                    onChange={(v) => set("bathrooms", v)}
+                  />
+                </FactRow>
+                {/* Toilets is a count in the render and was a free text box
+                    here, which is the one row a Nigerian listing is asked
+                    about most and the one that could be typed wrong. */}
+                <FactRow
+                  glyph="bath"
+                  name={copy.drawn.rooms.toilets}
+                  ask={copy.drawn.rooms.toiletsAsk}
+                >
+                  <Stepper
+                    inline
+                    value={toiletCount}
+                    min={0}
+                    max={20}
+                    fewerLabel={counterAria("fewer", copy.drawn.rooms.toilets)}
+                    moreLabel={counterAria("more", copy.drawn.rooms.toilets)}
+                    onChange={(v) => set("toilets", v === 0 ? "" : String(v))}
+                  />
+                </FactRow>
+                <FactRow
+                  glyph="parking"
+                  name={copy.drawn.rooms.parking}
+                  ask={copy.drawn.rooms.parkingAsk}
+                >
+                  <Stepper
+                    inline
+                    value={parkingCount}
+                    min={0}
+                    max={20}
+                    fewerLabel={counterAria("fewer", copy.drawn.rooms.parking)}
+                    moreLabel={counterAria("more", copy.drawn.rooms.parking)}
+                    onChange={(v) => set("parkingSpaces", v === 0 ? "" : String(v))}
+                  />
+                </FactRow>
 
-            <div className="grid grid-cols-2 gap-row">
-              <Field label="Toilets" error={fieldErrors.toilets}>
-                <input
-                  className="nf-field"
-                  inputMode="numeric"
-                  value={values.toilets}
-                  onChange={(e) => set("toilets", digitsOnly(e.target.value, 2))}
-                  placeholder="3"
-                />
-              </Field>
-              <Field label="Parking spaces" error={fieldErrors.parkingSpaces}>
-                <input
-                  className="nf-field"
-                  inputMode="numeric"
-                  value={values.parkingSpaces}
-                  onChange={(e) => set("parkingSpaces", digitsOnly(e.target.value, 2))}
-                  placeholder="2"
-                />
-              </Field>
-              <Field
-                label="Floor"
-                hint="Ground is 0."
-                error={fieldErrors.floor}
-              >
-                <input
-                  className="nf-field"
-                  inputMode="numeric"
-                  value={values.floor}
-                  onChange={(e) => set("floor", digitsOnly(e.target.value, 3))}
-                  placeholder="2"
-                />
-              </Field>
-              <Field label="Floors in the building" error={fieldErrors.totalFloors}>
-                <input
-                  className="nf-field"
-                  inputMode="numeric"
-                  value={values.totalFloors}
-                  onChange={(e) => set("totalFloors", digitsOnly(e.target.value, 3))}
-                  placeholder="5"
-                />
-              </Field>
-            </div>
+                <FactRow
+                  stacked
+                  glyph="grid"
+                  name={copy.drawn.rooms.size}
+                  ask={copy.drawn.rooms.sizeAsk}
+                  optional={copy.drawn.rooms.optional}
+                >
+                  <input
+                    className="nf-field"
+                    inputMode="decimal"
+                    aria-label={copy.drawn.rooms.size}
+                    value={values.sizeSqm}
+                    onChange={(e) =>
+                      set("sizeSqm", e.target.value.replace(/[^0-9.]/g, "").slice(0, 10))
+                    }
+                    placeholder="150"
+                  />
+                  {fieldErrors.sizeSqm && (
+                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                      {fieldErrors.sizeSqm}
+                    </span>
+                  )}
+                </FactRow>
 
-            <Field
-              label="Size in square metres"
-              hint={`Optional, and the only figure here that may carry a decimal. Up to ${MAX_FLOORS} floors are accepted above.`}
-              error={fieldErrors.sizeSqm}
-            >
-              <input
-                className="nf-field"
-                inputMode="decimal"
-                value={values.sizeSqm}
-                onChange={(e) => set("sizeSqm", e.target.value.replace(/[^0-9.]/g, "").slice(0, 10))}
-                placeholder="120"
-              />
-            </Field>
+                <FactRow
+                  stacked
+                  glyph="home"
+                  name={copy.drawn.rooms.furnishing}
+                  ask={copy.drawn.rooms.furnishingAsk}
+                >
+                  <select
+                    className="nf-field"
+                    aria-label={copy.drawn.rooms.furnishing}
+                    value={values.furnished}
+                    onChange={(e) => set("furnished", e.target.value as Furnishing | "")}
+                  >
+                    <option value="">{copy.drawn.rooms.notStated}</option>
+                    {FURNISHING_CHOICES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </FactRow>
+
+                <FactRow
+                  stacked
+                  glyph="building-apartment"
+                  name={copy.drawn.rooms.floor}
+                  ask={copy.drawn.rooms.floorAsk}
+                >
+                  <div className="grid grid-cols-2 gap-row">
+                    <input
+                      className="nf-field"
+                      inputMode="numeric"
+                      aria-label={copy.drawn.rooms.floor}
+                      value={values.floor}
+                      onChange={(e) => set("floor", digitsOnly(e.target.value, 3))}
+                      placeholder="2"
+                    />
+                    <input
+                      className="nf-field"
+                      inputMode="numeric"
+                      aria-label={copy.drawn.rooms.floors}
+                      value={values.totalFloors}
+                      onChange={(e) => set("totalFloors", digitsOnly(e.target.value, 3))}
+                      placeholder="5"
+                    />
+                  </div>
+                  {(fieldErrors.floor || fieldErrors.totalFloors) && (
+                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                      {fieldErrors.floor ?? fieldErrors.totalFloors}
+                    </span>
+                  )}
+                </FactRow>
+              </div>
+            </div>
           </div>
         )}
 
         {/* -------------------------------------------------------- 2 photos */}
         {step === 1 && (
           <div className="space-y-group">
-            <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <Note>
               {fill(copy.photos.intro, { min: MIN_PHOTOS, max: MAX_PHOTOS })}{" "}
               {fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH })}
-            </p>
+            </Note>
 
             <input
               ref={fileInput}
@@ -1345,86 +1808,89 @@ export function ListingWizard({
               className="sr-only"
               onChange={(e) => void onFiles(e.target.files)}
             />
-            <Button
-              variant="secondary"
-              full
-              leadingIcon="grid"
-              onClick={() => fileInput.current?.click()}
-              loading={uploading}
-            >
-              {photos.length > 0 ? copy.photos.addMore : copy.photos.choose}
-            </Button>
 
-            {photoNotice && (
-              <p
-                className="nf-body-sm rounded-[var(--nf-radius-md)] p-row font-medium"
-                style={{
-                  background: "var(--nf-state-warning-surface)",
-                  color: "var(--nf-state-warning)",
-                }}
-                role="status"
-              >
-                {photoNotice}
-              </p>
-            )}
+            {photoNotice && <Note glyph="flag" role="status">{photoNotice}</Note>}
+
+            {/*
+              THE GRID OF GOVERNING-07 SCREEN FOUR.
+
+              Three across, each photograph in a rounded rectangle with the
+              Cover mark on the first, a round cross to drop it, and the add
+              cell last carrying a round plus. The render's bottom-corner grip
+              is a DRAG handle; ours is a pair of real move controls, because
+              a reorder that needs a pointer is a photograph an agent on a
+              phone cannot move, and every photograph on this platform is
+              uploaded from a phone.
+
+              The "Make cover" text button is gone: moving a photograph to the
+              front IS making it the cover, which the grid now says with the
+              mark rather than with a second control that meant the same
+              thing.
+            */}
+            <ul className="nf-lw-shots">
+              {photos.map((photo, index) => (
+                <li key={photo.id} className="nf-lw-shot" data-cover={index === 0 ? "" : undefined}>
+                  <RemoteImage
+                    src={photo.url}
+                    alt=""
+                    width={640}
+                    height={480}
+                    sizes="(max-width: 40rem) 33vw, 14rem"
+                    className="nf-lw-shot__img"
+                  />
+                  {index === 0 && <span className="nf-lw-shot__cover">{copy.photos.cover}</span>}
+                  <button
+                    type="button"
+                    className="nf-lw-shot__drop"
+                    aria-label={copy.photos.remove}
+                    onClick={() => dropPhoto(index)}
+                  >
+                    <UiIcon name="close" size={14} />
+                  </button>
+                  <span className="nf-lw-shot__moves">
+                    <button
+                      type="button"
+                      className="nf-lw-shot__move"
+                      aria-label={copy.drawn.photos.earlier}
+                      disabled={index === 0}
+                      onClick={() => movePhoto(index, index - 1)}
+                    >
+                      <UiIcon name="arrow-left" size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="nf-lw-shot__move"
+                      aria-label={copy.drawn.photos.later}
+                      disabled={index === photos.length - 1}
+                      onClick={() => movePhoto(index, index + 1)}
+                    >
+                      <UiIcon name="arrow-right" size={14} />
+                    </button>
+                  </span>
+                </li>
+              ))}
+              {photos.length < MAX_PHOTOS && (
+                <li className="contents">
+                  <button
+                    type="button"
+                    className="nf-lw-add"
+                    onClick={() => fileInput.current?.click()}
+                    disabled={uploading}
+                  >
+                    <span className="nf-lw-add__plus" aria-hidden="true">
+                      <UiIcon name="plus" size={18} />
+                    </span>
+                    <span>{uploading ? copy.photos.uploading : copy.drawn.photos.add}</span>
+                  </button>
+                </li>
+              )}
+            </ul>
 
             <p className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}
             </p>
 
-            {photos.length === 0 ? (
-              <div className="rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-subtle)] p-cell text-center text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-                {copy.photos.empty}
-              </div>
-            ) : (
-              <ul className="grid grid-cols-2 gap-md">
-                {photos.map((photo, index) => (
-                  <li key={photo.id} className="overflow-hidden rounded-[var(--nf-radius-md)]">
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
-                      {/* The public bucket IS on the optimiser's allowlist
-                          (`next.config.ts` derives the Supabase host), so the
-                          old note here was out of date and an agent reviewing
-                          ten photographs was downloading ten full size
-                          uploads into a two column grid. */}
-                      <RemoteImage
-                        src={photo.url}
-                        alt=""
-                        width={640}
-                        height={480}
-                        sizes="(max-width: 40rem) 50vw, 20rem"
-                        className="h-full w-full object-cover"
-                      />
-                      {index === 0 && (
-                        <span className="nf-badge nf-badge--brand absolute left-2 top-2">
-                          {copy.photos.cover}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-inline-tight flex items-center justify-between gap-inline">
-                      <button
-                        type="button"
-                        /* `--nf-content-link`, not the palette value it happens to resolve
-                           to. A component reaching past the semantic layer into
-                           `--nf-electric-300` is the one thing ADR-002 forbids, and it
-                           is why this control stayed the dark theme's blue on paper. */
-                        className="nf-body-sm font-semibold text-[var(--nf-content-link)] disabled:opacity-40"
-                        onClick={() => makeCover(index)}
-                        disabled={index === 0}
-                      >
-                        {copy.photos.makeCover}
-                      </button>
-                      <button
-                        type="button"
-                        className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
-                        onClick={() => dropPhoto(index)}
-                      >
-                        {copy.photos.remove}
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {photos.length === 0 && <Note>{copy.photos.empty}</Note>}
 
             {/*
               THE WALKTHROUGH, ON THE SAME STEP AS THE PHOTOGRAPHS.
@@ -1504,22 +1970,24 @@ export function ListingWizard({
         {/* ----------------------------------------------------- 4 amenities */}
         {step === 3 && (
           <div>
-            <p className="nf-body-sm mb-group text-[var(--nf-content-secondary)]">
-              {copy.amenities.intro}
-            </p>
+            <Note>{copy.amenities.intro}</Note>
             {fieldErrors.amenities && (
-              <p className="nf-body-sm mb-row font-medium text-[var(--nf-state-error)]">
+              <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]">
                 {fieldErrors.amenities}
               </p>
             )}
-            <div className="flex flex-wrap gap-inline">
+            {/* Three across, a glyph over one word, a round tick on the ones
+                that are on. They were wrapping chips, which put the same list
+                on the screen with none of the render's grid, none of its
+                objects and none of its ticks. */}
+            <div className="nf-lw-tiles mt-group">
               {amenities.map((amenity) => {
                 const active = chosenAmenities.includes(amenity.code);
                 return (
                   <button
                     key={amenity.code}
                     type="button"
-                    className="nf-chip min-h-11"
+                    className="nf-lw-tile"
                     aria-pressed={active}
                     onClick={() =>
                       setChosenAmenities((prev) =>
@@ -1529,8 +1997,13 @@ export function ListingWizard({
                       )
                     }
                   >
-                    {active && <UiIcon name="verified" size={16} />}
-                    {amenityNames[amenity.code] ?? amenity.label}
+                    <UiIcon name={AMENITY_GLYPH[amenity.code] ?? "sparkle"} size={24} />
+                    <span>{amenityNames[amenity.code] ?? amenity.label}</span>
+                    {active && (
+                      <span className="nf-lw-choice__tick" aria-hidden="true">
+                        <UiIcon name="verified-badge" size={20} />
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -1541,128 +2014,118 @@ export function ListingWizard({
         {/* --------------------------------------------- 5 light and water */}
         {step === 4 && (
           <div className="space-y-heading">
-            <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <Note>
               Is there light, is there water, and will they let a guest through
-              the gate. These are the first three questions every guest here asks,
-              and answering them honestly wins bookings from the listings that do
-              not.
-            </p>
+              the gate. These are the first three questions every guest here
+              asks, and answering them honestly wins bookings from the listings
+              that do not.
+            </Note>
 
-            <fieldset className="space-y-row">
-              <legend className="nf-label mb-inline-tight">Grid supply</legend>
-              <div className="flex flex-wrap gap-inline">
+            {/*
+              GOVERNING-07 SCREENS ONE AND TWO, WHICH THIS STEP HELD AS CHIPS.
+
+              Power supply, backup and water are each a grid of option cards
+              with a glyph, a word, the line that says what the word means and
+              a round tick on the one chosen. The blurbs were `title`
+              attributes and a single line under the row that changed as you
+              picked: a tooltip is invisible on a phone, and one line under
+              five choices makes you choose before you can read what you chose.
+              Every blurb is on its own card now.
+            */}
+            <fieldset>
+              <legend className="nf-label mb-inline">{copy.drawn.supply.power}</legend>
+              <div className="nf-lw-choices">
                 {POWER_GRID_CHOICES.map((choice) => (
-                  <button
+                  <Choice
                     key={choice.value}
-                    type="button"
-                    className="nf-chip min-h-11"
-                    aria-pressed={values.powerGrid === choice.value}
-                    title={choice.blurb}
+                    name={choice.label}
+                    sub={choice.blurb}
+                    glyph={GRID_GLYPH[choice.value]}
+                    chosen={values.powerGrid === choice.value}
                     onClick={() =>
                       set("powerGrid", values.powerGrid === choice.value ? "" : choice.value)
                     }
-                  >
-                    {values.powerGrid === choice.value && (
-                      <UiIcon name="verified" size={16} />
-                    )}
-                    {choice.label}
-                  </button>
+                  />
                 ))}
               </div>
-              <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                {POWER_GRID_CHOICES.find((c) => c.value === values.powerGrid)?.blurb ??
-                  "What the distribution company actually gives this address."}
-              </p>
             </fieldset>
 
-            <fieldset className="space-y-row">
-              <legend className="nf-label mb-inline-tight">Backup</legend>
-              <div className="flex flex-wrap gap-inline">
+            <fieldset>
+              <legend className="nf-label mb-inline">{copy.drawn.supply.backup}</legend>
+              <div className="nf-lw-choices">
                 {POWER_BACKUP_CHOICES.map((choice) => (
-                  <button
+                  <Choice
                     key={choice.value}
-                    type="button"
-                    className="nf-chip min-h-11"
-                    aria-pressed={values.powerBackup === choice.value}
+                    name={choice.label}
+                    glyph={BACKUP_GLYPH[choice.value]}
+                    chosen={values.powerBackup === choice.value}
                     onClick={() => {
                       const next = values.powerBackup === choice.value ? "" : choice.value;
                       set("powerBackup", next);
-                      /* Hours against a backup that does not exist is refused by
-                         the database, so choosing "no backup" clears them here
-                         rather than letting the save bounce. */
+                      /* Hours against a backup that does not exist is refused
+                         by the database, so choosing "no backup" clears them
+                         here rather than letting the save bounce. */
                       if (next === "NONE" || next === "") set("powerBackupHours", "");
                     }}
-                  >
-                    {values.powerBackup === choice.value && (
-                      <UiIcon name="verified" size={16} />
-                    )}
-                    {choice.label}
-                  </button>
+                  />
                 ))}
               </div>
             </fieldset>
 
             {values.powerBackup !== "" && values.powerBackup !== "NONE" && (
-              <Field
-                label="Hours a day the backup actually runs"
-                hint={`0 to ${MAX_BACKUP_HOURS}. "Generator" on its own tells a guest nothing; the hours are the answer.`}
-                error={fieldErrors.powerBackupHours}
-              >
-                <input
-                  className="nf-field"
-                  inputMode="numeric"
-                  value={values.powerBackupHours}
-                  onChange={(e) =>
-                    set("powerBackupHours", e.target.value.replace(/[^0-9]/g, "").slice(0, 2))
-                  }
-                  placeholder="8"
+              <div>
+                <span className="nf-label">{copy.drawn.supply.backupHours}</span>
+                {/* The render draws this as one wide stepper rather than a
+                    number field, and it is right: an agent knows the hours as
+                    a count and typing "8" into a box is the slower way to say
+                    a number you are already holding up on your fingers. */}
+                <Stepper
+                  value={backupHours}
+                  min={0}
+                  max={MAX_BACKUP_HOURS}
+                  fewerLabel={counterAria("fewer", copy.drawn.supply.backupHours)}
+                  moreLabel={counterAria("more", copy.drawn.supply.backupHours)}
+                  onChange={(v) => set("powerBackupHours", String(v))}
                 />
-              </Field>
+                {fieldErrors.powerBackupHours ? (
+                  <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                    {fieldErrors.powerBackupHours}
+                  </span>
+                ) : (
+                  <span className="nf-body-sm mt-inline-tight block text-[var(--nf-content-muted)]">
+                    &quot;Generator&quot; on its own tells a guest nothing; the hours are the answer.
+                  </span>
+                )}
+              </div>
             )}
 
-            <fieldset className="space-y-row">
-              <legend className="nf-label mb-inline-tight">Water</legend>
-              <div className="flex flex-wrap gap-inline">
+            <fieldset>
+              <legend className="nf-label mb-inline">{copy.drawn.supply.water}</legend>
+              <div className="nf-lw-choices">
                 {WATER_SUPPLY_CHOICES.map((choice) => (
-                  <button
+                  <Choice
                     key={choice.value}
-                    type="button"
-                    className="nf-chip min-h-11"
-                    aria-pressed={values.waterSupply === choice.value}
-                    title={choice.blurb}
+                    name={choice.label}
+                    sub={choice.blurb}
+                    glyph={WATER_GLYPH[choice.value]}
+                    chosen={values.waterSupply === choice.value}
                     onClick={() =>
                       set("waterSupply", values.waterSupply === choice.value ? "" : choice.value)
                     }
-                  >
-                    {values.waterSupply === choice.value && (
-                      <UiIcon name="verified" size={16} />
-                    )}
-                    {choice.label}
-                  </button>
+                  />
                 ))}
               </div>
-              <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                {WATER_SUPPLY_CHOICES.find((c) => c.value === values.waterSupply)?.blurb ??
-                  "Where the water in the taps comes from."}
-              </p>
             </fieldset>
 
-            <label className="flex items-center justify-between gap-md border-y border-[var(--nf-border-subtle)] py-row">
-              <span>
-                <span className="block text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
-                  Prepaid meter
-                </span>
-                <span className="nf-body-sm mt-inline-tight block text-[var(--nf-content-muted)]">
-                  Say so, because it decides whether a guest can be asked to buy units.
-                </span>
-              </span>
-              <input
-                type="checkbox"
-                className="h-6 w-6 shrink-0 accent-[var(--nf-brand-primary)]"
-                checked={values.prepaidMeter}
-                onChange={(e) => set("prepaidMeter", e.target.checked)}
-              />
-            </label>
+            {/* The render draws a TOGGLE on this row, and it was a bare 24px
+                checkbox painted with `accent-color`: the one control on this
+                step that the platform's own switch primitive already owned. */}
+            <Switch
+              label={copy.drawn.supply.prepaid}
+              description={copy.drawn.supply.prepaidBody}
+              checked={values.prepaidMeter}
+              onCheckedChange={(v) => set("prepaidMeter", v)}
+            />
 
             {/* ------------------------------------------------ the gate */}
             <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
@@ -1738,24 +2201,17 @@ export function ListingWizard({
             */}
             <fieldset>
               <legend className="nf-label mb-inline">What are you listing it for?</legend>
-              <div className="grid grid-cols-2 gap-inline">
-                {LISTING_INTENT_CHOICES.map((choice) => {
-                  const active = values.intent === choice.value;
-                  return (
-                    <button
-                      key={choice.value}
-                      type="button"
-                      onClick={() => set("intent", choice.value)}
-                      aria-pressed={active}
-                      className="nf-option"
-                    >
-                      <span className="nf-body block font-semibold">{choice.label}</span>
-                      <span className="nf-body-sm mt-inline-tight block leading-snug text-[var(--nf-content-muted)]">
-                        {choice.blurb}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="nf-lw-choices">
+                {LISTING_INTENT_CHOICES.map((choice) => (
+                  <Choice
+                    key={choice.value}
+                    name={choice.label}
+                    sub={choice.blurb}
+                    object={choice.value === "sale" ? "keys-tag" : "keys-home"}
+                    chosen={values.intent === choice.value}
+                    onClick={() => set("intent", choice.value)}
+                  />
+                ))}
               </div>
             </fieldset>
 
@@ -1980,21 +2436,32 @@ export function ListingWizard({
                       placeholder="2019"
                     />
                   </Field>
-                  <Field label="Condition">
-                    <select
-                      className="nf-field"
-                      value={values.condition}
-                      onChange={(e) => set("condition", e.target.value as BuildCondition | "")}
-                    >
-                      <option value="">Not stated</option>
-                      {CONDITION_CHOICES.map((c) => (
-                        <option key={c.value} value={c.value}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
                 </div>
+
+                {/* GOVERNING-06 screen four draws build condition as four
+                    cards with objects and a tick, not as a select. A select
+                    is the right control for a long closed list; four is not a
+                    long list, and hiding four options behind a tap is how the
+                    condition of the building ended up unstated on most of
+                    them. */}
+                <fieldset>
+                  <legend className="nf-label mb-inline">
+                    {copy.drawn.checkOver.keys.condition}
+                  </legend>
+                  <div className="nf-lw-choices">
+                    {CONDITION_CHOICES.map((c) => (
+                      <Choice
+                        key={c.value}
+                        name={c.label}
+                        object={CONDITION_OBJECT[c.value]}
+                        chosen={values.condition === c.value}
+                        onClick={() =>
+                          set("condition", values.condition === c.value ? "" : c.value)
+                        }
+                      />
+                    ))}
+                  </div>
+                </fieldset>
               </>
             )}
 
@@ -2156,13 +2623,45 @@ export function ListingWizard({
                     </Field>
                   </div>
 
-                  {moveInMinor > 0 && (
-                    <p className="nf-numeric nf-body mt-row font-bold text-[var(--nf-content-primary)]">
-                      {formatMoney(moveInMinor, locale)}
-                      <span className="nf-body-sm ml-inline-tight font-normal text-[var(--nf-content-muted)]">
-                        {statedTotalMinor === null ? "from the parts above" : "as you stated it"}
-                      </span>
-                    </p>
+                </div>
+
+                {/*
+                  GOVERNING-08 SCREEN TWO, AND IT WAS THE ONE SCREEN OF THE
+                  TWELVE THAT EXISTED NOWHERE IN THIS FLOW.
+
+                  What stood here was one bold figure and a four word caption.
+                  The render is a breakdown: a row per cost with its object,
+                  its basis, its amount and who keeps it, then the total in its
+                  own lit panel. It matters more here than on the listing page,
+                  because this is the screen where the silences are still
+                  fixable: an agent who sees "Not declared" against the legal
+                  fee, in the reader's own words, can go up two boxes and
+                  declare it.
+                */}
+                <div>
+                  <p className="nf-label">{copy.drawn.tenantPays.title}</p>
+                  <p className="nf-body-sm mb-row text-[var(--nf-content-secondary)]">
+                    {copy.drawn.tenantPays.lede}
+                  </p>
+                  <TenantPays
+                    facts={paysFacts}
+                    currency="NGN"
+                    locale={locale}
+                    copy={copy}
+                    moveInCopy={moveInCopy}
+                  />
+                  {statedTotalMinor !== null && statedTotalMinor > partsSumMinor && (
+                    <div className="mt-row">
+                      <Note>
+                        {fill(
+                          "You have stated {total} as the total to move in, which is {gap} more than the parts above come to. A searcher sees your total, so name what the difference is for.",
+                          {
+                            total: formatMoney(statedTotalMinor, locale),
+                            gap: formatMoney(statedTotalMinor - partsSumMinor, locale),
+                          },
+                        )}
+                      </Note>
+                    </div>
                   )}
                 </div>
 
@@ -2260,10 +2759,8 @@ export function ListingWizard({
         {/* ---------------------------------------------------- 6 guest view */}
         {step === 6 && (
           <div>
-            <p className="nf-body-sm mb-group text-[var(--nf-content-secondary)]">
-              {copy.guestView.intro}
-            </p>
-            <article className="nf-card overflow-hidden">
+            <Note>{copy.guestView.intro}</Note>
+            <article className="nf-card mt-group overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
                 {photos[0] ? (
                   /* The guest view's cover: one wide 4:3 plate, so it earns a
@@ -2366,6 +2863,114 @@ export function ListingWizard({
             <p className="nf-body-sm mt-group whitespace-pre-line leading-relaxed text-[var(--nf-content-secondary)]">
               {values.description || copy.guestView.descriptionPlaceholder}
             </p>
+
+            {/*
+              THE LISTING DETAILS TABLE OF GOVERNING-08 SCREEN THREE.
+
+              A glyph, the fact, the value, and the control that goes back and
+              changes it. The wizard had the preview card and stopped there, so
+              the last thing an agent saw before sending was a picture they
+              could not act on: spotting a wrong bedroom count meant walking
+              back through the steps by hand to find where it lived.
+
+              EVERY VALUE HERE IS WHAT THE FORM HOLDS, and a fact nobody has
+              set reads "Not set" rather than a zero or a guess. `Edit` jumps
+              to the step that OWNS the fact, which is why the target is a step
+              index and not a scroll position.
+            */}
+            <p className="nf-label mt-heading">{copy.drawn.checkOver.detailsTitle}</p>
+            <div className="nf-lw-details">
+              {[
+                {
+                  key: "propertyType",
+                  glyph: "home" as UiIconName,
+                  label: copy.drawn.checkOver.keys.propertyType,
+                  value: copy.propertyTypes[values.propertyType]?.label,
+                  step: 0,
+                },
+                {
+                  key: "bedrooms",
+                  glyph: "bed" as UiIconName,
+                  label: copy.drawn.checkOver.keys.bedrooms,
+                  value: values.bedrooms > 0 ? String(values.bedrooms) : null,
+                  step: 0,
+                },
+                {
+                  key: "bathrooms",
+                  glyph: "bath" as UiIconName,
+                  label: copy.drawn.checkOver.keys.bathrooms,
+                  value: values.bathrooms > 0 ? String(values.bathrooms) : null,
+                  step: 0,
+                },
+                {
+                  key: "size",
+                  glyph: "grid" as UiIconName,
+                  label: copy.drawn.checkOver.keys.size,
+                  /* The unit is written beside the figure rather than folded
+                     into it, because the figure is the agent's and the unit
+                     is ours. */
+                  value: values.sizeSqm ? `${values.sizeSqm} m²` : null,
+                  step: 0,
+                },
+                {
+                  key: "furnishing",
+                  glyph: "home" as UiIconName,
+                  label: copy.drawn.checkOver.keys.furnishing,
+                  value:
+                    FURNISHING_CHOICES.find((c) => c.value === values.furnished)?.label ?? null,
+                  step: 0,
+                },
+                {
+                  key: "floor",
+                  glyph: "building-apartment" as UiIconName,
+                  label: copy.drawn.checkOver.keys.floor,
+                  value: values.floor === "" ? null : values.floor,
+                  step: 0,
+                },
+                {
+                  key: "condition",
+                  glyph: "verified" as UiIconName,
+                  label: copy.drawn.checkOver.keys.condition,
+                  value: CONDITION_CHOICES.find((c) => c.value === values.condition)?.label ?? null,
+                  step: 5,
+                },
+                {
+                  key: "availability",
+                  glyph: "calendar-booking" as UiIconName,
+                  label: copy.drawn.checkOver.keys.availability,
+                  /* The box holds an ISO day. `formatDate` takes a Date, and
+                     a bare `new Date("2026-10-01")` is parsed as UTC midnight,
+                     which reads as the day before in every timezone west of
+                     Greenwich. Splitting the parts builds it in local time. */
+                  value: availableFromDate
+                    ? formatDate(availableFromDate, locale)
+                    : copy.drawn.checkOver.availableNow,
+                  step: 5,
+                },
+              ].map((row) => (
+                <div key={row.key} className="nf-lw-detail">
+                  <span className="nf-lw-detail__glyph" aria-hidden="true">
+                    <UiIcon name={row.glyph} size={16} />
+                  </span>
+                  <span className="nf-lw-detail__key">{row.label}</span>
+                  <span className="nf-lw-detail__value">
+                    {row.value ?? (
+                      <span className="text-[var(--nf-content-muted)]">
+                        {copy.drawn.checkOver.notSet}
+                      </span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    className="nf-lw-detail__edit"
+                    onClick={() => go(row.step)}
+                    aria-label={`${copy.drawn.checkOver.edit}: ${row.label}`}
+                  >
+                    {copy.drawn.checkOver.edit}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

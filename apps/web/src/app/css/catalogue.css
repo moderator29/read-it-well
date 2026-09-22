@@ -2445,4 +2445,726 @@
   :root[data-theme="light"] .nf-movein__total-figure {
     text-shadow: none;
   }
+
+  /* ====================================================== THE LISTING WIZARD
+     GOVERNING-06 (what are you listing, where is it, the rooms, condition and
+     availability), GOVERNING-07 (light, water, amenities, photos and the
+     walkthrough) and GOVERNING-08 (the price, what a tenant actually pays,
+     check it over, sent for review).
+
+     WHY THE WIZARD LIVES IN THE CATALOGUE PARTIAL. Its money step is the
+     `.nf-movein__*` family above, drawn from the same model and the same
+     honesty rule, and the two had to be able to drift apart by exactly zero.
+     The prefix is `nf-lw` because `nf-list` is a content list on four other
+     surfaces and one collision in this file was already enough.
+
+     THE SHAPE LAW IS APPLIED HERE AND NOT ARGUED WITH. Every capsule these
+     three renders draw ships as a rounded rectangle on `--nf-radius-control`:
+     the Optional label, the Cover mark on a photograph, the furnishing and
+     floor selects, the Copy ID control and the step segments. What stays
+     round is what the roles README lets stay round: a bare icon-only control
+     drawn round, which here is the back chevron, the tick badge on a chosen
+     card, the remove cross on a photograph and the add-photos plus. */
+
+  /* ------------------------------------------------------------- the rail
+     A back chevron, then the row of small filled rectangles. The render
+     draws the covered steps lit and the rest sunk into the ground. */
+  .nf-lw-rail {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-md);
+  }
+  .nf-lw-rail__track {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  /*
+   * 10px tall on a 3px radius, which is a ratio of 0.3 and therefore a
+   * rectangle. The render's ends read rounder than that; the roles README
+   * calls this row "small filled rectangles" and rule 1 of its translation
+   * list is absolute, so the row is drawn to the law rather than to the
+   * pixels. `--nf-radius-xs` is 6px and would clamp to a half-height arc at
+   * this size, which is a capsule however it is spelled, so the radius is
+   * derived from the token rather than taken from it.
+   */
+  .nf-lw-rail__seg {
+    flex: 1;
+    height: 0.625rem;
+    min-width: 0;
+    border-radius: calc(var(--nf-radius-xs) / 2);
+    background: var(--nf-well-fill-deep);
+    box-shadow: inset 0 0 0 1px var(--nf-border-subtle);
+  }
+  /* The covered steps: the brand cylinder and the near bloom, which is the
+     same light every lit object on this platform carries. */
+  .nf-lw-rail__seg[data-done] {
+    background: var(--nf-gradient-brand);
+    box-shadow: 0 0 10px var(--nf-glow-3);
+  }
+  .nf-lw-rail__seg[data-at] {
+    box-shadow: 0 0 14px var(--nf-glow-2);
+  }
+  /* A bare icon-only control drawn round in a governing image stays round. */
+  .nf-lw-back {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    color: var(--nf-content-secondary);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-lw-back:disabled {
+    opacity: 0.4;
+  }
+  @media (hover: hover) {
+    .nf-lw-back:not(:disabled):hover {
+      border-color: var(--nf-brand-edge);
+      color: var(--nf-content-primary);
+    }
+  }
+
+  /* ------------------------------------------------------------- the head
+     A display title, a muted sentence under it, and on the steps the renders
+     give one, a large glass object on the right with its own bloom. */
+  .nf-lw-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--nf-space-md);
+  }
+  .nf-lw-head__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--nf-content-primary);
+  }
+  .nf-lw-head__sub {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-lw-head__object {
+    display: block;
+    width: 3.75rem;
+    height: 3.75rem;
+    flex-shrink: 0;
+  }
+
+  /* ------------------------------------------- the calm explanatory panel
+     The roles README names this as part of the register that every surface
+     inherits: a quiet panel with a small round glyph and a relaxed line. It
+     is NOT a card, it has no bloom, and it never competes with the controls
+     beside it. */
+  .nf-lw-note {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+  }
+  .nf-lw-note__glyph {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-lw-note__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+
+  /* --------------------------------------------------------- the choices
+     06 screen one's three intents and six property types, 06 screen four's
+     four build conditions, 07 screen one's power and backup, 07 screen two's
+     water source. One object: a glass icon, a bold word, a quiet line under
+     it, and a lit rim with a round tick when it is the one chosen. */
+  .nf-lw-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-lw-choices--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .nf-lw-choice {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+    width: 100%;
+    min-height: 3rem;
+    padding: var(--nf-space-md);
+    text-align: start;
+    border-radius: var(--nf-radius-control);
+    /*
+     * A RESTING CARD IS LIT, not a grey hairline, and the render is the
+     * authority: every unchosen property type, build condition, power band
+     * and water source in 06 and 07 carries a visible blue rim on the dark
+     * ground. `--nf-glow-edge` is that rim, the brand ring and the near bloom
+     * composed once in the token layer. The check in
+     * `scripts/check-css-tokens.mjs` caught this class at
+     * `--nf-border-subtle`, which is the platform's divider, and it was
+     * right to.
+     */
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-glow-edge);
+    cursor: pointer;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-lw-choice--centred {
+    align-items: center;
+    text-align: center;
+  }
+  .nf-lw-choice__object {
+    display: block;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+  }
+  .nf-lw-choice__glyph {
+    color: var(--nf-brand-secondary);
+    filter: drop-shadow(0 0 8px var(--nf-glow-3));
+  }
+  .nf-lw-choice__name {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-lw-choice__sub {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+  }
+  @media (hover: hover) {
+    .nf-lw-choice:hover {
+      border-color: var(--nf-brand-edge-strong);
+      box-shadow: var(--nf-glow-edge-strong);
+    }
+  }
+  /*
+   * THE CHOSEN CARD IS A LIT OUTLINE, which is the same ruling `.nf-option`
+   * carries a file away: a card with a title and a description inside it
+   * cannot be filled with saturated brand and stay the same object. The
+   * render agrees. Its selected cards keep their dark ground and gain the
+   * rim, the wash and the tick.
+   */
+  .nf-lw-choice[aria-pressed="true"],
+  .nf-lw-choice[aria-checked="true"] {
+    border-color: var(--nf-brand-edge-strong);
+    background:
+      linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%),
+      var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      var(--nf-glow-edge-strong),
+      var(--nf-bloom-lit-soft);
+  }
+  /*
+   * The tick, and it is drawn round because the render draws it round and the
+   * roles README keeps a bare icon-only mark round.
+   *
+   * NO BACKGROUND DISC. `verified-badge` is already a filled disc in
+   * currentColor with the tick knocked out in `--nf-content-on-brand`, so a
+   * brand disc behind it and `--nf-content-on-brand` in front of it painted a
+   * white tick on a white disc: a solid blob, which is exactly what the first
+   * capture showed. The glyph is the badge.
+   */
+  .nf-lw-choice__tick {
+    position: absolute;
+    top: var(--nf-space-xs);
+    inset-inline-end: var(--nf-space-xs);
+    display: grid;
+    place-items: center;
+    color: var(--nf-brand-primary);
+    filter: drop-shadow(0 0 8px var(--nf-glow-2));
+  }
+
+  /* ------------------------------------------------------ the amenity tiles
+     07 screen three: twelve tiles, three across, each a glass object over one
+     word, each carrying the tick when it is on. */
+  .nf-lw-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-lw-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    min-height: 5.25rem;
+    padding: var(--nf-space-sm) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-control);
+    /* Lit at rest, for the reason written on `.nf-lw-choice` above: 07 screen
+       three draws all twelve tiles with the blue rim. */
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-glow-edge);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    color: var(--nf-content-primary);
+    cursor: pointer;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-lw-tile > svg {
+    flex-shrink: 0;
+    color: var(--nf-brand-secondary);
+    filter: drop-shadow(0 0 8px var(--nf-glow-3));
+  }
+  .nf-lw-tile[aria-pressed="true"] {
+    border-color: var(--nf-brand-edge-strong);
+    background:
+      linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%),
+      var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      var(--nf-glow-edge-strong),
+      var(--nf-bloom-lit-soft);
+  }
+
+  /* ---------------------------------------------------------- the fact rows
+     06 screen three: a glass object on its plate, the fact and the question
+     under it, and the control on the right. The render puts a stepper on the
+     three counts and a field or a select on the other three, so the row holds
+     whatever it is given rather than owning a control of its own. */
+  .nf-lw-facts {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-lw-fact {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+  }
+  /* The taller shape: the render's Size, Furnishing and Floor rows put their
+     control on a line of its own under the name. */
+  .nf-lw-fact--stacked {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+  .nf-lw-fact__plate {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-md);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill-deep);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-lw-fact__plate > svg {
+    filter: drop-shadow(0 0 8px var(--nf-glow-3));
+  }
+  .nf-lw-fact__name {
+    display: block;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-lw-fact__ask {
+    display: block;
+    margin-top: 0.125rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+  }
+  .nf-lw-fact__head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+  }
+  /* Inline, the control is the row's third column: the stepper of the three
+     count rows. Stacked, it drops to a line of its own under the name, which
+     is what the render does with Size, Furnishing and Floor. */
+  .nf-lw-fact--stacked .nf-lw-fact__control {
+    grid-column: 2;
+    margin-top: var(--nf-space-sm);
+  }
+  /* The Optional mark. A capsule in the render and named in the roles README
+     translation list by name, so it is a rounded rectangle here. */
+  .nf-lw-fact__optional {
+    justify-self: end;
+    padding: 0.1875rem var(--nf-space-xs);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-2);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------ the stepper
+     One rounded rectangle holding minus, the figure and plus, with the two
+     ends divided off. The ends are bare icon-only controls. */
+  .nf-lw-step {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill-deep);
+    overflow: hidden;
+  }
+  .nf-lw-step--inline {
+    width: 8.5rem;
+    justify-self: end;
+  }
+  .nf-lw-step__end {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    min-height: 2.75rem;
+    color: var(--nf-brand-secondary);
+    cursor: pointer;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-lw-step__end:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  @media (hover: hover) {
+    .nf-lw-step__end:not(:disabled):hover {
+      background: var(--nf-brand-tint-2);
+    }
+  }
+  .nf-lw-step__value {
+    display: grid;
+    place-items: center;
+    border-inline: 1px solid var(--nf-border-subtle);
+    /* No numeric FAMILY. `--nf-font-numeric` was deleted from the token layer
+       on the argument that an amount in a different typeface from its label is
+       the defect, not the fix: the numeric job is tabular figures in the face
+       the text is already in, which is the line below. */
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------ the photos
+     07 screen four: three across, the cover marked, a round cross on each,
+     and the add cell last with its round plus. */
+  .nf-lw-shots {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-lw-shot {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-media-ground-to);
+  }
+  .nf-lw-shot[data-cover] {
+    border-color: var(--nf-brand-edge-strong);
+    box-shadow: var(--nf-bloom-lit-soft);
+  }
+  .nf-lw-shot__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* The Cover mark is a capsule in the render and ships as a rectangle. */
+  .nf-lw-shot__cover {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    inset-inline-start: var(--nf-space-2xs);
+    padding: 0.125rem var(--nf-space-2xs);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-brand-primary);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    color: var(--nf-content-on-brand);
+  }
+  /* Bare, icon-only, drawn round: it stays round. */
+  .nf-lw-shot__drop {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    inset-inline-end: var(--nf-space-2xs);
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-control-on-media-strong);
+    color: var(--nf-content-on-media);
+  }
+  /* The render puts the reordering grip on the photograph's foot. Ours is a
+     pair of real controls rather than a decorative grip, because a drag that
+     needs a pointer is a photograph an agent on a phone cannot reorder. */
+  .nf-lw-shot__moves {
+    position: absolute;
+    inset-inline: var(--nf-space-2xs);
+    bottom: var(--nf-space-2xs);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-lw-shot__move {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-control-on-media);
+    color: var(--nf-content-on-media);
+  }
+  .nf-lw-shot__move:disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-lw-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    aspect-ratio: 4 / 3;
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    cursor: pointer;
+  }
+  .nf-lw-add__plus {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 0 12px var(--nf-glow-2);
+  }
+  .nf-lw-add:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  /* ------------------------------------------------------- check it over
+     08 screen three's table: a glyph, the fact's name, its value, and the
+     control that jumps back to the step that owns it. */
+  .nf-lw-details {
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-border-subtle);
+    background: var(--nf-well-fill);
+    overflow: hidden;
+  }
+  .nf-lw-detail {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    min-height: 2.75rem;
+  }
+  .nf-lw-detail + .nf-lw-detail {
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+  .nf-lw-detail__glyph {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-lw-detail__key {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-lw-detail__value {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-lw-detail__edit {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  /* ----------------------------------------------------- sent for review
+     08 screen four. The object with its tick, the verdict, the panel that
+     answers "where is my listing ID", and what happens next. */
+  .nf-lw-done {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+  .nf-lw-done__object {
+    position: relative;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+  }
+  /* `.nf-lw-done__tick` STOOD HERE AND IS GONE. The render puts a tick badge
+     at the house's shoulder; our `home-check` object is drawn WITH one, so a
+     badge on top of it was two ticks on one object. The object says it. */
+  .nf-lw-done__verdict {
+    margin-top: var(--nf-space-md);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-lw-done__body {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  /* The listing ID panel. The render prints a code here. Ours cannot: the
+     database mints `VL-` at PUBLISH and a listing in review has none, so the
+     panel keeps the render's anatomy and says what is true instead of
+     drawing an invented code or an empty box. */
+  .nf-lw-id {
+    width: 100%;
+    margin-top: var(--nf-space-lg);
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background:
+      linear-gradient(170deg, var(--nf-brand-tint-2), transparent 75%),
+      var(--nf-well-fill);
+    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+  }
+  .nf-lw-id__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-lw-id__body {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-muted);
+  }
+  .nf-lw-next {
+    display: grid;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    margin-top: var(--nf-space-lg);
+    text-align: start;
+  }
+  .nf-lw-next__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-lw-next__plate {
+    display: block;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+  }
+
+  /* ---------------------------------------------------------------- light
+     Every rule above assumes the night canvas. On paper the well and the lit
+     rim mean nothing, so the containers take the paper card and its border
+     and the glow comes off entirely. */
+  :root[data-theme="light"] .nf-lw-choice,
+  :root[data-theme="light"] .nf-lw-tile,
+  :root[data-theme="light"] .nf-lw-fact,
+  :root[data-theme="light"] .nf-lw-details,
+  :root[data-theme="light"] .nf-lw-note,
+  :root[data-theme="light"] .nf-lw-add,
+  :root[data-theme="light"] .nf-lw-back,
+  :root[data-theme="light"] .nf-lw-step {
+    background: var(--nf-surface-primary);
+    border-color: var(--nf-border-default);
+  }
+  /* On paper the lit rim is a smudge, so the resting cards take the paper
+     card's own elevation and the ring comes off. */
+  :root[data-theme="light"] .nf-lw-choice,
+  :root[data-theme="light"] .nf-lw-tile {
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-lw-fact__plate,
+  :root[data-theme="light"] .nf-lw-step__value {
+    background: var(--nf-surface-inset);
+    border-color: var(--nf-border-default);
+  }
+  :root[data-theme="light"] .nf-lw-choice[aria-pressed="true"],
+  :root[data-theme="light"] .nf-lw-choice[aria-checked="true"],
+  :root[data-theme="light"] .nf-lw-tile[aria-pressed="true"] {
+    background: linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%), var(--nf-surface-primary);
+    border-color: var(--nf-border-brand);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-lw-id {
+    background: linear-gradient(170deg, var(--nf-brand-tint-2), transparent 75%), var(--nf-surface-primary);
+    border-color: var(--nf-border-brand);
+    box-shadow: var(--nf-elev-1);
+  }
+  :root[data-theme="light"] .nf-lw-rail__seg {
+    background: var(--nf-surface-inset);
+  }
+  /* The glow is a night effect. On paper it is a smudge. */
+  :root[data-theme="light"] .nf-lw-rail__seg[data-done],
+  :root[data-theme="light"] .nf-lw-rail__seg[data-at],
+  :root[data-theme="light"] .nf-lw-add__plus,
+  :root[data-theme="light"] .nf-lw-shot[data-cover] {
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-lw-rail__seg[data-done] {
+    background: var(--nf-gradient-brand);
+  }
+  :root[data-theme="light"] .nf-lw-choice__tick {
+    filter: none;
+  }
+  :root[data-theme="light"] .nf-lw-choice__glyph,
+  :root[data-theme="light"] .nf-lw-tile > svg,
+  :root[data-theme="light"] .nf-lw-fact__plate > svg {
+    filter: none;
+  }
 }

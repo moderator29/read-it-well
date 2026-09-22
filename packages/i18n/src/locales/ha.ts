@@ -1345,6 +1345,16 @@ export const ha: Dictionary = withFallback({
      * which is the safe direction.
      */
     drawn: {
+      titles: {
+        basics: "Me kake sanyawa a jeri?",
+        photos: "Hotuna da bidiyon yawo",
+        location: "Ina yake?",
+        amenities: "Me kuma ke nan?",
+        utilities: "Wuta da ruwa",
+        pricing: "Farashin",
+        guestView: "Ka duba shi",
+        submit: "Aika don dubawa",
+      },
       subtitles: {
         basics: "Ka gaya mana nau'in kadarar, abin da kake son sanya ta a matsayinsa, da ɗakunan da ke ciki.",
         photos: "Ka ƙara hotuna bayyanannu na kadarar da gajeren bidiyon yawo.",
@@ -1357,6 +1367,8 @@ export const ha: Dictionary = withFallback({
       },
       rooms: {
         title: "Ɗakuna",
+        toilets: "Bayin gida",
+        parking: "Wuraren ajiye mota",
         bedroomsAsk: "Ɗakunan kwana nawa?",
         bathroomsAsk: "Ɗakunan wanka nawa?",
         toiletsAsk: "Bayin gida nawa?",

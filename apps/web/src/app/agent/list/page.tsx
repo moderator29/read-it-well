@@ -73,6 +73,7 @@ export default async function Page({
         <ListingWizard
           copy={t.agentListings}
           reference={t.listingReference}
+          moveInCopy={t.moveIn}
           locale={locale}
           userId={null}
           states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -104,6 +105,7 @@ export default async function Page({
       <ListingWizard
         copy={t.agentListings}
         reference={t.listingReference}
+        moveInCopy={t.moveIn}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}
