@@ -60,7 +60,7 @@ import {
   serviceWindowDraftSchema,
   shortletPlaceDraftSchema,
 } from "./schema";
-import { placeTypeUnavailable } from "./stays-setup";
+import { bedsArray, placeTypeUnavailable } from "./stays-setup";
 
 type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
@@ -1145,7 +1145,24 @@ export async function setShortletPlaceDraft(
        for bedrooms, beds and guests and never for a count of the unit. */
     units_total: 1,
     base_rate_minor: data.nightlyRateMinor,
-    beds: { bedrooms: data.bedrooms, beds: data.beds },
+    /*
+     * AN ARRAY, BECAUSE THE COLUMN IS ONE AND THE DATABASE SAYS SO.
+     *
+     * This line wrote `{bedrooms, beds}`, an object, against
+     * `room_types_beds_check (jsonb_typeof(beds) = ''array'')`, which has been
+     * on the column since it was created. Every real save would have failed
+     * with `23514`, on the one screen this whole feature exists for. It was
+     * written from a comment in `queries.ts` claiming the column had no shape
+     * constraint; the comment was inherited and false, and the probe that
+     * should have caught it asserted the round trip BECAUSE of the comment.
+     */
+    beds: bedsArray(data.beds),
+    /*
+     * A BEDROOM IS NOT A BED, so it has its own column rather than a fake
+     * entry in the array above. Added by
+     * `20260922200000_imgc_a_bedroom_is_not_a_bed.sql`.
+     */
+    bedrooms: data.bedrooms,
   };
 
   const { data: existing } = await session.supabase
@@ -1156,16 +1173,35 @@ export async function setShortletPlaceDraft(
     .limit(1)
     .maybeSingle();
 
+  /*
+   * TWO NARROW CASTS, AND THEY ARE DELIBERATE RATHER THAN CONVENIENT.
+   *
+   * `bedrooms` and the three place-type labels are both added by migrations
+   * that this box cannot apply, so `database.types.ts`, which is GENERATED
+   * from the live schema, does not carry either yet. The honest choices were a
+   * cast here or hand-editing the generated file, and hand-editing it would
+   * make the type system assert a schema that may not exist: an invisible
+   * claim of exactly the kind that caused the `beds` fault. A cast is visible.
+   *
+   * BOTH CASTS DISAPPEAR the moment somebody regenerates the types against an
+   * estate where the two migrations have run.
+   */
+  const row = fields as unknown as Database["public"]["Tables"]["room_types"]["Update"];
+
   const written = existing
     ? await session.supabase
         .from("room_types")
-        .update(fields)
+        .update(row)
         .eq("id", existing.id)
         .select("id")
         .single()
     : await session.supabase
         .from("room_types")
-        .insert({ accommodation_id: data.accommodationId, status: "DRAFT", ...fields })
+        .insert({
+          accommodation_id: data.accommodationId,
+          status: "DRAFT",
+          ...row,
+        } as Database["public"]["Tables"]["room_types"]["Insert"])
         .select("id")
         .single();
 

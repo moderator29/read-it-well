@@ -17,27 +17,29 @@ import type { StaysStepProps } from "./types";
  * two-bedroom flat in Lekki had to answer all three of those about their own
  * home, and the honest answer to every one of them was none of the above.
  *
- * THE THREE TILES ARE THE ONE THING ON THESE FOUR IMAGES THE DATABASE CANNOT
- * HOLD. `room_category` is `single | double | twin | suite | family | dorm`,
+ * THE THREE TILES WERE THE ONE THING THE DATABASE COULD NOT HOLD, AND NOW IT
+ * CAN. `room_category` was `single | double | twin | suite | family | dorm`,
  * and an entire flat is not any of them.
  * `20260922190000_imgc_a_shortlet_is_not_a_hotel_room.sql` adds the three
- * values additively and `scripts/probes/stays_place_type.sql` proves them.
- * NEITHER HAS RUN: this estate's Supabase project reports INACTIVE and every
- * call to it times out, which is measured in the ledger and not assumed. Until
- * the migration is applied `setShortletPlaceDraft` turns Postgres's own
- * `22P02` into a sentence naming the file, rather than writing "double" onto
- * somebody's house.
+ * additively and has been applied to the live estate. On an estate where it
+ * has not, `setShortletPlaceDraft` turns Postgres's own `22P02` into a
+ * sentence naming the file, rather than writing "double" onto somebody's
+ * house.
+ *
+ * WHERE EACH ANSWER GOES, AND ONE OF THEM WAS WRONG ON THE FIRST PASS. The
+ * place type is `room_types.category`, maximum guests is `room_types.sleeps`,
+ * the nightly price is `room_types.base_rate_minor` in integer kobo, the beds
+ * are `room_types.beds`, which is a jsonb ARRAY of `{kind, count}` and NOT the
+ * object this screen first wrote, and the bedrooms are `room_types.bedrooms`,
+ * a column of their own added by
+ * `20260922200000_imgc_a_bedroom_is_not_a_bed.sql` because a bedroom is not a
+ * bed. `units_total` is one, because a shortlet operator lets this place and
+ * not fifty of it.
  *
  * THE COUNTS ARE STEPPERS AND NOT NUMBER BOXES, as drawn, and that is a
  * Nigerian mobile decision as much as a visual one: a stepper does not raise a
  * keyboard over the screen a host is reading.
  *
- * WHERE EACH ANSWER GOES. The place type is `room_types.category`, maximum
- * guests is `room_types.sleeps`, the nightly price is
- * `room_types.base_rate_minor` in integer kobo, and the bedrooms and beds are
- * `room_types.beds`, the jsonb column that exists on that table for exactly
- * this: what somebody actually sleeps in. `units_total` is one, because a
- * shortlet operator lets this place and not fifty of it.
  */
 export function PlaceStep({
   draft,
@@ -49,9 +51,21 @@ export function PlaceStep({
   advance,
 }: StaysStepProps) {
   const unit = draft.roomTypes[0] ?? null;
-  /* A studio has no separate bedroom and one bed, which is the smallest
-     honest place and therefore the right default for somebody starting. */
-  const beds = unit?.beds ?? { bedrooms: 1, beds: 1 };
+  /*
+   * A studio has no separate bedroom and one bed, which is the smallest honest
+   * place and therefore the right default for somebody starting.
+   *
+   * `bedrooms` COMES BACK NULL when nobody has been asked, which is every row
+   * written before `20260922200000_imgc_a_bedroom_is_not_a_bed.sql` ran, so
+   * null falls to the default rather than to zero: a host returning to a place
+   * they saved before that migration is started at one bedroom and not told
+   * their flat is a studio.
+   */
+  const saved = unit?.beds ?? null;
+  const beds = {
+    bedrooms: saved?.bedrooms ?? 1,
+    beds: saved && saved.beds > 0 ? saved.beds : 1,
+  };
 
   const [placeType, setPlaceType] = useState<PlaceTypeId | null>(
     PLACE_TYPES.some((type) => type.id === unit?.category)

@@ -25,6 +25,7 @@ import {
 } from "./onboarding";
 import type { Database } from "../supabase/database.types";
 import { accommodationPhotoUrl } from "../stays/photos";
+import { bedsTotal } from "./stays-setup";
 import {
   BUSINESS_TIER_NAME,
   asBusinessTier,
@@ -36,24 +37,43 @@ import {
 } from "../admin/business-ladder";
 
 /**
- * THE BEDROOMS AND BEDS A ROOM TYPE RECORDS, read out of jsonb defensively.
+ * THE BEDROOMS AND BEDS A ROOM TYPE RECORDS.
  *
- * `room_types.beds` has no shape constraint, so a row written by an older
- * screen, by a seed or by hand holds whatever it holds. Anything that is not
- * two finite non-negative whole numbers reads back as null, and the screen
- * that draws it starts the host from a default rather than from a number it
- * cannot stand behind. Nothing here throws: a malformed row must not be able
- * to take down the step that would let somebody fix it.
+ * THIS COMMENT USED TO SAY "`room_types.beds` has no shape constraint" AND
+ * THAT WAS FALSE. The column has carried
+ * `room_types_beds_check (jsonb_typeof(beds) = ''array'')` since it was
+ * created, with the shape written on the line above it in
+ * `20260918081453_m04_room_types_units_rate_plans_rate_calendar.sql`. The
+ * sentence was inherited rather than checked, the shortlet screen was written
+ * from it and wrote an OBJECT, and the probe that should have caught that
+ * asserted a round trip BECAUSE of this sentence. Every real save would have
+ * failed with `23514`. **A comment asserting an absence is exactly as
+ * unverified as a test asserting a presence**, and this file now asserts
+ * neither: `bedsTotal` reads what is there and the probe asks the database.
+ *
+ * WHAT IS STILL UNCONSTRAINED, precisely. The column must be an ARRAY. What is
+ * IN the array is not checked by anything: the schema's own comment says the
+ * entries are "validated in the app" and no schema in this repository
+ * validates them, which is a second unbacked claim and is named in the ledger.
+ * So every entry is read defensively and nothing here throws, because a
+ * malformed row must not take down the step that would let somebody fix it.
+ *
+ * `bedrooms` IS ITS OWN COLUMN, added by
+ * `20260922200000_imgc_a_bedroom_is_not_a_bed.sql`, because a bedroom is not a
+ * bed and can only enter that array as a fake entry. Null while that migration
+ * has not run, and null for every hotel room type, which has never been asked.
  */
-function readBeds(value: unknown): { bedrooms: number; beds: number } | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
-  const record = value as Record<string, unknown>;
-  const whole = (input: unknown) =>
-    typeof input === "number" && Number.isInteger(input) && input >= 0 ? input : null;
-  const bedrooms = whole(record.bedrooms);
-  const beds = whole(record.beds);
-  if (bedrooms === null || beds === null) return null;
-  return { bedrooms, beds };
+function readBeds(
+  beds: unknown,
+  bedrooms: unknown,
+): { bedrooms: number | null; beds: number } | null {
+  const total = bedsTotal(beds);
+  const rooms =
+    typeof bedrooms === "number" && Number.isInteger(bedrooms) && bedrooms >= 0
+      ? bedrooms
+      : null;
+  if (total === 0 && rooms === null) return null;
+  return { bedrooms: rooms, beds: total };
 }
 
 type BusinessRow = Database["public"]["Tables"]["businesses"]["Row"];
@@ -156,7 +176,18 @@ export async function getMyHostDraft(): Promise<HostDraft> {
       const { data: rows } = await session.supabase
         .from("room_types")
         .select(
-          "id, name, category, sleeps, units_total, base_rate_minor, beds, rate_plans(id, name, meal_plan, rate_minor)",
+          /*
+           * `*` RATHER THAN A COLUMN LIST, FOR ONE COLUMN AND ONE REASON.
+           * `bedrooms` is added by a migration this box cannot apply, and
+           * `database.types.ts` is GENERATED from the live schema, so naming
+           * the column here would not typecheck. Hand-editing the generated
+           * file would make the type system assert a schema that may not
+           * exist, which is the invisible kind of claim that caused the `beds`
+           * fault. `*` returns it at runtime when it is there, the read below
+           * tolerates it being absent, and the column list comes back the
+           * moment the types are regenerated.
+           */
+          "*, rate_plans(id, name, meal_plan, rate_minor)",
         )
         .eq("accommodation_id", accommodation.id)
         .limit(50);
@@ -170,7 +201,7 @@ export async function getMyHostDraft(): Promise<HostDraft> {
         rateCount: row.rate_plans.length,
         category: row.category,
         baseRateMinor: row.base_rate_minor,
-        beds: readBeds(row.beds),
+        beds: readBeds(row.beds, (row as { bedrooms?: unknown }).bedrooms),
         rates: row.rate_plans.map((plan) => ({
           id: plan.id,
           name: plan.name,

@@ -285,14 +285,15 @@ export const roomNightsSchema = z
  * own shape and it exists because a form that asked "how many of this room do
  * you have" about somebody's flat was the wrong question asked eight times.
  *
- * `placeType` IS A `room_category` THE DATABASE MAY NOT HAVE YET. The three
- * values are added additively by
- * `20260922190000_imgc_a_shortlet_is_not_a_hotel_room.sql`, which has NOT been
- * applied because the project is unreachable from here. The enum is not
- * restated as a zod enum of the old six: it is exactly the three the render
- * draws, so a refusal is a refusal from Postgres with a code the action can
- * read and explain, rather than this file quietly writing "double" for a
- * whole house.
+ * `placeType` IS A `room_category` THAT NOW EXISTS. The three values were
+ * added additively by `20260922190000_imgc_a_shortlet_is_not_a_hotel_room.sql`
+ * and the coordinator has applied it: the live enum reads
+ * `entire_flat, whole_house, private_room, single, double, twin, suite,
+ * family, dorm`. The enum is not restated as a zod enum of the old six: it is
+ * exactly the three the render draws, so a refusal on an estate where the
+ * migration has NOT run is a refusal from Postgres with a code the action can
+ * read and explain, rather than this file quietly writing "double" for a whole
+ * house.
  */
 export const shortletPlaceDraftSchema = z.object({
   accommodationId: z.uuid("That property could not be identified."),
@@ -300,7 +301,20 @@ export const shortletPlaceDraftSchema = z.object({
     message: "Pick what kind of place this is.",
   }),
   name: z.string().trim().min(2, "Give the place a name.").max(80),
+  /*
+   * THE CEILING IS THE COLUMN'S. `room_types_bedrooms_check` refuses anything
+   * outside 0 to 30, so a form that accepted 31 would be a form whose refusal
+   * arrived from Postgres as a constraint violation instead of from here as a
+   * sentence. Zero is accepted on purpose: a studio has no separate bedroom
+   * and refusing zero would make a studio unlistable.
+   */
   bedrooms: z.number().int().min(0, "That cannot be fewer than none.").max(30),
+  /*
+   * A COUNT HERE, AN ARRAY IN THE COLUMN. `room_types.beds` is a jsonb ARRAY
+   * of `{kind, count}` enforced by `room_types_beds_check`, and
+   * `GOVERNING-11` screen one asks only for a total. `bedsArray` in
+   * `stays-setup.ts` does the one conversion, at the one boundary.
+   */
   beds: z.number().int().min(1, "A place has at least one bed.").max(60),
   maxGuests: z.number().int().min(1, "A place sleeps at least one.").max(40),
   /** Integer kobo. The naira boundary is the form's, never this schema's. */

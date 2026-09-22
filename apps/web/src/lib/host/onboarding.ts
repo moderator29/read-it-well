@@ -522,15 +522,20 @@ export type HostDraft = {
      */
     rates: { id: string; name: string; mealPlan: string; rateMinor: number }[];
     /**
-     * What is actually slept in, from `room_types.beds`.
+     * What is actually slept in, and how many rooms it is spread over.
      *
-     * The column is jsonb and nothing constrains its shape, so this is what
-     * could be READ out of it and not a promise about what is in it: null
-     * where the row holds something this product did not write. The shortlet
-     * screen of `GOVERNING-11` asks for bedrooms and beds and there is nowhere
-     * else on `room_types` to put either.
+     * `beds` is the TOTAL read out of `room_types.beds`, which is a jsonb
+     * ARRAY of `{kind, count}` enforced by `room_types_beds_check`. This field
+     * said the column had no shape constraint; it has had one since it was
+     * created, the shortlet screen was written from that sentence and wrote an
+     * object, and every real save would have failed with `23514`. The whole
+     * fault is in `20260922200000_imgc_a_bedroom_is_not_a_bed.sql`.
+     *
+     * `bedrooms` IS NULL UNTIL SOMEBODY IS ASKED, which is every hotel room
+     * type and every row written before that migration ran. Null and 0 are
+     * different facts: 0 is a studio's true answer.
      */
-    beds: { bedrooms: number; beds: number } | null;
+    beds: { bedrooms: number | null; beds: number } | null;
   }[];
   restaurant: {
     priceBand: number | null;

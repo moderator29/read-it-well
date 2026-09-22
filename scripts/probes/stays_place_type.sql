@@ -44,24 +44,59 @@
 --      `apps/web/src/lib/host/stays-setup.ts` reads to tell an operator which
 --      migration has not been applied, so the interface's diagnosis is tested
 --      against the database rather than against a guess.
---   7. `room_types.beds` accepts the `{bedrooms, beds}` object the shortlet
---      screen writes and reads it back unchanged. It is jsonb with no shape
---      constraint, which is exactly why it is asserted rather than assumed.
---   8. Exactly one row was added, and it is the fixture.
+--   7. `room_types_beds_check` EXISTS, is validated, and is
+--      `jsonb_typeof(beds) = 'array'`. THIS IS THE ASSERTION THAT WAS MISSING
+--      AND IT IS THE REASON THIS PROBE EXISTS IN ITS SECOND VERSION. See the
+--      fault note below.
+--   8. An ARRAY of `{kind, count}` round trips, and an OBJECT is REFUSED with
+--      SQLSTATE 23514. The refusal is asserted, not assumed: the shortlet
+--      screen shipped writing that object.
+--   9. `room_types.bedrooms` exists, is smallint, is NULLABLE, and carries a
+--      validated check refusing anything outside 0 to 30. Nullable is the
+--      point: null means nobody was asked, 0 means a studio.
+--  10. No existing row carries a bedroom count, so the column arrived empty.
+--  11. Exactly one row was added, and it is the fixture.
+--
+-- THE FAULT THIS PROBE'S FIRST VERSION MISSED, WRITTEN DOWN SO IT IS NOT
+-- REPEATED. Its assertion 7 read: "`room_types.beds` accepts the
+-- `{bedrooms, beds}` object the shortlet screen writes ... It is jsonb with no
+-- shape constraint, which is exactly why it is asserted rather than assumed."
+-- Every clause of that is wrong. The column has carried
+-- `room_types_beds_check (jsonb_typeof(beds) = 'array')` since
+-- `20260918081453_m04_room_types_units_rate_plans_rate_calendar.sql:45`, with
+-- the shape documented on the line above it, and the probe asserted the round
+-- trip BECAUSE of a comment in `apps/web/src/lib/host/queries.ts` saying the
+-- constraint did not exist. **A comment asserting an ABSENCE is exactly as
+-- unverified as a test asserting a presence.** The probe tested an inherited
+-- claim rather than the database, so it would have passed a write that every
+-- real host would have met as `23514`. The claim is corrected at its source in
+-- the same commit; this file now asks the database instead.
 --
 -- The migration this probes, `20260922190000_imgc_a_shortlet_is_not_a_hotel_room`,
 -- creates no `SECURITY DEFINER` function, so rule 21 has nothing to revoke
 -- here. If one is ever added, the revoke goes in the same migration and this
 -- probe gains an assertion for it.
 --
--- STATUS: NOT RUN, AND THE REASON IS MEASURED RATHER THAN ASSUMED.
--- `mcp__Supabase__list_projects` reports one project, `oepdbzejvrrqxgynfcdh`,
--- with status INACTIVE, and `mcp__Supabase__list_migrations` against it answers
--- "Failed to list database migrations: Connection terminated due to connection
--- timeout". The migration above has therefore not been applied either, so
--- assertions 1, 2, 5 and 7 would fail today for the honest reason that the
--- labels do not exist yet. Naming the project a probe ran against is part of
--- running it; this one has not run against any.
+-- STATUS: ITS FIRST VERSION RAN AND FAILED, and the failure was worth more
+-- than a pass. The coordinator applied
+-- `20260922190000_imgc_a_shortlet_is_not_a_hotel_room` against the live
+-- estate, `uccixoonmbhrnyczyigt`, and `room_category` now reads
+-- `entire_flat, whole_house, private_room, single, double, twin, suite,
+-- family, dorm`: nine labels, the three new ones at the head in the order the
+-- migration asked for, the six old ones intact. The probe then stopped at
+--
+--   ERROR 23514: new row for relation "room_types" violates check constraint
+--   "room_types_beds_check"
+--
+-- which is the fault described above, found before a host met it.
+--
+-- THE BUILD BOX REACHES `oepdbzejvrrqxgynfcdh`, WHICH IS INACTIVE. That is a
+-- wall around this box and not a fact about the estate; the earlier reading of
+-- it was honest and the project was simply not this one. Naming the project a
+-- probe ran against is part of running it. THIS SECOND VERSION HAS NOT RUN and
+-- is handed to the coordinator to apply against `uccixoonmbhrnyczyigt`,
+-- together with `20260922200000_imgc_a_bedroom_is_not_a_bed.sql`, which
+-- assertions 9 and 10 need.
 
 do $probe$
 declare
@@ -79,6 +114,11 @@ declare
   v_read_back    text;
   v_beds         jsonb;
   v_sqlstate     text;
+  v_bedrooms     smallint;
+  v_check        text;
+  v_nullable     text;
+  v_type         text;
+  v_with_rooms   bigint;
   v_notes        text := '';
   v_new          text[] := array['entire_flat', 'whole_house', 'private_room'];
   v_old          text[] := array['single', 'double', 'twin', 'suite', 'family', 'dorm'];
@@ -146,13 +186,15 @@ begin
     and not a.attisdropped
     and a.attname not in ('id', 'name', 'category', 'beds', 'created_at', 'updated_at');
 
+  /* AN ARRAY, which is what the column takes. The first version of this probe
+     wrote an object here and that is the whole story. */
   execute format(
     'insert into public.room_types (id, name, category, beds, %s)
        select $1, ''PROBE '' || $2::text, ''entire_flat''::public.room_category,
               $3::jsonb, %s
        from public.room_types where id = $4',
     v_cols, v_cols
-  ) using v_id, v_id, '{"bedrooms": 2, "beds": 3}'::jsonb, v_src_id;
+  ) using v_id, v_id, '[{"kind": "unspecified", "count": 3}]'::jsonb, v_src_id;
   v_notes := v_notes || format('4 fixture copied from live room type %s; ', v_src_id);
 
   /* ---------------------------------------------------------------- 5
@@ -185,30 +227,140 @@ begin
   v_notes := v_notes || '6 unknown label refused with 22P02; ';
 
   /* ---------------------------------------------------------------- 7
-     `beds` holds the object the shortlet screen writes. The column is jsonb
-     with no shape constraint, which is precisely why this is asserted: a
-     column that accepts anything is a column that can silently accept the
-     wrong thing. */
-  update public.room_types
-     set category = 'entire_flat'::public.room_category,
-         beds = '{"bedrooms": 2, "beds": 3}'::jsonb
-   where id = v_id;
-  select beds into v_beds from public.room_types where id = v_id;
-  if (v_beds ->> 'bedrooms')::int <> 2 or (v_beds ->> 'beds')::int <> 3 then
-    raise exception 'PROBE FAIL 7: beds read back as %', v_beds;
+     `room_types_beds_check` EXISTS, IS VALIDATED, AND SAYS `array`.
+     THIS IS THE ASSERTION THE FIRST VERSION OF THIS PROBE DID NOT HAVE. It
+     asserted the opposite, on the strength of a comment, and would therefore
+     have passed a write the database refuses. An unvalidated constraint is
+     one that was never asked about the rows already there, so both halves are
+     checked. */
+  select pg_get_constraintdef(k.oid)
+    into v_check
+  from pg_constraint k
+  where k.conrelid = 'public.room_types'::regclass
+    and k.conname  = 'room_types_beds_check'
+    and k.convalidated;
+  if v_check is null then
+    raise exception 'PROBE FAIL 7: room_types_beds_check is absent or unvalidated';
   end if;
-  v_notes := v_notes || '7 beds json round trips; ';
+  if position('array' in v_check) = 0 or position('jsonb_typeof' in v_check) = 0 then
+    raise exception 'PROBE FAIL 7: room_types_beds_check does not constrain beds to an array: %', v_check;
+  end if;
+  v_notes := v_notes || '7 beds_check present, validated, jsonb_typeof = array; ';
 
   /* ---------------------------------------------------------------- 8
+     AN ARRAY ROUND TRIPS AND AN OBJECT IS REFUSED WITH 23514. The refusal is
+     the half that matters: it is the exact error the shortlet screen would
+     have produced on every real save, and asserting it here is what stops a
+     future writer reaching for an object again. */
+  update public.room_types
+     set beds = '[{"kind": "unspecified", "count": 3}]'::jsonb
+   where id = v_id;
+  select beds into v_beds from public.room_types where id = v_id;
+  if jsonb_typeof(v_beds) <> 'array'
+     or jsonb_array_length(v_beds) <> 1
+     or (v_beds -> 0 ->> 'count')::int <> 3
+     or (v_beds -> 0 ->> 'kind') <> 'unspecified' then
+    raise exception 'PROBE FAIL 8: the beds array read back as %', v_beds;
+  end if;
+
+  begin
+    update public.room_types
+       set beds = '{"bedrooms": 2, "beds": 3}'::jsonb
+     where id = v_id;
+    raise exception 'PROBE FAIL 8: an OBJECT was accepted into room_types.beds';
+  exception
+    when check_violation then
+      get stacked diagnostics v_sqlstate = returned_sqlstate;
+      if v_sqlstate <> '23514' then
+        raise exception 'PROBE FAIL 8: an object was refused with % and not 23514', v_sqlstate;
+      end if;
+  end;
+  v_notes := v_notes || '8 array round trips, object refused with 23514; ';
+
+  /* ---------------------------------------------------------------- 9
+     `bedrooms` exists, is smallint, IS NULLABLE, and refuses anything outside
+     0 to 30. Nullable is the whole point of the column: null means nobody has
+     been asked, which is every hotel room type, and 0 means a studio, which is
+     a real answer. A `not null default 0` column could not tell them apart. */
+  select c.data_type, c.is_nullable
+    into v_type, v_nullable
+  from information_schema.columns c
+  where c.table_schema = 'public'
+    and c.table_name   = 'room_types'
+    and c.column_name  = 'bedrooms';
+  if v_type is null then
+    raise exception 'PROBE FAIL 9: room_types.bedrooms does not exist';
+  end if;
+  if v_type <> 'smallint' or v_nullable <> 'YES' then
+    raise exception 'PROBE FAIL 9: room_types.bedrooms is % and nullable=%', v_type, v_nullable;
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.room_types'::regclass
+      and conname  = 'room_types_bedrooms_check'
+      and convalidated
+  ) then
+    raise exception 'PROBE FAIL 9: room_types_bedrooms_check is absent or unvalidated';
+  end if;
+
+  /* Null in, null back: an unasked bedroom count stays unasked. */
+  update public.room_types set bedrooms = null where id = v_id;
+  select bedrooms into v_bedrooms from public.room_types where id = v_id;
+  if v_bedrooms is not null then
+    raise exception 'PROBE FAIL 9: a null bedroom count read back as %', v_bedrooms;
+  end if;
+
+  /* Zero is accepted and is a different fact from null. */
+  update public.room_types set bedrooms = 0 where id = v_id;
+  select bedrooms into v_bedrooms from public.room_types where id = v_id;
+  if v_bedrooms is distinct from 0::smallint then
+    raise exception 'PROBE FAIL 9: a studio read back as %', v_bedrooms;
+  end if;
+
+  update public.room_types set bedrooms = 2 where id = v_id;
+  select bedrooms into v_bedrooms from public.room_types where id = v_id;
+  if v_bedrooms is distinct from 2::smallint then
+    raise exception 'PROBE FAIL 9: two bedrooms read back as %', v_bedrooms;
+  end if;
+
+  begin
+    update public.room_types set bedrooms = -1 where id = v_id;
+    raise exception 'PROBE FAIL 9: a negative bedroom count was accepted';
+  exception
+    when check_violation then
+      null;
+  end;
+  begin
+    update public.room_types set bedrooms = 31 where id = v_id;
+    raise exception 'PROBE FAIL 9: 31 bedrooms was accepted';
+  exception
+    when check_violation then
+      null;
+  end;
+  v_notes := v_notes || '9 bedrooms smallint nullable, null zero and two round trip, -1 and 31 refused; ';
+
+  /* ---------------------------------------------------------------- 10
+     The column arrived empty: no row other than this probe''s fixture carries
+     a bedroom count, which is what an additive column must look like on the
+     day it lands. */
+  select count(*) into v_with_rooms
+  from public.room_types
+  where bedrooms is not null and id <> v_id;
+  if v_with_rooms <> 0 then
+    raise exception 'PROBE FAIL 10: % existing rows already carry a bedroom count', v_with_rooms;
+  end if;
+  v_notes := v_notes || '10 no pre-existing row carries a bedroom count; ';
+
+  /* ---------------------------------------------------------------- 11
      Exactly one row was added and it is the fixture. */
   select count(*) into v_rows_after from public.room_types;
   if v_rows_after <> v_rows_before + 1 then
-    raise exception 'PROBE FAIL 8: rows went from % to %', v_rows_before, v_rows_after;
+    raise exception 'PROBE FAIL 11: rows went from % to %', v_rows_before, v_rows_after;
   end if;
   if not exists (select 1 from public.room_types where id = v_id) then
-    raise exception 'PROBE FAIL 8: the fixture is not the row that was added';
+    raise exception 'PROBE FAIL 11: the fixture is not the row that was added';
   end if;
-  v_notes := v_notes || format('8 rows %s to %s only the fixture; ', v_rows_before, v_rows_after);
+  v_notes := v_notes || format('11 rows %s to %s only the fixture; ', v_rows_before, v_rows_after);
 
   /* ------------------------------------------------------------------------
      THE DELIBERATE FAILURE. Everything above passed; this unwinds the whole

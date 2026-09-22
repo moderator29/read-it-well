@@ -134,6 +134,9 @@ export function shortletDraft(over: Partial<HostDraft> = {}): HostDraft {
         category: "entire_flat",
         baseRateMinor: 8_500_000,
         rates: [],
+        /* The READ shape, which is a bedroom count and a bed TOTAL. The
+           column itself holds `[{"kind": "unspecified", "count": 3}]`; the
+           conversion is `bedsArray`/`bedsTotal` and happens once. */
         beds: { bedrooms: 2, beds: 3 },
       },
     ],

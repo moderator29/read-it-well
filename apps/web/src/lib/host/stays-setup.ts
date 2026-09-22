@@ -112,6 +112,56 @@ export function placeTypeUnavailable(code: string | null | undefined): boolean {
   return code === "22P02";
 }
 
+/* ----------------------------------------------------- what is slept in */
+
+/**
+ * THE BED KIND A SHORTLET SCREEN CAN HONESTLY CLAIM, WHICH IS NONE.
+ *
+ * `room_types.beds` is a jsonb ARRAY of `{kind, count}`, enforced by
+ * `room_types_beds_check` and typed as `BedSpec[]` in `lib/stays/types.ts`.
+ * `GOVERNING-11` screen one asks for a NUMBER of beds and never for their
+ * kinds, so the only entry this screen may write is one whose kind states that
+ * nobody has said: `unspecified`.
+ *
+ * IT IS THE ABSENCE OF A FACT, NAMED, AND NOT AN INVENTED ONE. Writing
+ * `{"kind": "double"}` because most beds are double would be a claim about
+ * somebody's flat that nobody made. A reader meeting `unspecified` should
+ * print the count alone, "3 beds", which is exactly what the host told us.
+ *
+ * THIS SCREEN SHIPPED WRITING AN OBJECT INTO THAT COLUMN and would have met
+ * `23514` on the first real save. See
+ * `20260922200000_imgc_a_bedroom_is_not_a_bed.sql` for the whole fault.
+ */
+export const SHORTLET_BED_KIND = "unspecified";
+
+export type BedEntry = { kind: string; count: number };
+
+/** The array a bed count becomes. None is an empty array, never a zero entry. */
+export function bedsArray(count: number): BedEntry[] {
+  return count > 0 ? [{ kind: SHORTLET_BED_KIND, count }] : [];
+}
+
+/**
+ * How many beds a saved unit records, read out of jsonb defensively.
+ *
+ * The column is an array by constraint, and nothing constrains what is IN the
+ * array: the schema's own comment says the entries are "validated in the app"
+ * and no schema in this repository validates them. So every entry is checked
+ * here, anything unreadable is skipped rather than thrown on, and a row
+ * written by a seed, by hand or by an older screen cannot take down the step
+ * that would let somebody fix it.
+ */
+export function bedsTotal(value: unknown): number {
+  if (!Array.isArray(value)) return 0;
+  let total = 0;
+  for (const entry of value) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const count = (entry as Record<string, unknown>).count;
+    if (typeof count === "number" && Number.isInteger(count) && count > 0) total += count;
+  }
+  return total;
+}
+
 /* ---------------------------------------------------------- the house rules */
 
 /**

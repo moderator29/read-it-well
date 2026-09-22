@@ -7,6 +7,9 @@ import {
   SITTING_DURATIONS,
   TABLE_SIZES,
   WEEK_FROM_MONDAY,
+  SHORTLET_BED_KIND,
+  bedsArray,
+  bedsTotal,
   branchFor,
   clockLabel,
   closingTimes,
@@ -65,6 +68,51 @@ describe("the place types", () => {
     expect(placeTypeUnavailable("23505")).toBe(false);
     expect(placeTypeUnavailable(null)).toBe(false);
     expect(placeTypeUnavailable(undefined)).toBe(false);
+  });
+});
+
+describe("what is slept in", () => {
+  /*
+   * THESE TESTS EXIST BECAUSE OF A SHIPPED FAULT. The shortlet screen wrote
+   * `{bedrooms, beds}`, an object, into a column carrying
+   * `room_types_beds_check (jsonb_typeof(beds) = 'array')`, and every real
+   * save would have failed with 23514. Nothing in this file could have caught
+   * it, because nothing in this file knew the column's shape.
+   */
+  it("writes an ARRAY, which is the only shape the column takes", () => {
+    const written = bedsArray(3);
+    expect(Array.isArray(written)).toBe(true);
+    expect(written).toEqual([{ kind: SHORTLET_BED_KIND, count: 3 }]);
+  });
+
+  it("claims no bed kind, because the screen never asks for one", () => {
+    /* `unspecified` is the absence of a fact, named. Writing "double" because
+       most beds are double would be a claim about somebody's flat that nobody
+       made. */
+    expect(SHORTLET_BED_KIND).toBe("unspecified");
+    expect(bedsArray(1)[0]?.kind).toBe("unspecified");
+  });
+
+  it("writes an empty array for none rather than a zero entry", () => {
+    expect(bedsArray(0)).toEqual([]);
+    expect(bedsArray(-2)).toEqual([]);
+  });
+
+  it("adds up what a saved row records, across however many kinds", () => {
+    expect(bedsTotal([{ kind: "double", count: 1 }, { kind: "single", count: 2 }])).toBe(3);
+    expect(bedsTotal(bedsArray(4))).toBe(4);
+  });
+
+  it("reads a malformed row as none rather than throwing on it", () => {
+    /* The ARRAY is constrained and its CONTENTS are not: the schema says the
+       entries are "validated in the app" and no schema in this repository
+       validates them. A row written by a seed or by hand must not take down
+       the step that would let somebody fix it. */
+    expect(bedsTotal(null)).toBe(0);
+    expect(bedsTotal({ bedrooms: 2, beds: 3 })).toBe(0);
+    expect(bedsTotal([{ kind: "double" }])).toBe(0);
+    expect(bedsTotal([null, 7, "two", { count: "3" }])).toBe(0);
+    expect(bedsTotal([{ kind: "double", count: -1 }, { kind: "single", count: 2 }])).toBe(2);
   });
 });
 

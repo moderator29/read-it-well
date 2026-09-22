@@ -4116,7 +4116,7 @@ zero everywhere, which is the 390 rule tested rather than eyeballed.
 | 2 | `GOVERNING-10` screen 2, Your room types | [g10-2](design/proofs/imgc/g10-2-room-types-390-dark.png) | [light](design/proofs/imgc/g10-2-room-types-390-light.png) | [1536](design/proofs/imgc/g10-2-room-types-1536-dark.png) | yes, with the thumbnail named |
 | 3 | `GOVERNING-10` screen 3, Rates | [g10-3](design/proofs/imgc/g10-3-rates-390-dark.png) | [light](design/proofs/imgc/g10-3-rates-390-light.png) | [1536](design/proofs/imgc/g10-3-rates-1536-dark.png) | yes, with the cancellation block named |
 | 4 | `GOVERNING-10` screen 4, Facilities and photos | [g10-4](design/proofs/imgc/g10-4-facilities-and-photos-390-dark.png) | [light](design/proofs/imgc/g10-4-facilities-and-photos-390-light.png) | [1536](design/proofs/imgc/g10-4-facilities-and-photos-1536-dark.png) | yes, two tiles absent and said so |
-| 5 | `GOVERNING-11` screen 1, Your place | [g11-1](design/proofs/imgc/g11-1-your-place-390-dark.png) | [light](design/proofs/imgc/g11-1-your-place-390-light.png) | [1536](design/proofs/imgc/g11-1-your-place-1536-dark.png) | drawn, NOT saveable until the migration runs |
+| 5 | `GOVERNING-11` screen 1, Your place | [g11-1](design/proofs/imgc/g11-1-your-place-390-dark.png) | [light](design/proofs/imgc/g11-1-your-place-390-light.png) | [1536](design/proofs/imgc/g11-1-your-place-1536-dark.png) | drawn; the save path was WRONG and is corrected, see 39.1 |
 | 6 | `GOVERNING-11` screen 2, House rules and cancellation | [g11-2](design/proofs/imgc/g11-2-house-rules-390-dark.png) | [light](design/proofs/imgc/g11-2-house-rules-390-light.png) | [1536](design/proofs/imgc/g11-2-house-rules-1536-dark.png) | yes, with the refund sentence moved |
 | 7 | `GOVERNING-11` screen 3, Your restaurant | [g11-3](design/proofs/imgc/g11-3-your-restaurant-390-dark.png) | [light](design/proofs/imgc/g11-3-your-restaurant-390-light.png) | [1536](design/proofs/imgc/g11-3-your-restaurant-1536-dark.png) | yes |
 | 8 | `GOVERNING-11` screen 4, Tables and hours | [g11-4](design/proofs/imgc/g11-4-tables-and-hours-390-dark.png) | [light](design/proofs/imgc/g11-4-tables-and-hours-390-light.png) | [1536](design/proofs/imgc/g11-4-tables-and-hours-1536-dark.png) | yes, with the sitting duration named inert |
@@ -4158,7 +4158,7 @@ a three-across grid of tiles, and tiles are what ships now, on
 `--nf-radius-control`, at a ratio of about a quarter. Both rules are obeyed and
 neither was traded for the other.
 
-### THE ONE SCHEMA CHANGE, AND IT HAS NOT RUN
+### THE ONE SCHEMA CHANGE
 
 `GOVERNING-11` screen one asks a shortlet host whether their place is an entire
 flat, a whole house or a private room. `public.room_category` is
@@ -4173,21 +4173,112 @@ oldest live `room_types` row with the column list read out of `pg_attribute`,
 and ends in a deliberate `raise exception 'PROBE ALL PASS ...'` so it rolls
 itself back.
 
-**NEITHER HAS RUN, AND THE REASON IS MEASURED.** `mcp__Supabase__list_projects`
-reports one project, `oepdbzejvrrqxgynfcdh`, status `INACTIVE`, and
-`mcp__Supabase__list_migrations` against it answers "Failed to list database
-migrations: Connection terminated due to connection timeout". That is the same
-wall SALE hit in section 23. Restoring a paused project is a change to the
-founder's own infrastructure that nobody asked for, so it is left to whoever
-owns that call.
+**IT HAS BEEN APPLIED.** The coordinator ran it against the live estate,
+`uccixoonmbhrnyczyigt`, and `room_category` now reads `entire_flat,
+whole_house, private_room, single, double, twin, suite, family, dorm`: nine
+labels, the three new ones at the head in the order the migration asked for,
+the six old ones intact.
 
-**SO THE INTERFACE DIAGNOSES ITSELF RATHER THAN GUESSING.**
-`setShortletPlaceDraft` reads Postgres's own `22P02`, "invalid input value for
-enum", and answers with a sentence naming the migration file. The alternative
-was to write `double` onto somebody's whole house, which no migration ever
-undoes. **`GOVERNING-11` screen one therefore DRAWS correctly and does not SAVE
-until that migration is applied, and that is stated on this row rather than
-discovered by a host.**
+**THE WALL I HIT WAS THE WRONG PROJECT, NOT A DEAD ESTATE.** This build box
+reaches `oepdbzejvrrqxgynfcdh`, which is `INACTIVE` and times out on every
+call. The reading was honest and the conclusion, that restoring somebody's
+paused project is not a call an agent makes, was right; the project was simply
+not this one. **Naming the project a probe ran against is part of running it**,
+and that is now written into both probe headers.
+
+**THE INTERFACE STILL DIAGNOSES ITSELF**, because not every estate is this one.
+`setShortletPlaceDraft` reads Postgres's own `22P02` and answers with a
+sentence naming the migration file, rather than writing `double` onto
+somebody's whole house.
+
+### 39.1 THE PROBE FAILED, AND THE FAILURE WAS WORTH MORE THAN A PASS
+
+The coordinator ran the probe. It stopped at:
+
+```
+ERROR 23514: new row for relation "room_types" violates check constraint
+"room_types_beds_check"
+```
+
+`room_types_beds_check` is `CHECK (jsonb_typeof(beds) = 'array')`. **The column
+must hold an ARRAY**, every live row holds one shaped
+`[{"kind": "queen", "count": 1}]`, and `lib/host/actions.ts` wrote
+`beds: { bedrooms, beds }`, an OBJECT. **So `GOVERNING-11` screen one would
+have drawn perfectly and failed on the first real save**, for a reason that had
+nothing to do with the enum it was built to explain.
+
+**THE BELIEF THAT CAUSED IT WAS WRITTEN DOWN, AND THAT IS THE LESSON.**
+`lib/host/queries.ts` stated that "`room_types.beds` has no shape constraint".
+That is false and has been false since the column was created: the constraint
+is on line 45 of
+`20260918081453_m04_room_types_units_rate_plans_rate_calendar.sql` with the
+shape documented on the line above it. The probe's own assertion 7 repeated the
+sentence almost word for word and tested the round trip BECAUSE of it. **A
+comment asserting an ABSENCE is exactly as unverified as a test asserting a
+presence, and this one was inherited rather than checked.** It is the same
+family as every other fault in this ledger's silent list: the repository
+asserted a fact about itself, the fact was false, and nothing failed.
+
+What that means for the proof on row 5 above, stated plainly: **the screenshot
+proves the screen DRAWS and has never proved that it SAVES.** The preview
+harness makes every write a no-op by design. The thing that proves the save is
+the probe, and the probe is what caught this.
+
+### 39.2 A BEDROOM IS NOT A BED, SO IT GETS A COLUMN
+
+The array carries what is slept in, one entry per kind with a count. A
+shortlet's bedroom count is a different fact and has nowhere honest to live in
+it. Two ways out, and the choice matters more than the patch:
+
+`20260922200000_imgc_a_bedroom_is_not_a_bed.sql` adds
+**`room_types.bedrooms smallint`, nullable, `check (bedrooms is null or
+between 0 and 30)`**. Three reasons, in order of weight:
+
+1. **A bedroom is not a bed.** `BedSpec` in `lib/stays/types.ts` is
+   `{kind, count}` and `RoomTypeRow.beds` is `BedSpec[]`. A bedroom count can
+   only enter that array as a fake entry, and any reader printing beds would
+   then print a bedroom as a bed.
+2. **Widening the check costs every reader, forever.** Accepting an object as
+   well as an array means every present and future reader handles two shapes,
+   and the check is the only thing guaranteeing one today. **A constraint
+   relaxed to fit a bug stops being evidence.**
+3. **It belongs beside its two siblings.** "2 bedrooms, 3 beds, sleeps 6" is
+   one sentence about one unit. `sleeps` and `beds` are already on
+   `room_types`.
+
+**Nullable, and zero is a different fact from unknown.** A hotel room type has
+never been asked and reads null; a studio answers 0 and that answer is true. A
+`not null default 0` column could not tell them apart. Same argument as the
+sale cost columns in section 23.
+
+**The bed count writes an array with no kind claimed.** `GOVERNING-11` asks for
+a number of beds and never for their kinds, so the one entry carries
+`kind: "unspecified"`. That is the absence of a fact, named. Writing `"double"`
+because most beds are double would be a claim about somebody's flat that
+nobody made.
+
+**What changed, so this cannot recur quietly:**
+
+- `lib/host/queries.ts` no longer claims the column is unconstrained. It now
+  says what IS and what is NOT constrained: the column must be an array, and
+  **what is in the array is checked by nothing at all**. The schema's own
+  comment says the entries are "validated in the app"; **no schema in this
+  repository validates them**, which is a second unbacked claim and is raised
+  here rather than fixed silently.
+- `bedsArray` and `bedsTotal` in `lib/host/stays-setup.ts` are the one
+  conversion, at the one boundary, with five tests that would have caught the
+  original fault, including that an object reads back as none.
+- The probe's assertion 7 is inverted: it now proves the constraint EXISTS, is
+  VALIDATED and says `array`, and assertion 8 proves an array round trips **and
+  that an object is REFUSED with 23514**. Assertions 9 and 10 cover the new
+  column, both ends of its range, and that it arrived empty.
+- The migration adds `comment on column public.room_types.beds` stating the
+  shape and the constraint, because it was documented in a migration file and
+  nowhere the database itself would show it, so the next reader who asked psql
+  was told nothing and the last one guessed.
+
+**The second probe has NOT run** and is handed to the coordinator with the
+second migration, which assertions 9 and 10 need.
 
 ### EVERY DEPARTURE FROM THE RENDER, NAMED
 
@@ -4327,10 +4418,20 @@ screen has to say WHOSE fee each one is or it reads as ours.**
   `public.amenities`. `lib/host/facilities.ts` has said so since it was
   written; adding them is a seed migration on a table the property side also
   reads, and it wants the same database this section could not reach.
-- **The migration and the probe have not run.** Said in full above, and worth
-  repeating because it is the difference between this feature working and not:
-  a shortlet host cannot complete `GOVERNING-11` screen one until somebody
-  applies `20260922190000_imgc_a_shortlet_is_not_a_hotel_room`.
+- **The second migration and the second probe have not run.**
+  `20260922190000_imgc_a_shortlet_is_not_a_hotel_room` is applied;
+  `20260922200000_imgc_a_bedroom_is_not_a_bed` is not, and until it is, a
+  shortlet host's bedroom count has nowhere to go. The interface writes the
+  column and the read tolerates it being absent, so nothing breaks in the
+  meantime, but the answer is dropped and that is not a state to leave running.
+- **`database.types.ts` is not regenerated.** It is GENERATED from the live
+  schema and neither new column nor the three new enum labels are in it yet, so
+  `setShortletPlaceDraft` carries two narrow, commented casts and the room type
+  read selects `*` for one column. **Hand-editing a generated types file would
+  make the type system assert a schema that may not exist, which is the
+  invisible kind of claim that caused the `beds` fault in the first place.**
+  Both casts and the `*` come out the moment somebody regenerates against an
+  estate where the two migrations have run.
 
 ### FILES, SO THE NEXT SCOPE COLLISION IS NOT MINE
 
