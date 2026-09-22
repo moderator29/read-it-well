@@ -453,6 +453,108 @@ describe("one palette, and the auth generator has not drifted from it", () => {
   });
 });
 
+/* ------------------------------------------------------- the code is the hero */
+
+/**
+ * THE VERIFICATION CODE EMAIL, CHECKED AS THE ONE THING IT IS FOR.
+ *
+ * This message has a single job: put six digits in front of somebody who is
+ * staring at a form in another tab. Every rule below has cost a real email
+ * system a support queue, and none of them is visible in a screenshot, which
+ * is why they are asserted rather than eyeballed.
+ *
+ * The no-button rule and the code-in-the-subject rule are checked in
+ * messages.test.ts, which is where what a message SAYS is checked. What is
+ * here is what the code IS: live, selectable, countable text.
+ */
+describe("the verification code is the hero of its own email", () => {
+  const CODE = "482 913";
+  const codeEmail = EVERY_MESSAGE.find((m) => m.name === "verificationCode");
+
+  it("has a fixture at all", () => {
+    expect(codeEmail, "verificationCode has no fixture to check").toBeTruthy();
+  });
+
+  /** The one table cell that carries the digits. */
+  function codeCell(html: string): string {
+    const cell = html
+      .split(/<t[dh]\b/)
+      .find((chunk) => chunk.includes(CODE) && chunk.includes("letter-spacing"));
+    expect(cell, "no cell in this message carries the code with tracking").toBeTruthy();
+    return String(cell);
+  }
+
+  it("is live text, so it survives an inbox with images switched off", () => {
+    /*
+     * A code baked into an image is a code nobody can copy, nobody can hear
+     * read aloud, and nobody sees at all in the large share of inboxes that
+     * block images by default. This is the single most important images-off
+     * rule in the system, so it is checked by deleting every image in the
+     * message and looking for the digits in what is left.
+     */
+    const html = String(codeEmail?.message.html);
+    const withoutImages = html.replace(/<img\b[^>]*>/g, "");
+    expect(withoutImages).toContain(CODE);
+
+    // And not smuggled back in through an alt attribute or a background.
+    const images = html.match(/<img\b[^>]*>/g) ?? [];
+    for (const img of images) expect(img).not.toContain(CODE);
+    expect(html).not.toMatch(new RegExp(`background-image:[^;"]*${CODE}`));
+  });
+
+  it("is selectable, because a person has to be able to copy it", () => {
+    /*
+     * There is no reliable copy button in email, so the digits themselves are
+     * the affordance. A table cell of live text selects in every client that
+     * lets you select anything, but `user-select: none` anywhere near it, or
+     * the digits split across elements for a per-character effect, would take
+     * that away silently.
+     */
+    const html = String(codeEmail?.message.html);
+    expect(html).not.toMatch(/user-select\s*:\s*none/i);
+    // The digits are one contiguous run, not one element per character.
+    expect(codeCell(html).split(CODE).length).toBe(2);
+  });
+
+  it("is monospaced and tracked, so a zero cannot be read as an O", () => {
+    const cell = codeCell(String(codeEmail?.message.html));
+    expect(cell).toContain(theme.FONT_MONO);
+
+    const size = Number((cell.match(/font-size:(\d+)px/) ?? [])[1]);
+    // 26px by the spec. The floor is what matters: this is the largest thing
+    // in the message and it is read off a phone at arm's length.
+    expect(size).toBeGreaterThanOrEqual(24);
+
+    const tracking = Number((cell.match(/letter-spacing:([\d.]+)em/) ?? [])[1]);
+    expect(tracking).toBeGreaterThanOrEqual(0.15);
+
+    /*
+     * AND THE INDENT THAT MATCHES THE TRACKING. Letter-spacing adds its gap
+     * after the LAST glyph too, which shifts an apparently centred string to
+     * the right by exactly that much. Putting the same amount back on the
+     * left recentres it. It is the kind of thing a reader notices without
+     * being able to say why, and the kind a refactor drops without noticing.
+     */
+    const indent = Number((cell.match(/text-indent:([\d.]+)em/) ?? [])[1]);
+    expect(indent).toBe(tracking);
+  });
+
+  it("is white on the panel rung, which is the deepest tone in the card", () => {
+    // The painted glass: ground, card, panel, each a rung lighter than the
+    // last. The code sits on the innermost one so it reads as inset.
+    const cell = codeCell(String(codeEmail?.message.html));
+    expect(cell).toContain(`background:${theme.DARK.panel}`);
+    expect(cell).toContain(`color:${theme.DARK.text}`);
+  });
+
+  it("stands alone on its own line in the plain text part", () => {
+    // A screen reader and a text-only client get the same hero: the digits,
+    // by themselves, not buried mid-sentence.
+    const lines = String(codeEmail?.message.text).split("\n");
+    expect(lines).toContain(CODE);
+  });
+});
+
 /* --------------------------------------------------------------- the copy */
 
 describe("the copy rules hold in the markup that ships", () => {
