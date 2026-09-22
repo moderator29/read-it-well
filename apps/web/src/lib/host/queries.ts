@@ -331,6 +331,10 @@ export async function getMyRoomTypes(accommodationId: string): Promise<MyRoomTyp
       .order("created_at", { ascending: true })
       .limit(50);
     if (error || !data) return [];
+    /* An empty `in` list is not a query anybody wants sent: PostgREST renders
+       it as `in.()`, which is a syntax error rather than "no rows". A property
+       with no room types is the common first state, not an edge case. */
+    if (data.length === 0) return [];
 
     const today = new Date().toISOString().slice(0, 10);
     const { data: nights } = await session.supabase
