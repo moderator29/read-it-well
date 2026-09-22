@@ -39,16 +39,43 @@
     --nf-admin-lit: var(--nf-brand-primary);
     --nf-admin-lit-cyan: color-mix(in oklab, var(--nf-state-info) 55%, white 45%);
     --nf-admin-panel-fill:
-      radial-gradient(55% 16px at 50% 0, color-mix(in oklab, var(--nf-admin-lit-cyan) 26%, transparent), transparent),
+      radial-gradient(55% 16px at 50% 0, color-mix(in oklab, var(--nf-admin-lit-cyan) 28%, transparent), transparent),
       linear-gradient(
         180deg,
-        color-mix(in oklab, var(--nf-admin-lit) 50%, var(--nf-surface-canvas)) 0px,
-        color-mix(in oklab, var(--nf-admin-lit) 24%, var(--nf-surface-canvas)) 11px,
-        color-mix(in oklab, var(--nf-admin-lit) 15%, var(--nf-surface-canvas)) 34px,
-        color-mix(in oklab, var(--nf-admin-lit) 10%, var(--nf-surface-canvas)) 50%,
-        color-mix(in oklab, var(--nf-admin-lit) 12%, var(--nf-surface-canvas)) calc(100% - 22px),
-        color-mix(in oklab, var(--nf-admin-lit) 32%, var(--nf-surface-canvas)) 100%
+        color-mix(in oklab, var(--nf-admin-lit) 62%, var(--nf-surface-canvas)) 0px,
+        color-mix(in oklab, var(--nf-admin-lit) 44%, var(--nf-surface-canvas)) 4px,
+        color-mix(in oklab, var(--nf-admin-lit) 27%, var(--nf-surface-canvas)) 11px,
+        color-mix(in oklab, var(--nf-admin-lit) 17%, var(--nf-surface-canvas)) 34px,
+        color-mix(in oklab, var(--nf-admin-lit) 11%, var(--nf-surface-canvas)) 50%,
+        color-mix(in oklab, var(--nf-admin-lit) 13%, var(--nf-surface-canvas)) calc(100% - 22px),
+        color-mix(in oklab, var(--nf-admin-lit) 21%, var(--nf-surface-canvas)) calc(100% - 9px),
+        color-mix(in oklab, var(--nf-admin-lit) 40%, var(--nf-surface-canvas)) 100%
       );
+    --nf-admin-panel-glow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit) 90%, transparent),
+      inset 1px 0 0 color-mix(in oklab, var(--nf-admin-lit) 70%, var(--nf-surface-canvas)),
+      0 0 4px color-mix(in oklab, var(--nf-state-info) 38%, transparent),
+      0 0 12px color-mix(in oklab, var(--nf-admin-lit) 18%, transparent),
+      0 0 22px color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+    --nf-admin-tile-fill:
+      radial-gradient(60% 55% at 50% 48%, color-mix(in oklab, var(--nf-admin-lit) 55%, transparent), transparent 70%),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-admin-lit) 72%, var(--nf-surface-canvas)) 0,
+        color-mix(in oklab, var(--nf-admin-lit) 46%, var(--nf-surface-canvas)) 18%,
+        color-mix(in oklab, var(--nf-admin-lit) 38%, var(--nf-surface-canvas)) 60%,
+        color-mix(in oklab, var(--nf-admin-lit) 66%, var(--nf-surface-canvas)) 100%
+      );
+    --nf-admin-tile-shadow:
+      inset 1px 0 0 color-mix(in oklab, var(--nf-state-info) 70%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit-cyan) 55%, transparent),
+      inset 0 -2px 3px -1px color-mix(in oklab, var(--nf-admin-lit) 60%, transparent),
+      0 0 8px color-mix(in oklab, var(--nf-admin-lit) 25%, transparent);
+    --nf-admin-calm-fill: color-mix(in oklab, var(--nf-admin-lit) 28%, transparent);
+    --nf-admin-calm-edge: color-mix(in oklab, var(--nf-admin-lit) 50%, var(--nf-surface-canvas));
+    --nf-admin-calm-rim: inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit) 45%, var(--nf-surface-canvas));
+    --nf-admin-calm-disc: var(--nf-state-info);
+    --nf-admin-calm-ink: var(--nf-surface-canvas);
     --nf-admin-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
     --nf-admin-panel-edges:
       color-mix(in oklab, var(--nf-admin-lit-cyan) 85%, transparent)
@@ -65,7 +92,6 @@
       color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit))
       color-mix(in oklab, var(--nf-admin-lit-cyan) 80%, var(--nf-admin-lit))
       color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit));
-    --nf-admin-panel-glow: 0 0 22px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
     --nf-admin-hair: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
     --nf-admin-gap: var(--nf-space-md);
     display: flex;
@@ -1389,17 +1415,16 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
-    /* Measured on 5EAA44CB: the plates are lit, #3168C1 at the centre with a
-       near-white glyph, not a dark tile. */
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 66%, var(--nf-surface-canvas)),
-      color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-canvas))
-    );
+    /* The glow identity's icon tile (section 9): a lit centre, a brighter
+       rim, per-side edges, the glyph glowing. Measured on 5EAA44CB the
+       plates are lit (#3168C1 at the centre), never a dark tile. */
+    background: var(--nf-admin-tile-fill);
     color: var(--nf-content-primary);
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 45%, transparent),
-      0 0 16px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    box-shadow: var(--nf-admin-tile-shadow);
+  }
+  .nf-admin-plate--brand > svg,
+  .nf-admin-plate:not([class*="--success"]):not([class*="--error"]):not([class*="--pending"]):not([class*="--info"]) > svg {
+    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-admin-lit-cyan) 80%, transparent));
   }
   .nf-admin-plate--md {
     width: 2.75rem;
@@ -2269,16 +2294,82 @@
   .nf-admin-seg__item--on {
     border-color: var(--nf-admin-cta-edges);
   }
-  /* The calm info panel for "not wired yet": flat, a quiet edge, the glyph
-     in the lit cyan. */
-  .nf-admin-state--unwired {
-    border-style: solid;
-    border-color: color-mix(in oklab, var(--nf-admin-lit) 45%, var(--nf-surface-canvas));
-    background: color-mix(in oklab, var(--nf-admin-lit) 16%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit) 50%, var(--nf-surface-canvas));
+  /* THE CALM NOTE (GLOW_IDENTITY section 7): flat, a dim edge, no bloom, a
+     round glyph disc. The console's designed empty state. */
+  .nf-admin-calm {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-admin-calm-edge);
+    background: var(--nf-admin-calm-fill);
+    box-shadow: var(--nf-admin-calm-rim);
+    text-align: left;
   }
-  .nf-admin-state--unwired > svg {
-    color: var(--nf-admin-lit-cyan);
+  .nf-admin-calm__disc {
+    display: grid;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-admin-calm-disc);
+    color: var(--nf-admin-calm-ink);
+  }
+  .nf-admin-calm--clear .nf-admin-calm__disc {
+    background: var(--nf-state-success);
+  }
+  .nf-admin-calm--error .nf-admin-calm__disc {
+    background: var(--nf-state-error);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-admin-calm__text {
+    display: grid;
+    min-width: 0;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-admin-calm__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-calm__line {
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-calm__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    min-height: 2.75rem;
+    justify-self: start;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-admin-calm__link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The empty chart keeps its frame and height; the note sits on the plot. */
+  .nf-chart__empty-note {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: var(--nf-space-sm);
+  }
+  .nf-chart__empty-note > .nf-admin-calm {
+    max-width: 30rem;
+    background: color-mix(in oklab, var(--nf-surface-canvas) 55%, var(--nf-admin-calm-fill));
+  }
+  .nf-admin-dist__note {
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-admin-dist + .nf-admin-calm {
+    margin-top: var(--nf-space-sm);
   }
 }
 
@@ -2403,6 +2494,17 @@
   so it cannot vanish.
 */
 :root[data-theme="light"] .nf-admin {
+  --nf-admin-tile-fill: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-on-paper)) 0%,
+    color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-on-paper)) 100%
+  );
+  --nf-admin-tile-shadow: inset 0 1px 0 var(--nf-surface-on-paper), 0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  --nf-admin-calm-fill: color-mix(in oklab, var(--nf-brand-primary) 6%, transparent);
+  --nf-admin-calm-edge: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  --nf-admin-calm-rim: none;
+  --nf-admin-calm-disc: var(--nf-brand-primary);
+  --nf-admin-calm-ink: var(--nf-content-on-brand);
   --nf-admin-panel-fill: linear-gradient(
     180deg,
     color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper)) 0,
@@ -2490,4 +2592,7 @@
 }
 :root[data-theme="light"] .nf-admin-plate--error {
   color: var(--nf-state-error);
+}
+:root[data-theme="light"] .nf-admin-plate > svg {
+  filter: none;
 }

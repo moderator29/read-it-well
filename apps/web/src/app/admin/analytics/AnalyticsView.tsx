@@ -4,11 +4,12 @@ import { MeterBar } from "@/components/agent/charts/MeterBar";
 import type { BookingOutcomes, CollectedRange, ThinAreas } from "@/lib/admin/reads/shapes";
 import { niceTicks, periodDelta } from "../_components/metrics";
 import {
+  CalmNote,
+  EmptyChart,
   KpiGrid,
   NotWired,
   PageHead,
   Panel,
-  PanelEmpty,
   PanelUnavailable,
   type KpiItem,
 } from "../_components/panels";
@@ -80,9 +81,16 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
 
       <div className="nf-admin-grid nf-admin-grid--halves">
         <Panel id="an-top-areas" title="Top areas by searches">
+          <div className="nf-admin-dist" aria-hidden="true">
+            <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area">
+              <span>Area</span>
+              <span />
+              <span className="nf-admin-dist__num">Searches</span>
+            </div>
+          </div>
           <NotWired
-            what="Which areas people search most needs every search recorded with its area."
-            request="Request A7 (a search event log) is open with the other session."
+            what="The areas people search most, fed by every search recorded with its area."
+            request="Nothing records a search yet; Request A7 asks for a search log."
           />
         </Panel>
         <Panel id="an-thin" title="Areas with fewest listings">
@@ -92,15 +100,30 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
 
       <div className="nf-admin-grid nf-admin-grid--halves">
         <Panel id="an-results" title="Searches vs results returned">
-          <NotWired
-            what="How many searches came back with nothing needs each search recorded with its result count."
-            request="Request A7 covers it."
+          <EmptyChart
+            height={160}
+            yLabels={["0", "", "", "", ""]}
+            legend={["Searches", "Results"]}
+            xLabels={[]}
+            note={{
+              kind: "unwired",
+              title: "Not recorded yet",
+              fills: "Searches against the searches that returned results, fed by every search with its result count.",
+              creates: "Nothing records a search yet; Request A7 asks for a search log.",
+            }}
           />
         </Panel>
         <Panel id="an-refusals" title="Top common refusals">
+          <div className="nf-admin-dist" aria-hidden="true">
+            <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area">
+              <span>Reason</span>
+              <span />
+              <span className="nf-admin-dist__num">Count</span>
+            </div>
+          </div>
           <NotWired
-            what="Why owners and hosts decline needs a reason chosen from a fixed list when they do; today a decline carries free text or nothing."
-            request="Request A11 is open with the other session."
+            what="Why owners and hosts decline, fed by a reason chosen from a fixed list at each decline."
+            request="Today a decline carries free text or nothing; Request A11 asks for the list."
           />
         </Panel>
       </div>
@@ -139,9 +162,16 @@ function DemandSupply({
         </li>
       </ul>
       {total === 0 ? (
-        <PanelEmpty
-          title="No real listing created in this range"
-          body="The line draws each new listing from a real owner, agent or firm; examples are not counted. Searches will be drawn beside it once they are recorded."
+        <EmptyChart
+          height={200}
+          yLabels={["0", "", "", "", ""]}
+          xLabels={supply.map((b, i) => (monthly || i % (range === "90d" ? 3 : 7) === 0 ? label(b.start, false) : ""))}
+          note={{
+            title: "No real listing created in this range",
+            fills: "The line counts each new listing from an owner, agent or firm; examples are not counted.",
+            creates: "Searches are drawn beside it once they are recorded (Request A7).",
+            action: { href: "/admin/supply", label: "Open Supply" },
+          }}
         />
       ) : (
         <AreaTimeChart
@@ -166,10 +196,21 @@ function ThinAreasTable({ thin, locale }: { thin: ThinAreas | null; locale: Loca
   if (!thin) return <PanelUnavailable what="Supply by area" />;
   if (thin.rows.length === 0) {
     return (
-      <PanelEmpty
-        title="No real listing live in any area yet"
-        body="Once owners, agents and firms list, the areas with the least on offer are named here so supply can be sought there first."
-      />
+      <>
+        <div className="nf-admin-dist" aria-hidden="true">
+          <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area">
+            <span>Area</span>
+            <span />
+            <span className="nf-admin-dist__num">Listings</span>
+          </div>
+        </div>
+        <CalmNote
+          title="No real listing live in any area yet"
+          fills="The areas with the least on offer are named here, fewest first, so supply can be sought there."
+          creates="Areas appear as owners, agents and firms list in them."
+          action={{ href: "/admin/listings", label: "Open the listings queue" }}
+        />
+      </>
     );
   }
   const max = Math.max(...thin.rows.map((r) => r.count));

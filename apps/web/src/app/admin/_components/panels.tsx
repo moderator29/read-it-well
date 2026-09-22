@@ -212,41 +212,142 @@ export function KpiGrid({ items, label }: { items: readonly KpiItem[]; label: st
 }
 
 /**
- * The panel state for a figure whose query does not exist yet. It names the
- * request that will wire it, so an operator reading an empty panel knows it
- * is empty because of the console, not because of the platform.
+ * THE CALM NOTE (GLOW_IDENTITY section 7): the console's empty state, and
+ * on 22 September its most common state, so it is designed rather than a
+ * grey sentence. A flat calm panel with a round glyph disc, one line on what
+ * fills this panel, one on what creates that data, and a link to the desk
+ * or flow that produces it where one exists. `kind` picks the glyph: "info"
+ * for an honest empty read, "unwired" for data the platform does not record
+ * yet (the line names the request).
  */
-export function NotWired({ what, request }: { what: string; request: string }) {
+export type CalmNoteProps = {
+  title: string;
+  /** What fills this panel. */
+  fills: string;
+  /** What creates that data. */
+  creates?: string;
+  action?: { href: string; label: string };
+  kind?: "info" | "unwired" | "clear" | "error";
+};
+
+export function CalmNote({ title, fills, creates, action, kind = "info" }: CalmNoteProps) {
   return (
-    <div className="nf-admin-state nf-admin-state--unwired" role="note">
-      <UiIcon name="link" size={24} />
-      <p className="nf-admin-state__title">Not wired yet</p>
-      <p className="nf-admin-state__body">
-        {what} {request}
-      </p>
+    <div className={`nf-admin-calm nf-admin-calm--${kind}`} role={kind === "error" ? "alert" : "note"}>
+      <span className="nf-admin-calm__disc" aria-hidden="true">
+        {kind === "unwired" ? (
+          <UiIcon name="link" size={16} />
+        ) : kind === "error" ? (
+          <UiIcon name="close" size={16} />
+        ) : kind === "clear" ? (
+          <AdminGlyphInline name="check" />
+        ) : (
+          <AdminGlyphInline name="i" />
+        )}
+      </span>
+      <span className="nf-admin-calm__text">
+        <span className="nf-admin-calm__title">{title}</span>
+        <span className="nf-admin-calm__line">{fills}</span>
+        {creates && <span className="nf-admin-calm__line">{creates}</span>}
+        {action && (
+          <Link href={action.href} className="nf-admin-calm__link">
+            {action.label}
+            <UiIcon name="arrow-right" size={16} />
+          </Link>
+        )}
+      </span>
     </div>
   );
 }
 
-/** The panel state for a real read that came back with nothing in it. */
-export function PanelEmpty({ title, body, icon = "info" }: { title: string; body: string; icon?: "info" | "verified" | "history" }) {
+/** The disc's two drawn glyphs: a bold "i" and a tick, in the disc's ink. */
+function AdminGlyphInline({ name }: { name: "i" | "check" }) {
   return (
-    <div className="nf-admin-state" role="note">
-      <UiIcon name={icon} size={24} />
-      <p className="nf-admin-state__title">{title}</p>
-      <p className="nf-admin-state__body">{body}</p>
-    </div>
+    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {name === "i" ? <path d="M8 7v5M8 4.2v.1" /> : <path d="m4.5 8.3 2.3 2.3 4.7-5" />}
+    </svg>
   );
+}
+
+/**
+ * An empty chart that keeps its real height and its frame: the y axis, the
+ * grid, the bucket labels and the legend, and no data mark at all (never a
+ * flat line), with the calm note centred on the plot.
+ */
+export function EmptyChart({
+  height = 200,
+  yLabels,
+  xLabels,
+  legend,
+  note,
+}: {
+  height?: number;
+  yLabels: readonly string[];
+  xLabels: readonly string[];
+  legend?: readonly string[];
+  note: CalmNoteProps;
+}) {
+  return (
+    <figure className="nf-chart nf-chart--empty">
+      {legend && legend.length > 0 && (
+        <ul className="nf-chart__legend" aria-label="Series">
+          {legend.map((label, i) => (
+            <li key={label}>
+              <span className={`nf-chart__swatch nf-chart__bar--s${Math.min(i, 2)}`} aria-hidden="true" />
+              {label}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="nf-chart__frame">
+        <div className="nf-chart__yaxis" aria-hidden="true" style={{ height }}>
+          {yLabels.map((label, i) => (
+            <span key={`${label}-${i}`} style={{ bottom: `${(i / Math.max(1, yLabels.length - 1)) * 100}%` }}>
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className="nf-chart__plot" style={{ height }}>
+          {yLabels.map((label, i) => (
+            <span
+              key={`${label}-${i}`}
+              className="nf-chart__grid"
+              style={{ bottom: `${(i / Math.max(1, yLabels.length - 1)) * 100}%` }}
+              aria-hidden="true"
+            />
+          ))}
+          <div className="nf-chart__empty-note">
+            <CalmNote {...note} />
+          </div>
+        </div>
+      </div>
+      <div className="nf-chart__xaxis nf-chart__xaxis--bars" aria-hidden="true">
+        {xLabels.map((label, i) => (
+          <span key={`${label}-${i}`}>{label}</span>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
+/** Kept for callers that pass a title and a body: the calm note, info kind. */
+export function PanelEmpty({ title, body }: { title: string; body: string; icon?: "info" | "verified" | "history" }) {
+  return <CalmNote title={title} fills={body} />;
+}
+
+/** Data the platform does not record yet: the calm note, naming the request. */
+export function NotWired({ what, request, title = "Not recorded yet" }: { what: string; request: string; title?: string }) {
+  return <CalmNote kind="unwired" title={title} fills={what} creates={request} />;
 }
 
 /** The panel state for a read that failed. */
 export function PanelUnavailable({ what }: { what: string }) {
   return (
-    <div className="nf-admin-state nf-admin-state--error" role="alert">
-      <UiIcon name="close" size={24} />
-      <p className="nf-admin-state__title">This did not load</p>
-      <p className="nf-admin-state__body">{what} could not be read just now. Nothing has changed; reload to try again.</p>
-    </div>
+    <CalmNote
+      kind="error"
+      title="This did not load"
+      fills={`${what} could not be read just now. Nothing has changed.`}
+      creates="The page reads again every minute; reload to try at once."
+    />
   );
 }
 

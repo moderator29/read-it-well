@@ -15,10 +15,11 @@ import type {
 import { alertBadge, alertSubline, niceTicks, periodDelta, sinceLabel } from "./metrics";
 import {
   AlertList,
+  CalmNote,
+  EmptyChart,
   KpiGrid,
   KpiStrip,
   Panel,
-  PanelEmpty,
   PanelLink,
   PanelUnavailable,
   type AlertRow,
@@ -222,10 +223,12 @@ export function OverviewView(props: OverviewProps) {
           {props.alerts === "unavailable" ? (
             <PanelUnavailable what="The alert desk" />
           ) : props.alerts.length === 0 ? (
-            <PanelEmpty
-              icon="verified"
+            <CalmNote
+              kind="clear"
               title="No alerts raised"
-              body="When a job, a payment or a safety check needs a person, it is raised here and on the Alerts desk."
+              fills="When a scheduled job, a payment or a safety check needs a person, the alert lands here and on the Alerts desk."
+              creates="Jobs, the money reconcile and the safety scan raise them on their own."
+              action={{ href: "/admin/operations", label: "Open Operations" }}
             />
           ) : (
             <AlertList rows={alertRows(props.alerts.slice(0, 5), props.now, locale)} />
@@ -260,15 +263,24 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
     return <PanelUnavailable what="Money collected over time" />;
   }
   const total = series.buckets.reduce((sum, b) => sum + b.amountMinor, 0);
+  const monthly = series.range === "12m";
   if (total === 0) {
     return (
-      <PanelEmpty
-        title="No money has moved yet in this range"
-        body="Nothing has been collected through Vallo in this window, so there is no line to draw. The first successful payment will appear here."
+      <EmptyChart
+        height={220}
+        yLabels={["₦0", "", "", "", ""]}
+        xLabels={series.buckets.map((b, i) =>
+          monthly || i % (series.range === "90d" ? 3 : 7) === 0 ? (monthly ? monthTick(b.start, locale) : dayTick(b.start, locale)) : "",
+        )}
+        note={{
+          title: "No money collected in this range",
+          fills: "Each successful card payment and completed wallet top-up is counted here on the day it clears.",
+          creates: "Money arrives when guests book stays and tenants pay rent through Vallo.",
+          action: { href: "/admin/money", label: "Open Money" },
+        }}
       />
     );
   }
-  const monthly = series.range === "12m";
   const ticks = niceTicks(Math.max(...series.buckets.map((b) => b.amountMinor)));
   const points = series.buckets.map((b) => ({
     key: b.start,
@@ -292,14 +304,7 @@ function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: 
   if (!supply) {
     return <PanelUnavailable what="Supply by type" />;
   }
-  if (supply.total === 0) {
-    return (
-      <PanelEmpty
-        title="No real supply live yet"
-        body="No listing from a real owner, agent or firm is live. Example listings are counted on the Examples desk, not here."
-      />
-    );
-  }
+  const empty = supply.total === 0;
   const rows = [...supply.rows].sort((a, b) => b.count - a.count);
   const max = rows[0]?.count ?? 0;
   return (
@@ -326,6 +331,16 @@ function SupplyTable({ supply, locale }: { supply: SupplyByType | null; locale: 
           </div>
         );
       })}
+      {empty && (
+        <div className="nf-admin-dist__note">
+          <CalmNote
+            title="No real supply live yet"
+            fills="Live listings from owners, agents and firms are counted here by type. Example listings are not; they are on the Examples desk."
+            creates="Supply arrives when a lister is approved and their listing passes review."
+            action={{ href: "/admin/listings", label: "Open the listings queue" }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -337,9 +352,17 @@ function RoleChart({ byRole, locale }: { byRole: ListingsByRole | null; locale: 
   const total = byRole.months.reduce((sum, m) => sum + m.owner + m.agent + m.firm, 0);
   if (total === 0) {
     return (
-      <PanelEmpty
-        title="No listings created in these months"
-        body="Nobody has created a listing in the last twelve months. Each new listing is counted here under the role of whoever listed it."
+      <EmptyChart
+        height={200}
+        yLabels={["0", "", "", "", ""]}
+        legend={["Owner", "Agent", "Firm"]}
+        xLabels={byRole.months.map((m) => monthTick(m.month, locale))}
+        note={{
+          title: "No real listing created in these months",
+          fills: "Each new listing is counted in the month it was made, under Owner, Agent or Firm by who listed it.",
+          creates: "Listings come from owners, agents and firms whose applications were approved.",
+          action: { href: "/admin/supply", label: "Open Supply" },
+        }}
       />
     );
   }

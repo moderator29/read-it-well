@@ -15,11 +15,12 @@ import { alertRows } from "../_components/OverviewView";
 import {
   AlertList,
   Badge,
+  CalmNote,
+  EmptyChart,
   KpiGrid,
   NotWired,
   PageHead,
   Panel,
-  PanelEmpty,
   PanelLink,
   PanelUnavailable,
   TabRow,
@@ -152,7 +153,11 @@ export function OperationsView(props: OperationsProps) {
           {props.audit === "unavailable" ? (
             <PanelUnavailable what="The audit log" />
           ) : props.audit.length === 0 ? (
-            <PanelEmpty icon="history" title="Nothing recorded yet" body="Every decision taken on this console and every scheduled run is written here." />
+            <CalmNote
+              title="Nothing recorded yet"
+              fills="Every decision taken on this console and every scheduled run is written here with who or what took it."
+              action={{ href: "/admin/audit", label: "Open the audit log" }}
+            />
           ) : (
             <AlertList rows={auditRows(props.audit.slice(0, 5), props.now, locale)} />
           )}
@@ -176,10 +181,12 @@ function AlertsBody({
   if (alerts === "unavailable") return <PanelUnavailable what="The alert desk" />;
   if (alerts.length === 0) {
     return (
-      <PanelEmpty
-        icon="verified"
+      <CalmNote
+        kind="clear"
         title="No alerts raised"
-        body="A failed job, a money mismatch or a safety check that needs a person raises an alert here."
+        fills="A failed job, a money mismatch or a safety check that needs a person raises an alert here."
+        creates="The scheduled jobs, the money reconcile and the safety scan raise them on their own."
+        action={{ href: "/admin/alerts", label: "Open the alert desk" }}
       />
     );
   }
@@ -270,7 +277,15 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
         {!activity ? (
           <PanelUnavailable what="The audit activity" />
         ) : activity.total === 0 ? (
-          <PanelEmpty icon="history" title="Nothing recorded in 30 days" body="Decisions and scheduled runs are written to the audit log as they happen." />
+          <EmptyChart
+            height={180}
+            yLabels={["0", "", "", "", ""]}
+            xLabels={activity.perDay.map((p, i) => (i % 7 === 0 ? p.day.slice(5) : ""))}
+            note={{
+              title: "Nothing recorded in 30 days",
+              fills: "Each decision and each scheduled run adds one entry on the day it happens.",
+            }}
+          />
         ) : (
           <>
             <AreaTimeChart
@@ -301,7 +316,7 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
       </Panel>
       <Panel id="ops-audit-kinds" title="By kind">
         {!activity || activity.byKind.length === 0 ? (
-          <PanelEmpty icon="history" title="Nothing to group yet" body="Kinds appear as actions are recorded." />
+          <CalmNote title="Nothing to group yet" fills="Kinds appear here as actions are recorded." />
         ) : (
           <ul className="nf-admin-kinds">
             {activity.byKind.slice(0, 6).map((k) => (
@@ -317,7 +332,7 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
         {audit === "unavailable" ? (
           <PanelUnavailable what="The audit log" />
         ) : audit.length === 0 ? (
-          <PanelEmpty icon="history" title="Nothing recorded yet" body="Every decision taken on this console is written here with the name of whoever took it." />
+          <CalmNote title="Nothing recorded yet" fills="Every decision taken on this console is written here with the name of whoever took it." />
         ) : (
           <AlertList rows={auditRows(audit.slice(0, 12), now, locale)} />
         )}
@@ -331,11 +346,12 @@ function NotificationsPanel({ activity, locale }: { activity: NotificationActivi
     <Panel id="ops-notifications" title="Notifications sent">
       {!activity ? (
         <NotWired
-          what="Every notification the platform sends (booking, message, wallet, listing, agent, support, system, social) needs a count by kind with how many were read."
-          request="Request A6 (getNotificationActivity) is open with the query layer."
+          title="Not readable by an admin yet"
+          what="Every notification the platform sends, by kind (booking, message, wallet, listing, agent, support, system, social), with how many were read."
+          request="Admins cannot read the notifications table today; Request A6 asks for an admin read of the volumes."
         />
       ) : activity.total === 0 ? (
-        <PanelEmpty title="No notifications sent in this window" body="Each notification the platform sends is counted here by kind." />
+        <CalmNote title="No notifications sent in this window" fills="Each notification the platform sends is counted here by kind." />
       ) : (
         <div className="nf-admin-dt-wrap">
           <table className="nf-admin-dt">
