@@ -2964,7 +2964,7 @@ verification index, because that sub-view is state and not a route. If any of
 those four is wrong, it is wrong in ONE readable line of `route-parents.ts`,
 which is the point of the file.
 
-## 26. A THIRD FALSE RED FROM THE SHARED TREE, AND TWO MEASUREMENTS THAT CORRECT THE FOUNDER
+## 27. A THIRD FALSE RED FROM THE SHARED TREE, AND TWO MEASUREMENTS THAT CORRECT THE FOUNDER
 
 ### The false red, and it is now a standing rule
 
@@ -3057,3 +3057,67 @@ closed from a stylesheet at all, because the ink is a Tailwind arbitrary
 utility in a later layer: the rule was written, measured, found to move
 nothing, and DELETED, because dead CSS that looks like a fix is worse than
 none.
+
+## 28. NAV AUDITED, AND IT CORRECTED THE LEAD'S OWN COUNT
+
+Verified at `08cf502` in a clean worktree, not on report.
+
+**I said there were ten `router.back()` call sites. There were seven, and NAV
+was right.** My grep counted comment lines: a file explaining what
+`router.back()` used to do matched the same pattern as a file calling it.
+Checked at the tip, the only EXECUTABLE calls left are `NativeRuntime.tsx:70`
+and `lib/nav/use-back.ts`, both of which run the resolver first; every other
+hit in the tree is prose. That is the second time today I have counted a
+comment as code, and both times a worker checked me rather than inheriting the
+number.
+
+`src/lib/nav/` exists at the tip with the map, the resolver, the previous
+entry reader and 25 tests. **All 25 pass.**
+
+### The answer to the question I asked it to answer first
+
+`canGoBackInApp()` **cannot** prove the previous entry is the parent, and
+cannot be taught to. Its three answers are a sequence stamp, a same-origin
+referrer and a boolean; not one of them carries a URL. So it truthfully
+answers "is there a screen of ours behind this one", and every control in the
+product was reading that as "is the screen behind this one its parent". The
+function is not broken and was not touched. **The defect was in the reading,
+not in the reader**, which is why patching the screens the founder named would
+have left it everywhere else.
+
+### The decision worth keeping
+
+An unmapped route returns `no-parent-declared` and falls back, with a warning
+in a non-production build. It deliberately does NOT strip the last segment,
+and the reason is the sharpest sentence in the hand-back: **that guess is
+right often enough to hide the times it is wrong, which is the mechanism that
+hid this defect in the first place.**
+
+History is used only when BOTH proofs hold: the previous entry is in-app AND
+its path equals the declared parent. The second needs a URL, which only the
+Navigation API supplies, so Safari and Firefox always push the parent. That
+costs a restored scroll position; a wrong `router.back()` costs somebody their
+screen.
+
+### Four behaviour changes, each a reading rather than a port
+
+`/listing/[id]` now goes to `/search` rather than `/home`; `/checkout` to
+`/stays`; `/bookings/[id]/review` to the booking rather than the list; and
+`/verification`'s sub-view to `/profile`, because that sub-view is state and
+not a route.
+
+### What is NOT proved, in its own words
+
+**The Android hardware button has not been pressed on a device.** This box has
+no Android and no emulator. What is proved is the decision function at all
+three roots and at the cold deep link that used to close the app. Whether
+Capacitor delivers the event is unchanged and untested, as it was before. No
+browser spec was run either, because no server is up here, so the runtime half
+of back behaviour is unproven.
+
+### One file outside its brief, declared
+
+`lib/native/back-button.ts`, two lines. The hardware button cannot be fixed
+without it: that handler only calls the injected `goBack` once it has decided
+not to exit, so a change confined to `NativeRuntime.tsx` would have left the
+shell closing on every deep link. Declaring it beats burying it.
