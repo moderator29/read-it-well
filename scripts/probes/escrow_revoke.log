@@ -1,0 +1,76 @@
+== P-7, THE REVOKE. PARTLY PROVED, AND THE UNPROVED HALF IS NAMED.
+== 22 September 2026, live project uccixoonmbhrnyczyigt
+
+-- THE HTTP HALF DID NOT RUN, AND NOTHING IS CLAIMED FOR IT.
+
+Run against https://uccixoonmbhrnyczyigt.supabase.co with the project's real
+anon key, from this sandbox:
+
+  -- escrow_fund_from_wallet
+     HTTP 000
+     curl: (56) CONNECT tunnel failed, response 403
+  ... the same for escrow_confirm, escrow_request_release,
+      escrow_raise_dispute, escrow_hold, escrow_cancel_as and
+      escrow_fund_from_wallet_as.
+
+  -- GET /rest/v1/listings -> HTTP 000
+     FAIL: the API did not answer at all, so nothing above is evidence.
+
+  == RESULT: FAIL. 8 of 8 checks failed.
+
+THE CONTROL IS THE POINT. Seven refusals in a row look exactly like seven
+closed doors, and a probe that counted them would have reported P-7 as the
+strongest pass in the file. It reported FAIL, because the eighth check asks an
+endpoint that MUST answer and it did not. The egress proxy in this sandbox
+denies *.supabase.co by policy:
+
+  curl -sS "$HTTPS_PROXY/__agentproxy/status"
+  ... "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)"
+
+So the sentence "an anon key and an authenticated user key call each verb and
+each receives a permission error" IS UNPROVEN FROM HERE. It needs one run from
+a machine that can reach the project. The script is ready and takes two
+environment variables.
+
+-- WHAT IS PROVED, and it is the grant itself.
+
+Read back from the live catalogue after every escrow migration, and asserted
+inside each of those migrations so a future one cannot quietly reopen a door:
+
+  verb                                                                anon  authenticated  service_role
+  escrow_fund_from_wallet(uuid,uuid,escrow_purpose,bigint,text,int)   f     f              t
+  escrow_fund_from_wallet_as(...)                                     f     f              t
+  escrow_confirm(uuid)                                                f     f              t
+  escrow_confirm_as(uuid,uuid)                                        f     f              t
+  escrow_request_release(uuid)                                        f     f              t
+  escrow_request_release_as(uuid,uuid)                                f     f              t
+  escrow_raise_dispute(uuid,text)                                     f     f              t
+  escrow_raise_dispute_as(uuid,uuid,text)                             f     f              t
+  escrow_hold(uuid,uuid,bigint,text,text,integer)                     f     f              t
+  escrow_open(uuid,uuid,uuid,escrow_purpose,bigint)                   f     f              t
+  escrow_release(uuid,uuid,text,text)                                 f     f              t
+  escrow_refund(uuid,uuid,text,text)                                  f     f              t
+  escrow_cancel_as(uuid,uuid,text)                                    f     f              t
+  escrow_admin_resolve(uuid,text,text)                                f     T              t
+
+Every one carries an explicit ACL of {postgres=X/postgres,service_role=X/postgres}
+rather than a null ACL, so none of them is relying on the absence of a grant.
+
+escrow_admin_resolve KEEPS its grant to `authenticated` and that is correct,
+not an oversight. An admin is an authenticated user and the function guards
+itself on the role at its own boundary. The research file records it as a
+separate finding from F-2 for exactly this reason.
+
+-- AND THE FIVE-ARGUMENT escrow_hold IS GONE.
+
+F-6 added `hold_days`. Had the old five-argument overload survived, it would
+have been a second door with its own grant and its own body that ignores the
+hold window. The catalogue shows exactly one `escrow_hold`, with six
+arguments. Dropped by its exact old signature in 20260922221000.
+
+-- THE HONEST SUMMARY OF P-7.
+
+The GRANT is proved, twice, from the catalogue and inside the migrations.
+The HTTP REFUSAL is UNPROVEN from this sandbox and is the one thing on the
+nine-probe list that has not been watched happening.

@@ -1,0 +1,157 @@
+== probe started 2026-09-22T22:58:58Z
+ PostgreSQL 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+   private.wallet_for_update                      sha256 107e855012bc50c6  20260809052049_escrow_money_moves_under_a_lock.sql
+   private.wallet_spendable_locked                sha256 71cfe97d15e6858b  20260809052049_escrow_money_moves_under_a_lock.sql
+   private.wallets_overdrawn                      sha256 e3d104e6496b8b12  20260730011651_wallet_atomic_transfer_and_reconciliation.sql
+   public.wallets_overdrawn                       sha256 a1418eac47889785  20260809080815_the_locking_money_paths_get_a_public_door.sql
+   private.notify                                 sha256 e1d491bb758d1ef7  20260804134543_notification_preferences_are_honoured.sql
+   private.compute_fee                            sha256 dfd65642bd093a1d  20260809051502_what_the_platform_charges_and_it_is_nothing.sql
+   public.fee_rate_at                             sha256 e587e740b48e45ca  20260809055416_the_advisor_findings_from_this_wave_that_are_real.sql
+   private.escrow_transition_is_legal             sha256 47f951527524c7bb  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   private.escrow_purpose_is_open                 sha256 39ac256aac91e2cf  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   private.escrow_commission_is_permitted         sha256 599e590435008650  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   private.escrow_guard_transition                sha256 1a36150a842ac723  20260809051720_the_platform_can_actually_hold_the_money.sql
+   private.escrow_audit_insert                    sha256 b72c1f734f71954a  20260809051720_the_platform_can_actually_hold_the_money.sql
+   private.escrow_settle                          sha256 79b03e04d47e6308  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   private.escrow_sweep_timeouts                  sha256 c3db8d846282dfd3  20260809052049_escrow_money_moves_under_a_lock.sql
+   public.escrow_open                             sha256 e48098ad0fdb125b  20260809053537_the_three_escrow_legs_the_wallet_layer_already_calls.sql
+   public.escrow_hold                             sha256 590dc8f416b1fa3e  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   public.escrow_release                          sha256 00c7cc6b914d37ae  20260809053537_the_three_escrow_legs_the_wallet_layer_already_calls.sql
+   public.escrow_refund                           sha256 301afc4305e676d3  20260809053537_the_three_escrow_legs_the_wallet_layer_already_calls.sql
+   public.escrow_cancel_as                        sha256 2dea31d56a787d05  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   public.escrow_fund_from_wallet_as              sha256 ca747f5598a3302c  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   public.escrow_confirm_as                       sha256 bff8a89c1e5f7161  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
+   public.escrow_request_release_as               sha256 d260db745a9ebc8c  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
+   public.escrow_raise_dispute_as                 sha256 c9c7c2e91cd54bac  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
+   public.hold_wallet_withdrawal                  sha256 3afa76b0dacbb2e9  20260809080815_the_locking_money_paths_get_a_public_door.sql
+   private.pay_booking_from_wallet                sha256 25be8468f4dccfb2  20260730122108_wallet_pay_confirmed_unpaid_booking.sql
+   private.transfer_between_wallets               sha256 7406ccbc1e84982c  20260730011651_wallet_atomic_transfer_and_reconciliation.sql
+   public.move_into_pot                           sha256 38d040ad2b07a6b1  20260812090100_pots_move_money_under_the_wallet_lock.sql
+   private.escrow_float_components                sha256 c7e1dde5019f445a  20260923010000_the_escrow_float_is_booked_as_a_liability.sql
+   private.escrow_invariants_check                sha256 d41acf34a96bad55  20260923011000_the_float_identity_is_asserted_on_a_schedule.sql
+== 29 function bodies lifted
+== two F-9 rewrite blocks lifted
+psql:/tmp/tmp.PCk0WoRCNO/f9.sql:89: NOTICE:  F-9: private.pay_booking_from_wallet(uuid, uuid, text) now calls private.wallet_spendable_locked
+psql:/tmp/tmp.PCk0WoRCNO/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(uuid, bigint, text, jsonb) now calls private.wallet_spendable_locked
+== F-9 confirmed in the scratch database: hold_wallet_withdrawal calls the shared spendable
+
+== P-1: two concurrent escrow funds, one affordable balance of 100,000 kobo
+-- A:
+     A ok
+     
+-- B:
+     B insufficient
+   held=1 holds=1 payer_spendable=0 overdrawn=0
+== P-1: PASS. A held the balance, B blocked on A's row lock, re-read spendable after A committed and was refused. One escrow, one hold, balance zero, never negative.
+
+== P-2 (escrow_first): an escrow and a withdrawal for the same 100,000 kobo
+-- A:
+     ESCROW ok
+     
+-- B:
+     WITHDRAWAL insufficient
+     
+   ok_answers=1 committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
+== P-2 (escrow_first): PASS. Exactly one of the two committed the balance. The other was refused and nothing was moved.
+
+== P-2 (withdrawal_first): an escrow and a withdrawal for the same 100,000 kobo
+-- A:
+     WITHDRAWAL ok
+     
+-- B:
+     ESCROW insufficient
+     
+   ok_answers=1 committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
+== P-2 (withdrawal_first): PASS. Exactly one of the two committed the balance. The other was refused and nothing was moved.
+
+== P-3a: an escrow and a pot move for the same 100,000 kobo
+-- A:
+     ESCROW ok
+     
+-- B:
+     POT insufficient
+   ok_answers=1 committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and POT both spoke.
+== P-3a (pot): PASS. Exactly one of the escrow and the pot took the balance.
+
+== P-3b: an escrow and a transfer to another person for the same 100,000 kobo
+-- A:
+     ESCROW ok
+     
+-- B:
+     TRANSFER insufficient
+   committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and TRANSFER both spoke.
+== P-3b (transfer): PASS. Exactly one of the escrow and the transfer took the balance.
+
+== P-4: two sessions release the same HELD agreement at the same instant
+-- A:
+     A ok
+     
+-- B:
+     B already_settled
+   release_credits=1 payee_balance=100000 release_audit_rows=1 state=RELEASED
+== P-4: PASS. One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
+
+== P-5 (sweeper first): the sweeper's pass and a dispute on the same agreement, at the same instant
+-- A:
+     SWEEP moved=1
+     
+-- B:
+     DISPUTE not_disputable
+   final_state=RELEASED settlement_entries=1
+== P-5 (sweeper first): PASS. The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
+
+== P-5 (dispute first): the sweeper's pass and a dispute on the same agreement, at the same instant
+-- A:
+     DISPUTE ok
+-- B:
+     SWEEP moved=0
+     
+   final_state=DISPUTED settlement_entries=0
+== P-5 (dispute first): PASS. The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
+
+== P-6: the same funding reference called twice, serially
+   first=ok second=duplicate entries=1 payer_spendable=200000
+== P-6: and the same reference from two sessions at once
+-- A:
+     A ok
+     
+-- B:
+     B duplicate
+   entries=1 payer_spendable=200000
+== P-6: PASS. A repeat answered duplicate rather than raising, and both serially and concurrently the reference produced exactly one ledger entry and one debit.
+
+== P-8: a direct update from REFUNDED to RELEASED, as the owning role
+   before=REFUNDED after=REFUNDED
+   answer: ERROR:  escrow 00621fa8-0368-4247-b89e-a259fbe42b24 cannot go from REFUNDED to RELEASED
+CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 7 at RAISE
+== P-8: PASS. The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+
+== P-9: the float identity across a mix of held, released, refunded, disputed and cancelled
+   ledger_float=1800000 escrow_float=1800000 difference=0 commission_booked=5000
+   gross_mismatches=0 overdrawn=0 invariants_ok=true
+   breaches=[]
+== P-9: PASS. Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross.
+
+== P-7: the revoke. Not runnable against a local cluster: it needs a real
+   PostgREST and a real anon key. See scripts/probes/escrow_revoke.sh.
+
+== scratch database dropped
+
+== SUMMARY
+   P-1                PASS A held the balance, B blocked on A's row lock, re-read spendable after A committed and was refused. One escrow, one hold, balance zero, never negative.
+   P-2 (escrow_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
+   P-2 (withdrawal_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
+   P-3a (pot)         PASS Exactly one of the escrow and the pot took the balance.
+   P-3b (transfer)    PASS Exactly one of the escrow and the transfer took the balance.
+   P-4                PASS One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
+   P-5 (sweeper first) PASS The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
+   P-5 (dispute first) PASS The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
+   P-6                PASS A repeat answered duplicate rather than raising, and both serially and concurrently the reference produced exactly one ledger entry and one debit.
+   P-8                PASS The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+   P-9                PASS Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross.
+
+== RESULT: PASS. 11 of 11 local probes passed. P-7 is proved separately and is not counted here.
