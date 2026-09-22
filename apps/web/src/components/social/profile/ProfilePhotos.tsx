@@ -8,6 +8,7 @@ import { setSocialCover } from "@/lib/social/profiles-actions";
 import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import { reencodeToJpeg } from "./reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
@@ -183,33 +184,41 @@ export function ProfilePhotos({
         <div className="nf-social-cover__scrim" aria-hidden="true" />
 
         <div className="absolute right-3 top-3 flex gap-xs">
-          <button
+          {/* A SIZE RUNG INVENTED AT THE CALL SITE STOOD HERE. It was
+              `nf-btn nf-btn--glass` with `px-sm py-xs` and the overline type
+              layered over it, which is the button primitive with its padding
+              and its type overridden until it became a fourth height nobody
+              else has. It is `size="sm"` now, which is a real rung and is 44px,
+              so it also clears the tap floor it was under.
+              The glyph stays: a bare word floating over a photograph is the
+              one thing on this header nobody scans for, and this is how
+              somebody changes the largest image on their own profile. */}
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
+            leadingIcon="picture"
             onClick={() => coverInput.current?.click()}
             disabled={busy !== null}
-            className="nf-btn nf-btn--glass gap-inline-tight px-sm py-xs text-[var(--nf-text-overline)]"
+            loading={busy === "cover"}
           >
-            {/* The glyph, so the control is findable before it is read. A
-                bare word floating over a photograph is the one thing on this
-                header nobody scans for, and this is how somebody changes the
-                largest image on their own profile. */}
-            <UiIcon name="picture" size={14} />
             {busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
-          </button>
+          </Button>
           {/* GLASS, NOT GHOST. These two sit side by side on a photograph
               nobody has seen. The ghost variant paints nothing at all, so the
               only one of the pair that had a plate was the safe one, and the
               control that throws somebody's cover away was a floating word
               over a skyline. Both are controls, both read as controls. */}
           {cover && (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => void removeCover()}
               disabled={busy !== null}
-              className="nf-btn nf-btn--glass px-sm py-xs text-[var(--nf-text-overline)]"
             >
               Remove
-            </button>
+            </Button>
           )}
         </div>
       </div>

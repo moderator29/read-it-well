@@ -4,6 +4,7 @@ import { useActionState, useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { saveSocialProfile } from "@/lib/social/profiles-actions";
 import type { AreaOption, SocialProfileView } from "@/lib/social/profiles-queries";
@@ -371,13 +372,13 @@ export function ProfileEditor({
       )}
 
       <div className="flex flex-col gap-xs pb-xs sm:flex-row-reverse">
-        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary w-full sm:w-auto">
+        <Button type="submit" variant="primary" loading={pending} disabled={pending} className="w-full sm:w-auto">
           {pending ? "Saving" : claiming ? "Claim this handle" : "Save profile"}
-        </button>
+        </Button>
         {!claiming && (
-          <Link href={`/u/${initialHandle}`} className="nf-btn nf-btn--ghost w-full sm:w-auto">
+          <ButtonLink href={`/u/${initialHandle}`} variant="ghost" className="w-full sm:w-auto">
             Cancel
-          </Link>
+          </ButtonLink>
         )}
       </div>
     </form>

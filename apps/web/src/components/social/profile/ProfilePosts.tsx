@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Feed } from "@/components/social/feed/Feed";
+import { ButtonLink } from "@/components/ui/Button";
 import type { PostView } from "@/components/social/feed/PostCard";
 
 /**
@@ -120,13 +120,13 @@ export function ProfilePosts({
           {isOwner && (
             <div className="mt-md">
               {hasBio ? (
-                <Link href="/around" className="nf-btn nf-btn--primary">
+                <ButtonLink href="/around" variant="primary">
                   Find a place to talk in
-                </Link>
+                </ButtonLink>
               ) : (
-                <Link href={`/u/${handle}/edit`} className="nf-btn nf-btn--primary">
+                <ButtonLink href={`/u/${handle}/edit`} variant="primary">
                   Add your bio
-                </Link>
+                </ButtonLink>
               )}
             </div>
           )}

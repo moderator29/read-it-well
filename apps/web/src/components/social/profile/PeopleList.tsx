@@ -8,6 +8,7 @@ import { FollowButton } from "./FollowButton";
 import { moreFollows } from "@/lib/social/follows-actions";
 import type { FollowDirection, FollowRow } from "@/lib/social/follows-queries";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * A list of people.
@@ -113,9 +114,9 @@ export function PeopleList({
           own. That happens when a block sits between you.
         </p>
         <div className="mt-md">
-          <Link href={`/u/${handle}`} className="nf-btn nf-btn--primary">
+          <ButtonLink href={`/u/${handle}`} variant="primary">
             Back to @{handle}
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -135,12 +136,9 @@ export function PeopleList({
           {isOwner ? copy.mineBody : copy.theirsBody.replace("{handle}", handle)}
         </p>
         <div className="mt-md">
-          <Link
-            href={isOwner ? "/around" : `/u/${handle}`}
-            className="nf-btn nf-btn--primary"
-          >
+          <ButtonLink href={isOwner ? "/around" : `/u/${handle}`} variant="primary">
             {isOwner ? "Find a place to talk in" : `Back to @${handle}`}
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -228,14 +226,15 @@ export function PeopleList({
 
       {cursor ? (
         <div className="mt-md text-center">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={loadMore}
             disabled={pending}
-            className="nf-btn nf-btn--glass"
+            loading={pending}
           >
             {pending ? "Loading" : "Show more people"}
-          </button>
+          </Button>
         </div>
       ) : (
         <p aria-live="polite" className="mt-md text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">

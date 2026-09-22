@@ -16,6 +16,7 @@ import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
 import { displayHost } from "@/lib/brand-domain";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Toast, useToast } from "@/components/ui/Toast";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -206,17 +207,19 @@ export function ProfileMenu({
           </p>
 
           <div className="mt-lg flex flex-col gap-xs">
-            <Link href="/around" className="nf-btn nf-btn--primary w-full">
+            <ButtonLink href="/around" variant="primary" full>
               Back to Around
-            </Link>
-            <button
+            </ButtonLink>
+            <Button
               type="button"
+              variant="secondary"
+              full
               onClick={undoBlock}
               disabled={pending}
-              className="nf-btn nf-btn--glass w-full"
+              loading={pending}
             >
               {pending ? "Undoing" : "Undo the block"}
-            </button>
+            </Button>
           </div>
 
           {/* The toast outranks this sheet on z-index, which is the whole
@@ -339,22 +342,29 @@ export function ProfileMenu({
               change your mind.
             </p>
             <div className="mt-lg flex flex-col gap-xs sm:flex-row-reverse">
-              <button
+              {/* `nf-social-danger` was a social-layer-only destructive
+                  treatment standing exactly where `variant="danger"` goes, so
+                  the social layer's delete button did not look like the
+                  platform's delete button. One vocabulary for one act. */}
+              <Button
                 type="button"
+                variant="danger"
+                className="flex-1"
                 onClick={doBlock}
                 disabled={pending}
-                className="nf-btn nf-social-danger flex-1"
+                loading={pending}
               >
                 {pending ? "Blocking" : `Block ${who}`}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                className="flex-1"
                 onClick={cancelBlock}
                 disabled={pending}
-                className="nf-btn nf-btn--ghost flex-1"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>

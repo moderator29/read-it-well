@@ -4,6 +4,7 @@ import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { BackChevron } from "./BackChevron";
+import { ButtonLink } from "@/components/ui/Button";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
 import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
 import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
@@ -245,9 +246,9 @@ export function ProfileHeader({
       {/* ----------------------------------- what to do about them */}
       <div className="nf-profile-actions">
         {isOwner ? (
-          <Link href={`/u/${profile.handle}/edit`} className="nf-btn nf-btn--sm nf-btn--glass">
+          <ButtonLink href={`/u/${profile.handle}/edit`} size="sm" variant="secondary">
             {copy.editProfile}
-          </Link>
+          </ButtonLink>
         ) : (
           follow
         )}
