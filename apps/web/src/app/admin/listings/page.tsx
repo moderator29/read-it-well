@@ -13,7 +13,7 @@ import { QueueFilters, queueHref, queueNarrowed, readQueueQuery } from "../_comp
 import { LiveRefresh } from "../_review/LiveRefresh";
 import { ListingsQueue } from "./ListingsQueue";
 import { toQueueRow } from "./rows";
-import { LISTING_TABS, isDecidedStatus, reviewHref } from "./tabs";
+import { LISTING_TABS, isDecidedStatus, listingStatusWord, reviewHref } from "./tabs";
 import "../_review/review.css";
 
 /*
@@ -119,7 +119,7 @@ export default async function AdminListingsPage({
         sub="Review and manage all submitted listings."
         tabs={tabs}
         rows={[]}
-        statusLabel={ui.statusLabel}
+        statusLabel={(status) => listingStatusWord(status, ui.statusLabel)}
         counts={null}
         reviewTimes={null}
         page={page}
@@ -167,7 +167,7 @@ export default async function AdminListingsPage({
         rows={main.map(rowOf)}
         decided={shownDecided.length > 0 ? shownDecided.map(rowOf) : undefined}
         decidedTitle={common.recentlyDecided}
-        statusLabel={ui.statusLabel}
+        statusLabel={(status) => listingStatusWord(status, ui.statusLabel)}
         counts={counts.state === "ok" ? counts.data.real : null}
         examples={
           counts.state === "ok"

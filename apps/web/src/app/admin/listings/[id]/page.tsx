@@ -11,7 +11,7 @@ import { readQueueQuery } from "../../_components/QueueFilters";
 import { DeskHead, Panel } from "../../_review/parts";
 import { LiveRefresh } from "../../_review/LiveRefresh";
 import { referenceOf } from "../rows";
-import { queueHrefFrom, reviewHref } from "../tabs";
+import { listingStatusWord, queueHrefFrom, reviewHref } from "../tabs";
 import { ListingReview } from "./ListingReview";
 import { ReviewActionBar } from "./ReviewActionBar";
 import "../../_review/review.css";
@@ -110,7 +110,7 @@ export default async function ListingUnderReviewPage({
         copy={copy}
         locale={locale}
         sqm={t.catalogue.card.sqm}
-        statusLabel={ui.statusLabel}
+        statusLabel={(status) => listingStatusWord(status, ui.statusLabel)}
         backHref={queueHref}
         tiles={{
           dark: dark.url,

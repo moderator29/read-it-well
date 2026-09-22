@@ -54,3 +54,12 @@ export function nextAfter(ids: readonly string[], id: string): string | null {
   if (index < 0) return ids[0] ?? null;
   return ids[index + 1] ?? null;
 }
+
+/**
+ * The desk's word for a status: the same word as its tab, so a row badge and
+ * the tab that lists it never disagree ("Waiting" on both, not "Submitted"
+ * on one). Falls back to the shared vocabulary for anything else.
+ */
+export function listingStatusWord(status: string, fallback: (status: string) => string): string {
+  return LISTING_TABS.find((tab) => tab.status === status)?.label ?? fallback(status);
+}

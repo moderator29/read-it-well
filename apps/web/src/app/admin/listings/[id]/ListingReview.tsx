@@ -72,7 +72,8 @@ export function keeperFor(
   return null;
 }
 
-const MAX_TILES = 7;
+/** Small tiles beside the lead photo and the walkthrough: four columns, two rows. */
+const SMALL_TILES = 8;
 
 export function ListingReview(props: ListingReviewProps) {
   const {
@@ -378,9 +379,10 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
   const video = listing.videos[0] ?? null;
   const lead = photos[0] ?? null;
   const rest = photos.slice(1);
-  const slots = MAX_TILES - (video ? 1 : 0);
-  const shown = rest.slice(0, slots);
-  const hidden = rest.length - shown.length + (listing.videos.length > 1 ? listing.videos.length - 1 : 0);
+  const extraVideos = listing.videos.length > 1 ? listing.videos.length - 1 : 0;
+  const overflow = rest.length + extraVideos > SMALL_TILES;
+  const shown = rest.slice(0, overflow ? SMALL_TILES - 1 : SMALL_TILES);
+  const hidden = rest.length - shown.length + extraVideos;
 
   if (!lead && !video) {
     return (
@@ -419,9 +421,17 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
                 aria-label="Walkthrough video"
               />
             ) : (
-              <p className="nf-rv-msg" style={{ padding: "var(--nf-space-sm)" }}>
-                This walkthrough could not be opened. The listing has one.
-              </p>
+              <div
+                className="nf-rv-media__video-off"
+                style={video.posterUrl ? { backgroundImage: `url(${video.posterUrl})` } : undefined}
+              >
+                <span className="nf-rv-media__play" aria-hidden="true">
+                  <UiIcon name="arrow-right" size={20} />
+                </span>
+                <span className="nf-rv-media__caption">
+                  This walkthrough could not be opened. The listing has one.
+                </span>
+              </div>
             )}
           </li>
         ) : null}
@@ -474,9 +484,10 @@ function LocationMap({
               aria-hidden="true"
               style={{ left: `calc(50% - ${mosaic.pointX}px)`, top: `calc(50% - ${mosaic.pointY}px)` }}
             >
+              {/* Backgrounds, not images: a tile the provider cannot serve
+                  leaves the panel's own ground rather than a broken-image mark. */}
               {mosaic.urls.map((url) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={url} src={url} alt="" loading="lazy" />
+                <span key={url} style={{ backgroundImage: `url(${url})` }} />
               ))}
             </div>
           ))}

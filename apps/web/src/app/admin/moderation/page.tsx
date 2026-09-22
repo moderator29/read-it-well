@@ -54,6 +54,18 @@ const HELD_CAP = 50;
 
 type Tab = "all" | "held" | ReportCategory;
 
+/** Short tab words for the eight reasons; the rows and the breakdown use the full wording. */
+const TAB_WORD: Record<(typeof REPORT_CATEGORIES)[number], string> = {
+  off_platform_payment: "Payment outside",
+  scam: "Scam",
+  unsafe: "Unsafe",
+  not_as_described: "Not as described",
+  unavailable: "Unavailable",
+  offensive: "Offensive",
+  duplicate: "Duplicate",
+  other: "Other",
+};
+
 export default async function AdminModerationPage({
   searchParams,
 }: {
@@ -135,7 +147,7 @@ export default async function AdminModerationPage({
           { key: "all", label: "All", href: tabHref("all"), on: tab === "all" },
           ...REPORT_CATEGORIES.map((category) => ({
             key: category,
-            label: categoryLabel(category),
+            label: TAB_WORD[category],
             href: tabHref(category),
             on: tab === category,
           })),
