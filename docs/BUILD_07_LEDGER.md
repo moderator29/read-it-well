@@ -929,3 +929,54 @@ question nobody has read the licence for, so it stays), four share sheets that
 need the founder's ruling, the store badges, the footer's X and Telegram, and
 the four `tel:` links that are supposed to leave. Every one of the twenty eight
 reproduced before it was touched or left; only line numbers had drifted.
+
+## 12. THE EMAIL PATH IS ALIVE, MEASURED RATHER THAN ASSUMED
+
+The confirmation code fix in section 10 is worth nothing if no email carries a
+code, and as of this morning the platform could not send one: neither custom
+SMTP nor the Send Email Hook was configured, and the auth log for 12 September
+showed two sends from `noreply@mail.app.supabase.io` followed by three
+`429: email rate limit exceeded`. Real people could not create accounts.
+
+**That is now closed, and here is the evidence rather than the claim.** The
+auth log carries, today at 13:51:28, `Hook ran successfully` on path `/signup`
+with the request itself completing 200. `Hook ran successfully` means GoTrue
+got a 2xx from our own endpoint, and `app/api/auth/email-hook/route.ts` returns
+**502** whenever `sendMessage` comes back unsent, naming `unconfigured`
+separately from a delivery failure precisely so neither can be mistaken for a
+send. A 200 from that route therefore means Resend accepted the message. The
+hook fired on a real signup and the message went out.
+
+No `429` and no rate limit refusal appears anywhere in the auth log today.
+
+### One thing for the founder, and it is a dashboard setting rather than code
+
+At 13:45:58 the log records `env GOTRUE_RATE_LIMIT_EMAIL_SENT changed,
+updating Email limiter from 2/1h to 2`. The old value is printed with its unit
+and the new one is not, so what the limiter now permits cannot be read off the
+line. If it is two an hour, the third person to sign up in an hour is refused,
+and they are refused by the platform rather than by anything we can catch. Two
+an hour is a sensible ceiling while Supabase's shared sender is doing the work
+and an odd one now that a custom hook and Resend are doing it.
+
+Nothing in this repository can read or set that value. Worth a look at the Auth
+rate limits page before anybody is invited.
+
+### A second finding, from A3, which I checked myself
+
+`app/api/documents/[id]/route.ts` answers **200 with the whole object buffered
+into an `ArrayBuffer`**. There is no `Accept-Ranges`, no 206 branch and no
+stream. For the ID images it was written for that is fine. It means the route
+cannot take a video: a browser cannot scrub a response that answered 200 to a
+range request, every play buffers the entire file into server memory, and
+`writeAudit` fires per request, so a reviewer scrubbing a walkthrough four
+times would write four `document.viewed` rows and the audit log would stop
+meaning what it says.
+
+So the signed video URL in `lib/admin/queries.ts` stays where it is, and A3 was
+right to refuse it rather than point a `<video>` at a route that cannot serve
+one. Making the route stream ranges is a real piece of work with four decisions
+in it, including whether an audit row is written per request or per viewing
+session, and it is worth more than the one call site: once it streams ranges it
+is the right answer for every private media file the console will ever show.
+It is mine, and it is not started.
