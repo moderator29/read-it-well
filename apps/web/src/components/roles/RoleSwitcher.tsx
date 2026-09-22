@@ -7,7 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { AuthGate } from "@/components/auth/AuthGate";
-import { MODE_COOKIE } from "@/lib/mode.constants";
+import { writeModeCookie } from "@/lib/mode.constants";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
 import {
   ROLE_COPY,
@@ -129,8 +129,7 @@ export function RoleSwitcher({
      * RLS-bound read - so a hand-edited cookie changes what this control
      * displays and nothing else.
      */
-    const mode = role.id === "renter" ? "personal" : "agent";
-    document.cookie = `${MODE_COOKIE}=${mode}; path=/; max-age=31536000; samesite=lax`;
+    writeModeCookie(role.id === "renter" ? "personal" : "working");
     startTransition(() => {
       router.push(ROLE_COPY[role.id].href);
       router.refresh();

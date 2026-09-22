@@ -60,7 +60,7 @@ export function AgentRail({
         />
         {/* This rail only renders inside Agent Mode, so the switch always
             offers Personal, independent of the cookie's current value. */}
-        <ModeSwitcher t={t} current="agent" variant="menu" />
+        <ModeSwitcher t={t} current="working" variant="menu" />
       </div>
     </aside>
   );

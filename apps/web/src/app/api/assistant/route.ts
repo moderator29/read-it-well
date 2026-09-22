@@ -17,6 +17,7 @@ import type { Listing, ListingKind } from "@/lib/listings/types";
  */
 import { hrefForListing } from "@/lib/listings/href";
 import { isFeatureEnabled } from "@/lib/flags";
+import { supplyPrimer } from "@/lib/supply/roles";
 import {
   consume,
   ipFromHeaders,
@@ -120,7 +121,24 @@ const SYSTEM_PROMPT = [
    * who relied on it has already paid. Restore this sentence when there is a
    * flow AND a legal answer, not when either one arrives alone.
    */
-  "What Vallo is, exactly. Every listing on Vallo was put up by a real person on Vallo: a landlord, an agent or an owner selling. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the property with, and somebody accountable for what the listing says. The person behind a listing climbs a verification ladder: phone, then identity document, then address, then a physical inspection of the property. Say where somebody stands on that ladder rather than calling everyone verified.",
+  /*
+   * THE LADDER IS NO LONGER TYPED OUT HERE, AND THAT IS THE WHOLE FIX.
+   *
+   * This line read "phone, then identity document, then address, then a
+   * physical inspection of the property". There is no phone rung and there
+   * never was, and the payout rung, the strongest automated check this
+   * platform has, was missing from what the assistant told every user. One
+   * hardcoded paragraph, already wrong, already shipped, in the one surface
+   * that speaks to people in sentences.
+   *
+   * A system prompt is a hardcoded string by nature, so the fix is a
+   * MECHANISM rather than a habit: the sentence is built from
+   * `lib/supply/roles.ts`, which is built from `lib/trust/verification.ts`,
+   * which is what `private.agent_tier` counts. The moment a rung changes,
+   * this changes with it, and the assistant cannot drift from the ladder
+   * again.
+   */
+  `What Vallo is, exactly. Every listing on Vallo was put up by a real person on Vallo: a landlord, an agent or an owner selling. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the property with, and somebody accountable for what the listing says. ${supplyPrimer()} Say where somebody stands on that ladder rather than calling everyone verified.`,
   "",
   "What people come here for: annual and monthly rentals, property for sale, land, shops and offices; and on the Stays side hotels, serviced apartments, guest houses, resorts and shortlets by the night, and restaurant tables. All of it listed by people here.",
   "",

@@ -37,18 +37,18 @@ describe("roleStateFrom", () => {
   });
 
   it("reads an individual agents row as the owner role", () => {
-    const view = roleStateFrom(APPROVED_INDIVIDUAL, "agent");
+    const view = roleStateFrom(APPROVED_INDIVIDUAL, "working");
     expect(view.current).toBe("owner");
     expect(view.roles.find((r) => r.id === "owner")?.verified).toBe(true);
     expect(view.roles.find((r) => r.id === "professional")?.setUp).toBe(false);
   });
 
   it("reads a business agents row as the professional role", () => {
-    expect(roleStateFrom(APPROVED_BUSINESS, "agent").current).toBe("professional");
+    expect(roleStateFrom(APPROVED_BUSINESS, "working").current).toBe("professional");
   });
 
   it("treats a pending application as set up but not verified", () => {
-    const role = roleStateFrom(PENDING_BUSINESS, "agent").roles.find(
+    const role = roleStateFrom(PENDING_BUSINESS, "working").roles.find(
       (r) => r.id === "professional",
     );
     expect(role).toEqual({ id: "professional", setUp: true, verified: false });
@@ -58,8 +58,8 @@ describe("roleStateFrom", () => {
    * The cookie is a preference, not a permission. This is the case that would
    * otherwise show an agent dashboard switcher to somebody with no agents row.
    */
-  it("refuses an agent mode cookie on an account with no agents row", () => {
-    expect(roleStateFrom(null, "agent").current).toBe("renter");
+  it("refuses a working mode cookie on an account with no agents row", () => {
+    expect(roleStateFrom(null, "working").current).toBe("renter");
   });
 
   it("stays on renter in personal mode even for an approved agent", () => {

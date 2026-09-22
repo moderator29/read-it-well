@@ -1,4 +1,5 @@
 import type { UiIconName } from "@/design-system/icons/UiIcon";
+import type { Mode } from "@/lib/mode.constants";
 
 /**
  * ONE ACCOUNT, THREE ROLES.
@@ -187,7 +188,7 @@ export type AgentFacts = {
   verified: boolean;
 } | null;
 
-export function roleStateFrom(agent: AgentFacts, mode: "personal" | "agent"): RolesView {
+export function roleStateFrom(agent: AgentFacts, mode: Mode): RolesView {
   const professional = agent?.type === "business";
   const owner = agent?.type === "individual";
   /* Verified means the platform has actually decided, not that a form was
@@ -206,12 +207,12 @@ export function roleStateFrom(agent: AgentFacts, mode: "personal" | "agent"): Ro
    * The current role is the workspace mode narrowed by what the account is.
    *
    * `mode` is a cookie and a cookie is a preference, never an authorisation:
-   * an account with no agents row that somehow carries `nf_mode=agent` reads as
-   * a renter here, because that is what it is. The server routes under /agent
+   * an account with no agents row that somehow carries `nf_mode=working` reads
+   * as a renter here, because that is what it is. The server routes under /agent
    * enforce the same thing again, which is the check that matters.
    */
   let current: RoleId = "renter";
-  if (mode === "agent") {
+  if (mode === "working") {
     if (professional) current = "professional";
     else if (owner) current = "owner";
   }

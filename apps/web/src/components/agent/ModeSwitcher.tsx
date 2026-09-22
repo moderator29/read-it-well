@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n";
-import { MODE_COOKIE, type Mode } from "@/lib/mode.constants";
+import { writeModeCookie, type Mode } from "@/lib/mode.constants";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 
 /**
@@ -28,14 +28,14 @@ export function ModeSwitcher({
   const [open, setOpen] = useState(false);
 
   function choose(next: Mode) {
-    document.cookie = `${MODE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    writeModeCookie(next);
     startTransition(() => {
-      router.push(next === "agent" ? "/agent/dashboard" : "/home");
+      router.push(next === "working" ? "/agent/dashboard" : "/home");
       router.refresh();
     });
   }
 
-  const other: Mode = current === "agent" ? "personal" : "agent";
+  const other: Mode = current === "working" ? "personal" : "working";
 
   // Compact control used inside a rail: a single row that flips to the other mode.
   if (variant === "menu") {
@@ -46,9 +46,9 @@ export function ModeSwitcher({
         onClick={() => choose(other)}
         className="flex w-full items-center gap-sm rounded-[var(--nf-radius-md)] px-sm py-sm text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] disabled:opacity-60"
       >
-        <BrandIcon name={other === "agent" ? "homes-sparkle" : "user-check"} size={24} />
+        <BrandIcon name={other === "working" ? "homes-sparkle" : "user-check"} size={24} />
         <span className="flex-1 text-left leading-tight">
-          {other === "agent" ? t.agent.mode.switchToAgent : t.agent.mode.switchToPersonal}
+          {other === "working" ? t.agent.mode.switchToAgent : t.agent.mode.switchToPersonal}
           <span className="block text-[var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
             {t.agent.mode.manageSub}
           </span>
@@ -60,7 +60,7 @@ export function ModeSwitcher({
   // Full picker: the "Choose your mode" card.
   const options: { mode: Mode; icon: "user-check" | "homes-sparkle"; label: string; desc: string }[] = [
     { mode: "personal", icon: "user-check", label: t.agent.mode.personal, desc: t.agent.mode.personalDesc },
-    { mode: "agent", icon: "homes-sparkle", label: t.agent.mode.agent, desc: t.agent.mode.agentDesc },
+    { mode: "working", icon: "homes-sparkle", label: t.agent.mode.agent, desc: t.agent.mode.agentDesc },
   ];
 
   return (
@@ -71,8 +71,8 @@ export function ModeSwitcher({
         aria-expanded={open}
         className="nf-chip"
       >
-        <BrandIcon name={current === "agent" ? "homes-sparkle" : "user-check"} size={24} />
-        {current === "agent" ? t.agent.mode.agent : t.agent.mode.personal}
+        <BrandIcon name={current === "working" ? "homes-sparkle" : "user-check"} size={24} />
+        {current === "working" ? t.agent.mode.agent : t.agent.mode.personal}
       </button>
 
       {open && (

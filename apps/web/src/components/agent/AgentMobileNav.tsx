@@ -123,7 +123,7 @@ export function AgentMobileNav({
               visitorLabel={t.agent.mode.visitor}
               signInLabel={t.agent.mode.signInToWorkspace}
             />
-            <ModeSwitcher t={t} current="agent" variant="menu" />
+            <ModeSwitcher t={t} current="working" variant="menu" />
           </div>
         </div>
       </div>
