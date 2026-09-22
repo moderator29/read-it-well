@@ -358,6 +358,92 @@ them; build everything that does not wait on them, which is nearly all of it.
 
 ---
 
+### 5.1 The seven that will refuse us on submission one
+
+Twenty five numbered work orders are in the research file with file and line.
+These seven are the ones that decide whether we get in at all.
+
+1. **Google sign-in cannot survive the native shell, and two of our own files
+   say opposite things about it.** The Apple site association file
+   deliberately excludes `/auth/*`, while `src/lib/native/deep-links.ts` says
+   in its own words that OAuth is not survivable unless the callback is handed
+   back to the app, because the PKCE verifier cookie lives in the web view's
+   jar and not Safari's. A reviewer taps Continue with Google and comes back
+   to a signed-out application. Include `/auth/callback*` ahead of the
+   `/auth/*` exclusion, add the matching Android intent filter path prefix,
+   and prove it on a device.
+
+2. **Sign in with Apple is off while Google is on.** Guideline 4.8, automatic
+   refusal. Either wire Apple properly or offer neither and rely on our own
+   system alone. Wiring it is the right answer and it is already half written.
+
+3. **The airplane mode test fails.** The offline card in
+   `native-shell/index.html` is good and can never be reached in a shipping
+   build, because `server.url` is set and no `errorPath` is configured.
+   `server.errorPath` exists in the Capacitor CLI declarations. One line.
+
+4. **A person cannot be reported or blocked inside a one to one
+   conversation.** The database enforces blocks and only the social profile
+   menu can create one. Apple 1.2 and Play's user generated content policy
+   both require it on direct messaging. The content filter is fraud only: it
+   matches account numbers and payment words and knows nothing about abuse or
+   sexual content, and no image is moderated at all. There is no end user
+   licence agreement anywhere in the repository, and sign up shows a passive
+   terms notice rather than an acceptance. **This is the largest single piece
+   of missing product in the store track.** It closes with: report and block
+   in the thread, an acceptance at sign up recorded with its version and date,
+   an abuse filter beside the fraud one, image moderation on upload, and a
+   twenty four hour action commitment written into the terms and staffed.
+
+5. **The iOS location purpose string is false.** `Info.plist` promises the
+   position is never sent to Vallo, and two surfaces already send it, one of
+   them storing a six decimal fix. The Android manifest compounds it by
+   instructing whoever fills Play's data safety form to declare location not
+   shared and not stored, which would be a false declaration to Google. Fix
+   the string to describe what we actually do, fix the manifest comment, and
+   make the data safety instruction match the code.
+
+6. **`TravelTime` posts to `/api/travel-time`, which does not exist.**
+   Verified: the API directory has no travel route. It renders twice on the
+   listing page, so a reviewer grants a location permission and the control
+   silently does nothing. Delete it. It is the cause of item 5 and it does not
+   work.
+
+7. **The privacy policy claims analytics we do not do.** There is no analytics
+   or crash SDK in the dependency list. The policy, the Apple privacy label
+   and the Play data safety form cannot all be true at once. Make all three
+   describe the same reality, and note that section 8 item 1 of this handoff
+   adds first party analytics, so write it for what will be true on submission
+   day, not for what is true this afternoon.
+
+### 5.2 Two rulings
+
+**Crypto goes dark for version one.** The `/crypto` routes return
+`notFound()`, not merely an environment gate. A token price table inside a
+property application invites the content aggregator refusal and the crypto
+financial declarations on both stores, for zero launch value. B6 in
+`HANDOFF_05` is therefore deferred, not cancelled, and the proxy work stops.
+
+**The example listings are the sharpest edge in the store track.** The
+syndication file's own comment says forty two; the live count today is sixty
+four, and all sixty four are examples. A two word badge is not enough. The
+detail page carries the full statement in words, the review notes disclose it
+verbatim, and section 1.1 of this handoff removes them from every count. Play
+has no review notes field, which means on Play the product itself has to be
+honest without a covering letter.
+
+### 5.3 What is already clear, so nobody spends a day on it
+
+Account deletion is genuinely excellent and already meets Apple 5.1.1(v) and
+Play's dual in-app plus web URL rule. Play target API 36 is met. No restricted
+permissions, no media permissions. Release build hygiene is unusually good:
+not debuggable, R8 on, backup off, unsigned when the keystore is absent.
+Export compliance is pre-answered. The 16KB page size requirement is satisfied
+because there are no native libraries. And Paystack for real world services is
+the correct answer under Apple 3.1.3(e) and Play's physical services
+exemption: the appeal text for the 3.1.1 argument is written out in the
+research file, ready to paste.
+
 ## 6. Track E: the interface reads as one product
 
 The research is `docs/research/UI_UNIQUENESS_AND_ADMIN_RESEARCH.md`, parts one
