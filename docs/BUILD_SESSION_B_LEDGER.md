@@ -30,6 +30,22 @@ Every surface gets three sections before it can be called finished:
 
 (pending)
 
+## 6. Admin shell, overview, operations, analytics
+
+(pending)
+
+## 7. Admin review desks: listings queue, listing under review, moderation, verification
+
+(pending)
+
+## 8. Admin money desks: money, escrow, supply
+
+(pending)
+
+## 9. Inspection
+
+(pending)
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)
