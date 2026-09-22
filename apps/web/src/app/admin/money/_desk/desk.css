@@ -19,8 +19,12 @@
 @layer components {
   /* ------------------------------------------------------------ the page */
 
+  /* One column that may never grow past the page: an auto track sizes to
+     the widest thing's min-content, and the escrow status chip row pushed it
+     to 1,007px on a 390 phone (measured). */
   .nf-md {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-space-md);
     min-width: 0;
   }
@@ -37,12 +41,14 @@
     justify-content: space-between;
     gap: var(--nf-space-sm);
   }
+  /* Same head as every other desk (admin.css .nf-admin-page-head__title),
+     so moving between desks never changes the page's first line. */
   .nf-md-head__title {
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h2);
-    font-weight: 600;
+    font-size: clamp(1.375rem, 1.1rem + 0.7vw, 1.625rem);
+    font-weight: 700;
     line-height: 1.15;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--nf-tracking-tight);
     color: var(--nf-content-primary);
   }
   .nf-md-head__lede {
@@ -59,16 +65,18 @@
 
   /* ------------------------------------------------ the lit glass container */
 
+  /* The console's one panel surface, read from the shell's own properties
+     (admin.css .nf-admin-panel), so a money card and an overview card are the
+     same object. */
   .nf-md-card {
     position: relative;
     min-width: 0;
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-glass-card-fill);
+    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    background: var(--nf-admin-panel-fill);
     box-shadow:
-      var(--nf-rim-lit),
-      var(--nf-glow-edge),
-      var(--nf-bloom-card);
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+      var(--nf-admin-panel-glow);
   }
   /* The render's catchlight along the top edge: a hairline that is brightest
      in the middle and gone at the corners, drawn inside the border. */
@@ -99,7 +107,8 @@
     margin-bottom: var(--nf-space-md);
   }
   .nf-md-panel__title {
-    font-size: var(--nf-text-h4);
+    font-family: var(--nf-font-display);
+    font-size: 1rem;
     font-weight: 600;
     line-height: 1.25;
     color: var(--nf-content-primary);
@@ -149,9 +158,8 @@
     a.nf-md-kpi:hover {
       border-color: var(--nf-border-brand);
       box-shadow:
-        var(--nf-rim-lit),
-        var(--nf-glow-edge-strong),
-        var(--nf-bloom-card);
+        inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+        var(--nf-glow-edge-strong);
     }
   }
   a.nf-md-kpi:focus-visible {
@@ -161,9 +169,8 @@
   .nf-md-kpi[aria-current="true"] {
     border-color: var(--nf-border-brand);
     box-shadow:
-      var(--nf-rim-lit),
-      var(--nf-glow-edge-strong),
-      var(--nf-bloom-card);
+      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
+      var(--nf-glow-edge-strong);
   }
   .nf-md-kpi__label {
     font-size: var(--nf-text-caption);
@@ -172,16 +179,11 @@
   }
   .nf-md-kpi__value {
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h3);
-    font-weight: 600;
-    line-height: 1.2;
+    font-size: clamp(1.375rem, 1rem + 0.9vw, 2.125rem);
+    font-weight: 700;
+    line-height: 1.1;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
-  }
-  @media (min-width: 1280px) {
-    .nf-md-kpi__value {
-      font-size: var(--nf-text-h2);
-    }
   }
   .nf-md-kpi__value--quiet {
     font-size: var(--nf-text-body);
@@ -241,6 +243,7 @@
   }
   .nf-md-stack {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-space-md);
     align-content: start;
   }
@@ -329,11 +332,13 @@
   .nf-md-table .nf-md-desc {
     color: var(--nf-brand-quiet);
   }
-  .nf-md-credit {
+  .nf-md-credit,
+  .nf-md-table .nf-md-credit {
     color: var(--nf-state-success);
     font-weight: 500;
   }
-  .nf-md-debit {
+  .nf-md-debit,
+  .nf-md-table .nf-md-debit {
     color: var(--nf-content-primary);
     font-weight: 500;
   }
@@ -523,7 +528,7 @@
     border-radius: var(--nf-radius-circle);
   }
   .nf-md-swatch--square {
-    border-radius: var(--nf-radius-xs);
+    border-radius: 0.125rem;
   }
 
   /* The hover readout: a thin client layer over a server-drawn chart. */
@@ -897,11 +902,6 @@
 
 /* --------------------------------------------------------------- on paper */
 @layer components {
-  :root[data-theme="light"] .nf-md-card {
-    box-shadow:
-      var(--nf-rim-lit),
-      var(--nf-glass-shadow-thin);
-  }
   :root[data-theme="light"] .nf-md-card::before {
     display: none;
   }

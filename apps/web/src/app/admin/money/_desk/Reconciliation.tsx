@@ -76,13 +76,15 @@ export function ReconciliationPanel({
         <div className={`nf-md-check ${plate}`} aria-hidden="true">
           <UiIcon name={verdict === "healthy" ? "verified" : "info"} size={26} />
         </div>
-        <StatusPill tone={badge.tone} size="sm">
-          {badge.word}
-        </StatusPill>
-        <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
-          Last run: {when(health.lastRunAt)}
-        </p>
-        <p className="nf-md-panel__foot">{scope}</p>
+        <div className="text-center">
+          <StatusPill tone={badge.tone} size="sm">
+            {badge.word}
+          </StatusPill>
+          <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+            Last run: {when(health.lastRunAt)}
+          </p>
+          <p className="nf-md-panel__foot">{scope}</p>
+        </div>
       </Panel>
     );
   }

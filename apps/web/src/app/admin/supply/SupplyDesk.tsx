@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LiveRefresh } from "../_components/LiveRefresh";
 import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { DeskHead, Kpi, NumberedPager, Panel, Waiting } from "../money/_desk/Desk";
@@ -85,6 +86,7 @@ export function SupplyDesk({
 
   return (
     <div className="nf-console nf-md">
+      <LiveRefresh />
       <DeskHead
         title="Supply"
         lede="More supply. More choice. A stronger marketplace."
@@ -289,7 +291,8 @@ function GrowthPanel({ supply, locale }: { supply: SupplyConsole | null; locale:
         xLabels={supply.growth.map((g) => label(g.month))}
         series={series}
         directLabels
-        height={260}
+        width={380}
+        height={300}
         label="Accounts in each supply role at the end of each month"
         yLabel={(v) => String(Math.round(v))}
         readout={supply.growth.map((g) => ({

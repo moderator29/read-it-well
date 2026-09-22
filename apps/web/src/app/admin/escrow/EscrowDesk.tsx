@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LiveRefresh } from "../_components/LiveRefresh";
 import { Fragment } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n";
 import type { EscrowView } from "@/lib/admin/money-queries";
@@ -6,7 +7,6 @@ import type { EscrowDesk as EscrowDeskData } from "@/lib/admin/reads/escrow";
 import { Constants } from "@/lib/supabase/database.types";
 import { ESCROW_STATE_WORDS } from "@/components/app/untranslated";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { AdminUi } from "../_components/ui";
 import type { AdminCommon } from "../_components/copy";
@@ -135,6 +135,7 @@ export function EscrowDesk({
 
   return (
     <div className="nf-console nf-md">
+      <LiveRefresh />
       <EscrowHead />
 
       <nav className="nf-md-pipeline" aria-label="Escrows by state">
@@ -308,7 +309,7 @@ function EscrowTable({
               <td className="nf-md-lead" data-label="">
                 <span className="nf-md-cell-row">
                   <span className="nf-md-thumb" aria-hidden="true">
-                    <BrandIcon name="shield-home" size={30} />
+                    <UiIcon name="wallet" size={20} className="text-[var(--nf-brand-quiet)]" />
                   </span>
                   <span className="min-w-0">
                     <span className="block font-medium text-[var(--nf-content-primary)]" title={escrow.id}>

@@ -1,4 +1,3 @@
-import { rampAlpha } from "@/components/ui/charts/palette";
 import { ChartReadout, type ReadoutColumn } from "./ChartReadout";
 
 /**
@@ -15,6 +14,67 @@ import { ChartReadout, type ReadoutColumn } from "./ChartReadout";
  * down as text (`ChartReadout`), and every chart carries a visually hidden
  * table of the same figures for assistive technology.
  */
+
+/**
+ * THE BLUE RAMP, BY LIGHTNESS. One hue family, five rungs that step in
+ * lightness rather than opacity, because opacity steps on one blue read as
+ * one colour at a glance (measured on the first proof: three donut slices
+ * were indistinguishable). Rank 0 is the largest or the first series. Every
+ * rung is a semantic token with a light-theme twin.
+ */
+const RAMP = [
+  "var(--nf-brand-primary)",
+  "var(--nf-brand-quiet)",
+  "var(--nf-brand-primary-strong)",
+  "var(--nf-state-info)",
+  "var(--nf-brand-tint-4)",
+] as const;
+
+export function rampColor(rank: number): string {
+  return RAMP[Math.min(Math.max(0, Math.trunc(rank)), RAMP.length - 1)]!;
+}
+
+/**
+ * A smooth path through the points (monotone cubic, so the curve never
+ * overshoots a value and never draws a dip or a peak the data does not have).
+ */
+export function smoothPath(pts: readonly [number, number][]): string {
+  if (pts.length === 0) return "";
+  if (pts.length < 3) return `M${pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" L")}`;
+  const n = pts.length;
+  const dx: number[] = [];
+  const m: number[] = [];
+  for (let i = 0; i < n - 1; i += 1) {
+    dx.push(pts[i + 1]![0] - pts[i]![0]);
+    m.push((pts[i + 1]![1] - pts[i]![1]) / (dx[i] || 1));
+  }
+  const t: number[] = [m[0]!];
+  for (let i = 1; i < n - 1; i += 1) t.push(m[i - 1]! * m[i]! <= 0 ? 0 : (m[i - 1]! + m[i]!) / 2);
+  t.push(m[n - 2]!);
+  for (let i = 0; i < n - 1; i += 1) {
+    if (m[i] === 0) {
+      t[i] = 0;
+      t[i + 1] = 0;
+      continue;
+    }
+    const a = t[i]! / m[i]!;
+    const b = t[i + 1]! / m[i]!;
+    const h = a * a + b * b;
+    if (h > 9) {
+      const k = 3 / Math.sqrt(h);
+      t[i] = k * a * m[i]!;
+      t[i + 1] = k * b * m[i]!;
+    }
+  }
+  let d = `M${pts[0]![0].toFixed(1)},${pts[0]![1].toFixed(1)}`;
+  for (let i = 0; i < n - 1; i += 1) {
+    const [x0, y0] = pts[i]!;
+    const [x1, y1] = pts[i + 1]!;
+    const h = dx[i]! / 3;
+    d += ` C${(x0 + h).toFixed(1)},${(y0 + t[i]! * h).toFixed(1)} ${(x1 - h).toFixed(1)},${(y1 - t[i + 1]! * h).toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  return d;
+}
 
 /** The next "nice" ceiling: 1, 2, 2.5 or 5 times a power of ten. */
 export function niceCeil(value: number): number {
@@ -36,7 +96,6 @@ export type Series = {
   dash?: string;
 };
 
-const W = 720;
 const PAD = { left: 64, right: 16, top: 16, bottom: 30 };
 
 export function SeriesChart({
@@ -48,6 +107,7 @@ export function SeriesChart({
   height = 240,
   label,
   directLabels = false,
+  width = 720,
 }: {
   /** Unique on the page, for the gradient ids. */
   id: string;
@@ -61,7 +121,14 @@ export function SeriesChart({
   label: string;
   /** Print each series' name at its last point. */
   directLabels?: boolean;
+  /**
+   * The drawing's width in its own units. Match it roughly to the card's CSS
+   * width so the axis type lands near its CSS size: 720 for a full-width
+   * panel, about 360 for the narrow column.
+   */
+  width?: number;
 }) {
+  const W = width;
   const H = height;
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
@@ -78,8 +145,8 @@ export function SeriesChart({
         <defs>
           {series.map((s) => (
             <linearGradient key={s.name} id={`${id}-${s.rank}`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" style={{ stopColor: "var(--nf-brand-primary)", stopOpacity: 0.55 * rampAlpha(s.rank) }} />
-              <stop offset="100%" style={{ stopColor: "var(--nf-brand-primary)", stopOpacity: 0.04 }} />
+              <stop offset="0%" style={{ stopColor: rampColor(s.rank), stopOpacity: 0.5 }} />
+              <stop offset="100%" style={{ stopColor: rampColor(s.rank), stopOpacity: 0.03 }} />
             </linearGradient>
           ))}
         </defs>
@@ -101,10 +168,9 @@ export function SeriesChart({
         )}
 
         {series.map((s) => {
-          const points = s.values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
-          const line = `M${points.join(" L")}`;
+          const line = smoothPath(s.values.map((v, i) => [x(i), y(v)] as [number, number]));
           const area = `${line} L${x(n - 1).toFixed(1)},${y(0)} L${x(0).toFixed(1)},${y(0)} Z`;
-          const alpha = rampAlpha(s.rank);
+          const colour = rampColor(s.rank);
           return (
             <g key={s.name}>
               {s.area && n > 1 && <path d={area} fill={`url(#${id}-${s.rank})`} />}
@@ -112,7 +178,7 @@ export function SeriesChart({
                 <path
                   d={line}
                   fill="none"
-                  style={{ stroke: s.rank === 0 ? "var(--nf-brand-primary)" : "var(--nf-brand-quiet)", strokeOpacity: alpha }}
+                  style={{ stroke: colour }}
                   strokeWidth="2.25"
                   strokeLinejoin="round"
                   strokeLinecap="round"
@@ -125,7 +191,7 @@ export function SeriesChart({
                   cx={x(i)}
                   cy={y(v)}
                   r={n > 12 ? 0 : 3}
-                  style={{ fill: s.rank === 0 ? "var(--nf-brand-primary)" : "var(--nf-brand-quiet)", fillOpacity: alpha }}
+                  style={{ fill: colour }}
                 />
               ))}
               {directLabels && n > 0 && (
@@ -185,7 +251,7 @@ export function SeriesLegend({ series }: { series: Pick<Series, "name" | "rank" 
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeDasharray={s.dash}
-              style={{ stroke: s.rank === 0 ? "var(--nf-brand-primary)" : "var(--nf-brand-quiet)", strokeOpacity: rampAlpha(s.rank) }}
+              style={{ stroke: rampColor(s.rank) }}
             />
           </svg>
           {s.name}
@@ -249,7 +315,7 @@ export function Donut({
                 strokeWidth="16"
                 strokeDasharray={a.dash}
                 strokeDashoffset={a.off}
-                style={{ stroke: "var(--nf-brand-primary)", strokeOpacity: rampAlpha(a.rank) }}
+                style={{ stroke: rampColor(a.rank) }}
               />
             ) : null,
           )}
@@ -267,7 +333,7 @@ export function Donut({
             <span
               className="nf-md-swatch nf-md-swatch--square"
               aria-hidden="true"
-              style={{ background: "var(--nf-brand-primary)", opacity: rampAlpha(rank) }}
+              style={{ background: rampColor(rank) }}
             />
             <span className="truncate">{s.label}</span>
             <span className="nf-md-slice__share">{total > 0 ? `${Math.round((s.count / total) * 100)}%` : "0%"}</span>

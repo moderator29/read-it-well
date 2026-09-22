@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LiveRefresh } from "../_components/LiveRefresh";
 import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import type { AdminRead } from "@/lib/admin/queries";
 import type { EscrowConsole, MoneyConsole, RefundConsole } from "@/lib/admin/money-queries";
@@ -62,6 +63,7 @@ export function MoneyDesk({
 
   return (
     <div className="nf-console nf-md">
+      <LiveRefresh />
       <MoneyHead />
 
       {/* Stuck first. It is the only thing here somebody is waiting on. */}
@@ -394,15 +396,17 @@ function LedgerPanel({
                     {ui.day(row.createdAt)}
                   </td>
                   <td className="nf-md-desc" data-label="Description">
-                    <span className="flex flex-wrap items-center justify-end gap-xs md:justify-start">
-                      {row.note ?? ui.columnLabel("walletEntryKind", row.kind)}
-                      {row.ownerName ? ` · ${row.ownerName}` : ""}
-                      {row.status !== "COMPLETED" && (
-                        <ui.StatusChip label={ui.columnLabel("walletEntryStatus", row.status)} status={row.status} />
-                      )}
+                    <span className="block min-w-0">
+                      <span className="flex flex-wrap items-center justify-end gap-xs md:justify-start">
+                        {row.note ?? ui.columnLabel("walletEntryKind", row.kind)}
+                        {row.ownerName ? ` · ${row.ownerName}` : ""}
+                        {row.status !== "COMPLETED" && (
+                          <ui.StatusChip label={ui.columnLabel("walletEntryStatus", row.status)} status={row.status} />
+                        )}
+                      </span>
+                      {/* The reference, never clipped: it is what a payment is traced by. */}
+                      <span className="nf-md-ref">{row.reference}</span>
                     </span>
-                    {/* The reference, never clipped: it is what a payment is traced by. */}
-                    <span className="nf-md-ref">{row.reference}</span>
                   </td>
                   <td data-label="Type" className={row.direction === "credit" ? "nf-md-credit" : "nf-md-debit"}>
                     {row.direction === "credit" ? "Credit" : "Debit"}

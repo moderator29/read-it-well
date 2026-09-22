@@ -40,7 +40,207 @@ Every surface gets three sections before it can be called finished:
 
 ## 8. Admin money desks: money, escrow, supply
 
-(pending)
+Worker admin-money. Governing images: panel 3 of `C1D98B3C` (Money), panels 1
+and 3 of `8E9602E2` (Escrow, Supply). Routes `/admin/money`, `/admin/escrow`,
+`/admin/supply` (new). `/admin/bookings` and `/admin/payments` keep their
+behaviour and wear the shell's register; they were not restyled beyond it.
+
+Files: `app/admin/money/{page,MoneyDesk,MoneyRows}.tsx`,
+`app/admin/money/_desk/{Desk,charts,ChartReadout,Reconciliation}.tsx` and
+`desk.css`, `app/admin/escrow/{page,EscrowDesk}.tsx`,
+`app/admin/supply/{page,SupplyDesk,loading}.tsx`, and the reads
+`lib/admin/reads/{money,escrow,supply,money-derive,money-types}.ts` with
+`money.test.ts`, `escrow.test.ts`, `supply.test.ts`, `money-derive.test.ts`
+(40 tests). Handbook: `docs/ADMIN_CONSOLE.md` sections 8 to 12, and the money
+desks' parts of 16, 17 and 18.
+
+### 8.1 The chain, per desk
+
+**Money.**
+- Screen: `/admin/money` (server component, `force-dynamic`, `LiveRefresh`
+  re-runs the reads every 60 seconds and on tab focus).
+- Query: `getMoneyDesk` (`lib/admin/reads/money.ts`): `requireAdmin()` then the
+  admin's RLS client, `readEvery` over `wallet_entries`, `wallets`, `escrows`,
+  FAILED `transactions` of the last 14 days, the count checked against
+  `count: "exact"`. `getReconciliationHealth`: every
+  `wallet.reconciliation.run` row in `audit_log` in 7 days, plus the newest
+  clean run and newest run of all time. Existing reads kept:
+  `getMoneyConsole` (stuck debits, wallets), `getRefundConsole`,
+  `getEscrowConsole({ status: "DISPUTED" })`.
+- Policies (read live, `pg_policies`): `wallet_entries_select_admin`,
+  `wallets_select_admin`, `escrows_select_admin`,
+  `transactions_admin_select`, `audit_log_admin_select`,
+  `profiles_select_admin`, all `private.has_role(auth.uid(), admin |
+  super_admin)`. No policy was widened; no service role is used by the new
+  reads.
+- Writers of the rows it reads: the Paystack webhook and reconcile route
+  (`wallet_entries`, `transactions`), `recordMoneyAudit` (the reconciliation
+  audit rows, `app/api/paystack/reconcile/route.ts`), the escrow functions.
+- Control: the dispute ruling (`EscrowRuling`, Session A's
+  `_components/MoneyDecisions.tsx`), unchanged. Action `resolveEscrow`
+  (`lib/admin/money-actions.ts`), zod validation (uuid, release | refund, note
+  20 to 1000 chars), RPC `public.escrow_admin_resolve` (security definer,
+  repeats the role check, refuses non-DISPUTED), `private.escrow_settle`,
+  trigger `escrows_guard_transition` writes the audit row, notification
+  `private.notify(payer | payee, 'wallet', ...)` with the ruling word for word,
+  then `revalidatePath("/admin/escrow")`. Read from `pg_proc` source on 22
+  September. The money page is `force-dynamic` and live-refreshed, so it shows
+  the new state too.
+- Broken links: `private.reconciliation_watch` (the job's last HTTP reply and
+  verdict) is unreachable by any admin read; request 10 in the scope file asks
+  for an admin-callable function. Nothing else is broken on this chain.
+
+**Escrow.**
+- Screen `/admin/escrow`, `LiveRefresh`. Query `getEscrowDesk`
+  (`lib/admin/reads/escrow.ts`): every `escrows` row with `listings ( title )`
+  once, count checked, pipeline by state and purpose, the seven transition
+  timestamps into "recent activity", the float, every dispute unpaged, the
+  narrowed numbered page; names from `profiles`. Policies
+  `escrows_select_admin`, `listings_admin_all`, `profiles_select_admin`.
+- Controls: the six pipeline tiles are links (`?status=`), the shared
+  `QueueFilters` (search by property, status chips, date range), numbered
+  pager (`?page=`), and the dispute ruling (chain as above).
+- Broken links: none found. `escrows` holds zero rows today, so the ruling
+  path was verified by reading code and function source, not by running it.
+
+**Supply.**
+- Screen `/admin/supply` (new route; admin-shell's rail already carries the
+  Supply row), `LiveRefresh`. Query `getSupplyDesk`
+  (`lib/admin/reads/supply.ts`): `agents`, `agent_applications (supply_role)`,
+  `businesses`, `listings`, `accommodations`, released `escrows`,
+  CONFIRMED and COMPLETED `bookings`, each read whole. Role resolution mirrors
+  `lib/supply/workspaces-queries.ts` and `kindFromAgentType`. Policies
+  `agents_select_admin`, `agent_applications_select_admin`,
+  `businesses_admin_all`, `listings_admin_all`, `accommodations_admin_all`,
+  `escrows_select_admin`, `bookings_admin_all`.
+- Controls: role cards are links (`?role=`), the examples toggle
+  (`?examples=1`), numbered pager. No writes.
+- Demo rule (founder claims ruling R4): `is_demo` rows are excluded from every
+  figure unless the operator asks, and the page prints how many were left
+  out. On 22 September that is every supply row there is, so the live desk
+  reads zero across the board and says why.
+
+### 8.2 Measured comparison
+
+Scale. Each render panel is a browser window 485 image px wide
+(`C1D98B3C` panel 3: x 1033 to 1518; `8E9602E2` panels: 490 px). At the
+brief's 1440 CSS px per window that is 2.97 CSS px per image px, and it puts
+body text at about 36 CSS px and KPI cards at 252 CSS px tall, which is not a
+console at 1440; the renders are zoomed. Type-consistent scale, from ledger
+row text (cap height 6 image px against a 13 to 14 px body), is about 1.7. So
+PROPORTIONS (grid fractions, aspect of cards, column shares) are taken from
+the image, and SIZES follow the shell's measured type scale so every desk
+reads alike. Colours sampled with `sample` over 3x3 boxes.
+
+| Property | Image (measured) | Built (measured, 1440 dark) | Match |
+|---|---|---|---|
+| Page ground | `#000d2a` | shell canvas, same token as every desk | yes (shell's) |
+| Card fill | `#00153e` to `#001646` | `--nf-admin-panel-fill` (shell) | yes |
+| Card border | `#003c8a` to `#1085bc`, lit | `--nf-admin-panel-edge`, 1px | yes |
+| Top rim | brighter hairline on top edge | inset 1px rim at 55% plus a centred catchlight `::before` | yes |
+| Glow | soft blue outside each card | `--nf-admin-panel-glow` (0 0 22px, 22%) | yes |
+| Card radius | 5 img px on 82 px cards (6%) | 14px on ~330px cards (4%), `--nf-radius-md` | close |
+| KPI row | 4 equal cards, gap 7 img px | 4 equal, gap 16px | yes |
+| KPI label | 10 img px wide cap, `#1085bc` blue | 13px 500, `--nf-brand-quiet` | yes |
+| KPI figure | cap 12 img px, white bold | clamp 22 to 34px 700 display face | yes |
+| Delta | green arrow, `+12%`, "vs last week" muted | emerald/rose arrow glyph, whole %, muted "vs ..." | yes |
+| Money chart | full width, 2 series, smooth, filled, legend top right | full width, 2 series, monotone curves, filled, legend top right, dashed second series, hover readout | yes |
+| Recon + summary | 54 : 46 split | 1.17fr : 1fr | yes |
+| Recon ring | emerald ring, % centre, "Last successful run", Healthy badge | same; badge on the shape law | yes |
+| Ledger columns | Date 17%, Description 31%, Type 12%, Amount 17%, Balance 23% | Date, Description (reference under it), Type, Amount, Balance | yes |
+| Credit colour | `#1aba8d` emerald | `--nf-state-success` | yes |
+| Pager | squares, active lit blue, 1 2 3 4 5 ... 12 | rounded squares 44px, active gradient + rim + bloom, same numbering | yes |
+| Escrow pipeline | 6 cards with arrows | 6 linked cards with arrow glyphs | yes |
+| Escrow table | photo thumb, id, amount, from to, purpose, days, countdown in emerald | line glyph plate (no photo in the read), same columns, emerald countdown | partly (no photo) |
+| Float total | figure with short cyan rule | same | yes |
+| Recon check | emerald check disc, Healthy, last run | same, centred | yes |
+| Donuts | teal, mauve, pink slices | one blue ramp by lightness, word + share + count per slice | translated |
+| Supply table | name, role, listings, tick, transacted, joined | same, tick carries the word Yes/No | yes |
+| Supply growth | 4 lines, 4 hues | 4 lines on the blue ramp, dash patterns, direct labels | translated |
+| Top areas | ranked bars | ranked bars | yes |
+| Status badges | pill-ish chips | `StatusPill` rounded rectangle | shape law wins |
+
+### 8.3 Refused from the render
+
+- Every count, amount and percentage drawn in the three panels (₦842,500 float,
+  548 escrows, 1,248 owners and the rest). The desks print only what the
+  database returns.
+- The render's off-palette donut slices (teal, mauve, pink) and the four-hue
+  growth chart: research part four proved no four-slot palette passes our
+  colour law; translated to the blue ramp plus words and dash patterns.
+- Property photographs in the escrow rows: `escrows` has no photo and the read
+  does not join one; a line glyph plate stands in.
+- "Last successful run 98%" as a single figure: built as the share of runs in
+  the last seven days, and the badge reports silence before the share.
+
+### 8.4 Light mode
+
+Checked at 1440 on all three desks (`docs/design/proofs/session-b/admin-money/`).
+Cards take the shell's paper surface and edge; no glow; charts follow the
+ramp tokens' light twins; the credit colour and badges take the daylight state
+tokens from `2596ed9`. One defect found and fixed: the escrow row plate was a
+dark glass object on paper; replaced with a line glyph.
+
+### 8.5 Phone 390
+
+One defect found and fixed: on the escrow desk the page grid's auto column
+grew to the status chip row's min-content (1,007px measured) so everything
+ran off the right edge. `.nf-md` now declares `minmax(0, 1fr)`. Tables become
+self-naming rows below 768px; the pipeline is two columns; charts scale.
+
+### 8.6 Measured built values, shape sweep and checks
+
+Built, measured in the browser at 1440 dark (`getComputedStyle`): page title
+26px 700 white; lede 14px `rgb(92 159 255)`; KPI card 284 x 122, radius 14px,
+edge the shell's panel edge; KPI label 13px 500 `rgb(92 159 255)`; KPI figure
+28.96px 700; delta 13px 600 `rgb(16 185 129)`; panel title 16px 600; table
+head 13px 500 quiet blue; table row 65px (the render's rows are about 42px at
+the type-consistent scale; ours carry the payment reference on a second line,
+which the render omits and which support needs); pager items 44 x 44, radius
+10px (ratio 0.23), the current one on the lit primary gradient with the
+primary rim and bloom.
+
+`node scripts/design/compare-surface.mjs --shape-sweep --theme both` over
+`/preview/zz-am/{money,escrow,supply}?state=full` and
+`/preview/zz-am/{money,supply}?state=live` at 390 and 1536:
+
+```
+BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
+WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 45
+ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 0
+no text-bearing control is a capsule.
+```
+
+All 45 "worth an eye" are the shell's (the "All desks" nav row at 0.39, the
+bar's search input and the shared status chips at 0.35); none is on a money
+desk's own control. `check-css-tokens.mjs`: clean. `tsc --noEmit`: clean (also
+by `next build`). `eslint` on every changed file: clean. `vitest run
+src/lib/admin/reads`: 40 passed.
+
+### 8.7 Proofs
+
+All desk screenshots come from an uncommitted harness at
+`/preview/zz-am/{money,escrow,supply}` that renders the real desk components
+inside admin-shell's real `AdminFrame` with FIXTURE props, because no admin
+session exists on this box. Two fixture states: `live` mirrors the rows the
+production database held on 22 September (read with SQL: one wallet, two
+entries, no escrows, every supply row an example); `full` is invented data
+used only to prove the layout against the render. The live wiring is proven by
+the reads' code, the SQL introspection above and the 40 unit tests, not by a
+signed-in screenshot.
+
+### 8.8 Skipped or not verified
+
+- No signed-in run of the real pages: no admin test user may be created.
+- The escrow ruling was not exercised end to end (zero escrows exist).
+- `private.reconciliation_watch` not surfaced (request 10).
+- Bookings and payments were not restyled beyond the shell's register.
+- The render's escrow row photographs.
+- An incident during the work: once, before the coordinator's warning, this
+  worker ran `git stash` and `git stash pop` in its worktree; the stash is
+  shared across worktrees. The popped change set was this worker's own (the
+  file list matched), but it is recorded here in case another worker lost
+  work around 20:35.
 
 ## 9. Inspection
 
@@ -554,3 +754,9 @@ light variant by design (theme.ts: dark in the layer every client honours).
 - Welcome email (section 10): not rendered in any real mail client (Outlook,
   Gmail, Apple Mail); the Resend key in production not verified; links not
   clicked through signed in.
+- admin-money: no signed-in run of `/admin/money`, `/admin/escrow`,
+  `/admin/supply` (no admin test user); proofs are fixture-backed through a
+  harness. The escrow ruling was not exercised (zero escrows). The
+  reconciliation job's HTTP reply (`private.reconciliation_watch`) is not on
+  the desks (scope request 10). Bookings and payments were not restyled beyond
+  the shell's register. Escrow row photographs not drawn.
