@@ -56,6 +56,48 @@ export const ig: Dictionary = withFallback({
       getStarted: "Malite",
       step: "Nzọụkwụ {n} nke {total}",
     },
+    /* First run's other slides and its closing choice. Needs native review. */
+    firstRun: {
+      carousel: "Ịmalite na Vallo",
+      slideLive: "Peeji {n} nke {total}: {title}",
+      next: "Ọzọ",
+      verified: {
+        titleA: "Enyochara pụtara",
+        titleB: "mmadụ lelere ya.",
+        body: "Akara nyocha pụtara na onye na Vallo lere kaadị njirimara gọọmentị nke onye nnọchite ahụ anya, site n'aka. Ọ bụ maka onye ahụ, ọ bụghị ụlọ ahụ.",
+        left: "Onye nnọchite",
+        right: "Njirimara",
+        art: "Onye nnọchite, kaadị njirimara na akara nyocha",
+      },
+      safe: {
+        titleA: "Kwuo okwu mbụ.",
+        titleB: "Kwụọ ụgwọ mgbe o doro gị anya.",
+        body: "Zitere onye nnọchite ma ọ bụ onye nnabata ozi ma hazie nleta mbụ. Mgbe ị na-akwụ ụgwọ, kwụọ na Vallo, ọ bụghị onye ọ bụla nọ n'èzí ya.",
+        left: "Ozi",
+        right: "Kwụọ",
+        art: "Mkparịta ụka, nleta na obere akpa ego",
+      },
+      choice: {
+        titleA: "Anyị dị njikere",
+        titleB: "mgbe ị chọrọ.",
+        body: "Akaụntụ na-enye gị ohere ichekwa, izipu ozi na ịrịọ nleta. Ilele adịghị achọ akaụntụ, ya mere ị nwere ike ilele anya mbụ.",
+        left: "Lelee anya",
+        right: "Akaụntụ",
+        art: "Ilele na akaụntụ, na mkpụrụ ego n'etiti ha",
+        create: "Mepụta akaụntụ",
+        signIn: "Banye",
+        browse: "Lelee anya mbụ",
+      },
+      member: {
+        titleA: "Ị banyela.",
+        titleB: "Mee ya nke gị.",
+        bodyAsk: "Otu ajụjụ na-esote, ka ụlọ mepee n'ahịa ndị ị na-achọ.",
+        bodyDone: "Ụlọ na-emepe n'akụkụ abụọ ahụ. Mkpụrụ ego dị na menu na-atụgharị n'etiti ha.",
+        continue: "Gaa n'ihu",
+        home: "Gaa n'ụlọ",
+      },
+      worldsArt: "Ụlọ na Ebe obibi, na mkpụrụ ego na-atụgharị n'etiti ha",
+    },
     /*
      * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
      *

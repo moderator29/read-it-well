@@ -77,6 +77,53 @@ export const en = {
       getStarted: "Get Started",
       step: "Step {n} of {total}",
     },
+    /* The other three slides of first run and the choice it ends on. Every
+       sentence is a statement the product stands behind today: the tick is
+       `agent_badges.verified`, which is tier 1 of the ladder in
+       `lib/trust/verification.ts` (a member of staff has seen the agent's
+       government ID) and says nothing about the property; paying on Vallo is
+       advice, not a guarantee; browsing is open signed out (`proxy.ts`). */
+    firstRun: {
+      carousel: "Getting started with Vallo",
+      slideLive: "Slide {n} of {total}: {title}",
+      next: "Next",
+      verified: {
+        titleA: "Verified means",
+        titleB: "a person checked.",
+        body: "The tick means someone at Vallo checked the agent's government ID by hand. It is about the person, not the property.",
+        left: "Agent",
+        right: "ID",
+        art: "An agent, an identity card and the verified mark",
+      },
+      safe: {
+        titleA: "Talk first.",
+        titleB: "Pay when sure.",
+        body: "Message the agent or host and arrange a viewing first. When you pay, pay on Vallo, never to anybody outside it.",
+        left: "Message",
+        right: "Pay",
+        art: "A conversation, a viewing and a wallet",
+      },
+      choice: {
+        titleA: "Ready when",
+        titleB: "you are.",
+        body: "An account lets you save, message and ask for viewings. Browsing needs none, so you can look around first.",
+        left: "Browse",
+        right: "Account",
+        art: "Browsing and an account, with the coin between them",
+        create: "Create account",
+        signIn: "Sign in",
+        browse: "Look around first",
+      },
+      member: {
+        titleA: "You are in.",
+        titleB: "Make it yours.",
+        bodyAsk: "One question next, so home opens on the markets you care about.",
+        bodyDone: "Home opens on both sides. The coin in the menu turns between them.",
+        continue: "Continue",
+        home: "Go to home",
+      },
+      worldsArt: "Property and Stays, with the coin that turns between them",
+    },
     /*
      * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
      *

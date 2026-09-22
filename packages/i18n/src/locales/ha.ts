@@ -55,6 +55,48 @@ export const ha: Dictionary = withFallback({
       getStarted: "Fara",
       step: "Mataki {n} na {total}",
     },
+    /* First run's other slides and its closing choice. Needs native review. */
+    firstRun: {
+      carousel: "Farawa da Vallo",
+      slideLive: "Shafi {n} na {total}: {title}",
+      next: "Na gaba",
+      verified: {
+        titleA: "Tabbatacce yana nufin",
+        titleB: "mutum ya duba.",
+        body: "Alamar tabbatarwa tana nufin wani a Vallo ya duba katin shaidar gwamnati na wakilin da hannu. Game da mutumin ne, ba gidan ba.",
+        left: "Wakili",
+        right: "Shaida",
+        art: "Wakili, katin shaida da alamar tabbatarwa",
+      },
+      safe: {
+        titleA: "Yi magana tukuna.",
+        titleB: "Biya idan ka tabbata.",
+        body: "Aika saƙo ga wakili ko mai masauki ka shirya ziyara tukuna. Idan za ka biya, biya a Vallo, ba ga kowa a wajenta ba.",
+        left: "Saƙo",
+        right: "Biya",
+        art: "Tattaunawa, ziyara da jakar kuɗi",
+      },
+      choice: {
+        titleA: "A shirye",
+        titleB: "lokacin da kake so.",
+        body: "Asusu yana ba ka damar adanawa, aika saƙo da neman ziyara. Dubawa ba ta buƙatar asusu, don haka za ka iya duba tukuna.",
+        left: "Duba",
+        right: "Asusu",
+        art: "Dubawa da asusu, da tsabar kuɗi a tsakaninsu",
+        create: "Ƙirƙiri asusu",
+        signIn: "Shiga",
+        browse: "Duba tukuna",
+      },
+      member: {
+        titleA: "Ka shigo.",
+        titleB: "Mai da shi naka.",
+        bodyAsk: "Tambaya ɗaya a gaba, don gida ya buɗe kan kasuwannin da kake so.",
+        bodyDone: "Gida yana buɗewa a ɓangarorin biyu. Tsabar da ke cikin menu tana juyawa a tsakaninsu.",
+        continue: "Ci gaba",
+        home: "Je gida",
+      },
+      worldsArt: "Gidaje da Masauki, da tsabar da ke juyawa a tsakaninsu",
+    },
     /*
      * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
      *

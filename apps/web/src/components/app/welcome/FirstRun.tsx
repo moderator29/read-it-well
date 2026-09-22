@@ -1,221 +1,468 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useTransition } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { LogoMark } from "@/design-system/brand/Logo";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button } from "@/components/ui/Button";
 import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { InterestChoices } from "./InterestChoices";
-import type { ComponentProps } from "react";
+import { WelcomeScene, type SceneCentre } from "./WelcomeScene";
+import { rememberFirstRunSeen, withPassedFlag } from "./first-run-seen";
+import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
 
 /**
- * First run, to its governing image (`docs/design/references/2A49E2F7`).
+ * Get started, to its governing image (`2A49E2F7` at the repository root).
  *
- * TWO BEATS. The first is the render: "Two worlds. One platform.", the
- * Property and Stays glass cards with the coin between them, the beat dots,
- * Get Started and Skip. It is the one screen that explains the product's
- * whole shape, the two sides and the flip, to somebody who has just made an
- * account and has not yet seen the coin in the drawer. The second beat is
- * the one question the product can act on, which `InterestChoices` owns.
+ * FOUR SLIDES ON ONE STAGE, the render's four dots:
+ *   1. Two worlds. One platform.  Property and Stays, and the coin between.
+ *   2. What verified means.       A person checked the agent, by hand.
+ *   3. Talk first, pay when sure. The one safety rule, before money moves.
+ *   4. The choice.                A stranger: Create an account, Sign in or
+ *                                 Look around first. A member: on to the
+ *                                 one question, or home.
+ * The stage and the chrome stay where they are; only the art and the words
+ * change, so moving between slides reads as a change of subject.
  *
- * WHAT EACH CONTROL WRITES, because a first-run screen with painted buttons
- * is a picture of onboarding:
+ * WHAT EACH CONTROL WRITES, because a first run with painted buttons is a
+ * picture of onboarding:
  *
- *   Get Started   records that the opener has been seen (`markWelcomeSeen`,
- *                 quiet on failure, as its own note explains) and moves to
- *                 the question; or, when the question has already been
- *                 answered on another device, straight home.
- *   Skip          records the opener AND skips the question in one press
- *                 (`skipInterests` is the real skip, the one that never asks
- *                 again), then replaces the route with home so the screen
- *                 does not sit in the back stack.
- *   The dots      are the beats, and the second is a button only after the
- *                 first has been seen; the current one says so for a reader.
+ *   Get Started / Next  move one slide on. Reaching the last slide records
+ *                       this device as shown (`rememberFirstRunSeen`).
+ *   Skip, a stranger    records the device, then carries on to where they
+ *                       were going (`?next=`), or lands on the choice.
+ *   Skip, a member      records the opener on the profile AND skips the
+ *                       question (`markWelcomeSeen` + `skipInterests`, the
+ *                       real skip that never asks again), then home.
+ *   Continue, a member  `onDone`: records the opener on the profile, then the
+ *                       interests question if it is still unasked, else home.
+ *   The three doors     real links to `/sign-up`, `/sign-in` and `/search`,
+ *                       keeping the address the person asked for.
  *
- * NEVER THE "HOTEL" LETTERED ICON. The render bakes the word into the Stays
- * object; the Stays card carries the glass hotel object from the pack, which
- * says the same thing with no text in the pixels.
+ * THE INTERESTS QUESTION STAYS, for a signed-in person who has not answered
+ * it: it is the only answer the product acts on at the door (it ranks home
+ * and search), and `InterestChoices` is its one real, tested implementation.
+ * It follows the slides as a fifth beat with no dot of its own.
  *
- * Nothing here is saved about the beat itself beyond `welcomeSeen`. Somebody
- * who closes the tab on the first beat sees it once more, which is the right
- * side to err on: the opener costs four seconds and the question is the
- * thing that decides what they see first.
+ * Swipe, arrow keys and the dots all move between slides; every change is
+ * announced in a polite live region.
  */
+
+type Viewer = "member" | "guest";
+
+type Slide = {
+  key: string;
+  titleA: string;
+  titleB: string;
+  body: string;
+  art: {
+    left: { icon: BrandIconObject; label: string };
+    right: { icon: BrandIconObject; label: string };
+    centre: SceneCentre;
+    label: string;
+  };
+};
+
+const SWIPE_MIN_PX = 48;
+
 export function FirstRun({
   t,
   interests,
   showCards,
   asked = false,
+  viewer = "member",
+  next = null,
+  startAtChoice = false,
 }: {
   t: Dictionary;
-  /* The typed market keys, not loose strings: the choices component owns the
-     union and this is only carrying it through. */
   interests: ComponentProps<typeof InterestChoices>["initial"];
-  /* False for anybody who has already been shown the opener. A returning
-     sign-in goes straight to the question, or past this screen entirely. */
+  /* False for a member who has already been shown the slides, on this
+     device or another: they go straight to the question. */
   showCards: boolean;
-  /* True when the question has been answered or skipped already, so Get
-     Started has nowhere to go but home. */
+  /* True when the question has been answered or skipped already. */
   asked?: boolean;
+  viewer?: Viewer;
+  /* A same-origin path the person was on their way to, already vetted. */
+  next?: string | null;
+  /* A stranger who has been shown first run before lands on the choice. */
+  startAtChoice?: boolean;
 }) {
   const router = useRouter();
   const w = t.welcomeCards.twoWorlds;
-  const askQuestion = !asked;
-  const [beat, setBeat] = useState<0 | 1>(showCards ? 0 : 1);
+  const f = t.welcomeCards.firstRun;
+  const guest = viewer === "guest";
+  const askQuestion = !guest && !asked;
+
+  const last = guest
+    ? {
+        key: "choice",
+        titleA: f.choice.titleA,
+        titleB: f.choice.titleB,
+        body: f.choice.body,
+        art: {
+          left: { icon: "search-home" as const, label: f.choice.left },
+          right: { icon: "user-check" as const, label: f.choice.right },
+          centre: { kind: "coin" as const },
+          label: f.choice.art,
+        },
+      }
+    : {
+        key: "member",
+        titleA: f.member.titleA,
+        titleB: f.member.titleB,
+        body: askQuestion ? f.member.bodyAsk : f.member.bodyDone,
+        art: {
+          left: { icon: "modern-house" as const, label: w.property },
+          right: { icon: "stays-hotel-palms" as const, label: w.stays },
+          centre: { kind: "coin" as const },
+          label: f.worldsArt,
+        },
+      };
+
+  const slides: Slide[] = [
+    {
+      key: "worlds",
+      titleA: w.titleA,
+      titleB: w.titleB,
+      body: w.body,
+      art: {
+        left: { icon: "modern-house", label: w.property },
+        right: { icon: "stays-hotel-palms", label: w.stays },
+        centre: { kind: "coin" },
+        label: `${f.worldsArt}. ${w.property}: ${w.propertyHint}. ${w.stays}: ${w.staysHint}.`,
+      },
+    },
+    {
+      key: "verified",
+      titleA: f.verified.titleA,
+      titleB: f.verified.titleB,
+      body: f.verified.body,
+      art: {
+        left: { icon: "user-verified", label: f.verified.left },
+        right: { icon: "id-card-check", label: f.verified.right },
+        centre: { kind: "object", icon: "seal-check" },
+        label: f.verified.art,
+      },
+    },
+    {
+      key: "safe",
+      titleA: f.safe.titleA,
+      titleB: f.safe.titleB,
+      body: f.safe.body,
+      art: {
+        left: { icon: "chat-duo", label: f.safe.left },
+        right: { icon: "wallet-naira", label: f.safe.right },
+        centre: { kind: "object", icon: "calendar-check" },
+        label: f.safe.art,
+      },
+    },
+    last,
+  ];
+  const total = slides.length;
+  const lastIndex = total - 1;
+
+  const [beat, setBeat] = useState<"slides" | "question">(
+    !guest && !showCards ? "question" : "slides",
+  );
+  const [index, setIndex] = useState(guest && startAtChoice ? lastIndex : 0);
+  const [announce, setAnnounce] = useState("");
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  /* Whether the device memory really stuck, so an exit can carry the flag
+     instead when a browser refuses the cookie. */
+  const stuck = useRef<boolean | null>(null);
 
-  const beats = askQuestion ? 2 : 1;
+  const remember = useCallback(() => {
+    if (stuck.current === null) stuck.current = rememberFirstRunSeen();
+    return stuck.current;
+  }, []);
 
-  const getStarted = () => {
+  /* Called from a handler only, never while rendering: it writes the cookie. */
+  const onward = useCallback(
+    (path: string) => (remember() ? path : withPassedFlag(path)),
+    [remember],
+  );
+
+  /* A door is a real link (it middle-clicks, it prefetches). If the device
+     refused the cookie, the click is rerouted to the same place with the
+     passed flag, so the page behind it does not send them back here. */
+  const door = (path: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (remember()) return;
+    e.preventDefault();
+    router.push(withPassedFlag(path));
+  };
+
+  /* Every move is announced from here, the one place a slide changes, so
+     the live region speaks for dots, buttons, swipes and keys alike and says
+     nothing on first paint. */
+  const titles = slides.map((s) => `${s.titleA} ${s.titleB}`).join("\n");
+  const goTo = useCallback(
+    (to: number) => {
+      const clamped = Math.max(0, Math.min(lastIndex, to));
+      setIndex(clamped);
+      setAnnounce(
+        f.slideLive
+          .replace("{n}", String(clamped + 1))
+          .replace("{total}", String(lastIndex + 1))
+          .replace("{title}", titles.split("\n")[clamped] ?? ""),
+      );
+    },
+    [lastIndex, f.slideLive, titles],
+  );
+
+  /* Reaching the end is having been shown it. Also covers the returning
+     stranger who starts on the choice. */
+  useEffect(() => {
+    if (beat === "slides" && index === lastIndex) remember();
+  }, [beat, index, lastIndex, remember]);
+
+  /* A member who starts at the question was shown the slides already, maybe
+     only on this device before they had an account. Put it on the profile so
+     every other device knows too. Quiet and idempotent. */
+  useEffect(() => {
+    if (!guest && !showCards) void markWelcomeSeen();
+  }, [guest, showCards]);
+
+
+  useEffect(() => {
+    if (beat !== "slides") return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goTo(index + 1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goTo(index - 1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [beat, index, goTo]);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    swipe.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    const from = swipe.current;
+    swipe.current = null;
+    if (!from) return;
+    const dx = e.clientX - from.x;
+    const dy = e.clientY - from.y;
+    if (Math.abs(dx) < SWIPE_MIN_PX || Math.abs(dx) < Math.abs(dy)) return;
+    goTo(dx < 0 ? index + 1 : index - 1);
+  };
+
+  const leave = (path: string) => {
+    router.replace(path);
+    router.refresh();
+  };
+
+  /* A member finishing the slides. */
+  const onDone = () => {
     setError("");
     start(async () => {
+      remember();
       await markWelcomeSeen();
       if (askQuestion) {
-        setBeat(1);
+        setBeat("question");
         return;
       }
-      router.replace("/home");
-      router.refresh();
+      leave(next ?? "/home");
     });
   };
 
   const skip = () => {
     setError("");
+    if (guest) {
+      if (next) {
+        router.push(onward(next));
+        return;
+      }
+      remember();
+      goTo(lastIndex);
+      return;
+    }
     start(async () => {
+      remember();
       const [, skipped] = await Promise.all([markWelcomeSeen(), skipInterests()]);
       if (!skipped.ok) {
         setError(skipped.error);
         return;
       }
-      router.replace("/home");
-      router.refresh();
+      leave(next ?? "/home");
     });
   };
 
-  return (
-    <div className="nf-welcome" data-testid="first-run">
-      <span className="nf-welcome__lockup" aria-label="Vallo" role="img">
-        <LogoMark size={36} />
-        <Image
-          src="/brand/vallo-wordmark.png"
-          alt=""
-          width={84}
-          height={18}
-          priority
-          className="nf-welcome__word"
-        />
-      </span>
+  const slide = slides[index] ?? slides[0]!;
+  const onLast = index === lastIndex;
 
-      {beat === 0 ? (
-        <div key="worlds" className="nf-welcome__beat">
-          <h1 className="nf-welcome__title">
-            <span>{w.titleA}</span>
-            <span className="nf-gradient-text">{w.titleB}</span>
-          </h1>
-          <p className="nf-welcome__body">{w.body}</p>
+  /* The three doors, keeping whatever the person was on their way to. */
+  const signUpHref = next && /^\/sign-up(?:[/?#]|$)/.test(next) ? next : "/sign-up";
+  const signInHref = next && /^\/sign-in(?:[/?#]|$)/.test(next) ? next : "/sign-in";
+  const signInFirst = signInHref !== "/sign-in";
 
-          {/* The two worlds, named as the render names them; the hints ride
-              on the cards as their accessible description only, so the
-              composition stays the render's. */}
-          <div className="nf-welcome__stage" role="img" aria-label={`${w.property}: ${w.propertyHint}. ${w.stays}: ${w.staysHint}.`}>
-            <div className="nf-welcome__world">
-              <span className="nf-welcome__world-art">
-                <BrandIcon name="modern-house" size={112} priority />
-              </span>
-              <span className="nf-welcome__world-name">{w.property}</span>
-            </div>
-            <div className="nf-welcome__coin">
-              <LogoMark size={48} />
-            </div>
-            <div className="nf-welcome__world">
-              <span className="nf-welcome__world-art">
-                <BrandIcon name="hotel" size={112} priority />
-              </span>
-              <span className="nf-welcome__world-name">{w.stays}</span>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div key="question" className="nf-welcome__beat">
-          <div className="nf-rise text-center">
-            <h1 className="nf-h2 mt-xl">{t.interests.question}</h1>
-            <p className="nf-body-sm mx-auto mt-xs max-w-[26rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {t.interests.screenSubtitle}. {t.interests.note}
-            </p>
-            {/* The one safety sentence a new account must read, kept from the
-                old three cards: never send money to anybody outside Vallo. */}
-            <p className="nf-caption mx-auto mt-sm max-w-[26rem] leading-relaxed text-[var(--nf-content-muted)]">
-              {t.welcomeCards.three.body}
-            </p>
-          </div>
-          <div className="nf-welcome__question mt-lg">
+  const lockup = (
+    <span className="nf-gs-lockup" role="img" aria-label="Vallo">
+      <LogoMark size={44} priority />
+      <Image
+        src="/brand/vallo-wordmark.png"
+        alt=""
+        width={758}
+        height={167}
+        priority
+        className="nf-gs-lockup__word"
+      />
+    </span>
+  );
+
+  if (beat === "question") {
+    return (
+      <div className="nf-gs-col" data-testid="first-run">
+        {lockup}
+        <div className="nf-gs-question">
+          <h1 className="nf-gs-title nf-gs-title--question">{t.interests.question}</h1>
+          <p className="nf-gs-sub">
+            {t.interests.screenSubtitle}. {t.interests.note}
+          </p>
+          <p className="nf-gs-note">{t.welcomeCards.three.body}</p>
+          <div className="nf-gs-question__choices">
             <InterestChoices initial={interests} t={t} />
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {beats > 1 && (
-        <div className="nf-welcome__dots" role="list" aria-label={t.welcomeCards.label}>
-          {Array.from({ length: beats }, (_, i) => {
-            const current = i === beat;
-            const label = w.step.replace("{n}", String(i + 1)).replace("{total}", String(beats));
-            /* The first beat is always reachable again; the second only once
-               the opener has been seen, which is what Get Started records. */
-            const reachable = i === 0 || beat === 1;
-            return (
-              <button
-                key={i}
-                type="button"
-                role="listitem"
-                aria-label={label}
-                aria-current={current ? "step" : undefined}
-                disabled={!reachable || pending}
-                onClick={() => setBeat(i === 0 ? 0 : 1)}
-                className="nf-welcome__dot nf-tap"
-              >
-                <span />
-              </button>
-            );
-          })}
+  return (
+    <div className="nf-gs-col" data-testid="first-run">
+      {lockup}
+
+      <section
+        className="nf-gs-carousel"
+        aria-roledescription="carousel"
+        aria-label={f.carousel}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={() => (swipe.current = null)}
+      >
+        <div
+          key={slide.key}
+          className="nf-gs-slide"
+          role="group"
+          aria-roledescription="slide"
+          aria-label={w.step.replace("{n}", String(index + 1)).replace("{total}", String(total))}
+          data-slide={slide.key}
+        >
+          <h1 className="nf-gs-title">
+            <span className="nf-gs-title__a">{slide.titleA}</span>
+            <span className="nf-gs-title__b">{slide.titleB}</span>
+          </h1>
+          <p className="nf-gs-sub">{slide.body}</p>
+          <WelcomeScene
+            left={slide.art.left}
+            right={slide.art.right}
+            centre={slide.art.centre}
+            label={slide.art.label}
+            priority={index === 0}
+          />
         </div>
-      )}
+      </section>
 
-      {beat === 0 && (
-        <>
-          <Button
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {announce}
+      </p>
+
+      <div className="nf-gs-dots" role="group" aria-label={t.welcomeCards.label}>
+        {slides.map((s, i) => (
+          <button
+            key={s.key}
             type="button"
-            variant="primary"
-            size="lg"
-            full
-            loading={pending}
-            onClick={getStarted}
-            data-testid="welcome-get-started"
-            className="nf-welcome__cta"
+            className="nf-gs-dot"
+            aria-label={w.step.replace("{n}", String(i + 1)).replace("{total}", String(total))}
+            aria-current={i === index ? "step" : undefined}
+            onClick={() => goTo(i)}
+            data-testid={`welcome-dot-${i + 1}`}
           >
-            {w.getStarted}
-            <UiIcon name="arrow-right" size={24} />
-          </Button>
+            <span />
+          </button>
+        ))}
+      </div>
+
+      <div className="nf-gs-actions">
+        {!onLast ? (
           <button
             type="button"
+            className="nf-gs-btn nf-gs-btn--lit"
+            onClick={() => goTo(index + 1)}
+            data-testid={index === 0 ? "welcome-get-started" : "welcome-next"}
+          >
+            <span>{index === 0 ? w.getStarted : f.next}</span>
+            <UiIcon name="arrow-right" size={20} />
+          </button>
+        ) : guest ? (
+          <div className="nf-gs-doors">
+            {signInFirst ? (
+              <>
+                <Link href={signInHref} onClick={door(signInHref)} className="nf-gs-btn nf-gs-btn--lit" data-testid="welcome-sign-in">
+                  {f.choice.signIn}
+                </Link>
+                <Link href={signUpHref} onClick={door(signUpHref)} className="nf-gs-btn nf-gs-btn--glass" data-testid="welcome-create">
+                  {f.choice.create}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href={signInHref} onClick={door(signInHref)} className="nf-gs-btn nf-gs-btn--glass" data-testid="welcome-sign-in">
+                  {f.choice.signIn}
+                </Link>
+                <Link href={signUpHref} onClick={door(signUpHref)} className="nf-gs-btn nf-gs-btn--lit" data-testid="welcome-create">
+                  {f.choice.create}
+                </Link>
+              </>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="nf-gs-btn nf-gs-btn--lit"
+            onClick={onDone}
+            disabled={pending}
+            aria-busy={pending || undefined}
+            data-testid="welcome-continue"
+          >
+            <span>{askQuestion ? f.member.continue : f.member.home}</span>
+            <UiIcon name="arrow-right" size={20} />
+          </button>
+        )}
+
+        {onLast && guest ? (
+          <Link href="/search" onClick={door("/search")} className="nf-gs-skip" data-testid="welcome-browse">
+            {f.choice.browse}
+          </Link>
+        ) : onLast && !askQuestion ? null : (
+          <button
+            type="button"
+            className="nf-gs-skip"
             onClick={skip}
             disabled={pending}
             data-testid="welcome-skip-all"
-            className="nf-welcome__skip nf-tap"
           >
             {t.welcomeCards.skip}
           </button>
-          {error && (
-            <p role="alert" className="nf-welcome__error">
-              {error}
-            </p>
-          )}
-        </>
-      )}
+        )}
+
+        {error && (
+          <p role="alert" className="nf-gs-error">
+            {error}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

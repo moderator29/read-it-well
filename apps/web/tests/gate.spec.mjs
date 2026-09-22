@@ -77,6 +77,10 @@ const PUBLIC = [
   "/auth/callback",
   "/forgot-password",
   "/reset-password",
+  /* First run and the old intro address that now redirects to it. A stranger
+     meets these before any account exists. */
+  "/welcome",
+  "/start",
 ];
 
 /** Inside. Every one of these must bounce an anonymous visitor to sign-in. */
@@ -102,7 +106,6 @@ const PRODUCT = [
   "/stories",
   "/legal/privacy",
   "/legal/terms",
-  "/welcome",
   "/admin",
   "/admin/support",
   "/agent/dashboard",

@@ -1,0 +1,778 @@
+/*
+ * Get started (first run), to `2A49E2F7` at the repository root.
+ *
+ * Get started's own stylesheet, imported by `components/app/welcome/
+ * WelcomeStage.tsx` so `globals.css` and `auth.css` are not touched. Every
+ * class here starts `nf-gs`, so nothing else on the platform matches it and
+ * nothing here matches anything else.
+ *
+ * MEASURED, NOT EYEBALLED. The render is 1024x1536; the phone's screen runs
+ * from x 185 to x 837 (652 image px) and from y 59 to y 1458, so one CSS px at
+ * a 390px viewport is 1.672 image px (scale 0.598). The numbers in the notes
+ * below are the render's, converted; the ledger (`docs/BUILD_SESSION_B_LEDGER.md`
+ * section 2) holds the full table beside what the browser drew.
+ *
+ * DARK IN BOTH THEMES by rule 22 (see `WelcomeStage.tsx`). The tokens are
+ * pinned by `data-theme="dark"` on the stage; the daylight note at the foot
+ * says why no paper rule is needed.
+ */
+@layer components {
+  /* ------------------------------------------------------------ the ground */
+
+  .nf-gs {
+    position: relative;
+    isolation: isolate;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100dvh;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--nf-space-md))
+      calc(env(safe-area-inset-right, 0px) + var(--nf-space-md))
+      calc(env(safe-area-inset-bottom, 0px) + var(--nf-space-md))
+      calc(env(safe-area-inset-left, 0px) + var(--nf-space-md));
+    overflow-x: clip;
+    background-color: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+    font-family: var(--nf-font-sans);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Render: #000518 at the top, #000d3e behind the stage, #000926 at the foot,
+     with a faint square grid across the upper half. */
+  .nf-gs__ground {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        ellipse 78% 34% at 50% 60%,
+        color-mix(in oklab, var(--nf-brand-primary) 20%, transparent) 0%,
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 55% 22% at 50% 14%,
+        color-mix(in oklab, var(--nf-brand-primary) 9%, transparent) 0%,
+        transparent 80%
+      ),
+      linear-gradient(
+        180deg,
+        var(--nf-surface-canvas) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 13%, var(--nf-surface-canvas)) 46%,
+        color-mix(in oklab, var(--nf-brand-primary) 8%, var(--nf-surface-canvas)) 100%
+      );
+  }
+  .nf-gs__ground::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--nf-brand-quiet) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--nf-brand-quiet) 6%, transparent) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(180deg, black 0%, transparent 55%);
+    -webkit-mask-image: linear-gradient(180deg, black 0%, transparent 55%);
+  }
+
+  .nf-gs-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 25rem;
+    text-align: center;
+  }
+
+  /* ------------------------------------------------------------ the lockup */
+
+  /* Render: mark 74x70 image px (44 css), wordmark 166 wide (99 css), mark
+     top at y 164 (63 css below the screen top, which a 47px safe area plus
+     the 16px gutter lands on). The glow is the artwork's own plus a soft
+     bloom, as the render's lockup carries. */
+  .nf-gs-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    filter: drop-shadow(0 0 14px var(--nf-glow-3));
+  }
+  .nf-gs-lockup__word {
+    width: 99px;
+    height: auto;
+  }
+
+  /* ------------------------------------------------------------ the words */
+
+  /* Render: cap height 46 image px (27.5 css), baselines 61 image px apart
+     (36.5 css), "Two worlds." 355 image px wide (212 css) and "One
+     platform." 419 (250 css). Poppins bold at 37px lands both widths to the
+     pixel; a 36.5px line lands the baselines. */
+  .nf-gs-title {
+    margin: 34px 0 0;
+    font-family: var(--nf-font-display);
+    font-size: 2.3125rem;
+    font-weight: 700;
+    line-height: 36.5px;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .nf-gs-title__a,
+  .nf-gs-title__b {
+    display: block;
+  }
+  .nf-gs-title__a {
+    color: var(--nf-content-primary);
+  }
+  /* Render: the second line runs electric blue at its left edge to a pale
+     ice blue at its right (#38cefe sampled at the full stop). The ice end is
+     the brand quiet blue lifted towards white, inside the one blue family. */
+  .nf-gs-title__b {
+    padding-bottom: 0.08em;
+    background: linear-gradient(
+      90deg,
+      var(--nf-brand-primary) 0%,
+      var(--nf-brand-quiet) 52%,
+      color-mix(in oklab, var(--nf-brand-quiet) 52%, var(--nf-content-on-brand)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 16px var(--nf-glow-2));
+  }
+
+  /* Render: two lines, 36 image px apart (21.5 css), cap 17 image px, light
+     blue grey (#88cafa at the brightest stroke). Three lines are reserved so
+     the stage never moves between slides; slide one uses two, as drawn, and
+     the reserved third closes the render's 56 css gap to the stage. */
+  .nf-gs-sub {
+    max-width: 19rem;
+    min-height: calc(3 * 21.5px);
+    margin: 13px auto 0;
+    font-size: 0.90625rem;
+    line-height: 21.5px;
+    color: color-mix(in oklab, var(--nf-brand-quiet) 40%, var(--nf-content-primary));
+  }
+  /* The render's own two lines break after "Stays"; its measure is 224 css. */
+  .nf-gs-slide[data-slide="worlds"] .nf-gs-sub {
+    max-width: 15rem;
+  }
+  .nf-gs-note {
+    max-width: 26rem;
+    margin: var(--nf-space-sm) auto 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ the slide */
+
+  .nf-gs-carousel {
+    width: 100%;
+    touch-action: pan-y;
+  }
+  .nf-gs-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: nf-gs-enter var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-gs-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ------------------------------------------------------------ the stage */
+
+  /* Render: tiles top at 325 css, plinth foot at 581 css, so the stage is
+     256 tall; the tiles span 22 to 369 of 390. */
+  .nf-gs-scene {
+    position: relative;
+    width: min(100%, 22.625rem);
+    height: 256px;
+    margin-top: 32px;
+  }
+
+  /* The tiles. Render: 146 by 180 css, corner radius 27 css, turned in
+     towards the coin so each shows its thick outer edge; the edge is a lit
+     slab standing behind the face. */
+  .nf-gs-tile {
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    width: 150px;
+    height: 180px;
+    transform-style: preserve-3d;
+  }
+  .nf-gs-tile--left {
+    left: 1%;
+    transform: perspective(640px) rotateY(24deg);
+  }
+  .nf-gs-tile--right {
+    right: 1%;
+    transform: perspective(640px) rotateY(-24deg);
+  }
+  .nf-gs-tile__slab,
+  .nf-gs-tile__face {
+    position: absolute;
+    inset: 0;
+    border-radius: calc(var(--nf-radius-xl) + var(--nf-space-2xs));
+  }
+  /* The slab: the glass thickness, drawn as a lit edge standing 14px behind
+     the face; with the face in front, the eye reads a solid edge. */
+  .nf-gs-tile__slab {
+    transform: translateZ(-14px);
+    border: 2px solid color-mix(in oklab, var(--nf-brand-primary) 85%, var(--nf-content-on-brand));
+    background: color-mix(in oklab, var(--nf-brand-primary) 38%, transparent);
+    box-shadow:
+      0 0 0 5px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent),
+      0 0 26px var(--nf-glow-4);
+  }
+  .nf-gs-tile__face {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    border: 1.5px solid color-mix(in oklab, var(--nf-brand-quiet) 78%, transparent);
+    background:
+      linear-gradient(
+        158deg,
+        color-mix(in oklab, var(--nf-brand-primary) 36%, transparent) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 12%, transparent) 48%,
+        color-mix(in oklab, var(--nf-brand-primary) 24%, transparent) 100%
+      ),
+      color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent);
+    box-shadow:
+      inset 0 1.5px 0 var(--nf-rim-lit-ink),
+      inset 1.5px 0 0 color-mix(in oklab, var(--nf-rim-lit-ink) 45%, transparent),
+      inset 0 0 26px var(--nf-glow-3),
+      0 0 22px var(--nf-glow-3);
+    backdrop-filter: blur(var(--nf-glass-blur-soft));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft));
+  }
+  /* The shelf the object stands on, a faint lit line across the tile. */
+  .nf-gs-tile__face::after {
+    content: "";
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 66%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--nf-brand-quiet) 55%, transparent),
+      transparent
+    );
+  }
+  .nf-gs-tile__art {
+    display: grid;
+    place-items: center;
+    margin-top: 14px;
+    width: 104px;
+    height: 104px;
+  }
+  .nf-gs-object {
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px var(--nf-glow-3));
+  }
+  /* The pack's hotel between palms is drawn small inside its square; the
+     render's Stays object fills the tile the way the house does. */
+  .nf-gs-tile__art[data-icon="stays-hotel-palms"] .nf-gs-object {
+    transform: scale(1.5);
+  }
+  /* Render: PROPERTY / STAYS in spaced capitals, cap 15 image px (9 css),
+     116 image px wide, pale blue with its own glow. */
+  .nf-gs-tile__label {
+    position: absolute;
+    bottom: 22px;
+    left: 0;
+    right: 0;
+    font-size: 0.71875rem;
+    font-weight: 500;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--nf-brand-quiet) 30%, var(--nf-content-primary));
+    text-shadow: 0 0 10px var(--nf-glow-4);
+  }
+
+  /* The plinth. Render: 363 css wide, a 60 css ellipse on top of a 15 css
+     band, lit rim along both, a pool of light under each tile. */
+  .nf-gs-plinth {
+    position: absolute;
+    left: 50%;
+    top: 176px;
+    z-index: 0;
+    width: min(100%, 22.625rem);
+    height: 80px;
+    transform: translateX(-50%);
+  }
+  .nf-gs-plinth > span {
+    position: absolute;
+    display: block;
+  }
+  /* The band: from the top ellipse's middle down to a matching half ellipse
+     15px lower, so the disc reads as one solid slab, not two rings. */
+  .nf-gs-plinth__side {
+    left: 0;
+    right: 0;
+    top: 30px;
+    height: 45px;
+    border-radius: 0 0 50% 50% / 0 0 30px 30px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-surface-canvas)),
+      color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-canvas))
+    );
+    border-bottom: 2px solid color-mix(in oklab, var(--nf-brand-quiet) 80%, var(--nf-content-on-brand));
+    box-shadow:
+      0 12px 34px -6px var(--nf-glow-4),
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  }
+  .nf-gs-plinth__top {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 60px;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in oklab, var(--nf-brand-quiet) 72%, transparent);
+    background: radial-gradient(
+      ellipse at 50% 42%,
+      color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-canvas)) 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-canvas)) 62%,
+      color-mix(in oklab, var(--nf-brand-primary) 46%, var(--nf-surface-canvas)) 100%
+    );
+    box-shadow:
+      inset 0 2px 0 var(--nf-rim-lit-ink),
+      inset 0 -8px 18px var(--nf-glow-3),
+      0 0 24px var(--nf-glow-3);
+  }
+  .nf-gs-plinth__ring {
+    left: 14%;
+    right: 14%;
+    top: 11px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in oklab, var(--nf-brand-quiet) 32%, transparent);
+  }
+  .nf-gs-plinth__pool {
+    top: 4px;
+    width: 34%;
+    height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      color-mix(in oklab, var(--nf-brand-quiet) 70%, var(--nf-content-on-brand)) 0%,
+      color-mix(in oklab, var(--nf-brand-primary) 55%, transparent) 30%,
+      transparent 72%
+    );
+  }
+  .nf-gs-plinth__pool--left {
+    left: 8%;
+  }
+  .nf-gs-plinth__pool--right {
+    right: 8%;
+  }
+  /* The shaft of light between a tile's foot and its pool. */
+  .nf-gs-plinth__pool::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    width: 10px;
+    height: 34px;
+    transform: translateX(-50%);
+    border-radius: var(--nf-radius-xs);
+    background: linear-gradient(
+      0deg,
+      color-mix(in oklab, var(--nf-brand-quiet) 80%, transparent),
+      transparent
+    );
+    filter: blur(3px);
+  }
+
+  /* ------------------------------------------------------------ the coin */
+
+  /* Render: centre at x 195, y 494 css (169 below the tile tops), about 96
+     css across, turned roughly 50 degrees and tipped back, two light orbits
+     swirling round it. */
+  .nf-gs-centre {
+    position: absolute;
+    left: 50%;
+    top: 121px;
+    z-index: 2;
+    width: 96px;
+    height: 96px;
+    transform: translateX(-50%);
+  }
+  .nf-gs-coin {
+    position: relative;
+    display: block;
+    width: 96px;
+    height: 96px;
+  }
+  .nf-gs-coin__tilt {
+    position: absolute;
+    inset: 0;
+    perspective: 520px;
+    transform: rotate(-14deg);
+  }
+  .nf-gs-coin__spin {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(12deg) rotateY(-50deg);
+    animation: nf-gs-coin-turn 7s var(--nf-ease-standard) infinite;
+  }
+  @keyframes nf-gs-coin-turn {
+    0% {
+      transform: rotateX(12deg) rotateY(-50deg);
+    }
+    40% {
+      transform: rotateX(12deg) rotateY(-50deg);
+    }
+    100% {
+      transform: rotateX(12deg) rotateY(310deg);
+    }
+  }
+  .nf-gs-coin__face,
+  .nf-gs-coin__edge {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-gs-coin__edge {
+    transform: translateZ(calc(var(--nf-gs-layer) * 1.4px));
+    background: color-mix(in oklab, var(--nf-brand-primary) 78%, var(--nf-surface-canvas));
+    border: 1.5px solid color-mix(in oklab, var(--nf-brand-quiet) 85%, var(--nf-content-on-brand));
+  }
+  .nf-gs-coin__face {
+    display: grid;
+    place-items: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border: 3px solid color-mix(in oklab, var(--nf-brand-quiet) 62%, var(--nf-content-on-brand));
+    /* Render: a dark glass centre (#0a2a8a), a bright ice rim, the mark lit
+       in the middle and a specular sweep across the upper left. */
+    background:
+      radial-gradient(
+        ellipse 60% 38% at 30% 22%,
+        color-mix(in oklab, var(--nf-content-on-brand) 38%, transparent) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        color-mix(in oklab, var(--nf-brand-primary) 48%, var(--nf-surface-canvas)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-canvas)) 62%,
+        color-mix(in oklab, var(--nf-brand-primary) 90%, var(--nf-content-on-brand)) 100%
+      );
+    box-shadow:
+      inset 0 0 0 4px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent),
+      inset 0 0 14px color-mix(in oklab, var(--nf-brand-quiet) 60%, transparent),
+      0 0 26px var(--nf-glow-4);
+  }
+  .nf-gs-coin__face--front {
+    transform: translateZ(5px);
+  }
+  .nf-gs-coin__face--back {
+    transform: rotateY(180deg) translateZ(5px);
+  }
+  .nf-gs-coin__face img {
+    filter: drop-shadow(0 0 6px var(--nf-glow-4));
+  }
+  .nf-gs-coin__orbit {
+    position: absolute;
+    left: -34%;
+    width: 168%;
+    border-radius: 50%;
+    border: 2px solid color-mix(in oklab, var(--nf-brand-quiet) 60%, var(--nf-content-on-brand));
+    filter: drop-shadow(0 0 6px var(--nf-glow-4)) drop-shadow(0 0 2px var(--nf-glow-4));
+    mask-image: linear-gradient(90deg, transparent 4%, black 30%, black 72%, transparent 96%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 4%, black 30%, black 72%, transparent 96%);
+  }
+  .nf-gs-coin__orbit--a {
+    top: 58%;
+    height: 38px;
+    transform: rotate(-12deg);
+  }
+  .nf-gs-coin__orbit--b {
+    top: 30%;
+    height: 50px;
+    opacity: 0.55;
+    transform: rotate(-22deg);
+  }
+
+  /* The centre object on the verified and paying slides: the glass mark
+     standing where the coin stands, breathing rather than turning. */
+  .nf-gs-medal {
+    display: grid;
+    place-items: center;
+    width: 96px;
+    height: 96px;
+    filter: drop-shadow(0 0 14px var(--nf-glow-4));
+    animation: nf-gs-float 4.8s var(--nf-ease-standard) infinite alternate;
+  }
+  @keyframes nf-gs-float {
+    from {
+      transform: translateY(2px);
+    }
+    to {
+      transform: translateY(-4px);
+    }
+  }
+
+  /* ------------------------------------------------------------ the dots */
+
+  /* Render: four dots 39 image px apart (23 css) centred at 646 css; the
+     active one 16 image px (9.5 css) in ice blue with a glow, the rest 12
+     (7 css) in deep electric. Each dot is a 44px-tall button; they sit 28px
+     apart rather than 23 so a thumb can land on one. */
+  .nf-gs-dots {
+    display: flex;
+    justify-content: center;
+    margin-top: 43px;
+  }
+  .nf-gs-dot {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-control);
+    background: transparent;
+    cursor: pointer;
+  }
+  .nf-gs-dot > span {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-canvas));
+    transition:
+      width var(--nf-duration-base) var(--nf-ease-standard),
+      height var(--nf-duration-base) var(--nf-ease-standard),
+      background-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-gs-dot[aria-current="step"] > span {
+    width: 10px;
+    height: 10px;
+    background: color-mix(in oklab, var(--nf-brand-quiet) 45%, var(--nf-content-on-brand));
+    box-shadow:
+      0 0 8px var(--nf-glow-4),
+      0 0 16px var(--nf-glow-3);
+  }
+
+  /* ------------------------------------------------------------ the actions */
+
+  /* Render: the button 540x93 image px (323x56 css), 34 css in from each
+     side, top at 683 css; a lit glass bar, not a flat one: a white rim along
+     the top edge (#e4feff), bright edges all round (#0180fb at the sides), a
+     deeper core (#001fae at the middle), and a bloom cast below. Radius is
+     `--nf-radius-control` by the shape law (the render draws about 10 css). */
+  .nf-gs-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 20.25rem;
+    margin-top: 15px;
+  }
+  .nf-gs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: 56px;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-gs-btn:active:not(:disabled) {
+    transform: scale(0.985);
+  }
+  .nf-gs-btn:disabled {
+    cursor: progress;
+    opacity: 0.8;
+  }
+  .nf-gs-btn--lit {
+    border: 1px solid color-mix(in oklab, var(--nf-brand-quiet) 80%, var(--nf-content-on-brand));
+    color: var(--nf-content-on-brand);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 92%, var(--nf-content-on-brand)) 0%,
+      color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-canvas)) 50%,
+      var(--nf-brand-primary) 100%
+    );
+    box-shadow:
+      inset 0 1.5px 0 var(--nf-rim-lit-ink),
+      inset 0 0 14px color-mix(in oklab, var(--nf-brand-quiet) 55%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent),
+      0 10px 28px -8px var(--nf-glow-4),
+      0 0 26px -4px var(--nf-glow-3);
+    text-shadow: 0 0 10px color-mix(in oklab, var(--nf-content-on-brand) 35%, transparent);
+  }
+  .nf-gs-btn--lit:hover:not(:disabled) {
+    box-shadow:
+      inset 0 1.5px 0 var(--nf-rim-lit-ink),
+      inset 0 0 18px color-mix(in oklab, var(--nf-brand-quiet) 65%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 50%, transparent),
+      0 12px 32px -8px var(--nf-glow-4),
+      0 0 30px -4px var(--nf-glow-4);
+  }
+  .nf-gs-btn--glass {
+    border: 1px solid var(--nf-container-edge);
+    color: var(--nf-content-primary);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
+      color-mix(in oklab, var(--nf-brand-primary) 8%, transparent)
+    );
+    box-shadow:
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 18px -6px var(--nf-glow-3);
+    backdrop-filter: blur(var(--nf-glass-blur-soft));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft));
+  }
+  .nf-gs-doors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-sm);
+    width: 100%;
+  }
+  .nf-gs-doors > .nf-gs-btn {
+    flex: 1 1 9rem;
+    width: auto;
+    padding: 0 var(--nf-space-sm);
+    font-size: 1rem;
+  }
+
+  /* Render: "Skip" centred 29 css under the button, quiet blue (#60a5fa at
+     its brightest stroke). */
+  .nf-gs-skip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin-top: 6px;
+    padding: 0 var(--nf-space-sm);
+    border: 0;
+    border-radius: var(--nf-radius-control);
+    background: transparent;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--nf-brand-quiet);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nf-gs-skip:hover {
+    color: color-mix(in oklab, var(--nf-brand-quiet) 60%, var(--nf-content-on-brand));
+  }
+  .nf-gs-error {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-state-error);
+  }
+
+  .nf-gs-btn:focus-visible,
+  .nf-gs-skip:focus-visible,
+  .nf-gs-dot:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+
+  /* ------------------------------------------------------------ the question */
+
+  .nf-gs-question {
+    width: 100%;
+    max-width: 36rem;
+    margin-top: var(--nf-space-lg);
+    animation: nf-gs-enter var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-gs-title--question {
+    font-size: var(--nf-text-h2);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .nf-gs-question .nf-gs-sub {
+    min-height: 0;
+    max-width: 26rem;
+  }
+  .nf-gs-question__choices {
+    margin-top: var(--nf-space-lg);
+    text-align: left;
+  }
+
+  /* ------------------------------------------------------------ wider */
+
+  /* Desktop is the phone's character on a larger stage: the same column,
+     centred in the height, the stage a little larger. */
+  @media (min-width: 48rem) {
+    .nf-gs {
+      justify-content: center;
+    }
+    .nf-gs-col {
+      max-width: 30rem;
+    }
+    .nf-gs-title {
+      font-size: 3.25rem;
+    }
+    .nf-gs-sub {
+      font-size: 1rem;
+      min-height: calc(3 * 1.4375 * 1rem);
+      max-width: 21rem;
+    }
+    .nf-gs-scene {
+      transform: scale(1.14);
+      margin-top: 52px;
+      margin-bottom: 24px;
+    }
+  }
+
+  /* ------------------------------------------------------------ motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-gs-slide,
+    .nf-gs-question {
+      animation: none;
+    }
+    /* Held at the mid-turn the render draws. */
+    .nf-gs-coin__spin {
+      animation: none;
+      transform: rotateX(12deg) rotateY(-50deg);
+    }
+    .nf-gs-medal {
+      animation: none;
+    }
+    .nf-gs-dot > span,
+    .nf-gs-btn {
+      transition: none;
+    }
+  }
+
+  /* ------------------------------------------------------------ daylight */
+
+  /* Rule 22: this screen is dark on paper too, and it needs no daylight
+     rule to be so. The stage pins the dark tokens (`data-theme="dark"`),
+     covers the whole viewport with its own ground, and uses no shared class
+     that carries a `:root[data-theme="light"]` rule. What is left for paper
+     is the browser's own chrome: form controls and scrollbars inside the
+     stage are told the scheme here. */
+  .nf-gs {
+    color-scheme: dark;
+  }
+}

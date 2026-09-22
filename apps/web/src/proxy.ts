@@ -83,8 +83,9 @@ const PRODUCT_SEGMENTS = new Set([
   // whether an anonymous visitor gets as far as being told they lack a role.
   "admin",
   "agent",
-  // First run, which is a signed-in experience by definition.
-  "welcome",
+  /* NOT "welcome". First run is the first thing a stranger meets, from the
+     stores and from Sign up or Sign in, so it must answer signed out. The
+     page is its own guard for the signed-in half (app/welcome/page.tsx). */
 ]);
 
 /**

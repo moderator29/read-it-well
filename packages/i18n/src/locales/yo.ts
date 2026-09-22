@@ -54,6 +54,48 @@ export const yo: Dictionary = withFallback({
       getStarted: "Bẹ̀rẹ̀",
       step: "Ìgbésẹ̀ {n} nínú {total}",
     },
+    /* First run's other slides and its closing choice. Needs native review. */
+    firstRun: {
+      carousel: "Bíbẹ̀rẹ̀ pẹ̀lú Vallo",
+      slideLive: "Ojú-ìwé {n} nínú {total}: {title}",
+      next: "Èyí tó kàn",
+      verified: {
+        titleA: "Ìjẹ́rìísí túmọ̀ sí",
+        titleB: "ènìyàn ti yẹ̀ ẹ́ wò.",
+        body: "Àmì ìjẹ́rìísí túmọ̀ sí pé ẹnìkan ní Vallo ti yẹ káàdì ìdánimọ̀ ìjọba aṣojú náà wò pẹ̀lú ọwọ́. Ó jẹ́ nípa ẹni náà, kì í ṣe ilé náà.",
+        left: "Aṣojú",
+        right: "Ìdánimọ̀",
+        art: "Aṣojú kan, káàdì ìdánimọ̀ àti àmì ìjẹ́rìísí",
+      },
+      safe: {
+        titleA: "Sọ̀rọ̀ kọ́kọ́.",
+        titleB: "Sanwó nígbà tó dá ọ lójú.",
+        body: "Fi ọ̀rọ̀ ránṣẹ́ sí aṣojú tàbí agbàlejò kí o sì ṣètò ìbẹ̀wò kọ́kọ́. Nígbà tí o bá sanwó, sanwó lórí Vallo, kì í ṣe fún ẹnikẹ́ni níta rẹ̀.",
+        left: "Ọ̀rọ̀",
+        right: "Sanwó",
+        art: "Ìjíròrò, ìbẹ̀wò àti àpò owó",
+      },
+      choice: {
+        titleA: "A ti ṣetán",
+        titleB: "nígbà tí o bá fẹ́.",
+        body: "Àkọọ́lẹ̀ jẹ́ kí o lè fipamọ́, fi ọ̀rọ̀ ránṣẹ́ kí o sì béèrè ìbẹ̀wò. Wíwò kò nílò àkọọ́lẹ̀, nítorí náà o lè wò yíká kọ́kọ́.",
+        left: "Wò yíká",
+        right: "Àkọọ́lẹ̀",
+        art: "Wíwò àti àkọọ́lẹ̀ kan, pẹ̀lú owó-ẹyọ láàrín wọn",
+        create: "Ṣẹ̀dá àkọọ́lẹ̀",
+        signIn: "Wọlé",
+        browse: "Wò yíká kọ́kọ́",
+      },
+      member: {
+        titleA: "O ti wọlé.",
+        titleB: "Sọ ọ́ di tìrẹ.",
+        bodyAsk: "Ìbéèrè kan ló kù, kí ilé lè ṣí sí àwọn ọjà tí o nífẹ̀ẹ́ sí.",
+        bodyDone: "Ilé máa ń ṣí ní ẹ̀gbẹ́ méjèèjì. Owó-ẹyọ inú àtòjọ ló ń yí láàrín wọn.",
+        continue: "Tẹ̀síwájú",
+        home: "Lọ sí ilé",
+      },
+      worldsArt: "Ilé àti Ibùgbé, pẹ̀lú owó-ẹyọ tó ń yí láàrín wọn",
+    },
     /*
      * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
      *
