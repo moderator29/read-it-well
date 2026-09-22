@@ -45,6 +45,7 @@ export function EmailAuthForm({
   initialEmail = "",
   accountMethod = "unknown",
   googleReady = false,
+  initialState = EMPTY,
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
@@ -72,8 +73,11 @@ export function EmailAuthForm({
   accountMethod?: EmailStatus;
   /** Whether the Google door is switched on, from `getProviderStates`. */
   googleReady?: boolean;
+  /** The form's state before any submit. Only the preview harness passes it,
+      to draw a refusal without a live account. */
+  initialState?: AuthFormState;
 }) {
-  const [state, formAction, pending] = useActionState(action, EMPTY);
+  const [state, formAction, pending] = useActionState(action, initialState);
   /*
    * EVERY TEXT FIELD IS CONTROLLED, AND IT HAS TO BE.
    *
@@ -154,13 +158,15 @@ export function EmailAuthForm({
     : state.fieldErrors?.confirmPassword;
 
   return (
-    <div className="w-full">
+    /* Sign in is the render's card and takes its measured width (ledger
+       R-C); the nine-field sign-up form keeps the wider card. */
+    <div className={isSignUp ? "w-full" : "nf-auth--narrow w-full"}>
       {/* The way back sits above the heading, where a screen reader and a thumb
           both find it first, and it names where it goes rather than saying
           "back" to somebody who arrived here on a deep link. */}
       <Link
         href={isSignUp ? "/sign-up" : "/sign-in"}
-        className="nf-tap -ml-1 mb-sm inline-flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
+        className="nf-tap nf-auth__aside -ml-1 mb-sm inline-flex items-center gap-xs text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
       >
         <UiIcon name="arrow-left" size={16} />
         {t.auth.otherWays}
@@ -410,7 +416,7 @@ export function EmailAuthForm({
           <p className="text-center">
             <Link
               href="/forgot-password"
-              className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="nf-auth__aside text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               {t.auth.forgotPassword}
             </Link>

@@ -55,16 +55,27 @@
      * render's own sky continues past it instead of a flat ground. The
      * plate's feathered top edge melts into it.
      */
-    background: var(--nf-auth-sky-deep);
+    /* Below the plate the render's mirror floor carries on, lit blue
+       (#001A7C to #002183 at the render's foot). */
+    background: linear-gradient(
+      180deg,
+      var(--nf-auth-sky-deep) 0,
+      var(--nf-auth-sky-deep) 70%,
+      color-mix(in srgb, var(--nf-glow-ink) 22%, var(--nf-surface-canvas)) 100%
+    );
   }
   .nf-auth::before {
     content: "";
     position: absolute;
     inset: -2rem;
     z-index: 0;
-    background: url("/brand/session-b/signin/stage.webp") center bottom / cover no-repeat;
+    background: url("/brand/session-b/signin/stage.webp") center top / cover no-repeat;
     filter: blur(6px);
     opacity: 0.85;
+    /* Sky only: its floor would print a second plinth's reflection under
+       the real one, so the copy fades out before it reaches the floor. */
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 35%, transparent 55%);
+    mask-image: linear-gradient(180deg, #000 0, #000 35%, transparent 55%);
     pointer-events: none;
   }
 
@@ -615,7 +626,150 @@
    * Wider than a phone the stage is the same object, centred, a little
    * larger: the card grows to 420 (s = 0.66), the tile and wordmark with it.
    */
+  /*
+   * ======================================================================
+   * THE RENDER'S CARD, AT THE RENDER'S SIZE (lead rulings R-A, R-B, R-C).
+   *
+   * The render's card is 633 of 1024 px, 61.6 per cent of the screen: 240 CSS
+   * px at 390, so s = 240 / 633 = 0.379 and every "at s" here is a render
+   * measurement times 0.379. It applies to the two screens the render draws,
+   * the chooser and the password step (and the chooser's sign-up twin),
+   * which mark themselves `.nf-auth--narrow`; the nine-field sign-up form,
+   * the code, the reset and the recovery keep the wider shell card.
+   *
+   * R-A: every text role at the render's size, raised only to its floor
+   * (11 px for body, sub, caption and label; 16 px for a typed value);
+   * headings at the render's size. R-B: controls at the render's height
+   * unless under 44 px, so all three are 44; the gaps around them keep the
+   * render's px times s. Strings wrap before the card grows.
+   * ======================================================================
+   */
+  .nf-auth__stage:has(.nf-auth--narrow) {
+    max-width: 15rem;
+  }
+  /*
+   * WHERE IT SITS. Scaled by width, the render is 1024 x 1536 at 0.379, so
+   * it covers 582 of a 390 x 844 screen's height: the render's heights as
+   * shares of the screen and its proportions cannot both hold. The
+   * proportions hold (R-C), and the composition is centred where the
+   * render centres it: the render's tile top to plinth foot runs 14.5 to
+   * 92.4 per cent, midpoint 53.5; ours is placed on the same midpoint, which
+   * puts the tile's centre at 29 per cent of the height.
+   */
+  .nf-auth__stage:has(.nf-auth--narrow) .nf-auth__brand {
+    margin-top: max(var(--nf-space-sm), calc(29dvh - 100% * 184 / 633));
+  }
+  /* Corner 42 render = 16; inset 60 = 23; title caps sit 73 below the card
+     top (28, less the title's half-leading); the foot line's caps end 49
+     above the card foot (19, less its half-leading). */
+  .nf-auth__card:has(.nf-auth--narrow) {
+    border-radius: var(--nf-radius-lg);
+    padding: 1.4375rem 1.4375rem 1rem;
+  }
+  /* Title: caps 25 render = 9.5 at s, a 13.5 px heading (R-A: a heading
+     takes the render's size). Semibold. */
+  .nf-auth--narrow .nf-auth__title {
+    font-size: 0.84375rem;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+  /* Sub: caps 15 render = 5.7 at s, 7.8 px: raised to the 11 px floor.
+     21 render under the title's baseline = 8. */
+  .nf-auth--narrow .nf-auth__sub {
+    margin-top: 0.3125rem;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+  /* 43 render from the sub to the field = 16. */
+  .nf-auth--narrow .nf-auth__form {
+    margin-top: 1rem;
+  }
+  /* The field: 71 render tall = 27, raised to 44 (R-B). The typed value is
+     16 px (R-A); the envelope 24 render = 9, drawn at 14 so the line glyph
+     survives, 32 render from the edge = 12. */
+  .nf-auth[data-theme="dark"] .nf-auth--narrow .nf-field {
+    font-size: 1rem;
+    padding-inline: 0.75rem;
+  }
+  /* The placeholder is a label, not a typed value: caps 15 render = 7.5 px,
+     raised to the 11 px floor. What the person types is 16 (R-A). */
+  .nf-auth[data-theme="dark"] .nf-auth--narrow .nf-field::placeholder {
+    font-size: 0.6875rem;
+  }
+  .nf-auth[data-theme="dark"] .nf-auth--narrow .nf-auth-field > .nf-field {
+    padding-left: 2.125rem;
+  }
+  .nf-auth--narrow .nf-auth-field__glyph {
+    left: 0.75rem;
+  }
+  .nf-auth--narrow .nf-auth-field__glyph svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+  /* 42 render from the field to the button = 16. Label caps 18 render =
+     6.8 at s, 9.4 px: raised to the 11 px floor. Semibold, arrow 12. */
+  .nf-auth .nf-auth--narrow .nf-auth__cta {
+    margin-top: 1rem;
+    font-size: 0.6875rem;
+    gap: 0.375rem;
+  }
+  .nf-auth--narrow .nf-auth__cta svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+  /* 47 render from the button to OR's centre = 18, 39 on to Google = 15.
+     OR caps 13 render = 6.8 px: raised to 11. Hairlines 1 px. */
+  .nf-auth--narrow .nf-auth__rule {
+    margin-block: 0.6875rem 0.5rem;
+    gap: 0.625rem;
+    font-size: 0.6875rem;
+  }
+  /* Google: 70 render = 27, raised to 44. Label caps 17 render = 8.9 px:
+     raised to 11, medium. The G 31 render = 12. */
+  .nf-auth--narrow .nf-auth__door {
+    font-size: 0.6875rem;
+    gap: 0.5rem;
+  }
+  .nf-auth--narrow .nf-auth__door-mark {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+  /* The foot line: caps 13 render = 6.8 px, raised to 11; 45 render under
+     Google = 17 to its caps. */
+  .nf-auth--narrow .nf-auth__swap {
+    margin-top: 0.875rem;
+    font-size: 0.6875rem;
+  }
+  .nf-auth--narrow .nf-auth__swap a {
+    margin-left: 0.125rem;
+  }
+  /* The password step's own furniture (the render does not draw this step;
+     it inherits the chooser's sizes): labels, the way back, the forgot link
+     and the refusals at the 11 px floor; the Sign in button as Continue. */
+  .nf-auth--narrow .nf-label,
+  .nf-auth--narrow .nf-auth__notice,
+  .nf-auth--narrow .nf-auth__alert {
+    font-size: 0.6875rem;
+  }
+  /* The way back and "Forgot password?": caption size on the wide card,
+     the 11 px floor on the render's card. */
+  .nf-auth__aside {
+    font-size: var(--nf-text-caption);
+  }
+  .nf-auth--narrow .nf-auth__aside {
+    font-size: 0.6875rem;
+  }
+  .nf-auth[data-theme="dark"] .nf-auth--narrow .nf-btn--primary {
+    --nf-btn-h: 2.75rem;
+    min-height: 2.75rem;
+    padding-block: 0;
+    font-size: 0.6875rem;
+  }
+
   @media (min-width: 640px) {
+    .nf-auth__stage:has(.nf-auth--narrow) {
+      max-width: 17.5rem;
+    }
     .nf-auth__stage {
       max-width: 21.25rem;
     }
