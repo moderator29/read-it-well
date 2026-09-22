@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getAuditLog } from "@/lib/admin/audit-queries";
+import { getAuditActivity, getAuditLog } from "@/lib/admin/audit-queries";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
   queueNoMatch,
@@ -13,6 +13,7 @@ import {
 import { QueueTabs } from "../_components/QueueTable";
 import { adminUi } from "../_components/ui";
 import { AUDIT_COPY as COPY, AuditList, auditTabs } from "./AuditList";
+import { AuditCharts } from "./AuditCharts";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: COPY.title, robots: { index: false, follow: false } };
@@ -38,13 +39,22 @@ export default async function AdminAuditPage({
 
   const params = await searchParams;
   const query = readQueueQuery(params);
-  const log = await getAuditLog({
-    ...(query.q ? { q: query.q } : {}),
-    ...(query.status ? { status: query.status } : {}),
-    ...(query.from ? { from: query.from } : {}),
-    ...(query.to ? { to: query.to } : {}),
-    ...(query.offset ? { offset: query.offset } : {}),
-  });
+  /*
+   * The charts read their own window and are NOT narrowed by `query`. A chart
+   * that silently followed the operator's search box would carry a caption
+   * saying "actions per day" over a picture of one search's results. Read in
+   * parallel with the page, because neither one waits on the other.
+   */
+  const [log, activity] = await Promise.all([
+    getAuditLog({
+      ...(query.q ? { q: query.q } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.from ? { from: query.from } : {}),
+      ...(query.to ? { to: query.to } : {}),
+      ...(query.offset ? { offset: query.offset } : {}),
+    }),
+    getAuditActivity(),
+  ]);
 
   if (log.state !== "ok") {
     return (
@@ -62,6 +72,29 @@ export default async function AdminAuditPage({
   return (
     <div className="nf-console">
       <ui.QueueHeader title={COPY.title} lede={COPY.lede} />
+
+      {/*
+        The chart words come from the DICTIONARY and not from `AUDIT_COPY`.
+        The desk's own vocabulary is English constants by a written decision
+        (`AuditList.tsx:16`) because `Dictionary["admin"]` is another scope's
+        closed type, and that decision stands for the existing strings. New
+        ones do not get to inherit it: these six live in `uiCommon`, the
+        namespace opened for exactly this, so the console's first charts are
+        not also its next seventeen English literals.
+      */}
+      {activity.state === "ok" ? (
+        <AuditCharts
+          activity={activity.data}
+          copy={{
+            perDay: t.uiCommon.charts.actionsPerDay,
+            byKind: t.uiCommon.charts.actionsByKind,
+            byActor: t.uiCommon.charts.actionsByActor,
+            rest: t.uiCommon.charts.everythingElse,
+            capped: t.uiCommon.charts.cappedWindow,
+            window: t.uiCommon.charts.lastDays,
+          }}
+        />
+      ) : null}
 
       <QueueTabs label={COPY.tabsLabel} tabs={auditTabs(COPY.base, query)} />
 
