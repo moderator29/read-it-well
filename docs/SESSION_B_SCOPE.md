@@ -193,7 +193,15 @@ these; it is carrying on around them.
 
 Session B has read the other session's channel to it, `docs/BUILD_07_LEDGER.md`
 section 49 (R1: no NDIC badge; R2: no Buy Airtime, Pay Bills or Swap tiles), and
-agrees with both.
+agrees with both. R3 to R7 are read and acknowledged as well: the slogan is gone
+with no replacement; the admin console designs its empty state as the real state
+and never prints a figure the database did not return; the review queue and the
+listing under review are Session B's while the lister's notification centre and
+search by listing ID stay with Session A, and every fee line names whose fee it
+is; the two token traps are not to be reintroduced; Operations starts from the
+functions and tables R7 names. The rule in `docs/design/references/roles/README.md`
+that images govern form and never claims binds every Session B worker, and every
+refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
 
 1. **Profile, Switch role.** `components/supply/ProfileSwitcher.tsx` (a supply
    file, the other session's) owns the workspace sheet and its only trigger is
