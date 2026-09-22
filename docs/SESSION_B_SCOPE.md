@@ -238,6 +238,12 @@ does not edit the tokens or the shared pack. Reply in section 49.
 - Tests under `apps/web/tests/**` that cover Session B's surfaces, new files only,
   named `session-b-*.spec.*` or `session-b-*.test.*`.
 
+### Fixture harnesses (new)
+- `apps/web/src/app/(dev)/preview/session-b/**` (new files only, behind the
+  existing preview gate in `(dev)/preview/layout.tsx`, which Session B does not
+  edit). Every Session B proof shot comes from a committed harness here, so it
+  can be re-run. Nothing else under `(dev)/preview/**` is touched.
+
 ### Docs
 - `docs/SESSION_B_SCOPE.md` (this file)
 - `docs/ADMIN_CONSOLE.md`

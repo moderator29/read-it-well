@@ -10,6 +10,49 @@ Every surface gets three sections before it can be called finished:
    property by property, with measured numbers.
 3. **Light mode**: the same surface on paper, checked.
 
+## 0. Lead rulings (22 September, after the first closing audit)
+
+These are the lead's decisions on questions the auditor found were choices, not
+rules. Every Session B surface follows them, so the same question gets the same
+answer everywhere.
+
+**R-A. Type at the render's size, with a floor, per role.** The render governs
+every text role's size. A role is raised only where the render's size would be
+unreadable, and only to the floor, never by a whole-surface factor:
+- body, subtitle, caption and label: floor 11px
+- a value typed into an input: 16px (iOS zooms the page below that)
+- everything else (names, titles, headings, figures): the render's measured size,
+  not scaled.
+A uniform scale factor (1.16, 1.36, 1.15) is withdrawn on every surface.
+
+**R-B. Controls at the render's height, with a floor.** A pressable control
+takes the render's measured height unless that is under 44px, in which case it
+is 44px. Everything around it keeps the render's proportions; only the control
+grows.
+
+**R-C. Containers at the render's measured width.** The lead's earlier "about
+300 to 310px" for the sign-in card was an estimate and it was wrong: the render
+measures 61.6% of the screen, about 240px at 390. Containers take the render's
+measured width. Where a real string cannot fit at the floor sizes, the text
+wraps before the container grows, and the ledger says so.
+
+**R-D. Controls clear the shape review line.** "Zero" in the shape sweep means
+zero at or above 0.35, not only zero at or above 0.5. The shared console chip
+and the queue search field are brought under 0.35.
+
+**R-E. The console lands on the overview on every entry, including by address.**
+The first request to any `/admin/**` desk in a browser session goes to `/admin`
+first, which offers the desk the operator was heading for as its first link.
+
+**R-F. Real function beats pixel parity, and is drawn compactly.** Where the
+product needs a control the render does not draw (the inspection outcome
+choice), it stays, drawn in the render's register as compactly as the render's
+own nearest element, so the primary actions stay on the first screen.
+
+**R-G. Proofs are reproducible.** Every fixture harness a proof came from is
+committed under `apps/web/src/app/(dev)/preview/session-b/<surface>/`, behind the
+existing preview gate, so anyone can re-run the shots and the sweep.
+
 ## 1. Profile
 
 Route `/profile`. Governing image `50E032EA-4141-4237-88D5-01B3720D87B6.png` (repo root;
