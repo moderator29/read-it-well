@@ -73,6 +73,9 @@
     min-width: 0;
     border-radius: var(--nf-radius-md);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    /* The glow identity's per-side lit edge (GLOW_IDENTITY section 2), the
+       same list admin.css hands every console panel. */
+    border-color: var(--nf-admin-panel-edges);
     background: var(--nf-admin-panel-fill);
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
@@ -136,6 +139,11 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
+  @media (min-width: 1024px) {
+    .nf-md-kpis--5 {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
   .nf-md-kpi {
     display: flex;
     flex-direction: column;
@@ -166,11 +174,23 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
+  /* SELECTED, per GLOW_IDENTITY section 3: the cyan-lit edge, a one pixel
+     ring of the lit cyan, the fill lifted under the rim and a real bloom,
+     unlike the resting card's near-none. */
   .nf-md-kpi[aria-current="true"] {
-    border-color: var(--nf-border-brand);
+    border-color: var(--nf-admin-cta-edges);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-admin-lit-cyan) 55%, var(--nf-admin-lit)) 0,
+        color-mix(in oklab, var(--nf-admin-lit) 55%, var(--nf-surface-canvas)) 6px,
+        color-mix(in oklab, var(--nf-admin-lit) 34%, var(--nf-surface-canvas)) 40%,
+        color-mix(in oklab, var(--nf-admin-lit) 26%, var(--nf-surface-canvas)) 100%
+      );
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
-      var(--nf-glow-edge-strong);
+      0 0 0 1px color-mix(in oklab, var(--nf-admin-lit-cyan) 55%, transparent),
+      0 0 14px 1px color-mix(in oklab, var(--nf-admin-lit) 62%, transparent),
+      0 0 30px 4px color-mix(in oklab, var(--nf-admin-lit) 34%, transparent);
   }
   .nf-md-kpi__label {
     font-size: var(--nf-text-caption);
@@ -255,27 +275,100 @@
 
   /* ------------------------------------------------------ the not-wired state */
 
-  .nf-md-wait {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--nf-space-sm);
+  /*
+    THE FRAME. An empty chart keeps its real height and its frame (grid,
+    axis labels, legend) and draws no data mark; the calm panel sits over the
+    middle of it. The frame is dimmed so it reads as a place, not a result.
+  */
+  .nf-md-frame {
+    position: relative;
+  }
+  .nf-md-frame__ghost {
+    opacity: 0.4;
+  }
+  /* Over a ghosted frame the shared calm note needs a solid ground, or the
+     frame's words read through it. Same calm recipe, mixed into the canvas
+     instead of into transparency. */
+  .nf-md-frame__note > .nf-admin-calm {
+    background: color-mix(in oklab, var(--nf-admin-lit) 18%, var(--nf-surface-canvas));
+  }
+  .nf-md-frame__note {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) dashed var(--nf-brand-edge);
-    background: var(--nf-well-fill);
   }
-  .nf-md-wait__title {
-    font-size: var(--nf-text-body-sm);
+  @media (max-width: 639px) {
+    /* On a phone the note would cover the whole frame; it sits under it. */
+    .nf-md-frame__note {
+      position: static;
+      padding: var(--nf-space-sm) 0 0;
+    }
+  }
+  .nf-md-table__note td {
+    padding-top: var(--nf-space-lg);
+    padding-bottom: var(--nf-space-lg);
+  }
+  @media (max-width: 767px) {
+    .nf-md-table__note td::before {
+      display: none;
+    }
+  }
+
+  /* The status bar: one track, a word on every segment. */
+  .nf-md-statusbar {
+    display: flex;
+    gap: 2px;
+    height: 1.75rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-md-statusbar--empty {
+    border: var(--nf-border-width) dashed color-mix(in oklab, var(--nf-admin-lit) 45%, var(--nf-surface-canvas));
+  }
+  .nf-md-statusbar__seg {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding: 0 var(--nf-space-xs);
+    overflow: hidden;
+    font-size: var(--nf-text-overline);
     font-weight: 600;
-    color: var(--nf-content-primary);
+    white-space: nowrap;
+    color: var(--nf-surface-canvas);
   }
-  .nf-md-wait__body {
-    margin-top: var(--nf-space-3xs);
-    max-width: 62ch;
+  .nf-md-statusbar__seg--good {
+    background: var(--nf-state-success);
+  }
+  .nf-md-statusbar__seg--bad {
+    background: var(--nf-state-error);
+  }
+  .nf-md-statusbar__seg--pending {
+    background: var(--nf-state-warning);
+  }
+  .nf-md-statusbar__seg--info {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-md-statuskey {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    margin-top: var(--nf-space-xs);
     font-size: var(--nf-text-caption);
-    line-height: 1.5;
     color: var(--nf-content-secondary);
   }
+  .nf-md-statuskey__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-md-statuskey__count {
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
   .nf-md-empty {
     padding: var(--nf-space-lg) var(--nf-space-md);
     text-align: center;
@@ -469,7 +562,7 @@
   /* The current page is the lit primary: gradient fill, bright top rim and a
      soft blue bloom under it, the same treatment as a primary button. */
   .nf-md-pager__item[aria-current="page"] {
-    border-color: var(--nf-border-brand);
+    border-color: var(--nf-admin-cta-edges);
     background: var(--nf-gradient-cta);
     color: var(--nf-content-on-brand);
     box-shadow:
@@ -672,7 +765,7 @@
   }
   .nf-md-bar {
     display: grid;
-    grid-template-columns: 1.5rem minmax(5rem, 1fr) minmax(0, 1.3fr) auto;
+    grid-template-columns: 1.5rem minmax(6rem, 1.4fr) minmax(3rem, 1fr) auto;
     align-items: center;
     gap: var(--nf-space-sm);
     padding-bottom: var(--nf-space-sm);
@@ -884,9 +977,12 @@
     text-decoration: none;
   }
   .nf-md-toggle[aria-pressed="true"] {
-    border-color: var(--nf-border-brand);
+    border-color: var(--nf-admin-cta-edges);
     color: var(--nf-content-primary);
-    background: var(--nf-brand-tint-2);
+    background: color-mix(in oklab, var(--nf-admin-lit) 34%, var(--nf-surface-canvas));
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--nf-admin-lit-cyan) 45%, transparent),
+      0 0 14px 1px color-mix(in oklab, var(--nf-admin-lit) 50%, transparent);
   }
   .nf-md-toggle:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -915,5 +1011,28 @@
   }
   :root[data-theme="light"] .nf-md-readout {
     backdrop-filter: none;
+  }
+  :root[data-theme="light"] .nf-md-frame__note > .nf-admin-calm {
+    background: color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-on-paper));
+  }
+  :root[data-theme="light"] .nf-md-kpi[aria-current="true"] {
+    border-color: var(--nf-brand-primary);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-on-paper)),
+      color-mix(in oklab, var(--nf-brand-primary) 6%, var(--nf-surface-on-paper)) 40%,
+      color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper))
+    );
+    box-shadow:
+      0 0 0 1px var(--nf-brand-primary),
+      0 8px 22px -8px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  }
+  :root[data-theme="light"] .nf-md-toggle[aria-pressed="true"] {
+    border-color: var(--nf-brand-primary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper));
+    box-shadow: 0 0 0 1px var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-md-statusbar__seg {
+    color: var(--nf-content-on-brand);
   }
 }

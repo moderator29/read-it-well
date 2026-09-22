@@ -17,7 +17,7 @@ import {
   type QueueStatusOption,
 } from "../_components/QueueFilters";
 import { EscrowRuling } from "../_components/MoneyDecisions";
-import { DeskHead, NumberedPager, Panel } from "../money/_desk/Desk";
+import { CalmNote, DeskHead, Framed, NumberedPager, Panel, TableNote, type CalmNoteProps } from "../money/_desk/Desk";
 import { Donut } from "../money/_desk/charts";
 import { ReconciliationPanel } from "../money/_desk/Reconciliation";
 import { countdown, wholeDays } from "@/lib/admin/reads/money-derive";
@@ -196,10 +196,20 @@ export function EscrowDesk({
               /* A SEARCH THAT MATCHED NOTHING IS NOT A CLEARANCE. */
               <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} state="no-match" />
             ) : (
-              <p className="nf-md-empty">
-                The platform is not holding anybody&apos;s money. An escrow appears here the moment a tenant or
-                buyer funds one.
-              </p>
+              <EscrowTable
+                rows={[]}
+                now={now}
+                locale={locale}
+                ui={ui}
+                empty={{
+                  title: "The platform is not holding anybody's money",
+                  fills: "Every escrow still running, with days held and the time left before it releases on its own.",
+                  creates:
+                    status
+                      ? "Escrows in this state appear here as they reach it."
+                      : "A tenant or buyer funding a rent deposit, first rent or purchase opens one.",
+                }}
+              />
             )
           ) : (
             <>
@@ -230,9 +240,25 @@ export function EscrowDesk({
       <div className="nf-md-grid nf-md-grid--halves">
         <Panel title="Escrow by purpose">
           {pipeline.total === 0 ? (
-            <p className="nf-md-empty">
-              No escrow has been opened yet. Rent deposits, first rent and purchase money will be split here.
-            </p>
+            <Framed
+              frame={
+                <Donut
+                  label="Escrows by purpose"
+                  totalLabel="Total"
+                  totalValue="0"
+                  slices={Object.keys(pipeline.byPurpose).map((purpose) => ({
+                    label: PURPOSE_LABEL[purpose] ?? purpose,
+                    count: 0,
+                  }))}
+                />
+              }
+            >
+              <CalmNote
+                title="No escrow has been opened yet"
+                fills="How the platform's escrows split between rent deposits, first rent and purchase money."
+                creates="Each escrow a tenant or buyer funds is counted under its purpose."
+              />
+            </Framed>
           ) : (
             <Donut
               label="Escrows by purpose"
@@ -247,7 +273,11 @@ export function EscrowDesk({
         </Panel>
         <Panel title="Recent activity">
           {pipeline.recent.length === 0 ? (
-            <p className="nf-md-empty">Nothing has happened to an escrow yet.</p>
+            <CalmNote
+              title="Nothing has happened to an escrow yet"
+              fills="The newest movements across every escrow: funded, held, release asked for, released, refunded, disputed and ruled on."
+              creates="Each step a payer, a payee, the auto release or a ruling takes is listed as it happens."
+            />
           ) : (
             <ol className="nf-md-timeline">
               {pipeline.recent.map((event) => (
@@ -277,7 +307,9 @@ function EscrowTable({
   now,
   locale,
   ui,
+  empty,
 }: {
+  empty?: CalmNoteProps;
   rows: EscrowView[];
   now: number;
   locale: Locale;
@@ -300,6 +332,7 @@ function EscrowTable({
         </tr>
       </thead>
       <tbody>
+        {rows.length === 0 && empty ? <TableNote columns={6} note={empty} /> : null}
         {rows.map((escrow) => {
           const held = wholeDays(escrow.heldAt, now);
           const release = countdown(escrow.autoReleaseAt, now);

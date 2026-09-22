@@ -2,8 +2,8 @@ import Link from "next/link";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { DeskHead, Kpi, NumberedPager, Panel, Waiting } from "../money/_desk/Desk";
-import { Donut, RankBars, SeriesChart, SeriesLegend, type Series } from "../money/_desk/charts";
+import { CalmNote, DeskHead, EmptyChart, Framed, Kpi, NumberedPager, Panel, TableNote, Waiting, lastMonths } from "../money/_desk/Desk";
+import { Donut, RankBars, RankFrame, SeriesChart, SeriesLegend, type Series } from "../money/_desk/charts";
 import { percentChange } from "@/lib/admin/reads/money-derive";
 import {
   SUPPLY_ROLE_KEYS,
@@ -58,7 +58,9 @@ export function SupplyDesk({
   params,
   locale,
   pageSize,
+  now,
 }: {
+  now: number;
   supply: (SupplyConsole & { complete?: boolean }) | null;
   filter: SupplyFilter;
   params: Record<string, string | undefined>;
@@ -106,7 +108,13 @@ export function SupplyDesk({
                     ? { percent: percentChange(count.now, count.weekAgo), against: "vs last week" }
                     : null
                 }
-                note={count ? "No accounts a week ago to compare with" : "Accounts on the platform in this role"}
+                note={
+                  !count
+                    ? "Accounts on the platform in this role"
+                    : count.now === 0
+                      ? `No ${ROLE_LABEL[role].many.toLowerCase()} yet`
+                      : "None a week ago to compare with"
+                }
                 href={hrefWith({ role: filter.role === role ? undefined : role })}
                 current={filter.role === role}
               />
@@ -139,30 +147,27 @@ export function SupplyDesk({
               body="Every owner, agent, firm and host with their verification, how many listings they hold, how much has been paid to them and when they joined. The read did not answer just now; reload in a moment."
             />
           ) : supply.rows.length === 0 ? (
-            <p className="nf-md-empty">
-              {filter.role
-                ? `No ${ROLE_LABEL[filter.role].many.toLowerCase()} yet.`
-                : "Nobody supplies the platform yet. Owners, agents, firms and hosts appear here as they are approved."}
-            </p>
+            <table className="nf-md-table">
+              <SupplyHead />
+              <tbody>
+                <TableNote
+                  columns={6}
+                  note={{
+                    title: filter.role
+                      ? `No ${ROLE_LABEL[filter.role].many.toLowerCase()} yet${filter.examples ? "" : " outside the examples"}`
+                      : `Nobody supplies the platform yet${filter.examples ? "" : " outside the examples"}`,
+                    fills:
+                      "Every owner, agent, firm and host, with their verification, live listings, what has been paid to them and when they joined.",
+                    creates: "An account appears here when its application is approved on the verification desk.",
+                    action: { href: "/admin/kyc", label: "Open the verification queue" },
+                  }}
+                />
+              </tbody>
+            </table>
           ) : (
             <>
               <table className="nf-md-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Role</th>
-                    <th scope="col" className="nf-md-num">
-                      Listings
-                    </th>
-                    <th scope="col">Verified</th>
-                    <th scope="col" className="nf-md-num">
-                      Total transacted
-                    </th>
-                    <th scope="col" className="nf-md-num">
-                      Joined
-                    </th>
-                  </tr>
-                </thead>
+                <SupplyHead />
                 <tbody>
                   {supply.rows.map((row) => (
                     <tr key={`${row.kind}-${row.id}`}>
@@ -210,7 +215,7 @@ export function SupplyDesk({
           )}
         </Panel>
 
-        <GrowthPanel supply={supply} locale={locale} />
+        <GrowthPanel supply={supply} locale={locale} now={now} />
       </div>
 
       <div className="nf-md-grid nf-md-grid--halves">
@@ -221,7 +226,14 @@ export function SupplyDesk({
               body="The five areas with the most live listings and stays, ranked. The read did not answer just now."
             />
           ) : supply.topAreas.length === 0 ? (
-            <p className="nf-md-empty">No live listing has an area yet.</p>
+            <Framed frame={<RankFrame />}>
+              <CalmNote
+                title="No live listing yet"
+                fills="The five areas with the most live listings and stays, ranked."
+                creates="A listing counts here once it is approved and published."
+                action={{ href: "/admin/listings", label: "Open listing review" }}
+              />
+            </Framed>
           ) : (
             <RankBars rows={supply.topAreas.slice(0, 5).map((a) => ({ label: a.area, count: a.count }))} />
           )}
@@ -233,7 +245,26 @@ export function SupplyDesk({
               body="Live listings split by property type, from houses and flats to hotels and restaurants. The read did not answer just now."
             />
           ) : supply.byPropertyType.length === 0 ? (
-            <p className="nf-md-empty">No live listing yet.</p>
+            <Framed
+              frame={
+                <Donut
+                  label="Live listings by property type"
+                  totalLabel="Total"
+                  totalValue="0"
+                  slices={["home", "apartment", "land", "hotel", "shortlet", "restaurant"].map((t) => ({
+                    label: PROPERTY_TYPE_LABEL[t] ?? t,
+                    count: 0,
+                  }))}
+                />
+              }
+            >
+              <CalmNote
+                title="No live listing yet"
+                fills="Live listings split by property type, from houses and flats to hotels and restaurants."
+                creates="A listing counts here once it is approved and published."
+                action={{ href: "/admin/listings", label: "Open listing review" }}
+              />
+            </Framed>
           ) : (
             <Donut
               label="Live listings by property type"
@@ -251,7 +282,7 @@ export function SupplyDesk({
   );
 }
 
-function GrowthPanel({ supply, locale }: { supply: SupplyConsole | null; locale: Locale }) {
+function GrowthPanel({ supply, locale, now }: { supply: SupplyConsole | null; locale: Locale; now: number }) {
   const series: Series[] = SUPPLY_ROLE_KEYS.map((role, rank) => ({
     name: ROLE_LABEL[role].many,
     values: supply ? supply.growth.map((g) => g.counts[role]) : [],
@@ -260,6 +291,12 @@ function GrowthPanel({ supply, locale }: { supply: SupplyConsole | null; locale:
     dash: ROLE_DASH[role],
   }));
   const legend = <SeriesLegend series={series} />;
+  const label = (month: string, year = false) =>
+    formatDate(new Date(`${month}-15T12:00:00Z`), locale, {
+      month: "short",
+      ...(year ? { year: "numeric" } : {}),
+      timeZone: "Africa/Lagos",
+    });
 
   if (!supply) {
     return (
@@ -274,16 +311,20 @@ function GrowthPanel({ supply, locale }: { supply: SupplyConsole | null; locale:
   if (supply.growth.length < 2) {
     return (
       <Panel title="Supply growth by role" aside={legend}>
-        <p className="nf-md-empty">A trend needs two months of supply. There is not a line to draw yet.</p>
+        <EmptyChart
+          height={220}
+          yLabels={["0", "", "", "", ""]}
+          xLabels={lastMonths(now, 6).map((m) => label(m))}
+          note={{
+            title: "No supply to chart yet",
+            fills: "How many owners, agents, firms and hosts the platform has had at the end of each of the last six months.",
+            creates: "Each approved application adds an account to its role's line.",
+            action: { href: "/admin/agents", label: "Open agent applications" },
+          }}
+        />
       </Panel>
     );
   }
-  const label = (month: string, year = false) =>
-    formatDate(new Date(`${month}-15T12:00:00Z`), locale, {
-      month: "short",
-      ...(year ? { year: "numeric" } : {}),
-      timeZone: "Africa/Lagos",
-    });
   return (
     <Panel title="Supply growth by role" aside={legend}>
       <SeriesChart
@@ -301,5 +342,26 @@ function GrowthPanel({ supply, locale }: { supply: SupplyConsole | null; locale:
         }))}
       />
     </Panel>
+  );
+}
+
+function SupplyHead() {
+  return (
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Role</th>
+        <th scope="col" className="nf-md-num">
+          Listings
+        </th>
+        <th scope="col">Verified</th>
+        <th scope="col" className="nf-md-num">
+          Total transacted
+        </th>
+        <th scope="col" className="nf-md-num">
+          Joined
+        </th>
+      </tr>
+    </thead>
   );
 }

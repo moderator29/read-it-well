@@ -35,6 +35,49 @@ export function rampColor(rank: number): string {
 }
 
 /**
+ * Past the fifth rung the ramp runs out of honest lightness steps, so every
+ * further slice is the fifth rung HATCHED, each at its own angle, and still
+ * carries its word, share and count (research part four: never a sixth hue).
+ */
+export function isHatched(rank: number): boolean {
+  return rank >= RAMP.length;
+}
+function hatchAngle(rank: number): number {
+  return rank % 2 === 0 ? 45 : -45;
+}
+function swatchBackground(rank: number): string {
+  if (!isHatched(rank)) return rampColor(rank);
+  const a = hatchAngle(rank);
+  return `repeating-linear-gradient(${a}deg, var(--nf-brand-quiet) 0 2px, transparent 2px 4px)`;
+}
+
+/**
+ * Direct labels at the end of four lines collide where the lines end close
+ * together (Hosts over Firms on the first proof). Push them apart to a
+ * minimum gap, keeping their order, and keep them inside the plot.
+ */
+export function spreadLabels(ys: readonly number[], gap: number, top: number, bottom: number): number[] {
+  const order = ys.map((y, i) => ({ y, i })).sort((a, b) => a.y - b.y);
+  const placed: number[] = [];
+  for (const [k, item] of order.entries()) {
+    const prev = k === 0 ? -Infinity : placed[k - 1]!;
+    placed.push(Math.max(item.y, prev + gap, top));
+  }
+  const overflow = (placed.at(-1) ?? 0) - bottom;
+  if (overflow > 0) {
+    for (let k = placed.length - 1; k >= 0; k -= 1) {
+      const next = k === placed.length - 1 ? bottom : placed[k + 1]! - gap;
+      placed[k] = Math.min(placed[k]!, next);
+    }
+  }
+  const out = new Array<number>(ys.length);
+  order.forEach((item, k) => {
+    out[item.i] = placed[k]!;
+  });
+  return out;
+}
+
+/**
  * A smooth path through the points (monotone cubic, so the curve never
  * overshoots a value and never draws a dip or a peak the data does not have).
  */
@@ -132,6 +175,10 @@ export function SeriesChart({
   const H = height;
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
+  /* A frame with no series draws its grid and axes and no data mark at all:
+     no flat line through nothing. Its y axis names only the zero it can
+     honestly name. */
+  const ghost = series.every((s) => s.values.length === 0);
   const max = niceCeil(Math.max(0, ...series.flatMap((s) => s.values)));
   const n = xLabels.length;
   const x = (i: number) => PAD.left + (n <= 1 ? plotW / 2 : (i / (n - 1)) * plotW);
@@ -155,19 +202,25 @@ export function SeriesChart({
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="nf-md-chart__grid" strokeWidth="1" />
             <text x={PAD.left - 10} y={y(t) + 4} textAnchor="end" className="nf-md-chart__axis">
-              {yLabel(t)}
+              {ghost && t !== 0 ? "" : yLabel(t)}
             </text>
           </g>
         ))}
         {xLabels.map((l, i) =>
-          i % labelEvery === 0 || i === n - 1 ? (
+          i === n - 1 || (i % labelEvery === 0 && n - 1 - i >= labelEvery * 0.7) ? (
             <text key={`${l}-${i}`} x={x(i)} y={H - 8} textAnchor="middle" className="nf-md-chart__axis">
               {l}
             </text>
           ) : null,
         )}
 
-        {series.map((s) => {
+        {series.filter((s) => s.values.length > 0).map((s, si, drawn) => {
+          const labelYs = spreadLabels(
+            drawn.map((d) => y(d.values[n - 1] ?? 0) - 8),
+            14,
+            PAD.top + 8,
+            PAD.top + plotH - 2,
+          );
           const line = smoothPath(s.values.map((v, i) => [x(i), y(v)] as [number, number]));
           const area = `${line} L${x(n - 1).toFixed(1)},${y(0)} L${x(0).toFixed(1)},${y(0)} Z`;
           const colour = rampColor(s.rank);
@@ -197,7 +250,7 @@ export function SeriesChart({
               {directLabels && n > 0 && (
                 <text
                   x={x(n - 1) - 4}
-                  y={y(s.values[n - 1] ?? 0) - 8}
+                  y={labelYs[si]}
                   textAnchor="end"
                   className="nf-md-chart__axis"
                 >
@@ -208,8 +261,8 @@ export function SeriesChart({
           );
         })}
       </svg>
-      <ChartReadout columns={readout} plotLeft={PAD.left / W} plotRight={(W - PAD.right) / W} />
-      <table className="sr-only">
+      {!ghost && <ChartReadout columns={readout} plotLeft={PAD.left / W} plotRight={(W - PAD.right) / W} />}
+      {!ghost && <table className="sr-only">
         <caption>{label}</caption>
         <thead>
           <tr>
@@ -231,7 +284,7 @@ export function SeriesChart({
             </tr>
           ))}
         </tbody>
-      </table>
+      </table>}
     </figure>
   );
 }
@@ -302,6 +355,20 @@ export function Donut({
   return (
     <div className="nf-md-donut">
       <svg viewBox="0 0 140 140" className="nf-md-donut__svg" role="img" aria-label={label}>
+        <defs>
+          {arcs.filter((a) => isHatched(a.rank)).map((a) => (
+            <pattern
+              key={a.key}
+              id={`hatch-${label.replace(/[^a-z0-9]/gi, "")}-${a.rank}`}
+              width="4"
+              height="4"
+              patternUnits="userSpaceOnUse"
+              patternTransform={`rotate(${hatchAngle(a.rank)})`}
+            >
+              <rect width="2" height="4" style={{ fill: "var(--nf-brand-quiet)" }} />
+            </pattern>
+          ))}
+        </defs>
         <g transform="rotate(-90 70 70)">
           <circle cx="70" cy="70" r={r} fill="none" strokeWidth="16" style={{ stroke: "var(--nf-brand-tint-1)" }} />
           {arcs.map((a) =>
@@ -315,7 +382,11 @@ export function Donut({
                 strokeWidth="16"
                 strokeDasharray={a.dash}
                 strokeDashoffset={a.off}
-                style={{ stroke: rampColor(a.rank) }}
+                style={{
+                  stroke: isHatched(a.rank)
+                    ? `url(#hatch-${label.replace(/[^a-z0-9]/gi, "")}-${a.rank})`
+                    : rampColor(a.rank),
+                }}
               />
             ) : null,
           )}
@@ -333,7 +404,7 @@ export function Donut({
             <span
               className="nf-md-swatch nf-md-swatch--square"
               aria-hidden="true"
-              style={{ background: rampColor(rank) }}
+              style={{ background: swatchBackground(rank) }}
             />
             <span className="truncate">{s.label}</span>
             <span className="nf-md-slice__share">{total > 0 ? `${Math.round((s.count / total) * 100)}%` : "0%"}</span>
@@ -380,6 +451,69 @@ export function Ring({
         {percent === null ? "none" : `${percent}%`}
       </text>
     </svg>
+  );
+}
+
+/** The ranked bars' frame with nothing in it: five numbered empty tracks. */
+export function RankFrame({ rows = 5 }: { rows?: number }) {
+  return (
+    <ol className="nf-md-bars">
+      {Array.from({ length: rows }, (_, i) => (
+        <li key={i} className="nf-md-bar">
+          <span className="nf-md-bar__rank">{i + 1}.</span>
+          <span className="text-[var(--nf-content-muted)]">&nbsp;</span>
+          <span className="nf-md-bar__track" />
+          <span className="nf-md-bar__count">&nbsp;</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export type StatusTone4 = "good" | "bad" | "pending" | "info";
+
+/**
+ * One stacked status bar on the status four (emerald good, rose bad, cyan
+ * pending, blue info), a WORD on every segment wide enough to hold one and a
+ * key under the bar that names every segment with its count either way. With
+ * nothing to show it draws the empty track and the key at zero.
+ */
+export function StatusBar({
+  segments,
+  label,
+}: {
+  segments: { key: string; label: string; count: number; tone: StatusTone4 }[];
+  label: string;
+}) {
+  const total = segments.reduce((s, x) => s + x.count, 0);
+  const shown = segments.filter((s) => s.count > 0);
+  return (
+    <figure className="m-0">
+      <div
+        role="img"
+        aria-label={`${label}: ${segments.map((s) => `${s.label} ${s.count}`).join(", ")}, ${total} in total.`}
+        className={`nf-md-statusbar${total === 0 ? " nf-md-statusbar--empty" : ""}`}
+      >
+        {shown.map((s) => (
+          <span
+            key={s.key}
+            className={`nf-md-statusbar__seg nf-md-statusbar__seg--${s.tone}`}
+            style={{ flexGrow: s.count, flexBasis: 0 }}
+          >
+            {s.count / total >= 0.07 ? s.label : s.count / total >= 0.025 ? s.count : ""}
+          </span>
+        ))}
+      </div>
+      <figcaption className="nf-md-statuskey">
+        {segments.map((s) => (
+          <span key={s.key} className="nf-md-statuskey__item">
+            <span aria-hidden="true" className={`nf-md-swatch nf-md-swatch--square nf-md-statusbar__seg--${s.tone}`} />
+            {s.label}
+            <span className="nf-md-statuskey__count">{s.count}</span>
+          </span>
+        ))}
+      </figcaption>
+    </figure>
   );
 }
 

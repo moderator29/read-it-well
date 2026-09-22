@@ -12,6 +12,15 @@ import { adminUi } from "../_components/ui";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { SweepHolds } from "./SweepHolds";
 import { LookupPanel } from "./LookupPanel";
+import { getPaymentsDesk } from "@/lib/admin/reads/payments";
+import { readPage } from "@/lib/admin/reads/money-derive";
+import { LiveRefresh } from "../_components/LiveRefresh";
+import { CalmNote, DeskHead, Panel, flatParams } from "../money/_desk/Desk";
+import { PaymentsCharts, PaymentsKpis, PaymentsTable } from "./PaymentsFlow";
+import "../money/_desk/desk.css";
+
+/** Payment attempts per page. */
+const PAYMENTS_PAGE_SIZE = 12;
 
 export const metadata: Metadata = {
   title: "Payments",
@@ -60,10 +69,21 @@ export default async function AdminPaymentsPage({
   const rawTerm = params["q"];
   const term = (Array.isArray(rawTerm) ? rawTerm[0] : rawTerm)?.trim() ?? "";
 
-  const [read, lookup] = await Promise.all([
+  const flat = flatParams(params);
+  const [read, lookup, flow] = await Promise.all([
     getPaymentHealth(STALE_HOLD_MINUTES),
     term.length > 0 ? findAdminSubject(term) : Promise.resolve(null),
+    getPaymentsDesk({
+      ...(flat.outcome ? { outcome: flat.outcome } : {}),
+      ...(flat.kind ? { kind: flat.kind } : {}),
+      page: readPage(params.page),
+      pageSize: PAYMENTS_PAGE_SIZE,
+    }),
   ]);
+  const payments = flow.state === "ok" ? flow.data : null;
+  const head = (
+    <DeskHead title="Payments" lede="Money coming in, and anything stuck, short or waiting on the provider." />
+  );
   const found =
     lookup && lookup.state === "ok" && lookup.data?.state === "found"
       ? lookup.data.subject.userId
@@ -80,11 +100,12 @@ export default async function AdminPaymentsPage({
 
   if (read.state !== "ok") {
     return (
-      <div className="nf-console">
-        <ui.QueueHeader
-          title="Payments"
-          lede="Money that is stuck, short, or waiting on the provider."
-        />
+      <div className="nf-console nf-md">
+        <LiveRefresh />
+        {head}
+        <PaymentsKpis desk={payments} />
+        <PaymentsCharts desk={payments} locale={locale} />
+        <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
         <ui.QueueUnavailable />
       </div>
     );
@@ -94,13 +115,15 @@ export default async function AdminPaymentsPage({
   const healthy = overdrawn.length === 0 && staleHolds.length === 0 && unsettled.length === 0;
 
   return (
-    <div className="nf-console">
-      <ui.QueueHeader
-        title="Payments"
-        lede="Money that is stuck, short, or waiting on the provider."
-        count={overdrawn.length + staleHolds.length}
-      />
+    <div className="nf-console nf-md">
+      <LiveRefresh />
+      {head}
 
+      <PaymentsKpis desk={payments} />
+      <PaymentsCharts desk={payments} locale={locale} />
+      <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
+
+      <Panel title="Health" hint="Money that is stuck, short, or waiting on the provider">
       <ui.StatRow>
         <ui.Stat
           label="Ledger shortfall"
@@ -135,11 +158,16 @@ export default async function AdminPaymentsPage({
       </ui.StatRow>
 
       {healthy && (
-        <ui.QueueEmpty
-          title="The money is where it should be"
-          body="No wallet is overdrawn, no withdrawal is held past its window, and the provider has settled everything it was sent in the last thirty days."
-        />
+        <div className="mt-sm">
+          <CalmNote
+            kind="clear"
+            title="The money is where it should be"
+            fills="No wallet is overdrawn, no withdrawal is held past its window, and the provider has settled everything it was sent in the last thirty days."
+            creates="An overdrawn wallet, a stuck hold or an unsettled payment appears here the moment one exists."
+          />
+        </div>
       )}
+      </Panel>
 
       {overdrawn.length > 0 && (
         <ui.Section
@@ -200,9 +228,11 @@ export default async function AdminPaymentsPage({
         hint={`A withdrawal still marked pending after ${staleMinutes} minutes. The money is neither in the owner's spendable balance nor in their bank account.`}
       >
         {staleHolds.length === 0 ? (
-          <ui.QueueEmpty
+          <CalmNote
+            kind="clear"
             title="No withdrawal is stuck"
-            body="Every pending hold is inside its window, which means it is on its way rather than frozen."
+            fills="Every pending hold is inside its window, which means it is on its way rather than frozen."
+            creates="A withdrawal still pending after the window appears here with the control to release it."
           />
         ) : (
           <div className="nf-stack nf-stack--group">

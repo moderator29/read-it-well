@@ -6,6 +6,7 @@ import type { StatusTone } from "@/components/ui/StatusPill";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
 import type { AdminUi } from "../_components/ui";
+import { CalmNote } from "../_components/panels";
 
 /**
  * The money desk's rows and the refund console, out of the page so the
@@ -201,9 +202,14 @@ export function RefundsPanel({
 
           {refunds.data.rows.length === 0 ? (
             narrowed ? null : (
-              <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-                No refund has been decided yet.
-              </p>
+              <div className="mt-sm">
+                <CalmNote
+                  title="No refund has been decided yet"
+                  fills="Every refund decided on the console, with where its money is now."
+                  creates="A stay is refunded from its own page under the published schedule."
+                  action={{ href: "/admin/bookings", label: "Open bookings" }}
+                />
+              </div>
             )
           ) : (
             <ul className="mt-xs">

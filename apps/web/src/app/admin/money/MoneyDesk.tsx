@@ -8,7 +8,7 @@ import type { AdminCommon } from "../_components/copy";
 import { EscrowRuling } from "../_components/MoneyDecisions";
 import { QueueFilters } from "../_components/QueueFilters";
 import { EntryRow, RefundsPanel } from "./MoneyRows";
-import { DeskHead, Kpi, NumberedPager, Panel, Waiting } from "./_desk/Desk";
+import { CalmNote, DeskHead, EmptyChart, Kpi, NumberedPager, Panel, TableNote, Waiting, lastMonths } from "./_desk/Desk";
 import { SeriesChart, SeriesLegend, type Series } from "./_desk/charts";
 import { ReconciliationPanel } from "./_desk/Reconciliation";
 import { percentChange } from "@/lib/admin/reads/money-derive";
@@ -134,7 +134,7 @@ export function MoneyDesk({
         </p>
       )}
 
-      <FlowPanel flow={flow} locale={locale} />
+      <FlowPanel flow={flow} locale={locale} now={now} />
 
       <div className="nf-md-grid nf-md-grid--split">
         <ReconciliationPanel health={health} now={now} when={ui.when} variant="ring" />
@@ -206,9 +206,13 @@ export function MoneyDesk({
         </ui.StatRow>
         {wallets.length === 0 ? (
           narrowed ? null : (
-            <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-              Nobody has a wallet yet. One is created the first time somebody is paid or funds an account.
-            </p>
+            <div className="mt-sm">
+              <CalmNote
+                title="Nobody has a wallet yet"
+                fills="Every wallet on the platform, newest first, with what is settled and what is held."
+                creates="A wallet is created the first time somebody is paid or funds an account."
+              />
+            </div>
           )
         ) : (
           <ul className="mt-xs">
@@ -299,7 +303,7 @@ function monthLabel(month: string, locale: Locale, withYear = false): string {
   });
 }
 
-function FlowPanel({ flow, locale }: { flow: MoneyFlow | null; locale: Locale }) {
+function FlowPanel({ flow, locale, now }: { flow: MoneyFlow | null; locale: Locale; now: number }) {
   const series: Series[] = [
     { name: "Money in", values: flow ? flow.months.map((m) => m.inMinor) : [], rank: 0, area: true },
     { name: "Money out", values: flow ? flow.months.map((m) => m.outMinor) : [], rank: 1, area: true, dash: "6 4" },
@@ -319,11 +323,21 @@ function FlowPanel({ flow, locale }: { flow: MoneyFlow | null; locale: Locale })
   if (flow.months.length < 2) {
     return (
       <Panel title="Money in vs money out" aside={legend}>
-        <p className="nf-md-empty">
-          {flow.months.length === 0
-            ? "No money has settled yet. The chart draws from the first month that has a settled entry."
-            : `Money has settled in one month so far (${monthLabel(flow.months[0]!.month, locale, true)}). A trend needs a second month, so there is no line yet.`}
-        </p>
+        <EmptyChart
+          height={200}
+          yLabels={["₦0", "", "", "", ""]}
+          xLabels={lastMonths(now, 12).map((m) => monthLabel(m, locale))}
+          note={{
+            title:
+              flow.months.length === 0
+                ? "No money has settled yet"
+                : `One month of settled money so far (${monthLabel(flow.months[0]!.month, locale, true)})`,
+            fills: "Settled money into wallets against settled money out, month by month for a year.",
+            creates:
+              "Every top-up, booking payment, payout and refund that completes adds to it. A line needs a second month, so none is drawn.",
+            action: { href: "/admin/payments", label: "Open payments" },
+          }}
+        />
       </Panel>
     );
   }
@@ -370,7 +384,30 @@ function LedgerPanel({
   return (
     <Panel title="Ledger" foot={foot}>
       {ledger.total === 0 ? (
-        narrowed ? null : <p className="nf-md-empty">No money has moved yet.</p>
+        narrowed ? null : (
+          <table className="nf-md-table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Description</th>
+                <th scope="col">Type</th>
+                <th scope="col" className="nf-md-num">Amount</th>
+                <th scope="col" className="nf-md-num">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <TableNote
+                columns={5}
+                note={{
+                  title: "No money has moved yet",
+                  fills: "Every wallet entry, newest first, with the platform float after each one.",
+                  creates: "A top-up, a booking payment, a payout or a refund writes the first entry.",
+                  action: { href: "/admin/payments", label: "Open payments" },
+                }}
+              />
+            </tbody>
+          </table>
+        )
       ) : (
         <>
           <table className="nf-md-table">

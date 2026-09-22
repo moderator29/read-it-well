@@ -51,6 +51,6 @@ export default async function AdminSupplyPage({
   const supply = read.state === "ok" ? read.data : null;
 
   return (
-    <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} />
+    <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} now={new Date().getTime()} />
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { CalmNote, type CalmNoteProps } from "../../_components/panels";
 import { pagerItems } from "@/lib/admin/reads/money-derive";
 
 /**
@@ -55,17 +56,49 @@ export function Panel({
 }
 
 /**
- * THE HONEST ABSENCE. Says what the panel shows, in words for an operator,
- * and why no figure is drawn. Never a number the database did not return.
+ * THE CALM NOTE is the console's shared one (`CalmNote` in
+ * `app/admin/_components/panels.tsx`, GLOW_IDENTITY section 7), so an empty panel on a
+ * money desk is the same object as an empty panel anywhere in the console.
+ * A read that did not answer is drawn in it too, as an error.
  */
+export { CalmNote, EmptyChart, type CalmNoteProps } from "../../_components/panels";
+
 export function Waiting({ title, body }: { title: string; body: string }) {
+  return <CalmNote kind="error" title={title} fills={body} />;
+}
+
+/** A table's own note row: the head stays drawn, the note spans the body. */
+export function TableNote({ columns, note }: { columns: number; note: CalmNoteProps }) {
   return (
-    <div className="nf-md-wait" role="note">
-      <UiIcon name="info" size={18} className="mt-3xs shrink-0 text-[var(--nf-brand-quiet)]" />
-      <div className="min-w-0">
-        <p className="nf-md-wait__title">{title}</p>
-        <p className="nf-md-wait__body">{body}</p>
+    <tr className="nf-md-table__note">
+      <td colSpan={columns} data-label="">
+        <CalmNote {...note} />
+      </td>
+    </tr>
+  );
+}
+
+/** The last `count` Lagos months ending with the one `now` is in, `YYYY-MM`, oldest first. */
+export function lastMonths(now: number, count: number): string[] {
+  const d = new Date(now + 3_600_000);
+  return Array.from({ length: count }, (_, i) => {
+    const m = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - (count - 1 - i), 15));
+    return `${m.getUTCFullYear()}-${String(m.getUTCMonth() + 1).padStart(2, "0")}`;
+  });
+}
+
+/**
+ * An empty panel that keeps its frame: the ghosted frame underneath (a
+ * chart's grid and axes, a table's head, a bar's track), the calm note over
+ * its middle on a wide screen and under it on a phone.
+ */
+export function Framed({ frame, children }: { frame: ReactNode; children: ReactNode }) {
+  return (
+    <div className="nf-md-frame">
+      <div className="nf-md-frame__ghost" aria-hidden="true">
+        {frame}
       </div>
+      <div className="nf-md-frame__note">{children}</div>
     </div>
   );
 }
