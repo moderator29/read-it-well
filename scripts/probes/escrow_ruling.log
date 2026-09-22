@@ -1,0 +1,64 @@
+== T-14, THE ADMIN RULING, against live project uccixoonmbhrnyczyigt
+== 22 September 2026, rolled back
+
+-- RUN ONE. It got all the way to the end and the FLOAT CHECK refused it.
+
+ERROR:  P0001: PROBE FAILED. The float stopped balancing after a ruling:
+[{"what": "The escrow float derived from the ledger disagrees with the float
+derived from the agreement rows.", "invariant": "I-2", "difference_minor":
+-500000, "escrow_float_minor": 0, "ledger_float_minor": -500000}]
+
+THE PROBE WAS WRONG AND THE INVARIANT WAS RIGHT, and this is the clearest
+demonstration in this build that I-2 is connected to something. The probe had
+seeded an agreement straight into DISPUTED with no hold behind it and then
+ruled a refund on it. Five hundred thousand kobo left the pot that had never
+entered it, and I-2 reported the gap to the kobo, with its sign.
+
+The ruling floor, the direction check, the verbatim notification to both
+parties, the absence of the banned word and the refusal of a second ruling had
+all already passed before it got there.
+
+-- RUN TWO, with a real lifecycle: deposit, fund, dispute, rule.
+
+ERROR:  P0001: PROBE FAILED. The payer is at 600000 kobo after a full refund,
+not 500000.
+
+ALSO THE PROBE. It asserted an absolute balance on a LIVE wallet that already
+had 100,000 kobo in it. A probe that assumes an empty account fails on a real
+database and passes on an empty one, which is the wrong way round. It measures
+a delta now.
+
+-- RUN THREE.
+
+ERROR:  P0001: PROBE ALL PASS. A real hold posted, the float balanced and the
+payer was down exactly the amount held. A 19 character ruling refused and the
+function named its floor of 20. An invented direction refused. A real ruling
+settled the agreement to RESOLVED, reached BOTH parties word for word, linked
+to the agreement rather than to a balance, and carried no banned word. A
+second ruling refused. The float still balanced and the refund returned the
+seed to the kobo. Rolling back.
+
+-- ROLLBACK CONFIRMED, read back immediately afterwards:
+
+escrows                 0
+escrow ledger entries   0
+probe references        0
+escrow evidence         0
+admin roles             0
+escrow notifications    0
+
+The admin role the probe granted itself is gone with the rest of it.
+
+-- AND THE SCHEDULED CHECK IS RUNNING, WHICH IS A SEPARATE CLAIM.
+
+The one surviving audit row is not the probe's. It is the hourly job firing on
+its own schedule and writing down what it found:
+
+  action      escrow.invariants.held
+  created_at  2026-09-22 23:23:00.146851+00
+  breaches    0
+  float       0
+
+Scheduled at 23 past the hour and observed at 23:23:00. The check is not
+merely registered with pg_cron; it has run in production and left its answer
+where a person can read it.
