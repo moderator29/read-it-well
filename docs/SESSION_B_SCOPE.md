@@ -60,6 +60,12 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(app)/profile/belongings.ts` (new: pure helpers for the row values and the Switch role line)
 - `apps/web/src/app/(app)/profile/belongings-queries.ts` (new: the head counts and balance the rows carry)
 - `apps/web/src/app/(app)/profile/SwitchRoleRow.tsx` (new: the Switch role row, opening the dock's own workspace sheet)
+- `apps/web/tests/profile.spec.mjs`: the spec for this surface; only its
+  selectors for the profile's own classes (`.nf-pf-cover`).
+- `apps/web/public/brand/session-b/profile/**` and the PROFILE block of
+  `scripts/design/session-b-crops.mjs` (the paper renditions of the five row objects)
+- `packages/i18n/src/locales/*.ts`: the added `socialProfile.accountPage`
+  keys only (the profile's copy; `socialProfile` is the profile namespace)
 - NOT `profile/setup/**` and NOT `profile/application/**`
 
 ### Get started
@@ -276,21 +282,19 @@ refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
    name. Request: an optional `renderTrigger(open)` prop, or an exported
    `openProfileSwitcher()` event, so the row can open the sheet directly.
    Session B will switch the row over the day it lands.
-1b. **Profile, copy into the dictionary.** The rebuilt `/profile` carries a
-   handful of new English strings (row values "upcoming", "saved", "open"; the
-   Switch role title and its lines; the group labels and row labels below the
-   fold), gathered in ONE object, `COPY` in
-   `apps/web/src/app/(app)/profile/belongings.ts`, the precedent
-   `components/roles/roles.ts` set. There is no `profile` namespace in
-   `packages/i18n` and `socialProfile` is not Session B's to add to. Request:
-   either a `profile` namespace Session B may add keys to, or move these into
-   `socialProfile` yourselves; Session B then reads them from the dictionary.
-1c. **Profile, a stale selector in a spec.** `apps/web/tests/profile.spec.mjs`
-   asserts `.nf-social-cover` on `/profile` in both branches. The profile now
-   draws its own cover as `.nf-pf-cover` (`profile.css`), so the public page's
-   social classes and the account page no longer move each other. Request:
-   change both selectors to `.nf-pf-cover`. `tests/profile-renders.spec.mjs`
-   still passes unchanged.
+1b. **WITHDRAWN.** The profile's copy now lives in `packages/i18n` under
+   `socialProfile.accountPage`, added in all four locales (ha, ig, yo are
+   drafts awaiting a native speaker).
+1c. **WITHDRAWN.** `tests/profile.spec.mjs` is this surface's spec; Session B
+   changed its two `.nf-social-cover` selectors to `.nf-pf-cover` itself.
+1d. **Profile, a page action in the app header.** On `/profile` the settings
+   gear sits in the app header's row (left of the bell) so the band over the
+   cover reads as one row, as `50E032EA` draws it. It is placed there by
+   `profile.css` from the header's measured geometry and stacked above the
+   header (z 41), because the header has no slot for a page's own control.
+   Request: an optional `headerAction` slot in `AppShell` (a node rendered
+   before the bell), so the gear can live inside the header's DOM and cannot
+   drift if the header's gaps change. Session B moves the gear the day it lands.
 
 ### Requests from admin-money (money, escrow, supply, bookings, payments)
 
