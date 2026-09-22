@@ -131,7 +131,7 @@ export function AuthChoices({
       )}
 
       <p className="nf-auth__swap">
-        {isSignUp ? t.auth.haveAccount : t.auth.noAccount}{" "}
+        {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
         <Link href={isSignUp ? "/sign-in" : "/sign-up"}>
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>

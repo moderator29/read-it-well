@@ -1119,6 +1119,9 @@ export const en = {
     fullNamePlaceholder: "Your name",
     forgotPassword: "Forgot password?",
     noAccount: "Do not have an account?",
+    /* The sign-in card's foot line, beside "Sign up": warmer than
+       noAccount, and a question the person can answer. */
+    newToVallo: "New to Vallo?",
     haveAccount: "Already have an account?",
     termsNotice: "By continuing you agree to our Terms and Privacy Policy.",
     providerUnavailable: "This sign in method is not configured yet.",

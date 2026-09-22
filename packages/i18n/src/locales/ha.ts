@@ -723,6 +723,7 @@ export const ha: Dictionary = withFallback({
     fullNamePlaceholder: "Sunanka",
     forgotPassword: "Ka manta kalmar sirri?",
     noAccount: "Ba ka da asusu?",
+    newToVallo: "Sabon shiga Vallo?",
     haveAccount: "Kana da asusu?",
     termsNotice: "Ta ci gaba ka yarda da Sharuɗɗanmu da Manufar Sirri.",
     providerUnavailable: "Wannan hanyar shiga ba a saita ta ba tukuna.",

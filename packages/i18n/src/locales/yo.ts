@@ -718,6 +718,7 @@ export const yo: Dictionary = withFallback({
     fullNamePlaceholder: "Orúkọ rẹ",
     forgotPassword: "Ṣé o gbàgbé ọ̀rọ̀ ìpamọ́?",
     noAccount: "Ṣé o kò ní àkàǹtì?",
+    newToVallo: "Ṣé o jẹ́ tuntun sí Vallo?",
     haveAccount: "Ṣé o ti ní àkàǹtì?",
     termsNotice: "Nípa títẹ̀síwájú o gbà pẹ̀lú Àdéhùn àti Ìlànà Àṣírí wa.",
     providerUnavailable: "Ọ̀nà ìwọlé yìí kò tíì ṣetán.",
