@@ -262,6 +262,7 @@ the worker. No row, no close, and the lead does not commit it.
 | The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png`, RETAKEN by A2b at `6c621e3` | row mark 14 on 44 = 0.318, measured. THE STANDING LABEL IS NOT IN THIS PROOF: it only draws on a workspace row, a visitor with no session has none, so B1's 6 on 25 = 0.244 is UNVERIFIED and needs a session | B1, proof by A2b |
 | The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png`, RETAKEN by A2b at `6c621e3` | row 14 on 56 = 0.25, measured; and the sheet it opens is the same sheet the dock opens, asserted in the run | B1, proof by A2b |
 | `/profile/setup/owner`, THE OWNER FORM, all four screens | `GOVERNING-03` | `b1b/owner-1-about-you`, `owner-2-where`, `owner-2-where-picker`, `owner-2-where-state-chosen`, `owner-3-proof`, `owner-3-proof-none`, `owner-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`. Taken on `next start` with `VALLO_PREVIEW_HARNESS=1` at port 3196, walked by `scratchpad/b1b/proof-owner.mjs`, which fills each screen and presses the control a person would | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** Measured in the browser: every one of the six answer rows 14 on 56 = 0.250, including "I have none of these"; the timing label 14 on 44 = 0.318; the calm panel's glyph is the only circle and it carries no text | B1b |
+| `/profile/setup/agent`, THE AGENT FORM, all four screens | `GOVERNING-04` | `b1b/agent-1-about-you`, `agent-1-about-you-filled`, `agent-2-identity`, `agent-3-fees`, `agent-3-fees-declared`, `agent-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`, walked by `scratchpad/b1b/proof-agent.mjs` on `next start` at port 3196 | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** The two upload cards 14 on 123 = 0.114; the fee control and its two step plates on `--nf-radius-control`; the timing label 14 on 44 = 0.318. The run also asserts the fee behaviour: both fees open NOT DECLARED with the minus disabled; twenty and ten presses read 10 per cent and 5 per cent through `Intl` and the total moves to the right figure; changing the example rent moves the total live; one step below the first rung reads a real zero and one more returns to not declared, and the undeclared line draws the words and never a nought | B1b |
 | The PROPERTY HOME PAGE, everything below the location selector | `GOVERNING-01` screen one | `b3/home-390-dark.png`, `b3/home-390-light.png`, taken on `next start` at port 3185 from a clean tree at `origin/main` plus the four B3 commits. The route itself is behind the signed-in gate in `proxy.ts` and this box reaches no database, so the proof is `/preview/f1/home`, which mounts the SAME `HomeScreen` from fixtures. A preview is not the route and that is said rather than glossed | **0 breaches at 390 and 1536, dark and light.** Measured in the browser: place chip 6 on 30 = 0.20, hero field 14 on 52 = 0.27, filter control 14 on 44 = 0.32, tile plate 18 on 64 = 0.28. Nothing over 0.35 on this route | B3 |
 | The STAYS HOME PAGE, the whole screen | `GOVERNING-09` screen one | `b3/stays-390-dark.png`, `b3/stays-390-light.png`, taken on the same server on the REAL `/stays` route, which is open to a stranger. The featured band is EMPTY in both shots and that is the product being honest: `stays_search` returns nothing on this box, so nothing is drawn | **0 breaches at 390 and 1536, dark and light.** Same four objects as the property side, same numbers, because they are the same three components | B3 |
 | The MOVE-IN COST BLOCK on `/listing/[id]` | `GOVERNING-08` screen two, carried onto a surface that image does not draw | `b3/listing-cost-390-dark.png`, `b3/listing-cost-390-light.png`. Same reason as the home page: the live route needs a database. `/preview/f3/listing` mounts the block TWICE, once with the fixture as it stands and once with a declared zero agency fee and no stated total, because the block exists to show the difference between a declared cost and an undeclared one | **0 breaches at 390 and 1536, dark and light.** Cost row 14 on 56 = 0.25, total panel 14 on 96 = 0.15 | B3 |
@@ -1973,3 +1974,76 @@ Not touched, deliberately: the Vault origin and its secrets, which are the
 founder's and are being changed by him; `scripts/verify-shots.mjs`, which
 another worker holds uncommitted; and every product table, since this stint
 was read only against the database.
+
+## 19. B3 AUDITED, AND A CORRECTION TO THE RECORD ABOUT THE LOST FILES
+
+### THE STASH: TWO WORKERS HAVE NOW OWNED UP, AND THE ATTRIBUTION I RECORDED IS WITHDRAWN
+
+The ledger said B1 ran `git stash` at about 12:46 and that this was the
+incident that stashed eighty one files of twelve workers' work and refused to
+pop. **B3 has now reported running `git stash` too, at about 12:41, inside a
+compound command, popped within about twenty seconds with no conflicts.**
+
+So there were TWO stashes, five minutes apart, and **which of them destroyed
+the six uncommitted files is not known and is not worth establishing.**
+Naming the wrong worker in a permanent record is a worse fault than leaving it
+open, so the attribution is withdrawn rather than reassigned. Both reported it
+unprompted, which is the behaviour that matters, and neither has used it since.
+
+What stands, and is the whole point of the entry: **`git stash` in any form is
+banned outright**, along with `git add -A`, `git checkout --` or `git restore`
+on a file you did not write, and `git reset --hard`. A command that moves
+somebody else's uncommitted work is not a command anybody on a shared tree
+gets to run, however briefly they intend to hold it.
+
+B3 also reported leaving two files staged in the shared tree, which another
+worker's commit then swept up. That is the third instance of section 14's rule
+and it is the same lesson: **staging is not saving. Commit, or the file is
+somebody else's to lose.**
+
+### A LIVE PRODUCT DEFECT ON THE FIRST SCREEN, AND A CORRECTION TO ITS SIZE
+
+B3 reported that `MarketTiles`' nine tiles had been landing on the unfiltered
+catalogue because `?intent=` is a dead parameter. **The finding is real and
+the count was wrong, so it is recorded at its true size.**
+
+Measured: `parseShelfQuery` reads `market=buy|rent` and nothing called
+`intent`, so `/search?intent=rent` and `/search?intent=sale` carried no filter
+at all. **Somebody tapping Buy on the first screen of the product got the
+whole catalogue with rentals mixed in.** Nothing failed, nothing logged, and
+the page looked entirely normal: it answered a different question from the one
+it was asked.
+
+But only TWO tiles were wrong, not nine. The other seven spell `type`,
+`parseDiscoveryQuery` reads `type` through `parseKind`, and all six of their
+values are present in `KIND_NOUN`. With the Invest band's call to action that
+is three dead links in total. Repeating "nine" would have sent the next person
+hunting six defects that do not exist.
+
+Fixed, with a test that parses every tile's href through the REAL
+`parseShelfQuery` and requires a filter back, because a link is a string: no
+type checks it and no compiler can catch it. Proved by reintroducing the
+defect, not by asserting the fix: eleven pass, and putting `intent=sale` back
+turns two red naming the unfiltered catalogue.
+
+### The light-mode finding that reaches every scope
+
+Three of the glass objects (`keys-handover`, `contract-sign`, `doc-review`)
+are among the 23 that ship a LIGHT TWIN; the other 121 do not. In dark the
+distinction paints identically. On paper a twinned mark is a pale frosted
+object standing on nothing while an untwinned one is dark artwork on a framed
+navy plate, so **a row holding both is two artwork families in one row, and it
+is invisible to everybody working in the default theme.**
+
+The rule: **A SET OF OBJECTS DRAWN SIDE BY SIDE IS ALL TWINNED OR NONE**, and
+no call site can currently tell which is which. Relayed to Group B, which is
+building a twin sweep for it as this is written.
+
+### Unstaffed by this hand-back, and it has no owner now
+
+**The sale cost model has no schema.** No agency, legal, consent, stamp duty
+or registration columns exist on the sale side, so the move-in honesty that
+now exists for a tenant has no equivalent for a buyer: the one place a Nigerian
+buyer is most often surprised by a number is the one place this platform
+cannot yet show them one. B3 handed it to Group C and **both supply workers
+have since handed back**, so it is nobody's. It is on the lead's board.
