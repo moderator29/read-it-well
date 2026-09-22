@@ -1095,25 +1095,69 @@ fixture harness. Image values are image px x 0.908.
 | Badges | capsules ("Info", "High", "Success") | 24 tall, 6px (0.25), word + tint + border | shape law, deliberate |
 | Top bar | date and time, bell; no search on this render | search, Lagos date and time, bell, operator (the three-panel renders' bar) | partial, deliberate: one bar for every desk |
 
+**Why a shared part can differ from a panel.** The KPI card, the panel title
+and the page head are ONE component on every desk. Their sizes are taken from
+`5EAA44CB`, the one full-resolution console render (card label 15, figure 34,
+panel title 16), which under R-A is the render's measured size for that
+component; the three-panel renders draw the same components smaller and not
+consistently with each other (page title 25.6 on Operations, 20.8 on
+Analytics). Where a panel's size differs from the shared size, the row says
+so; none of them is a whole-surface scale factor.
+
+**How the panels of `01F7DFC7` were measured.** Each panel is a narrower
+window drawn smaller, so its scale is taken from the one element every
+render shares with the overview: the rail row pitch. In panel two and three
+the pitch is 34.4 image px (Overview y 166 to Listings y 200); on the overview
+render and on the build it is 44 CSS px. So 1 image px = 44 / 34.4 = 1.28 CSS
+px for both panels. Sizes were read on 3x crops of the image (so 1 crop px =
+0.427 CSS px); a type size is the cap height divided by 0.72. Built values
+are `getComputedStyle` on the production build at 1440 x 900.
+
 **Operations (`01F7DFC7` panel two)**
 
-| Property | Image | Built | Match |
+| Property | Image (measured, CSS px) | Built (measured) | Match |
 |---|---|---|---|
-| Page head | "Operations", 26ish bold; blue lede | 26px/700; 14px `--nf-brand-secondary` | yes |
-| Two KPI cards, no plate | Jobs healthy "24 / 27", 89%, line; Active alerts, change, line | real "6 / 7" style count, share, runs line; open count, change vs a week ago, raised line | yes |
-| Tabs | Scheduled jobs (lit), Alerts, Audit log | same plus Notifications; 44 tall, 14px, lit gradient on the open one | yes (+1 tab by founder update) |
-| Jobs table | Job name, Schedule, Last run, Duration, Status; Healthy tinted emerald; Failed solid rose | same columns; Healthy/Attention/Overdue/No run yet/Failed (solid rose) | yes |
-| Recent alerts / Audit log panels | two panels side by side, View all | same | yes |
+| Page title "Operations" | cap 43 crop px, 25.6px bold | 26px/700 | yes |
+| Lede | 12.8px, cyan-blue #3FB8F5 | 14px, `--nf-brand-secondary` #5C9FFF | 1.2px over (not yet brought to 12.8, recorded as a difference); hue translated into the blue family |
+| KPI card box | 223 x 122.5, corner 7.7 | 343 x 148, corner 14 | width follows the wider window (two cards in a 44rem row); height +25 because the build carries a caption line the render does not; corner deliberately the console's 14 (render 13 on 5EAA44CB) |
+| Card plate | none | none | yes (plates removed in 1636070) |
+| Card label | 12.8px, medium | 15px/600 | larger: the console's one card type size from 5EAA44CB (15) |
+| Card figure "24 / 27" | cap 47 crop, 27.8px bold | 32.2px/700 at 1440 (34 at 1536) | larger: one figure size across every console card |
+| Share "89%" | 17.9px, emerald | 13px caption "86% on schedule" | smaller: carried as a caption with its words, not a bare percent |
+| Change "down 62%" | 17.9px emerald, down arrow | 14px/700, arrow, "vs a week ago" | smaller, same anatomy |
+| Sparkline | 92 x 40, bottom right, glow | 96 x 44, bottom right, 4px drop-shadow glow | yes |
+| Tab | 137 x 45, corner 6, label 12.8 | 137 x 44, corner 14 (0.32), 14px/500 | size yes; corner per the shape law's control radius, under 0.35 |
+| Open tab fill | #0A7BF6 to #1B97F8, top rim, bloom ~12 px | `--nf-gradient-cta`, 1px white 55% rim, 18px bloom | yes |
+| Table header | 11.5px, muted | 13px, `--nf-content-secondary` | 1.5px over; `5EAA44CB` draws its table header at 12.7 (14 image px), so the shared table sits between the two |
+| Table row pitch | 39 | 57 | taller: each cell carries a second line (cron expression, "19m ago") the render does not have |
+| Status badge | 71 x 25, corner 5, "Healthy" tinted emerald, "Failed" solid rose | 64 x 24, corner 6 (0.25), 12px/600; Failed solid rose | yes |
+| Lower panels title | 14.4px semibold | 16px/600 | +1.6, the console's one panel title size |
 
 **Analytics (`01F7DFC7` panel three)**
 
-| Property | Image | Built | Match |
+| Property | Image (measured, CSS px) | Built (measured) | Match |
 |---|---|---|---|
-| Page head and filters | title, blue lede, date range, All areas | title, lede, range select | partial: area filter not built |
-| KPI row | four cards with figures and changes | Successful bookings real; three "Not recorded" with the request | honest, not the render's figures |
-| Demand vs supply | two series, hover card | supply line real; searches named missing on the legend | partial by data |
-| Top areas / fewest listings | two tables with bars | fewest listings real (empty today); top areas not wired (A7) | partial by data |
-| Searches vs results / refusals | bars; list | not wired (A7, A11) | by data |
+| Page title "Analytics" | cap 35 crop, 20.8px bold | 26px/700 | larger: one page title size across the console (operations measures 25.6) |
+| Lede | 11.9px | 14px | 2.1px over, the same lede component as Operations; a difference, recorded |
+| Date range field | 257 x 35, corner 5 | range select 158 x 36, corner 10 (0.28) | height yes; one select, not a date field plus area select (area filter not built, 6.7) |
+| KPI card | 110 x 117 (four in a narrow window) | 284 x 148 | wider window; same four-across grid at 1440 |
+| Card label | 12px | 15px/600 | the console's card label size |
+| Card figure "48,732" | cap 39 crop, 23px bold | 32.2px/700 ("Not recorded" 18px/600) | larger, one figure size |
+| Change and caption | 12.8px emerald arrow; 12px "vs last month" | 14px/700; 13px "vs the 30 days before" | +1 each |
+| Panel title "Demand vs supply" | cap 34 crop, 20px semibold | 16px/600 | smaller: one panel title size across the console, taken from 5EAA44CB (16) |
+| Area line and fill | glowing line, fill fading down | same, `drop-shadow` 5px, fill 42% to 2% | yes |
+| Distribution rows ("Areas with fewest listings") | row pitch 32, bar 9 tall | row pitch 40, meter 10 tall, corner 6 | taller rows (44px floor region for dense lists) |
+
+**The glow, measured on 5EAA44CB.** The open rail row: fill #0065FD, top edge
+#0298FC, a bloom that rises from the canvas #002B6B at 14 image px above the
+row to #0030A9 at 1px (so about 12 CSS px of spread, at roughly 55% of the
+brand over the canvas). Built: `--nf-gradient-cta`, a 1px white 55% inset top
+rim, `0 0 18px` brand 55% and `0 6px 16px -6px` brand 70%. Panels: the edge is
+#004CB0 to #004EBE, 2 image px, and the canvas beside it is flat #00091F right
+up to the edge (the render draws almost no outer glow on its cards; the
+light is inside, #00184F just inside the edge). Built: per-side lit edges, an
+inner catchlight, `0 0 4px` info 38% and `0 0 12px` brand 18% (the glow
+identity's revised numbers, which the founder asked for platform-wide).
 
 **Rail badges (lead review, 22 September).** Each badge is work waiting on
 that one desk, from `getQueueCounts()` (exact `head: true` counts), with a
