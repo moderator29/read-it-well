@@ -1,6 +1,7 @@
 import { Amount } from "@/components/ui/Amount";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
 import type { Locale } from "@vallo/i18n";
+import { factLabel } from "@/lib/price-check/facts-labels";
 import type { AreaAskingRow, AreaCensus, AreaUtilityFacts } from "@/lib/price-check/types";
 
 /**
@@ -182,15 +183,18 @@ export function AreaReport({
   );
 }
 
-/** The enum label a person reads, never the database's own spelling. */
+/**
+ * The enum label, from `lib/price-check/facts-labels.ts`.
+ *
+ * It is a plain module rather than a helper in this file because a `.tsx`
+ * cannot be imported by this project's vitest suite at all - the config
+ * aliases react at its react-server entry and nothing in the suite renders a
+ * component - and this is the part that can be wrong in silence. It already
+ * was: `BAND_A` resolved to nothing, and the panel rendered with its three
+ * most important rows simply absent and no error anywhere.
+ */
 function enumWord(value: string | null, prefix: string, copy: FactsCopy): string | null {
-  if (value === null) return null;
-  const key = `${prefix}${value
-    .toLowerCase()
-    .split("_")
-    .map((part, index) => (index === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
-    .join("")}`;
-  return copy[key] ?? null;
+  return factLabel(value, prefix, copy as unknown as Record<string, string>);
 }
 
 export function NeighbourhoodFacts({

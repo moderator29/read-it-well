@@ -3,6 +3,15 @@ import "server-only";
 import { cache } from "react";
 import { createClient } from "../supabase/server";
 import { isSupabaseConfigured } from "../supabase/env";
+import {
+  areaCensusFromRow,
+  areaRowFromRow,
+  comparableFromRow,
+  suggestionFromRow,
+  supplyFromRow,
+  utilityFactsFromRow,
+  verdictFromRow,
+} from "./mapping";
 import { priceCheckRpc } from "./rpc";
 import type {
   AreaAskingRow,
@@ -56,21 +65,16 @@ async function client(): Promise<Db | null> {
   }
 }
 
-/** A number the database sent as a string, which PostgREST does for bigint. */
-function asNumber(value: unknown): number {
-  if (typeof value === "number") return value;
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function asNullableNumber(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  const parsed = asNumber(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
+/*
+ * The row mapping lives in `mapping.ts` and is tested there.
+ *
+ * POSTGREST SENDS EVERY bigint AS A STRING, and every money column in this
+ * feature is a bigint holding integer kobo. A string reaching `Amount` renders
+ * NaN, and that defect is invisible today for the same reason the SQL bug in
+ * `20260922223411_...` was invisible: the gate refuses every call on this
+ * estate, so the branch carrying the figures is never taken. Pulling the
+ * coercion out of these closures is what let it be put under test.
+ */
 
 /* ------------------------------------------------------------- the gate */
 
@@ -100,23 +104,9 @@ export const runGate = cache(async function runGate(
       p_exclude_id: excludeListingId,
     });
     if (error || !data) return null;
-    const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined;
-    if (!row) return null;
-    return {
-      outcome: row.outcome === "answered" ? "answered" : "refused",
-      refusalCode: (row.refusal_code as string | null) ?? null,
-      radiusM: asNumber(row.radius_m),
-      comparableCount: asNumber(row.comparable_count),
-      basis: (row.basis as GateVerdict["basis"]) ?? null,
-      lowMinor: asNullableNumber(row.low_minor),
-      midMinor: asNullableNumber(row.mid_minor),
-      highMinor: asNullableNumber(row.high_minor),
-      dispersion: asNullableNumber(row.dispersion),
-      confidence: (row.confidence as GateVerdict["confidence"]) ?? null,
-      medianAgeDays: asNullableNumber(row.median_age_days),
-      medianDistanceM: asNullableNumber(row.median_distance_m),
-      comparableIds: Array.isArray(row.comparable_ids) ? (row.comparable_ids as string[]) : [],
-    };
+    return verdictFromRow(
+      (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
+    );
   } catch {
     return null;
   }
@@ -150,13 +140,9 @@ export const supplyNear = cache(async function supplyNear(
       p_radius_m: 3000,
     });
     if (error || !data) return null;
-    const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined;
-    if (!row) return null;
-    return {
-      realCount: asNumber(row.real_count),
-      demoCount: asNumber(row.demo_count),
-      staleRealCount: asNumber(row.stale_real_count),
-    };
+    return supplyFromRow(
+      (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
+    );
   } catch {
     return null;
   }
@@ -186,21 +172,7 @@ export const comparablesFor = cache(async function comparablesFor(
       p_limit: 24,
     });
     if (error || !data || !Array.isArray(data)) return [];
-    return (data as Record<string, unknown>[]).map((row) => ({
-      id: String(row.id),
-      title: String(row.title ?? ""),
-      area: (row.area as string | null) ?? null,
-      city: (row.city as string | null) ?? null,
-      bedrooms: asNumber(row.bedrooms),
-      bathrooms: asNumber(row.bathrooms),
-      sizeSqm: asNullableNumber(row.size_sqm),
-      publishedAt: String(row.published_at ?? ""),
-      ageDays: asNumber(row.age_days),
-      distanceM: asNumber(row.distance_m),
-      priceMinor: asNumber(row.price_minor),
-      priceBasis: String(row.price_basis ?? ""),
-      pricePerSqmMinor: asNullableNumber(row.price_per_sqm_minor),
-    }));
+    return (data as Record<string, unknown>[]).map(comparableFromRow);
   } catch {
     return [];
   }
@@ -239,19 +211,7 @@ export const areaAsking = cache(async function areaAsking(
       p_max_age_days: 540,
     });
     if (error || !data || !Array.isArray(data)) return null;
-    return (data as Record<string, unknown>[]).map((row) => ({
-      scope: (row.scope as AreaAskingRow["scope"]) ?? "state",
-      propertyType: row.property_type as ListingPropertyType,
-      bedrooms: asNumber(row.bedrooms),
-      listingCount: asNumber(row.listing_count),
-      p25Minor: asNumber(row.p25_minor),
-      medianMinor: asNumber(row.median_minor),
-      p75Minor: asNumber(row.p75_minor),
-      sizedCount: asNumber(row.sized_count),
-      medianPerSqmMinor: asNullableNumber(row.median_per_sqm_minor),
-      oldestAt: String(row.oldest_at ?? ""),
-      newestAt: String(row.newest_at ?? ""),
-    }));
+    return (data as Record<string, unknown>[]).map(areaRowFromRow);
   } catch {
     return null;
   }
@@ -274,14 +234,9 @@ export const areaCensus = cache(async function areaCensus(
       p_intent: intent,
     });
     if (error || !data) return null;
-    const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined;
-    if (!row) return null;
-    return {
-      realCount: asNumber(row.real_count),
-      demoCount: asNumber(row.demo_count),
-      locatedCount: asNumber(row.located_count),
-      sizedCount: asNumber(row.sized_count),
-    };
+    return areaCensusFromRow(
+      (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
+    );
   } catch {
     return null;
   }
@@ -309,21 +264,9 @@ export const utilityFacts = cache(async function utilityFacts(
       p_area: area,
     });
     if (error || !data) return null;
-    const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined;
-    if (!row) return null;
-    return {
-      listingCount: asNumber(row.listing_count),
-      powerGrid: (row.power_grid as string | null) ?? null,
-      powerGridCount: asNullableNumber(row.power_grid_count),
-      powerBackup: (row.power_backup as string | null) ?? null,
-      powerBackupCount: asNullableNumber(row.power_backup_count),
-      waterSupply: (row.water_supply as string | null) ?? null,
-      waterSupplyCount: asNullableNumber(row.water_supply_count),
-      prepaidMeterCount: asNumber(row.prepaid_meter_count),
-      prepaidMeterKnown: asNumber(row.prepaid_meter_known),
-      estateAccessCount: asNumber(row.estate_access_count),
-      estateAccessKnown: asNumber(row.estate_access_known),
-    };
+    return utilityFactsFromRow(
+      (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined,
+    );
   } catch {
     return null;
   }
@@ -352,11 +295,7 @@ export const areaSuggestions = cache(async function areaSuggestions(
       p_limit: 8,
     });
     if (error || !data || !Array.isArray(data)) return [];
-    return (data as Record<string, unknown>[]).map((row) => ({
-      area: String(row.area ?? ""),
-      city: (row.city as string | null) ?? null,
-      listingCount: asNumber(row.listing_count),
-    }));
+    return (data as Record<string, unknown>[]).map(suggestionFromRow);
   } catch {
     return [];
   }
