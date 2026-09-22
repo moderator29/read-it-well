@@ -1,8 +1,8 @@
 # Vallo platform status
 
-**Measured:** 22 September 2026, between 19:30 and 20:10 UTC
-**Briefs measured at commit:** `dfbff2f`
-**Repository state at write time:** `739a5bf` on `main` (and `claude/brave-feynman-9g0ykr`, identical)
+**Measured:** 23 September 2026, 00:05 UTC. Cycle 2.
+**Briefs measured at commit:** `dfbff2f` (cycle 1), re-measured against `1464eca5` where noted
+**Repository state at write time:** `1464eca5` on `main` (and `claude/brave-feynman-9g0ykr`, identical)
 **Measured by:** the build session lead, with four read-only measurement agents whose
 findings were re-checked against the live database and the files before being written here.
 Four of their claims were wrong and are corrected in place rather than repeated.
@@ -50,12 +50,12 @@ Not an average of the optimistic ones.
 
 | Fact | Value | How |
 |---|---|---|
-| Test suite | **154 files, 2,802 tests, all passing** | `npx vitest run` at 19:29, exit 0 |
+| Test suite | **188 files, 3,227 tests. 3,226 pass, 1 FAILS** | `npx vitest run` on a clean worktree at `1464eca5`, exit 1 |
 | Workspace lint | **0 errors, 341 warnings** | `npm run lint --workspace @vallo/web`, exit 0 |
 | Production build | **green, six consecutive** | Vercel production READY on `2596ed9` and every commit since the 17:36 fix |
 | Routes | 269 `page.tsx` | `find apps/web/src/app -name page.tsx` |
 | Components | 272 `.tsx` | `find apps/web/src/components` |
-| Migrations | 235 | `ls supabase/migrations/*.sql` |
+| Migrations | 259, **zero duplicate versions** | `ls supabase/migrations/*.sql`, and a `uniq -d` on the version prefix |
 | Preview harness routes | 132 | `find apps/web/src/app/(dev)/preview -name page.tsx` |
 | **Published listings** | **64** | live database |
 | **Of which demo** | **64** | `is_demo = true` on every one |
@@ -70,7 +70,16 @@ Not an average of the optimistic ones.
 
 ## The one honest overall figure
 
-# 47%
+# 58%
+
+> **CYCLE 2, and why the number moved 11 points in one night.** Five workers
+> closed on the founder's five blocks. Price Check went 0% to a built, applied
+> and probed stage one. Escrow's nine pre-feature fixes are done and read back
+> off the live database. Track G's schema half went from zero to six applied
+> migrations, and an approved owner stops becoming an "agent" row at the door.
+> Five of the eight money departures are closed. **The number did not move
+> because more was written; it moved because more was proved.** The measured
+> facts below are re-taken, not carried over.
 
 **Measured against:** every item named on the four briefs' own lists, weighted
 by the work each track still needs rather than by track count, and **counting
@@ -155,6 +164,101 @@ gates neither.** Roughly six weeks of work between them, waiting on nobody.
 
 ---
 
+## Cycle 2: what changed, 22:00 to 00:05
+
+Five workers, each gated in a clean worktree and each push verified with
+`git rev-list --left-right --count HEAD...origin/main` reading `0 0`.
+
+| Track | Was | Now | What moved |
+|---|---|---|---|
+| **I** Price Check | **0%** | **~70% of stage one** | 5 migrations applied and probed, 8 read functions, the gate, the nine refusals, the address ladder, the area report, the utilities panel, the geohash instrumentation, the lint rule in `npm run lint`. **Left: the share surface** (the rule is enforced three ways but there is no button, no OG image, no destination) |
+| **J** Escrow | **20%** | **~35%** | F-3 to F-9 done and read back off the live database. The float, the invariant, the nine probes and the product surface are still open |
+| **G** Supply roles | **50%** | **~75%** | Six migrations: both axes, `firm_members`, `listing_mandates`, the dated stamps. `agent_applications.supply_role` now has a reader that decides, so **an approved owner stops becoming an "agent" row at the door** |
+| **A** Nobody leaves | **29%** | **~50%** | Five of eight money departures closed. `window.location.assign` to a payment now appears at exactly three call sites, all three another session's, all three written up with the code to paste |
+| **B** Emails | 65% | 65% | Unchanged. Payment-instrument changes still send no email, named rather than half-built |
+
+### The payment desks, which were not on anyone's list
+
+**Four actions that decide where money goes were unlimited, unaudited and
+unannounced**: set and remove the default card, set and remove the default bank
+account. Changing a payout account is how a stolen session becomes stolen
+money, and it was the quietest write on the platform. All four now carry a rate
+limit, an `audit_log` row and a notification.
+
+The **double-send blocker** another session raised is fixed: `transferSchema`
+dropped the `idempotencyKey` the form had been sending all along, and
+`transferToUser` never called the `withIdempotency` already imported in its own
+file. A second tap sent the money twice.
+
+### The three Paystack questions, answered honestly
+
+**No test card was run, and that is stated rather than dressed up.** Every
+Paystack host returns `CONNECT tunnel failed, response 403` from this
+environment and no Paystack key of any kind is present.
+
+- **Q1, is a public key needed to resume a transaction? NO, settled.** Read out
+  of the published `@paystack/inline-js` 2.25.0 bundle: the validator returns on
+  `accessCode` before the required-parameter loop. The access code IS the
+  credential. No environment variable was added.
+- **Q2, does 3-D Secure render in the iframe? Strong evidence, not proof.**
+  `window.open` occurs **zero times** in the 65KB bundle, so the library cannot
+  open anything. What Paystack's own page does is cross-origin and invisible
+  from here.
+- **Q3, does a real card complete? Not answered.** Every test in this tree mocks
+  the processor.
+
+**Every 3-D Secure challenge on this platform was a full-page departure.** That
+was the whole design, not an oversight in one call site.
+
+### Eight more blind lights, and three would have shipped
+
+The running count is **fifteen in two days**. The three that would have reached
+a person:
+
+1. **`estimate_value` threw on every answered call.** `round(double precision,
+   integer)` does not exist in PostgreSQL and `percentile_cont` has no numeric
+   form. The line sits inside `if cmp.n >= minimum`, and since every listing
+   here is an example the gate refuses every call, **so that branch is never
+   entered**. It applied clean and returned tidy, correct refusals under a green
+   typecheck, lint, test run and probe. It would have become a 500 the day a
+   fifth real listing arrived in one area. Found only by putting real rows in
+   front of it: **"returns nothing" is also what a broken gate returns.**
+2. **The power and water panel rendered with its three main rows missing.** A
+   key builder produced `gridbandA` rather than `gridBandA`, so every enum
+   lookup returned null. Heading present, basis line present, boolean cells
+   present, and the three facts that are the entire point of the panel gone.
+   Nothing threw, nothing logged, HTTP 200, body the right size.
+3. **Price Check blamed the reader for our own outage.** With the database
+   unreachable, a perfectly good pin was told "We could not place this address
+   on the map". Every refusal code in that feature is a CLAIM ABOUT OUR DATA,
+   and making one because a query threw is the invented statement the feature
+   exists to avoid. "We could not ask" is now its own outcome, carries no code
+   or figure, and is not recorded as a funnel outcome.
+
+And three that were mine or the instruments':
+
+4. **The terms gate was defended by a string match on JSX.** Third time in that
+   same spot. Now a pure function the test calls.
+5. **The locale gate tripped on ordinary work and missed its own defect**, and
+   its ceilings had over 100 strings of slack.
+6. **I closed finding 1.5 against the wrong key.** `version` is the primary key,
+   not the name.
+
+### Two workers corrected their instructions, and both were right
+
+- **PRICE CHECK refused my migration-renaming instruction.** I told it to move to
+  `20260922234000`. It could not: `apply_migration` stamps the version from the
+  **server clock**, so a `2340xx` filename would have guaranteed the very drift I
+  was warning about. It applied first and renamed each file to its RECORDED
+  version. That is the better procedure and it is now the rule.
+- **ROLES refused two messages I misrouted to it**, both concerning another
+  worker's files, and moved nothing. It also corrected three claims in this file
+  from cycle 1: `welcomeOnce` has two callers and always did (**my error, relayed
+  without checking**), the three stays registration forms exist and are
+  purpose-built, and the i18n locale gate exists.
+
+---
+
 ## The unproven register
 
 Everything this file marks UNPROVEN, in one place, so it can be worked through
@@ -174,7 +278,11 @@ rather than rediscovered.
 | 10 | The hotel facilities overflow fix | Reasoned, not observed; the set needs a 2x retake with overflow actually measured | ~2 hours |
 | 11 | CI has ever gone green | No session has confirmed a run on GitHub | Minutes |
 | 12 | Deep links survive a real device | Nothing has been run on a device or simulator | Needs a build |
-| 13 | The abuse filter filters | Applied tonight; `blocked_terms` is **empty**, so it matches nothing | Founder's term list |
+| 13 | The abuse filter filters | Applied; `blocked_terms` is **empty**, so it matches nothing. **The hourly watch now raises `content.filter.empty` at critical until it is seeded**, so the gap is no longer silent | Founder's term list |
+| 16 | **MAIN IS RED.** `agent-badge-derivation` fails: `lib/admin/reads/supply.ts:211` selects `verified` from `agents`, giving the verified badge a second derivation | Measured on a clean worktree at `1464eca5`: **3,226 pass, 1 fails**. Another session's file; raised as R11 | Theirs, minutes |
+| 17 | Price Check's share surface | The rule is enforced three ways and the action exists. No button, no OG image, no destination | ~1 day |
+| 18 | 3-D Secure inside the iframe, and a real card | Every Paystack host returns 403 from this environment and no key is present | Needs a card and a reachable host |
+| 19 | The MapTiler key is not in `apps/web/.env.local` | The rendered map credits "OpenStreetMap CARTO", the non-commercial fallback. `NEXT_PUBLIC_*` is inlined at BUILD time, so a key only in Vercel settings works there and never locally | Founder, one line |
 | 14 | The four state colours in a browser | Proved by arithmetic, not observed | ~1 hour |
 | 15 | The back controls | 143 routes declared, 25 tests, no control walked in a browser, Android hardware button untested | ~half a day |
 
