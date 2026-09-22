@@ -5161,3 +5161,41 @@ being current are two different claims.
    migration replaces the statement text with a note and then fails unless the
    literal is gone from **every** recorded statement, not merely from the row
    it meant to edit. A secret in the migration history is not in the Vault.
+
+### 44.1 Proved end to end, not declared
+
+**The deployment.** `b993d47` built `READY` at 17:36 and carries the aliases
+`www.vallospaces.com` and `vallospaces.com`. Production is current for the
+first time since 16:23. I could not fetch the site from this box to confirm it
+renders: the environment's network policy answers 403 to that host, which is a
+wall around the build box and not a fact about the site, and it is recorded
+here rather than glossed, because the previous line of this ledger is about
+exactly that distinction.
+
+**The job.** The database can reach the site even though this box cannot, so
+the proof was taken there instead, which is the better place for it anyway.
+`private.request_money_reconciliation()` was fired once by hand against the new
+deployment and the reply read out of `net._http_response`:
+
+```
+status_code: 200
+{"ok":true,"apply":true,
+ "window":{"from":"2026-09-20T17:37:38.208Z","to":"2026-09-22T17:37:38.208Z","hours":48},
+ "charges":{"seen":0,"ours":0,"unavailable":false,"reason":"clean","recoveredMinor":0,"gaps":[]},
+ "holds":{"examined":0,"releasedMinor":0,"unavailable":false,"resolutions":[]},
+ "overdrawn":[],"needsAttention":false}
+```
+
+**This is the answer to "does it reconcile or does it merely return 200".** It
+reconciled. `unavailable: false` on both charges and holds is the field that
+settles it: the route reached Paystack and read it, over a real 48 hour window
+it computed for itself. It found nothing to correct because this platform has
+taken no money yet, which is a different sentence from finding nothing because
+it looked at nothing. First successful run since 29 August.
+
+**And the function's own memory told the truth about the run before it.**
+`last_verdict` reads `failed_401`, which is the 17:10 refusal correctly
+recorded, and it raised the high severity alert it is meant to raise for one.
+The memory was added this morning precisely so a job could not report success
+for firing a request nobody read; the first time it had something to say, it
+said the right thing.
