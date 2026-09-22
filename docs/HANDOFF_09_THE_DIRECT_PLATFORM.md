@@ -778,6 +778,122 @@ preference is never authorisation.
 
 ---
 
+## 6C. Track P: the home pages and the dock, rebuilt to the images
+
+**The twelve governing images are in `docs/design/references/roles/`, filed and
+indexed, and `GOVERNING-01` and `GOVERNING-09` are the two that govern this
+track.** Read the folder's README before anything: it lists exactly what is
+translated rather than copied.
+
+### 6C.1 The dock
+
+Today the five slots are Home, Search, Feed, More, Profile, with the hamburger
+in the header opening the drawer.
+
+**It ships as: Home, Search, THE SWITCH, Feed, Profile.**
+
+The centre slot is the raised switch, drawn as the stacked glass object in
+`GOVERNING-01`, visually the heaviest thing in the bar. **The renders label the
+fourth slot "Saved" and it ships as "Feed" on the founder's correction of 22
+September.** "More" leaves the dock because the drawer holds everything it held.
+
+**Nothing that lives in More today may become unreachable.** List every item on
+the current More surface in the ledger with its new home in the drawer, and
+prove each one still resolves.
+
+The stays renders label the second slot "Explore" and the property renders
+label it "Search". **One word ships on both sides, and the word is "Search",**
+because the same control named two things on two sides is exactly the
+inconsistency Track E exists to remove. If the founder prefers "Explore", it
+changes on both sides together, never on one.
+
+The dock's clearance arithmetic is broken today and is fixed in the same pass:
+`AppShell.tsx:252` reserves a fixed 96px while `--nf-tabbar-clearance` computes
+80px plus the safe area inset, which is 114px on a notched phone. That is why
+the founder's listing counts are clipped. See HANDOFF 08 section 8A.5.
+
+### 6C.2 The property home page
+
+**Keep exactly what is there:** the header with the hamburger, the VALLO
+lockup, the bell and the avatar; the greeting, "Good afternoon, PHANTOM"; and
+the location selector.
+
+**Replace everything below it with `GOVERNING-01` screen one:**
+
+1. **The hero container.** A photographed property plate with the place chip
+   over it, "Find your next home" in heavy type, one supporting line, and **the
+   search field sitting inside the container** with a filter control on its
+   right. This replaces the current bare location select and separate search
+   row.
+2. **The category row: Buy, Rent, Manage, Invest.** Four, each a glass object
+   over its label. **"Short Let" is in the render and does not ship here**,
+   because shortlets are the Stays side.
+3. **Featured Properties**, with a "See all", as a horizontally scrolling row
+   of property cards carrying the photograph, the verified mark, the title, the
+   area, the price and the bed, bath and parking counts.
+
+**Two of the four categories need a definition before they are built, and here
+they are rather than left to a guess.**
+
+**Invest** is a browse filter over properties presented for their yield, and
+nothing else. It is never a financial product, never a fund, never a promise of
+return. The Invest segment was removed from the landing search control once
+already, and the comment at the top of `SearchPill.tsx` records why: Vallo
+sells no investment product. That ruling stands. A tile that filters the
+catalogue does not break it; a tile that offers an instrument would.
+
+**Manage** resolves by who is asking. A person who holds a supplier workspace
+lands on their own properties. A person who holds none lands on the "Add a
+workspace" chooser, which is `GOVERNING-02`. That needs no new product and it
+is honest in both states.
+
+**The counts come off.** Section 1.1 already rules that `platform_stats()`
+gains its `is_demo` filter and the category tiles drop the counts rather than
+printing a lie. The render prints no counts on its category row, so the render
+and the honesty rule agree.
+
+### 6C.3 The Stays home page
+
+`GOVERNING-09` screen one governs it, and it is the same anatomy with the
+Stays content.
+
+**Keep the greeting and the location**, the same as the property side, on the
+founder's instruction, even though the render drops them for a place chip.
+
+**The hero** carries "Great stays. Better experiences." with the supporting
+line "Hotels, shortlets and restaurants across Nigeria." over a photographed
+stay plate, with "Where do you want to go?" as the field inside it.
+
+**The tiles are Hotels, Shortlets, Restaurants and Nearby.**
+
+**And the featured band on this side is the stays band**, drawn the same way as
+Featured Properties but showing stays. When the coin flips, the whole page
+changes to this one, which is what the flip has always promised.
+
+### 6C.4 The rule that governs the whole track, and the whole build
+
+**Follow these images exactly.** The container anatomy, the corner radii, the
+glow level, the glass reflections, the lit top rim, the icon style, the
+spacing, the type weights, the way a progress row is drawn, the way a calm
+explanatory panel carries a small round glyph. All twelve images are one visual
+system and the product must read as that system.
+
+**Where a surface is not in the twelve, it inherits the register.** Do not
+invent a second look for the areas the set does not draw. Extend this one, and
+record in the ledger which surfaces were extended that way so they can be
+checked.
+
+**And where the images break the shape law, the shape law wins**, per the
+folder's README. Every capsule becomes a rounded rectangle. The founder
+reversed this ruling once already after capsules shipped, and it is closed.
+
+**Re-audit continuously.** Every scope closes with its side by side against its
+governing image in the ledger, and no scope closes without that row. That gate
+was written into `BUILD_06_LEDGER.md` section 6 and then not held, which is why
+the wallet drifted. Hold it this time.
+
+---
+
 ## 7. Founder gated, and what is not
 
 **Gated, and named in the founder's own list:** the solicitor's answer on
