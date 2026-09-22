@@ -1,4 +1,4 @@
-import { formatMoney, formatNumber, type Locale } from "@vallo/i18n";
+import { formatMoney, formatNumber, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Workspace } from "@/lib/supply/workspaces";
 import type { WorkspaceKind } from "@/lib/supply/roles";
 import { ROLE_COPY, type RoleState } from "@/components/roles/roles";
@@ -15,8 +15,16 @@ import { ROLE_COPY, type RoleState } from "@/components/roles/roles";
  * homes that they have none.
  *
  * Kept free of `server-only` so the unit tests can run them in Node and so the
- * client body can call them with the locale it already holds.
+ * client body can call them with the locale it already holds. Every word comes
+ * from `socialProfile.accountPage` in `packages/i18n`.
  */
+
+export type AccountPageCopy = Dictionary["socialProfile"]["accountPage"];
+
+/** The account page's words in the reader's language. */
+export function accountCopy(locale: Locale): AccountPageCopy {
+  return getDictionary(locale).socialProfile.accountPage;
+}
 
 /** What the four rows can say about themselves. `null` is "unknown", never zero. */
 export type BelongingsFacts = {
@@ -57,13 +65,14 @@ export function rowValue(
   facts: BelongingsFacts,
   locale: Locale,
 ): string | null {
+  const copy = accountCopy(locale);
   switch (kind) {
     case "bookings":
-      return countLabel(facts.upcomingBookings, COPY.upcoming, locale);
+      return countLabel(facts.upcomingBookings, copy.upcoming, locale);
     case "saved":
-      return countLabel(facts.saved, COPY.saved, locale);
+      return countLabel(facts.saved, copy.saved, locale);
     case "inspections":
-      return countLabel(facts.openInspections, COPY.open, locale);
+      return countLabel(facts.openInspections, copy.open, locale);
     case "wallet":
       return facts.walletMinor === null
         ? null
@@ -71,20 +80,20 @@ export function rowValue(
   }
 }
 
-function countLabel(value: number | null, word: string, locale: Locale): string | null {
+function countLabel(value: number | null, pattern: string, locale: Locale): string | null {
   if (value === null || value <= 0) return null;
-  return `${formatNumber(value, locale)} ${word}`;
+  return pattern.replace("{count}", formatNumber(value, locale));
 }
 
 /* ----------------------------------------------------------- Switch role */
 
-/** The word a person would use for each kind of workspace, in a list. */
-const KIND_WORD: Record<WorkspaceKind, string> = {
-  owner: "owner",
-  agent: "agent",
-  firm: "firm",
-  host: "host",
-  console: "admin",
+/** The key of the word a person would use for each kind of workspace. */
+const KIND_WORD: Record<WorkspaceKind, keyof AccountPageCopy> = {
+  owner: "roleOwner",
+  agent: "roleAgent",
+  firm: "roleFirm",
+  host: "roleHost",
+  console: "roleAdmin",
 };
 
 /**
@@ -100,16 +109,24 @@ const KIND_WORD: Record<WorkspaceKind, string> = {
  *
  * Duplicate kinds (two firms) name the kind once.
  */
-export function switchRoleLine(workspaces: readonly Pick<Workspace, "kind">[]): string {
+export function switchRoleLine(
+  workspaces: readonly Pick<Workspace, "kind">[],
+  locale: Locale = "en",
+): string {
+  const copy = accountCopy(locale);
   const kinds: string[] = [];
   for (const workspace of workspaces) {
-    const word = KIND_WORD[workspace.kind];
+    const word = copy[KIND_WORD[workspace.kind]];
     if (!kinds.includes(word)) kinds.push(word);
   }
-  if (kinds.length === 0) return COPY.switchNone;
-  const words = ["user", ...kinds];
-  const last = words.pop();
-  return `Change between ${words.join(", ")} ${words.length > 1 ? "or" : "and"} ${last}`;
+  if (kinds.length === 0) return copy.switchNone;
+  const words = [copy.roleUser, ...kinds];
+  if (words.length === 2) {
+    const [a = "", b = ""] = words;
+    return copy.switchTwo.replace("{a}", a).replace("{b}", b);
+  }
+  const last = words.pop() ?? "";
+  return copy.switchMany.replace("{list}", words.join(", ")).replace("{last}", last);
 }
 
 /* ------------------------------------------------------------ ?switch= */
@@ -140,31 +157,3 @@ export function switchParamTarget(
   if (!role.verified) return "/profile/application";
   return ROLE_COPY[id].href;
 }
-
-/* ---------------------------------------------------------------- copy */
-
-/**
- * English source, in one object, the precedent `components/roles/roles.ts`
- * set for the same kind of copy. Moving it into `packages/i18n` is a request
- * in `docs/SESSION_B_SCOPE.md`: the dictionary has no namespace Session B may
- * add these to without restructuring.
- */
-export const COPY = {
-  upcoming: "upcoming",
-  saved: "saved",
-  open: "open",
-  switchTitle: "Switch role",
-  switchNone: "Add an owner, agent or firm workspace",
-  more: "More of your account",
-  activity: "Your activity",
-  editProfile: "Edit profile",
-  editProfileSub: "Your name on Vallo, bio and handle",
-  publicPage: "Your public page",
-  publicPageSub: "What other people see",
-  claimHandle: "Claim your handle",
-  claimHandleNote:
-    "A handle is your address on Vallo. Claim one and this page gets a cover, a public page and somewhere for what you write to live.",
-  memberSince: "Member since",
-  coverPhoto: "Cover photo",
-  coverPhotoSub: "The picture across the top of your page",
-} as const;

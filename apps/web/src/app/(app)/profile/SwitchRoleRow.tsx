@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { COPY } from "./belongings";
 
 /**
  * SWITCH ROLE, the last row of `50E032EA`, opening the product's real switch.
@@ -30,7 +30,7 @@ import { COPY } from "./belongings";
  */
 export const DOCK_SWITCH_SELECTOR = ".nf-tab__link--switch";
 
-export function SwitchRoleRow({ line }: { line: string }) {
+export function SwitchRoleRow({ line, title }: { line: string; title: string }) {
   const router = useRouter();
 
   function open() {
@@ -54,10 +54,16 @@ export function SwitchRoleRow({ line }: { line: string }) {
         <span className="nf-pf-plate__object">
           <BrandIcon name="role-switch-tile" size={62} />
         </span>
-        <UiIcon name="switch-profile" size="md" className="nf-pf-plate__glyph" />
+        <Image
+          src="/brand/session-b/profile/role-switch-tile-day.webp"
+          alt=""
+          width={50}
+          height={50}
+          className="nf-pf-plate__day"
+        />
       </span>
       <span className="nf-pf-row__body">
-        <span className="nf-pf-row__title">{COPY.switchTitle}</span>
+        <span className="nf-pf-row__title">{title}</span>
         <span className="nf-pf-row__sub">{line}</span>
       </span>
       <UiIcon name="chevron-right" size="sm" className="nf-pf-row__chev" />

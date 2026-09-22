@@ -1039,6 +1039,87 @@ async function signin() {
 /* ============================== end SIGNIN ============================ */
 SURFACES.signin = signin;
 
+/* --------------------------------------------------------------- profile */
+/*
+ * Worker "profile". Render: 50E032EA-4141-4237-88D5-01B3720D87B6.png (repo
+ * root), 1024x1536, phone screen 658 image px wide. The five row objects are
+ * already in the shared pack as night crops of this render (calendar-grid,
+ * bookmark-ribbon, wallet-tile, shield-check-tile, role-switch-tile, boxes as
+ * `scripts/icon-manifest.mjs` records them). This block cuts ONLY their paper
+ * renditions, from the same boxes, by the glow identity's method
+ * (docs/design/GLOW_IDENTITY.md, section 4): key the render, drop the faint
+ * bloom below alpha 50, and re-ink every pixel on the brand ramp by how lit it
+ * was, from #9CC2FF (glass body) to #06379A (the brightest edges), so the SAME
+ * object reads as blue glass drawn on paper. A derived rendition, not
+ * commissioned light artwork. See apps/web/public/brand/session-b/profile/SOURCES.md.
+ */
+const DAY_BODY = [0x9c, 0xc2, 0xff];
+const DAY_EDGE = [0x06, 0x37, 0x9a];
+
+async function cutDayObject(render, box, plate, dest) {
+  const { data, info } = await sharp(render)
+    .extract({ left: box[0], top: box[1], width: box[2], height: box[3] })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const w = info.width;
+  const h = info.height;
+  const keyed = featherEdges(keyRender(data, w, h, info.channels), w, h, 0.04);
+  /* The tile's own rounded square, measured in the render: everything
+     outside it is bloom and page and is dropped; inside it, a faint pixel is
+     the tile's glass body and is kept as body, so the square has no holes. */
+  const [ox, oy, size, radius] = plate;
+  const inside = (x, y) => {
+    const dx = Math.max(ox + radius - x, 0, x - (ox + size - radius));
+    const dy = Math.max(oy + radius - y, 0, y - (oy + size - radius));
+    return x >= ox && x < ox + size && y >= oy && y < oy + size && dx * dx + dy * dy <= radius * radius;
+  };
+  for (let q = 0; q < keyed.length; q += 4) {
+    const x = (q / 4) % w;
+    const y = Math.floor(q / 4 / w);
+    const a = keyed[q + 3];
+    if (!inside(x, y)) {
+      keyed[q] = keyed[q + 1] = keyed[q + 2] = keyed[q + 3] = 0;
+      continue;
+    }
+    if (a < 50) {
+      for (let k = 0; k < 3; k += 1) keyed[q + k] = DAY_BODY[k];
+      keyed[q + 3] = 150;
+      continue;
+    }
+    /* How lit the pixel was at night: its brightest channel, weighted by how
+       much of it survived the key. 0 is glass body, 1 is the hottest edge. */
+    const lit = Math.min(1, (Math.max(keyed[q], keyed[q + 1], keyed[q + 2]) / 255) * (a / 255));
+    /* A steep ramp: the glass body and its soft bloom stay pale, only the
+       lit line work and the rim go to the deep end. */
+    const t = Math.min(1, Math.max(0, (lit - 0.32) / 0.45)) ** 0.8;
+    for (let k = 0; k < 3; k += 1) keyed[q + k] = Math.round(DAY_BODY[k] + (DAY_EDGE[k] - DAY_BODY[k]) * t);
+    keyed[q + 3] = Math.round(Math.min(255, 60 + a * 0.9));
+  }
+  await sharp(keyed, { raw: { width: info.width, height: info.height, channels: 4 } })
+    .webp({ quality: 90, alphaQuality: 100 })
+    .toFile(`${dest}.webp`);
+}
+
+SURFACES.profile = async () => {
+  const render = path.join(ROOT, "50E032EA-4141-4237-88D5-01B3720D87B6.png");
+  const dir = path.join(OUT, "profile");
+  await mkdir(dir, { recursive: true });
+  /* [box], [square inside the box: left, top, size, corner radius], image px. */
+  const ROW_PLATE = [5, 5, 84, 17];
+  const boxes = {
+    "calendar-grid": [[231, 657, 96, 96], ROW_PLATE],
+    "bookmark-ribbon": [[231, 781, 96, 96], ROW_PLATE],
+    "wallet-tile": [[231, 906, 96, 96], ROW_PLATE],
+    "shield-check-tile": [[231, 1031, 96, 96], ROW_PLATE],
+    "role-switch-tile": [[229, 1174, 84, 84], [7, 11, 73, 15]],
+  };
+  for (const [name, [box, plate]] of Object.entries(boxes)) {
+    await cutDayObject(render, box, plate, path.join(dir, `${name}-day`));
+  }
+};
+/* ============================= end PROFILE ============================ */
+
 const only = process.argv.includes("--surface")
   ? process.argv[process.argv.indexOf("--surface") + 1]
   : null;

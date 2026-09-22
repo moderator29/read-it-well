@@ -398,6 +398,41 @@ export const en = {
     savedRow: "Saved properties and places",
     walletRow: "Balance, cards and transactions",
     inspectionsRow: "Scheduled and past inspections",
+    /*
+     * The account page itself (`/profile`, Session B). Row values carry the
+     * figure in `{count}`; the Switch role line names only the roles the
+     * account holds, joined by the two patterns below.
+     */
+    accountPage: {
+      upcoming: "{count} upcoming",
+      saved: "{count} saved",
+      open: "{count} open",
+      followers: "Followers",
+      following: "Following",
+      settings: "Settings",
+      switchTitle: "Switch role",
+      switchNone: "Add an owner, agent or firm workspace",
+      switchTwo: "Change between {a} and {b}",
+      switchMany: "Change between {list} or {last}",
+      roleUser: "user",
+      roleOwner: "owner",
+      roleAgent: "agent",
+      roleFirm: "firm",
+      roleHost: "host",
+      roleAdmin: "admin",
+      more: "More of your account",
+      activity: "Your activity",
+      editProfile: "Edit profile",
+      editProfileSub: "Your name on Vallo, bio and handle",
+      publicPage: "Your public page",
+      publicPageSub: "What other people see",
+      coverPhoto: "Cover photo",
+      coverPhotoSub: "The picture across the top of your page",
+      memberSince: "Member since",
+      claimHandle: "Claim your handle",
+      claimHandleNote:
+        "A handle is your address on Vallo. Claim one and this page gets a cover, a public page and somewhere for what you write to live.",
+    },
     back: "Back",
     verified: "Verified agent",
     verifiedTitle: "A verified Vallo agent",

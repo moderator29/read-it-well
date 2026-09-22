@@ -7,14 +7,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { useBack } from "@/lib/nav/use-back";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
 import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { COPY } from "./belongings";
+import { accountCopy } from "./belongings";
 
 /**
  * THE TOP OF YOUR OWN PROFILE, BUILT TO `50E032EA`.
@@ -23,7 +22,8 @@ import { COPY } from "./belongings";
  * 390 is 1.687 image pixels; every number is in the ledger, section 1): a dusk
  * photograph across the top that fades into the page, a rounded-square glass
  * back control at the upper left and a settings gear at the upper right riding
- * on it, then the person. An 88px ROUND face on a lit blue ring with a small
+ * on it (here the gear joins the app header's row and back is dropped; see
+ * the note at the gear), then the person. An 88px ROUND face on a lit blue ring with a small
  * tick at its lower right, and beside it the name with its tick, the handle,
  * one line of bio, and Followers and Following split by a hairline.
  *
@@ -97,7 +97,7 @@ export function AccountHero({
   locale: Locale;
 }) {
   const router = useRouter();
-  const back = useBack("/home");
+  const COPY = accountCopy(locale);
   /* The render writes 12.4K: from ten thousand a count is compact, below
      it every digit shows. The figure itself is always the database's. */
   const formatCount = (value: number) =>
@@ -229,28 +229,27 @@ export function AccountHero({
         <span className="nf-pf-cover__grade" aria-hidden="true" />
         <span className="nf-pf-cover__fade" aria-hidden="true" />
 
-        <div className="nf-pf-float nf-pf-float--start">
-          <button
-            type="button"
-            onClick={back}
-            aria-label="Back"
-            className="nf-pf-glassbtn"
-            data-testid="profile-back"
-          >
-            <UiIcon name="arrow-left" size="sm" />
-          </button>
-        </div>
-        <div className="nf-pf-float nf-pf-float--end">
-          <Link
-            href="/settings"
-            className="nf-pf-glassbtn"
-            aria-label="Settings"
-            data-testid="account-settings-button"
-          >
-            <UiIcon name="settings-gear" size="sm" />
-          </Link>
-        </div>
+        {/*
+          ONE ROW OF CONTROLS OVER THE COVER, NOT TWO.
 
+          Members see the app header here (menu, lockup, bell, avatar), and
+          the render's back and settings squares stacked under it read as a
+          second row of floating buttons. So on a phone the gear takes the
+          header's own row, left of the bell, in the header's own control
+          (`nf-icon-btn`, 44px), and there is no back: `/profile` is a dock
+          destination, and the menu and the dock are the way off it. From 640
+          up the cover is a framed band inside the column and the gear sits
+          on its upper right. The header itself is not this surface's; a
+          proper slot for a page action in it is scope request 1d.
+        */}
+        <Link
+          href="/settings"
+          className="nf-icon-btn nf-pf-gear"
+          aria-label={COPY.settings}
+          data-testid="account-settings-button"
+        >
+          <UiIcon name="settings-gear" size="md" />
+        </Link>
       </div>
 
       {/* --------------------------------- the person, beside the picture */}
@@ -307,14 +306,14 @@ export function AccountHero({
                 <span className="nf-pf-count__value nf-numeric">
                   {formatCount(identity.followerCount)}
                 </span>
-                <span className="nf-pf-count__label">Followers</span>
+                <span className="nf-pf-count__label">{COPY.followers}</span>
               </Link>
               <span className="nf-pf-counts__rule" aria-hidden="true" />
               <Link href={`/u/${identity.handle}/following`} className="nf-pf-count">
                 <span className="nf-pf-count__value nf-numeric">
                   {formatCount(identity.followingCount)}
                 </span>
-                <span className="nf-pf-count__label">Following</span>
+                <span className="nf-pf-count__label">{COPY.following}</span>
               </Link>
             </div>
           ) : null}

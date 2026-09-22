@@ -62,7 +62,8 @@
     margin-block-start: calc(-1 * var(--nf-pf-lift));
     block-size: calc(var(--nf-pf-lift) + 7.125rem);
     overflow: hidden;
-    isolation: isolate;
+    /* No `isolation`: the gear inside must stack above the app header (z 40)
+       so its row is tappable while the header's glass is clear over it. */
     background: var(--nf-surface-canvas);
   }
   @media (min-width: 640px) {
@@ -119,82 +120,30 @@
       );
   }
 
-  /* The back and settings squares, riding on the photograph. */
-  .nf-pf-float {
+  /*
+   * THE GEAR, ON THE APP HEADER'S ROW. On a phone the cover runs behind the
+   * header, whose row is 60px with 44px controls 8px from its top, a gutter of
+   * `--nf-pad-shell`, then the 40px avatar and the 44px bell 12px apart. The
+   * gear is the header's own control (`nf-icon-btn`) placed 8px left of the
+   * bell, so the band reads as one row: menu, lockup, gear, bell, avatar.
+   * Measured against the header at 360, 390 and 430: it clears the lockup.
+   * Named under the cover so it outranks `.nf-icon-btn`'s own `position`;
+   * not `.nf-tap`, which is unlayered and would win (`.nf-icon-btn` carries
+   * its own 44px hit area).
+   */
+  .nf-pf-cover .nf-pf-gear {
     position: absolute;
-    inset-block-start: calc(var(--nf-pf-lift) - var(--nf-gap-section-tight) + 0.5rem);
-    z-index: 2;
-    display: flex;
-    gap: var(--nf-space-xs);
-  }
-  .nf-pf-float--start {
-    inset-inline-start: var(--nf-pf-gutter);
-  }
-  .nf-pf-float--end {
-    inset-inline-end: var(--nf-pf-gutter);
+    z-index: 41;
+    inset-block-start: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+    inset-inline-end: calc(var(--nf-pad-shell) + 2.5rem + var(--nf-space-sm) + 2.75rem + var(--nf-space-xs));
   }
   @media (min-width: 640px) {
-    .nf-pf-float {
+    .nf-pf-cover .nf-pf-gear {
       inset-block-start: var(--nf-space-sm);
-    }
-    .nf-pf-float--start {
-      inset-inline-start: var(--nf-space-sm);
-    }
-    .nf-pf-float--end {
       inset-inline-end: var(--nf-space-sm);
     }
   }
-  /*
-   * The glass square. 55 image px in the render: 33 CSS drawn. The tap
-   * target is 44 (a transparent margin of hit area around the drawn square),
-   * so the drawing matches and the thumb still gets its room.
-   * Fill sampled rgb 0 36 130 over the photograph, rim rgb 1 46 140 with a
-   * lighter catchlight along the top edge.
-   */
-  .nf-pf-glassbtn {
-    position: relative;
-    display: inline-grid;
-    place-items: center;
-    inline-size: 2.125rem;
-    block-size: 2.125rem;
-    border-radius: var(--nf-radius-sm);
-    color: var(--nf-content-on-media);
-    /* Navy glass, not a blue wash: the render's square reads dark over its
-       sky (sampled 0 36 130) with the blue in its rim. */
-    background: color-mix(
-      in oklab,
-      var(--nf-surface-canvas) 50%,
-      var(--nf-brand-primary-strong) 25%
-    );
-    border: 1px solid color-mix(in oklab, var(--nf-container-ink) 60%, transparent);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 14px -4px var(--nf-glow-2);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    transition:
-      background var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-  .nf-pf-glassbtn::before {
-    content: "";
-    position: absolute;
-    inset: -0.3125rem;
-  }
-  .nf-pf-glassbtn:hover {
-    background: color-mix(
-      in oklab,
-      var(--nf-surface-canvas) 40%,
-      var(--nf-brand-primary-strong) 45%
-    );
-  }
-  .nf-pf-glassbtn:active {
-    transform: scale(var(--nf-press-scale-lg));
-  }
-  .nf-pf-glassbtn:focus-visible {
-    outline: 2px solid var(--nf-brand-accent);
-    outline-offset: 2px;
-  }
+
   /* ------------------------------------------------------- the identity */
 
   /*
@@ -383,11 +332,13 @@
     line-height: 1.3;
     color: var(--nf-pf-mist);
   }
-  /* The rule between them: sampled rgb 15 134 203, a lit hairline. */
+  /* The rule between them: sampled rgb 15 134 203, a lit hairline, lighter
+     and a touch cyan against the brand. */
   .nf-pf-counts__rule {
     inline-size: 1px;
     block-size: 1.375rem;
-    background: color-mix(in oklab, var(--nf-brand-accent) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-quiet) 30%, var(--nf-brand-accent));
+    box-shadow: 0 0 4px var(--nf-glow-2);
   }
 
   .nf-pf-claim {
@@ -595,10 +546,9 @@
   /*
    * THE PLATE. 83 image px: 49 CSS. On night it is the render's own object,
    * cropped from `50E032EA` (`calendar-grid`, `bookmark-ribbon`,
-   * `wallet-tile`, `shield-check-tile`, `role-switch-tile`), drawn at 56 so its
-   * glass square lands on 49 (the crop box is 96 around an 83 plate). On paper
-   * the object has no light twin and would bring a dark square onto white, so
-   * the same slot draws a CSS plate with the line glyph instead.
+   * `wallet-tile`, `shield-check-tile`, `role-switch-tile`), drawn at 68 so its
+   * glass square lands on 49. On paper the same slot draws the same object's
+   * paper rendition (`-day`, re-inked on the brand ramp), never a dark square.
    */
   .nf-pf-plate {
     position: relative;
@@ -621,9 +571,21 @@
     block-size: 4.25rem;
     transform: translate(-50%, -50%);
     pointer-events: none;
+    /* The crop keys the plate's glass a little under the render: sampled
+       0 39 128 inside it against the render's 1 52 167. Lifted to match
+       (1.3 measured 0 47 140, so 1.55). */
+    filter: brightness(1.55) saturate(1.1);
   }
-  .nf-pf-plate__glyph {
+  /* The paper rendition of the same object, centred, drawn so its square
+     lands on the plate (the crop box is 96 around an 83 square). */
+  .nf-pf-plate__day {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
     display: none;
+    max-inline-size: none;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
   /* Switch role: a smaller, quieter plate (74 image px, 44 CSS; fill sampled
      0 24 82 against the rows' 1 52 167). */
@@ -728,9 +690,8 @@
    * Daylight. Same anatomy: the cover still a photograph (graded lighter and
    * fading into paper rather than night), the ring lit, rows as white glass on
    * a brand hairline with an ink shadow instead of a bloom, and the plates as
-   * pale brand squares carrying the line glyph, because the night objects have
-   * no light twins and a dark square on white is the one thing this theme may
-   * never draw.
+   * the same objects re-inked for paper, because a dark square on white is the
+   * one thing this theme may never draw.
    */
   :root[data-theme="light"] .nf-pf {
     --nf-pf-mist: var(--nf-content-secondary);
@@ -755,15 +716,6 @@
         color-mix(in oklab, var(--nf-surface-canvas) 75%, transparent) 82%,
         var(--nf-surface-canvas) 100%
       );
-  }
-  :root[data-theme="light"] .nf-pf-glassbtn {
-    color: var(--nf-content-primary);
-    background: color-mix(in oklab, var(--nf-surface-primary) 82%, transparent);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-pf-glassbtn:hover {
-    background: var(--nf-surface-primary);
   }
   :root[data-theme="light"] .nf-pf-avatar {
     background:
@@ -811,32 +763,20 @@
     color: var(--nf-content-muted);
     opacity: 1;
   }
-  /* The glow identity's pale paper tile (docs/design/GLOW_IDENTITY.md, 9):
-     near white at the top deepening to a pale brand blue, a brighter top
-     edge, a white rim and a short brand shadow. Never a dark plate. */
+  /*
+   * Paper: the SAME objects as night, in their paper rendition (re-inked on
+   * the brand ramp, the glow identity's method), so the icon is identical in
+   * both themes. The rendition draws its own pale glass square, so the slot
+   * draws none; only the identity's short brand shadow sits under it.
+   */
   :root[data-theme="light"] .nf-pf-plate {
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-primary)) 0%,
-      color-mix(in oklab, var(--nf-brand-primary) 15%, var(--nf-surface-primary)) 100%
-    );
-    border: 1px solid color-mix(in oklab, var(--nf-brand-primary) 38%, transparent);
-    border-block-start-color: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-primary));
-    box-shadow:
-      var(--nf-rim-lit),
-      0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    box-shadow: 0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
   :root[data-theme="light"] .nf-pf-plate__object {
     display: none;
   }
-  :root[data-theme="light"] .nf-pf-plate__glyph {
+  :root[data-theme="light"] .nf-pf-plate__day {
     display: block;
-    color: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-pf-note {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-2);
   }
   :root[data-theme="light"] .nf-pf-skel-row {
     border-color: var(--nf-border-default);

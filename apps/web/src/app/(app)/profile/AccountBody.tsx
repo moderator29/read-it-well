@@ -4,6 +4,7 @@ import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@vallo/i18n";
+import Image from "next/image";
 import Link from "next/link";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
@@ -24,7 +25,7 @@ import {
   MAX_PHONE_LENGTH,
 } from "@/lib/profile/schema";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { COPY, NO_FACTS, rowValue, type BelongingsFacts } from "./belongings";
+import { accountCopy, NO_FACTS, rowValue, type BelongingsFacts } from "./belongings";
 import { SwitchRoleRow } from "./SwitchRoleRow";
 import { COVER_INPUT_ID } from "./AccountHero";
 
@@ -34,7 +35,7 @@ import { COVER_INPUT_ID } from "./AccountHero";
  * The render, measured (ledger section 1): a two-segment glass control,
  * Belongings with a house glyph lit in blue and Posts with a chat glyph on the
  * glass, 20px under it four glass rows 66px tall on an 8px rhythm, each a
- * 49px glass plate with a blue line glyph, a title, a muted line and a
+ * 49px glass plate carrying the render's own object, a title, a muted line and a
  * chevron, then a larger gap and a quieter Switch role row, 60px tall.
  *
  * WHAT IS REAL ON EACH ROW. The rows are links to the real routes
@@ -80,8 +81,6 @@ type Belonging = {
   href: string;
   /** The render's own object, cropped from `50E032EA` into the glass pack. */
   object: BrandIconName;
-  /** The same thing as a line glyph, for paper, where a night object would be a dark plate. */
-  glyph: UiIconName;
   title: string;
   sub: string;
 };
@@ -98,7 +97,15 @@ function BelongingRow({ row, value }: { row: Belonging; value: string | null }) 
         <span className="nf-pf-plate__object">
           <BrandIcon name={row.object} size={68} />
         </span>
-        <UiIcon name={row.glyph} size="md" className="nf-pf-plate__glyph" />
+        {/* The same object re-inked for paper, cut from the same box of the
+            render (scripts/design/session-b-crops.mjs, block PROFILE). */}
+        <Image
+          src={`/brand/session-b/profile/${row.object}-day.webp`}
+          alt=""
+          width={57}
+          height={57}
+          className="nf-pf-plate__day"
+        />
       </span>
       <span className="nf-pf-row__body">
         <span className="nf-pf-row__title">{row.title}</span>
@@ -126,7 +133,7 @@ export function AccountBody({
   hasBio,
   locale,
   facts = NO_FACTS,
-  switchLine = COPY.switchNone,
+  switchLine,
   memberSince,
 }: {
   counts: AccountCounts;
@@ -154,6 +161,7 @@ export function AccountBody({
    */
   roleSwitch?: React.ReactNode;
 }) {
+  const COPY = accountCopy(locale);
   const [tab, setTab] = useState<Tab>("account");
   const [editing, setEditing] = useState(false);
   const formatCount = (value: number) => formatNumber(value, locale);
@@ -174,7 +182,6 @@ export function AccountBody({
       key: "bookings",
       href: "/bookings",
       object: "calendar-grid",
-      glyph: "calendar-booking",
       title: copy.myBookings,
       sub: copy.myBookingsSub,
     },
@@ -182,7 +189,6 @@ export function AccountBody({
       key: "saved",
       href: "/saved",
       object: "bookmark-ribbon",
-      glyph: "bookmark",
       title: copy.saved,
       sub: copy.savedSub,
     },
@@ -190,7 +196,6 @@ export function AccountBody({
       key: "wallet",
       href: "/wallet",
       object: "wallet-tile",
-      glyph: "wallet",
       title: copy.wallet,
       sub: copy.walletSub,
     },
@@ -198,7 +203,6 @@ export function AccountBody({
       key: "inspections",
       href: "/inspections",
       object: "shield-check-tile",
-      glyph: "verified",
       title: copy.inspections,
       sub: copy.inspectionsSub,
     },
@@ -239,7 +243,7 @@ export function AccountBody({
           </div>
 
           <div className="nf-pf-switch">
-            <SwitchRoleRow line={switchLine} />
+            <SwitchRoleRow line={switchLine ?? COPY.switchNone} title={COPY.switchTitle} />
           </div>
 
           <div className="nf-pf-more">

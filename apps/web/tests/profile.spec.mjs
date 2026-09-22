@@ -60,7 +60,7 @@ try {
     check("the account hero renders", await hero.isVisible());
     check(
       "the cover band is present",
-      (await page.locator(".nf-social-cover").count()) > 0,
+      (await page.locator(".nf-pf-cover").count()) > 0,
     );
     check(
       "the avatar opens a picker",
@@ -108,7 +108,7 @@ try {
     check("the signed-out hero renders", await signedOut.isVisible());
     check(
       "it wears the same cover band as a real profile",
-      (await page.locator(".nf-social-cover").count()) > 0,
+      (await page.locator(".nf-pf-cover").count()) > 0,
     );
     check(
       "no invented activity counts",
