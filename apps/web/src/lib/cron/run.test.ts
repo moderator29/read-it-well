@@ -35,15 +35,54 @@ function deps(overrides: Partial<CronDeps> = {}): CronDeps & { reports: CronRunR
 }
 
 describe("the bearer guard", () => {
-  it("matches only the exact bearer, in constant time, and refuses an unset secret", () => {
+  it("matches the bearer, in constant time, and refuses an unset secret", () => {
     expect(bearerMatches("Bearer s3cret", "s3cret")).toBe(true);
-    expect(bearerMatches("Bearer s3cret ", "s3cret")).toBe(false);
     expect(bearerMatches("Bearer s3cre", "s3cret")).toBe(false);
     expect(bearerMatches("s3cret", "s3cret")).toBe(false);
     expect(bearerMatches("Basic s3cret", "s3cret")).toBe(false);
     expect(bearerMatches(null, "s3cret")).toBe(false);
     expect(bearerMatches("Bearer ", "s3cret")).toBe(false);
     expect(bearerMatches("Bearer anything", "")).toBe(false);
+  });
+
+  /*
+   * A DELIBERATE REVERSAL, AND THE ASSERTION IT REPLACES IS NAMED SO NOBODY
+   * RESTORES IT BY ACCIDENT.
+   *
+   * This file used to assert `bearerMatches("Bearer s3cret ", "s3cret")` was
+   * FALSE, on the reading that only an exact bearer may pass. That reading
+   * cost this platform four days: a secret reaches a deployment by somebody
+   * pasting it into a dashboard field, a paste carries a trailing newline
+   * more often than not, and with neither side trimmed the lengths differed,
+   * the length guard refused before any comparison happened, and every
+   * scheduled job was answered 401 by its own platform. Nothing in the
+   * refusal could say why, because a wrong secret and a right secret with a
+   * newline on the end are the same event from inside the door.
+   *
+   * IT COSTS NOTHING IN SECURITY, which is the part worth being sure about.
+   * Whitespace at either end of a bearer token carries no meaning, and
+   * anybody presenting the right secret with a newline attached ALREADY HAS
+   * THE SECRET. Trimming widens what is accepted by exactly the set of values
+   * that differ from the real one by whitespace, and every member of that set
+   * is already in possession of it. The comparison over what remains is still
+   * constant time.
+   */
+  it("accepts a pasted secret, whichever side carries the whitespace", () => {
+    expect(bearerMatches("Bearer s3cret ", "s3cret")).toBe(true);
+    expect(bearerMatches("Bearer s3cret\n", "s3cret")).toBe(true);
+    expect(bearerMatches("Bearer s3cret", "s3cret\n")).toBe(true);
+    expect(bearerMatches("Bearer s3cret\r\n", "s3cret\n")).toBe(true);
+    expect(bearerMatches("Bearer \ts3cret\t", "s3cret")).toBe(true);
+  });
+
+  it("still refuses a secret that is whitespace and nothing else", () => {
+    expect(bearerMatches("Bearer   ", "   ")).toBe(false);
+    expect(bearerMatches("Bearer \n", "s3cret")).toBe(false);
+  });
+
+  it("still refuses a secret that differs by more than whitespace", () => {
+    expect(bearerMatches("Bearer s3cret x", "s3cret")).toBe(false);
+    expect(bearerMatches("Bearer s3 cret", "s3cret")).toBe(false);
   });
 });
 

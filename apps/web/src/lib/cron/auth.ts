@@ -14,14 +14,37 @@ import { timingSafeEqual } from "node:crypto";
  * hold the same value under both names (docs/DEPLOY.md, section 2).
  */
 
-/** Constant-time bearer comparison. False on any shape we do not recognise. */
+/**
+ * Constant-time bearer comparison. False on any shape we do not recognise.
+ *
+ * BOTH SIDES ARE TRIMMED, AND THAT IS THE WHOLE REASON THIS COMMENT EXISTS.
+ *
+ * A secret reaches this deployment by somebody pasting it into a dashboard
+ * field, and a paste brings a trailing newline more often than not. Neither
+ * side was trimmed, so a newline on EITHER value made the two lengths differ,
+ * the length guard returned false before the comparison was even reached, and
+ * every scheduled job was answered 401 by its own platform. Nothing in the
+ * refusal could say why: a wrong secret and a right secret with a newline on
+ * the end are the same event from in here.
+ *
+ * The same fault, in the same shape, took the database side down on 22
+ * September: `btrim(x)` with one argument strips SPACES ONLY, so a pasted
+ * newline survived it and built an invalid URL. Fixing that in SQL and not
+ * here would have left half the door open.
+ *
+ * Trimming costs nothing. Whitespace at either end of a bearer token is never
+ * meaningful, no secret is weakened by ignoring it, and the comparison below
+ * is still constant time over the values that remain. A person pasting a
+ * secret into a form is not making a mistake.
+ */
 export function bearerMatches(header: string | null | undefined, expected: string): boolean {
-  if (expected.length === 0) return false;
+  const want = expected.trim();
+  if (want.length === 0) return false;
   const value = header ?? "";
-  const presented = value.startsWith("Bearer ") ? value.slice(7) : "";
+  const presented = value.startsWith("Bearer ") ? value.slice(7).trim() : "";
   if (presented.length === 0) return false;
 
-  const a = Buffer.from(expected, "utf8");
+  const a = Buffer.from(want, "utf8");
   const b = Buffer.from(presented, "utf8");
   if (a.length !== b.length) return false;
   try {
