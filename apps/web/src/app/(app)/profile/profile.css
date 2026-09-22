@@ -493,14 +493,39 @@
     gap: 0.5rem;
   }
   /*
-   * THE ROW. Radius 23 image px: 14 CSS, the control radius, ratio 0.21.
-   * Fill: brighter under the top edge (sampled 0 30 95), deep through the
-   * middle (0 17 59), lifting again at the foot (1 26 82), over a page of
-   * 0 8 36. Rim: 0 42 126 along the top and sides, BRIGHTER along the foot
-   * (1 73 160), which is the render's light coming up from below, plus a
-   * catchlight inside the top edge and a soft bloom.
+   * THE ROW, LIT AS THE RENDER LIGHTS IT. Radius 23 image px: 14 CSS, the
+   * control radius, ratio 0.21. Every value below was matched by sampling the
+   * render and the built page at the same points (ledger 1.4); all land within
+   * 10 on every channel except where the ledger says otherwise.
+   *
+   *   top rim      2 112 219  a 1px hot line, the ink with a little cyan
+   *   under it     0 52 148 -> 0 33 105 by 9px -> 0 24 79 by 20px
+   *   middle       0 19 63
+   *   foot         0 25 76 -> 0 30 87, then the rim 2 73 161
+   *   outside      a 1px dark seam under the foot, then a soft halo
+   *
+   * Mixed in sRGB, where a percentage of the ink is a percentage of the
+   * channel, so the stops can be read straight off the samples. The render's
+   * blue is purer than any ink the tokens hold (green to blue about 0.3
+   * against the ink's 0.4), so the fill is painted on a layer behind the
+   * content and saturated there; the words and the chevron are untouched.
    */
   .nf-pf-row {
+    --nf-pf-ink: var(--nf-container-ink);
+    --nf-pf-ground: var(--nf-surface-canvas);
+    --nf-pf-row-fill: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--nf-pf-ink) 50%, var(--nf-pf-ground)) 0,
+      color-mix(in srgb, var(--nf-pf-ink) 33%, var(--nf-pf-ground)) 9px,
+      color-mix(in srgb, var(--nf-pf-ink) 23%, var(--nf-pf-ground)) 20px,
+      color-mix(in srgb, var(--nf-pf-ink) 19%, var(--nf-pf-ground)) 26px,
+      color-mix(in srgb, var(--nf-pf-ink) 16%, var(--nf-pf-ground)) 33px,
+      color-mix(in srgb, var(--nf-pf-ink) 15%, var(--nf-pf-ground)) calc(100% - 14px),
+      color-mix(in srgb, var(--nf-pf-ink) 21%, var(--nf-pf-ground)) calc(100% - 4px),
+      color-mix(in srgb, var(--nf-pf-ink) 26%, var(--nf-pf-ground)) calc(100% - 1.5px)
+    );
+    position: relative;
+    isolation: isolate;
     display: flex;
     align-items: center;
     gap: 0.875rem;
@@ -508,21 +533,18 @@
     min-block-size: 4.125rem;
     padding: 0.5rem 0.75rem 0.5rem 0.875rem;
     border-radius: var(--nf-radius-control);
-    border: 1px solid color-mix(in oklab, var(--nf-container-ink) 50%, transparent);
-    border-block-start-color: color-mix(in oklab, var(--nf-container-ink) 40%, transparent);
-    border-block-end-color: color-mix(in oklab, var(--nf-container-ink) 72%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-container-ink) 36%, var(--nf-surface-canvas)) 0%,
-      color-mix(in oklab, var(--nf-container-ink) 19%, var(--nf-surface-canvas)) 40%,
-      color-mix(in oklab, var(--nf-container-ink) 20%, var(--nf-surface-canvas)) 70%,
-      color-mix(in oklab, var(--nf-container-ink) 30%, var(--nf-surface-canvas)) 100%
+    border: 1px solid color-mix(in srgb, var(--nf-pf-ink) 76%, var(--nf-pf-ground));
+    border-block-start-color: color-mix(
+      in srgb,
+      color-mix(in srgb, var(--nf-pf-ink) 80%, var(--nf-state-warning)) 95%,
+      var(--nf-pf-ground)
     );
-    /* No white catchlight: the render's top edge is blue (0 42 126), and its
-       light comes up from the foot. */
+    border-block-end-color: color-mix(in srgb, var(--nf-pf-ink) 70%, var(--nf-pf-ground));
+    background: transparent;
     box-shadow:
-      0 6px 18px -10px var(--nf-glow-2),
-      0 0 16px -8px var(--nf-glow-2);
+      0 1px 0 var(--nf-pf-ground),
+      0 0 8px -2px var(--nf-glow-2),
+      0 4px 12px -6px var(--nf-glow-3);
     color: var(--nf-content-primary);
     text-align: start;
     cursor: pointer;
@@ -530,10 +552,20 @@
       transform var(--nf-duration-press) var(--nf-ease-press),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
+  .nf-pf-row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--nf-pf-row-fill);
+    filter: saturate(1.35);
+  }
   .nf-pf-row:hover {
     box-shadow:
-      0 6px 20px -8px var(--nf-glow-3),
-      0 0 18px -6px var(--nf-glow-2);
+      0 1px 0 var(--nf-pf-ground),
+      0 0 12px -2px var(--nf-glow-3),
+      0 4px 14px -6px var(--nf-glow-3);
   }
   .nf-pf-row:active {
     transform: scale(var(--nf-press-scale-lg));
@@ -550,7 +582,16 @@
    * glass square lands on 49. On paper the same slot draws the same object's
    * paper rendition (`-day`, re-inked on the brand ramp), never a dark square.
    */
+  /*
+   * The plate is lit from inside as the render draws it: rim 0 49 164 on
+   * top and 2 82 211 at the foot, body 0 38 132 falling to 0 22 108, a
+   * saturated inner light round the glyph (0 46 233), a little light on both
+   * sides. The pack object sits on top unfiltered; the saturation is on the
+   * plate, for the same reason as the row's.
+   */
   .nf-pf-plate {
+    --nf-pf-ink: var(--nf-container-ink);
+    --nf-pf-ground: var(--nf-surface-canvas);
     position: relative;
     display: grid;
     place-items: center;
@@ -558,6 +599,28 @@
     inline-size: 3.0625rem;
     block-size: 3.0625rem;
     border-radius: var(--nf-radius-sm);
+    border: 1px solid color-mix(in srgb, var(--nf-pf-ink) 30%, var(--nf-pf-ground));
+    border-block-start-color: color-mix(in srgb, var(--nf-pf-ink) 50%, var(--nf-pf-ground));
+    border-block-end-color: color-mix(in srgb, var(--nf-pf-ink) 70%, var(--nf-pf-ground));
+    background:
+      radial-gradient(
+        45% 42% at 50% 50%,
+        color-mix(in srgb, var(--nf-pf-ink) 38%, var(--nf-pf-ground)),
+        transparent 80%
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--nf-pf-ink) 12%, transparent) 0,
+        transparent 40%,
+        transparent 55%,
+        color-mix(in srgb, var(--nf-pf-ink) 22%, transparent) 100%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--nf-pf-ink) 24%, var(--nf-pf-ground)),
+        color-mix(in srgb, var(--nf-pf-ink) 3%, var(--nf-pf-ground))
+      );
+    filter: saturate(1.4);
   }
   /* The pack object carries a transparent margin round its glass square
      (the square is 72 per cent of the artwork), so it is drawn larger than
@@ -571,10 +634,6 @@
     block-size: 4.25rem;
     transform: translate(-50%, -50%);
     pointer-events: none;
-    /* The crop keys the plate's glass a little under the render: sampled
-       0 39 128 inside it against the render's 1 52 167. Lifted to match
-       (1.3 measured 0 47 140, so 1.55). */
-    filter: brightness(1.55) saturate(1.1);
   }
   /* The paper rendition of the same object, centred, drawn so its square
      lands on the plate (the crop box is 96 around an 83 square). */
@@ -646,15 +705,40 @@
     min-block-size: 3.75rem;
     gap: 0.625rem;
     padding-inline-start: 0.8125rem;
-    border-color: color-mix(in oklab, var(--nf-container-ink) 40%, transparent);
-    border-block-start-color: color-mix(in oklab, var(--nf-container-ink) 34%, transparent);
-    border-block-end-color: color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
-    background: linear-gradient(
+    /* The same lit recipe with its own falloff, sampled off its own row: a
+       touch dimmer top line (5 90 189), the light gone faster under it
+       (0 42 135, then 0 31 101 by 5px), the same deep middle and lit foot. */
+    --nf-pf-row-fill: linear-gradient(
       180deg,
-      color-mix(in oklab, var(--nf-container-ink) 26%, var(--nf-surface-canvas)) 0%,
-      color-mix(in oklab, var(--nf-container-ink) 18%, var(--nf-surface-canvas)) 50%,
-      color-mix(in oklab, var(--nf-container-ink) 24%, var(--nf-surface-canvas)) 100%
+      color-mix(in srgb, var(--nf-pf-ink) 45%, var(--nf-pf-ground)) 0,
+      color-mix(in srgb, var(--nf-pf-ink) 32%, var(--nf-pf-ground)) 5px,
+      color-mix(in srgb, var(--nf-pf-ink) 18%, var(--nf-pf-ground)) 30px,
+      color-mix(in srgb, var(--nf-pf-ink) 15%, var(--nf-pf-ground)) calc(100% - 12px),
+      color-mix(in srgb, var(--nf-pf-ink) 28%, var(--nf-pf-ground)) calc(100% - 3px)
     );
+    border-block-start-color: color-mix(
+      in srgb,
+      color-mix(in srgb, var(--nf-pf-ink) 85%, var(--nf-state-warning)) 82%,
+      var(--nf-pf-ground)
+    );
+  }
+  /* Its plate is the quiet one: rim 0 48 144, body 0 36 115 to 0 25 90. */
+  .nf-pf-plate--switch {
+    border-color: color-mix(in srgb, var(--nf-pf-ink) 22%, var(--nf-pf-ground));
+    border-block-start-color: color-mix(in srgb, var(--nf-pf-ink) 50%, var(--nf-pf-ground));
+    border-block-end-color: color-mix(in srgb, var(--nf-pf-ink) 45%, var(--nf-pf-ground));
+    background:
+      radial-gradient(
+        45% 42% at 50% 50%,
+        color-mix(in srgb, var(--nf-pf-ink) 38%, var(--nf-pf-ground)),
+        transparent 80%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--nf-pf-ink) 40%, var(--nf-pf-ground)),
+        color-mix(in srgb, var(--nf-pf-ink) 14%, var(--nf-pf-ground))
+      );
+    filter: saturate(1.3);
   }
 
   /* Below the fold: the rest of the account, in the register's grouped rows. */
@@ -749,9 +833,12 @@
     box-shadow: var(--nf-rim-primary), var(--nf-elev-2);
   }
   :root[data-theme="light"] .nf-pf-row {
-    background: var(--nf-surface-primary);
     border-color: var(--nf-border-brand);
     box-shadow: var(--nf-elev-2);
+  }
+  :root[data-theme="light"] .nf-pf-row::before {
+    background: var(--nf-surface-primary);
+    filter: none;
   }
   :root[data-theme="light"] .nf-pf-row:hover {
     box-shadow: var(--nf-elev-3);
@@ -770,6 +857,9 @@
    * draws none; only the identity's short brand shadow sits under it.
    */
   :root[data-theme="light"] .nf-pf-plate {
+    border-color: transparent;
+    background: none;
+    filter: none;
     box-shadow: 0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
   :root[data-theme="light"] .nf-pf-plate__object {
