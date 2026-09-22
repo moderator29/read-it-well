@@ -326,7 +326,9 @@ Broken links found and where they went:
   `--nf-radius-control` (14px, ratio 0.25) per the shape law.
 - The neon phone frame and the status bar: presentation, not drawn.
 - The active dot's cyan (#43e2fe): drawn as the brand quiet blue lifted to
-  ice, because cyan is the pending state colour in the one blue family.
+  ice, because cyan is the pending state colour in the one blue family. (Cyan
+  IS used as light in the headline gradient and the button's lift, where the
+  lead allowed it; a dot is a state-shaped mark, so it stays ice.)
 
 ### (b) The comparison, 390 x 844 dark, measured
 
@@ -342,7 +344,7 @@ server.
 | Logo mark | 74 x 70 src = 44 x 42 css | 44 x 42 | yes |
 | Wordmark | 166 src wide = 99 css | 99 x 22 | yes |
 | Headline line 1 "Two worlds." | cap 46 src = 27.5 css; width 355 src = 212 css; white, heavy | Poppins 700 37px, 212 wide | yes (face is Poppins, the brand display face; the render's reads like SF Display) |
-| Headline line 2 "One platform." | 419 src = 250 css; blue at left to ice at right | 249 wide; gradient brand primary, quiet, ice | width yes; hue end is ice not cyan (one blue family) |
+| Headline line 2 "One platform." | 419 src = 250 css; the gradient runs DOWN the letters, the same at every x (sampled in six bands): stroke tops #b6e9fa, middles #52d4fa, feet #0294f9 | 249 wide; built top #9de9ff, middle #66dcff, feet #18a1fe (same method on the 2x shot), from the state cyan and brand blue mixed in sRGB | yes. The lead's note read it as cyan to blue left to right; the samples show it vertical, and the samples decided |
 | Baseline spacing | 61 src = 36.5 css | line box 36.5 | yes |
 | Line 1 baseline from mark top | 107 css | 107 css | yes |
 | Sub-line | 2 lines, 224 css first line, lines 21.5 apart, #88cafa brightest stroke | 14.5px, 223 css first line, 21.5 line, quiet blue at 40% into primary | yes |
@@ -351,12 +353,15 @@ server.
 | Stage art | the render's | the render's own pixels, 636 x 530 src drawn 380 x 317 | yes, identical art |
 | Tile radius, rim, thickness, glass, pillars, plinth, reflection | as drawn | as drawn (cropped) | yes |
 | PROPERTY / STAYS | cap 15 src = 9 css, 116 src = 69 css wide, pale ice, glow | 11px, 0.19em, 70 css wide, ice with glow, turned with the tile | yes |
-| Coin | centre 49.4% / 62.3% of the stage, long axis ~165 src (99 css) once turned, top leaning left | same centre, 103 css box, turned 55 deg, leaning 34 deg, faces from the pack's `flip-coin` crop, the drawn orbit swirl kept | close: our face is the drawer render's coin, a little brighter than this render's darker face |
+| Coin size and place | in a 3x zoom of the stage: bounding box x 85 to 320, y 60 to 360 (zoom px, 3 per css px), overlapping the plinth's front rim, thick rim showing on the lower left | 114 css box at (49.5%, 62.8%) of the stage, leaning 34 deg, turned 62 deg: bounding box x 80 to 325, y 65 to 360 in the same zoom, left rim showing | yes, within 2 css px on every side (`welcome-coin-render-vs-built-3x.jpg`) |
+| Coin face | a clear dark glass face, a white-cyan rim, the bars mark lit | the pack's `flip-coin` face (the drawer render's coin) lifted 25%, a lit white-cyan ring, an 11-layer lit edge | close, not identical: the face art is the drawer render's coin, so its glass is a little lighter and its edge reads as fine ridges at 3x where the render's is one smooth band |
 | Coin motion | still in the render | turns once every 7 s, rests at the drawn pose 45% of the cycle; reduced motion holds the pose | by design |
 | Dots | 4, pitch 23 css, active 9.5, rest 7 | 4, pitch 28 css (44 tall buttons), active 10, rest 7 | pitch wider on purpose for the tap |
 | Dots centre from mark top | 583 css | 581 | yes |
 | Button | 323 x 56 css, 34 in from each side, top 620 below mark top | 324 x 56, x 33, top 618 | yes |
-| Button treatment | white rim along the top (#e4feff), bright edges (#0180fb sides), deeper core (#001fae), bloom below | gradient primary to deep core to primary, inset 1.5px lit rim, inset edge glow, 1px lit border, two-rung bloom | yes |
+| Button fill, down the centre | #047bfb top, #002cdb a third down, #0027d1 two thirds, #026dfa at the foot | #3c9dfb top (the 1px rim sits in the sample), #0058d3, #0072f1, #0084fe: GLOW_IDENTITY's lit primary (d01a5d7) with its radial cyan lift low in the middle | close: the render's core is a more violet blue (green channel 44) than any brand token mix can reach without a layer-1 token (ours 88); the lightness and the bright top and bottom bands match |
+| Button edge and rim | lit all round: #e4feff top, #d6faff bottom, #0180fb sides | 1px border: cyan 22% into white on top, 32% into white at the foot, brand 70% into cyan on the sides; inset 1px rim | yes |
+| Button bloom | below the bar: #0225b8 at 6px, #001269 at 15px, ground by 30px; little above | #003490 at 6px, #001651 at 15px, ground by 30px; a faint 10px lift above | yes (ours slightly less saturated at 6px) |
 | Button label | ~16px medium, "Get Started" 81 css wide, arrow | 16px 500, arrow 20px | yes |
 | Button radius | ~10 css | 14 (`--nf-radius-control`) | shape law, recorded |
 | Skip | centre 705 css below mark top, small, quiet (#345fb7 mean) | 13px, quiet blue at 78%, 44px tap, centre 702 | yes |
@@ -369,6 +374,13 @@ and larger than drawn, Skip too loud, the desktop headline lines colliding at
 52px on a fixed line box, the desktop sub-line breaking after "and", the dot
 buttons drawing a 0.5 ratio in the sweep. All fixed and reshot. The second
 pass found no further difference I could fix within the rules above.
+
+Lead polish round (after the lead's review of the side-by-side): the button
+rebuilt on the identity's lit primary and re-sampled against the render; the
+second headline line re-sampled in bands, which showed a vertical ice to cyan
+to electric gradient, now built; the coin matched in a 3x zoom to within 2 css
+px and turned the other way so its left rim shows, as drawn. Every proof in
+`docs/design/proofs/session-b/welcome/` was re-shot after these changes.
 
 Resolution, honestly: the stage is 636 source px for 380 css, 1.67 source px
 per css px. At 2x it is sharp; at 3x it is visibly softer than the live text

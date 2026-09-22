@@ -41,11 +41,11 @@ export function WelcomeCoin() {
     <span className="nf-gs-coin">
       <span className="nf-gs-coin__tilt">
         <span className="nf-gs-coin__spin">
-          {Array.from({ length: 7 }, (_, i) => (
+          {Array.from({ length: 11 }, (_, i) => (
             <span
               key={i}
               className="nf-gs-coin__edge"
-              style={{ "--nf-gs-layer": i - 3 } as React.CSSProperties}
+              style={{ "--nf-gs-layer": i - 5 } as React.CSSProperties}
             />
           ))}
           <span className="nf-gs-coin__face nf-gs-coin__face--front">
