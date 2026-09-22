@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { canGoBackInApp } from "@/lib/ui/history";
+import { useBack } from "@/lib/nav/use-back";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
@@ -10,18 +9,17 @@ import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
  *
  * A round glass icon button in the platform material, the same object on every
  * sub-page so the way back is always in the same place, like a native app.
- * Goes back through history when there is somewhere in THIS app to go back to;
- * otherwise falls through to `fallback`, so a deep link straight into a
- * sub-page never strands the user.
+ * Goes to this route's DECLARED PARENT, from `lib/nav/route-parents.ts`,
+ * however the person arrived.
  *
- * The test is `canGoBackInApp()`, shared with `PageHeader` and
- * `ListingGallery`. It has now been wrong in both directions and the reasoning
- * for each is in `lib/ui/history.ts`, worth reading before touching this:
- * `history.length > 1` counted entries belonging to whatever site the visitor
- * came from and landed a fresh tab on `about:blank`; `history.state.idx`
- * replaced it and then stopped existing in Next 16, so this control pushed its
- * fallback on every screen and threw away whatever the person was in the
- * middle of. Neither failure showed up as an error.
+ * THIS IS THE CONTROL IN THE ADMIN CONSOLE'S HEADER, and the founder's first
+ * example of the defect was pressing it and landing on the login page. It asked
+ * `canGoBackInApp()` and then called `router.back()`. Anybody who reached
+ * `/admin` through a sign-in bounce had `/sign-in` as their previous entry, and
+ * that answer was in-app, so back went there. The fix is not a better guess
+ * about history; it is that `/admin`'s parent is declared and this control goes
+ * there. `lib/nav/resolve.ts` carries the reasoning, and `useBack` still uses
+ * history when the previous entry can be PROVED to be the parent.
  */
 export function BackButton({
   fallback = "/home",
@@ -37,19 +35,16 @@ export function BackButton({
   label?: string;
   className?: string;
 }) {
-  const router = useRouter();
   /* No server parent to thread `t` from, on any of the pages that use this.
      See `lib/i18n/use-client-dictionary.ts` for why that is allowed here and
      why it must not spread. */
   const t = useClientDictionary();
+  const back = useBack(fallback);
   return (
     <button
       type="button"
       aria-label={label ?? t.common.back}
-      onClick={() => {
-        if (canGoBackInApp()) router.back();
-        else router.push(fallback);
-      }}
+      onClick={back}
       /*
         NO CONTAINER. `nf-icon-btn` draws a bordered glass plate, so every
         screen with a back arrow opened with a boxed object in the top left

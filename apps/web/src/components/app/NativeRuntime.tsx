@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { canGoBackInApp } from "@/lib/ui/history";
+import { chooseBack } from "@/lib/nav/resolve";
+import { previousEntryPath } from "@/lib/nav/previous-entry";
 import { startNativeRuntime } from "@/lib/native/boot";
 
 /**
@@ -14,42 +16,62 @@ import { startNativeRuntime } from "@/lib/native/boot";
  * once from a place every route passes through.
  *
  * It exists as a component for one reason that could not be solved inside
- * `lib/native/`: the hardware back button has to walk the application's own
- * history, and the Next router is a React context. So this component holds the
- * router and hands the runtime the single capability it cannot reach for
- * itself. Everything else the runtime does is plain DOM and plugin work and
- * stays out of React entirely, which is why this file is nine lines of code
- * and the reasoning lives in the modules that do the work.
+ * `lib/native/`: the hardware back button has to know where it is, and both the
+ * current path and the Next router are React context. So this component holds
+ * them and hands the runtime the single capability it cannot reach for itself.
+ * Everything else the runtime does is plain DOM and plugin work and stays out
+ * of React entirely.
  *
  * ON THE WEB THIS IS A NO-OP AND COSTS NOTHING. `startNativeRuntime` returns
  * immediately unless the Capacitor bridge is present, and every plugin is
  * behind a dynamic import that a browser never requests. Mounting it in the
  * root layout therefore changes nothing at all about the website, which is the
- * condition of it being allowed there.
+ * condition of it being allowed there. Nothing Capacitor is imported HERE for
+ * exactly that reason, which is also why the decision to close the application
+ * lives in `lib/native/back-button.ts` and not in this file.
+ *
+ * WHY ANDROID IS THE WORST PLACE FOR THE OLD BUG.
+ *
+ * This handler used to be `if (canGoBackInApp()) router.back();`. On a screen
+ * reached by a redirect, a sign-in bounce or a push notification's deep link,
+ * the previous entry is not the parent, so the hardware button walked sideways
+ * into whatever the machinery had done. And when the answer was NO,
+ * `startBackButton` closed the application - so a person who opened a message
+ * from a notification and pressed back had the shell vanish rather than land in
+ * their inbox. Both halves are gone: the hierarchy decides where back goes, and
+ * only a declared ROOT may close the shell.
  */
 export function NativeRuntime() {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(
     () =>
       startNativeRuntime({
         /*
-         * The same question every other back control on this platform asks.
+         * The same decision every other back control on this platform takes,
+         * from the same map, with `surface: "android"` so that a root is an
+         * exit rather than a fallback push.
          *
-         * `startBackButton` already asks `canGoBackInApp()` before it calls
-         * this, and exits the application when the answer is no, so in practice
-         * the guard here never changes the outcome. It is here anyway for two
-         * reasons. It keeps the invariant visible at the call site rather than
-         * three modules away, which is what `session-memory.spec.mjs` checks
-         * for across every `router.back()` in the codebase and what caught this
-         * file. And it means a future caller of `goBack` that forgets to ask
-         * cannot push this router past the start of its own history.
+         * `startBackButton` asks `isAppRoot()` itself before it calls this and
+         * exits instead, so in practice the `exit` branch below is unreachable
+         * from there. It is written out anyway: this handler is the whole
+         * answer to "where does back go on Android", and a reader should not
+         * have to open another module to find out what happens at the root.
          */
         goBack: () => {
-          if (canGoBackInApp()) router.back();
+          const decision = chooseBack({
+            path: pathname ?? "/",
+            fallback: "/home",
+            previousPath: previousEntryPath(),
+            previousIsInApp: canGoBackInApp(),
+            surface: "android",
+          });
+          if (decision.action === "back") router.back();
+          else if (decision.action === "push") router.push(decision.href);
         },
       }),
-    [router],
+    [router, pathname],
   );
 
   return null;

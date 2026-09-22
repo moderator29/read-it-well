@@ -1,25 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
-import { canGoBackInApp } from "@/lib/ui/history";
+import { useBack } from "@/lib/nav/use-back";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * Page header with the platform back flow.
  *
  * The pattern every big app uses: the back control lives at the top left OF THE
- * PAGE, next to its title, not floating in the global chrome. Back returns to
- * the previous in-app screen when one exists in this session's history, and
- * otherwise falls through to `fallback`, so a deep link or fresh tab never
- * strands the user or bounces them out of the product.
+ * PAGE, next to its title, not floating in the global chrome. Back goes to this
+ * route's DECLARED PARENT, from `lib/nav/route-parents.ts`, however the person
+ * arrived.
  *
- * The test used to read `history.state.idx`, a Next internal that Next 16 no
- * longer writes, so it was `undefined` on every screen and this control pushed
- * the fallback every single time. A filtered search opened a listing and Back
- * threw the whole hunt away. `lib/ui/history.ts` carries the full account.
+ * It used to call `router.back()` whenever `canGoBackInApp()` said there was a
+ * screen of ours behind this one. That proves the previous entry is in-app; it
+ * cannot prove the previous entry is this screen's parent, and after a
+ * redirect, a sign-in bounce or a deep link it is not. That is how back inside
+ * the Console reached the login page. `lib/nav/resolve.ts` carries the full
+ * account; `useBack` still goes back through history when, and only when, the
+ * previous entry can be PROVED to be the parent, which is what keeps a filtered
+ * search's scroll position.
  */
 export function PageHeader({
   title,
@@ -69,7 +71,6 @@ export function PageHeader({
    */
   layout?: "inline" | "stacked";
 }) {
-  const router = useRouter();
   /* The back control is the only thing on this header the component names
      itself, and it appears on every app screen. It reads the locale cookie
      directly because there is no server parent to hand it a dictionary and
@@ -77,10 +78,7 @@ export function PageHeader({
   const t = useClientDictionary();
   const label = backLabel ?? t.common.back;
 
-  const back = () => {
-    if (canGoBackInApp()) router.back();
-    else router.push(fallback);
-  };
+  const back = useBack(fallback);
 
   /* The glass square the renders draw: the base square's brand edge and
      well, with the rim highlight and the thin blur the modifier adds. */

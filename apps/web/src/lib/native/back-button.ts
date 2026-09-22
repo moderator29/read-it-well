@@ -1,7 +1,7 @@
 "use client";
 
 import { App } from "@capacitor/app";
-import { canGoBackInApp } from "@/lib/ui/history";
+import { isAppRoot } from "@/lib/nav/resolve";
 
 /**
  * Android's hardware back button, given the same meaning it has in every other
@@ -21,25 +21,35 @@ import { canGoBackInApp } from "@/lib/ui/history";
  *    press either leaves the screen with a sheet still animating over it, or
  *    quits the application entirely while somebody was reading a filter panel.
  *
- * 2. There is a screen of ours behind this one, so back goes back. The
- *    question is asked through `canGoBackInApp()`, which is the platform's own
- *    answer to it and is used by every PageHeader on the platform. It is NOT
- *    re-derived here, and it is not read from `history.state.idx`: that field
- *    is a Next router internal which Next 16 stopped writing, and reading it
- *    is precisely the bug documented at the top of `lib/ui/history.ts` that
- *    silently disabled every back control on the platform.
+ * 2. This screen is the ROOT of the product's hierarchy, so back leaves the
+ *    application. `App.exitApp()` rather than a push to `/home`, because on
+ *    Android the back button at the root of an application is how you put it
+ *    down. A shell that instead bounces the person to a home screen they did
+ *    not ask for is a screen with no way out, which is the one thing a back
+ *    button must never become.
  *
- * 3. There is nothing behind this screen, so back leaves the application.
- *    `App.exitApp()` rather than a push to `/home`, because on Android the
- *    back button at the root of an application is how you put it down. A shell
- *    that instead bounces the person to a home screen they did not ask for is
- *    a screen with no way out, which is the one thing a back button must never
- *    become.
+ * 3. Anything else has a parent, so back goes to the parent. `goBack` is
+ *    handed in by `NativeRuntime`, which owns the router and the current path
+ *    and runs the same `chooseBack` every drawn back control on the platform
+ *    runs.
+ *
+ * QUESTION 2 USED TO BE `canGoBackInApp()`, AND THAT IS THE DEFECT.
+ *
+ * "Is there a screen of ours behind this one" is not "is this the root". A
+ * person who opened a message from a push notification, or landed anywhere
+ * through a redirect or a sign-in bounce, has a history entry behind them that
+ * is not their parent - and on a genuinely cold deep link has none at all, so
+ * the old answer was NO and this handler CLOSED THE APPLICATION on somebody
+ * standing inside a conversation. The hierarchy answers both halves: `isAppRoot`
+ * is a fact about the screen rather than about how the person got to it, and it
+ * is false for every route in `lib/nav/route-parents.ts` bar the declared tops.
+ * An undeclared route answers false too, so the failure direction is a harmless
+ * navigation rather than the shell disappearing.
  *
  * The listener event carries its own `canGoBack`, and it is deliberately not
  * used. That value is the WEB VIEW's history, which includes entries this
- * application did not create and cannot return to sensibly. The platform's
- * question is narrower and better: is there a screen of OURS behind this one.
+ * application did not create and cannot return to sensibly. It is the same
+ * proxy question, one layer further away.
  */
 
 /**
@@ -78,11 +88,14 @@ export async function startBackButton(goBack: () => void): Promise<() => void> {
       dismissTopOverlay();
       return;
     }
-    if (canGoBackInApp()) {
-      goBack();
+    /* `location.pathname` is kept current by the History API on every client
+       navigation, so it is the live screen rather than the one this listener
+       was bound on. */
+    if (isAppRoot(window.location.pathname)) {
+      void App.exitApp();
       return;
     }
-    void App.exitApp();
+    goBack();
   });
 
   return () => {

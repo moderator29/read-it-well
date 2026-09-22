@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { canGoBackInApp } from "@/lib/ui/history";
+import { useBack } from "@/lib/nav/use-back";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -13,10 +12,12 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * photograph, at 44px because it is the primary navigation affordance on the
  * page and 36px was already the smallest target on every social surface.
  *
- * It follows real history exactly as every other back control here does. Real
- * history matters more on a profile than anywhere else, because a profile is
- * usually arrived at from a post, and pushing a fallback route would quietly
- * throw away the conversation somebody was reading.
+ * It takes the same route every other back control here does: this screen's
+ * DECLARED PARENT, from `lib/nav/route-parents.ts`, however the person arrived.
+ * A profile is usually reached from a post, so `/u/[handle]` declares `/around`
+ * as its parent and `useBack` returns through history to the exact post when
+ * the previous entry can be PROVED to be that parent, which is what keeps the
+ * conversation somebody was reading.
  *
  * `labelled` puts the word on the button instead of only in its accessible
  * name. On a profile banner that is the right trade: it is the one control a
@@ -36,22 +37,13 @@ export function BackChevron({
   /** Draw the word beside the chevron, as a pill. */
   labelled?: boolean;
 }) {
-  const router = useRouter();
-
-  const back = () => {
-    /*
-     * `history.state.idx` was a Next internal and Next 16 no longer writes it,
-     * so this read was always undefined, `?? 0` made it zero, and every tap
-     * took the fallback. The browser's own back button kept working, which is
-     * why it survived: anybody testing with a keyboard never saw it.
-     *
-     * `canGoBackInApp` asks the Navigation API first, falls back to our own
-     * stamp on `history.state`, then to a same-origin referrer, and fails
-     * closed. Every other back control on the platform now uses it.
-     */
-    if (canGoBackInApp()) router.back();
-    else router.push(fallback);
-  };
+  /*
+   * `fallback` stays in the signature and is now the answer for an undeclared
+   * route only. A screen whose parent is declared goes to that parent, and
+   * this component is no longer in a position to disagree with the map, which
+   * is the whole point of there being one.
+   */
+  const back = useBack(fallback);
 
   return (
     <button

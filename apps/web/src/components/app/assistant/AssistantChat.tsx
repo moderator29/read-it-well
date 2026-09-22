@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -22,7 +21,7 @@ import type {
 } from "@/lib/assistant/types";
 import { hrefForListing } from "@/lib/listings/href";
 import type { ListingKind } from "@/lib/listings/types";
-import { canGoBackInApp } from "@/lib/ui/history";
+import { useBack } from "@/lib/nav/use-back";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import {
   AssistantSidebar,
@@ -184,7 +183,6 @@ export function AssistantChat({
    */
   seed?: { threads: Thread[]; thinking?: boolean };
 }) {
-  const router = useRouter();
   const t = getDictionary(locale);
   const copy = t.home.assistant;
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -521,10 +519,11 @@ export function AssistantChat({
     inputRef.current?.focus();
   };
 
-  const back = () => {
-    if (canGoBackInApp()) router.back();
-    else router.push("/home");
-  };
+  /* `/assistant` declares `/home` as its parent. It used to call
+     `router.back()` whenever anything of ours was behind it, which after the
+     assistant had been opened from a deep link or a redirect was whatever the
+     machinery had sent the person through. See `lib/nav/route-parents.ts`. */
+  const back = useBack("/home");
 
   const empty = hydrated && messages.length === 0;
   const lastMessage = messages[messages.length - 1];

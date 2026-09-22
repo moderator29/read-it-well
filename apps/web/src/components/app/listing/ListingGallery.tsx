@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { canGoBackInApp } from "@/lib/ui/history";
+import { useBack } from "@/lib/nav/use-back";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { ListingActions } from "./ListingActions";
 import type { SavePlaceTarget } from "@/components/app/SaveControl";
@@ -89,7 +88,6 @@ export function ListingGallery({
    */
   place?: SavePlaceTarget;
 }) {
-  const router = useRouter();
   /* The gallery's floating back circle is icon-only, so its accessible name is
      the ONLY thing a screen reader has to go on. It was the English literal
      "Back" on a page whose every other word is translated. */
@@ -123,13 +121,19 @@ export function ListingGallery({
     [panes.length],
   );
 
-  /* Shared with PageHeader and BackButton. This is the control a guest
-     actually reaches for on a listing, so it is the one that was throwing away
-     the search they arrived from. See `lib/ui/history.ts`. */
-  function back() {
-    if (canGoBackInApp()) router.back();
-    else router.push(backFallback);
-  }
+  /*
+     Shared with PageHeader and BackButton. This is the control a guest actually
+     reaches for on a listing, and it is the one the founder's "land on a screen
+     I have never opened" is about: a listing opened from a notification, a
+     share link or a redirect had none of the shelf behind it, and `router.back()`
+     went wherever the machinery had been.
+
+     `/listing/[id]` declares `/search` as its parent, so back lands on the
+     shelf, and `useBack` still returns through history to the exact filtered
+     search when the previous entry can be PROVED to be it. See
+     `lib/nav/route-parents.ts`.
+  */
+  const back = useBack(backFallback);
 
   return (
     <>

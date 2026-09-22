@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
@@ -33,7 +32,7 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
-import { canGoBackInApp } from "@/lib/ui/history";
+import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 
@@ -249,7 +248,6 @@ export function ThreadView({
   locale = "en",
   openAttach = false,
 }: ThreadViewProps) {
-  const router = useRouter();
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
    * THE ACCEPT CEREMONY (pitch 13). When an inspection is accepted in the
@@ -504,10 +502,12 @@ export function ThreadView({
     sheetTriggerRef.current?.focus();
   }, []);
 
-  const back = () => {
-    if (canGoBackInApp()) router.back();
-    else router.push("/messages");
-  };
+  /* A conversation's parent is the inbox, declared as `/messages/[id]` ->
+     `/messages` in `lib/nav/route-parents.ts`. A thread is the single most
+     deep-linked screen in the product - every push notification lands here -
+     so it was also the one where `router.back()` most often walked out of the
+     product entirely. */
+  const back = useBack("/messages");
 
   /* The header's context line: what this conversation is FOR, in two words,
      under the name, the way the render writes "Hotel Booking". */

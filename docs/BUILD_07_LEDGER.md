@@ -2825,3 +2825,141 @@ which is the right instinct and cost nothing.
 The honest version: the seller could declare and the buyer could not read. The
 buyer can now read. The ONE LAW is not closed on it, because the probe has not
 run against a live database.
+
+## 26. HISTORY IS NOT HIERARCHY: EVERY ROUTE NOW DECLARES ITS PARENT
+
+The founder: "I can be inside the Console, press back, and land on the login
+page. I can be inside a feature, press back, and land on the landing page, or
+on a screen I have never opened."
+
+**He named the cause himself and he was right.** Ten back call sites, every one
+of them `if (canGoBackInApp()) router.back(); else router.push(fallback);`.
+`canGoBackInApp()` is not broken and this is not a second bug in
+`lib/ui/history.ts`. It answers "is there a screen of OURS behind this one",
+truthfully, and every control on the platform was reading that answer as "is
+the screen behind this one its PARENT". Those are different claims, and after a
+redirect, a sign-in bounce or a deep link they come apart. Reach `/admin`
+through a sign-in bounce and `/sign-in` is the previous entry; it is genuinely
+in-app, so back went there. That is the founder's first sentence, exactly.
+
+`canGoBackInApp()` cannot be taught the second claim either, and that is worth
+recording rather than treating as an oversight. It has three answers. Two of
+them, the `nfSeq` stamp and a same-origin referrer, carry no URL at all; the
+third, `navigation.canGoBack`, is a boolean. None of them can be asked which
+screen is behind you. It was left untouched.
+
+### What landed
+
+**`apps/web/src/lib/nav/route-parents.ts` is the map, and it holds no logic.**
+One entry per route, pattern to parent pattern, roughly 140 of them covering
+the website, the door, both app sides, messages, money, social, account, the
+admin console, the agent console, the host console and the design harnesses.
+Dynamic segments carry: `/u/[handle]/followers` declares `/u/[handle]`, so
+`/u/ada/followers` resolves to `/u/ada`. The founder's own two examples are in
+it: `/listing/[id]` declares `/search`, the shelf, not `/home`; `/messages/[id]`
+declares `/messages`, the inbox.
+
+**Three roots, and they are the only three: `/`, `/home`, `/stays`.** Two app
+roots rather than one because the product has two sides and `nav-model.ts`
+makes each the first destination of its own tab bar.
+
+**A route with no entry is LOUD.** `parentOf` returns `no-parent-declared`, the
+control takes its caller's fallback, and a development build prints a warning
+naming the path. It is deliberately not "strip the last segment": that guess is
+right often enough to hide the times it is wrong, which is the whole mechanism
+by which this defect survived.
+
+**`resolve.ts` is pure.** No DOM, no router, no browser global. The entire
+decision is `chooseBack({ path, fallback, previousPath, previousIsInApp,
+surface })`, which is what makes every rule below provable in a Node process.
+
+**History is an optimisation on top of the answer, never a different answer.**
+`chooseBack` goes back through history only when BOTH hold: the previous entry
+is provably in-app, and its path provably equals the declared parent. That
+second proof needs a URL, and only the Navigation API can supply one, so
+`previous-entry.ts` reads `navigation.entries()[index - 1].url` and returns
+`null` everywhere else. Safari and Firefox therefore always push the parent.
+That is the correct trade and not a gap: a push costs a restored scroll
+position, and a wrong `router.back()` costs the person the screen they were on.
+Where the proof does hold, a filtered search opened into a listing still comes
+back with its filters and its scroll intact.
+
+### Every back control, and what it does now
+
+| Control | Before | Now |
+| --- | --- | --- |
+| `components/app/PageHeader.tsx` | `router.back()` when in-app | declared parent, via `useBack` |
+| `components/site/BackButton.tsx` (admin, agent, host shells) | same | same |
+| `components/social/profile/BackChevron.tsx` | same | same |
+| `components/app/listing/ListingGallery.tsx` | same | same |
+| `components/app/assistant/AssistantChat.tsx` | same | same |
+| `app/(app)/messages/[id]/ThreadView.tsx` | same | same |
+| `components/app/NativeRuntime.tsx` (Android hardware) | `router.back()` when in-app | `chooseBack` with `surface: "android"` |
+| `lib/native/back-button.ts` (Android hardware) | exit when NOT in-app | exit only at a declared ROOT |
+
+No component calls `router.back()` any more. The two remaining call sites in
+the tree are `lib/nav/use-back.ts` and `NativeRuntime.tsx`, and both run the
+resolver first. The `fallback` prop stays on every component and every one of
+its roughly fifty call sites is untouched; it is now reached only for an
+undeclared route or a root, which is why nothing outside this section's file
+list had to change.
+
+**Android was the worst of it and it is the half a test cannot finish.** The
+old handler exited the application when `canGoBackInApp()` said no, so somebody
+who opened a message from a push notification and pressed back had the shell
+vanish rather than land in their inbox. `isAppRoot()` is a fact about the
+screen rather than about how the person arrived, an undeclared route answers
+false, and so the failure direction is now a harmless navigation instead of the
+app closing.
+
+### What was proved, and how
+
+`src/lib/nav/resolve.test.ts`, 25 tests. The sweep walks EVERY entry in the map,
+builds a concrete path for it, and insists the parent it names resolves to a
+route that is itself in the map; a second sweep climbs every route to a root, so
+no back control can loop. Then the three arrivals the founder described: a
+sign-in bounce, a redirect, and a cold deep link.
+
+**The defect was proved caught by breaking the resolver twice.** Removing the
+parent-equality check from `chooseBack`, which restores the exact old
+behaviour, turns three tests red, including the sign-in bounce. Making an
+undeclared route silently default to stripping its last segment turns two red,
+including the Android one. Both breaks were made in the gate worktree and
+reverted.
+
+### Gate
+
+Clean worktree at **origin/main `4ea7dd3`**, hard-linked node_modules, never the
+shared tree. `npx tsc --noEmit -p tsconfig.json` clean. `npx eslint` on all
+thirteen touched files: zero errors and zero warnings, no rule disabled
+anywhere. `npx vitest run`: 152 files, 2748 tests, all passing. The static scan
+in `tests/session-memory.spec.mjs` passes, though its count now reads "2 back
+control(s) checked" rather than ten, because the controls no longer hold the
+call. That spec was not edited.
+
+### What is NOT proved, plainly
+
+**The Android hardware button has not been pressed on a device.** This box has
+no Android and no emulator. What is proved is the decision function, at every
+root and at the deep-link case that used to close the app, and that
+`back-button.ts` now asks `isAppRoot()` instead of `canGoBackInApp()`. Whether
+Capacitor delivers the event and whether `App.exitApp()` behaves is unchanged
+from before this work and is untested here, as it was untested before.
+
+**One file outside the brief's list was edited, deliberately.**
+`lib/native/back-button.ts` holds the exit decision, and the founder's
+instruction about the hardware button cannot be met without it: the handler
+only calls the injected `goBack` when it has already decided not to exit, so a
+change confined to `NativeRuntime.tsx` would have left the shell closing on
+deep links. Two lines changed there, no Capacitor import added anywhere new,
+and the website still pays nothing for any of it.
+
+**Four routes now go somewhere different from their old hardcoded fallback**,
+and each is a deliberate reading of the hierarchy rather than a port of the old
+string: `/listing/[id]` goes to `/search` rather than `/home`; `/checkout` goes
+to `/stays` rather than the page's own computed "back to the stay" href;
+`/bookings/[id]/review` goes to the booking rather than the booking list;
+`/verification`'s internal sub-view goes to `/profile` rather than back to the
+verification index, because that sub-view is state and not a route. If any of
+those four is wrong, it is wrong in ONE readable line of `route-parents.ts`,
+which is the point of the file.
