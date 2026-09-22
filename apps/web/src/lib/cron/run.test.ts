@@ -124,6 +124,32 @@ describe("the bearer guard", () => {
     expect(String(bare.detail?.fix)).not.toBe(String(mismatch.detail?.fix));
   });
 
+  /*
+   * THERE ARE TWO SCHEDULERS AND ONLY ONE WAS RECOGNISED.
+   *
+   * When the database's own reconciliation was refused at 16:47 on 22
+   * September, the desk recorded "unauthorised" at medium, the colour meant
+   * for a stranger trying a door, because the caller carried no name. What
+   * had happened is that our own database could not get in. Same event, same
+   * cost, quieter colour. It now sends `X-Vallo-Scheduler: pg_cron`.
+   *
+   * The header is not a credential and grants nothing. It never opens the
+   * door, and a forged one buys a louder refusal on our own desk rather than
+   * a way in.
+   */
+  it("recognises both of our schedulers, and nobody else", () => {
+    const from = (headers: Record<string, string>) =>
+      new Request("https://vallo.test/api/cron/hold-sweep", { headers });
+
+    expect(fromPlatformScheduler(from({ "user-agent": "vercel-cron/1.0" }))).toBe(true);
+    expect(fromPlatformScheduler(from({ "x-vallo-scheduler": "pg_cron" }))).toBe(true);
+    expect(fromPlatformScheduler(from({ "x-vallo-scheduler": "PG_CRON" }))).toBe(true);
+
+    expect(fromPlatformScheduler(from({ "user-agent": "curl/8.4.0" }))).toBe(false);
+    expect(fromPlatformScheduler(from({ "x-vallo-scheduler": "something-else" }))).toBe(false);
+    expect(fromPlatformScheduler(from({}))).toBe(false);
+  });
+
   it("still refuses a secret that differs by more than whitespace", () => {
     expect(bearerMatches("Bearer s3cret x", "s3cret")).toBe(false);
     expect(bearerMatches("Bearer s3 cret", "s3cret")).toBe(false);

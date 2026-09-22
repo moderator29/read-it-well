@@ -120,7 +120,23 @@ export function authorisedCron(request: Request): boolean {
  * on the desk instead of a warning one, which is a false alarm and not a way
  * in, and the alert writer folds repeats of the same title inside ten minutes
  * into one row.
+ *
+ * THERE ARE TWO SCHEDULERS AND ONLY ONE OF THEM WAS RECOGNISED, which cost a
+ * reading on 22 September. The reconciliation also runs from pg_cron inside
+ * the database, through pg_net, and that caller is not Vercel: when it was
+ * refused at 16:47 the desk recorded "unauthorised" at MEDIUM, in the colour
+ * reserved for a stranger trying a door, while what had actually happened was
+ * that OUR OWN DATABASE could not get in. Same event, same cost, quieter
+ * colour, for want of a name.
+ *
+ * So `private.request_money_reconciliation` now sends
+ * `X-Vallo-Scheduler: pg_cron` and this recognises it. Our own header beats
+ * guessing at pg_net's user agent, which is a string we neither choose nor
+ * control and which changes with the extension. It grants nothing either: a
+ * forged one buys a louder refusal and no entry, exactly as above.
  */
 export function fromPlatformScheduler(request: Request): boolean {
-  return (request.headers.get("user-agent") ?? "").toLowerCase().includes("vercel-cron");
+  const agent = (request.headers.get("user-agent") ?? "").toLowerCase();
+  if (agent.includes("vercel-cron")) return true;
+  return (request.headers.get("x-vallo-scheduler") ?? "").toLowerCase() === "pg_cron";
 }
