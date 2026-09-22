@@ -477,6 +477,7 @@ swept with it. Proofs: `docs/design/proofs/session-b/signin/`.
 | 11 | Google | `startGoogleOAuth` form action, provider fixed server side, `redirectTo` = `/auth/callback?next=...&intent=sign-in`; the callback page runs `completeEmailVerification` (code exchange) and shows the sign-in moment, not "Verifying your email" | Works in code. Drawn only when `getProviderStates` says Google is on |
 | 12a | First run (request W2) | `/sign-in` sends a device without `vallo_first_run=seen` to `/welcome?next=<the whole sign-in address>`; straight through on the cookie, on `welcomed=1`, and on the account notices (`first-run-gate.ts`, six unit tests) | NEW. Measured: a cookieless browser opening `/sign-in?next=/home` lands on `/welcome?next=%2Fsign-in%3Fnext%3D%252Fhome`. It arrives as a streamed redirect (HTTP 200 with the `NEXT_REDIRECT` marker and a meta refresh), not a 307 header, because the auth layout has begun streaming; a header-level 307 would need `proxy.ts`, which is not mine |
 | 12 | Sign up link | `/sign-up` (the real entry; the welcome worker may route it through `/welcome`) | Works |
+| 12b | "What Vallo is" | On the sign-up card only; now `/welcome?next=/sign-up` with prefetch off (it was `/start`, a redirect prefetched on every render, which kept the page's network from ever settling). Sign-in carries no such link: a first-time visitor is already sent to first run by 12a | CHANGED |
 
 Broken links found and not in my files (none blocking):
 - `authMessage` says "Open the link we sent you" for an unconfirmed address,
@@ -485,47 +486,65 @@ Broken links found and not in my files (none blocking):
   (not mine) to set the pending-email cookie on that refusal. Scope request
   SIGNIN-1 in `docs/SESSION_B_SCOPE.md`.
 
-### (b) The comparison, 390 dark
+### (b) The comparison, 390 dark (round two, re-shot after the final change)
 
-Scale. The render is a 1024 x 1536 poster with no phone frame, so the brief's
-screen-width formula gives s = 0.381 and a 241px card with 27px controls.
-Instead s is set by the card spanning the phone column: 633 render px to 358
-CSS px, s = 0.566. Two stated floors: controls never under 48px (tap rule),
-and the card's type at 1.36 x s, because at s alone the render's card copy is
-9 to 11px on a phone. The stage and lockup are the render's own pixels, so
-their geometry matches by construction.
+**Scale.** The render is a 1024 x 1536 poster with no phone frame. Its card is
+633 px, 62 per cent of the width; at 390 that is 305 CSS px, so
+**s = 305 / 633 = 0.482**, and every "at s" below is a render measurement
+times 0.482. (Round one used the full phone column, s = 0.566, which the lead
+rejected: the card filled the screen and everything sat high.) Font sizes are
+derived from measured cap heights (cap / 0.72 for this sans). Two stated
+floors: controls are 44 px (the tap rule; at s they would be 34 to 37), and
+running copy is 13 to 15 px, the type factor about 1.15 over s. Built values
+are `getBoundingClientRect` and `getComputedStyle` on the production build,
+colours are pixel samples of the 2x screenshot. Vertical positions are as a
+share of 844 against the render's share of 1536.
 
-| Property | Image (measured) | Built (measured) | Match |
+| Property | Image (measured) | Built (measured) | Match / why not |
 |---|---|---|---|
-| Sky, curtains, horizon, floor | render | the render's own stage crop, UI lifted out | yes (pixels from the render) |
-| Glass plinth | 725 x 84 render px, top face at card foot | render crop, anchored so render y 1336 = card foot; 579 css plate, plinth 410 wide | yes; ends clipped by the 390 viewport |
-| App tile + wordmark | tile 258 x 280, wordmark 382 x 70, gap 38 | render crop 262 x 256 css (464 x 452 source) | yes; 1.7x source at 3x density, slightly soft |
-| Slogan | "Real Estate reimagined!" | not drawn | REFUSED, see below |
-| Card width / radius | 633 / 42 render px (358 / 24 css) | 358 / 22 (`--nf-radius-xl`) | yes, 2px under |
-| Card fill | #001554 (three samples, no red) | canvas + 26% brand ink mixed in sRGB, 88 to 94%: measured #001F54 | yes |
-| Card edge | across the left edge at y 1000: outside #000B4C, one hot line #9BE2FE, electric band #0551D0 > #0040D8 > #0137BC 3px deep, glass | 1px hot border (white + quiet blue), 2px electric inset band, 14px inner glow, tight 6 + 26px bloom | yes |
-| Card top rim | brightest at the centre (#9EE5FE), #074292 at the corners | 2px white-to-rim-hot line across the middle 84% of the top edge | yes |
-| Card inset | 60 render px (34) | 34 | yes |
-| Title | caps 25 render px, semibold, ~36px (20 at s) | Poppins 600, 24px | factor 1.2x s, stated |
-| Sub | caps 14, regular, ~19px (11 at s) | Inter 400, 15px | 1.36x s, stated |
-| Email field | 70 tall (40), r 12, fill #00144C, edge #0B4FD0, envelope glyph | 48 tall, r 14 (control), card glass, electric edge, UiIcon mail 20 | yes; height floored |
-| Continue | 76 tall (43), gradient #0380FE > #0038E8 > #004BFD, white top hairline #F6FEFE, lit foot #D7FAFE, bloom | 52 tall, `--nf-gradient-cta` + 18% white top sheen, 1.5px white top inset, 1.5px rim-hot foot inset, bloom 14 + 32px | yes |
-| OR divider | two hairlines, "OR" caps ~7, regular | 1px hairlines, 12px 500 | yes (type floored) |
-| Google | 68 tall (38), glass outline #1481DC, Google G | 48, glass, electric edge, Google's own four-colour G (file, not tokens) | yes |
-| Sign-up line | caps 12, "Sign up" blue | 13px, link `--nf-content-link` 600 | yes |
-| Spacing, field > button > OR > Google > line | 42 / 48 / 40 / 54 render px (24 / 27 / 23 / 30) | 24 / 18+ / 18+ / 20 | tightened 3 to 10px to fit 844 |
+| Card width | 633 of 1024 = 62% | 305 of 390 = 78% | The render's 62% would be a 241 px card with 34 px controls; 305 is the lead's round-two target and keeps both aurora margins (43 px each) |
+| Tile centre height | y 360 = 23.4% | y 203 = 24.0% | yes |
+| Wordmark centre height | y 575 = 37.4% | y 306 = 36.3% | yes |
+| Card top | y 706 = 46.0% | y 360 = 42.7% | 3.3 points high: the slogan's line is closed by half (lead), and the card is taller (below) |
+| Card height | 632 (305 at s) | 354 | 49 taller: three controls at 44 against 34 to 37 at s |
+| Plinth | y 1338 to 1420 = 87.1 to 92.4%, whole | y 714 to 753 = 84.6 to 89.2%, whole: 349 px wide, x 21 to 370 | position: follows the taller card; shape: yes (render pixels), both ends in frame |
+| Stage (sky, curtains, horizon, floor) | render | the render's own pixels, UI lifted out (`stage.webp`), 493 x 740 at 1024/633 of the card; a blurred cover copy continues the sky above it | yes |
+| App tile + wordmark | tile 258, wordmark 382 x 70, gap 38 | render crop, 224 x 218 (tile 124, wordmark 184) | yes (pixels); 2x source at 3x density, slightly soft |
+| Slogan | "Real Estate reimagined!" | none | REFUSED (claims rule, founder) |
+| Card corner | 42 render = 20 at s | 22 (`--nf-radius-xl`) | yes, +2 |
+| Card inset | 60 render = 29 | 28 sides, 28 top, 22 foot | yes |
+| Card glass fill | top-left #001A64, top-right under a curtain #0A2C7C, foot #001658 / #001A62 | top-left #00215F, top-right #01246E, middle #001A56, foot #001F71 / #001D70; translucent (58% tint + lit-ink bands + 14px backdrop blur) so the stage shows through | yes, within about 8 levels per channel |
+| Card lit rim | across the left edge at y 1000: one hot line #9BE2FE, then an electric band #0551D0 > #0040D8 > #0137BC, 3 px | hot line #C0DCFF (1 px), band #0062EE > #0060ED (3 px inset) | yes; the band is a shade brighter |
+| Top-edge highlight | centre #9EE5FE, edge #0027A1 just under | 2 px white-to-rim-hot line over the middle 84%, cyan radial highlight 55% x 16 px (glow identity), measured #0469F8 just under | yes |
+| Card glow | tight bloom, sky #000B4C 10 px out | 1 px ring + 8 px + 28 px blooms at glow rungs 3 and 4 | yes |
+| Title | "Welcome Back", caps 25 = 17.3 px at s, semibold | "Welcome back", Poppins 600, 20 px | size 1.16x s; sentence case is house style |
+| Sub | caps 15 = 9.9 px at s, regular | Inter 400, 14 px | floored for running copy |
+| Title to sub | 21 render = 10 | 4 px between boxes (line boxes; caps gap about 9) | yes |
+| Sub to field | 43 = 21 | 19 | yes |
+| Email field | 881 to 952, 71 tall = 34; corner 12 = 6; fill #00144C; edge #0B4FD0 | 44 tall, corner 14 (`--nf-radius-control`, shape law), fill #00174A, edge electric | height floored; corner is the shape law's control radius |
+| Placeholder | caps 15 = 9.9 px | 16 px Inter | 16 keeps iOS from zooming the page on focus |
+| Envelope glyph | line icon, 24 render wide = 12 | UiIcon `mail`, 20 | stroked line tier as the image draws |
+| Field to button | 42 = 20 | 20 | yes |
+| Continue button | 994 to 1071, 77 tall = 37; top hairline #F6FEFE, fill #0380FE > #0038E8 > #004BFD, foot line #D7FAFE, bloom | 44 tall; fill #2282FC > #004DFD > #0061F8, 1.5 px white top inset, rim-hot foot inset, 14 + 32 px bloom | treatment yes; height floored |
+| Continue label | caps 18 = 11.9 px, semibold, arrow | 15 px 600, `arrow-right` 20 | 1.26x s |
+| Button to OR | 47 = 23 (to its centre) | 23.5 | yes |
+| OR | caps 13 = 8.6 px, regular, hairlines both sides | 12 px 500, 1 px hairlines | floored |
+| OR to Google | 39 = 19 | 23.5 | 4 px looser |
+| Google button | 1157 to 1227, 70 = 34; glass outline #1481DC | 44; glass fill #001A50, edge #0061EC | height floored |
+| Google label | caps 17 = 11.3 px, medium | 15 px 500 | 1.3x s |
+| Google G | 31 render = 15 | 20, Google's own four colours (a file, not tokens) | the one third-party mark; Google's branding rules |
+| Google to foot line | 45 = 22 | 16 + leading = 20 | yes |
+| Foot line | "Don't have an account? Sign up", caps 13 = 8.6 px, Sign up blue | "New to Vallo? Sign up", 13 px, Sign up 600 in `--nf-content-link` | wording changed on the lead's request (`auth.newToVallo`, four locales) |
+| Foot line to card foot | 49 = 24 | 22 + 2 | yes |
+| Icon plates | none in the card | none | n/a |
 | Status badges | none drawn | none | n/a |
+| Language control | not in the render | 44 px glass rounded rectangle, top right, clear of the tile | kept: a working control |
+| Terms line | not in the render | 12 px muted, two lines, below the floor's lit reflection (y 797 to 834), off the art | kept: needed, a Google sign-up passes no tick |
+| Colours | one blue family | one blue family plus Google's G | yes |
 
-What does not match, honestly:
-- Title reads "Welcome back" and the sub "Vallo": the render's "Welcome Back"
-  and "VALLO" in running copy break the house sentence case and brand casing.
-- "Do not have an account?" (house style) where the render has "Don't".
-- The render's plinth ends are visible; at 390 the plinth is wider than the
-  viewport at this scale, so its ends are clipped.
-- The small print (terms, privacy, rules) sits under the plinth; the render
-  has none. It has to be on screen: a Google sign-up here passes no tick.
-- The language control top right is not in the render; it is a working
-  control and stays.
+Desktop (1440 x 900, `signin-1440-dark.jpg`): the same object at a 340 px
+card, centred, the stage and plinth scaled with it. Derived from the phone
+character; no desktop render governs it.
 
 ### Refused from the render
 - "Real Estate reimagined!" under the wordmark: a positioning statement, removed
@@ -561,7 +580,7 @@ vanish.
 
 ### (d) Shape sweep
 
-`compare-surface.mjs --shape-sweep --routes "/sign-in?welcomed=1,/sign-in/email,/sign-up" --theme both`
+`compare-surface.mjs --shape-sweep --routes "/sign-in?welcomed=1,/sign-in/email" --theme both`, and again for `/sign-up?welcomed=1`
 (the `welcomed=1` keeps the sweep on sign-in rather than following first run)
 at 390 and 1536, dark and light:
 
@@ -575,19 +594,22 @@ ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round:
 `app/(auth)/sign-in`, `components/auth`, `lib/auth`.
 
 ### Proofs (`docs/design/proofs/session-b/signin/`)
-All from the production build of this worktree, 390 x 844 at 2x unless named:
-`signin-390-dark.jpg`, `signin-390-light.jpg`, `signin-email-390-dark.jpg`
-(the password step with an address carried), `signup-390-dark-inherits.jpg`,
-`signin-1440-dark.jpg`, and `signin-vs-55A56F21-390.jpg` (the render beside
-the build, the re-audit image). None is fixture-backed: these screens need no
-session. Re-audited against the render twice: the first pass found the card
-greyed (#172E52 against #001554) and its edge a flat blue where the render has
-a hot hairline over an electric band; both fixed and re-measured.
+Re-shot after the final round-two change, from the production build of this
+worktree, 390 x 844 at 2x unless named: `signin-vs-55A56F21-390.jpg` (the
+render beside the build), `signin-390-dark.jpg`, `signin-390-light.jpg`
+(rule 22: the same dark screen), `signin-email-390-dark.jpg` (the password
+step with an address carried), `signup-390-dark-inherits.jpg`,
+`signin-1440-dark.jpg`. None is fixture-backed: these screens need no session.
+Audited against the render three times. Round one fixed the grey card
+(#172E52 against #001554) and the flat edge. Round two (lead's review) fixed
+the proportion (card 358 to 305, composition lowered to the render's
+percentages), the opaque glass (now translucent over the stage), the plinth
+(now whole at 390) and the terms line (now below the art).
 
 ### Crop resolution
-The lockup draws 262 CSS px from 464 source px, so 1.7x the source on a 3x
-phone and 1.1x on a 2x one; the stage 579 CSS px from 1024 (1.7x at 3x). The
-lockup is slightly soft on 3x screens. No upscaling filter was applied.
+The lockup draws 224 CSS px from 464 source px: 1.45x the source on a 3x phone,
+under 1x on 2x. The stage draws 493 CSS px from 1024: 1.44x at 3x. Slightly
+soft on 3x screens; no upscaling filter was applied.
 
 ### (e) Skipped or not verified
 - No live sign-in, OAuth round trip, rate-limit trip or error message was

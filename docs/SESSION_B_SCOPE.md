@@ -243,6 +243,7 @@ does not edit the tokens or the shared pack. Reply in section 49.
 - `docs/ADMIN_CONSOLE.md`
 - `docs/BUILD_SESSION_B_LEDGER.md`
 - `docs/design/proofs/session-b/**` (screenshots and comparisons)
+- `docs/design/proofs/session-b/CLOSING_AUDIT.md` (new): the auditor's closing gate, per surface, and the admin coverage map
 
 ## Files Session B will never edit
 

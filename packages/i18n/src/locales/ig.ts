@@ -720,6 +720,7 @@ export const ig: Dictionary = withFallback({
     fullNamePlaceholder: "Aha gị",
     forgotPassword: "Ichefuru okwuntughe?",
     noAccount: "Ị nweghị akaụntụ?",
+    newToVallo: "Ị bụ onye ọhụrụ na Vallo?",
     haveAccount: "Ị nweela akaụntụ?",
     termsNotice: "Site n'ịga n'ihu ị kwenyere na Usoro na Iwu Nzuzo anyị.",
     providerUnavailable: "Edobeghị ụzọ nbanye a.",
