@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
-import { getDictionary, type Dictionary, type Locale, formatRating } from "@vallo/i18n";
+import { getDictionary, type Locale, formatRating } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import {
@@ -526,7 +526,7 @@ export default async function ListingDetailPage({
   ) : isRestaurant ? (
     <div className="flex flex-col gap-md">
       <ReserveTable listingId={listing.id} messageHref={messageHref} />
-      <RestaurantPanel listing={listing} locale={locale} t={t} messageHref={messageHref} />
+      <RestaurantPanel listing={listing} locale={locale} messageHref={messageHref} />
     </div>
   ) : isRental || isSale ? (
     /*
@@ -1151,12 +1151,10 @@ export default async function ListingDetailPage({
 function RestaurantPanel({
   listing,
   locale,
-  t,
   messageHref,
 }: {
   listing: Listing;
   locale: Locale;
-  t: Dictionary;
   messageHref: string;
 }) {
   return (
