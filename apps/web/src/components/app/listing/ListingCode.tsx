@@ -8,19 +8,27 @@ import { Button } from "@/components/ui/Button";
  * THE CODE A PERSON READS OUT OVER THE PHONE.
  *
  * `VL-` plus six characters, minted by the database the moment a listing goes
- * live. GOVERNING-08 screen four draws the panel and GOVERNING-12 screen four
- * draws the same string as the thing a searcher typed.
+ * live. GOVERNING-12 screen four draws it as the thing a searcher typed, and
+ * GOVERNING-08 screen four draws it as a panel on the SENT FOR REVIEW screen.
  *
- * TWO THINGS ARE TRANSLATED RATHER THAN COPIED FROM THE RENDER, and both are
- * recorded rather than quietly changed:
+ * ONLY THE FIRST OF THOSE SHIPS, AND THE SECOND IS NOT HERE WAITING FOR A
+ * CALLER. The panel was written and then deleted rather than left in the tree,
+ * because the render draws it at a moment when the code does not exist: a code
+ * is a public handle and a listing in review has no public existence. There is
+ * no surface in this product today where a lister meets their code at the
+ * scale that panel draws it, and the closest honest one, a "your listing is
+ * live" screen, has not been built. An exported component nothing imports is
+ * exactly the defect Track N exists to close, and adding a sixth to the list
+ * while fixing five of them would have been absurd.
  *
- * 1. The render prints `VL-7K4M-92`, which is eight body characters with an
- *    inner hyphen. Ours is six characters and one hyphen, because the brief
- *    fixes the format and a render is not a specification.
- * 2. The render puts the code on the SENT FOR REVIEW screen. Ours does not
- *    exist yet at that moment: a code is a public handle and a listing in
- *    review has no public existence. The wizard says when it arrives instead
- *    of drawing an empty box, which is the honest version of the same panel.
+ * ONE MORE THING TRANSLATED RATHER THAN COPIED, recorded rather than quietly
+ * changed: the render prints `VL-7K4M-92`, which is eight body characters
+ * with an inner hyphen. Ours is six characters and one hyphen, because the
+ * brief fixes the format and a render is not a specification.
+ *
+ * What the wizard does instead of drawing an empty panel is say, in words,
+ * that the code arrives when the listing goes live. That is the honest
+ * version of the same promise.
  *
  * The copy control is `Button`, which is a rounded rectangle on
  * `--nf-radius-control` and has no capsule variant, so the shape law holds
@@ -70,54 +78,6 @@ export function ListingCodeRow({ code, copy }: { code: string; copy: Copy }) {
         leadingIcon="document"
         onClick={() => void onCopy()}
         data-testid="listing-code-row-copy"
-      >
-        {copied ? copy.copied : copy.copy}
-      </Button>
-    </div>
-  );
-}
-
-/**
- * The full panel: the label, the code, what it is for, and a copy control.
- *
- * `heading` chooses between "Your listing ID" on the lister's own surfaces and
- * "Listing ID" on a surface a stranger is reading.
- */
-export function ListingCodePanel({
-  code,
-  copy,
-  heading = "yours",
-}: {
-  code: string;
-  copy: Copy;
-  heading?: "yours" | "neutral";
-}) {
-  const [copied, setCopied] = useState(false);
-
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* A refused clipboard is not an error worth a sentence: the code is on
-         the screen in the largest type on it and can be read straight off. */
-    }
-  };
-
-  return (
-    <div className="nf-card flex flex-col items-center gap-sm p-lg text-center" data-testid="listing-code-panel">
-      <p className="nf-caption text-[var(--nf-content-muted)]">
-        {heading === "yours" ? copy.yours : copy.label}
-      </p>
-      <ListingCodeText code={code} className="nf-h3" />
-      <p className="nf-body-sm text-[var(--nf-content-muted)]">{copy.explain}</p>
-      <Button
-        type="button"
-        variant="secondary"
-        leadingIcon="document"
-        onClick={() => void onCopy()}
-        data-testid="listing-code-copy"
       >
         {copied ? copy.copied : copy.copy}
       </Button>

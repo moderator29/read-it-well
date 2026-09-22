@@ -4215,6 +4215,15 @@ export const en = {
     impossible:
       "That code has a character we do not use. Our codes never contain zero, one, I, L, O or U.",
     label: "Listing ID",
+    /**
+     * `yours` and `explain` are written and NOT YET DRAWN ANYWHERE, and that
+     * is recorded rather than left for somebody to discover. They are the
+     * heading and the sentence of the panel GOVERNING-08 screen four draws on
+     * the SENT FOR REVIEW screen, which cannot ship there because the code
+     * does not exist until the listing is published. They are the copy for
+     * the "your listing is live" surface nobody has built. Deleting them
+     * would only mean writing them again.
+     */
     yours: "Your listing ID",
     copy: "Copy ID",
     copied: "Copied",
