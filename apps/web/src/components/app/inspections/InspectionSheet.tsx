@@ -245,7 +245,7 @@ export function InspectionSheet({
         <dl className="nf-ix-glass nf-ix-facts">
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
-              <UiIcon name="calendar-booking" size={22} />
+              <UiIcon name="calendar-booking" size={16} />
             </span>
             <div className="nf-ix-fact__text">
               <dt className="nf-ix-fact__label">Inspection Date</dt>
@@ -255,7 +255,7 @@ export function InspectionSheet({
           </div>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
-              <UiIcon name="user" size={22} />
+              <UiIcon name="user" size={16} />
             </span>
             <div className="nf-ix-fact__text">
               {/* The render says "Assigned Agent". Nobody is assigned: the other
@@ -283,7 +283,7 @@ export function InspectionSheet({
           </div>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
-              <UiIcon name="history" size={22} />
+              <UiIcon name="history" size={16} />
             </span>
             <div className="nf-ix-fact__text">
               <dt className="nf-ix-fact__label">Status</dt>
@@ -298,7 +298,7 @@ export function InspectionSheet({
         <section className="nf-ix-glass nf-ix-check" aria-label="Inspection checklist">
           <div className="nf-ix-check__head">
             <p className="nf-ix-check__title">
-              <UiIcon name="document" size={22} />
+              <UiIcon name="document" size={20} />
               Inspection Checklist
             </p>
             <div className="nf-ix-check__count">
@@ -345,7 +345,7 @@ export function InspectionSheet({
 
         {/* ------------------------------------------------------------ notes */}
         <section className="nf-ix-glass nf-ix-notes" aria-label="Notes">
-          <UiIcon name="document" size={22} className="nf-ix-notes__glyph" />
+          <UiIcon name="document" size={20} className="nf-ix-notes__glyph" />
           <div className="min-w-0 flex-1">
             <p className="nf-ix-notes__label">Notes</p>
             {inspection.note && (
@@ -368,7 +368,7 @@ export function InspectionSheet({
 
         {reportable && (
           <section className="nf-ix-glass nf-ix-outcome" aria-label="How did it go?">
-            <p className="nf-ix-notes__label" id={`outcome-${inspection.id}`}>
+            <p className="nf-ix-outcome__head" id={`outcome-${inspection.id}`}>
               How did it go?
             </p>
             <div className="nf-ix-outcome__options" role="radiogroup" aria-labelledby={`outcome-${inspection.id}`}>
@@ -458,7 +458,7 @@ export function InspectionSheet({
               data-testid="inspection-add-photos"
             >
               <UiIcon name="chevron-right" size={20} className="nf-ix-cta__start" />
-              <UiIcon name="picture" size={22} />
+              <UiIcon name="picture" size={20} />
               Add Photos
               <UiIcon name="chevron-right" size={20} className="nf-ix-cta__end" />
             </Link>
