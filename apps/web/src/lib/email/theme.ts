@@ -206,13 +206,24 @@ export const WORDMARK_ALT = "Vallo";
 /**
  * The one sign-off, in both renderings and in all five auth templates.
  *
- * An email ends with the brand making one claim, and this is the one. The
- * slogan is deliberately identical in every locale, the way a wordmark is;
- * see `landing.slogan` in packages/i18n. It cannot import from there because
- * the email renderer stays dependency-free by design, so the string is
- * duplicated knowingly and this comment is the tie between the two.
+ * IT IS THE BRAND AND NOT A CLAIM, from 22 September. It read "Vallo. Real
+ * Estate reimagined!", which was the retired positioning and which was still
+ * riding the foot of every message this platform sends: a booking
+ * confirmation, a receipt, a confirmation code. The same line was removed
+ * from the auth screen in this commit and from the landing page before it,
+ * and leaving it in the mail would have meant the only place a person still
+ * met the old positioning was the one surface nobody thinks to audit.
+ *
+ * A transactional email's last line should say who sent it, which the legal
+ * line below already does, and nothing else. It does not need a claim, and a
+ * claim that tells the reader nothing is worse than no claim.
+ *
+ * It stays identical in every locale, the way a wordmark is. It cannot import
+ * from `packages/i18n` because the email renderer is dependency-free by
+ * design, so `scripts/build-auth-emails.mjs` carries the same literal and
+ * `shell.test.ts` asserts the two are equal.
  */
-export const SIGN_OFF = "Vallo. Real Estate reimagined!";
+export const SIGN_OFF = "Vallo";
 
 /**
  * The legal line under the sign-off.

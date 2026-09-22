@@ -158,7 +158,7 @@ const WORDMARK_ALT = "Vallo";
    the rendered templates carry the renderer's value, which is what catches
    the three drifting apart. It caught exactly that on the day the slogan
    changed. */
-const SIGN_OFF = "Vallo. Real Estate reimagined!";
+const SIGN_OFF = "Vallo";
 /* The legal line, mirrored from LEGAL_LINE in theme.ts and asserted equal.
    Carries the RC number from 22 September; shell.test.ts asserts that this
    file, theme.ts and company.ts all agree, so the three cannot half update. */

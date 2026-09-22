@@ -83,10 +83,20 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
             priority
             className="nf-auth__wordmark"
           />
-          {/* The slogan rides under the lockup, quiet and letter-spaced. This
-              is one of the few places it belongs: beside the logo, never as a
-              headline. See PRODUCT.md section 7. */}
-          <span className="nf-auth__slogan">{t.landing.slogan}</span>
+          {/*
+            NOTHING GOES BESIDE THE LOCKUP, and this is a ruling rather than a
+            tidy-up. "Real Estate reimagined!" stood here, and it is the line
+            that tells a first-time visitor nothing: it names no place, no
+            price and no thing they can do. The work it was pretending to do
+            is done one screen earlier by the headline, "Rent, buy or stay.
+            Without the runaround." A slogan repeated under a wordmark on the
+            screen where somebody is trying to get into their account is decor
+            in the way of a task.
+
+            It is REMOVED and not replaced. If a line ever earns this spot it
+            will be because somebody can say what it does for the person
+            reading it, not because the space looks empty.
+          */}
         </Link>
 
         <div className="nf-auth__card">{children}</div>

@@ -39,6 +39,6 @@ account.
 If you were not expecting an invitation, ignore this message. No account
 is created and nothing further happens.
 
-Vallo. Real Estate reimagined!
+Vallo
 VALLO SPACES LTD (RC 9870413), Abuja, Nigeria
 {{ .SiteURL }}
