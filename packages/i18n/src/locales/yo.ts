@@ -612,6 +612,16 @@ export const yo: Dictionary = withFallback({
     },
   },
 
+  safety: {
+    acceptLabel:
+      "Mo gba Àdéhùn, Ìlànà Àṣírí àti Òfin Àwùjọ, mo sì mọ̀ pé àkóónú ìwà ipá máa ń mú àkántì kúrò.",
+    acceptRead: "Kà wọ́n:",
+    acceptRequired: "Jọ̀wọ́ tẹ àpótí náà láti tẹ̀síwájú. Bẹ́ẹ̀ ni a ṣe ń ṣàkọsílẹ̀ ohun tí o gbà.",
+    termsLink: "Àdéhùn",
+    privacyLink: "Ìlànà Àṣírí",
+    rulesLink: "Òfin Àwùjọ",
+  },
+
   auth: {
     welcomeBack: "Káàbọ̀ padà",
     signInToContinue: "Wọlé láti tẹ̀síwájú",

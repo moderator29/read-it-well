@@ -599,58 +599,19 @@ export async function reportProfile(input: {
   return ok(null);
 }
 
-/** Block somebody. Bidirectional invisibility, and they are never told. */
-export async function blockUser(input: {
-  userId: string;
-}): Promise<ActionResult<null>> {
-  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
-  const parsed = validate(blockSchema, input);
-  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-
-  const session = await resolveSession();
-  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
-  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
-
-  const verdict = await consume({
-    ...POST_LIMITS.block,
-    subject: subjectForUser(session.user.id),
-  });
-  if (!verdict.allowed) return fail(paced(verdict.retryAfterSeconds));
-
-  const { error } = await session.supabase
-    .from("blocks")
-    .insert({ user_id: session.user.id, other_id: parsed.data.userId });
-
-  if (error && error.code !== "23505") {
-    if (error.code === "23514")
-      return fail("You cannot block yourself. Your own page is always yours.");
-    return fail(POST_FAILURE.down);
-  }
-
-  revalidatePath("/around");
-  return ok(null);
-}
-
-export async function unblockUser(input: {
-  userId: string;
-}): Promise<ActionResult<null>> {
-  if (!(await isSocialEnabled())) return fail(SOCIAL_OFF_MESSAGE);
-  const parsed = validate(blockSchema, input);
-  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-
-  const session = await resolveSession();
-  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
-
-  const { error } = await session.supabase
-    .from("blocks")
-    .delete()
-    .eq("user_id", session.user.id)
-    .eq("other_id", parsed.data.userId);
-
-  if (error) return fail(POST_FAILURE.down);
-  revalidatePath("/around");
-  return ok(null);
-}
+/*
+ * BLOCKING MOVED OUT, AND WHY THE NAMES STAYED HERE.
+ *
+ * `blockUser` and `unblockUser` used to be written out below, and both opened
+ * with the `isSocialEnabled()` guard every other action in this file opens
+ * with. That guard is right for a post and wrong for a block: a person being
+ * harassed inside a listing conversation was refused the control because a
+ * DIFFERENT feature was switched off. The implementation now lives in
+ * `lib/safety/blocks-actions.ts` with no feature flag in front of it, and
+ * these two re-exports keep every existing import in the social layer working
+ * against that one implementation rather than a second copy.
+ */
+export { blockUserSafely as blockUser, unblockUserSafely as unblockUser } from "../safety/blocks-actions";
 
 /** Mute. One way silence: they are not told, and you stay visible to them. */
 export async function muteTarget(input: {

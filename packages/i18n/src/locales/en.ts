@@ -926,6 +926,23 @@ export const en = {
     },
   },
 
+  /*
+   * SAFETY. The namespace for the controls that exist so a person can stop
+   * another person reaching them, and for the agreement they accept at sign
+   * up. Added for the store rejection sweep; `auth.termsNotice` above is the
+   * old passive notice and is left alone, because two authors were editing
+   * this file in the same week.
+   */
+  safety: {
+    acceptLabel:
+      "I agree to the Terms, the Privacy Policy and the Community Rules, and I understand that abusive content gets an account removed.",
+    acceptRead: "Read them:",
+    acceptRequired: "Please tick the box to continue. It is how we record what you agreed to.",
+    termsLink: "Terms",
+    privacyLink: "Privacy Policy",
+    rulesLink: "Community Rules",
+  },
+
   auth: {
     welcomeBack: "Welcome back",
     signInToContinue: "Sign in to continue",
@@ -4220,6 +4237,9 @@ export const en = {
       actionsPerDay: "Actions per day",
       actionsByKind: "Actions by kind",
       actionsByActor: "Busiest actors",
+      /** The folded tail of a bar chart. A ninth series is never a new colour:
+          it is this row, and its count is the real sum of what it folded. */
+      everythingElse: "Everything else",
       noData: "Nothing recorded in this window yet.",
       /** Said on a chart whose read is capped, so the shape is true and the
           total is a floor. See `money-queries.ts` RECENT_LIMIT. */

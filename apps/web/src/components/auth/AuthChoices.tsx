@@ -141,7 +141,30 @@ export function AuthChoices({
         </p>
       )}
 
-      <p className="nf-auth__terms">{t.auth.termsNotice}</p>
+      {/*
+        THE NOTICE NAMES ALL THREE DOCUMENTS NOW, AND THE THIRD ONE EXISTS.
+
+        This line used to be `t.auth.termsNotice` alone: "By continuing you
+        agree to our Terms and Privacy Policy", with nothing linked and no
+        Community Rules to link to. The ACTIVE acceptance, a required tick
+        recorded against a version, lives on the email sign-up form, which is
+        where an account is actually created from this product's own system.
+
+        SAID PLAINLY BECAUSE IT IS NOT CLOSED: a person who creates their
+        account through a social provider from this screen passes no tick, so
+        `profiles.terms_accepted_at` stays null for them. Closing that needs
+        the social buttons themselves reworked, and this week those belong to
+        another worker. It is recorded in the build ledger rather than left to
+        be discovered.
+      */}
+      <p className="nf-auth__terms">
+        {t.auth.termsNotice} {t.safety.acceptRead}{" "}
+        <Link href="/terms">{t.safety.termsLink}</Link>
+        {", "}
+        <Link href="/privacy">{t.safety.privacyLink}</Link>
+        {", "}
+        <Link href="/eula">{t.safety.rulesLink}</Link>
+      </p>
     </div>
   );
 }

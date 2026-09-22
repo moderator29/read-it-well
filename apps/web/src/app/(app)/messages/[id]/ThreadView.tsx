@@ -92,6 +92,14 @@ export type ThreadViewProps = {
    */
   counterpartPhone?: string | null;
   /**
+   * The other party's id, for the block control in the options sheet.
+   *
+   * Null in seed mode, where the counterpart is a fixture rather than a
+   * person, and the sheet draws no safety rows at all rather than drawing two
+   * that cannot act.
+   */
+  counterpartId?: string | null;
+  /**
    * The counterpart's REAL verification state, from `agents.verified`.
    *
    * Required rather than optional and never defaulted at this boundary, for the
@@ -229,6 +237,7 @@ export function ThreadView({
   meId,
   counterpartName,
   counterpartPhone = null,
+  counterpartId = null,
   counterpartVerified,
   listing,
   inspected: inspectedInitial,
@@ -648,6 +657,8 @@ export function ThreadView({
         conversationId={conversationId}
         listing={listing}
         counterpartName={counterpartName}
+        counterpartId={counterpartId}
+        signedIn={live}
         inspected={inspected}
         confirmedLabel={live ? "Inspection confirmed." : "Inspection confirmed on this device"}
         busy={confirmBusy}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { AcceptTerms } from "./AcceptTerms";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import type { AuthFormState } from "@/lib/auth/form-state";
@@ -98,6 +99,17 @@ export function EmailAuthForm({
     occupationCode: "",
   });
   const isSignUp = mode === "sign-up";
+  /*
+   * THE ACCEPTANCE, AND WHY IT IS STATE RATHER THAN A `required` ATTRIBUTE.
+   *
+   * The form is `noValidate`, deliberately, because every other refusal on
+   * this screen is a sentence this product wrote rather than a browser
+   * bubble. A `required` checkbox would be the one exception and it would look
+   * like one. So the tick is held here, the submit is refused here, and the
+   * sentence comes from the dictionary like every other sentence.
+   */
+  const [accepted, setAccepted] = useState(false);
+  const [acceptError, setAcceptError] = useState(false);
 
   /*
    * "1 of 4" is a sentence, not a format. Yoruba, Hausa and Igbo do not all
@@ -147,6 +159,14 @@ export function EmailAuthForm({
 
       <form
         action={formAction}
+        onSubmit={(e) => {
+          /* Sign up only. Signing in is not the moment somebody agrees to
+             anything: they agreed when they made the account. */
+          if (isSignUp && !accepted) {
+            e.preventDefault();
+            setAcceptError(true);
+          }
+        }}
         className={isSignUp ? "text-left" : "space-y-md text-left"}
         noValidate
       >
@@ -324,6 +344,18 @@ export function EmailAuthForm({
           keeps their place. Height, radius, press feedback and haptics all
           come from the primitive.
         */}
+        {isSignUp && (
+          <AcceptTerms
+            t={t}
+            accepted={accepted}
+            onChange={(next) => {
+              setAccepted(next);
+              if (next) setAcceptError(false);
+            }}
+            showError={acceptError}
+          />
+        )}
+
         <div className={isSignUp ? "mt-7" : ""}>
           <Button type="submit" variant="primary" size="lg" full loading={pending}>
             {isSignUp ? t.common.signUp : t.common.signIn}
@@ -349,7 +381,10 @@ export function EmailAuthForm({
         </Link>
       </p>
 
-      <p className="nf-auth__terms">{t.auth.termsNotice}</p>
+      {/* The old passive notice stays on SIGN IN, where it is the right shape:
+          nothing new is being agreed to there. On sign up it has been replaced
+          by the tick above, which is the whole point. */}
+      {!isSignUp && <p className="nf-auth__terms">{t.auth.termsNotice}</p>}
     </div>
   );
 }

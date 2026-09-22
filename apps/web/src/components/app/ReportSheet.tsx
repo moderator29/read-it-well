@@ -8,6 +8,7 @@ import {
   DETAILS_MAX,
   REPORT_CATEGORY_COPY,
   REPORT_CATEGORY_ORDER,
+  REPORT_TARGET_NOUN,
   type ReportCategory,
   type ReportTarget,
 } from "@/lib/reports/schema";
@@ -29,19 +30,38 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  *
  * Signed out is a designed state rather than a hidden control: the reason is
  * stated (a report has to belong to somebody) and the way in is offered.
+ *
+ * THE NOUN IS NOT BAKED IN ANY MORE. This sheet said "listing" in three
+ * places, which was true while a listing was the only thing anybody could
+ * report and became a lie the moment a conversation could be. The noun comes
+ * from `REPORT_TARGET_NOUN`, so the heading, the opener and the way back all
+ * name the same thing and cannot drift apart.
+ *
+ * `trigger` decides what opens it. "link" is the underlined line the listing
+ * page draws under the fold. "row" is a full-width row for a sheet that is
+ * already open, which is how a conversation offers it: the options sheet has
+ * rows and a small underlined link inside one would read as a footnote rather
+ * than as the safety control it is.
  */
 export function ReportSheet({
   targetType,
   targetId,
   targetLabel,
   signedIn,
+  trigger = "link",
+  onOpen,
 }: {
   targetType: ReportTarget;
   targetId: string;
   /** What is being reported, in the heading, e.g. the listing title. */
   targetLabel: string;
   signedIn: boolean;
+  /** How the control is drawn. See the note above. */
+  trigger?: "link" | "row";
+  /** Called when the sheet opens, so a host sheet can stand aside. */
+  onOpen?: () => void;
 }) {
+  const noun = REPORT_TARGET_NOUN[targetType];
   const uid = useId();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ReportCategory | null>(null);
@@ -68,16 +88,45 @@ export function ReportSheet({
 
   return (
     <>
-      <button
-        ref={openerRef}
-        type="button"
-        onClick={() => setOpen(true)}
-        data-testid="report-opener"
-        className="inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
-      >
-        <UiIcon name="bell" size={16} className="shrink-0" />
-        Report this listing
-      </button>
+      {trigger === "row" ? (
+        <button
+          ref={openerRef}
+          type="button"
+          onClick={() => {
+            onOpen?.();
+            setOpen(true);
+          }}
+          data-testid="report-opener"
+          className="nf-share-row mt-md w-full text-left"
+        >
+          <span className="h-11 w-11 shrink-0" aria-hidden="true">
+            <BrandIcon name="shield-lock" fill />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block nf-body font-semibold text-[var(--nf-content-primary)]">
+              Report this {noun}
+            </span>
+            <span className="block nf-caption text-[var(--nf-content-muted)]">
+              A person reads every report. Nobody is told who sent it.
+            </span>
+          </span>
+          <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
+        </button>
+      ) : (
+        <button
+          ref={openerRef}
+          type="button"
+          onClick={() => {
+            onOpen?.();
+            setOpen(true);
+          }}
+          data-testid="report-opener"
+          className="inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
+        >
+          <UiIcon name="bell" size={16} className="shrink-0" />
+          Report this {noun}
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label="Report">
@@ -105,7 +154,7 @@ export function ReportSheet({
               </button>
               <div className="min-w-0 flex-1">
                 <p className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
-                  Report this listing
+                  Report this {noun}
                 </p>
                 <p className="truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {targetLabel}
@@ -124,11 +173,12 @@ export function ReportSheet({
                       Thank you, we have it
                     </p>
                     <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-                      Our team reviews every report. You will not have to chase this,
-                      and the host is never told who reported them.
+                      Our team reads every report and acts on it within twenty four
+                      hours. You will not have to chase this, and the person you
+                      reported is never told who reported them.
                     </p>
                     <button type="button" onClick={close} className="nf-btn nf-btn--glass mt-md">
-                      Back to the listing
+                      Back to the {noun}
                     </button>
                   </div>
                 ) : !signedIn ? (
@@ -236,8 +286,9 @@ export function ReportSheet({
                     </div>
 
                     <p className="text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-                      The host is never told who reported them. If you are in danger,
-                      contact the emergency services first.
+                      The person you report is never told who reported them, and we act
+                      within twenty four hours. If you are in danger, contact the
+                      emergency services first.
                     </p>
                   </form>
                 )}

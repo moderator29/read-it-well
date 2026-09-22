@@ -74,9 +74,31 @@ export const REPORT_CATEGORY_ORDER: ReportCategory[] = [
   "other",
 ];
 
-/** The kinds of thing this flow can report. Matches reports.target_type. */
-export const REPORT_TARGETS = ["listing"] as const;
+/**
+ * The kinds of thing this flow can report. Matches reports.target_type.
+ *
+ * `conversation` and `message` were added for the one place the product had
+ * no report control at all: a one to one thread. Apple 1.2 and Play's user
+ * generated content policy both want reporting ON DIRECT MESSAGING, which is
+ * also the place on this platform where a person is most likely to need it.
+ * `public.reports.target_type` is a plain `text` column with no check
+ * constraint on the kind, so these two need no migration; the CATEGORY is the
+ * constrained column and it is unchanged.
+ */
+export const REPORT_TARGETS = ["listing", "conversation", "message"] as const;
 export type ReportTarget = (typeof REPORT_TARGETS)[number];
+
+/**
+ * What the report sheet calls the thing it is reporting.
+ *
+ * The sheet used to say "Report this listing" in three places with the word
+ * baked in, which is how a generic sheet ends up lying about a conversation.
+ */
+export const REPORT_TARGET_NOUN: Record<ReportTarget, string> = {
+  listing: "listing",
+  conversation: "conversation",
+  message: "message",
+};
 
 export const DETAILS_MAX = 1200;
 

@@ -171,6 +171,10 @@ export default async function ConversationPage({
            membership first, a block in either direction withholds it, every
            failure withholds. The header draws no call control on null. */
         counterpartPhone={thread.counterpartPhone}
+        /* The other party's id, resolved under the same RLS membership check
+           that made this reader a party at all. It exists so the options
+           sheet can offer Block, which before this had no id to act on. */
+        counterpartId={thread.counterpartId}
         listing={
           thread.listing
             ? {

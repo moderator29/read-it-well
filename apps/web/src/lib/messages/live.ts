@@ -89,6 +89,18 @@ export type LiveThreadData = {
    * party at all, and nothing is resolved before it has passed.
    */
   counterpartPhone: string | null;
+  /**
+   * The other party's user id.
+   *
+   * It was always computed in this file and then thrown away, so the thread
+   * could name the counterpart and never act on them. The block control needs
+   * an id and nothing else in the thread could produce one, which is the
+   * structural reason a person could be harassed inside a conversation with
+   * no control to press. It is the counterpart's id under the caller's own
+   * RLS membership check, so it discloses nothing a party to the thread could
+   * not already read.
+   */
+  counterpartId: string;
   listing: {
     id: string;
     title: string;
@@ -484,6 +496,7 @@ export async function loadThread(
     meId: user.id,
     counterpartName: counterpart?.name ?? FALLBACK_NAME,
     counterpartPhone,
+    counterpartId,
     listing: conversation.listings
       ? {
           id: conversation.listings.id,

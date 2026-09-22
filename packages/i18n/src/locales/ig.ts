@@ -614,6 +614,16 @@ export const ig: Dictionary = withFallback({
     },
   },
 
+  safety: {
+    acceptLabel:
+      "Ekwenyere m na Usoro, Iwu Nzuzo na Iwu Obodo, ma aghọtakwa m na ọdịnaya mmegbu na-ewepụ akaụntụ.",
+    acceptRead: "Gụọ ha:",
+    acceptRequired: "Biko pịa igbe ahụ iji gaa n'ihu. Ọ bụ otu anyị si edekọ ihe ị kwetara.",
+    termsLink: "Usoro",
+    privacyLink: "Iwu Nzuzo",
+    rulesLink: "Iwu Obodo",
+  },
+
   auth: {
     welcomeBack: "Nnọọ ọzọ",
     signInToContinue: "Banye ka ị gaa n'ihu",

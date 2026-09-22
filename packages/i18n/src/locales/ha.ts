@@ -617,6 +617,16 @@ export const ha: Dictionary = withFallback({
     },
   },
 
+  safety: {
+    acceptLabel:
+      "Na yarda da Sharuɗɗa, Manufar Sirri da Ƙa'idodin Al'umma, kuma na fahimci cewa abun ciki na cin zarafi yana kawar da asusu.",
+    acceptRead: "Karanta su:",
+    acceptRequired: "Da fatan za a duba akwatin don ci gaba. Haka muke yin rikodin abin da ka yarda da shi.",
+    termsLink: "Sharuɗɗa",
+    privacyLink: "Manufar Sirri",
+    rulesLink: "Ƙa'idodin Al'umma",
+  },
+
   auth: {
     welcomeBack: "Barka da dawowa",
     signInToContinue: "Shiga don ci gaba",
