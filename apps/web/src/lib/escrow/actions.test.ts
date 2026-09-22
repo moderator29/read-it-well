@@ -17,6 +17,9 @@ const seam = vi.hoisted(() => ({
   rpc: vi.fn(),
   signedIn: true,
   allowed: true,
+  /* The kill switch. It fails CLOSED, so a test that forgot to open it would
+     find every funding call refused, which is the correct default. */
+  flagOpen: true,
   answer: null as unknown,
 }));
 
@@ -41,6 +44,10 @@ vi.mock("../wallet/rpc", () => ({
     };
   },
 }));
+vi.mock("./flag", () => ({
+  heldPaymentsAreOpen: async () => seam.flagOpen,
+  HELD_PAYMENTS_CLOSED_MESSAGE: "held payments are off",
+}));
 vi.mock("../actions/session", () => ({
   NOT_CONFIGURED_MESSAGE: "unconfigured",
   SIGNED_OUT_MESSAGE: "signed out",
@@ -61,6 +68,7 @@ beforeEach(() => {
   seam.rpc.mockClear();
   seam.signedIn = true;
   seam.allowed = true;
+  seam.flagOpen = true;
   answer({ status: "ok", escrow_id: ESCROW, state: "HELD", amount_minor: 250000 });
 });
 
@@ -69,7 +77,7 @@ describe("the guarded held-payment doors", () => {
     const { openHeldPayment } = await import("./actions");
     const result = await openHeldPayment({
       payeeId: PAYEE,
-      purpose: "rent_deposit",
+      purpose: "agency_fee",
       amountMinor: 250000,
     });
 
@@ -95,7 +103,7 @@ describe("the guarded held-payment doors", () => {
     const { openHeldPayment } = await import("./actions");
     const result = await openHeldPayment({
       payeeId: PAYEE,
-      purpose: "rent_deposit",
+      purpose: "agency_fee",
       amountMinor: 250000,
     });
 
@@ -107,7 +115,7 @@ describe("the guarded held-payment doors", () => {
     const { openHeldPayment } = await import("./actions");
     const result = await openHeldPayment({
       payeeId: PAYEE,
-      purpose: "rent_deposit",
+      purpose: "agency_fee",
       amountMinor: 1250.5,
     });
 
@@ -145,5 +153,187 @@ describe("the guarded held-payment doors", () => {
 
     expect(result.ok).toBe(false);
     expect(seam.rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("the kill switch, which fails closed", () => {
+  it("refuses to open a held payment when the switch is off, and calls nothing", async () => {
+    seam.flagOpen = false;
+    const { openHeldPayment } = await import("./actions");
+    const result = await openHeldPayment({
+      payeeId: PAYEE,
+      purpose: "agency_fee",
+      amountMinor: 250000,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.error).toBe("held payments are off");
+    expect(seam.rpc).not.toHaveBeenCalled();
+  });
+
+  it("does not trap somebody inside a proposal they want out of", async () => {
+    /*
+     * Withdrawing a proposal moves no money by definition, so the switch does
+     * not gate it. A kill switch that left people unable to back out of a
+     * request would be a kill switch that made the incident worse.
+     */
+    seam.flagOpen = false;
+    answer({ status: "ok", escrow_id: ESCROW, state: "CANCELLED", amount_minor: 250000 });
+    const { cancelHeldPayment } = await import("./actions");
+    const result = await cancelHeldPayment({ id: ESCROW });
+
+    expect(result.ok).toBe(true);
+    expect(seam.rpc).toHaveBeenCalled();
+  });
+});
+
+describe("withdrawing a proposal", () => {
+  it("tells somebody to ask for it back when the money has already moved", async () => {
+    answer({ status: "already_funded", state: "HELD" });
+    const { cancelHeldPayment } = await import("./actions");
+    const result = await cancelHeldPayment({ id: ESCROW });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.error).toMatch(/ask for it back/i);
+  });
+
+  it("passes a reason when there is one and null when there is not", async () => {
+    answer({ status: "ok", escrow_id: ESCROW, state: "CANCELLED", amount_minor: 250000 });
+    const { cancelHeldPayment } = await import("./actions");
+
+    await cancelHeldPayment({ id: ESCROW, reason: "We found somewhere else." });
+    let args = seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(args["p_reason"]).toBe("We found somewhere else.");
+
+    seam.rpc.mockClear();
+    await cancelHeldPayment({ id: ESCROW });
+    args = seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(args["p_reason"]).toBeNull();
+  });
+});
+
+describe("filing evidence", () => {
+  beforeEach(() => {
+    answer({ status: "ok", escrow_id: ESCROW, state: "DISPUTED", amount_minor: 250000 });
+  });
+
+  it("refuses a dated fact with no date, by field, before any call", async () => {
+    const { fileHeldPaymentFact } = await import("./actions");
+    const result = await fileHeldPaymentFact({ id: ESCROW, fact: "viewing_missed" });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.fieldErrors?.["happenedOn"]).toBeTruthy();
+    expect(seam.rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses a money fact with no amount, by field, before any call", async () => {
+    const { fileHeldPaymentFact } = await import("./actions");
+    const result = await fileHeldPaymentFact({
+      id: ESCROW,
+      fact: "amount_agreed",
+      happenedOn: "2026-09-01",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.fieldErrors?.["amountMinor"]).toBeTruthy();
+    expect(seam.rpc).not.toHaveBeenCalled();
+  });
+
+  it("sends the date only where the fact takes one, and the amount only where it does", async () => {
+    const { fileHeldPaymentFact } = await import("./actions");
+
+    await fileHeldPaymentFact({ id: ESCROW, fact: "viewing_missed", happenedOn: "2026-09-01" });
+    let args = seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(args["p_happened_on"]).toBe("2026-09-01");
+    expect(args["p_amount_minor"]).toBeNull();
+
+    seam.rpc.mockClear();
+    /* A bare fact carries neither, even when a caller passes both, so a bare
+       assertion cannot smuggle a number in beside it. */
+    await fileHeldPaymentFact({
+      id: ESCROW,
+      fact: "keys_not_received",
+      happenedOn: "2026-09-01",
+      amountMinor: 999,
+    });
+    args = seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(args["p_happened_on"]).toBeNull();
+    expect(args["p_amount_minor"]).toBeNull();
+
+    seam.rpc.mockClear();
+    await fileHeldPaymentFact({ id: ESCROW, fact: "amount_agreed", amountMinor: 250000 });
+    args = seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(args["p_amount_minor"]).toBe(250000);
+    expect(args["p_happened_on"]).toBeNull();
+  });
+
+  it("refuses a caption over 200 characters, which is where an opinion would go", async () => {
+    const { fileHeldPaymentDocument } = await import("./actions");
+    const result = await fileHeldPaymentDocument({
+      id: ESCROW,
+      storagePath: "escrow-evidence/x.pdf",
+      fileName: "receipt.pdf",
+      mimeType: "application/pdf",
+      sizeBytes: 1024,
+      caption: "a".repeat(201),
+    });
+
+    expect(result.ok).toBe(false);
+    expect(seam.rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses a file type the bucket does not accept, and a file over 10MB", async () => {
+    const { fileHeldPaymentDocument } = await import("./actions");
+
+    const wrongType = await fileHeldPaymentDocument({
+      id: ESCROW,
+      storagePath: "escrow-evidence/x.exe",
+      fileName: "x.exe",
+      mimeType: "application/x-msdownload" as "application/pdf",
+      sizeBytes: 1024,
+    });
+    expect(wrongType.ok).toBe(false);
+
+    const tooBig = await fileHeldPaymentDocument({
+      id: ESCROW,
+      storagePath: "escrow-evidence/x.pdf",
+      fileName: "x.pdf",
+      mimeType: "application/pdf",
+      sizeBytes: 10_485_761,
+    });
+    expect(tooBig.ok).toBe(false);
+    expect(seam.rpc).not.toHaveBeenCalled();
+  });
+
+  it("answers a repeat filing in words rather than with a SQL status", async () => {
+    answer({ status: "duplicate" });
+    const { fileHeldPaymentFact } = await import("./actions");
+    const result = await fileHeldPaymentFact({ id: ESCROW, fact: "keys_not_received" });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.error).toMatch(/already filed/i);
+    expect(result.ok === false && result.error).not.toMatch(/duplicate/i);
+  });
+});
+
+describe("the hold window", () => {
+  it("clamps to the same floor and ceiling the database clamps to", async () => {
+    const { openHeldPayment } = await import("./actions");
+
+    await openHeldPayment({ payeeId: PAYEE, purpose: "agency_fee", amountMinor: 1000, holdDays: 0 });
+    expect((seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>)["p_hold_days"]).toBe(1);
+
+    seam.rpc.mockClear();
+    await openHeldPayment({
+      payeeId: PAYEE,
+      purpose: "agency_fee",
+      amountMinor: 1000,
+      holdDays: 5000,
+    });
+    expect((seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>)["p_hold_days"]).toBe(180);
+
+    seam.rpc.mockClear();
+    await openHeldPayment({ payeeId: PAYEE, purpose: "agency_fee", amountMinor: 1000 });
+    expect((seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>)["p_hold_days"]).toBe(21);
   });
 });
