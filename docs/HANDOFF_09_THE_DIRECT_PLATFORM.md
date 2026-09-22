@@ -753,17 +753,55 @@ are, and the gaps are call sites. On the stays side they are not yet joined.
 
 ## 6B. Track O: the switch, its placement, and both sides
 
-The founder has ruled where it lives, and it is two places.
+**THE SWITCH LIVES IN ONE PLACE: THE DOCK. Superseded 22 September, and the
+founder has confirmed it in those words.** The paragraphs below this box are
+the original two-places ruling. They are kept rather than deleted so that
+nobody re-derives the old answer in a month and "fixes" the code back to it.
 
-**In the bottom navigation, as the CENTRE slot**, raised, and visually the most
-important control in the bar, carrying the coin. The five slots today are Home,
-Search, Feed, More, Profile: the centre becomes the switch and the displaced
-item moves. Decide which and write the reason in the ledger.
+> **CURRENT RULING, 22 September 2026.** One place. The centre slot of the
+> dock, and nowhere else. The side drawer's "Switch profile" row is **removed**,
+> not moved, and the drawer's theme control loses its container and its words.
+>
+> **Why.** The founder used the dock on a real phone and ruled that "it lives
+> in the dock now and two entrances to the same sheet in the same product is
+> clutter". `AppShell.tsx:147-157` records that in his words and passes
+> `switchControl` only to `MobileTabBar`; there is no drawer row.
+>
+> **The code is right and this brief was out of date.** A measurement pass on
+> 22 September flagged the single entrance as a deviation from this section and
+> asked the founder to confirm or reverse. He confirmed: the switch stays in
+> one place and the brief is what changes.
+>
+> **Two proofs were older than the ruling and have been retaken**, because a
+> proof that disagrees with the shipped code is the same class of fault as a
+> green light that cannot see what it reports on. See ledger section 50.
+>
+> Everything else in this section still stands: the Stays side gets the same
+> single centre slot opening the same sheet, the chooser offers three doors on
+> that side, and section 3.5 governs all of it.
 
-**And in the side drawer**, as a "Switch profile" row near the foot above the
-theme row, showing the current profile and a chevron.
+---
 
-**Both open the same sheet. One sheet, two entrances.**
+### The original ruling, SUPERSEDED. Kept for the record, not for guidance.
+
+~~The founder has ruled where it lives, and it is two places.~~
+
+~~**In the bottom navigation, as the CENTRE slot**, raised, and visually the
+most important control in the bar, carrying the coin. The five slots today are
+Home, Search, Feed, More, Profile: the centre becomes the switch and the
+displaced item moves. Decide which and write the reason in the ledger.~~
+
+~~**And in the side drawer**, as a "Switch profile" row near the foot above the
+theme row, showing the current profile and a chevron.~~
+
+~~**Both open the same sheet. One sheet, two entrances.**~~
+
+**Note on "raised".** The original ruling also called the centre slot raised,
+and it shipped raised at 7px. **That too was reversed on 22 September**: the
+founder used it on a phone and ruled the switch back in line with the other
+four icons, keeping its container so it still reads as the special one, and
+smaller. `chrome.css` now sets `--nf-dock-lift: 0rem`. The dock proof that
+showed it raised has been retaken.
 
 **The Stays side gets its own**, in the same two places, opening the same
 sheet, whose "Add a workspace" chooser offers three different doors on that
