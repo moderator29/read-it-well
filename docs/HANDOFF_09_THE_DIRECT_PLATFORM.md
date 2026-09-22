@@ -281,6 +281,34 @@ named in the research file read from it: the assistant, the onboarding copy,
 the help centre, the badges, the listing labels, the filters and the rest. A
 second copy of this vocabulary anywhere is a defect.
 
+### 3.8 The images for this track are in the repository, and they govern
+
+The founder is generating a reference set for this track with the same tool
+that produced the existing sixty one references. **They land in
+`docs/design/references/roles/`, every governing one prefixed `GOVERNING-`.**
+
+The set covers: the switch profile sheet, the add a workspace chooser, the
+owner form, the agent form, the firm branch, the two workspace desks, the three
+listing labels as they appear in search results, the full cost block, and a
+small number of **light mode** targets, which this product has never had for
+any surface.
+
+**These images are the target and the rule is the founder's standing one:
+almost identical if not identical.** `docs/DESIGN_DIRECTION.md` governs how to
+match them, including the translation rules for any off brand detail a render
+carries.
+
+**First hour job for whoever owns this track: index
+`docs/design/references/roles/` into `docs/design/CATALOGUE.md`, and index
+`docs/design/references/founder/` at the same time**, because that older folder
+holds eleven of the founder's own corrective targets, five of them GOVERNING,
+and the catalogue has never mentioned it. See HANDOFF 08 section 8B.3. A
+founder target beats a generated render, always.
+
+**If the folder is empty when you start, build to this brief and to the
+register, and leave the surface easy to re-match.** Do not wait for images, and
+do not guess at a layout the brief does not describe.
+
 ### 3.7 This is the last cheap moment
 
 64 listings, all examples. One agent row, the example lister. Zero bookings.
