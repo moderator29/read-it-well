@@ -461,3 +461,27 @@ A11. **Refusal reasons are free text or nothing.** "Top common refusals"
     `price`, `incomplete_details`, `not_available`, `location_mismatch`,
     `not_suitable`, `other`) on the tables that record the decline, and the
     decline controls to offer the list.
+
+### Requests from email (the welcome email's design and words)
+
+The welcome template now lives in `apps/web/src/lib/email/welcome-message.ts`
+and `messages.ts` re-exports it, so nothing below is blocking: the email sends
+correctly through `welcomeOnce` as it stands. These are improvements only
+Session A can make, in files Session B does not own.
+
+E1. **Greet by handle when there is no name.** `welcome()` now accepts an
+    optional `handle` and greets with it only when the display name is empty
+    or an email address. `lib/notify/welcome.ts` passes `{ name, role }`; it
+    could also pass `social_profiles.handle` for the user when one exists. If
+    it never does, the email falls back to "Hello there.", which is correct.
+E2. **The shared button in `render.ts` is not lit the way the welcome's is.**
+    The welcome draws its own button: gradient over a solid fallback, a
+    brighter top edge (`border-top` in `--nf-brand-quiet` plus an inset
+    highlight), a soft bloom by `box-shadow`, and a VML `v:roundrect` for
+    classic Outlook. The catalogue's shared `button` block has the gradient and
+    the solid fallback only. If every message should match, `render.ts` could
+    take the same four lines; `welcome-message.ts` `litButton` is the reference.
+E3. **Fixtures.** `fixtures.ts` still renders the welcome with
+    `{ name: "Ada", role }`, which is enough for `shell.test.ts`. No change
+    needed; noted so nobody "fixes" the welcome back into `compose()` to make
+    the shell tests easier. It already passes all of them on its own document.
