@@ -41,21 +41,37 @@ import { allLocaleCompleteness, localeCompleteness } from "./locale-completeness
  * identical to English, which includes every key the locale file does not
  * carry, because `withFallback` has already filled those with English.
  *
- * ## THE JUMP FROM 212 TO 336, AND WHO IT BELONGS TO
+ * ## THE JUMP TO 336 AND THE RETURN TO 212, AND WHY BOTH ARE RECORDED
  *
  * The `supply` namespace grew from 60 keys to 204 between `e36e74f` and
- * `1c6388d`, in English only. `yo.supply`, `ha.supply` and `ig.supply` are
- * still the original 60, so `withFallback` now serves 144 English strings
- * under a namespace that was previously complete, and the English SENTENCE
- * count went from 106 to 182 in one step.
+ * `1c6388d`, in English only. For those commits `yo.supply`, `ha.supply` and
+ * `ig.supply` were still the original 60, so `withFallback` served 144 English
+ * strings under a namespace that had been complete, and the English SENTENCE
+ * count went from 106 to 182 in one step. A3 measured that state and raised
+ * these ceilings to 336 / 334 / 343 and 182, correctly, because a red shared
+ * test blocks everybody.
  *
- * That namespace is the three registration forms of GOVERNING-03, 04 and 05.
- * It is not this worker's and the numbers are recorded here rather than
- * argued with, because a red shared test blocks everybody. IT IS A REAL
- * FINDING FOR WHOEVER OWNS TRACK G: a supplier registration form is the first
- * thing a new agent, owner or firm ever reads on this platform, and today it
- * reads in English on a Yoruba, Hausa or Igbo phone while the screen around
- * it does not.
+ * THAT STATE LASTED ABOUT AN HOUR AND THE CEILINGS OUTLIVED IT. The namespace
+ * is B1b's three registration forms, GOVERNING-03, 04 and 05, and the English
+ * half of it reached the branch first only because it was swept up in another
+ * worker's commit; the Hausa, Igbo and Yoruba halves were written in the same
+ * stint and landed with the forms at `0b45e92`. Re-measured on this tree
+ * against 2,758 English keys: **yo 212, ha 210, ig 219, and 106 English
+ * sentences in each**, which is where all three stood before the namespace
+ * existed. So the ceilings come back down to the measurement.
+ *
+ * THE POINT OF PUTTING BOTH NUMBERS HERE rather than quietly restoring the old
+ * ones: a ceiling that is loose by 124 keys is worse than no ceiling, because
+ * the next person trusts it and 124 English strings could be added to a
+ * translation file under it without a single test going red. A ratchet is only
+ * a ratchet while it sits on the measurement.
+ *
+ * THE THREE SUPPLY FORMS ARE TRANSLATED AND THEY NEED A NATIVE READER. Every
+ * one of the 144 keys carries Hausa, Igbo and Yoruba written from the
+ * vocabulary of the agent application block already in each file, so the
+ * screens do not mix languages. That is not the same as being right, and each
+ * locale file's own header already says the whole file needs native review
+ * before launch. This namespace is now part of what that review covers.
  *
  * AND THE MECHANISM IS WORTH RECORDING TOO, because it is a process fault and
  * not a translation one. Those 180 lines reached the branch inside a commit
@@ -86,9 +102,9 @@ import { allLocaleCompleteness, localeCompleteness } from "./locale-completeness
  * where a translator can now find them.
  */
 const KNOWN_INCOMPLETE = {
-  yo: { englishValued: 336, englishSentences: 182 },
-  ha: { englishValued: 334, englishSentences: 182 },
-  ig: { englishValued: 343, englishSentences: 182 },
+  yo: { englishValued: 212, englishSentences: 106 },
+  ha: { englishValued: 210, englishSentences: 106 },
+  ig: { englishValued: 219, englishSentences: 106 },
 } as const;
 
 describe("locale completeness", () => {
