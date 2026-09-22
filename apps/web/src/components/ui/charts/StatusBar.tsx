@@ -53,14 +53,18 @@ export function StatusBar({
       <div
         role="img"
         aria-label={`${label}: ${shown.map((s) => `${s.label} ${s.count}`).join(", ")}, ${total} in total.`}
-        className="flex h-[14px] w-full gap-[2px] overflow-hidden rounded-[3px]"
+        /* `gap-3xs` IS 2px on the scale. The 2px separator between two fills
+           is a mark spec rather than a layout choice, and it happens to be
+           exactly the hairline rung the scale already carries, so it takes the
+           rung rather than being typed out beside it. */
+        className="flex h-[14px] w-full gap-3xs overflow-hidden rounded-[3px]"
       >
         {shown.map((s) => (
           <span
             key={s.status}
-            /* `flexGrow` rather than a percentage width, so the 2px gaps come
-               out of the track rather than pushing the last segment past the
-               end of it. */
+            /* `flexGrow` rather than a percentage width, so the gaps come out
+               of the track rather than pushing the last segment past the end
+               of it. */
             style={{ flexGrow: s.count, flexBasis: 0, background: STATUS_FILL[s.status] }}
           />
         ))}

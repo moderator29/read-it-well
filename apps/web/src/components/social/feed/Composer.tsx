@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Segmented } from "@/components/ui/Segmented";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { createClient } from "@/lib/supabase/client";
 import { attachPostMedia, dropPost, replyToPost } from "@/lib/social/posts-actions";
@@ -338,24 +339,34 @@ export function Composer({
       }}
     >
       {!isReply ? (
-        <div className="mb-sm flex gap-xs" role="radiogroup" aria-label="What are you posting?">
-          {COMPOSABLE_KINDS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-checked={kind === option}
-              onClick={() => setKind(option)}
-              className={`inline-flex h-9 items-center rounded-[var(--nf-radius-control)] px-md text-[var(--nf-text-overline)] font-semibold transition-colors ${
-                kind === option
-                  ? "bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
-                  : "border border-[var(--nf-border-default)] text-[var(--nf-content-secondary)]"
-              }`}
-            >
-              {KIND_LABEL[option]}
-            </button>
-          ))}
-        </div>
+        /*
+         * THIS WAS THE TWELFTH WAY TO DRAW A SEGMENTED CONTROL AND IT WORE NO
+         * CLASS FROM ANY OF THE ELEVEN.
+         *
+         * A hand-rolled `role="radiogroup"` of three buttons with the brand
+         * fill inlined at the call site. It had NO KEYBOARD HANDLING AT ALL:
+         * a radiogroup is meant to move on the arrow keys, and this one did
+         * not, so a keyboard user landed on the first option and could reach
+         * the others only by leaving the group. It was also `h-9`, a 36px
+         * target under the 44pt floor, and at 14px of radius on 36px it sat at
+         * 0.389 on the shape watch line.
+         *
+         * `Segmented` with `semantics="radio"` is the same control done once:
+         * roving focus, arrow keys, the measured travelling capsule, the 44px
+         * `md` rung, and the selected fill coming from the stylesheet instead
+         * of from a ternary in this file.
+         */
+        <Segmented<ComposableKind>
+          className="mb-sm"
+          semantics="radio"
+          label="What are you posting?"
+          options={COMPOSABLE_KINDS.map((option) => ({
+            value: option,
+            label: KIND_LABEL[option],
+          }))}
+          value={kind}
+          onChange={setKind}
+        />
       ) : null}
 
       <textarea

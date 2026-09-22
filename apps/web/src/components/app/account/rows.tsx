@@ -6,6 +6,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { Switch } from "@/components/ui/Switch";
+import { Segmented } from "@/components/ui/Segmented";
 
 /**
  * Grouped rows: the one shape every account surface on this platform uses.
@@ -375,33 +376,30 @@ export function RowSelect<T extends string>({
 
 /* ---------------------------------------------------------------- segment */
 
-export function Segment<T extends string>({
-  value,
-  options,
-  onChange,
-  label,
-}: {
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (next: T) => void;
-  label: string;
-}) {
-  return (
-    <div className="nf-segment" role="group" aria-label={label}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={value === option.value}
-          onClick={() => onChange(option.value)}
-          className="nf-segment__option"
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+/*
+ * `Segment` STOOD HERE, THE SIXTH OF ELEVEN WAYS TO DRAW A SEGMENTED CONTROL.
+ *
+ * It was a `role="group"` of `aria-pressed` buttons on `.nf-segment__option`,
+ * and it had three faults the platform primitive does not:
+ *
+ *   1. `aria-pressed` on a group of mutually exclusive choices announces three
+ *      independent toggles, not one choice out of three. `Segmented` offers
+ *      `tablist` and `radiogroup` and both are correct for what they name.
+ *   2. No keyboard movement. A group of buttons is tab, tab, tab; a radiogroup
+ *      and a tablist both move on the arrow keys, and `Segmented` does.
+ *   3. `.nf-segment__option` is `flex: 1 1 0` with no `min-width: 0` and its
+ *      label is a bare text node, so a long word in Hausa or Igbo paints
+ *      outside the track with nothing to clip it. Same sentence as everywhere
+ *      else in this sweep: freeing the basis is not freeing the item.
+ *
+ * And its shape: 14px of radius on a 32px control is 0.438, over the 0.35
+ * watch line and within a hair of the capsule line. `Segmented`'s `md` rung is
+ * 44px, where the same token draws 0.318.
+ *
+ * `RowSegment` below renders the primitive. HANDED TO GROUP B, who own the
+ * stylesheets: `.nf-segment` and `.nf-segment__option` in
+ * `app/settings-rows.css` are now unreferenced by any markup.
+ */
 
 /** A row whose control is a small set of choices, shown rather than hidden. */
 export function RowSegment<T extends string>({
@@ -437,7 +435,14 @@ export function RowSegment<T extends string>({
           the row's gap, which is the same sum the row divider is inset by, so
           the two stay aligned without either being measured by hand. */}
       <div className="w-full min-w-0 basis-full pl-[calc(1.75rem+var(--nf-gap-inline))] pt-inline sm:w-auto sm:basis-auto sm:pl-0 sm:pt-0">
-        <Segment value={value} options={options} onChange={onChange} label={label} />
+        <Segmented<T>
+          semantics="radio"
+          full
+          value={value}
+          options={options}
+          onChange={onChange}
+          label={label}
+        />
       </div>
     </div>
   );

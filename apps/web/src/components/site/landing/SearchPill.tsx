@@ -96,7 +96,25 @@ export function SearchPill({
             onKeyDown={(e) => onKey(e, i)}
           >
             <UiIcon name={ROUTES[s].icon} size={16} aria-hidden />
-            {labels[s]}
+            {/*
+              THE LABEL IS ITS OWN BLOCK NOW, AND THAT IS HALF OF A FIX WHOSE
+              OTHER HALF IS A STYLESHEET.
+              `--nf-seg-count` freed the TRACK, which was the dead fourth
+              column. It did not free the ITEM: `minmax(0, 1fr)` removes the
+              track's automatic minimum and a grid item keeps `min-width:auto`
+              regardless, so with `white-space: nowrap` on the segment the
+              min-content width is still the whole word. In Hausa "Masauki" and
+              in Igbo "Gbazite" are seven characters against roughly 35px of
+              room after the 16px glyph, the 4px gap and 24px of padding, so
+              the WORD paints outside the control even though the track is now
+              right. `text-overflow` cannot act on a flex container's anonymous
+              text run, so it needs this span to exist before the stylesheet
+              can clip anything.
+              HANDED TO GROUP B: `.nf-landing-pill-seg` at
+              `app/css/landing.css` wants `min-inline-size: 0`, and this span
+              wants `overflow: hidden; text-overflow: ellipsis`.
+            */}
+            <span className="nf-landing-pill-seg__label">{labels[s]}</span>
           </button>
         ))}
       </div>
