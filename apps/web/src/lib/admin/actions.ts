@@ -35,6 +35,9 @@ import {
 } from "../email/messages";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
+/* ONE VOCABULARY, READ HERE TOO. The three doors narrow onto the two person
+   values in exactly one place and this is a caller of it, not a second copy. */
+import { personRoleFrom } from "../supply/roles";
 import {
   replySupportTicketSchema,
   resolveReportSchema,
@@ -267,7 +270,12 @@ export async function reviewAgentApplication(input: {
 
   const { data: application, error: readError } = await access.supabase
     .from("agent_applications")
-    .select("id, user_id, status, reference, full_name, type")
+    /* `supply_role` IS READ HERE AND IT NEVER WAS. It has been written by the
+       three registration forms since `20260922170000` and read by nothing that
+       decides anything: two grep hits in the whole tree and both in the file
+       that writes it. So an approved OWNER became an "agent" row and the role
+       was discarded at the door. See the upsert below. */
+    .select("id, user_id, status, reference, full_name, type, supply_role")
     .eq("id", applicationId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
@@ -321,12 +329,28 @@ export async function reviewAgentApplication(input: {
        * what the schema says: the badge is earned on the ladder at
        * `/admin/verification`, one rung at a time, by a named member of staff.
        */
+      /*
+       * THE ROLE REACHES THE ROW, AND UNTIL TODAY IT DID NOT.
+       *
+       * `personRoleFrom` is the single narrowing of the three doors onto the
+       * two person values: owner stays owner, and both agent and firm become
+       * agent, because a firm is an ORGANISATION and the person running one is
+       * an agent with a firm behind them. The narrowing lives in
+       * `lib/supply/roles.ts` rather than here so a second caller cannot do it
+       * differently from the first.
+       *
+       * `type` IS STILL WRITTEN AND IS STILL NOT THE ROLE. It is
+       * individual|business, it has never meant owner|agent, five surfaces
+       * read it, and migration 1 of Track G marks it deprecated rather than
+       * dropping it. Both columns are written for as long as both are read.
+       */
       await admin.from("agents").upsert(
         {
           user_id: application.user_id,
           application_id: application.id,
           display_name: application.full_name ?? "Vallo agent",
           type: application.type,
+          role: personRoleFrom(application.supply_role),
           status: "APPROVED",
         },
         { onConflict: "user_id", ignoreDuplicates: true },

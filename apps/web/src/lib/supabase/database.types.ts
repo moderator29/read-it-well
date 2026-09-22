@@ -438,6 +438,7 @@ export type Database = {
           id: string
           issued_on: string | null
           kind: string
+          listing_id: string | null
           rejection_reason: string | null
           review_status: Database["public"]["Enums"]["document_review_status"]
           reviewed_at: string | null
@@ -453,6 +454,7 @@ export type Database = {
           id?: string
           issued_on?: string | null
           kind: string
+          listing_id?: string | null
           rejection_reason?: string | null
           review_status?: Database["public"]["Enums"]["document_review_status"]
           reviewed_at?: string | null
@@ -468,6 +470,7 @@ export type Database = {
           id?: string
           issued_on?: string | null
           kind?: string
+          listing_id?: string | null
           rejection_reason?: string | null
           review_status?: Database["public"]["Enums"]["document_review_status"]
           reviewed_at?: string | null
@@ -588,8 +591,10 @@ export type Database = {
           application_id: string | null
           created_at: string
           display_name: string
+          firm_id: string | null
           id: string
           is_demo: boolean
+          role: Database["public"]["Enums"]["supply_role"]
           status: Database["public"]["Enums"]["agent_application_status"]
           type: Database["public"]["Enums"]["agent_type"]
           updated_at: string
@@ -601,8 +606,10 @@ export type Database = {
           application_id?: string | null
           created_at?: string
           display_name: string
+          firm_id?: string | null
           id?: string
           is_demo?: boolean
+          role?: Database["public"]["Enums"]["supply_role"]
           status?: Database["public"]["Enums"]["agent_application_status"]
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
@@ -614,8 +621,10 @@ export type Database = {
           application_id?: string | null
           created_at?: string
           display_name?: string
+          firm_id?: string | null
           id?: string
           is_demo?: boolean
+          role?: Database["public"]["Enums"]["supply_role"]
           status?: Database["public"]["Enums"]["agent_application_status"]
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
@@ -2084,6 +2093,60 @@ export type Database = {
         }
         Relationships: []
       }
+      firm_members: {
+        Row: {
+          admitted_at: string
+          admitted_by: string | null
+          agent_id: string
+          firm_id: string
+          id: string
+          member_role: string
+          revoke_note: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          status: string
+        }
+        Insert: {
+          admitted_at?: string
+          admitted_by?: string | null
+          agent_id: string
+          firm_id: string
+          id?: string
+          member_role?: string
+          revoke_note?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+        }
+        Update: {
+          admitted_at?: string
+          admitted_by?: string | null
+          agent_id?: string
+          firm_id?: string
+          id?: string
+          member_role?: string
+          revoke_note?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "firm_members_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "firm_members_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -2409,6 +2472,72 @@ export type Database = {
           },
         ]
       }
+      listing_mandates: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          exclusive: boolean | null
+          expires_on: string | null
+          id: string
+          kind: string
+          listing_id: string
+          principal_name: string
+          principal_phone: string | null
+          rejection_reason: string | null
+          review_status: Database["public"]["Enums"]["document_review_status"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          signed_on: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          exclusive?: boolean | null
+          expires_on?: string | null
+          id?: string
+          kind: string
+          listing_id: string
+          principal_name: string
+          principal_phone?: string | null
+          rejection_reason?: string | null
+          review_status?: Database["public"]["Enums"]["document_review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          signed_on?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          exclusive?: boolean | null
+          expires_on?: string | null
+          id?: string
+          kind?: string
+          listing_id?: string
+          principal_name?: string
+          principal_phone?: string | null
+          rejection_reason?: string | null
+          review_status?: Database["public"]["Enums"]["document_review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          signed_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_mandates_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "agent_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_mandates_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_photos: {
         Row: {
           created_at: string
@@ -2497,6 +2626,7 @@ export type Database = {
           demo_retire_after: string | null
           description: string | null
           featured: boolean
+          firm_id: string | null
           floor: number | null
           governors_consent_fee_minor: number | null
           furnished: Database["public"]["Enums"]["furnishing"] | null
@@ -2510,9 +2640,12 @@ export type Database = {
           listing_fee_minor: number | null
           listing_fee_rate_id: string | null
           listing_intent: Database["public"]["Enums"]["listing_intent"]
+          listing_role: Database["public"]["Enums"]["listing_role"]
           location: unknown
           longitude: number | null
+          mandate_verified_at: string | null
           minimum_tenancy_months: number | null
+          ownership_verified_at: string | null
           parking_spaces: number | null
           physically_inspected_at: string | null
           power_backup: Database["public"]["Enums"]["power_backup"] | null
@@ -2544,6 +2677,7 @@ export type Database = {
           stamp_duty_minor: number | null
           status: Database["public"]["Enums"]["listing_status"]
           submitted_at: string | null
+          supply_verified_by: string | null
           survey_registration_fee_minor: number | null
           tenure: Database["public"]["Enums"]["land_tenure"] | null
           title: string
@@ -2573,6 +2707,7 @@ export type Database = {
           demo_retire_after?: string | null
           description?: string | null
           featured?: boolean
+          firm_id?: string | null
           floor?: number | null
           governors_consent_fee_minor?: number | null
           furnished?: Database["public"]["Enums"]["furnishing"] | null
@@ -2586,9 +2721,12 @@ export type Database = {
           listing_fee_minor?: number | null
           listing_fee_rate_id?: string | null
           listing_intent?: Database["public"]["Enums"]["listing_intent"]
+          listing_role?: Database["public"]["Enums"]["listing_role"]
           location?: unknown
           longitude?: number | null
+          mandate_verified_at?: string | null
           minimum_tenancy_months?: number | null
+          ownership_verified_at?: string | null
           parking_spaces?: number | null
           physically_inspected_at?: string | null
           power_backup?: Database["public"]["Enums"]["power_backup"] | null
@@ -2620,6 +2758,7 @@ export type Database = {
           stamp_duty_minor?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
           submitted_at?: string | null
+          supply_verified_by?: string | null
           survey_registration_fee_minor?: number | null
           tenure?: Database["public"]["Enums"]["land_tenure"] | null
           title: string
@@ -2649,6 +2788,7 @@ export type Database = {
           demo_retire_after?: string | null
           description?: string | null
           featured?: boolean
+          firm_id?: string | null
           floor?: number | null
           governors_consent_fee_minor?: number | null
           furnished?: Database["public"]["Enums"]["furnishing"] | null
@@ -2662,9 +2802,12 @@ export type Database = {
           listing_fee_minor?: number | null
           listing_fee_rate_id?: string | null
           listing_intent?: Database["public"]["Enums"]["listing_intent"]
+          listing_role?: Database["public"]["Enums"]["listing_role"]
           location?: unknown
           longitude?: number | null
+          mandate_verified_at?: string | null
           minimum_tenancy_months?: number | null
+          ownership_verified_at?: string | null
           parking_spaces?: number | null
           physically_inspected_at?: string | null
           power_backup?: Database["public"]["Enums"]["power_backup"] | null
@@ -2696,6 +2839,7 @@ export type Database = {
           stamp_duty_minor?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
           submitted_at?: string | null
+          supply_verified_by?: string | null
           survey_registration_fee_minor?: number | null
           tenure?: Database["public"]["Enums"]["land_tenure"] | null
           title?: string
@@ -5279,6 +5423,8 @@ export type Database = {
         | "agency"
       catalogue_entity_kind: "listing" | "accommodation" | "restaurant"
       document_review_status: "pending" | "approved" | "rejected"
+      listing_role: "owner" | "agent" | "firm"
+      supply_role: "owner" | "agent"
       document_subtype:
         | "passport"
         | "drivers_licence"
@@ -5290,6 +5436,15 @@ export type Database = {
         | "cac_certificate"
         | "tax_certificate"
         | "business_address_proof"
+        | "certificate_of_occupancy"
+        | "deed_of_assignment"
+        | "governors_consent"
+        | "survey_plan"
+        | "land_use_charge_receipt"
+        | "gazette"
+        | "mandate_letter"
+        | "lasrera_certificate"
+        | "esvarbon_certificate"
       escrow_purpose:
         | "rent_deposit"
         | "first_rent"
@@ -5588,6 +5743,8 @@ export const Constants = {
       ],
       catalogue_entity_kind: ["listing", "accommodation", "restaurant"],
       document_review_status: ["pending", "approved", "rejected"],
+      listing_role: ["owner", "agent", "firm"],
+      supply_role: ["owner", "agent"],
       document_subtype: [
         "passport",
         "drivers_licence",
@@ -5599,6 +5756,15 @@ export const Constants = {
         "cac_certificate",
         "tax_certificate",
         "business_address_proof",
+        "certificate_of_occupancy",
+        "deed_of_assignment",
+        "governors_consent",
+        "survey_plan",
+        "land_use_charge_receipt",
+        "gazette",
+        "mandate_letter",
+        "lasrera_certificate",
+        "esvarbon_certificate",
       ],
       escrow_purpose: [
         "rent_deposit",

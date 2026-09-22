@@ -100,6 +100,46 @@ export function isListingRole(value: string | null | undefined): value is Listin
   return value === "owner" || value === "agent" || value === "firm";
 }
 
+/**
+ * THE PERSON ROLE AN APPROVED APPLICATION BECOMES, AND IT IS THE FUNCTION THAT
+ * WAS MISSING AT THE DOOR.
+ *
+ * `agent_applications.supply_role` carries what a person said they were on one
+ * of the three forms: `owner`, `agent` or `firm`. `agents.role` carries two
+ * values, because a firm is an ORGANISATION and the person running it is an
+ * agent with a firm behind them. Something has to narrow three onto two, and
+ * until today nothing did: the approval path in `lib/admin/actions.ts` upserted
+ * an `agents` row with `type` and `status`, granted `user_roles.role = 'agent'`
+ * and DISCARDED THE ROLE AT THE DOOR. Three forms filed three different
+ * applications and the database could not tell them apart afterwards. An
+ * approved owner became an "agent" row.
+ *
+ * The narrowing is written here, once, rather than at the call site, so that
+ * the second caller cannot do it differently from the first. That is the same
+ * reason `workspaceKindFor` in `registration.ts` exists.
+ *
+ * WHY NULL BECOMES `agent` AND NOT `owner`. A null `supply_role` is an
+ * application filed before `20260922170000` added the column, and every one of
+ * those came through the six step agent application. Answering `agent` says
+ * what actually happened. Answering `owner`, or refusing to answer, would
+ * invent a fact about a person, which rule 15 forbids and which the backfill in
+ * migration 1 of this set refused for the same reason.
+ */
+export function personRoleFrom(applied: string | null | undefined): SupplyRole {
+  return applied === "owner" ? "owner" : "agent";
+}
+
+/**
+ * The firm an approved application asks to be attached to, if it asks at all.
+ *
+ * Only the firm door does. Stated as its own function so a caller reading
+ * `personRoleFrom` does not have to remember that `firm` collapsed into
+ * `agent` and that something else has to carry the organisation.
+ */
+export function appliedAsFirm(applied: string | null | undefined): boolean {
+  return applied === "firm";
+}
+
 /* ------------------------------------------------------------ the workspace */
 
 /**
