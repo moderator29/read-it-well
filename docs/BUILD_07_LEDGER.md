@@ -1527,6 +1527,98 @@ anyway, the honest trade is: a cleaner, more saturated navy at a similar
 luminance costs nothing, and anything lighter costs legibility. That is a
 question about how the square LOOKS, not about whether the mark in it reads.
 
+### THE CONTAINER ANATOMY, BUILT (item 7, second pass)
+
+**The fault, located.** Two independent blue sources feed container edges:
+
+    --nf-brand-edge*   <- --nf-glow-ink   <- --nf-electric-300  #0069FE
+    --nf-border-brand  <- --nf-electric-500                     #005DE0
+
+Same hue to a tenth of a degree, 215.2 against 215.1, same saturation. Six
+points apart in lightness, and wired to different parents, so the day either
+source moves the two drift and no grep finds it. **That is how a platform ends
+up with edges that almost match**, and it is what the founder is seeing.
+
+**THREE RUNGS, NAMED FOR WHAT A CONTAINER IS RATHER THAN HOW LOUD IT IS**,
+because soft/default/strong is the naming that invites a fourth:
+
+| Token | What it is for |
+| --- | --- |
+| `--nf-container-edge-quiet` | a division of space: a well, an inset, a row. Not an object, so no brand |
+| `--nf-container-edge` | AN OBJECT ON THE CANVAS: card, panel, tile, sheet. The default |
+| `--nf-container-edge-lit` | the two objects a screen is built around, the dock and the flip pane |
+
+Plus `--nf-container-fill` and `--nf-container-radius`.
+
+**WHY FEWER RUNGS RATHER THAN A SWEEP**, which is the choice the lead asked me
+to name. Repointing 430 rules at the same six tokens is 37 files of churn in
+scopes other people own, and it leaves the ladder that caused the drift
+standing: six tokens for one job, each a defensible pick, so the next 430 rules
+diverge exactly as these did. Collapsing at the SOURCE lands everywhere at once,
+which is what the founder asked for, and it removes the choice rather than
+asking everyone to keep making it correctly.
+
+**THE COLLAPSE, VERIFIED IN ISOLATION.** `--nf-border-brand` now names the
+anatomy. Measured by rendering the real `tokens.css` in a browser with nothing
+else loaded, so the reading is of this change and of nothing else:
+
+| Token | dark | light |
+| --- | --- | --- |
+| `--nf-container-edge` | `oklab(0.51934 … / 0.7)` | `oklab(0.51934 … / 0.7)` |
+| `--nf-border-brand` | **identical** | **identical** |
+
+Its dark value moves 55 per cent to 70, which is the one rendered change and is
+deliberate: 55 was the value the daylight block had FORGOTTEN, measured this
+morning at 2.49:1 on white where the four neutrals beside it all invert. The
+paper twin was already corrected to 70. Matching night to paper keeps the edge
+that was proven and drops the one that was an oversight.
+
+**STILL OWED, AND IT IS THE LARGER HALF.** `--nf-brand-edge` and its soft and
+strong rungs are still a second ladder on 83 container rules, resolving to
+`oklab(0.568 …)` at night and `oklab(0.436 …)` on paper against the anatomy's
+theme-stable `0.519`. Collapsing them is the next step. It is a visible change
+on 83 rules in both themes, so it needs a full visual sweep to be done
+responsibly, and I would rather leave it named than half-land it.
+
+### THE LOGO SEAM (item 6a): EVERY APPEARANCE, AND WHICH CAN EVEN SWITCH
+
+**No light wordmark is shipped and none is invented here.** Recolouring or
+inverting the dark asset is exactly the filter the founder ruled out, so what
+follows is the enumeration and the seam, not artwork.
+
+| Where | Asset | Can it take a themed asset? |
+| --- | --- | --- |
+| `design-system/brand/Logo.tsx` | mark, lockup, wordmark | **YES, and it is the seam**: every in-app appearance already routes through it |
+| `(auth)/layout.tsx` | icon + wordmark | **NO, AND IT MUST NOT.** Rule 22 locks that screen dark in both themes, so the dark mark is correct there permanently |
+| `app/loading.tsx`, the splash | mark | yes, same seam |
+| `offline/SystemMoment.tsx`, native shell | icon + wordmark | yes for the web card; the native shell's own HTML needs the same switch written separately |
+| `AssistantChat.tsx`, `FirstRun.tsx` | wordmark | yes, but each hard-codes the path today rather than using `Logo.tsx` |
+| `lib/email/theme.ts` | `MARK_PATH`, `WORDMARK_PATH` | **NO, AND IT DOES NOT NEED TO** |
+| `manifest.ts` / store assets | `vallo-icon.png` | no: a store listing has no theme, it needs whatever the store's own ground is |
+
+**WHAT AN EMAIL MUST DO INSTEAD, since the lead asked.** Nothing. This
+product's emails are DARK-GROUND BY DESIGN and the ground is painted three
+times over, on the body, on the outer table as an Outlook `bgcolor`, and on the
+card cell, precisely because clients cannot be trusted. The dark wordmark is
+therefore correct in email permanently, and it is correct for a reason better
+than "we cannot switch": the email carries its own ground with it, so the
+client's theme is not the question. `theme.ts` already records that Gmail
+strips `prefers-color-scheme` entirely and runs its own pass, so a themed email
+asset would reach Apple Mail and never reach the client most of this product's
+readers use.
+
+**WHAT THE FOUNDER MUST SUPPLY**, named exactly so it can be commissioned:
+
+- `vallo-wordmark-light.png`, the word for a light ground. Current dark asset is
+  758x167, so the light twin at the same 4.54:1 aspect, at 2x, is 1516x334.
+- `vallo-mark-light.png`, the mark. Current is 614x587, so 1228x1174 at 2x.
+- `vallo-logo-light.png`, the square lockup, currently 1024x1024.
+
+A designed light variant, not a recolour: the dark artwork is a 3D glass
+rendering lit for a dark ground, and there is no filter that turns a lit glass
+object into an ink drawing. Until those three files exist the seam has nothing
+to switch TO, which is why this entry ships the enumeration and not a change.
+
 ### THE CONTAINERS, MEASURED BEFORE BEING ASSERTED (item 7, first pass)
 
 The founder's words are that containers across the platform are "not

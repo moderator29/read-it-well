@@ -482,7 +482,21 @@
   --nf-border-subtle: rgb(255 255 255 / 0.08);
   --nf-border-default: rgb(255 255 255 / 0.13);
   --nf-border-strong: rgb(255 255 255 / 0.22);
-  --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 55%, transparent);
+  /*
+   * ONE BLUE, AND THIS IS THE COLLAPSE THAT DOES THE WORK. `--nf-border-brand`
+   * was the second independent source feeding container edges, wired to
+   * `--nf-electric-500` while every `--nf-brand-edge*` rung is wired to
+   * `--nf-glow-ink`. It now names the anatomy, so the two families that were
+   * drifting are one token and a change to the anatomy reaches both.
+   *
+   * IT GOES FROM 55 PER CENT TO 70, which is the one rendered change here and
+   * it is deliberate: 55 was the value the daylight block had FORGOTTEN, and
+   * it was measured this morning at 2.49:1 on white where the four neutrals
+   * beside it all invert. The paper twin was already corrected to 70. Matching
+   * night to paper rather than the other way round keeps the edge that was
+   * proven and drops the one that was an oversight.
+   */
+  --nf-border-brand: var(--nf-container-edge);
   --nf-divider: rgb(255 255 255 / 0.10);
 
   /* Interactive feedback
@@ -1704,6 +1718,65 @@
    * full strength, an edge and never a bloom.
    */
   --nf-brand-edge-soft: color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
+  /* ------------------------------------------------------------------
+   * THE CONTAINER ANATOMY. ONE EDGE, ONE FILL, ONE RADIUS, ONE BLUE.
+   *
+   * The founder: containers across the platform "are not consistent and not
+   * professional... different edges, different fills, different glows,
+   * different blues. It does not read as one product."
+   *
+   * MEASURED BEFORE BEING BUILT, ledger section 6. 430 container-ish rules
+   * across 37 stylesheets draw 270 DISTINCT (edge, fill, radius) combinations,
+   * and 203 of those are used EXACTLY ONCE. That last number is the complaint
+   * stated precisely: a surface drawing its own container.
+   *
+   * AND "DIFFERENT BLUES" IS NOT STRAY HEXES. Zero of the 430 carries a raw
+   * colour literal; every one already names a token. The fault is one level
+   * up, and it is real: TWO INDEPENDENT BLUE SOURCES FEED CONTAINER EDGES.
+   *
+   *   --nf-brand-edge*   <- --nf-glow-ink    <- --nf-electric-300  #0069FE
+   *   --nf-border-brand  <- --nf-electric-500                      #005DE0
+   *
+   * Same hue to a tenth of a degree, 215.2 against 215.1, and the same
+   * saturation, so nobody looking at them side by side would call them
+   * different colours. They are six points apart in LIGHTNESS, 50 per cent
+   * against 44, and more importantly they are wired to different parents, so
+   * the day either source moves the two drift apart and no grep finds it.
+   * That is how a platform ends up with edges that almost match.
+   *
+   * WHY FEWER RUNGS RATHER THAN A SWEEP. The obvious fix is to repoint 430
+   * rules at the same six tokens, which is 37 files of churn in scopes other
+   * people own, and it leaves the ladder that caused the drift standing: six
+   * tokens for one job, each a defensible choice, so the next 430 rules
+   * diverge exactly as these did. Collapsing at the SOURCE lands everywhere at
+   * once, which is what the founder asked for, and it removes the choice
+   * rather than asking everyone to make it correctly.
+   *
+   * THREE RUNGS, NAMED FOR WHAT A CONTAINER IS AND NOT FOR HOW LOUD IT IS,
+   * because "soft/default/strong" is what invites a fourth:
+   *
+   *   -quiet  a division of space. A well, an inset, a row in a list. It is
+   *           not an object, it is a boundary, so it takes the neutral
+   *           hairline and no brand at all.
+   *   (base)  AN OBJECT ON THE CANVAS. A card, a panel, a tile, a sheet. This
+   *           is the default and most containers are this.
+   *   -lit    the two objects a screen is built around, the dock and the flip
+   *           pane, which the renders draw with a glowing outline. The glow
+   *           scale's own note already forbids anything else carrying it.
+   *
+   * The base value is `--nf-electric-500` at 70 per cent, which is what
+   * `--nf-border-brand` already resolved to after it was retuned for daylight
+   * earlier today: measured 3.34:1 on white, up from 2.49:1, the one member of
+   * its family the light block had forgotten. Taking the anatomy's value from
+   * the rung that was most recently MEASURED is the point; the alternative was
+   * to average two numbers, and an average of two edges is a third edge.
+   * ------------------------------------------------------------------ */
+  --nf-container-edge-quiet: var(--nf-border-default);
+  --nf-container-edge: color-mix(in oklab, var(--nf-electric-500) 70%, transparent);
+  --nf-container-edge-lit: var(--nf-brand-edge-strong);
+  --nf-container-fill: var(--nf-well-fill);
+  --nf-container-radius: var(--nf-radius-lg);
+
   --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
@@ -3031,7 +3104,21 @@
    * `--nf-brand-edge` above. `--nf-content-primary` on it measures 5.32:1, so
    * the few places that set ink against this colour are still clear.
    */
-  --nf-border-brand: color-mix(in oklab, var(--nf-electric-500) 70%, transparent);
+  /* THE CONTAINER ANATOMY ON PAPER. The base edge is the value measured at
+     3.34:1 on white earlier today; the quiet rung is the neutral hairline the
+     light block already defines, and the lit rung stays as strong as at night
+     because an outline that fades on paper loses the object. */
+  --nf-container-edge-quiet: var(--nf-border-default);
+  --nf-container-edge: color-mix(in oklab, var(--nf-electric-500) 70%, transparent);
+  --nf-container-edge-lit: var(--nf-brand-edge-strong);
+  --nf-container-fill: var(--nf-well-fill);
+  --nf-container-radius: var(--nf-radius-lg);
+
+  /* ONE BLUE: this was the SECOND source feeding container edges. It now names
+     the anatomy, so the two families that drifted are one and a change to the
+     anatomy reaches both. The value is unchanged, which is why this collapse
+     is safe to make at the source rather than rule by rule. */
+  --nf-border-brand: var(--nf-container-edge);
 
   /*
    * Interactive feedback on paper. The night values are white washes, and a
