@@ -68,15 +68,43 @@ export async function welcomeOnce(userId: string): Promise<"sent" | "already" | 
 
   if (!claimed) return "already";
 
-  let outcome: "sent" | "skipped" = "skipped";
+  let sent = false;
   await bestEffortEmail(async () => {
     const admin = createAdminClient();
     const contact = await contactForUser(admin, userId);
     if (!contact) return;
     const result = await sendMessage(contact.email, welcome({ name: contact.name, role }));
-    outcome = result.sent ? "sent" : "skipped";
+    sent = result.sent;
   });
-  return outcome;
+
+  /*
+   * A CLAIM THAT SENT NOTHING IS GIVEN BACK.
+   *
+   * The stamp exists to make the send happen ONCE, not to make it happen
+   * never. Claiming and then failing would burn the welcome permanently, and
+   * the commonest way to fail is not an outage: `bestEffortEmail` does
+   * nothing at all when there is no Resend key, which is the state of any
+   * deployment that has not been given one. Every account created before the
+   * key arrived would have been marked as welcomed and never written to.
+   *
+   * So the stamp is released on anything but a confirmed send, and the next
+   * confirmation, or the next thing that calls this, tries again. The race
+   * this column exists for is still closed, because the release only happens
+   * on the one call that WON the claim and then got nothing for it.
+   */
+  if (!sent) {
+    try {
+      await createAdminClient()
+        .from("profiles")
+        .update({ welcomed_at: null })
+        .eq("id", userId);
+    } catch {
+      /* The stamp stays. One lost welcome is a smaller harm than an
+         exception on somebody's first sign-in. */
+    }
+  }
+
+  return sent ? "sent" : "skipped";
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
