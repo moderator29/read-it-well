@@ -1237,3 +1237,35 @@ type scale, N1 sweeping C1's staged files, and this one. **The count is
 already back down**: C2, N2, A1, A2, B1, N1, N3, N4 and N5 have handed back,
 leaving C1, B2, B3, A3, B1b and A2b, which is six. The five extras are retired
 as they finish rather than being replaced, and nothing new is being spun up.
+
+### Correction to the section above, within the hour
+
+**The ratchet fix was already on main when I wrote that main was red, and my
+reading was of a superseded tip.** A3 landed it as `69bb135`, one file by
+explicit pathspec with the cause and the commit range in the message, before
+my note reached it. What I saw in the working tree was that same content, not
+an uncommitted fix waiting on somebody.
+
+Re-measured on `cc13f16` in a clean worktree: `locale-completeness.test.ts`
+**6 passed**. The test floor is green.
+
+The lesson is the one this ledger keeps relearning in a new costume. A gate
+reading is a photograph of a moving object, and on a tree where a dozen
+workers push every few minutes a clean worktree is necessary but NOT
+sufficient: it also has to be built from a tip fetched at the moment of
+reading, and the result has to name the commit it was taken at. Every gate row
+from here names its commit, which section 6 already demanded of proofs and
+which I did not hold myself to.
+
+**A3's redesign of its own measure, recorded so it is not lost.** The ratchet
+should assert on the SHARE rather than the count. `englishShare` is already
+computed and returned by `localeCompleteness` and is simply not what the
+ratchet tests. A share is invariant under ordinary growth: a new untranslated
+namespace moves it, a new namespace that arrives translated does not, and
+copying English prose into `ha.ts` moves it in the direction the gate is named
+for. Yoruba reads 0.122 today against 0.080 an hour ago, so the share sees
+this event as well. The absolute counts stay in the failure message, because
+"336 keys" is something a person can act on and "0.122" is not.
+
+**`en.ts` is free.** A3 has handed it back with its console work committed.
+B1b holds it next, for the three registration forms.
