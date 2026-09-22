@@ -63,6 +63,13 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/welcome/**`
 - `apps/web/src/components/app/welcome/**`
 - `apps/web/src/app/(auth)/start/**`
+- `apps/web/src/proxy.ts`, ONE LINE ONLY: taking `welcome` out of
+  `PRODUCT_SEGMENTS`, because the proxy sends a signed-out visitor to sign in
+  before any page runs and first run must be reachable signed out. Nothing
+  else in the file is Session B's.
+- `apps/web/tests/gate.spec.mjs`, the matching line only: `/welcome` moves from
+  the product list to the public list (and `/start` is classified public).
+- `apps/web/tests/session-b-welcome.spec.mjs` (new)
 
 ### Welcome back
 - `apps/web/src/app/(auth)/sign-in/**`
