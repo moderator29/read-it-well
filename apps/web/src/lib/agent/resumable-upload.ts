@@ -48,6 +48,20 @@
  *    cleared site and a blocked cookie jar all throw on access rather than
  *    returning null, and an upload that cannot start because storage is
  *    disabled would be a bizarre failure to explain to somebody.
+ *
+ * ---------------------------------------------------------------------------
+ * THE ONE THING THAT WOULD BREAK THIS SILENTLY, NAMED SO IT IS LOOKED AT
+ * FIRST RATHER THAN LAST.
+ *
+ * The whole protocol depends on the browser being ALLOWED TO READ two
+ * response headers across an origin: `Location` on the create, and
+ * `Upload-Offset` on every chunk. A cross-origin response hides every header
+ * that is not in its `Access-Control-Expose-Headers`, and a hidden header
+ * reads as `null` rather than as an error. Supabase Storage exposes both,
+ * which is how every TUS client works against it, and if this ever starts
+ * reporting "the upload could not be started" on a request that returned 201,
+ * that is the first thing to check and not the last. The CSP is not the
+ * suspect: `connect-src` already names the Supabase origin (`lib/security/csp.ts`).
  */
 
 const TUS_VERSION = "1.0.0";
