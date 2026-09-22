@@ -702,6 +702,31 @@ with commits, probes, pitches, and what needs the founder.
 
 ---
 
+## 9.1 The size of the work, counted
+
+The audit and recommendation worker is tracking **157 distinct build items**
+across the five research files, plus a notification matrix of forty events
+against three channels of which nine cells are built. The breakdown, so the
+number can be checked rather than believed:
+
+| Source | Items | Of which |
+| --- | --- | --- |
+| `UNFINISHED_WORK_AUDIT.md`, ranked table | 40 | 12 block launch, 17 hurt launch, 11 below that |
+| `STORE_REJECTION_RISK_RESEARCH.md`, work orders | 25 | 7 refuse us on submission one |
+| `ON_PLATFORM_SWEEP.md` | 32 | 24 departures to close, 8 half built flows, plus 4 permanent exceptions not counted here |
+| `UI_UNIQUENESS_AND_ADMIN_RESEARCH.md` | 32 | 8 toggle and geometry defects, 24 uniqueness inconsistencies |
+| `EMAIL_AND_NOTIFICATIONS_RESEARCH.md` | 28 | 10 built but unreachable, 18 not built at all |
+| **Total** | **157** | |
+
+A further **16 items belong to the founder**, listed in the store research
+file's founder section. They are not this session's work and nothing waits on
+them except deep links, Sign in with Apple's credentials, and the store
+enrolments.
+
+The audit worker reports this count every time it reports, with the number
+closed and the number still open. A count that does not move for two cycles is
+itself a finding.
+
 ## 10. Definition of done
 
 1. Every departure in `ON_PLATFORM_SWEEP.md` is closed or argued in writing.
