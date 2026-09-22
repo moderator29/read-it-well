@@ -139,6 +139,34 @@ for (const theme of THEMES) {
       }, theme);
       await page.waitForTimeout(350);
 
+      /*
+       * A REVEAL BAND AT OPACITY 0 IS NOT A CONTRAST FAILURE, AND THE FIRST
+       * FULL RUN OF THIS SWEEP REPORTED DOZENS OF THEM AS ONE.
+       *
+       * `compare-surface.mjs` calls this "the third harness lie": the page is
+       * loaded, the content is at opacity 0, and every sample under it reads
+       * the ground. Measured here as 214 failures of which most were
+       * `ink rgb(0,6,18) on rgb(0,6,18)`, which is the canvas twice over,
+       * because nothing had been painted in the element's box yet.
+       *
+       * So it polls to a deadline rather than waiting a fixed time: a page
+       * that settles gets measured and a page that genuinely never reveals is
+       * reported as a route that did not open, which is the honest answer.
+       */
+      const deadline = Date.now() + 12_000;
+      for (;;) {
+        const stuck = await page.evaluate(() =>
+          [...document.querySelectorAll(".nf-reveal")].filter(
+            (el) => Number(getComputedStyle(el).opacity) < 0.5,
+          ).length,
+        );
+        if (stuck === 0 || Date.now() > deadline) {
+          if (stuck > 0) throw new Error(`${stuck} reveal band(s) still under opacity 0.5`);
+          break;
+        }
+        await page.waitForTimeout(400);
+      }
+
       const shot = (await page.screenshot({ type: "png", fullPage: true })).toString("base64");
       const found = await page.evaluate(
         async ({ src, dpr }) => {
@@ -265,6 +293,20 @@ for (const theme of THEMES) {
               }
             }
 
+            /*
+             * NOTHING WAS PAINTED IN THIS BOX, which is not the same fact as
+             * "this text has no contrast" and must not be reported as one.
+             *
+             * When the ink the histogram finds IS the surface, the rectangle
+             * held a single colour: the element is transformed out from under
+             * its own box, clipped by something this walk did not catch, or
+             * still animating. A ratio of 1.00 computed from one colour twice
+             * is an artefact of the measurement and says nothing about the
+             * product. These are counted and named separately so the number
+             * this sweep reports is a number somebody can act on.
+             */
+            const painted = ink[0] !== surface[0] || ink[1] !== surface[1] || ink[2] !== surface[2];
+
             const size = parseFloat(cs.fontSize) || 16;
             const weight = Number(cs.fontWeight) || 400;
             const large = size >= 24 || (size >= 18.66 && weight >= 700);
@@ -280,6 +322,7 @@ for (const theme of THEMES) {
               surfaceShare: Math.round(surfaceShare * 100) / 100,
               size: Math.round(size * 10) / 10,
               large,
+              painted,
             });
           }
           return out;
@@ -311,12 +354,19 @@ await browser.close();
  */
 const FLAT = 0.5;
 const fails = findings.filter(
-  (f) => f.surfaceShare >= FLAT && f.ratio < (f.large ? 3 : 4.5),
+  (f) => f.painted && f.surfaceShare >= FLAT && f.ratio < (f.large ? 3 : 4.5),
 );
-const onMedia = findings.filter((f) => f.surfaceShare < FLAT && f.ratio < 4.5);
+const onMedia = findings.filter((f) => f.painted && f.surfaceShare < FLAT && f.ratio < 4.5);
+const unpainted = findings.filter((f) => !f.painted);
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ fails, onMedia, errors, measured: findings.length }, null, 2));
+  console.log(
+    JSON.stringify(
+      { fails, onMedia, unpainted: unpainted.length, errors, measured: findings.length },
+      null,
+      2,
+    ),
+  );
 } else {
   const line = (f) =>
     `  ${f.theme.padEnd(5)} ${f.route}  ${f.tag}.${f.cls}  "${f.text}"  ${f.size}px  ` +
@@ -334,6 +384,9 @@ if (JSON_OUT) {
     .sort((a, b) => a.ratio - b.ratio)
     .slice(0, 40)
     .forEach((f) => console.log(line(f)));
+  console.log(
+    `\nNOTHING PAINTED IN THE ELEMENT'S OWN BOX, so no ratio can be read from it: ${unpainted.length}`,
+  );
   if (errors.length) {
     console.log(`\nROUTES THAT DID NOT OPEN: ${errors.length}`);
     errors.forEach((e) => console.log(`  ${e}`));

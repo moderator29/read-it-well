@@ -261,6 +261,11 @@ the worker. No row, no close, and the lead does not commit it.
 | The dock with the raised centre switch | `GOVERNING-01` screen one | `b1/dock-390-dark.png`, RETAKEN by A2b on `next start` at `6c621e3`, on `/search` because `/home` is behind the gate | dock object 18 on 52 = 0.346, measured; bar 22 on 70 = 0.314; the object rises 7px above the bar; five slots, Home, Search, Switch profile, Feed, Sign up | B1, proof by A2b |
 | The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png`, RETAKEN by A2b at `6c621e3` | row mark 14 on 44 = 0.318, measured. THE STANDING LABEL IS NOT IN THIS PROOF: it only draws on a workspace row, a visitor with no session has none, so B1's 6 on 25 = 0.244 is UNVERIFIED and needs a session | B1, proof by A2b |
 | The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png`, RETAKEN by A2b at `6c621e3` | row 14 on 56 = 0.25, measured; and the sheet it opens is the same sheet the dock opens, asserted in the run | B1, proof by A2b |
+| `/wallet`, the balance card and the action band | `6AF37222` | `next start` on `.next-b2`, build exit 0: figure 40.17px (was 33.5, render ~40), action tile 71x61 (was 71x83, render 77x60), tx glyph 36px (was 44, render ~36) | 0 breaches, 390 and 1536, dark and light | B2 |
+| `/wallet/send`, `/wallet/receive`, `/wallet/transactions`, `/settings/payments`, the page top | `95840448`, `77A54EA3`, `7F96BE6C` | same server; all four on `layout="stacked"`, and the second header row is gone from `/wallet` | 0 breaches, 390 and 1536, dark and light | B2 |
+| `/wallet/transactions`, the statement | `6AF37222` | same server; one card for the whole list with the days as headings inside it, against one card per calendar day | 0 breaches, 390 and 1536, dark and light | B2 |
+| `/start`, `/sign-up/verify`, `/reset-password`, the ink | none; rule 22 locks the register | same server, both themes: heading ink rgb(255,255,255) on plate rgb(0,6,18) = 20.29:1 against 1.14:1 before, and the plate is rgb(0,6,18) in BOTH themes before and after | 0 breaches | B2, found by A2 |
+| The ratio sweep after Tracks L and M | DESIGN_DIRECTION section 1.4 | `compare-surface.mjs --shape-sweep --theme both`, 9 routes x 2 widths x 2 themes, on the same server | **0 breaches.** One at 0.36, the listing photo counter; the feed FAB at 0.50 is icon-only | B2 |
 | `/profile/setup/owner`, THE OWNER FORM, all four screens | `GOVERNING-03` | `b1b/owner-1-about-you`, `owner-2-where`, `owner-2-where-picker`, `owner-2-where-state-chosen`, `owner-3-proof`, `owner-3-proof-none`, `owner-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`. Taken on `next start` with `VALLO_PREVIEW_HARNESS=1` at port 3196, walked by `scratchpad/b1b/proof-owner.mjs`, which fills each screen and presses the control a person would | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** Measured in the browser: every one of the six answer rows 14 on 56 = 0.250, including "I have none of these"; the timing label 14 on 44 = 0.318; the calm panel's glyph is the only circle and it carries no text | B1b |
 | `/profile/setup/agent`, THE AGENT FORM, all four screens | `GOVERNING-04` | `b1b/agent-1-about-you`, `agent-1-about-you-filled`, `agent-2-identity`, `agent-3-fees`, `agent-3-fees-declared`, `agent-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`, walked by `scratchpad/b1b/proof-agent.mjs` on `next start` at port 3196 | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** The two upload cards 14 on 123 = 0.114; the fee control and its two step plates on `--nf-radius-control`; the timing label 14 on 44 = 0.318. The run also asserts the fee behaviour: both fees open NOT DECLARED with the minus disabled; twenty and ten presses read 10 per cent and 5 per cent through `Intl` and the total moves to the right figure; changing the example rent moves the total live; one step below the first rung reads a real zero and one more returns to not declared, and the undeclared line draws the words and never a nought | B1b |
 | The PROPERTY HOME PAGE, everything below the location selector | `GOVERNING-01` screen one | `b3/home-390-dark.png`, `b3/home-390-light.png`, taken on `next start` at port 3185 from a clean tree at `origin/main` plus the four B3 commits. The route itself is behind the signed-in gate in `proxy.ts` and this box reaches no database, so the proof is `/preview/f1/home`, which mounts the SAME `HomeScreen` from fixtures. A preview is not the route and that is said rather than glossed | **0 breaches at 390 and 1536, dark and light.** Measured in the browser: place chip 6 on 30 = 0.20, hero field 14 on 52 = 0.27, filter control 14 on 44 = 0.32, tile plate 18 on 64 = 0.28. Nothing over 0.35 on this route | B3 |
@@ -558,6 +563,112 @@ filled rectangles (`.nf-steprow`), the calm explanatory panel with its small
 round glyph (`.nf-calmpanel`), and the workspace standing label
 (`.nf-switch-standing`). All three are built from the register and the last is
 the one the renders draw as a capsule.
+
+**B2, Tracks L and M: what the three tools now see, what closed, and what is
+still owed.** The tools went first, because a light defect that ships after
+this week is a tooling failure and not a CSS one. All three are on main as
+`e1a48b0`, before a single defect was touched.
+
+| Sweep | Before | After |
+| --- | --- | --- |
+| Shape ratio, 9 routes x 2 widths x 2 themes | the script had NO THEME SWITCH at all; 2 breaches in dark | **0 breaches** |
+| Contrast, the whole preview harness, both themes | 4 elements on 1 route | 98 routes, 7,467 text-bearing leaves, **150 below the floor: dark 51, light 99** |
+| Twin mixing | no such check existed | 45 objects in 16 sets, **2 sets drawing two artwork families side by side** |
+| The CSS gate on the paper twin | `[data-theme]` excluded BY NAME | 11 invalid shadows and 8 dull light controls found and closed |
+
+**THE CONTRAST NUMBER IS A BASELINE, NOT A PASS.** 150 is the first
+measurement this product has ever had of its own ink, and light failing at
+twice the rate of dark is the shape of the founder's complaint, measured. It
+is also not a list of 150 defects, and I corrected the sweep once before
+quoting it: its first run said 214 by counting reveal bands at opacity 0 and
+boxes with no painted text as 1.00:1 failures, which is exactly
+`compare-surface.mjs`'s documented "third harness lie" arriving in a second
+tool. 68 boxes are now quarantined as "nothing painted" rather than reported,
+and some of the remaining 150 will still be that class. The genuine ones at
+the head of the list are the legal page's grey section numerals at 1.31:1, the
+admin desk's "Edit" at 1.32:1 and the agent calendar's day numbers at 1.57:1.
+None is in Track L's scope. All three are now findable, which is the point.
+
+**WHERE THE SURVEYS TURNED OUT TO BE WRONG, because a measurement beat a
+reading.** `LIGHT_MODE_SURVEY.md` calls the settings hub avatar initials "the
+clearest single defect in the survey", white on white at 1.00:1. It is not a
+defect. The initials sit on a `> span` carrying `--nf-gradient-brand`, which is
+`#005DE2` to `#003A8C` in daylight, and the white ink on it is correct in both
+themes; I opened it in both. The 1.00:1 came from pairing the parent's `color`
+with the parent's light `background`, which is precisely the ancestor-blindness
+that survey's own honesty log declares. NOT FIXED, BECAUSE IT IS NOT BROKEN.
+Likewise `DESIGN_DRIFT_SURVEY.md`'s "eleven more above 0.35": those heights
+were INFERRED from padding, and the live sweep across nine routes at two
+widths in both themes finds one, at 0.36.
+
+**And one place my own first pass was wrong, recorded because the browser
+caught it and I did not.** Lowering `min-height` on the wallet's action tile
+and quick card is what the drift survey prescribes, and it moved NEITHER of
+them: the tile measured 70.8px before and after. A minimum only binds when the
+content is shorter than it, and both were taller than their floor. It took 8px
+of block padding and the render's own 22px glyph to reach 60.8. The same
+lesson as the box-shadow and the auth ink, three times in one day: the file
+says one thing and the browser draws another, and only one of them ships.
+
+**STILL OWED, NAMED SO IT IS NOT MISTAKEN FOR CLOSED.**
+
+1. **The 121 untwinned objects need real artwork.** What shipped makes them
+   LEGIBLE on paper without it, by generalising the framed plate that
+   `glass.css:1073-1077` had already proved on the home grid, which is the one
+   surface the founder says reads correctly. The surfaces still owed the real
+   thing are every one that draws an object from a table: the settings hub's
+   six, the search rail's nine, the home grid's nine, the stays category
+   tiles, the landing grids, bookings, trips, checkout, and the flip cover.
+   Commissioning them is a render order and the founder's to place.
+2. **The wallet's quick-action cards are 115px against the render's 85, and I
+   could not close the rest from a stylesheet.** Measured at 390 on the shipped
+   build: the title has 69.5px of width, "Send Money" is 73.1px and "Request
+   Money" is 91.2px, and all four subs are over too, "Every movement" at 95.0.
+   Four cards across a 390px screen cannot hand a title 91.2px, and the
+   inter-card gap trick buys three. The fix is the STRINGS, as the drift survey
+   concluded, and the i18n rule for this build forbids a worker rewriting
+   another scope's keys. So the measurements are here rather than re-derived:
+   shorten `wallet.home.sendMoney` and `requestMoney` to "Send" and "Request",
+   and the four subs to fit, in all four locales, and the card falls to ~85.
+3. **Two sets still draw two artwork families side by side**, found by the new
+   `--twin-sweep`: `app/host/page.tsx` draws `doc-review` (twinned) beside
+   `hotel` (untwinned), and `RentalFace` draws `seal-check` beside
+   `home-search`. B3 found the same class independently, from the other end.
+   The rule is A SET OF OBJECTS DRAWN SIDE BY SIDE IS ALL TWINNED OR NONE, and
+   until today nothing could check it, because the fact lived in a `Set` inside
+   `BrandIcon.tsx` and never reached the DOM. It does now, as `data-twinned`
+   and `data-object`, which is why there is a number at all.
+4. **`--nf-edge-stride-base` is 1.82:1 on paper, up from 1.31:1, and still
+   under the 3:1 boundary floor.** It is three quarters of every card's ring.
+   Taking a conic decoration to 3:1 would put a hard blue outline on every card
+   in daylight, so it is recorded rather than forced.
+5. **The switch track's fill is 1.13:1 against a white card.** The thumb now
+   carries a 5.16:1 neutral ring so an off switch reads at all, and the track
+   stays grey, because grey off and brand on is what a switch MEANS.
+6. **`/start`'s carousel pager stays as it is, and that is a decision.**
+   DESIGN_DIRECTION section 1.4 lists "a progress bar" among the things that
+   are SHAPES and not controls and says the law does not reach them; a 6px bar
+   carries no text and cannot be a text-bearing capsule. That it disagrees with
+   `/verification`'s step bar is a register question, open, not a breach.
+7. **`.nf-social-link` on a `<button>` DRAWS CORRECTLY** at 390 in dark,
+   checked rather than reasoned about: Inter 16px weight 650, brand ink,
+   transparent, no border. `text-align: center` and `appearance: button` do
+   survive Tailwind's preflight and are inert only because the element is
+   `inline-flex` and content-sized; `button.nf-social-link` neutralises both so
+   a future width change cannot silently centre the label.
+
+**One founder decision, carried unanswered and NOT acted on.** The render draws
+a completed credit in cyan and ours is emerald, and our colour law reserves
+cyan for PENDING. Emerald stays.
+
+**And one correction I accept rather than argue.** B3 withdrew my light
+override for `.nf-hero-plate__title` and `__lede`. B3 is right: the hero is a
+dusk photograph, its ground does not change with the theme, so ink that flips
+with the theme is wrong in one mode whichever way it flips. `--nf-content-on-media`
+is the correct answer and my fix was only correct given B3's own earlier
+comment calling it "a light page". Not re-added.
+
+---
 
 **A2's three findings for Group B, who own every stylesheet.** Written here as
 well as in the report, because a finding that lives only in a report dies with

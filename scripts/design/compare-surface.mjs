@@ -566,6 +566,23 @@ const SURFACE = arg("surface", "dock");
 const SCAN = arg("scan", null);
 const FALLOFF = arg("falloff", null);
 const SHAPE_SWEEP = process.argv.includes("--shape-sweep");
+/*
+ * THE TWIN SWEEP: A SET OF OBJECTS DRAWN SIDE BY SIDE IS ALL TWINNED OR NONE.
+ *
+ * 23 of the 144 glass objects ship a light twin and 121 do not. In dark that
+ * distinction paints identically, because an untwinned object's chip is
+ * transparent. On paper they are two different materials: a twinned mark is a
+ * pale frosted object standing on nothing, an untwinned one is its dark
+ * artwork on a framed navy plate. A row holding both is two artwork families
+ * in one row, and it is invisible to everybody working in the default theme.
+ *
+ * It could not be checked from source, because the fact lived in a `Set`
+ * inside `BrandIcon.tsx` and never reached the DOM. It does now, as
+ * `data-twinned`, so this walks a real page and reports every container whose
+ * own object children disagree. Theme-independent by construction: it reads
+ * the attribute, not the paint, so one run answers for both themes.
+ */
+const TWIN_SWEEP = process.argv.includes("--twin-sweep");
 
 /*
  * THE SHAPE SWEEP, AND IT IS THE ONLY CHECK THAT CAN SEE THE DEFECT.
@@ -849,6 +866,72 @@ const surface = SURFACES[SURFACE];
 if (!surface) {
   console.error(`no surface named "${SURFACE}". known: ${Object.keys(SURFACES).join(", ")}`);
   process.exit(2);
+}
+
+if (TWIN_SWEEP) {
+  const routes = (arg("routes", surface.url) ?? surface.url).split(",").map((r) => r.trim());
+  const mixed = [];
+  let containers = 0;
+  let objects = 0;
+  for (const route of routes) {
+    const p = await openSurface(route, PHONE, THEMES[0]);
+    const found = await p.evaluate(() => {
+      const grounds = [...document.querySelectorAll(".nf-brand-icon-ground[data-twinned]")];
+      /* Group by the nearest ancestor that holds more than one of them: that
+         is the "set drawn side by side" the rule is about. A single object on
+         a surface of its own can never disagree with anything. */
+      const byParent = new Map();
+      for (const g of grounds) {
+        let host = g.parentElement;
+        while (host && host.querySelectorAll(".nf-brand-icon-ground[data-twinned]").length < 2) {
+          host = host.parentElement;
+        }
+        if (!host) continue;
+        if (!byParent.has(host)) byParent.set(host, []);
+        byParent.get(host).push({
+          object: g.dataset.object,
+          twinned: g.dataset.twinned === "true",
+        });
+      }
+      const out = [];
+      for (const [host, kids] of byParent) {
+        const twinned = kids.filter((k) => k.twinned);
+        const bare = kids.filter((k) => !k.twinned);
+        if (twinned.length && bare.length) {
+          out.push({
+            host:
+              (typeof host.className === "string" ? host.className.split(/\s+/).slice(0, 3).join(".") : "") ||
+              host.tagName.toLowerCase(),
+            twinned: twinned.map((k) => k.object),
+            untwinned: bare.map((k) => k.object),
+          });
+        }
+      }
+      return { mixed: out, containers: byParent.size, objects: grounds.length };
+    });
+    await p.close();
+    containers += found.containers;
+    objects += found.objects;
+    for (const m of found.mixed) mixed.push({ route, ...m });
+  }
+  await browser.close();
+  if (JSON_OUT) {
+    console.log(JSON.stringify({ mixed, containers, objects }, null, 2));
+  } else {
+    console.log(
+      `twin sweep: ${routes.length} route(s). ${objects} object(s) in ${containers} set(s) of two or more.\n`,
+    );
+    console.log(`SETS MIXING TWINNED AND UNTWINNED ARTWORK: ${mixed.length}`);
+    for (const m of mixed) {
+      console.log(`  ${m.route}  ${m.host}`);
+      console.log(`      twinned:   ${m.twinned.join(", ")}`);
+      console.log(`      untwinned: ${m.untwinned.join(", ")}`);
+    }
+    console.log(
+      `\n${mixed.length === 0 ? "every set drawn side by side is all twinned or none." : `${mixed.length} set(s) draw two artwork families side by side. On paper that is visible; in dark it is not.`}`,
+    );
+  }
+  process.exit(mixed.length === 0 ? 0 : 1);
 }
 
 if (SHAPE_SWEEP) {

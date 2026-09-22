@@ -458,8 +458,33 @@ export function BrandIcon({
      * survives only because the light theme still wants a navy chip behind the
      * 80 objects that have no light twin.
      */
+    /*
+     * `data-twinned` AND `data-object` EXIST SO A MIXED SET CAN BE SEEN.
+     *
+     * 23 of the 144 objects ship a light twin and 121 do not. In DARK that
+     * distinction is invisible, because an untwinned object's chip is
+     * transparent and both families paint the same way. In DAYLIGHT they are
+     * two different materials: a twinned mark is a pale frosted object with no
+     * plate, and an untwinned one is its dark artwork on a framed navy plate.
+     * Drawn side by side that is two artwork families in one row, and it has
+     * happened in at least six places (`WalletDeck`, `RentalFace`,
+     * `app/host/page.tsx`, `HostWizard` and two icon rows B3 found).
+     *
+     * THE RULE IT BREAKS IS SIMPLE AND NOTHING COULD CHECK IT: A SET OF
+     * OBJECTS DRAWN SIDE BY SIDE IS ALL TWINNED OR NONE. Nothing could check
+     * it because the fact lived in a `Set` inside this file and never reached
+     * the DOM, so neither a stylesheet, a reviewer's eye in dark, nor any
+     * browser check could tell one from the other.
+     *
+     * Now it reaches the DOM. `scripts/design/compare-surface.mjs --twin-sweep`
+     * walks a real page and reports any container holding both. The attributes
+     * are inert: nothing styles them, and they cost two strings on an element
+     * that already exists.
+     */
     return (
       <span
+        data-twinned={twinned ? "true" : "false"}
+        data-object={object}
         className={`nf-brand-icon-ground ${twinned ? "nf-brand-icon-ground--twinned" : ""} ${
           fill ? "block h-full w-full" : "inline-flex"
         } ${className ?? ""}`}
