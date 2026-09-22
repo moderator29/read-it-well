@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { Unreachable } from "@/components/app/Unreachable";
@@ -54,7 +55,10 @@ export default async function NotificationsPage() {
   if (session.state === "unconfigured") {
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Notifications" />
+        <div className="relative">
+          <PageScene art="bell-badge" />
+          <PageHeader title="Notifications" />
+        </div>
         <Reveal>
           <Unreachable
             noun="notifications"
@@ -68,7 +72,10 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Notifications" />
+      <div className="relative">
+        <PageScene art="bell-badge" />
+        <PageHeader title="Notifications" />
+      </div>
       <Reveal>
         {/* One empty state, one action treatment. This was a `MomentScreen`
             with two hand-written `nf-btn` anchors at intrinsic width, beside a

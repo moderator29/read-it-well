@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { Unreachable } from "@/components/app/Unreachable";
@@ -41,7 +42,13 @@ export default async function SavedSearchesPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Saved searches" fallback="/saved" />
+      {/* The same brand object anchor /saved opens on, because a person
+          crossing between the two shelves should not cross a seam. See the
+          note in LiveNotifications for why it wraps the header alone. A2. */}
+      <div className="relative">
+        <PageScene art="search-ring" />
+        <PageHeader title="Saved searches" fallback="/saved" />
+      </div>
 
       {state.state === "unconfigured" || state.state === "unavailable" ? (
         <Reveal>
@@ -61,7 +68,10 @@ export default async function SavedSearchesPage() {
             action={
               <EmptyActions
                 primary={{ label: "Sign in", href: "/sign-in" }}
-                secondary={{ label: "Browse without an account", href: "/search" }}
+                secondary={{
+                  label: "Browse without an account",
+                  href: "/search",
+                }}
               />
             }
             data-testid="saved-searches-signed-out"
@@ -73,9 +83,16 @@ export default async function SavedSearchesPage() {
             icon="search-ring"
             title="Keep a search and we will watch it"
             body="Filter the results down to the place you actually want, then save that search. It waits here under the name you give it, and we tell you when something new fits it."
-            action={<EmptyActions primary={{ label: "Start a search", href: "/search" }} />}
+            action={
+              <EmptyActions
+                primary={{ label: "Start a search", href: "/search" }}
+              />
+            }
             secondary={
-              <Link href="/saved" className="nf-link-quiet nf-body text-[var(--nf-content-link)]">
+              <Link
+                href="/saved"
+                className="nf-link-quiet nf-body text-[var(--nf-content-link)]"
+              >
                 Your saved places
               </Link>
             }

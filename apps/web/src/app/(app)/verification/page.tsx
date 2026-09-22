@@ -4,13 +4,20 @@ import { getLocale } from "@/lib/locale";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getOwnLadder } from "@/lib/agent/verification-queries";
 import { PageHeader } from "@/components/app/PageHeader";
+import { PageScene } from "@/components/app/PageScene";
 import { KycFlow } from "@/components/verification/KycFlow";
-import { KycStatus, type KycStatusView } from "@/components/verification/KycStatus";
+import {
+  KycStatus,
+  type KycStatusView,
+} from "@/components/verification/KycStatus";
 import { submitVerification } from "./actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
-  return { title: t.agent.nav.verification, robots: { index: false, follow: false } };
+  return {
+    title: t.agent.nav.verification,
+    robots: { index: false, follow: false },
+  };
 }
 
 export const dynamic = "force-dynamic";
@@ -49,7 +56,9 @@ export default async function VerificationPage({
   const context = await getAgentContext();
   const ladder = await getOwnLadder(context);
   const params = await searchParams;
-  const asked = Array.isArray(params.resubmit) ? params.resubmit[0] : params.resubmit;
+  const asked = Array.isArray(params.resubmit)
+    ? params.resubmit[0]
+    : params.resubmit;
 
   /*
    * Which status surface applies, if any.
@@ -61,7 +70,9 @@ export default async function VerificationPage({
    */
   let status: KycStatusView | null = null;
   if (ladder.state === "ok") {
-    const failed = Object.values(ladder.ladder.rungs).find((rung) => rung.status === "failed");
+    const failed = Object.values(ladder.ladder.rungs).find(
+      (rung) => rung.status === "failed"
+    );
     const agentStatus = context.state === "agent" ? context.agent.status : null;
 
     if (agentStatus === "SUSPENDED") {
@@ -104,7 +115,9 @@ export default async function VerificationPage({
        * rather than inventing a request nobody made, and sends them to a
        * person, which is the same discipline the rejection already uses.
        */
-      const asking = Object.values(ladder.ladder.rungs).find((rung) => rung.note);
+      const asking = Object.values(ladder.ladder.rungs).find(
+        (rung) => rung.note
+      );
       status = {
         state: "more_info",
         request:
@@ -138,18 +151,25 @@ export default async function VerificationPage({
    * a suspended one does not get a form that cannot lift a suspension.
    */
   const resubmitting =
-    asked === "1" && (status?.state === "rejected" || status?.state === "more_info");
+    asked === "1" &&
+    (status?.state === "rejected" || status?.state === "more_info");
   const whatWasSaid =
     status?.state === "rejected"
       ? status.reason
       : status?.state === "more_info"
-        ? status.request
-        : null;
+      ? status.request
+      : null;
 
   if (resubmitting) {
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Verification" fallback="/verification" />
+        {/* The register's brand object behind the first line. The shield is
+            the object this screen is about, and it is the same anchor the
+            rest of the own-data screens open on. A2. */}
+        <div className="relative">
+          <PageScene art="shield-check" />
+          <PageHeader title="Verification" fallback="/verification" />
+        </div>
         {/* The reviewer's words travel INTO the flow. Somebody re-photographing
             a document should not have to remember, from the screen before, which
             one was refused and why. */}
@@ -170,7 +190,10 @@ export default async function VerificationPage({
     <div className="mx-auto max-w-2xl">
       {status ? (
         <>
-          <PageHeader title="Verification" />
+          <div className="relative">
+            <PageScene art="shield-check" />
+            <PageHeader title="Verification" />
+          </div>
           <KycStatus status={status} locale={locale} />
         </>
       ) : (

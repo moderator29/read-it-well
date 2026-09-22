@@ -6,7 +6,10 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { lagosTimeLabel } from "@/lib/messages/time";
-import { useNotificationsRealtime, type LiveNotificationRow } from "@/lib/messages/useRealtime";
+import {
+  useNotificationsRealtime,
+  type LiveNotificationRow,
+} from "@/lib/messages/useRealtime";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 
@@ -93,7 +96,9 @@ export function LiveNotifications({
   });
 
   const markOne = useCallback((id: string) => {
-    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setItems((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
     void markNotificationsRead({ ids: [id] });
   }, []);
 
@@ -158,7 +163,10 @@ export function LiveNotifications({
           <section key={section.label} aria-label={section.label}>
             <div className="nf-notif__head">
               <h2 className={TYPE.sectionTitle}>{section.label}</h2>
-              <span className="nf-notif__count nf-numeric" aria-label={`${section.items.length} in ${section.label}`}>
+              <span
+                className="nf-notif__count nf-numeric"
+                aria-label={`${section.items.length} in ${section.label}`}
+              >
                 {section.items.length}
               </span>
             </div>
@@ -169,17 +177,24 @@ export function LiveNotifications({
               {section.items.map((n) => {
                 const inner = (
                   <>
-                    <span className="nf-glass nf-glass--tile nf-notif__tile" aria-hidden="true">
+                    <span
+                      className="nf-glass nf-glass--tile nf-notif__tile"
+                      aria-hidden="true"
+                    >
                       <UiIcon name={iconFor(n.kind)} size={20} />
                     </span>
 
                     <span className="nf-notif__body">
                       <span className="nf-notif__title">{n.title}</span>
-                      {n.body && <span className="nf-notif__text">{n.body}</span>}
+                      {n.body && (
+                        <span className="nf-notif__text">{n.body}</span>
+                      )}
                     </span>
 
                     <span className="nf-notif__meta">
-                      <span className="nf-notif__time nf-numeric">{lagosTimeLabel(n.createdAt)}</span>
+                      <span className="nf-notif__time nf-numeric">
+                        {lagosTimeLabel(n.createdAt)}
+                      </span>
                       {n.read ? (
                         <span aria-hidden="true" className="h-2.5 w-2.5" />
                       ) : (
