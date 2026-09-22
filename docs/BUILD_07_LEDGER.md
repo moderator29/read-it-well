@@ -4549,3 +4549,66 @@ Nigerian language.
 reflowed them at the default 80 columns when the repo is prettier at 100; the
 reflow was reverted and the four files that did change are formatted at 100 so
 they match the tree around them.
+
+## 40. RUNNING THE PROBE CAUGHT A SHIPPING DEFECT THAT THE PROBE ITSELF BELIEVED WAS IMPOSSIBLE
+
+IMG-C's enum migration and its probe had never run, because that agent was
+reaching the same inactive project that blocked the sale probe. I applied both
+against `uccixoonmbhrnyczyigt`.
+
+**The migration applied and is verified:** `room_category` now reads
+`entire_flat, whole_house, private_room, single, double, twin, suite, family,
+dorm`. Nine labels, the three new ones at the head in the intended order, the
+six old ones intact.
+
+**Then the probe failed, and it failed on something real.**
+
+```
+ERROR: 23514 new row for relation "room_types" violates check constraint
+"room_types_beds_check"
+```
+
+`room_types_beds_check` is `CHECK (jsonb_typeof(beds) = 'array')`. **The
+`beds` column must hold an ARRAY.** Every live row holds one:
+`[{"kind": "queen", "count": 1}]`.
+
+### The defect this exposes is in the product, not in the probe
+
+`lib/host/actions.ts:1148` writes:
+
+```ts
+beds: { bedrooms: data.bedrooms, beds: data.beds }
+```
+
+An OBJECT. **So `GOVERNING-11`'s "Your place" screen cannot save.** Not
+because a migration is missing, which is the failure the screen was written to
+explain, but because the database refuses the shape. The first real shortlet
+host would have met a check constraint violation on submit.
+
+**And the belief that caused it is written down in the code.**
+`lib/host/queries.ts:41` says "`room_types.beds` has no shape constraint".
+That sentence is false, and everything above it was built on it: the probe's
+own comment repeats it almost word for word, asserting the round trip
+*because* the column supposedly accepts anything. **The probe was written to
+test a claim it had inherited rather than checked**, which is why it asserted
+the wrong shape confidently.
+
+That is the day's pattern one more time. A comment asserting an absence is
+exactly as unverified as a test asserting a presence, and this one propagated
+from a file, into a probe, into a screen.
+
+### Why this was worth the run
+
+IMG-C's own caveat was that the screen "draws correctly and does not save
+until that migration is applied". The migration is applied now. **It still
+does not save.** Nothing short of running the probe against a real database
+would have found that, and the agent could not run it. A probe that never
+executes is a plan, not a proof.
+
+### What the fix needs, and it is a decision rather than a patch
+
+`bedrooms` is not a bed. The established array carries what is slept in, one
+entry per bed kind with a count. A shortlet's bedroom count is a different
+fact about the property and has nowhere honest to live in that array, so the
+choices are a column of its own or a deliberate widening of what `beds`
+means. Routed back to the author, who has the screens and the tests.
