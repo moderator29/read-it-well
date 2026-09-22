@@ -863,9 +863,26 @@ export function ListingWizard({
      lister watches the real number appear as they type the parts, which is the
      figure a Nigerian tenant is actually shopping on and the one the platform
      has never shown anybody. */
+  /*
+   * THE SERVICE CHARGE WAS MISSING FROM THIS LIST AND THE TENANT WAS ALWAYS
+   * GOING TO BE SHOWN IT.
+   *
+   * Found by drawing GOVERNING-08 screen two under the boxes that feed it: the
+   * breakdown totalled a stated tenancy at 5,150,000 while the hint two inches
+   * above it said "leave blank and we show 5,000,000", and the gap was exactly
+   * the service charge. `moveInParts` in `lib/listings/pricing.ts` is the
+   * canonical list and has always counted it, so the listing page a searcher
+   * reads counted it too. The only place that did not was the agent's own
+   * floor, which is the number they price against.
+   *
+   * It raises the floor the stated total is checked against, which is the
+   * correct direction: a total BELOW the parts the lister named is a quote
+   * that contradicts its own breakdown.
+   */
   const feeParts = [
     values.rentNaira,
     values.cautionDepositNaira,
+    values.serviceChargeNaira,
     values.agencyFeeNaira,
     values.legalFeeNaira,
     values.agreementFeeNaira,
@@ -1789,6 +1806,39 @@ export function ListingWizard({
                 </FactRow>
               </div>
             </div>
+
+            {/*
+              BUILD CONDITION, AND IT USED TO BE ASKED ONLY OF A SALE.
+
+              GOVERNING-06 screen four heads "Condition and availability" and
+              draws the four conditions as cards. It is a fact about the
+              BUILDING, not about the transaction, and a tenant asks it as
+              often as a buyer does: "newly built" and "older build" are the
+              difference between a flat you move into and one you renovate.
+              The column has always been on every listing and was null on
+              every rental, because the only control that wrote it lived
+              inside the for-sale branch.
+
+              The availability half of that render stays with the tenancy
+              terms on the price step, where the date sits beside the shortest
+              tenancy it has to agree with.
+            */}
+            <fieldset>
+              <legend className="nf-label mb-inline">
+                {copy.drawn.checkOver.keys.condition}
+              </legend>
+              <div className="nf-lw-choices">
+                {CONDITION_CHOICES.map((c) => (
+                  <Choice
+                    key={c.value}
+                    name={c.label}
+                    object={CONDITION_OBJECT[c.value]}
+                    chosen={values.condition === c.value}
+                    onClick={() => set("condition", values.condition === c.value ? "" : c.value)}
+                  />
+                ))}
+              </div>
+            </fieldset>
           </div>
         )}
 
@@ -2438,30 +2488,7 @@ export function ListingWizard({
                   </Field>
                 </div>
 
-                {/* GOVERNING-06 screen four draws build condition as four
-                    cards with objects and a tick, not as a select. A select
-                    is the right control for a long closed list; four is not a
-                    long list, and hiding four options behind a tap is how the
-                    condition of the building ended up unstated on most of
-                    them. */}
-                <fieldset>
-                  <legend className="nf-label mb-inline">
-                    {copy.drawn.checkOver.keys.condition}
-                  </legend>
-                  <div className="nf-lw-choices">
-                    {CONDITION_CHOICES.map((c) => (
-                      <Choice
-                        key={c.value}
-                        name={c.label}
-                        object={CONDITION_OBJECT[c.value]}
-                        chosen={values.condition === c.value}
-                        onClick={() =>
-                          set("condition", values.condition === c.value ? "" : c.value)
-                        }
-                      />
-                    ))}
-                  </div>
-                </fieldset>
+
               </>
             )}
 

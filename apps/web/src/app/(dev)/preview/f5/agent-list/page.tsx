@@ -4,6 +4,7 @@ import { AgentShell } from "@/components/agent/AgentShell";
 import { ListingWizard } from "@/app/agent/list/ListingWizard";
 import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
 import type { WizardDraft } from "@/lib/agent/listings-queries";
+import { SCENE_PHOTOGRAPHS } from "@/lib/listings/scene-photographs.generated";
 import { AGENT_PROFILE } from "../ops-fixtures";
 
 /**
@@ -88,7 +89,18 @@ const RENTAL_DRAFT: WizardDraft = {
     accessCode: "",
   },
   amenityCodes: ["wifi", "ac", "kitchen", "parking", "security", "generator", "water", "balcony"],
-  photos: [],
+  /*
+   * GOVERNING-07 screen four draws a FULL grid: five photographs with the
+   * cover marked and the add cell last. An empty grid photographs the empty
+   * state, which is worth a picture of its own and is not the picture that
+   * render is. These are the product's own scene photographs, already in
+   * `public/brand/scenes` and already on the optimiser's allowlist, so the
+   * grid is drawn with real images at real aspect ratios rather than grey
+   * boxes that would flatter the layout.
+   */
+  photos: Object.entries(SCENE_PHOTOGRAPHS)
+    .slice(0, 5)
+    .map(([name, url], i) => ({ id: `preview-${name}`, path: url, url, position: i })),
   videos: [],
   reviewNotes: null,
 };

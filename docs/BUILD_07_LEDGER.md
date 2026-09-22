@@ -4671,3 +4671,236 @@ ON MOST SCREENS, from 16px to whatever the token actually says, which is the
 point and is also a large visual change to make in one commit. It is staffed
 with the requirement to measure before and after on real screens rather than
 land it blind.
+
+## 25. IMG-B: THE LISTING WIZARD, DRAWN TO GOVERNING-06, -07 AND -08
+
+**Gate: a clean worktree at `origin/main`, hard linked `node_modules`, built
+with `next build` into its own `NEXT_DIST_DIR` and served with `next start`.
+The first gate was taken at `be2713e`. The branch moved under me twice while I
+worked, so the proofs below were re-taken at `29f23c9`, which is the commit
+that carries this work. No proof in this section came off `next dev` and none
+came off the shared tree.**
+
+### What was wrong, said plainly
+
+The wizard worked. It collected the property, the location, the light, the
+water, the amenities, the photographs, the walkthrough and the money, and it
+saved every one of them. What it did not do was look like the three images
+that govern it, and the gap was not a matter of polish: **it was missing the
+anatomy the roles README calls the register.** No back chevron beside a row of
+rectangles. No display title with a sentence under it. No glass object in a
+header. No calm explanatory panel anywhere, on a flow whose reference set
+draws one on almost every screen. Option cards with no object, no lit rim and
+no tick. Amenities as wrapping chips. Photographs in a two column list with a
+"Make cover" text button under each one.
+
+And one screen of the twelve **existed nowhere at all**: GOVERNING-08 screen
+two, "What will a tenant actually pay?", on the agent's own side.
+
+### The twelve, closed one by one
+
+Every row names the shot and the render. Shots are at
+`docs/design/proofs/imgb/`, three per panel: 390 dark, 390 light, 1536 dark.
+The renders are at `docs/design/references/roles/`.
+
+| Render | Screen | Our shot | Verdict |
+| --- | --- | --- | --- |
+| 06 | 1, what are you listing | `06-1-390-dark.jpg` | Closed. Three across, centred object over one word, lit rim at rest, round tick on the chosen one. The blurb moved to the calm panel below the grid. |
+| 06 | 2, where is it | `06-2-390-dark.jpg` | Closed on the fields and the head. **The map is not drawn.** See "not closed" below. |
+| 06 | 3, the rooms | `06-3-390-dark.jpg` | Closed. Fact rows with the object on its plate, the question under the name, the stepper on the right, the Optional mark on Size as a rounded rectangle. |
+| 06 | 4, condition | `06-4-390-dark.jpg` | Closed, and it could not have been before: build condition was asked only of a sale. See below. |
+| 07 | 1, light | `07-1-390-dark.jpg` | Closed on the grids, the stepper and the switch. **No lightbulb object exists**, so the header carries none. |
+| 07 | 2, water | `07-1-390-dark.jpg` | Closed on the same step. **No water drop object exists.** |
+| 07 | 3, amenities | `07-3-390-dark.jpg` | Closed. Twelve tiles, three across, glyph over word, tick when on. |
+| 07 | 4, photos and walkthrough | `07-4-390-dark.jpg`, `07-4-390-light.jpg` | Closed on the grid. The drag grip is two real move controls instead. |
+| 08 | 1, the price | `08-1-390-dark.jpg` | Closed. |
+| 08 | 2, what a tenant pays | `08-2-390-dark.jpg` | Closed, and it is the row worth looking at. |
+| 08 | 3, check it over | `08-3-390-dark.jpg` | Closed. The details table with Edit on every row. |
+| 08 | 4, sent for review | `08-4-390-dark.jpg` | Closed on the anatomy. **There is no code in the ID box and there cannot be.** |
+
+### The one picture that proves the founder's rule
+
+`08-2-390-dark.jpg` holds all three cases of the honesty rule in one frame,
+which is why the preview fixture was written to produce them rather than to
+look tidy:
+
+| Line | Drawn as | Why |
+| --- | --- | --- |
+| Rent (yearly) | `₦2,500,000`, "Paid to the landlord" | Declared |
+| **Agency fee** | **"No agency fee" in the success ink, and no keeper line** | A DECLARED ZERO. A different fact from silence, and the argument of the whole handoff in one line. |
+| Legal fee | **"Not declared"**, muted, no figure | Undeclared. Still listed, because the tenant meets it either way. |
+| Agreement fee | **"Not declared"**, muted, no figure | Undeclared. |
+| Caution deposit (refundable) | `₦2,500,000` | Declared |
+| Service charge (monthly) | `₦150,000`, "Paid to the estate" | Declared |
+| **Move in from** | **`₦5,150,000`** | The sum of the DECLARED lines only. The two silences contribute nothing, and the label is "from" because no total was stated. |
+
+**It shares the model rather than mirroring it.** `moveInLines` now takes a
+narrow `MoveInFacts` instead of a whole `Listing`, which `Listing` satisfies,
+so no existing caller changed and the wizard did not need a second
+implementation of the declared / undeclared / declared-zero distinction. That
+file exists precisely so the distinction lives in one place, and a copy of it
+in the wizard would have been the defect it was written to prevent.
+
+### A money bug this found, which nothing else would have
+
+Drawing the breakdown under the boxes that feed it put two numbers on one
+screen that disagreed. The block totalled `₦5,150,000`; the hint two inches
+above it said "leave blank and we show ₦5,000,000". The gap was exactly the
+service charge.
+
+`moveInParts` in `lib/listings/pricing.ts` is the canonical list and has
+always counted the service charge, so **the listing page a searcher reads
+counted it and the agent's own floor did not.** The lister was pricing against
+a number lower than the one their tenant would be shown. Fixed in the
+wizard's local `feeParts`; `pricing.ts` was already right and was not touched.
+
+Nothing else would have caught it, because it is not a type error, not a shape
+breach and not a contrast failure. It needed the two figures drawn on one
+screen.
+
+### Build condition was asked only of a sale
+
+GOVERNING-06 screen four draws the four conditions as cards. In the wizard the
+only control that wrote `condition` lived inside the for-sale branch, so the
+column was **null on every rental ever listed**. It is a fact about the
+BUILDING, not about the transaction: "newly built" against "older build" is
+the difference between a flat somebody moves into and one they renovate, and a
+tenant asks it as often as a buyer. The cards are on the property step now,
+where every listing passes. The availability half of that render stays with
+the tenancy terms, where the date sits beside the shortest tenancy it has to
+agree with.
+
+### The shape law, measured rather than asserted
+
+`compare-surface.mjs --shape-sweep --theme both`, seven wizard routes, 390 and
+1536, dark and light:
+
+```
+no text-bearing control is a capsule.
+```
+
+The only round controls the sweep finds in this scope are 24 instances of
+`nf-lw-back`, the back chevron, at 44x44 on a 22px radius. A bare icon-only
+control drawn round in a governing image is the standing exception in the
+roles README, and every one of the three renders draws it round.
+
+Every capsule the renders draw ships as a rounded rectangle: the Optional
+mark, the Cover mark on a photograph, and the step segments, which are 10px
+tall on a 3px radius for a ratio of 0.3. `--nf-radius-xs` is 6px and would
+clamp to a half-height arc at that size, which is a capsule however it is
+spelled, so the radius is derived from the token rather than taken from it.
+
+### Two things the check caught that I had got wrong
+
+1. **`check-css-tokens.mjs` called `.nf-lw-choice` and `.nf-lw-tile` dull
+   controls**, because both rested on `--nf-border-subtle`. It was right, and
+   so is the render: every unchosen property type, build condition, power band
+   and water source in 06 and 07 carries a lit blue rim. They rest on
+   `--nf-brand-edge` with `--nf-glow-edge` now, and go one rung up when chosen.
+2. **The first capture drew every tick as a solid blue blob.** `verified-badge`
+   is already a filled disc in `currentColor` with the tick knocked out in
+   `--nf-content-on-brand`, so a brand disc behind it and on-brand ink in front
+   of it is a white tick on a white disc. The glyph IS the badge. The same
+   mistake was on the sent-for-review screen twice over, where `home-check`
+   already carries a tick of its own; that second badge is gone.
+
+### NOT CLOSED, AND SAID PLAINLY
+
+- **The map on 06 screen two is not built.** The render draws a dark map card
+  with roads, four place labels, a glowing pin on an elliptical plinth and a
+  "Drag the pin to the building" strip. The wizard collects the location as
+  text and has no map on this step at all. `map.css` and the tiles provider
+  exist; wiring a draggable pin into the wizard and storing a coordinate is a
+  piece of work with a database column behind it, not a styling pass, and I
+  did not start it rather than half start it. **The fields, the head and the
+  panel on that screen are drawn; the map is absent.**
+- **Two glass objects do not exist and the headers carry none.** GOVERNING-07
+  heads Light with a lightbulb and Water with a droplet. The 144-object pack
+  has neither, and the nearest candidates mean something else in this product.
+  This codebase already ruled that a glyph meaning the wrong thing is worse
+  than no glyph, because the reader does not know they have misread it. **For
+  the artwork list: one lightbulb on its plinth, one water drop on its
+  plinth**, at the size the other header objects are cut to.
+- **The listing ID box on 08 screen four holds no code, and cannot.** The
+  `VL-` code is minted by trigger at PUBLISH and never at draft, because a code
+  is a public handle and a listing in review has no public existence. Rule 15
+  forbids printing a figure the database cannot produce. The panel keeps the
+  render's anatomy, its heading and its sentence, and says the true thing in
+  the place the code will occupy. `listingReference.copy` and `.copied` remain
+  written and undrawn: they are the Copy control for the "your listing is
+  live" surface, which nobody has built.
+- **The wizard is eight steps and the renders draw twelve screens.** I did not
+  re-cut the flow. The founder's list is container anatomy, radii, glow, glass,
+  lit rims, icon style, spacing, type weights, progress rows and calm panels,
+  which are properties of surfaces rather than a step count, and re-cutting an
+  eight step form with a server-side submit gate and device-local draft
+  recovery is a different job from drawing it. The mapping is in the table
+  above and every one of the twelve screens has a shot.
+- **The Hausa, Igbo and Yoruba need a speaker.** The new copy carries a NATIVE
+  REVIEW note in each file. None of it is a re-translation of shipped words:
+  English had none of this copy either until today, so the risk is a clumsy
+  new sentence rather than a regression, and a key removed falls back to
+  English.
+
+### A REPORTED DEFECT THAT DID NOT REPRODUCE, AND THE INSTRUMENT IS WHY
+
+I was routed `.nf-movein__label` on `/preview/f3/listing` at **1.03:1 in light
+mode, white on white**, in `catalogue.css`, which is mine. It does not
+reproduce, and the disagreement is instrument against instrument rather than
+opinion against measurement.
+
+`probe-contrast.mjs` takes ONE `fullPage: true` screenshot and then maps each
+element with `getBoundingClientRect() + window.scrollY` against it. I measured
+the same class the same way arithmetically, but off a VIEWPORT screenshot with
+the element scrolled to centre, so nothing fixed or viewport-sized can be
+painted over the coordinates:
+
+```
+light  Rent (yearly)                  ink rgb(22,24,29) on rgb(255,255,255) = 17.76:1
+light  Agency fee                     ink rgb(22,24,29) on rgb(255,255,255) = 17.76:1
+light  Legal fee                      ink rgb(22,24,29) on rgb(255,255,255) = 17.76:1
+light  Agreement fee                  ink rgb(22,24,29) on rgb(255,255,255) = 17.76:1
+light  Caution deposit (refundable)   ink rgb(22,24,29) on rgb(255,255,255) = 17.76:1
+light  Service charge                 ink rgb(22,24,29) on rgb(255,255,255) = 17.76:1
+```
+
+All twelve labels on the route, every one at 17.76:1. The computed style
+agrees: `--nf-content-primary` resolves to `#16181d` on that element and the
+row paints `rgb(255,255,255)` under it.
+
+The reported ink, `rgb(252,252,252)`, **does not occur anywhere in the
+element's real box**, whose second and third colours are the antialiasing
+fringe `rgb(104,111,119)`. That is the signature of a rectangle read over
+blank page rather than over the glyphs. `/preview/f3/listing` carries a fixed
+sticky bar, and a `fullPage` capture in Chromium resizes the viewport and
+relayouts the page, so rects measured after the shot need not describe the
+pixels in it.
+
+**I changed no CSS.** Acting on that reading would have darkened ink that is
+already at 17.76:1 on a route whose light theme is correct. The probe is
+otherwise the right tool and it found a real 1.00:1 on the settings avatar;
+this is a third harness lie in the same family as the one the sweep register
+already records, and it belongs to whoever owns that script. Two suggestions
+for them: shoot the viewport with the element scrolled into view, or assert
+that the sampled rectangle's histogram contains the element's own computed
+`color` before reporting a ratio from it.
+
+### What I did not do and should be said
+
+- I did not touch `tokens.css`, `buttons.css`, `chips.css`, `glass.css`,
+  `light.css`, `chrome.css` or `controls.css`. `catalogue.css` is the only
+  stylesheet in this work.
+- I did not touch `Progress.tsx`. `SegmentedProgress` still draws
+  `--nf-radius-pill` segments for its other callers; the wizard stopped using
+  it and draws the rail in `catalogue.css`, keeping the same ARIA contract.
+  **Somebody who owns that component should decide whether its segments are
+  capsules everywhere else too.**
+- **I ran `git stash` once, by accident, in my own gate worktree.** It is on
+  the stop list. I caught it in the next command and popped it; nothing was
+  lost and the shared tree was never touched. Recording it because the rule is
+  not "no harm done", it is "do not run it".
+- Two eslint warnings remain in `ListingWizard.tsx`, both in code I did not
+  write: a `setState` inside the draft-restore effect and a missing `locale`
+  dependency on the save callback. **No lint rule was disabled.** The file has
+  zero errors, `tsc --noEmit` is clean and `check-css-tokens.mjs` reports no
+  dull control and no unresolved reference from `catalogue.css`.
