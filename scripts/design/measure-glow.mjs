@@ -65,6 +65,16 @@ function meanRow(x0, x1, y) {
   return [r / n, g / n, b / n];
 }
 
+/** A row's mean over ink-free columns only. See the note where they are found. */
+function meanFill(columns, y) {
+  let r = 0, g = 0, b = 0;
+  for (const x of columns) {
+    const p = at(x, y);
+    r += p[0]; g += p[1]; b += p[2];
+  }
+  return [r / columns.length, g / columns.length, b / columns.length];
+}
+
 function fmt([r, g, b]) {
   const hex = (v) => Math.round(v).toString(16).padStart(2, "0");
   return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)}) #${hex(r)}${hex(g)}${hex(b)} L=${lum([r, g, b]).toFixed(1)}`;
@@ -104,14 +114,61 @@ const label = argv.includes("--label") ? argv[argv.indexOf("--label") + 1] : fil
 console.log(`\n=== ${label} ===`);
 console.log(`${file} ${width}x${height}, control x=${x} y=${y} w=${w} h=${h}`);
 
-/* The middle sixty per cent, so a chevron or a label at either end cannot
-   drag a row's mean away from the fill. */
+/*
+ * THE COLUMNS THAT CARRY NO LABEL INK, and this is a correction to the
+ * instrument rather than a refinement of it.
+ *
+ * It sampled the middle sixty per cent of the width, on the reasoning that a
+ * chevron at either end must not drag a row's mean. THE MIDDLE SIXTY PER CENT
+ * IS EXACTLY WHERE THE LABEL IS. White text lifts the luminance of precisely
+ * the rows the label occupies, which are the middle rows, which is where a
+ * light-deep-light gradient has its floor. So the trough read both shallower
+ * and higher up the control than it is: this file first reported the deepest
+ * point as #004AFD at about 45 per cent, and the truth measured over ink-free
+ * columns is #0042FD at about 62 per cent. #004AFD is real, and it is a point
+ * on the way down rather than the bottom.
+ *
+ * The irony is worth leaving in the file: this is the instrument written to
+ * stop people quoting numbers they had not measured, and its own first
+ * measurement averaged a button's label into the button's fill. A tool is not
+ * exempt from the fault it was built to catch.
+ *
+ * So the fill is now read only from columns carrying no near-white pixel
+ * anywhere down the control. If too few survive, which would mean a control
+ * whose label spans nearly its whole width, it falls back to the old window
+ * and SAYS so rather than reporting a number nobody can trust.
+ */
+const isInk = ([r, g, b]) => r > 140 && g > 170 && b > 200;
+const clearColumns = [];
+for (let cx = x + 2; cx < x + w - 2; cx++) {
+  let inked = false;
+  for (let cy = y + 2; cy < y + h - 2; cy++) {
+    if (isInk(at(cx, cy))) {
+      inked = true;
+      break;
+    }
+  }
+  if (!inked) clearColumns.push(cx);
+}
+const enoughClear = clearColumns.length >= Math.max(8, Math.round(w * 0.2));
+if (!enoughClear) {
+  console.log(
+    `  NOTE: only ${clearColumns.length} of ${w} columns are free of label ink, ` +
+      `so the fill below is the middle sixty per cent and INCLUDES the label.`,
+  );
+}
 const ix0 = x + Math.round(w * 0.2);
 const ix1 = x + Math.round(w * 0.8);
 
 console.log("\n-- the fill, row by row from the top edge --");
 const rows = [];
-for (let yy = y; yy < y + h; yy++) rows.push(meanRow(ix0, ix1, yy));
+for (let yy = y; yy < y + h; yy++) {
+  rows.push(enoughClear ? meanFill(clearColumns, yy) : meanRow(ix0, ix1, yy));
+}
+
+/* The floor, reported as a position as well as a colour, because "where" is
+   the gradient stop somebody has to write and "what" is only its value. */
+const floor = rows.reduce((a, c, i) => (lum(c) < lum(rows[a]) ? i : a), 0);
 rows.forEach((c, i) => {
   if (i < 6 || i > h - 5 || i === Math.floor(h / 2)) {
     console.log(`  +${String(i).padStart(2)}  ${fmt(c)}`);
@@ -125,6 +182,10 @@ const body = rows[Math.round(h * 0.45)];
 const last = rows[h - 1];
 console.log("\n-- the stops and the rim --");
 console.log(`  top stop     ${fmt(rows[Math.min(2, h - 1)])}`);
+console.log(
+  `  floor        ${fmt(rows[floor])} at row +${floor}, ` +
+    `${((floor / h) * 100).toFixed(0)} per cent of the height`,
+);
 console.log(`  bottom stop  ${fmt(last)}`);
 console.log(`  rim          row +${brightestAt}, ${fmt(brightest)}`);
 console.log(`  rim lift     L +${(lum(brightest) - lum(body)).toFixed(1)} over the fill beneath it`);

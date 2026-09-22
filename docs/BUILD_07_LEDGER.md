@@ -2443,3 +2443,87 @@ and the widened `owns_listing` are all still unbuilt, so a firm's declared
 colleagues are a list on an application rather than memberships. An
 application that could create staff is the letterhead failure the form exists
 to catch.
+
+## 23. THE GLOW LANDED, AND SECTION 13'S MEASUREMENT WAS WRONG IN MY OWN INSTRUMENT
+
+B2 landed the glow as `06d87be` and corrected the numbers I gave it. **I
+checked the correction with my own instrument rather than accepting it, and it
+is right.**
+
+### The fault, and it is mine
+
+`measure-glow.mjs` sampled the middle sixty per cent of a control's width, on
+the reasoning that a chevron at either end must not drag a row's mean. **The
+middle sixty per cent is exactly where the label is.** White text lifts the
+luminance of precisely the rows the label occupies, which are the middle rows,
+which is where a light-deep-light gradient has its floor. So the trough read
+both shallower and higher up the control than it is.
+
+| | Section 13 said | Measured over the 244 ink-free columns |
+| --- | --- | --- |
+| deepest colour | `#004AFD` | **`#0042FD`** |
+| its depth | L 71.5 | **L 65.7** |
+| where it sits | about 45 per cent down | **62 per cent down** |
+
+`#004AFD` is real. It is a point on the way down, not the bottom. B2 measured
+64 per cent and I measure 62; the gap is where each of us calls the top edge,
+and it does not change the ruling.
+
+**The irony is left in the file on purpose.** This is the instrument written
+so nobody would quote a number they had not measured, and its own first
+measurement averaged a button's label into the button's fill. A tool is not
+exempt from the fault it was built to catch, and that is now the sixth green
+light this build has caught looking at the wrong thing.
+
+Fixed in the script rather than only in the prose: the fill is read from
+columns carrying no near-white pixel anywhere down the control, it reports the
+floor's POSITION as well as its colour, because "where" is the gradient stop
+somebody has to write, and if too few clear columns survive it falls back and
+SAYS the number includes the label rather than reporting one nobody can trust.
+
+### The light-mode hypothesis: two parts proven, one disproved, and the disproof is better than my guess
+
+Section 13 recorded a derivation and labelled it a hypothesis. B2 tested it.
+
+* Tight shadow keeps the brand hue and reads as a DARKENING on paper:
+  **proven**, symmetric at -23.8, -16.1, -6.4, -3.9, -0.9 L from 2 to 16px
+  against a 239 floor, dying by 20px.
+* The wide one becomes a real deep blue shadow rather than a light: **proven**.
+* The rim inverting from a white highlight to a top-edge darkening:
+  **DISPROVED**, and the reasoning is better than the hypothesis it replaces.
+  **A specular rim's contrast is against the fill beneath it, not the page
+  behind the control, and that fill is a dark saturated blue in BOTH themes.**
+  A dark-filled control does not invert its own highlight because the page
+  behind it changed. Inverting it would have removed the one cue that makes
+  the control read as lit, on the theme that needs the most help.
+
+### A seventh green light, found and reported by B2 against itself
+
+`light.css:191` replaced the primary button's entire `box-shadow` with
+`0 4px 14px`, so the token layer's light twins were overridden by a component
+rule and **the lit treatment did not exist in daylight at all**. B2's first
+light measurement showed a real darkening and it nearly recorded that as the
+derivation working. It was measuring the override. Rule removed, values moved
+to the token layer.
+
+### What the glow does NOT cover yet
+
+The measurement governs a BRAND-FILLED control, so it is on the primary button
+and the selected chip, the same object one rung down. **Not done:** the raised
+centre switch and the wizard selected states, which are component surfaces
+that cannot be reached from the token layer without changing objects B2 could
+not prove. The glass icon plates were deliberately left alone: they already
+carry `--nf-rim-lit` and are tinted glass rather than brand fill, and spraying
+a measurement taken off a blue button onto them is how the "neon" complaint
+happened the first time.
+
+Also still open from C2: there is no `.nf-note` class for the calm
+explanatory panel, and its glyph is close to invisible in light mode.
+
+### A flake B2 did not hide
+
+The first of four full vitest runs failed one test; three later runs were
+green and it did not reproduce. The test count moved from 2712 to 2723 between
+runs, so other workers landing commits mid-run is the likeliest cause, but it
+is not proven and it may be a genuinely flaky test. Recorded rather than
+rounded to green.
