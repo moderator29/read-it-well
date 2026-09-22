@@ -6,8 +6,8 @@ import {
   DeskHead,
   Empty,
   Kpi,
-  Note,
   Panel,
+  ReadFailed,
   READ_FAILED,
   StatusBar,
 } from "../_review/parts";
@@ -54,7 +54,7 @@ export type RecentDecision = {
 export type VerificationDeskProps = {
   filters?: ReactNode;
   rows: VerificationRow[];
-  empty: { title: string; body: string };
+  empty: { title: string; body: string; cause?: string; link?: { href: string; label: string } };
   summary: VerificationSummary | null;
   /** The ten latest decisions, or null when the read failed. */
   recent: RecentDecision[] | null;
@@ -127,11 +127,12 @@ export function VerificationDesk(props: VerificationDeskProps) {
           <Panel flush title="Identity verification queue" labelledBy="rv-kyc-queue">
             {unavailable ? (
               <Empty
+                kind="error"
                 title="The queue could not be read"
                 body="The console could not reach the platform data just now. Nothing is shown rather than a queue that looks clear."
               />
             ) : rows.length === 0 ? (
-              <Empty title={empty.title} body={empty.body} />
+              <Empty {...empty} />
             ) : (
               <div className="nf-rv-rows" style={{ ["--rv-cols" as string]: COLS }}>
                 <div className="nf-rv-rows__head" aria-hidden="true">
@@ -176,10 +177,14 @@ export function VerificationDesk(props: VerificationDeskProps) {
           <Panel flush title="Recent verifications" labelledBy="rv-kyc-recent">
             {recent === null ? (
               <div style={{ padding: "0 var(--nf-space-md) var(--nf-space-md)" }}>
-                <Note>{READ_FAILED}</Note>
+                <ReadFailed what="These figures" />
               </div>
             ) : recent.length === 0 ? (
-              <Empty title="No decisions yet" body="Every document passed or failed here appears in this list, newest first." />
+              <Empty
+                title="No decisions yet"
+                body="Every document passed or failed on this desk appears here, newest first, with who it was about."
+                cause="Decisions are taken from the queue above, one document at a time."
+              />
             ) : (
               <div className="nf-rv-scroll">
                 <table className="nf-rv-table" aria-label="Recent verifications">
@@ -230,7 +235,7 @@ export function VerificationDesk(props: VerificationDeskProps) {
                 ]}
               />
             ) : (
-              <Note>{READ_FAILED}</Note>
+              <ReadFailed what="These figures" />
             )}
           </Panel>
 
@@ -251,7 +256,7 @@ export function VerificationDesk(props: VerificationDeskProps) {
                 })}
               />
             ) : (
-              <Note>{READ_FAILED}</Note>
+              <ReadFailed what="These figures" />
             )}
           </Panel>
         </aside>

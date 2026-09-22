@@ -8,8 +8,8 @@ import {
   Donut,
   Empty,
   Kpi,
-  Note,
   Panel,
+  ReadFailed,
   READ_FAILED,
   Tabs,
   type Segment,
@@ -52,7 +52,7 @@ export type ModerationDeskProps = {
   /** The category words, for the breakdown legend. */
   categoryLabel: (category: string) => string;
   rows: ModerationRow[];
-  empty: { title: string; body: string };
+  empty: { title: string; body: string; cause?: string; link?: { href: string; label: string } };
   pager?: ReactNode;
   notes?: ReactNode;
   unavailable?: boolean;
@@ -134,9 +134,9 @@ export function ModerationDesk(props: ModerationDeskProps) {
 
           <Panel flush>
             {unavailable ? (
-              <Empty title="The queue could not be read" body={READ_FAILED} />
+              <Empty kind="error" title="The queue could not be read" body={READ_FAILED} cause="Nothing has changed. Reload to try again." />
             ) : rows.length === 0 ? (
-              <Empty title={empty.title} body={empty.body} />
+              <Empty {...empty} />
             ) : (
               <div className="nf-rv-rows" style={{ ["--rv-cols" as string]: COLS }}>
                 <div className="nf-rv-rows__head" aria-hidden="true">
@@ -189,10 +189,16 @@ export function ModerationDesk(props: ModerationDeskProps) {
         <aside className="nf-rv-stack" aria-label="Moderation health">
           <Panel title="Report breakdown" labelledBy="rv-breakdown">
             {!s ? (
-              <Note>{READ_FAILED}</Note>
+              <ReadFailed what="These figures" />
             ) : segments.length === 0 ? (
               <>
-                <Donut segments={[]} caption="waiting" label="Reports waiting, by reason" />
+                <Donut
+                  segments={Object.keys(s.byCategory)
+                    .filter((key) => key !== "uncategorised")
+                    .map((key) => ({ key, label: categoryLabel(key), value: 0, ink: "ramp3" }))}
+                  caption="waiting"
+                  label="Reports waiting, by reason"
+                />
                 <p className="nf-rv-panel__note" style={{ marginTop: "var(--nf-space-sm)" }}>
                   No report is waiting. When one arrives, this ring splits by the reason the reporter
                   chose.
@@ -235,7 +241,7 @@ export function ModerationDesk(props: ModerationDeskProps) {
                 </p>
               </dl>
             ) : (
-              <Note>{READ_FAILED}</Note>
+              <ReadFailed what="These figures" />
             )}
           </Panel>
 

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
 import { Sparkline } from "@/components/agent/charts/Sparkline";
+import { CalmNote } from "../_components/panels";
 import { donutArcs, pagerPages, share } from "./metrics";
 
 /**
@@ -134,14 +135,50 @@ export function Note({ children }: { children: ReactNode }) {
   );
 }
 
+/** A read that failed, in the shared calm anatomy. */
+export function ReadFailed({ what }: { what: string }) {
+  return (
+    <CalmNote
+      kind="error"
+      title="This did not load"
+      fills={`${what} could not be read just now. Nothing is drawn rather than a number nobody measured.`}
+      creates="Nothing has changed. Reload to try again."
+    />
+  );
+}
+
 export const READ_FAILED =
   "This could not be read just now. Nothing is drawn rather than a number nobody measured.";
 
-export function Empty({ title, body }: { title: string; body: string }) {
+/**
+ * THE EMPTY STATE IS THE DESIGNED STATE. On 22 September the platform had 64
+ * listings, every one an example, and nothing in any review queue, so this is
+ * what an operator sees first. It is admin-shell's shared `CalmNote` (the calm
+ * info panel of GLOW_IDENTITY section 7), so the console's empty state is the
+ * same everywhere; this wrapper only keeps the panel's height.
+ */
+export function Empty({
+  title,
+  body,
+  cause,
+  link,
+  kind = "info",
+}: {
+  title: string;
+  body: string;
+  cause?: string;
+  link?: { href: string; label: string };
+  kind?: "info" | "clear" | "error";
+}) {
   return (
     <div className="nf-rv-empty">
-      <p className="nf-rv-empty__title">{title}</p>
-      <p style={{ margin: 0 }}>{body}</p>
+      <CalmNote
+        title={title}
+        fills={body}
+        {...(cause ? { creates: cause } : {})}
+        {...(link ? { action: link } : {})}
+        kind={kind}
+      />
     </div>
   );
 }

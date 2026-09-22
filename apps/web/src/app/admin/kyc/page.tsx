@@ -86,7 +86,7 @@ export default async function AdminKycPage({
       <VerificationDesk
         filters={filters}
         rows={[]}
-        empty={{ title: "", body: "" }}
+        empty={{ title: "Nothing to show", body: "" }}
         summary={summaryData}
         recent={null}
         unavailable
@@ -144,10 +144,14 @@ export default async function AdminKycPage({
               ? {
                   title: "Nothing is waiting",
                   body: "Every document that has been uploaded has been decided. Somebody uploading one now appears here immediately.",
+                  cause: "Documents arrive when an owner, an agent or a firm registers and proves who they are.",
+                  link: { href: "/admin/agents", label: "Open the applications desk" },
                 }
               : {
                   title: "No one has asked to be verified yet",
                   body: "Sellers, landlords and agents verify here; renters and buyers are never asked. The first identity, address or business document uploaded appears in this queue immediately.",
+                  cause: "Documents arrive when an owner, an agent or a firm registers and proves who they are.",
+                  link: { href: "/admin/agents", label: "Open the applications desk" },
                 }
         }
         summary={summaryData}

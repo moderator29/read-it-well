@@ -48,7 +48,7 @@ export type ListingsQueueProps = {
   page: number;
   hasNext: boolean;
   hrefForPage: (page: number) => string;
-  empty: { title: string; body: string } | null;
+  empty: { title: string; body: string; cause?: string; link?: { href: string; label: string } } | null;
   /** Said under the table when the tab can only ever show a capped list. */
   capNote?: string | null;
   unavailable?: boolean;
@@ -101,11 +101,13 @@ export function ListingsQueue(props: ListingsQueueProps) {
           <Panel flush>
             {unavailable ? (
               <Empty
+                kind="error"
                 title="The queue could not be read"
                 body="The console could not reach the platform data just now. Nothing is shown rather than a queue that looks clear."
+                cause="Nothing has changed. Reload to try again."
               />
             ) : rows.length === 0 && empty ? (
-              <Empty title={empty.title} body={empty.body} />
+              <Empty {...empty} />
             ) : (
               <QueueTableView rows={rows} statusLabel={statusLabel} label={title} />
             )}

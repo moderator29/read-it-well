@@ -247,8 +247,10 @@
   }
 
   .nf-rv-empty {
+    display: grid;
+    place-items: center;
+    min-height: 320px;
     padding: var(--nf-space-xl) var(--nf-space-md);
-    text-align: center;
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-body-sm);
   }

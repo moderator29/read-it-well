@@ -181,7 +181,16 @@ export default async function AdminListingsPage({
         empty={
           narrowed
             ? { title: common.noMatchTitle, body: common.noMatchBody }
-            : { title: copy.emptyTitle, body: copy.emptyBody }
+            : {
+                title: "Nothing is waiting for review",
+                body:
+                  times.state === "ok" && times.data.lastDecisionAt
+                    ? `The last decision was taken ${ui.when(times.data.lastDecisionAt)}. A new submission appears here the moment a lister sends one.`
+                    : "No listing has been decided here yet. A new submission appears here the moment a lister sends one.",
+                cause:
+                  "Submissions come from the listing wizard, when an owner, an agent or a firm sends a property for review. The live listings today are examples, which are not reviewed here.",
+                link: { href: "/admin/examples", label: "See the example listings" },
+              }
         }
         capNote={
           decidedTab && main.length >= 10

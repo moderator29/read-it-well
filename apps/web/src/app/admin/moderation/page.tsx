@@ -171,7 +171,10 @@ export default async function AdminModerationPage({
             ? { title: common.noMatchTitle, body: common.noMatchBody }
             : {
                 title: "Nothing to moderate",
-                body: "When a member reports something, or the safety scan holds a post, a story, a comment or a bio, it lands here and the people involved are told.",
+                body: "No report is open and the safety scan is holding nothing. When either changes it lands here, oldest first.",
+                cause:
+                  "Members report from any listing, post or profile; the safety scan holds words as they are posted, and the author is told they are being checked.",
+                link: { href: "/admin/reports", label: "See every report, including closed ones" },
               }
         }
         notes={

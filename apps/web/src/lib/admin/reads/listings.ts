@@ -109,7 +109,12 @@ export type ReviewTimes = {
   meanMinutes: number | null;
 };
 
-export type ListingReviewTimes = { thisWeek: ReviewTimes; lastWeek: ReviewTimes };
+export type ListingReviewTimes = {
+  thisWeek: ReviewTimes;
+  lastWeek: ReviewTimes;
+  /** The most recent review decision ever recorded, or null if none ever was. */
+  lastDecisionAt: string | null;
+};
 
 const DAY = 86_400_000;
 const PAGE = 1000;
@@ -155,12 +160,23 @@ export async function getListingReviewTimes(now: number = Date.now()): Promise<R
       for (const row of data ?? []) submitted.set(row.id, row.submitted_at);
     }
 
+    const { data: last, error: lastError } = await db
+      .from("audit_log")
+      .select("created_at")
+      .eq("action", "listing.review")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (lastError) return UNAVAILABLE;
+
     return {
       state: "ok",
-      data: reviewTimesFrom(
-        decisions.map((d) => ({ decidedAt: d.at, submittedAt: submitted.get(d.listingId) ?? null })),
-        now,
-      ),
+      data: {
+        ...reviewTimesFrom(
+          decisions.map((d) => ({ decidedAt: d.at, submittedAt: submitted.get(d.listingId) ?? null })),
+          now,
+        ),
+        lastDecisionAt: last?.[0]?.created_at ?? null,
+      },
     };
   } catch {
     return UNAVAILABLE;
@@ -171,7 +187,7 @@ export async function getListingReviewTimes(now: number = Date.now()): Promise<R
 export function reviewTimesFrom(
   rows: readonly { decidedAt: string; submittedAt: string | null }[],
   now: number,
-): ListingReviewTimes {
+): Omit<ListingReviewTimes, "lastDecisionAt"> {
   const thisWeek: number[] = [];
   const lastWeek: number[] = [];
   for (const row of rows) {
