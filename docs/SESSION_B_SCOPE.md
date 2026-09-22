@@ -133,7 +133,9 @@ Internal split between Session B workers (for Session B's own coordination):
   `error.tsx`, `_components/**`, `admin.css`, the chart primitives, and the
   operations, analytics, alerts, audit, notifications and scheduled-job desks,
   plus the register sweep of every admin route not listed below.
-- admin-review: listings (queue and the single listing under review),
+- admin-review: `app/admin/_review/**` (the review desks' own area
+  stylesheet, presentational parts and pure helpers; no data access), and
+  listings (queue and the single listing under review),
   moderation, kyc (verification), queue, support.
 - admin-money: money, escrow, supply, bookings, payments.
 
@@ -312,3 +314,81 @@ not summed in TypeScript over a `limit`ed read.
      byPropertyType: { type: string; count: number }[];                     // live listings by property_type, descending
    };
    ```
+### Requests from admin-review (listings, moderation, verification, queue, support)
+
+Every one of these is a function in `apps/web/src/lib/admin/**`, which Session B
+does not edit. Each panel it feeds is built against a typed prop of exactly the
+shape below and, until the function lands, says on the panel that its data is
+not wired yet. Wiring it is then one line in the route. All reads behind
+`requireAdmin`, same `AdminRead<T>` envelope as the rest of the layer.
+
+AR-1. **`getListingStatusCounts(): Promise<AdminRead<Record<ListingStatus, number>>>`**
+   in `queries.ts`. One exact `count: "exact", head: true` read per value of
+   `listing_status` (DRAFT included, the screen leaves it out). Reads
+   `listings.status`. Feeds the status tab counts on `/admin/listings` and the
+   Queue health donut. Why: no read returns per-status totals today;
+   `getQueueCounts().listings` is one sum of three statuses, and counting the
+   rows of a page is a total from a capped list.
+
+AR-2. **`getListingReviewTimes(): Promise<AdminRead<{ thisWeek: ReviewTimes; lastWeek: ReviewTimes }>>`**
+   with `type ReviewTimes = { decisions: number; medianMinutes: number | null; meanMinutes: number | null }`,
+   weeks as Lagos rolling seven-day windows ending now. Reads `audit_log` rows
+   with `action = 'listing.review'` (their `created_at`) joined to the listing's
+   `submitted_at`, because `listings.reviewed_at` is overwritten on every
+   decision and cannot give history. Feeds the Average review time card and
+   its week-on-week delta.
+
+AR-3. **`getListingForReview(id: string, filter?: AdminQueueFilter): Promise<AdminRead<ListingForReview | null>>`**
+   where `ListingForReview = ListingReviewView & { amenities: string[]; latitude: number | null; longitude: number | null; availableFrom: string | null; lister: ListerVerification | null; nextId: string | null; previousId: string | null }`
+   and `ListerVerification = { name: string; role: "owner" | "agent" | "firm" | null; avatarUrl: string | null; verified: boolean; tier: number; rungs: { kind: "identity" | "address" | "payout" | "in_person"; status: "passed" | "failed" | "pending" }[] }`.
+   Reads `listings` (the existing `LISTING_COLUMNS` plus `latitude, longitude,
+   available_from`), `listing_amenities -> amenities(label)`, `agents
+   (display_name, verified, verification_tier, type, application_id, user_id)`,
+   `agent_applications.supply_role`, `profiles.avatar_url`,
+   `agent_verification_checks (kind, status)`. `nextId` is the next listing in
+   the waiting bucket under the same filter and order the queue uses, so the
+   desk can load the next listing after a decision. Feeds
+   `/admin/listings/[id]`: the Location map, Amenities, Availability, the Lister
+   verification panel and "next after decision". Why: no read takes an id; the
+   route finds its row inside a `getListingSubmissions` page meanwhile, and a
+   listing outside that page cannot be opened.
+
+AR-4. **`ListingReviewView` gains `listerRole: "owner" | "agent" | "firm" | null`**
+   (from `agent_applications.supply_role` through `agents.application_id`,
+   falling back to `agents.type`: business is "firm", individual is "agent")
+   and `coverPhoto: string | null`. Feeds the role tag beside the lister on
+   every queue row.
+
+AR-5. **`getListingSubmissions` pages the decided bucket.** It is `.limit(10)`
+   with no offset, so the Live, Rejected and Suspended tabs can never show more
+   than the ten most recent. Request: honour `filter.offset` and return
+   `full` for the decided bucket when a decided status is filtered.
+
+AR-6. **`getReports(filter & { category?: string })`**: narrow on
+   `reports.category` in the query (values from `reports_category_chk`, plus
+   `"uncategorised"` for null). Feeds the reason tabs on `/admin/moderation`.
+   Filtering a fetched page instead would search only what the page cap
+   returned.
+
+AR-7. **`getModerationSummary(): Promise<AdminRead<ModerationSummary>>`** with
+   `ModerationSummary = { openReports: number; reviewingReports: number; held: { posts: number; stories: number; comments: number; bios: number }; olderThan24h: { reports: number; held: number }; byCategory: Record<string, number>; medianResponseMinutes: { thisWeek: number | null; lastWeek: number | null }; newThisWeek: number; newLastWeek: number; newPerDay: number[] }`
+   (`newPerDay` is fourteen Lagos days, oldest first). Reads `reports
+   (status, category, created_at, resolved_at)` and the `status = 'HELD'` rows
+   of `posts`, `stories`, `story_comments`, `social_profiles.bio_status`.
+   Feeds the Total reports and Over 24 hours cards with their deltas and
+   sparklines, the Report breakdown donut and the Queue health panel.
+
+AR-8. **`getVerificationSummary(): Promise<AdminRead<VerificationSummary>>`** with
+   `VerificationSummary = { awaiting: number; passedToday: number; failedToday: number; passedYesterday: number; failedYesterday: number; awaitingLastWeek: number | null; medianDecisionMinutes: { thisWeek: number | null; lastWeek: number | null }; documents: Record<"pending" | "approved" | "rejected", number>; rungs: Record<"identity" | "address" | "payout" | "in_person", { passed: number; failed: number; pending: number }>; recent: { documentId: string; name: string | null; kind: string; subtype: string | null; approved: boolean; decidedAt: string }[] }`
+   (`recent` is the ten latest by `reviewed_at`). Reads `agent_documents
+   (review_status, uploaded_at, reviewed_at, kind, subtype, uploader_id,
+   application_id)`, `agent_verification_checks (kind, status)`, `profiles`.
+   Feeds all four KPI cards on `/admin/kyc`, the Verification funnel, the Rung
+   results panel (the render's "Provider performance": no provider or match
+   score is recorded anywhere, so the rungs are what is real) and Recent
+   verifications.
+
+AR-9. **`getKycQueue` counts `pendingCount` over a 300-document cap** and
+   `decided` is sliced to twenty subjects. Request: `pendingCount` from its own
+   exact count read, and `capped: boolean` on the result so the desk can say
+   when the list is not all of it.
