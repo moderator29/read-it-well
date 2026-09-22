@@ -316,7 +316,43 @@ export function AppShell({
             signedIn ? "lg:hidden" : ""
           }`}
         >
-          <div className="flex h-header-sm items-center gap-sm px-gutter sm:h-header">
+          {/*
+            THE SIGNED-OUT HEADER OVERFLOWED AT 390 AND CLIPPED ITS OWN PRIMARY
+            CONTROL, AND NOTHING SCROLLED.
+
+            A2 measured it on `/verification`: the actions group's right edge
+            landed at 407px inside a 390px viewport, so about seventeen pixels
+            of "Sign up" were cut off, while `document.scrollWidth` stayed 390.
+            That last number is what made it a defect rather than a squeeze: an
+            overflowing flex row does not extend the scrollport, so the clipped
+            part of the button could not be reached by ANY gesture. The one
+            control a signed-out visitor is there to press was partly not there.
+
+            THREE THINGS WERE SPENDING WIDTH AND NONE OF THEM WOULD GIVE IT UP.
+            The hamburger and the actions are both `shrink-0`, correctly: a
+            control you cannot read is a control you cannot use. The lockup was
+            fixed at a 40px mark plus a 19px wordmark, about 134px, on a row
+            that has 342px after the gutters. And a `flex-1` SPACER sat between
+            the lockup and the actions, which costs nothing in width itself but
+            costs a `gap-sm` on each side of it, so the row paid for four gaps
+            where three would do.
+
+            THE FIX IS THAT THE BRAND GIVES WAY, because it is the only item
+            here that can lose size without losing meaning. `responsive` scales
+            the mark and the wordmark with the viewport (`clamp`), which at 390
+            draws the lockup at about 114px instead of 134 and at full size from
+            a tablet up. The spacer is gone and the actions push themselves over
+            with `ms-auto`, which returns the fourth gap. Measured after: the
+            actions' right edge is inside the gutter at 390 and `scrollWidth`
+            still equals the viewport, which is now true because nothing
+            overflows rather than because the overflow was unreachable.
+
+            It is the same family as the `minmax(0, 1fr)` finding already in the
+            ledger: freeing the TRACK and never the ITEM. A flex row whose
+            children all refuse to shrink does not wrap and does not scroll, it
+            simply paints past its own edge.
+          */}
+          <div className="flex h-header-sm min-w-0 items-center gap-sm px-gutter sm:h-header">
             <button
               type="button"
               aria-label={t.a11y.openMenu}
@@ -326,11 +362,14 @@ export function AppShell({
             >
               <UiIcon name="menu" size="md" />
             </button>
-            <Link href={SIDE_HOME[effectiveSide]} aria-label={t.a11y.logoHome} className="nf-tap nf-app-header__brand lg:hidden">
-              <Logo size={40} wordSize={19} />
+            <Link
+              href={SIDE_HOME[effectiveSide]}
+              aria-label={t.a11y.logoHome}
+              className="nf-tap nf-app-header__brand min-w-0 lg:hidden"
+            >
+              <Logo size={40} wordSize={19} responsive />
             </Link>
-            <div className="flex-1" />
-            <SignedOutActions t={t} />
+            <SignedOutActions t={t} className="ms-auto" />
             {signedIn && (
               <>
                 <Link
@@ -340,7 +379,11 @@ export function AppShell({
                       ? t.a11y.notificationsUnread.replace("{count}", String(unreadNotifications))
                       : t.nav.notifications
                   }
-                  className="nf-tap nf-icon-btn nf-app-header__btn"
+                  /* `ms-auto` in place of the removed spacer. On a signed-in
+                     header `SignedOutActions` renders null, so this is the
+                     first item after the brand and it is the one that has to
+                     push the group right. */
+                  className="nf-tap nf-icon-btn nf-app-header__btn ms-auto"
                 >
                   <UiIcon name="bell" size="md" />
                   {marked && <span aria-hidden="true" className="nf-app-header__dot" />}
