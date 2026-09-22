@@ -284,7 +284,18 @@ missing is the deliberate act the header demands: the ceiling was never
 raised, the reason was never written beside it, and the suite was never run.
 That commit's message reports "The site component tests pass". It also touched
 `ha.ts` and `ig.ts` with the same string, and the assertion stops at the first
-failure, so those two ceilings want checking in the same move. It is not this worker's file and it is not changed
+failure, so those two ceilings want checking in the same move.
+
+**ANSWERED AT `69bb135`, WHILE THIS WAS BEING WRITTEN, AND BY A BIGGER FINDING
+THAN MINE.** All three ceilings are raised to the measured truth. The worker
+who raised them found that yo had gone not to 212 but to 336, because the
+`supply` namespace grew from 60 keys to 204 in English only, so `withFallback`
+now serves 144 English strings across the three supplier registration forms of
+`GOVERNING-03`, `04` and `05`. That is the first screen a new agent, owner or
+firm ever reads, in English, on a Yoruba, Hausa or Igbo phone. The test floor
+is green again and the real defect is Track G's, recorded in the test beside
+the numbers. Left here rather than deleted, because a gate that quietly erases
+the finding it raised teaches nobody anything. It is not this worker's file and it is not changed
 here. **The test floor in section 1 is red until whoever owns `d6e00c9`
 answers it.**
 
