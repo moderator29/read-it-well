@@ -598,6 +598,122 @@ the door, not the foundation, and it should be sized to that job.
 
 ---
 
+## 6A. Track N: the supply pipeline, and the founder's own biggest worry
+
+**Read `docs/research/LISTING_PIPELINE_AUDIT.md` in full before touching any of
+this.** It audits the whole chain on both sides, from the first keystroke to a
+listing appearing in search, and it opens with the two sections that matter
+most: what is already built that the founder has never seen, and what is
+genuinely missing.
+
+### 6A.1 What is built, so nobody rebuilds it
+
+**The property listing wizard is serious.**
+`apps/web/src/app/agent/list/ListingWizard.tsx` is 2,264 lines. It does NOT use
+tick boxes for light and water: somebody deliberately replaced them with
+enumerations, and `listings-schema.ts:351` says why, that a tick box cannot
+tell a Band A feeder apart from a generator. So a lister states their power
+grid band, backup type, backup hours, water supply as treated mains or borehole
+or none, and whether the meter is prepaid. Fifteen amenity chips. Photos to a
+`listing-photos` bucket with a cover. Video at 50MB with a `listing_videos`
+table and a check constraint. Status already runs DRAFT, MORE_INFO_REQUIRED,
+REJECTED, APPROVED, PUBLISHED. Admin already has `listings`, `moderation` and
+`reference` desks.
+
+**Finish it and make it reachable. Do not rebuild it.**
+
+### 6A.2 Why the founder cannot see it, which is the real defect
+
+`apps/web/src/app/agent/list/page.tsx` has three honest states: an approved
+agent gets the seven step wizard, and everybody else gets a pitch and a route
+to apply. The navigation offers "List Apartment" only to approved agents;
+everybody else sees "Become an agent" pointing at `/profile/setup`.
+
+**There is exactly ONE `agents` row in the entire database and it is the
+example lister.** So the founder and his co-founder are signed in, are not
+agents, and the product is correctly showing them the door rather than the
+room.
+
+**The defect is that the only door into the supply side is marked "become an
+agent", when most of the supply this platform now wants is landlords who are
+not agents and never will be.** That is Track G's whole purpose, and Track N
+depends on Track G landing first.
+
+### 6A.3 What is genuinely missing, and it is a lot
+
+**1. There is no stays inventory creation at all.** `apps/web/src/app/host/`
+has exactly four pages: `apply`, `photos`, `reservations`, `transfer`. There is
+no page anywhere that lets a host create an accommodation, define room types,
+set rate plans, or set up a restaurant's tables and service windows. **A hotel
+can apply to Vallo, upload photographs, and then has nothing to put inventory
+into.** The stays read layer, the room type and rate plan tables and the
+oversell gate all exist and are waiting for a creation flow nobody wrote.
+
+**This is the largest unbuilt surface in the product.** Build three creation
+flows on the shared machinery, diverging exactly where the audit says they
+must: a hotel needs room types and rate plans, a shortlet needs one place with
+house rules and a cancellation policy, a restaurant needs opening hours, table
+inventory by seat count, and a sitting length.
+
+**2. There is no listing identifier.** Verified: no human readable public
+reference exists anywhere in the schema or the product.
+
+Build it, and the format is specified rather than left open. A fixed prefix,
+then two groups of four, from an alphabet that **excludes I, O, 0 and 1**
+because those are misheard on a bad line and mistyped afterwards. For example
+`VL-7K4M-92`. Generated **at publish**, never at draft, so nothing unpublished
+carries one. Uniqueness guaranteed in the database rather than in application
+code. Indexed. Printed on the listing, in the lister's notification, in the
+approval email and on every receipt that references the listing. And the main
+search box accepts it: a query matching the reference pattern resolves to that
+one listing and says above the result that it was found by ID.
+
+**3. The approval loop is silent.** `messages.ts` exports a `listingApproved`
+builder that no code path calls, one of the ten built-but-never-sent emails.
+Every state change owes the lister a notification and, when they are not in the
+app, an email: submitted, more information needed with the reviewer's reason,
+approved, published with the ID, rejected with the reason. **The same applies
+to a person's REGISTRATION being accepted or refused** as an owner, agent, firm
+or host. None of it fires today. It rides the Track B shell and the Track C
+junction, which is the same junction, so it is built once.
+
+**4. The creation form has real gaps** against what a Nigerian listing needs,
+named field by field in the audit. At minimum, Track H's move-in costs belong
+INSIDE this wizard rather than beside it, because the person typing the rent is
+the only person who knows the agency fee.
+
+**5. A reviewer who cannot see the photographs and play the video is not
+reviewing anything.** Check the admin desk and fix it.
+
+---
+
+## 6B. Track O: the switch, its placement, and both sides
+
+The founder has ruled where it lives, and it is two places.
+
+**In the bottom navigation, as the CENTRE slot**, raised, and visually the most
+important control in the bar, carrying the coin. The five slots today are Home,
+Search, Feed, More, Profile: the centre becomes the switch and the displaced
+item moves. Decide which and write the reason in the ledger.
+
+**And in the side drawer**, as a "Switch profile" row near the foot above the
+theme row, showing the current profile and a chevron.
+
+**Both open the same sheet. One sheet, two entrances.**
+
+**The Stays side gets its own**, in the same two places, opening the same
+sheet, whose "Add a workspace" chooser offers three different doors on that
+side: we are a hotel, I run a shortlet, we are a restaurant.
+
+**Six registration processes across the two sides, and six creation flows
+behind them.**
+
+Section 3.5 still governs all of it: role is not a switch of its own, it is
+what MODE resolves into; the coin keeps doing only what it does now; and view
+preference is never authorisation.
+
+---
+
 ## 7. Founder gated, and what is not
 
 **Gated, and named in the founder's own list:** the solicitor's answer on
