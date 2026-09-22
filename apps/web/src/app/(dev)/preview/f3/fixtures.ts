@@ -75,6 +75,50 @@ export const RENTAL: Listing = listing({
   hue: 1,
 });
 
+/**
+ * The sale side's fixture, and the whole reason it exists is the DIFFERENCE
+ * between a declared cost and a silent one.
+ *
+ * It declares the asking price, the agency fee and the legal fee, and says
+ * NOTHING about Governor's consent, stamp duty or survey and registration,
+ * which is exactly the shape of a real Nigerian sale listing today: the two
+ * costs the seller's side charges are quoted and the three the state charges
+ * are met after the buyer is committed. It states no total either, so the
+ * block sums the parts it was given and labels the figure "from", which is
+ * the only honest thing to call it.
+ *
+ * NO PERCENTAGE IS ENCODED HERE. The two fees happen to be five per cent of
+ * the price because that is the convention a seller would quote, and nothing
+ * in the product derives them: they are two figures somebody typed.
+ */
+export const SALE: Listing = listing({
+  id: "00000000-0000-4000-8000-00000000f302",
+  title: "4 bedroom terrace with a governor's consent in hand",
+  kind: "home",
+  intent: "sale",
+  priceMinor: 180_000_000_00,
+  salePriceMinor: 180_000_000_00,
+  saleAgencyFeeMinor: 9_000_000_00,
+  saleLegalFeeMinor: 9_000_000_00,
+  tenure: "freehold",
+  saleStatus: "available",
+  bedrooms: 4,
+  bathrooms: 4,
+  toilets: 5,
+  sizeSqm: 380,
+  parkingSpaces: 2,
+  verified: true,
+  amenities: ["security", "parking", "generator", "kitchen"],
+  utilities: { powerGrid: "BAND_A", powerBackup: "GENERATOR_INVERTER", hasEstateAccess: true },
+  photos: [
+    P("villa-exterior-sunset"),
+    P("living-room-day"),
+    P("bedroom-01"),
+    P("villa-exterior-gate"),
+  ],
+  hue: 2,
+});
+
 export const SHELF: Listing[] = [
   listing({
     id: "00000000-0000-4000-8000-00000000f311",

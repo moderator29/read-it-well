@@ -4,6 +4,7 @@ const PAGES = [
   "search",
   "search?filters=open",
   "listing",
+  "listing/sale",
   "move-in",
   "stays",
   "stays-search",
