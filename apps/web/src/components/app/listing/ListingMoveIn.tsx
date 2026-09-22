@@ -94,7 +94,11 @@ export function ListingMoveIn({
                   {line.label}
                   {line.basis && <span className="nf-movein__basis"> ({line.basis})</span>}
                 </span>
-                {isDeclared && line.keeper && (
+                {/* A declared ZERO does not also say who keeps it: "No agency
+                    fee" over "Paid to the agent" is two halves of a sentence
+                    that contradict each other, and the zero is the whole
+                    point of the line. */}
+                {isDeclared && line.minor !== 0 && line.keeper && (
                   <span className="nf-movein__keeper">{line.keeper}</span>
                 )}
               </span>

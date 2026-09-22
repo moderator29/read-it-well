@@ -65,14 +65,20 @@ export function moveInLines(listing: Listing, copy: Dictionary["moveIn"]): Part[
       key: "legal",
       label: copy.legalFee,
       keeper: copy.keptByAgent,
-      icon: "contract-sign",
+      /* NOT `contract-sign` and NOT `doc-review`, which read better and are
+         both in the 23 transaction marks that ship a LIGHT TWIN. Beside five
+         untwinned objects they drew as pale frosted marks on a white row while
+         their neighbours kept the navy chip, which is the founder's own
+         `home-light-black-icon-plates-as-shipped.jpg` defect in its mirror.
+         A set of objects drawn side by side is all twinned or none. */
+      icon: "doc-shield",
       minor: listing.legalFeeMinor,
     },
     {
       key: "agreement",
       label: copy.agreementFee,
       keeper: copy.keptByAgent,
-      icon: "doc-review",
+      icon: "doc-home",
       minor: listing.agreementFeeMinor,
     },
     {

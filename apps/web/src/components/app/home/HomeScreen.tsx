@@ -113,17 +113,43 @@ export function HomeScreen({
    * something honest to narrow on, and until then the supporting line under
    * the tile says what it is and what it is not.
    */
+  /*
+   * FOUR OBJECTS THAT BEHAVE THE SAME WAY IN DAYLIGHT, AND THEY DID NOT.
+   *
+   * Buy was `keys-handover`, which is one of the 23 transaction marks that
+   * ship with their own LIGHT TWIN. So in light it drew a pale frosted object
+   * with no navy chip while Rent, Manage and Invest, which have no twin, kept
+   * the navy chip: one tile from one family standing beside three from
+   * another, in a row whose whole job is to read as a set. Measured at 390 in
+   * light on a production server. `home-check` is not twinned, which is what
+   * `MarketTiles` already used for this market, so all four now take the navy
+   * chip in daylight and all four are lit glass at night.
+   *
+   * The general rule, worth more than this row: a set of objects drawn side by
+   * side must be all twinned or none, because the twin set is a property of
+   * the ARTWORK and no call site can see it.
+   */
   const categories: HomeCategory[] = [
-    { key: "buy", label: copy.buy, href: "/search?market=buy", icon: "keys-handover" },
+    { key: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check" },
     { key: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home" },
     { key: "manage", label: copy.manage, href: manageHref, icon: "manage-ring" },
-    {
-      key: "invest",
-      label: copy.invest,
-      meaning: copy.investNote,
-      href: "/search?market=buy",
-      icon: "chart-growth",
-    },
+    /*
+      NO SUPPORTING LINE ON THIS ROW, AND IT HAD ONE FOR A DAY.
+
+      The Invest tile carried `copy.investNote` as a `meaning`, which in a
+      four-across row at 390px set a seven-line paragraph under one tile and
+      left the other three standing on nothing. Measured on a production
+      server: it pushed "Featured properties" 180px down the page and broke
+      the row's rhythm, which is the one thing `GOVERNING-01` screen one is
+      unambiguous about. The render carries labels and nothing else.
+
+      The ruling it was trying to state does not need a disclaimer on a tile.
+      What makes Invest not an instrument is WHERE IT GOES: a filtered shelf of
+      the catalogue. `directHome.investNote` stays in the dictionary for the
+      Invest destination's own header, which is where an explanation belongs
+      and where there is room for one.
+    */
+    { key: "invest", label: copy.invest, href: "/search?market=buy", icon: "chart-growth" },
   ];
 
   return (

@@ -1495,7 +1495,18 @@
     gap: var(--nf-space-2xs);
     min-height: 1.875rem;
     padding: 0 var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
+    /*
+     * `--nf-radius-xs`, NOT THE CONTROL RUNG, AND THE SWEEP IS WHY.
+     *
+     * Measured on a production server: 14px on a 30px short side is 0.47. That
+     * is legal, because the law fails at 0.5, and it was still the tightest
+     * thing on either home page and it sits ON A PHOTOGRAPH, where a near
+     * capsule reads even more strongly because there is no container edge
+     * beside it to compare against. B2 made exactly this call an hour earlier
+     * on the "Cover" note in `catalogue.css` for the same reason. 6px over 30px
+     * is 0.20, and the chip still reads as a rounded label rather than a box.
+     */
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-glass-rim-thin);
     background: color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent);
     backdrop-filter: blur(10px);
@@ -1503,6 +1514,23 @@
     font-weight: 600;
     color: var(--nf-content-primary);
   }
+  /*
+   * THE INK OVER THE PLATE IS `--nf-content-on-media`, NOT THE PAGE INK, AND
+   * IT IS THE SAME INK IN BOTH THEMES.
+   *
+   * It was `--nf-content-primary`, which is near-white at night and near-black
+   * in daylight, so in light the headline became black type sitting on a dusk
+   * photograph. A light override was then written to invert the halo, which
+   * was the honest reading of a comment I had written wrongly: I described
+   * this as text on "a light page". It is not on a page at all. It is on a
+   * PHOTOGRAPH, and a photograph does not change colour when the theme does,
+   * so the ink over it must not either. Proven at 390 in light on a production
+   * server: black title, white bloom, dusk sky.
+   *
+   * This is the same family as the founder's own
+   * `home-light-black-icon-plates-as-shipped.jpg`: an object whose ground is
+   * fixed being given a token whose value follows the theme.
+   */
   .nf-hero-plate__title {
     max-width: 14ch;
     font-family: var(--nf-font-display);
@@ -1510,14 +1538,14 @@
     font-weight: 700;
     letter-spacing: -0.025em;
     line-height: 1.1;
-    color: var(--nf-content-primary);
+    color: var(--nf-content-on-media);
     text-shadow: 0 2px 18px var(--nf-overlay-media-strong);
   }
   .nf-hero-plate__lede {
     max-width: var(--nf-measure-lede);
     font-size: var(--nf-text-body-sm);
     line-height: 1.45;
-    color: var(--nf-content-primary);
+    color: var(--nf-content-on-media-secondary);
     text-shadow: 0 1px 12px var(--nf-overlay-media-strong);
   }
   /* THE FIELD SITS INSIDE THE CONTAINER, which is the whole difference
@@ -1703,26 +1731,20 @@
     border-color: var(--nf-brand-edge);
   }
   /*
-   * THE RULE THE COMMENT ABOVE PROMISES, WHICH WAS NEVER WRITTEN.
+   * B2'S LIGHT OVERRIDE FOR THE HERO TITLE AND LEDE STOOD HERE AND IS
+   * WITHDRAWN, AND IT WAS A CORRECT FIX TO A WRONG PREMISE.
    *
-   * "the headline drops its dark text shadow, which on a light page is a
-   * smudge" describes a light override that does not exist, so on paper the
-   * title and the lede were near-black ink carrying a black halo. Two faults
-   * at once: the halo is invisible against the ink it surrounds, and it was
-   * the last thing holding dark ink off a photograph.
+   * It inverted the halo to white so that dark ink on a photograph stayed
+   * readable, which is exactly right IF the ink is dark. B2 was reading my own
+   * comment, which said the headline sits on "a light page" in daylight. It
+   * does not: it sits on a dusk photograph in both themes. The ink is now
+   * `--nf-content-on-media`, white in both, so there is no dark ink left for a
+   * white halo to rescue and a white halo behind white type is a fog.
    *
-   * On paper the analogue of a dark halo is a light one, which is the same
-   * argument the elevation ladder makes about rims and shades, so the halo
-   * inverts rather than going away. `--nf-surface-primary` is `#FFFFFF` in
-   * daylight, so this is a white bloom behind dark ink on a photograph, which
-   * is what keeps it readable over a light or a busy frame.
+   * The finding underneath B2's fix survives and is the reason this note is
+   * long: the promise in a comment and the rule in the file had disagreed, and
+   * the comment was the thing that was wrong.
    */
-  :root[data-theme="light"] .nf-hero-plate__title {
-    text-shadow: 0 2px 18px var(--nf-surface-primary);
-  }
-  :root[data-theme="light"] .nf-hero-plate__lede {
-    text-shadow: 0 1px 12px var(--nf-surface-primary);
-  }
   :root[data-theme="light"] .nf-cat-tile__plate {
     background:
       linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%),

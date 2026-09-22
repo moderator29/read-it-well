@@ -4,6 +4,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
+import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
@@ -65,6 +66,49 @@ export default async function ListingPreview() {
                   moreLabel={t.catalogue.detail.more}
                 />
               </div>
+            </Section>
+
+            {/*
+              WHAT A TENANT WILL ACTUALLY PAY, where the route mounts it.
+
+              The live `/listing/[id]` needs a database and this box has none,
+              so the harness is the only production surface that can photograph
+              this block. Two instances on purpose, because the whole point of
+              the block is the DIFFERENCE between two facts and one instance
+              can only show one of them:
+
+                the fixture as it stands declares rent, caution, agency and
+                legal and says nothing about agreement or service charge, so it
+                draws four figures and two "Not declared";
+
+                the same fixture with a DECLARED ZERO agency fee draws "No
+                agency fee" in the success ink, which is the direct-from-owner
+                argument in one line and is what an owner's listing will look
+                like the day `listings.listing_role` lands.
+            */}
+            <Section title={t.moveIn.title} description={t.moveIn.lede} divided>
+              <ListingMoveIn listing={listing} locale={locale} t={t} />
+            </Section>
+
+            <Section title="The same listing, declared by its owner" divided>
+              {/* The stated TOTAL goes with the fee. The component never
+                  recomputes a total from its parts, deliberately, because the
+                  database holds the lister's own figure; so a fixture that
+                  zeroes the agency fee and keeps a total containing it would
+                  demonstrate a contradiction the product cannot produce. With
+                  no stated total the block sums the declared parts and labels
+                  the result "Move in from", which is what an owner's listing
+                  actually looks like. */}
+              <ListingMoveIn
+                listing={{
+                  ...listing,
+                  agencyFeeMinor: 0,
+                  moveInCostMinor: undefined,
+                  moveInCostStated: false,
+                }}
+                locale={locale}
+                t={t}
+              />
             </Section>
 
             <ListingSectionTabs
