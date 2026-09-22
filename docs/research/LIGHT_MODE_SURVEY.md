@@ -443,7 +443,72 @@ recessed chip on a card is 1.13:1 of fill and a 1.86:1 hairline. On the canvas
 it is 1.04:1 of fill. The filter row on `/search` in daylight is, by
 arithmetic, eight outlines and no material.
 
-### 3.5 What this adds up to
+### 3.5 The paper shadow is an invalid declaration, and it is dropped
+
+`tokens.css:1024` declares:
+
+```css
+--nf-shadow-on-paper: rgb(18 21 26 / 0.18);
+```
+
+That is a shadow COLOUR with a shadow's NAME. Eleven rules, every one of them
+inside a `:root[data-theme="light"]` block, write it into `box-shadow` as a
+whole shadow layer:
+
+```
+admin.css:937    :root[data-theme="light"] .nf-admin-chip:not(--on), .nf-admin-table,
+                 .nf-admin-row__tile, .nf-admin-row__view, .nf-admin-pager__page,
+                 .nf-admin .nf-card
+admin.css:944    :root[data-theme="light"] .nf-admin .nf-card.nf-admin-stat--flagged
+admin.css:962    :root[data-theme="light"] .nf-admin-bar__search input,
+                 .nf-admin-search__field input, .nf-admin-more__body
+admin.css:1000   :root[data-theme="light"] .nf-admin-chip--on
+agent.css:421    :root[data-theme="light"] .nf-agent-stat, .nf-agent .nf-card,
+                 .nf-agent-panel, .nf-host-choice, .nf-host .nf-card, .nf-host-group
+threads.css:1415 :root[data-theme="light"] .nf-bubble--theirs
+threads.css:1432 :root[data-theme="light"] .nf-role-tag, .nf-composer__field,
+                 .nf-thread__ring, .nf-msg__avatar, .nf-inbox-row__ring,
+                 .nf-chat-card__room, .nf-insp-fact__glyph, .nf-insp-facts,
+                 .nf-insp-notes__body
+threads.css:1436 :root[data-theme="light"] .nf-chat-card, .nf-context-card
+threads.css:1442 :root[data-theme="light"] .nf-bubble--mine
+threads.css:1450 :root[data-theme="light"] .nf-insp-card, .nf-insp-facts,
+                 .nf-insp-ladder, .nf-insp-notes, .nf-insp-step__tile
+threads.css:1455 :root[data-theme="light"] .nf-insp-notes__body
+```
+
+The CSS grammar for a shadow is `<color>? && <length>{2,4} && inset?`. The
+length pair is required, not optional. **`box-shadow: rgb(18 21 26 / 0.18)` is
+therefore an invalid declaration and the parser drops it.** Every one of those
+eleven rules paints no shadow at all on paper.
+
+The worst of them is `admin.css:941-945`:
+
+```css
+/* On paper the rule stays and the night light goes, same as every other
+   object that gained a catchlight for the container ruling. */
+:root[data-theme="light"] .nf-admin .nf-card.nf-admin-stat--flagged {
+  box-shadow:
+    inset var(--nf-admin-stat-rule) 0 0 var(--nf-admin-stat-ink),
+    var(--nf-shadow-on-paper);
+}
+```
+
+An invalid layer invalidates the whole `box-shadow` declaration, not just that
+layer. So the first layer, the 4px inset rule that IS the flag
+(`admin.css:887,893`), goes with it. **The flagged admin stat card loses its
+flag on paper**, which is a loss of information rather than of polish, and the
+comment above it states the opposite intention word for word.
+
+That token is also the sole light fill for the same surfaces:
+`--nf-surface-on-paper` is `rgb(255 255 255 / 0.72)` (`tokens.css:1022`), which
+over the white card is **1.000:1** and over the canvas is **1.065:1**. So on
+paper an admin table, an agent panel, a host group, a chat bubble, a context
+card and an inspection tile have a 1.00 to 1.07 fill and no shadow whatsoever.
+They have no boundary at all beyond whatever border the base rule set, and
+section 3.1 has those numbers.
+
+### 3.6 What this adds up to
 
 On the night canvas a container separates by being LIGHTER than its ground and
 by a bright rim. On paper the light theme chose "be white, and draw a hairline

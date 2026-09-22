@@ -1459,7 +1459,7 @@ a row that does nothing. **Recommendation: selecting a workspace on the other si
 flips the coin too**, through the existing `useSideFlip`, so the transition is the
 product's own signature animation rather than a jump, and the row names the side.
 
-## 5.10 The single source of truth
+## 5.9 The single source of truth
 
 **The precedent exists and works.** `apps/web/src/lib/trust/verification.ts` is
 one file of data read by five surfaces: `admin/agents/page.tsx:6`,
