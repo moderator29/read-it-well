@@ -848,3 +848,84 @@ Supabase dashboard has another, and they can still disagree. That is one place
 instead of four, and it is the honest floor: the dashboard setting is what
 actually generates the code, and nothing in this repository can read it. If the
 project's setting changes, change `CONFIRMATION_CODE_LENGTH` and nothing else.
+
+## 11. N2, "NOBODY LEAVES VALLO", AUDITED BY THE LEAD
+
+N2 handed back seven commits and a table of twenty eight departures. What
+follows is what I checked myself, not what it told me.
+
+**The commits are real and on main.** All seven ancestors of `origin/main`:
+`76dcdc7` `1ac54d0` `7a03a43` `d154329` `378d7c5` `79de8d2` `035b66c`.
+
+**Zero disabled rules, which is the claim I trusted least.** N2 reported that
+its first `DocumentViewer` carried an `eslint-disable-next-line
+@next/next/no-img-element`, a straight breach of rule 9, and that `035b66c`
+replaced it with `next/image` `unoptimized`. Grepping all twenty six files it
+wrote or touched for `eslint-disable` returns nothing. The reasoning behind
+`unoptimized` is also right and is the codebase's own precedent: the optimiser
+caches what it optimises, and a cached copy of somebody's passport on disc is
+the exact thing that route exists to prevent.
+
+**Zero em dashes** in all seven commit messages and zero added by the diffs.
+
+**The closures, in source rather than in a report.** `SUPPORT_HREF` is now the
+literal `"/contact"`, not a mailto with a fallback. `StickyAction.external` and
+`RowLink.external` are gone, with no `external` prop left in either file. The
+three admin desks carry no `createSignedUrl` and no `supabase.co` href; the only
+surviving occurrences of that string are the comments explaining what used to
+happen. `/api/documents/[id]` exists and `requireAdmin` is imported at line 3
+and runs before the id is parsed, which is what makes a traversal attempt a 403
+rather than a privileged read.
+
+**ITEM 10 OF THE SWEEP'S HONESTY LOG IS NOW MEASURED, AND IT IS CLEAN TODAY.**
+N2 could only say that nobody had checked whether a row uses a non `vallo`
+fulfilment mode, so I checked. The column is `public.accommodations.fulfilment`,
+of enum type `public.fulfilment_mode`, defaulting to `vallo`. Every row on the
+platform, all five of them, is `vallo`. Nothing is being fulfilled off platform
+and no partner row exists to render.
+
+That closes the question and NOT the risk: the enum still carries
+`external_completion` and `partner_handoff`, so the first row that takes one
+would render through a UI that has no partner label and no fulfilment honest
+CTA, which is on the stop list. The guard is a check constraint refusing
+anything but `vallo` until that label exists, and it belongs to whoever owns the
+stays schema, not to a lead reaching into it while they are mid migration.
+
+### Two findings N2 left for others, both confirmed
+
+* **A signed Supabase URL still reaches the admin DOM in one place.**
+  `lib/admin/queries.ts` signs listing walkthrough videos and hands the URL to a
+  `<video>`. It is not a departure, because a `<video src>` is not a
+  navigation, which is why it is not one of the twenty eight. It is still a
+  forwardable link to private storage in a page, and the `/api/documents/[id]`
+  pattern now exists to take it.
+* **`.nf-social-link` is now carried by a `<button>`** where it used to be on
+  an `<a>`. Tailwind v4 preflight resets `font`, `background` and `border` on
+  buttons, and `chips.css` already names `button.nf-chip` explicitly, but
+  `.nf-social-link` has no reset of its own and wants an eyeball at 390 in dark.
+
+### What N2 did not finish, in its own words and kept in mine
+
+**A PDF is still handed to the OS.** Images draw inside the Vallo sheet; a PDF
+is offered as a file from our own origin. That is strictly smaller than the
+departure it replaced, since there is no other company's page, no other
+company's URL bar and no signed link to forward, and the audit row is still
+written. It is still a departure. Both ways to close it need a CSP change: a
+same origin frame needs `frame-src 'self'`, and pdf.js needs a worker source.
+N2 declined to take a concurrent edit on `lib/security/csp.ts` while the
+Paystack worker was moving `frame-src` under it, and declined to `npm install`
+into a shared `node_modules` under a dozen building workers. Both refusals are
+correct. The seam is one component wide and is named `DocumentCanvas`.
+
+**Hausa, Igbo and Yoruba are English** for the six `t.offPlatform` strings,
+marked as such in each file. That is the right call: an invented translation on
+a sentence that reads "we have not checked where this goes" is worse than a
+visible English one.
+
+**Nineteen of the twenty eight are still open**, and N2 says so rather than
+rounding up: eight card and wallet payment departures blocked on the sweep's own
+unanswered items, the OAuth redirect, the map licence attribution (a licence
+question nobody has read the licence for, so it stays), four share sheets that
+need the founder's ruling, the store badges, the footer's X and Telegram, and
+the four `tel:` links that are supposed to leave. Every one of the twenty eight
+reproduced before it was touched or left; only line numbers had drifted.
