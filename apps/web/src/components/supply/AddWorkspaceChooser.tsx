@@ -46,16 +46,17 @@ import type { Side } from "@/lib/side.constants";
  * lawyer confirms them before any number becomes copy.
  *
  * ---------------------------------------------------------------------------
- * WHERE EACH DOOR GOES TODAY, STATED PLAINLY RATHER THAN IMPLIED
+ * WHERE EACH DOOR GOES, STATED PLAINLY RATHER THAN IMPLIED
  *
- * The owner door opens the owner application. THE AGENT AND FIRM DOORS BOTH
- * OPEN THE PROFESSIONAL APPLICATION, and that is the ruling rather than a
- * shortcut: a firm's proof set is a SUPERSET of an individual agent's, and a
- * superset is a branch inside one form. That form already asks "do you have a
- * registered business?" and grows from five steps to six on a yes. The three
- * forms drawn in `GOVERNING-03`, `04` and `05` are the next piece of this
- * track and are not built; the chooser carries the answer forward in the URL
- * so that when they are, nothing here changes.
+ * All three property doors now open their own form: `GOVERNING-03` for the
+ * owner, `04` for the agent, `05` for the firm. B1 wrote this comment when
+ * only the first of those existed and the other two fell through to the
+ * professional application, and it carried the chosen door forward in the URL
+ * so that nothing here would have to change when they landed. They have
+ * landed, and the answer is now the route rather than a query string.
+ *
+ * `/profile/setup/professional` is untouched and still serves the six step
+ * application, which several older surfaces still link to.
  */
 
 const DOOR_ICON: Record<string, UiIconName> = {
@@ -230,6 +231,8 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
  */
 export function hrefFor(door: string, side: Side): string {
   if (side === "stays") return `/host/apply?door=${door}`;
-  if (door === "owner") return "/profile/setup/owner";
-  return `/profile/setup/professional?door=${door}`;
+  if (door === "owner" || door === "agent" || door === "firm") {
+    return `/profile/setup/${door}`;
+  }
+  return "/profile/setup/professional";
 }
