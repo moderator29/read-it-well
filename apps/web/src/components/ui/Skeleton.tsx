@@ -22,9 +22,15 @@ import type { CSSProperties } from "react";
 
 /** The radius scale, by token. A slab with an arbitrary radius reads as a
  *  different component to the one it is standing in for. */
-export type SkeletonRadius = "sm" | "md" | "lg" | "xl" | "2xl" | "pill" | "none";
+export type SkeletonRadius = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "pill" | "none";
 
 const RADIUS: Record<SkeletonRadius, string> = {
+  /* `xs` ARRIVED WITH THE FOURTEEN HAND-ASSEMBLED LOADING SCREENS. Every one
+     of them drew its text lines at `--nf-radius-xs`, which is the right rung
+     for a 12px bar and was the one rung this map did not carry, so a faithful
+     conversion was impossible without it. A skeleton is the shape it stands in
+     for, and rounding a 12px line to 10px instead of 6px changes that shape. */
+  xs: "var(--nf-radius-xs)",
   sm: "var(--nf-radius-sm)",
   md: "var(--nf-radius-md)",
   lg: "var(--nf-radius-lg)",

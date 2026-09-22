@@ -8,28 +8,27 @@
  *
  * The real layout rather than a spinner, so nothing jumps when the data lands.
  */
+import { Skeleton } from "@/components/ui/Skeleton";
+
 export default function LoadingAroundManage() {
   return (
     <div className="mx-auto w-full max-w-3xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading places</span>
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
-        <span className="nf-social-skeleton block h-7 w-32 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-4/5 rounded-[var(--nf-radius-xs)]" />
+        <Skeleton width="8rem" height="1.75rem" radius="xs" />
+        <Skeleton width="80%" height="0.75rem" radius="xs" />
       </div>
 
-      <span
-        className="nf-social-skeleton mb-sm block h-3 w-24 rounded-[var(--nf-radius-xs)]"
-        aria-hidden="true"
-      />
+      <Skeleton className="mb-sm" width="6rem" height="0.75rem" radius="xs" />
       <ul className="flex flex-col gap-xs" aria-hidden="true">
         {[0, 1, 2, 3].map((row) => (
           <li key={row} className="nf-card flex items-start gap-sm p-md">
             <div className="min-w-0 flex-1 space-y-xs">
-              <span className="nf-social-skeleton block h-4 w-40 rounded-[var(--nf-radius-xs)]" />
-              <span className="nf-social-skeleton block h-3 w-56 rounded-[var(--nf-radius-xs)]" />
+              <Skeleton width="10rem" height="1rem" radius="xs" />
+              <Skeleton width="14rem" height="0.75rem" radius="xs" />
             </div>
-            <span className="nf-social-skeleton block h-9 w-20 rounded-[var(--nf-radius-control)]" />
+            <Skeleton width="5rem" height="2.25rem" radius="md" />
           </li>
         ))}
       </ul>

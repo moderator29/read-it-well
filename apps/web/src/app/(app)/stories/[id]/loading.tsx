@@ -11,12 +11,19 @@
  * the foot, so the picture lands into the frame it was always going to fill
  * rather than pushing the words down the screen when it arrives.
  */
+import { Skeleton } from "@/components/ui/Skeleton";
+
 export default function LoadingStory() {
   return (
     <div className="nf-story" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading this story</span>
       <article className="nf-story__stage" aria-hidden="true">
-        <div className="nf-social-skeleton nf-story__image" />
+        {/* This one keeps `.nf-story__image` because the CLASS is the
+            geometry: the stage's own aspect and object fit, which no width and
+            height on a primitive can stand in for. The MATERIAL comes from the
+            primitive, so the sweep and the reduced-motion stop are the
+            platform's rather than the social layer's second copy of them. */}
+        <Skeleton className="nf-story__image" radius="none" />
 
         {/* The author row's own space, held empty.
             `.nf-story` pulls itself up under the floating header on purpose so
@@ -25,16 +32,16 @@ export default function LoadingStory() {
             stage's `space-between` had one child, so the headline card sat at
             the top of the screen with its first line cut off by the header. */}
         <div className="nf-story__top">
-          <span className="nf-social-skeleton block h-9 w-9 shrink-0 rounded-[var(--nf-radius-pill)]" />
-          <span className="nf-social-skeleton block h-3 w-28 rounded-[var(--nf-radius-xs)]" />
+          <Skeleton width="2.25rem" height="2.25rem" radius="pill" className="shrink-0" />
+          <Skeleton width="7rem" height="0.75rem" radius="xs" />
         </div>
 
         <div className="nf-story__foot">
           <div className="nf-story__card space-y-sm">
-            <span className="nf-social-skeleton block h-4 w-24 rounded-[var(--nf-radius-pill)]" />
-            <span className="nf-social-skeleton block h-6 w-4/5 rounded-[var(--nf-radius-xs)]" />
-            <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
-            <span className="nf-social-skeleton block h-3 w-2/3 rounded-[var(--nf-radius-xs)]" />
+            <Skeleton width="6rem" height="1rem" radius="pill" />
+            <Skeleton width="80%" height="1.5rem" radius="xs" />
+            <Skeleton height="0.75rem" radius="xs" />
+            <Skeleton width="66.6667%" height="0.75rem" radius="xs" />
           </div>
         </div>
       </article>

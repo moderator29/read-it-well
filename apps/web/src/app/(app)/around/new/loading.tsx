@@ -6,33 +6,35 @@
  * cannot be rendered half made. It is reached from the directory's own footer
  * and from the create ring, both of them deliberate taps.
  */
+import { Skeleton } from "@/components/ui/Skeleton";
+
 export default function LoadingProposeArea() {
   return (
     <div className="mx-auto w-full max-w-2xl pb-3xl pt-md" aria-busy="true" aria-live="polite">
       <span className="sr-only">Opening the suggestion form</span>
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
-        <span className="nf-social-skeleton block h-7 w-44 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-72 rounded-[var(--nf-radius-xs)]" />
+        <Skeleton width="11rem" height="1.75rem" radius="xs" />
+        <Skeleton width="18rem" height="0.75rem" radius="xs" />
       </div>
 
       <div className="nf-card space-y-md p-lg" aria-hidden="true">
-        <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
+        <Skeleton height="2.75rem" radius="md" />
         <div className="grid gap-md sm:grid-cols-2">
-          <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
-          <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
+          <Skeleton height="2.75rem" radius="md" />
+          <Skeleton height="2.75rem" radius="md" />
         </div>
-        <span className="nf-social-skeleton block h-24 w-full rounded-[var(--nf-radius-md)]" />
-        <span className="nf-social-skeleton block h-11 w-44 rounded-[var(--nf-radius-control)]" />
+        <Skeleton height="6rem" radius="md" />
+        <Skeleton width="11rem" height="2.75rem" radius="md" />
       </div>
 
       {/* The moderator rules panel underneath. It is static copy and arrives with
           the page, so its shape is held rather than left as a gap that pushes the
           form upward when it lands. */}
       <div className="nf-card mt-xl space-y-sm p-lg" aria-hidden="true">
-        <span className="nf-social-skeleton block h-4 w-56 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-4/5 rounded-[var(--nf-radius-xs)]" />
+        <Skeleton width="14rem" height="1rem" radius="xs" />
+        <Skeleton height="0.75rem" radius="xs" />
+        <Skeleton width="80%" height="0.75rem" radius="xs" />
       </div>
     </div>
   );

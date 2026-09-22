@@ -18,6 +18,8 @@
  * while it waits has told the reader something false about the person, and
  * they will have read it before the truth arrives.
  */
+import { Skeleton } from "@/components/ui/Skeleton";
+
 export default function LoadingProfile() {
   return (
     <div className="mx-auto max-w-2xl" aria-busy="true" aria-live="polite">
@@ -30,26 +32,26 @@ export default function LoadingProfile() {
       <div className="nf-social-identity" aria-hidden="true">
         <div className="nf-social-avatar nf-social-avatar--ring" />
         <div className="nf-social-identity__actions">
-          <span className="nf-social-skeleton block h-11 w-24 rounded-[var(--nf-radius-control)]" />
-          <span className="nf-social-skeleton block h-11 w-11 rounded-[var(--nf-radius-pill)]" />
+          <Skeleton width="6rem" height="2.75rem" radius="md" />
+          <Skeleton width="2.75rem" height="2.75rem" radius="pill" />
         </div>
       </div>
 
       <div className="mt-sm space-y-xs" aria-hidden="true">
-        <span className="nf-social-skeleton block h-5 w-40 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-32 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton mt-md block h-3 w-full rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-4/5 rounded-[var(--nf-radius-xs)]" />
+        <Skeleton width="10rem" height="1.25rem" radius="xs" />
+        <Skeleton width="8rem" height="0.75rem" radius="xs" />
+        <Skeleton height="0.75rem" radius="xs" className="mt-md" />
+        <Skeleton width="80%" height="0.75rem" radius="xs" />
         <div className="flex gap-md pt-xs">
-          <span className="nf-social-skeleton block h-3 w-24 rounded-[var(--nf-radius-xs)]" />
-          <span className="nf-social-skeleton block h-3 w-24 rounded-[var(--nf-radius-xs)]" />
+          <Skeleton width="6rem" height="0.75rem" radius="xs" />
+          <Skeleton width="6rem" height="0.75rem" radius="xs" />
         </div>
         <div className="flex gap-md pt-xs">
-          <span className="nf-social-skeleton block h-4 w-20 rounded-[var(--nf-radius-xs)]" />
-          <span className="nf-social-skeleton block h-4 w-20 rounded-[var(--nf-radius-xs)]" />
-          <span className="nf-social-skeleton block h-4 w-14 rounded-[var(--nf-radius-xs)]" />
+          <Skeleton width="5rem" height="1rem" radius="xs" />
+          <Skeleton width="5rem" height="1rem" radius="xs" />
+          <Skeleton width="3.5rem" height="1rem" radius="xs" />
         </div>
-        <span className="nf-social-skeleton mt-lg block h-11 w-full rounded-[var(--nf-radius-control)]" />
+        <Skeleton height="2.75rem" radius="md" className="mt-lg" />
       </div>
     </div>
   );

@@ -5,32 +5,34 @@
  * standing in it, and the feed. This holds their shape so the page fills in
  * rather than appearing all at once after a silence.
  */
+import { Skeleton } from "@/components/ui/Skeleton";
+
 export default function LoadingArea() {
   return (
     <div className="mx-auto w-full max-w-3xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading this place</span>
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
-        <span className="nf-social-skeleton block h-7 w-52 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-36 rounded-[var(--nf-radius-xs)]" />
+        <Skeleton width="13rem" height="1.75rem" radius="xs" />
+        <Skeleton width="9rem" height="0.75rem" radius="xs" />
       </div>
 
       <div className="nf-card mb-md space-y-sm p-lg" aria-hidden="true">
-        <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-3/4 rounded-[var(--nf-radius-xs)]" />
+        <Skeleton height="0.75rem" radius="xs" />
+        <Skeleton width="75%" height="0.75rem" radius="xs" />
         <div className="flex gap-lg pt-xs">
-          <span className="nf-social-skeleton block h-8 w-16 rounded-[var(--nf-radius-xs)]" />
-          <span className="nf-social-skeleton block h-8 w-16 rounded-[var(--nf-radius-xs)]" />
-          <span className="nf-social-skeleton block h-8 w-24 rounded-[var(--nf-radius-xs)]" />
+          <Skeleton width="4rem" height="2rem" radius="xs" />
+          <Skeleton width="4rem" height="2rem" radius="xs" />
+          <Skeleton width="6rem" height="2rem" radius="xs" />
         </div>
       </div>
 
       <div className="flex flex-col gap-[var(--nf-feed-gap)]" aria-hidden="true">
         {[0, 1].map((card) => (
           <div key={card} className="nf-card nf-post space-y-sm">
-            <span className="nf-social-skeleton block h-4 w-44 rounded-[var(--nf-radius-xs)]" />
-            <span className="nf-social-skeleton block h-3 w-full rounded-[var(--nf-radius-xs)]" />
-            <span className="nf-social-skeleton block h-3 w-5/6 rounded-[var(--nf-radius-xs)]" />
+            <Skeleton width="11rem" height="1rem" radius="xs" />
+            <Skeleton height="0.75rem" radius="xs" />
+            <Skeleton width="83.3333%" height="0.75rem" radius="xs" />
           </div>
         ))}
       </div>

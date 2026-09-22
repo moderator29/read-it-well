@@ -8,24 +8,26 @@
  * before the first field, and it is reached from the create ring, where the tap
  * is deliberate and the wait is felt.
  */
+import { Skeleton } from "@/components/ui/Skeleton";
+
 export default function LoadingNewStory() {
   return (
     <div className="mx-auto w-full max-w-2xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
       <span className="sr-only">Opening the story composer</span>
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
-        <span className="nf-social-skeleton block h-7 w-40 rounded-[var(--nf-radius-xs)]" />
-        <span className="nf-social-skeleton block h-3 w-64 rounded-[var(--nf-radius-xs)]" />
+        <Skeleton width="10rem" height="1.75rem" radius="xs" />
+        <Skeleton width="16rem" height="0.75rem" radius="xs" />
       </div>
 
       <div className="nf-card nf-social-card space-y-md p-lg" aria-hidden="true">
         {/* The picture comes first in the real composer, and it is the tallest
             thing on the page, so the skeleton keeps its proportion. */}
-        <span className="nf-social-skeleton block aspect-[4/5] w-full rounded-[var(--nf-radius-lg)]" />
-        <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
-        <span className="nf-social-skeleton block h-11 w-full rounded-[var(--nf-radius-md)]" />
-        <span className="nf-social-skeleton block h-24 w-full rounded-[var(--nf-radius-md)]" />
-        <span className="nf-social-skeleton block h-11 w-40 rounded-[var(--nf-radius-control)]" />
+        <Skeleton radius="lg" className="aspect-[4/5]" />
+        <Skeleton height="2.75rem" radius="md" />
+        <Skeleton height="2.75rem" radius="md" />
+        <Skeleton height="6rem" radius="md" />
+        <Skeleton width="10rem" height="2.75rem" radius="md" />
       </div>
     </div>
   );
