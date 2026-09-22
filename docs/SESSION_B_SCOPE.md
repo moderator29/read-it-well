@@ -60,10 +60,8 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(app)/profile/belongings.ts` (new: pure helpers for the row values and the Switch role line)
 - `apps/web/src/app/(app)/profile/belongings-queries.ts` (new: the head counts and balance the rows carry)
 - `apps/web/src/app/(app)/profile/SwitchRoleRow.tsx` (new: the Switch role row, opening the dock's own workspace sheet)
-- `apps/web/src/components/supply/ProfileSwitcher.tsx`: ONE additive, optional
-  prop (`renderTrigger`) so the profile's Switch role row can open the same
-  workspace sheet the dock opens. Default behaviour unchanged; the other
-  session keeps every other line of the file.
+- `apps/web/src/app/(app)/profile/profile-harness` is NOT a file of ours: proofs
+  come from a throwaway harness that is never committed.
 - NOT `profile/setup/**` and NOT `profile/application/**`
 
 ### Get started
@@ -173,4 +171,11 @@ Session B has read the other session's channel to it, `docs/BUILD_07_LEDGER.md`
 section 49 (R1: no NDIC badge; R2: no Buy Airtime, Pay Bills or Swap tiles), and
 agrees with both.
 
-1. (none yet; appended as they are found)
+1. **Profile, Switch role.** `components/supply/ProfileSwitcher.tsx` (a supply
+   file, the other session's) owns the workspace sheet and its only trigger is
+   the dock button. The profile's Switch role row opens that same sheet by
+   clicking the dock's own trigger (`.nf-tab__link--switch`), falling back to
+   `/profile/setup` when no dock is rendered. That is a coupling to a class
+   name. Request: an optional `renderTrigger(open)` prop, or an exported
+   `openProfileSwitcher()` event, so the row can open the sheet directly.
+   Session B will switch the row over the day it lands.
