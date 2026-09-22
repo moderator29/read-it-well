@@ -9,6 +9,7 @@ import {
 } from "@/lib/admin/reads/overview";
 import type { CollectedRange } from "@/lib/admin/reads/shapes";
 import { LiveRefresh } from "./_components/LiveRefresh";
+import { safeDesk } from "./_components/entry";
 import { OverviewView } from "./_components/OverviewView";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ function requestTime(): number {
 export default async function AdminOverviewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; next?: string }>;
 }) {
   const locale = await getLocale();
   const params = await searchParams;
@@ -60,6 +61,7 @@ export default async function AdminOverviewPage({
         locale={locale}
         now={now}
         range={range}
+        headingTo={safeDesk(params.next)}
         pulse={ok(pulse)}
         openReviews={counts.state === "ok" ? counts.data.listings : null}
         collected={ok(collected)}

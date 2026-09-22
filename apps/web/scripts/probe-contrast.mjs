@@ -135,7 +135,24 @@ const browser = await chromium.launch({
    * glass surface measures as a flat fill and the measurement looks
    * authoritative. Same argument, same flags, as `compare-surface.mjs`.
    */
-  args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"],
+  args: [
+    "--enable-unsafe-swiftshader",
+    "--use-angle=swiftshader",
+    /*
+     * SUBPIXEL ANTIALIASING MAKES EVERY GLYPH PIXEL A DIFFERENT COLOUR, AND
+     * THAT IS WHY LOW-CONTRAST SMALL TEXT READ 1.00:1.
+     *
+     * With LCD text on, Chromium blends each glyph edge per colour channel, so
+     * a 12px word is drawn in a few hundred RGB triples of which none is
+     * common. The histogram then has no colour above the half-a-per-cent floor
+     * except the ground, and the probe reports the ground against itself.
+     * Measured on `/preview/f5/agent-listings`: "5 photos" is plainly legible
+     * in an element crop opened by hand and read 1.00:1 in both the sweep and
+     * the crop until this flag went in. Greyscale antialiasing keeps the glyph
+     * core one colour, which is the colour the stylesheet actually asked for.
+     */
+    "--disable-lcd-text",
+  ],
 });
 
 const findings = [];
@@ -213,6 +230,28 @@ const MEASURE = async ({ src, dpr, onlyTall, vw, vh }) => {
     const cs = getComputedStyle(el);
     if (cs.visibility === "hidden" || cs.display === "none" || cs.opacity === "0") continue;
     /*
+     * OPACITY COMPOUNDS, AND ASKING ONLY THE ELEMENT MISSES EVERY SHEET.
+     *
+     * A sheet that is closed, a scrim that is fading, a panel behind a modal:
+     * in all three the leaf's own opacity is 1 and an ancestor's is not. The
+     * words are then drawn as a faint wash of themselves and the histogram
+     * reads the ground twice. `/preview/g1/sheet` in light reported
+     * "Notifications" as ink rgb(237,240,246) on rgb(236,239,244), which is one
+     * colour and its neighbour: that is a statement about a sheet that is not
+     * open, not about the contrast of the word Notifications.
+     *
+     * So the effective opacity is the product down the chain, and anything
+     * under nine tenths is not measured at all. It is not a pass and it is not
+     * a failure; it is a surface that was not on screen in the state this frame
+     * caught it in.
+     */
+    let effective = Number(cs.opacity);
+    for (let a = el.parentElement; a && effective >= 0.9; a = a.parentElement) {
+      const o = Number(getComputedStyle(a).opacity);
+      if (!Number.isNaN(o)) effective *= o;
+    }
+    if (effective < 0.9) continue;
+    /*
      * THE RECT HAS TO BE CLIPPED TO WHAT IS ACTUALLY ON SCREEN, AND THE
      * ODOMETER IS WHY.
      *
@@ -223,8 +262,69 @@ const MEASURE = async ({ src, dpr, onlyTall, vw, vh }) => {
      * sixteen failures on one balance figure. None of them is a fact about
      * anything a person sees.
      */
-    let box = el.getBoundingClientRect();
-    box = { top: box.top, left: box.left, bottom: box.bottom, right: box.right };
+    /*
+     * MEASURE THE WORDS, NOT THE BOX THEY SIT IN, AND THIS IS THE LARGEST
+     * SINGLE SOURCE OF FALSE FAILURES THIS PROBE EVER HAD.
+     *
+     * A leaf's bounding rectangle is the whole line box. A `<p>` 222px wide
+     * holding the words "5 photos" is nine tenths ground, so the glyph colour
+     * covers about four pixels in a thousand and falls under the half-a-per-cent
+     * floor that keeps stray pixels from being called ink. The histogram is then
+     * left with the ground and one shade of the ground, and the probe reports
+     * the ground against itself: 1.00:1 on text that an element crop opened by
+     * hand shows plainly, in pale blue on navy, at something like seven to one.
+     *
+     * Measured on `/preview/f5/agent-listings`, dark, "5 photos": box 222x15,
+     * ground rgb(0,3,21) at 57 per cent, glyph rgb(143,157,197) at 0.4 per
+     * cent. Every short label in a wide box failed this way, in both themes,
+     * and they were a large share of the number this probe has been reporting.
+     *
+     * The browser knows exactly where the glyphs are: a Range over the element's
+     * own text nodes returns their client rectangles. The union of those is the
+     * ink's actual footprint, and inside it the glyph is a large enough share of
+     * the pixels to clear the floor honestly. It is also the right rectangle on
+     * the merits: the contrast a person experiences is the contrast where the
+     * letters are, not averaged over the empty half of the line.
+     */
+    let box = null;
+    try {
+      const r = document.createRange();
+      for (const n of el.childNodes) {
+        if (n.nodeType !== Node.TEXT_NODE || !n.nodeValue.trim()) continue;
+        r.selectNodeContents(n);
+        for (const rect of r.getClientRects()) {
+          if (rect.width < 1 || rect.height < 1) continue;
+          box = box
+            ? {
+                top: Math.min(box.top, rect.top),
+                left: Math.min(box.left, rect.left),
+                bottom: Math.max(box.bottom, rect.bottom),
+                right: Math.max(box.right, rect.right),
+              }
+            : { top: rect.top, left: rect.left, bottom: rect.bottom, right: rect.right };
+        }
+      }
+    } catch {
+      /* Fall through to the element box below. */
+    }
+    if (!box) {
+      const b = el.getBoundingClientRect();
+      box = { top: b.top, left: b.left, bottom: b.bottom, right: b.right };
+    }
+    /*
+     * A GLYPH RUN IS TIGHTER THAN ITS LINE, so pad by a little of the type size
+     * in each direction. Without the pad the sample can be all ink and no
+     * ground on a bold short word, and "the surface" becomes the letter.
+     */
+    {
+      const pad = Math.max(2, (parseFloat(getComputedStyle(el).fontSize) || 16) * 0.25);
+      box = {
+        top: box.top - pad,
+        left: box.left - pad,
+        bottom: box.bottom + pad,
+        right: box.right + pad,
+      };
+    }
     for (let a = el.parentElement; a; a = a.parentElement) {
       const acs = getComputedStyle(a);
       if (acs.overflow === "visible" && acs.overflowX === "visible" && acs.overflowY === "visible")
@@ -294,14 +394,27 @@ const MEASURE = async ({ src, dpr, onlyTall, vw, vh }) => {
     const surfaceShare = sorted[0][1] / total;
 
     /*
-     * THE INK IS THE MOST COMMON COLOUR FURTHEST FROM THE SURFACE IN LUMINANCE,
-     * taken from the head of the histogram so it is the glyph core rather than
-     * an antialiasing fringe. The 0.5 per cent floor is what keeps a single
-     * stray pixel from being called ink.
+     * THE INK IS THE COLOUR FURTHEST FROM THE SURFACE IN LUMINANCE THAT STILL
+     * COVERS HALF A PER CENT OF THE BOX. The floor is what keeps a single stray
+     * pixel from being called ink.
+     *
+     * IT USED TO LOOK ONLY AT THE SIXTY MOST COMMON COLOURS, AND THAT IS WHY
+     * LOW-CONTRAST SMALL TEXT READ 1.00:1.
+     *
+     * Antialiased type at 12px spreads its glyph over a few hundred distinct
+     * shades, none of them common. On `/preview/f5/agent-listings` the words
+     * "5 photos" are genuinely drawn, in dark navy on darker navy, and an
+     * element crop of that box opened by hand shows them plainly; the sweep
+     * reported 1.00:1, because the glyph core ranked below sixtieth by count
+     * and the only colour left in the window was the ground. A reading of
+     * "one colour twice" on text a person can see is the same class of fault
+     * as the full-page capture this file was rewritten to kill: the number is
+     * an artefact of the search, not a fact about the paint. So the whole
+     * histogram is searched, bounded by the same 0.5 per cent floor.
      */
     let ink = surface;
     let best = 0;
-    for (const [k, n] of sorted.slice(0, 60)) {
+    for (const [k, n] of sorted) {
       const v = toPx(k);
       const gap = Math.abs(L(v) - L(surface));
       if (gap > best && n > total * 0.005) {

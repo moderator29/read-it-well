@@ -20,14 +20,15 @@ Where to begin
 --------------
 
 1. Register as an agent or a firm
-   Tell us who you are, where you work and what you charge. Agents are
-   checked more closely than owners, because you handle other people's
-   property, and a person at Vallo reads every registration.
+   Tell us who you are, how long you have done this and what you charge,
+   with your ID and a selfie if you have them to hand. A person at Vallo
+   reads every registration before you can publish.
    Choose agent or firm: https://vallospaces.com/profile/setup
 
 2. Verify who you are
    Identity, then address, then your payout account, then a check in
-   person. Each step you complete shows on your listings.
+   person. Once a person at Vallo has checked your identity, your
+   listings carry the verified tick.
    Start verification: https://vallospaces.com/verification
 
 3. List, and state the full cost

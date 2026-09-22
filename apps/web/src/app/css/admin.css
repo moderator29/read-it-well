@@ -396,7 +396,7 @@
     width: 100%;
     min-height: 2.5rem;
     padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.5rem;
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
     color: var(--nf-content-primary);
@@ -680,7 +680,7 @@
     width: 100%;
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.75rem;
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     color: var(--nf-content-primary);
@@ -876,8 +876,12 @@
       not because it wears a capsule. `components/ui/Chip.tsx` and chips.css
       are another worker's scope and still draw `rounded-full` as this is
       written; they come to the same rung under the same ruling.
+
+      THE RUNG IS NOW `--nf-radius-sm` (lead ruling R-D, 22 September): the
+      chip is 40px tall, and 14px drew 0.35 of its height, on the shape
+      review line. 10px is 0.25.
     */
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     background: var(--nf-well-fill);
     box-shadow: var(--nf-rim-lit);
@@ -2372,6 +2376,49 @@
   .nf-chart--empty .nf-chart__yaxis,
   .nf-chart--empty .nf-chart__xaxis {
     color: var(--nf-content-muted);
+  }
+  /* R-E: the desk the address asked for, the overview's first link. */
+  .nf-admin-heading-to {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 3.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-admin-calm-edge);
+    background: var(--nf-admin-calm-fill);
+    box-shadow: var(--nf-admin-calm-rim);
+    color: var(--nf-content-primary);
+  }
+  .nf-admin-heading-to:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-admin-heading-to__text {
+    display: grid;
+    min-width: 0;
+  }
+  .nf-admin-heading-to__over {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-admin-heading-to__desk {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-admin-heading-to__go {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-admin-entry {
+    padding: var(--nf-space-lg) 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
   }
   .nf-chart__empty-note {
     position: absolute;

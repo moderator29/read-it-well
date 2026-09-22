@@ -158,7 +158,9 @@ Internal split between Session B workers (for Session B's own coordination):
 - admin-shell: `layout.tsx`, `page.tsx` (overview), `loading.tsx`,
   `error.tsx`, `_components/**`, `admin.css`, the chart primitives, and the
   operations, analytics, alerts, audit, notifications and scheduled-job desks,
-  plus the register sweep of every admin route not listed below.
+  plus the register sweep of every admin route not listed below, the
+  settings page (`app/admin/settings/**`), and its fixture harness under
+  `apps/web/src/app/(dev)/preview/session-b/admin/**` (lead ruling R-G).
 - admin-review: `app/admin/_review/**` (the review desks' own area
   stylesheet, presentational parts and pure helpers; no data access),
   `lib/admin/reads/listings.ts`, `moderation.ts`, `verification.ts` and their

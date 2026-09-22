@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { requireAdmin } from "@/lib/admin/guard";
@@ -8,6 +9,8 @@ import { getShellIdentity } from "@/lib/app/shell-queries";
 import { AccessScreen } from "./_components/AccessScreen";
 import { AdminFrame } from "./_components/AdminFrame";
 import type { AdminIdentity } from "./_components/AdminNav";
+import { EntryGate } from "./_components/EntryGate";
+import { ENTRY_COOKIE } from "./_components/entry";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -25,17 +28,21 @@ export async function generateMetadata(): Promise<Metadata> {
  * gets the access screen and never receives markup carrying platform data.
  * The gate is `requireAdmin` exactly as before; nothing about it moved.
  *
- * WHERE THE CONSOLE LANDS. `/admin` is the overview and nothing redirects
- * away from it: the drawer's Console row (`components/app/nav-model.ts`)
- * links `/admin`, and no layout, proxy rule or page under this tree sends an
- * operator to a desk first.
+ * WHERE THE CONSOLE LANDS (lead ruling R-E). Every door in the product links
+ * `/admin`, and an arrival BY ADDRESS lands there too: the first request to
+ * any desk in a browser session is sent to `/admin?next=<desk>` by
+ * `EntryGate`, which the overview answers with "You were heading to" as its
+ * first link. That includes the sign-in bounce, which returns to the desk
+ * address and is caught here. See `_components/entry.ts`.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const t = getDictionary(await getLocale());
   const access = await requireAdmin();
   if (access.state !== "admin") return <AccessScreen t={t} state={access.state} />;
 
-  const [counts, shell] = await Promise.all([getQueueCounts(), getShellIdentity()]);
+  const [counts, shell, jar] = await Promise.all([getQueueCounts(), getShellIdentity(), cookies()]);
+  /* R-E: has this browser session opened the overview as this operator? */
+  const entered = jar.get(ENTRY_COOKIE)?.value === access.user.id;
   const badges: Record<string, number> = counts.state === "ok" ? { ...counts.data } : {};
 
   const email = access.user.email ?? "";
@@ -57,7 +64,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       searchLabel={t.admin.common.searchLabel}
       bellLabel={t.uiCommon.console.notifications}
     >
-      {children}
+      <EntryGate entered={entered} userId={access.user.id}>
+        {children}
+      </EntryGate>
     </AdminFrame>
   );
 }

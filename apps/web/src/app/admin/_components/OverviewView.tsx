@@ -26,6 +26,26 @@ import {
   type KpiItem,
 } from "./panels";
 import { RangeSelect } from "./RangeSelect";
+import { currentDestination } from "./nav";
+import Link from "next/link";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+
+/** "You were heading to Money": the desk the address asked for, one tap away. */
+function HeadingTo({ href }: { href: string }) {
+  const desk = currentDestination(href.split("?")[0] ?? href);
+  return (
+    <Link href={href} className="nf-admin-heading-to">
+      <span className="nf-admin-heading-to__text">
+        <span className="nf-admin-heading-to__over">You were heading to</span>
+        <span className="nf-admin-heading-to__desk">{desk?.label ?? href}</span>
+      </span>
+      <span className="nf-admin-heading-to__go">
+        Continue
+        <UiIcon name="arrow-right" size={16} />
+      </span>
+    </Link>
+  );
+}
 
 /**
  * THE OVERVIEW, drawn from 5EAA44CB: the pulse strip, four KPI cards, the
@@ -42,6 +62,8 @@ export type OverviewProps = {
   locale: Locale;
   now: number;
   range: CollectedRange;
+  /** R-E: the desk address the operator arrived at before being sent here. */
+  headingTo?: string | null;
   /** `getQueueCounts().listings`: submitted, under review or approved and not yet live. */
   openReviews: number | null;
   pulse: ConsolePulse | null;
@@ -197,6 +219,7 @@ export function OverviewView(props: OverviewProps) {
   return (
     <div className="nf-admin-stack">
       <h1 className="sr-only">Console overview</h1>
+      {props.headingTo && <HeadingTo href={props.headingTo} />}
       <KpiStrip items={strip} label="Platform pulse" />
       <KpiGrid items={cards} label="This week" />
 
