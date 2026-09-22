@@ -314,6 +314,17 @@ const cronFailureSchema = z.object({
   status: z.string(),
   start_time: z.string(),
   return_message: z.string().nullable(),
+  /*
+   * OPTIONAL ON PURPOSE, AND THE DEFAULT IS THE LOUD ONE.
+   *
+   * A deploy can reach a database where the migration adding this has not run.
+   * When the key is absent the failure is treated as STANDING, which is
+   * exactly how this watch behaved before the field existed: it shouts. The
+   * silent default would have been to treat an unknown recovery as a recovery,
+   * and that is a way for a real outage to go unreported because a migration
+   * was late.
+   */
+  recovered_at: z.string().nullable().optional(),
 });
 
 const cronFailuresSchema = z.object({
@@ -328,6 +339,11 @@ export type CronFailure = {
   status: string;
   startTime: string;
   returnMessage: string | null;
+  /**
+   * When this job next SUCCEEDED after this failure, or null while it has not.
+   * Null is "still broken"; a timestamp is "it picked itself up".
+   */
+  recoveredAt: string | null;
 };
 
 export type CronFailures = { available: boolean; failures: CronFailure[] };
@@ -343,6 +359,7 @@ export function parseCronFailures(data: unknown): CronFailures {
       status: row.status,
       startTime: row.start_time,
       returnMessage: row.return_message,
+      recoveredAt: row.recovered_at ?? null,
     })),
   };
 }
@@ -475,15 +492,69 @@ export function driftVerdict(report: DriftReport): JobVerdict {
   };
 }
 
+/**
+ * A JOB THAT FAILED AND RECOVERED IS NOT A FAILING JOB.
+ *
+ * This used to raise one CRITICAL alert whenever the window held any failed
+ * run at all, which asks whether A FAILURE EXISTS rather than whether THE JOB
+ * IS FAILING. Those are different questions and only the second is worth
+ * waking somebody for.
+ *
+ * What it cost, measured on this project on 22 September.
+ * `vallo_reconcile_payments` run 8187 failed at 15:47 on a pasted newline in
+ * the site URL. That was fixed at 17:37 and the job has returned 200 on its
+ * own schedule since. At 18:20 this function raised the 15:47 failure as a
+ * fresh critical alert, and with a 25 hour window it would have gone on doing
+ * so, hourly, until the following afternoon: TWENTY-TWO CRITICAL ALERTS ABOUT
+ * ONE FIXED FAULT. That is how a desk gets switched off, and this platform has
+ * already paid once for a desk nobody opened.
+ *
+ * So each failure now carries `recoveredAt`, the next success of the same job,
+ * and only the STANDING ones raise. The recovered ones are never discarded:
+ * they stay in the counts and in the envelope on every run, so a job flapping
+ * between failing and recovering reads as exactly that rather than as silence.
+ *
+ * `available: false` still raises nothing, and an unknown recovery still
+ * counts as standing. See the note on the schema field.
+ */
 export function cronWatchVerdict(result: CronFailures): JobVerdict {
-  const counts = { failures: result.failures.length };
   const detail = { available: result.available };
   if (!result.available) {
     // Not an alert: a database without the run table is a configuration the
     // deploy notes own, and the envelope says so on every run.
-    return { outcome: "ok", counts, detail: { ...detail, note: "cron.job_run_details is not readable here" }, alert: null };
+    return {
+      outcome: "ok",
+      counts: { failures: 0, standing: 0, recovered: 0 },
+      detail: { ...detail, note: "cron.job_run_details is not readable here" },
+      alert: null,
+    };
   }
-  if (result.failures.length === 0) return { outcome: "ok", counts, detail, alert: null };
+
+  const standing = result.failures.filter((row) => row.recoveredAt === null);
+  const recovered = result.failures.length - standing.length;
+  const counts = { failures: result.failures.length, standing: standing.length, recovered };
+
+  if (standing.length === 0) {
+    return {
+      outcome: "ok",
+      counts,
+      /* Said out loud on a clean run rather than left to be inferred from a
+         zero: "nothing is broken" and "something broke and fixed itself twice
+         today" are different facts and the envelope carries both. */
+      detail: {
+        ...detail,
+        ...spreadIds(
+          "recovered",
+          result.failures.map(
+            (row) =>
+              `${row.jobName ?? `job ${row.jobId}`} run ${row.runId} failed at ${row.startTime}, succeeded again at ${row.recoveredAt}`,
+          ),
+        ),
+      },
+      alert: null,
+    };
+  }
+
   return {
     outcome: "attention",
     counts,
@@ -491,13 +562,18 @@ export function cronWatchVerdict(result: CronFailures): JobVerdict {
     alert: {
       kind: "cron.pg_cron.job_failed",
       severity: "critical",
-      detail: spreadIds(
-        "failure",
-        result.failures.map(
-          (row) =>
-            `${row.jobName ?? `job ${row.jobId}`} run ${row.runId} at ${row.startTime}: ${row.returnMessage ?? "no message"}`,
+      detail: {
+        ...spreadIds(
+          "failure",
+          standing.map(
+            (row) =>
+              `${row.jobName ?? `job ${row.jobId}`} run ${row.runId} at ${row.startTime}: ${row.returnMessage ?? "no message"}`,
+          ),
         ),
-      ),
+        /* The desk is told how many were left out and why, so a quiet alert
+           naming one job cannot be mistaken for the whole picture. */
+        recovered_and_not_alerted: recovered,
+      },
     },
   };
 }

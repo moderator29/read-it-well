@@ -248,6 +248,7 @@ describe("the database's answers are read strictly", () => {
       status: "failed",
       startTime: "2026-09-18T02:15:00+00:00",
       returnMessage: "ERROR: something",
+      recoveredAt: null,
     });
   });
 });
@@ -337,6 +338,7 @@ describe("what a sweep says about its run", () => {
           status: "failed",
           startTime: "2026-09-18T02:15:00+00:00",
           returnMessage: "ERROR: something",
+          recoveredAt: null,
         },
       ],
     });
@@ -345,5 +347,101 @@ describe("what a sweep says about its run", () => {
     expect(failed.alert?.detail.failure_1).toBe(
       "vallo_release_stale_holds run 900 at 2026-09-18T02:15:00+00:00: ERROR: something",
     );
+    expect(failed.counts).toMatchObject({ failures: 1, standing: 1, recovered: 0 });
+  });
+
+  /*
+   * THE REAL CASE, WITH THE REAL NUMBERS OFF THIS PROJECT.
+   *
+   * `vallo_reconcile_payments` run 8187 failed at 15:47 on 22 September on a
+   * pasted newline in the site URL. It was fixed at 17:37 and succeeded on its
+   * own schedule at 18:47. The watch raised it as a fresh CRITICAL at 18:20
+   * and, on a 25 hour window, would have raised it hourly until the following
+   * afternoon: twenty-two critical alerts about one fault that was already
+   * fixed.
+   */
+  it("does not shout about a job that failed and has succeeded since", () => {
+    const recovered = cronWatchVerdict({
+      available: true,
+      failures: [
+        {
+          jobId: 7,
+          jobName: "vallo_reconcile_payments",
+          runId: 8187,
+          status: "failed",
+          startTime: "2026-09-22T15:47:00+00:00",
+          returnMessage: "ERROR: invalid URL",
+          recoveredAt: "2026-09-22T18:47:00+00:00",
+        },
+      ],
+    });
+    expect(recovered.alert).toBeNull();
+    expect(recovered.outcome).toBe("ok");
+
+    // Counted and named, never discarded: a flapping job must still be visible.
+    expect(recovered.counts).toMatchObject({ failures: 1, standing: 0, recovered: 1 });
+    expect(recovered.detail.recovered_1).toBe(
+      "vallo_reconcile_payments run 8187 failed at 2026-09-22T15:47:00+00:00, succeeded again at 2026-09-22T18:47:00+00:00",
+    );
+  });
+
+  it("still shouts when one job recovered and another has not", () => {
+    const mixed = cronWatchVerdict({
+      available: true,
+      failures: [
+        {
+          jobId: 7,
+          jobName: "vallo_reconcile_payments",
+          runId: 8187,
+          status: "failed",
+          startTime: "2026-09-22T15:47:00+00:00",
+          returnMessage: "ERROR: invalid URL",
+          recoveredAt: "2026-09-22T18:47:00+00:00",
+        },
+        {
+          jobId: 3,
+          jobName: "vallo_release_stale_holds",
+          runId: 901,
+          status: "failed",
+          startTime: "2026-09-22T18:15:00+00:00",
+          returnMessage: "ERROR: still broken",
+          recoveredAt: null,
+        },
+      ],
+    });
+    expect(mixed.outcome).toBe("attention");
+    expect(mixed.alert?.severity).toBe("critical");
+    // ONLY the standing one is named, and it is named first rather than second.
+    expect(mixed.alert?.detail.failure_count).toBe(1);
+    expect(mixed.alert?.detail.failure_1).toBe(
+      "vallo_release_stale_holds run 901 at 2026-09-22T18:15:00+00:00: ERROR: still broken",
+    );
+    // And the desk is told what was left out, so a one-job alert cannot be
+    // mistaken for the whole picture.
+    expect(mixed.alert?.detail.recovered_and_not_alerted).toBe(1);
+  });
+
+  /*
+   * A DEPLOY CAN REACH A DATABASE WHERE THE MIGRATION HAS NOT RUN, and the
+   * field is then simply absent. The silent default would be to read an
+   * unknown recovery as a recovery, which is a way for a real outage to go
+   * unreported because a migration was late. It reads as STANDING instead.
+   */
+  it("treats a missing recovered_at as still broken, not as recovered", () => {
+    const parsed = parseCronFailures({
+      available: true,
+      failures: [
+        {
+          jobid: 3,
+          jobname: "vallo_release_stale_holds",
+          runid: 900,
+          status: "failed",
+          start_time: "2026-09-18T02:15:00+00:00",
+          return_message: "ERROR: something",
+        },
+      ],
+    });
+    expect(parsed.failures[0]?.recoveredAt).toBeNull();
+    expect(cronWatchVerdict(parsed).alert).not.toBeNull();
   });
 });

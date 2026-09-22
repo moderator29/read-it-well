@@ -5517,3 +5517,94 @@ measurement.** Check the darkest surface the thing can actually land on. Three
 of these four comments quoted a real number that was real about a background
 the component is rarely on, which is a more convincing way to be wrong than
 having no number at all.
+
+## 48. THE CHECK-IN CAUGHT ONE, AND IT WAS THE WATCH ITSELF
+
+The 18:55 check-in on the cron fix. All three questions answered, and the third
+one found a seventh blind light.
+
+### 1. The scheduler lets itself in now, unaided
+
+`private.reconciliation_watch` at 18:47, joined to its reply:
+
+```
+last_requested_at: 2026-09-22 18:47:00   last_verdict: ok_200
+status_code: 200   window 2026-09-20T18:47 to 2026-09-22T18:47, charges and holds examined
+```
+
+**`ok_200` is the claim I could not make earlier.** The 17:37 proof was a run I
+fired by hand; this one is pg_cron on its own schedule, through pg_net, with
+the rotated bearer. The door opens for the scheduler and not merely for me.
+
+### 2. Production is current and has stayed current
+
+Five consecutive production deployments READY, newest `2596ed9`. Nothing ERROR
+since the rotation.
+
+### 3. The alert count went 0 to 1, and the one was the finding
+
+The desk had grown one open row, raised at **18:20**. Read rather than assumed,
+it says:
+
+```
+cron.pg_cron.job_failed  (critical)
+vallo_reconcile_payments run 8187 at 2026-09-22T15:47:00:
+  ERROR: invalid URL "https://www.vallospaces.com\n/api/paystack/reconcile..."
+```
+
+That is the newline fault, at **15:47**, two hours before it was fixed, raised
+as a fresh critical alert at 18:20 about a job that had by then succeeded three
+times.
+
+`private.cron_job_failures` reports every failed run in a **25 hour** window
+and `cronWatchVerdict` raises critical if that list is not empty. Neither asks
+whether the job is failing NOW. Left alone, that one dead run would have
+produced **twenty-two more critical alerts, hourly, until the following
+afternoon**, about a fault already fixed.
+
+**It is the same shape as the other six: it observes that a failure exists in a
+window, not that the job is failing.** And it is the most expensive kind,
+because this is the desk. A desk that cries about fixed faults is a desk that
+gets closed, and this platform has already paid once for a desk nobody opened.
+
+### The fix, on both sides
+
+`private.cron_job_failures` now returns `recovered_at` per failure: the start
+time of the next SUCCEEDED run of the same job. **The recovery search is
+deliberately not windowed** even though the failures are, because a failure at
+the old edge of 25 hours may have been put right 24 hours ago.
+
+`cronWatchVerdict` alerts only on failures where `recoveredAt` is null.
+**Nothing is discarded**: recovered failures stay in `counts` and are named in
+the envelope on every run, so a job flapping between failing and recovering
+reads as exactly that rather than as silence, and a standing alert carries
+`recovered_and_not_alerted` so a one-job alert cannot be mistaken for the whole
+picture.
+
+**The unknown case defaults to the loud answer.** A deploy can reach a database
+where the migration has not run, and `recovered_at` is then simply absent. It
+parses as null, which means standing, which means it shouts exactly as it did
+before. Reading an unknown recovery as a recovery would have been a way for a
+real outage to go unreported because a migration was late.
+
+### Proved on the live estate, not in a fixture
+
+The probe against `uccixoonmbhrnyczyigt` (rolled back) returned:
+
+```
+1 failures in window, 0 standing, 1 recovered.
+vallo_reconcile_payments run 8187 at 2026-09-22T15:47:00 recovered_at=2026-09-22T18:47:00
+```
+
+It also fails if any row lacks the `recovered_at` KEY, because an absent key
+parses as "not recovered" in the caller and the whole change would then be a
+no-op that looked like it worked.
+
+Rule 21 restated rather than assumed: `create or replace` preserves grants, so
+both functions are re-revoked from `public`, `anon` and `authenticated`, and
+`has_function_privilege` was read back afterwards. Measured after: anon false,
+authenticated false on both; `service_role` true on the public wrapper only,
+which is exactly the state measured before.
+
+Gate: clean worktree at `2596ed9`, hardlinked node_modules, tsc 0, eslint 0, 91
+tests across `lib/bookings` and `lib/cron`.
