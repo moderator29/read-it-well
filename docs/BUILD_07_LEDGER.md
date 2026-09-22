@@ -1499,3 +1499,364 @@ than the only line.** The honest summary is the one worth writing down: the
 guard held everywhere I checked, the revoke did not. A function that ever
 ships without its own internal check would be reachable, and the rule exists
 so that day never arrives.
+
+## 17. THE MIRROR SWEEP: every test in this repository that asserts on the shape of source rather than on behaviour
+
+A test passed because it grepped the source for a string. It claimed terms
+acceptance was recorded. The column it stood for did not exist and no
+acceptance was ever recorded for any user. It was green for weeks. That test
+was a mirror: it reflected the source back at itself and called the reflection
+evidence. This section is the sweep for the others, on the assumption that if
+one green light was measuring nothing, others are.
+
+### What was examined, and how
+
+* **148 `*.test.ts` under `apps/web/src`.** There are no `*.test.tsx` files
+  anywhere in the repository and no tests at all under `packages/`.
+* **82 `*.spec.mjs` under `apps/web/tests`**, the Playwright suite.
+* Every one was searched for the six shapes: a file read followed by a
+  `toContain`, `toMatch` or regex over the text; an import made only to assert
+  on `Function.prototype.toString()`, a function's `.name`, or the presence of
+  a key; a migration asserted by its text rather than by the object it creates;
+  a component asserted by its source rather than by its DOM; a snapshot that is
+  the only assertion; and any assertion whose subject is a path, a filename, a
+  comment or a doc string.
+* **16 of the 148 read source. 23 of the 82 read source.** The remaining 132
+  and 59 assert on values, calls and rendered pages. They were classified by
+  that search rather than read line by line, which is stated here because a
+  census taken by grep is a census with a known edge.
+* **There is not one snapshot test in this repository.** No
+  `toMatchSnapshot`, no `toMatchInlineSnapshot`, no `__snapshots__` directory.
+  That whole family of mirror is simply absent, which is worth recording as a
+  good result rather than leaving as a gap in the table.
+* **No test asserts on `Function.prototype.toString()` or on a function's
+  `.name`.** The `.name` hits in the search were all fixture labels.
+
+### The verdicts, counted
+
+| Verdict | Rows |
+| --- | --- |
+| 1. SOUND | 12 |
+| 2. WEAK BUT HONEST | 13 |
+| 3. A MIRROR, still standing | 8 |
+| 4. FIXED, now asserts on behaviour | 6 |
+
+Rows are claims rather than files, because several files hold a sound sweep
+and a mirror in the same `describe`. The Playwright survey is counted
+separately below, since it was sampled rather than read in full.
+
+### The vitest suite, claim by claim
+
+| File and claim | Verdict | Why |
+| --- | --- | --- |
+| `lib/safety/user-generated-content.test.ts` "records the version that was on screen" | **FIXED** | **THE TWIN OF THE INCIDENT.** It asserted `readFileSync("lib/auth/actions.ts").toContain("terms_version")`. That string is a field written into `auth.users.raw_user_meta_data` and read by nothing. `read` returned the file WITH its comments and the block above that field discusses `terms_version` at length, so the assertion would have passed on the prose alone with every line of the receipt deleted. Measured in a clean worktree: deleting the `recordTermsAcceptance` call leaves the old assertion green. It is now a real call with real arguments against a replaced writer, asserting which documents are recorded and at which versions, plus a call-site check on source with the prose stripped, named for what it is. |
+| `lib/safety/user-generated-content.test.ts` "adds an objectionable content branch to both scanners" | **FIXED** | It asserted that `objectionable_pattern` and the two scanner functions each appear in the migration. A migration that declares the pattern function and two scanners that never ask it anything satisfied all three: a filter that exists and does not run. It now extracts each scanner's executable body and asserts the body calls `private.objectionable_pattern()`. |
+| `lib/safety/user-generated-content.test.ts` "ships the term list empty and says so" | **FIXED** | The load-bearing assertion was `toContain("-- SEED REQUIRED")`, a comment. The note is kept because a reader needs it, and the claim is now carried by an assertion that the executable half of the migration contains no `insert into public.blocked_terms` at all. |
+| `lib/copy/alphabet.test.ts` | **FIXED** | It swept the four locale files as TEXT, which cannot see the one spelling that matters most. `"buҳatar"` is eleven ASCII characters on disk and serves the Cyrillic ha with descender to a reader in Kano: the exact defect this file exists for, in the one form it was blind to, and the form a model reaches for whenever a character is awkward to type. The dictionary is now walked as VALUES as well, after the escapes have resolved and after `withFallback` has filled the gaps. Measured: the escaped character passes the file sweep and fails the new walk. |
+| `lib/native/deep-link-readiness.test.ts` "the build gate must agree with this verdict" | **FIXED** | It asserted `readFileSync("scripts/check-deep-links.mjs").toContain("process.exit(warnOnly ? 0 : 1)")`. The gate deliberately re-states the rules in plain JavaScript rather than importing the checker, so a hand copy of a rule is exactly what drifts, and the only thing standing between the two copies was an assertion that the copy existed. The gate is now executed and the problems it names are matched one for one, per file, against the checker's. Exit code alone was not enough: loosening the gate's Team ID rule while the fingerprint rule still refuses leaves the exit code at 1. Measured: that mutation now fails. |
+| `components/app/listing/example-notice.test.ts` (whole file) | **FIXED**, in the only direction available | Every assertion read the component WITH its comments. `toContain("EXAMPLE_STATEMENT")` passed on the doc block that explains why the disclosure must never be deleted, so the disclosure could have been deleted and left the paragraph about it doing the work of proving it was there. The `not.toContain` assertions had the mirror in reverse: a comment mentioning `hover:` or `<button` failed a test about code that was clean. It now reads code only, through the same `withoutComments` the copy sweep uses. **It still does not render anything**, and that half is below. |
+| `lib/brand-domain.test.ts` | **SOUND** | The Android manifest, the iOS entitlements, `build.gradle`, `project.pbxproj`, `strings.xml`, `assetlinks.json` and the AASA are not TypeScript, nothing imports them, and an App Link verifies by exact host. Their text IS the subject. It genuinely catches the drift it is named for, which has already happened twice. |
+| `lib/copy/banned-phrases.test.ts` | **SOUND** | A lint-style sweep over every source file and every locale file for banned copy. The shipped string IS the subject. The two file-level exemptions are named in the file with what they cost. |
+| `lib/security/money-limits-call-sites.test.ts` | **SOUND** | The founder's own example shape: the call graph is the subject, and no unit test on a pure table can reach it. It states its own limit, which is that it cannot see a `guardMoney` call in dead code or after the spend. |
+| `lib/email/listings.test.ts` "no other route from the catalogue into email" | **SOUND** | An import-graph assertion: no module under `lib/email` may reach the listing repository. The graph is the subject. The rest of the file is behavioural, with an obedient and a leaky repository. |
+| `lib/security/anon-columns.test.ts` | **SOUND** | It reads the denied column list OUT of the migration rather than duplicating it, then pairs it against the real `LISTING_SELECTS` values. The ordering assertion (revoke before grant) is about SQL statement order, which is the subject, and a migration written the other way applies cleanly and changes nothing. |
+| `lib/trust/agent-badge-derivation.test.ts` "read from nowhere but agent_badges" | **SOUND** | It parses every PostgREST select made against `agents` across the tree and asserts none asks for the raw `verified` column, stripping embeds so a read THROUGH to the badge is not mistaken for one. The select graph is the subject. |
+| `lib/email/shell.test.ts` (templates, palette in the shipped markup, byte-for-byte regeneration) | **SOUND** | The committed templates ARE the artefact that ships, so asserting on their text is asserting on behaviour. Running the generator into a temporary directory and comparing is the only check that catches a hand edit before it is overwritten. |
+| `lib/email/shell.test.ts` "the auth generator uses the theme value %s" | **WEAK BUT HONEST** | Greps the generator source for each theme hex. It would miss a theme colour that survives only in a dead constant while the emails are drawn in another, though the sibling assertions on the rendered HTML narrow that considerably. |
+| `app/(app)/listing/[id]/syndication.test.ts` | **WEAK BUT HONEST** | Reads `page.tsx` and asserts the delegation call is present, having first stripped comments, which most of the repository does not. It states in a long header exactly why it cannot import a `.tsx` and pairs the source half with a behavioural half against the gate. It would miss a delegation call in unreachable code. |
+| `app/api/assistant/example-listings.test.ts` | **WEAK BUT HONEST** | Says so in its own header: "Asserting on the source is weaker than asserting on behaviour and it is far stronger than nothing, because the failure this guards against is somebody deleting a filter, not the filter behaving oddly." The counted-exclusion assertion is unusually careful: exactly one search without `excludeDemo`, not at most one. It would miss a filter that is present and wrong. |
+| `lib/notify/junction.test.ts` "the decision paths are actually wired" | **WEAK BUT HONEST** | The rest of the file is genuinely behavioural, with both seams replaced. The last `describe` reads `lib/admin/actions.ts` for builder names. It catches the exact historical defect, which was three complete builders with no caller. It would miss a builder named only in an import list, or an `announce` behind a flag, and it does not strip comments. |
+| `lib/listings/retirement.test.ts` | **WEAK BUT HONEST** | The alarm itself is a real clock. The migration assertion claims the date "the migration wrote onto the rows" and proves the date is in the file. It would miss rows whose `demo_retire_after` disagrees with the migration that was supposed to stamp them. |
+| `lib/trust/agent-badge-derivation.test.ts` "is documented on VerifiedAvatar" | **WEAK BUT HONEST** | The subject is a doc comment and the test is named "is documented". It claims no more than it proves. It would miss a component reading the wrong source while carrying the right comment. |
+| `lib/trust/agent-badge-derivation.test.ts` (migration constraint assertions) | **WEAK BUT HONEST** | Comments stripped, executable SQL asserted. It cannot know the constraint exists in the database. |
+| `lib/account-deletion/plan.test.ts` (the destroy list, the retained list, the transfer and close migrations) | **WEAK BUT HONEST** | Comments are stripped and the assertions are on executable SQL. It is named for the migration rather than for the database. It would miss a migration never applied, and a delete inside a branch that never runs. |
+| `lib/safety/user-generated-content.test.ts` "does not name a listing in the report sheet's own copy" | **WEAK BUT HONEST** | A negative assertion on copy that ships. |
+| `lib/safety/user-generated-content.test.ts` "does not put a safety control behind the social feature flag" | **SOUND** | An import-graph assertion: the module may not import the social flag. The graph is the subject, and the doc comment quoting the old guard is precisely why the assertion is on the import and not on the prose. |
+| `lib/safety/user-generated-content.test.ts` "is born locked" | **WEAK BUT HONEST** | Migration text for the rule 21 revokes. Section 16 of this ledger already records that the revokes are the half that did not hold in the live database, which is the gap this shape leaves. |
+| `lib/account-deletion/plan.test.ts` "each migration carries an RLS cross-user read that must fail" | **A MIRROR** | It asserts the SQL contains the banner `THE RLS CROSS-USER READ THAT MUST FAIL`. **The probe is entirely commented out** in all four migrations: it is a script for a human to paste into psql, not executable SQL. What could ship green: a migration carrying the banner and no probe beneath it, or a probe that was pasted, failed, and was never run again, with RLS wide open on the table. |
+| `lib/account-deletion/plan.test.ts` "the new probes end in a deliberate raise" | **A MIRROR** | Asserts `toContain("PROBE ALL PASS")`, which is a string inside a commented-out `raise exception`. It proves a comment quotes a raise. |
+| `lib/account-deletion/plan.test.ts` "the new probes are not vacuous" | **A MIRROR** | Asserts the migration contains the phrase `the read would be vacuous`. The subject is a sentence about vacuity. A probe can carry that sentence and still prove nothing, which is the definition of the thing the sentence denies. |
+| `lib/safety/user-generated-content.test.ts` "mounts a report control inside the conversation options sheet" | **A MIRROR** | `ThreadOptionsSheet.tsx` contains `ReportSheet` and `targetType="conversation"`. What could ship green: the sheet imports the component and never mounts it, mounts it behind a condition that is never true, or mounts it off screen. Apple guideline 1.2 asks for a reporting mechanism, and a rejection on this point costs a submission cycle. |
+| `lib/safety/user-generated-content.test.ts` "offers a block control in the conversation options sheet" | **A MIRROR** | Same shape, same file, `thread-block-opener` and `blockUserSafely` as strings. What could ship green: a block control that is present and does not call the action, or a handler wired to nothing. |
+| `lib/safety/user-generated-content.test.ts` "blocks sign up until the tick is given" | **A MIRROR** | `EmailAuthForm.tsx` contains `AcceptTerms` and `setAcceptError(true)`. What could ship green: the error state is set and the submit is not stopped, so somebody opens an account without accepting and the receipt above records a consent they never gave. This one sits directly behind the incident. |
+| `lib/safety/user-generated-content.test.ts` "is published at a route a signed out person can reach" | **A MIRROR** | The page contains `EULA_SECTIONS` and `proxy.ts` does not contain `"eula"`. Route reachability is a request and a response. What could ship green: the page calls an auth guard of its own, or lives under a group that redirects, and the EULA a reviewer is told to read returns a sign-in wall. |
+| `lib/safety/user-generated-content.test.ts` "the document quotes the constant" | **WEAK BUT HONEST** | `eula.tsx` contains `{EULA_ZERO_TOLERANCE}`. It is named for the quoting rather than for the rendering. |
+
+### What was converted, with the measurement for each
+
+Four files. Each conversion was proved by breaking the thing it claims to
+catch in a clean worktree and watching it go red, because a test that has
+never failed for the right reason is a test nobody has checked.
+
+1. `lib/safety/user-generated-content.test.ts`. Deleting the
+   `recordTermsAcceptance` call from the sign-up action now fails. The old
+   assertion stayed green through the same deletion, and would have stayed
+   green with every remaining line of the receipt deleted too, on comments.
+2. `lib/copy/alphabet.test.ts`. A Cyrillic ha written as `ҳ` into `ha.ts`
+   passes the file sweep and fails the served-string walk.
+3. `lib/native/deep-link-readiness.test.ts`. Loosening the gate's hand-copied
+   Team ID rule now fails. It did not fail under the exit-code comparison
+   alone, which is why the problems are matched per file.
+4. `components/app/listing/example-notice.test.ts`. Hardened rather than
+   converted: it reads code with the prose stripped, and it still renders
+   nothing.
+
+### What could not be converted, and exactly why
+
+Each of these is a finding, not an edit. None of them was touched.
+
+* **The seven remaining component mirrors need a rendered DOM, and this suite
+  cannot produce one.** `vitest.config.ts` aliases `react` at its
+  `react-server` entry, deliberately and for a stated reason: in the server
+  build `cache` memoises and in the client build it does not, so a `cache`
+  wrapped server module would behave one way in the app and another under test
+  with everything green. That entry publishes no `jsx-dev-runtime`, so no
+  `.tsx` in this codebase can be imported by this suite at all. Undoing the
+  alias to render one notice would put every `cache` wrapped server module back
+  in the blind spot it was pulled out of. **The honest home for these seven is
+  a Playwright spec against a running server, which is outside a test file.**
+* **The three probe mirrors in `plan.test.ts` need a database.** The probes are
+  commented out on purpose so a human can paste them into psql inside a
+  transaction that rolls back. Nothing a node test can do will run them. The
+  conversion is a migration harness that executes the probe block against a
+  branch database and asserts it raises, which is outside this scope. I did not
+  edit that file at all: hardening a shared spec that is currently green, in a
+  tree a dozen workers share, buys less than it risks.
+* **`is published at a route a signed out person can reach`** needs a request
+  through `proxy`. `proxy.ts` is importable and `proxy.test.ts` already builds a
+  `NextRequest`, but the protection branch only runs when Supabase is
+  configured, so the assertion would pass vacuously on the pass-through exit.
+  `PRODUCT_SEGMENTS` is not exported. Exporting it would make a real data
+  assertion possible in one line, and that is an edit to application source.
+
+### The Playwright suite, surveyed rather than read in full
+
+23 of the 82 `*.spec.mjs` files read application source and assert on its text.
+They are a different case from the vitest files because each of them ALSO
+drives a real browser against a running server, so the source half is usually a
+supplement to a rendered check rather than a substitute for one. **I read four
+of the 23 in full and classified the other nineteen by their source-reading
+assertions.** That is a survey and it is labelled as one.
+
+The four read in full:
+
+| File | Verdict on its source half |
+| --- | --- |
+| `auth-origin.spec.mjs` | **SOUND.** It rewrites `lib/site.ts` into a stub and EXECUTES it under node with different headers, which is behaviour, not text. The remaining greps count `/auth/callback` occurrences against occurrences built from `authOrigin()`, which is a ratio and cannot be satisfied by one stray string. |
+| `auth-callback.spec.mjs` | **WEAK BUT HONEST.** It greps `lib/auth/actions.ts` for the three exchange shapes. It records in a comment that it deliberately STOPPED asserting on a literal `startsWith("//")` when the check moved to a tested module, because the assertion would then have failed on code that was strictly safer. That is the right instinct written down. |
+| `admin-console.spec.mjs` | **SOUND**, with one **WEAK BUT HONEST** row. The clamp sweep and the `nf-queue-list` count are lint over the admin tree, and the geometry is measured in a real browser off a discovered stylesheet, after a hardcoded chunk name silently 404ed and every geometry check was measuring an unstyled div. `consoleUsers.length >= 14` is a threshold on a file count and would survive the wrong fourteen files. |
+| `dead-ends-and-doors.spec.mjs` | **WEAK BUT HONEST.** Six components read as text beside a browser walk of the same routes. |
+
+The nineteen surveyed: `discovery-behaviour`, `error-copy`, `gate`,
+`icons-and-targets`, `intent-tune`, `interests-settings`, `map-tiles`,
+`money-and-numbers`, `password-reset`, `phone`,
+`polish-overlays-copy-status`, `profile-renders`, `public-feed`,
+`session-memory`, `signup-verify`, `skeletons`, `social-profile-header`,
+`truncation`, `trust-refund-desk`. Three things are worth recording from the
+survey:
+
+* **`session-memory.spec.mjs` strips comments before it asserts**, with its own
+  `stripComments`. It is the only spec in the suite that does, and it is the
+  habit the rest of the repository should copy. The incident turned on exactly
+  this.
+* **`icons-and-targets.spec.mjs` compares checked-in vector sources against
+  `UiIcon.tsx`.** Two copies of one fact with a test between them is the sound
+  shape, the same as `brand-domain.test.ts`.
+* **`signup-verify.spec.mjs` and `password-reset.spec.mjs` grep
+  `lib/auth/actions.ts` alongside a real browser walk.** Neither carries a copy
+  of the terms mirror: I searched every spec and every script for
+  `terms_version`, `termsVersion` and `terms_accept` and found none outside the
+  file that was fixed.
+
+**I edited none of the 82.** They need a dev server to run and I could not gate
+a change to one, and a Playwright spec changed without being run is a change
+nobody has measured.
+
+### What I skipped, said plainly
+
+* I did not read the 132 vitest files and 59 specs that make no source
+  assertion. They were classified by a search for the six shapes plus the
+  snapshot and `.name` families, and not opened.
+* I did not open all nineteen surveyed specs line by line. Their verdicts are
+  from their source-reading assertions only.
+* I did not edit `lib/account-deletion/plan.test.ts`, although it holds three
+  mirrors, for the reason given above.
+* I did not run the Playwright suite. It needs a server on 3210 and a browser,
+  and nothing I changed is in it.
+* `lib/supply/registration.test.ts` is untracked in the shared tree and belongs
+  to another worker. It makes no source assertion. I left it alone.
+
+### The gate, and the commit it was taken at
+
+Taken in a clean worktree at **`origin/main` `feffcdc`**, with this worker's
+four files copied in and nothing else.
+
+* `npx tsc --noEmit -p tsconfig.json`: clean.
+* `npx eslint` over the four changed files: clean, and no rule was disabled.
+* `npx vitest run`, the whole suite rather than the four files: **147 files,
+  2659 tests, all passing.**
+
+A gate reading is a photograph of a moving object and is worthless without the
+commit it was taken at. That commit is `feffcdc`.
+
+## 17. THE BLIND GREEN LIGHT SWEEP: every job, check, probe and monitor, asked one question
+
+The founder asked for one thing, deliberately, as a named piece of work: two
+of the day's findings were the same failure in different clothes. A scheduler
+that reported success hourly for three weeks while the job it fired was never
+read, and a test that passed by looking at source instead of behaviour. Both
+were green lights that could not see the thing they were reporting on.
+
+One question was put to every scheduled job, health check, probe, monitor and
+assertion in scope. **Does it observe the outcome, or only that it tried?**
+
+Three verdicts, and only the middle one is a finding.
+
+* **SEES.** It observes the real outcome.
+* **BLIND.** It reports on trying. What could be broken, and for how long,
+  with this reading green.
+* **FIXED.** It now observes the outcome, and this says what it reads.
+
+Counts: **26 examined, 13 SEES, 6 FIXED, 7 BLIND and marked.** The gate for
+every fix is at the foot of this section.
+
+### 17.1 What the live database says, measured before anything was written
+
+Read only, against `uccixoonmbhrnyczyigt`, on 22 September 2026. Four
+measurements, and the third one was not expected.
+
+| Measure | Reading |
+| --- | --- |
+| `audit_log` rows with `action = 'wallet.reconciliation.run'` | **474, newest 29 August** |
+| `cron.job_run_details` for `vallo_reconcile_payments` | **succeeded**, every hour, latest 13:47 today |
+| `net._http_response`, the six responses pg_net still holds | **404, every one**, `DEPLOYMENT_NOT_FOUND` |
+| `audit_log` rows with `entity_type = 'cron_job'` | **ZERO. Not one, ever.** |
+| `risk_alerts` with `entity_type in ('cron_job','cron')` | **256 open**, newest 14:20 today |
+
+The first three are the founder's incident, confirmed against the source
+rather than taken from the report. The last two are a second outage nobody
+had named, and it is larger.
+
+**EVERY SCHEDULED JOB ON THIS PLATFORM HAS BEEN DEAD SINCE 19 SEPTEMBER.**
+All seven Vercel cron entries are firing, reaching the live deployment and
+being refused at the door with 401. Not one has ever written a run row.
+
+| Job | Open refusals | First | Last |
+| --- | ---: | --- | --- |
+| hold-sweep | 87 | 19 Sep 00:05 | 22 Sep 14:05 |
+| pg-cron-watch | 87 | 19 Sep 00:20 | 22 Sep 14:20 |
+| paystack-reconcile | 69 | 19 Sep 18:10 | 22 Sep 14:10 |
+| inventory-drift | 4 | 19 Sep 02:45 | 22 Sep 02:46 |
+| complete-stays | 3 | 19 Sep 02:30 | 21 Sep 02:30 |
+| account-purge | 3 | 20 Sep 03:15 | 22 Sep 03:15 |
+| saved-search-alerts | 3 | 20 Sep 07:40 | 22 Sep 07:40 |
+
+The cause is one secret: `RECONCILE_CRON_SECRET` on the host no longer equals
+`CRON_SECRET` on the scheduler (docs/DEPLOY.md, section 2). **This needs the
+founder**, and it is the single highest value line in this section: account
+deletions past their thirty day promise are not being purged, holds are not
+being released by the watched twin, and the money sweep is refused on both
+of its two routes in at the same time.
+
+Every one of those 256 rows was raised at MEDIUM severity with the word
+"unauthorised", which reads as somebody probing a URL. Four days of the whole
+fleet being down, reported hourly, in the colour of a nuisance.
+
+### 17.2 The findings, one line each
+
+#### FIXED, six
+
+| What | It used to observe | It now observes |
+| --- | --- | --- |
+| `lib/cron/run.ts`, the refusal | That a bad bearer arrived. One warning, same words for a stranger and for our own scheduler | Who was refused. A refused platform scheduler is `cron.<job>.locked_out` at **critical**, carrying `ran: false` and the secret to fix, and the spray limiter can no longer swallow it |
+| `api/paystack/reconcile/route.ts`, the refusal | The same warning, 69 times | The same critical, through the same one decision |
+| `lib/cron/report.ts`, the audit insert | That it tried to write the run row. A failure went to `console.error` and the run still answered 200 | The insert's answer. A lost row raises `cron.<job>.unrecorded` at critical, because that row IS the history the freshness watch reads |
+| `lib/cron/freshness.ts`, a job with no history | Nothing. "Never ran" was excused for ever as a deploy that has not happened | The watch's own age. Once the watch has been reporting longer than a sibling's allowance, a sibling with no history is named as silent. A read that FAILED stays quiet, because an absence we could not measure is not evidence |
+| `scripts/verify-desktop.mjs` | That it navigated. It wrote a PNG and printed success for a 404, a 500, the not-found body on a 200, a redirect to sign-in, the wrong theme or an unstyled page | The status, the not-found marker, where the browser landed, the rendered theme and the stylesheet count. No file is written for any of them |
+| `scripts/audit/dead-controls.mjs` | That it meant to parse 584 files. Unreadable ones were skipped by a bare `continue` and the run printed PASS | What it actually parsed. Unread files are counted, named and fail the run with exit 1 |
+| `scripts/audit/smoke.mjs` | 5xx and 404 only, so a route answering 403 walked through as `ok  403` | Every status that is not a page is a failure |
+
+#### BLIND and NOT fixed, seven, with what each one costs
+
+1. **`private.request_money_reconciliation`, the database job. THE INCIDENT.**
+   It returns `{"status":"requested", "request_id": N}` the moment pg_net
+   accepts the call and never looks at `net._http_response`. pg_cron records
+   "succeeded, 1 row" for the SQL returning, which is true and means nothing.
+   Cost, measured: three weeks and counting of no money reconciled at all,
+   green every hour. **I may not apply a migration, so this is marked rather
+   than fixed.** The fix is one function: read `net._http_response` for the
+   previous run's `request_id` at the start of the next run, and raise or
+   write a failure row for any status outside 2xx. Until then the only thing
+   that can see this silence is the freshness watch, by the audit row the
+   endpoint writes when it is actually reached. The Vault origin itself is the
+   founder's and was not touched.
+2. **`lib/alerts/record.ts` returns `{ ok: false, reason }` and every caller
+   ignores it.** The desk is the last line, and when a write to it fails the
+   only trace is a `console.warn`. Cost: a critical alert that never landed is
+   indistinguishable from a quiet hour. The remedy is a second, independent
+   channel, and there is one already built in `lib/observability/report.ts`:
+   route a failed CRITICAL alert into `reportError`, which reads
+   `response.ok`. That is a decision about what leaves the building, so it is
+   named here rather than taken alone.
+3. **`lib/observability/client.ts` posts crash reports and discards the
+   answer** (`.catch(() => {})`, by design, inside error boundaries). Cost: if
+   `/api/client-error` starts answering 500, client crash reporting is dead
+   and nothing anywhere says so. It claims no success, which is why it is at
+   the bottom of this list rather than the top.
+4. **`scripts/audit/lib/tsx.mjs`, `walkFiles`.** A directory it cannot read is
+   skipped silently, and every audit built on it then reports PASS over a tree
+   it did not fully see. `dead-controls.mjs` now catches the per-FILE case; a
+   whole unreadable directory still vanishes from all four audits.
+5. **`cron.job_run_details` is nobody's reader while `pg-cron-watch` is
+   refused.** `vallo-nightly-badges` failed three nights running, 16 to 18
+   September, and recovered on its own. Nothing told anybody, because the only
+   thing that reads that table is one of the seven jobs answering 401.
+6. **An "attention" run answers HTTP 200.** Correct for the work, but a
+   scheduler dashboard cannot distinguish it from a clean run. The alert desk
+   is the only place the difference exists.
+7. **The watch is inside the fleet it watches.** `pg-cron-watch` is the only
+   thing that notices a silent job, and it is scheduled, deployed, secured and
+   refused exactly like its six siblings. When the fleet goes down, the thing
+   that reports the fleet going down goes down with it, which is precisely
+   what happened on 19 September. The only scheduler on this platform that is
+   independent of Vercel is pg_cron, and putting the watch there is a
+   migration.
+
+#### SEES, thirteen, in one line each
+
+`executeCronJob` reads the verdict and answers 500, 503 or 200 on it.
+`callServiceFunction` reads the PostgREST error and throws, so a failed RPC is
+a reported failure. `holdSweep`, `completeStays` and `inventoryDrift` parse the
+rows their function returned and turn the contents into the verdict.
+`accountPurge` counts what was actually purged and what retried, and calls a
+retry attention rather than success. `savedSearchAlerts` reads every insert and
+update error and refuses to move a watermark past a notification that did not
+land. `reportCronRun` with no service client raises critical rather than
+returning quietly. `reportError` reads `response.ok` and returns
+`transport_failed` on anything else. `scripts/verify-shots.mjs` proves five
+separate things about the page before it will write a file, and its comments
+are the best writing in this repository on why. `scripts/audit/route-inventory.mjs`
+and `states-checklist.mjs` both fail conservatively: an unparseable file keeps
+a surface ON the gap list rather than off it. `scripts/probes/*.sh` assert
+against real database state after the fact, under `set -euo pipefail`, and
+`m5_oversell.sh` reads the final inventory rather than the exit codes of the
+two sessions that raced for it. `lib/alerts/record.test.ts` asserts the row
+that was inserted and the outcome returned, not that a function was called.
+
+### 17.3 The gate
+
+Clean worktree at **origin/main 62835d9**, node_modules hard linked, the
+twelve changed files copied in.
+
+* `npx tsc --noEmit -p tsconfig.json`: clean.
+* `npx eslint` on all nine app files: clean. No rule was disabled anywhere.
+* `npx vitest run src/lib/cron/`: **38 passed**, 3 files.
+* `node scripts/audit/dead-controls.mjs`: 584 of 584 parsed, PASS, exit 0.
+  Then driven the other way with one unreadable file present: `unread 1`,
+  FAIL, exit 1. The new check was proved by behaviour, both ways, which is
+  the whole point of the section it is in.
+
+Not touched, deliberately: the Vault origin and its secrets, which are the
+founder's and are being changed by him; `scripts/verify-shots.mjs`, which
+another worker holds uncommitted; and every product table, since this stint
+was read only against the database.
