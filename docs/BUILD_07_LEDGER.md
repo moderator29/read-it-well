@@ -3594,3 +3594,55 @@ The blocker is server stability in the worktree, not the change. It stays owed.
   That is the label on the move-in cost block, which is the feature that
   exists so a tenant can read what they will actually pay.
 * The settings `Verified` badge is 4.04:1.
+
+## 36. THE URL FIX WORKED, AND THE NEW VERDICT FIELD ANSWERED THE NEXT QUESTION ON ITS FIRST USE
+
+The 16:47 pg_net reconciliation, measured rather than assumed:
+
+| | 15:47 | 16:47 |
+| --- | --- | --- |
+| `cron.job_run_details` | **failed**, invalid URL with a newline in it | **succeeded** |
+| `net._http_response` | 404 `DEPLOYMENT_NOT_FOUND` | **401** |
+
+**The newline fix worked.** The 404s that ran from 29 August are gone: the URL
+is valid, it resolves, and it reaches the live deployment. That is the first
+time this job has reached the platform at all since August.
+
+**And then the thing built an hour ago paid for itself.** The alert reads:
+
+```
+cron.paystack_reconcile.unauthorised
+{"http_status":401,"scheduler":"unknown","ran":false,"reason":"secret-mismatch"}
+```
+
+`secret-mismatch`, not `no-bearer`. Before this field existed, that 401 was
+indistinguishable from the one that had been arriving all day, and the honest
+answer would have been another round of guessing. Instead it says, in one
+reading: **a bearer WAS presented and it did not match.** Both sides trim
+whitespace now, in the app and in SQL, so this is not a paste artefact. **The
+two values genuinely differ.**
+
+That is three faults in one job, found in order, each hiding the next:
+
+1. A dead per-deployment URL in Vault, answering 404 for three weeks while the
+   scheduler reported success, because nobody read the reply.
+2. A pasted newline in the replacement URL, which `btrim` with one argument
+   could not strip.
+3. The Vault secret and `RECONCILE_CRON_SECRET` holding different values.
+
+**Nothing could see past the one in front of it**, which is the whole argument
+for making each layer say what it actually observed rather than that it tried.
+
+### What the founder needs, stated once
+
+THREE values must be identical, and at least one is not:
+
+| Where | Name | Who reads it |
+| --- | --- | --- |
+| Supabase Vault | `vallo_reconcile_secret` | the pg_cron path |
+| Vercel | `RECONCILE_CRON_SECRET` | our door, both paths |
+| Vercel | `CRON_SECRET` | Vercel's scheduler, which injects the header |
+
+The 16:47 evidence proves Vault does not equal the host. `CRON_SECRET` was
+created separately at about 16:25 and has not been compared to anything yet;
+the 17:05 run is its first test.
