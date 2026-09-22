@@ -1,12 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { TextField } from "@/components/ui/Field";
-import { Chip, ChipRow } from "@/components/ui/Chip";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
@@ -16,6 +13,10 @@ import { getStatement, transferToUser, type TransferReceipt } from "@/lib/wallet
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO, parseNairaToKobo } from "@/lib/wallet/schema";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { Receipt } from "./Receipt";
+import { useBalanceMask } from "./balance-mask";
+import { LiveWallet } from "./LiveWallet";
+import { MoneyGlyph, type MoneyGlyphName } from "./MoneyGlyph";
+import { WalletTiles } from "./WalletTiles";
 import { RollingAmount } from "./RollingAmount";
 import { canonicalNaira } from "./AmountField";
 import { useMoneyWait, WaitNotice } from "./MoneyWait";
@@ -65,8 +66,9 @@ type Step = "compose" | "confirm" | "sent";
 
 const INITIAL: ActionResult<TransferReceipt | null> = { ok: false, error: "" };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/* The render's four presets, in integer kobo. */
-const PRESETS_KOBO = [1_000_000, 2_500_000, 5_000_000, 10_000_000];
+/* The render's four presets (77A54EA3), in integer kobo: 5,000, 10,000,
+   20,000 and 50,000 naira. */
+const PRESETS_KOBO = [500_000, 1_000_000, 2_000_000, 5_000_000];
 const NOTE_MAX = 140;
 
 export function SendFlow({
@@ -77,10 +79,17 @@ export function SendFlow({
   initialAmount = "",
   initialNote = "",
   lookup: lookupFn = lookupRecipient,
+  homeCopy: homeCopyProp,
+  userId = null,
 }: {
   balanceMinor: number;
   locale: Locale;
   copy: SendCopy;
+  /** The wallet home's words, for the balance card's eye and its tiles.
+      Read from the locale's dictionary when a caller does not pass them. */
+  homeCopy?: Dictionary["wallet"]["home"];
+  /** The signed-in person, for the live refresh. */
+  userId?: string | null;
   initialEmail?: string;
   initialAmount?: string;
   initialNote?: string;
@@ -97,11 +106,12 @@ export function SendFlow({
   lookup?: (email: string) => Promise<RecipientLookup>;
 }) {
   const router = useRouter();
+  const homeCopy = homeCopyProp ?? getDictionary(locale).wallet.home;
   const [step, setStep] = useState<Step>("compose");
   const [email, setEmail] = useState(initialEmail);
   const [amountText, setAmountText] = useState(initialAmount);
   const [note, setNote] = useState(initialNote);
-  const [hidden, setHidden] = useState(false);
+  const [hidden, toggleHidden] = useBalanceMask();
   const [recent, setRecent] = useState<RecentRecipient[]>([]);
   const [idempotencyKey] = useState(mintIdempotencyKey);
   const [state, formAction, pending] = useActionState(transferToUser, INITIAL);
@@ -185,10 +195,73 @@ export function SendFlow({
   const sent = state.ok && state.data !== null;
   const shownStep: Step = sent ? "sent" : step;
 
+  /*
+   * The frame every step sits in, to 77A54EA3: the balance card with its eye
+   * and the four tiles, then the page's own head (title, the line under it,
+   * and the Instant transfer chip). The balance is the server's figure, and
+   * after a send the page is re-read, so the card shows the new balance.
+   */
+  const frame = (body: React.ReactNode) => (
+    <>
+      <section aria-labelledby="nf-send-balance-label" className="nf-wallet-hero">
+        <span className="nf-wallet-hero__object" aria-hidden="true">
+          <BrandIcon name="wallet-naira" fill priority />
+        </span>
+        <div className="relative">
+          <div className="nf-wallet-hero__label">
+            <p id="nf-send-balance-label">{copy.availableBalance}</p>
+            <button
+              type="button"
+              onClick={toggleHidden}
+              aria-pressed={hidden}
+              aria-label={hidden ? homeCopy.showBalance : homeCopy.hideBalance}
+              className="nf-wallet-eye nf-tap"
+            >
+              <UiIcon name={hidden ? "eye-off" : "eye"} size={20} />
+            </button>
+          </div>
+          <p className="nf-wallet-figure nf-numeric">
+            {hidden ? (
+              "₦••••••"
+            ) : (
+              <RollingAmount
+                minor={balanceMinor}
+                locale={locale}
+                className="nf-odometer-figure"
+                koboClassName="nf-money-kobo nf-money-kobo--hero"
+              />
+            )}
+          </p>
+          <p className="nf-send-balance-line">
+            <MoneyGlyph name="card" size={20} />
+            {copy.balanceLabel}
+          </p>
+          <WalletTiles copy={homeCopy} current="send" />
+        </div>
+      </section>
+
+      <div className="nf-send-head">
+        <div className="min-w-0">
+          <h1 className="nf-send-head__title">{copy.title}</h1>
+          <p className="nf-send-head__sub">{copy.sendSub}</p>
+        </div>
+        {/* True of every send this page makes: both legs are written in one
+            database transaction (private.transfer_between_wallets). */}
+        <p className="nf-send-chip-instant">
+          <UiIcon name="bolt" size={16} />
+          {copy.instantChip}
+        </p>
+      </div>
+
+      {body}
+      <LiveWallet userId={userId} />
+    </>
+  );
+
   /* ---------------------------------------------------------------- sent */
   if (shownStep === "sent" && state.ok && state.data) {
     const receipt = state.data;
-    return (
+    return frame(
       <div role="status" aria-live="polite" data-testid="wallet-send-sent">
         {entry ? (
           <Receipt entry={entry} locale={locale} />
@@ -226,13 +299,13 @@ export function SendFlow({
             </div>
           </div>
         )}
-      </div>
+      </div>,
     );
   }
 
   /* ------------------------------------------------------------- confirm */
   if (shownStep === "confirm" && kobo !== null) {
-    return (
+    return frame(
       <form action={formAction} noValidate data-testid="wallet-send-confirm">
         <input type="hidden" name="recipientEmail" value={email.trim()} />
         <input type="hidden" name="amount" value={amountText.trim()} />
@@ -304,90 +377,65 @@ export function SendFlow({
           <WaitNotice wait={wait} movement="transfer" onDone={() => router.push("/wallet")} />
           <ErrorNotice state={state} title={copy.failedTitle} />
         </div>
-      </form>
+      </form>,
     );
   }
 
   /* ------------------------------------------------------------- compose */
-  return (
-    <div data-testid="wallet-send-compose" className="space-y-group">
-      {/* The balance strip: what can be sent, with the eye and a way back. */}
-      <Link href="/wallet" className="nf-card nf-card--interactive nf-balance-strip">
-        <span className="nf-balance-strip__mark block" aria-hidden="true">
-          <BrandIcon name="wallet" fill />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-inline-tight">
-            <span className={TYPE.label}>{copy.balanceLabel}</span>
-            <button
-              type="button"
-              onClick={(event) => {
-                event.preventDefault();
-                setHidden((h) => !h);
-              }}
-              aria-pressed={hidden}
-              aria-label={hidden ? "Show balance" : "Hide balance"}
-              className="nf-tap grid h-8 w-8 place-items-center rounded-[var(--nf-radius-sm)] text-[var(--nf-brand-secondary)]"
-            >
-              <UiIcon name={hidden ? "eye-off" : "eye"} size={18} />
-            </button>
-          </span>
-          <span className="nf-h3 block text-[var(--nf-content-primary)]">
-            {hidden ? (
-              "₦••••••"
-            ) : (
-              <RollingAmount
-                minor={balanceMinor}
-                locale={locale}
-                koboClassName="text-[0.7em] font-semibold text-[var(--nf-content-muted)]"
-              />
-            )}
-          </span>
-          <span className={`block ${TYPE.rowMeta}`}>{copy.availableFor}</span>
-        </span>
-        <span className="nf-icon-btn h-10 w-10" aria-hidden="true">
-          <UiIcon name="chevron-right" size={20} />
-        </span>
-      </Link>
+  const recipientError =
+    fieldErrors?.recipientEmail ??
+    (check !== null && check !== "checking" && check.state === "none"
+      ? copy.recipientNone
+      : check !== null && check !== "checking" && check.state === "self"
+        ? copy.recipientSelf
+        : undefined);
+  const amountError = fieldErrors?.amount ?? (kobo !== null && !enough ? copy.notEnough : undefined);
 
-      {/* Recipient */}
-      <section className="nf-card p-card-sm" aria-labelledby="nf-send-recipient">
-        <SectionHead id="nf-send-recipient" icon="user" title={copy.recipientTitle} sub={copy.recipientSub} />
-        <div className="mt-row">
-          <TextField
-            label={copy.recipientLabel}
-            hideLabel
-            hint={copy.recipientHint}
-            name="recipientEmail"
-            type="email"
-            autoComplete="off"
-            inputMode="email"
-            leadingIcon="mail"
-            placeholder={copy.recipientPlaceholder}
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            error={
-              fieldErrors?.recipientEmail ??
-              (check !== null && check !== "checking" && check.state === "none"
-                ? copy.recipientNone
-                : check !== null && check !== "checking" && check.state === "self"
-                  ? copy.recipientSelf
-                  : undefined)
-            }
-          />
-          {/* What the lookup said, in the register of the withdraw sheet's
-              "Name on the account": the name is shown, never made editable,
-              because it is the account's record and not ours to correct. */}
-          {check === "checking" && (
-            <p role="status" aria-live="polite" className={`mt-inline-tight ${TYPE.rowMeta}`}>
+  return frame(
+    <div data-testid="wallet-send-compose">
+      {/*
+        THE FORM PANEL, to 77A54EA3: one glass panel holding a row per field,
+        each row a round glass plate, a label and the control. Recipient,
+        Amount and Narration are the rows this product has. The render's Bank
+        row is refused (a send is wallet to wallet, and bank payouts do not
+        complete today) and so is its scan button (there is no scanner).
+      */}
+      <div className="nf-card nf-send-form">
+        <div className="nf-send-row">
+          <RowPlate art="plate-recipient" uiIcon="user" />
+          <div className="nf-send-row__body">
+            <label htmlFor="nf-send-recipient" className="nf-send-row__label">
+              {copy.recipientTitle}
+            </label>
+            <input
+              id="nf-send-recipient"
+              className="nf-send-row__input"
+              name="recipientEmail"
+              type="email"
+              autoComplete="off"
+              inputMode="email"
+              placeholder={copy.recipientPlaceholder}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              aria-invalid={recipientError ? true : undefined}
+              aria-describedby="nf-send-recipient-note"
+            />
+          </div>
+        </div>
+        <div id="nf-send-recipient-note" className="nf-send-row__notes">
+          {recipientError ? (
+            <p role="alert" className="nf-send-row__error">
+              {recipientError}
+            </p>
+          ) : check === "checking" ? (
+            <p role="status" aria-live="polite" className="nf-send-row__hint">
               {copy.recipientChecking}
             </p>
-          )}
-          {recipientName && (
+          ) : recipientName ? (
             <p
               role="status"
               aria-live="polite"
-              className="nf-recipient-found mt-inline-tight"
+              className="nf-recipient-found"
               data-testid="wallet-send-recipient-found"
             >
               <UiIcon name="verified" size={18} className="shrink-0 text-[var(--nf-state-success)]" />
@@ -396,198 +444,215 @@ export function SendFlow({
                 <span className={`block truncate ${TYPE.rowTitle}`}>{recipientName}</span>
               </span>
             </p>
-          )}
-          {check !== null && check !== "checking" && check.state === "unknown" && check.reason.length > 0 && (
-            <p role="status" className={`mt-inline-tight ${TYPE.rowMeta}`}>
+          ) : check !== null && check.state === "unknown" && check.reason.length > 0 ? (
+            <p role="status" className="nf-send-row__hint">
               {check.reason}
             </p>
+          ) : (
+            <p className="nf-send-row__hint">{copy.recipientHint}</p>
+          )}
+          {recent.length > 0 && (
+            <div className="mt-inline-tight">
+              <div className="flex items-center justify-between gap-md">
+                <p className={TYPE.label}>{copy.recentRecipients}</p>
+                <button
+                  type="button"
+                  className="nf-wallet-link nf-tap"
+                  onClick={() => {
+                    writeRecentRecipients([]);
+                    setRecent([]);
+                  }}
+                >
+                  {copy.clearRecent}
+                </button>
+              </div>
+              <div className="nf-recipients" role="group" aria-label={copy.recentRecipients}>
+                {recent.map((person) => {
+                  const chosen = email.trim().toLowerCase() === person.email;
+                  return (
+                    <button
+                      key={person.email}
+                      type="button"
+                      className="nf-recipient nf-tap"
+                      aria-pressed={chosen}
+                      aria-label={`${person.name}, ${person.email}`}
+                      onClick={() => setEmail(person.email)}
+                    >
+                      <span className="nf-recipient__avatar" aria-hidden="true">
+                        {recipientInitials(person.name)}
+                      </span>
+                      <span className="block w-full truncate text-center">
+                        {recipientShortName(person.name)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </div>
-        {recent.length > 0 && (
-          <div className="mt-row">
-            <div className="flex items-center justify-between gap-md">
-              <p className={TYPE.label}>{copy.recentRecipients}</p>
-              <button
-                type="button"
-                className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
-                onClick={() => {
-                  writeRecentRecipients([]);
-                  setRecent([]);
-                }}
-              >
-                {copy.clearRecent}
-              </button>
-            </div>
-            <div className="nf-recipients mt-inline-tight" role="group" aria-label={copy.recentRecipients}>
-              {recent.map((person) => {
-                const chosen = email.trim().toLowerCase() === person.email;
-                return (
-                  <button
-                    key={person.email}
-                    type="button"
-                    className="nf-recipient nf-tap"
-                    aria-pressed={chosen}
-                    aria-label={`${person.name}, ${person.email}`}
-                    onClick={() => setEmail(person.email)}
-                  >
-                    <span className="nf-recipient__avatar" aria-hidden="true">
-                      {recipientInitials(person.name)}
-                    </span>
-                    <span className="block w-full truncate text-center">
-                      {recipientShortName(person.name)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </section>
 
-      {/* Amount */}
-      <section className="nf-card p-card-sm" aria-labelledby="nf-send-amount">
-        <SectionHead id="nf-send-amount" glyph="₦" title={copy.amountTitle} sub={copy.amountLabel} />
-        <p className="mt-row text-center">
-          <RollingAmount
-            minor={kobo ?? 0}
-            locale={locale}
-            className="nf-h0 nf-odometer-figure tracking-tight"
-            koboClassName="text-[0.5em] font-semibold text-[var(--nf-content-muted)]"
-          />
-        </p>
-        <div className="mt-row">
-          <TextField
-            label={copy.amountLabel}
-            hideLabel
-            name="amount"
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            placeholder={copy.amountPlaceholder}
-            trailing={<span className="nf-numeric font-semibold">{"₦"}</span>}
-            value={amountText}
-            onChange={(event) => setAmountText(event.target.value)}
-            error={fieldErrors?.amount ?? (kobo !== null && !enough ? copy.notEnough : undefined)}
-            clearable="Clear the amount"
-            onClear={() => setAmountText("")}
-          />
+        <div className="nf-send-row nf-send-row--amount">
+          <RowPlate art="plate-amount" glyph="₦" />
+          <div className="nf-send-row__body">
+            <label htmlFor="nf-send-amount" className="nf-send-row__label">
+              {copy.amountTitle}
+            </label>
+            <input
+              id="nf-send-amount"
+              className="nf-send-row__input nf-numeric"
+              name="amount"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              placeholder={copy.amountPlaceholder}
+              value={amountText}
+              onChange={(event) => setAmountText(event.target.value)}
+              aria-invalid={amountError ? true : undefined}
+              aria-describedby="nf-send-amount-note"
+            />
+          </div>
+          {/* The render's four amounts, as quick fills. Rounded rectangles. */}
+          <div className="nf-send-chips" role="group" aria-label={copy.amountTitle}>
+            {PRESETS_KOBO.map((preset) => {
+              const canonical = canonicalNaira(preset);
+              return (
+                <button
+                  key={preset}
+                  type="button"
+                  className="nf-send-chip nf-numeric"
+                  aria-pressed={amountText === canonical}
+                  onClick={() => setAmountText(canonical)}
+                >
+                  {formatMoney(preset, locale)}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <ChipRow bleed={false} fadeEdges={false} snap={false} className="nf-send-presets mt-inline">
-          {PRESETS_KOBO.map((preset) => {
-            const canonical = canonicalNaira(preset);
-            return (
-              <Chip
-                key={preset}
-                size="sm"
-                selected={amountText === canonical}
-                onSelectedChange={() => setAmountText(canonical)}
-                className="flex-1"
-              >
-                {formatMoney(preset, locale)}
-              </Chip>
-            );
-          })}
-        </ChipRow>
-        <dl className="nf-cells nf-cells--pair mt-row">
-          <div className="pr-lg">
-            <dt className={TYPE.label}>{copy.balanceNow}</dt>
-            <dd className="mt-inline-tight nf-body font-semibold text-[var(--nf-content-primary)]">
-              <RollingAmount minor={balanceMinor} locale={locale} />
-            </dd>
-          </div>
-          <div className="pl-lg">
-            <dt className={TYPE.label}>{copy.balanceAfter}</dt>
-            <dd
-              className={`mt-inline-tight nf-body font-semibold ${
-                enough ? "text-[var(--nf-content-primary)]" : "text-[var(--nf-state-error)]"
-              }`}
-            >
-              <RollingAmount minor={after} locale={locale} />
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      {/* Bank: the honest door. A send on Vallo lands in a wallet; the bank
-          movement this product makes is a withdrawal to your own account. */}
-      <section className="nf-card p-card-sm" aria-labelledby="nf-send-bank">
-        <SectionHead id="nf-send-bank" icon="building-apartment" title={copy.bankTitle} sub={copy.bankSub} />
-        <Link
-          href="/wallet?action=withdraw"
-          className="nf-tap mt-row flex min-h-12 items-center justify-between gap-md rounded-[var(--nf-radius-md)] border border-[var(--nf-brand-edge)] bg-[var(--nf-surface-inset)] px-row py-inline text-[var(--nf-content-primary)]"
-        >
-          <span className="nf-body font-semibold">{copy.bankAction}</span>
-          <UiIcon name="chevron-right" size={20} className="shrink-0 text-[var(--nf-content-muted)]" />
-        </Link>
-      </section>
-
-      {/* Note */}
-      <section className="nf-card p-card-sm" aria-labelledby="nf-send-note">
-        <SectionHead id="nf-send-note" icon="chat-bubble" title={copy.noteTitle} sub={copy.noteSub} />
-        <div className="mt-row">
-          <TextField
-            label={copy.noteLabel}
-            hideLabel
-            name="note"
-            type="text"
-            autoComplete="off"
-            maxLength={NOTE_MAX}
-            placeholder={copy.notePlaceholder}
-            trailing={
-              <span className="nf-numeric text-[length:var(--nf-text-caption)]">
-                {note.length}/{NOTE_MAX}
+        <div id="nf-send-amount-note" className="nf-send-row__notes">
+          {amountError ? (
+            <p role="alert" className="nf-send-row__error">
+              {amountError}
+            </p>
+          ) : kobo !== null ? (
+            /* What the balance will be afterwards: not in the render, kept
+               because a person about to move money should see the
+               consequence before the confirm step (DESIGN_DRIFT_SURVEY
+               part six, item 2). */
+            <p className="nf-send-row__hint">
+              {copy.balanceAfter}{" "}
+              <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
+                {hidden ? "₦••••••" : <Amount minorUnits={after} locale={locale} showFraction />}
               </span>
-            }
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            error={fieldErrors?.note}
-          />
+            </p>
+          ) : null}
         </div>
-      </section>
 
-      <p className={`px-2xs ${TYPE.rowMeta}`}>{copy.consequence}</p>
+        <div className="nf-send-row">
+          <RowPlate art="plate-note" glyph="note" />
+          <div className="nf-send-row__body">
+            <label htmlFor="nf-send-note" className="nf-send-row__label">
+              {copy.narrationLabel}
+            </label>
+            <input
+              id="nf-send-note"
+              className="nf-send-row__input"
+              name="note"
+              type="text"
+              autoComplete="off"
+              maxLength={NOTE_MAX}
+              placeholder={copy.narrationPlaceholder}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              aria-invalid={fieldErrors?.note ? true : undefined}
+            />
+          </div>
+          <span className="nf-send-row__count nf-numeric" aria-live="off">
+            {note.length}/{NOTE_MAX}
+          </span>
+        </div>
+        {fieldErrors?.note && (
+          <p role="alert" className="nf-send-row__notes nf-send-row__error">
+            {fieldErrors.note}
+          </p>
+        )}
 
-      <Button
-        type="button"
-        variant="primary"
-        size="lg"
-        full
-        leadingIcon="arrow-right"
-        disabled={!canContinue}
-        onClick={() => setStep("confirm")}
-      >
-        {copy.continueLabel}
-      </Button>
-    </div>
+        {/*
+          THE LIT BUTTON, to the render: gradient fill, a bright top rim, a
+          bloom under it, a plane on its own darker plate at the left and an
+          arrow at the right. It opens the confirm step, which is where the
+          money is actually sent.
+        */}
+        <button
+          type="button"
+          className="nf-send-cta"
+          disabled={!canContinue}
+          onClick={() => setStep("confirm")}
+        >
+          <span className="nf-send-cta__plate" aria-hidden="true">
+            <MoneyGlyph name="plane" size={20} />
+          </span>
+          <span className="nf-send-cta__label">{copy.sendCta}</span>
+          <UiIcon name="arrow-right" size={20} className="nf-send-cta__arrow" />
+        </button>
+
+        {/*
+          THE REASSURANCE CARD, in the render's anatomy and carrying only
+          true statements, each checked against the code and the terms on
+          22 September. The render's "NDIC INSURED" and "256 BIT ENCRYPTION"
+          badges are refused: the first is false (lib/legal/terms.tsx section
+          15 says in bold that a wallet balance is not NDIC insured) and the
+          second is a claim a person cannot check or act on.
+        */}
+        <aside className="nf-send-trust" aria-labelledby="nf-send-trust-title">
+          <RowPlate art="plate-shield" glyph="shield-check" />
+          <div className="min-w-0">
+            <p id="nf-send-trust-title" className="nf-send-trust__title">
+              {copy.trustTitle}
+            </p>
+            <ul className="nf-send-trust__facts">
+              <li>{copy.trustHolds}</li>
+              <li>{copy.trustFails}</li>
+              <li>{copy.trustRecall}</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>,
   );
 }
 
-/** A section's head: the glyph on its plate, the title, the sub-line. */
-function SectionHead({
-  id,
-  icon,
+/**
+ * A row's round glass plate, in two drawings, one per theme. At night it is
+ * the render's own plate, cropped from 77A54EA3 into
+ * `public/brand/session-b/send/` (see SOURCES.md there); on paper the crop's
+ * white glyph would vanish into white, so the paper theme draws the glyph as
+ * a stroke on a brand-tinted disc. CSS shows one and hides the other.
+ */
+function RowPlate({
+  art,
   glyph,
-  title,
-  sub,
+  uiIcon,
 }: {
-  id: string;
-  icon?: UiIconName;
-  /** A single character where the set has no glyph, such as the naira sign. */
-  glyph?: string;
-  title: string;
-  sub: string;
+  art: string;
+  glyph?: MoneyGlyphName | "₦";
+  uiIcon?: UiIconName;
 }) {
   return (
-    <div className="nf-money-sec__head">
-      <span className="nf-glyph-tile nf-glyph-tile--solid" aria-hidden="true">
-        {icon ? <UiIcon name={icon} size={22} /> : <span className="nf-body font-bold">{glyph}</span>}
+    <span className="nf-send-plate" aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="nf-send-plate__art" src={`/brand/session-b/send/${art}.webp`} alt="" width={34} height={34} />
+      <span className="nf-send-plate__stroke">
+        {glyph === "₦" ? (
+          <span className="font-bold">₦</span>
+        ) : glyph ? (
+          <MoneyGlyph name={glyph} size={20} />
+        ) : uiIcon ? (
+          <UiIcon name={uiIcon} size={20} />
+        ) : null}
       </span>
-      <div className="min-w-0">
-        <h2 id={id} className={TYPE.rowTitle}>
-          {title}
-        </h2>
-        <p className={TYPE.rowMeta}>{sub}</p>
-      </div>
-    </div>
+    </span>
   );
 }
+

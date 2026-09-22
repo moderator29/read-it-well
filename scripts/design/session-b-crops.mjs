@@ -188,6 +188,34 @@ SURFACES.inspection = async () => {
   }
 };
 
+/* ------------------------------------------------------------------ send */
+/*
+ * Render: 77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png (repo root), 1024x1536,
+ * phone screen 667 image px wide (1.71 image px per CSS px at 390). The round
+ * glass plates at the left of the send form's rows, glyph included (line art,
+ * no lettering). Only rows the product offers: Recipient, Amount, Narration,
+ * and the shield of the reassurance card. NOT the Bank row (bank payouts do
+ * not complete today), NOT the scan button (there is no scanner), NOT the
+ * NDIC or 256 bit badges. The plate inside the lit Send Money button sits on
+ * saturated blue, which this key cannot separate from its ground, so it is
+ * drawn in CSS. See apps/web/public/brand/session-b/send/SOURCES.md.
+ * (Wallet worker.)
+ */
+SURFACES.send = async () => {
+  const render = path.join(ROOT, "77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png");
+  const dir = path.join(OUT, "send");
+  await mkdir(dir, { recursive: true });
+  const plates = {
+    recipient: [228, 694],
+    amount: [228, 874],
+    note: [227, 1026],
+    shield: [229, 1230],
+  };
+  for (const [name, [left, top]] of Object.entries(plates)) {
+    await cutObject(render, [left, top, 64, 64], path.join(dir, `plate-${name}`), { feather: 0.04 });
+  }
+};
+
 /* ================================================================= run */
 
 const only = process.argv.includes("--surface")

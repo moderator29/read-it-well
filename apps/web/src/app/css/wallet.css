@@ -778,13 +778,13 @@
     align-self: start;
     margin-top: 0.25rem;
   }
-  /* The crop is 77px for a 57px plate, so it is drawn 36 per cent larger
-     than the box to land the plate itself at the render's 34px. */
+  /* The crop is 64 source px around a 57px plate, so it is drawn 12 per
+     cent larger than the box to land the plate itself at the render's 34px. */
   .nf-send-plate__art {
     position: absolute;
-    inset: -0.375rem;
-    width: calc(100% + 0.75rem);
-    height: calc(100% + 0.75rem);
+    inset: -0.125rem;
+    width: calc(100% + 0.25rem);
+    height: calc(100% + 0.25rem);
     max-width: none;
   }
   .nf-send-plate__stroke {
