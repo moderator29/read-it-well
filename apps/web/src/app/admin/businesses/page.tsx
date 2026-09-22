@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import {
@@ -323,6 +324,41 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
                 {property.roomTypeCount === 1 ? "" : "s"} · {property.ratePlanCount} rate
                 {property.ratePlanCount === 1 ? "" : "s"}
               </p>
+              {/*
+                THE PICTURES, NOT A COUNT OF THEM. The property desk has shown
+                a reviewer every photograph on a listing since it was built and
+                this desk showed a number, which is backwards: a stay is sold
+                almost entirely on its pictures, and the reviewer is the last
+                person who can see that the room photographed is not the room
+                described. A count was all that could honestly be drawn while
+                nothing in the product could upload one, and that is no longer
+                true.
+
+                Public bucket URLs, as on the property desk, so `next/image`
+                can size them: a reviewer opening a hotel should not be pulling
+                ten full size uploads down a strip of 128px thumbnails.
+              */}
+              {property.photos.length > 0 && (
+                <ul className="mt-inline flex gap-inline overflow-x-auto pb-2xs">
+                  {property.photos.map((photo, index) => (
+                    <li key={photo} className="shrink-0">
+                      <RemoteImage
+                        src={photo}
+                        alt={
+                          index === 0
+                            ? `${property.name}, the photograph guests see first`
+                            : `${property.name}, photograph ${index + 1}`
+                        }
+                        loading="lazy"
+                        width={128}
+                        height={96}
+                        sizes="128px"
+                        className="h-24 w-32 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] object-cover"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
               {property.status === "APPROVED" || property.status === "DRAFT" ? (
                 <PublishControl
                   target={{ kind: "property", accommodationId: property.id }}

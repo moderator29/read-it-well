@@ -42,6 +42,7 @@ import {
   type AdminQueueFilter,
 } from "./queue-filter";
 import type { AdminRead } from "./queries";
+import { accommodationPhotoUrl } from "../stays/photos";
 
 type Db = SupabaseClient<Database>;
 type ListingStatus = Database["public"]["Enums"]["listing_status"];
@@ -88,6 +89,8 @@ export type BusinessPropertyView = {
   /** Both halves of the pin. The publish gate, MK-55. */
   hasPin: boolean;
   photoCount: number;
+  /** The public URLs of those photographs, cover first. */
+  photos: string[];
   roomTypeCount: number;
   ratePlanCount: number;
 };
@@ -259,7 +262,7 @@ export async function getBusinessQueue(
         admin
           .from("accommodations")
           .select(
-            "id, business_id, name, status, latitude, longitude, accommodation_photos(id), room_types(id, rate_plans(id))",
+            "id, business_id, name, status, latitude, longitude, accommodation_photos(id, storage_path, position), room_types(id, rate_plans(id))",
           )
           .in("business_id", ids),
         admin
@@ -367,6 +370,17 @@ export async function getBusinessQueue(
             status: row.status,
             hasPin: row.latitude !== null && row.longitude !== null,
             photoCount: row.accommodation_photos.length,
+            /* THE PHOTOGRAPHS THEMSELVES, COVER FIRST, and not merely a count
+               of them. The property desk has shown a reviewer every picture on
+               a listing since it was built; this desk showed a number, which
+               is backwards, because a stay is sold almost entirely on its
+               pictures and the reviewer is the last person who can see that
+               the room in them is not the room being described. The count was
+               all that could honestly be shown while nothing in the product
+               could upload one; that is no longer true. */
+            photos: [...row.accommodation_photos]
+              .sort((a, b) => a.position - b.position)
+              .map((photo) => accommodationPhotoUrl(photo.storage_path)),
             roomTypeCount: row.room_types.length,
             ratePlanCount: row.room_types.reduce(
               (total, roomType) => total + roomType.rate_plans.length,
