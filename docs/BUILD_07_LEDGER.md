@@ -3254,3 +3254,87 @@ different facts, and a buyer is entitled to see which one they are looking at.
 sum of its parts is refused; a total above them is stored. That is the shape a
 listing takes when an attractive all-in figure is advertised over fees that
 say otherwise, and the database now refuses to hold that lie.
+
+## 30. THE "DIFFERENT BLUES" FAULT, FOUND AND COLLAPSED AT ITS SOURCE
+
+The founder's words were "different edges, different fills, different glows,
+different blues. It does not read as one product." Section 27 recorded that
+zero of the 430 container rules carries a raw colour, so anybody hunting stray
+hexes would have found none. **Here is what was actually wrong, and it is a
+better fault than the one described.**
+
+Two independent sources were feeding container edges:
+
+```
+--nf-brand-edge*   <- --nf-glow-ink  <- --nf-electric-300   #0069FE
+--nf-border-brand  <- --nf-electric-500                     #005DE0
+```
+
+Same hue to a tenth of a degree, 215.2 against 215.1. Same saturation. Nobody
+holding them side by side would call them different colours. Six points apart
+in lightness and, far worse, **WIRED TO DIFFERENT PARENTS**, so the day either
+source moves the two drift apart and no grep finds it.
+
+That is exactly why the founder sees edges that ALMOST match, and "almost" is
+what reads as unprofessional. A visible difference gets fixed; a near-identical
+one survives for months.
+
+**Collapsed at the source.** Three rungs named for what a container IS rather
+than how loud it is: `-quiet` for a division of space, base for an object on
+the canvas, `-lit` for the dock and the flip pane. Soft, default and strong is
+the naming that invites a fourth.
+
+Verified at the tip rather than on report: `--nf-border-brand:
+var(--nf-container-edge)` in BOTH theme blocks, the ladder present in both, and
+`--nf-brand-edge` still carrying 26 references, which is the second ladder
+declared as still owed rather than quietly left.
+
+**Why fewer rungs beat a sweep**, in the worker's own reasoning, which I
+endorse: repointing 430 rules is thirty seven files of churn in other people's
+scopes AND it leaves the ladder that caused the drift standing. Collapsing at
+the source lands everywhere at once and REMOVES the choice rather than asking
+everybody to keep making it correctly forever.
+
+### Still owed on item 7, named rather than half landed
+
+`--nf-brand-edge` with its soft and strong rungs is a second ladder on 83
+container rules, `oklab(0.568)` at night against `0.436` on paper against the
+anatomy's theme-stable `0.519`. That is a visible change in both themes and
+wants its own visual sweep, so it is its own piece.
+
+## 31. THE LOGO: THREE FILES ONLY THE FOUNDER CAN COMMISSION
+
+Item 6a is enumerated and **no artwork was invented**, which was the whole
+risk. A 3D glass rendering lit for a dark ground does not become an ink
+drawing by filter, and shipping a recoloured dark mark would have been the
+fourth thing today that looked like a fix and was not.
+
+Needed, each at the existing artwork's real aspect:
+`vallo-wordmark-light.png` 1516x334, `vallo-mark-light.png` 1228x1174,
+`vallo-logo-light.png` 1024x1024. Recorded in `docs/FOUNDER_OPEN_ITEMS.md`.
+
+Three findings from the enumeration:
+
+* `Logo.tsx` already IS the seam for in-app surfaces. Two screens bypass it
+  with hard-coded paths.
+* **The auth screen must not switch**, because rule 22 locks it dark in both
+  themes permanently, so the dark mark is correct there for ever.
+* **AN EMAIL MUST DO NOTHING, AND THAT IS A BETTER ANSWER THAN THE QUESTION I
+  ASKED.** I said an email cannot read a media query reliably. The truer
+  answer is that these emails are dark-ground BY DESIGN, painted three times
+  over precisely because clients cannot be trusted, and `theme.ts` already
+  records that Gmail strips `prefers-color-scheme` entirely. The email carries
+  its own ground, so the reader's theme is not the question at all.
+
+## 32. A FOURTH FALSE READING FROM THE SHARED TREE, IN THE SAME HOUR
+
+While fixing the two above, the same worker's full build died on
+`components/host/HostWizard.tsx`, another agent's UNCOMMITTED file. Its CSS
+compiled successfully; the type error was foreign.
+
+That is four in one day, and the rule in section 27 holds. One addition worth
+making, because it cost a gate: **`node_modules` must be HARD LINKED into a
+gate worktree, never symlinked.** Turbopack refuses a symlink that points out
+of the project root, and it panics rather than failing cleanly, so the build
+is the one gate that silently cannot be isolated. `cp -al` at both the root
+and `apps/web`.

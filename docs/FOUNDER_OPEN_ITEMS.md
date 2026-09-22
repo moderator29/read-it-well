@@ -18,6 +18,35 @@ ledger's needs-the-founder section; this file is his.
 
 ## Open, and urgent
 
+### THREE ARTWORK FILES ONLY YOU CAN COMMISSION, AND THE EXACT SIZES
+
+Item 6 asked for a light variant of the lockup, "not a filter, not an opacity
+change". That instruction is right and it is why this is here rather than
+done: a 3D glass rendering lit for a dark ground does not become an ink
+drawing by filter. Recolouring the dark asset IS the filter you ruled out.
+
+What the build needs, each at the existing artwork's real aspect ratio:
+
+| File | Size |
+| --- | --- |
+| `vallo-wordmark-light.png` | 1516 x 334 |
+| `vallo-mark-light.png` | 1228 x 1174 |
+| `vallo-logo-light.png` | 1024 x 1024 |
+
+**The seam is built and waiting**, so these drop in with one edit and every
+appearance switches together. Three things were found while enumerating them:
+
+* `Logo.tsx` already IS the seam for in-app surfaces. Two screens bypass it
+  with hard-coded paths and are being brought back through it.
+* **The auth screen must NOT switch.** It is locked dark in both themes by a
+  standing ruling, so the dark mark is permanently correct there.
+* **The emails must do nothing, and that is the right answer rather than a
+  limitation.** They are dark-ground BY DESIGN, painted three times over
+  precisely because mail clients cannot be trusted, and Gmail strips
+  `prefers-color-scheme` entirely. The email carries its own ground, so the
+  reader's theme is not the question.
+
+
 ### THE SCHEDULER: A THIRD VARIABLE IS MISSING, AND IT IS `CRON_SECRET`
 
 **Measured at 15:10 today, after the two secrets were set and Vercel was
