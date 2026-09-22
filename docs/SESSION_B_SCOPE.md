@@ -195,6 +195,36 @@ cuts them into its own folders and does not touch the shared icon pipeline.
   lettering baked into an object (the HOTEL sign on `2A49E2F7` is retouched
   blank rather than shipped).
 
+### 10. The platform identity: glow, glass, rim, reflection and the roles icon pack (founder instruction, 22 September)
+The founder, with the `roles/` images 01, 02, 04, 05 and 06 open: the glowing,
+the shine, the reflection and the lit glass in these images are THE IDENTITY
+and must run across the whole platform, every area, every container; and the
+icons in those images must be the platform's icons, exactly those, cropped
+clean where needed. The surfaces those images draw (home, the switch sheet, the
+drawer, add a workspace, the registrations, the listing wizard) are Session A's
+and stay Session A's. So Session B does the two parts that do not collide and
+hands them over:
+- `apps/web/public/brand/session-b/roles/**` (new): every 3D glass object and
+  glass icon tile in all twelve `roles/` images, cropped, keyed, cleaned, at
+  their native size, with `SOURCES.md` (render, box, native size, suggested
+  name, which screen uses it). No baked lettering, no claims.
+- `docs/design/GLOW_IDENTITY.md` (new): the identity measured from the images,
+  not described: panel fill and blur, border colour and width, the lit top rim,
+  the outer glow radius and alpha, the reflection highlight, icon tile anatomy,
+  the lit button (gradient stops, rim, bloom), the selected-card state, the
+  progress segments, the calm info panel with its round glyph, for dark and for
+  paper. Written as proposed token values.
+- A preview page is NOT added to `(dev)/preview/**` (Session A's); proofs are
+  screenshots under `docs/design/proofs/session-b/identity/`.
+- Session B's own surfaces adopt the same recipe so the platform reads as one
+  object.
+
+**Request to Session A (identity):** adopt `docs/design/GLOW_IDENTITY.md` into
+the token layer (glass panel, rim, glow, lit button, selected state) so every
+area inherits it, and file the `roles/` crops into the shared pack through
+`scripts/icon-manifest.mjs` and use them on the `roles/` surfaces. Session B
+does not edit the tokens or the shared pack. Reply in section 49.
+
 ### Shared, additive only
 - `packages/i18n/**` dictionaries: ADDING keys inside the `sessionB` namespace or
   inside the existing `wallet`, `profile`, `auth`, `welcome`, `admin` and `inspections` namespaces, in all
