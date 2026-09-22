@@ -1527,6 +1527,58 @@ anyway, the honest trade is: a cleaner, more saturated navy at a similar
 luminance costs nothing, and anything lighter costs legibility. That is a
 question about how the square LOOKS, not about whether the mark in it reads.
 
+### THE SECOND LADDER, COLLAPSED (item 7, third pass)
+
+The anatomy collapsed `--nf-border-brand`. This collapses the other family:
+`--nf-brand-edge`, `-soft` and `-strong`, on 341 references across the
+stylesheets, all of which mixed from `--nf-glow-ink` while the anatomy mixed
+from `--nf-electric-500`.
+
+**ONE INK.** `--nf-container-ink` is declared beside the anatomy in both theme
+blocks, and every container edge in the product now mixes from it and nothing
+else. There is no second parent left to move, which is what made the first
+drift undetectable by grep.
+
+**THE THREE STRENGTHS ARE KEPT, and that is a deliberate reading of the
+complaint.** Forcing 341 references to one alpha would flatten a real
+distinction: a well's hairline and the dock's outline are not the same edge.
+Soft, base and strong of ONE ink is one blue at three strengths, which is a
+ladder; two inks at overlapping strengths is two blues, which is drift. The
+founder's fault was the second thing.
+
+**MEASURED, composited over the real canvas, by rendering the shipped
+`tokens.css` in a browser with nothing else loaded:**
+
+| Rung | dark, vs canvas | light, vs canvas |
+| --- | --- | --- |
+| `-soft` | 1.35:1 | 1.56:1 |
+| base (= `--nf-container-edge`) | **2.24:1** | **2.87:1** |
+| `-strong` | 2.81:1 | 3.71:1 |
+
+Monotonic in both themes, and `--nf-brand-edge` now resolves to a value
+byte-identical to `--nf-container-edge`. The base edge moves 1.87 to 2.24 in
+dark and 2.75 to 2.87 on paper; the paper move is negligible in contrast and
+visible in HUE, from a washed rgb(103,143,200) to a clean rgb(73,138,231),
+which is the "different blues" complaint answered at the pixel.
+
+**WHAT THE SWEEP DID AND DID NOT COVER, said plainly.** The full 103-route
+harness sweep could NOT be completed: `next start` in the isolated worktree
+died mid-run twice, at 158 and then 149 unopened routes, and a reading off a
+dead server is not a reading. A bounded sweep of eight representative routes
+ran clean: 748 text-bearing leaves, three below the floor in light and none in
+dark. **None of the three is caused by this change**, and the reason is
+structural rather than a judgement: all three are ink-on-FILL pairs and this
+change moves only BORDER colours, which cannot produce them.
+
+Two of the three are worth someone's time and neither is mine:
+`.nf-movein__label` on `/preview/f3/listing` is **white on white at 1.03:1**,
+and the settings `Verified` badge is 4.04:1.
+
+**So the visual sweep across the whole harness is still owed on this change.**
+The ladder is proven monotonic, single-inked and building; what is not proven
+is every surface at both widths, and the blocker is server stability in the
+worktree rather than anything about the change.
+
 ### THE 121 UNTWINNED OBJECTS: ARTWORK, NOT ENGINEERING
 
 Said early, as asked. **23 of 144 objects ship a light twin and 121 do not, and

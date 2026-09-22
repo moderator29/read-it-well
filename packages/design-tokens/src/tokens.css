@@ -1717,7 +1717,7 @@
    * of this ladder rather than of the one above: the lit leading edge at near
    * full strength, an edge and never a bloom.
    */
-  --nf-brand-edge-soft: color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
+  --nf-brand-edge-soft: color-mix(in oklab, var(--nf-container-ink) 35%, transparent);
   /* ------------------------------------------------------------------
    * THE CONTAINER ANATOMY. ONE EDGE, ONE FILL, ONE RADIUS, ONE BLUE.
    *
@@ -1771,14 +1771,18 @@
    * the rung that was most recently MEASURED is the point; the alternative was
    * to average two numbers, and an average of two edges is a third edge.
    * ------------------------------------------------------------------ */
+  /* ONE INK. Every container edge in the product now mixes from this and only
+     this, so the two families that drifted cannot drift again: there is no
+     second parent left to move. */
+  --nf-container-ink: var(--nf-electric-500);
   --nf-container-edge-quiet: var(--nf-border-default);
-  --nf-container-edge: color-mix(in oklab, var(--nf-electric-500) 70%, transparent);
-  --nf-container-edge-lit: var(--nf-brand-edge-strong);
+  --nf-container-edge: color-mix(in oklab, var(--nf-container-ink) 70%, transparent);
+  --nf-container-edge-lit: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
   --nf-container-fill: var(--nf-well-fill);
   --nf-container-radius: var(--nf-radius-lg);
 
-  --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 50%, transparent);
-  --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
+  --nf-brand-edge: var(--nf-container-edge);
+  --nf-brand-edge-strong: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
   /* ---------------------------------------------------------------------
@@ -3108,9 +3112,13 @@
      3.34:1 on white earlier today; the quiet rung is the neutral hairline the
      light block already defines, and the lit rung stays as strong as at night
      because an outline that fades on paper loses the object. */
+  /* ONE INK. Every container edge in the product now mixes from this and only
+     this, so the two families that drifted cannot drift again: there is no
+     second parent left to move. */
+  --nf-container-ink: var(--nf-electric-500);
   --nf-container-edge-quiet: var(--nf-border-default);
-  --nf-container-edge: color-mix(in oklab, var(--nf-electric-500) 70%, transparent);
-  --nf-container-edge-lit: var(--nf-brand-edge-strong);
+  --nf-container-edge: color-mix(in oklab, var(--nf-container-ink) 70%, transparent);
+  --nf-container-edge-lit: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
   --nf-container-fill: var(--nf-well-fill);
   --nf-container-radius: var(--nf-radius-lg);
 
@@ -3606,7 +3614,7 @@
      a bloom is light in the space around an object and a border is the object's
      own outline, and an outline that fades on paper loses the object. Only the
      ink under them moves, which is the whole fix. */
-  --nf-brand-edge-soft: color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
+  --nf-brand-edge-soft: color-mix(in oklab, var(--nf-container-ink) 35%, transparent);
   /*
    * THE WORKHORSE EDGE, AND ON PAPER IT WAS UNDER THE FLOOR.
    *
@@ -3628,8 +3636,8 @@
    * moves no hue anywhere. Measured in Chromium against both grounds, not
    * computed from the source.
    */
-  --nf-brand-edge: color-mix(in oklab, var(--nf-glow-ink) 60%, transparent);
-  --nf-brand-edge-strong: color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
+  --nf-brand-edge: var(--nf-container-edge);
+  --nf-brand-edge-strong: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
   /*
