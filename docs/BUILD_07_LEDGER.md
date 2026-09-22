@@ -2302,3 +2302,84 @@ before them read "unauthorised" at medium. Our own scheduler being locked out
 of our own platform no longer reads like a stranger probing a URL. The signal
 was rebuilt and then immediately proved itself on a real event, which is the
 best evidence a monitoring change can have.
+
+## 22. B1b AUDITED, AND A CORRECTION TO SOMETHING THE LEAD TOLD THE FOUNDER
+
+### THE i18n FINDING I ESCALATED IS NO LONGER TRUE, AND I SAID IT TWICE
+
+I told the founder, and wrote into sections 14 and 19, that the three supplier
+registration forms "read in English on a Yoruba, Hausa or Igbo phone while the
+screen around them does not". **That was true when it was measured and it is
+false now**, and the difference is not a fix made in response: the
+translations already existed in B1b's working tree when the measurement was
+taken. Only the English half had reached the branch, because `en.ts` was swept
+into another worker's commit an hour before B1b's first push. The measurement
+was honest about the branch and wrong about the world.
+
+Measured on `d1494c4` rather than taken on report:
+
+| Locale | ceiling now | before the namespace existed |
+| --- | --- | --- |
+| yo | 212 English-valued, 106 sentences | 212 / 106 |
+| ha | 210 / 106 | 210 / 106 |
+| ig | 219 / 106 | 219 / 106 |
+
+And the `supply.register` namespace carries **142 keys in all four locales**,
+English, Yoruba, Hausa and Igbo alike.
+
+**THE FLAWED RATCHET PROVES THE ONE THING THAT MATTERS HERE, WHICH IS WORTH
+NOTICING.** Section 14 records that the measure conflates "the locale got
+worse" with "the product got bigger". But in this direction it is exactly
+right: if those 142 keys had been English pasted into `yo.ts` to make a count
+look finished, `englishValued` would have risen by about 142. It did not move
+at all. So the strings are genuinely not English, which is the single thing a
+key count normally cannot tell you.
+
+What is NOT proved, and B1b says so itself: that the translations are GOOD.
+They are consistent with the vocabulary already in each file's agent
+application block rather than machine output, and all three files already
+carry a header saying they need a native speaker before launch. This namespace
+is now part of what that review covers.
+
+### The ceiling was loose by 124 keys for about an hour
+
+A3 raised the ceilings to 336 / 334 / 343 to keep a shared test green, which
+was correct at that moment. An hour later the translations landed and the
+ceiling outlived the state it measured. B1b brought it back down in `0c21acf`,
+alone, by explicit pathspec, keeping both numbers in the header so the next
+reader can see why the ratchet moved twice in one day.
+
+**A ceiling loose by 124 keys would let 124 English strings be pasted into a
+translation file without a test going red.** B1b's sentence on it is the
+sharpest statement of the flaw anyone has made: **a ratchet whose ceiling can
+be legitimately raised is a ratchet that can be legitimately raised wrongly,
+and nothing detects the difference.** Its proposed measure, counting only keys
+a locale file CARRIES with English inside them, would not have moved in either
+direction during this stint and would still catch the defect the gate exists
+for. That is now the design to build, alongside A3's share.
+
+### Verified against the database rather than the report
+
+`agent_applications` holds **0 rows**, so the probe rolled back as claimed and
+nothing was written to a live product table. All **ten** new columns are
+present. The migration creates no `SECURITY DEFINER` function, so rule 21 has
+nothing to revoke, and the probe asserts that vacuum rather than assuming it.
+
+### THE ONE LAW IS NOT CLOSED ON THESE FORMS, and B1b says so first
+
+**Nobody has seen any of the three forms write a row.** Every Supabase origin
+is refused by this sandbox's egress proxy, so the proof server cannot reach
+the database at all. The write is proved by the migration probe and by a unit
+test; the screens are proved in a real browser on a production server. The two
+halves are not joined anywhere, and that is the honest state of it.
+
+Also open, in B1b's own words: screen two has never chosen a real local
+government, because `listStates` returns empty here; screen four says an
+application was filed rather than that anything is verified, because inserting
+on `public.agents` is admin only and self service approval of a supply account
+is a decision about what the verified mark means; and `agents.role`,
+`agents.firm_id`, `firm_members`, `listings.listing_role`, `listing_mandates`
+and the widened `owns_listing` are all still unbuilt, so a firm's declared
+colleagues are a list on an application rather than memberships. An
+application that could create staff is the letterhead failure the form exists
+to catch.
