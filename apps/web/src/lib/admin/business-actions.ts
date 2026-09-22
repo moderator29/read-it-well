@@ -300,12 +300,14 @@ export async function publishAccommodation(input: {
      stays DRAFT: it is not bookable, and publishing it would put an
      unsellable room's sleeps into the catalogue.
 
-     TWO: NOTHING EVER WROTE `room_inventory`. `stays_search` treats a missing
-     night as NOT OFFERED, so a hotel with no inventory was invisible to every
-     dated search. The nights are opened at the host's OWN declared
-     `units_total` and at nothing else; see `lib/stays/inventory.ts` for why
-     that is a written-down answer rather than an invented number, and for the
-     horizon.
+     TWO: NO APPLICATION CODE EVER WROTE `room_inventory`. `stays_search`
+     treats a missing night as NOT OFFERED, so a hotel with no inventory was
+     invisible to every dated search. The only rows the table has ever held are
+     the B2 seed's ninety nights for the demo stays, which is why the shelf
+     answered a dated search and nobody noticed. The nights are opened at the
+     host's OWN declared `units_total` and at nothing else; see
+     `lib/stays/inventory.ts` for why that is a written-down answer rather than
+     an invented number, and for the horizon.
 
      NEITHER FAILURE UNDOES THE DECISION. The property is published by this
      point. A failure here is recorded in the audit detail and told to the

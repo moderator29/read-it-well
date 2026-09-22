@@ -10,6 +10,13 @@
  * host could pass every gate, reach the shelf, and still never be found by
  * anybody who typed the nights they wanted.
  *
+ * THE 990 ROWS IN THE TABLE TODAY ARE ALL THE B2 SEED'S, ninety nights for
+ * each of the eleven demo room types, running to 16 December 2026 and then
+ * stopping. So the shelf answers a dated search today because a migration
+ * wrote its nights by hand, which is precisely why the missing writer went
+ * unnoticed, and it will stop answering in December whether or not anything
+ * else changes.
+ *
  * WHAT A ROW MEANS, AND WHY THIS IS NOT AN INVENTED NUMBER. `units_open` is
  * how many of that room type are on sale that night. It is opened at the
  * host's OWN declared `units_total`, which is the answer they typed to "how

@@ -6,10 +6,15 @@
  * catalogue projection folds it into `catalogue_entries.amenity_codes`, and the
  * stays filter lets a guest ask for `wifi`, `parking` and `ac` by name and for
  * any list of amenity codes besides. **No application code ever wrote a row.**
- * So every facility filter on the stays shelf returned nothing for every hotel
- * on the platform, and no stay's page has ever named a single facility. The
- * same shape of defect as the photographs, the room types and the nights, and
- * the fourth one of its family.
+ *
+ * AND THE SHELF LOOKED FINE, WHICH IS WHY NOBODY SAW IT. The table is not
+ * empty: the B2 example-stays migration wrote 41 links by hand for the five
+ * demo accommodations, so those five answer facility filters and print their
+ * facilities on the page. Every accommodation on the platform is one of those
+ * five. A real host could not have produced a single row, which is the defect,
+ * and a shelf stocked by a seed migration is exactly how it stayed invisible.
+ * The same shape as the photographs, the room types and the nights, and the
+ * fourth one of its family.
  *
  * WHY A LIST HERE RATHER THAN THE WHOLE TABLE. `public.amenities` is shared
  * with the property side and carries codes a flat has and a hotel does not,
