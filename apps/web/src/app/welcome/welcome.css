@@ -116,21 +116,28 @@
   .nf-gs-title__a {
     color: var(--nf-content-primary);
   }
-  /* Render: the second line runs electric blue at its left edge to a pale
-     ice blue at its right (#38cefe sampled at the full stop). The ice end is
-     the brand quiet blue lifted towards white, inside the one blue family. */
+  /* Render, sampled in bands across "One platform.": the gradient runs DOWN
+     the letters, the same at every x. The tops of the strokes are ice
+     (#b6e9fa), the middle cyan (#52d4fa), the feet electric blue (#0294f9,
+     #057ef6 in the darkest fifth). Mixed from the state cyan and the brand
+     blue in sRGB: 30% cyan into white, 72% cyan into white, and 70% brand
+     into 30% cyan. It is light on text here, not a pending status. The
+     padding lets the descenders keep their paint; the negative margin gives
+     the space back so the lines stay 36.5px apart. */
   .nf-gs-title__b {
-    padding-bottom: 0.08em;
+    padding: 0.06em 0 0.24em;
+    margin: -0.06em 0 -0.16em;
     background: linear-gradient(
-      90deg,
-      var(--nf-brand-primary) 0%,
-      var(--nf-brand-quiet) 52%,
-      color-mix(in oklab, var(--nf-brand-quiet) 52%, var(--nf-content-on-brand)) 100%
+      180deg,
+      color-mix(in srgb, var(--nf-state-warning) 30%, var(--nf-content-on-brand)) 22%,
+      color-mix(in srgb, var(--nf-state-warning) 72%, var(--nf-content-on-brand)) 46%,
+      color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning)) 70%,
+      color-mix(in srgb, var(--nf-brand-primary) 88%, var(--nf-state-warning)) 84%
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 0 16px var(--nf-glow-2));
+    filter: drop-shadow(0 0 14px var(--nf-glow-3));
   }
 
   /* Render: two lines, 36 image px apart (21.5 css), cap 17 image px, light
@@ -264,18 +271,17 @@
 
   /* ------------------------------------------------------------ the coin */
 
-  /* Where the render's coin stood: its body centred at (49.4%, 62.3%) of the
-     box, 165 source px along its long axis once turned (27% of the box), leaning with
-     its top to the left (the long axis 56 degrees from the horizontal) and
-     turned so its width is about 0.7 of its height (55 degrees, once the
-     stacked edge is counted) with its left rim showing its thickness. The drawn
-     orbit swirl stays in the art and circles this coin. */
+  /* Where the render's coin stands, matched in a 3x zoom against the render
+     (bounding box within 2 css px): centre (49.5%, 62.8%) of the stage, 30%
+     of its width, leaning 34 degrees and turned 62 degrees so its left rim
+     shows its thickness, overlapping the plinth's front rim. The drawn orbit
+     swirl stays in the art and circles this coin. */
   .nf-gs-centre {
     position: absolute;
-    left: 49.4%;
-    top: 62.3%;
+    left: 49.5%;
+    top: 62.8%;
     z-index: 2;
-    width: 27%;
+    width: 30%;
     aspect-ratio: 1;
     translate: -50% -50%;
   }
@@ -295,17 +301,17 @@
     position: absolute;
     inset: 0;
     transform-style: preserve-3d;
-    transform: rotateY(55deg);
+    transform: rotateY(62deg);
     animation: nf-gs-coin-turn 7s var(--nf-ease-standard) infinite;
   }
   /* Rest at the render's pose for most of the cycle, then one full turn. */
   @keyframes nf-gs-coin-turn {
     0%,
     45% {
-      transform: rotateY(55deg);
+      transform: rotateY(62deg);
     }
     100% {
-      transform: rotateY(415deg);
+      transform: rotateY(422deg);
     }
   }
   .nf-gs-coin__face,
@@ -316,9 +322,9 @@
   }
   .nf-gs-coin__edge {
     inset: 3%;
-    transform: translateZ(calc(var(--nf-gs-layer) * 1.4px));
-    background: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-canvas));
-    border: 1.5px solid color-mix(in oklab, var(--nf-brand-quiet) 70%, var(--nf-content-on-brand));
+    transform: translateZ(calc(var(--nf-gs-layer) * 0.9px));
+    background: color-mix(in srgb, var(--nf-brand-primary) 80%, var(--nf-state-warning));
+    border: 1.5px solid color-mix(in srgb, var(--nf-state-warning) 35%, var(--nf-content-on-brand));
     box-shadow: 0 0 10px var(--nf-glow-3);
   }
   /* The face is the pack's flip coin, its disc scaled to fill the circle and
@@ -328,7 +334,15 @@
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     background: color-mix(in oklab, var(--nf-brand-primary) 45%, var(--nf-surface-canvas));
-    box-shadow: 0 0 22px var(--nf-glow-4);
+    /* The render's coin carries a white-cyan rim round a bright glass face;
+       the pack coin's rim is dimmer, so the ring is lit here. */
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, var(--nf-state-warning) 30%, var(--nf-content-on-brand)),
+      inset 0 0 10px color-mix(in srgb, var(--nf-state-warning) 45%, transparent),
+      0 0 22px var(--nf-glow-4);
+  }
+  .nf-gs-coin__face > img {
+    filter: brightness(1.25) saturate(1.1);
   }
   .nf-gs-coin__face > img {
     position: absolute;
@@ -453,30 +467,53 @@
     cursor: progress;
     opacity: 0.8;
   }
+  /* The lit primary, GLOW_IDENTITY section 5 (d01a5d7) as this render draws
+     it. Sampled down the centre of 2A49E2F7's button: #047bfb at the top,
+     #002cdb a third down, #0027d1 two thirds down, #026dfa at the foot, so
+     a bright band top and bottom round a saturated core, with the identity's
+     cyan lift low in the middle. The edge is lit all round: #e4feff along the
+     top, #d6faff along the bottom, #0180fb down the sides. Below it the page
+     is #0225b8 at 6px, #001269 at 15px and back to the ground by 30px, so the
+     bloom is strong and short and sits under the bar, not round it. Built
+     from the brand tokens mixed in sRGB (the cyan is the state cyan, allowed
+     here as light, not as a status). */
   .nf-gs-btn--lit {
-    border: 1px solid color-mix(in oklab, var(--nf-brand-quiet) 80%, var(--nf-content-on-brand));
+    border: 1px solid;
+    border-color:
+      color-mix(in srgb, var(--nf-state-warning) 22%, var(--nf-content-on-brand))
+      color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning))
+      color-mix(in srgb, var(--nf-state-warning) 32%, var(--nf-content-on-brand))
+      color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning));
     color: var(--nf-content-on-brand);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 92%, var(--nf-content-on-brand)) 0%,
-      color-mix(in oklab, var(--nf-brand-primary-strong) 70%, var(--nf-surface-canvas)) 50%,
-      var(--nf-brand-primary) 100%
-    );
+    background:
+      radial-gradient(
+        45% 75% at 50% 88%,
+        color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 72%, var(--nf-state-warning)) 55%, transparent),
+        transparent
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--nf-brand-primary) 92%, var(--nf-state-warning)) 0%,
+        color-mix(in srgb, var(--nf-brand-primary) 74%, var(--nf-surface-primary)) 24%,
+        color-mix(in srgb, var(--nf-brand-primary) 68%, var(--nf-surface-primary)) 62%,
+        var(--nf-brand-primary) 88%,
+        color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning)) 100%
+      );
     box-shadow:
-      inset 0 1.5px 0 var(--nf-rim-lit-ink),
-      inset 0 0 14px color-mix(in oklab, var(--nf-brand-quiet) 55%, transparent),
-      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent),
-      0 10px 28px -8px var(--nf-glow-4),
-      0 0 26px -4px var(--nf-glow-3);
+      inset 0 1px 0 color-mix(in srgb, var(--nf-state-warning) 30%, var(--nf-content-on-brand)),
+      inset 0 0 12px color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning)) 70%, transparent),
+      0 6px 14px -2px color-mix(in srgb, var(--nf-brand-primary) 80%, transparent),
+      0 14px 30px -8px var(--nf-glow-4),
+      0 -2px 10px color-mix(in srgb, var(--nf-brand-primary) 22%, transparent);
     text-shadow: 0 0 10px color-mix(in oklab, var(--nf-content-on-brand) 35%, transparent);
   }
   .nf-gs-btn--lit:hover:not(:disabled) {
     box-shadow:
-      inset 0 1.5px 0 var(--nf-rim-lit-ink),
-      inset 0 0 18px color-mix(in oklab, var(--nf-brand-quiet) 65%, transparent),
-      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 50%, transparent),
-      0 12px 32px -8px var(--nf-glow-4),
-      0 0 30px -4px var(--nf-glow-4);
+      inset 0 1px 0 color-mix(in srgb, var(--nf-state-warning) 30%, var(--nf-content-on-brand)),
+      inset 0 0 16px color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning)) 80%, transparent),
+      0 6px 16px -2px color-mix(in srgb, var(--nf-brand-primary) 90%, transparent),
+      0 16px 34px -8px var(--nf-glow-4),
+      0 -2px 12px color-mix(in srgb, var(--nf-brand-primary) 28%, transparent);
   }
   .nf-gs-btn--glass {
     border: 1px solid var(--nf-container-edge);
@@ -609,7 +646,7 @@
     /* Held at the mid-turn the render draws. */
     .nf-gs-coin__spin {
       animation: none;
-      transform: rotateY(55deg);
+      transform: rotateY(62deg);
     }
     .nf-gs-medal {
       animation: none;

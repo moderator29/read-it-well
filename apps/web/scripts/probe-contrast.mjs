@@ -10,24 +10,50 @@
  *
  * WHAT CHANGED ON 22 SEPTEMBER, AND WHY. The previous version of this file
  * measured FOUR named elements on ONE route. That is not a contrast check, it
- * is four assertions, and it is one of the three reasons the light theme had
- * never been tested once: the light survey's worst confirmed failure is the
- * settings hub's avatar initials at 1.00:1, white ink on a white plate, on a
- * route this file never opened. A check that cannot reach the defect is not
- * evidence about the defect.
+ * is four assertions. So it now SWEEPS: every text-bearing leaf element on
+ * every route of the preview harness, at phone width, in dark and in light,
+ * measured off the pixels.
  *
- * So it now SWEEPS. Every text-bearing leaf element on every route of the
- * preview harness, at phone width, in dark and in light, measured off the
- * pixels. The harness is the right surface to sweep because it renders the
- * product's own components with fixtures and without a session, which is what
- * lets a check reach `/settings`, `/wallet` and the admin desks at all.
+ * WHAT CHANGED ON 22 SEPTEMBER AT 22:30, AND IT IS THE WHOLE REASON THIS FILE
+ * COULD NOT BE BELIEVED.
  *
- * WHY ONE SCREENSHOT PER PAGE AND NOT ONE PER ELEMENT. The old file shot each
- * element separately. At roughly a hundred routes, two themes and a few hundred
- * text nodes a page that is a quarter of a million screenshots. This takes one
- * full-page shot, puts it in a canvas inside the page, and reads each element's
- * own rectangle back out of it. Same pixels, same arithmetic, three orders of
- * magnitude less work.
+ * The sweep took ONE `page.screenshot({ fullPage: true })` per route and read
+ * every element's rectangle out of that single canvas. Chromium's full-page
+ * capture stops containing content somewhere past roughly 4,700 CSS pixels on
+ * this box: the PNG is still full height, it is still the right width, and
+ * everything below the cut is BLANK. Nothing in the old file noticed. Its only
+ * guard skipped elements whose rectangle fell outside the image bounds, and a
+ * blank-but-full-height PNG is inside the bounds everywhere, so every element
+ * below the cut was scored against paper that was never painted. A blank box
+ * reads one colour twice, which the file then filed as `painted: false` if the
+ * blankness was perfect and as a REAL FAILURE the moment a single stray pixel
+ * of compression noise or a sliver of genuinely captured content landed in it.
+ * Of 84 sampled failures from that run, 43 did not reproduce. The headline
+ * "150 below the floor, 51 dark and 99 light" was measured this way and is
+ * withdrawn.
+ *
+ * THE REPAIR, AND IT IS THE CHEAP ONE RATHER THAN THE CLEVER ONE. Do not ask
+ * the browser for an image bigger than the browser can draw. Shoot the
+ * VIEWPORT, which is the one rectangle Chromium is always honest about, scroll
+ * down half a screen at a time, and measure only the elements that are on
+ * SCREEN at that moment. Coordinates then come from `getBoundingClientRect`
+ * directly, with no scroll offset arithmetic to get wrong, and the pixels under
+ * an element are by construction pixels the compositor painted this frame.
+ *
+ * Three consequences worth stating because they are what makes the number
+ * trustworthy rather than merely different:
+ *
+ *   1. EVERY ELEMENT IS MEASURED EXACTLY ONCE. It is tagged when it is taken,
+ *      so an element visible at three scroll positions is not three findings.
+ *   2. AN ELEMENT NEVER SEEN WHOLE IS REPORTED, NOT GUESSED AT. Anything taller
+ *      than the step that never lands fully on screen gets its own pass with
+ *      its top parked at the top of the viewport; anything still unreachable
+ *      after that is counted and named in `unreached`, because "we could not
+ *      look at it" is a different fact from "it passes".
+ *   3. THE CAPTURE IS ITSELF CHECKED. A viewport shot whose pixels are all one
+ *      colour is a blank frame, and a blank frame is refused rather than
+ *      measured. That is the guard whose absence made the old number an
+ *      artefact.
  *
  * Usage:
  *   node scripts/probe-contrast.mjs --base http://127.0.0.1:3184
@@ -52,6 +78,7 @@ const arg = (name, fallback = null) => {
 const BASE = arg("base", "http://127.0.0.1:3184").replace(/\/$/, "");
 const JSON_OUT = process.argv.includes("--json");
 const WIDTH = Number(arg("width", "390"));
+const VIEWPORT_H = Number(arg("height", "844"));
 const THEMES = arg("themes", "dark,light")
   .split(",")
   .map((t) => t.trim())
@@ -113,11 +140,212 @@ const browser = await chromium.launch({
 
 const findings = [];
 const errors = [];
+const unreached = [];
+const blankFrames = [];
+
+/*
+ * THE MEASURING FUNCTION, RUN ONCE PER SCROLL POSITION AGAINST A VIEWPORT SHOT.
+ *
+ * It is a string rather than a function reference because it is handed to
+ * `page.evaluate` twice, from two different loops, and duplicating it is how
+ * the two loops drift apart.
+ */
+const MEASURE = async ({ src, dpr, onlyTall, vw, vh }) => {
+  const img = new Image();
+  img.src = "data:image/png;base64," + src;
+  await img.decode();
+  const c = document.createElement("canvas");
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0);
+
+  /*
+   * IS THERE ANYTHING IN THIS FRAME AT ALL. A uniform capture is a frame the
+   * compositor never drew, and measuring one is exactly the fault this rewrite
+   * exists to kill. Sampled on a coarse grid because reading every pixel of
+   * every frame of every route is minutes of nothing.
+   */
+  let first = null;
+  let varied = false;
+  for (let y = 0; y < c.height && !varied; y += 16) {
+    for (let x = 0; x < c.width; x += 16) {
+      const p = ctx.getImageData(x, y, 1, 1).data;
+      const k = `${p[0]},${p[1]},${p[2]}`;
+      if (first === null) first = k;
+      else if (k !== first) {
+        varied = true;
+        break;
+      }
+    }
+  }
+  if (!varied) return { blank: true, out: [] };
+
+  const L = (v) => {
+    const f = (x) => {
+      const s = x / 255;
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]);
+  };
+
+  /*
+   * A TEXT-BEARING LEAF, and leaf is the whole precision of it. A wrapper whose
+   * descendants carry the words would be measured with every colour in the
+   * subtree inside its rectangle, so the "surface" would be whatever happened
+   * to cover the most pixels and the "ink" would be some unrelated glyph two
+   * elements away. Only an element whose OWN child text nodes carry
+   * non-whitespace is measured.
+   */
+  const own = (el) => {
+    let s = "";
+    for (const n of el.childNodes) {
+      if (n.nodeType === Node.TEXT_NODE) s += n.nodeValue;
+    }
+    return s.replace(/\s+/g, " ").trim();
+  };
+
+  const out = [];
+  for (const el of document.querySelectorAll("body *")) {
+    if (el.dataset.nfcDone === "1") continue;
+    const text = own(el);
+    if (!text) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === "hidden" || cs.display === "none" || cs.opacity === "0") continue;
+    /*
+     * THE RECT HAS TO BE CLIPPED TO WHAT IS ACTUALLY ON SCREEN, AND THE
+     * ODOMETER IS WHY.
+     *
+     * `.nf-odometer__digit` is a vertical strip of ten numerals in a window one
+     * numeral tall. Its bounding rect is the whole strip, nine tenths of which
+     * the ancestor clips away, so the first version of this sweep measured nine
+     * invisible digits against whatever happened to be behind them and reported
+     * sixteen failures on one balance figure. None of them is a fact about
+     * anything a person sees.
+     */
+    let box = el.getBoundingClientRect();
+    box = { top: box.top, left: box.left, bottom: box.bottom, right: box.right };
+    for (let a = el.parentElement; a; a = a.parentElement) {
+      const acs = getComputedStyle(a);
+      if (acs.overflow === "visible" && acs.overflowX === "visible" && acs.overflowY === "visible")
+        continue;
+      const ar = a.getBoundingClientRect();
+      box = {
+        top: Math.max(box.top, ar.top),
+        left: Math.max(box.left, ar.left),
+        bottom: Math.min(box.bottom, ar.bottom),
+        right: Math.min(box.right, ar.right),
+      };
+    }
+    const fullH = box.bottom - box.top;
+    const fullW = box.right - box.left;
+    if (fullW < 12 || fullH < 8) continue;
+
+    /*
+     * THE SCREEN IS THE ONLY PLACE THE PIXELS ARE REAL.
+     *
+     * The capture is the viewport, so an element is measurable exactly insofar
+     * as it is inside the viewport right now. In the ordinary pass an element
+     * is only taken when it is WHOLLY on screen, which is what makes one
+     * element one reading. The tall pass, which runs afterwards for the few
+     * elements that are taller than the step, takes the visible intersection
+     * instead and says so, because a paragraph 900px tall still has real ink on
+     * real ground in the part of it we can see.
+     */
+    const vis = {
+      top: Math.max(box.top, 0),
+      left: Math.max(box.left, 0),
+      bottom: Math.min(box.bottom, vh),
+      right: Math.min(box.right, vw),
+    };
+    const visH = vis.bottom - vis.top;
+    const visW = vis.right - vis.left;
+    if (visW <= 0 || visH <= 0) continue;
+    const whole = visH >= fullH - 0.5 && visW >= fullW - 0.5;
+    if (!onlyTall && !whole) continue;
+    if (onlyTall && whole) continue;
+
+    const size = parseFloat(cs.fontSize) || 16;
+    /* A clipped remainder shorter than the type cannot hold a whole glyph, so
+       whatever is in it is a fragment and not a reading. */
+    if (visH < size * 0.7) continue;
+    if (visW < 12 || visH < 8) continue;
+    /* sr-only: clipped to nothing and taken out of flow. Nobody sees it, so its
+       contrast is not a fact about the product. */
+    if (cs.clipPath === "inset(50%)" || cs.clip === "rect(0px, 0px, 0px, 0px)") continue;
+
+    const px = Math.round(vis.left * dpr);
+    const py = Math.round(vis.top * dpr);
+    const pw = Math.round(visW * dpr);
+    const ph = Math.round(visH * dpr);
+    if (px < 0 || py < 0 || px + pw > c.width || py + ph > c.height) continue;
+    if (pw < 4 || ph < 4) continue;
+
+    const d = ctx.getImageData(px, py, pw, ph).data;
+    const hist = new Map();
+    for (let i = 0; i < d.length; i += 4) {
+      const k = `${d[i]},${d[i + 1]},${d[i + 2]}`;
+      hist.set(k, (hist.get(k) || 0) + 1);
+    }
+    const sorted = [...hist.entries()].sort((a, b) => b[1] - a[1]);
+    const toPx = (k) => k.split(",").map(Number);
+    const total = pw * ph;
+    const surface = toPx(sorted[0][0]);
+    const surfaceShare = sorted[0][1] / total;
+
+    /*
+     * THE INK IS THE MOST COMMON COLOUR FURTHEST FROM THE SURFACE IN LUMINANCE,
+     * taken from the head of the histogram so it is the glyph core rather than
+     * an antialiasing fringe. The 0.5 per cent floor is what keeps a single
+     * stray pixel from being called ink.
+     */
+    let ink = surface;
+    let best = 0;
+    for (const [k, n] of sorted.slice(0, 60)) {
+      const v = toPx(k);
+      const gap = Math.abs(L(v) - L(surface));
+      if (gap > best && n > total * 0.005) {
+        best = gap;
+        ink = v;
+      }
+    }
+
+    /*
+     * NOTHING WAS PAINTED IN THIS BOX, which is not the same fact as "this text
+     * has no contrast" and must not be reported as one. When the ink the
+     * histogram finds IS the surface, the rectangle held a single colour: the
+     * element is transformed out from under its own box, clipped by something
+     * this walk did not catch, or still animating. A ratio of 1.00 computed
+     * from one colour twice is an artefact of the measurement.
+     */
+    const painted = ink[0] !== surface[0] || ink[1] !== surface[1] || ink[2] !== surface[2];
+
+    const weight = Number(cs.fontWeight) || 400;
+    const large = size >= 24 || (size >= 18.66 && weight >= 700);
+    el.dataset.nfcDone = "1";
+    out.push({
+      text: text.slice(0, 44),
+      tag: el.tagName.toLowerCase(),
+      cls:
+        typeof el.className === "string"
+          ? el.className.split(/\s+/).filter(Boolean).slice(0, 3).join(".")
+          : "",
+      ink,
+      surface,
+      surfaceShare: Math.round(surfaceShare * 100) / 100,
+      size: Math.round(size * 10) / 10,
+      large,
+      painted,
+      partial: !whole,
+    });
+  }
+  return { blank: false, out };
+};
 
 for (const theme of THEMES) {
   for (const route of ROUTES) {
     const page = await browser.newPage({
-      viewport: { width: WIDTH, height: 1400 },
+      viewport: { width: WIDTH, height: VIEWPORT_H },
       colorScheme: theme,
       deviceScaleFactor: 2,
     });
@@ -132,7 +360,27 @@ for (const theme of THEMES) {
           /* A storage-blocked context still gets the attribute below. */
         }
       }, theme);
-      await page.goto(`${BASE}${route}`, { waitUntil: "networkidle", timeout: 45_000 });
+      const response = await page.goto(`${BASE}${route}`, {
+        waitUntil: "networkidle",
+        timeout: 45_000,
+      });
+
+      /*
+       * WHAT THE BROWSER ACTUALLY GOT, BEFORE ANYTHING IS MEASURED ON IT.
+       * `compare-surface.mjs` learned this the expensive way and this file had
+       * never learned it at all: a 404, a 500 or a redirect to `/sign-in`
+       * measures clean, because a sign-in screen has excellent contrast.
+       */
+      const status = response?.status() ?? 0;
+      if (status < 200 || status >= 300) throw new Error(`server answered ${status}`);
+      const landed = new URL(page.url()).pathname.replace(/\/$/, "") || "/";
+      const asked = new URL(`${BASE}${route}`).pathname.replace(/\/$/, "") || "/";
+      if (landed !== asked) throw new Error(`browser ended up at ${landed}`);
+      /* A Next.js layout `notFound()` answers HTTP 200 with the not-found body,
+         so the status above cannot see it and the marker has to be asked for. */
+      if (await page.locator("[data-nf-not-found]").count())
+        throw new Error("not-found body served at 200");
+
       await page.evaluate((t) => {
         if (t === "light") document.documentElement.setAttribute("data-theme", "light");
         else document.documentElement.removeAttribute("data-theme");
@@ -140,195 +388,142 @@ for (const theme of THEMES) {
       await page.waitForTimeout(350);
 
       /*
-       * A REVEAL BAND AT OPACITY 0 IS NOT A CONTRAST FAILURE, AND THE FIRST
-       * FULL RUN OF THIS SWEEP REPORTED DOZENS OF THEM AS ONE.
-       *
-       * `compare-surface.mjs` calls this "the third harness lie": the page is
-       * loaded, the content is at opacity 0, and every sample under it reads
-       * the ground. Measured here as 214 failures of which most were
-       * `ink rgb(0,6,18) on rgb(0,6,18)`, which is the canvas twice over,
-       * because nothing had been painted in the element's box yet.
-       *
-       * So it polls to a deadline rather than waiting a fixed time: a page
-       * that settles gets measured and a page that genuinely never reveals is
-       * reported as a route that did not open, which is the honest answer.
+       * A REVEAL BAND AT OPACITY 0 IS NOT A CONTRAST FAILURE, AND THE FIRST FULL
+       * RUN OF THIS SWEEP REPORTED DOZENS OF THEM AS ONE. Only bands that are
+       * ON SCREEN are asked about, because a band four screens down has not been
+       * scrolled to yet and is supposed to be at opacity 0.
        */
-      const deadline = Date.now() + 12_000;
-      for (;;) {
-        const stuck = await page.evaluate(() =>
-          [...document.querySelectorAll(".nf-reveal")].filter(
-            (el) => Number(getComputedStyle(el).opacity) < 0.5,
-          ).length,
-        );
-        if (stuck === 0 || Date.now() > deadline) {
-          if (stuck > 0) throw new Error(`${stuck} reveal band(s) still under opacity 0.5`);
-          break;
+      const settle = async () => {
+        const deadline = Date.now() + 8_000;
+        for (;;) {
+          const stuck = await page.evaluate(
+            () =>
+              [...document.querySelectorAll(".nf-reveal")].filter((el) => {
+                const r = el.getBoundingClientRect();
+                if (r.bottom < 0 || r.top > window.innerHeight) return false;
+                return Number(getComputedStyle(el).opacity) < 0.5;
+              }).length,
+          );
+          if (stuck === 0) return 0;
+          if (Date.now() > deadline) return stuck;
+          await page.waitForTimeout(400);
         }
-        await page.waitForTimeout(400);
+      };
+      if ((await settle()) > 0) throw new Error("reveal band(s) still under opacity 0.5 at the top");
+
+      await page.evaluate(() => {
+        document.querySelectorAll("[data-nfc-done]").forEach((el) => delete el.dataset.nfcDone);
+      });
+
+      const metrics = await page.evaluate(() => ({
+        scrollH: Math.max(
+          document.documentElement.scrollHeight,
+          document.body ? document.body.scrollHeight : 0,
+        ),
+        vh: window.innerHeight,
+        vw: window.innerWidth,
+      }));
+
+      /*
+       * HALF A SCREEN AT A TIME. With a step of half the viewport, any element
+       * no taller than the step lands WHOLLY inside the viewport at some
+       * position, which is the covering argument that lets the ordinary pass
+       * insist on whole elements and still see everything.
+       */
+      const step = Math.floor(metrics.vh / 2);
+      const stops = [];
+      for (let y = 0; y < Math.max(metrics.scrollH - metrics.vh, 0) + step; y += step) {
+        stops.push(Math.min(y, Math.max(metrics.scrollH - metrics.vh, 0)));
+        if (stops[stops.length - 1] >= Math.max(metrics.scrollH - metrics.vh, 0)) break;
+      }
+      if (stops.length === 0) stops.push(0);
+
+      const found = [];
+      for (const y of stops) {
+        /* `scroll-behavior: smooth` in base.css makes a bare `scrollTo` a
+           silent no-op without a compositor. `instant` is not optional. */
+        await page.evaluate((top) => window.scrollTo({ top, left: 0, behavior: "instant" }), y);
+        await page.waitForTimeout(260);
+        await settle();
+        const src = (await page.screenshot({ type: "png" })).toString("base64");
+        const res = await page.evaluate(MEASURE, {
+          src,
+          dpr: 2,
+          onlyTall: false,
+          vw: metrics.vw,
+          vh: metrics.vh,
+        });
+        if (res.blank) {
+          blankFrames.push(`${theme} ${route} @y=${y}`);
+          continue;
+        }
+        found.push(...res.out);
       }
 
-      const shot = (await page.screenshot({ type: "png", fullPage: true })).toString("base64");
-      const found = await page.evaluate(
-        async ({ src, dpr }) => {
-          const img = new Image();
-          img.src = "data:image/png;base64," + src;
-          await img.decode();
-          const c = document.createElement("canvas");
-          c.width = img.naturalWidth;
-          c.height = img.naturalHeight;
-          const ctx = c.getContext("2d", { willReadFrequently: true });
-          ctx.drawImage(img, 0, 0);
-
-          const L = (v) => {
-            const f = (x) => {
-              const s = x / 255;
-              return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-            };
-            return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]);
-          };
-
-          /*
-           * A TEXT-BEARING LEAF, and leaf is the whole precision of it. A
-           * wrapper whose descendants carry the words would be measured with
-           * every colour in the subtree inside its rectangle, so the "surface"
-           * would be whatever happened to cover the most pixels and the "ink"
-           * would be some unrelated glyph two elements away. Only an element
-           * whose OWN child text nodes carry non-whitespace is measured.
-           */
+      /*
+       * THE LEFTOVERS: anything taller than the step, which never lands whole
+       * on screen however far we scroll. Each gets its own frame with its top
+       * parked just below the top of the viewport, and is measured on the part
+       * of it that is visible, marked `partial` so nobody reads it as a whole
+       * reading. Anything still unreachable after that is NAMED, because
+       * "could not look" and "passes" are different facts.
+       */
+      for (let pass = 0; pass < 12; pass++) {
+        const next = await page.evaluate(() => {
           const own = (el) => {
             let s = "";
-            for (const n of el.childNodes) {
-              if (n.nodeType === Node.TEXT_NODE) s += n.nodeValue;
-            }
+            for (const n of el.childNodes) if (n.nodeType === Node.TEXT_NODE) s += n.nodeValue;
             return s.replace(/\s+/g, " ").trim();
           };
-
-          const out = [];
           for (const el of document.querySelectorAll("body *")) {
-            const text = own(el);
-            if (!text) continue;
+            if (el.dataset.nfcDone === "1") continue;
+            if (!own(el)) continue;
             const cs = getComputedStyle(el);
             if (cs.visibility === "hidden" || cs.display === "none" || cs.opacity === "0") continue;
-            /*
-             * THE RECT HAS TO BE CLIPPED TO WHAT IS ACTUALLY ON SCREEN, AND
-             * THE ODOMETER IS WHY.
-             *
-             * `.nf-odometer__digit` is a vertical strip of ten numerals in a
-             * window one numeral tall. Its bounding rect is the whole strip,
-             * nine tenths of which the ancestor clips away, so the first
-             * version of this sweep measured nine invisible digits against
-             * whatever happened to be behind them and reported sixteen
-             * failures on one balance figure. None of them is a fact about
-             * anything a person sees.
-             *
-             * So the rect is intersected with every ancestor that clips, which
-             * is the browser's own answer to "what is visible", and an element
-             * whose visible remainder is a sliver is dropped rather than
-             * guessed at.
-             */
-            let box = el.getBoundingClientRect();
-            for (let a = el.parentElement; a; a = a.parentElement) {
-              const acs = getComputedStyle(a);
-              if (acs.overflow === "visible" && acs.overflowX === "visible" && acs.overflowY === "visible")
-                continue;
-              const ar = a.getBoundingClientRect();
-              box = {
-                top: Math.max(box.top, ar.top),
-                left: Math.max(box.left, ar.left),
-                bottom: Math.min(box.bottom, ar.bottom),
-                right: Math.min(box.right, ar.right),
-              };
-              box.width = box.right - box.left;
-              box.height = box.bottom - box.top;
-            }
-            const r = {
-              top: box.top,
-              left: box.left,
-              width: box.right - box.left,
-              height: box.bottom - box.top,
-            };
-            const top = r.top + window.scrollY;
-            const left = r.left + window.scrollX;
+            const r = el.getBoundingClientRect();
             if (r.width < 12 || r.height < 8) continue;
-            /* A clipped remainder shorter than the type cannot hold a whole
-               glyph, so whatever is in it is a fragment and not a reading. */
-            if (r.height < (parseFloat(cs.fontSize) || 16) * 0.7) continue;
-            /* sr-only: clipped to nothing and taken out of flow. Nobody sees it,
-               so its contrast is not a fact about the product. */
-            if (cs.clipPath === "inset(50%)" || cs.clip === "rect(0px, 0px, 0px, 0px)") continue;
-
-            const px = Math.round(left * dpr);
-            const py = Math.round(top * dpr);
-            const pw = Math.round(r.width * dpr);
-            const ph = Math.round(r.height * dpr);
-            if (px < 0 || py < 0 || px + pw > c.width || py + ph > c.height) continue;
-            if (pw < 4 || ph < 4) continue;
-
-            const d = ctx.getImageData(px, py, pw, ph).data;
-            const hist = new Map();
-            for (let i = 0; i < d.length; i += 4) {
-              const k = `${d[i]},${d[i + 1]},${d[i + 2]}`;
-              hist.set(k, (hist.get(k) || 0) + 1);
-            }
-            const sorted = [...hist.entries()].sort((a, b) => b[1] - a[1]);
-            const toPx = (k) => k.split(",").map(Number);
-            const total = pw * ph;
-            const surface = toPx(sorted[0][0]);
-            const surfaceShare = sorted[0][1] / total;
-
-            /*
-             * THE INK IS THE MOST COMMON COLOUR FURTHEST FROM THE SURFACE IN
-             * LUMINANCE, taken from the head of the histogram so it is the
-             * glyph core rather than an antialiasing fringe. The 0.5 per cent
-             * floor is what keeps a single stray pixel from being called ink.
-             */
-            let ink = surface;
-            let best = 0;
-            for (const [k, n] of sorted.slice(0, 60)) {
-              const v = toPx(k);
-              const gap = Math.abs(L(v) - L(surface));
-              if (gap > best && n > total * 0.005) {
-                best = gap;
-                ink = v;
-              }
-            }
-
-            /*
-             * NOTHING WAS PAINTED IN THIS BOX, which is not the same fact as
-             * "this text has no contrast" and must not be reported as one.
-             *
-             * When the ink the histogram finds IS the surface, the rectangle
-             * held a single colour: the element is transformed out from under
-             * its own box, clipped by something this walk did not catch, or
-             * still animating. A ratio of 1.00 computed from one colour twice
-             * is an artefact of the measurement and says nothing about the
-             * product. These are counted and named separately so the number
-             * this sweep reports is a number somebody can act on.
-             */
-            const painted = ink[0] !== surface[0] || ink[1] !== surface[1] || ink[2] !== surface[2];
-
-            const size = parseFloat(cs.fontSize) || 16;
-            const weight = Number(cs.fontWeight) || 400;
-            const large = size >= 24 || (size >= 18.66 && weight >= 700);
-            out.push({
-              text: text.slice(0, 44),
-              tag: el.tagName.toLowerCase(),
-              cls:
-                typeof el.className === "string"
-                  ? el.className.split(/\s+/).filter(Boolean).slice(0, 3).join(".")
-                  : "",
-              ink,
-              surface,
-              surfaceShare: Math.round(surfaceShare * 100) / 100,
-              size: Math.round(size * 10) / 10,
-              large,
-              painted,
-            });
+            if (r.height <= window.innerHeight) continue;
+            return Math.max(0, r.top + window.scrollY - 8);
           }
-          return out;
-        },
-        { src: shot, dpr: 2 },
-      );
+          return null;
+        });
+        if (next === null) break;
+        await page.evaluate((top) => window.scrollTo({ top, left: 0, behavior: "instant" }), next);
+        await page.waitForTimeout(220);
+        const src = (await page.screenshot({ type: "png" })).toString("base64");
+        const res = await page.evaluate(MEASURE, {
+          src,
+          dpr: 2,
+          onlyTall: true,
+          vw: metrics.vw,
+          vh: metrics.vh,
+        });
+        if (res.blank) {
+          blankFrames.push(`${theme} ${route} @tall y=${next}`);
+          break;
+        }
+        found.push(...res.out);
+      }
+
+      const left = await page.evaluate(() => {
+        const own = (el) => {
+          let s = "";
+          for (const n of el.childNodes) if (n.nodeType === Node.TEXT_NODE) s += n.nodeValue;
+          return s.replace(/\s+/g, " ").trim();
+        };
+        let n = 0;
+        for (const el of document.querySelectorAll("body *")) {
+          if (el.dataset.nfcDone === "1") continue;
+          if (!own(el)) continue;
+          const cs = getComputedStyle(el);
+          if (cs.visibility === "hidden" || cs.display === "none" || cs.opacity === "0") continue;
+          const r = el.getBoundingClientRect();
+          if (r.width < 12 || r.height < 8) continue;
+          n++;
+        }
+        return n;
+      });
+      if (left > 0) unreached.push(`${theme} ${route}: ${left} leaf/leaves never seen whole on screen`);
 
       for (const f of found) {
         findings.push({ route, theme, ...f, ratio: ratio(f.ink, f.surface) });
@@ -362,7 +557,15 @@ const unpainted = findings.filter((f) => !f.painted);
 if (JSON_OUT) {
   console.log(
     JSON.stringify(
-      { fails, onMedia, unpainted: unpainted.length, errors, measured: findings.length },
+      {
+        fails,
+        onMedia,
+        unpainted: unpainted.length,
+        errors,
+        unreached,
+        blankFrames,
+        measured: findings.length,
+      },
       null,
       2,
     ),
@@ -370,10 +573,11 @@ if (JSON_OUT) {
 } else {
   const line = (f) =>
     `  ${f.theme.padEnd(5)} ${f.route}  ${f.tag}.${f.cls}  "${f.text}"  ${f.size}px  ` +
-    `ink rgb(${f.ink}) on rgb(${f.surface}) = ${f.ratio.toFixed(2)}:1`;
+    `ink rgb(${f.ink}) on rgb(${f.surface}) = ${f.ratio.toFixed(2)}:1${f.partial ? "  [partial]" : ""}`;
   console.log(
-    `contrast sweep: ${ROUTES.length} route(s) x ${THEMES.join(", ")} at ${WIDTH}px. ` +
-      `${findings.length} text-bearing leaves measured off the pixels.\n`,
+    `contrast sweep: ${ROUTES.length} route(s) x ${THEMES.join(", ")} at ${WIDTH}px, ` +
+      `viewport captures at ${VIEWPORT_H}px stepping half a screen.\n` +
+      `${findings.length} text-bearing leaves measured off pixels that were on screen when they were read.\n`,
   );
   console.log(`BELOW THE FLOOR (4.5:1, or 3:1 for large text), on a flat ground: ${fails.length}`);
   fails.sort((a, b) => a.ratio - b.ratio).forEach((f) => console.log(line(f)));
@@ -387,6 +591,14 @@ if (JSON_OUT) {
   console.log(
     `\nNOTHING PAINTED IN THE ELEMENT'S OWN BOX, so no ratio can be read from it: ${unpainted.length}`,
   );
+  if (unreached.length) {
+    console.log(`\nLEAVES NEVER SEEN WHOLE ON SCREEN, so nothing is claimed about them: ${unreached.length}`);
+    unreached.forEach((u) => console.log(`  ${u}`));
+  }
+  if (blankFrames.length) {
+    console.log(`\nBLANK FRAMES REFUSED, which is the fault this rewrite exists for: ${blankFrames.length}`);
+    blankFrames.forEach((b) => console.log(`  ${b}`));
+  }
   if (errors.length) {
     console.log(`\nROUTES THAT DID NOT OPEN: ${errors.length}`);
     errors.forEach((e) => console.log(`  ${e}`));

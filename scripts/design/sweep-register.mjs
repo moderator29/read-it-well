@@ -45,6 +45,54 @@ const cutoff = new Date(
 );
 
 /*
+ * WHEN A PROOF WAS TAKEN IS A FACT ABOUT THE COMMIT, NOT ABOUT THE DISK, AND
+ * READING IT OFF THE DISK MADE THIS REGISTER SELF-CLEARING.
+ *
+ * Until 22 September this file asked `statSync(file).mtime`. A git checkout
+ * writes every file it materialises with the time of the checkout, so in any
+ * fresh clone, any worktree and any CI runner EVERY proof in the tree is newer
+ * than the cutoff and every VOID surface silently becomes proven. Measured on
+ * this box on 22 September: the same script over the same 600 proof files
+ * reported `58 fresh, 15 void` in the long-lived working copy and
+ * `73 fresh, 0 void` in a worktree checked out ten minutes earlier. Nothing
+ * had been shot. The fifteen surfaces the founder ordered retaken had cleared
+ * themselves by being cloned.
+ *
+ * That is the exact failure this file's own header calls harmful: not a stale
+ * count, a count that grows on its own. So the date now comes from git, which
+ * is the same answer on every machine and cannot be changed by touching a file.
+ * One `git log` walks the whole proofs tree; a file git has never seen (a shot
+ * taken in this session and not yet committed) is genuinely new and is treated
+ * as fresh, which is the only reading that lets today's work count today.
+ */
+function proofCommitDates() {
+  const map = new Map();
+  let log = "";
+  try {
+    log = execSync(
+      `git -C ${REPO} log --format=%x00%cI --name-only -- docs/design/proofs`,
+      { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+    );
+  } catch {
+    return map;
+  }
+  let when = null;
+  for (const line of log.split("\n")) {
+    if (line.startsWith("\u0000")) {
+      when = new Date(line.slice(1));
+      continue;
+    }
+    const path = line.trim();
+    if (!path || !when) continue;
+    /* First mention wins: `git log` is newest first, so that is the last
+       commit that touched the file, which is when the proof last changed. */
+    if (!map.has(path)) map.set(path, when);
+  }
+  return map;
+}
+const COMMITTED = proofCommitDates();
+
+/*
  * OWNERSHIP BY ROUTE PREFIX, longest prefix wins. This is the division the
  * five sweep workers were given, written down so the register and the briefs
  * cannot drift apart. "site" is the marketing and legal frontage, which no
@@ -103,9 +151,38 @@ const GOVERNED = {
   "/home": "founder/GOVERNING-home-markets-target.png",
   "/search": "founder/GOVERNING-search-filters-target.png",
   "/messages/[id]": "GOVERNING-chat-booking-card.png, founder/GOVERNING-thread-hotel-booking.jpg, founder/GOVERNING-thread-rental-enquiry.jpg",
-  "/u/[handle]": "GOVERNING-feed-plus-bloom.png",
-  "/stories/[id]": "GOVERNING-flip-mid-turn.png",
+  /*
+   * THESE TWO WERE POINTED AT THE WRONG SURFACES, AND ONE OF THEM WAS THE
+   * FLAGSHIP.
+   *
+   * `GOVERNING-feed-plus-bloom.png` draws THE FEED: the location chip, the
+   * story rings, the For you / Following capsule, the cards and the plus that
+   * blooms. That is `/around`, and `around/page.tsx` says so in its own first
+   * docblock, "Around: the feed, to `GOVERNING-feed-plus-bloom.png`". It was
+   * assigned here to `/u/[handle]`, which is a person's profile and draws none
+   * of those five things. So F4's flagship deliverable was credited to a page
+   * it does not govern, and `/around` carried "none, inherits the register"
+   * while being the one route in the tree with a founder render of its own.
+   *
+   * `GOVERNING-flip-mid-turn.png` draws the SIDE FLIP, the whole-shell turn
+   * between the property side and the stays side. `SideFlip` is mounted by
+   * `AppShell` (line 238), so it governs every authenticated route and no
+   * single one of them. It was assigned to `/stories/[id]`, which is the story
+   * viewer and does not mount it at all. A governing image with no single route
+   * is recorded as exactly that rather than parked on the nearest page, because
+   * parking it is how a surface gets closed on a picture of something else.
+   */
+  "/around": "GOVERNING-feed-plus-bloom.png",
 };
+
+/*
+ * A GOVERNING IMAGE THAT RULES THE SHELL RATHER THAN A ROUTE. Printed in the
+ * register's own preamble so it is not lost, and not attached to a route,
+ * because attaching it to one would say something false about that route.
+ */
+const GOVERNED_SHELL = [
+  ["`SideFlip`, mounted by `AppShell`, so on every authenticated route", "GOVERNING-flip-mid-turn.png"],
+];
 
 function routes() {
   const out = [];
@@ -146,7 +223,9 @@ if (existsSync(PROOFS)) {
       proofs.push({
         group: group.name,
         file,
-        fresh: statSync(full).mtime > cutoff,
+        /* Git's answer, not the disk's. A proof git has never seen was taken
+           in this session and has not been committed yet, so it is new. */
+        fresh: (COMMITTED.get(`docs/design/proofs/${group.name}/${file}`) ?? new Date()) > cutoff,
         /* The slug a proof file is named for, matched loosely: a file called
            f3-search-filters-open-dark.png is a proof of /search. */
         stem: file.replace(/\.(png|jpe?g)$/i, "").toLowerCase(),
@@ -306,6 +385,10 @@ lines.push(
 );
 lines.push("way to count it.");
 lines.push("");
+for (const [where, image] of GOVERNED_SHELL) {
+  lines.push(`**Governs the shell, not a route:** ${image} rules ${where}.`);
+  lines.push("");
+}
 lines.push(
   `**${all.length} surfaces.** A surface is DONE only when a fresh proof of it sits beside its`,
 );

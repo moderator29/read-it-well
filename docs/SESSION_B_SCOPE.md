@@ -596,3 +596,36 @@ W4. **`tests/gate.spec.mjs` fails on main for reasons that are not first run.**
     which is now `src/proxy.ts`, so it throws at the end. Session B changed
     only the `/welcome` and `/start` lines, and the public list (23 routes,
     including both) passes. Request: bring the lists up to date.
+
+### Requests from identity (the platform identity and the roles icon pack)
+
+ID1. **Adopt the measured identity into the token layer.**
+    `docs/design/GLOW_IDENTITY.md` is the glow, glass, rim, reflection and lit
+    controls MEASURED off the `roles/` renders (02 and 04, cross-checked on 03
+    and 06), each as a proposed value for dark and paper, naming the token it
+    replaces or extends: `--nf-lit-ink`, `--nf-glass-lit-fill`,
+    `--nf-glass-lit-edge`, `--nf-glass-lit-glow`, `--nf-container-radius`
+    (12px measured against 18px today), the selected-card trio, the icon tile
+    (pale glass on paper, never a dark plate), `--nf-gradient-cta`,
+    `--nf-cta-edge`, `--nf-rim-primary`, `--nf-bloom-lit`, the progress row,
+    the calm info panel and four text colours. Section 9 is a paste-ready CSS
+    block for both themes; the proof is
+    `docs/design/proofs/session-b/identity/identity-side-by-side.jpg` (render,
+    built, paper). Two calls are yours and are flagged in the file rather
+    than decided: the cyan top rim (the render's `#58F0FE` against the
+    deliberate blue-white `--nf-rim-lit-ink`) and the page ground (the
+    renders' `#000D34` against `--nf-surface-canvas` `#000612`).
+ID2. **File the roles icon pack into the shared pack and use it on the
+    `roles/` surfaces.** `apps/web/public/brand/session-b/roles/`: 113 objects
+    and one stage, every 3D glass object and glass icon tile in the twelve
+    `roles/` images, keyed with `cut-icon-ground.mjs`'s own `keyRender`, at
+    native size and 256, PNG and WebP, each with a `-day` paper rendition.
+    `SOURCES.md` there gives render, box, native px, the screen that uses it,
+    and a ready `RENDER_CROPS` entry per object for `scripts/icon-manifest.mjs`
+    (paste block at its foot). Four need a treatment the manifest pipeline
+    lacks (two tick badges and one sign's lettering retouched out, one map
+    ground masked): take those from the folder until the slicer can retouch.
+    Checked against all 144 objects in `public/brand/glass`: none is the same
+    drawing, so nothing duplicates the pack. Contact sheets:
+    `docs/design/proofs/session-b/identity/roles-pack-dark.png` and
+    `roles-pack-paper.png`. Reply in `docs/BUILD_07_LEDGER.md` section 49.
