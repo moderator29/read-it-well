@@ -270,7 +270,10 @@ export type Database = {
         Row: {
           account_name: string | null
           account_number: string | null
+          agency_fee_bps: number | null
           agree_terms: boolean
+          area: string | null
+          association_proof: string | null
           bank_name: string | null
           business_address: string | null
           business_email: string | null
@@ -282,11 +285,16 @@ export type Database = {
           city: string | null
           created_at: string
           email: string | null
+          firm_team: Json
           full_name: string | null
           id: string
           id_number: string | null
           id_type: string | null
+          lasrera_number: string | null
+          legal_fee_bps: number | null
+          ownership_document: string | null
           phone: string | null
+          principal_email: string | null
           reference: string
           residential_address: string | null
           review_notes: string | null
@@ -295,14 +303,19 @@ export type Database = {
           state_code: string | null
           status: Database["public"]["Enums"]["agent_application_status"]
           submitted_at: string | null
+          supply_role: string | null
           type: Database["public"]["Enums"]["agent_type"]
           updated_at: string
           user_id: string
+          years_experience: string | null
         }
         Insert: {
           account_name?: string | null
           account_number?: string | null
+          agency_fee_bps?: number | null
           agree_terms?: boolean
+          area?: string | null
+          association_proof?: string | null
           bank_name?: string | null
           business_address?: string | null
           business_email?: string | null
@@ -314,11 +327,16 @@ export type Database = {
           city?: string | null
           created_at?: string
           email?: string | null
+          firm_team?: Json
           full_name?: string | null
           id?: string
           id_number?: string | null
           id_type?: string | null
+          lasrera_number?: string | null
+          legal_fee_bps?: number | null
+          ownership_document?: string | null
           phone?: string | null
+          principal_email?: string | null
           reference?: string
           residential_address?: string | null
           review_notes?: string | null
@@ -327,14 +345,19 @@ export type Database = {
           state_code?: string | null
           status?: Database["public"]["Enums"]["agent_application_status"]
           submitted_at?: string | null
+          supply_role?: string | null
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
           user_id: string
+          years_experience?: string | null
         }
         Update: {
           account_name?: string | null
           account_number?: string | null
+          agency_fee_bps?: number | null
           agree_terms?: boolean
+          area?: string | null
+          association_proof?: string | null
           bank_name?: string | null
           business_address?: string | null
           business_email?: string | null
@@ -346,11 +369,16 @@ export type Database = {
           city?: string | null
           created_at?: string
           email?: string | null
+          firm_team?: Json
           full_name?: string | null
           id?: string
           id_number?: string | null
           id_type?: string | null
+          lasrera_number?: string | null
+          legal_fee_bps?: number | null
+          ownership_document?: string | null
           phone?: string | null
+          principal_email?: string | null
           reference?: string
           residential_address?: string | null
           review_notes?: string | null
@@ -359,9 +387,11 @@ export type Database = {
           state_code?: string | null
           status?: Database["public"]["Enums"]["agent_application_status"]
           submitted_at?: string | null
+          supply_role?: string | null
           type?: Database["public"]["Enums"]["agent_type"]
           updated_at?: string
           user_id?: string
+          years_experience?: string | null
         }
         Relationships: [
           {

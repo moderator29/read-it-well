@@ -261,7 +261,45 @@ the worker. No row, no close, and the lead does not commit it.
 | The dock with the raised centre switch | `GOVERNING-01` screen one | `b1/dock-390-dark.png`, RETAKEN by A2b on `next start` at `6c621e3`, on `/search` because `/home` is behind the gate | dock object 18 on 52 = 0.346, measured; bar 22 on 70 = 0.314; the object rises 7px above the bar; five slots, Home, Search, Switch profile, Feed, Sign up | B1, proof by A2b |
 | The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png`, RETAKEN by A2b at `6c621e3` | row mark 14 on 44 = 0.318, measured. THE STANDING LABEL IS NOT IN THIS PROOF: it only draws on a workspace row, a visitor with no session has none, so B1's 6 on 25 = 0.244 is UNVERIFIED and needs a session | B1, proof by A2b |
 | The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png`, RETAKEN by A2b at `6c621e3` | row 14 on 56 = 0.25, measured; and the sheet it opens is the same sheet the dock opens, asserted in the run | B1, proof by A2b |
+| `/profile/setup/owner`, THE OWNER FORM, all four screens | `GOVERNING-03` | `b1b/owner-1-about-you`, `owner-2-where`, `owner-2-where-picker`, `owner-2-where-state-chosen`, `owner-3-proof`, `owner-3-proof-none`, `owner-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`. Taken on `next start` with `VALLO_PREVIEW_HARNESS=1` at port 3196, walked by `scratchpad/b1b/proof-owner.mjs`, which fills each screen and presses the control a person would | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** Measured in the browser: every one of the six answer rows 14 on 56 = 0.250, including "I have none of these"; the timing label 14 on 44 = 0.318; the calm panel's glyph is the only circle and it carries no text | B1b |
 
+
+**B1b's THREE DEPARTURES FROM `GOVERNING-03`, RECORDED SO THE FOUNDER CAN
+OVERRULE ANY OF THEM.** The composition, the glass, the glow, the progress row,
+the calm panel and every control's shape are the render's. Three things are
+not.
+
+1. **SCREEN FOUR DOES NOT SAY "YOU ARE SET UP AS AN OWNER" AND DOES NOT SAY
+   "YOUR DETAILS ARE VERIFIED".** Insert on `public.agents` is admin only by
+   policy, so nothing about a person is set up or verified at the moment that
+   screen appears; it reads "Your owner registration is filed" over "Nobody has
+   looked at it yet, and this screen will not pretend otherwise". The reference
+   set's own rule is that a count or a statistic in a render is example
+   content, and a STATUS is example content by the same argument with more at
+   stake. Making it true instead would mean self service approval of supply
+   accounts, which is a decision about what the verified mark means and belongs
+   to the founder rather than to a worker.
+2. **SCREEN TWO DRAWS NO MAP.** `NEXT_PUBLIC_MAPTILER_KEY` is unset, so a map
+   here is a rectangle of nothing where the render draws a city, and the exact
+   building is a fact about a PROPERTY that the listing wizard already asks
+   for. The screen carries the state, the local government and the
+   neighbourhood, and says where the pin belongs rather than hiding that it is
+   absent.
+3. **THE "OPTIONAL" MARKER IS THE FIELD PRIMITIVE'S PLAIN WORD, NOT A
+   CONTAINER.** The render draws it as a capsule. A capsule ships as a rounded
+   rectangle on `--nf-radius-control`, and 14px on a 22px tag is 0.636, which
+   draws a capsule whatever it is called. There is no honest rectangle
+   available at that size, so it takes no container at all. The two labels that
+   ARE containers, "Usually two working days" and "Under review", are 2.75rem
+   tall for exactly this reason and measure 0.318.
+
+**AND ONE THING SCREEN TWO COULD NOT BE PROVED DOING.** Every Supabase origin
+is refused by this sandbox's egress proxy, so `listStates` and
+`fetchLocalGovernments` both return empty here and the two pickers have no rows
+to offer. The proof records the Continue control CORRECTLY DISABLED in that
+state, stands four real states into the preview route so the picker itself can
+be opened and measured, and opens screen three directly. Nobody has yet seen
+this form choose a real local government.
 
 **THE GATE'S OWN MEASUREMENT, TAKEN BY A2b ON A CLEAN CHECKOUT OF `6c621e3`.**
 Against the four floors in section 1: `tsc --noEmit` **exit 0**; `eslint src`

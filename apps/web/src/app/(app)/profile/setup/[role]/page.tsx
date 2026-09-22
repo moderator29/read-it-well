@@ -32,11 +32,19 @@ export const metadata: Metadata = {
  * person who abandons this halfway should land back on the screen they started
  * from rather than on a marketing page in the public site chrome.
  *
- * The two segments are the two role ids that can be set up. `renter` is not
- * one of them: there is no application to be a renter and there never will be
- * (see roles.ts), so it 404s here rather than rendering an empty form.
+ * ONE SEGMENT NOW, AND IT USED TO BE TWO. `owner` has its own route beside
+ * this one, `profile/setup/owner`, which draws `GOVERNING-03`: four screens,
+ * the honest answer on the ownership question, and a form a landlord can
+ * finish. A static segment wins over a dynamic sibling in Next's router, so
+ * that page serves the owner and nothing here has to know about it; the value
+ * is dropped from this list so that a reader of this file is not told there is
+ * an owner form here when there is not.
+ *
+ * `renter` was never one of them: there is no application to be a renter and
+ * there never will be (see roles.ts), so it 404s here rather than rendering an
+ * empty form.
  */
-const SETUP_ROLES: readonly SetupRole[] = ["owner", "professional"] as const;
+const SETUP_ROLES: readonly SetupRole[] = ["professional"] as const;
 
 function isSetupRole(value: string): value is SetupRole {
   return (SETUP_ROLES as readonly string[]).includes(value);

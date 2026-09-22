@@ -1083,3 +1083,264 @@
     box-shadow: none;
   }
 }
+
+/*
+ * ============================================================================
+ * B1b: THE THREE REGISTRATION FORMS, `GOVERNING-03`, `04` AND `05`
+ * ============================================================================
+ *
+ * Eight classes, all new, none of them touching anything another worker owns.
+ * They extend the register B1 opened above (`.nf-steprow`, `.nf-door`,
+ * `.nf-calmpanel`) rather than restating it: the choice rows, the association
+ * cards and the team rows are all `.nf-door` with a modifier, so a change to
+ * the door's material reaches every screen in the set at once.
+ *
+ * THE RATIO, WRITTEN DOWN RATHER THAN CLAIMED. Every box below states the
+ * radius it draws over the short side it draws it on, because the shape law's
+ * test is the ratio and not the token name, and a class whose ratio is only in
+ * somebody's head is a class that drifts.
+ *
+ *   .nf-door--compact     14 on 56 = 0.250
+ *   .nf-choicemark        a ring with no text: a shape, not a control
+ *   .nf-marklabel         14 on 44 = 0.318
+ *   .nf-feestep           14 on 56 = 0.250
+ *   .nf-feestep__step     14 on 48 = 0.292
+ *   .nf-totalpanel        22 on 176 and up = 0.125 and below
+ *   .nf-nextrow__tick     6 on 24 = 0.250
+ *   .nf-regobject         the brand object's glow plate, no text
+ */
+@layer components {
+  /*
+   * A CHOICE ROW: one of the six answers on `GOVERNING-03` screen three, and
+   * one of the two routes on `GOVERNING-05` screen two.
+   *
+   * The door's anatomy at a shorter height, because these rows carry one line
+   * rather than two and a 5.5rem row with a single line in it reads as a
+   * mistake. 14px on a 3.5rem box is 0.250, a rectangle by the only test that
+   * counts.
+   */
+  .nf-door--compact {
+    min-height: 3.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+  }
+  .nf-door--compact .nf-door__mark {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  /*
+   * THE SELECTION RING on the right of a choice row.
+   *
+   * ROUND, and that is not an exception being taken. It carries no text, it is
+   * not a control in its own right (the whole row is the control and the row
+   * is a rectangle), and the governing image draws it round. A ring is a
+   * SHAPE, which is the same ground the calm panel's glyph stands on.
+   */
+  .nf-choicemark {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-border-default);
+  }
+  .nf-door[data-on] .nf-choicemark {
+    border-color: var(--nf-brand-primary);
+  }
+  .nf-choicemark::after {
+    content: "";
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+    background: transparent;
+  }
+  .nf-door[data-on] .nf-choicemark::after {
+    background: var(--nf-brand-primary);
+    box-shadow: var(--nf-glow-edge);
+  }
+
+  /*
+   * THE STANDING LABEL: "Usually two working days" and "Under review".
+   *
+   * THE IMAGES DRAW THESE AS CAPSULES AND THEY SHIP AS RECTANGLES, which is
+   * the reference set's own translation rule. It is not enough to spell the
+   * radius `--nf-radius-control`: 14px on a 22px label is 0.636 and draws a
+   * capsule whatever it is called. So the box is 2.75rem tall, which puts the
+   * drawn ratio at 0.318 and makes the rectangle real rather than nominal.
+   * That height is also the row height the rest of this set uses, so it sits
+   * on the same rhythm as everything above it instead of being a small
+   * exception floating in the layout.
+   */
+  .nf-marklabel {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-gap-inline-tight);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid currentcolor;
+    background: var(--nf-status-pending-surface);
+    color: var(--nf-status-pending);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+
+  /*
+   * THE FEE CONTROL: minus, the figure, plus, as `GOVERNING-04` draws it.
+   *
+   * ONE ROW, TWO BUTTONS AND A READING, and the reading is the loudest thing
+   * in it because the figure is what the agent is deciding. The buttons are
+   * square plates rather than circles: they carry a glyph and no text, so the
+   * round exception could be claimed, but the image draws plates and the
+   * register's control is the rectangle.
+   */
+  .nf-feestep {
+    display: grid;
+    grid-template-columns: 3rem 1fr 3rem;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 3.5rem;
+    padding: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-fill-thin);
+  }
+  .nf-feestep__step {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-primary);
+  }
+  .nf-feestep__step:disabled {
+    opacity: 0.45;
+  }
+  @media (hover: hover) {
+    .nf-feestep__step:not(:disabled):hover {
+      border-color: var(--nf-border-brand);
+    }
+  }
+  /*
+   * `--nf-font-numeric` DOES NOT EXIST AND THESE TWO RULES WERE SILENT.
+   *
+   * It was deleted from the token layer with a note beside its grave: it was
+   * Inter, it was never read, and "a separate numeric family is how an amount
+   * ends up in a different typeface from the label beside it". An unresolved
+   * `var()` makes the declaration invalid at computed-value time, so
+   * `font-family` fell back to whatever was inherited and these two figures
+   * were set in a face nobody chose, with nothing said about it.
+   *
+   * The numeric job is `.nf-numeric` in base.css, which sets
+   * `font-variant-numeric: tabular-nums` so figures line up IN THE FACE THE
+   * TEXT IS ALREADY IN. That is the mechanism, and it belongs on the element,
+   * so the `font-family` line simply goes.
+   */
+  .nf-feestep__value {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  /* Not declared is not a number, so it is not set in the numeral face and it
+     is not shouted. It is the quiet truth that nobody has answered yet. */
+  .nf-feestep__value[data-undeclared] {
+    font-family: inherit;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * WHAT A TENANT ACTUALLY PAYS: the lit panel under the two fees.
+   *
+   * The glass card with its lit top rim, the brand wash, and the total set
+   * large in the numeral face, which is the one figure on the screen that a
+   * tenant would read. 22px on a panel that is never shorter than 11rem is
+   * 0.125 and below.
+   */
+  .nf-totalpanel {
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
+    background:
+      linear-gradient(180deg, var(--nf-wash-4) 0%, transparent 64%),
+      var(--nf-brand-tint-1);
+    box-shadow:
+      var(--nf-glow-edge),
+      inset 0 1px 0 var(--nf-glass-rim);
+  }
+  /* Same as `.nf-feestep__value` above: the deleted token, and the tabular
+     figures it was reaching for, set the right way. */
+  .nf-totalpanel__figure {
+    font-variant-numeric: tabular-nums;
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--nf-content-primary);
+  }
+  /* A part nobody declared. Stated in words, never drawn as a zero, because a
+     zero on this line would be a promise the lister has not made. */
+  .nf-totalpanel__undeclared {
+    color: var(--nf-content-muted);
+    font-style: normal;
+  }
+
+  /*
+   * WHAT HAPPENS NEXT: the three lines on every confirmation screen.
+   *
+   * The tick plate is a small rounded RECTANGLE and not the circular identity
+   * tick, and the difference matters: `verified-badge` is the platform's trust
+   * mark and it means a human checked somebody. A list of things that are
+   * about to happen has not been checked by anybody, so it may not borrow that
+   * mark. 6px on a 24px plate is 0.250.
+   */
+  .nf-nextrow {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-gap-row);
+  }
+  .nf-nextrow__tick {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: 0.125rem;
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-primary);
+  }
+
+  /*
+   * THE OBJECT ON THE CONFIRMATION SCREEN, standing on its lit floor.
+   *
+   * The render draws the glass object hovering over an elliptical pool of
+   * brand light. The object is a `BrandIcon`; this is the pool, drawn as a
+   * radial wash rather than as an image so it carries no weight and follows
+   * the theme. It has no text and is not a control.
+   */
+  .nf-regobject {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding-block: var(--nf-space-lg);
+  }
+  .nf-regobject::before {
+    content: "";
+    position: absolute;
+    width: 11rem;
+    height: 4rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-glow-wash);
+    filter: blur(18px);
+  }
+  .nf-regobject > * {
+    position: relative;
+  }
+}

@@ -4470,6 +4470,7 @@ export const en = {
       submit: "Finish",
       submitting: "Filing",
       stepOf: "Step {step} of {total}",
+      optional: "Optional",
       notDeclared: "Not declared",
       whatNext: "What happens next",
       filedAs: "Filed as {reference}",
