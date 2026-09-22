@@ -57,6 +57,13 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(app)/profile/loading.tsx`
 - `apps/web/src/app/(app)/profile/profile.css` (new, imported by the route, so `globals.css` is not touched)
 - `apps/web/src/app/(app)/profile/*.test.ts` (new)
+- `apps/web/src/app/(app)/profile/belongings.ts` (new: pure helpers for the row values and the Switch role line)
+- `apps/web/src/app/(app)/profile/belongings-queries.ts` (new: the head counts and balance the rows carry)
+- `apps/web/src/app/(app)/profile/SwitchRoleRow.tsx` (new: the Switch role row, opening the dock's own workspace sheet)
+- `apps/web/src/components/supply/ProfileSwitcher.tsx`: ONE additive, optional
+  prop (`renderTrigger`) so the profile's Switch role row can open the same
+  workspace sheet the dock opens. Default behaviour unchanged; the other
+  session keeps every other line of the file.
 - NOT `profile/setup/**` and NOT `profile/application/**`
 
 ### Get started
