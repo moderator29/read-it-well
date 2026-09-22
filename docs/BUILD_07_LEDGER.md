@@ -4395,3 +4395,157 @@ the server dies, restart from that route rather than discarding the run, since
 a sweep completed in three segments beats one that never completes; and report
 against the measured baseline of 150 failures, 51 dark and 99 light, so the
 number means something.
+
+---
+
+## SECTION 26: IMG-A. GOVERNING-02, 03, 04 AND 05, BUILT TO WHAT THEY DRAW
+
+**Gate:** a clean worktree at `origin/main` **`be2713e`**, "staff the founder's
+eight, and write down who owns which file", with `node_modules` hard linked in.
+Never the shared tree, which carried five other agents' uncommitted edits the
+whole time this ran.
+
+**Server:** `next build` on its own `NEXT_DIST_DIR=.next-imga`, exit 0, then
+`next start -p 3197` with `VALLO_PREVIEW_HARNESS=1`. Never `next dev`. The dist
+directory was deleted between builds, as the disk note asks.
+
+### THE DEFECT, NAMED BEFORE IT IS CLOSED
+
+The three forms and the chooser functioned, filed real rows and passed their
+gates. They were not drawn to the renders, and the previous worker had already
+put his finger on the biggest reason: **the images draw every field as a glass
+CONTAINER carrying the field's name small and quiet INSIDE it, with the value
+in an inset well beneath the name.** What shipped was `nf-label` on the page
+over a bare `nf-field`, which is a perfectly ordinary form and is not the form
+in `GOVERNING-03`, `04` or `05`.
+
+Looking at the four images rather than reading about them turned up seven more.
+All of them are below, with the image they come from.
+
+### WHAT CHANGED, AND WHICH IMAGE ASKED FOR IT
+
+| # | Change | The image | Where |
+| --- | --- | --- | --- |
+| 1 | `.nf-regfield`: the field is a container, its name inside along the top, the value in an inset well below | `03` all four, `04` 1 and 3, `05` 1, 2 and 3 | `controls.css`, `RegisterField.tsx` |
+| 2 | `.nf-fieldgroup`: one glass panel around several fields, members dropping their own container | `04` screens 1 and 3 | `controls.css`, `AgentRegisterForm` |
+| 3 | The well stopped being a black slab: part-strength inset over the container with a brand hairline, full strength on paper | `03` 1, `05` 1 | `controls.css` |
+| 4 | "Optional" back in the container's top right corner, as a RECTANGLE | `05` screen 1 | `controls.css`, all three forms |
+| 5 | The field note with its small round glyph under the well | `05` screen 1 | `controls.css`, `FirmRegisterForm` |
+| 6 | The chooser's doors carry glass OBJECTS on a 56px plate, not flat outline marks on a 48px one | `02` screens 1 and 2 | `AddWorkspaceChooser`, `controls.css` |
+| 7 | The chooser owns its top: bare back control, progress row, name in DISPLAY type | `02` all three | `AddWorkspaceChooser`, `/profile/setup` |
+| 8 | The chosen door is plainly lit rather than a shade of the unchosen ones | `02` screen 2 | `controls.css` |
+| 9 | The team row's avatar is round | `05` screen 3 | `controls.css`, `FirmRegisterForm` |
+| 10 | The pin inside the office address well | `05` screen 1 | `FirmRegisterForm` |
+| 11 | Placeholders in the wells, in all four locales | `04` 2, `05` 1 | `packages/i18n` |
+| 12 | The field's small print set smaller than the field's name | `03` 2, `05` 1 | `controls.css` |
+
+### THE SIDE BY SIDE. NO ROW, NO CLOSE.
+
+Every shot below is `docs/design/proofs/imga/<name>-390-dark.png`,
+`-390-light.png` and `-1536-dark.png`, 54 files, taken by
+`scripts/design/proof-imga.mjs` walking the real components on the production
+server: it fills each screen, presses the control a person would press, and
+measures the drawn radius over the drawn short side in the browser.
+
+| The surface | The image | Our shot, beside it | What matches, and what does not | Measured |
+| --- | --- | --- | --- | --- |
+| Add a workspace, the three doors | `GOVERNING-02` screen 1 | `imga/chooser-1-doors` | MATCHES: the bare back control, the progress row of three, "Add a workspace" in display type, the supporting line, three glass objects on lit plates, the chevrons, no primary until a door is chosen. DOES NOT: the render's city photograph along the bottom is not shipped, because it is decoration with no data behind it; and the three objects are the glass library's outline family, which is lighter than the render's solid neon | door 14 on 123 = 0.114, plate 14 on 56 = 0.250, step bar 6 on 28 with no text |
+| Owner selected, one lit control | `GOVERNING-02` screen 2 | `imga/chooser-2-owner-selected` | MATCHES: one card lit with the brand fill, the rim and the glow, the tick badge replacing the chevron, the single lit primary arriving underneath with its chevron. DOES NOT: the render's button reads "Continue as an owner" and ours reads "Continue", because a per-door label is 24 new strings in three languages I would be inventing | lit door 0.114, primary 14 on 60 = 0.232 |
+| What we will ask you for | `GOVERNING-02` screen 3 | `imga/chooser-3-overview` | MATCHES: the heading in display type, four rows each a container with a glass object on a plate, and the timing below with its small round glyph. DOES NOT: the render splits each row into a bold title and a description and ours carries one sentence, because the four `needs` strings are already written as sentences in four languages and splitting them is a restructure | calm row 14 on 106 = 0.132, panel 0.138, glyph round and text-free |
+| Owner, About you | `GOVERNING-03` screen 1 | `imga/owner-1-about-you`, `-filled` | MATCHES: the form's name beside the back square, the progress row, "About you" in display, three fields each a container with its name inside and the value in a well, the calm panel with its round glyph, the lit Continue with its chevron. DOES NOT: the required asterisk is ours and the render has none, and it stays, because it is the visible half of `aria-required` | container 14 on 102 = 0.137, well 14 on 48 = 0.292, "Optional" 6 on 24 = 0.250 |
+| Owner, Where do you own | `GOVERNING-03` screen 2 | `imga/owner-2-where` | MATCHES: the three containers with their names inside, the chevron in each well, the area field carrying its corner tag. DOES NOT: no map and no draggable pin, for the two reasons the component states in full (no tile key on this platform, and the exact building belongs to a property that does not exist yet) | container 14 on 117 = 0.120, well 14 on 59 = 0.238 |
+| Owner, Proof of ownership | `GOVERNING-03` screen 3 | `imga/owner-3-proof` | MATCHES: six rows, one plate and one ring each, "I have none of these" set apart below the five, the calm panel appearing on that answer alone. DOES NOT: the render groups the five into one bordered list with hairlines between and ours draws five rows with a gap | row 14 on 56 = 0.250, ring round and text-free |
+| Owner, set up | `GOVERNING-03` screen 4 | `imga/owner-4-done` | MATCHES: the object on its pool of light, the heading, one line, the panel of three, the timing label, the two controls. DOES NOT: the render says "You are set up" and "Your details are verified"; nobody has looked at the application yet, so ours says what is true | timing 14 on 44 = 0.318, tick plate 6 on 24 = 0.250 |
+| Agent, About you | `GOVERNING-04` screen 1 | `imga/agent-1-about-you` | MATCHES: the three questions inside ONE glass panel, each with its name over its own well, the calm panel below it, the lit Continue | panel 22 on 319 = 0.069, well 0.292 |
+| Agent, Prove who you are | `GOVERNING-04` screen 2 | `imga/agent-2-identity` | MATCHES: two tall upload cards with a solid glass object each, the NIN field as a container with its corner tag and its placeholder | card 14 on 123 = 0.114, container 14 on 128 = 0.110 |
+| Agent, Your fees in the open | `GOVERNING-04` screen 3 | `imga/agent-3-fees` | MATCHES: both fees inside one panel, minus and plus as square plates around the reading, the lit total panel below. DOES NOT: the render's fees read 10 and 5 per cent and the total is a figure; ours open NOT DECLARED with the minus disabled, and an undeclared part is drawn as words rather than a nought | group 0.069, stepper 14 on 58 = 0.241, step plate 14 on 48 = 0.292, total panel 22 on 323 = 0.068 |
+| Agent, submitted | `GOVERNING-04` screen 4 | `imga/agent-4-done` | MATCHES: the object, the heading, the three lines, "Usually two working days" as a rectangle | 14 on 44 = 0.318 |
+| Firm, Your firm | `GOVERNING-05` screen 1 | `imga/firm-1-your-firm` | MATCHES: the glass building under the supporting line, five containers each with its name inside and a well below, the placeholders, the pin inside the office address, "Optional" in the LASRERA container's corner, the note with its small round glyph. DOES NOT: there is no "e.g. LASRERA/ABJ/1234". That register was unreachable from this build and an invented reference is this platform asserting a format it has never seen | container 0.137, well 0.292, tag 0.250, note glyph round and text-free |
+| Firm, Prove you work here | `GOVERNING-05` screen 2 | `imga/firm-2-association`, `-principal` | MATCHES: two tall choice cards, a solid glass object on each plate, the chosen route lit, only the chosen route's field appearing. DOES NOT: the render draws a chevron on each card and ours draws a selection ring, because these are radios and not links | card 14 on 170 = 0.082, ring round and text-free |
+| Firm, Your team | `GOVERNING-05` screen 3 | `imga/firm-3-team`, `-one` | MATCHES: a row per person with a ROUND avatar plate, the two draft fields as containers, the calm panel. DOES NOT: no "Verified" chip, because nobody has checked a declared colleague; and no photograph, because nobody has uploaded one | avatar round (the law's own exception), container 0.137 |
+| Firm, under review | `GOVERNING-05` screen 4 | `imga/firm-4-under-review` | MATCHES: the object, the heading, the panel of three, "Usually three working days" as a rectangle | 14 on 44 = 0.318 |
+
+### THE SWEEPS
+
+`compare-surface.mjs --shape-sweep --theme both` over all seven routes at 390
+and 1536, and the walk's own sweep on eighteen screens at three sizes:
+
+**0 breaches at or above 0.5 on a text bearing control. 0 over 0.35. 0 round
+icon-only controls.** `--twin-sweep` on the four routes: **0 sets mixing
+twinned and untwinned artwork.**
+
+Round and carrying no text, which the law's own list puts outside its reach:
+the calm panel's glyph, the choice ring, the field note's glyph, and the team
+avatar, which is the reference set's standing exception written down in its own
+translation rules.
+
+### THE ONE I FOUND, GOT WRONG, AND REVERSED IN THE SAME STINT
+
+The glass library has TWO axes and I first treated them as one. 23 objects ship
+a light twin and the rest do not, which shows on paper only. Separately, a few
+objects are flat outlines while the rest are solid three dimensional glass,
+which shows in BOTH themes at every size.
+
+The agent's identity cards were `id-card-check` (solid, twinned) over
+`user-check` (solid, untwinned), so I swapped the first for `person-card` to
+make the pair agree about paper. `person-card` is the FLAT family. The
+photograph showed a thin outline card sitting above a solid glass person: I had
+traded a paper-only fault for a both-themes one. It is back to `id-card-check`,
+and the note beside it says why, so nobody re-derives it.
+
+**What that leaves for whoever owns the artwork:** `user-check`, `doc-shield`
+and `wallet-naira` have no light twin and now stand beside `id-card-check`,
+which has one. That is a commissioning job and not a code change.
+
+### FOUND, NOT FIXED, AND IT IS NOT SMALL
+
+**`text-[var(--nf-text-caption)]` EMITS NO FONT SIZE.** Tailwind v4 reads
+`text-[<value>]` as ambiguous between a size and a colour and a bare `var()` is
+taken as the colour, so the utility produces nothing. The class is absent from
+the compiled stylesheet, which was checked on the built chunks, and every
+caption written that way silently inherits the 16px that `body` sets in
+`base.css`.
+
+Measured in the browser on this server, on the owner form's second screen: the
+field's name computes to **13px** and its own hint to **16px**, so the small
+print was arriving LARGER than the thing it explains.
+
+`components/ui/Field.tsx` and `components/app/place/ChoicePicker.tsx` both use
+the pattern, and so does most of the platform's caption copy. It is closed
+inside `.nf-regfield` by a rule in `controls.css`. Everywhere else it is live,
+and the repair is a platform-wide sweep across files this stint does not own.
+
+### TWO THINGS I DID NOT SHIP, SAID PLAINLY
+
+1. **"Continue as an owner".** `GOVERNING-02` screen 2 labels its primary with
+   the chosen door. A per-door label is six strings in four languages, and the
+   Hausa, Igbo and Yoruba would be mine rather than written to match each
+   file's vocabulary. It ships as "Continue" with the chevron.
+2. **The overview rows' bold title and description.** `GOVERNING-02` screen 3
+   splits each row in two. The `needs` strings are already written as full
+   sentences in four languages and splitting them is a restructure, which the
+   i18n rule forbids outright.
+
+### ONE THING THAT IS NOT MINE TO CHANGE
+
+`ChoicePicker` draws its trigger's chevron as `chevron-down` rotated, so it
+points sideways; `GOVERNING-03` screen 2 draws it pointing DOWN on the State
+and Local Government fields. The file is `components/app/place/ChoicePicker.tsx`
+and it is outside this stint's scope, so it is reported rather than edited.
+
+### THE FILES
+
+`apps/web/src/app/css/controls.css` (mine this stint; it also carries C2's
+uncommitted light-theme fix for `.nf-calmpanel__glyph`, which was sitting in the
+shared tree in a file I own and is committed here rather than dropped),
+`components/supply/{RegisterField,AddWorkspaceChooser,OwnerRegisterForm,AgentRegisterForm,FirmRegisterForm}.tsx`,
+`app/(app)/profile/setup/page.tsx`, the new
+`app/(dev)/preview/b1b/chooser/page.tsx`, `scripts/design/proof-imga.mjs`, and
+three added keys per locale in `packages/i18n`, inside the existing `supply`
+namespace, in all four. Nothing restructured, nothing English pasted into a
+Nigerian language.
+
+`RegisterShell.tsx` and `UploadCard.tsx` are NOT in the commit. A prettier run
+reflowed them at the default 80 columns when the repo is prettier at 100; the
+reflow was reverted and the four files that did change are formatted at 100 so
+they match the tree around them.
