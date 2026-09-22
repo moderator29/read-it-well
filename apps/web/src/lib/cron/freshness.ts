@@ -44,6 +44,21 @@ export type WatchedJob = {
    * two in a row is.
    */
   maxGapHours: number;
+  /**
+   * WHERE THIS JOB'S HISTORY IS ACTUALLY WRITTEN, when it is not the shape
+   * `lib/cron/report.ts` writes.
+   *
+   * Every job in this folder reports as `entity_type = 'cron_job'` with the
+   * job name as `entity_id`, and for those this is absent and the default
+   * applies. The reconciliation is older than this folder and reports through
+   * `recordMoneyAudit` instead, as an ACTION on a `wallet_entry` with no
+   * entity id at all, so it is matched by action rather than by entity.
+   *
+   * This field exists because the alternative was leaving the only
+   * money-recovering job on the platform unwatched until somebody unified two
+   * writers, and the cost of that wait is written out in the list below.
+   */
+  audit?: { entityType: string; action: string };
 };
 
 /**
@@ -51,12 +66,30 @@ export type WatchedJob = {
  * are the ones in that file and the two must stay equal; `freshness.test.ts`
  * holds the shape, and the cron entries are the truth.
  *
- * `/api/paystack/reconcile` is deliberately NOT here. It is on the same
- * schedule from this build, but it writes its run history through
- * `recordMoneyAudit` as `wallet.reconciliation.run` against `wallet_entry`
- * rather than as a `cron_job` row, so this watch cannot see it and saying it
- * could would be worse than leaving it out. Whoever unifies those two writers
- * adds one line here.
+ * `/api/paystack/reconcile` USED TO BE DELIBERATELY ABSENT from this list,
+ * because it writes its run history through `recordMoneyAudit` as
+ * `wallet.reconciliation.run` against `wallet_entry` rather than as a
+ * `cron_job` row, and this watch could not see that shape. The note said
+ * whoever unified the two writers would add the line.
+ *
+ * NOBODY DID, AND HERE IS WHAT IT COST, MEASURED ON 22 SEPTEMBER 2026 AGAINST
+ * THE LIVE DATABASE. `public.audit_log` holds 474 `wallet.reconciliation.run`
+ * rows and the most recent is dated 29 AUGUST. `cron.job_run_details` for the
+ * hourly database job reports `succeeded, 1 row` every hour, including at
+ * 12:47 today. `net._http_response` holds six responses from today, 07:47
+ * through 12:47, and every one of them is a 404 reading
+ * `The deployment could not be found on Vercel. DEPLOYMENT_NOT_FOUND`: the
+ * origin in Vault points at a per-deployment URL that no longer exists rather
+ * than at the stable production alias.
+ *
+ * So the ONLY job on this platform that recovers a charge whose webhook never
+ * arrived has been dead for over three weeks, the scheduler has reported
+ * success every hour of it, a platform survey recorded that the job succeeds,
+ * and nothing anywhere raised, because the one thing that could have raised
+ * was this list and it had been told to look at the wrong table.
+ *
+ * It is watched now, by the shape it actually writes. The origin itself is the
+ * founder's to fix in Vault; what this closes is the silence.
  *
  * `/api/cron/account-purge` reports through `lib/cron/report.ts` exactly as
  * the rows below do and is NOT watched. That is a gap rather than a decision:
@@ -84,6 +117,16 @@ export const WATCHED_JOBS: readonly WatchedJob[] = [
      through the same audit door as its siblings and was NOT on this list;
      O2 found the gap and left the line to the owner rather than writing it. */
   { job: "account-purge", schedule: "daily at 03:15 UTC", maxGapHours: 26 },
+  /* The reconciliation, matched by the action it writes rather than by an
+     entity id it does not write. Three hours of silence on an hourly job that
+     recovers money is already too long; see the note above for what three
+     WEEKS of it looked like from the outside, which was nothing at all. */
+  {
+    job: "paystack-reconcile",
+    schedule: "hourly at :10",
+    maxGapHours: 3,
+    audit: { entityType: "wallet_entry", action: "wallet.reconciliation.run" },
+  },
 ];
 
 export type LastRun = {
@@ -164,11 +207,17 @@ export async function readLastRuns(
   const rows = await Promise.all(
     watched.map(async (entry): Promise<LastRun> => {
       try {
-        const { data, error } = await admin
-          .from("audit_log")
-          .select("created_at")
-          .eq("entity_type", "cron_job")
-          .eq("entity_id", entry.job)
+        /* Two shapes, one read. A job that reports through `lib/cron/report.ts`
+           is found by its entity; a job that reports through
+           `recordMoneyAudit` is found by its action, because that writer does
+           not set an entity id at all. Matching the second one by entity id
+           would return nothing forever and read as silence, which is the
+           failure this whole module exists to make impossible. */
+        const query = admin.from("audit_log").select("created_at");
+        const scoped = entry.audit
+          ? query.eq("entity_type", entry.audit.entityType).eq("action", entry.audit.action)
+          : query.eq("entity_type", "cron_job").eq("entity_id", entry.job);
+        const { data, error } = await scoped
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();

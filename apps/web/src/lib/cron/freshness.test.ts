@@ -4,6 +4,7 @@ import {
   WATCHED_JOBS,
   describeStaleJob,
   freshnessDetail,
+  readLastRuns,
   staleJobs,
   type LastRun,
 } from "./freshness";
@@ -45,6 +46,89 @@ describe("the watched list", () => {
       expect(entry.maxGapHours).toBeGreaterThanOrEqual(3);
       expect(entry.maxGapHours).toBeLessThanOrEqual(48);
     }
+  });
+});
+
+describe("the reconciliation, watched by the shape it actually writes", () => {
+  /**
+   * It was absent from the list for a structural reason and the absence cost
+   * three weeks of silence on the only job that recovers money: 474
+   * `wallet.reconciliation.run` rows in the live audit log, the newest dated
+   * 29 August, while the database scheduler reported success every hour and
+   * every HTTP call it made came back 404. These pin the two halves of the
+   * fix so it cannot quietly regress: the job is on the list, and the read
+   * looks for it by ACTION because the writer sets no entity id.
+   */
+  it("is on the watched list, on an hourly allowance", () => {
+    const entry = WATCHED_JOBS.find((job) => job.job === "paystack-reconcile");
+    expect(entry).toBeDefined();
+    expect(entry?.maxGapHours).toBe(3);
+    expect(entry?.audit).toEqual({
+      entityType: "wallet_entry",
+      action: "wallet.reconciliation.run",
+    });
+  });
+
+  it("is read by its action and never by an entity id it does not write", async () => {
+    const asked: Record<string, string> = {};
+    const admin = {
+      from: () => ({
+        select: () => {
+          const chain = {
+            eq: (column: string, value: string) => {
+              asked[column] = value;
+              return chain;
+            },
+            order: () => chain,
+            limit: () => chain,
+            maybeSingle: async () => ({ data: { created_at: "2026-08-29T10:47:03Z" }, error: null }),
+          };
+          return chain;
+        },
+      }),
+    } as unknown as Parameters<typeof readLastRuns>[0];
+
+    const runs = await readLastRuns(admin, [
+      {
+        job: "paystack-reconcile",
+        schedule: "hourly at :10",
+        maxGapHours: 3,
+        audit: { entityType: "wallet_entry", action: "wallet.reconciliation.run" },
+      },
+    ]);
+
+    expect(asked["action"]).toBe("wallet.reconciliation.run");
+    expect(asked["entity_type"]).toBe("wallet_entry");
+    expect(asked["entity_id"]).toBeUndefined();
+    expect(runs[0]?.lastRunAt).toBe("2026-08-29T10:47:03Z");
+  });
+
+  it("still reads an ordinary job by its entity id", async () => {
+    const asked: Record<string, string> = {};
+    const admin = {
+      from: () => ({
+        select: () => {
+          const chain = {
+            eq: (column: string, value: string) => {
+              asked[column] = value;
+              return chain;
+            },
+            order: () => chain,
+            limit: () => chain,
+            maybeSingle: async () => ({ data: null, error: null }),
+          };
+          return chain;
+        },
+      }),
+    } as unknown as Parameters<typeof readLastRuns>[0];
+
+    await readLastRuns(admin, [
+      { job: "hold-sweep", schedule: "hourly at :05", maxGapHours: 3 },
+    ]);
+
+    expect(asked["entity_type"]).toBe("cron_job");
+    expect(asked["entity_id"]).toBe("hold-sweep");
+    expect(asked["action"]).toBeUndefined();
   });
 });
 
