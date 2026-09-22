@@ -6,9 +6,9 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AdminRail, AdminTabs, ConsoleSearch } from "@/app/admin/_components/AdminNav";
 import { QueueFilters } from "@/app/admin/_components/QueueFilters";
+import { adminUi } from "@/app/admin/_components/ui";
 import {
   ConsoleFooter,
-  QueueHeadline,
   QueueTable,
   QueueTabs,
 } from "@/app/admin/_components/QueueTable";
@@ -28,6 +28,7 @@ const COUNTS = { listings: 18, applications: 5, reports: 3, tickets: 3, flags: 6
 export default async function PreviewAdminQueue() {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const ui = adminUi(t, locale);
   const total = 42;
   const statuses = [
     { value: "PENDING", label: "Pending" },
@@ -91,7 +92,7 @@ export default async function PreviewAdminQueue() {
 
         <div className="nf-admin-body">
           <div className="nf-console">
-            <QueueHeadline title="Admin queue" sub={t.admin.overview.lede} />
+            <ui.QueueHeader title={t.admin.overview.title} lede={t.admin.overview.lede} count={total} />
             <QueueTabs
               label="Queues"
               tabs={[

@@ -202,15 +202,20 @@ export function QueueTabs({ tabs, label }: { tabs: QueueTab[]; label: string }) 
   );
 }
 
-/** The headline every queue page opens with, in the register. */
-export function QueueHeadline({ title, sub }: { title: string; sub: string }) {
-  return (
-    <header className="nf-admin-head">
-      <h1 className="nf-admin-head__title">{title}</h1>
-      <p className="nf-admin-head__sub">{sub}</p>
-    </header>
-  );
-}
+/*
+ * `QueueHeadline` STOOD HERE AND IT WAS THE SECOND OF TWO.
+ *
+ * `ui.QueueHeader` (`app/admin/_components/ui.tsx`) renders the same
+ * `<header className="nf-admin-head">` with the same title and the same
+ * sub-line, and additionally takes a `count` and draws it as a brand badge
+ * beside the title. Eighteen desks used that one; the OVERVIEW used this one,
+ * which is why the overview was the single console screen whose heading could
+ * not show a count. Two implementations of one header, and the one with the
+ * missing feature was on the busiest page.
+ *
+ * Deleted rather than kept beside the survivor, because a second way to do
+ * the same job is how the first one drifts.
+ */
 
 /**
  * The Operations Console footer: the version is the package's, the line is

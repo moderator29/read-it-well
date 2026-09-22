@@ -12,7 +12,7 @@ import {
 } from "@/lib/admin/queries";
 import { adminUi } from "./_components/ui";
 import { QueueFilters, readQueueQuery } from "./_components/QueueFilters";
-import { QueueHeadline, QueueTable, QueueTabs, shortRef, type QueueRowData } from "./_components/QueueTable";
+import { QueueTable, QueueTabs, shortRef, type QueueRowData } from "./_components/QueueTable";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +77,7 @@ export default async function AdminOverviewPage({
   if (counts.state !== "ok") {
     return (
       <div className="nf-console">
-        <QueueHeadline title={o.title} sub={o.lede} />
+        <ui.QueueHeader title={o.title} lede={o.lede} />
         <ui.QueueUnavailable />
       </div>
     );
@@ -199,7 +199,10 @@ export default async function AdminOverviewPage({
 
   return (
     <div className="nf-console">
-      <QueueHeadline title="Admin queue" sub={o.lede} />
+      {/* The one console heading that could not show a count now can: it is
+          the same `QueueHeader` the other eighteen desks already use, and the
+          total is a real sum of real reads rather than a number typed in. */}
+      <ui.QueueHeader title={o.title} lede={o.lede} count={total} />
 
       <QueueTabs
         label="Queues"
