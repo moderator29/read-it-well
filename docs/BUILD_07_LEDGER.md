@@ -5386,3 +5386,68 @@ and an edge-colour change cannot produce an ink-on-fill failure. A re-run on
 the newer tip is cheap now that the driver exists and survives a dead server -
 `node sweep.mjs dark out.jsonl 6` then the same for light - and it is worth
 doing once somebody has repaired the sampling, not before.
+
+## 46. THE DAY'S FOURTH AND FIFTH BLIND LIGHTS, ONE GREEN AND ONE RED
+
+The sweep asked of every check: does it observe the outcome, or does it observe
+that it tried. Two more answered badly today, and the second is the more
+interesting because **it was failing, loudly, and was still worthless.**
+
+### `check-css-tokens.mjs` reported two faults and both were fictions
+
+`npm run lint --workspace @vallo/web` runs this script, and the script exited 1
+on main. It named two comment paths as unresolved:
+
+```
+src/app/(app)/crypto/[id]/page.tsx:5   ../page.tsx
+src/lib/safety/blocks-actions.ts:37    ./blocks-copy.ts
+```
+
+**Both files exist.** `app/(app)/crypto/page.tsx` is sitting beside the
+directory that names it, and `lib/safety/blocks-copy.ts` beside the file that
+names it. Two authors wrote correct relative paths and the checker called them
+liars.
+
+The resolver tries eight roots. Its own comment says "a comment writes the path
+from wherever the author was standing", and then lists every plausible root
+except **the place the author was actually standing: the directory of the file
+they were writing in.** So `./x.ts` and `../x.tsx`, the two spellings that say
+"relative to me" out loud, were precisely the two it could not follow.
+
+`dirname(file)` is now tried first.
+
+### A red light that is always wrong ends up as dark as a green one
+
+This is the same fault as the day's others wearing the opposite colour, and it
+is worth stating as a rule. A check that cannot see what it reports on is
+useless in either colour: **green it misses faults; red it manufactures them,
+and a red that is always wrong gets switched off, after which it misses faults
+too.** Half of this repository's lint script has not passed on main for as long
+as those two honest comments have existed, and the way that gets resolved is
+never "somebody fixes it", it is "somebody stops running it".
+
+### The fix was proved able to fail, not assumed to be
+
+The obvious risk in teaching a resolver a ninth root is that it now resolves
+everything and reports nothing. So a genuinely dead path was inserted into
+`blocks-actions.ts` and the check re-run:
+
+```
+src/lib/safety/blocks-actions.ts:45  ./this-file-was-never-written.ts
+1 unresolved path(s) in comments.
+EXIT=1
+```
+
+It still catches a dead relative path. Two false positives removed, the real
+finding kept. `npm run lint --workspace @vallo/web` now exits 0 for the first
+time: 341 warnings, 0 errors.
+
+### Running count of blind lights found in one day
+
+Six, all the same shape. The pg_cron job that reported success for firing a
+request it never read. The harness test that passed by reading source instead
+of behaviour. `verify-shots.mjs`, which never checked where the browser landed.
+The `refusalAlert` default, which answered a question it had not asked. This
+resolver, which reported two faults that were not there. And, from CHROME's
+sweep, `probe-contrast.mjs`, whose full-page capture cannot see past roughly
+4,700 CSS pixels and scores everything below that against the wrong pixels.

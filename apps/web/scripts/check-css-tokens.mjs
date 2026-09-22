@@ -264,7 +264,7 @@
  */
 
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync, rmSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -1304,7 +1304,37 @@ for (const file of [
       const candidate = hit[1];
       if (seen.has(candidate)) continue;
       seen.add(candidate);
-      if (PATH_ROOTS.some((root) => existsSync(join(root, candidate)))) continue;
+      /*
+       * THE FILE'S OWN DIRECTORY IS TRIED FIRST, AND LEAVING IT OUT IS WHAT
+       * MADE THIS CHECK RED ON MAIN FOR NOTHING.
+       *
+       * The note above says a comment writes the path from wherever the author
+       * was standing, and then lists eight roots, none of which is the place
+       * the author was ACTUALLY standing: the directory of the file they were
+       * writing in. So `./x.ts` and `../x.tsx`, the two spellings that say
+       * "relative to me" out loud, were the only two this resolver could not
+       * follow.
+       *
+       * It reported exactly two paths on main, and BOTH WERE REAL FILES:
+       * `../page.tsx` from `app/(app)/crypto/[id]/page.tsx`, which is
+       * `app/(app)/crypto/page.tsx`, and `./blocks-copy.ts` from
+       * `lib/safety/blocks-actions.ts`, which is `lib/safety/blocks-copy.ts`.
+       * Both sitting there, both named correctly by their authors.
+       *
+       * THIS IS THE SAME FAULT AS THE DAY'S OTHERS, WEARING THE OPPOSITE
+       * COLOUR. A check that cannot see what it reports on is worthless green
+       * or red: green it misses faults, red it manufactures them, and a red
+       * that is always wrong gets switched off, after which it misses faults
+       * too. `npm run lint --workspace @vallo/web` runs this script, so main
+       * has not passed its own lint script for as long as those two honest
+       * comments have existed.
+       *
+       * The fix is a longer root list and not a looser pattern, which is the
+       * rule this resolver already set for itself the last time it was
+       * incomplete.
+       */
+      const roots = [dirname(file), ...PATH_ROOTS];
+      if (roots.some((root) => existsSync(join(root, candidate)))) continue;
       const atLine = source.split("\n").findIndex((l) => l.includes(candidate)) + 1;
       missingPaths.push(`${where}:${atLine}  ${candidate}`);
     }
