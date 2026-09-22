@@ -922,9 +922,30 @@
   .nf-landing-pill-field:focus-within {
     color: var(--nf-landing-fg);
   }
+  /*
+   * THE COLUMN COUNT COMES FROM THE COMPONENT, BECAUSE IT WAS HARDCODED AT
+   * FOUR AND THE COMPONENT HAS SHIPPED THREE SINCE 19 SEPTEMBER.
+   *
+   * The Invest segment was removed on the content truth sweep: it pointed at
+   * `/search?type=land`, which is a land listing and not an investment, so the
+   * pill was naming a capability the platform does not have. The comment at
+   * the top of `SearchPill.tsx` says the three segments "simply take the width
+   * the four had". THEY DO NOT. `repeat(4, ...)` with three in-flow children
+   * leaves the fourth track empty, so a QUARTER OF THE CONTROL IS DEAD SPACE
+   * on every phone, which is what the founder has been looking at. The
+   * `sr-only` label inside this grid is absolutely positioned and is not an
+   * in-flow item, so it never filled it.
+   *
+   * Driven from `ORDER.length` through `--nf-seg-count` now, which is exactly
+   * how `.nf-glass-seg` in `social.css` already does it. The next person to
+   * add or remove a segment changes ONE array and the control follows, which
+   * is the whole reason not to write the number twice.
+   *
+   * The wider breakpoint below switches to flex and never had this problem.
+   */
   .nf-landing-pill-segments {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--nf-seg-count, 3), minmax(0, 1fr));
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-space-2xs);
     border-radius: var(--nf-radius-control);

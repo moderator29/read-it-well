@@ -160,5 +160,16 @@ export const SIGN_OFF = "Vallo. Real Estate reimagined!";
  * the line that says who sent the message. Mirrors COMPANY_LEGAL_NAME in
  * `lib/legal/company.ts`, duplicated here for the same dependency-free reason
  * as the slogan, and asserted equal in shell.test.ts.
+ *
+ * THE RC NUMBER IS ON IT FROM 22 SEPTEMBER, because the company is now
+ * incorporated and this is the line that says who sent the message. A
+ * transactional email from a company that exists says which company that is;
+ * it stood without one for the four days between the application going in and
+ * the certificate being issued, which was correct for those four days.
+ *
+ * `shell.test.ts` now asserts that whenever `COMPANY_RC_NUMBER` is non-null
+ * this line CONTAINS it, so the three copies of this string cannot drift apart
+ * again silently. That assertion is the point: a duplicated fact with no test
+ * between the copies is a fact that will be half updated.
  */
-export const LEGAL_LINE = "VALLO SPACES LTD, Abuja, Nigeria";
+export const LEGAL_LINE = "VALLO SPACES LTD (RC 9870413), Abuja, Nigeria";

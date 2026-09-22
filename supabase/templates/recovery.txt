@@ -23,5 +23,5 @@ This reset was requested for {{ .Email }}. The link can only be used
 once.
 
 Vallo. Real Estate reimagined!
-VALLO SPACES LTD, Abuja, Nigeria
+VALLO SPACES LTD (RC 9870413), Abuja, Nigeria
 {{ .SiteURL }}

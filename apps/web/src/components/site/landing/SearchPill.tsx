@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState, type KeyboardEvent } from "react";
+import { useId, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 type Segment = "buy" | "rent" | "stay";
@@ -15,8 +15,14 @@ type Segment = "buy" | "rent" | "stay";
  * an investment, so the pill was naming a capability the platform does not
  * have. The content truth sweep of 19 September drops it, and land stays
  * reachable from the category grid below and from the filter drawer. The
- * visual treatment of the pill is unchanged; the three segments simply take
- * the width the four had.
+ * visual treatment of the pill is unchanged.
+ *
+ * THIS PARAGRAPH USED TO CLAIM the three segments "simply take the width the
+ * four had", and that was wrong from the day it was written: the stylesheet
+ * hardcoded `repeat(4, ...)` and the fourth track stayed empty, so a QUARTER
+ * OF THE CONTROL WAS DEAD SPACE on every phone. The count is driven from
+ * `ORDER.length` through `--nf-seg-count` now, so the array is the only place
+ * the number lives and the next person to add a segment changes one line.
  *
  * Every remaining segment is a real route. Buy and Rent are the discovery
  * page with the matching market (`type` is the parameter search-params.ts
@@ -63,7 +69,12 @@ export function SearchPill({
         <input type="search" name="q" placeholder={labels.placeholder} autoComplete="off" />
       </label>
       {route.type && <input type="hidden" name="type" value={route.type} />}
-      <div className="nf-landing-pill-segments" role="radiogroup" aria-labelledby={groupId}>
+      <div
+        className="nf-landing-pill-segments"
+        role="radiogroup"
+        aria-labelledby={groupId}
+        style={{ "--nf-seg-count": ORDER.length } as CSSProperties}
+      >
         <span id={groupId} className="sr-only">
           {labels.label}
         </span>

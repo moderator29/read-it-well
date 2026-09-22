@@ -26,5 +26,5 @@ If you did not ask to sign in, ignore this message. The link expires on
 its own and nothing about your account changes.
 
 Vallo. Real Estate reimagined!
-VALLO SPACES LTD, Abuja, Nigeria
+VALLO SPACES LTD (RC 9870413), Abuja, Nigeria
 {{ .SiteURL }}

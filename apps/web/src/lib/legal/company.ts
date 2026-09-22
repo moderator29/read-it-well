@@ -44,14 +44,25 @@ export const COMPANY_REGISTERED_OFFICE =
   "Plot 5, Zone 6, Dutse Alhaji, Bwari Area Council, Federal Capital Territory, Abuja";
 
 /**
- * The RC number, once the certificate is issued.
+ * The RC number.
  *
- * **Null is the correct value today.** The application went in on 14 September
- * 2026 under CAC application ID 12485150 and approval takes one to three
- * working days. Do not type a number in here that has not been read off the
- * certificate.
+ * **ISSUED. The company has been incorporated since 18 September 2026 and the
+ * number is RC 9870413**, given by the founder on 22 September. The
+ * application had gone in on 14 September under CAC application ID 12485150
+ * and this value stood at null for the four days in between, which was the
+ * correct value for those four days.
+ *
+ * The instruction that stood here, not to type a number that has not been read
+ * off the certificate, was right and is kept in spirit: this one came from the
+ * founder, who holds the certificate, rather than from a guess or from a
+ * search result. It is a FACT, not a decision, which is why it lands without
+ * waiting for anything else.
+ *
+ * One edit, and it reaches both legal documents and the email footer through
+ * `COMPANY_FORMAL_NAME` below. `shell.test.ts` asserts the legal line, so a
+ * future edit that drops it goes red.
  */
-export const COMPANY_RC_NUMBER: string | null = null;
+export const COMPANY_RC_NUMBER: string | null = "9870413";
 
 /**
  * The NDPC registration number, once registered.

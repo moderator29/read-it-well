@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phrases";
-import { COMPANY_LEGAL_NAME } from "@/lib/legal/company";
+import { COMPANY_LEGAL_NAME, COMPANY_RC_NUMBER } from "@/lib/legal/company";
 
 import { EVERY_MESSAGE, coveredBuilders } from "./fixtures";
 import * as theme from "./theme";
@@ -269,6 +269,26 @@ describe("one palette, and the auth generator has not drifted from it", () => {
      * script) one fact.
      */
     expect(theme.LEGAL_LINE.startsWith(COMPANY_LEGAL_NAME)).toBe(true);
+    /*
+     * AND THE RC NUMBER, ONCE THERE IS ONE.
+     *
+     * This string exists in THREE places for a dependency-free reason that is
+     * good: `company.ts` is the fact, `theme.ts` mirrors it so the renderer
+     * needs no import, and the auth generator mirrors it again so it can run
+     * with nothing installed. Three copies of a fact with no test between them
+     * is a fact that WILL be half updated, and this is the half that would be
+     * missed: the company was incorporated on 18 September, the RC reached the
+     * two legal documents through COMPANY_FORMAL_NAME automatically, and the
+     * email footer would have gone on saying nothing about it for ever,
+     * because nothing connected them.
+     *
+     * Conditional on purpose. Before the certificate existed, null was the
+     * correct value and a test demanding a number would have been a test
+     * demanding a lie.
+     */
+    if (COMPANY_RC_NUMBER) {
+      expect(theme.LEGAL_LINE).toContain(`RC ${COMPANY_RC_NUMBER}`);
+    }
     expect(generator).toContain(`const LEGAL_LINE = "${theme.LEGAL_LINE}"`);
     expect(generator).toContain(`const SIGN_OFF = "${theme.SIGN_OFF}"`);
     for (const { name, html } of EVERY_HTML) {
