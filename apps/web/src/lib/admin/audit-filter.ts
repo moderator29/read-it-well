@@ -74,6 +74,17 @@ export const AUDIT_ENTITY_TYPES = [
   { value: "local_government", label: "Local government", icon: "location" },
   { value: "occupation", label: "Occupation", icon: "document" },
   { value: "feature_flag", label: "Switch", icon: "sliders" },
+  /*
+   * THE TWO NEWEST WRITERS, AND THE REASON THEY EXIST AT ALL.
+   * `app/api/documents/[id]/route.ts` writes one row every time an operator
+   * opens somebody's identity or business document. It could not write one
+   * before, because the desks opened those documents on `supabase.co` and a
+   * read that happens on somebody else's origin leaves no trace on ours. The
+   * chips are what turn that trail into a question an operator can actually
+   * ask: who has been reading whose passport.
+   */
+  { value: "agent_documents", label: "Identity document", icon: "document" },
+  { value: "business_documents", label: "Business document", icon: "document" },
 ] as const satisfies readonly { value: string; label: string; icon: UiIconName }[];
 
 /** The tile glyph for a target type; a type this list has never met gets the plain mark. */

@@ -106,10 +106,13 @@ describe("labels", () => {
 const WRITER_VOCABULARY = [
   "agent",
   "agent_application",
+  /* The in-app document viewer's route handler, one row per view. */
+  "agent_documents",
   "area",
   "area_moderator_application",
   "booking",
   "business",
+  "business_documents",
   "cron_job",
   "feature_flag",
   "inventory_drift",

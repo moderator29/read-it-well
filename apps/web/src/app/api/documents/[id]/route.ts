@@ -93,7 +93,7 @@ export async function GET(
 
   await writeAudit(admin, {
     actorId: access.user.id,
-    action: "document.view",
+    action: "document.viewed",
     entityType: located.source === "agent" ? "agent_documents" : "business_documents",
     entityId: id,
   });
