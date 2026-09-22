@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getReports, type ReportView } from "@/lib/admin/queries";
+import { countOverdueReports, REPORT_RESPONSE_HOURS } from "@/lib/admin/overdue-reports";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
   queueNoMatch,
@@ -143,13 +144,23 @@ export default async function AdminReportsPage({
      to be newest. */
   const params = await searchParams;
   const query = readQueueQuery(params);
-  const reports = await getReports({
-    ...(query.q ? { q: query.q } : {}),
-    ...(query.status ? { status: query.status } : {}),
-    ...(query.from ? { from: query.from } : {}),
-    ...(query.to ? { to: query.to } : {}),
-    ...(query.offset ? { offset: query.offset } : {}),
-  });
+  /*
+   * THE PROMISE, MEASURED. `lib/legal/eula.tsx` says "We act on every report
+   * within 24 hours" in a document people accept at sign up. This is the
+   * instrument for it. It is counted across the WHOLE table rather than across
+   * the page's own filter, because a filtered view is the moderator's question
+   * and the promise is not.
+   */
+  const [reports, overdue] = await Promise.all([
+    getReports({
+      ...(query.q ? { q: query.q } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.from ? { from: query.from } : {}),
+      ...(query.to ? { to: query.to } : {}),
+      ...(query.offset ? { offset: query.offset } : {}),
+    }),
+    countOverdueReports(),
+  ]);
 
   if (reports.state !== "ok") {
     return (
@@ -178,6 +189,26 @@ export default async function AdminReportsPage({
   return (
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
+
+      {/*
+        A ZERO IS PRINTED AS A ZERO, and null is not printed at all. "Nothing
+        is overdue" and "we could not count" are opposite facts, and showing
+        one for the other on the instrument that measures a promise made to
+        every person who signed up would be the invented number rule 15
+        forbids. In words rather than a badge, because a moderator should read
+        this rather than glance at a colour.
+      */}
+      {overdue !== null && (
+        <p
+          role="status"
+          data-testid="reports-overdue"
+          className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+        >
+          {overdue === 0
+            ? `Nothing has been waiting longer than ${REPORT_RESPONSE_HOURS} hours. That is the commitment in the Community rules and it is being kept.`
+            : `${overdue} ${overdue === 1 ? "report has" : "reports have"} been waiting longer than ${REPORT_RESPONSE_HOURS} hours. The Community rules promise every person who signed up that we act within ${REPORT_RESPONSE_HOURS} hours.`}
+        </p>
+      )}
 
       <QueueFilters
         base="/admin/reports"
