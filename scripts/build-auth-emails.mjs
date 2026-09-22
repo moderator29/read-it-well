@@ -111,19 +111,28 @@ const OUT_DIR =
 const GROUND = "#010118"; // the ground behind the card, --nf-ink-950
 const CARD = "#000030"; // the glass card, --nf-ink-850
 const PANEL = "#000040"; // inset panels: the code box, the note, the rows
-const EDGE = "#101A55"; // hairlines inside the card
-const RIM = "#2743C4"; // the card's lit rim
+const EDGE = "#102D55"; // hairlines inside the card
+const RIM = "#2768C4"; // the card's lit rim
 const TEXT = "#FFFFFF"; // headings
 const BODY = "#C6CDF2"; // body copy, 12.9:1 on the card
-const MUTED = "#7C86C2"; // small print, 5.6:1 on the card
+const MUTED = "#7C86C2"; // small print, 5.8:1 on the card
 
-/* The brand blue, as a fill; SKY is the brand blue as text. */
-const GLOW = "#0C39EF"; // --nf-electric-400
-const ELECTRIC = "#0010D0"; // --nf-electric-600
-const SKY = "#5C7CFF"; // the first stop of --nf-gradient-brand
+/*
+ * The brand blue, as a fill; SKY is the brand blue as text.
+ *
+ * RE-DERIVED FROM THE LIVE TOKENS ON 22 SEPTEMBER. These were baked before the
+ * accent ramp was rotated onto its measured 215.2 degrees of hue, so what this
+ * product had been sending was the retired violet. theme.ts carries the full
+ * derivation and the measured contrast, and shell.test.ts now reads tokens.css
+ * and fails when these three stop matching it, so this copy of the fact cannot
+ * go stale on its own again.
+ */
+const GLOW = "#0C6AEF"; // --nf-electric-400, was #0C39EF
+const ELECTRIC = "#0056D0"; // --nf-electric-600, was #0010D0
+const SKY = "#5C9FFF"; // --nf-brand-quiet, was #5C7CFF
 
 /* Signature gradients. Solid fallbacks are applied at every call site. */
-const GRADIENT = `linear-gradient(135deg,${GLOW} 0%,#0621E8 55%,${ELECTRIC} 100%)`;
+const GRADIENT = `linear-gradient(135deg,${GLOW} 0%,#0664E8 55%,${ELECTRIC} 100%)`;
 const GRADIENT_CAP = `linear-gradient(90deg,${ELECTRIC} 0%,${GLOW} 28%,${SKY} 50%,${GLOW} 72%,${ELECTRIC} 100%)`;
 
 const FONT_SANS =
@@ -419,11 +428,19 @@ function masthead(purpose) {
 
 /**
  * The re-assertion block, identical to the one in render.ts down to the class
- * names. The inline layer already is this palette; the block holds it against
- * Gmail's dark-mode pass. Every declaration is !important because it has to
- * beat an inline style attribute, and there is no other way round that in
- * email. Classes rather than element selectors, so a client that supports the
- * media query but has rewritten the markup still matches.
+ * names.
+ *
+ * IT DOES NOT HOLD GMAIL, WHICH THIS COMMENT USED TO SAY IT DID. Gmail strips
+ * `@media (prefers-color-scheme: ...)` outright and runs its own dark-mode
+ * pass whatever the message declares. The inline layer is the load bearing
+ * one, here as in render.ts. This block reaches Apple Mail, iOS Mail and a few
+ * others, and the `[data-ogsc]` twin beneath it reaches Outlook.com, which
+ * strips standard media queries in webmail and rewrites these same classes.
+ *
+ * Every declaration is !important because it has to beat an inline style
+ * attribute, and there is no other way round that in email. Classes rather
+ * than element selectors, so a client that supports the query but has
+ * rewritten the markup still matches.
  */
 const DARK_STYLE = `
       :root { color-scheme: dark; supported-color-schemes: dark; }
@@ -436,7 +453,15 @@ const DARK_STYLE = `
         .rm-muted  { color: ${MUTED} !important; }
         .rm-rule   { border-top-color: ${EDGE} !important; }
         .rm-brand  { color: ${SKY} !important; }
-      }`;
+      }
+      [data-ogsc] .rm-base   { background: ${GROUND} !important; }
+      [data-ogsc] .rm-card   { background: ${CARD} !important; border-color: ${RIM} !important; }
+      [data-ogsc] .rm-panel  { background: ${PANEL} !important; border-color: ${EDGE} !important; }
+      [data-ogsc] .rm-title  { color: ${TEXT} !important; }
+      [data-ogsc] .rm-body   { color: ${BODY} !important; }
+      [data-ogsc] .rm-muted  { color: ${MUTED} !important; }
+      [data-ogsc] .rm-rule   { border-top-color: ${EDGE} !important; }
+      [data-ogsc] .rm-brand  { color: ${SKY} !important; }`;
 
 /**
  * One shell for all five templates, and the same shell the product's

@@ -54,9 +54,16 @@ import { BRAND_ORIGIN } from "@/lib/brand-domain";
  * The one `<style>` block carries nothing the message depends on. It declares
  * `color-scheme: dark`, which tells Apple Mail and iOS not to invert a palette
  * they did not design, and it re-asserts the same palette under
- * `prefers-color-scheme: dark` with `!important`, which is what stops Gmail's
- * own dark-mode pass recolouring the card. Strip the block and the email is
- * still the same email.
+ * `prefers-color-scheme: dark` with `!important`. Strip the block and the
+ * email is still the same email.
+ *
+ * THAT BLOCK DOES NOT STOP GMAIL, WHICH THIS COMMENT USED TO CLAIM. Gmail
+ * strips `@media (prefers-color-scheme: ...)` entirely and applies its own
+ * dark-mode pass regardless, so the query reaches Apple Mail, iOS Mail and a
+ * handful of others and never reaches the client most of this product's
+ * readers use. The inline layer is what actually holds, which is why it is
+ * built the way it is. The block is kept because it is free and it helps the
+ * clients that honour it, with an `[data-ogsc]` twin for Outlook.com.
  *
  * NO WORDS IN IMAGES BEYOND THE BRAND'S OWN. The shell carries two images and
  * both are the lockup: the glass mark, decorative, alt empty; and the
@@ -398,12 +405,22 @@ export type Composed = {
 /**
  * The re-assertion block.
  *
- * The inline layer already IS this palette. The block exists for the one
- * client that repaints dark emails on its own initiative: Gmail's dark-mode
- * pass lightens backgrounds and darkens text it judges too similar, and a
- * `prefers-color-scheme: dark` rule with `!important` is the documented way to
- * hold the designed values. Classes rather than element selectors, so a client
- * that supports the media query but has rewritten the markup still matches.
+ * The inline layer already IS this palette, and it is the only load bearing
+ * layer. This block is the cheap second belt for the clients that repaint a
+ * dark email on their own initiative.
+ *
+ * WHAT IT REACHES, HONESTLY, BECAUSE THE PREVIOUS COMMENT OVERCLAIMED IT. The
+ * media query reaches Apple Mail, iOS Mail and a few others. It does NOT reach
+ * Gmail: Gmail strips `@media (prefers-color-scheme: ...)` outright and runs
+ * its own luminance pass on backgrounds and text whatever the message says,
+ * which is most of this product's readers. The `[data-ogsc]` twin beneath it
+ * reaches Outlook.com, which strips standard media queries in webmail and
+ * rewrites these same classes instead.
+ *
+ * So nothing here is leaned on. Classes rather than element selectors, so a
+ * client that supports the query but has rewritten the markup still matches,
+ * and `!important` throughout because it has to beat an inline style
+ * attribute, which is the only way round that in email.
  */
 const DARK_STYLE = `
       :root { color-scheme: dark; supported-color-schemes: dark; }
@@ -416,7 +433,15 @@ const DARK_STYLE = `
         .rm-muted  { color: ${DARK.muted} !important; }
         .rm-rule   { border-top-color: ${DARK.edge} !important; }
         .rm-brand  { color: ${SKY} !important; }
-      }`;
+      }
+      [data-ogsc] .rm-base   { background: ${DARK.ground} !important; }
+      [data-ogsc] .rm-card   { background: ${DARK.card} !important; border-color: ${DARK.rim} !important; }
+      [data-ogsc] .rm-panel  { background: ${DARK.panel} !important; border-color: ${DARK.edge} !important; }
+      [data-ogsc] .rm-title  { color: ${DARK.text} !important; }
+      [data-ogsc] .rm-body   { color: ${DARK.body} !important; }
+      [data-ogsc] .rm-muted  { color: ${DARK.muted} !important; }
+      [data-ogsc] .rm-rule   { border-top-color: ${DARK.edge} !important; }
+      [data-ogsc] .rm-brand  { color: ${SKY} !important; }`;
 
 /**
  * Render one message, twice.

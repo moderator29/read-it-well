@@ -10,14 +10,22 @@
       :root { color-scheme: dark; supported-color-schemes: dark; }
       @media (prefers-color-scheme: dark) {
         .rm-base   { background: #010118 !important; }
-        .rm-card   { background: #000030 !important; border-color: #2743C4 !important; }
-        .rm-panel  { background: #000040 !important; border-color: #101A55 !important; }
+        .rm-card   { background: #000030 !important; border-color: #2768C4 !important; }
+        .rm-panel  { background: #000040 !important; border-color: #102D55 !important; }
         .rm-title  { color: #FFFFFF !important; }
         .rm-body   { color: #C6CDF2 !important; }
         .rm-muted  { color: #7C86C2 !important; }
-        .rm-rule   { border-top-color: #101A55 !important; }
-        .rm-brand  { color: #5C7CFF !important; }
+        .rm-rule   { border-top-color: #102D55 !important; }
+        .rm-brand  { color: #5C9FFF !important; }
       }
+      [data-ogsc] .rm-base   { background: #010118 !important; }
+      [data-ogsc] .rm-card   { background: #000030 !important; border-color: #2768C4 !important; }
+      [data-ogsc] .rm-panel  { background: #000040 !important; border-color: #102D55 !important; }
+      [data-ogsc] .rm-title  { color: #FFFFFF !important; }
+      [data-ogsc] .rm-body   { color: #C6CDF2 !important; }
+      [data-ogsc] .rm-muted  { color: #7C86C2 !important; }
+      [data-ogsc] .rm-rule   { border-top-color: #102D55 !important; }
+      [data-ogsc] .rm-brand  { color: #5C9FFF !important; }
     </style>
   </head>
   <body class="rm-base" bgcolor="#010118" style="margin:0;padding:0;width:100%;background:#010118;color:#C6CDF2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
@@ -34,18 +42,18 @@
                  its centre. background-color before background-image, so
                  Outlook keeps a solid electric blue rather than nothing. -->
             <tr>
-              <td style="height:4px;line-height:4px;font-size:0;background-color:#0C39EF;background-image:linear-gradient(90deg,#0010D0 0%,#0C39EF 28%,#5C7CFF 50%,#0C39EF 72%,#0010D0 100%);border-radius:20px 20px 0 0;mso-line-height-rule:exactly;">&nbsp;</td>
+              <td style="height:4px;line-height:4px;font-size:0;background-color:#0C6AEF;background-image:linear-gradient(90deg,#0056D0 0%,#0C6AEF 28%,#5C9FFF 50%,#0C6AEF 72%,#0056D0 100%);border-radius:20px 20px 0 0;mso-line-height-rule:exactly;">&nbsp;</td>
             </tr>
 
             <tr>
-              <td class="rm-card" bgcolor="#000030" style="background:#000030;border:1px solid #2743C4;border-top:0;border-radius:0 0 20px 20px;padding:40px 40px 36px;">
+              <td class="rm-card" bgcolor="#000030" style="background:#000030;border:1px solid #2768C4;border-top:0;border-radius:0 0 20px 20px;padding:40px 40px 36px;">
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="vertical-align:middle;padding-right:10px;">
                       <img src="{{ .SiteURL }}/brand/vallo-mark.png" width="42" height="40" alt="" style="display:block;width:42px;height:40px;border:0;outline:none;text-decoration:none;" />
                     </td>
                     <td style="vertical-align:middle;">
-                      <img src="{{ .SiteURL }}/brand/vallo-wordmark.png" width="118" height="26" alt="Vallo" class="rm-brand" style="display:block;width:118px;height:26px;border:0;outline:none;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.025em;color:#5C7CFF;" />
+                      <img src="{{ .SiteURL }}/brand/vallo-wordmark.png" width="118" height="26" alt="Vallo" class="rm-brand" style="display:block;width:118px;height:26px;border:0;outline:none;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.025em;color:#5C9FFF;" />
                     </td>
                   </tr>
                 </table>
@@ -56,7 +64,7 @@
                 <div style="height:28px;line-height:28px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0;">
                       <tr>
-                        <td align="center" style="border-radius:14px;background-color:#0C39EF;background-image:linear-gradient(135deg,#0C39EF 0%,#0621E8 55%,#0010D0 100%);mso-padding-alt:16px 34px;">
+                        <td align="center" style="border-radius:14px;background-color:#0C6AEF;background-image:linear-gradient(135deg,#0C6AEF 0%,#0664E8 55%,#0056D0 100%);mso-padding-alt:16px 34px;">
                           <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:16px 34px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">Choose a new password</a>
                         </td>
                       </tr>
@@ -65,13 +73,13 @@
                 <p class="rm-muted" style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7C86C2;">Or enter this code</p>
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td align="center" class="rm-panel rm-title" bgcolor="#000040" style="background:#000040;border:1px solid #101A55;border-radius:16px;padding:20px 16px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:#FFFFFF;">{{ .Token }}</td>
+                        <td align="center" class="rm-panel rm-title" bgcolor="#000040" style="background:#000040;border:1px solid #102D55;border-radius:16px;padding:20px 16px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:#FFFFFF;">{{ .Token }}</td>
                       </tr>
                     </table>
                 <div style="height:26px;line-height:26px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                       <tr>
-                        <td class="rm-panel" bgcolor="#000040" style="background:#000040;border:1px solid #101A55;border-left:3px solid #0C39EF;border-radius:16px;padding:18px 20px;">
+                        <td class="rm-panel" bgcolor="#000040" style="background:#000040;border:1px solid #102D55;border-left:3px solid #0C6AEF;border-radius:16px;padding:18px 20px;">
                           <p class="rm-title" style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;letter-spacing:-0.01em;color:#FFFFFF;">If this was not you</p>
                           <p class="rm-body" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#C6CDF2;">There is nothing to do. Your current password still works, this link expires by itself, and your account stays exactly as it is.</p>
                         </td>
@@ -80,7 +88,7 @@
                 <div style="height:24px;line-height:24px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</div>
                 <p class="rm-muted" style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#7C86C2;">
                       If the button does not work, copy this link into your browser:<br />
-                      <a href="{{ .ConfirmationURL }}" target="_blank" class="rm-brand" style="color:#5C7CFF;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a>
+                      <a href="{{ .ConfirmationURL }}" target="_blank" class="rm-brand" style="color:#5C9FFF;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a>
                     </p>
               </td>
             </tr>
@@ -94,7 +102,7 @@
                   <tr>
                     <td style="vertical-align:middle;padding-right:9px;">
                       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                        <td style="width:18px;height:2px;line-height:2px;font-size:0;background-color:#0C39EF;background-image:linear-gradient(135deg,#0C39EF 0%,#0621E8 55%,#0010D0 100%);border-radius:1px;mso-line-height-rule:exactly;">&nbsp;</td>
+                        <td style="width:18px;height:2px;line-height:2px;font-size:0;background-color:#0C6AEF;background-image:linear-gradient(135deg,#0C6AEF 0%,#0664E8 55%,#0056D0 100%);border-radius:1px;mso-line-height-rule:exactly;">&nbsp;</td>
                       </tr></table>
                     </td>
                     <td style="vertical-align:middle;">

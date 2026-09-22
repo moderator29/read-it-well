@@ -46,9 +46,17 @@
  * has honoured since 2007) and on the card cell, and every text colour is
  * inline beside the background it sits on. A client that strips the `<style>`
  * block loses nothing, because the block carries no layout and no legibility:
- * it only re-asserts this same palette under `prefers-color-scheme: dark`,
- * which is what stops Gmail's own dark-mode pass recolouring a palette it did
- * not design.
+ * it only re-asserts this same palette under `prefers-color-scheme: dark`.
+ *
+ * AND THAT BLOCK IS NOT WHAT HOLDS GMAIL, WHICH THIS COMMENT USED TO CLAIM.
+ * Gmail strips `@media (prefers-color-scheme: ...)` entirely and runs its own
+ * dark-mode pass regardless of what the message declares, so the media query
+ * reaches Apple Mail, iOS Mail and a handful of others and never reaches the
+ * client most of this product's readers use. The inline layer above is the
+ * only load bearing one. The query is kept because it is free and it helps the
+ * clients that do honour it, and an `[data-ogsc]` twin is kept beside it for
+ * Outlook.com, which strips standard media queries in webmail and rewrites
+ * these same classes. Neither is leaned on.
  *
  * Every value is a token rung. No invented navy, no invented grey.
  */
@@ -59,38 +67,87 @@ export const DARK = {
   card: "#000030",
   /** Inset panels: the code box, the receipt rows, the note. --nf-ink-800. */
   panel: "#000040",
-  /** Hairlines inside the card: row rules and panel borders. */
-  edge: "#101A55",
+  /**
+   * Hairlines inside the card: row rules and panel borders.
+   *
+   * RE-DERIVED 22 SEPTEMBER, from `#101A55` at 231.3 degrees, by the same
+   * rotation as the rim. At this lightness eight bits cannot land exactly on
+   * the family angle: it draws at 214.8, which is half a degree out and
+   * invisible on a one pixel hairline.
+   */
+  edge: "#102D55",
   /**
    * The card's rim: the lit edge that reads as glass on the sign-in render.
    * One blue, between --nf-electric-600 and the hairline, bright enough to be
    * a rim and dark enough not to compete with the button.
+   *
+   * RE-DERIVED 22 SEPTEMBER. It was `#2743C4`, which sat on 229.3 degrees of
+   * hue: the retired violet family. It has no token of its own, so it was
+   * rotated onto the family's measured 215.2 degrees with its saturation and
+   * lightness untouched, which is the same rotation that took the tokens
+   * themselves off violet. See the note above GLOW.
    */
-  rim: "#2743C4",
+  rim: "#2768C4",
   /** Headings and the strong values. */
   text: "#FFFFFF",
-  /** Body copy. 12.9:1 on the card. */
+  /** Body copy. 12.9:1 on the card, measured. */
   body: "#C6CDF2",
-  /** Small print and row labels. 5.6:1 on the card, 5.2:1 on the panel. */
+  /** Small print and row labels. 5.8:1 on the card, 5.6:1 on the panel. */
   muted: "#7C86C2",
 } as const;
 
 /**
- * --nf-electric-400. The brand blue.
+ * `--nf-electric-400`. The brand blue.
  *
- * As a FILL it is the button, the cap rule and the footer dash, and white on
- * it reads at 7:1. As TEXT on the navy card it measures only 2.7:1, which fails
- * even the relaxed large-text threshold, so any link or brand word set in blue
- * uses SKY below instead. One blue family, two depths.
+ * THE WHOLE BLUE FAMILY WAS RE-DERIVED FROM THE LIVE TOKENS ON 22 SEPTEMBER,
+ * AND THIS IS THE NOTE THAT SAYS WHY, BECAUSE IT WILL HAPPEN AGAIN OTHERWISE.
+ *
+ * The accent ramp was rotated onto a measured hue of 215.2 degrees on 19
+ * September and `tokens.css` records the reason at `:1611`: the old value was
+ * "a different and more violet blue". These email literals were baked BEFORE
+ * that rotation, so for three days every message this product sent was drawn
+ * in a blue the product itself had retired, and nothing could see it: an email
+ * cannot read a custom property, so the two copies of the fact had no test
+ * between them.
+ *
+ * The derivation is not a fresh choice of colour. Rotating each old email blue
+ * onto 215.2 degrees, saturation and lightness untouched, reproduces the live
+ * token EXACTLY:
+ *
+ *   GLOW      #0C39EF (228.1 deg) -> #0C6AEF == --nf-electric-400
+ *   ELECTRIC  #0010D0 (235.4 deg) -> #0056D0 == --nf-electric-600
+ *   SKY       #5C7CFF (228.2 deg) -> #5C9FFF == --nf-brand-quiet
+ *
+ * which is the proof that this palette and the screen palette were always the
+ * same colours, and that only the rotation was missed here.
+ *
+ * `shell.test.ts` now READS `packages/design-tokens/src/tokens.css` and fails
+ * when these three stop matching it. That test is the point of the exercise: a
+ * duplicated fact with no test between the copies is a fact that WILL be half
+ * updated, and this palette is the proof.
+ *
+ * WHAT THE ROTATION COST, STATED PLAINLY. As a FILL, white on GLOW measured
+ * 7.38:1 on the old violet and measures 4.86:1 now, because the family angle
+ * is a lighter blue at the same saturation. It clears the 4.5:1 normal-text
+ * threshold and nothing in this system sets small text on brand blue, so the
+ * button label is compliant, but it is a real loss and it is recorded rather
+ * than rounded away.
+ *
+ * As TEXT on the navy card GLOW went the other way, 2.73:1 to 4.15:1, which
+ * is the improvement `tokens.css:137` was rotated FOR and measures here within
+ * rounding of the 2.75 and 4.18 it records. It still misses 4.5:1, so a link
+ * or a brand word set in blue goes on using SKY below, which improved from
+ * 5.55:1 to 7.54:1. One blue family, two depths.
  */
-export const GLOW = "#0C39EF";
-/** --nf-electric-600. The foot of the button gradient. */
-export const ELECTRIC = "#0010D0";
+export const GLOW = "#0C6AEF";
+/** `--nf-electric-600`. The foot of the button gradient. Was `#0010D0`. */
+export const ELECTRIC = "#0056D0";
 /**
- * The luminous highlight in the cap rule and the brand blue as text: 5.5:1 on
- * the card, 5.2:1 on the panel. The first stop of --nf-gradient-brand.
+ * `--nf-brand-quiet`. The luminous highlight in the cap rule, and the brand
+ * blue as text: 7.5:1 on the card, 7.3:1 on the panel, both measured. Also the
+ * first stop of `--nf-gradient-brand`. Was `#5C7CFF`.
  */
-export const SKY = "#5C7CFF";
+export const SKY = "#5C9FFF";
 
 /**
  * The primary action's gradient.
@@ -99,8 +156,13 @@ export const SKY = "#5C7CFF";
  * site. Outlook's Word engine drops `background-image` and keeps the colour, so
  * the fallback is a solid brand-blue button with white text rather than white
  * text on nothing.
+ *
+ * The middle stop has no token of its own and was `#0621E8` at 232.8 degrees.
+ * It was rotated onto the family's 215.2 with the rest of the ramp, and it
+ * lands between GLOW and ELECTRIC on every channel, which is what a middle
+ * stop has to do.
  */
-export const GRADIENT = `linear-gradient(135deg,${GLOW} 0%,#0621E8 55%,${ELECTRIC} 100%)`;
+export const GRADIENT = `linear-gradient(135deg,${GLOW} 0%,#0664E8 55%,${ELECTRIC} 100%)`;
 
 /** The luminous rule capping the card, brightest at its centre. */
 export const GRADIENT_CAP = `linear-gradient(90deg,${ELECTRIC} 0%,${GLOW} 28%,${SKY} 50%,${GLOW} 72%,${ELECTRIC} 100%)`;

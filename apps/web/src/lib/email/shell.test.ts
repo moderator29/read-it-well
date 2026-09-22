@@ -259,6 +259,132 @@ describe("one palette, and the auth generator has not drifted from it", () => {
     expect(declared.length).toBeGreaterThan(10);
   });
 
+  /* ------------------------------------------------ the tokens, read live */
+
+  /**
+   * THE TEST THAT STOPS THE EMAIL PALETTE GOING STALE AGAIN.
+   *
+   * Every colour in an email is a BAKED HEX, because a mail client strips CSS
+   * custom properties. So the design system's blue exists twice in this
+   * repository: once in `tokens.css`, where it is maintained, and once in
+   * `theme.ts`, where it is baked. Until today nothing sat between those two
+   * copies, and the predictable thing happened: the accent ramp was rotated
+   * onto a measured 215.2 degrees of hue on 19 September and the email
+   * palette was not, so for three days every message this product sent was
+   * drawn in a blue the product had retired, and no test in the suite could
+   * see it. `shell.test.ts` asserted the GENERATOR matched `theme.ts`, which
+   * held those two in step while both were wrong together.
+   *
+   * A duplicated fact with no test between the copies is a fact that WILL be
+   * half updated. This is that test. It reads the token file as text, the way
+   * the RC number assertion below reads `company.ts`, and it is deliberately
+   * the boring kind: exact string equality on three values.
+   */
+  describe("the baked email blue still equals the live design token", () => {
+    const tokens = readFileSync(
+      join(REPO, "packages", "design-tokens", "src", "tokens.css"),
+      "utf8",
+    );
+
+    /**
+     * The FIRST declaration of a token wins, which is the dark default.
+     * `tokens.css` redefines several of these lower down inside the light
+     * theme block (`--nf-brand-quiet` becomes `#094DAF` on paper), and an
+     * email has no light twin: the product is dark by default, the operating
+     * system does not override it, and rule 22 keeps the auth surface dark in
+     * both themes. Matching the light value here would be matching the wrong
+     * one.
+     */
+    function token(name: string): string {
+      const found = tokens.match(new RegExp(`^\\s*${name}:\\s*(#[0-9A-Fa-f]{6})\\s*;`, "m"));
+      const hex = found?.[1];
+      expect(hex, `${name} is not declared as a literal hex in tokens.css`).toBeTruthy();
+      return String(hex).toUpperCase();
+    }
+
+    it.each([
+      ["GLOW", theme.GLOW, "--nf-electric-400"],
+      ["ELECTRIC", theme.ELECTRIC, "--nf-electric-600"],
+      ["SKY", theme.SKY, "--nf-brand-quiet"],
+    ])("%s is %s, which is the live value of %s", (_name, baked, tokenName) => {
+      expect(baked.toUpperCase()).toBe(token(tokenName));
+    });
+
+    /**
+     * AND THE ONES THAT HAVE NO TOKEN OF THEIR OWN.
+     *
+     * The card rim, the hairline and the middle stop of the button gradient
+     * are email-only values: there is no `--nf-` custom property to compare
+     * them against, so the check above cannot reach them, and they are
+     * exactly the values that were left behind last time. What CAN be checked
+     * is the thing that went wrong, which was never the lightness. It was the
+     * HUE: the whole family was thirteen degrees towards violet, and rule 8
+     * forbids violet outright.
+     *
+     * So every blue this system paints is asserted onto the family angle, the
+     * one measured off `--nf-electric-400`. The tolerance is a degree and a
+     * half because eight bits per channel cannot land exactly on an arbitrary
+     * angle at every lightness: the hairline is the worst case at 214.8, and
+     * half a degree on a one pixel rule is not a thing anybody can see.
+     */
+    it("paints no blue off the family hue, including the ones with no token", () => {
+      const rgb = (hex: string): [number, number, number] => [
+        parseInt(hex.slice(1, 3), 16) / 255,
+        parseInt(hex.slice(3, 5), 16) / 255,
+        parseInt(hex.slice(5, 7), 16) / 255,
+      ];
+
+      /** Hue in degrees, or null for a grey, which has no hue to check. */
+      function hue(hex: string): number | null {
+        const [r, g, b] = rgb(hex);
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const delta = max - min;
+        if (delta === 0) return null;
+        let h: number;
+        if (max === r) h = ((g - b) / delta) % 6;
+        else if (max === g) h = (b - r) / delta + 2;
+        else h = (r - g) / delta + 4;
+        h *= 60;
+        return h < 0 ? h + 360 : h;
+      }
+
+      const family = hue(token("--nf-electric-400"));
+      expect(family).not.toBeNull();
+
+      /*
+       * The near-black ink rungs are excluded by the saturation-free test
+       * above and by being navy rather than blue: #010118, #000030 and
+       * #000040 are one or two bits off black, where hue is arithmetic noise
+       * rather than a colour anybody chose. Everything with a rim's worth of
+       * chroma is in.
+       */
+      const blues = [
+        ["GLOW", theme.GLOW],
+        ["ELECTRIC", theme.ELECTRIC],
+        ["SKY", theme.SKY],
+        ["rim", theme.DARK.rim],
+        ["edge", theme.DARK.edge],
+        // The gradient middle stop, dug out of the composed string.
+        ...(theme.GRADIENT.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(
+          (hex, i) => [`GRADIENT stop ${i}`, hex] as const,
+        ),
+        ...(theme.GRADIENT_CAP.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(
+          (hex, i) => [`GRADIENT_CAP stop ${i}`, hex] as const,
+        ),
+      ] as const;
+
+      for (const [name, hex] of blues) {
+        const angle = hue(hex);
+        expect(angle, `${name} ${hex} has no hue`).not.toBeNull();
+        expect(
+          Math.abs((angle as number) - (family as number)),
+          `${name} ${hex} sits at ${(angle as number).toFixed(1)} degrees, and the family is at ${(family as number).toFixed(1)}. Rotate it rather than picking a new colour.`,
+        ).toBeLessThan(1.5);
+      }
+    });
+  });
+
   it("carries the slogan and the legal line the theme carries, in both generators", () => {
     /*
      * Rule 14: the brand is Vallo, and the company name appears only on legal
