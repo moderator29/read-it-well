@@ -42,6 +42,11 @@ The domain has to be verified in Resend first (Domains, Add, the DNS records
 it gives you). Until then Resend will only deliver to your own address, which
 is enough to test with and not enough to launch on.
 
+**Section 1A is the correction to this section and outranks it on the question
+of what is live: as measured on 22 September, this setting has never been
+applied, and neither has the hook.** The preference below stands as a
+preference. It was never carried out.
+
 Resend by SMTP rather than by the Send Email Hook, deliberately: the hook means
 an endpoint we host, a shared secret, and an outage in our deployment becoming
 an outage in sign-up. SMTP is one settings page and Supabase keeps its own
@@ -49,45 +54,90 @@ retries. The hook is worth revisiting only if these five templates stop being
 enough, and the `.txt` twins are ready for it: the hook is the path on which we
 would attach a text part ourselves.
 
-## 1A. Which of the two routes is actually live, ruled 22 September
+## 1A. Which of the two routes is actually live, MEASURED 22 September
 
-**Two routes exist in this repository and only one of them can be in force.**
-Section 1 above rules for custom SMTP, "deliberately". The file header of
-`apps/web/src/app/api/auth/email-hook/route.ts` describes the other one, and
-its first sentence reads as a statement about production: "Supabase's Send
-Email Hook: every auth email leaves through here." Both cannot be true, and a
-reader who opens the route first walks away believing the wrong one.
+**Neither of them. A third thing is live, and it is the one nobody chose.**
 
-**THE RULING, AND IT IS SECTION 1's.** Custom SMTP through Resend is the live
-route. The Send Email Hook endpoint is BUILT AND NOT ENABLED: it is a finished
-piece of work waiting on a dashboard switch nobody has thrown. The route's
-header has been corrected to say so rather than to describe a deployment that
-does not exist.
+This section previously ruled for custom SMTP, from three pieces of
+circumstantial reasoning, and said plainly that it was not a measurement. It
+has now been measured, and the ruling was wrong. Two of its three supports
+were sound; the third was a mistake worth naming, because it is the one that
+closed off the check that settles this.
 
-**WHAT THIS RULING RESTS ON, STATED EXACTLY, BECAUSE IT IS NOT A MEASUREMENT.**
-Nothing in this repository can observe the Supabase dashboard, and the
-Management API this project's tooling reaches does not return the auth mailer
-configuration. Three facts point one way and none of them is proof:
+**THE MEASUREMENT.** The hosted project's `auth_logs` carry GoTrue's own mail
+events. Two of them exist, both on 12 September, and they are identical in the
+one field that decides this question:
 
-1. Section 1 above is the only place where a decision was recorded, and it
-   records SMTP with its reasoning.
-2. `SUPABASE_AUTH_HOOK_SECRET` appears nowhere in `docs/ENVIRONMENT.md`, which
-   lists every other server variable and what breaks without it.
-   `RECOMMENDATIONS.md` already carries that omission as an open item
-   (`A2-152`). An unset secret makes the endpoint refuse every request with
-   401, by design, so if the hook WERE enabled with the secret unset, every
-   auth email on this platform would be failing silently.
-3. The auth logs carry no mail event in the last twenty four hours, which is
-   the whole window they hold, so behaviour cannot settle it either. Nobody
-   has signed up.
+```
+{"event":"mail.send","level":"info","mail_from":"noreply@mail.app.supabase.io",
+ "mail_to":"<redacted>","mail_type":"confirmation","msg":"mail.send",
+ "time":"2026-09-12T09:28:36Z"}
+```
 
-**THE ONE CHECK THAT SETTLES IT, for the founder, in the dashboard.**
-Authentication, then Hooks. If "Send Email Hook" is off, this ruling is
-correct and nothing needs doing. If it is on, then either
-`SUPABASE_AUTH_HOOK_SECRET` is set in Vercel and the five templates in
-`supabase/templates` are dead files nobody renders, or it is unset and no auth
-email has left this platform at all. In both of those cases section 1 is what
-needs correcting, not the route.
+`noreply@mail.app.supabase.io` is Supabase's built-in shared sender. It is
+what sends when nothing else has been configured, and Supabase documents it as
+non-production.
+
+**WHAT THAT ONE FIELD RULES OUT, BOTH WAYS.**
+
+- **Custom SMTP is not enabled.** If it were, the from-address would be the
+  sender configured beside the Resend credentials, which section 1 specifies
+  as our own verified domain. A message cannot leave through Resend's SMTP
+  bearing Supabase's own shared from-address.
+- **The Send Email Hook is not enabled.** With the hook on, GoTrue does not
+  send at all: it hands the payload to our endpoint and we send through Resend.
+  There would be no `mail.send` event in these logs to read. The existence of
+  the event is the proof of absence.
+
+**AND THE CORROBORATION, WHICH IS THE PART THAT SHOULD ALARM SOMEBODY.** After
+those two messages, three consecutive sign-ups on the same morning failed:
+
+```
+09:41:25  429  "email rate limit exceeded"  error_code: over_email_send_rate_limit
+09:43:03  429  "email rate limit exceeded"  error_code: over_email_send_rate_limit
+09:44:26  429  "email rate limit exceeded"  error_code: over_email_send_rate_limit
+```
+
+Two messages delivered and everything after them refused, inside one hour,
+is the built-in service's cap and not custom SMTP's. Saving custom SMTP
+imposes a ceiling of thirty messages an hour, which three sign-ups in four
+minutes does not come near. So this is not a theoretical gap: real people
+tried to create accounts on this platform and the confirmation email never
+left, and nothing in the product said so.
+
+**THE MISTAKE IN THE PREVIOUS RULING, NAMED SO IT IS NOT REPEATED.** It said
+the auth logs "carry no mail event in the last twenty four hours, which is the
+whole window they hold". Twenty four hours is the maximum span of a single
+QUERY, not the retention. Passing an explicit start and end returns older
+windows perfectly well, and the events above are ten days old. The check that
+was declared impossible was one parameter away.
+
+Its other two supports stand, and both now read as evidence for the same
+conclusion: section 1 is the only place a decision was ever recorded, and
+`SUPABASE_AUTH_HOOK_SECRET` is absent from `docs/ENVIRONMENT.md`. A decision
+was recorded and then never carried out in the dashboard.
+
+**WHAT IS TRUE TODAY, AND WHAT IT COSTS.**
+
+| | State |
+| --- | --- |
+| Custom SMTP | Documented in section 1. **Not configured.** |
+| Send Email Hook | Built, signature verified, complete. **Not enabled.** |
+| What actually sends | Supabase's built-in shared sender, non-production, capped at a couple of messages an hour, from `noreply@mail.app.supabase.io`. |
+
+The five templates in `supabase/templates` are NOT dead files: the dashboard's
+Email Templates are rendered whichever sender carries them, so if they have
+been pasted in they are what arrives. Whether they have been pasted is a
+dashboard fact this repository cannot read, and it is the one open question
+left about them.
+
+**THIS IS THE FOUNDER'S, AND IT IS ONE SETTINGS PAGE.** The decision between
+the two routes is still live and the arguments are in
+`docs/research/EMAIL_AND_NOTIFICATIONS_RESEARCH.md` sections 1.8 and 1.9.
+Neither path is deleted here, because deleting the loser before the choice is
+made would be deciding it by attrition. What is NOT still live is the status
+quo: whichever route is chosen, sign-up on this platform is rate limited into
+failure until one of them is actually switched on.
 
 ---
 
@@ -131,8 +181,17 @@ the only way email allows.
   beside the background it sits on. A client that strips the `<style>` block
   loses nothing, because the block carries no layout and no legibility: it
   declares `color-scheme: dark` so Apple Mail does not invert the palette, and
-  re-asserts the same values under `prefers-color-scheme: dark` so Gmail's
-  dark-mode pass does not recolour them.
+  re-asserts the same values under `prefers-color-scheme: dark`, with an
+  `[data-ogsc]` twin beside it for Outlook.com, which strips standard media
+  queries in webmail.
+
+  **That block does not hold Gmail, which this line used to claim it did.**
+  Gmail strips `@media (prefers-color-scheme: ...)` entirely and runs its own
+  dark-mode pass whatever the message declares, and Gmail is most of this
+  product's readers. The inline layer above is the only load bearing one, and
+  it is why the ground is painted three times and every colour sits beside the
+  background it paints. The query is kept because it is free and it helps the
+  clients that honour it. It is not leaned on.
 - **The glass card is a solid.** No mail client renders a backdrop blur, so
   the card is `--nf-ink-850` with a one pixel rim in a lighter blue and the
   luminous cap rule above it. Depth by tone, not by filter.
