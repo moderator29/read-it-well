@@ -1832,6 +1832,9 @@
     align-items: center;
     gap: var(--nf-space-xs);
   }
+  .nf-admin-dist__name > .nf-admin-badge {
+    flex-shrink: 0;
+  }
   .nf-admin-dist__dot {
     width: 0.625rem;
     height: 0.625rem;
