@@ -1,6 +1,7 @@
 import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { diversePick } from "./filter";
+import { isListingReference } from "./reference";
 import { SupabaseListingRepository } from "./supabase-repository";
 import type {
   Listing,
@@ -69,6 +70,10 @@ class EmptyListingRepository implements ListingRepository {
   async byId(_id: string): Promise<Listing | null> {
     return null;
   }
+
+  async byReference(_reference: string): Promise<Listing | null> {
+    return null;
+  }
 }
 
 /** Platform listing ids are uuids. Anything else cannot name a listing. */
@@ -117,6 +122,15 @@ class PlatformListingRepository implements ListingRepository {
     if (!UUID_RE.test(id)) return null;
     return this.fromDb(() => this.db.byId(id), null);
   }
+
+  /**
+   * A code is checked for shape before it reaches the database, for the same
+   * reason a uuid is: a value that cannot name a listing should cost nothing.
+   */
+  async byReference(reference: string): Promise<Listing | null> {
+    if (!isListingReference(reference)) return null;
+    return this.fromDb(() => this.db.byReference(reference), null);
+  }
 }
 
 class ApiListingRepository implements ListingRepository {
@@ -134,6 +148,12 @@ class ApiListingRepository implements ListingRepository {
     );
   }
   async byId(): Promise<Listing | null> {
+    throw new Error(
+      "NF_DATA_SOURCE is set to 'api' but the platform API is not implemented yet. " +
+        "Unset it to fall back to the platform catalogue.",
+    );
+  }
+  async byReference(): Promise<Listing | null> {
     throw new Error(
       "NF_DATA_SOURCE is set to 'api' but the platform API is not implemented yet. " +
         "Unset it to fall back to the platform catalogue.",

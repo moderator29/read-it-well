@@ -156,6 +156,7 @@ const amenitiesMemo = memo<Map<string, string>>({
  */
 const LISTING_SELECT = `
   id,
+  reference,
   title,
   property_type,
   listing_intent,
@@ -222,6 +223,7 @@ const LISTING_SELECT = `
  */
 const LISTING_DETAIL_SELECT = `
   id,
+  reference,
   title,
   property_type,
   listing_intent,
@@ -284,6 +286,7 @@ export const LISTING_SELECTS = {
 
 type ListingRow = {
   id: string;
+  reference: string | null;
   title: string;
   property_type: string;
   listing_intent: string | null;
@@ -697,6 +700,9 @@ function mapRow(
   return {
     id: row.id,
     slug: slugFor(row),
+    /* Absent rather than null when the listing has no code yet, so the
+       optional field on the model means exactly one thing. */
+    ...(row.reference ? { reference: row.reference } : {}),
     title: row.title,
     kind,
     area: row.area ?? row.city ?? "",
@@ -1083,6 +1089,23 @@ export class SupabaseListingRepository implements ListingRepository {
        */
       if (filter.excludeDemo) query = query.eq("is_demo", false);
 
+      /*
+       * THE MOVE-IN COST ORDER, AND THE INDEX THAT HAS NEVER BEEN QUERIED.
+       *
+       * `listings_move_in_cost_idx` is partial on published rows with a stated
+       * total, and HANDOFF 09 section 4.2 records that nothing in the tree
+       * asked for it. This is the ask. `nullsFirst: false` is the honesty
+       * half: a listing whose lister declared no total is not cheap, it is
+       * unstated, so it sorts after every listing that said a number rather
+       * than ahead of all of them as a null would.
+       */
+      if (opts.order === "move-in") {
+        query = query.order("total_move_in_cost_minor", {
+          ascending: true,
+          nullsFirst: false,
+        });
+      }
+
       const { data, error } = await query
         .order("featured", { ascending: false })
         .order("published_at", { ascending: false, nullsFirst: false })
@@ -1126,6 +1149,34 @@ export class SupabaseListingRepository implements ListingRepository {
         .select(LISTING_DETAIL_SELECT)
         .eq("status", "PUBLISHED")
         .eq("id", id)
+        .maybeSingle();
+      if (error || !data) return null;
+      const [listing] = await mapRows(supabase, [data as ListingRow]);
+      return listing ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * The same read, keyed on the code a person read out over the phone.
+   *
+   * `PUBLISHED` is kept, deliberately. A code for a listing that is still in
+   * review correctly finds nothing for a stranger, while remaining something
+   * the lister can quote to support, who read it through the admin console and
+   * not through this door.
+   *
+   * The caller passes a value `lib/listings/reference.ts` has already
+   * canonicalised, so this method never guesses at a shape.
+   */
+  async byReference(reference: string): Promise<Listing | null> {
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("listings")
+        .select(LISTING_DETAIL_SELECT)
+        .eq("status", "PUBLISHED")
+        .eq("reference", reference)
         .maybeSingle();
       if (error || !data) return null;
       const [listing] = await mapRows(supabase, [data as ListingRow]);

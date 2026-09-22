@@ -82,7 +82,13 @@ export default async function Page({
         </ButtonLink>
       </div>
 
-      <ListingsWorkspace t={t.agentListings} listings={listings} locale={locale} query={query} />
+      <ListingsWorkspace
+        t={t.agentListings}
+        reference={t.listingReference}
+        listings={listings}
+        locale={locale}
+        query={query}
+      />
     </AgentShell>
   );
 }

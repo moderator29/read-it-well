@@ -5,7 +5,7 @@
  *
  * Validation is real and runs on the server. When Supabase is configured and the
  * applicant is signed in, the application is persisted to agent_applications
- * under Row Level Security as a SUBMITTED row, and the generated NF-AGT-#####
+ * under Row Level Security as a SUBMITTED row, and the generated VL-AGT-#####
  * reference is returned. When Supabase is not configured, or the user is not
  * signed in, this returns a plain, honest message rather than a fake approval
  * (Master Rule 8). The client keeps the draft in local storage either way, so

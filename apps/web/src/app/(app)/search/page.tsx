@@ -27,6 +27,7 @@ import { canonicalSearch } from "@/lib/saved/searches";
 import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
+import { readListingReference } from "@/lib/listings/reference";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { Reveal } from "@/components/site/Reveal";
@@ -57,6 +58,30 @@ function byVerification(a: Listing, b: Listing): number {
   return Number(b.verified) - Number(a.verified);
 }
 
+/**
+ * The honest move-in figure for ordering, or null when there is none.
+ *
+ * A listing whose lister declared no total and no part has not said it is
+ * cheap, it has said nothing, so it can never be given a number here. The
+ * caller sorts those to the end rather than to the front, which is the same
+ * ruling `nullsFirst: false` makes in the SQL.
+ */
+function moveInFigure(listing: Listing): number | null {
+  const stated = listing.moveInCostMinor;
+  if (stated !== undefined && stated !== null && stated > 0) return stated;
+  const parts = [
+    listing.priceMinor,
+    listing.cautionDepositMinor,
+    listing.serviceChargeMinor,
+    listing.agencyFeeMinor,
+    listing.legalFeeMinor,
+    listing.agreementFeeMinor,
+  ].filter((part): part is number => part !== undefined && part !== null);
+  if (parts.length === 0) return null;
+  const sum = parts.reduce((total, part) => total + part, 0);
+  return sum > 0 ? sum : null;
+}
+
 function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   const out = [...listings];
   switch (sort) {
@@ -64,6 +89,26 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
       out.sort(
         (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount || byVerification(a, b),
       );
+      break;
+    /*
+     * THE NUMBER A NIGERIAN TENANT ACTUALLY SHOPS ON.
+     *
+     * The repository has already ordered the read on
+     * `listings_move_in_cost_idx`, so the cheapest rows are the ones that got
+     * under the row ceiling; this pass is the authority over whatever came
+     * back, the same division of labour the budget predicate and
+     * `matchesFilter` already have. A listing with no declared cost sorts
+     * LAST: it is unstated, not free.
+     */
+    case "move-in-asc":
+      out.sort((a, b) => {
+        const left = moveInFigure(a);
+        const right = moveInFigure(b);
+        if (left === null && right === null) return byVerification(a, b);
+        if (left === null) return 1;
+        if (right === null) return -1;
+        return left - right || byVerification(a, b);
+      });
       break;
     case "price-asc":
       out.sort((a, b) => a.priceMinor - b.priceMinor || byVerification(a, b));
@@ -102,7 +147,10 @@ export default async function SearchPage({
   /* Three reads: the results, the pool the sheet counts against (the whole
      catalogue for the current text), and the whole catalogue for the map. */
   const [rawResults, pool, whole] = await Promise.all([
-    repo.search(shelfFilter(query)),
+    /* The move-in ordering is pushed into the read, because the read has a row
+       ceiling: sorting afterwards alone would order the newest rows rather
+       than the cheapest ones to move into. See `ListingSearchOptions.order`. */
+    repo.search(shelfFilter(query), query.sort === "move-in-asc" ? { order: "move-in" } : {}),
     repo.search(shelfPoolFilter(query)),
     repo.search({}),
   ]);
@@ -138,13 +186,34 @@ export default async function SearchPage({
   const canonical = canonicalSearch(raw);
   const savedSearch = canonical.key.length > 0 ? await findSavedSearch(canonical.key) : null;
 
+  /*
+   * SEARCH BY LISTING CODE.
+   *
+   * A person reads a code down the phone, "Vee El, seven kay four em queue
+   * pee", and the listener types it into the box they already have. There is
+   * no second screen and no "enter a code here" field nobody would find.
+   *
+   * `readListingReference` guesses NOTHING, because guessing a code is how
+   * somebody lands on the wrong house. It returns one of three answers and
+   * each gets its own sentence below: this is a code, this is the shape of a
+   * code but carries a character we never mint, or this is ordinary text.
+   *
+   * A code that matches replaces the results rather than redirecting, because
+   * GOVERNING-12 screen four draws the found listing under a line saying how
+   * it was found, and a redirect has nowhere to put that line.
+   */
+  const codeRead = readListingReference(query.q ?? "");
+  const codeHit = codeRead.state === "code" ? await repo.byReference(codeRead.value) : null;
+
   /* A stated interest reorders an unfiltered shelf and nothing else. */
   const tuning = await readIntentTuning();
   const statedIntent = hasOwnRequest(query) ? [] : tuning.interests;
-  const listings = orderByStatedIntent(sorted, statedIntent);
-  const intentApplied = listings !== sorted;
+  const ordered = orderByStatedIntent(sorted, statedIntent);
+  /* The one listing the code named, or the ordinary shelf. */
+  const listings = codeHit ? [codeHit] : ordered;
+  const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
-    ? intentKindsPresent(listings, statedIntent)
+    ? intentKindsPresent(ordered, statedIntent)
     : [];
 
   // The map reads the whole catalogue: every covered city keeps its pin and
@@ -192,6 +261,26 @@ export default async function SearchPage({
           signedIn={savedSearch.state === "signed-in" || savedSearch.state === "unavailable"}
           signInHref={`/sign-in?next=${encodeURIComponent(canonical.href)}`}
         />
+      )}
+
+      {/* HOW A CODE ANSWERED, and only ever when one was typed. Three
+          answers, three sentences, and never silence: a code that finds
+          nothing is a person holding a piece of paper, and telling them the
+          code is unknown is the whole of the help we can give. */}
+      {codeHit && (
+        <p data-testid="found-by-reference" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
+          {t.listingReference.foundById}
+        </p>
+      )}
+      {codeRead.state === "code" && !codeHit && (
+        <p data-testid="reference-miss" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
+          {t.listingReference.noneCarry}
+        </p>
+      )}
+      {codeRead.state === "impossible" && (
+        <p data-testid="reference-impossible" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
+          {t.listingReference.impossible}
+        </p>
       )}
 
       {/* Says why the order is what it is, and only when it really is. */}

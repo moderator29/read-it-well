@@ -54,6 +54,7 @@ function obedientRepository(rows: Listing[]): ListingRepository {
     isSeed: false,
     recommended: async () => rows,
     byId: async () => rows[0] ?? null,
+    byReference: async () => rows[0] ?? null,
     search: async (filter: ListingSearchFilter = {}) =>
       filter.excludeDemo ? rows.filter((row) => !row.isDemo) : rows,
   };
@@ -65,6 +66,7 @@ function leakyRepository(rows: Listing[]): ListingRepository {
     isSeed: false,
     recommended: async () => rows,
     byId: async () => rows[0] ?? null,
+    byReference: async () => rows[0] ?? null,
     search: async () => rows,
   };
 }

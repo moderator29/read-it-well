@@ -103,7 +103,8 @@ export default async function AdminOverviewPage({
     for (const listing of [...listings.data.waiting, ...listings.data.decided]) {
       rows.push({
         id: `listing:${listing.id}`,
-        reference: shortRef("LST", listing.id),
+        /* The real code once it exists, the id-derived stand-in until then. */
+        reference: listing.reference ?? shortRef("LST", listing.id),
         type: "Listing",
         icon: "house",
         title: listing.title,

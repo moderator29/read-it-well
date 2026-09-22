@@ -2493,6 +2493,7 @@ export type Database = {
           published_at: string | null
           rate_minor: number
           rate_period: Database["public"]["Enums"]["rate_period"] | null
+          reference: string | null
           rent_amount_minor: number | null
           rent_negotiable: boolean
           rent_period: Database["public"]["Enums"]["rent_period"] | null
@@ -2562,6 +2563,7 @@ export type Database = {
           published_at?: string | null
           rate_minor?: number
           rate_period?: Database["public"]["Enums"]["rate_period"] | null
+          reference?: string | null
           rent_amount_minor?: number | null
           rent_negotiable?: boolean
           rent_period?: Database["public"]["Enums"]["rent_period"] | null
@@ -2631,6 +2633,7 @@ export type Database = {
           published_at?: string | null
           rate_minor?: number
           rate_period?: Database["public"]["Enums"]["rate_period"] | null
+          reference?: string | null
           rent_amount_minor?: number | null
           rent_negotiable?: boolean
           rent_period?: Database["public"]["Enums"]["rent_period"] | null

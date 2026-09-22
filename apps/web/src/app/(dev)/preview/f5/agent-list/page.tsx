@@ -22,6 +22,7 @@ export default async function PreviewAgentList() {
     <AgentShell t={t} locale={locale} active="/agent/list" profile={AGENT_PROFILE}>
       <ListingWizard
         copy={t.agentListings}
+        reference={t.listingReference}
         locale={locale}
         userId={null}
         states={STATE_CODES.map((code) => ({ code, name: code }))}

@@ -63,6 +63,14 @@ export type ListingKind =
 export type Listing = {
   id: string;
   slug: string;
+  /**
+   * The code a person reads out over the phone. `VL-` plus six characters.
+   *
+   * Optional because the database issues it at PUBLISH and never at draft, so
+   * a listing genuinely has none until it is live. Every reader treats absent
+   * as "not published yet" rather than as a mapping fault.
+   */
+  reference?: string;
   title: string;
   kind: ListingKind;
   /** Display locality, e.g. "Lekki Phase 1". */
@@ -374,6 +382,24 @@ export type ListingSearchOptions = {
    * the caller genuinely wants "some good ones" rather than "all of them".
    */
   limit?: number;
+  /**
+   * WHICH NUMBER THE DATABASE ORDERS ON BEFORE THE CEILING IS APPLIED.
+   *
+   * "default" is the catalogue's own order: featured, then newest. "move-in"
+   * orders on `total_move_in_cost_minor`, cheapest first, which is what
+   * `listings_move_in_cost_idx` exists for and which nothing queried until
+   * HANDOFF 09 Track H. It matters for the same reason the budget predicate
+   * matters: the read has a row ceiling, so ordering afterwards in memory
+   * would sort whichever rows the NEWEST-first read happened to return, and a
+   * renter asking for the cheapest to move into would be shown the cheapest of
+   * the most recent rather than the cheapest.
+   *
+   * It narrows and orders; it never decides. `sortListings` on the search
+   * page still applies the same ordering over the rows that come back, so the
+   * two can never disagree, exactly as SQL narrows and `matchesFilter`
+   * decides.
+   */
+  order?: "default" | "move-in";
 };
 
 export interface ListingRepository {
@@ -384,4 +410,10 @@ export interface ListingRepository {
   search(filter?: ListingSearchFilter, opts?: ListingSearchOptions): Promise<Listing[]>;
   /** Single listing lookup for the detail page. Resolves null when unknown. */
   byId(id: string): Promise<Listing | null>;
+  /**
+   * Single listing lookup by the code a person typed, already canonicalised by
+   * `lib/listings/reference.ts`. Resolves null when no PUBLISHED listing
+   * carries it, which is also the honest answer for a code that names a draft.
+   */
+  byReference(reference: string): Promise<Listing | null>;
 }

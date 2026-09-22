@@ -37,6 +37,8 @@ import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
+import { ListingCodeRow } from "@/components/app/listing/ListingCode";
+import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
@@ -871,7 +873,32 @@ export default async function ListingDetailPage({
                   </div>
                 </div>
 
-                {/* ----------------------------- 6. THE NIGERIAN NUMBER */}
+                {/* --------------------- 6. THE NIGERIAN NUMBER, ITEMISED */}
+                {/*
+                  WHAT A TENANT WILL ACTUALLY PAY, and until this commit the
+                  page showed ONE NUMBER while the component that draws the
+                  whole breakdown sat unimported (HANDOFF 09 section 4.1).
+
+                  The block above the fold still leads with the total, which is
+                  the figure somebody shops on. This section is the itemised
+                  answer to "made up of what", drawn to GOVERNING-08 screen two,
+                  including every cost the lister DID NOT declare, because the
+                  silence is the finding. A tenancy only: a sale has its own
+                  cost model and none of its columns exist yet, which is Group
+                  C's schema work.
+                */}
+                {isRental && !isSale && (
+                  <Section
+                    id="cost"
+                    title={t.moveIn.title}
+                    description={t.moveIn.lede}
+                    divided
+                    className="scroll-mt-16"
+                  >
+                    <ListingMoveIn listing={listing} locale={locale} t={t} />
+                  </Section>
+                )}
+
                 {isSale && (
                   <Section title="What you would be buying" divided>
                     <ListingTenure listing={listing} />
@@ -924,6 +951,23 @@ export default async function ListingDetailPage({
                     <ListingAbout paragraphs={aboutParagraphs} />
                   </Section>
                 </Reveal>
+
+                {/* ------------------------------------------ listing code */}
+                {/*
+                  THE CODE, WHERE SOMEBODY WOULD BE STANDING WHEN THEY READ IT
+                  OUT. A person on the phone to a friend about this exact flat
+                  needs nine characters, not a URL with a uuid in it. Every
+                  listing on this page is PUBLISHED, so the code always exists;
+                  it is still guarded, because the model carries it as optional
+                  and a guard is cheaper than a promise.
+                */}
+                {listing.reference && (
+                  <Reveal>
+                    <Section divided>
+                      <ListingCodeRow code={listing.reference} copy={t.listingReference} />
+                    </Section>
+                  </Reveal>
+                )}
 
                 {/* ------------------------------ booking panel, mobile */}
                 {/*

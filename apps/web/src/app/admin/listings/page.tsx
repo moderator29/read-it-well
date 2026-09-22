@@ -15,6 +15,37 @@ import {
 import { Constants } from "@/lib/supabase/database.types";
 import { PERIOD_SUFFIX, SALE_STATUS_LABEL, TENURE_LABEL } from "@/lib/listings/pricing";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import {
+  CONDITION_CHOICES,
+  FURNISHING_CHOICES,
+  POWER_BACKUP_CHOICES,
+  POWER_GRID_CHOICES,
+  WATER_SUPPLY_CHOICES,
+} from "@/lib/agent/listings-schema";
+
+/**
+ * The console says what the wizard said.
+ *
+ * Every label below is read from the wizard's own choice list rather than
+ * retyped here, so a reviewer reads the exact words the lister was shown. A
+ * second copy of "Band A feeder" in this file is a second copy that can drift,
+ * and a reviewer judging a claim against different wording is the one thing
+ * this screen cannot afford.
+ */
+function labelsOf<T extends string>(
+  choices: readonly { value: T; label: string }[],
+): Record<T, string> {
+  return Object.fromEntries(choices.map((choice) => [choice.value, choice.label])) as Record<
+    T,
+    string
+  >;
+}
+
+const POWER_GRID_LABEL = labelsOf(POWER_GRID_CHOICES);
+const POWER_BACKUP_LABEL = labelsOf(POWER_BACKUP_CHOICES);
+const WATER_LABEL = labelsOf(WATER_SUPPLY_CHOICES);
+const CONDITION_LABEL = labelsOf(CONDITION_CHOICES);
+const FURNISHING_LABEL = labelsOf(FURNISHING_CHOICES);
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -94,6 +125,15 @@ function ListingCard({
       <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {listing.title}
       </h3>
+      {/* THE CODE, ONCE IT EXISTS. A listing in review has none: the database
+          issues it at publish, so before that there is genuinely nothing to
+          print and the row falls back to the id-derived short reference the
+          queue has always used. */}
+      {listing.reference && (
+        <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric tracking-[0.08em]">{listing.reference}</span>
+        </p>
+      )}
       <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {[listing.area, listing.city, listing.stateCode].filter(Boolean).join(", ") ||
           copy.locationMissing}
@@ -186,6 +226,162 @@ function ListingCard({
           </ul>
         </div>
       )}
+
+      {/*
+        THE WALKTHROUGH, WHICH NOBODY HAS EVER BEEN ABLE TO WATCH.
+
+        Every layer behind this was finished weeks ago and the two a human
+        touches were not: the bucket, the table with its three-per-listing
+        ceiling, the Zod schemas, the actions, the repository join, the signed
+        URL batching and the CSP entry all existed with zero callers. This is
+        the reviewer's half. `controls` and `preload="none"` because a queue of
+        thirty listings must not pull thirty videos down a reviewer's line.
+      */}
+      {listing.videos.length > 0 && (
+        <div className="mt-sm">
+          <p className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
+            {listing.videos.length === 1
+              ? "Walkthrough video"
+              : `Walkthrough videos (${listing.videos.length})`}
+          </p>
+          <ul className="mt-2xs flex flex-wrap gap-xs">
+            {listing.videos.map((video, index) => (
+              <li key={video.url ?? `video-${index}`}>
+                {video.url ? (
+                  /* A walkthrough of an empty flat carries no speech, so
+                     there is no track to caption. The reviewer is here to see
+                     the rooms. */
+                  <video
+                    src={video.url}
+                    poster={video.posterUrl ?? undefined}
+                    controls
+                    preload="none"
+                    playsInline
+                    className="h-40 w-64 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] object-cover"
+                  />
+                ) : (
+                  <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    This walkthrough could not be opened. The listing has one.
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/*
+        LIGHT AND WATER, WHICH IS THE PART THAT DECIDES WHETHER ANYBODY WANTS
+        IT.
+
+        The lister answers five questions about power and water on a whole step
+        of the wizard, and the reviewer could not see one of them: the read
+        named neither `power_grid` nor `water_supply`. So a claim of "Band A,
+        eighteen hours of generator" was being approved unread. Unanswered
+        prints as unanswered and never as good news, which is the same rule the
+        submit gate already holds to.
+      */}
+      <ui.DetailSection title="Light and water">
+        <ui.DetailRow
+          label="Grid supply"
+          value={listing.utilities.powerGrid ? POWER_GRID_LABEL[listing.utilities.powerGrid] : null}
+        />
+        <ui.DetailRow
+          label="Backup"
+          value={
+            listing.utilities.powerBackup
+              ? [
+                  POWER_BACKUP_LABEL[listing.utilities.powerBackup],
+                  listing.utilities.powerBackupHours === null
+                    ? null
+                    : `${listing.utilities.powerBackupHours} hours a day`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+              : null
+          }
+        />
+        <ui.DetailRow
+          label="Water"
+          value={
+            listing.utilities.waterSupply ? WATER_LABEL[listing.utilities.waterSupply] : null
+          }
+        />
+        <ui.DetailRow
+          label="Meter"
+          value={
+            listing.utilities.prepaidMeter === null
+              ? null
+              : listing.utilities.prepaidMeter
+                ? "Prepaid"
+                : "Not prepaid"
+          }
+        />
+      </ui.DetailSection>
+
+      {/*
+        THE PHYSICAL FACTS. `sizeSqm` is the whole specification of a plot of
+        land, so a land submission could not be judged at all without it.
+      */}
+      <ui.DetailSection title="The property itself">
+        <ui.DetailRow
+          label="Size"
+          value={listing.facts.sizeSqm === null ? null : `${listing.facts.sizeSqm} m2`}
+        />
+        <ui.DetailRow
+          label="Toilets"
+          value={listing.facts.toilets === null ? null : String(listing.facts.toilets)}
+        />
+        <ui.DetailRow
+          label="Parking"
+          value={
+            listing.facts.parkingSpaces === null
+              ? null
+              : `${listing.facts.parkingSpaces} spaces`
+          }
+        />
+        <ui.DetailRow
+          label="Floor"
+          value={
+            listing.facts.floor === null
+              ? null
+              : listing.facts.totalFloors === null
+                ? `Floor ${listing.facts.floor}`
+                : `Floor ${listing.facts.floor} of ${listing.facts.totalFloors}`
+          }
+        />
+        <ui.DetailRow
+          label="Condition"
+          value={
+            [
+              listing.facts.condition ? CONDITION_LABEL[listing.facts.condition] : null,
+              listing.facts.yearBuilt === null ? null : `built ${listing.facts.yearBuilt}`,
+            ]
+              .filter(Boolean)
+              .join(" · ") || null
+          }
+        />
+        <ui.DetailRow
+          label="Furnishing"
+          value={listing.facts.furnished ? FURNISHING_LABEL[listing.facts.furnished] : null}
+        />
+        {/* THE GATE, COUNTED AND NOT QUOTED. The security desk number and the
+            access code are the keys to somebody's home. A reviewer needs to
+            know the block was answered, not what it says. */}
+        <ui.DetailRow
+          label="Gate and estate"
+          value={
+            listing.access.answered === 0
+              ? null
+              : [
+                  listing.access.estateName,
+                  `${listing.access.answered} of 4 access details given`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+          }
+        />
+      </ui.DetailSection>
 
       <ui.DetailSection title={copy.checklistTitle}>
         <ul className="mt-2xs">
@@ -381,7 +577,11 @@ export default async function AdminListingsPage({
 function listingRow(listing: ListingReviewView, ui: AdminUi): QueueRowData {
   return {
     id: listing.id,
-    reference: shortRef("LST", listing.id),
+    /* The real code once the listing is live, and the id-derived short
+       reference until then. `shortRef` is six hex characters cut from a uuid,
+       which is neither stored nor unique; it stays only as the stand-in for a
+       listing that has not been published and therefore has no code yet. */
+    reference: listing.reference ?? shortRef("LST", listing.id),
     type: "Listing",
     icon: "house",
     title: listing.title,

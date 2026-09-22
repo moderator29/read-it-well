@@ -20,7 +20,12 @@ export default async function PreviewAgentListings() {
           </p>
         </div>
       </div>
-      <ListingsWorkspace t={t.agentListings} listings={AGENT_LISTINGS} locale={locale} />
+      <ListingsWorkspace
+        t={t.agentListings}
+        reference={t.listingReference}
+        listings={AGENT_LISTINGS}
+        locale={locale}
+      />
     </AgentShell>
   );
 }

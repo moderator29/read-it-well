@@ -601,7 +601,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
 
           {/*
             One box, two meanings, and until now it painted both of them as a
-            problem. A filed application answers here with its NF-AGT reference,
+            problem. A filed application answers here with its VL-AGT reference,
             and it was arriving inside a warning-toned panel, which reads as
             "something went wrong" on the one screen where the applicant most
             needs to know that nothing did. The tone follows the outcome now:

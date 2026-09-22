@@ -148,6 +148,13 @@ export type ListingVideo = {
 /** One card in the agent's workspace. Money stays integer kobo. */
 export type ListingSummary = {
   id: string;
+  /**
+   * The code a person reads out over the phone, or null while the listing is
+   * still in review. The database issues it at publish and never at draft, so
+   * null here is a real state and the row says nothing rather than drawing an
+   * empty field.
+   */
+  reference: string | null;
   title: string;
   status: ListingStatus;
   propertyType: PropertyType;
@@ -239,7 +246,7 @@ export type WizardDraft = {
 };
 
 const LISTING_SELECT =
-  "id, title, description, status, property_type, listing_intent, " +
+  "id, reference, title, description, status, property_type, listing_intent, " +
   "rent_amount_minor, rent_period, rent_negotiable, caution_deposit_minor, " +
   "service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, " +
   "agreement_fee_minor, total_move_in_cost_minor, minimum_tenancy_months, available_from, " +
@@ -254,6 +261,7 @@ const LISTING_SELECT =
 
 type ListingWithChildren = {
   id: string;
+  reference: string | null;
   title: string;
   description: string | null;
   status: ListingStatus;
@@ -394,6 +402,7 @@ function toSummary(row: ListingWithChildren): ListingSummary {
   const headline = headlinePrice(row);
   return {
     id: row.id,
+    reference: row.reference,
     title: row.title,
     status: row.status,
     propertyType: row.property_type,

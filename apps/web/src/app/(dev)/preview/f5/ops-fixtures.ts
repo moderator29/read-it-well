@@ -37,6 +37,9 @@ export const AGENT_PROFILE = {
 export const AGENT_LISTINGS: ListingSummary[] = [
   {
     id: "00000000-0000-4000-8000-00000000a101",
+    /* Published, so the database has issued a code. The three below are not,
+       so they carry none, which is the state the row has to draw honestly. */
+    reference: "VL-7K4MQP",
     title: "Luxury 2 bedroom apartment with a sea view",
     status: "PUBLISHED",
     propertyType: "apartment",
@@ -53,6 +56,7 @@ export const AGENT_LISTINGS: ListingSummary[] = [
   },
   {
     id: "00000000-0000-4000-8000-00000000a102",
+    reference: null,
     title: "Modern 3 bedroom duplex",
     status: "UNDER_REVIEW",
     propertyType: "home",
@@ -69,6 +73,7 @@ export const AGENT_LISTINGS: ListingSummary[] = [
   },
   {
     id: "00000000-0000-4000-8000-00000000a103",
+    reference: null,
     title: "Serviced studio",
     status: "DRAFT",
     propertyType: "apartment",
@@ -85,6 +90,7 @@ export const AGENT_LISTINGS: ListingSummary[] = [
   },
   {
     id: "00000000-0000-4000-8000-00000000a104",
+    reference: null,
     title: "Four bedroom terrace with a generator house",
     status: "MORE_INFO_REQUIRED",
     propertyType: "home",

@@ -746,6 +746,11 @@ export type QualityCheck = { label: string; pass: boolean; detail: string };
 
 export type ListingReviewView = {
   id: string;
+  /**
+   * The code a person reads out. Null until the listing is published, because
+   * the database issues it at that moment and not before.
+   */
+  reference: string | null;
   title: string;
   status: Database["public"]["Enums"]["listing_status"];
   propertyType: Database["public"]["Enums"]["property_type"];
@@ -768,6 +773,50 @@ export type ListingReviewView = {
   bathrooms: number;
   agentName: string | null;
   photos: string[];
+  /**
+   * THE WALKTHROUGHS, SIGNED.
+   *
+   * `listing-videos` is a private bucket, so a reviewer cannot watch one from
+   * a public URL. The signing is batched for the whole queue in one storage
+   * call, the same shape the agent document read already uses.
+   */
+  videos: { url: string | null; posterUrl: string | null; durationSeconds: number | null }[];
+  /**
+   * WHAT THE LISTER ACTUALLY ANSWERED ABOUT LIGHT AND WATER.
+   *
+   * The pipeline audit section 2.4: this read named neither the power nor the
+   * water columns, so a reviewer was approving "Band A, eighteen hours of
+   * generator" without ever being shown it, on a market where the utilities
+   * are the part that decides whether anybody wants the place.
+   */
+  utilities: {
+    powerGrid: Database["public"]["Enums"]["power_grid"] | null;
+    powerBackup: Database["public"]["Enums"]["power_backup"] | null;
+    powerBackupHours: number | null;
+    waterSupply: Database["public"]["Enums"]["water_supply"] | null;
+    prepaidMeter: boolean | null;
+  };
+  /**
+   * The physical facts. `sizeSqm` is the whole specification of a plot of
+   * land, so a land submission cannot be judged without it.
+   */
+  facts: {
+    sizeSqm: number | null;
+    toilets: number | null;
+    parkingSpaces: number | null;
+    floor: number | null;
+    totalFloors: number | null;
+    condition: Database["public"]["Enums"]["build_condition"] | null;
+    yearBuilt: number | null;
+    furnished: Database["public"]["Enums"]["furnishing"] | null;
+  };
+  /**
+   * The gate, which a lister fills in privately and which never reaches a
+   * public page. The reviewer sees THAT it was answered and not WHAT was
+   * answered: the security desk number and the access code are the keys to
+   * somebody's home, and a console does not need them to judge a listing.
+   */
+  access: { estateName: string | null; answered: number };
   amenityCount: number;
   submittedAt: string | null;
   reviewedAt: string | null;
@@ -777,10 +826,11 @@ export type ListingReviewView = {
 };
 
 const LISTING_COLUMNS =
-  "id, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, review_notes, created_at, agents ( display_name ), listing_photos ( storage_path, position ), listing_amenities ( amenity_id )";
+  "id, reference, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, review_notes, created_at, power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, size_sqm, toilets, parking_spaces, floor, total_floors, condition, year_built, furnished, agents ( display_name ), listing_photos ( storage_path, position ), listing_videos ( storage_path, poster_path, duration_seconds, position ), listing_amenities ( amenity_id ), listing_access ( estate_name, gate_directions, security_phone, access_code )";
 
 type ListingRow = {
   id: string;
+  reference: string | null;
   title: string;
   status: Database["public"]["Enums"]["listing_status"];
   property_type: Database["public"]["Enums"]["property_type"];
@@ -810,9 +860,34 @@ type ListingRow = {
   reviewed_at: string | null;
   review_notes: string | null;
   created_at: string;
+  power_grid: Database["public"]["Enums"]["power_grid"] | null;
+  power_backup: Database["public"]["Enums"]["power_backup"] | null;
+  power_backup_hours: number | null;
+  water_supply: Database["public"]["Enums"]["water_supply"] | null;
+  prepaid_meter: boolean | null;
+  size_sqm: number | null;
+  toilets: number | null;
+  parking_spaces: number | null;
+  floor: number | null;
+  total_floors: number | null;
+  condition: Database["public"]["Enums"]["build_condition"] | null;
+  year_built: number | null;
+  furnished: Database["public"]["Enums"]["furnishing"] | null;
   agents: { display_name: string } | null;
   listing_photos: { storage_path: string; position: number }[];
+  listing_videos: {
+    storage_path: string;
+    poster_path: string | null;
+    duration_seconds: number | null;
+    position: number;
+  }[];
   listing_amenities: { amenity_id: string }[];
+  listing_access: {
+    estate_name: string | null;
+    gate_directions: string | null;
+    security_phone: string | null;
+    access_code: string | null;
+  } | null;
 };
 
 const SMALL_WORDS = new Set([
@@ -912,7 +987,41 @@ function photoUrl(admin: SupabaseClient<Database>, path: string): string {
   return admin.storage.from("listing-photos").getPublicUrl(path).data.publicUrl;
 }
 
-function toListingView(admin: SupabaseClient<Database>, row: ListingRow): ListingReviewView {
+/**
+ * The walkthroughs for a whole queue, signed in one storage call.
+ *
+ * `listing-videos` is private and the reviewer is the first human in the
+ * product who can watch one, so this is where the signing starts. A failure to
+ * sign resolves to a null url rather than to an error: a queue that cannot be
+ * worked because storage was slow is worse than a card that says the
+ * walkthrough could not be loaded.
+ */
+async function signListingVideos(
+  admin: SupabaseClient<Database>,
+  rows: ListingRow[],
+): Promise<Map<string, string>> {
+  const paths = [...new Set(rows.flatMap((row) => row.listing_videos.map((v) => v.storage_path)))];
+  const signed = new Map<string, string>();
+  if (paths.length === 0) return signed;
+  try {
+    const { data } = await admin.storage
+      .from("listing-videos")
+      .createSignedUrls(paths, DOCUMENT_URL_TTL_SECONDS);
+    paths.forEach((path, index) => {
+      const url = data?.[index]?.signedUrl;
+      if (url) signed.set(path, url);
+    });
+  } catch {
+    /* Nothing signed, every card says so in words. */
+  }
+  return signed;
+}
+
+function toListingView(
+  admin: SupabaseClient<Database>,
+  row: ListingRow,
+  signedVideos: Map<string, string>,
+): ListingReviewView {
   const headline = headlinePrice(row);
   const parts = moveInParts(row);
   const total = moveInTotal(row);
@@ -920,8 +1029,27 @@ function toListingView(admin: SupabaseClient<Database>, row: ListingRow): Listin
     .sort((a, b) => a.position - b.position)
     .map((photo) => photoUrl(admin, photo.storage_path));
 
+  const videos = [...row.listing_videos]
+    .sort((a, b) => a.position - b.position)
+    .map((video) => ({
+      url: signedVideos.get(video.storage_path) ?? null,
+      /* The poster lives in the PUBLIC photo bucket, so it needs no signature
+         and keeps working after the video URL expires. */
+      posterUrl: video.poster_path ? photoUrl(admin, video.poster_path) : null,
+      durationSeconds: video.duration_seconds,
+    }));
+
+  const access = row.listing_access;
+  const answered = [
+    access?.estate_name,
+    access?.gate_directions,
+    access?.security_phone,
+    access?.access_code,
+  ].filter((value) => Boolean(value && value.trim())).length;
+
   return {
     id: row.id,
+    reference: row.reference,
     title: row.title,
     status: row.status,
     propertyType: row.property_type,
@@ -943,6 +1071,28 @@ function toListingView(admin: SupabaseClient<Database>, row: ListingRow): Listin
     bathrooms: row.bathrooms,
     agentName: row.agents?.display_name ?? null,
     photos,
+    videos,
+    utilities: {
+      powerGrid: row.power_grid,
+      powerBackup: row.power_backup,
+      powerBackupHours: row.power_backup_hours,
+      waterSupply: row.water_supply,
+      prepaidMeter: row.prepaid_meter,
+    },
+    facts: {
+      sizeSqm: row.size_sqm,
+      toilets: row.toilets,
+      parkingSpaces: row.parking_spaces,
+      floor: row.floor,
+      totalFloors: row.total_floors,
+      condition: row.condition,
+      yearBuilt: row.year_built,
+      furnished: row.furnished,
+    },
+    /* The estate NAME is a public-shaped fact and the other three are keys to
+       a home. Only the name and a count of what was answered cross into the
+       console. */
+    access: { estateName: access?.estate_name ?? null, answered },
     amenityCount: row.listing_amenities.length,
     submittedAt: row.submitted_at,
     reviewedAt: row.reviewed_at,
@@ -1014,11 +1164,14 @@ export async function getListingSubmissions(
     ]);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
+    const rows = [...(waiting.data ?? []), ...(decided.data ?? [])] as ListingRow[];
+    const signedVideos = await signListingVideos(admin, rows);
+
     return {
       state: "ok",
       data: {
-        waiting: (waiting.data ?? []).map((row) => toListingView(admin, row)),
-        decided: (decided.data ?? []).map((row) => toListingView(admin, row)),
+        waiting: (waiting.data ?? []).map((row) => toListingView(admin, row, signedVideos)),
+        decided: (decided.data ?? []).map((row) => toListingView(admin, row, signedVideos)),
       },
     };
   } catch {

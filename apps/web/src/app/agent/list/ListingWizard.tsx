@@ -414,6 +414,7 @@ function Counter({
 
 export function ListingWizard({
   copy,
+  reference,
   locale,
   userId,
   states,
@@ -422,6 +423,10 @@ export function ListingWizard({
   canPersist,
 }: {
   copy: WizardCopy;
+  /* Its own slice rather than a key inside `agentListings`, because the same
+     words are read by the search page, the public listing page and the
+     lister's console, and one namespace owns them. */
+  reference: Dictionary["listingReference"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
@@ -1014,6 +1019,22 @@ export function ListingWizard({
              entry and would be wrong here. */
           { label: copy.submitted.another, href: "/agent/list?new=1", tone: "quiet" },
         ]}
+        /*
+         * THE LISTING ID, AND WHY IT IS A SENTENCE HERE RATHER THAN A CODE.
+         *
+         * GOVERNING-08 screen four prints the code on this exact screen, under
+         * "Your listing ID", with a Copy control. It cannot, and the render is
+         * translated rather than copied: a code is a PUBLIC handle and this
+         * listing has not been published. The database issues one at the
+         * moment it goes live, so printing anything here would mean either
+         * inventing a code or drawing an empty box, and rule 15 forbids the
+         * first while the second is worse than saying nothing.
+         *
+         * So the panel's promise is kept in words and the code appears the
+         * moment it exists: on the workspace row, on the public page, in the
+         * notification and in the email.
+         */
+        footnote={reference.issuedWhenLive}
       />
     );
   }

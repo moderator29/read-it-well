@@ -283,6 +283,7 @@ function UndoStrip({
 
 function ListingRow({
   t,
+  reference,
   listing,
   locale,
   error,
@@ -290,6 +291,9 @@ function ListingRow({
   onDelete,
 }: {
   t: WorkspaceCopy;
+  /* The listing code's own namespace, shared with the search page and the
+     public listing page so one set of words governs the code everywhere. */
+  reference: Dictionary["listingReference"];
   listing: ListingSummary;
   locale: Locale;
   /** A delete the server refused. The row is back and this says why. */
@@ -381,6 +385,20 @@ function ListingRow({
               ? t.workspace.photoCountOne
               : fill(t.workspace.photoCount, { count: listing.photoCount })}
           </p>
+
+          {/* THE CODE, ON THE ROW, the moment the listing has one. This is
+              where a lister will be standing when somebody asks them for it
+              over the phone. A listing in review has none, because the
+              database issues it at publish, and an absent code draws nothing
+              rather than an empty field. */}
+          {listing.reference && (
+            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              {reference.label}{" "}
+              <span className="nf-numeric tracking-[0.08em] text-[var(--nf-content-secondary)]">
+                {listing.reference}
+              </span>
+            </p>
+          )}
         </div>
       </div>
 
@@ -457,11 +475,13 @@ function ListingRow({
 
 export function ListingsWorkspace({
   t,
+  reference,
   listings: all,
   locale,
   query = "",
 }: {
   t: WorkspaceCopy;
+  reference: Dictionary["listingReference"];
   listings: ListingSummary[];
   locale: Locale;
   /** The top bar's search term. Narrows by title; empty shows everything. */
@@ -593,6 +613,7 @@ export function ListingsWorkspace({
                   <ListingRow
                     key={listing.id}
                     t={t}
+                    reference={reference}
                     listing={listing}
                     locale={locale}
                     error={errors[listing.id]}

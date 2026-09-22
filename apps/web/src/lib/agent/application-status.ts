@@ -7,7 +7,7 @@ import type { AgentApplicationStatus } from "./types";
  * The caller's own agent application, read through their own RLS client.
  *
  * `/agents/status` used to render a fabricated application to anybody who
- * opened it: reference NF-AGT-00042, submitted 2026-05-24, status APPROVED,
+ * opened it: reference VL-AGT-00042, submitted 2026-05-24, status APPROVED,
  * from a seed object called "Demo Agent". A stranger who had never applied for
  * anything was shown an approved application with a reference number support
  * would then be asked about. That is DEAD_ENDS M10 and it breaks owner rules 13
@@ -21,7 +21,7 @@ import type { AgentApplicationStatus } from "./types";
  */
 
 export type ApplicationView = {
-  /** The NF-AGT reference support asks for. */
+  /** The VL-AGT reference support asks for. */
   reference: string;
   status: AgentApplicationStatus;
   /** ISO timestamp, or null for an application still in draft. */
