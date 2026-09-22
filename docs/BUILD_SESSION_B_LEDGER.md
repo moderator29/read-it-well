@@ -469,25 +469,27 @@ server.
 |---|---|---|---|
 | Logo mark | 74 x 70 src = 44 x 42 css | 44 x 42 | yes |
 | Wordmark | 166 src wide = 99 css | 99 x 22 | yes |
+| Lockup glow, sampled outward from the glyph edge (blue channel over the ground: render ground #010518, built #00041f) | under the wordmark +57 / +9 / 0 at 2 / 6 / 12 css px; under the mark +35 / +16 / +5; over the mark +87 / +36 / +10 | under the wordmark +61 / +23 / +8; under the mark +55 / +17 / +6; over the mark +43 / +10 / 0 (two drop shadows, 2px at 70% and 8px at 50% of the brand blue) | yes on average: the render's halo is uneven (strongest over the mark, where its art glows) and ours is even, so ours is 20 over at 2px under the mark and 44 under at 2px over it; every other point within 14. Within the render's own spread round the lockup |
 | Headline line 1 "Two worlds." | cap 46 src = 27.5 css; width 355 src = 212 css; white, heavy | Poppins 700 37px, 212 wide | yes (face is Poppins, the brand display face; the render's reads like SF Display) |
 | Headline line 2 "One platform." | 419 src = 250 css; the gradient runs DOWN the letters, the same at every x (sampled in six bands): stroke tops #b6e9fa, middles #52d4fa, feet #0294f9 | 249 wide; built top #9de9ff, middle #66dcff, feet #18a1fe (same method on the 2x shot), from the state cyan and brand blue mixed in sRGB | yes. The lead's note read it as cyan to blue left to right; the samples show it vertical, and the samples decided |
 | Baseline spacing | 61 src = 36.5 css | line box 36.5 | yes |
 | Line 1 baseline from mark top | 107 css | 107 css | yes |
-| Sub-line | 2 lines, 224 css first line, lines 21.5 apart, #88cafa brightest stroke | 14.5px, 223 css first line, 21.5 line, quiet blue at 40% into primary | yes |
+| Sub-line | 2 lines, 224 css first line, lines 21.5 apart, regular weight (stroke 2 src px, 1.2 css), #88cafa brightest stroke | Inter 400 14.5px, 223 css first line, 21.5 line, quiet blue at 40% into primary | yes |
 | Sub cap top to line 2 baseline | 27 css | 13 css margin + half leading = 27 | yes |
 | Stage top (tile tops) from mark top | 262 css | 262 (scene top 253 + 24.5 inside the crop, minus 16) | yes |
 | Stage art | the render's | the render's own pixels, 636 x 530 src drawn 380 x 317 | yes, identical art |
 | Tile radius, rim, thickness, glass, pillars, plinth, reflection | as drawn | as drawn (cropped) | yes |
 | PROPERTY / STAYS | cap 15 src = 9 css, 116 src = 69 css wide, pale ice, glow | 11px, 0.19em, 70 css wide, ice with glow, turned with the tile | yes |
-| Coin size and place | in a 3x zoom of the stage: bounding box x 85 to 320, y 60 to 360 (zoom px, 3 per css px), overlapping the plinth's front rim, thick rim showing on the lower left | 114 css box at (49.5%, 62.8%) of the stage, leaning 34 deg, turned 62 deg: bounding box x 80 to 325, y 65 to 360 in the same zoom, left rim showing | yes, within 2 css px on every side (`welcome-coin-render-vs-built-3x.jpg`) |
-| Coin face | a clear dark glass face, a white-cyan rim, the bars mark lit | the pack's `flip-coin` face (the drawer render's coin) lifted 25%, a lit white-cyan ring, an 11-layer lit edge | close, not identical: the face art is the drawer render's coin, so its glass is a little lighter and its edge reads as fine ridges at 3x where the render's is one smooth band |
+| Coin size and place | in a 3x zoom of the stage (3 zoom px per css px): bounding box x 85 to 320, y 60 to 355, overlapping the plinth's front rim, rim low on the left | 101 css face at (49.8%, 62.4%) of the stage, leaning 20 deg, turned 52 deg and tipped 12: bounding box x 85 to 325, y 60 to 350 in the same zoom | yes, within 2 css px on every side (`welcome-coin-render-vs-built-3x.jpg`) |
+| Coin face | this render's coin: front face an ellipse, centre (515, 884) src, semi axes 80 and 52, long axis 20 deg from vertical | THIS render's face, cut by the crop script (`coin-face.webp`, 160 px): un-projected from that ellipse to a circle, then turned back by the live coin to the drawn pose (`welcome-coin-face-crop.jpg`) | yes: the same pixels |
+| Coin rim | a smooth band about 20 src px (12 css) showing low on the left, deep blue with white lips | 15 discs 1px apart in the brand blue, the outer two with a lit lip, 16 css thick, tipped back 12 deg so it shows low on the left | close: one smooth band now (no ridges); ours is a flat colour where the render's band carries a highlight streak |
 | Coin motion | still in the render | turns once every 7 s, rests at the drawn pose 45% of the cycle; reduced motion holds the pose | by design |
 | Dots | 4, pitch 23 css, active 9.5, rest 7 | 4, pitch 28 css (44 tall buttons), active 10, rest 7 | pitch wider on purpose for the tap |
 | Dots centre from mark top | 583 css | 581 | yes |
 | Button | 323 x 56 css, 34 in from each side, top 620 below mark top | 324 x 56, x 33, top 618 | yes |
 | Button fill, down the centre | #047bfb top, #002cdb a third down, #0027d1 two thirds, #026dfa at the foot | #3c9dfb top (the 1px rim sits in the sample), #0058d3, #0072f1, #0084fe: GLOW_IDENTITY's lit primary (d01a5d7) with its radial cyan lift low in the middle | close: the render's core is a more violet blue (green channel 44) than any brand token mix can reach without a layer-1 token (ours 88); the lightness and the bright top and bottom bands match |
 | Button edge and rim | lit all round: #e4feff top, #d6faff bottom, #0180fb sides | 1px border: cyan 22% into white on top, 32% into white at the foot, brand 70% into cyan on the sides; inset 1px rim | yes |
-| Button bloom | below the bar: #0225b8 at 6px, #001269 at 15px, ground by 30px; little above | #003490 at 6px, #001651 at 15px, ground by 30px; a faint 10px lift above | yes (ours slightly less saturated at 6px) |
+| Button bloom, blue channel over the ground below the bar (render ground #000823, built #000830) | centre: +136 / +65 / +25 at 4 / 10 / 20 css px; halfway to the ends: +64 / +24 / +2. A pool under the middle, not a band | centre +129 / +77 / +20; halfway +65 / +22 / +1 (a short even shadow plus a radial pool under the middle) | yes, within 12 at every point. Hue: the render's pool is a deeper violet blue (#0120ab at 4px) than any brand token reaches (ours #0044b1); no layer-1 token may be used |
 | Button label | ~16px medium, "Get Started" 81 css wide, arrow | 16px 500, arrow 20px | yes |
 | Button radius | ~10 css | 14 (`--nf-radius-control`) | shape law, recorded |
 | Skip | centre 705 css below mark top, small, quiet (#345fb7 mean) | 13px, quiet blue at 78%, 44px tap, centre 702 | yes |
@@ -507,6 +509,22 @@ second headline line re-sampled in bands, which showed a vertical ice to cyan
 to electric gradient, now built; the coin matched in a 3x zoom to within 2 css
 px and turned the other way so its left rim shows, as drawn. Every proof in
 `docs/design/proofs/session-b/welcome/` was re-shot after these changes.
+
+Closing audit round (the audit's three items): the lockup halo sampled at 2,
+6 and 12 css px from the glyph edges and matched (row above); the coin now
+turns THIS render's own face, cut by `scripts/design/session-b-crops.mjs`
+(un-projected from the drawn ellipse, see `SOURCES.md`), in the drawn pose;
+the button's bloom rebuilt as the pool the render draws, sampled at 4, 10 and
+20 css px at the centre and halfway out. Lead rulings: R-A (type at the
+render's size, floor 11px) holds: every role here is at its measured size and
+the smallest is the tile label at 11px; R-B holds: the button is the render's
+56px, the dots and Skip are raised to 44px tap targets only; R-C holds: the
+button is the render's 323 css wide; R-D: the sweep reports 0 at or above
+0.35; R-E and R-F do not apply; R-G: the fixture harness is committed at
+`app/(dev)/preview/session-b/welcome/page.tsx` (member, `?viewer=guest`,
+`?viewer=done`), behind the preview gate, and the member proof now comes from
+it rather than Session A's `/preview/f1/welcome`. All proofs re-shot after the
+last change.
 
 Resolution, honestly: the stage is 636 source px for 380 css, 1.67 source px
 per css px. At 2x it is sharp; at 3x it is visibly softer than the live text
@@ -531,7 +549,8 @@ BREACHES 0, WORTH AN EYE 0. (The first run flagged the four dot buttons at
 
 - Signed-in proof: no test account may be created, so the member path (slides,
   Continue, the question) is proved by `planFirstRun`'s tests and by the
-  preview harness `/preview/f1/welcome` (fixture props), not by a live session.
+  committed harness `/preview/session-b/welcome` (fixture props), not by a
+  live session.
 - Sign in / sign up first-time routing (W1, W2) and the native first launch
   (W3) are requests, not built.
 - The translations for the new keys in ha, yo and ig are mine and need a

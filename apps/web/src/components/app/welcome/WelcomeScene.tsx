@@ -15,9 +15,10 @@ import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
  *                real text here, so they translate and read aloud.
  *   the coin     the drawn coin's body was retouched out and a CSS 3D coin
  *                stands exactly where it stood, and it turns. Its faces are
- *                the pack's `flip-coin`, the same two-faced glass coin cut
- *                from the drawer render. `prefers-reduced-motion` holds it at
- *                the render's mid-turn pose.
+ *                THIS render's coin face, un-projected from its mid-turn
+ *                ellipse to a circle (`coin-face.webp`), so at rest the coin
+ *                turns it back to the pose it was drawn in.
+ *                `prefers-reduced-motion` holds it at that pose.
  *   the objects  slide one carries the render's own house and hotel (the
  *                hotel's HOTEL sign retouched blank: no lettering in an
  *                object). Slides two to four use the same stage with the
@@ -41,18 +42,18 @@ export function WelcomeCoin() {
     <span className="nf-gs-coin">
       <span className="nf-gs-coin__tilt">
         <span className="nf-gs-coin__spin">
-          {Array.from({ length: 11 }, (_, i) => (
+          {Array.from({ length: 15 }, (_, i) => (
             <span
               key={i}
               className="nf-gs-coin__edge"
-              style={{ "--nf-gs-layer": i - 5 } as React.CSSProperties}
+              style={{ "--nf-gs-layer": i - 7 } as React.CSSProperties}
             />
           ))}
           <span className="nf-gs-coin__face nf-gs-coin__face--front">
-            <Image src="/brand/glass/flip-coin.png" alt="" width={256} height={256} priority />
+            <Image src="/brand/session-b/welcome/coin-face.webp" alt="" width={160} height={160} priority />
           </span>
           <span className="nf-gs-coin__face nf-gs-coin__face--back">
-            <Image src="/brand/glass/flip-coin.png" alt="" width={256} height={256} />
+            <Image src="/brand/session-b/welcome/coin-face.webp" alt="" width={160} height={160} />
           </span>
         </span>
       </span>
