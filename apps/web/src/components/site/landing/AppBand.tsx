@@ -101,7 +101,11 @@ export function AppBand({
             <div className="nf-landing-phone nf-landing-phone--front">
               <div className="nf-landing-phone-screen nf-landing-phone-screen--brand">
                 <Logo size={46} wordSize={20} />
-                <span className="nf-landing-phone-slogan">{t.landing.slogan}</span>
+                {/* `appMockLine`, not `slogan`: this is a picture of the app on the
+                    marketing front page, and it was the last surface still
+                    showing the retired positioning to a visitor. The auth
+                    lockup keeps `slogan` until the founder rules on it. */}
+                <span className="nf-landing-phone-slogan">{t.landing.appMockLine}</span>
               </div>
             </div>
           </div>

@@ -674,13 +674,36 @@ export const en = {
       },
     },
     /*
-     * The slogan, and it is deliberately not translated. "Real Estate
-     * reimagined!" is the founder's positioning line and it works like the
-     * wordmark: one form, every locale, the way Nike never translates Just Do
-     * It. It sits beside the logo and in metadata, never as a headline, and
-     * the exclamation mark is part of it as written.
+     * The slogan, deliberately not translated, one form in every locale the
+     * way Nike never translates Just Do It.
+     *
+     * IT IS NOW READ BY EXACTLY ONE SURFACE: the lockup on the auth screens.
+     * It used to be read by three. The metadata moved to the approved position
+     * on 22 September, and the landing's phone mock moved to `appMockLine`
+     * below, because that mock is a picture OF THE APP on the marketing front
+     * page and it was the last place the retired positioning still showed to a
+     * visitor.
+     *
+     * WHETHER THE AUTH LOCKUP KEEPS IT IS THE FOUNDER'S CALL AND IT IS IN THE
+     * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
+     * comment used to say so in those words. The new one is "Rent, buy or
+     * stay. Without the runaround." A slogan beside a wordmark is a brand
+     * decision rather than a copy fix, so it is not changed here on a worker's
+     * initiative; splitting the key is what lets it change in one line when he
+     * rules, without dragging the auth screen along by accident.
      */
     slogan: "Real Estate reimagined!",
+    /*
+     * The line inside the landing's phone mock, which is a picture of the
+     * product shown to somebody who has never opened it. It says what the
+     * product is FOR, which since 22 September is the approved position. It is
+     * its own key rather than a reference to `face.hero` so that the mock can
+     * be composed for its own narrow box without editing the headline, and its
+     * own key rather than `slogan` so the auth lockup can hold a different
+     * decision. Same three words as the headline and the search control, which
+     * `headline-coupling.test.ts` holds.
+     */
+    appMockLine: "Rent, buy or stay. Without the runaround.",
     /*
      * The property card's own words. Small on purpose: a card is read at a
      * glance and every one of these is one or two words on a 390px grid cell.

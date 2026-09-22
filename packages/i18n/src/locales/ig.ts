@@ -458,6 +458,10 @@ export const ig: Dictionary = withFallback({
       },
     },
     slogan: "Real Estate reimagined!",
+    /* Not translated, like the slogan and for the same reason: it is the
+       approved position and it carries the same three words as the search
+       control on every locale. */
+    appMockLine: "Rent, buy or stay. Without the runaround.",
     card: {
       moveIn: "maka mbata",
       rent: "Ego ụlọ",
