@@ -6,6 +6,8 @@ import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { PaystackCheckout } from "@/components/app/payments/PaystackCheckout";
+import { paymentState } from "@/lib/payments/payment-state";
 import { SavedCardPicker } from "@/components/app/payments/SavedCardPicker";
 import { preselectedCardId } from "@/components/app/payments/format";
 import { savedCardMoment, type SavedCardPhase } from "@/components/app/payments/saved-card-copy";
@@ -54,9 +56,12 @@ type Phase =
   | { kind: "idle" }
   | { kind: "opening" }
   | { kind: "saved-card-charging" }
-  | { kind: "saved-card-hosted"; authorizationUrl: string }
+  /* Both card paths carry the same three things, because they are the same
+     transaction resumed the same way: see the note on the stay checkout's
+     Phase. The 3DS one keeps the caller's original reference. */
+  | { kind: "saved-card-hosted"; authorizationUrl: string; accessCode: string; reference: string }
   | { kind: "card-starting" }
-  | { kind: "card-redirecting" }
+  | { kind: "checkout-open"; accessCode: string; reference: string; authorizationUrl: string }
   | { kind: "wallet-paying" }
   | { kind: "paid" }
   | { kind: "stalled"; method: "card" | "wallet" }
@@ -126,7 +131,7 @@ export function PayPanel({
     phase.kind === "opening" ||
     phase.kind === "saved-card-charging" ||
     phase.kind === "card-starting" ||
-    phase.kind === "card-redirecting" ||
+    phase.kind === "checkout-open" ||
     phase.kind === "wallet-paying";
 
   const clearTimers = () => {
@@ -173,7 +178,14 @@ export function PayPanel({
       return;
     }
     if (result.data.kind === "needs_hosted_checkout") {
-      setPhase({ kind: "saved-card-hosted", authorizationUrl: result.data.authorizationUrl });
+      /* The bank wants to authenticate. Same reference, same transaction,
+         opened in our own window rather than on the bank's own page. */
+      setPhase({
+        kind: "saved-card-hosted",
+        authorizationUrl: result.data.authorizationUrl,
+        accessCode: result.data.accessCode,
+        reference: result.data.reference,
+      });
       return;
     }
     setPhase({ kind: "paid" });
@@ -187,8 +199,16 @@ export function PayPanel({
     setPhase({ kind: "card-starting" });
     const result = await startCardCheckout({ bookingId, idempotencyKey: cardKey });
     if (result.ok && result.data) {
-      setPhase({ kind: "card-redirecting" });
-      window.location.assign(result.data.authorizationUrl);
+      /* The clocks stop here: they covered the gap to a navigation that no
+         longer happens, and leaving them running would call the payment
+         stalled while the person was typing their PIN. */
+      clearTimers();
+      setPhase({
+        kind: "checkout-open",
+        accessCode: result.data.accessCode,
+        reference: result.data.reference,
+        authorizationUrl: result.data.authorizationUrl,
+      });
       return;
     }
     clearTimers();
@@ -260,7 +280,7 @@ export function PayPanel({
                 full
                 onClick={payByCard}
                 disabled={busy}
-                loading={phase.kind === "card-starting" || phase.kind === "card-redirecting"}
+                loading={phase.kind === "card-starting"}
               >
                 Pay by card
               </Button>
@@ -329,7 +349,7 @@ export function PayPanel({
             variant="primary"
             onClick={payByCard}
             disabled={busy}
-            loading={phase.kind === "card-starting" || phase.kind === "card-redirecting"}
+            loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
             Pay by card
@@ -369,6 +389,33 @@ export function PayPanel({
 
   return (
     <>
+      {/*
+        THE CHECKOUT, ON THIS PAGE. The identical component the stay checkout
+        uses, for the identical reason: rent was the other half of the same
+        pair of departures, and a second implementation of this would be a
+        second thing to get wrong.
+      */}
+      {phase.kind === "checkout-open" && (
+        <PaystackCheckout
+          key={phase.reference}
+          accessCode={phase.accessCode}
+          reference={phase.reference}
+          authorizationUrl={phase.authorizationUrl}
+          amountMinor={view.totalMinor}
+          locale={view.locale}
+          confirm={async (reference) => {
+            const state = await paymentState(reference);
+            return state.ok ? state.data : "pending";
+          }}
+          onPaid={() => {
+            setPhase({ kind: "paid" });
+            router.refresh();
+          }}
+          onCancelled={() => setPhase({ kind: "idle" })}
+          onFailed={(message) => setPhase({ kind: "error", message })}
+        />
+      )}
+
       <ResultSheet
         open={phase.kind === "paid"}
         onOpenChange={() => setPhase({ kind: "idle" })}
@@ -423,7 +470,16 @@ export function PayPanel({
           {
             label: "Continue to your bank",
             onClick: () => {
-              if (phase.kind === "saved-card-hosted") window.location.assign(phase.authorizationUrl);
+              /* The bank's page renders inside the checkout iframe, on this
+                 page, under the same reference. */
+              if (phase.kind === "saved-card-hosted") {
+                setPhase({
+                  kind: "checkout-open",
+                  accessCode: phase.accessCode,
+                  reference: phase.reference,
+                  authorizationUrl: phase.authorizationUrl,
+                });
+              }
             },
             tone: "primary",
           },

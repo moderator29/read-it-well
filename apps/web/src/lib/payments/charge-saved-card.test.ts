@@ -163,6 +163,17 @@ describe("the 3-D Secure fallback carries both addresses for one transaction", (
         kind: "needs_hosted_checkout",
         authorizationUrl: HOSTED,
         accessCode: "abc123xyz",
+        /*
+         * THE REFERENCE TRAVELS WITH THE CHALLENGE NOW, and it is the
+         * caller's own, not a new one. The panel needs it to ask our own
+         * database whether the challenge settled, because the in-app checkout
+         * polls `paymentState` rather than navigating away and hoping. The
+         * assertion below already proved Paystack was handed the declined
+         * reference; this proves the CALLER is handed the same one, which is
+         * what stops the panel from polling a reference nothing will ever
+         * write.
+         */
+        reference: PARAMS.reference,
       },
     });
     expect(seam.initializeTransaction).toHaveBeenCalledTimes(1);

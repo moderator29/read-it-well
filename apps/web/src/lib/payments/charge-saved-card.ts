@@ -36,10 +36,18 @@ import {
 
 export type ChargeSavedCardOutcome =
   | { kind: "charged" }
-  /* The bank asked to authenticate. Both addresses for the SAME reference are
-     carried: the hosted URL, and the access code that resumes that identical
-     transaction in a checkout on our own page. Neither mints a second charge. */
-  | { kind: "needs_hosted_checkout"; authorizationUrl: string; accessCode: string };
+  /* The bank asked to authenticate. Three things for the SAME transaction are
+     carried: the hosted URL, the access code that resumes that identical
+     transaction in a checkout on our own page, and THE REFERENCE, which the
+     panel needs in order to ask our own database whether the challenge
+     settled. None of them mints a second charge, and the reference is the
+     caller's own, unchanged: this path never opens a new one. */
+  | {
+      kind: "needs_hosted_checkout";
+      authorizationUrl: string;
+      accessCode: string;
+      reference: string;
+    };
 
 const NOT_REUSABLE_RE = /not\s+reusable|reusable/i;
 
@@ -208,6 +216,7 @@ export async function chargeSavedCard(params: {
       kind: "needs_hosted_checkout",
       authorizationUrl: tx.authorizationUrl,
       accessCode: tx.accessCode,
+      reference: params.reference,
     });
   } catch (e) {
     const said =

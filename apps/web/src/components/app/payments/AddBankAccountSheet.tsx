@@ -47,6 +47,18 @@ export function AddBankAccountSheet({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [reload, setReload] = useState(0);
+  /* ONE KEY PER SHEET. Saving an account is a paid resolution at Paystack and
+     the allowance is five an hour, so a dropped response followed by a second
+     tap must replay the first answer rather than spend a second slot. The key
+     is minted once per mount: a person who closes the sheet and opens it again
+     is deliberately starting over and gets a fresh one. */
+  const [idempotencyKey] = useState(() => {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      return `k-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+    }
+  });
 
   useEffect(() => {
     let live = true;
@@ -86,7 +98,11 @@ export function AddBankAccountSheet({
     if (!bank) return;
     setError(null);
     startTransition(async () => {
-      const result = await addBankAccount({ bankCode: bank.code, accountNumber: digits });
+      const result = await addBankAccount({
+        bankCode: bank.code,
+        accountNumber: digits,
+        idempotencyKey,
+      });
       if (!result.ok) {
         setError(result.error);
         return;

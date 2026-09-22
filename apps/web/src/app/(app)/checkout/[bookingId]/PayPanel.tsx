@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { PaystackCheckout } from "@/components/app/payments/PaystackCheckout";
+import { paymentState } from "@/lib/payments/payment-state";
 import { SavedCardPicker } from "@/components/app/payments/SavedCardPicker";
 import { preselectedCardId } from "@/components/app/payments/format";
 import { savedCardMoment, type SavedCardPhase } from "@/components/app/payments/saved-card-copy";
@@ -51,11 +53,17 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * AND NEITHER PATH HAD A TIMEOUT.
  *
  * If `startCardCheckout` hung, `busy` stayed true forever, BOTH pay buttons
- * stayed disabled with no explanation, and there was no cancel. If
- * `window.location.assign` was slow or blocked, `card-redirecting` spun
- * indefinitely. On a Lagos network neither is an edge case. There is a soft
- * message at ten seconds and a terminal state at twenty-five, and both say
- * whether the money has moved.
+ * stayed disabled with no explanation, and there was no cancel. On a Lagos
+ * network that is not an edge case. There is a soft message at ten seconds
+ * and a terminal state at twenty-five, and both say whether the money moved.
+ *
+ * THE SECOND HALF OF THAT PARAGRAPH IS NOW OBSOLETE AND HAS BEEN REMOVED
+ * RATHER THAN LEFT TO MISLEAD. It described `window.location.assign` being
+ * slow or blocked, and `card-redirecting` spinning indefinitely behind it.
+ * Neither exists: there is no navigation, and `checkout-open` hands the wait
+ * to `PaystackCheckout`, which has its own clock and its own honest ending.
+ * The two clocks here now cover only the server round trip, which is the only
+ * thing left for them to cover.
  */
 
 /** A key per submit. crypto.randomUUID exists in every browser this ships to. */
@@ -71,12 +79,23 @@ function newKey(): string {
 const SLOW_MS = 10_000;
 const GIVE_UP_MS = 25_000;
 
+/**
+ * A CHECKOUT THAT OPENS ON THIS PAGE, NOT ON SOMEBODY ELSE'S.
+ *
+ * `card-redirecting` is gone and `checkout-open` has taken its place. The old
+ * phase existed to cover the gap between the tap and a full-page navigation to
+ * checkout.paystack.com; there is no navigation any more, so what the phase
+ * carries now is the handle the in-app checkout resumes with. Both the fresh
+ * card path and the saved-card 3-D Secure path arrive at the same phase with
+ * the same shape, because they are the same transaction resumed the same way,
+ * and the 3DS one keeps the caller's original reference.
+ */
 type Phase =
   | { kind: "idle" }
   | { kind: "saved-card-charging" }
-  | { kind: "saved-card-hosted"; authorizationUrl: string }
+  | { kind: "saved-card-hosted"; authorizationUrl: string; accessCode: string; reference: string }
   | { kind: "card-starting" }
-  | { kind: "card-redirecting" }
+  | { kind: "checkout-open"; accessCode: string; reference: string; authorizationUrl: string }
   | { kind: "wallet-paying" }
   | { kind: "wallet-paid" }
   | { kind: "stalled"; method: "card" | "wallet" }
@@ -187,7 +206,7 @@ export function PayPanel({
   const busy =
     phase.kind === "saved-card-charging" ||
     phase.kind === "card-starting" ||
-    phase.kind === "card-redirecting" ||
+    phase.kind === "checkout-open" ||
     phase.kind === "wallet-paying";
 
   const clearTimers = () => {
@@ -233,7 +252,14 @@ export function PayPanel({
       return;
     }
     if (result.data.kind === "needs_hosted_checkout") {
-      setPhase({ kind: "saved-card-hosted", authorizationUrl: result.data.authorizationUrl });
+      /* The bank wants to authenticate. Same reference, same transaction,
+         opened in our own window rather than on the bank's own page. */
+      setPhase({
+        kind: "saved-card-hosted",
+        authorizationUrl: result.data.authorizationUrl,
+        accessCode: result.data.accessCode,
+        reference: result.data.reference,
+      });
       return;
     }
     /* Charged. The booking is settled server side, so the truth is on the
@@ -250,8 +276,16 @@ export function PayPanel({
       idempotencyKey: cardKey,
     });
     if (result.ok && result.data) {
-      setPhase({ kind: "card-redirecting" });
-      window.location.assign(result.data.authorizationUrl);
+      /* The clocks stop here. They covered the gap between the tap and a
+         navigation; the checkout has its own, and leaving these running would
+         declare the payment stalled while the person was typing their PIN. */
+      clearTimers();
+      setPhase({
+        kind: "checkout-open",
+        accessCode: result.data.accessCode,
+        reference: result.data.reference,
+        authorizationUrl: result.data.authorizationUrl,
+      });
       return;
     }
     clearTimers();
@@ -355,7 +389,7 @@ export function PayPanel({
                 full
                 onClick={payByCard}
                 disabled={busy}
-                loading={phase.kind === "card-starting" || phase.kind === "card-redirecting"}
+                loading={phase.kind === "card-starting"}
               >
                 Pay by card
               </Button>
@@ -454,7 +488,7 @@ export function PayPanel({
             variant="primary"
             onClick={payByCard}
             disabled={busy}
-            loading={phase.kind === "card-starting" || phase.kind === "card-redirecting"}
+            loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
             Pay by card
@@ -499,6 +533,42 @@ export function PayPanel({
 
   return (
     <>
+      {/*
+        THE CHECKOUT, ON THIS PAGE.
+
+        One component for both card paths. It draws nothing while Paystack's
+        iframe is up, because that iframe is fixed and full viewport and a
+        sheet of ours behind it would be a second dialog a screen reader
+        announces over the one the person is using. What is underneath is our
+        page, and the address bar has never stopped being ours.
+
+        `paymentState` is what settles it: our own `transactions` row for this
+        reference, polled on a backoff, never a call to Paystack from a
+        browser. `onSuccess` from the popup only starts that asking.
+      */}
+      {phase.kind === "checkout-open" && (
+        <PaystackCheckout
+          key={phase.reference}
+          accessCode={phase.accessCode}
+          reference={phase.reference}
+          authorizationUrl={phase.authorizationUrl}
+          amountMinor={view.totalMinor}
+          locale={view.locale}
+          confirm={async (reference) => {
+            const state = await paymentState(reference);
+            return state.ok ? state.data : "pending";
+          }}
+          onPaid={() => {
+            setPhase({ kind: "wallet-paid" });
+            router.refresh();
+          }}
+          /* Cancelled is not a failure and it is not a stall. The reference
+             stays open, so coming back resumes rather than double charges. */
+          onCancelled={() => setPhase({ kind: "idle" })}
+          onFailed={(message) => setPhase({ kind: "error", message })}
+        />
+      )}
+
       {/* ----------------------------------------------- what just happened */}
       <ResultSheet
         open={phase.kind === "wallet-paid"}
@@ -565,8 +635,17 @@ export function PayPanel({
           {
             label: "Continue to your bank",
             onClick: () => {
+              /* The bank's own authentication page renders inside the checkout
+                 iframe, on this page, under the same reference. Every 3-D
+                 Secure challenge on this platform used to be served by
+                 throwing the person at a hosted page. */
               if (phase.kind === "saved-card-hosted") {
-                window.location.assign(phase.authorizationUrl);
+                setPhase({
+                  kind: "checkout-open",
+                  accessCode: phase.accessCode,
+                  reference: phase.reference,
+                  authorizationUrl: phase.authorizationUrl,
+                });
               }
             },
             tone: "primary",
