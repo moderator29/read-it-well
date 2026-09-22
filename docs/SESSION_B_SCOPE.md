@@ -177,6 +177,22 @@ callers in `lib/auth/actions.ts`) and Session B does not touch any of that.
 - The screen the email's button lands on is a Session B surface (`/welcome` or
   another listed above), so the tap-through feels like the email that sent it.
 
+### 9. Art cropped from the governing renders (founder instruction, 22 September)
+The founder wants the icons, objects, stages and backgrounds in the governing
+images used as they are drawn, cropped from the renders and cleaned. Session B
+cuts them into its own folders and does not touch the shared icon pipeline.
+- `apps/web/public/brand/session-b/**` (new): every crop, per surface
+  (`welcome/`, `signin/`, `wallet/`, `send/`, `profile/`, `inspection/`), with
+  a `SOURCES.md` beside them naming the render, the box and the treatment.
+- `scripts/design/session-b-crops.mjs` (new): the one script that cuts them. It
+  may IMPORT the keying functions from `scripts/cut-icon-ground.mjs` but never
+  edits it, `scripts/icon-manifest.mjs`, `public/brand/glass/**` or
+  `docs/ICON_SYSTEM.md`. Session A: if you want any of these crops in the shared
+  pack, say so in section 49 and Session B will hand them over.
+- The claims rule applies to crops too: nothing that states a claim, and no
+  lettering baked into an object (the HOTEL sign on `2A49E2F7` is retouched
+  blank rather than shipped).
+
 ### Shared, additive only
 - `packages/i18n/**` dictionaries: ADDING keys inside the `sessionB` namespace or
   inside the existing `wallet`, `profile`, `auth`, `welcome`, `admin` and `inspections` namespaces, in all
