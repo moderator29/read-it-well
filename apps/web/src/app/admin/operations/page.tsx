@@ -1,13 +1,13 @@
 import { getLocale } from "@/lib/locale";
 import { getAuditActivity, getAuditLog } from "@/lib/admin/audit-queries";
 import { getRiskAlerts } from "@/lib/admin/queries";
-import { getAlertTrend, getJobHealth, getRunDays } from "@/lib/admin/reads/operations";
+import { getAlertTrend, getInspectionActivity, getJobHealth, getRunDays } from "@/lib/admin/reads/operations";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { OperationsView, type OpsTab } from "./OperationsView";
 
 export const dynamic = "force-dynamic";
 
-const TABS: readonly OpsTab[] = ["jobs", "alerts", "audit", "notifications"];
+const TABS: readonly OpsTab[] = ["jobs", "alerts", "audit", "notifications", "inflight"];
 
 function requestTime(): number {
   return Date.now();
@@ -33,13 +33,14 @@ export default async function AdminOperationsPage({
   const tab = TABS.find((t) => t === params.tab) ?? "jobs";
   const now = requestTime();
 
-  const [jobs, runDays, trend, alerts, audit, activity] = await Promise.all([
+  const [jobs, runDays, trend, alerts, audit, activity, inspections] = await Promise.all([
     getJobHealth(now),
     getRunDays(now),
     getAlertTrend(now),
     getRiskAlerts(),
     getAuditLog(),
     tab === "audit" ? getAuditActivity() : Promise.resolve(null),
+    tab === "inflight" ? getInspectionActivity() : Promise.resolve(null),
   ]);
 
   return (
@@ -57,6 +58,7 @@ export default async function AdminOperationsPage({
         audit={audit.state === "ok" ? audit.data.rows : "unavailable"}
         activity={activity && activity.state === "ok" ? activity.data : null}
         notifications={null}
+        inspections={inspections && inspections.state === "ok" ? inspections.data : null}
       />
     </>
   );

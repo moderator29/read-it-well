@@ -3,7 +3,8 @@ import type { AuditActivity, AuditRowView } from "@/lib/admin/audit-queries";
 import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
-import type { AlertTrend, JobHealth, NotificationActivity } from "@/lib/admin/reads/shapes";
+import type { AlertTrend, InspectionActivity, JobHealth, NotificationActivity } from "@/lib/admin/reads/shapes";
+import { InFlight } from "./InFlight";
 import {
   durationLabel,
   jobStatus,
@@ -41,7 +42,7 @@ import {
  * database's own pg_cron jobs are summarised from the platform's watch job
  * until Request A5 lists them; notification volumes need Request A6.
  */
-export type OpsTab = "jobs" | "alerts" | "audit" | "notifications";
+export type OpsTab = "jobs" | "alerts" | "audit" | "notifications" | "inflight";
 
 export type OperationsProps = {
   locale: Locale;
@@ -56,6 +57,7 @@ export type OperationsProps = {
   audit: AuditRowView[] | "unavailable";
   activity: AuditActivity | null;
   notifications: NotificationActivity | null;
+  inspections?: InspectionActivity | null;
 };
 
 function stamp(iso: string | null, locale: Locale): string {
@@ -122,6 +124,7 @@ export function OperationsView(props: OperationsProps) {
     { key: "alerts", label: "Alerts", count: props.trend?.openNow },
     { key: "audit", label: "Audit log" },
     { key: "notifications", label: "Notifications" },
+    { key: "inflight", label: "In flight" },
   ].map((t) => ({
     ...t,
     href: t.key === "jobs" ? "/admin/operations" : `/admin/operations?tab=${t.key}`,
@@ -144,6 +147,7 @@ export function OperationsView(props: OperationsProps) {
       )}
       {props.tab === "audit" && <AuditPanel {...props} />}
       {props.tab === "notifications" && <NotificationsPanel activity={props.notifications} locale={locale} />}
+      {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
 
       <div className="nf-admin-grid nf-admin-grid--halves">
         <Panel id="ops-recent-alerts" title="Recent alerts" action={<PanelLink href="/admin/alerts">View all</PanelLink>}>

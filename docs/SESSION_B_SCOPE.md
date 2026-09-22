@@ -487,6 +487,19 @@ A11. **Refusal reasons are free text or nothing.** "Top common refusals"
     `price`, `incomplete_details`, `not_available`, `location_mismatch`,
     `not_suitable`, `other`) on the tables that record the decline, and the
     decline controls to offer the list.
+A12. **Admins cannot read `public.account_deletion_requests`.** Its only
+    SELECT policy is `account_deletion_requests_select_own`. The closing audit
+    found account deletions (`SCHEDULED`, `PURGING`) on no desk. Request: a
+    policy `account_deletion_requests_select_admin` (the usual
+    `private.has_role` check), or a `security definer` read returning
+    `status, requested_at, purge_after, started_at, completed_at, attempts,
+    last_error` without `restore_code_hash`. Operations > In flight has the
+    panel built and says so until then.
+A13. **Admins cannot read `public.business_transfers`.** Its only SELECT
+    policy is `business_transfers_select_party`. Request: a
+    `business_transfers_select_admin` policy with the same role check, so
+    Operations > In flight can count pending transfers and show when each
+    offer expires.
 
 ### Requests from email (the welcome email's design and words)
 

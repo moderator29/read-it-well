@@ -95,3 +95,17 @@ export type RefusalReasons = { rows: { reason: string; count: number }[]; total:
 
 /** `getAlertTrend()`: open alerts now and a week ago, for the delta. */
 export type AlertTrend = { openNow: number; openWeekAgo: number; daily: { day: string; opened: number }[] };
+
+/** `getInspectionActivity()`: every inspection state, exact, and the newest requests. */
+export type InspectionState = "REQUESTED" | "CONFIRMED" | "PROPOSED" | "DECLINED" | "COMPLETED" | "WITHDRAWN";
+export type InspectionActivity = {
+  byState: Record<InspectionState, number>;
+  total: number;
+  recent: { id: string; state: InspectionState; listingTitle: string | null; requestedAt: string; slotAt: string | null; outcome: string | null }[];
+};
+
+/** Request A12: account deletions, which only the account holder may read today. */
+export type AccountDeletions = { scheduled: number; purging: number; recent: { status: string; requestedAt: string; purgeAfter: string | null }[] };
+
+/** Request A13: business transfers, which only their two parties may read today. */
+export type BusinessTransfers = { pending: number; recent: { status: string; offeredAt: string; expiresAt: string | null }[] };

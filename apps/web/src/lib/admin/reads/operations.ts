@@ -1,7 +1,7 @@
 import "server-only";
 
 import { VERCEL_JOBS, databaseJobsSummary, jobRow, type DatabaseJobsSummary, type RunRow } from "./jobs";
-import type { AlertTrend, JobHealth } from "./shapes";
+import type { AlertTrend, InspectionActivity, InspectionState, JobHealth } from "./shapes";
 import {
   DAY_MS,
   UNAVAILABLE,
@@ -148,6 +148,54 @@ export async function getAlertTrend(now: number): Promise<Read<AlertTrend>> {
     return {
       state: "ok",
       data: { openNow, openWeekAgo, daily: days.map((day, i) => ({ day, opened: opened[i] ?? 0 })) },
+    };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+export const INSPECTION_STATES = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLETED", "DECLINED", "WITHDRAWN"] as const;
+
+/**
+ * Every inspection on the platform by state (six exact counts, under the
+ * `inspection_requests_select_admin` policy) and the eight newest, with the
+ * listing's title. Read only: an inspection is the requester's and the
+ * lister's to move; the console watches it.
+ */
+export async function getInspectionActivity(): Promise<Read<InspectionActivity>> {
+  const db = await adminReader();
+  if (!db) return UNAVAILABLE;
+  try {
+    const counts = await Promise.all(
+      INSPECTION_STATES.map((state) =>
+        exactCount(db.from("inspection_requests").select("id", { count: "exact", head: true }).eq("state", state)),
+      ),
+    );
+    if (counts.some((c) => c === null)) return UNAVAILABLE;
+    const { data, error } = await db
+      .from("inspection_requests")
+      .select("id, state, requested_at, slot_at, outcome, listings ( title )")
+      .order("requested_at", { ascending: false })
+      .limit(8);
+    if (error) return UNAVAILABLE;
+    const byState = Object.fromEntries(INSPECTION_STATES.map((s, i) => [s, counts[i]!])) as InspectionActivity["byState"];
+    return {
+      state: "ok",
+      data: {
+        byState,
+        total: Object.values(byState).reduce((a, b) => a + b, 0),
+        recent: (data ?? []).map((row) => {
+          const listing = Array.isArray(row.listings) ? row.listings[0] : row.listings;
+          return {
+            id: row.id,
+            state: row.state as InspectionState,
+            listingTitle: (listing as { title?: string | null } | null)?.title ?? null,
+            requestedAt: row.requested_at,
+            slotAt: row.slot_at,
+            outcome: row.outcome,
+          };
+        }),
+      },
     };
   } catch {
     return UNAVAILABLE;
