@@ -258,9 +258,9 @@ the worker. No row, no close, and the lead does not commit it.
 | `/privacy` | none, inherits the register | `a2/privacy-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
 | `/terms` | none, inherits the register | `a2/terms-390-{dark,light}.png` | 0 breaches at 390 and 1536 | A2 |
 | The offline card, `apps/web/native-shell/index.html` | none, inherits the register; drawn to it for the first time | `a2/native-shell-no-connection-390-{dark,light}.png`, `a2/native-shell-no-server-390-{dark,light}.png` | measured in the browser: plate 0.27, button 0.28, card 0.07, note 0.12; the only circle is the explanatory glyph | A2 |
-| The dock with the raised centre switch | `GOVERNING-01` screen one | `b1/dock-390-dark.png`, RETAKEN by A2b on `next start` at `6c621e3`, on `/search` because `/home` is behind the gate | dock object 18 on 52 = 0.346, measured; bar 22 on 70 = 0.314; the object rises 7px above the bar; five slots, Home, Search, Switch profile, Feed, Sign up | B1, proof by A2b |
+| The dock with the centre switch **in line** | `GOVERNING-01` screen one | `b1/dock-390-{dark,light}.png`, **RETAKEN 22 Sep at `99690eb`** by `scripts/design/proof-dock.mjs` on `next start`, on `/search` because `/home` is behind the gate | **the switch sits 0px above its siblings**, measured against the median top of the other four rather than against the bar; all five slots 65.59px wide; bar 70px; overflowX 0; five slots, Home, Search, the switch, Feed, Sign up. **SUPERSEDES the row that measured a 7px rise**: the founder reversed that and `--nf-dock-lift` is now `0rem` | lead |
 | The Switch profile sheet | `GOVERNING-01` screen two | `b1/sheet-390-dark.png`, RETAKEN by A2b at `6c621e3` | row mark 14 on 44 = 0.318, measured. THE STANDING LABEL IS NOT IN THIS PROOF: it only draws on a workspace row, a visitor with no session has none, so B1's 6 on 25 = 0.244 is UNVERIFIED and needs a session | B1, proof by A2b |
-| The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png`, RETAKEN by A2b at `6c621e3` | row 14 on 56 = 0.25, measured; and the sheet it opens is the same sheet the dock opens, asserted in the run | B1, proof by A2b |
+| The side drawer, with **no** Switch profile row | `GOVERNING-01` screen three, **departed from on the founder's ruling** | `b1/drawer-390-dark.png`, **RETAKEN 22 Sep at `99690eb`** by the same script | **asserted, not eyeballed: the drawer's text matches neither `/switch profile/` nor `/switch role/`, and neither `/light mode/` nor `/dark mode/`.** The row was REMOVED rather than moved, and the theme control lost its container and its words, both on the founder's instruction. The shot shows Home, Search, Feed, the flip-coin card, a bare theme glyph, and the company row. **SUPERSEDES the row that proved a Switch profile row**: that surface no longer ships | lead |
 | `/wallet`, the balance card and the action band | `6AF37222` | `next start` on `.next-b2`, build exit 0: figure 40.17px (was 33.5, render ~40), action tile 71x61 (was 71x83, render 77x60), tx glyph 36px (was 44, render ~36) | 0 breaches, 390 and 1536, dark and light | B2 |
 | `/wallet/send`, `/wallet/receive`, `/wallet/transactions`, `/settings/payments`, the page top | `95840448`, `77A54EA3`, `7F96BE6C` | same server; all four on `layout="stacked"`, and the second header row is gone from `/wallet` | 0 breaches, 390 and 1536, dark and light | B2 |
 | `/wallet/transactions`, the statement | `6AF37222` | same server; one card for the whole list with the days as headings inside it, against one card per calendar day | 0 breaches, 390 and 1536, dark and light | B2 |
@@ -5741,3 +5741,83 @@ severity, and an audit log. That data is real and was repaired today:
 
 **Requests for a new view, function or policy come back to this session**, per
 the scope file. Ask rather than adding a migration.
+
+## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
+
+The founder's ruling, in his words: **a proof that disagrees with the shipped
+code is the same class of problem as a green light that cannot see what it is
+reporting on.** That makes five of the same shape in one day, and these two are
+the fourth and fifth.
+
+### What was stale, and why
+
+| Proof | Claimed | Shipped |
+|---|---|---|
+| `b1/dock-390-dark.png` and ledger row 261 | "the object rises **7px** above the bar" | `chrome.css` sets `--nf-dock-lift: 0rem`. The founder used the dock on a real phone and ruled the switch back **in line** with the other four |
+| `b1/drawer-390-dark.png` and ledger row 263 | "the side drawer's **Switch profile** row", proved against `GOVERNING-01` screen three | The row was **removed**, not moved. The switch lives in one place |
+
+Neither proof was dishonest when it was taken. Both were taken before the
+ruling that changed the thing they photographed, and neither was retaken after
+it. That is how a proof rots: not by being faked, but by outliving its subject.
+
+### The founder has confirmed the ruling and the brief is what changes
+
+Asked to confirm or reverse the single-entrance deviation, the founder
+confirmed: **the switch lives in one place, the dock, and HANDOFF 09 section 6B
+is out of date rather than the code.** That section now carries the current
+ruling at the top with the original kept beneath it, struck through and marked
+superseded rather than deleted, so nobody re-derives the old answer in a month
+and "fixes" the code back to it.
+
+### `scripts/design/proof-dock.mjs`, and it measures rather than photographs
+
+The script carries four guards, each paid for by a real failure on this build:
+the HTTP status; **where the browser landed**, because `verify-shots.mjs` once
+wrote five PNGs of the sign-in screen under five other route names; the
+`data-nf-not-found` marker, because a layout `notFound()` answers **200** with
+the not-found body; and `behavior: "instant"` on the scroll, because a smooth
+scroll is a no-op in headless Chromium.
+
+**And it refuses to write a file whose measurement disagrees with the ruling.**
+A proof script that will photograph anything put in front of it is how the two
+rows above happened.
+
+### THE GUARD CAUGHT MY OWN INSTRUMENT ON THE FIRST RUN
+
+The first version measured the switch slot against the **bar** and asserted the
+difference was zero. It came back **-7**, and refused to write.
+
+**-7 is not a lift. It is the bar's own top padding**, which every slot sits
+inside, so the number was meaningless and the guard was protecting a
+meaningless number. The founder's ruling is "in line with the **other icons**",
+so the comparison is against the **sibling slots**, not against the container.
+
+Rewritten to compare the switch's top against the median top of the other four:
+
+```
+liftAgainstSiblings: 0      slotTop: 769      siblingMedianTop: 769
+all five slots 65.59px wide      bar 70px      overflowX 0
+```
+
+**Zero, in both themes.** At 1536 the dock is not drawn at all because the
+desktop rail replaces it, which is correct and is recorded rather than thrown.
+
+### The drawer is asserted, not eyeballed
+
+```
+switchRowPresent: false      lightWords: false
+```
+
+The drawer's text matches neither `/switch profile/` nor `/switch role/`, and
+neither `/light mode/` nor `/dark mode/`. Both of the founder's instructions
+are held by an assertion that fails loudly rather than by somebody looking at a
+picture. The shot shows Home, Search, Feed, the flip-coin card, a bare theme
+glyph with no container and no words, and the company row.
+
+### One thing the retake surfaced that is not fixed here
+
+The drawer's flip-coin card draws a **hotel glass object**, not the coin. An
+earlier sweep reported that `flip-coin` appears exactly once in the tree, in
+`BrandIcon.tsx`'s name list, and is drawn nowhere. **The retake corroborates
+it**: the card the object was commissioned for is drawing something else. Named
+here, not fixed, because it belongs to whoever holds the icon set.
