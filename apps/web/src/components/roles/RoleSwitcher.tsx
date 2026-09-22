@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { MODE_COOKIE } from "@/lib/mode.constants";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
@@ -145,8 +146,29 @@ export function RoleSwitcher({
         className={`nf-row-button ${className ?? ""}`}
         aria-haspopup="dialog"
       >
-        <span className="nf-role-mark" aria-hidden="true">
-          <UiIcon name={currentCopy.icon} size="md" />
+        {/*
+          THE TILE, BECAUSE THIS ROW LIVES IN THE BELONGINGS COLUMN AND EVERY
+          OTHER ROW IN IT IS A GLASS OBJECT.
+
+          It drew `.nf-role-mark` - a 44px CIRCLE on a brand tint carrying a
+          stroked `UiIcon` - inside `.nf-belong__switch`, directly under
+          Bookings, Saved, Wallet and Inspections, each of which is a 44px
+          `.nf-belong__tile` carrying a pack object (`calendar-grid`,
+          `bookmark-ribbon`, `wallet-tile`, `shield-check-tile`). One stroked
+          circle at the bottom of a column of five tiled objects.
+
+          `50E032EA` draws this row with the same tiled object as the four
+          above it, and the icon pack has held it since G2's first work as
+          `role-switch-tile` (a person with a swap arrow on a glass tile,
+          `docs/ICON_SYSTEM.md`). One name.
+
+          The tile slot is 44 and the object is drawn at 44, which is the rule
+          written out at `.nf-belong__tile` in `social.css`: every object in
+          this pack draws its own rounded-square ground, so a smaller object in
+          a bordered slot ships two concentric squares.
+        */}
+        <span className="nf-belong__tile" aria-hidden="true">
+          <BrandIcon name="role-switch-tile" size={44} />
         </span>
         <span className="min-w-0 flex-1 text-left">
           <span className={`block ${TYPE.rowTitle}`}>{currentCopy.label}</span>

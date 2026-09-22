@@ -571,8 +571,40 @@
     color: var(--nf-brand-secondary);
     text-shadow: 0 0 12px var(--nf-glow-2);
   }
+  /*
+   * THE ACTIVE GLYPH IS THE BRAND, NOT A LIGHTENED VERSION OF IT.
+   *
+   * MATCHED AGAINST `dock: the active slot ink` #0257FD in
+   * `founder/GOVERNING-home-markets-target.png`, read with
+   * `node scripts/design/sample-reference.mjs --chrome`. Ours measured
+   * #5DA0FF on a production server, rgb(93 160 255) against rgb(2 87 253):
+   * ninety-one out on red, seventy-three on green and two on blue, which is
+   * not a hue error at all, it is the ink washed towards white. A vertical
+   * scan across the 24px glyph read the same value from y=0.20 through
+   * y=0.60, so it is the ink itself and not an average of stroke and ground.
+   * The cause is one token: the rule below inherits `--nf-brand-secondary`,
+   * which is `--nf-brand-quiet` #5C9FFF, the brand at READING weight for a
+   * link or a price. The dock's active glyph is not reading weight, it is
+   * the loudest mark in the chrome. `--nf-brand-primary` is #0069FE, which
+   * is eighteen from the reference on its worst channel and one on the other
+   * two. A token reference, not a new colour: the accent family was settled
+   * by hue rotation at `2274ad0` and nothing here moves it.
+   *
+   * THE LABEL IS DELIBERATELY LEFT ON THE QUIET INK, and that is the one
+   * judgement in this rule rather than a measurement. The reference sample
+   * is taken at the GLYPH and the reference has no named sample for the
+   * active label, so there is nothing to hold a label colour to. What can be
+   * computed is the cost: against the dock's own measured fill #000D26, the
+   * quiet ink carries 7.24:1 and the brand primary 3.49:1 at the reference's
+   * own value and 4.10:1 at ours. The label is 11px at weight 600, so moving
+   * it would spend it below the 4.5:1 that size needs, to satisfy a target
+   * nobody has measured. Somebody with a named reference sample for the
+   * label should revisit it; until then the glyph is matched and the word
+   * stays legible.
+   */
   .nf-tab__link[aria-current="page"] .nf-tab__icon,
   .nf-tab__link[data-on] .nf-tab__icon {
+    color: var(--nf-brand-primary);
     filter: drop-shadow(0 0 6px var(--nf-glow-3));
   }
   /*

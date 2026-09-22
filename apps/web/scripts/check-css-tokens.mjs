@@ -819,6 +819,27 @@ const PILL_ALLOWED = new Set([
    * beside, `.nf-tabbar`, is a rounded rectangle.
    */
   "src/app/css/chrome.css  .nf-dock-island",
+  /*
+   * PERMANENT, and it is the SAME OBJECT as the one `PILL_ALLOWED_TSX` already
+   * excuses below: `components/ui/Switch.tsx` is a switch track drawn as a
+   * capsule, and this is the settings hub's copy of it, reached through its
+   * stylesheet instead of through a component.
+   *
+   * The exemption list in `DESIGN_DIRECTION.md` section 1.4 names this object
+   * in terms - "a dot, a spinner, a progress bar, a range track, a sheet grip,
+   * A SWITCH TRACK AND KNOB, an avatar ring, a story ring and a skeleton
+   * placeholder are SHAPES and not controls, and this law does not reach them"
+   * - so the capsule is the shape of the object and not a decision about a
+   * control. The track carries no text; the word beside it is a label element.
+   *
+   * IT ARRIVED HERE FROM `--nf-radius-control`, which measured 50 x 30 with
+   * 14px of corner on a production page: ratio 0.467, two pixels of flat edge,
+   * a capsule that missed. Matching `Switch.tsx` is what removes the second
+   * drawing of one object, and THIS LINE IS A RECORD OF A PERMITTED SHAPE,
+   * NOT AN EXCEPTION BOUGHT TO MAKE A BUILD PASS. Nothing is being silenced:
+   * delete it only if the direction ever stops naming a switch track.
+   */
+  "src/app/settings-rows.css  .nf-switch",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things

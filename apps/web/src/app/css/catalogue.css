@@ -865,13 +865,37 @@
     background: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-overlay-media-strong));
   }
   /* A lettered tag, so a rounded rectangle (the founder's shape law). */
+  /*
+   * `--nf-radius-sm`, AND THE NUMBER CAME OFF A PRODUCTION PAGE AT BOTH WIDTHS.
+   *
+   * This asked for `--nf-radius-control` under a correct reading of the shape
+   * law, which is exactly the trap DESIGN_DIRECTION 1.4 names: the law is a
+   * ratio and never a token name. Measured on `/preview/f3/move-in`, the only
+   * surface that draws this plate: 74.69 x 32 at 390 AND 74.69 x 32 at 1536,
+   * declared 14px, drawn 14px, ratio 0.438, four pixels of flat edge on a
+   * 32px plate. Not a capsule, and well over the 0.35 line the direction says
+   * to go and look at on the running page rather than argue about in the file.
+   *
+   * It was measured at both widths on purpose: a plate elsewhere in this sweep
+   * was compliant at 390 and a capsule at 1536 when its label stopped wrapping
+   * and its height collapsed onto the `min-height`. This one cannot do that,
+   * and the reason is worse rather than better: "For rent" is a single line at
+   * every width, so 32px IS the collapsed height, and the plate already sits
+   * at its own floor. There is no wider width at which it improves.
+   *
+   * The founder's clarification named `sm` for a chip under about 32px, with a
+   * 28px chip in front of him, and `.nf-badge` in `chips.css` carries the rule
+   * one rung further down for a badge under about 24px. This plate is 32 on the
+   * nose, so it takes the rung the clarification names: 10px on 32 is 0.313,
+   * twelve pixels of straight edge.
+   */
   .nf-detail-tag {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-2xs);
     min-height: 2rem;
     padding: 0 var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-sm);
     border: 1px solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
@@ -948,6 +972,27 @@
     gap: var(--nf-space-xs);
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding: var(--nf-space-3xs) var(--nf-pad-shell);
+    /*
+     * THE SNAP INSET, AND IT IS THE SAME TOKEN THE LINE ABOVE PADS WITH.
+     *
+     * `.nf-spec-row` wears `.nf-scroll-x` when it is not the `--fit` variant,
+     * and a snap position aligns a child's start edge to the SCROLLPORT's start
+     * and ignores this padding unless `scroll-padding` says otherwise. So the
+     * rail snapped its own left gutter away the instant it settled and the
+     * first spec tile came to rest on the frame line while everything above it
+     * sat on the gutter.
+     *
+     * Measured on a production page at 390, this rule's own declarations with
+     * six tiles in it: `scrollLeft` 24 against `padding-left` 24px before, 0
+     * after. The two rails on this surface that already carry the inset,
+     * `.nf-amenity-row` and `.nf-detail-capsules`, read 0 in the same pass, and
+     * `.nf-shelf-chips` reads 0 on `/preview/f3/search`, which is what says the
+     * mechanism rather than the page is the thing being measured.
+     *
+     * `--fit` sets `padding-inline: 0` and drops `.nf-scroll-x` entirely, so
+     * this costs it nothing.
+     */
+    --nf-rail-snap-pad: var(--nf-pad-shell);
   }
   .nf-spec-tile {
     display: flex;

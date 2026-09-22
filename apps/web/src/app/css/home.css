@@ -103,11 +103,53 @@
   }
   /* Inside the well, not beside it: the render's arrow is a small rounded
      square sitting in the field's right end, at the well's inner height. */
+  /*
+   * THE FIELD'S EDGE IS THE WELL'S EDGE ONE RUNG UP, AND ONLY HERE.
+   *
+   * MATCHED AGAINST `search field: top border` #002E7A in
+   * `founder/GOVERNING-home-markets-target.png`. `.nf-glass--well` paints
+   * `--nf-brand-edge-soft`, which measured #002769 on this field, seventeen
+   * short on blue. The well material is not touched, because it is the
+   * trough under every composer, email field and search box in the product
+   * and the reference speaks about exactly one of them.
+   */
+  .nf-home__search {
+    border-color: var(--nf-well-edge-home-search);
+  }
+  /* Inside the well, not beside it: the render's arrow is a small rounded
+     square sitting in the field's right end, at the well's inner height. */
   .nf-home__search-go {
     width: 2.75rem;
     height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-md);
+  }
+  /*
+   * A FLAT PLATE, BECAUSE THE REFERENCE DRAWS ONE.
+   *
+   * MATCHED AGAINST `search submit: the plate, clear of the arrow glyph` in
+   * `founder/GOVERNING-home-markets-target.png`. That sample is new and the
+   * reason it exists is worth keeping: the older named point, `search
+   * submit: the rounded square fill`, averages a 6px box over the CENTRE of
+   * the control, where the white arrow is, and reads #3C7CFC. A scan across
+   * the plate clear of the arrow reads #0055FD to #0079FD, mean about
+   * #0068FD, so the old point was a plate-and-glyph average being used as a
+   * plate colour. Comparing our plate against it would have been comparing
+   * two different things.
+   *
+   * This button takes `.nf-btn--primary`, whose three-stop gradient computes
+   * to rgb(12 106 239) at the top, rgb(0 93 224) at the middle and
+   * rgb(0 63 152) at the foot: DARKER THAN THE REFERENCE AT ITS BRIGHTEST
+   * POINT and eighty out on blue at its foot. The primary gradient itself is
+   * not retuned, because it governs every CTA in the product and the
+   * reference speaks about this one control; the fill is overridden here
+   * instead. `--nf-brand-primary` is #0069FE and the new reference point
+   * reads #015FFD, eleven apart on one channel and one apart on the other
+   * two, so this is a token reference and not a new colour: the accent
+   * family was settled at `2274ad0` and nothing here moves it.
+   */
+  .nf-home__search-go {
+    background: var(--nf-brand-primary);
   }
 
   /* ---------------------------------------------------------- markets */
@@ -134,6 +176,75 @@
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  /*
+   * THE TILE'S OWN PAINT, BECAUSE THE SHARED MATERIAL CANNOT BE RIGHT FOR
+   * BOTH SURFACES IT PAINTS.
+   *
+   * MATCHED SAMPLE BY SAMPLE AGAINST
+   * `founder/GOVERNING-home-markets-target.png`, read with
+   * `node scripts/design/sample-reference.mjs --chrome`:
+   *   `market tile: fill`         #000C27, and it is FLAT
+   *   `market tile: top border`   #1A5CA5
+   * The city chip forty lines down is matched against ITS OWN two samples,
+   * `city chip: fill` #030C23 and `city chip: top border` #002051, which are
+   * seventy-five points apart from these on blue. Both surfaces wear
+   * `.nf-glass--tile`, both resolved to byte-identical paint, and the
+   * reference paints them differently on purpose: a card and a chip are
+   * different objects. So neither is closed through `.nf-glass--tile`,
+   * `--nf-brand-edge` or any other shared token, because closing one that
+   * way opens the other.
+   *
+   * WHAT WAS ACTUALLY LIFTING IT, measured one contributor at a time on a
+   * production server rather than reasoned about. R1 named two suspects and
+   * the pixels agreed with one of them and found a third nobody had named:
+   *   1. the white top wash, `linear-gradient(--nf-wash-3 0%, transparent
+   *      60%)` in `.nf-glass--tile`, over a 92 per cent fill sitting on the
+   *      canvas bloom through a saturating backdrop filter. Dropping the
+   *      wash alone took the worst channel from 37 to 26: real, not enough.
+   *   2. `.nf-glass::before`, THE SPECULAR SHEEN, which nobody had named and
+   *      which was the dominant one near the mark: 25 points on its own at
+   *      the tile's top left corner. A sheen is light across glass and the
+   *      reference draws none on this tile.
+   *   3. the glyph plate's `--nf-glow-edge` bloom, `glass.css`, which R1
+   *      named as the second contributor. IT IS NOT ONE. With the fill
+   *      opaque and the sheen off, removing it moved the three points beside
+   *      the mark by at most 1 (0 / 1 / 0 against 0 / 0 / 0). So the plate
+   *      keeps its lit edge, which the design direction asks for, and this
+   *      recipe does not reach into `glass.css` at all.
+   * With the flat fill, the sheen off and the tile's own `--nf-glow-edge`
+   * dropped, the tile measures #000C27 against #000C27, worst channel ZERO,
+   * flat from y=0.10 to y=0.90 and across the full width.
+   *
+   * THE GLOW GOES BECAUSE THE REFERENCE HAS NO RING OUTSIDE THE EDGE.
+   * `--nf-glow-edge` paints a near-white 1px rim INSIDE the border and a
+   * brand ring immediately OUTSIDE it; a device-row scan read #C0D2F1 two
+   * rows in and #0040A1 two rows out. The reference reads #1A5CA5 on the
+   * edge and #00071C directly above it: one line, then dark. The lit edge
+   * the tile keeps is the border itself, at the measured colour.
+   *
+   * THE BLUR GOES BECAUSE NOTHING CAN BE SEEN THROUGH AN OPAQUE FILL. This
+   * is the argument `light.css` already makes for the paper twin, and it now
+   * holds at night too: a composited layer sampling a backdrop nobody can
+   * see is cost with no picture.
+   *
+   * WHAT THIS DOES NOT REPRODUCE, and it is a limit rather than a defect:
+   * the reference's tile edge FALLS OFF along its own run, #2767AB at the
+   * top centre down to #012662 towards the ends, and this draws one measured
+   * colour the whole way round. The reference gives one named edge sample
+   * and this matches that sample.
+   */
+  .nf-home__market {
+    background: var(--nf-tile-market-fill);
+    border-color: var(--nf-tile-market-edge);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow:
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-thin);
+  }
+  .nf-home__market::before {
+    display: none;
   }
   .nf-home__market:active {
     transform: scale(var(--nf-press-scale));
@@ -385,6 +496,49 @@
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  /*
+   * THE CHIP'S OWN PAINT. The other half of the separation argued out above
+   * the market tile.
+   *
+   * MATCHED SAMPLE BY SAMPLE AGAINST
+   * `founder/GOVERNING-home-markets-target.png`, read with
+   * `node scripts/design/sample-reference.mjs --chrome`:
+   *   `city chip: fill`         #030C23
+   *   `city chip: top border`   #002051
+   * The market tile's own two samples are #000C27 and #1A5CA5. The edges are
+   * seventy-five points apart on blue and the chip's is the QUIET one, so a
+   * chip outlined at a card's brightness is wrong however good it looks on
+   * its own.
+   *
+   * OURS WAS NOT MISSING ITS BORDER, IT WAS DRAWING ONE THREE TIMES TOO
+   * BRIGHT: #01409F against #002051, seventy-eight out on blue. The second
+   * audit read it as #040A26, "effectively nothing drawn", and that number
+   * was an artefact of the harness rather than a fact about the chip: at 390
+   * the featured-cities row sits at y=920 in an 844px viewport, the sampler
+   * screenshots the viewport only, and its coordinate clamp silently slid
+   * every off-screen sample onto the last row of the shot. The chip is
+   * measured scrolled into view now and the clamp is gone; see the note in
+   * `scripts/design/compare-surface.mjs`.
+   *
+   * The sheen, the blur and the outer glow go for the same three reasons set
+   * out above the tile, and the fill lands on #030C23 exactly. The border
+   * measures #011843 against #002051, worst channel 14, and the whole of
+   * that residue is the sampler's own 2px box straddling a 1px border and
+   * averaging in the ground above it: the colour DECLARED here is the
+   * reference's colour to the digit.
+   */
+  .nf-home__city {
+    background: var(--nf-chip-city-fill);
+    border-color: var(--nf-chip-city-edge);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow:
+      inset 0 -1px 0 var(--nf-glass-floor),
+      var(--nf-glass-shadow-thin);
+  }
+  .nf-home__city::before {
+    display: none;
   }
   .nf-home__city:active {
     transform: scale(var(--nf-press-scale-lg));

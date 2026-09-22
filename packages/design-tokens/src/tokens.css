@@ -1743,6 +1743,53 @@
   --nf-edge-stride-lit: var(--nf-brand-edge);
   --nf-edge-stride-peak: var(--nf-brand-edge-strong);
 
+  /* ---------------------------------------------------------------------
+   * PER-SURFACE PAINT, READ OFF THE GOVERNING PHONE REFERENCE.
+   *
+   * THE REFERENCE DOES NOT USE ONE EDGE EVERYWHERE, AND THAT IS WHY THESE
+   * EXIST RATHER THAN A TUNED `--nf-brand-edge`.
+   *
+   * `.nf-home__market` and `.nf-home__city` resolved to byte-identical paint
+   * on a running page, both inheriting the whole recipe from
+   * `.nf-glass--tile`, while `founder/GOVERNING-home-markets-target.png`
+   * paints their top edges SEVENTY-FIVE POINTS APART ON BLUE: the market
+   * tile's is #1A5CA5 and the city chip's is #002051. A card, a bar and a
+   * chip are different objects and the reference treats them differently, so
+   * closing either through the shared material or through a shared token
+   * closes one and opens the other. That is R1's finding zero, and these
+   * tokens are the answer to it.
+   *
+   * EVERY VALUE HERE IS A PIXEL SOMEBODY MEASURED, NOT A COLOUR SOMEBODY
+   * CHOSE. Each one names the `scripts/design/sample-reference.mjs --chrome`
+   * sample it came from, so a disagreement is settled by re-running the
+   * sampler rather than by argument. Nothing in this block touches
+   * `--nf-brand-edge`, `--nf-brand-primary` or the `--nf-electric-*` family:
+   * the accent family was corrected by pure hue rotation onto the measured
+   * 215.2 degrees at `2274ad0` and is settled.
+   *
+   * NIGHT ONLY, AND DELIBERATELY SO. These are the product's own near-black
+   * navies, read off a phone reference that is drawn at night; there is no
+   * such thing as a paper twin of a measurement of a dark screen. Daylight
+   * keeps answering `.nf-glass--tile` in `light.css`, whose
+   * `:root[data-theme="light"] .nf-glass--tile` outranks the per-surface
+   * rules that consume these by two selectors, so the paper twin is
+   * untouched by this block. W2.
+   * ------------------------------------------------------------------ */
+  /* `market tile: fill`, a single FLAT fill. Ours scanned #243856 at the top
+     down to #01183A at the foot before this landed. */
+  --nf-tile-market-fill: #000C27;
+  /* `market tile: top border`. The reference's tile edge is lighter and
+     slightly desaturated against our purer, darker blue. */
+  --nf-tile-market-edge: #1A5CA5;
+  /* `city chip: fill`. */
+  --nf-chip-city-fill: #030C23;
+  /* `city chip: top border`. Seventy-five points below the tile's edge on
+     blue, which is the whole of finding zero in one pair of numbers. */
+  --nf-chip-city-edge: #002051;
+  /* `search field: top border`. The well's shared `--nf-brand-edge-soft`
+     measured seventeen short of this on blue. */
+  --nf-well-edge-home-search: #002E7A;
+
   /*
    * THE RING ITSELF, in one place, because six surfaces paint it.
    *

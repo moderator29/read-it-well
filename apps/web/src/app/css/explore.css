@@ -73,6 +73,16 @@
     gap: var(--nf-space-sm);
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding-inline: var(--nf-pad-shell);
+    /* THE SNAP INSET, FROM THE SAME TOKEN THE LINE ABOVE PADS WITH. The bleed
+       and the padding are one decision and could not drift; the SNAP was the
+       third thing nobody set. A snap position aligns a child's start edge to
+       the scrollport's start and ignores padding unless `scroll-padding` says
+       otherwise, so this rail settled at `scrollLeft` 24 against `padding-left`
+       24px and put its first tile on the frame line. Measured on a production
+       page with this rule's own declarations and nine tiles: 24 before, 0
+       after. `CategoryRail` has no importer today, so this is a fault waiting
+       for its first render rather than one anybody is looking at. */
+    --nf-rail-snap-pad: var(--nf-pad-shell);
     /* Room for the focus ring and the lift, which would otherwise be clipped
        by the scroll container's own overflow. */
     padding-block: 0.25rem;

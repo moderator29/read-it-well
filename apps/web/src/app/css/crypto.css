@@ -32,6 +32,15 @@
     gap: var(--nf-gap-row);
     margin-inline: calc(var(--nf-pad-card-sm) * -1);
     padding-inline: var(--nf-pad-card-sm);
+    /* THE SNAP INSET, FROM THE CARD'S GUTTER AND NOT THE PAGE'S, which is the
+       whole point of setting it beside the padding rather than reaching for the
+       shell token: this rail lives inside a card, and the note above is about
+       the last time those two were confused. Measured live on
+       `/preview/e/crypto` at 390: `scrollLeft` 16 against `padding-left` 16px
+       with `scroll-padding-left` 0, so the overview card's first coin rested
+       against the card's inner edge while everything else in the card sat on
+       its gutter. 0 after. */
+    --nf-rail-snap-pad: var(--nf-pad-card-sm);
     padding-block: var(--nf-space-2xs);
   }
   .nf-coin-card {

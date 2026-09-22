@@ -673,11 +673,20 @@ export function MapCanvas({
                 "--pin-i": i,
               } as React.CSSProperties
             }
-            /* THE SHAPE LAW. A cluster bubble is a control carrying text (the
-               count), so it is a rounded rectangle on the control radius, not a
-               capsule. It was `rounded-full`, which on a two or three digit
-               count drew a lozenge. Same ruling as the price pin below. */
-            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-sm py-xs text-[var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
+            /* THE SHAPE LAW, AND THE COUNT-BADGE RULING ON TOP OF IT.
+               A cluster bubble is a control carrying text, so it was moved off
+               `rounded-full` to the control radius. That was right about the
+               token and wrong about the ratio. Measured on a production page at
+               390 and at 1536: the plate draws 23.2 x 17.12, and 14px of corner
+               on a 17px box is clamped by the browser to half the box, so what
+               was painted was a TRUE CAPSULE - drawn radius 8.56, ratio 0.50,
+               zero flat edge - at every count. The count-badge ruling closes
+               this: a count badge is a small text plate on `--nf-radius-xs`,
+               the same at one digit and at three, because a shape the content
+               chooses is not a decision. 6px on 17.12 is 0.35 with 5px of
+               straight edge down each side, and it does not move when the
+               padding does. Same fix as `.nf-notif__count` in `home.css`. */
+            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-sm py-xs text-[var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
           >
             <span className="nf-map-pin-breathe inline-block">{group.items.length}</span>
             <span className="sr-only"> places grouped here, open them</span>

@@ -55,16 +55,24 @@ export const ha: Dictionary = withFallback({
       getStarted: "Fara",
       step: "Mataki {n} na {total}",
     },
-    one: {
-      title: "Ko'ina, a wuri guda",
-      body:
-        "Gidajen haya, otal na karshen mako, gidajen abinci da abubuwan ji. Duk Najeriya, duk jihohi talatin da shida, bincike guda.",
-    },
-    two: {
-      title: "Babu wanda ke biyan mu kudin sabis",
-      body:
-        "Ba kai ba, ba mai gidan ba. Abin da ka gani shi ne abin da za ka biya, har kwabo, alamar tabbaci kuma tana nufin mu da kanmu mun duba shi.",
-    },
+    /*
+     * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
+     *
+     * `one.body` read "Homes to rent, hotels for the weekend, restaurants and
+     * experiences. All of Nigeria, all thirty-six states, one search." Two rule
+     * 15 faults in one sentence: `experiences` is a `ListingKind` with ZERO
+     * rows live (the two `experiences` keys deleted elsewhere in this pass are
+     * the same fault), and "all thirty-six states" is a coverage claim the
+     * catalogue does not support, on a product whose live rows are Lagos.
+     *
+     * Nothing renders either card: `FirstRun.tsx` draws `twoWorlds` and `three`
+     * and never `one` or `two`. R2 filed it and recommended deletion over
+     * rewording, because a first-run card should be written against what the
+     * catalogue holds on the day it is written, not patched now against what it
+     * held tonight. `two` goes with it as R2 asked, being the other half of an
+     * unreferenced pair; it broke no rule, so if a future first run wants it,
+     * it is in the history.
+     */
     three: {
       title: "Ka fara aika saƙo, ka biya sa'ad da ka tabbata",
       body:
@@ -183,7 +191,16 @@ export const ha: Dictionary = withFallback({
     land: "Fili",
     commercial: "Kadarar kasuwanci",
     restaurants: "Gidan abinci",
-    experiences: "Kwarewa",
+    /* `experiences` WAS HERE AND IS DELETED, with `home.topExperiences`.
+       `experience` is a real `ListingKind` and the live catalogue holds ZERO
+       rows of it, so a category name and an "Explore top experiences" rail
+       were advertising an empty shelf: rule 15. R2 filed both
+       (`docs/design/audits/R2-content-truth-and-carried-items.md` section 1.3)
+       and recommended deletion over rewording, because there is nothing
+       honest to reword them to and nothing reads either key today.
+       `FilterDrawer` is the pattern that stays: it narrows `KIND_ORDER` to
+       the kinds actually in the results, so the chip appears when the row
+       does. Write these again when there is an experience to name. */
     services: "Ayyuka",
     properties: "Kadarori",
     bookings: "Ajiye",
@@ -571,6 +588,17 @@ export const ha: Dictionary = withFallback({
       contact: "Tuntuɓe mu",
       privacy: "Sirri",
       terms: "Sharuɗɗa",
+      /* THE STORE LINE, and the value is NOT a new translation.
+         `landing.face.footer.deleteAccount` existed in `en` only, so
+         `withFallback` served a Hausa reader the English words "Delete account"
+         in the footer beside translated Privacy and Terms (R2 section 3). The
+         string below is the one a speaker already wrote for
+         `settings.account.deleteAccount` in this same file, reused verbatim.
+         It reads "Delete MY account" rather than "Delete account": one word
+         wider than the English. Dropping the possessive is a grammatical edit
+         nobody here can verify, so it is not made, and a speaker should be
+         asked for the shorter form rather than this being guessed at. */
+      deleteAccount: "Share asusuna",
       docs: "Takardu",
       becomeAgent: "Zama wakili",
     },
@@ -1031,7 +1059,10 @@ export const ha: Dictionary = withFallback({
     searchPlaceholder: "Nemi wurare, otal, gidan abinci",
     locationLabel: "Wurin da kake",
     recommended: "An ba da shawara gare ka",
-    topExperiences: "Bincika manyan kwarewa",
+    /* `topExperiences` WAS HERE AND IS DELETED, with `categories.experiences`.
+       See the note there: zero `experience` rows live, so "Explore top
+       experiences" advertised an empty shelf, and "top" on an empty shelf
+       is a second invention on the first. Rule 15, R2 section 1.3. */
     nearby: "Kusa da kai",
     searchProperties: "Nemi gidaje, birane ko wurare",
     browse: {
@@ -1145,7 +1176,12 @@ export const ha: Dictionary = withFallback({
       start: "Fara bukata",
       resume: "Ci gaba da bukata",
       whatYouGet: "Abin da za ka samu",
-      benefitReach: "Kai ga dubban bakin da aka tabbatar",
+      /* RULE 15, as in `en`. "dubban" is the invented thousands and it is the
+         only word removed: R2's prescription for the three translations is the
+         removal of the quantity word, not a new sentence, because inventing
+         Hausa copy is not this sweep's to do. Reads "Reach verified guests".
+         A speaker should be given the English above if exact parity matters. */
+      benefitReach: "Kai ga bakin da aka tabbatar",
       benefitTools: "Kayan aikin jeri da ajiye na kwararru",
       benefitEarn: "Bi diddigin kudi ka samu biya cikin aminci",
     },

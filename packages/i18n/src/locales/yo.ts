@@ -54,16 +54,24 @@ export const yo: Dictionary = withFallback({
       getStarted: "Bẹ̀rẹ̀",
       step: "Ìgbésẹ̀ {n} nínú {total}",
     },
-    one: {
-      title: "Gbogbo ibi, ní ibì kan",
-      body:
-        "Ilé ìyàlégbé, hotẹ́ẹ̀lì fún ìparí ọ̀sẹ̀, ilé oúnjẹ àti ìrírí. Gbogbo Nàìjíríà, gbogbo ìpínlẹ̀ mẹ́rìndínlógójì, ìwádìí kan ṣoṣo.",
-    },
-    two: {
-      title: "Kò sí ẹni tó ń san owó ìdí fún wa",
-      body:
-        "Kì í ṣe ìwọ, kì í ṣe olùgbàlejò. Ohun tí o rí ni ohun tí o san, dé kóbò, àmì ìdánilójú sì túmọ̀ sí pé àwa fúnra wa ṣàyẹ̀wò rẹ̀.",
-    },
+    /*
+     * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
+     *
+     * `one.body` read "Homes to rent, hotels for the weekend, restaurants and
+     * experiences. All of Nigeria, all thirty-six states, one search." Two rule
+     * 15 faults in one sentence: `experiences` is a `ListingKind` with ZERO
+     * rows live (the two `experiences` keys deleted elsewhere in this pass are
+     * the same fault), and "all thirty-six states" is a coverage claim the
+     * catalogue does not support, on a product whose live rows are Lagos.
+     *
+     * Nothing renders either card: `FirstRun.tsx` draws `twoWorlds` and `three`
+     * and never `one` or `two`. R2 filed it and recommended deletion over
+     * rewording, because a first-run card should be written against what the
+     * catalogue holds on the day it is written, not patched now against what it
+     * held tonight. `two` goes with it as R2 asked, being the other half of an
+     * unreferenced pair; it broke no rule, so if a future first run wants it,
+     * it is in the history.
+     */
     three: {
       title: "Kọ̀wé kọ́kọ́, san owó nígbà tí ó dá ọ lójú",
       body:
@@ -182,7 +190,16 @@ export const yo: Dictionary = withFallback({
     land: "Ilẹ̀",
     commercial: "Ohun ìní òwò",
     restaurants: "Ilé oúnjẹ",
-    experiences: "Ìrírí",
+    /* `experiences` WAS HERE AND IS DELETED, with `home.topExperiences`.
+       `experience` is a real `ListingKind` and the live catalogue holds ZERO
+       rows of it, so a category name and an "Explore top experiences" rail
+       were advertising an empty shelf: rule 15. R2 filed both
+       (`docs/design/audits/R2-content-truth-and-carried-items.md` section 1.3)
+       and recommended deletion over rewording, because there is nothing
+       honest to reword them to and nothing reads either key today.
+       `FilterDrawer` is the pattern that stays: it narrows `KIND_ORDER` to
+       the kinds actually in the results, so the chip appears when the row
+       does. Write these again when there is an experience to name. */
     services: "Iṣẹ́ ìsìn",
     properties: "Ohun ìní",
     bookings: "Ìfipamọ́",
@@ -566,6 +583,17 @@ export const yo: Dictionary = withFallback({
       contact: "Kàn sí wa",
       privacy: "Àṣírí",
       terms: "Àdéhùn",
+      /* THE STORE LINE, and the value is NOT a new translation.
+         `landing.face.footer.deleteAccount` existed in `en` only, so
+         `withFallback` served a Yoruba reader the English words "Delete account"
+         in the footer beside translated Privacy and Terms (R2 section 3). The
+         string below is the one a speaker already wrote for
+         `settings.account.deleteAccount` in this same file, reused verbatim.
+         It reads "Delete MY account" rather than "Delete account": one word
+         wider than the English. Dropping the possessive is a grammatical edit
+         nobody here can verify, so it is not made, and a speaker should be
+         asked for the shorter form rather than this being guessed at. */
+      deleteAccount: "Pa àkàǹtì mi rẹ́",
       docs: "Ìwé ìtọ́sọ́nà",
       becomeAgent: "Di aṣojú",
     },
@@ -1029,7 +1057,10 @@ export const yo: Dictionary = withFallback({
     searchPlaceholder: "Wá ibi, hòtẹ́lì, ilé oúnjẹ",
     locationLabel: "Ibi tí o wà",
     recommended: "A dábàá fún ọ",
-    topExperiences: "Ṣàwárí ìrírí tó ga jù",
+    /* `topExperiences` WAS HERE AND IS DELETED, with `categories.experiences`.
+       See the note there: zero `experience` rows live, so "Explore top
+       experiences" advertised an empty shelf, and "top" on an empty shelf
+       is a second invention on the first. Rule 15, R2 section 1.3. */
     nearby: "Nítòsí rẹ",
     searchProperties: "Wá ilé, ìlú tàbí ibi",
     browse: {
@@ -1143,7 +1174,11 @@ export const yo: Dictionary = withFallback({
       start: "Bẹrẹ ìbéèrè",
       resume: "Tẹsiwaju ìbéèrè",
       whatYouGet: "Ohun tí o ń rí gbà",
-      benefitReach: "Dé ọ̀dọ̀ ẹgbẹẹgbẹ̀rún àlejò tí fọwọ́sí",
+      /* RULE 15, as in `en`. "ẹgbẹẹgbẹ̀rún" is the invented thousands and it is
+         all that is removed; no new Yoruba was written. Reads "Reach verified
+         guests". A speaker should be given the English above if exact parity
+         with it matters. */
+      benefitReach: "Dé ọ̀dọ̀ àlejò tí fọwọ́sí",
       benefitTools: "Àwọn irinṣẹ́ atokọ àti ìfipamọ́ ọ̀jọ̀gbọ́n",
       benefitEarn: "Tọpa èrè kí o sì gba owó láìséwu",
     },

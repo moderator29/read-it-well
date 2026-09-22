@@ -175,14 +175,17 @@ export function VerifyCodeForm({
         )}
       </form>
 
-      <p className="mt-6 text-center text-[0.8125rem] text-[var(--nf-content-muted)]">
-        The same email carries a button that does this in one tap.{" "}
-        <Link
-          href="/sign-in"
-          className="underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
-        >
-          Already confirmed? Sign in
-        </Link>
+      {/* The house classes, not a one-off. `nf-auth__swap` is what every other
+          screen in this card uses for "the other door", and it is the reason
+          that door is legible: it draws the link in `--nf-content-link` at 600.
+          This paragraph used to be muted grey throughout with the link marked
+          only by a :hover rule, which on a phone is no mark at all, so on the
+          one screen where somebody is stuck waiting for an email the way out
+          was invisible. Colour is never the ONLY signal (rule 13); here there
+          was no signal. */}
+      <p className="nf-auth__terms">The same email carries a button that does this in one tap.</p>
+      <p className="nf-auth__swap mt-xs">
+        <Link href="/sign-in">Already confirmed? Sign in</Link>
       </p>
     </div>
   );

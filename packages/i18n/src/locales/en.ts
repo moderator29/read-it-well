@@ -77,16 +77,24 @@ export const en = {
       getStarted: "Get Started",
       step: "Step {n} of {total}",
     },
-    one: {
-      title: "Everywhere, in one place",
-      body:
-        "Homes to rent, hotels for the weekend, restaurants and experiences. All of Nigeria, all thirty-six states, one search.",
-    },
-    two: {
-      title: "Nobody pays a fee to us",
-      body:
-        "Not you, not the host. What you see is what you pay, to the kobo, and a verified badge only ever means we checked it ourselves.",
-    },
+    /*
+     * `one` AND `two` WERE HERE AND ARE DELETED, as one unreferenced pair.
+     *
+     * `one.body` read "Homes to rent, hotels for the weekend, restaurants and
+     * experiences. All of Nigeria, all thirty-six states, one search." Two rule
+     * 15 faults in one sentence: `experiences` is a `ListingKind` with ZERO
+     * rows live (the two `experiences` keys deleted elsewhere in this pass are
+     * the same fault), and "all thirty-six states" is a coverage claim the
+     * catalogue does not support, on a product whose live rows are Lagos.
+     *
+     * Nothing renders either card: `FirstRun.tsx` draws `twoWorlds` and `three`
+     * and never `one` or `two`. R2 filed it and recommended deletion over
+     * rewording, because a first-run card should be written against what the
+     * catalogue holds on the day it is written, not patched now against what it
+     * held tonight. `two` goes with it as R2 asked, being the other half of an
+     * unreferenced pair; it broke no rule, so if a future first run wants it,
+     * it is in the history.
+     */
     three: {
       title: "Message first, pay when you are sure",
       body:
@@ -218,7 +226,16 @@ export const en = {
     land: "Land",
     commercial: "Commercial",
     restaurants: "Restaurants",
-    experiences: "Experiences",
+    /* `experiences` WAS HERE AND IS DELETED, with `home.topExperiences`.
+       `experience` is a real `ListingKind` and the live catalogue holds ZERO
+       rows of it, so a category name and an "Explore top experiences" rail
+       were advertising an empty shelf: rule 15. R2 filed both
+       (`docs/design/audits/R2-content-truth-and-carried-items.md` section 1.3)
+       and recommended deletion over rewording, because there is nothing
+       honest to reword them to and nothing reads either key today.
+       `FilterDrawer` is the pattern that stays: it narrows `KIND_ORDER` to
+       the kinds actually in the results, so the chip appears when the row
+       does. Write these again when there is an experience to name. */
     services: "Services",
     properties: "Properties",
     bookings: "Bookings",
@@ -1487,7 +1504,10 @@ export const en = {
     searchPlaceholder: "Search places, hotels, restaurants",
     locationLabel: "Current location",
     recommended: "Recommended for you",
-    topExperiences: "Explore top experiences",
+    /* `topExperiences` WAS HERE AND IS DELETED, with `categories.experiences`.
+       See the note there: zero `experience` rows live, so "Explore top
+       experiences" advertised an empty shelf, and "top" on an empty shelf
+       is a second invention on the first. Rule 15, R2 section 1.3. */
     nearby: "Near you",
     /* The in-app home, to the flip render's dimmed home (BUILD_06, F1): the
        search field, the four browse tiles and the city tiles. The fourth tile
@@ -1674,7 +1694,12 @@ export const en = {
       start: "Start application",
       resume: "Continue application",
       whatYouGet: "What you get",
-      benefitReach: "Reach thousands of verified guests",
+      /* RULE 15: "thousands" is an invented count, and a count of PEOPLE.
+         R2 filed it (`docs/design/audits/R2-content-truth-and-carried-items.md`
+         section 1.3) and could not fix it: `agent.join` is not R2's namespace
+         and this is an edit rather than an add. The honest version of a claim
+         about reach is no claim about size. */
+      benefitReach: "Reach guests who chose Vallo",
       benefitTools: "Professional listing and booking tools",
       benefitEarn: "Track earnings and get paid securely",
     },

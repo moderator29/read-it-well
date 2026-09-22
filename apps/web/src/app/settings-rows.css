@@ -317,21 +317,52 @@
   /**
    * The switch.
    *
-   * Drawn at 31x19, which is the proportion every phone platform has settled
-   * on, and given a 44px hit area by `nf-tap` rather than by being drawn that
-   * big. The knob is white in both themes because it is a physical object in
-   * this metaphor, not a piece of text.
+   * Drawn at 50x30 and given a 44px hit area by `nf-tap`. (This note said
+   * "31x19" for a long time, which is the proportion every phone platform has
+   * settled on and is not what the two lines below draw; the numbers are the
+   * measured ones now.) The knob is white in both themes because it is a
+   * physical object in this metaphor, not a piece of text.
    *
    * On is the brand blue. The platform has one blue family and this is it: no
    * green, which is the colour the reference happens to use and the one thing
    * about it that does not come across.
+   *
+   * ------------------------------------------------------------------------
+   * A TRUE CAPSULE, DELIBERATELY, AND IT WAS `--nf-radius-control`.
+   *
+   * Measured on a production page at `/preview/f4/settings`, dark, at 390 and
+   * at 1536: 50 x 30, declared 14px, drawn 14px, ratio 0.467, TWO PIXELS of
+   * flat edge down each end. That is not a capsule and it is not a rounded
+   * rectangle either; it is a capsule that missed, and the two pixels read as a
+   * drawing error rather than as a decision.
+   *
+   * The exemption list in `DESIGN_DIRECTION.md` section 1.4 is closed and
+   * specific and this object is named in it in terms: "a dot, a spinner, a
+   * progress bar, a range track, a sheet grip, A SWITCH TRACK AND KNOB, an
+   * avatar ring, a story ring and a skeleton placeholder are SHAPES and not
+   * controls, and this law does not reach them". A switch track carries no
+   * text. The word beside it is a label element.
+   *
+   * And the platform already draws the same object as a true capsule:
+   * `components/ui/Switch.tsx` puts `--nf-radius-pill` on its track, and that
+   * is a PERMANENT entry in the checker's `PILL_ALLOWED_TSX` with the
+   * reasoning written beside it ("a capsule is what a track IS. A rectangle
+   * here would not be a squarer control, it would be a different object").
+   * So the settings hub's track was the odd one out, and the fix is to make
+   * the product draw one switch rather than two.
+   *
+   * This needs an entry in `PILL_ALLOWED` in `check-css-tokens.mjs`, and that
+   * entry is a RECORD of a shape the law explicitly permits, not an exception
+   * bought to make a build pass. The ledger's rule against adding one is about
+   * silencing a real breach; there is no breach here to silence.
+   * ------------------------------------------------------------------------
    */
   .nf-switch {
     position: relative;
     flex: none;
     width: 3.125rem;
     height: 1.875rem;
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-pill);
     /* THE HAIRLINE IS RIGHT HERE AND THE CHECK IS WRONG ABOUT IT. An OFF
        switch has to read as off, and the lit brand edge is how this product
        says a control is live: putting it on the off track would light the

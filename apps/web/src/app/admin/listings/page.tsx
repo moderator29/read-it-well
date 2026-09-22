@@ -146,9 +146,22 @@ function ListingCard({
         </div>
       )}
 
+      {/* THE PHOTO STRIP PADS THE LIST AND NOT THE SCROLLPORT, and that is the
+          whole of the change below. `.nf-scroll-x` gives every direct child
+          `scroll-snap-align: start`, and a snap position aligns that child's
+          start edge to the SCROLLPORT's start, ignoring the port's own padding
+          unless `scroll-padding` says otherwise. With `px-2xs` on the scrolling
+          div and one `<ul>` inside it, the only snap position was `scrollLeft`
+          = the padding, so the strip ate its own inset the instant it settled:
+          measured 4 against `padding-left` 4px on a production page. Padding
+          the LIST puts the inset inside the scrolled content, where a snap
+          cannot reach it, and it holds at both ends rather than only the left.
+          Measured 0 after. Same shape as the three other markup-padded rails in
+          the tree (`RecentStrip`, `ActiveFilters`, `/rent`), all of which
+          measured 0 because they already do it this way. */}
       {listing.photos.length > 0 && (
-        <div className="nf-scroll-x -mx-2xs mt-sm px-2xs">
-          <ul className="flex w-max gap-xs">
+        <div className="nf-scroll-x -mx-2xs mt-sm">
+          <ul className="flex w-max gap-xs px-2xs">
             {listing.photos.map((photo, index) => (
               <li key={photo}>
                 {/* These come from `photoUrl` in `lib/admin/queries.ts`,

@@ -47,12 +47,24 @@ export default function LoadingRoot() {
 
         <Skeleton width="min(34rem, 100%)" height="1.25rem" radius="sm" className="mt-lg" />
 
-        {/* The search pill: the field and its submit inside one glass capsule,
-            at the real 56px. The capsule is the amended radius law (ledger
-            section 8): the render shows a pill here, so the wait shows one. */}
+        {/* The search bar: the field and its submit inside one glass panel.
+            ROUNDED RECTANGLES, and the comment that stood here cited the
+            section 8 amendment, which is WITHDRAWN (DESIGN_DIRECTION 1.4,
+            ledger 13.4). Restating a withdrawn amendment is how it survives,
+            so the citation goes with the shape.
+
+            A skeleton is a SHAPE and section 1.4 exempts it, so rule 10 is
+            right to stay silent. The law reaches these two through what they
+            are a picture of: the landing's real search field and its real
+            submit both measured 14px on the live page (ledger 13.3), so a
+            capsule here is a picture of a control the product does not draw,
+            and the page visibly reshapes the moment it loads, which is the one
+            thing a skeleton exists to prevent. `md` is 14px, the control rung,
+            on a 48px slab: ratio 0.29. Seven siblings were moved in 13.4;
+            these two were missed. */}
         <div className="nf-wait__pill">
-          <Skeleton height="3rem" radius="pill" />
-          <Skeleton width="6.5rem" height="3rem" radius="pill" className="shrink-0" />
+          <Skeleton height="3rem" radius="md" />
+          <Skeleton width="6.5rem" height="3rem" radius="md" className="shrink-0" />
         </div>
       </div>
 

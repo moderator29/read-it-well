@@ -303,6 +303,29 @@
    * gutter and a 3px inset inside a 38px control, which is drawn geometry
    * rather than rhythm, and changing them is a visual decision that is not this
    * change's to take.
+   *
+   * THE RADIUS WAS FILED AS A CAPSULE AND MEASURES AS A RECTANGLE, AND THE
+   * REASON THE TWO DISAGREE IS THAT NOTHING RENDERS THIS CLASS.
+   *
+   * A sweep reported this track at 32.8 tall on 14px of corner, two pixels of
+   * flat, which would be ratio 0.427 and worth acting on. It could not be
+   * reproduced, and the reason is the finding itself: `.nf-feedtabs` and
+   * `.nf-feedtab` are both UNREFERENCED. Neither name appears anywhere in
+   * `apps/web/src` outside this file, so there is no route on which to stand
+   * and read a number off, and a 32.8px track cannot be drawn by the markup
+   * these rules were written for: `.nf-feedtab` carries `min-height: 2.375rem`,
+   * which is 38, and the track adds 3px of inset a side.
+   *
+   * Measured instead by putting the designed markup on a running production
+   * page (`/preview/f4/feed`, dark, 390 and 1536) and reading the boxes: the
+   * TRACK draws 46 tall on 14px, ratio 0.304, eighteen pixels of flat edge, and
+   * each SEGMENT draws 38 tall on 14px, ratio 0.368, ten pixels of flat edge.
+   * Both are rounded rectangles. 0.368 is over the 0.35 line that says go and
+   * look, which is what that line is for, and looking is what settled it.
+   *
+   * SO THE RADIUS STAYS. What is actually wrong here is that a segmented
+   * control the register wants exists only as CSS, and deleting it or building
+   * it is a decision about the feed rather than about a corner.
    */
   .nf-feedtabs {
     display: flex;

@@ -155,11 +155,51 @@ if (existsSync(PROOFS)) {
   }
 }
 
+/*
+ * A HYPHENATED SEGMENT COULD NEVER MATCH, AND THAT IS NINE SURFACES THE
+ * REGISTER WAS STRUCTURALLY UNABLE TO COUNT.
+ *
+ * The matcher split a file name on hyphens and underscores and asked whether
+ * the route's key was one of the pieces. That works for `/help` and `/trips`.
+ * It can never work for `/sign-in`, because the split that produces the
+ * haystack destroys the needle: "sign-in-390-dark" becomes
+ * ["sign","in","390","dark"], which does not contain "sign-in" and never
+ * will, whatever the file is called. The same held for /sign-up,
+ * /forgot-password, /reset-password, /delete-account, /rent/move-in and
+ * /auth/callback.
+ *
+ * So the register was reporting "none" for the entire front door of the
+ * product as a property of its own arithmetic rather than of the proofs
+ * directory, and no amount of shooting those screens could have changed the
+ * number. That is the one failure mode this file's own header calls harmful:
+ * not a stale count, a count that cannot be corrected by doing the work.
+ *
+ * The fix keeps the rule exactly as strict. A proof still matches only on
+ * WHOLE tokens, never on a substring, so "signature-dark.png" still does not
+ * prove /sign-in. A key that is itself hyphenated is simply matched as the
+ * consecutive RUN of tokens it splits into, which is what "the last real
+ * segment appears in the file name" meant all along.
+ */
+function tokensContainRun(tokens, run) {
+  if (run.length === 0) return false;
+  for (let i = 0; i + run.length <= tokens.length; i += 1) {
+    let hit = true;
+    for (let j = 0; j < run.length; j += 1) {
+      if (tokens[i + j] !== run[j]) {
+        hit = false;
+        break;
+      }
+    }
+    if (hit) return true;
+  }
+  return false;
+}
+
 function proofsFor(route) {
   /* The last non-parameter segment is the word a proof file would carry. */
   const parts = route.split("/").filter((p) => p && !p.startsWith("["));
   const key = parts.length ? parts[parts.length - 1].toLowerCase() : "landing";
-  return proofs.filter((p) => p.stem.split(/[-_]/).includes(key));
+  return proofs.filter((p) => tokensContainRun(p.stem.split(/[-_]/), key.split(/[-_]/)));
 }
 
 const all = routes();
