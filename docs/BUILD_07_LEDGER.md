@@ -6236,3 +6236,42 @@ naming the field and `transferToUser` not using it, both this session's files,
 both fixed and pushed. **Your component was the only part of that chain that
 was correct.** Worth saying, because the first instinct on a double-send bug is
 to change the form.
+
+### R11. BLOCKER. `lib/admin/reads/supply.ts` gives the verified badge a second derivation, and it is red on main
+
+`apps/web/src/lib/admin/reads/supply.ts:211` selects `verified` from
+`public.agents`:
+
+```ts
+.select("id, user_id, display_name, type, verified, is_demo, created_at, application_id")
+```
+
+`src/lib/trust/agent-badge-derivation.test.ts` fails on it, and that test has
+been **red on main** since the file landed. Its rule:
+
+> the agent verified badge has one derivation: it is read from nowhere in the
+> app but the published `agent_badges` row
+
+**Why the rule exists, and it is rule 12 rather than a style preference.** The
+verified badge means a checked human. `agents.verified` is a second place that
+answers "is this person verified", and it is not the place the public badge
+comes from. A desk that draws a tick from it will one day show a tick beside
+somebody the public listing shows no tick for, or the reverse, and nobody will
+be able to say which is right. That is why the derivation is single.
+
+**What is asked.** Read the badge from the published `agent_badges` row, as the
+rest of the product does, and drop `verified` from that select. If the Supply
+desk genuinely needs the raw column for an operational reason (to show that a
+row disagrees with its badge, say) then it needs a different name on screen and
+an argument in the file, because a column called `verified` drawn as a tick IS
+the badge whatever the variable is called.
+
+**Note the test is itself a source reader**: it scans for `.from("agents")`
+selects containing `verified`. That is a weak instrument and it will not catch a
+join or a `select *`. It is the one we have, it caught this, and it is not a
+reason to dismiss the finding.
+
+**State of main as of `aee5d02d`:** 3,097 passing, this the only failure. The
+other two reds (`locale-completeness`, `user-generated-content`) were ours and
+are fixed in that commit. This one is the last red light on main and it is not
+ours to change.
