@@ -47,7 +47,7 @@ export default function manifest(): MetadataRoute.Manifest {
      * and offices, so it read as a booking app.
      */
     description:
-      "Nigeria's property marketplace, in two halves on one account. Property: a flat for the year, a house to buy, a shop to trade from, or the land itself, from agents checked by real people. Vallo Stays: hotels, apartments, guest houses, resorts and restaurant tables. One naira wallet pays for all of it.",
+      "Rent, buy or stay across Nigeria, without the runaround. Property: a flat for the year, a house to buy, a shop to trade from, or the land itself, with the cost of moving in written down and the person behind the listing named. Vallo Stays: hotels, apartments, guest houses, resorts and restaurant tables. One naira wallet pays for all of it.",
     lang: "en-NG",
     dir: "ltr",
     /*

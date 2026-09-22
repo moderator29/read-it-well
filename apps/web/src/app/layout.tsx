@@ -64,23 +64,32 @@ export const metadata: Metadata = {
    */
   metadataBase: new URL(siteUrl()),
   /*
-   * The slogan is the founder's, verbatim, exclamation mark included. The
-   * template must not strip it: metadata titles pass through as written.
+   * THE TITLE IS THE POSITION, NOT THE OLD SLOGAN.
    *
-   * The description says what the product IS, in PRODUCT.md's words, rather
-   * than listing categories. An earlier line described "homes, hotels,
-   * restaurants and experiences", which was the travel app this stopped being,
-   * and promised "verified listings" while the catalogue holds zero. The line
-   * that replaced it then swung the other way and described property only, on
-   * a product that had grown a second side. It now names both, and names
-   * nothing that has no shipped surface.
+   * It read "Vallo. Real Estate reimagined!" in all three slots below. That
+   * line is the old positioning and it told a first time visitor nothing
+   * about what Vallo helps them do, which is the founder's own objection of
+   * 22 September. It is also the one title a person meets before they have
+   * seen a single screen: the browser tab, the search result and every link
+   * anybody pastes into a chat. So it says the same thing the landing
+   * headline says, and the two move together.
+   *
+   * The description says what the product IS rather than listing categories.
+   * An earlier line described "homes, hotels, restaurants and experiences",
+   * which was the travel app this stopped being, and promised "verified
+   * listings" while the catalogue holds zero. The line that replaced it swung
+   * the other way and described property only, on a product that had grown a
+   * second side. It now names both, and names nothing that has no shipped
+   * surface. The word verified is deliberately NOT here: it is sanctioned in
+   * the founder's approved headline and nowhere else, because on this
+   * catalogue it is a claim rather than a description.
    */
   title: {
-    default: "Vallo. Real Estate reimagined!",
+    default: "Vallo. Rent, buy or stay, without the runaround.",
     template: "%s | Vallo",
   },
   description:
-    "One app, two sides. Property: rent, buy or sell across Nigeria, from agents a person has checked, with the light, the water and the gate answered and the move-in total printed in full. Vallo Stays: hotels, apartments, guest houses, resorts and restaurant tables, on the same account and the same naira wallet.",
+    "Homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, know who is behind every listing, and keep the record. Vallo Stays carries hotels, apartments, guest houses, resorts and restaurant tables on the same account and the same naira wallet.",
   applicationName: "Vallo",
   /*
    * BOTH SIDES, because the list carried nine property words and not one
@@ -113,18 +122,18 @@ export const metadata: Metadata = {
    * the file changes. `scripts/build-og-image.mjs` is the generator.
    */
   openGraph: {
-    title: "Vallo. Real Estate reimagined!",
+    title: "Vallo. Rent, buy or stay, without the runaround.",
     description:
-      "Rent, buy or sell property across Nigeria, and book hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
+      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
     siteName: "Vallo",
     locale: "en_NG",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vallo. Real Estate reimagined!",
+    title: "Vallo. Rent, buy or stay, without the runaround.",
     description:
-      "Rent, buy or sell property across Nigeria, and book hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
+      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
   },
   robots: { index: true, follow: true },
 
