@@ -193,6 +193,27 @@ export function cardFacts(listing: Listing, t: Dictionary): CardFact[] {
     });
   }
 
+  /*
+   * PARKING, because `GOVERNING-01` draws it as the third count on a featured
+   * card and because in Lagos it is the fact people ask about third.
+   *
+   * Only when the lister declared a number: an undeclared parking count is not
+   * "no parking", and this row has never printed a fact nobody stated. It
+   * comes before the category noun, which is the softest of the four and is
+   * the one that falls off the end of `slice(0, 4)` when a listing states all
+   * of them.
+   */
+  if (listing.parkingSpaces !== undefined && listing.parkingSpaces > 0) {
+    facts.push({
+      key: "parking",
+      numeric: true,
+      label: (listing.parkingSpaces === 1
+        ? t.directHome.parkingOne
+        : t.directHome.parkingMany
+      ).replace("{count}", String(listing.parkingSpaces)),
+    });
+  }
+
   const noun = KIND_NOUN[listing.kind];
   if (noun) facts.push({ key: "kind", label: noun });
 

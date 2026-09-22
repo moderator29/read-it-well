@@ -102,6 +102,7 @@ export function ShelfBar({
           facts={facts}
           locale={locale}
           copy={t.catalogue.filters}
+          costCopy={t.moveIn}
           openOnMount={openFilters}
         />
       </div>

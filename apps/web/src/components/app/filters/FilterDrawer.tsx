@@ -17,6 +17,7 @@ import {
   KIND_NOUN,
   KIND_ORDER,
   SORTS,
+  sortBasisOf,
   kindLabel,
   koboToNaira,
   nairaToKobo,
@@ -277,6 +278,7 @@ export function FilterDrawer({
   facts,
   locale,
   copy,
+  costCopy,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -284,6 +286,10 @@ export function FilterDrawer({
   facts: ListingFacts[];
   locale: Locale;
   copy: Dictionary["catalogue"]["filters"];
+  /* The Track H vocabulary, scoped the same way `copy` is: this control now
+     chooses between two different money columns and has to name the one in
+     force. */
+  costCopy: Dictionary["moveIn"];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -394,6 +400,16 @@ export function FilterDrawer({
   const scale = useMemo(() => sliderScale(bounds.high), [bounds.high]);
 
   const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
+
+  /* The basis of the ordering the reader is currently choosing, for the line
+     under the control. Null on the orderings that are not about money. */
+  const draftBasisKey = sortBasisOf(draft.sort);
+  const draftBasis =
+    draftBasisKey === "price"
+      ? costCopy.basisPrice
+      : draftBasisKey === "move-in"
+        ? costCopy.basisMoveIn
+        : null;
 
   // Naira, because that is what the control holds. It becomes kobo the moment
   // it is shown or stored, and never before.
@@ -831,6 +847,18 @@ export function FilterDrawer({
                 </select>
                 <UiIcon name="chevron-down" size={16} className="text-[var(--nf-content-muted)]" />
               </label>
+              {/* WHICH NUMBER, IN THE DRAWER TOO. The shelf prints this under
+                  its count; the drawer is where the choice is made, so it says
+                  it here as well rather than only after the sheet closes.
+                  HANDOFF 09 section 4.2. */}
+              {draftBasis && (
+                <p
+                  data-testid="filter-sort-basis"
+                  className="nf-caption mt-inline-tight text-[var(--nf-content-muted)]"
+                >
+                  {draftBasis}
+                </p>
+              )}
             </Group>
           </div>
         </div>

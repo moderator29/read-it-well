@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { SORTS } from "@/lib/listings/search-params";
+import { SORTS, sortBasisOf } from "@/lib/listings/search-params";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
 import { toShelfHref, toShelfViewHref, type ShelfQuery } from "./shelf-query";
 
@@ -27,6 +27,13 @@ export function ShelfCount({
 }) {
   const copy = t.catalogue.shelf;
   const current = SORTS.find((sort) => sort.key === query.sort) ?? SORTS[0]!;
+  const currentBasis = sortBasisOf(query.sort);
+  const basis =
+    currentBasis === "price"
+      ? t.moveIn.basisPrice
+      : currentBasis === "move-in"
+        ? t.moveIn.basisMoveIn
+        : null;
   const line =
     count === 0
       ? narrowed
@@ -38,15 +45,32 @@ export function ShelfCount({
 
   return (
     <div className="nf-shelf-count">
-      <p
-        data-testid="results-count"
-        data-count={count}
-        aria-live="polite"
-        aria-atomic="true"
-        className="nf-body-sm min-w-0 whitespace-nowrap font-medium text-[var(--nf-content-secondary)]"
-      >
-        {line}
-      </p>
+      <div className="min-w-0">
+        <p
+          data-testid="results-count"
+          data-count={count}
+          aria-live="polite"
+          aria-atomic="true"
+          className="nf-body-sm min-w-0 whitespace-nowrap font-medium text-[var(--nf-content-secondary)]"
+        >
+          {line}
+        </p>
+        {/*
+          WHICH NUMBER THIS ORDER IS ON, SAID OUT LOUD.
+
+          HANDOFF 09 section 4.2: "a silent switch between two bases is worse
+          than either one alone". The shelf can now order on the headline price
+          or on the total move-in cost, and those are different money, so the
+          one in force is printed rather than left to be inferred from a label
+          in a menu the reader has closed. Only for the two money orders: a
+          rating order and the opening order are not claims about a price.
+        */}
+        {basis && (
+          <p data-testid="sort-basis" className="nf-caption truncate text-[var(--nf-content-muted)]">
+            {basis}
+          </p>
+        )}
+      </div>
       {/* One control on the right, as the image draws it. The map view is
           the last item of the same menu rather than a second control that
           would push the count onto three lines at 390px. */}
