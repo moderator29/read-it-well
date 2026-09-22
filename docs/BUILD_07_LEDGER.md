@@ -5199,3 +5199,190 @@ recorded, and it raised the high severity alert it is meant to raise for one.
 The memory was added this morning precisely so a job could not report success
 for firing a request nobody read; the first time it had something to say, it
 said the right thing.
+
+## 45. CHROME: THE WHOLE-HARNESS CONTRAST SWEEP, AND THE INSTRUMENT IT BROKE
+
+The sweep the edge change was owed. It COMPLETED, which is the first thing
+anybody needed, and what it found is not what it was sent to look for.
+
+**Gate: a clean hard-linked worktree at `716d964`**, `next build` exit 0,
+`next start` on port 3220 with `VALLO_PREVIEW_HARNESS=1`. 106 harness routes,
+both themes, 390x844, 212 route/theme pairs. **Zero server deaths and zero
+discarded segments.**
+
+### WHY THIS ONE COMPLETED AND THE LAST TWO DID NOT
+
+The probe was never the problem. One long run has one point of failure and no
+memory, so a server that dies at route 40 loses the other 66 and the whole
+reading is correctly thrown away. This drove `probe-contrast.mjs` in segments
+of six, one theme at a time, wrote each segment's JSON to disk as it landed,
+and health-checked the server between segments.
+
+**And it separates transport failures from real ones**, which is the part that
+mattered. The probe catches its own navigation errors and still writes valid
+JSON, so a segment that ran entirely against a corpse comes back looking like a
+clean result with six "routes that did not open" in it. **That is exactly how a
+sweep reports 149 unopened routes.** Segments carrying `ERR_CONNECTION_REFUSED`
+are now restarted and retried rather than recorded. My first attempt lost four
+routes that way before the retry existed; the completed runs needed it zero
+times, because nothing killed the server again. The likely killer of the two
+earlier attempts is mundane: several of us run `pkill -f next-server` on this
+box, and it does not care whose server it is.
+
+### THE HEADLINE NUMBER, AND WHY IT IS NOT A VERDICT
+
+| run | below the floor | leaves | routes that did not open |
+| --- | --- | --- | --- |
+| baseline, earlier today | 150 (dark 51, light 99) | 7,467 | 98 routes |
+| **this sweep at `716d964`** | **164 (dark 53, light 111)** | **7,897** | 3 |
+| the same sweep, repeated as a control | 153 (dark 53, light 100) | 7,903 | 2 |
+
+Reported against the baseline as asked: **164 against 150**. Do not act on that
+number. The control run above is the reason: the same build, the same routes
+and the same probe give 164 and then 153, **dark identical at 53 both times and
+light moving by eleven.** A measure whose repeat differs by eleven cannot
+resolve a difference of fourteen.
+
+Three routes did not open: `/preview/g4/error` in both themes and
+`/preview/f4/profile` in light, all `page.goto` timeouts at 45s. The error
+harness is an error boundary and may genuinely never settle; it is named here
+rather than counted as a pass.
+
+### THE FINDING THAT MATTERS: THE PROBE'S SAMPLE IS UNSOUND BELOW THE FOLD
+
+`probe-contrast.mjs` takes ONE full-page screenshot per route and reads each
+element's `getBoundingClientRect` out of it. That is three orders of magnitude
+cheaper than a shot per element and the file makes the argument well. **It is
+not true below the first screen.**
+
+Proven three ways, all reproducible:
+
+**One, the marker test.** A magenta bar was injected at a known document `y` on
+`/preview/f5/admin-desks` and then looked for in the full-page capture:
+
+| marker at CSS y | found at device y | expected | verdict |
+| --- | --- | --- | --- |
+| 200 | 400 | 400 | present, exact |
+| 1200 | 2400 | 2400 | present, exact |
+| 1500 | 3000 | 3000 | present, exact |
+| 2500 | 5000 | 5000 | present, exact |
+| 4760 | **not found** | 9520 | **absent from the capture** |
+
+The image is the right size (11426 device px for a 5713 CSS page, ratio
+1.0000), so it is not truncated and it is not scaled. The rect is stable before
+and after the shot. The content is simply not in the picture at the place the
+picture says it is.
+
+**Two, a worked case.** `h2 "Occupations"` on that route sits at document y
+4760. The probe samples its own device box and reads `rgb(0,3,19)` on
+`rgb(0,3,19)`, the canvas twice over, and reports 2.29:1. Scrolled into view
+and shot in the viewport, the same element reads **20.29:1**.
+
+**Three, the whole failure list.** 84 failures, one per (theme, route, tag,
+class) cluster, were re-measured by scrolling each into view and shooting the
+viewport: **40 confirmed, 43 not reproduced, 1 unverifiable.** Of the 43, **41
+clear the floor** on re-measure. So roughly half the raw count is the capture,
+not the product.
+
+**A correction to my own method, because I was wrong first.** The verifier
+originally matched elements on tag and text alone. Two different elements on
+`/preview/p3/admin-businesses` carry the words "Government issued ID": a
+heading the probe never flagged and a 14px checklist label that it did. The
+verifier measured the heading, got 20:1, and was about to call the probe wrong
+about an element it had never looked at. It matches on the class list now. A
+verifier that ignores what the probe recorded is checking a different question.
+
+### WHAT THE EDGE CHANGE ITSELF DID, MEASURED BY A/B ON ONE BUILD
+
+The absolute count is polluted; a difference need not be, because the same
+pollution appears in both arms. So the same worktree was rebuilt with the four
+pre-change declarations restored (`--nf-brand-edge`, `-soft`, `-strong` mixing
+from `--nf-glow-ink` again, and `--nf-container-edge-lit` pointing back at
+`-strong`) and swept identically. One variable, same routes, same machine.
+
+| arm | below the floor | leaves measured |
+| --- | --- | --- |
+| BEFORE, edge tokens as they were | 78 (dark 39, light 39) | 11,300 |
+| AFTER, one container ink | 164 (dark 53, light 111) | 7,897 |
+
+**This is a real, reproducible difference and it is not a contrast regression.**
+Narrowed to six routes and repeated: the BEFORE build measures 714 leaves, 0
+failures, 18 unpainted; the AFTER build measures 446, 13, 0. Both stable across
+repeats. **The change removes 38 per cent of the elements the probe can read on
+those routes and converts "unpainted" into "failed".**
+
+That is a statement about the CAPTURE, not about legibility, and the proof is
+in what the surviving failures are made of. **Every confirmed sub-floor pair is
+ink on a FILL**, and this change moves only BORDER colours:
+
+- `.nf-badge` success, 21 places, light, 4.04 to 4.17:1 - `rgb(10,122,81)` on
+  a green tint fill
+- `span.nf-numeric.inline-flex.h-5`, 8 places, dark, 1.94:1 - white on the
+  cyan pending fill `rgb(0,201,255)`
+- `.nf-post__handle`, `.nf-post__when` and the feed counters, light, 2.90:1 -
+  muted grey on a white card
+- the calendar's disabled day buttons, 1.57 light and 1.82 dark, **present in
+  BOTH arms**
+- `.nf-feed-seg__link`, `e/result`'s caption, `g1/sheet`'s table cells
+
+The only readings where the ink IS an edge colour are ones where the histogram
+picked the element's own BORDER as its ink - `dt "By"` on `/preview/bc/audit`
+reads `rgb(73,139,232)`, which is the new container blue exactly. **A border is
+not text.** The probe has no way to tell them apart and this change made the
+border loud enough to win the histogram.
+
+**Verdict: the whole-harness sweep completed and found no text-contrast
+regression attributable to the edge change.** It found that the instrument is
+wrong below the fold, which was true before the change and is now louder.
+
+### THE TWO KNOWN DEFECTS, COUNTED AND NAMED AS ASKED
+
+- **The settings `Verified` badge, 4.04:1 in light.** CONFIRMED by the viewport
+  re-measure at 4.04. It is not one badge: `.nf-badge` in its success colours
+  is **21 instances across 21 routes** at 4.04 to 4.17:1, on `/preview/e/payments`,
+  `/preview/f4/settings`, four `bd/*` desks, `c2/host-rooms`, five `f5/agent-*`,
+  `f5/admin-desks`, `f5/admin-queue`, `f5/host-landing`, `f5/inspection` and
+  `p3/host-reservations`. Whoever holds it is fixing one token pair, not one badge.
+- **`.nf-movein__label` at 1.03:1 in light.** **NOT confirmed.** Re-measured in
+  the viewport it reads **17.76:1**. It is one of the 43 that do not reproduce.
+  Worth re-checking by eye before anybody spends a day on it.
+
+### THE RATIO SWEEP, RUN BECAUSE IT WAS CHEAP
+
+`scripts/design/tsx-shape-scan.mjs`: 121 files, **0 at or above 0.5**, 7 on the
+0.35 watch line. No control declared in TSX draws as a capsule. It reads source
+and never proves what the browser drew, and it is the wrong instrument for this
+change anyway: an edge-colour change moves ink and borders, not corners.
+
+### WHAT IS OWED NEXT, AND IT IS NOT MINE TO TAKE
+
+`probe-contrast.mjs` needs its sampling fixed before its absolute number means
+anything again. The cheap repair is to shoot the VIEWPORT per scroll position
+rather than one full-page image per route: walk the page a screen at a time,
+measure only the elements fully inside the current screen, and stitch. That is
+more screenshots than today and far fewer than one per element, and it is what
+the verifier in `docs/design/proofs/chrome/contrast-sweep/verify.mjs` already
+does for a handful. Until then, **the 40 confirmed failures in
+`verify-out.json` are the list to work from and the 164 is not.**
+
+Evidence in `docs/design/proofs/chrome/contrast-sweep/`: both full runs and the
+control as gzipped JSONL, the 84-element verification in and out, the four
+drivers, and the capture band that shows the pixels the probe could not see.
+
+### ONE THING THAT MOVED UNDER THIS SWEEP WHILE IT RAN
+
+`d4d4ea6`, "the small print now has a size", rewrites **928** `text-[var(...)]`
+class lists to `text-[length:var(...)]`. It landed AFTER the gate this sweep was
+taken at, and it is the one kind of change that can move these numbers without
+touching a colour: **the floor this probe applies is 4.5:1 for ordinary text and
+3:1 for large text**, and that branch is decided by the rendered font size. 928
+elements that were rendering at body size and are now rendering at their
+intended smaller size can cross the line in either direction.
+
+So **the per-element numbers in this section are as at `716d964` and not as at
+`d4d4ea6`.** What does NOT move with it is everything this section actually
+concludes: the capture is unsound below the fold, the repeat differs by eleven,
+and an edge-colour change cannot produce an ink-on-fill failure. A re-run on
+the newer tip is cheap now that the driver exists and survives a dead server -
+`node sweep.mjs dark out.jsonl 6` then the same for light - and it is worth
+doing once somebody has repaired the sampling, not before.
