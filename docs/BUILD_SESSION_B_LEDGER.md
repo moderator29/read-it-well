@@ -404,7 +404,152 @@ BREACHES 0, WORTH AN EYE 0. (The first run flagged the four dot buttons at
 
 ## 3. Welcome back
 
-(pending)
+Route `/sign-in` (the chooser) and `/sign-in/email` (the password step).
+Governing image `55A56F21-0654-4F2D-984B-60A8CE97BB17.png`. The same shell
+frames `/sign-up`, `/sign-up/email`, `/sign-up/verify`, `/forgot-password`,
+`/reset-password` and the welcome worker's `/start`; they inherit it and were
+swept with it. Proofs: `docs/design/proofs/session-b/signin/`.
+
+### (a) The chain, every link
+
+| # | Link | What it is | State |
+|---|---|---|---|
+| 1 | Control: email field + Continue | `AuthChoices` GET form to `/sign-in/email`, carrying `email` and `next` | Works. The address goes by query string by design (the chooser needs no action); `emailFromQuery` drops anything not shaped like an address |
+| 2 | Next step decided on the server | `sign-in/email/page.tsx` calls `signUpMethodForEmail` (service-role RPC `public.signup_method_for_email(text)`, SECURITY DEFINER, EXECUTE held by `postgres` and `service_role` only, confirmed in `pg_proc`), behind the per-connection limiter (60 an hour, `public.consume_rate_limit`, service role only) | NEW this session. "google": the screen says there is no password and offers the real Google door; "none": says no account uses it and links to `/sign-up/email` with the address and `next` carried; anything else: the ordinary password step |
+| 3 | Control: password + Sign in | `EmailAuthForm` (client, controlled fields) posting to the server action `signInWithEmail` | Works |
+| 4 | Validation | `validateCredentials` on the server (address shape, 8 to 200 characters) | Works; field errors land on the fields |
+| 5 | Throttle | 10 a minute per IP (`sign_in`), 60 an hour per address (`sign_in_address`) with a `risk_alerts` row when the ceiling trips | Works; message "Too many attempts just now. Try again in ..." |
+| 6 | Supabase auth | `supabase.auth.signInWithPassword` via the server client (cookies written server side) | Works. Errors mapped by `authMessage`: wrong password, unconfirmed address, rate limit; deactivated accounts get their own notice with a way out |
+| 7 | Error on screen | `role="alert"` block, now `.nf-auth__alert`: ROSE (`--nf-state-error`), where it wore `--nf-state-warning`, the pending cyan | FIXED here |
+| 8 | Profile row | `on_auth_user_created` on `auth.users` runs `public.handle_new_user` (SECURITY DEFINER), confirmed in `pg_trigger`. Sign-in reads nothing else; `profiles` RLS is select/update own plus admin select | Present. Not exercised live (no user may be created) |
+| 9 | Redirect | `landingAfterAuth` re-validates `next` with `safeReturnPath` (no scheme, no `//`, no backslash, no control characters), defaults to `/home`; `revalidatePath("/", "layout")` then `redirect` | Works. `next` survives chooser, password step, Google, and the "none" hand-off to sign-up |
+| 10 | Intent | `proxy.ts` sends a signed-out product visit to `/sign-in?next=<path incl. ?do=verb>&notice=sign-in-required`; `auth-intent.ts` reads `do` back on arrival | Works; `next` is the carrier |
+| 11 | Google | `startGoogleOAuth` form action, provider fixed server side, `redirectTo` = `/auth/callback?next=...&intent=sign-in`; the callback page runs `completeEmailVerification` (code exchange) and shows the sign-in moment, not "Verifying your email" | Works in code. Drawn only when `getProviderStates` says Google is on |
+| 12a | First run (request W2) | `/sign-in` sends a device without `vallo_first_run=seen` to `/welcome?next=<the whole sign-in address>`; straight through on the cookie, on `welcomed=1`, and on the account notices (`first-run-gate.ts`, six unit tests) | NEW. Measured: a cookieless browser opening `/sign-in?next=/home` lands on `/welcome?next=%2Fsign-in%3Fnext%3D%252Fhome`. It arrives as a streamed redirect (HTTP 200 with the `NEXT_REDIRECT` marker and a meta refresh), not a 307 header, because the auth layout has begun streaming; a header-level 307 would need `proxy.ts`, which is not mine |
+| 12 | Sign up link | `/sign-up` (the real entry; the welcome worker may route it through `/welcome`) | Works |
+
+Broken links found and not in my files (none blocking):
+- `authMessage` says "Open the link we sent you" for an unconfirmed address,
+  but sign-up now confirms with a CODE at `/sign-up/verify`. The better answer
+  is an `action` link to `/sign-up/verify`, which needs `lib/auth/actions.ts`
+  (not mine) to set the pending-email cookie on that refusal. Scope request
+  SIGNIN-1 in `docs/SESSION_B_SCOPE.md`.
+
+### (b) The comparison, 390 dark
+
+Scale. The render is a 1024 x 1536 poster with no phone frame, so the brief's
+screen-width formula gives s = 0.381 and a 241px card with 27px controls.
+Instead s is set by the card spanning the phone column: 633 render px to 358
+CSS px, s = 0.566. Two stated floors: controls never under 48px (tap rule),
+and the card's type at 1.36 x s, because at s alone the render's card copy is
+9 to 11px on a phone. The stage and lockup are the render's own pixels, so
+their geometry matches by construction.
+
+| Property | Image (measured) | Built (measured) | Match |
+|---|---|---|---|
+| Sky, curtains, horizon, floor | render | the render's own stage crop, UI lifted out | yes (pixels from the render) |
+| Glass plinth | 725 x 84 render px, top face at card foot | render crop, anchored so render y 1336 = card foot; 579 css plate, plinth 410 wide | yes; ends clipped by the 390 viewport |
+| App tile + wordmark | tile 258 x 280, wordmark 382 x 70, gap 38 | render crop 262 x 256 css (464 x 452 source) | yes; 1.7x source at 3x density, slightly soft |
+| Slogan | "Real Estate reimagined!" | not drawn | REFUSED, see below |
+| Card width / radius | 633 / 42 render px (358 / 24 css) | 358 / 22 (`--nf-radius-xl`) | yes, 2px under |
+| Card fill | #001554 (three samples, no red) | canvas + 26% brand ink mixed in sRGB, 88 to 94%: measured #001F54 | yes |
+| Card edge | across the left edge at y 1000: outside #000B4C, one hot line #9BE2FE, electric band #0551D0 > #0040D8 > #0137BC 3px deep, glass | 1px hot border (white + quiet blue), 2px electric inset band, 14px inner glow, tight 6 + 26px bloom | yes |
+| Card top rim | brightest at the centre (#9EE5FE), #074292 at the corners | 2px white-to-rim-hot line across the middle 84% of the top edge | yes |
+| Card inset | 60 render px (34) | 34 | yes |
+| Title | caps 25 render px, semibold, ~36px (20 at s) | Poppins 600, 24px | factor 1.2x s, stated |
+| Sub | caps 14, regular, ~19px (11 at s) | Inter 400, 15px | 1.36x s, stated |
+| Email field | 70 tall (40), r 12, fill #00144C, edge #0B4FD0, envelope glyph | 48 tall, r 14 (control), card glass, electric edge, UiIcon mail 20 | yes; height floored |
+| Continue | 76 tall (43), gradient #0380FE > #0038E8 > #004BFD, white top hairline #F6FEFE, lit foot #D7FAFE, bloom | 52 tall, `--nf-gradient-cta` + 18% white top sheen, 1.5px white top inset, 1.5px rim-hot foot inset, bloom 14 + 32px | yes |
+| OR divider | two hairlines, "OR" caps ~7, regular | 1px hairlines, 12px 500 | yes (type floored) |
+| Google | 68 tall (38), glass outline #1481DC, Google G | 48, glass, electric edge, Google's own four-colour G (file, not tokens) | yes |
+| Sign-up line | caps 12, "Sign up" blue | 13px, link `--nf-content-link` 600 | yes |
+| Spacing, field > button > OR > Google > line | 42 / 48 / 40 / 54 render px (24 / 27 / 23 / 30) | 24 / 18+ / 18+ / 20 | tightened 3 to 10px to fit 844 |
+| Status badges | none drawn | none | n/a |
+
+What does not match, honestly:
+- Title reads "Welcome back" and the sub "Vallo": the render's "Welcome Back"
+  and "VALLO" in running copy break the house sentence case and brand casing.
+- "Do not have an account?" (house style) where the render has "Don't".
+- The render's plinth ends are visible; at 390 the plinth is wider than the
+  viewport at this scale, so its ends are clipped.
+- The small print (terms, privacy, rules) sits under the plinth; the render
+  has none. It has to be on screen: a Google sign-up here passes no tick.
+- The language control top right is not in the render; it is a working
+  control and stays.
+
+### Refused from the render
+- "Real Estate reimagined!" under the wordmark: a positioning statement, removed
+  by the founder on 22 September; not drawn, not in alt text, not in the crops
+  (the stage hole lifts it out; the lockup box ends above it). Nothing replaces it.
+- Nothing else on this render makes a claim.
+
+### Glow identity (`docs/design/GLOW_IDENTITY.md`, d01a5d7)
+
+The identity's structure is followed (lit edge as bands, lit primary with a
+bright top line and a bloom under it). Where 55A56F21 measures differently it
+wins on this surface, per the lead's instruction: the card's edge is the
+render's hot hairline over an electric band rather than the identity's four
+per-side colours, its glass is the render's #001554 rather than the
+identity's gradient of lit ink, and the Continue button keeps the render's
+white top hairline (#F6FEFE) and lit foot (#D7FAFE) rather than the
+identity's cyan edge. Card corner 22px against the identity's 12: the render
+measures 42 render px, 24 CSS.
+
+### (c) Light mode
+
+Rule 22 keeps the auth family dark in both themes, so light mode's duty is to
+render the SAME screen. Measured: every element and pseudo-element under
+`main` compared by computed colour, background, border, shadow, display,
+opacity and filter, dark against light: **0 differences on `/sign-in`,
+`/sign-in/email` and `/sign-up`**. Two light leaks were found and closed on
+the way: `light.css` repainted `.nf-field` rgb(0,0,32) and took the primary's
+edge to transparent inside the pinned subtree (fixed by leading with
+`.nf-auth[data-theme="dark"]`); and `.nf-aurora` / `.nf-grid-veil`, which
+`light.css` hid in light mode (survey 9.5, item 1), are no longer used here.
+The logo is the render crop on a night stage in both themes, so it cannot
+vanish.
+
+### (d) Shape sweep
+
+`compare-surface.mjs --shape-sweep --routes "/sign-in?welcomed=1,/sign-in/email,/sign-up" --theme both`
+(the `welcomed=1` keeps the sweep on sign-in rather than following first run)
+at 390 and 1536, dark and light:
+
+```
+BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
+WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 0
+ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 0
+```
+
+`check-css-tokens.mjs`: clean. Unit tests: 49 passing across
+`app/(auth)/sign-in`, `components/auth`, `lib/auth`.
+
+### Proofs (`docs/design/proofs/session-b/signin/`)
+All from the production build of this worktree, 390 x 844 at 2x unless named:
+`signin-390-dark.jpg`, `signin-390-light.jpg`, `signin-email-390-dark.jpg`
+(the password step with an address carried), `signup-390-dark-inherits.jpg`,
+`signin-1440-dark.jpg`, and `signin-vs-55A56F21-390.jpg` (the render beside
+the build, the re-audit image). None is fixture-backed: these screens need no
+session. Re-audited against the render twice: the first pass found the card
+greyed (#172E52 against #001554) and its edge a flat blue where the render has
+a hot hairline over an electric band; both fixed and re-measured.
+
+### Crop resolution
+The lockup draws 262 CSS px from 464 source px, so 1.7x the source on a 3x
+phone and 1.1x on a 2x one; the stage 579 CSS px from 1024 (1.7x at 3x). The
+lockup is slightly soft on 3x screens. No upscaling filter was applied.
+
+### (e) Skipped or not verified
+- No live sign-in, OAuth round trip, rate-limit trip or error message was
+  exercised against production: no test user may be created. Proven by code
+  reading, SQL introspection (`pg_trigger`, `pg_proc`, `pg_policies`) and the
+  existing auth unit tests (43 passing).
+- `signUpMethodForEmail` on the password step: its "google" and "none"
+  branches were not seen live (the local build returned the ordinary step).
+- New keys `auth.accountUsesGoogle`, `auth.accountNotFound`,
+  `auth.accountCreate` are in English only; Yoruba, Hausa and Igbo fall back
+  to English until a speaker writes them.
+- No new test file was added for this surface.
 
 ## 4. Wallet
 
@@ -1317,3 +1462,9 @@ light variant by design (theme.ts: dark in the layer every client honours).
   test user, every listing an example). `/inspections` and `/agent/inspections` could not
   be shape-swept directly (redirect to sign-in). The eight-row room checklist, report notes
   and report photos are not built (scope request I1). Crops soft at 3x.
+
+- Welcome back (signin): no live sign-in, Google round trip, rate-limit trip
+  or error message was exercised against production (no user may be created);
+  the password step's "google" and "none" branches were not seen live; the
+  three new `auth.account*` keys are English only; the first-run redirect is
+  streamed, not a 307 header.

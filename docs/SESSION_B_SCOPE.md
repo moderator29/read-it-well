@@ -554,6 +554,13 @@ cookie `vallo_first_run=seen` for a stranger and in `settings.welcomeSeen` for
 an account. Every landing Get started link already goes through `/start`, so
 it meets first run with no change. What cannot be done from Session B's files:
 
+SIGNIN-1. **An unconfirmed address, answered with the way out.** `lib/auth/actions.ts`
+    (Session A's) answers `email not confirmed` on sign-in with "Open the link we
+    sent you", but sign-up now confirms with a CODE at `/sign-up/verify`.
+    Request: in `signInWithEmail`, on that error, call `rememberPendingEmail(email)`
+    and return `action: { href: "/sign-up/verify?next=<landing>", label: "Enter your code" }`
+    with the message "Confirm your email first. Enter the code we sent you."
+    `EmailAuthForm` already renders `state.action` inside the alert. Note, not a blocker.
 W1. **Sign up meets first run the first time.** `app/(auth)/sign-up/page.tsx`
     and `app/(auth)/sign-up/email/page.tsx` (Session A's) render straight away.
     Request, at the top of each page, for a signed-out visitor:
