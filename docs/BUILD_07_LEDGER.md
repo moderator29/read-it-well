@@ -318,13 +318,23 @@ it was. Item by item, from `buildNav`: Home `/home`, Search `/search`, Feed
 `/around` (all three dock rows, hidden in the drawer below `lg` because the
 dock carries them); Bookings `/bookings`, Inspections `/inspections`, Messages
 `/messages`, Notifications `/notifications`, Saved `/saved`, Wallet `/wallet`,
-Crypto `/crypto`, AI Assistant `/assistant`; the workspace rows Agent Mode
+AI Assistant `/assistant`; the workspace rows Agent Mode
 `/agent/dashboard` and Console `/admin` for those who hold them; and the tail,
 Add a workspace `/profile/setup` and Settings `/settings`. On the Stays side
 Stays `/stays`, Explore `/stays/search` and Trips `/trips` replace their three
 twins. Plus the foot: Switch profile (new), the coin, the theme row and the
 legal row. `b1/more-proof` walks the open drawer on a production server and
 fetches every `href` it draws.
+
+**And Crypto came off that list twenty minutes after it was written, which is
+A2b's correction rather than B1's error.** The list above read "Crypto
+`/crypto`" when B1 recorded it at `94c61da`. At `906c571`, twenty minutes
+later, N3 took crypto dark for the first submission: `/crypto` is now a
+deliberate `notFound()` and `buildNav` no longer draws the row, on the stated
+argument that a drawer row pointing at a 404 is worse than no row. So the
+route is unreachable ON PURPOSE and the promise is not broken by it, but the
+list had to stop naming it, because a row that does not exist cannot be proved
+to still resolve and nobody reading this should go looking for one.
 
 **B1's register extensions, recorded so they can be checked.** `GOVERNING-01`
 and `02` govern everything this scope drew except three pieces of anatomy the
