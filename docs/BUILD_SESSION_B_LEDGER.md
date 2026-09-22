@@ -1948,6 +1948,172 @@ light variant by design (theme.ts: dark in the layer every client honours).
 - **Every link as a signed-in person.** Routes proven to exist as pages by the
   test; not clicked through with a session.
 
+## 11. Platform identity and the roles icon pack
+
+Worker "identity", 22 September. Scope: `docs/SESSION_B_SCOPE.md` section 10.
+Two hand-over deliverables for Session A; no product surface was edited, no
+token, no shared stylesheet, no shared icon file. Requests ID1 and ID2.
+
+### What was delivered
+
+- `docs/design/GLOW_IDENTITY.md`: the identity measured off the renders, as
+  proposed token values for dark and paper, mapped to the tokens they replace
+  or extend, with a paste-ready CSS block. Revised once the same evening on the
+  lead's review (paper tile, and three dark values raised after re-sampling).
+- `docs/design/proofs/session-b/identity/identity-side-by-side.jpg`: each
+  element as the render draws it, as the proposed CSS draws it, and its paper
+  twin, at 2x. The CSS came from a throwaway static page rendered in headless
+  Chromium (not committed; it lived in the scratchpad).
+- `apps/web/public/brand/session-b/roles/`: 113 objects and 1 stage.
+  Per object: `<name>.png` and `.webp` at native size, `-256.png` and
+  `-256.webp`, and the paper rendition `-day.png`, `-day.webp`,
+  `-day-256.png`, `-day-256.webp`. `SOURCES.md` carries render, box, native
+  px, square edge, the screen that uses it, what it is, and a `RENDER_CROPS`
+  entry per object ready to paste into `scripts/icon-manifest.mjs`.
+- `scripts/design/session-b-crops.mjs`, block `roles`
+  (`node scripts/design/session-b-crops.mjs --surface roles`).
+- Contact sheets: `docs/design/proofs/session-b/identity/roles-pack-dark.png`
+  (on the render's night ground) and `roles-pack-paper.png` (the `-day` files
+  bare on paper).
+
+### How the pack was cut
+
+- All twelve `roles/` images were opened and every glass object and glass
+  icon tile was boxed by hand on 2x to 8x zooms with a 10 px grid, each box
+  stopping short of the card border, the caption, the tick badge and the next
+  tile so the edge ring is ground.
+- **The key is the shared pipeline's own code.** `cut-icon-ground.mjs`
+  exports nothing and rewrites `assets/brand-cut` when imported, so the roles
+  block reads that file's text and evaluates its keying section (FLOOR
+  through `squareWithMargin`, stopping before `cutOne`): `keyRender` (two-pass
+  plane fit on the ring, brightest-channel key, one scale for all three
+  channels so the hue is the render's), `dropEdgeStrays`, `squareWithMargin`.
+  If that file is restructured the block throws rather than keying with
+  something else. (The inspection block above it restates the functions; mine
+  evaluates the originals. Both are honest; they are not identical code.)
+- Retouched before the key, by harmonic fill from the surrounding glass:
+  the tick badges overlapping `list-rent-house` (06) and `shortlet-entire-flat`
+  (11), and the lettering on the `list-sale-sign` board (06), which ships
+  blank. `owner-map-pin` (03) has a soft elliptical keep mask against the
+  drawn map.
+- Duplicates. Checked against all 144 objects in `public/brand/glass`: none is
+  the same drawing as anything here (the nearest, `home-ring`, `key-ring`,
+  `chart-ring`, `building-chip`, `doc-shield`, `pin-map`, `land-plot`, `duplex`,
+  `bungalow`, `mini-flat`, `shop-retail`, `office-space`, `id-card-check`,
+  `hotel-bed`, `concierge-bell`, `info`, `home-check`, `camera`, were compared
+  side by side and are different drawings). Within the set, where two screens
+  draw the same object only the larger drawing was cut and its row names both:
+  the Owner orb (01 drawer over 01 sheet), the plus orb (01 over 05 and 09), the
+  firm block on its plinth (05 screen 4 over screen 1), the clock orb (16 to 20
+  over 8 to 12), the prohibition orb (three screens), the generator and the tap
+  (07 amenities over 07 light and water), the document orb (Certificate over
+  Deed and None), the hotel scene (10 over 09), the Nearby pin (09 over the 06
+  map pin).
+
+### Inventory
+
+| Render | Objects (native px) |
+| --- | --- |
+| 01 | `home-buy-tile` (76), `home-rent-tile` (76), `home-manage-tile` (76), `home-invest-tile` (76), `switch-owner-orb` (74), `switch-agent-orb` (64), `switch-firm-orb` (64), `switch-add-orb` (64) |
+| 02 | `door-owner-house` (114), `door-agent-key` (108), `door-firm-building` (112), `ask-person-tile` (86), `ask-pin-tile` (86), `ask-doc-shield-tile` (86), `ask-clock-tile` (56) |
+| 03 | `owner-house-orb` (78), `owner-shield-tile` (62), `owner-map-pin` (62), `doc-certificate-orb` (52), `doc-consent-orb` (52), `doc-survey-orb` (52), `doc-utility-orb` (52), `ownership-proof-orb` (72), `info-orb` (40), `owner-set-up-house` (212) |
+| 04 | `agent-id-card` (94), `agent-selfie-orb` (92), `agent-key-plinth` (228) |
+| 05 | `firm-building-plinth` (248), `firm-letter` (88), `firm-stamp` (94) |
+| 06 | `list-rent-house` (94), `list-sale-sign` (86), `list-land-plot` (90), `type-flat` (72), `type-duplex` (72), `type-bungalow` (72), `type-self-contain` (70), `type-shop` (70), `type-office` (70), `room-bedrooms` (58), `room-bathrooms` (60), `room-toilets` (60), `room-size` (66), `room-furnishing` (64), `room-floor` (62), `condition-fair` (56), `condition-good` (74), `condition-new` (62), `condition-off-plan` (76) |
+| 07 | `light-bulb-plinth` (114), `power-sun` (42), `power-clock-orb` (42), `none-orb` (42), `power-inverter` (42), `power-solar` (44), `water-drop-plinth` (94), `water-borehole` (54), `water-well` (50), `amenity-parking` (60), `amenity-security` (50), `amenity-water-heater` (50), `amenity-air-conditioning` (60), `amenity-wifi` (52), `amenity-fitted-kitchen` (52), `amenity-wardrobe` (50), `amenity-balcony` (50), `amenity-gated-estate` (54), `amenity-borehole` (50), `amenity-generator` (52), `amenity-running-water` (52), `amenity-pop-ceiling` (60), `amenity-tiled-floor` (56), `amenity-garden` (52), `media-camera-plinth` (66), `media-video-tile` (52) |
+| 08 | `price-rent-house` (52), `price-agency-person` (52), `price-legal-doc` (52), `price-caution-shield` (52), `price-service-gear` (52), `price-total-coins` (68), `review-sent-house` (186) |
+| 09 | `stays-hotels-bed` (94), `stays-shortlets-house` (94), `stays-restaurants-cloche` (90), `stays-nearby-pin` (76), `stays-switch-person-orb` (70), `stays-switch-hotel-orb` (70), `stays-door-hotel` (94), `stays-door-shortlet` (94), `stays-door-restaurant` (94) |
+| 10 | `facility-pool` (52), `facility-gym` (54), `facility-parking` (52), `facility-restaurant` (48), `facility-airport-shuttle` (50), `facility-generator` (46), `facility-wifi` (54), `facility-air-conditioning` (46), `add-tile` (44) |
+| 11 | `shortlet-entire-flat` (66), `shortlet-whole-house` (62), `shortlet-private-room` (62), `restaurant-plate-orb` (110) |
+| 12 | `notify-listing-live` (54), `notify-message` (54), `notify-viewed` (54), `notify-approved` (54), `notify-reminder` (54), `notify-follower` (54), `notify-system` (54), `admin-avatar-orb` (42) |
+| 10 (stage) | `hotel-scene` (310 x 122, cut with its ground, feathered) |
+
+### Measured identity (dark; paper values are in GLOW_IDENTITY.md)
+
+| Element | Measured (render px, converted at 0.933 CSS/px for 02, 1.171 for 04) | Proposed |
+| --- | --- | --- |
+| Page ground | `#000D34` (02), `#000828` (04) | flagged, not adopted blind |
+| Lit ink | one ink solves card, tile and panel: rgb(0 90 255) | `--nf-lit-ink` |
+| Card fill | ink alpha 0.68 under the rim, 0.31 at 11 px, 0.19 at 34, 0.08 to 0.14 mid, 0.41 at the bottom edge; reflection brighter in the middle third of the top | eight-stop gradient plus a top radial |
+| Card border | 1 px: top `#58F0FE`, left `#02B9EF`, bottom `#048CE1`, right `#0050B4`; each a three-row band | per-side `border-color` plus inner and outer rows |
+| Card radius | 13 render px, 12 CSS | 12px (today 18) |
+| Card glow | +14 blue within 3 px, gone by 8 | 4 px halo 0.38, 12 px field 0.18 |
+| Selected | border `#C7FEFF`, fill alpha 0.49 mid, cyan under the rim, bloom still +50 at 14 px and +60 at 20 px, tick 24 CSS `#0079F8` ring `#00A5FF` | selected fill, edge, two-layer bloom |
+| Icon tile | 70 px (65 CSS), radius 14 (0.20), lit left column `#02BEF8`, lit top and bottom rows, dark middle except a glyph halo to blue 254 | lit tile recipe; PALE tile on paper |
+| Lit button | `#017DF9` / floor `#0153FC` at 61% / `#029AF2`; border `#0BEEFC` top, `#02B3FB` sides, `#01E5FE` bottom; middle of the lower half 45 green levels over the ends; bloom above gone by 12 px, below steady to 24 | radial low lift over six-stop gradient, cyan edge, offset bloom |
+| Progress | 35 x 10 CSS, gap 8, radius 3; on `#0188FD` with `#02B1FE` top row; off `#01358F` to `#002977`, edge `#003D95` | progress tokens |
+| Info panel | flat ink 0.28, edge `#0D4393`, no glow, radius 9 CSS, glyph disc `#2BB1FC` 35 CSS | info tokens |
+| Text | heading `#FFFFFF`, body `#C4D9F4`, card body `#A4D7F9`, muted `#98CEF9`, accent `#35EEFD` | 12.1, 11.3, 10.4, 12.3 to 1 on the card middle |
+
+### Could not crop cleanly, and why
+
+- **The 06 map pin on its disc.** Drawn over the street map; the map's lines
+  run into the disc and survive any key that keeps the disc's glow. Not
+  shipped; the same pin on its disc is `stays-nearby-pin` (09), on a clean
+  ground.
+- **`owner-map-pin` (03)** ships, but soft: it too stands on the map, and the
+  keep mask leaves a faint haze round it. Prefer `ask-pin-tile` or
+  `stays-nearby-pin` where either fits.
+- **The 11 house rules orbs** (no smoking, no pets, no parties, no children):
+  about 26 render px and the glyphs are garbled at source.
+- **The 08 "What happens next" tiles**: about 26 px, glyphs indistinct.
+- **Small flat glyphs** (03 drag-the-pin, 06 form rows, 07 prepaid bolt, the 04
+  clock and check discs, the flat info discs of 04, 05 and 08): not glass;
+  they are the UiIcon tier. The lit glass version of the info glyph is
+  `info-orb` (03).
+- **Not objects at all**: the 01 drawer and the 12 admin rail (line glyphs,
+  UiIcon tier), the dock's centre switch (a control), every avatar and photo,
+  the selected tick badges (CSS, section 3 of GLOW_IDENTITY).
+- **Soft by size.** Native is the object's longer side in render px; a crop is
+  sharp to native / 3 CSS at 3x and acceptable to native / 2. Under 50 native:
+  `info-orb` (40), `power-sun` (42), `power-clock-orb` (42), `none-orb` (42), `power-inverter` (42), `power-solar` (44), `facility-restaurant` (48), `facility-generator` (46), `facility-air-conditioning` (46), `add-tile` (44), `admin-avatar-orb` (42). These belong in 16 to 24 CSS px slots.
+- **Retouch residue.** Where a tick badge was painted out (`list-rent-house`,
+  `shortlet-entire-flat`) a faint lighter patch survives at the top right,
+  visible on mid grey at 200 px and not on the night ground. The blanked board
+  of `list-sale-sign` reads slightly smudged. On `hotel-scene`, three small
+  lettering-like panels were blanked and the top one softens a short run of the
+  roof's rim line.
+- **`shortlet-private-room`** ships as drawn, and the render drew a car for
+  "Private room". It is flagged in SOURCES as not reading as a room; I would
+  not use it for that caption.
+- **Faint square wash on paper.** A night crop's outer bloom, composited on
+  white, shows as a pale square round the larger objects (the shared pack's
+  crops do the same). That is why every object has a `-day` rendition, which
+  drops the bloom. Use `-day` on paper, always.
+
+### Refused from the render
+
+- The lettering on the for-sale board (06): retouched blank (no text baked
+  into an object).
+- The "Short Let" home tile (01): not cut, per `roles/README.md` point 5.
+- The Apple Maps mark (03), the star ratings (09, 10), every count badge
+  (01 drawer 3 and 1), every count, price and statistic: not cropped, not
+  objects, and not ours to state.
+- Nothing in the pack asserts anything about the world: no badge, licence,
+  seal or certification object was cut. The emerald tick tile
+  (`notify-approved`) is a state glyph for a real state (a listing approved),
+  not a claim.
+
+### Light mode
+
+The first proof put the dark artwork on a navy plate on a white card. The lead
+caught it as the survey's condemned dark-plate defect; corrected the same
+evening. Paper now takes a pale glass tile and each object's `-day` rendition,
+bare or on that tile; stages (`hotel-scene`) sit in a framed deep-navy panel
+with a lit edge, a picture rather than an icon chip. Proof:
+`roles-pack-paper.png` and the right-hand column of the side-by-side.
+
+### Not verified
+
+- No product surface uses any of this yet; adoption is Session A's (ID1, ID2).
+  Nothing here was seen in the running app.
+- The harness used the system sans, not Poppins and Inter.
+- `sample-reference.mjs` is hard-wired to other references and was read, not
+  run; the sampling was my own sharp code and `measure-glow.mjs`.
+- The `-day` rendition is a derived recolour, not light artwork; it has been
+  looked at on paper in the contact sheet and the harness, at 88 and 92 px,
+  and nowhere else.
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)
@@ -1996,3 +2162,8 @@ light variant by design (theme.ts: dark in the layer every client honours).
   Analytics "All areas" filter not built. Notification volumes blocked by RLS
   (A6); database jobs summarised, not listed (A5); searches, views and refusal
   reasons not recorded (A7, A8, A11). New console copy is English only.
+- Platform identity and roles pack (section 11): no product surface uses the
+  pack or the proposed tokens yet (ID1, ID2 with Session A); the `-day` paper
+  renditions are derived recolours checked only on contact sheets and a
+  harness; `eslint` on `scripts/design/session-b-crops.mjs` timed out on the
+  loaded box and was not completed (`node --check` passes).
