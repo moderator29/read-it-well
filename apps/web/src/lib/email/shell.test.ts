@@ -555,6 +555,67 @@ describe("the verification code is the hero of its own email", () => {
   });
 });
 
+/* ------------------------------------------------- the reset is not a dead end */
+
+/**
+ * THE PASSWORD RESET, WHICH IS THE ONE MESSAGE WHOSE BUTTON IS THE MESSAGE.
+ *
+ * Password reset is link only on this platform: there is no six digit
+ * recovery screen, `resetPasswordForEmail` sends to the callback, and
+ * `updatePassword` acts on the session that exchange creates. So if the
+ * anchor does not survive the trip, the reader is locked out rather than
+ * inconvenienced, and anchors do not always survive: corporate gateways
+ * rewrite them, some clients refuse a link in a message they score as
+ * suspicious, and a reader forwarding to a desktop loses the tap.
+ *
+ * The defence is that the destination is also printed as selectable text.
+ */
+describe("the password reset always leaves a way through", () => {
+  const reset = EVERY_MESSAGE.find((m) => m.name === "passwordReset");
+  const RESET_URL = "https://vallospaces.com/auth/reset?token=abc";
+
+  it("has a fixture at all", () => {
+    expect(reset, "passwordReset has no fixture to check").toBeTruthy();
+  });
+
+  it("prints the destination as text, not only as a link target", () => {
+    const html = String(reset?.message.html);
+    expect(html).toContain("If the button does not work");
+
+    /*
+     * The real check: strip every anchor and every image, the two things a
+     * client can take away, and the address must still be readable in what
+     * is left. An href is not enough on its own, because an href is exactly
+     * what gets rewritten.
+     */
+    const stripped = html
+      .replace(/<a\b[^>]*>[\s\S]*?<\/a>/g, "")
+      .replace(/<img\b[^>]*>/g, "");
+    expect(stripped).toContain(RESET_URL);
+  });
+
+  it("does not print the address twice in the plain text part", () => {
+    /*
+     * In text the button already renders as "Label:" then the URL on its own
+     * line, so the HTML fallback must NOT be repeated there. A reader looking
+     * at two identical long URLs cannot tell whether they differ, and a URL
+     * is the one thing in this message they have to trust.
+     */
+    const text = String(reset?.message.text);
+    expect(text.split(RESET_URL).length - 1).toBe(1);
+    expect(text).not.toContain("If the button does not work");
+  });
+
+  it("is a different shape from the code email, on purpose", () => {
+    // The code email teaches "Vallo never sends a button to press for a
+    // code". That lesson only works if this message, which is a different
+    // act, looks like a different act.
+    const codeEmail = EVERY_MESSAGE.find((m) => m.name === "verificationCode");
+    expect(String(codeEmail?.message.html)).not.toContain("<a href");
+    expect(String(reset?.message.html)).toContain("<a href");
+  });
+});
+
 /* --------------------------------------------------------------- the copy */
 
 describe("the copy rules hold in the markup that ships", () => {

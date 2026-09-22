@@ -206,7 +206,21 @@ export type Block =
   | { kind: "paragraph"; text: string }
   | { kind: "bullets"; items: readonly string[] }
   | { kind: "rows"; rows: readonly ReceiptRow[] }
-  | { kind: "button"; label: string; href: string }
+  | {
+      kind: "button";
+      label: string;
+      href: string;
+      /**
+       * Print the destination underneath, selectable, as well as linking it.
+       *
+       * For the messages whose button IS the message: a password reset has no
+       * other way in, so a stripped or mangled anchor is a dead end rather
+       * than an inconvenience. Corporate mail gateways rewrite links, some
+       * clients refuse a link in a message they score as suspicious, and a
+       * reader forwarding to a desktop loses the tap entirely.
+       */
+      showUrl?: boolean;
+    }
   /** A short value to be read out or typed in: a code, a reference. */
   | { kind: "code"; value: string }
   | { kind: "note"; text: string };
@@ -216,7 +230,8 @@ export const heading = (text: string): Block => ({ kind: "heading", text });
 export const paragraph = (text: string): Block => ({ kind: "paragraph", text });
 export const bullets = (items: readonly string[]): Block => ({ kind: "bullets", items });
 export const rows = (list: readonly ReceiptRow[]): Block => ({ kind: "rows", rows: list });
-export const button = (label: string, href: string): Block => ({ kind: "button", label, href });
+export const button = (label: string, href: string, showUrl?: boolean): Block =>
+  showUrl ? { kind: "button", label, href, showUrl } : { kind: "button", label, href };
 export const code = (value: string): Block => ({ kind: "code", value });
 export const note = (text: string): Block => ({ kind: "note", text });
 
@@ -304,10 +319,17 @@ function htmlBlock(block: Block): string {
        * keeps colours, still draws a blue button with white text rather than
        * white text on nothing.
        *
-       * The padding is on the anchor rather than on the cell, so the whole pill
-       * is a tap target on a phone, which is where most of these are opened.
-       * mso-padding-alt repeats the geometry for Word, which ignores padding on
-       * an inline-block.
+       * The padding is on the anchor rather than on the cell, so the whole
+       * button is a tap target on a phone, which is where most of these are
+       * opened. mso-padding-alt repeats the geometry for Word, which ignores
+       * padding on an inline-block.
+       *
+       * IT IS A ROUNDED RECTANGLE AND NEVER A CAPSULE. 14px of radius on a
+       * 52px tall button is a ratio of 0.27 against the short side, well under
+       * the 0.5 that makes a capsule however it was spelled, and 14px is
+       * --nf-radius-control. Classic Outlook drops the radius and draws a
+       * rectangle, which is a squarer version of the same shape rather than a
+       * broken one, so the shape law holds in every client.
        *
        * The colour is written #FFFFFF rather than through the palette because
        * it is the text ON the brand blue in both schemes, not a themed value.
@@ -318,7 +340,13 @@ function htmlBlock(block: Block): string {
                         <a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:16px 34px;font-family:${FONT_SANS};font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${escapeHtml(block.label)}</a>
                       </td>
                     </tr>
-                  </table>`;
+                  </table>${
+                    block.showUrl
+                      ? `
+                  <p class="rm-muted" style="margin:18px 0 6px;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${DARK.muted};">If the button does not work, copy this address into your browser:</p>
+                  <p class="rm-muted" style="margin:0;font-family:${FONT_MONO};font-size:13px;line-height:1.6;word-break:break-all;color:${SKY};">${escapeHtml(block.href)}</p>`
+                      : ""
+                  }`;
 
     case "code":
       // Letter-spacing pushes the last glyph off centre, so text-indent puts
