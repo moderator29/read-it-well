@@ -5608,3 +5608,136 @@ which is exactly the state measured before.
 
 Gate: clean worktree at `2596ed9`, hardlinked node_modules, tsc 0, eslint 0, 91
 tests across `lib/bookings` and `lib/cron`.
+
+## 49. REQUESTS TO SESSION B
+
+`docs/SESSION_B_SCOPE.md` asks this session to put anything it needs on Session
+B's surfaces here, because Session B reads this file. This section is that
+channel. It is appended to, never rewritten, and each item says whether it is a
+blocker or a note.
+
+**Scope acknowledged.** As of `75cdea0` the admin console (`app/admin/**`,
+`app/css/admin.css`) and the inspection surface (`app/(app)/inspections/**`,
+`components/app/inspections/**`, `app/agent/inspections/**`,
+`lib/inspections/**`) are Session B's, along with the original five. **This
+session has nothing in flight on any of them** and will not edit them. Nothing
+needs pushing on our side before Session B starts.
+
+`docs/design/REFERENCE_UPLOADS_2026-09-22.md` indexes all ten root PNGs with
+what each one actually draws, screen by screen; every one was opened rather
+than inferred from its filename. It predates the reassignment and says five of
+them are this session's. They are not, as of `75cdea0`. The index of what each
+image contains is still accurate and is the useful half.
+
+---
+
+### R1. BLOCKER. The send money render carries an "NDIC INSURED" badge and it must not be drawn
+
+`77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png`, bottom of the screen, beside a
+"256 BIT ENCRYPTION" badge: **"NDIC INSURED"**.
+
+NDIC is the Nigeria Deposit Insurance Corporation. It insures deposits held at
+licensed banks. **Vallo is not a bank and holds no such cover.** Drawing that
+badge on a money screen is a false statement about whether a person's money is
+protected if the platform fails, and it is the kind of claim a regulator reads
+literally rather than as decoration.
+
+This is not the shape law and it is not a style preference. It is the standing
+rule that a reference image governs the SHAPE and never licenses an untrue
+detail, and it sits next to the stop list's prohibition on merchant-of-record
+exposure and on any claim about where somebody's money is.
+
+**Do not draw it in any wording** unless the founder produces evidence of
+cover. The "256 BIT ENCRYPTION" badge beside it is a claim about an
+implementation detail and should go with it: it tells a person nothing they can
+act on, and a security claim that cannot be checked is a dark pattern.
+
+If the reassurance strip is wanted, the honest version names what is actually
+true: who holds the money, what happens to it if a transfer fails, and how long
+a refund takes.
+
+### R2. BLOCKER. Buy Airtime, Pay Bills and Swap are products Vallo does not sell
+
+Drawn in both `6AF37222` (wallet, Quick Actions) and `77A54EA3` (send money,
+the four-button row): **Buy Airtime**, **Pay Bills**, **Top Up**, **Swap**.
+
+Vallo sells none of them. **Swap** additionally reads as crypto, and the crypto
+surface was taken dark deliberately: `app/(app)/crypto/page.tsx` and
+`crypto/[id]/page.tsx` both call `notFound()`, with the ruling recorded as
+DEFERRED, NOT CANCELLED.
+
+A tile that goes nowhere is precisely the fault HANDOFF 08 section 1.1 is about
+("the shop is empty and the window advertises stock"), and it is the one thing
+this build has been most consistently punished for. Draw the actions that
+resolve to something a person can finish today, and no others.
+
+### R3. NOTE. The Welcome Back render's slogan was removed by founder instruction today
+
+`55A56F21` draws "Real Estate reimagined!" under the lockup. The founder's
+instruction on 22 September was to remove the auth screen slogan **entirely,
+with no replacement**. The render predates the ruling. The ruling wins.
+
+### R4. NOTE. The admin renders draw a platform with traffic that does not exist
+
+The four admin images draw 1,248 live listings, ₦18,450,000 transacted today,
+137 moderation reports, 548 escrows, 42 identity checks awaiting review.
+
+Measured on the live database at 19:30 on 22 September:
+
+| | |
+|---|---|
+| Published listings | 64 |
+| Of which demo (`is_demo`) | **64** |
+| **Real supply** | **0** |
+| Accommodations | 5, all demo |
+| Bookings, ever | **0** |
+| Reservations, ever | **0** |
+| Accounts (`auth.users`) | **7** |
+| Open risk alerts | 0 |
+
+Every number on those screens will be zero or near it on the day they ship.
+**The empty state has to be the designed state**, not a fallback added at the
+end, or the console becomes the same window advertising stock that HANDOFF 08
+opens by condemning. A chart with no data should say what would fill it.
+
+### R5. NOTE. GOVERNING-12 is now split between the two sessions, and it carries a fee-attribution warning
+
+`GOVERNING-12` draws four screens: the admin review queue, a listing under
+review with its actions, **the lister's notification centre**, and **search by
+listing ID**. The first two are Session B's under `app/admin/listings/**`. The
+last two are not in Session B's scope and stay here.
+
+Carried forward from the ledger: **screen two's render prints "Agency fee
+(10%)" and "Legal fee (2%)" with no owner named.** The built screen must say
+WHOSE fee each one is, or it reads as the platform's, which is false and is
+against rule 15. Vallo charges no platform fee and nothing may imply it does.
+
+### R6. NOTE. Two things that will bite on any admin screen with small text
+
+- `text-[var(--nf-text-x)]` compiles to `color` in Tailwind v4 and emits **no
+  font-size at all**. The correct spelling is `text-[length:var(--nf-text-x)]`.
+  928 occurrences of the broken form were repaired today in `d4d4ea6`; writing
+  a new one puts it straight back.
+- The four daylight state colours moved today in `2596ed9`
+  (`--nf-state-success`, `-warning`, `-error`, `-info`). They were quoted
+  against white and failed 4.5:1 on the three grey light surfaces. If an admin
+  badge needs a state colour, take the token; do not re-derive a hex.
+
+### R7. NOTE. What the operations screen needs already exists and is honest as of today
+
+`01F7DFC7` screen two draws scheduled jobs with last run and status, alerts by
+severity, and an audit log. That data is real and was repaired today:
+
+- `private.cron_job_failures(interval, integer)` returns each failed run **and
+  `recovered_at`**, the next success of the same job, so a fixed fault does not
+  render as a live one. `public.cron_job_failures` is the wrapper, and
+  `service_role` is the only role with EXECUTE.
+- `lib/cron/freshness.ts` names any watched job that has gone quiet past its
+  allowance; `lib/cron/report.ts` writes the dated rows it reads.
+- `private.reconciliation_watch` holds the money job's last request, its reply
+  and its verdict. It read `ok_200` at 18:47 on its own schedule.
+- `public.risk_alerts` is at **0 open** after today's clear-down, with all 267
+  historical rows kept and resolved rather than deleted.
+
+**Requests for a new view, function or policy come back to this session**, per
+the scope file. Ask rather than adding a migration.
