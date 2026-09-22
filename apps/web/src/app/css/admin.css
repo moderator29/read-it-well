@@ -130,7 +130,10 @@
       background var(--nf-duration-fast) var(--nf-ease-standard),
       color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* A child row is 36px, so it takes the 10px rung: 14px would be 0.39 of
+     its height, the sweep's "worth an eye" band. */
   .nf-admin-nav__row--child {
+    border-radius: var(--nf-radius-sm);
     min-height: 2.25rem;
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
@@ -1462,12 +1465,25 @@
   .nf-admin-strip__cell + .nf-admin-strip__cell {
     border-left: var(--nf-border-width) solid var(--nf-admin-hair);
   }
-  @media (max-width: 1099.98px) {
+  @media (min-width: 640px) and (max-width: 1099.98px) {
     .nf-admin-strip__cell:nth-child(3) {
       border-left: 0;
     }
     .nf-admin-strip__cell:nth-child(n + 3) {
       border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+    }
+  }
+  /* One figure per row on a phone, each still a full cell of the pane. */
+  @media (max-width: 639.98px) {
+    .nf-admin-strip {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .nf-admin-strip__cell + .nf-admin-strip__cell {
+      border-left: 0;
+      border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+    }
+    .nf-admin-strip__cell {
+      min-height: 4.75rem;
     }
   }
   .nf-admin-strip__body {
@@ -1487,7 +1503,7 @@
   }
   /* The strip's sparkline only where the cell has room for it beside the
      figure; a sparkline that squeezes the number is the wrong trade. */
-  @container (max-width: 300px) {
+  @container (max-width: 268px) {
     .nf-admin-strip__spark {
       display: none;
     }
@@ -1686,7 +1702,14 @@
     color: var(--nf-content-primary);
     vertical-align: middle;
   }
-  .nf-admin-dt tr:last-child td {
+  .nf-admin-dt tbody th {
+    background: none;
+    text-align: left;
+    font-size: var(--nf-text-body-sm);
+    white-space: normal;
+  }
+  .nf-admin-dt tr:last-child td,
+  .nf-admin-dt tr:last-child th {
     border-bottom: 0;
   }
   .nf-admin-dt__num {
@@ -1935,6 +1958,17 @@
 
   .nf-chart {
     margin: 0;
+    container-type: inline-size;
+  }
+  /* On a narrow chart every other bucket label stands down (the first and
+     last always stay), so twelve months never print on top of each other. */
+  @container (max-width: 520px) {
+    .nf-chart__xaxis > span:nth-child(even):not(:last-child) {
+      visibility: hidden;
+    }
+    .nf-chart__xaxis--bars > span:last-child:nth-child(even) {
+      visibility: visible;
+    }
   }
   .nf-chart__frame {
     display: flex;

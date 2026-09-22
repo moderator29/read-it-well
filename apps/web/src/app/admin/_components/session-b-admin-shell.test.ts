@@ -20,11 +20,11 @@ describe("periodDelta", () => {
   it("prints a percentage against a non-zero previous period", () => {
     expect(periodDelta(112, 100)).toEqual({ direction: "up", good: true, text: "+12%" });
     expect(periodDelta(95, 100)).toEqual({ direction: "down", good: false, text: "-5%" });
-    expect(periodDelta(100, 100)).toEqual({ direction: "flat", good: true, text: "0%" });
+    expect(periodDelta(100, 100)).toEqual({ direction: "flat", good: true, text: "No change" });
   });
   it("prints a count, never an invented percentage, from zero", () => {
     expect(periodDelta(3, 0)).toEqual({ direction: "up", good: true, text: "+3" });
-    expect(periodDelta(0, 0)).toEqual({ direction: "flat", good: true, text: "0" });
+    expect(periodDelta(0, 0)).toEqual({ direction: "flat", good: true, text: "No change" });
   });
   it("respects a figure where lower is better", () => {
     expect(periodDelta(9, 10, { higherIsGood: false })?.good).toBe(true);

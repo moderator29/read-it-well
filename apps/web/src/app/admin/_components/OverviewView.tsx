@@ -186,7 +186,7 @@ export function OverviewView(props: OverviewProps) {
       /* No delta: an open count has no history to compare against until
          something snapshots it. The caption says what the number is instead. */
       delta: null,
-      caption: "Listings waiting on a decision",
+      caption: "Waiting on a decision",
       spark: spark("card-reviews", (d) => d.submitted, "Listings submitted, last 14 days"),
       href: "/admin/listings",
       pending: pending("The queue count"),

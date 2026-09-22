@@ -29,6 +29,14 @@ export type AreaPoint = {
 
 export type AxisTick = { value: number; label: string };
 
+/** Every `every`th label, and always the last, dropping one that would crowd it. */
+export function showTick(i: number, count: number, every: number): boolean {
+  const last = count - 1;
+  if (i === last) return true;
+  if (i % every !== 0) return false;
+  return every === 1 || last - i >= Math.ceil(every / 2);
+}
+
 export function AreaTimeChart({
   points,
   yTicks,
@@ -151,7 +159,7 @@ export function AreaTimeChart({
       <div className="nf-chart__xaxis" aria-hidden="true">
         {points.map((p, i) => (
           <span key={p.key} style={{ left: `${(xAt(i) / W) * 100}%` }}>
-            {i % tickEvery === 0 ? p.tick : ""}
+            {showTick(i, points.length, tickEvery) ? p.tick : ""}
           </span>
         ))}
       </div>

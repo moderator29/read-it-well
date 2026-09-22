@@ -9,7 +9,7 @@ export type Delta = {
   direction: "up" | "down" | "flat";
   /** Whether this direction is good news for this figure. */
   good: boolean;
-  /** "+12%", "-4%", "0%", or "+3" when the previous period was zero. */
+  /** "+12%", "-4%", "No change", or "+3" when the previous period was zero. */
   text: string;
 };
 
@@ -34,6 +34,7 @@ export function periodDelta(
   const diff = current - previous;
   const direction = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
   const good = direction === "flat" ? true : (direction === "up") === higherIsGood;
+  if (direction === "flat") return { direction, good, text: "No change" };
   if (previous === 0) {
     return { direction, good, text: `${diff > 0 ? "+" : ""}${diff}` };
   }

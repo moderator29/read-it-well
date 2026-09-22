@@ -111,6 +111,11 @@ export function DeltaLine({ delta, caption }: { delta: Delta | null; caption?: s
 
 export type KpiSpark = { id: string; values: readonly number[]; label: string; tone?: SparkTone };
 
+/** A sparkline is drawn only when something happened: fourteen zeros is not a line. */
+function drawable(spark: KpiSpark | null | undefined): spark is KpiSpark {
+  return Boolean(spark && spark.values.some((v) => v !== 0));
+}
+
 export type KpiItem = {
   key: string;
   icon: AdminIcon;
@@ -158,8 +163,8 @@ export function KpiStrip({ items, label }: { items: readonly KpiItem[]; label: s
               <span className="nf-admin-kpi__caption">{item.caption}</span>
             )}
           </div>
-          {item.value !== null && item.spark && (
-            <Sparkline {...item.spark} width={84} height={30} className="nf-admin-strip__spark" />
+          {item.value !== null && drawable(item.spark) && (
+            <Sparkline {...item.spark} width={72} height={30} className="nf-admin-strip__spark" />
           )}
         </div>
       ))}
@@ -181,7 +186,7 @@ export function KpiCard({ item }: { item: KpiItem }) {
         <Figure item={item} big />
         {item.value !== null && <DeltaLine delta={item.delta ?? null} caption={item.caption} />}
       </div>
-      {item.value !== null && item.spark && (
+      {item.value !== null && drawable(item.spark) && (
         <Sparkline {...item.spark} width={96} height={44} className="nf-admin-kpi__spark" />
       )}
     </>
