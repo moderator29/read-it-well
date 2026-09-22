@@ -41,6 +41,7 @@ import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
+import { ListingWalkthrough } from "@/components/app/listing/ListingWalkthrough";
 import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
 import { ListingTenure } from "@/components/app/listing/ListingTenure";
 import { readListingAccess } from "@/lib/listings/access-queries";
@@ -981,6 +982,23 @@ export default async function ListingDetailPage({
                 {/* ------------------------------------------ photo grid */}
                 {/* A single photograph is already the hero; a grid of one
                     states nothing, so it is not rendered below two. */}
+                {/* ---------------------------------------- walkthrough */}
+                {/*
+                  ABOVE THE PHOTOGRAPHS, DELIBERATELY. A walk through a
+                  property is the one piece of evidence on this page that is
+                  genuinely hard to fake, which in a market where photographs
+                  are routinely of a different flat makes it worth more than
+                  all of them. It is also the thing the approval email has been
+                  advertising to listers while no renter could watch one.
+                */}
+                {(listing.videos?.length ?? 0) > 0 && (
+                  <Reveal>
+                    <Section title="Walkthrough" divided>
+                      <ListingWalkthrough videos={listing.videos ?? []} title={listing.title} />
+                    </Section>
+                  </Reveal>
+                )}
+
                 {listing.photos.length > 1 && (
                   <Reveal>
                     <Section title="Photos" divided>

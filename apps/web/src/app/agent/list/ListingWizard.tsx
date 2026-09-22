@@ -58,6 +58,7 @@ import {
 } from "@/lib/agent/listings-schema";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/VideoWalkthrough";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { TextField, TextArea } from "@/components/ui/Field";
@@ -439,6 +440,17 @@ export function ListingWizard({
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
   const [photos, setPhotos] = useState<Photo[]>(initial?.photos ?? []);
   const [chosenAmenities, setChosenAmenities] = useState<string[]>(initial?.amenityCodes ?? []);
+  /* The walkthroughs already attached to this draft. Every layer behind them
+     was built weeks ago and had zero callers; `VideoWalkthrough` is the half a
+     human touches. */
+  const [videos, setVideos] = useState<WalkthroughVideo[]>(
+    (initial?.videos ?? []).map((video) => ({
+      id: video.id,
+      url: video.url,
+      posterUrl: video.posterUrl,
+      durationSeconds: video.durationSeconds,
+    })),
+  );
   const [listingId, setListingId] = useState<string | null>(initial?.id ?? null);
 
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -1371,6 +1383,23 @@ export function ListingWizard({
                 ))}
               </ul>
             )}
+
+            {/*
+              THE WALKTHROUGH, ON THE SAME STEP AS THE PHOTOGRAPHS.
+
+              GOVERNING-07 screen four puts it here, under the photo grid,
+              headed "Video walkthrough" with the calm explanatory line above
+              the clip. It belongs with the photographs because it is the same
+              decision a lister is making: what a stranger will see.
+            */}
+            <VideoWalkthrough
+              listingId={listingId}
+              userId={userId}
+              videos={videos}
+              onChange={setVideos}
+              canUpload={canPersist && userId !== null}
+              ensureListing={persist}
+            />
           </div>
         )}
 
