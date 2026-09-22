@@ -18,6 +18,36 @@ ledger's needs-the-founder section; this file is his.
 
 ## Open, and urgent
 
+### 121 LIGHT TWINS, WHICH IS THE REAL LIGHT-MODE FAULT
+
+You said the icon plates are dull navy on white and the ground token is the
+cause. It was measured and the cause is not the plate: every lighter plate
+loses MORE artwork than the navy one, because the artwork carries both bright
+highlights and dark strokes, so no paper value improves it. **The plate is
+dark to serve artwork drawn for a dark ground.**
+
+23 of the 144 glass objects ship a designed light twin. **121 do not**, and in
+daylight a twinned mark and an untwinned one are two different materials
+sitting in the same row. That is what you are seeing.
+
+**No amount of code closes this. It is a render order:**
+
+| What | Detail |
+| --- | --- |
+| Count | **121 PNGs** |
+| Where | `apps/web/public/brand/glass/light/` |
+| Names | **exactly** their dark counterparts in `glass/` |
+| Size | **256 x 256**, which is what all 144 dark and all 24 existing light files are |
+| Weight | about 2.6MB total |
+| What they are | **designed twins, not filters.** A 3D glass object lit for a dark ground does not become a light one by inversion |
+
+The asset layer is otherwise clean: 144 names against 144 dark files, zero
+drift either way, and a new test now binds both lists to the directory in both
+directions so an incoming twin that is named but not delivered fails at the
+gate. **That failure mode matters more than a missing file sounds:** a name
+claimed without its file makes the component suppress the plate, so somebody in
+daylight gets a broken image on a white page with nothing behind it.
+
 ### THREE ARTWORK FILES ONLY YOU CAN COMMISSION, AND THE EXACT SIZES
 
 Item 6 asked for a light variant of the lockup, "not a filter, not an opacity

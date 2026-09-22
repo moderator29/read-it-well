@@ -3517,3 +3517,80 @@ is a real improvement to make rather than an observation.
 **I could not fix this myself.** The value is sensitive and the API will not
 return it, so I cannot copy it into a correctly named variable. The name is
 the only thing visible, and the name is the fault.
+
+## 35. THE LIGHT TWINS ARE A RENDER ORDER, AND ONE MARK IS WITHHELD ON PURPOSE
+
+### The count, verified on disk rather than taken on report
+
+`apps/web/public/brand/glass/light/` holds **24** files against 144 dark
+objects. 23 are declared twins; the 24th is `escrow-hold.png`, which has **no
+dark original at all**, confirmed by looking.
+
+So **121 objects have no light twin**, and that, not the plate's ground, is the
+light-mode fault the founder is seeing. Recorded in `FOUNDER_OPEN_ITEMS.md` as
+a render order: 121 PNGs, 256x256, named exactly as their dark counterparts,
+about 2.6MB, designed twins rather than filters.
+
+### THE ONE EDIT THAT WAS NOT MADE, AND WHY IT IS THE BEST DECISION IN THE REPORT
+
+`escrow-hold.png` is a finished light twin sitting in the directory with
+nothing pointing at it. Read off the filesystem it is indistinguishable from a
+render somebody forgot to wire up, and wiring it up is a ONE LINE edit. B2 was
+one edit from doing it and did not, because `BRAND_MARKS.md` says build it and
+do not ship it until escrow exists, and `terms.tsx` states that Vallo does not
+hold your money.
+
+**Shipping that mark would have been artwork contradicting the contract**, on
+a platform whose own rule is that escrow is promised nowhere until it
+operates. A comment stopped it, and as B2 put it, a comment only stops the
+person who reads it. It is now in a `WITHHELD` set in a test, beside its
+reason, so the next person is stopped by a failing gate rather than by their
+own diligence.
+
+### The test that matters is not the obvious one
+
+The obvious assertion is that every declared twin has a file. The valuable one
+is the reverse: **a name in `LIGHT_TWINS` with no light file is worse than a
+broken image**, because the component then sets `data-twinned="true"` and
+SUPPRESSES THE PLATE, so a real person in daylight gets a missing image on a
+white page with nothing behind it. That is exactly how 121 incoming renders
+will fail, one at a time, as they arrive. B2 proved the test by breaking it
+first.
+
+### Item 7 finished: one ink, three strengths
+
+`--nf-container-ink` now feeds every container edge and **there is no second
+parent left to move**, which was what made the original drift invisible to a
+grep.
+
+The three strengths were KEPT deliberately, and the reasoning is right:
+forcing 341 references onto one alpha would flatten a real distinction,
+because a well's hairline and the dock's outline are not the same edge. Soft,
+base and strong of ONE ink is a ladder; two inks at overlapping strengths is
+drift, and drift was the complaint. Collapsing the strengths would have been
+answering a complaint the founder did not make while losing something the
+product uses.
+
+Monotonic in both themes: 1.35 / 2.24 / 2.81 at night, 1.56 / 2.87 / 3.71 on
+paper. On paper the base moves from a washed `rgb(103,143,200)` to a clean
+`rgb(73,138,231)`, which is the "different blues" complaint answered at the
+pixel.
+
+### Owed on that change, and named rather than skipped
+
+**The whole-harness visual sweep did not complete** on a 341-reference change.
+`next start` died mid-run twice in the isolated worktree, at 158 and 149
+unopened routes, and a reading off a dead server is not a reading, so both
+were discarded. A bounded eight-route sweep ran clean: 748 leaves, 3 below the
+floor in light, 0 in dark, and none of the three can be caused by this change
+STRUCTURALLY rather than as a judgement, because all three are ink-on-fill
+pairs and this change moves only border colours.
+
+The blocker is server stability in the worktree, not the change. It stays owed.
+
+### Two defects found in passing, neither B2's
+
+* **`.nf-movein__label` on `/preview/f3/listing` is white on white at 1.03:1.**
+  That is the label on the move-in cost block, which is the feature that
+  exists so a tenant can read what they will actually pay.
+* The settings `Verified` badge is 4.04:1.
