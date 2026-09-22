@@ -996,9 +996,24 @@ if (SHAPE_SWEEP) {
             const short = Math.min(r.width, r.height);
             if (short <= 0) continue;
             const rawRadius = cs.borderTopLeftRadius;
-            const radius = rawRadius.includes("%")
+            const declared = rawRadius.includes("%")
               ? ((parseFloat(rawRadius) || 0) / 100) * short
               : parseFloat(rawRadius) || 0;
+            /*
+             * 999px IS NOT A RADIUS, IT IS A SPELLING OF "CAPSULE", AND THE
+             * SWEEP WAS PRINTING IT AS THOUGH IT WERE DRAWN.
+             *
+             * CSS clamps a radius that would overlap to half the short side, so
+             * `border-radius: 999px` on a 30px badge DRAWS 15px. The sweep
+             * divided the declared 999 by 30 and printed "ratio 33.14", which
+             * is not a number about anything: no corner on this platform is
+             * thirty-three times its own side. The verdict was right, because
+             * anything at or above a half is a capsule and 33 is above a half,
+             * but the figure beside it was nonsense and the law's own test is
+             * THE DRAWN radius over THE DRAWN short side. So it is clamped to
+             * what the browser draws, which reports the honest 0.50.
+             */
+            const radius = Math.min(declared, short / 2);
             const ratio = radius / short;
             if (ratio < warnAt) continue;
             /*
