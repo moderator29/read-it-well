@@ -1699,7 +1699,7 @@ four files copied in and nothing else.
 A gate reading is a photograph of a moving object and is worthless without the
 commit it was taken at. That commit is `feffcdc`.
 
-## 17. THE BLIND GREEN LIGHT SWEEP: every job, check, probe and monitor, asked one question
+## 18. THE BLIND GREEN LIGHT SWEEP: every job, check, probe and monitor, asked one question
 
 The founder asked for one thing, deliberately, as a named piece of work: two
 of the day's findings were the same failure in different clothes. A scheduler
@@ -1720,7 +1720,7 @@ Three verdicts, and only the middle one is a finding.
 Counts: **26 examined, 13 SEES, 6 FIXED, 7 BLIND and marked.** The gate for
 every fix is at the foot of this section.
 
-### 17.1 What the live database says, measured before anything was written
+### 18.1 What the live database says, measured before anything was written
 
 Read only, against `uccixoonmbhrnyczyigt`, on 22 September 2026. Four
 measurements, and the third one was not expected.
@@ -1762,7 +1762,7 @@ Every one of those 256 rows was raised at MEDIUM severity with the word
 "unauthorised", which reads as somebody probing a URL. Four days of the whole
 fleet being down, reported hourly, in the colour of a nuisance.
 
-### 17.2 The findings, one line each
+### 18.2 The findings, one line each
 
 #### FIXED, six
 
@@ -1843,7 +1843,7 @@ against real database state after the fact, under `set -euo pipefail`, and
 two sessions that raced for it. `lib/alerts/record.test.ts` asserts the row
 that was inserted and the outcome returned, not that a function was called.
 
-### 17.3 The gate
+### 18.3 The gate
 
 Clean worktree at **origin/main 62835d9**, node_modules hard linked, the
 twelve changed files copied in.
