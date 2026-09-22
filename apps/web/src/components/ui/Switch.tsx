@@ -146,9 +146,18 @@ export function Switch({
         .join(" ")}
     >
       <div className="min-w-0 flex-1">
+        {/*
+          `--nf-text-body-sm`, RECONCILED DOWN FROM `--nf-text-body-lg`.
+          The primitive's own row was reading a LARGER rung than the settings
+          adapter written to stand in for it, so the same switch row was one
+          size on a filter sheet and another in settings. The settings surfaces
+          are where most switch rows in this product live and they read at
+          body-sm, so body-sm is what the row is. This is the collapse of the
+          four row layouts the research counted: the survivor is this one.
+        */}
         <p
           id={labelId}
-          className="text-[var(--nf-text-body-lg)] font-medium text-[var(--nf-content-primary)]"
+          className="text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
         >
           {label}
         </p>

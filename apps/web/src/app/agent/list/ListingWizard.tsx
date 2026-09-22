@@ -6,6 +6,7 @@ import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i1
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
 import { ResultScreen } from "@/components/app/ResultSheet";
+import { Switch } from "@/components/ui/Switch";
 import {
   addPhoto,
   removePhoto,
@@ -297,46 +298,23 @@ function valuesFrom(draft: WizardDraft): Values {
 
 /* ------------------------------------------------------------ small parts */
 
-/** The pill switch the pricing step uses twice, for the two negotiable flags. */
-function Toggle({
-  title,
-  body,
-  checked,
-  onChange,
-}: {
-  title: string;
-  body: string;
-  checked: boolean;
-  onChange: (next: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      className="flex w-full items-center justify-between gap-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-row text-left"
-      aria-pressed={checked}
-      onClick={() => onChange(!checked)}
-    >
-      <span>
-        <span className="block text-[var(--nf-text-body-sm)] font-medium">{title}</span>
-        <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{body}</span>
-      </span>
-      <span
-        className="relative h-7 w-12 shrink-0 rounded-full transition-colors"
-        style={{ background: checked ? "var(--nf-gradient-agent)" : "var(--nf-surface-raised)" }}
-      >
-        <span
-          /* The knob is a physical object in this metaphor rather than a
-             piece of text, so it takes the on-media ink, which is the token
-             that means "white in both themes" and is what the platform switch
-             in settings-rows.css already uses. `bg-white` is a raw literal and
-             the rule is right to catch it. */
-          className="absolute top-1 h-5 w-5 rounded-full bg-[var(--nf-content-on-media)] transition-all"
-          style={{ left: checked ? "1.625rem" : "0.25rem" }}
-        />
-      </span>
-    </button>
-  );
-}
+/*
+ * THE THIRD OF THREE SWITCHES STOOD HERE, AND IT IS GONE.
+ *
+ * `Toggle` drew its own 48x28 track with a 20px knob, animated on `left`
+ * rather than on a transform (a layout property, so the row reflowed on every
+ * frame of the animation instead of compositing), and painted
+ * `--nf-gradient-agent` when on while every other switch on the platform
+ * paints `--nf-brand-primary`. That last one is the part worth naming: the
+ * same control meant the same thing in two places and was a different colour
+ * in each, which is the uniqueness failure in its purest form.
+ *
+ * It is `components/ui/Switch.tsx` now, with `label` and `description`, which
+ * is the primitive's OWN row branch. The research counted four separate row
+ * layouts wrapped around one switch; this is the one the primitive already
+ * ships, so the wrapper is deleted rather than replaced by a fourth.
+ */
+
 
 function Field({
   label,
@@ -1762,11 +1740,11 @@ export function ListingWizard({
                   />
                 </Field>
 
-                <Toggle
-                  title="The price is negotiable"
-                  body="Say so and a buyer will open the conversation rather than scroll past."
+                <Switch
+                  label="The price is negotiable"
+                  description="Say so and a buyer will open the conversation rather than scroll past."
                   checked={values.priceNegotiable}
-                  onChange={(v) => set("priceNegotiable", v)}
+                  onCheckedChange={(v) => set("priceNegotiable", v)}
                 />
 
                 {/*
@@ -1895,11 +1873,11 @@ export function ListingWizard({
                   </div>
                 </fieldset>
 
-                <Toggle
-                  title="The rent is negotiable"
-                  body="Say so and somebody who is close will start the conversation."
+                <Switch
+                  label="The rent is negotiable"
+                  description="Say so and somebody who is close will start the conversation."
                   checked={values.rentNegotiable}
-                  onChange={(v) => set("rentNegotiable", v)}
+                  onCheckedChange={(v) => set("rentNegotiable", v)}
                 />
 
                 {/*

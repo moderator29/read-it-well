@@ -10,7 +10,7 @@ import { ICON } from "@/components/app/Screen";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
-import { Toggle } from "@/components/app/account/Toggle";
+import { Switch } from "@/components/ui/Switch";
 import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
 import { Chip, ChipRow } from "@/components/ui/Chip";
@@ -504,9 +504,14 @@ export function ReservePanel({
             which is why the phone is required alongside the name and the email
             is not. */}
         <div className="mt-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-md py-2xs">
-          <Toggle
+          {/* The primitive's own row, not a fourth wrapper around it. The
+              `py-sm` rhythm the deleted adapter carried moves here, where it
+              is a property of THIS list rather than of every switch row on the
+              platform. */}
+          <Switch
+            className="py-sm first:pt-0 last:pb-0"
             checked={forSomeoneElse}
-            onChange={toggleForSomeoneElse}
+            onCheckedChange={toggleForSomeoneElse}
             label="Someone else is arriving"
             description="Booking this for a family member or a friend."
           />

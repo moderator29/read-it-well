@@ -5,6 +5,7 @@ import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { Switch } from "@/components/ui/Switch";
 
 /**
  * Grouped rows: the one shape every account surface on this platform uses.
@@ -19,8 +20,9 @@ import { useOverlay } from "@/lib/ui/use-overlay";
  * you touched it, and that is the difference between a settings screen you read
  * and one you excavate.
  *
- * Everything here is a real control. `Switch` is a `role="switch"` button with
- * `aria-checked`. `RowSelect` is a native `<select>` covering its own row, so a
+ * Everything here is a real control. The switch is the platform primitive
+ * (`components/ui/Switch.tsx`) rather than a copy of it, which it was until
+ * the uniqueness sweep. `RowSelect` is a native `<select>` covering its own row, so a
  * phone opens the picker it already knows and a keyboard behaves. `Sheet`
  * closes on Escape, traps focus and locks the page behind it. None of that is
  * optional on a screen where somebody turns off notifications or deletes an
@@ -224,42 +226,33 @@ export function RowValue({
 
 /* ----------------------------------------------------------------- switch */
 
-export function Switch({
-  checked,
-  onChange,
-  labelledBy,
-  label,
-  disabled,
-  testId,
-}: {
-  checked: boolean;
-  onChange: (next: boolean) => void;
-  /** The id of the visible text that names this switch. */
-  labelledBy?: string;
-  /** Used only when there is no visible label to point at. */
-  label?: string;
-  disabled?: boolean;
-  testId?: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-labelledby={labelledBy}
-      aria-label={labelledBy ? undefined : label}
-      disabled={disabled}
-      data-testid={testId}
-      onClick={() => onChange(!checked)}
-      /* Drawn at 50x30 and given its 44px hit area by nf-tap rather than by
-         being drawn that big, which is the platform's rule for every control
-         smaller than a thumb. */
-      className="nf-switch nf-tap"
-    >
-      <span className="nf-switch__knob" aria-hidden="true" />
-    </button>
-  );
-}
+/*
+ * THE SECOND OF THREE SWITCHES STOOD HERE, AND IT IS GONE.
+ *
+ * The platform had three: `components/ui/Switch.tsx` at 52x32 with a 24px
+ * thumb, this one at 50x30 with a 22px knob, and a third hand-rolled in
+ * `app/agent/list/ListingWizard.tsx` at 48x28 with a 20px knob that animated
+ * `left` rather than a transform and painted the agent gradient when on while
+ * every other switch on the platform painted the brand. Three geometries, two
+ * knob class names (`__thumb` here, `__knob` there), and two competing
+ * `.nf-switch` blocks in two stylesheets, one supplying the paint and the
+ * other silently supplying the geometry through nothing but import order.
+ *
+ * No knob ever actually escaped its track. The research measured all three
+ * and they are all contained. The defect was never a visual escape; it was
+ * that one control was three objects, so a fix applied to one of them was a
+ * fix applied to a third of the product.
+ *
+ * `RowSwitch` below now renders the platform primitive. The props line up
+ * one for one, and the row gains the thing this copy never had: the on-state
+ * bloom at `controls.css:709`, which only ever reached `__thumb`.
+ *
+ * HANDED TO GROUP B, who own the stylesheets: `.nf-switch`,
+ * `.nf-switch__knob` and `.nf-switch[aria-checked="true"] .nf-switch__knob`
+ * in `app/settings-rows.css` are now unreferenced and should go, which also
+ * ends the double declaration of `.nf-switch` that `app/globals.css:42` does
+ * not list among its three deliberate ones.
+ */
 
 /** A row whose control is a switch. */
 export function RowSwitch({
@@ -303,10 +296,10 @@ export function RowSwitch({
       )}
       <Switch
         checked={checked}
-        onChange={onChange}
-        labelledBy={labelId}
+        onCheckedChange={onChange}
+        aria-labelledby={labelId}
         disabled={disabled}
-        testId={testId}
+        data-testid={testId}
       />
     </div>
   );
