@@ -29,19 +29,179 @@ identity block, keyboard use, narrow screens)
 
 ## 4. Listings: the review queue and the single listing under review
 
-(admin-review)
+**Where:** `/admin/listings` (the queue) and `/admin/listings/<id>` (one listing
+under review). Rail row: Listings. Built to `C1D98B3C` panels 1 and 2, with the
+flow of `docs/design/references/roles/GOVERNING-12` panels 1 and 2.
+
+**Who can use it.** Anyone holding the `admin` or `super_admin` role. The
+console layout checks the role once on the server (`requireAdmin`,
+`lib/admin/guard.ts`) before any desk renders; every read below repeats the
+check, and every read goes through the admin's own signed-in database client,
+so row level security (`listings_admin_all` and friends) decides what comes
+back. Nothing on this desk uses the service role.
+
+### The queue
+
+What you see, top to bottom:
+
+- **Status tabs**: All, Waiting (`SUBMITTED`), Under review (`UNDER_REVIEW`),
+  More info needed (`MORE_INFO_REQUIRED`), Approved (`APPROVED`, passed review
+  and not yet live), Live (`PUBLISHED`), Rejected, Suspended. Every listing
+  state has a tab; drafts do not, because a draft has not been submitted.
+  Each tab's number is an exact count of listings in that status, examples
+  included (`getListingStatusCounts`, `lib/admin/reads/listings.ts`, sixteen
+  head-only count reads).
+- **Search and dates**: the search matches the title or the city (never the
+  street address); From and To narrow by the date the listing was created.
+  Both live in the URL, so a narrowed queue can be shared.
+- **The table**: photo, the listing code (or `LST-xxxxxx` before it is live,
+  since the database issues the real code at publish), type, area and city,
+  the lister with their role tag (Owner, Agent or Firm, from their
+  registration), the price with its unit, how long ago it was submitted, and
+  the status badge. An **Example** tag marks every example listing
+  (`listings.is_demo`): examples exist to show how the product looks and are
+  never real supply. Rows come from `getListingSubmissions`
+  (`lib/admin/queries.ts`, Session A's), forty at a time; the pager numbers
+  only pages it has evidence for (the read says whether there is another page,
+  not how many).
+- **Recently decided** (All tab, first page): the ten most recent decisions.
+- **Queue health**: a donut over real listings only (Waiting, More info
+  needed, Approved not yet live, Rejected), with the number of example
+  listings left out written beneath it.
+- **Average review time**: the median time from submission to decision over
+  the last seven days, against the seven before, from the audit log's
+  `listing.review` rows (`getListingReviewTimes`). `listings.reviewed_at` is
+  overwritten by each decision, so it cannot give history; the audit log can.
+
+The desk refreshes itself every thirty seconds while it is on screen.
+
+### The listing under review
+
+Open any row. You see: back to the queue (keeping your tab and search), the
+code, a summary line (bedrooms, type, place, price), the photos with the
+walkthrough video (plays in place; nothing is preloaded), Property details,
+Power and water (the lister's own answers, worded exactly as the wizard asked
+them), Amenities by name, the Location map (the listing's own pin on the
+product's map tiles, with the provider's credit), Move-in costs or Purchase
+costs **with every line naming who it is paid to** (landlord, agent, estate,
+seller, state; Vallo takes no fee and the screen never implies it does),
+Lister verification (role, verified or not, tier, which rungs passed), Reason
+for review (the status in words, every admission check that fails, the last
+note sent), the Description, and the full admission checklist. An example
+listing says so above the photos.
+
+Reads: the listing itself is Session A's `getListingSubmissions` view (so the
+checklist and the costs are computed in one place); the pin, amenities,
+availability, example flag, lister and the next listing are
+`getListingReviewExtras` (Session B's).
+
+### What the buttons do
+
+- **Approve** calls `reviewListing(decision: "approve")`. The listing moves to
+  `APPROVED`; the lister gets an in-app notification and an email ("passed
+  review, we put it live next"); an audit row `listing.review` is appended
+  with the before and after status and your note. It is NOT live yet.
+- **Publish** (the same button once a listing is approved) calls
+  `reviewListing(decision: "publish")`: `PUBLISHED`, the database issues the
+  listing code, it enters public search, and the lister is told with the code.
+- **Ask for more** calls `reviewListing(decision: "request_changes")`. It needs
+  a reason (the field above the buttons); the lister receives it word for word
+  and the listing moves to `MORE_INFO_REQUIRED`.
+- **Reject** asks to be pressed twice, then calls
+  `reviewListing(decision: "reject")`: `REJECTED`, the lister is told with
+  your reason and can edit and resubmit.
+
+After any decision the next listing waiting in your queue opens by itself; at
+the end of the queue you return to it. A live or rejected listing shows no
+buttons, only a line saying where it stands.
+
+**What it cannot do.** It cannot suspend a live listing (that is Stops). It
+cannot edit a listing. The Live, Rejected and Suspended tabs show the ten most
+recent only, because Session A's read does not page its decided bucket; narrow
+by title, city or date to reach older ones.
 
 ## 5. Moderation
 
-(admin-review)
+**Where:** `/admin/moderation`. Built to `01F7DFC7` panel 1.
+
+Two kinds of work in one table. **Reports** are what members filed about a
+listing, a post, a story or a person (`reports`). **Held items** are what the
+safety scan stopped before anybody saw them: posts, stories, story comments
+and bios (`status = 'HELD'`).
+
+- **Reason tabs**: All, then the eight reasons a member can choose (payment
+  off the platform, scam, unsafe, not as described, unavailable, offensive,
+  duplicate, other), then Held by the scan. A reason tab filters in the
+  database and pages forty at a time (`getReportsByCategory`).
+- **Total reports**: open plus in review, exact, with new reports this week
+  against last and a fourteen-day sparkline of new reports.
+- **Over 24 hours**: reports still open past the 24-hour promise the Community
+  rules make, plus held items older than a day.
+- **The table**: item, reporter (or "Safety scan"), reason, age, status. Work
+  still waiting comes first, oldest first; closed reports after. Open a row to
+  read the words, open what was reported, and decide.
+- **Report breakdown**: waiting reports by reason, on the blue ramp.
+- **Queue health**: open, in review, held, and the median time from filing to
+  closing this week against last.
+
+All figures: `getModerationSummary` (`lib/admin/reads/moderation.ts`), exact
+counts and complete fourteen-day windows.
+
+**Deciding a report** uses Session A's `ReportDecision` (`resolveReport`):
+Start review, Resolve or Dismiss, each with a note; the report's status and
+who moved it are written, and an audit row `report.review` is appended. The
+reporter already heard their report arrived (trigger `notify_report`).
+
+**Deciding a held item** uses `HoldDecision` (`decideHeldItem`): Let it
+through (no reason needed) or Take it down (a reason is required, and the
+author receives it word for word through the status triggers). Taking a bio
+down empties it and leaves the profile.
+
+**Cannot:** ban a member (Standing), or act on a message flag (Flags).
 
 ## 6. Verification
 
-(admin-review: every verification rung)
+**Where:** `/admin/kyc`. Built to `8E9602E2` panel 2.
+
+- **Awaiting review, Passed today, Failed today, Median decision time**:
+  exact counts of documents from `agent_documents`, today being the Lagos
+  calendar day; each against yesterday or a week ago
+  (`getVerificationSummary`).
+- **Identity verification queue**: one row per PERSON (their unit of work is
+  a person, not a file): name, role (Owner, Agent or Firm, as they
+  registered), tier on the four-rung ladder, rungs passed of four, latest
+  upload, how many documents wait. Open a row for their ladder (including
+  pending rungs an automated check raised), business details, and every
+  document, opened inside Vallo in the DocumentViewer (never a raw storage
+  link), with Approve or Reject on each pending one. Filter by document
+  status and upload date; there is no name search because the name is not on
+  the document row.
+- **Verification funnel**: every document by decision, one status bar with
+  the word on each part.
+- **Results by rung**: identity, address, payout account, met in person, each
+  counted passed, pending, failed (`agent_verification_checks`).
+- **Recent verifications**: the ten latest decisions.
+
+**Deciding** uses Session A's `DocumentDecision` (`reviewKycDocument`, then the
+database function `review_kyc_document`): approving needs no reason;
+rejecting needs one of at least twelve characters, which the person receives
+word for word. The function writes the audit row and the notification.
+
+**The render draws a "match score" and "provider performance" (NIMC, BVN,
+Bank, Selfie). Nothing records a provider or a score**, so the desk shows rungs
+passed and results per rung instead, which are real.
 
 ## 7. Support
 
-(admin-review)
+**Where:** `/admin/support`. Tickets filed from the contact form and by the
+assistant when it cannot answer. Search by reference or email, filter by
+status and date, page forty at a time. Open a ticket to read who filed it and
+the thread, reply (`replySupportTicket`; the database tells the person), and
+change its status (`setTicketStatus`). A ticket about being asked to pay
+outside Vallo carries the four-hour commitment rather than the ordinary day.
+The Admin Queue (`/admin/queue`) is one table across listings, agents,
+reports, tickets and flags, newest first, each row leading to the desk that
+decides it; it decides nothing itself.
 
 ## 8. Money
 
@@ -222,6 +382,44 @@ asking for more, rejecting, deciding a report, passing or failing a
 verification, releasing or refunding an escrow, investigating a failed charge,
 reading a reconciliation failure)
 
+### Review desks (admin-review)
+
+**Approving a listing.** Open `/admin/listings`, Waiting tab. Open the oldest
+row you are responsible for. Read Reason for review first: every admission
+check that fails is listed there. Check the photos and play the walkthrough,
+read Power and water against the description, check the costs (every line says
+who it is paid to; a total that is "summed from the parts" was not stated by
+the lister), and check Lister verification. If it passes, press Approve (a
+note is optional). The next listing opens by itself. When you are ready to put
+approved listings into search, open the Approved tab, open each, and press
+Publish.
+
+**Asking for more.** Write exactly what must change in the reason field ("The
+fourth photo is of a different flat; replace it"). The lister reads it word
+for word. Press Ask for more. The listing moves to More info needed and comes
+back to Waiting when they resubmit.
+
+**Rejecting.** Only for a listing that cannot become acceptable by editing
+(not the lister's to let, a scam, a duplicate). Write why, press Reject, press
+it again to confirm. The lister is told and may still edit and resubmit.
+
+**Deciding a report.** `/admin/moderation`. Work top down: waiting items are
+oldest first. Open the row, read the reporter's words and open what was
+reported. Start review if it will take time (the reporter's report now shows
+as in review under your name). Resolve when you have acted (for a listing,
+suspend it on Stops or send it back through the listings desk); Dismiss when
+there is nothing to act on. Write a note either way; it is in the audit log.
+
+**A held post, story, comment or bio.** Open the row, read the words and why
+the scan held them. Let it through, or write the reason and Take it down: the
+author reads your reason word for word.
+
+**Passing or failing a verification.** `/admin/kyc`. Open the person's row.
+Open each document in the viewer. For a proof of address, check the issue date
+(a badge says when it is older than 92 days or undated). Approve, or Reject
+with a reason of at least twelve characters that tells them what to upload
+instead. Their ladder and tier update when the rung's documents are decided.
+
 ### Money desks (admin-money)
 
 **Ruling on a disputed escrow.** Open `/admin/escrow` (or the money desk's
@@ -257,6 +455,24 @@ escrow they are party to on `/admin/escrow` (search by the property).
 (each worker: honest limits, and the scope-file request numbers for data the
 console needs and does not have yet)
 
+### Review desks (admin-review)
+
+- **The Live, Rejected and Suspended tabs show the ten most recent.** Session
+  A's `getListingSubmissions` caps its decided bucket at ten with no offset;
+  narrowing by title, city or date reaches older ones. Tab COUNTS are exact.
+- **The listing under review is found by its own title and status** inside
+  Session A's view, so that the checklist and the costs are computed in one
+  place. A listing whose title contains a comma or brackets may not be found
+  that way; the page says it could not be opened rather than guessing.
+- **Verification cannot be searched by name**: the name is not on the
+  document row. Status and date narrow it.
+- **No provider match score exists** in the schema, so none is shown.
+- **The desks decide nothing of their own.** Approve, Publish, Ask for more,
+  Reject, report decisions, held-item decisions and document decisions all
+  call Session A's existing actions, unchanged.
+- No open requests: AR-1 to AR-9 were withdrawn when Session B wrote the reads
+  itself (`lib/admin/reads/listings.ts`, `moderation.ts`, `verification.ts`).
+
 ### Money desks (admin-money)
 
 - **The reconciliation job's last HTTP reply is not on the desks.** It lives in
@@ -282,6 +498,32 @@ console needs and does not have yet)
 (each worker: the alternatives weighed for its desks and why they lost; charting
 approach and palette decisions from `docs/research/UI_UNIQUENESS_AND_ADMIN_RESEARCH.md`
 part four belong here)
+
+### Review desks (admin-review)
+
+- **The render's reason tabs (Abuse, Fraud, Spam, Sexual content,
+  Impersonation).** Rejected: the platform records eight other reasons
+  (`reports_category_chk`), and a tab for a reason nobody can choose filters
+  nothing. The tabs are the real eight.
+- **Filtering reports by reason over a fetched page.** Rejected: it searches
+  only what the page cap returned. The reason is narrowed in the query.
+- **Counting a tab from the rows on screen.** Rejected: a count of a page is
+  not a count of a queue. Every figure is a head-only exact count.
+- **Folding example listings into the counts.** Rejected: on 22 September all
+  64 live listings were examples and real supply was zero. Examples are
+  counted apart and tagged wherever they are listed.
+- **Average review time from `listings.reviewed_at`.** Rejected: each decision
+  overwrites it, so it holds only the latest. The audit log's `listing.review`
+  rows give every decision.
+- **A confirmation sheet on every decision** (the old desk). Replaced by the
+  render's inline bar; the two decisions that cannot be undone by the lister
+  keep a guard (Ask for more needs a reason; Reject asks twice).
+- **Drawing "match score" and "provider performance" from the render.**
+  Rejected under the claims rule: nothing records them. The rung results
+  are real and stand in their place.
+- **A local copy of the sparkline.** Rejected once admin-shell's shared
+  `Sparkline` landed; the donut stays local because the shared one is the
+  agent console's booking-sources chart with a different anatomy.
 
 ### Money desks (admin-money)
 
