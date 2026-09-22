@@ -1,0 +1,1239 @@
+/*
+ * THE REVIEW DESKS' REGISTER: listings, the listing under review, moderation,
+ * verification, and the queue and support desks that inherit it.
+ *
+ * Imported by those routes only (App Router allows a route to import a global
+ * stylesheet), so `globals.css` and `admin.css` are not touched. The shell
+ * (rail, bar, shared primitives) belongs to admin-shell; nothing here styles
+ * it. Every class is `nf-rv-*` so it cannot collide with the shell's.
+ *
+ * Measured from C1D98B3C panels 1 and 2, 01F7DFC7 panel 1 and 8E9602E2 panel 2.
+ * Each panel is about 495 image px wide for a ~1440 CSS px window, but the
+ * render compresses vertically: type and control heights read consistently at
+ * x1.5 (title glyphs 17 image px -> 26px, table text 8.5 -> 13px, badge 17 ->
+ * 26px, tab 21 -> 32px), so type and heights use x1.5 and widths use the
+ * window proportions (content column about 57% of the window, side rail about
+ * 16%, sized up to 300px so its labels fit). The ledger, section 7, carries
+ * the full table. Controls are drawn at 40px or taller so the shape law's
+ * control radius (14px) stays at or under a 0.35 ratio; status badges and role
+ * tags are 26px and 20px on `--nf-radius-xs`, the badge rung the product's own
+ * `.nf-badge` already uses (0.23 and 0.30).
+ */
+
+@layer components {
+  /* ------------------------------------------------------------ the page */
+  .nf-rv {
+    display: grid;
+    gap: var(--nf-space-lg);
+    min-width: 0;
+  }
+
+  .nf-rv-split {
+    display: grid;
+    gap: var(--nf-space-md);
+    min-width: 0;
+    align-items: start;
+  }
+
+  @media (min-width: 1200px) {
+    .nf-rv-split {
+      grid-template-columns: minmax(0, 1fr) 300px;
+    }
+  }
+
+  .nf-rv-stack {
+    display: grid;
+    gap: var(--nf-space-md);
+    min-width: 0;
+    align-content: start;
+  }
+
+  .nf-rv-grid2 {
+    display: grid;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+
+  @media (min-width: 900px) {
+    .nf-rv-grid2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .nf-rv-kpis {
+    display: grid;
+    gap: var(--nf-space-md);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  /* ------------------------------------------------------------ the head */
+  .nf-rv-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+
+  .nf-rv-head__title {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: 1.625rem; /* 17 image px x1.5 = 25.5 */
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-head__sub {
+    margin: var(--nf-space-2xs) 0 0;
+    flex-basis: 100%;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-back {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-border-brand);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-rim-lit);
+  }
+
+  .nf-rv-back:hover {
+    border-color: var(--nf-brand-edge-strong);
+  }
+
+  .nf-rv-idline {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-summary {
+    margin: var(--nf-space-2xs) 0 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------ the tabs */
+  .nf-rv-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+
+  .nf-rv-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 40px;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 9%, var(--nf-surface-primary));
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+    transition: border-color 160ms ease, background 160ms ease;
+  }
+
+  .nf-rv-tab:hover {
+    border-color: var(--nf-border-brand);
+  }
+
+  .nf-rv-tab__count {
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+
+  /* The active tab is the lit blue button: gradient fill, a brighter top rim,
+     and a soft bloom cast below it. */
+  .nf-rv-tab[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand));
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)) 0%,
+      var(--nf-brand-primary) 55%,
+      var(--nf-brand-primary-strong) 100%
+    );
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
+      0 8px 22px -8px color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+  }
+
+  .nf-rv-tab[aria-current="page"] .nf-rv-tab__count {
+    color: color-mix(in oklab, var(--nf-content-on-brand) 80%, transparent);
+  }
+
+  /* ------------------------------------------------------------ the panel */
+  .nf-rv-panel {
+    position: relative;
+    min-width: 0;
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-sm); /* 6.5 image px x1.5 = 10 */
+    border: 1px solid var(--nf-border-brand);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-brand-primary) 13%, var(--nf-surface-primary)) 0%,
+        color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-primary)) 100%
+      );
+    box-shadow:
+      var(--nf-rim-lit),
+      0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 8%, transparent),
+      0 18px 40px -24px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+  }
+
+  .nf-rv-panel--flush {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .nf-rv-panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    margin-bottom: var(--nf-space-sm);
+  }
+
+  .nf-rv-panel--flush .nf-rv-panel__head {
+    padding: var(--nf-space-md) var(--nf-space-md) 0;
+  }
+
+  .nf-rv-panel__title {
+    margin: 0;
+    font-size: 0.9375rem; /* 10 image px x1.5 */
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-panel__note {
+    margin: 0;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* The honest state of a panel whose read has not landed. A calm line with
+     a small round glyph, the register's explanatory panel. */
+  .nf-rv-unwired {
+    display: flex;
+    gap: var(--nf-space-xs);
+    align-items: flex-start;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-xs);
+    border: 1px dashed var(--nf-brand-edge-soft);
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-rv-unwired svg {
+    flex: none;
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-empty {
+    padding: var(--nf-space-xl) var(--nf-space-md);
+    text-align: center;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+  }
+
+  .nf-rv-empty__title {
+    margin: 0 0 var(--nf-space-2xs);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------ the table */
+  .nf-rv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--nf-text-caption); /* 8.5 image px x1.5 = 13 */
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-table th {
+    padding: var(--nf-space-sm) var(--nf-space-sm);
+    text-align: left;
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    color: var(--nf-brand-secondary);
+    border-bottom: 1px solid var(--nf-brand-edge-soft);
+    white-space: nowrap;
+  }
+
+  .nf-rv-table td {
+    padding: var(--nf-space-sm);
+    vertical-align: middle;
+    border-bottom: 1px solid var(--nf-brand-edge-soft);
+  }
+
+  .nf-rv-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .nf-rv-table tbody tr:hover td {
+    background: color-mix(in oklab, var(--nf-brand-primary) 7%, transparent);
+  }
+
+  .nf-rv-table__num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .nf-rv-table__muted {
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-overline);
+  }
+
+  .nf-rv-cell-link {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    color: inherit;
+    min-width: 0;
+  }
+
+  .nf-rv-cell-link:hover .nf-rv-ref {
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-ref {
+    display: block;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* An example listing, labelled wherever it is listed so it is never read
+     as real supply. */
+  .nf-rv-example {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    margin-left: var(--nf-space-xs);
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    border: 1px dashed var(--nf-border-brand);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--nf-content-secondary);
+    vertical-align: middle;
+  }
+
+  .nf-rv-thumb {
+    flex: none;
+    width: 52px;
+    height: 56px; /* 30 x 38 image px x1.5, rounded down to the row */
+    border-radius: var(--nf-radius-xs);
+    object-fit: cover;
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-primary));
+  }
+
+  .nf-rv-thumb--empty {
+    display: grid;
+    place-items: center;
+    color: var(--nf-brand-secondary);
+  }
+
+  /* A table that is wider than a phone scrolls inside its own panel rather
+     than the page. */
+  .nf-rv-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* A table whose rows open: a grid of <details>, each summary laid on the
+     same columns as the head, so a decision can sit under its own row. */
+  .nf-rv-rows {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-rows__head,
+  .nf-rv-rows__row > summary {
+    display: grid;
+    grid-template-columns: var(--rv-cols);
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+  }
+
+  .nf-rv-rows__head {
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+    color: var(--nf-brand-secondary);
+    border-bottom: 1px solid var(--nf-brand-edge-soft);
+  }
+
+  .nf-rv-rows__row {
+    border-bottom: 1px solid var(--nf-brand-edge-soft);
+  }
+
+  .nf-rv-rows__row:last-child {
+    border-bottom: 0;
+  }
+
+  .nf-rv-rows__row > summary:hover,
+  .nf-rv-rows__row[open] > summary {
+    background: color-mix(in oklab, var(--nf-brand-primary) 7%, transparent);
+  }
+
+  .nf-rv-rows__row > summary:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: -2px;
+  }
+
+  .nf-rv-rows__cell {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 719px) {
+    .nf-rv-rows__head {
+      display: none;
+    }
+
+    .nf-rv-rows__row > summary {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .nf-rv-rows__row > summary > .nf-rv-rows__cell--wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* The expandable row that carries a decision. */
+  .nf-rv-detail > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .nf-rv-detail > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .nf-rv-detail__body {
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-md);
+    border-top: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 5%, transparent);
+  }
+
+  /* ------------------------------------------------------------ badges */
+  .nf-rv-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 var(--nf-space-sm);
+    border-radius: var(--nf-radius-xs);
+    border: 1px solid var(--rv-ink, var(--nf-brand-primary));
+    background: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 26%, var(--nf-surface-primary));
+    color: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 70%, var(--nf-content-on-brand));
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 0 14px -4px color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 70%, transparent);
+  }
+
+  .nf-rv-badge--success { --rv-ink: var(--nf-state-success); }
+  .nf-rv-badge--warning { --rv-ink: var(--nf-status-pending); }
+  .nf-rv-badge--danger { --rv-ink: var(--nf-state-error); }
+  .nf-rv-badge--info,
+  .nf-rv-badge--brand { --rv-ink: var(--nf-brand-primary); }
+  .nf-rv-badge--neutral { --rv-ink: var(--nf-content-muted); }
+
+  .nf-rv-role {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    margin-top: var(--nf-space-3xs);
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    border: 1px solid var(--nf-border-brand);
+    background: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-overline);
+    font-weight: 500;
+  }
+
+  /* ------------------------------------------------------------ KPI card */
+  .nf-rv-kpi {
+    display: grid;
+    gap: var(--nf-space-2xs);
+  }
+
+  .nf-rv-kpi__label {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-rv-kpi__row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+
+  .nf-rv-kpi__figure {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: 1.875rem; /* 20 image px x1.5 */
+    font-weight: 600;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-kpi__figure--quiet {
+    font-size: var(--nf-text-body);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-rv-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nf-rv-delta--good { color: var(--nf-state-success); }
+  .nf-rv-delta--bad { color: var(--nf-state-error); }
+  .nf-rv-delta--flat { color: var(--nf-content-muted); }
+
+  .nf-rv-delta__vs {
+    display: block;
+    font-size: var(--nf-text-overline);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-rv-spark {
+    flex: none;
+    width: 112px;
+    height: 40px;
+    overflow: visible;
+  }
+
+  .nf-rv-spark__line {
+    fill: none;
+    stroke: var(--nf-brand-primary);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent));
+  }
+
+  .nf-rv-spark__area {
+    fill: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+  }
+
+  /* ------------------------------------------------------------ donut */
+  .nf-rv-donut {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+  }
+
+  .nf-rv-donut svg {
+    width: 128px;
+    height: 128px;
+    overflow: visible;
+  }
+
+  .nf-rv-donut__track {
+    fill: none;
+    stroke: color-mix(in oklab, var(--nf-brand-primary) 16%, transparent);
+  }
+
+  .nf-rv-donut__arc {
+    fill: none;
+    filter: drop-shadow(0 0 5px color-mix(in oklab, currentColor 60%, transparent));
+  }
+
+  .nf-rv-donut__total {
+    font-family: var(--nf-font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    fill: var(--nf-content-primary);
+  }
+
+  .nf-rv-donut__caption {
+    font-size: var(--nf-text-overline);
+    fill: var(--nf-content-muted);
+  }
+
+  .nf-rv-legend {
+    display: grid;
+    gap: var(--nf-space-xs);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nf-rv-legend li {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-rv-legend strong {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--nf-radius-circle);
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  /* The four inks, one blue family plus the three states, used by the donut
+     arcs, the legend dots and the ramp bars. */
+  .nf-rv-ink-brand { color: var(--nf-brand-primary); }
+  .nf-rv-ink-quiet { color: var(--nf-brand-secondary); }
+  .nf-rv-ink-pending { color: var(--nf-status-pending); }
+  .nf-rv-ink-success { color: var(--nf-state-success); }
+  .nf-rv-ink-danger { color: var(--nf-state-error); }
+  .nf-rv-ink-muted { color: var(--nf-content-muted); }
+  .nf-rv-ink-ramp1 { color: var(--nf-brand-primary); }
+  .nf-rv-ink-ramp2 { color: color-mix(in oklab, var(--nf-brand-primary) 78%, var(--nf-surface-primary)); }
+  .nf-rv-ink-ramp3 { color: color-mix(in oklab, var(--nf-brand-primary) 58%, var(--nf-surface-primary)); }
+  .nf-rv-ink-ramp4 { color: color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-primary)); }
+
+  /* ------------------------------------------------------------ status bar */
+  .nf-rv-statusbar {
+    display: flex;
+    height: 10px;
+    gap: 2px;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+  }
+
+  .nf-rv-statusbar > span {
+    display: block;
+    background: currentColor;
+  }
+
+  /* ------------------------------------------------------------ bars */
+  .nf-rv-bars {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nf-rv-bars li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    align-items: center;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-rv-bars strong {
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-bars__track {
+    grid-column: 1 / -1;
+    display: flex;
+    height: 8px;
+    gap: 2px;
+    border-radius: var(--nf-radius-pill);
+    overflow: hidden;
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+
+  .nf-rv-bars__track > span {
+    display: block;
+    background: currentColor;
+  }
+
+  /* ------------------------------------------------------------ pager */
+  .nf-rv-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+
+  .nf-rv-pager__item {
+    display: inline-grid;
+    place-items: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+    font-size: var(--nf-text-body-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  a.nf-rv-pager__item:hover {
+    border-color: var(--nf-border-brand);
+  }
+
+  .nf-rv-pager__item[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-content-on-brand));
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)), var(--nf-brand-primary-strong));
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
+      0 8px 20px -8px color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+  }
+
+  .nf-rv-pager__item[aria-disabled="true"] {
+    opacity: 0.45;
+  }
+
+  .nf-rv-pager__gap {
+    padding: 0 var(--nf-space-2xs);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ rows of facts */
+  .nf-rv-facts {
+    display: grid;
+    margin: 0;
+  }
+
+  .nf-rv-facts > div {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 34px;
+    font-size: var(--nf-text-caption);
+  }
+
+  .nf-rv-facts dt {
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-facts dd {
+    margin: 0;
+    text-align: right;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-facts svg {
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-money {
+    display: grid;
+    margin: 0;
+  }
+
+  .nf-rv-money > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-2xs) 0;
+    font-size: var(--nf-text-caption);
+  }
+
+  .nf-rv-money dt {
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-money dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-keeper {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  .nf-rv-money__total {
+    margin-top: var(--nf-space-xs);
+    padding-top: var(--nf-space-xs) !important;
+    border-top: 1px solid var(--nf-brand-edge-soft);
+    font-weight: 600;
+  }
+
+  .nf-rv-money__total dt {
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-ticks {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-rv-ticks li {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+
+  .nf-rv-ticks svg {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* The utilities, each on a small glass plate of its own. */
+  .nf-rv-utils {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nf-rv-utils li {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    align-items: center;
+  }
+
+  .nf-rv-plate {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--nf-radius-xs);
+    border: 1px solid var(--nf-border-brand);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-surface-primary)), color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-primary)));
+    box-shadow: var(--nf-rim-lit), 0 0 12px -4px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
+    color: var(--nf-content-on-brand);
+  }
+
+  .nf-rv-utils__label {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-utils__value {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------ media strip */
+  .nf-rv-media {
+    display: grid;
+    gap: var(--nf-space-xs);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 900px) {
+    .nf-rv-media {
+      grid-template-columns: 1.3fr 1.3fr 1fr 1fr 1fr 0.8fr;
+      grid-auto-rows: 64px;
+    }
+
+    .nf-rv-media > .nf-rv-media__lead {
+      grid-row: span 2;
+    }
+  }
+
+  .nf-rv-media > * {
+    position: relative;
+    min-height: 64px;
+    border-radius: var(--nf-radius-xs);
+    overflow: hidden;
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary));
+  }
+
+  .nf-rv-media img,
+  .nf-rv-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .nf-rv-media__more {
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------ the map */
+  .nf-rv-map {
+    position: relative;
+    height: 150px;
+    border-radius: var(--nf-radius-xs);
+    overflow: hidden;
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+  }
+
+  .nf-rv-map__tiles {
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(3, 256px);
+  }
+
+  .nf-rv-map__tiles img {
+    width: 256px;
+    height: 256px;
+    display: block;
+  }
+
+  .nf-rv-map__tiles--light {
+    display: none;
+  }
+
+  .nf-rv-map__pin {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -100%);
+    color: var(--nf-brand-primary);
+    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent));
+  }
+
+  .nf-rv-map__place {
+    position: absolute;
+    left: var(--nf-space-sm);
+    bottom: var(--nf-space-xs);
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    text-shadow: 0 1px 6px var(--nf-surface-canvas);
+  }
+
+  .nf-rv-map__credit {
+    position: absolute;
+    right: var(--nf-space-2xs);
+    bottom: var(--nf-space-3xs);
+    font-size: 10px;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ person row */
+  .nf-rv-person {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+  }
+
+  .nf-rv-avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-border-brand);
+    background: color-mix(in oklab, var(--nf-brand-primary) 28%, var(--nf-surface-primary));
+    color: var(--nf-content-on-brand);
+    font-weight: 600;
+    object-fit: cover;
+    overflow: hidden;
+  }
+
+  .nf-rv-avatar--sm {
+    width: 28px;
+    height: 28px;
+    font-size: var(--nf-text-overline);
+  }
+
+  /* ------------------------------------------------------------ action bar */
+  .nf-rv-actionbar {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+
+  @media (min-width: 900px) {
+    .nf-rv-actionbar {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .nf-rv-actionbar > [aria-live] {
+      grid-column: 1 / -1;
+    }
+
+    .nf-rv-actionbar__buttons {
+      justify-content: flex-end;
+    }
+  }
+
+  .nf-rv-field {
+    width: 100%;
+    min-height: 44px;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-brand-edge-soft);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary));
+    color: var(--nf-content-primary);
+    font: inherit;
+    font-size: var(--nf-text-body-sm);
+    resize: vertical;
+  }
+
+  .nf-rv-field::placeholder {
+    color: var(--nf-brand-secondary);
+  }
+
+  .nf-rv-field:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 1px;
+  }
+
+  .nf-rv-actionbar__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-sm);
+  }
+
+  /* The lit buttons: a gradient fill, a brighter rim along the top edge, and
+     a soft bloom of the button's own ink cast onto the panel below. */
+  .nf-rv-btn {
+    --rv-btn: var(--nf-brand-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    min-height: 44px;
+    padding: 0 var(--nf-space-lg);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid color-mix(in oklab, var(--rv-btn) 70%, var(--nf-content-on-brand));
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--rv-btn) 78%, var(--nf-content-on-brand)) 0%,
+      var(--rv-btn) 52%,
+      color-mix(in oklab, var(--rv-btn) 78%, var(--nf-surface-canvas)) 100%
+    );
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
+      0 10px 24px -10px color-mix(in oklab, var(--rv-btn) 85%, transparent);
+    transition: transform 120ms ease, filter 120ms ease;
+  }
+
+  .nf-rv-btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  .nf-rv-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .nf-rv-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .nf-rv-btn:focus-visible {
+    outline: 2px solid var(--nf-content-primary);
+    outline-offset: 2px;
+  }
+
+  .nf-rv-btn--approve { --rv-btn: var(--nf-state-success); }
+  .nf-rv-btn--reject { --rv-btn: var(--nf-state-error); }
+  .nf-rv-btn--ask { --rv-btn: var(--nf-brand-primary); }
+
+  .nf-rv-btn--quiet {
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+    border-color: var(--nf-border-brand);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-rim-lit);
+  }
+
+  .nf-rv-msg {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-rv-msg--error {
+    color: var(--nf-state-error);
+  }
+
+  .nf-rv-msg--ok {
+    color: var(--nf-state-success);
+  }
+
+  /* ------------------------------------------------------------ safety panel */
+  .nf-rv-safety {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    text-align: center;
+  }
+
+  .nf-rv-safety svg {
+    color: var(--nf-state-success);
+    filter: drop-shadow(0 0 10px color-mix(in oklab, var(--nf-state-success) 60%, transparent));
+  }
+
+  .nf-rv-safety p {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-rv-safety strong {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------ phone */
+  @media (max-width: 719px) {
+    .nf-rv-head__title {
+      font-size: 1.375rem;
+    }
+
+    .nf-rv-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      margin-inline: calc(var(--nf-space-md) * -1);
+      padding-inline: var(--nf-space-md);
+      scrollbar-width: none;
+    }
+
+    .nf-rv-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nf-rv-panel {
+      padding: var(--nf-space-sm);
+    }
+
+    .nf-rv-panel--flush {
+      padding: 0;
+    }
+
+    .nf-rv-hide-sm {
+      display: none;
+    }
+
+    .nf-rv-actionbar__buttons > * {
+      flex: 1 1 30%;
+      padding: 0 var(--nf-space-sm);
+    }
+  }
+}
+
+/* ------------------------------------------------------------ paper */
+/*
+ * LIGHT MODE IS WRITTEN, NOT DERIVED. On paper the panels are white cards
+ * with the brand edge, the table's dividers go quiet grey, the badges keep
+ * their ink on a pale wash with dark text, and the plates behind the utility
+ * glyphs become pale brand wells with brand ink so no dark tile sits on a
+ * white page.
+ */
+:root[data-theme="light"] .nf-rv-panel {
+  background: var(--nf-surface-primary);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 6%, transparent),
+    0 12px 28px -20px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+}
+
+:root[data-theme="light"] .nf-rv-tab,
+:root[data-theme="light"] .nf-rv-pager__item,
+:root[data-theme="light"] .nf-rv-back,
+:root[data-theme="light"] .nf-rv-btn--quiet {
+  background: var(--nf-surface-primary);
+  border-color: var(--nf-brand-edge);
+}
+
+:root[data-theme="light"] .nf-rv-tab[aria-current="page"],
+:root[data-theme="light"] .nf-rv-pager__item[aria-current="page"] {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 85%, var(--nf-content-on-brand)), var(--nf-brand-primary-strong));
+  border-color: var(--nf-brand-primary);
+  color: var(--nf-content-on-brand);
+}
+
+:root[data-theme="light"] .nf-rv-badge {
+  background: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 12%, var(--nf-surface-primary));
+  color: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 80%, var(--nf-content-primary));
+  box-shadow: none;
+}
+
+:root[data-theme="light"] .nf-rv-plate {
+  background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+  color: var(--nf-brand-primary);
+  box-shadow: none;
+}
+
+:root[data-theme="light"] .nf-rv-avatar {
+  background: color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-primary));
+  color: var(--nf-brand-primary);
+}
+
+:root[data-theme="light"] .nf-rv-field,
+:root[data-theme="light"] .nf-rv-thumb,
+:root[data-theme="light"] .nf-rv-media > *,
+:root[data-theme="light"] .nf-rv-map {
+  background: var(--nf-surface-inset);
+}
+
+:root[data-theme="light"] .nf-rv-field::placeholder {
+  color: var(--nf-content-muted);
+}
+
+:root[data-theme="light"] .nf-rv-map__tiles--dark {
+  display: none;
+}
+
+:root[data-theme="light"] .nf-rv-map__tiles--light {
+  display: grid;
+}
+
+:root[data-theme="light"] .nf-rv-map__place {
+  text-shadow: 0 1px 6px var(--nf-surface-primary);
+}
+
+:root[data-theme="light"] .nf-rv-spark__line,
+:root[data-theme="light"] .nf-rv-donut__arc,
+:root[data-theme="light"] .nf-rv-dot {
+  filter: none;
+  box-shadow: none;
+}
