@@ -270,10 +270,11 @@ export default async function SearchPage({
         />
       )}
 
-      {/* HOW A CODE ANSWERED, and only ever when one was typed. Three
-          answers, three sentences, and never silence: a code that finds
-          nothing is a person holding a piece of paper, and telling them the
-          code is unknown is the whole of the help we can give. */}
+      {/* HOW A CODE ANSWERED. A hit always says so, because a single result
+          under no explanation looks like a strangely lucky search. A miss and
+          a malformed code say so only when the person typed the VL and
+          therefore plainly meant a code: somebody holding a piece of paper is
+          owed the sentence, and somebody searching for a city is not. */}
       {codeHit && (
         <p data-testid="found-by-reference" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
           {t.listingReference.foundById}
