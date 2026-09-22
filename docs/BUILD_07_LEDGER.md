@@ -5055,3 +5055,109 @@ the four registration images, the stays panels, the container ink, the cron
 verdict field itself. Main being green and production being current are two
 different claims, and this session has been reporting the first while implying
 the second.
+
+## 43. A DEFAULT ON A DIAGNOSTIC IS A LIE GENERATOR, AND MINE LIED WITHIN THE HOUR
+
+**Commit b993d47. Gate: worktree at c80b650, hardlinked node_modules, tsc 0,
+eslint 0, 45 tests in `lib/cron`.**
+
+`refusalAlert` was given a `verdict` parameter this morning for one stated
+reason: a 401 from the cron door was one undifferentiated event, three
+genuinely different faults arrive wearing it, and three wrong diagnoses had
+already been offered because nothing carried the distinction. The parameter was
+written as `verdict: CronAuthVerdict = "secret-mismatch"`.
+
+`/api/paystack/reconcile` calls `refusalAlert` without a verdict. So at 17:10
+the desk recorded `"reason":"secret-mismatch"` for a request that had presented
+**no bearer at all**. The field built that morning to end three wrong diagnoses
+produced a fourth before the day was out, and it read exactly like a
+measurement because every other field standing beside it in that object is one.
+
+**I then reported that fabricated value to the founder as a finding.** My claim
+that "the two values genuinely differ" rested on it. It is withdrawn. The
+reconcile route now calls `cronAuthVerdict(request)` and passes what it
+measured, and the parameter has no default, so the compiler refuses a caller
+that will not say.
+
+### The test I first wrote for this was the same fault a third time
+
+The first version of the guard read `run.ts` as text and grepped it for
+`verdict: CronAuthVerdict =`. That was written roughly an hour after the
+founder named source-reading assertions as the most serious finding of the day.
+It would have passed against a default spelled across two lines, against one
+moved into a wrapper, and against a file that had been deleted.
+
+It is now a `@ts-expect-error` on a call with the argument missing, so the
+thing that observes the rule is the compiler. **And the guard was proved able
+to fail rather than assumed to be:** putting the default back in the gate
+worktree makes `tsc` exit 2 with `src/lib/cron/run.test.ts(137,5): error
+TS2578: Unused '@ts-expect-error' directive`. A guard nobody has ever seen fail
+is indistinguishable from a guard that cannot.
+
+### Counting the day's blind lights
+
+Four now, all the same shape, all found in one day: the pg_cron job that
+reported success for firing a request it never read; the harness test that
+passed by reading source instead of behaviour; `verify-shots.mjs`, which never
+checked where the browser landed; and this default, which answered a question
+it had not asked. The fourth was mine, written after the sweep was named.
+
+---
+
+## 44. THE VERCEL BUILD, AND WHY IT COULD NOT BE TRIMMED
+
+**Every production deployment from 16:25 to 17:44 was ERROR. Not one of them
+was the code.**
+
+The measurement that settled it: Vercel builds the branch and main from the
+same commit, seconds apart. Six consecutive pairs, six identical SHAs, and in
+every pair the branch preview was `READY` and the production build was `ERROR`.
+A fault that tracks the deployment target and never the commit is not in the
+repository.
+
+`get_deployment` carries the reason in two fields that no summary view shows:
+
+```
+errorCode:    INVALID_CRON_SECRET
+errorMessage: The `CRON_SECRET` environment variable contains leading or
+              trailing whitespace, which is not allowed in HTTP header values.
+errorStep:    buildStep
+```
+
+### Why it was a rotation and not a trim
+
+`CRON_SECRET` is a Vercel **`sensitive`** variable. The API returns an empty
+string for its value even when asked to decrypt: it is write only, by design.
+Nothing can read it in order to strip the whitespace off it, so the only way to
+clear the whitespace is to write a new value, and a new value on one holder
+means a new value on all three.
+
+The three holders, all now carrying one value with no whitespace at either end:
+
+| Holder | Who presents or reads it |
+|---|---|
+| Vercel `CRON_SECRET` (production) | what Vercel Cron puts in the Authorization header |
+| Vercel `RECONCILE_CRON_SECRET` (production, preview) | what our own door compares |
+| Vault `vallo_reconcile_secret` | what `private.request_money_reconciliation` presents through pg_net |
+
+**Whitespace could never have broken our own door.** `bearerMatches` trims both
+sides and so does `cronAuthVerdict`, and the comments above them say why. It
+broke *Vercel's build*, which reads a header value more strictly than we do and
+is right to. The cost was therefore never a refused job. The cost was that
+**nothing deployed at all for the better part of a day** while every gate in
+this session went on reporting green, because main being green and production
+being current are two different claims.
+
+### Two guards on the rotation itself
+
+1. **The Vault write reads itself back.** The migration fails unless
+   `vault.decrypted_secrets` now holds exactly what was written, with no
+   whitespace at either end. The first draft asserted a length of 50 against a
+   59 character value and correctly refused its own write, which is the entire
+   argument for having the guard.
+2. **The literal was redacted from the migration history.** `apply_migration`
+   records its SQL in `supabase_migrations.schema_migrations`, so writing a
+   Vault secret through a migration puts that secret in a plain table. A second
+   migration replaces the statement text with a note and then fails unless the
+   literal is gone from **every** recorded statement, not merely from the row
+   it meant to edit. A secret in the migration history is not in the Vault.
