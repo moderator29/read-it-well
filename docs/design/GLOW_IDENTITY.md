@@ -17,6 +17,13 @@ look is `docs/design/proofs/session-b/identity/identity-side-by-side.jpg`:
 the render on the left, the values below built in plain CSS in the middle,
 the paper twin on the right, at 2x.
 
+**Revised the same evening on the lead's review** (second push): the paper
+icon tile no longer puts a dark plate behind an object (a pale glass tile and
+an ink rendition of the object instead, section 4), and three dark values were
+re-sampled and raised because the first proof read under-lit: the card's edge
+halo and its top and bottom edge bands (section 2), the icon tile's inner
+light (section 4) and the button's lower cyan lift (section 5).
+
 Session B does not edit the tokens. This file is a proposal for Session A to
 adopt into `packages/design-tokens/src/tokens.css` (request in
 `docs/SESSION_B_SCOPE.md`). Each value names the token it would replace or
@@ -95,16 +102,20 @@ from the top left:
 **Radius.** The corner trace runs from x 104 at y 286 to x 93 at y 298:
 13 render px, **12 CSS px** on a 120 CSS card (ratio 0.10).
 
-**Outer glow.** Almost none at rest. Outside the left edge the ground lifts
-from blue 52 to 61 over 8 px; above the second card it lifts about 10 levels
-over 4 px. A 1 px darker line sits just outside the bottom edge (`#000837`
+**Outer glow.** Small but visible at rest. Outside the left edge the ground
+lifts from blue 52 to 66 within 3 px and is back by 8; above the second card
+it lifts about 10 levels over 4 px. The edges read brighter than a 1 px line
+because each is a three-row band: above the top rim `#1074C9`, the rim
+`#58F0FE`, below it `#0075EA`; at the bottom `#002C91`, the edge `#048CE1`,
+then `#0165B7` outside. The first proof drew only the middle row and read dull
+beside the render; the snippet now draws all three. A 1 px darker line sits just outside the bottom edge (`#000837`
 against ground `#00134E`): a contact shadow.
 
 | Proposed | Dark | Paper | Replaces or extends |
 | --- | --- | --- | --- |
 | `--nf-glass-lit-fill` | see snippet: the eight-stop gradient plus the reflection radial | `linear-gradient(180deg, rgb(9 75 169 / 0.10) 0, rgb(255 255 255 / 0.96) 12px, #FFFFFF 60%, rgb(9 75 169 / 0.05) 100%)` | REPLACES `--nf-glass-card-fill` for the lit card role (`--nf-container-fill` points at it) |
 | `--nf-glass-lit-edge` | `#5CF0FE #0050B4 #048CE1 #02B9EF` (a `border-color` list: top right bottom left) | `#2D6BD6 rgb(9 75 169 / 0.30) rgb(9 75 169 / 0.40) rgb(9 75 169 / 0.45)` | EXTENDS `--nf-container-edge` (`#005DE0` at 70 per cent, one colour on four sides) |
-| `--nf-glass-lit-glow` | `0 0 8px rgb(0 90 255 / 0.18)` | `0 1px 2px rgb(9 30 80 / 0.10), 0 6px 16px -8px rgb(9 75 169 / 0.30)` | REPLACES the bloom in `--nf-glow-edge` for resting cards (its `0 0 10px -3px` rung 2 and `0 0 22px -12px` rung 1 are already this quiet; the difference is the per-side edge and the fill, not the glow) |
+| `--nf-glass-lit-glow` | the six-layer list in the snippet: the rows just inside and outside the top and bottom edges (`#0075EA` below the rim, `#1074C9` above it, `#0165B7` below the bottom edge), a 4 px halo `rgb(0 150 255 / 0.38)` and a 12 px field `rgb(0 90 255 / 0.18)` | `0 1px 2px rgb(9 30 80 / 0.10), 0 6px 16px -8px rgb(9 75 169 / 0.30)` | REPLACES the bloom in `--nf-glow-edge` for resting cards (its `0 0 10px -3px` rung 2 and `0 0 22px -12px` rung 1 are already this quiet; the difference is the per-side edge and the fill, not the glow) |
 | `--nf-container-radius` | `12px` measured | same | today `--nf-radius-lg` 18px. The render's card is 6px tighter. |
 
 **The rim is cyan in the render.** `tokens.css` records a deliberate choice
@@ -139,16 +150,28 @@ The "Who you are" tile, 02 screen 3: x 1085 to 1155, y 311 to 381.
 | --- | --- | --- | --- |
 | Size | 70 render px | 65 CSS (a 64 slot) | new `--nf-icon-tile-size: 64px` |
 | Radius | corner trace x 1101 at y 311 to x 1085 at y 324: 14 px, 13 CSS, ratio 0.20 | `--nf-radius-md` 14px | reuse, ratio 0.22 |
-| Fill | blue 181 under the top, 166 at the bottom, over the card's 124: alpha 0.44 of the lit ink, brighter at the top | `linear-gradient(180deg, rgb(0 110 255 / 0.62), rgb(0 90 255 / 0.46) 35%, rgb(0 90 255 / 0.40))` | new `--nf-icon-tile-fill` |
-| Edge | top `#039BEC`, left `#02C2F9` (brightest), bottom and right `#0048C0` | `border-color: #039BEC #0048C0 #0048C0 #02C2F9` | new `--nf-icon-tile-edge` |
-| Inner glow and shadow | 1 px darker line below the tile (`#001A6B` against the card's `#001E60`) | `0 2px 3px rgb(0 0 20 / 0.45), inset 0 1px 0 rgb(80 220 255 / 0.55)` | new `--nf-icon-tile-shadow` |
-| Glyph | white-cyan glass glyph | the roles pack's `-tile` crops ARE this tile, drawn; use them where the tile carries an object | `public/brand/session-b/roles/` |
+| Fill | a 5 px grid across the tile: rows under the top (blue 191 to 203) and above the bottom (199 to 211) are lit, the left column brightest of all (`#02BEF8`), the middle darker (blue 133 to 150) EXCEPT round the glyph, where a halo lifts it to 234 to 254. Lit from inside, not a flat square | `radial-gradient(60% 55% at 50% 48%, rgb(0 140 255 / 0.55), transparent 70%)` over `linear-gradient(180deg, rgb(0 100 255 / 0.72) 0, rgb(0 90 255 / 0.46) 18%, rgb(0 90 255 / 0.38) 60%, rgb(0 100 255 / 0.66) 100%)` | new `--nf-icon-tile-fill` |
+| Edge | top `#039BEC`, left `#02C2F9` (brightest), bottom `#0070E0` with a lit row above it, right `#0058D2` | `border-color: #05A2F1 #0058D2 #0070E0 #02C2F9` | new `--nf-icon-tile-edge` |
+| Inner light and shadow | the left column and the top and bottom rows lit; a soft glow a few px outside; a 1 px darker line below (`#001A6B` against the card's `#001E60`) | `inset 1px 0 0 rgb(2 190 248 / 0.7), inset 0 1px 0 rgb(80 200 255 / 0.55), inset 0 -2px 3px -1px rgb(0 120 240 / 0.6), 0 0 8px rgb(0 120 255 / 0.25), 0 2px 3px rgb(0 0 20 / 0.4)` | new `--nf-icon-tile-shadow` |
+| Glyph | a FILLED glass glyph, white at the top to `#5FD6FF`, with its own halo | filled glyph plus `filter: drop-shadow(0 0 4px rgb(80 200 255 / 0.8))`; the roles pack's `-tile` crops ARE this tile, drawn, where the tile carries an object | new `--nf-icon-tile-glyph-glow`; `public/brand/session-b/roles/` |
 
-On paper the tile becomes a solid brand plate: `linear-gradient(180deg, #0A5CD6, #094BA9)`,
-edge `#3A86F0 #06357A #06357A #3A86F0`, `inset 0 1px 0 rgb(255 255 255 / 0.45)`,
-`0 4px 10px -4px rgb(9 75 169 / 0.5)`, glyph white. That is the "framed
-plate" the light survey prescribes (option c), drawn as a tile rather than as
-a chip behind one.
+**On paper the tile is a pale glass tile, never a dark plate.** The first
+proof put the dark artwork on a navy plate on a white card, which is the
+"dark plates behind icons on a white page" defect `docs/research/LIGHT_MODE_SURVEY.md`
+condemns. The paper tile is `linear-gradient(180deg, #F2F7FF 0%, #DCE9FF 100%)`,
+edge `#5B95EE` on top and `rgb(9 75 169 / 0.35)` to `0.40` round the rest,
+`inset 0 1px 0 #FFFFFF`, `0 4px 10px -6px rgb(9 75 169 / 0.45)`, and the glyph
+in `#094BA9`.
+
+**And the object on it is the paper rendition, not the night file.** A night
+object keyed for a dark ground goes green and washed on white, and its faint
+outer bloom shows as a pale square. Every object in the roles pack therefore
+ships a `-day` twin, cut by the same script from the same key: the faint bloom
+below alpha 50 is dropped, and each pixel is re-inked on the brand ramp by how
+lit it was, from `#9CC2FF` (glass body) to `#06379A` (the brightest edges), so
+the object reads as blue glass drawn on paper, with its edges darkest where
+the night file is brightest. It is a derived rendition, not commissioned light
+artwork, and it says so in `SOURCES.md`. See the right-hand column of the proof.
 
 ## 5. The lit primary button
 
@@ -168,11 +191,17 @@ Three buttons measured with `measure-glow.mjs`:
 | Bloom below | +12 to +14 L steady from 8 to 24 px (the bezel glow takes over at 32) | +14 at 4, +9 at 8, +6 at 16 to 32 | +3 to +4 |
 
 02 and 03 agree and 06 is a flatter drawing, so the proposal is 02's (the
-image the founder sent first):
+image the founder sent first). Re-sampled after the lead's review, the lower
+half is where the light is: down the left third the fill falls from `#0077FC`
+to the floor `#0043F9` at 62 per cent and climbs back through `#0058FF` to
+`#0288F9` two rows from the bottom and `#00D1FD` on the bottom edge; across
+the row 8 px above the bottom, the middle (`#0078FF` at x 800) is 45 green
+levels above the ends (`#004AFC` at x 620). That is a cyan lift centred low,
+which the radial layer draws:
 
 | Proposed | Dark | Paper | Replaces |
 | --- | --- | --- | --- |
-| `--nf-gradient-cta` | `linear-gradient(180deg, #017DF9 0%, #0153FC 61%, #029AF2 100%)` | `linear-gradient(180deg, #0A6BF2 0%, #0040D6 61%, #0060EC 100%)` (today's paper stops, the floor moved to 61) | REPLACES today's `#0074FC 0%, #0042FD 64%, #0069F7 100%`. The measured difference is the bottom: the render lifts to a cyan-blue `#029AF2`, a light reflected up off the page. Ours ends at `#0069F7`. |
+| `--nf-gradient-cta` | `radial-gradient(45% 75% at 50% 88%, rgb(0 128 255 / 0.75), transparent)` over `linear-gradient(180deg, #0177FC 0%, #0153FC 30%, #0043F9 62%, #0058FF 88%, #0288F9 97%, #029AF2 100%)` | `linear-gradient(180deg, #0A6BF2 0%, #0040D6 61%, #0060EC 100%)` (today's paper stops, the floor moved to 61) | REPLACES today's `#0074FC 0%, #0042FD 64%, #0069F7 100%`. The measured difference is the bottom: the render lifts to a cyan-blue `#029AF2`, a light reflected up off the page. Ours ends at `#0069F7`. |
 | `--nf-cta-edge` (new) | `#0BEEFC #02B3FB #01E5FE #02B3FB` | `#3A86F0 #0A4FC0 #0A4FC0 #0A4FC0` | new; today the button has no drawn border |
 | `--nf-rim-primary` | `inset 0 1px 0 #05A9F8` | `inset 0 1px 0 rgb(255 255 255 / 0.45)` | REPLACES the white 30 per cent specular with the measured blue rim |
 | `--nf-bloom-lit` | `0 6px 18px -2px rgb(0 90 255 / 0.45), 0 -2px 10px rgb(0 90 255 / 0.20)` | `0 6px 16px -6px rgb(9 75 169 / 0.55)` | today `0 0 24px rgb(12 106 239 / 0.5), 0 0 88px rgb(12 106 239 / 0.14)`. On these renders the light below the button is steady for 24 px and the light above is gone by 12, so the measured bloom is offset downward. Today's token note argues for zero offset from a different render; both readings belong in the ledger and the images decide. |
@@ -252,14 +281,22 @@ an existing token is replaced the comment says so.
   --nf-glass-lit-fill:
     radial-gradient(55% 16px at 50% 0, rgb(120 235 255 / 0.28), transparent),
     linear-gradient(180deg,
-      rgb(var(--nf-lit-ink) / 0.66) 0px,
-      rgb(var(--nf-lit-ink) / 0.30) 11px,
+      rgb(var(--nf-lit-ink) / 0.80) 0px,
+      rgb(var(--nf-lit-ink) / 0.52) 4px,
+      rgb(var(--nf-lit-ink) / 0.31) 11px,
       rgb(var(--nf-lit-ink) / 0.19) 34px,
       rgb(var(--nf-lit-ink) / 0.10) 50%,
       rgb(var(--nf-lit-ink) / 0.14) calc(100% - 22px),
-      rgb(var(--nf-lit-ink) / 0.42) 100%);
+      rgb(var(--nf-lit-ink) / 0.24) calc(100% - 9px),
+      rgb(var(--nf-lit-ink) / 0.50) 100%);
   --nf-glass-lit-edge: #5CF0FE #0050B4 #048CE1 #02B9EF; /* border-color: top right bottom left */
-  --nf-glass-lit-glow: 0 0 8px rgb(var(--nf-lit-ink) / 0.18);
+  --nf-glass-lit-glow:
+    inset 0 1px 0 rgb(0 117 234 / 0.9),
+    inset 1px 0 0 rgb(0 92 189 / 0.8),
+    0 -1px 0 rgb(16 116 201 / 0.8),
+    0 1px 0 rgb(1 101 183 / 0.8),
+    0 0 4px rgb(0 150 255 / 0.38),
+    0 0 12px rgb(var(--nf-lit-ink) / 0.18);
 
   /* SELECTED */
   --nf-glass-selected-fill:
@@ -280,12 +317,22 @@ an existing token is replaced the comment says so.
 
   /* ICON TILE */
   --nf-icon-tile-size: 64px;
-  --nf-icon-tile-fill: linear-gradient(180deg, rgb(0 110 255 / 0.62), rgb(var(--nf-lit-ink) / 0.46) 35%, rgb(var(--nf-lit-ink) / 0.40));
-  --nf-icon-tile-edge: #039BEC #0048C0 #0048C0 #02C2F9;
-  --nf-icon-tile-shadow: 0 2px 3px rgb(0 0 20 / 0.45), inset 0 1px 0 rgb(80 220 255 / 0.55);
+  --nf-icon-tile-fill:
+    radial-gradient(60% 55% at 50% 48%, rgb(0 140 255 / 0.55), transparent 70%),
+    linear-gradient(180deg, rgb(0 100 255 / 0.72) 0, rgb(0 90 255 / 0.46) 18%, rgb(0 90 255 / 0.38) 60%, rgb(0 100 255 / 0.66) 100%);
+  --nf-icon-tile-edge: #05A2F1 #0058D2 #0070E0 #02C2F9;
+  --nf-icon-tile-shadow:
+    inset 1px 0 0 rgb(2 190 248 / 0.7),
+    inset 0 1px 0 rgb(80 200 255 / 0.55),
+    inset 0 -2px 3px -1px rgb(0 120 240 / 0.6),
+    0 0 8px rgb(0 120 255 / 0.25),
+    0 2px 3px rgb(0 0 20 / 0.4);
+  --nf-icon-tile-glyph-glow: drop-shadow(0 0 4px rgb(80 200 255 / 0.8));
 
   /* LIT PRIMARY. Replaces --nf-gradient-cta, --nf-rim-primary, --nf-bloom-lit. */
-  --nf-gradient-cta: linear-gradient(180deg, #017DF9 0%, #0153FC 61%, #029AF2 100%);
+  --nf-gradient-cta:
+    radial-gradient(45% 75% at 50% 88%, rgb(0 128 255 / 0.75), transparent),
+    linear-gradient(180deg, #0177FC 0%, #0153FC 30%, #0043F9 62%, #0058FF 88%, #0288F9 97%, #029AF2 100%);
   --nf-cta-edge: #0BEEFC #02B3FB #01E5FE #02B3FB;
   --nf-rim-primary: inset 0 1px 0 #05A9F8;
   --nf-bloom-lit: 0 6px 18px -2px rgb(var(--nf-lit-ink) / 0.45), 0 -2px 10px rgb(var(--nf-lit-ink) / 0.20);
@@ -321,9 +368,11 @@ an existing token is replaced the comment says so.
   --nf-glass-selected-glow: 0 0 0 1px #094BA9, 0 8px 22px -8px rgb(9 75 169 / 0.45);
   --nf-tick-fill: #094BA9;
   --nf-tick-ring: transparent;
-  --nf-icon-tile-fill: linear-gradient(180deg, #0A5CD6, #094BA9);
-  --nf-icon-tile-edge: #3A86F0 #06357A #06357A #3A86F0;
-  --nf-icon-tile-shadow: 0 4px 10px -4px rgb(9 75 169 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.45);
+  /* a PALE glass tile on paper, never a dark plate; objects on it use their -day rendition */
+  --nf-icon-tile-fill: linear-gradient(180deg, #F2F7FF 0%, #DCE9FF 100%);
+  --nf-icon-tile-edge: #5B95EE rgb(9 75 169 / 0.35) rgb(9 75 169 / 0.40) rgb(9 75 169 / 0.35);
+  --nf-icon-tile-shadow: inset 0 1px 0 #FFFFFF, 0 4px 10px -6px rgb(9 75 169 / 0.45);
+  --nf-icon-tile-glyph-glow: none;
   --nf-gradient-cta: linear-gradient(180deg, #0A6BF2 0%, #0040D6 61%, #0060EC 100%);
   --nf-cta-edge: #3A86F0 #0A4FC0 #0A4FC0 #0A4FC0;
   --nf-rim-primary: inset 0 1px 0 rgb(255 255 255 / 0.45);
@@ -349,6 +398,7 @@ an existing token is replaced the comment says so.
 .icon-tile    { inline-size: var(--nf-icon-tile-size); aspect-ratio: 1; border-radius: var(--nf-radius-md);
                 border: 1px solid; border-color: var(--nf-icon-tile-edge); background: var(--nf-icon-tile-fill);
                 box-shadow: var(--nf-icon-tile-shadow); }
+.icon-tile > svg { filter: var(--nf-icon-tile-glyph-glow); }  /* glyph ink: #BFF6FF at night, #094BA9 on paper */
 .lit-button   { border-radius: var(--nf-radius-control); border: 1px solid; border-color: var(--nf-cta-edge);
                 background: var(--nf-gradient-cta); box-shadow: var(--nf-rim-primary), var(--nf-bloom-lit); }
 .progress-seg { block-size: 10px; border-radius: 3px; background: var(--nf-progress-off);
@@ -377,7 +427,8 @@ Still short of the render, and why:
 - **Type.** The harness uses the system sans; the product's Poppins and Inter
   are not part of this proposal.
 - **The icon tile's own specular** (a diagonal sheen across the glass) is in
-  the render's pixels, not in the CSS. Where the tile carries an object, the
+  the render's pixels, not in the CSS, and the render's glyph is a drawn glass
+  person where the harness has a filled SVG. Where the tile carries an object, the
   cropped `-tile` objects in `apps/web/public/brand/session-b/roles/` carry it.
 - **The ground.** The harness paints the render's `#000D34`. On our canvas
   `#000612` every alpha reads slightly deeper (section 0).
