@@ -109,6 +109,7 @@ and the admin components:
   component and `_components/**`, including desks that do not exist yet)
 - `apps/web/src/app/css/admin.css`
 - `apps/web/src/components/admin/**` if it comes to exist
+- `apps/web/src/lib/admin/reads/**`: READ ONLY queries (see below)
 - `apps/web/src/components/agent/charts/**`: ADDITIVE ONLY. New inline SVG
   chart files beside `AreaSparkline.tsx` and `DonutChart.tsx`, and backwards
   compatible extensions to those two; the agent console that uses them today
@@ -118,11 +119,26 @@ and the admin components:
   density and UX taken from them, never their purple palette) and the four
   admin renders at the repo root.
 
-**Session B does NOT own `apps/web/src/lib/admin/**`.** The queries and the
-actions stay with the other session, which is adding new desks behind new
-backend work. Where a panel needs a query that does not exist or returns the
-wrong thing, Session B writes it below as a request and ships the honest
-state meanwhile.
+**READS SPLIT FROM WRITES (founder correction, 22 September, supersedes the
+paragraph that stood here).**
+- **Session B owns `apps/web/src/lib/admin/reads/**`.** Session B writes these
+  read queries itself, owns them and waits for nobody. They are READ ONLY: they
+  select and they aggregate; they never insert, update or delete, never call an
+  RPC that writes, and never use the service role to get round row level
+  security. Admin pages may import them directly.
+- **Session A keeps everything else in `apps/web/src/lib/admin/**`**: every
+  action, every mutation, every approval, every refund, every queue write, and
+  the existing `*-queries.ts` files. Session B never writes a mutation and never
+  calls one it did not receive from Session A. Session B does not edit Session
+  A's existing query files; where one is capped or short, Session B writes its
+  own read beside it in `reads/`.
+- Session A is handing over whatever it had started on the read requests into
+  `lib/admin/reads/` and saying so in its ledger. **Session B pulls and checks
+  `lib/admin/reads/` before writing any read, and builds on what is there
+  rather than duplicating it.**
+- The rule underneath is unchanged: a mutation is asked for; a read is written.
+- Views, functions and policies in the database are migrations, and migrations
+  stay Session A's: a read that needs one is still a request.
 
 Standing rules for the console, from the founder:
 - Entering the console lands on the overview, every time, before any desk.
@@ -180,7 +196,8 @@ Design token files (`packages/design-tokens/**`), every stylesheet not listed
 above (including `globals.css`, `social.css`, `light.css`, `buttons.css`,
 `glass.css`), `packages/i18n` structure, `docs/DESIGN_DIRECTION.md`,
 `docs/CATALOGUE.md`, `docs/design/CATALOGUE.md`, `docs/BUILD_07_LEDGER.md`,
-every handoff document, every migration, `apps/web/src/lib/admin/**`, and
+every handoff document, every migration, `apps/web/src/lib/admin/**` other
+than `lib/admin/reads/**`, and
 every listing, host, escrow or
 supply file OUTSIDE `apps/web/src/app/admin/**` (the admin pages for those
 areas are Session B's since the reassignment above; the user-facing and
@@ -213,6 +230,13 @@ refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
    Session B will switch the row over the day it lands.
 
 ### Requests from admin-money (money, escrow, supply, bookings, payments)
+
+**WITHDRAWN AS REQUESTS, 22 SEPTEMBER.** Under the reads-split-from-writes
+correction every READ below is now Session B's own work in
+`lib/admin/reads/`. Session A: drop them from your queue and hand over
+anything already started into `lib/admin/reads/`. Anything below that needs a
+MUTATION or a MIGRATION still stands as a request and is marked so when it is
+re-filed.
 
 Session B does not own `apps/web/src/lib/admin/**`. Each panel below is built
 in full against a typed prop of exactly the shape asked for (the types live in
@@ -345,6 +369,13 @@ not summed in TypeScript over a `limit`ed read.
    };
    ```
 ### Requests from admin-review (listings, moderation, verification, queue, support)
+
+**WITHDRAWN AS REQUESTS, 22 SEPTEMBER.** Under the reads-split-from-writes
+correction every READ below is now Session B's own work in
+`lib/admin/reads/`. Session A: drop them from your queue and hand over
+anything already started into `lib/admin/reads/`. Anything below that needs a
+MUTATION or a MIGRATION still stands as a request and is marked so when it is
+re-filed.
 
 Every one of these is a function in `apps/web/src/lib/admin/**`, which Session B
 does not edit. Each panel it feeds is built against a typed prop of exactly the
