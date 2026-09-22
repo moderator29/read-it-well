@@ -16,6 +16,7 @@ import {
   staleJobs,
 } from "../freshness";
 import { callServiceFunction, type AdminClient } from "../rpc";
+import { contentFilterAlert, readContentFilter } from "../content-filter";
 
 /**
  * The watch on both schedulers, the database's and ours.
@@ -55,7 +56,20 @@ export async function pgCronWatch(admin: AdminClient): Promise<JobVerdict> {
      job that is simply not firing. This run is happening, so the scheduler
      reached us at least once; the oldest row says for how long it has been
      doing that. See lib/cron/freshness.ts. */
-  const [runs, watchingSince] = await Promise.all([readLastRuns(admin), readWatchingSince(admin)]);
+  const [runs, watchingSince, filter] = await Promise.all([
+    readLastRuns(admin),
+    readWatchingSince(admin),
+    /* THREE. THE CONTENT FILTER, AND IT RIDES HERE FOR ONE REASON.
+       An empty `public.blocked_terms` makes both post scanners skip the abuse
+       branch silently: no error, no row, and every surface reporting on it
+       says exactly what it would say if the filter were working. This job
+       already exists to say the quiet part out loud on a schedule, so it is
+       the right place to say this one. See lib/cron/content-filter.ts. */
+    readContentFilter(admin),
+  ]);
+  const filterAlert = contentFilterAlert(filter);
+  if (filterAlert) await recordAlert(filterAlert);
+
   const freshness = staleJobs(runs, Date.now(), { watchingSince });
   if (freshness.stale.length > 0) {
     await recordAlert({
@@ -70,16 +84,24 @@ export async function pgCronWatch(admin: AdminClient): Promise<JobVerdict> {
 
   return {
     // A silent schedule is attention even when pg_cron itself is clean.
-    outcome: freshness.stale.length > 0 ? "attention" : verdict.outcome,
+    /* A platform taking user-generated content with no objectionable content
+       filter in force is attention, whatever else is clean. */
+    outcome:
+      freshness.stale.length > 0 || filterAlert !== null ? "attention" : verdict.outcome,
     counts: {
       ...verdict.counts,
       stale_jobs: freshness.stale.length,
       never_ran: freshness.neverRan.length,
+      /* Reported on EVERY run, clean or not, so "the filter is on" stops being
+         something anybody has to take on trust. -1 means it could not be read,
+         which is a different fact from zero and is never collapsed into it. */
+      blocked_terms: filter.terms ?? -1,
     },
     detail: {
       ...verdict.detail,
       stale: freshness.stale.map(describeStaleJob),
       never_ran: freshness.neverRan,
+      content_filter_in_force: filter.reason === null,
     },
     alert: verdict.alert,
   };
