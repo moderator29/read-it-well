@@ -2963,3 +2963,97 @@ to `/stays` rather than the page's own computed "back to the stay" href;
 verification index, because that sub-view is state and not a route. If any of
 those four is wrong, it is wrong in ONE readable line of `route-parents.ts`,
 which is the point of the file.
+
+## 26. A THIRD FALSE RED FROM THE SHARED TREE, AND TWO MEASUREMENTS THAT CORRECT THE FOUNDER
+
+### The false red, and it is now a standing rule
+
+B2 reported main red on the locale ratchet, "yo now renders 263 keys in
+English, up from the recorded 212", and attributed it to the purchase
+namespace commit. Measured in a clean worktree at the tip `51ea93c`:
+
+| Check | At the tip |
+| --- | --- |
+| `locale-completeness.test.ts` | **6 passed** |
+| The ceilings | **212 / 210 / 219, UNMOVED** |
+| `npx tsc --noEmit` | **exit 0** |
+| `src/lib/nav` | **does not exist**, it is another agent's untracked work |
+
+Its typecheck errors were all in `src/lib/nav/resolve.ts`, a file that is not
+on the branch at all, which is the proof that both readings came from the
+SHARED TREE rather than from an isolated worktree.
+
+**THE CEILING STAYING AT 212 IS THE VALUABLE PART.** It is the one thing that
+tells us the purchase namespace's Yoruba, Hausa and Igbo strings are genuinely
+not English: had English been pasted in to make a key count look finished, the
+count would have risen by about 51 and the ceiling would have had to move. It
+did not.
+
+That is the third false red from the shared tree today, and the first was
+mine. So it is a rule rather than an observation: **A GATE READING TAKEN IN
+THE SHARED TREE MEASURES NOTHING, AND EVERY GATE ROW NAMES THE COMMIT IT WAS
+TAKEN AT.** A dozen agents' uncommitted edits sit in that directory
+continuously; `next build`, `tsc` and `vitest` all compile the working tree.
+
+### THE FOUNDER'S ICON PLATE DIAGNOSIS IS WRONG, AND THE MEASUREMENT IS WHY
+
+His instruction: "The plates behind our icons are dull navy on white. The icon
+ground token is the cause and it needs a real paper value, not the dark one
+carried over."
+
+The symptom is real. The stated cause is not. 1,516 object pixels sampled
+against a real light-theme plate, scored by the share of artwork falling under
+1.5:1 against its ground:
+
+| Plate | Artwork lost |
+| --- | --- |
+| **navy, as shipped** | **12.0 per cent** |
+| L 0.35 | 33.8 per cent |
+| L 0.60 | 23.9 per cent |
+| L 0.90 | 15.7 per cent |
+| pure white | 13.4 per cent |
+
+**Every lighter plate loses MORE artwork, and the middle of the range loses
+most.** The curve is U-shaped because the artwork carries both bright
+highlights and dark strokes, so a mid grey is the one ground that fights both.
+There is no paper value that improves it.
+
+The plate is dark because THE ARTWORK is drawn for a dark ground. What he is
+seeing is the 121 objects that ship no light twin, and all six plates on the
+home grid report `data-twinned="false"`. Changing that token would have been a
+day spent making the product measurably worse while appearing to do as asked,
+and somebody would have done it.
+
+### "DIFFERENT BLUES" IS NOT STRAY HEXES EITHER
+
+430 container-ish rules across the stylesheets. **270 distinct combinations of
+edge, fill and radius. 203 used exactly once.** That last number is the
+founder's complaint stated precisely.
+
+But **zero of the 430 carries a raw colour literal.** Every one already names
+a token. The divergence is in which RUNG each surface picks from a ladder
+offering brand-edge, brand-soft, brand-strong, brand-primary, border-brand and
+border-default for one job. Anybody sent hunting stray blues would have found
+none and concluded the complaint was wrong. The fix is therefore probably
+fewer rungs with clearer names rather than a sweep repointing 430 rules at the
+same six tokens.
+
+### Two refusals that were worth more than compliance
+
+The icon plate above, and: **the base segmented control's selected segment
+does not take the glow.** It is `--nf-surface-raised` with neutral elevation, a
+physically raised neutral plate, the iOS idiom. Lighting it with a brand bloom
+would change what it IS rather than light what it is. Only the brand-filled
+variant takes it. The dock's active tab likewise has no fill to light. Two of
+the five surfaces on the founder's list should not carry the treatment, and
+saying which and why is an answer, where a silent three of five would not have
+been.
+
+### Still not done, named rather than implied
+
+Item 6a, the logo seam: **not started, nothing shipped for it.** Item 7's
+anatomy: **measured, not built.** And one light-mode defect could not be
+closed from a stylesheet at all, because the ink is a Tailwind arbitrary
+utility in a later layer: the rule was written, measured, found to move
+nothing, and DELETED, because dead CSS that looks like a fix is worse than
+none.
