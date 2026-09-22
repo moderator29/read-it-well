@@ -24,6 +24,7 @@ import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-lim
  * | addBankAccount             | money_bank_add          |     5 |    1 h | Each one is a paid account resolution at Paystack          |
  * | resolveBankAccount, lookupAccountName | money_bank_resolve | 20 | 10 m | Paid per call; a person fixing a typo needs a handful   |
  * | startCardSetup             | card_setup              |     5 |    1 h | Each one is a small live charge to tokenise a card         |
+ * | openHeldPayment            | money_hold_open         |     5 |    1 h | Each one takes an amount out of a spendable balance and locks the wallet row |
  * | signature failures, per IP | webhook_bad_signature   |    30 |   10 m | Unauthenticated: a sprayed webhook URL is answered from cache |
  * | cron secret failures, per IP | cron_bad_secret       |    30 |   10 m | Unauthenticated: same shape for the reconcile route        |
  *
@@ -57,7 +58,8 @@ export type MoneyAction =
   | "startCardCheckout"
   | "addBankAccount"
   | "resolveBankAccount"
-  | "startCardSetup";
+  | "startCardSetup"
+  | "openHeldPayment";
 
 export type MoneyLimit = {
   bucket: string;
@@ -148,6 +150,12 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     limit: 5,
     windowSeconds: HOUR,
     refusal: "You have started several card setups already, so this one was not opened and nothing was charged.",
+  },
+  openHeldPayment: {
+    bucket: "money_hold_open",
+    limit: 5,
+    windowSeconds: HOUR,
+    refusal: "You have held money several times in the last hour, so this one was not opened. Your balance is untouched.",
   },
 };
 

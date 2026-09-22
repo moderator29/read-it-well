@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
+import { createAdminClient } from "../supabase/admin";
 import { createClient } from "../supabase/server";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
@@ -95,6 +96,28 @@ type ProfileRow = {
   post_count: number;
   handle_claimed_at: string;
 };
+
+/**
+ * The client a SIGNED-OUT reader's trust band is fetched with.
+ *
+ * `public.agent_trust(uuid)` lost its `anon` EXECUTE grant on 22 September, so
+ * the anonymous client can no longer ask it. The band is public and stays
+ * public; what changes is that a stranger can only ever get the numbers for a
+ * profile row that has already come back to them through
+ * `social_profiles_select`, rather than for any uuid they care to type at
+ * `/rest/v1/rpc/agent_trust`.
+ *
+ * Null when the service role is not configured in this environment, in which
+ * case the caller falls back to the anonymous client, the RPC is refused, and
+ * `readAgentTrust` answers null: no band rather than a wrong one.
+ */
+function serverTrustReader(): SupabaseClient<Database> | null {
+  try {
+    return createAdminClient();
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Turn a row into a view. `viewerIsOwner` decides whether a held bio travels
@@ -234,6 +257,9 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
      which is exactly what `social_profiles_select` expects. */
   const supabase = session.state === "signed-in" ? session.supabase : await createClient();
   const viewerId = session.state === "signed-in" ? session.user.id : null;
+  /* Null for a signed-in viewer, who reads the trust band through their own
+     client as they always did. See the comment beside `readAgentTrust` below. */
+  const trustReader = viewerId ? null : serverTrustReader();
 
   const { data, error } = await supabase
     .from("social_profiles")
@@ -312,8 +338,18 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     /* `agent_trust` returns NO ROW for somebody who is not an agent, which is
        how the band decides whether to exist. It is asked unconditionally on
        purpose: asking `is_agent` first and then asking this would be two
-       answers to one question, and they can disagree. */
-    readAgentTrust(supabase, row.user_id),
+       answers to one question, and they can disagree.
+
+       THE CLIENT IS NOT ALWAYS THE VIEWER'S. `EXECUTE` on `agent_trust` was
+       revoked from `anon` on 22 September, because signed out it answered for
+       ANY user id: somebody's trust score, completed deal count, median reply
+       time, review count and average rating, for a uuid nobody had to be able
+       to see the profile of. The band itself is public and stays public, so a
+       signed-out read is served from the server after this profile row has
+       already come back through `social_profiles_select`. The numbers a
+       stranger can see are therefore exactly the numbers on a profile they
+       can already open, and no others. */
+    readAgentTrust(trustReader ?? supabase, row.user_id),
     readStoryCount(supabase, row.user_id),
     readAgentId(supabase, row.user_id),
   ]);
