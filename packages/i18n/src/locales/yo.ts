@@ -1332,6 +1332,85 @@ export const yo: Dictionary = withFallback({
   },
 
   agentListings: {
+    /*
+     * NATIVE REVIEW WANTED on this whole block. It is the copy the three
+     * governing listing renders draw and English had none of it either until
+     * today, so nothing here is a re-translation of shipped words. Terms are
+     * reused from this file's own `agentListings` and `moveIn` blocks so the
+     * wizard speaks in one voice; the sentences between them are mine and a
+     * speaker should read them. A key removed here falls back to English,
+     * which is the safe direction.
+     */
+    drawn: {
+      subtitles: {
+        basics: "Sọ fún wa irú ohun ìní tó jẹ́, ohun tí o fẹ́ kéde rẹ̀ sí, àti àwọn yàrá inú rẹ̀.",
+        photos: "Fi àwòrán tó ṣe kedere kún un, àti fídíò ìrìnkiri kúkúrú.",
+        location: "Sọ fún wa ibi gangan tí ohun ìní náà wà.",
+        amenities: "Yan gbogbo ohun ìrọ̀rùn tó wà níbẹ̀.",
+        utilities: "Sọ fún wa nípa iná, iná ìdáwọ́dúró àti omi tó wà níbẹ̀.",
+        pricing: "Gbé iye rẹ̀ kalẹ̀, kí o sì sọ ohun tí ayálégbé máa bá pàdé ní ẹnu-ọ̀nà.",
+        guestView: "Báyìí ni àtòjọ rẹ yóò ṣe hàn sí àwọn tó ń wá.",
+        submit: "Èyí ni ohun tó ṣẹ́kù, àti ohun tó máa ṣẹlẹ̀ lẹ́yìn tí o bá fi ránṣẹ́.",
+      },
+      rooms: {
+        title: "Àwọn yàrá",
+        bedroomsAsk: "Yàrá ìsùn mélòó?",
+        bathroomsAsk: "Yàrá ìwẹ̀ mélòó?",
+        toiletsAsk: "Ilé ìgbọ̀nsẹ̀ mélòó?",
+        parkingAsk: "Ibùdó ọkọ̀ mélòó?",
+        size: "Ìwọ̀n (mítà onígun)",
+        sizeAsk: "Ìwọ̀n ilẹ̀ inú ilé, bí o bá mọ̀ ọ́n",
+        furnishing: "Ohun èlò inú ilé",
+        furnishingAsk: "Yan irú ohun èlò inú ilé",
+        floor: "Ilẹ̀",
+        floorAsk: "Ilẹ̀ kẹ́lòó ni?",
+        floors: "Ilẹ̀ inú ilé náà lápapọ̀",
+        floorsAsk: "Ilẹ̀ mélòó lápapọ̀?",
+        optional: "Àṣàyàn",
+        notStated: "Kò sọ",
+      },
+      supply: {
+        power: "Iná",
+        backup: "Iná ìdáwọ́dúró",
+        backupHours: "Wákàtí iná ìdáwọ́dúró lójúmọ́",
+        water: "Orísun omi",
+        prepaid: "Mítà ìsanwó-ṣáájú",
+        prepaidBody: "Sọ ọ́, nítorí ó ń pinnu bóyá a lè ní kí àlejò ra yúníìtì.",
+      },
+      tenantPays: {
+        title: "Kí ni ayálégbé yóò san ní tòótọ́?",
+        lede: "Èyí ni ìpín tí olùwá ń rí, àti ẹni tó ń gbà á.",
+        empty: "Kún àwọn owó òkè yìí, ìpín tí ayálégbé ń rí yóò hàn níbí.",
+      },
+      checkOver: {
+        detailsTitle: "Ẹ̀kúnrẹ́rẹ́ àtòjọ",
+        edit: "Ṣàtúnṣe",
+        notSet: "Kò sí",
+        availableNow: "Ó wà báyìí",
+        keys: {
+          propertyType: "Irú ohun ìní",
+          bedrooms: "Yàrá ìsùn",
+          bathrooms: "Yàrá ìwẹ̀",
+          size: "Ìwọ̀n",
+          furnishing: "Ohun èlò inú ilé",
+          floor: "Ilẹ̀",
+          condition: "Ipò",
+          availability: "Wíwà",
+        },
+      },
+      done: {
+        nextTitle: "Ohun tó tẹ̀lé",
+        one: "A máa yẹ àwọn ìwífún tí o fúnni wò.",
+        two: "A máa fọwọ́sí àwọn ìwé, bí ó bá sí.",
+        three: "Ìwọ máa gba ìfitónilétí ní kété tí ó bá jáde.",
+      },
+      photos: {
+        add: "Fi àwòrán kún un",
+        earlier: "Gbé àwòrán yìí síwájú",
+        later: "Gbé àwòrán yìí sẹ́yìn",
+      },
+    },
+
     wizard: {
       stepsLabel: "Àwọn ìgbésẹ̀ àtòjọ",
       stepCounter: "Ìgbésẹ̀ {current} nínú {total}",
@@ -3412,6 +3491,7 @@ export const yo: Dictionary = withFallback({
       console: "Ibi iṣẹ́ àbójútó",
     },
     standings: {
+      active: "Tí fọwọ́sí",
       draft: "Kò tíì parí",
       pending: "Ń dúró de àyẹ̀wò",
       refused: "A kò fọwọ́sí",
@@ -3595,6 +3675,7 @@ export const yo: Dictionary = withFallback({
           selfieTitle: "Àwòrán ojú rẹ",
           selfieBody: "Kí ó ṣe kedere, kí ìmọ́lẹ̀ wà, kí a sì yà á báyìí dípò kí a wá a rí.",
           nin: "Nọ́mbà Ìdánimọ̀ Orílẹ̀-èdè (NIN)",
+          ninPlaceholder: "Àpẹẹrẹ: 12345678901",
           ninHint: "Nọ́mbà mọ́kànlá.",
         },
         fees: {
@@ -3633,7 +3714,9 @@ export const yo: Dictionary = withFallback({
           name: "Orúkọ ilé-iṣẹ́ tí a forúkọsílẹ̀",
           namePlaceholder: "Bí CAC ṣe ní i",
           rc: "Nọ́mbà RC",
+          rcPlaceholder: "Àpẹẹrẹ: RC 1234567",
           office: "Àdírẹ́sì ọ́fíìsì",
+          officePlaceholder: "Tẹ àdírẹ́sì ọ́fíìsì rẹ",
           lasrera: "Nọ́mbà ìforúkọsílẹ̀ LASRERA",
           lasreraHint:
             "Fi í fún wa bí o bá ní i. Ayálégbé tí ó ń wá ilé-iṣẹ́ tí ó ní i lè fi rí ọ.",

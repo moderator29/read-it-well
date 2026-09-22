@@ -6,7 +6,6 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Row, RowList, TYPE } from "@/components/app/Screen";
 import { writeModeCookie, writeWorkspaceCookie } from "@/lib/mode.constants";
@@ -14,21 +13,20 @@ import { SIDE_HOME, writeSideCookie, type Side } from "@/lib/side.constants";
 import type { WorkspaceKind } from "@/lib/supply/roles";
 import {
   needsFlip,
-  standingLabel,
-  triggerBehaviour,
   type ProfileSelection,
   type Workspace,
 } from "@/lib/supply/workspaces";
 
 /**
- * ONE SHEET, TWO ENTRANCES.
+ * ONE SHEET, ONE ENTRANCE, AND IT IS THE DOCK.
  *
- * The founder ruled where the switch lives and it is two places: the raised
- * CENTRE SLOT of the bottom dock, and a "Switch profile" row near the foot of
- * the side drawer above the theme row. Both open this. There is one sheet in
- * the product, drawn once, so the two entrances cannot drift into two
- * slightly different lists the way the mode switcher and the role switcher
- * already had.
+ * It had two: the centre slot of the bottom dock and a "Switch profile" row
+ * near the foot of the side drawer. The founder has cut the drawer row -
+ * "it lives in the dock now and two entrances to the same sheet in the same
+ * product is clutter" - so the `row` variant, its tile, its two lines of text
+ * and its chevron are gone with it, along with `.nf-nav__switch*` in
+ * side-nav.css. Nothing became unreachable: the dock renders on every route
+ * the drawer's own opener renders on.
  *
  * `GOVERNING-01` screen two is the target: a titled sheet, the Personal row
  * with the account's own avatar and a tick, then each workspace held with its
@@ -59,16 +57,34 @@ import {
  * and nothing else.
  *
  * ---------------------------------------------------------------------------
- * THE OBJECT IN THE DOCK IS `role-switch-tile` AND NOT THE RENDER'S STACK
+ * TAPPING THE TRIGGER ALWAYS OPENS THE SHEET, AND IT USED NOT TO
  *
- * `GOVERNING-01` draws the centre slot as a stack of three glass discs. The
- * nearest object in our own pack is `naira-coins`, which means MONEY on every
- * other surface in this product, and borrowing it here would teach that shape
- * a second meaning two taps from the wallet. `role-switch-tile` is the pack's
- * own switch object, a person with a swap arrow on a glass tile, and it says
- * what the control actually is. Composition, glow, the lit rim and the raised
- * geometry all follow the render; the glyph inside it is ours. Recorded in the
- * ledger as a translation rather than a copy.
+ * `triggerBehaviour` returns "toggle" for an account holding exactly one
+ * workspace, and this file acted on it: one tap flipped straight between
+ * Personal and that workspace and the sheet never opened. The founder's
+ * ruling is the opposite and it is about what the control MEANS, not about
+ * saving a tap. "It behaves as though holding one means the question is
+ * settled. It is not. I want to see every profile I hold and every door I
+ * have not yet walked through, every time."
+ *
+ * So the trigger opens the sheet in every state, and the sheet always draws
+ * the same three things: Personal, every workspace held with its real
+ * standing, and the door not yet walked through. `triggerBehaviour` is left
+ * where it is, unread by this file and still covered by its own unit test:
+ * it is another scope's export to remove, not this one's.
+ *
+ * ---------------------------------------------------------------------------
+ * THE GLYPH IN THE DOCK IS STROKED, ON THE FOUNDER'S RULING OF 22 SEPTEMBER
+ *
+ * `GOVERNING-01` draws the centre slot as a stack of three glass discs, and
+ * what shipped was `BrandIcon name="role-switch-tile"` - the pack's own
+ * switch object - rather than the stack, because the nearest stack in our
+ * pack is `naira-coins` and that means MONEY on every other surface in this
+ * product. That argument still stands and the glyph still says "switch". What
+ * changed is the TIER: a tier-two glass object sat in a row of four stroked
+ * 24px glyphs, and the founder asked for it drawn "in the same style as the
+ * others". `UiIcon name="switch-profile"` is that glyph, drawn on the same 24
+ * grid at the same stroke as `home`, `search`, `feed` and `user`.
  */
 
 const KIND_ICON: Record<WorkspaceKind, UiIconName> = {
@@ -87,10 +103,25 @@ export type ProfileSwitcherCopy = {
   addMeaning: string;
   current: string;
   empty: string;
-  /** What the dock slot and the drawer row announce. */
+  /** What the dock slot announces. */
   triggerLabel: string;
   kinds: Record<WorkspaceKind, string>;
-  standings: { draft: string; pending: string; refused: string; suspended: string };
+  /**
+   * One word per standing the database can produce, INCLUDING `active`.
+   *
+   * `active` is new and it is the founder's "Verified" mark from
+   * `GOVERNING-01` screen two. It is drawn from `agents.status = 'APPROVED'`
+   * or `businesses.status = 'APPROVED'` and from nothing else, which is a
+   * decision a member of staff made and the audit log recorded. The console
+   * row is the one exception and the reason is at its call site.
+   */
+  standings: {
+    active: string;
+    draft: string;
+    pending: string;
+    refused: string;
+    suspended: string;
+  };
 };
 
 export function ProfileSwitcher({
@@ -100,7 +131,6 @@ export function ProfileSwitcher({
   current,
   side,
   avatarUrl,
-  variant,
   addHref,
   onNavigate,
 }: {
@@ -110,8 +140,6 @@ export function ProfileSwitcher({
   current: ProfileSelection;
   side: Side;
   avatarUrl: string;
-  /** `dock` is the raised centre slot; `row` is the drawer's foot row. */
-  variant: "dock" | "row";
   /** Where "Add a workspace" goes, which is side dependent. */
   addHref: string;
   onNavigate?: () => void;
@@ -120,7 +148,6 @@ export function ProfileSwitcher({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const behaviour = triggerBehaviour(workspaces);
   const currentName =
     current.kind === "personal" ? copy.personal : current.workspace.name;
 
@@ -161,54 +188,43 @@ export function ProfileSwitcher({
 
   const triggerName = `${copy.triggerLabel}: ${currentName}`;
 
-  function onTrigger() {
-    /*
-     * One workspace is two states, and two states is a toggle rather than a
-     * list. Several is always the sheet, because a toggle between three things
-     * is not a toggle. Zero opens the sheet too, because the sheet is where
-     * the explanation of what a workspace even is lives.
-     */
-    if (behaviour === "toggle" && workspaces[0]) {
-      if (current.kind === "personal") chooseWorkspace(workspaces[0]);
-      else choosePersonal();
-      return;
-    }
-    setOpen(true);
-  }
-
-  const trigger =
-    variant === "dock" ? (
-      <button
-        type="button"
-        onClick={onTrigger}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label={triggerName}
-        className="nf-tab__link nf-tab__link--switch"
-        data-on={open || undefined}
-      >
-        <span className="nf-switch-dock" aria-hidden="true">
-          <BrandIcon name="role-switch-tile" size={34} />
-        </span>
-      </button>
-    ) : (
-      <button
-        type="button"
-        onClick={onTrigger}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        className="nf-nav__switch"
-      >
-        <span className="nf-nav__switchtile" aria-hidden="true">
-          <BrandIcon name="role-switch-tile" size={34} />
-        </span>
-        <span className="nf-nav__switchtext">
-          <span className="nf-nav__switchtitle">{copy.title}</span>
-          <span className="nf-nav__switchnow">{currentName}</span>
-        </span>
-        <UiIcon name="chevron-right" size={14} className="nf-nav__switchchev" />
-      </button>
-    );
+  const trigger = (
+    <button
+      type="button"
+      /*
+       * ONE BEHAVIOUR, IN EVERY STATE: OPEN THE SHEET.
+       *
+       * There was a branch here that toggled straight between Personal and
+       * the single workspace an account held, on the argument that two
+       * states are a toggle rather than a list. The founder has overruled
+       * it: holding one workspace does not settle the question of who you
+       * are, and a control that answers it for you hides both the standing
+       * of what you hold and the door you have not walked through. See the
+       * note at the top of this file.
+       */
+      onClick={() => setOpen(true)}
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      aria-label={triggerName}
+      className="nf-tab__link nf-tab__link--switch"
+      data-on={open || undefined}
+    >
+      <span className="nf-switch-dock" aria-hidden="true">
+        {/*
+         * THE GLYPH IS STROKED NOW, AT THE SAME STEP AS ITS FOUR NEIGHBOURS.
+         *
+         * It was `BrandIcon name="role-switch-tile"` at 34px: a tier-two
+         * glass object in a row of four 24px stroked glyphs. The founder saw
+         * the bar on a real phone and ruled that the icon is drawn "in the
+         * same style as the others", so it is `UiIcon` at `md`, which is the
+         * exact step `MobileTabBar` asks for on Home, Search, Feed and
+         * Profile. The CONTAINER stays, and the container is what still says
+         * this one is not a destination.
+         */}
+        <UiIcon name="switch-profile" size="md" />
+      </span>
+    </button>
+  );
 
   /* --------------------------------------------------------------- the sheet */
 
@@ -262,8 +278,12 @@ export function ProfileSwitcher({
                 )}
               </span>
               <span className="min-w-0 flex-1">
-                <span className={`block ${TYPE.rowTitle}`}>{copy.personal}</span>
-                <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.personalMeaning}</span>
+                <span className={`block ${TYPE.rowTitle}`}>
+                  {copy.personal}
+                </span>
+                <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>
+                  {copy.personalMeaning}
+                </span>
               </span>
               {current.kind === "personal" ? (
                 /* THE CIRCULAR BADGE, NOT THE SHIELD. `GOVERNING-01` draws
@@ -291,8 +311,31 @@ export function ProfileSwitcher({
 
           {workspaces.map((workspace) => {
             const isCurrent =
-              current.kind === "workspace" && current.workspace.key === workspace.key;
-            const standing = standingLabel(workspace.standing);
+              current.kind === "workspace" &&
+              current.workspace.key === workspace.key;
+            /*
+             * THE MARK IS WHAT THE DATABASE SAID, OR THERE IS NO MARK.
+             *
+             * `standing` came out of `standingFromStatus`, which maps one
+             * `agents.status` or `businesses.status` value onto one word. So
+             * "Pending review" means the row says SUBMITTED or UNDER_REVIEW,
+             * "Verified" means it says APPROVED, and neither is ever inferred
+             * from anything else on screen.
+             *
+             * THE CONSOLE IS THE ONE ROW WITH NO MARK, and it is not an
+             * oversight. Its standing is synthesised as `active` in
+             * `workspaces-queries.ts` from the mere existence of a staff role
+             * row; nothing approved it and no queue decided it, so drawing
+             * "Verified" beside it would be exactly the guess the founder
+             * ruled out. A mark this sheet cannot source, this sheet does not
+             * draw.
+             */
+            const standing =
+              workspace.kind === "console"
+                ? null
+                : copy.standings[
+                    workspace.standing as keyof typeof copy.standings
+                  ] ?? null;
             return (
               <Row key={workspace.key} className="p-0">
                 <button
@@ -314,9 +357,11 @@ export function ProfileSwitcher({
                           radius, never a capsule: the render draws these as
                           pills and the shape law wins. */}
                       {standing && (
-                        <span className="nf-switch-standing" data-standing={workspace.standing}>
-                          {copy.standings[workspace.standing as keyof typeof copy.standings] ??
-                            standing}
+                        <span
+                          className="nf-switch-standing"
+                          data-standing={workspace.standing}
+                        >
+                          {standing}
                         </span>
                       )}
                     </span>
@@ -352,13 +397,22 @@ export function ProfileSwitcher({
         )}
 
         <div className="nf-switch-add">
-          <Link href={addHref} onClick={() => setOpen(false)} className="nf-row nf-row--tap px-2xs">
-            <span className="nf-switch-mark nf-switch-mark--add" aria-hidden="true">
+          <Link
+            href={addHref}
+            onClick={() => setOpen(false)}
+            className="nf-row nf-row--tap px-2xs"
+          >
+            <span
+              className="nf-switch-mark nf-switch-mark--add"
+              aria-hidden="true"
+            >
               <UiIcon name="plus" size="md" />
             </span>
             <span className="min-w-0 flex-1">
               <span className={`block ${TYPE.rowTitle}`}>{copy.addTitle}</span>
-              <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.addMeaning}</span>
+              <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>
+                {copy.addMeaning}
+              </span>
             </span>
             <UiIcon
               name="chevron-right"

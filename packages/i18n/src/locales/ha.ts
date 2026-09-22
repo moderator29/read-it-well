@@ -1335,6 +1335,85 @@ export const ha: Dictionary = withFallback({
   },
 
   agentListings: {
+    /*
+     * NATIVE REVIEW WANTED on this whole block. It is the copy the three
+     * governing listing renders draw and English had none of it either until
+     * today, so nothing here is a re-translation of shipped words. Terms are
+     * reused from this file's own `agentListings` and `moveIn` blocks so the
+     * wizard speaks in one voice; the sentences between them are mine and a
+     * speaker should read them. A key removed here falls back to English,
+     * which is the safe direction.
+     */
+    drawn: {
+      subtitles: {
+        basics: "Ka gaya mana nau'in kadarar, abin da kake son sanya ta a matsayinsa, da ɗakunan da ke ciki.",
+        photos: "Ka ƙara hotuna bayyanannu na kadarar da gajeren bidiyon yawo.",
+        location: "Ka gaya mana ainihin wurin kadarar.",
+        amenities: "Ka zaɓi duk kayan more rayuwa da ake da su a kadarar.",
+        utilities: "Ka gaya mana game da wutar lantarki, madadin wutar da ruwan da ke wurin.",
+        pricing: "Ka sa farashin, sannan ka faɗi abin da mai haya zai haɗu da shi a ƙofa.",
+        guestView: "Ga yadda jerinka zai bayyana ga masu bincike.",
+        submit: "Ga abin da ya rage, da abin da ke faruwa bayan ka aika.",
+      },
+      rooms: {
+        title: "Ɗakuna",
+        bedroomsAsk: "Ɗakunan kwana nawa?",
+        bathroomsAsk: "Ɗakunan wanka nawa?",
+        toiletsAsk: "Bayin gida nawa?",
+        parkingAsk: "Wuraren ajiye mota nawa?",
+        size: "Girma (murabba'in mita)",
+        sizeAsk: "Fadin benen, idan ka sani",
+        furnishing: "Kayan ɗaki",
+        furnishingAsk: "Zaɓi nau'in kayan ɗaki",
+        floor: "Hawa",
+        floorAsk: "A hawa na nawa yake?",
+        floors: "Hawan gini gaba ɗaya",
+        floorsAsk: "Hawa nawa gaba ɗaya?",
+        optional: "Na zaɓi",
+        notStated: "Ba a faɗa ba",
+      },
+      supply: {
+        power: "Wutar lantarki",
+        backup: "Madadin wuta",
+        backupHours: "Awowin madadin wuta a kullum",
+        water: "Tushen ruwa",
+        prepaid: "Mitar biya-kafin-amfani",
+        prepaidBody: "Ka faɗi, domin yana tantance ko za a iya neman baƙo ya sayi yuniti.",
+      },
+      tenantPays: {
+        title: "Me mai haya zai biya da gaske?",
+        lede: "Wannan shi ne rabon da mai bincike ke gani, da wanda ke karɓar kowanne.",
+        empty: "Ka cika kuɗin da ke sama, sai rabon da mai haya ke gani ya bayyana a nan.",
+      },
+      checkOver: {
+        detailsTitle: "Bayanan jeri",
+        edit: "Gyara",
+        notSet: "Ba a sa ba",
+        availableNow: "Akwai yanzu",
+        keys: {
+          propertyType: "Nau'in kadara",
+          bedrooms: "Ɗakunan kwana",
+          bathrooms: "Ɗakunan wanka",
+          size: "Girma",
+          furnishing: "Kayan ɗaki",
+          floor: "Hawa",
+          condition: "Yanayi",
+          availability: "Samuwa",
+        },
+      },
+      done: {
+        nextTitle: "Abin da ke biyo baya",
+        one: "Muna duba bayanan da ka bayar.",
+        two: "Muna tabbatar da takardu, idan akwai.",
+        three: "Za ka samu sanarwa da zarar ya tashi.",
+      },
+      photos: {
+        add: "Ƙara hotuna",
+        earlier: "Matsar da wannan hoton gaba",
+        later: "Matsar da wannan hoton baya",
+      },
+    },
+
     wizard: {
       stepsLabel: "Matakan jeri",
       stepCounter: "Mataki {current} cikin {total}",
@@ -3397,6 +3476,7 @@ export const ha: Dictionary = withFallback({
       console: "Wurin aikin ma'aikata",
     },
     standings: {
+      active: "An tabbatar",
       draft: "Bai kammala ba",
       pending: "Ana jiran dubawa",
       refused: "Ba a amince ba",
@@ -3580,6 +3660,7 @@ export const ha: Dictionary = withFallback({
           selfieTitle: "Hoton fuskarka",
           selfieBody: "Bayyananne, mai haske, kuma a ɗauka yanzu ba wanda aka samo ba.",
           nin: "Lambar Shaida ta Kasa (NIN)",
+          ninPlaceholder: "Misali: 12345678901",
           ninHint: "Lambobi goma sha ɗaya.",
         },
         fees: {
@@ -3618,7 +3699,9 @@ export const ha: Dictionary = withFallback({
           name: "Sunan kamfani da aka yi rajista",
           namePlaceholder: "Kamar yadda CAC ta riƙe shi",
           rc: "Lambar RC",
+          rcPlaceholder: "Misali: RC 1234567",
           office: "Adireshin ofis",
+          officePlaceholder: "Shigar da adireshin ofis ɗinka",
           lasrera: "Lambar rajistar LASRERA",
           lasreraHint:
             "Ka bayar da ita idan kana da ita. Mai neman haya da ke son kamfani mai ita zai iya samun ka da ita.",

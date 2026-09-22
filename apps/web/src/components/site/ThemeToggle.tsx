@@ -41,15 +41,27 @@ export function ThemeToggle({
    */
   labels?: ThemeToggleLabels;
   /**
-   * `icon` is the bare glyph button the marketing header uses.
+   * `icon` is the glyph button on a glass plate that the marketing header uses.
    *
    * `row` is a labelled navigation row, added for the app rail and drawer. The
    * theme control now lives in the product's navigation rather than in its
    * chrome, and a glyph alone in a list of labelled destinations is a guess: in
    * a rail the row has room to say what it does, and the label is what makes it
    * findable by somebody who has never pressed it.
+   *
+   * `bare` is the glyph and NOTHING ELSE: no plate, no border, no word. Added
+   * for the side drawer on the founder's ruling of 22 September - "no box, no
+   * Light mode, no Dark mode, just the icon, sitting on its own" - and it is a
+   * third variant rather than a change to `icon` because `icon` deliberately
+   * DOES wear `.nf-icon-btn`'s plate in the marketing header, where the glyph
+   * sits over photography and needs a ground to be seen on.
+   *
+   * The argument above for `row`'s visible label is not wrong and it is
+   * overruled for this one surface. What it buys, findability, is kept in the
+   * accessible name: `aria-label` states the destination, the same words the
+   * row's label did, so a screen reader loses nothing at all.
    */
-  variant?: "icon" | "row";
+  variant?: "icon" | "row" | "bare";
 }) {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
@@ -108,6 +120,23 @@ export function ThemeToggle({
             reading "Dark" leaves you guessing whether that is what you have or
             what you would get. */}
         <span className="nf-nav__label">{theme === "dark" ? labels.light : labels.dark}</span>
+      </button>
+    );
+  }
+
+  if (variant === "bare") {
+    return (
+      <button
+        type="button"
+        onClick={flip}
+        aria-label={label}
+        /* `.nf-tap` and nothing else from this file: the 44pt hit region
+           without a 44pt box to look at, which base.css already owns. Whatever
+           geometry the surface wants comes in through `className`, so this
+           variant cannot bring a plate with it by accident. */
+        className={`nf-tap ${className ?? ""}`}
+      >
+        <UiIcon name={theme === "dark" ? "sun" : "moon"} size="md" />
       </button>
     );
   }

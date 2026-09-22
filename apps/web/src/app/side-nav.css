@@ -14,6 +14,69 @@
    *
    * The tile is gone with it. On a row this size a filled square behind every
    * glyph is noise, and the row you are on already has a pill of its own.
+   *
+   * ---------------------------------------------------------------------------
+   * ONE RHYTHM IN THE DRAWER, AND THE NUMBERS THAT SAY IT WAS NOT ONE
+   *
+   * The founder: "it currently reads as rows that were added at different times
+   * by different people". That is a claim until it has numbers, so the numbers
+   * were taken first, off `/preview/f1/drawer` at 390x844 in dark on a
+   * PRODUCTION server (`next build` then `next start`), reading
+   * `getBoundingClientRect` and `getComputedStyle` rather than reading this
+   * file. BEFORE:
+   *
+   *   object              height   inline pad   gap    glyph
+   *   close control        36        0           -      20
+   *   user card           124.2     14          14      -
+   *   nav row              44       14          12      20
+   *   theme row            52       14          12      20
+   *   switch profile row   56        8          12      -
+   *   coin card           101.2     14          14      -
+   *   legal row            44       12          10      16
+   *
+   * Five row heights, three inline paddings, three gaps and three glyph sizes,
+   * in one panel that is a dozen rows tall. The left rule wandered with them:
+   * a nav row's glyph started at x=33, the legal row's at x=31 and the theme
+   * row's at x=34, so three things that look like one column were on three
+   * columns.
+   *
+   * AND THE 20 IS A DEFECT, NOT ONLY AN INCONSISTENCY. `NavTree` and
+   * `ThemeToggle` both ask `UiIcon` for `md`, which is 24, and the drawer sized
+   * BOTH the 24px slot and the 24px svg inside it down to 1.25rem. `UiIcon`
+   * derives its stroke width from the size it was ASKED for, so scaling the
+   * drawn box from 24 to 20 in CSS scales the stroke with it: every glyph in
+   * this panel was drawn at five sixths of the platform's stroke weight - about
+   * a fifth thinner than the same glyph anywhere else in the product. That is
+   * exactly the fault `ThemeToggle` has a paragraph about for its own icon, and
+   * the drawer was doing it to every row.
+   *
+   * AFTER, measured the same way on the same server:
+   *
+   *   object              height   inline pad   gap    glyph   glyph x
+   *   close control        36        0           -      20      -
+   *   user card           124.2     12          12      -       -
+   *   nav row              48       12          12      24      33
+   *   theme control        48       12          -       24      33
+   *   coin card           101.2     12          12      -       -
+   *   legal row            48       12          12      24      33
+   *
+   * ONE row height, 48, which clears the 44pt floor with room rather than
+   * sitting on it. ONE glyph size, 24, which is the size the glyph is asked for
+   * so the stroke is the platform's. ONE inline padding and ONE gap, so every
+   * glyph in the panel starts at x=33 and every label at x=69. ONE grouping
+   * rhythm: a hairline, 12, the group - used by a section boundary and by the
+   * foot alike, where the foot had no hairline at all while every section above
+   * it did.
+   *
+   * TWO THINGS DELIBERATELY KEEP THEIR OWN HEIGHT and they are the two CARDS,
+   * not rows: the user block at 124 and the coin at 101. The founder asked for
+   * a panel that reads as organised, not for its two objects to be flattened
+   * into the list. What they now share with the rows is the left rule and the
+   * inside gap, which is what makes them look placed rather than pasted.
+   *
+   * THE CLOSE CONTROL STAYS AT 36 and that is also on purpose: it is the head's
+   * one control rather than a row of the list, it paints 36 and taps 44 through
+   * `::after`, and the note above it argues that case.
    */
 
   .nf-nav {
@@ -43,7 +106,11 @@
   .nf-nav--drawer {
     height: 100%;
     width: 100%;
-    padding: 0.625rem 0.625rem calc(0.75rem + env(safe-area-inset-bottom));
+    /* The panel's gutter is the same step everything inside it is inset by,
+       so a row's glyph starts at 12 + 12 and there is one rule to align to
+       rather than 10 + 14 on one row and 10 + 8 on the next. */
+    padding: var(--nf-space-sm) var(--nf-space-sm)
+      calc(var(--nf-space-sm) + env(safe-area-inset-bottom));
   }
 
   /* ------------------------------------------------------------- the head */
@@ -60,7 +127,9 @@
      starts on the face; this gives the head only the height its one control
      needs. */
   .nf-nav--drawer .nf-nav__head {
-    padding-bottom: 0.25rem;
+    /* No inline padding of its own: the panel's gutter already sets the rule
+       and the close control is meant to sit on it, not two pixels inside it. */
+    padding: 0 0 var(--nf-space-sm);
   }
 
   .nf-nav__brand {
@@ -224,9 +293,11 @@
    * panel to say one name. (R1 finding A18.)
    */
   .nf-nav__who--card {
-    gap: 0.875rem;
-    margin: 0 0.25rem 0.75rem;
-    padding: 1rem 0.875rem;
+    gap: var(--nf-gap-row);
+    /* Flush with the rows below it. It was inset a further 4px and padded 14,
+       so the face started at 28 while every row's glyph started at 24. */
+    margin: 0 0 var(--nf-space-sm);
+    padding: var(--nf-space-md) var(--nf-space-sm);
   }
   /*
    * THE LIT RING AROUND THE FACE, and it had a dark gap in it.
@@ -317,20 +388,34 @@
    * row is a row with no air in it. (R1 finding A18.)
    */
   .nf-nav--drawer .nf-nav__row {
-    min-height: 2.75rem;
-    gap: 0.75rem;
-    padding: var(--nf-space-2xs) 0.875rem;
+    /*
+     * 48, and it was 44.
+     *
+     * 44 was chosen to clear the touch floor exactly, which it did, and the
+     * panel then grew rows at 52 and 56 beside it. One height for every row
+     * is the founder's ask; 48 is the one that clears the floor with margin
+     * instead of sitting on it, and it is what the theme row and the legal
+     * row now draw too.
+     */
+    min-height: 3rem;
+    gap: var(--nf-gap-row);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-lg);
     font-size: var(--nf-text-body-sm);
   }
-  .nf-nav--drawer .nf-nav__glyph {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-  .nf-nav--drawer .nf-nav__glyph > * {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
+  /*
+   * THE GLYPH OVERRIDE IS GONE, AND IT WAS THINNING EVERY STROKE ON THE PANEL.
+   *
+   * Two rules stood here: one sizing the slot at 1.25rem and one sizing the
+   * `<svg>` inside it at 1.25rem too. The slot is a grid cell and shrinking it
+   * is harmless. Shrinking the SVG is not: `UiIcon` derives `stroke-width`
+   * from the size it was ASKED for, 24, and a CSS length that redraws the same
+   * 24-unit viewBox at 20 scales the stroke down with the box. So every glyph
+   * in this drawer carried five sixths of the platform's stroke weight, which
+   * is the "faint, looks like it is missing" reading `ThemeToggle` documents
+   * for its own icon. Gone; the drawer uses the shared 24px slot and the glyph
+   * is drawn at the size it was asked for.
+   */
   /* The render's lit row throws real light: the brand gradient with a bloom
      off all four sides, not a flat slab with a hint under it. */
   .nf-nav--drawer .nf-nav__row--on {
@@ -344,12 +429,17 @@
   .nf-nav--drawer .nf-nav__row--on .nf-nav__glyph {
     color: var(--nf-content-on-brand);
   }
-  .nf-nav--drawer .nf-nav__row::after {
+  /* ONE CHEVRON, DRAWN ONE WAY. The legal link is in this selector because it
+     was drawing a `UiIcon` chevron at 14px beside rows whose chevron is this
+     8px corner - two drawings of one mark, six pixels apart in size, in one
+     panel. The markup's icon is gone; the row's own mark serves both. */
+  .nf-nav--drawer .nf-nav__row::after,
+  .nf-nav--drawer .nf-nav__legal::after {
     content: "";
     flex: none;
     width: 0.5rem;
     height: 0.5rem;
-    margin-inline-start: 0.25rem;
+    margin-inline-start: var(--nf-space-2xs);
     border-right: 1.5px solid currentColor;
     border-bottom: 1.5px solid currentColor;
     transform: rotate(-45deg);
@@ -397,106 +487,106 @@
       display: block;
     }
   }
+  /*
+   * THE FOOT IS A GROUP BOUNDARY LIKE ANY OTHER, AND IT WAS THE ONE THAT WAS
+   * NOT.
+   *
+   * Every section boundary in this panel is a hairline, then 12, then the
+   * group. The drawer's foot zeroed its hairline and kept the 12, so the
+   * coin card and the theme control floated under the last destination with
+   * nothing saying they were a different kind of thing - while two hairlines
+   * were drawn above them between groups that are all destinations. One
+   * rhythm means the foot draws the same boundary as the rest.
+   */
   .nf-nav--drawer .nf-nav__foot {
-    border-top: 0;
-    padding-top: 0.75rem;
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-sm);
+    border-top: 1px solid var(--nf-divider);
   }
 
   /*
-   * SWITCH PROFILE, the drawer's own entrance to the sheet.
+   * `.nf-nav__switch` AND ITS FIVE PARTS STOOD HERE AND ARE GONE WITH THEIR
+   * MARKUP.
    *
-   * `GOVERNING-01` screen three draws it as the LIT row of the foot: a glass
-   * card carrying the pack's switch object, the words "Switch profile" over
-   * the current profile's name in a quieter rung, and a chevron. It is one
-   * rung brighter than the coin below it, which is one rung brighter than the
-   * theme row, so the three read as a descending order of consequence rather
-   * than as three identical cards.
+   * They drew the drawer's own "Switch profile" row: a 56px lit glass card
+   * with a 44px tile holding a 34px brand mark, a title over the current
+   * profile's name, and a chevron. `GOVERNING-01` screen three does draw it,
+   * and the founder has ruled it out of the drawer anyway - "it lives in the
+   * dock now and two entrances to the same sheet in the same product is
+   * clutter". The sheet is unchanged and the dock's centre slot still opens
+   * it on every route this drawer's opener appears on.
    *
-   * A ROUNDED RECTANGLE on the control radius. The render draws this row with
-   * softened ends and the shape law wins: at 3.5rem tall on a 14px radius the
-   * ratio is 0.25, which is a rectangle by the only test that counts.
+   * `.nf-nav--drawer .nf-nav__foot .nf-nav__row` WENT WITH IT, for a
+   * different reason. It was the theme row's container: a lit glass card at
+   * 52px tall, restated here rather than shared because the markup belonged
+   * to `ThemeToggle`. The founder has taken the container and the words off
+   * the theme control entirely, so there is no row in this foot to give a
+   * card to. What is left is the glyph, below.
    */
-  .nf-nav__switch {
-    display: flex;
-    width: 100%;
-    align-items: center;
+
+  /*
+   * THE COIN CARD KEEPS ITS OWN HEIGHT AND JOINS THE PANEL'S VERTICAL RULE.
+   *
+   * `.nf-side-switch` is declared in side-flip.css, which is the flip
+   * feature's stylesheet rather than the drawer's, and its geometry there is
+   * the coin's own: an 80px card round a 56px lit ring. That stays. It is the
+   * star of this panel and the founder asked for consistency, not for the
+   * star to be flattened into a row.
+   *
+   * What is corrected is the INSET. The card padded 14 inside a panel whose
+   * rows pad 12, so the coin's ring started two pixels to the right of every
+   * glyph above it - the kind of two pixels nobody can name and everybody
+   * reads as "assembled". Two declarations, on a selector specific enough to
+   * win wherever the two files sit in the cascade, because specificity is a
+   * statement and import order is an accident.
+   */
+  .nf-nav.nf-nav--drawer .nf-side-switch {
     gap: var(--nf-gap-row);
-    min-height: 3.5rem;
-    padding: var(--nf-space-2xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge);
-    background:
-      linear-gradient(180deg, var(--nf-wash-4) 0%, transparent 62%),
-      var(--nf-glass-card-fill);
-    box-shadow:
-      var(--nf-glow-edge),
-      inset 0 1px 0 var(--nf-glass-rim),
-      inset 0 -1px 0 var(--nf-glass-floor);
-    text-align: left;
-    transition:
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    padding-inline: var(--nf-space-sm);
   }
-  @media (hover: hover) {
-    .nf-nav__switch:hover {
-      border-color: var(--nf-border-brand);
-    }
-  }
-  .nf-nav__switchtile {
+
+  /*
+   * THE THEME CONTROL: the glyph, on its own, and nothing else.
+   *
+   * No plate, no border, no fill, no label. The 44pt hit region comes from
+   * `.nf-tap` in base.css, which draws nothing; this rule is a 48px box so
+   * the control occupies exactly one row of the panel's rhythm, and the
+   * glyph sits at the same left rule as every row's glyph above it.
+   *
+   * `align-self: flex-start` because the foot is a column and a 48px square
+   * would otherwise stretch to the panel's width, giving a bare glyph a
+   * full-width tap target that looks like nothing and answers everywhere.
+   */
+  .nf-nav__theme {
     display: grid;
     place-items: center;
-    flex-shrink: 0;
-    width: 2.75rem;
-    height: 2.75rem;
+    align-self: flex-start;
+    width: 3rem;
+    height: 3rem;
+    margin-top: var(--nf-space-sm);
+    /* The inner rule, so the sun lands where the glyphs above it land. The
+       box is 48 and the glyph is 24, so 12 of padding puts it on the same
+       vertical line as a row's glyph and the `place-items` centring then has
+       nothing left to move. */
+    padding-inline: var(--nf-space-sm);
+    justify-items: start;
+    border-radius: var(--nf-radius-lg);
+    color: var(--nf-content-secondary);
+    transition: color var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-nav__switchtext {
-    display: flex;
-    min-width: 0;
-    flex: 1 1 auto;
-    flex-direction: column;
-  }
-  .nf-nav__switchtitle {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-content-primary);
-  }
-  .nf-nav__switchnow {
-    overflow: hidden;
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .nf-nav__switchchev {
-    flex-shrink: 0;
-    color: var(--nf-content-muted);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-nav__switch {
-      transition: none;
+  @media (hover: hover) {
+    .nf-nav__theme:hover {
+      color: var(--nf-content-primary);
     }
   }
-  /*
-   * The theme row under the coin. The drawer render draws it as a glass card
-   * with a lit edge, one rung quieter than the coin above it; this had
-   * `--nf-border-subtle` over `--nf-glass-fill-thin`, which is the dull
-   * container the founder photographed. The tile's recipe, restated here
-   * rather than added as a class because the row is `ThemeToggle`'s markup
-   * and that component belongs to another scope.
-   */
-  .nf-nav--drawer .nf-nav__foot .nf-nav__row {
-    margin-top: 0.5rem;
-    min-height: 3.25rem;
-    border: 1px solid var(--nf-brand-edge);
-    background:
-      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
-      var(--nf-glass-card-fill);
-    box-shadow:
-      var(--nf-glow-edge),
-      inset 0 -1px 0 var(--nf-glass-floor);
+  .nf-nav__theme:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
   }
-  .nf-nav--drawer .nf-nav__foot .nf-nav__row::after {
-    content: none;
+  @media (prefers-reduced-motion: reduce) {
+    .nf-nav__theme {
+      transition: none;
+    }
   }
 
   /*
@@ -507,15 +597,30 @@
    * looking for - but it is a real link to the terms, because the render
    * draws a chevron and a chevron that goes nowhere is a lie.
    */
+  /*
+   * THE LEGAL ROW IS A ROW NOW, on the panel's one anatomy: 48 tall, the
+   * shared 24px glyph slot, the shared 12px inline padding, the shared 12px
+   * gap. It was 44 tall with a 16px glyph, a 14px chevron and a 10px gap,
+   * which is three numbers nothing else on the panel used.
+   *
+   * Its hairline was ALSO its top border with the padding stacked on top of
+   * the declaration above it, so the rule read `padding: 0 0.75rem` and then
+   * `padding-top: 0.75rem` four lines later. The boundary above it is the
+   * foot's now, so this row simply keeps the group's rhythm and draws no
+   * second line of its own.
+   *
+   * Quiet by design - it is the last thing on the panel and nobody is looking
+   * for it - and it is a real link, because the chevron is real.
+   */
   .nf-nav__legal {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    min-height: 2.75rem;
-    margin-top: 0.75rem;
-    padding: 0 0.75rem;
+    gap: var(--nf-gap-row);
+    min-height: 3rem;
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
     border-top: 1px solid var(--nf-divider);
-    padding-top: 0.75rem;
+    padding-top: var(--nf-space-sm);
     color: var(--nf-content-muted);
   }
   .nf-nav__legalname {
@@ -528,9 +633,6 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     color: var(--nf-brand-secondary);
-  }
-  .nf-nav__legalchev {
-    flex: none;
   }
   a.nf-nav__legal:hover {
     color: var(--nf-content-secondary);
@@ -571,9 +673,11 @@
     border-top: 1px solid var(--nf-divider);
   }
 
+  /* The one grouping rhythm: a hairline, then 12, then the group. The foot
+     draws the same boundary, which it did not before. */
   .nf-nav__section + .nf-nav__section {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-sm);
     border-top: 1px solid var(--nf-border-subtle);
   }
 
@@ -601,7 +705,7 @@
   }
 
   .nf-nav__heading {
-    padding: 0 0.75rem 0.5rem;
+    padding: 0 var(--nf-space-sm) var(--nf-space-xs);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -615,7 +719,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0.875rem;
+    gap: var(--nf-gap-row);
     width: 100%;
     /*
      * 52px, and it used to be 36.
@@ -634,7 +738,7 @@
      * rather than as a dense toolbar; this is most of that, in two numbers.
      */
     min-height: 3.25rem;
-    padding: 0 0.75rem;
+    padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-lg);
     font-size: 1rem;
     font-weight: 500;

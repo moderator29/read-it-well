@@ -145,14 +145,15 @@ export function AppShell({
   const openDrawer = useCallback(() => setDrawer(true), []);
 
   /*
-   * THE SWITCH, BUILT ONCE AND PLACED TWICE.
+   * THE SWITCH, BUILT ONCE AND PLACED ONCE.
    *
-   * The founder ruled it lives in two places: the raised centre slot of the
-   * dock, and a row near the foot of the side drawer above the theme row. Both
-   * open THE SAME SHEET. Building it here rather than in each surface is what
-   * makes that literally true: one component, one workspace list, one set of
-   * copy, two placements. The mode switcher and the role switcher were two
-   * controls doing one job and they had already drifted apart.
+   * It was placed twice: the centre slot of the dock and a row near the foot
+   * of the side drawer. The founder has cut the drawer row - "it lives in the
+   * dock now and two entrances to the same sheet in the same product is
+   * clutter" - so the shell builds one control for one placement. It is still
+   * built HERE rather than inside `MobileTabBar` because the sheet needs the
+   * account's own workspace list, which the shell has already resolved once,
+   * and the dock is a server component that has no business fetching one.
    *
    * The copy is assembled from the dictionary rather than written inline,
    * because this is new copy and new copy is going to be edited.
@@ -170,7 +171,7 @@ export function AppShell({
     standings: t.supply.standings,
   };
 
-  const switchControl = (variant: "dock" | "row") => (
+  const switchControl = (
     <ProfileSwitcher
       t={t}
       copy={switchCopy}
@@ -178,11 +179,9 @@ export function AppShell({
       current={currentProfile}
       side={effectiveSide}
       avatarUrl={avatarUrl}
-      variant={variant}
       /* The chooser is side dependent: three property doors or three stays
          doors, which is the founder's ruling for Track O on both sides. */
       addHref={effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
-      onNavigate={variant === "row" ? closeDrawer : undefined}
     />
   );
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
@@ -281,7 +280,6 @@ export function AppShell({
           <div className="nf-drawer nf-drawer--left absolute overflow-y-auto">
             <AppRail
               t={t}
-              switchSlot={switchControl("row")}
               side={effectiveSide}
               active={active}
               activeType={activeType}
@@ -428,7 +426,7 @@ export function AppShell({
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
-          switchSlot={switchControl("dock")}
+          switchSlot={switchControl}
         />
       )}
     </div>

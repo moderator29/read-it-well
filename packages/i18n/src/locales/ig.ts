@@ -1338,6 +1338,85 @@ export const ig: Dictionary = withFallback({
   },
 
   agentListings: {
+    /*
+     * NATIVE REVIEW WANTED on this whole block. It is the copy the three
+     * governing listing renders draw and English had none of it either until
+     * today, so nothing here is a re-translation of shipped words. Terms are
+     * reused from this file's own `agentListings` and `moveIn` blocks so the
+     * wizard speaks in one voice; the sentences between them are mine and a
+     * speaker should read them. A key removed here falls back to English,
+     * which is the safe direction.
+     */
+    drawn: {
+      subtitles: {
+        basics: "Gwa anyị ụdị ihe onwunwe ọ bụ, ihe ị chọrọ ide ya dịka, na ọnụ ụlọ ndị dị n'ime ya.",
+        photos: "Tinye foto doro anya nke ụlọ ahụ na obere vidiyo njem.",
+        location: "Gwa anyị kpọmkwem ebe ihe onwunwe ahụ dị.",
+        amenities: "Họrọ ihe niile dị n'ụlọ ahụ.",
+        utilities: "Gwa anyị maka ọkụ, ọkụ nkwado na mmiri dị n'ụlọ ahụ.",
+        pricing: "Tinye ọnụahịa, ma kwuo ihe onye mgbazinye ga-ezute n'ọnụ ụzọ.",
+        guestView: "Otu a ka ndepụta gị ga-esi pụta nye ndị na-achọ.",
+        submit: "Nke a bụ ihe fọdụrụ, na ihe na-eme ozugbo i zipụsịrị ya.",
+      },
+      rooms: {
+        title: "Ọnụ ụlọ",
+        bedroomsAsk: "Ọnụ ụlọ ihi ụra ole?",
+        bathroomsAsk: "Ụlọ ịsa ahụ ole?",
+        toiletsAsk: "Ụlọ mposi ole?",
+        parkingAsk: "Ebe ịdọba ụgbọala ole?",
+        size: "Nha (mita square)",
+        sizeAsk: "Nha ala ụlọ, ma ọ bụrụ na ị maara",
+        furnishing: "Ngwá ụlọ",
+        furnishingAsk: "Họrọ ụdị ngwá ụlọ",
+        floor: "Elu ụlọ",
+        floorAsk: "Olee elu ụlọ ọ dị?",
+        floors: "Elu ụlọ niile dị na ya",
+        floorsAsk: "Elu ụlọ ole niile?",
+        optional: "Nhọrọ",
+        notStated: "E kwughị",
+      },
+      supply: {
+        power: "Ọkụ",
+        backup: "Ọkụ nkwado",
+        backupHours: "Awa ole ka ọkụ nkwado na-agba kwa ụbọchị",
+        water: "Ebe mmiri si",
+        prepaid: "Mita akwụ ụgwọ tupu iji",
+        prepaidBody: "Kwuo ya, n'ihi na ọ na-ekpebi ma a ga-agwa ọbịa ka ọ zụta unit.",
+      },
+      tenantPays: {
+        title: "Gịnị ka onye mgbazinye ga-akwụ n'ezie?",
+        lede: "Nke a bụ nkewa onye na-achọ na-ahụ, na onye na-ewere nke ọ bụla.",
+        empty: "Dejupụta ụgwọ ndị dị n'elu, nkewa onye mgbazinye na-ahụ ga-apụta ebe a.",
+      },
+      checkOver: {
+        detailsTitle: "Nkọwa ndepụta",
+        edit: "Dezie",
+        notSet: "E dobeghị",
+        availableNow: "Ọ dị ugbu a",
+        keys: {
+          propertyType: "Ụdị ihe onwunwe",
+          bedrooms: "Ọnụ ụlọ ihi ụra",
+          bathrooms: "Ụlọ ịsa ahụ",
+          size: "Nha",
+          furnishing: "Ngwá ụlọ",
+          floor: "Elu ụlọ",
+          condition: "Ọnọdụ",
+          availability: "Inwe ya",
+        },
+      },
+      done: {
+        nextTitle: "Ihe na-eso ya",
+        one: "Anyị na-enyocha nkọwa i nyere.",
+        two: "Anyị na-akwado akwụkwọ, ma ọ bụrụ na e nwere.",
+        three: "Ị ga-enweta ọkwa ozugbo ọ malitere.",
+      },
+      photos: {
+        add: "Tinye foto",
+        earlier: "Bugharịa foto a n'ihu",
+        later: "Bugharịa foto a n'azụ",
+      },
+    },
+
     wizard: {
       stepsLabel: "Nzọụkwụ ndepụta",
       stepCounter: "Nzọụkwụ {current} nke {total}",
@@ -3401,6 +3480,7 @@ export const ig: Dictionary = withFallback({
       console: "Ebe ọrụ ndị ọrụ",
     },
     standings: {
+      active: "Enyochara",
       draft: "Emechabeghị",
       pending: "Na-echere nyocha",
       refused: "Anabataghị",
@@ -3584,6 +3664,7 @@ export const ig: Dictionary = withFallback({
           selfieTitle: "Foto ihu gị",
           selfieBody: "Doo anya, nwee ìhè, e sere ya ugbu a kama ịchọta ya.",
           nin: "Nọmba Njirimara Mba (NIN)",
+          ninPlaceholder: "Ihe atụ: 12345678901",
           ninHint: "Ọnụọgụ iri na otu.",
         },
         fees: {
@@ -3622,7 +3703,9 @@ export const ig: Dictionary = withFallback({
           name: "Aha ụlọ ọrụ edebanyere",
           namePlaceholder: "Dị ka CAC si jide ya",
           rc: "Nọmba RC",
+          rcPlaceholder: "Ihe atụ: RC 1234567",
           office: "Adreesị ụlọ ọrụ",
+          officePlaceholder: "Tinye adreesị ụlọ ọrụ gị",
           lasrera: "Nọmba ndebanye aha LASRERA",
           lasreraHint:
             "Nye ya ma ọ bụrụ na ị nwere ya. Onye na-achọ ụlọ ọrụ nwere otu nwere ike ịchọta gị site na ya.",

@@ -55,7 +55,6 @@ export function AppRail({
   isAdmin = false,
   signedIn = false,
   variant = "rail",
-  switchSlot,
   onNavigate,
   onClose,
 }: {
@@ -75,16 +74,6 @@ export function AppRail({
    */
   verified?: boolean;
   unreadNotifications?: number;
-  /**
-   * The "Switch profile" row, rendered by the shell.
-   *
-   * THE SAME CONTROL AS THE DOCK'S CENTRE SLOT AND THE SAME SHEET BEHIND IT.
-   * It arrives as an element because it needs the account's own workspace
-   * list, which the shell has already resolved once; building a second one
-   * here is how two entrances to one sheet become two slightly different
-   * lists.
-   */
-  switchSlot?: React.ReactNode;
   isAgent?: boolean;
   isAdmin?: boolean;
   signedIn?: boolean;
@@ -191,26 +180,34 @@ export function AppRail({
       />
 
       {/*
-        THE FOOT: the coin, then the theme row. The two controls in the
-        navigation that change how the product looks rather than where you
+        THE FOOT: the coin, then the theme control. The two things in the
+        navigation that change how the product LOOKS rather than where you
         are, and the coin is the bigger question: it turns the whole app over
         to its other side. The drawer render makes it the star, a glass card
         with the coin in a lit ring; see `SideSwitch` and `SideFlip`.
+
+        SWITCH PROFILE STOOD FIRST IN HERE AND IS GONE, on the founder's
+        ruling of 22 September: "it lives in the dock now and two entrances to
+        the same sheet in the same product is clutter". The dock renders on
+        every route this drawer's opener renders on, so nothing moved out of
+        reach; the panel simply stopped offering the same door twice.
       */}
       <div className="nf-nav__foot">
-        {/*
-          SWITCH PROFILE SITS ABOVE THE COIN, AND THE COIN ABOVE THE THEME ROW.
-
-          The foot already held the two controls that change how the product
-          looks rather than where you are. This is the third and it goes first,
-          because it is the biggest question of the three: the coin turns the
-          shelf over, and this changes who you are standing at it. It shows the
-          current profile and a chevron, exactly as `GOVERNING-01` screen three
-          draws it, and it opens the same sheet the dock's centre slot opens.
-        */}
-        {switchSlot}
         <SideSwitch t={t} onNavigate={onNavigate} />
-        <ThemeToggle variant="row" labels={t.uiCommon.theme} />
+        {/*
+          THE THEME CONTROL IS THE GLYPH AND NOTHING ELSE.
+
+          It was a full-width `nf-nav__row` inside a lit glass card saying
+          "Light mode" or "Dark mode". The founder: "no box, no Light mode, no
+          Dark mode, just the icon, sitting on its own." So it is the `bare`
+          variant - a 44px tap target with no plate, no border and no label -
+          sitting alone under the coin at the same left rule as every row
+          above it. The words survive as the ACCESSIBLE NAME, which is where a
+          control with no visible label has to keep them: `aria-label` reads
+          "Switch to light" or "Switch to dark", the destination rather than
+          the current state, which is what the old label said too.
+        */}
+        <ThemeToggle variant="bare" labels={t.uiCommon.theme} className="nf-nav__theme" />
         {/*
           THE LEGAL ROW AT THE FOOT OF THE DRAWER, which the drawer render
           draws and the product did not have: a divider, a shield, the
@@ -226,16 +223,28 @@ export function AppRail({
         */}
         {drawer && (
           <Link href="/terms" onClick={onNavigate} className="nf-nav__legal">
-            {/* `document`, not the shield the render draws. The only shield in
+            {/* THE GLYPH SITS IN THE SHARED SLOT AND IS ASKED FOR AT THE
+                SHARED STEP. It was a bare 16px icon beside a 14px chevron in a
+                row whose neighbours draw 24px glyphs in a 24px slot, which is
+                three icon sizes inside one panel and is most of what the
+                founder means by rows added at different times. One slot, one
+                step, one vertical rule for every label on the panel.
+
+                `document`, not the shield the render draws. The only shield in
                 the pack is `shield-stop`, which this product has given one
                 meaning - an agent stopped from trading - and borrowing it for
                 a link to the terms would teach that shape a second one.
                 Master Rule 12's discipline about the verified tick is the same
                 discipline: a mark means one thing. What is behind this row is
                 a document, so it is a document. */}
-            <UiIcon name="document" size={16} />
+            <span className="nf-nav__glyph" aria-hidden="true">
+              <UiIcon name="document" size="md" />
+            </span>
+            {/* No chevron element: the drawer's own row chevron is a CSS
+                corner on `::after` and this link is in that selector now, so
+                the panel draws one chevron one way instead of an 8px corner
+                on nine rows and a 14px glyph on this one. */}
             <span className="nf-nav__legalname">{COMPANY_LEGAL_NAME}</span>
-            <UiIcon name="chevron-right" size={14} className="nf-nav__legalchev" />
           </Link>
         )}
       </div>

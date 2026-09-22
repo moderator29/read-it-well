@@ -156,13 +156,42 @@ export type UiIconName =
    * One stroked handset, in the house style, at the same weight as its
    * neighbours.
    */
-  | "phone";
+  | "phone"
+  /*
+   * The dock's centre switch, in the house style.
+   *
+   * The centre slot used to draw `BrandIcon name="role-switch-tile"`, a
+   * tier-two glass object, beside four stroked glyphs. The founder looked at
+   * the bar on a real phone and asked for the switch to be drawn "in the same
+   * style as the others", so the object moves down to the stroked tier where
+   * its four neighbours live and the CONTAINER carries the specialness
+   * instead.
+   *
+   * NOT `repost`, which is the nearest existing shape and means a post sent
+   * on. That glyph is a rectangular loop with two vertical segments; this is
+   * two straight opposed arrows. One mark, one meaning, is the discipline
+   * this set holds everywhere else, and a dock slot two taps from the feed is
+   * exactly where borrowing one would be felt.
+   */
+  | "switch-profile";
 
 const PATHS: Record<UiIconName, React.ReactNode> = {
   /* The handset: the earpiece, the sweep and the mouthpiece as one stroke,
      which is the shape every phone control has used since the rotary set. */
   phone: (
     <path d="M6.6 3.5h3l1.5 3.7-1.9 1.4a11.6 11.6 0 0 0 5.2 5.2l1.4-1.9 3.7 1.5v3a2 2 0 0 1-2.2 2A16.9 16.9 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z" />
+  ),
+  /* Two opposed arrows: this for that, drawn on the same 24 grid and at the
+     same stroke as `home`, `search`, `feed` and `user`, which are the four
+     glyphs it now sits between. Straight shafts, so it cannot be mistaken for
+     `repost`, which turns two right angles. */
+  "switch-profile": (
+    <>
+      <path d="M4.6 9h12.4" />
+      <path d="M14.4 6.4 17 9l-2.6 2.6" />
+      <path d="M19.4 15H7" />
+      <path d="M9.6 12.4 7 15l2.6 2.6" />
+    </>
   ),
   // The Apple mark: the body with the bite, and the leaf above it.
   apple: (

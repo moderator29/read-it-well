@@ -3,6 +3,7 @@
 import type { Dictionary } from "@vallo/i18n";
 import { AppShell } from "@/components/app/AppShell";
 import type { Side } from "@/lib/side.constants";
+import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
 
 /**
  * The chrome, on a stage, so it can be photographed.
@@ -27,12 +28,26 @@ export function ChromePreview({
   side = "property",
   drawer = false,
   signedIn = true,
+  workspaces = [],
+  currentProfile = { kind: "personal" },
 }: {
   t: Dictionary;
   route: string;
   side?: Side;
   drawer?: boolean;
   signedIn?: boolean;
+  /**
+   * What the account holds, for the switch sheet.
+   *
+   * The shell resolves this from RLS bound reads in the product and the
+   * harness cannot sign in, so the shot that has to show a workspace with a
+   * real standing beside it needs the shape handed in. THESE ARE FIXTURES ON
+   * A DEV-ONLY ROUTE and nothing else in the tree passes them: the preview
+   * subtree 404s in production, and the product's own list still comes from
+   * the database or it does not come at all.
+   */
+  workspaces?: Workspace[];
+  currentProfile?: ProfileSelection;
 }) {
   return (
     <AppShell
@@ -43,6 +58,8 @@ export function ChromePreview({
       unreadNotifications={5}
       signedIn={signedIn}
       isAgent
+      workspaces={workspaces}
+      currentProfile={currentProfile}
       preview={{ route, drawer }}
     >
       <div className="flex flex-col gap-md">

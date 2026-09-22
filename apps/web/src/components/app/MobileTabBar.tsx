@@ -239,7 +239,7 @@ export function MobileTabBar({
   unreadNotifications?: number;
   signedIn?: boolean;
   /**
-   * The raised centre slot, rendered by the shell.
+   * The centre slot, rendered by the shell.
    *
    * It arrives as an element rather than as props because it is a CLIENT
    * control that needs the account's own workspace list, and this component is
@@ -253,10 +253,14 @@ export function MobileTabBar({
     FIVE SLOTS, AND THE CENTRE ONE IS THE SWITCH.
 
     Home (Stays on the other side), Search, THE SWITCH, Feed, Profile, on the
-    founder's ruling of 22 September and drawn as the raised glass object in
-    `GOVERNING-01`. It is visually the heaviest thing in the bar because it is
-    the most important control in it: everything else changes where you are,
-    and this changes who you are while you are there.
+    founder's ruling of 22 September. It is still the most important control
+    in the bar - everything else changes where you are, and this changes who
+    you are while you are there - and it no longer says so by standing above
+    the bar. `GOVERNING-01` draws it raised and it shipped raised; the founder
+    used it on a real phone and ruled it back in line with the other four, at
+    the same height and on the same baseline, smaller, with its container kept
+    so it still reads as the special one. The container is the whole of what
+    marks it now.
 
     "MORE" LEAVES THE DOCK, AND NOTHING BECOMES UNREACHABLE. More was never a
     destination: it was a second opener for the side drawer, and the drawer
@@ -345,10 +349,12 @@ export function MobileTabBar({
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {slots.map((tab, index) => {
           if (tab == null) {
-            /* The raised centre slot. It carries no label under it: the render
-               draws the object alone, the object is the largest thing in the
-               bar, and the accessible name says both what the control does and
-               which profile is current. */
+            /* The centre slot. It carries no label under it: the object is
+               drawn alone, and the accessible name says both what the control
+               does and which profile is current. Its 38px container is sized
+               to span the same 9 to 47 pixels of the 56px link that the other
+               four slots' glyph-over-label block spans, which is the founder's
+               "same height, same baseline" done as arithmetic. */
             return (
               <li key="switch" className="nf-tab nf-tab--switch">
                 {switchSlot}

@@ -1983,6 +1983,93 @@ export const en = {
    * translation, and keep its spelling, or the sentence loses its number.
    */
   agentListings: {
+    /**
+     * THE WIZARD AS THE GOVERNING RENDERS DRAW IT.
+     *
+     * `GOVERNING-06`, `-07` and `-08` head every step with a large title and
+     * one quiet sentence under it, label the fact rows with the question they
+     * are asking, and close the flow on "What happens next". None of that
+     * copy existed, because none of it was drawn. Added rather than moved:
+     * every key already in this namespace still says what it said.
+     */
+    drawn: {
+      /* The sentence under each step's title. One line, plain, and it says
+         what the step is for rather than selling it. */
+      subtitles: {
+        basics: "Tell us the type of property, what you want to list it as, and the rooms inside it.",
+        photos: "Add clear photos of the property and a short video walkthrough.",
+        location: "Tell us the exact location of the property.",
+        amenities: "Select all the amenities available at the property.",
+        utilities: "Tell us about the power supply, the backup and the water at the property.",
+        pricing: "Set the price, and say what a tenant meets at the door.",
+        guestView: "Here is how your listing will appear to searchers.",
+        submit: "Here is what is still missing, and what happens once you send it.",
+      },
+      /* The fact rows of `GOVERNING-06` screen three. Each one is a question
+         rather than a noun, because the render asks rather than labels. */
+      rooms: {
+        title: "The rooms",
+        bedroomsAsk: "How many bedrooms?",
+        bathroomsAsk: "How many bathrooms?",
+        toiletsAsk: "How many toilets?",
+        parkingAsk: "How many parking spaces?",
+        size: "Size (square metres)",
+        sizeAsk: "The floor area, if you know it",
+        furnishing: "Furnishing",
+        furnishingAsk: "Select furnishing type",
+        floor: "Floor",
+        floorAsk: "Which floor is it on?",
+        floors: "Floors in the building",
+        floorsAsk: "How many floors altogether?",
+        optional: "Optional",
+        notStated: "Not stated",
+      },
+      /* `GOVERNING-07` screens one and two. */
+      supply: {
+        power: "Power supply",
+        backup: "Backup power",
+        backupHours: "Hours of backup on a normal day",
+        water: "Water source",
+        prepaid: "Prepaid meter",
+        prepaidBody: "Say so, because it decides whether a guest can be asked to buy units.",
+      },
+      /* `GOVERNING-08` screen two, from the agent's side of the same model. */
+      tenantPays: {
+        title: "What will a tenant actually pay?",
+        lede: "This is the breakdown a searcher sees, and who keeps what.",
+        empty: "Fill in the costs above and the breakdown a tenant sees appears here.",
+      },
+      /* `GOVERNING-08` screen three. */
+      checkOver: {
+        detailsTitle: "Listing details",
+        edit: "Edit",
+        notSet: "Not set",
+        availableNow: "Available now",
+        keys: {
+          propertyType: "Property type",
+          bedrooms: "Bedrooms",
+          bathrooms: "Bathrooms",
+          size: "Size",
+          furnishing: "Furnishing",
+          floor: "Floor",
+          condition: "Condition",
+          availability: "Availability",
+        },
+      },
+      /* `GOVERNING-08` screen four. */
+      done: {
+        nextTitle: "What happens next",
+        one: "We check the details you provided.",
+        two: "We verify the documents, if any.",
+        three: "You get a notification once it is live.",
+      },
+      photos: {
+        add: "Add photos",
+        earlier: "Move this photo earlier",
+        later: "Move this photo later",
+      },
+    },
+
     wizard: {
       stepsLabel: "Listing steps",
       stepCounter: "Step {current} of {total}",
@@ -4415,6 +4502,9 @@ export const en = {
     /* Text, never colour alone. Three of these four are bad news and a reader
        who cannot see colour must get the same news. */
     standings: {
+      /* APPROVED in the database, and nothing else. `GOVERNING-01` screen two
+         draws this mark on the Owner row. */
+      active: "Verified",
       draft: "Not finished",
       pending: "Pending review",
       refused: "Not approved",
@@ -4607,6 +4697,7 @@ export const en = {
           selfieTitle: "A photo of your face",
           selfieBody: "Clear, well lit, and taken now rather than found.",
           nin: "National identity number (NIN)",
+          ninPlaceholder: "e.g. 12345678901",
           ninHint: "Eleven digits.",
         },
         fees: {
@@ -4645,7 +4736,16 @@ export const en = {
           name: "Registered company name",
           namePlaceholder: "As the CAC holds it",
           rc: "RC number",
+          /* THE FORMAT AS AN EXAMPLE, WHICH `GOVERNING-05` DRAWS IN THE
+             WELL. The CAC prefixes its numbers RC and that is a format
+             rather than a claim about the law, which is the line this
+             namespace draws. THERE IS DELIBERATELY NO LASRERA EXAMPLE:
+             the render draws one, that register was unreachable from this
+             build, and an invented reference would be this platform
+             asserting a format it has never seen. */
+          rcPlaceholder: "e.g. RC 1234567",
           office: "Office address",
+          officePlaceholder: "Enter your office address",
           lasrera: "LASRERA registration number",
           lasreraHint:
             "Give it if you have one. A renter looking for a firm that holds one will be able to find you by it.",

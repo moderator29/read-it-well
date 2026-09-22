@@ -127,11 +127,12 @@
    *   offset  how far the floating dock sits above the viewport edge, which
    *           the component spends as `bottom-[calc(0.75rem + safe area)]`
    *   height  the capsule itself
-   *   lift    how far the RAISED SWITCH stands proud of the capsule's top
-   *           edge (HANDOFF 09 Track P, GOVERNING-01). It is part of what the
-   *           dock occupies even though the capsule does not contain it, and
-   *           leaving it out would put content back under the one control the
-   *           founder called the heaviest thing in the bar.
+   *   lift    how far the centre switch stands proud of the capsule's top
+   *           edge. ZERO on the founder's ruling of 22 September: the switch
+   *           sits in the bar now. The term stays because `.nf-switch-dock`
+   *           in controls.css still reads it, and zeroing it there from here
+   *           is how the lift is cancelled without editing another agent's
+   *           stylesheet. See the token below.
    *   gap     breathing room so a sticky footer does not touch the dock
    */
   :root {
@@ -146,7 +147,27 @@
      * the one token whose whole job is not to under-reserve.
      */
     --nf-dock-height: 4.375rem;
-    --nf-dock-lift: 1rem;
+    /*
+     * ZERO, AND IT WAS 1rem. THE LIFT IS REVERSED ON THE FOUNDER'S RULING.
+     *
+     * The raise was built deliberately, to `GOVERNING-01`, which draws the
+     * centre object standing proud of the capsule. The founder has since used
+     * the bar on a real phone and ruled against it: the switch sits in line
+     * with Home, Search, Feed and Profile, on the same baseline, not raised
+     * above them. A reference image loses to the founder looking at the real
+     * thing, and that is the right order of authority.
+     *
+     * KEPT AS A TERM RATHER THAN DELETED, and that is not tidiness. The term
+     * is read in two places and only one of them is this file:
+     * `.nf-switch-dock` in controls.css translates by `calc(-1 * lift)`, and
+     * controls.css belongs to another agent this stint (BUILD 07 section 24).
+     * Setting the token to zero cancels that translate exactly, from the one
+     * file that owns the number, without reaching into a stylesheet that is
+     * not mine. It also drops the clearance below by 16px, which is correct:
+     * nothing stands above the capsule any more, so nothing above the capsule
+     * needs reserving.
+     */
+    --nf-dock-lift: 0rem;
     --nf-dock-gap: 0.75rem;
     --nf-tabbar-clearance: calc(
       var(--nf-dock-offset) + env(safe-area-inset-bottom, 0px) + var(--nf-dock-height) +
@@ -298,8 +319,11 @@
     min-width: 0;
     gap: var(--nf-tab-gap);
     padding: var(--nf-tab-pad);
-    /* The raised centre slot stands proud of this capsule, so the capsule may
-       not clip. Nothing else in the bar overflows it. */
+    /* Nothing overflows this capsule any more - the centre switch sits inside
+       it since the founder's ruling - but the bar has no reason to clip, and
+       `visible` is what a glow at the edge of a focus ring needs. Stated
+       rather than left to the default so the next person changing the dock's
+       geometry does not have to work out which way it was meant. */
     overflow: visible;
     /*
      * Nearer opaque than the rest of the chrome, and a TRUE PILL, both from
@@ -572,18 +596,18 @@
     min-width: 0;
   }
   /*
-   * THE RAISED CENTRE SLOT, and only the SLOT: the control inside it is
+   * THE CENTRE SLOT, and only the SLOT: the control inside it is
    * `ProfileSwitcher`'s and its classes are its own.
    *
-   * `GOVERNING-01` draws the switch standing proud of the capsule rather than
-   * sitting in it, which is how it becomes visually the heaviest thing in the
-   * bar without being any wider than its neighbours. The slot keeps its fifth
-   * of the row so the travelling pill's arithmetic is untouched; the object
-   * inside overflows upwards out of it.
+   * IT NO LONGER STANDS PROUD OF THE CAPSULE. `GOVERNING-01` draws it raised
+   * and it shipped raised, by 16px of `--nf-dock-lift`. The founder used the
+   * bar on a real phone and ruled the other way: in line with the other four,
+   * same height, same baseline, smaller. The token above is zero now, which
+   * cancels the translate `.nf-switch-dock` applies in controls.css without
+   * editing a file this stint does not own.
    *
-   * `overflow: visible` on the capsule is what lets it. The bar clips nothing
-   * else, and the raise is spent in `--nf-dock-lift`, which the clearance
-   * token above already reserves, so nothing is drawn over content.
+   * The slot keeps its fifth of the row, so the travelling pill's arithmetic
+   * is untouched.
    */
   .nf-tab--switch {
     position: relative;
@@ -592,25 +616,64 @@
     justify-content: center;
   }
   /*
-   * THE RAISE IS A TRANSLATE AND IT USED TO BE A NEGATIVE MARGIN, AND THE
-   * MARGIN DID NOT RAISE IT.
+   * The slot's children fill it, so the button inside is the whole fifth and
+   * a thumb aiming anywhere in that fifth hits the switch.
    *
-   * Measured on a production server: with `margin-top: calc(-1 * lift)` on the
-   * slot, the object's top sat THREE PIXELS BELOW the capsule's top edge. The
-   * margin shortens the slot, and a centred child in a shorter box moves half
-   * as far as the box, so half the lift was spent and the rest was eaten by
-   * the capsule's own padding. The render draws this object standing clear of
-   * the bar and it was sitting inside it.
-   *
-   * `translate` is layout-free, so the object moves by exactly the lift, the
-   * capsule keeps its height, and the four neighbours do not shift. What the
-   * object occupies ABOVE the bar is the lift, which is the term
-   * `--nf-tabbar-clearance` already reserves, so nothing is drawn over
-   * content. This is the same lesson as the token above: measure what the
-   * browser drew, never what the file said.
+   * THE RAISE USED TO BE ARGUED HERE. It was a negative margin first, which
+   * did not raise the object at all - a centred child in a shortened box
+   * moves half as far as the box - and then a translate, which did. Both are
+   * moot now that the lift is zero, and the lesson the note carried is worth
+   * keeping in one line: measure what the browser drew, never what the file
+   * said. That is how the margin was caught and it is how this change is
+   * proven, at 390 in dark and light, on a production server.
    */
   .nf-tab--switch > * {
     display: flex;
+  }
+  /*
+   * ------------------------------------------------------ THE SWITCH OBJECT
+   *
+   * `.nf-tab__link--switch` and `.nf-switch-dock` are DECLARED in controls.css
+   * and controls.css belongs to IMG-A this stint (BUILD 07 section 24). These
+   * are the founder's three changes to the object, made from the one
+   * stylesheet CHROME owns. chrome.css imports after controls.css and both
+   * sit in `@layer components` at equal specificity, so the later file wins.
+   * The lines these replace should be folded back into the single block in
+   * controls.css by whoever owns it next; that is a note in the report, not a
+   * reach into somebody else's file.
+   *
+   * SMALLER. The object was 3.25rem, 52px, inside a 3.5rem tab. Its four
+   * neighbours draw a 24px glyph over an 11px label with a 2px gap, so their
+   * content block is 37px tall and centred in the 56px link: it runs 9.5px
+   * from the top to 46.5. A 2.375rem object, 38px, centred in the same link
+   * runs 9 to 47. That is the founder's "same height and the same baseline",
+   * arithmetic rather than eye, and it is the reason for the odd-looking
+   * number: 38 is what lines up with what is already there.
+   *
+   * THE RADIUS COMES DOWN WITH IT, and the shape law is why. The object read
+   * `--nf-radius-lg`, 18px, which on a 52px side was 0.35 and on a 38px side
+   * would be 0.47 - inside the law but walking towards it for no reason.
+   * `--nf-radius-control` is 14px, giving 0.37, and it is the rung the tab
+   * link beside it already draws.
+   *
+   * THE GLYPH IS THE BRAND INK because the container is brand-tinted and the
+   * glyph would otherwise inherit `--nf-content-muted` from `.nf-tab__link`
+   * and read as a disabled mark on a lit plate. The four neighbours are muted
+   * until they are the page you are on; this one is never a destination, so
+   * it has no such state and is simply always lit.
+   */
+  .nf-tab__link--switch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+  }
+  .nf-switch-dock {
+    width: 2.375rem;
+    height: 2.375rem;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-brand-primary);
   }
   /*
     ONE RULE FOR THE TAB, AND THERE WERE TWO. This block set `height: 3.25rem`
@@ -1003,4 +1066,32 @@
    * Keeping both would have reintroduced exactly the doubled edge that rule was
    * written to prevent.
    */
+  /* --------------------------------------------- the switch profile sheet */
+  /*
+   * ONE RULE, AND IT IS HERE BECAUSE OF THE FILE PARTITION RATHER THAN THE
+   * ANATOMY.
+   *
+   * `.nf-switch-standing` is declared in controls.css, which belongs to IMG-A
+   * this stint (BUILD 07 section 24). The sheet now draws a fifth standing,
+   * `active`, which `GOVERNING-01` screen two puts on the Owner row as a
+   * green "Verified" mark, and controls.css gives colours to three of the
+   * five and leaves the rest on `--nf-content-muted`. Grey is the wrong word
+   * for good news, and it collides with `draft`, which is deliberately quiet
+   * because an unfinished form is not bad news.
+   *
+   * `--nf-status-approved` is the success ink and it is what every other
+   * approved thing in this product is drawn in. It is a token reference, not
+   * a new colour, and the hairline is `currentcolor` from the base rule, so
+   * the mark keeps the family's anatomy exactly.
+   *
+   * COLOUR IS THE SECOND CHANNEL AND NEVER THE ONLY ONE. The word "Verified"
+   * is the mark; a reader who cannot see the hue loses nothing.
+   *
+   * TO FOLD BACK: this belongs beside its four siblings in controls.css. It
+   * is a line in the report, not a reach into a stylesheet CHROME does not
+   * own.
+   */
+  .nf-switch-standing[data-standing="active"] {
+    color: var(--nf-status-approved);
+  }
 }
