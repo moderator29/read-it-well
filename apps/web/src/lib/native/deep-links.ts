@@ -53,15 +53,29 @@ import { Browser } from "@capacitor/browser";
  *     origin with no extension and the JSON content type, plus the associated
  *     domains entitlement on the target.
  *
- * `public/.well-known/`, `android/` and `ios/` are all held by other agents.
- * Until those land, this listener is correct and never fires: the redirect
- * opens as an ordinary page inside the in-app tab, and the person has to
- * dismiss the tab by hand to get back. For Paystack that is survivable,
- * because payment is settled by the server-to-server webhook rather than by
- * the return trip, so the money is already recorded and a refresh shows it.
- * For OAuth it is not survivable: the exchange happens in the tab's cookie jar
- * and the application stays signed out. Sign in with Google is therefore NOT
- * closed on the native shell until the association files ship.
+ * WHERE THAT STANDS TODAY, AND WHAT IS STILL MISSING.
+ *
+ * The CLAIM is now made: `public/.well-known/apple-app-site-association`
+ * includes `/auth/callback*` AHEAD of its `/auth/*` exclusion (order decides
+ * in an AASA components array), and the Android manifest's `autoVerify`
+ * filter carries the matching `/auth/callback` path prefix. Both files used to
+ * say the opposite of this one, on the reasoning that OAuth finishes in the
+ * system browser, and both were wrong: `startOAuth` is a server action run
+ * from THIS web view, so the verifier cookie is in THIS jar.
+ *
+ * WHAT IS STILL MISSING IS NOT A CLAIM, IT IS A SIGNATURE. Neither file can
+ * VERIFY: the association file carries a placeholder Team ID and
+ * `assetlinks.json` carries two placeholder fingerprints, and all three values
+ * are the founder's. Until they land, this listener is correct and never
+ * fires: the redirect opens as an ordinary page inside the in-app tab, and the
+ * person has to dismiss the tab by hand to get back. For Paystack that is
+ * survivable, because payment is settled by the server-to-server webhook
+ * rather than by the return trip, so the money is already recorded and a
+ * refresh shows it. For OAuth it is not survivable: the exchange happens in
+ * the tab's cookie jar and the application stays signed out.
+ *
+ * `npm run check:deep-links` is the gate that refuses a native build while
+ * any of the three is still a placeholder, so this cannot ship silently.
  *
  * One further risk that is worth writing down because it is easy to miss on
  * iOS specifically. A universal link is only honoured when the operating
