@@ -386,6 +386,17 @@ export type HostDraft = {
      * step manages them, it needs the rows themselves to draw them.
      */
     photos: { id: string; url: string }[];
+    /**
+     * The amenity codes this property claims.
+     *
+     * Not a submission requirement and deliberately not one: a guest house
+     * with nothing but a bed and a generator is a real listing and the shelf
+     * should carry it. It is here because the facilities control needs to draw
+     * what is already ticked, and because `accommodation_amenities` had no
+     * writer at all until this pass, so every facility filter on the stays
+     * shelf returned nothing for every hotel.
+     */
+    facilities: string[];
   } | null;
   roomTypeCount: number;
   ratePlanCount: number;

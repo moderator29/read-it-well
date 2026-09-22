@@ -44,6 +44,7 @@ import {
 } from "@/lib/payments/bank-accounts-actions";
 import { HostDocumentUploader } from "./HostDocumentUploader";
 import { AccommodationPhotoManager } from "./AccommodationPhotoManager";
+import { FacilitiesPicker } from "./FacilitiesPicker";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -726,11 +727,22 @@ function PropertyStep({ draft, userId, policies, pending, fieldErrors, run, setN
         gone up.
       */}
       {draft.accommodation ? (
-        <AccommodationPhotoManager
-          accommodationId={draft.accommodation.id}
-          userId={userId}
-          photos={draft.accommodation.photos}
-        />
+        <>
+          {/* FACILITIES, the other half of GOVERNING-10 screen four, and the
+              fourth table on this spine that had no writer at all:
+              `accommodation_amenities` is read by the stay page, folded into
+              the catalogue and filtered on by the stays shelf, and every one
+              of those filters returned nothing for every hotel. */}
+          <FacilitiesPicker
+            accommodationId={draft.accommodation.id}
+            chosen={draft.accommodation.facilities}
+          />
+          <AccommodationPhotoManager
+            accommodationId={draft.accommodation.id}
+            userId={userId}
+            photos={draft.accommodation.photos}
+          />
+        </>
       ) : (
         <section className="nf-host-group">
           <h2 className="nf-host-group__title">Photographs of the property</h2>

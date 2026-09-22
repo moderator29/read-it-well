@@ -37,7 +37,7 @@ function shortletDraft(photos: { id: string; url: string }[]) {
     representativeName: "Ada Obi",
     representativePhone: "+2348031234567",
     documents: { identity: true as const },
-    accommodation: { id: UUID, name: "Ada's Place", hasPin: true, photos },
+    accommodation: { id: UUID, name: "Ada's Place", hasPin: true, photos, facilities: [] },
     roomTypeCount: 1,
     ratePlanCount: 1,
     hasBankAccount: true,

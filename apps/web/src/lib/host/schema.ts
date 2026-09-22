@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STAY_FACILITY_CODES } from "./facilities";
 import { normalisePhone } from "../phone";
 import { CAC_NUMBER_RE, CONSENTS, HOST_DOCUMENT_KINDS, HOST_TYPES } from "./onboarding";
 
@@ -216,6 +217,27 @@ export const accommodationPhotoSchema = z.object({
 /** One accommodation photograph already on record, named for removal. */
 export const accommodationPhotoIdSchema = z.object({
   photoId: z.uuid("That photograph could not be identified."),
+});
+
+/* ------------------------------------------------------------- facilities */
+
+/**
+ * What a stay offers, as exactly the codes the facilities surface knows.
+ *
+ * The whitelist is here rather than a regex, because `accommodation_amenities`
+ * joins `amenities` by id and a code the table does not carry would be dropped
+ * silently on the way through: a host would tick a box, see nothing refused
+ * and have nothing saved. Anything not on the list is refused in words.
+ */
+export const accommodationFacilitiesSchema = z.object({
+  accommodationId: z.uuid("That property could not be identified."),
+  codes: z
+    .array(
+      z.string().refine((code) => STAY_FACILITY_CODES.includes(code), {
+        message: "That is not a facility we can record.",
+      }),
+    )
+    .max(STAY_FACILITY_CODES.length, "That is more facilities than there are."),
 });
 
 /* ------------------------------------------------------- nightly inventory */

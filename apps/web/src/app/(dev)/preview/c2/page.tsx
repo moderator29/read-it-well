@@ -4,6 +4,7 @@ const PAGES = [
   ["stays-doors", "Add a workspace: the three stays doors"],
   ["host-property-photos", "A hotel's own photographs of its property"],
   ["host-property-photos-empty", "The same surface before the first photograph"],
+  ["facilities-and-photos", "Facilities and photos, GOVERNING-10 screen four"],
   ["host-rooms", "The host's rooms and the nights they are on sale"],
   ["host-rooms-no-nights", "The same rooms with no night on sale at all"],
 ];

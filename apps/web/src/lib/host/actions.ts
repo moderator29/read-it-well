@@ -42,8 +42,10 @@ import { documentPathBelongsTo, missingFrom, type HostType } from "./onboarding"
 import { MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
 import { MAX_NIGHTS_IN_ONE_ACT, nightsBetween } from "../stays/inventory";
 import { getMyHostDraft } from "./queries";
+import { orderFacilities } from "./facilities";
 import {
   accommodationDraftSchema,
+  accommodationFacilitiesSchema,
   accommodationPhotoIdSchema,
   accommodationPhotoSchema,
   businessPhotoIdSchema,
@@ -1005,4 +1007,77 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
 
   refreshRoomSurfaces();
   return ok({ nights: dates.length });
+}
+
+/* --------------------------------------------------------- the facilities */
+
+/**
+ * Replace what a property offers with exactly the facilities given.
+ *
+ * THE FOURTH TABLE WITH NO WRITER. `accommodation_amenities` has had its owner
+ * helper and its RLS since M3, the stay detail page reads it, the catalogue
+ * projection folds it into `catalogue_entries.amenity_codes`, and the stays
+ * filter lets a guest ask for wifi, parking and air conditioning by name. No
+ * application code ever wrote a row, so every facility filter on the stays
+ * shelf returned nothing for every hotel, and no stay's page has ever named a
+ * single facility.
+ *
+ * A REPLACEMENT RATHER THAN A DIFFERENCE, on `setAmenities`'s model one spine
+ * over: a facilities screen posts the whole set because that is what the
+ * person sees, and a difference computed on the client is a difference that
+ * can be wrong. Clearing everything is a real answer, which is why an empty
+ * list is accepted and not treated as a mistake.
+ *
+ * Codes are turned into ids by the database, so a code the `amenities` table
+ * does not carry cannot be recorded. The schema refuses those in words first,
+ * because a facility that is silently dropped is worse than one that is
+ * refused: the host sees the box ticked and believes it.
+ */
+export async function setAccommodationFacilities(
+  input: unknown,
+): Promise<ActionResult<{ codes: string[] }>> {
+  const parsed = validate(accommodationFacilitiesSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { accommodationId } = parsed.data;
+  const codes = orderFacilities(parsed.data.codes);
+
+  const guarded = await ownedAccommodation(accommodationId);
+  if (!guarded.ok) return guarded.result;
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+
+  const { data: rows, error: readError } = await session.supabase
+    .from("amenities")
+    .select("id, code")
+    .in("code", codes.length > 0 ? codes : ["__none__"]);
+  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+
+  const { error: clearError } = await session.supabase
+    .from("accommodation_amenities")
+    .delete()
+    .eq("accommodation_id", accommodationId);
+  if (clearError) {
+    if (clearError.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    return fail(SERVICE_DOWN_MESSAGE);
+  }
+
+  const wanted = rows ?? [];
+  if (wanted.length > 0) {
+    const { error: insertError } = await session.supabase
+      .from("accommodation_amenities")
+      .insert(
+        wanted.map((amenity) => ({
+          accommodation_id: accommodationId,
+          amenity_id: amenity.id,
+        })),
+      );
+    if (insertError) {
+      if (insertError.code === "42501") return fail(NOT_YOURS_MESSAGE);
+      return fail(SERVICE_DOWN_MESSAGE);
+    }
+  }
+
+  refreshPropertySurfaces();
+  return ok({ codes });
 }

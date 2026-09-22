@@ -102,7 +102,9 @@ export async function getMyHostDraft(): Promise<HostDraft> {
       session.supabase.from("business_documents").select("kind").eq("business_id", business.id),
       session.supabase
         .from("accommodations")
-        .select("id, name, latitude, longitude, accommodation_photos(id, storage_path, position)")
+        .select(
+          "id, name, latitude, longitude, accommodation_photos(id, storage_path, position), accommodation_amenities(amenities(code))",
+        )
         .eq("business_id", business.id)
         .order("created_at", { ascending: true })
         .limit(1),
@@ -176,6 +178,9 @@ export async function getMyHostDraft(): Promise<HostDraft> {
                 id: photo.id,
                 url: accommodationPhotoUrl(photo.storage_path),
               })),
+            facilities: accommodation.accommodation_amenities
+              .map((link) => link.amenities?.code)
+              .filter((code): code is string => typeof code === "string"),
           }
         : null,
       roomTypeCount,
