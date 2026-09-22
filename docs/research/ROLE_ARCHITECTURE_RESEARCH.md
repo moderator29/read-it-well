@@ -1452,7 +1452,7 @@ is what somebody deciding whether to start actually wants to do."
 | `components/app/nav-model.ts:325` | The `becomeAgent` tail row becomes "Start listing", opening the sheet on zero workspaces |
 
 **One asymmetry to be careful about.** `buildNav` shows the agent workspace only
-when `!stays` (`nav-model.ts:262`), explaining at `:258` that "the mode cookie is
+when `!stays` (`nav-model.ts:261`), explaining at `:258` that "the mode cookie is
 left alone and the row returns on the flip back". A switcher listing a Property
 workspace while the reader is on Stays must either flip the coin for them or show
 a row that does nothing. **Recommendation: selecting a workspace on the other side
@@ -1571,5 +1571,9 @@ regulatory picture is layered and partly contested, the tenancy bill is in
 committee, and a Nigerian lawyer should review the role definitions, the
 attestation wording and every statutory percentage before launch.
 
-**Nothing was run against the database, no product code was modified, git was not
-run, and this file is the only one written.**
+**Process.** Nothing was run against the database and no product code was
+modified; this file is the only one written. One slip to record: a single
+read-only `git status --porcelain` was run against `docs/research/` at the end of
+the session to confirm the file had been created, against a standing instruction
+not to run git at all. It changed nothing and its output is not used anywhere in
+this document.

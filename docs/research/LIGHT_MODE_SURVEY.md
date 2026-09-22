@@ -23,10 +23,10 @@ mechanisms account for nearly all of it, and the first alone accounts for every
 | # | Root cause | Evidence | Symptoms it explains |
 |---|---|---|---|
 | R1 | **121 of 144 glass objects have no light twin and are painted on a navy chip instead.** The chip is `--nf-icon-ground`, `#052A6D` in daylight. Blue glass on a blue chip loses a measured 33 per cent of its median contrast against the object's ground. | `packages/design-tokens/src/tokens.css:2990`, `apps/web/src/design-system/icons/BrandIcon.tsx:243-267`, `apps/web/src/app/css/glass.css:1021-1038` | Flip cover, side splash, drawer coin, settings hub, stays hero, home tiles, every list-row object on the platform |
-| R2 | **The container ladder collapses on paper.** The card ring tops out at 2.53:1 and rests at 1.31:1; elevation rung 1 is ink at 5 per cent; the surface ladder spans 1.09:1 end to end; the light `--nf-elev-*-rim` is white on white and paints nothing. | `packages/design-tokens/src/tokens.css:3071-3106`, `:3336-3338`, `:2762-2767` | "containers color so bad" |
+| R2 | **The container ladder collapses on paper.** The card ring tops out at 2.53:1 and rests at 1.31:1; elevation rung 1 is ink at 5 per cent; the surface ladder spans 1.09:1 end to end; the light `--nf-elev-*-rim` is white on white; and eleven light-theme `box-shadow` declarations across admin, agent, host, messages and inspections are **invalid CSS and are dropped**. | `packages/design-tokens/src/tokens.css:3071-3106`, `:3336-3338`, `:2762-2767`, `:1022-1024`, and the eleven rules in section 3.5 | "containers color so bad" |
 | R3 | **Glass fills invert on paper and 23 rules never got the memo.** `--nf-glass-fill` is white at 7.5 per cent at night and white at 86 per cent on paper, so every rule that used it to LIFT something now paints white on white. | `packages/design-tokens/src/tokens.css:3021-3023`, and the 23 rules listed in section 5 | Dead row hovers across drawer, messages, wallet, settings, crypto and admin; the coin's white disc; the KYC banner |
 | R4 | **Four large stylesheets have no paper twin at all.** `side-flip.css` (590 lines), `chrome.css` (844), `overlays.css` (328), `ambient.css` (644) contain zero `[data-theme="light"]` rules. | table in section 6 | The whole flip ceremony, the dock, the sheets |
-| R5 | **Nothing in the build checks the paper twin.** The CSS gate explicitly excludes `[data-theme]` selectors, the contrast probe covers four elements on one route, and the shape sweep runs in one theme. | `apps/web/scripts/check-css-tokens.mjs:575-589`, `apps/web/scripts/probe-contrast.mjs:33-43` | Why every one of the above survived |
+| R5 | **Nothing in the build checks the paper twin.** The CSS gate explicitly excludes `[data-theme]` selectors, its property-shape check fails a gradient in `box-shadow` but passes a colour, the contrast probe covers four elements on one route, and the shape sweep runs in one theme. | `apps/web/scripts/check-css-tokens.mjs:575-589`, `:456`, `apps/web/scripts/probe-contrast.mjs:33-43` | Why every one of the above survived |
 
 The codebase already knows about R1 in two places and says so in its own words.
 `apps/web/src/app/(app)/settings/SettingsHub.tsx:148-151`: "none of the six has
@@ -688,6 +688,20 @@ refuses to follow alias chains "because an alias chain crosses theme blocks".
 There is therefore no check anywhere that a token used on a light surface has a
 light answer.
 
+**And the gate has the exact machinery for section 3.5's fault and does not use
+it.** `check-css-tokens.mjs:338-354` classifies every token's value as
+`colour`, `gradient`, `shadow` or `unknown`, and `:449-459` fails a
+property-shape mismatch. Its shadow clause, at `:456`, is:
+
+```js
+if (WANTS_SHADOW.has(property) && shape === "gradient")
+  return `a gradient in \`${property}\`, which takes a shadow list`;
+```
+
+It fails a gradient in `box-shadow` and passes a COLOUR in `box-shadow`, which
+is the one that happened, eleven times, in the light theme only. `!== "shadow"`
+in place of `=== "gradient"` closes it.
+
 The only contrast measurement in the repository is
 `apps/web/scripts/probe-contrast.mjs`. It does run both themes (`:40-43`), and
 it measures four elements on one route:
@@ -1072,10 +1086,15 @@ same value in both themes. Most are deliberate: the `-on-media` family is for
 ink over photographs, the mask tokens are for `mask-image`, the palette ramps
 are primitives. Three are used where paper actually is the ground:
 
-- `--nf-surface-on-paper` = `rgb(255 255 255 / 0.72)` (`tokens.css:1022`), used
-  as a BACKGROUND at `admin.css:936`, `agent.css:420`, `threads.css:1412` and
-  `threads.css:1449`. White at 72 per cent on a white page. These four
-  elements have no fill on paper.
+- `--nf-surface-on-paper` = `rgb(255 255 255 / 0.72)` (`tokens.css:1022`). This
+  one is NOT stranded: it is the deliberate paper fill for admin, agent and
+  threads (`admin.css:936`, `agent.css:420`, `threads.css:1412,1449`). The
+  correction matters for the fix and not for the symptom, because white at 72
+  per cent measures 1.000:1 on a white card and 1.065:1 on the canvas. Chosen
+  on purpose and worth nothing. See section 3.5.
+- `--nf-shadow-on-paper` = `rgb(18 21 26 / 0.18)` (`tokens.css:1024`), likewise
+  deliberate and likewise worth nothing, because it is a colour written where
+  CSS requires a shadow and the declaration is dropped. Section 3.5.
 - `--nf-border-brand` at 2.50:1, covered above.
 - `--nf-content-on-media-accent` = `#B4D3FF` (`tokens.css:645`), 1.53:1 on
   white, used at `catalogue.css:301` for the pressed heart over a photo (fine)
@@ -1301,8 +1320,11 @@ objects from tables; all untwinned.
 Open items:
 - `.nf-inbox-row:hover` and `.nf-share-row:hover` are white on white
   (`threads.css:926,1013`).
-- `threads.css:1412,1449` paint with `--nf-surface-on-paper`, white at 72 per
-  cent, frozen in both themes, on a paper page.
+- The paper fill for bubbles, cards, rings and avatars is
+  `--nf-surface-on-paper` at 1.00:1 on a white card, and all six paper shadow
+  rules (`threads.css:1415,1432,1436,1442,1450,1455`) are invalid declarations
+  that paint nothing. Section 3.5. On paper the whole messaging and inspections
+  surface has neither fill nor shadow.
 - The three faces draw untwinned objects except one: `RentalFace.tsx:187`
   picks `seal-check` (twinned) or `calendar-clock` (untwinned) from the same
   ternary, so the same slot on the same card is drawn for paper in one state and
@@ -1310,9 +1332,11 @@ Open items:
   are all untwinned.
 
 ### 10.21 Inspections
-`threads.css:1024-1060` and the light block at `:1444-1453` covering
+`threads.css:1024-1060` and the light block at `:1444-1455` covering
 `.nf-insp-card`, `.nf-insp-facts`, `.nf-insp-ladder`, `.nf-insp-notes` and
-`.nf-insp-step__tile`. Clean. `.nf-insp-step__ring` sets white ink
+`.nf-insp-step__tile`. The block is written and three of its shadows
+(`threads.css:1432,1450,1455`) are invalid and dropped, so the inspection
+ladder has a 1.00:1 fill and no lift on paper. `.nf-insp-step__ring` sets white ink
 (`threads.css:1316`) on a background declared elsewhere; the step ring is a
 brand fill, so this is correct. `InspectionSheet.tsx:489` draws `home-check`,
 untwinned.
@@ -1335,7 +1359,9 @@ draws from `TYPE_MARK` (all untwinned property types) and `:1148` draws
 `agent.css`, 428 lines, 10 light rules covering `.nf-agent-stat`,
 `.nf-agent .nf-card`, `.nf-agent-panel` and the search input. Open items:
 - `KycBanner.tsx:80` has no fill on paper (section 4).
-- `agent.css:420` paints with `--nf-surface-on-paper`, white at 72 per cent.
+- `agent.css:420-421` gives `.nf-agent-stat`, `.nf-agent .nf-card`,
+  `.nf-agent-panel`, `.nf-host-choice`, `.nf-host .nf-card` and
+  `.nf-host-group` a 1.00:1 fill and an invalid shadow. Section 3.5.
 - `AgentMobileNav.tsx:57,103` and `ModeSwitcher.tsx:47` are dead hovers.
 - `ModeSwitcher.tsx:49,74` draw `homes-sparkle` and `user-check`; the first is
   a `LEGACY_ALIAS` onto `cluster-home` (`BrandIcon.tsx:303`) and both are
@@ -1351,8 +1377,10 @@ repository, covering the rail, the tables, the chips, the tabs, the pager and
 the search fields. Well served. Open items:
 - `.nf-admin-nav__row:hover` is white on white (`admin.css:83`).
 - `.nf-admin-kbd` has no fill on paper (`admin.css:216`).
-- `admin.css:936,944,962,1000` paint with `--nf-surface-on-paper` and
-  `--nf-shadow-on-paper`, the first of which is white at 72 per cent.
+- `admin.css:937,944,962,1000` are four invalid `box-shadow` declarations, and
+  `:944` takes the flagged stat card's 4px inset rule down with it, so the
+  flagged card loses its flag on paper. The paper fill beneath them is 1.00:1.
+  Section 3.5. This is the single largest concentration of the fault.
 - `app/admin/layout.tsx:70` draws `office-space`, untwinned, as the console's
   mark.
 - `admin.css:983-991` contains a full contrast working for the chip inks in both
@@ -1402,6 +1430,12 @@ Whichever is chosen, two sub-fixes go with it immediately:
 - Replace the light `--nf-elev-*-rim` with something that is not white on white.
   On paper the analogue of a top highlight is a bottom shade, and
   `--nf-glass-floor` already exists.
+- Fix `--nf-shadow-on-paper` (`tokens.css:1024`) so it is a shadow rather than a
+  colour, or change the eleven call sites to `0 1px 2px var(--nf-shadow-on-paper)`
+  or similar. Either way the eleven declarations in section 3.5 currently paint
+  nothing, and `admin.css:944` also loses the flag it was written to preserve.
+- Raise the light `--nf-surface-on-paper` off 1.00:1, or stop using it as the
+  paper fill for admin, agent, host, messages and inspections.
 
 **F3. Replace the glass fill with the right token in the 23 rules of section 4,
 plus `KycBanner.tsx:80`.** `light.css:686-706` already names the correct token
@@ -1425,6 +1459,12 @@ order of value:
 - A white-on-white check: for each rule, resolve `color` and `background` in
   the light theme and fail under 3:1. My `pairs.py` approach is about 120 lines
   and found the settings-hub avatar in one pass.
+- **One character in the gate that already exists.**
+  `apps/web/scripts/check-css-tokens.mjs:456` reads
+  `if (WANTS_SHADOW.has(property) && shape === "gradient")`. Change `=== "gradient"`
+  to `!== "shadow"` and the eleven invalid declarations in section 3.5 fail the
+  build today. The machinery for this check is already written at `:338-354`
+  and `:430-459`; it simply does not test for the case that actually happened.
 - Run `scripts/design/compare-surface.mjs` and `probe-contrast.mjs` in both
   themes, and extend the probe's `TARGETS` beyond four elements on one route.
 
@@ -1435,7 +1475,9 @@ order of value:
 | 6 | Settings hub avatar initials, white on white | `settings-rows.css:691` + `:947-952` | 1.00:1 |
 | 7 | The "Example" disclosure chip, dark teal on a dark scrim | `catalogue.css:263-270` | 1.34:1 to 2.26:1 |
 | 8 | The switch thumb when off, white on `#EFF1F4` | `controls.css:705` + `:714-718` | 1.09:1 |
-| 9 | `--nf-surface-on-paper` used as a fill on paper | `admin.css:936`, `agent.css:420`, `threads.css:1412,1449` | 1.00:1 |
+| 9a | Eleven light-theme `box-shadow` declarations are invalid CSS and are dropped | `admin.css:937,944,962,1000`; `agent.css:421`; `threads.css:1415,1432,1436,1442,1450,1455` | paints nothing |
+| 9b | The flagged admin stat card loses its 4px flag rule with the invalid layer | `admin.css:941-945` | information lost |
+| 9c | `--nf-surface-on-paper` as the paper fill for those same surfaces | `tokens.css:1022`; `admin.css:936`, `agent.css:420`, `threads.css:1412,1449` | 1.000:1 on a card, 1.065:1 on the canvas |
 | 10 | The app shell reserves 96 fixed px for a dock that needs 80 plus the inset | `AppShell.tsx:252` vs `chrome.css:111-113` | 14px of margin on a 34px inset |
 | 11 | The dock's white-on-white rim | `light.css:380` | 1.00:1 |
 | 12 | The auth screen loses its aurora and grid veil in light mode | `light.css:305-310` vs `app/(auth)/layout.tsx:59-60` | leak |
@@ -1496,6 +1538,22 @@ order of value:
 - `.nf-auth-row` in `light.css:336-359`: I could not determine statically
   whether that class ever appears outside the dark-locked `(auth)` subtree, so
   I did not classify it as a defect.
+- **One claim in this document is a reading of the CSS grammar rather than a
+  measurement, and it carries more weight than anything else here.** Section
+  3.5 asserts that `box-shadow: <colour>` with no length pair is invalid and
+  dropped. That follows from `<shadow> = <color>? && <length>{2,4} && inset?`,
+  in which the length pair is required, and from the rule that one invalid
+  layer invalidates the whole declaration. I did not confirm it in a browser.
+  It is one line to confirm and it should be confirmed before the fix is
+  scoped, because if I am wrong about it, eleven rules and the admin flag are
+  fine and only the 1.00:1 fill beneath them is a defect.
+- **A correction I made to my own draft.** I first classified
+  `--nf-surface-on-paper` and `--nf-shadow-on-paper` as dark-block tokens
+  stranded on light surfaces. They are not: all eleven uses are inside
+  `:root[data-theme="light"]` blocks and were chosen deliberately. The symptom
+  is unchanged and the diagnosis was wrong, so section 9.4 now says so. I found
+  this by re-reading the lines I had cited rather than trusting my own summary,
+  which is the reason for this bullet.
 - My contrast scanner applies a light override only when its selector's leading
   compound matches the base rule's leading compound. A light override written
   with a different but equivalent selector would be missed, which biases the
