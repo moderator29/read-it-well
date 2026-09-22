@@ -18,6 +18,43 @@ ledger's needs-the-founder section; this file is his.
 
 ## Open, and urgent
 
+### ONE SECRET, AND IT HAS TAKEN THE WHOLE SCHEDULER DOWN SINCE 19 SEPTEMBER
+
+**`RECONCILE_CRON_SECRET` on the host no longer equals `CRON_SECRET` on the
+scheduler.** Everything below follows from that one mismatch, and setting them
+equal ends all of it.
+
+Measured in the live database, not inferred:
+
+| Measure | Value |
+| --- | --- |
+| `audit_log` rows for `entity_type = 'cron_job'` | **0. Not one, ever.** |
+| Open `risk_alerts` | **256, and every single one is a refused cron job** |
+| Oldest | 19 September 00:05 |
+| Newest | today, 14:20 |
+
+All seven jobs, every one refused at the door with 401: hold sweep 87 times,
+pg cron watch 87, reconcile 69, inventory drift 4, account purge 3, saved
+search alerts 3, complete stays 3.
+
+**What has not been happening for four days.** Deletion requests past their
+thirty day promise are not purged, which is a commitment in the privacy
+notice. Wallet holds are not released. The money sweep is refused on both its
+routes at once. Stays are not completed, inventory drift is not caught, and
+saved search alerts are not sent.
+
+**And the way it was reported is the exact pattern you named.** Each refusal
+raised a MEDIUM alert reading "unauthorised", which looks like a stranger
+probing a URL rather than our own scheduler being locked out of its own
+platform. Four days of the entire fleet being down, reported hourly, in the
+colour of a nuisance. That is now a CRITICAL naming the job and the secret to
+fix, so the next occurrence is loud on the first hour.
+
+**The older reconciliation outage is a second, separate fact** and it is still
+true: 474 `wallet.reconciliation.run` rows, the newest dated **29 August**,
+while `cron.job_run_details` reports succeeded every hour including today.
+
+
 **1. The Vault site URL, which is costing money right now.**
 `vallo_site_url` in the Supabase Vault points at a per deployment Vercel URL
 that no longer exists, so the payment reconciliation job has been returning
