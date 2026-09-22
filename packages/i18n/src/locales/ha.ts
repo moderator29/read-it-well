@@ -3617,7 +3617,6 @@ export const ha: Dictionary = withFallback({
           nextOne: "Rajistar kamfanin.",
           nextTwo: "Mukaminka a cikin kamfanin.",
           nextThree: "Duk wanda ka ƙara.",
-          underReview: "Ana nazari",
         },
       },
     },

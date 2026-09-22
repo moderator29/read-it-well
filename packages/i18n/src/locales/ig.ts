@@ -3621,7 +3621,6 @@ export const ig: Dictionary = withFallback({
           nextOne: "Ndebanye aha ụlọ ọrụ ahụ.",
           nextTwo: "Ọkwa gị n'ụlọ ọrụ ahụ.",
           nextThree: "Onye ọ bụla i tinyere.",
-          underReview: "A na-enyocha ya",
         },
       },
     },

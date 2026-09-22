@@ -4626,7 +4626,6 @@ export const en = {
           nextOne: "The company registration.",
           nextTwo: "Your own role in the firm.",
           nextThree: "Everybody you added.",
-          underReview: "Under review",
         },
       },
     },

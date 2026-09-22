@@ -3632,7 +3632,6 @@ export const yo: Dictionary = withFallback({
           nextOne: "Ìforúkọsílẹ̀ ilé-iṣẹ́ náà.",
           nextTwo: "Ipò tìrẹ nínú ilé-iṣẹ́ náà.",
           nextThree: "Gbogbo ẹni tí o fi kun.",
-          underReview: "Lábẹ́ àtúnyẹ̀wò",
         },
       },
     },
