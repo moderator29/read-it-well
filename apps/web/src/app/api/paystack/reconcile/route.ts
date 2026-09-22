@@ -8,6 +8,8 @@ import {
   runMoneyReconciliation,
 } from "@/lib/wallet/reconciliation";
 import { recordAlert } from "@/lib/alerts";
+import { fromPlatformScheduler } from "@/lib/cron/auth";
+import { refusalAlert } from "@/lib/cron/run";
 import { failureReason } from "@/lib/payments/observability";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
 import {
@@ -113,12 +115,12 @@ async function run(request: Request): Promise<NextResponse> {
       );
     }
     logMoney({ surface: "reconcile", outcome: "rejected", reason: "cron_secret_invalid" });
-    await recordAlert({
-      kind: "cron.reconcile.unauthorised",
-      severity: "warning",
-      detail: { http_status: 401 },
-      subjectId: RECONCILE_SUBJECT,
-    });
+    /* A refused stranger is a warning. A refused SCHEDULER is the money sweep
+       not running, hourly, until somebody changes a secret, and it is told at
+       the level that means a person. The whole argument, and the 69 medium
+       rows this route had already put on the desk saying the first thing while
+       meaning the second, is in lib/cron/auth.ts. */
+    await recordAlert(refusalAlert(RECONCILE_SUBJECT, fromPlatformScheduler(request)));
     return refused("unauthorised", 401);
   }
 

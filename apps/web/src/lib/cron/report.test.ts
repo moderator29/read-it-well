@@ -156,14 +156,25 @@ describe("every run leaves a dated row", () => {
 });
 
 describe("the reporter never becomes the failure", () => {
-  it("does not throw when the audit insert answers with an error", async () => {
+  it("does not throw when the audit insert answers with an error, and says the history is gone", async () => {
     insertError = { message: "permission denied" };
     await expect(
       reportCronRun(fakeAdmin(), { job: "hold-sweep", outcome: "ok", durationMs: 1 }),
     ).resolves.toBeUndefined();
+    /* A CLEAN run whose row did not land. Nothing else in the platform would
+       ever have said so: the envelope is a 200, the scheduler is green, and
+       the freshness watch reads the absence as a job that was never deployed.
+       This alert is the only thing standing between that and three weeks. */
+    expect(onlyAlert()).toMatchObject({
+      kind: "cron.hold_sweep.unrecorded",
+      severity: "critical",
+      subjectId: "hold-sweep",
+      subjectKind: "cron_job",
+    });
+    expect((onlyAlert().detail as Record<string, unknown>).reason).toBe("permission denied");
   });
 
-  it("does not throw when the audit insert throws, and the failure alert still goes", async () => {
+  it("does not throw when the audit insert throws, and raises BOTH the lost history and the failure", async () => {
     insertThrows = true;
     await expect(
       reportCronRun(fakeAdmin(), {
@@ -173,7 +184,9 @@ describe("the reporter never becomes the failure", () => {
         reason: "postgres is away",
       }),
     ).resolves.toBeUndefined();
-    expect(onlyAlert().kind).toBe("cron.hold_sweep.failed");
+    expect(alerts.recordAlert).toHaveBeenCalledTimes(2);
+    const kinds = alerts.recordAlert.mock.calls.map((call) => (call[0] as { kind: string }).kind);
+    expect(kinds).toEqual(["cron.hold_sweep.unrecorded", "cron.hold_sweep.failed"]);
   });
 
   it("says so loudly when there is no service client at all", async () => {

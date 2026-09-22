@@ -74,6 +74,30 @@ export async function reportCronRun(admin: AdminClient | null, record: CronRunRe
   } catch (error) {
     const reason = error instanceof Error ? error.message : "unknown";
     console.error(`[cron] ${record.job} ${record.outcome} could not be audited (${reason}) ${JSON.stringify(metadata)}`);
+    /*
+     * AND IT GOES TO THE DESK, BECAUSE THIS LINE USED TO END AT THE CONSOLE.
+     *
+     * The row above IS the run history. `lib/cron/freshness.ts` reads it to
+     * decide whether a job is still alive, and a job whose row never lands is
+     * a job that will be read as silent for ever afterwards, or, worse, never
+     * read at all: the freshness rule excuses a job with NO history as one
+     * that has not been deployed yet. So a failed insert is not a cosmetic
+     * loss. It is the single fact the watch depends on, disappearing into a
+     * log nobody reads, while the run answers 200 and the scheduler's
+     * dashboard stays green. That is the reconciliation incident's exact
+     * shape one layer down, and it is why this now raises.
+     *
+     * The alert writer makes its own client, so it can still land when this
+     * one insert is what failed; when the whole database is away it fails too
+     * and says so in its own line, which is the honest floor.
+     */
+    await recordAlert({
+      kind: `cron.${record.job.replace(/-/g, "_")}.unrecorded`,
+      severity: "critical",
+      detail: { reason: reason.slice(0, 160), outcome: record.outcome, duration_ms: durationMs },
+      subjectId: record.job,
+      subjectKind: ENTITY_TYPE,
+    });
   }
 
   if (record.outcome === "failed") {

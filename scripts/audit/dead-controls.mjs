@@ -209,13 +209,33 @@ const files = walkFiles(SRC, [".tsx"]).filter((f) => {
   return true;
 });
 
+/*
+ * A FILE THIS SWEEP COULD NOT READ IS NOT A FILE WITH NOTHING WRONG IN IT.
+ *
+ * Until this list existed, an unreadable or unparseable file was skipped by a
+ * bare `continue` and the run then printed the number of files it INTENDED to
+ * parse, followed by "PASS: no dead control at high severity". A parser that
+ * choked on every file in the tree would have produced exactly that sentence,
+ * and the whole point of the sweep is to be the thing that says a control is
+ * dead. A green light that cannot see what it is reporting on is worse than no
+ * light, so these are counted, named and they fail the run.
+ */
+const unreadable = [];
+
 for (const file of files) {
-  const text = read(file);
+  let text;
+  try {
+    text = read(file);
+  } catch (err) {
+    unreadable.push({ file, reason: err instanceof Error ? err.message : String(err) });
+    continue;
+  }
   if (!text.includes("<")) continue;
   let sf;
   try {
     sf = parse(file, text);
-  } catch {
+  } catch (err) {
+    unreadable.push({ file, reason: err instanceof Error ? err.message : String(err) });
     continue;
   }
   const go = (node) => {
@@ -233,10 +253,17 @@ findings.sort(
 );
 
 if (AS_JSON) {
-  process.stdout.write(JSON.stringify({ scanned: files.length, findings }, null, 2) + "\n");
+  process.stdout.write(
+    JSON.stringify({ scanned: files.length - unreadable.length, unreadable, findings }, null, 2) + "\n",
+  );
 } else {
   console.log(heading("R2 dead control sweep"));
-  console.log(`Parsed ${files.length} .tsx files under apps/web/src${INCLUDE_DEV ? "" : " (dev previews excluded)"}.`);
+  console.log(
+    `Parsed ${files.length - unreadable.length} of ${files.length} .tsx files under apps/web/src${INCLUDE_DEV ? "" : " (dev previews excluded)"}.`,
+  );
+  for (const row of unreadable) {
+    console.log(`  [UNREAD] ${row.file}: ${row.reason}`);
+  }
   const byKind = new Map();
   for (const f of findings) byKind.set(f.kind, (byKind.get(f.kind) ?? 0) + 1);
   for (const f of findings) {
@@ -247,8 +274,14 @@ if (AS_JSON) {
     console.log(`  ${kind.padEnd(18)} ${n}`);
   }
   const high = findings.filter((f) => f.severity === "high").length;
-  console.log(`\n  total ${findings.length}, high ${high}`);
-  console.log(high === 0 ? "\nPASS: no dead control at high severity.\n" : `\nFAIL: ${high} dead controls at high severity.\n`);
+  console.log(`\n  total ${findings.length}, high ${high}, unread ${unreadable.length}`);
+  if (unreadable.length > 0) {
+    console.log(
+      `\nFAIL: ${unreadable.length} file(s) could not be read or parsed, so this run did not look at them and cannot say they are clean.\n`,
+    );
+  } else {
+    console.log(high === 0 ? "\nPASS: no dead control at high severity.\n" : `\nFAIL: ${high} dead controls at high severity.\n`);
+  }
 }
 
-process.exit(findings.some((f) => f.severity === "high") ? 1 : 0);
+process.exit(unreadable.length > 0 || findings.some((f) => f.severity === "high") ? 1 : 0);

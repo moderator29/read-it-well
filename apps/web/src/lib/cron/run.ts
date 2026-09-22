@@ -1,12 +1,12 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { recordAlert } from "../alerts";
+import { recordAlert, type AlertInput } from "../alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "../security/money-limits";
 import { createAdminClient } from "../supabase/admin";
 import { isSupabaseConfigured } from "../supabase/env";
 import type { JobVerdict } from "../bookings/lifecycle";
-import { authorisedCron } from "./auth";
+import { authorisedCron, fromPlatformScheduler } from "./auth";
 import { reportCronRun } from "./report";
 import type { AdminClient } from "./rpc";
 
@@ -136,20 +136,62 @@ function adminOrNull(): AdminClient | null {
 }
 
 /**
+ * WHAT A REFUSAL MEANS, WHICH IS NOT THE SAME THING AS WHAT IT IS.
+ *
+ * A 401 here is one of two entirely different events wearing the same status
+ * code. From an address nobody knows it is somebody trying a door, and a
+ * warning is the right colour for it. From our own scheduler it is THE JOB
+ * DID NOT RUN, and it will keep not running, on the hour, until a person
+ * changes a secret. See `lib/cron/auth.ts` for the 256 rows that were on this
+ * project's desk saying the first thing while meaning the second.
+ *
+ * The alert therefore names the outcome rather than the attempt: the job did
+ * not run, it has not run since the secret stopped matching, and the fix is
+ * `RECONCILE_CRON_SECRET` on the host equalling `CRON_SECRET` on the
+ * scheduler (docs/DEPLOY.md, section 2).
+ */
+export function refusalAlert(name: string, scheduler: boolean): AlertInput {
+  const token = name.replace(/-/g, "_");
+  return scheduler
+    ? {
+        kind: `cron.${token}.locked_out`,
+        severity: "critical",
+        detail: {
+          http_status: 401,
+          scheduler: "vercel-cron",
+          ran: false,
+          fix: "RECONCILE_CRON_SECRET on the host must equal CRON_SECRET on the scheduler",
+        },
+        subjectId: name,
+        subjectKind: "cron_job",
+      }
+    : {
+        kind: `cron.${token}.unauthorised`,
+        severity: "warning",
+        detail: { http_status: 401, scheduler: "unknown", ran: false },
+        subjectId: name,
+        subjectKind: "cron_job",
+      };
+}
+
+/**
  * The guard's verdict for a real request. A bad secret is counted per
  * address and told to the desk once, exactly as the reconcile route does.
+ *
+ * THE SPRAY LIMIT NEVER SILENCES OUR OWN SCHEDULER. A refused caller that is
+ * spraying gets a 429 and nothing on the desk, which is correct for a
+ * stranger and is the wrong way round for us: the limiter counts per address,
+ * so thirty refused runs from the platform's own range would have taken the
+ * only remaining signal away at exactly the point the outage was most
+ * certain. The 429 still goes back; the alert goes up either way.
  */
 async function refusal(name: string, request: Request): Promise<CronDeps["refused"]> {
   if (authorisedCron(request)) return null;
+  const scheduler = fromPlatformScheduler(request);
   const spray = await countRouteFailure(ROUTE_FAILURE_LIMITS.cronBadSecret, request.headers);
+  if (!spray.allowed && !scheduler) return { retryAfterSeconds: spray.retryAfterSeconds };
+  await recordAlert(refusalAlert(name, scheduler));
   if (!spray.allowed) return { retryAfterSeconds: spray.retryAfterSeconds };
-  await recordAlert({
-    kind: `cron.${name.replace(/-/g, "_")}.unauthorised`,
-    severity: "warning",
-    detail: { http_status: 401 },
-    subjectId: name,
-    subjectKind: "cron_job",
-  });
   return { retryAfterSeconds: 0 };
 }
 

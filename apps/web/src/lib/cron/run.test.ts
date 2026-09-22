@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { bearerMatches } from "./auth";
-import { executeCronJob, type CronDeps } from "./run";
+import { bearerMatches, fromPlatformScheduler } from "./auth";
+import { executeCronJob, refusalAlert, type CronDeps } from "./run";
 import type { CronRunRecord } from "./report";
 import type { AdminClient } from "./rpc";
 
@@ -127,5 +127,43 @@ describe("executeCronJob", () => {
     expect(outcome.status).toBe(200);
     expect(outcome.body).toMatchObject({ ok: true, outcome: "attention" });
     expect(d.reports[0]).toMatchObject({ job: "inventory-drift", outcome: "attention", alert });
+  });
+});
+
+/**
+ * WHO WAS REFUSED. Measured on this project on 22 September 2026: 256 open
+ * rows on the alerts desk reading "Cron: ... unauthorised" at MEDIUM, one per
+ * scheduled run of all seven jobs since 19 September, every one of them
+ * meaning the job did not run and not one of them saying it. These pin the
+ * difference so it cannot be flattened back into one colour.
+ */
+describe("a refused scheduler is not a refused stranger", () => {
+  const withAgent = (agent: string | null) =>
+    new Request("https://vallospaces.com/api/cron/hold-sweep", {
+      headers: agent === null ? {} : { "user-agent": agent },
+    });
+
+  it("recognises the platform scheduler by its own user agent and nothing else", () => {
+    expect(fromPlatformScheduler(withAgent("vercel-cron/1.0"))).toBe(true);
+    expect(fromPlatformScheduler(withAgent("Vercel-Cron/1.0"))).toBe(true);
+    expect(fromPlatformScheduler(withAgent("Mozilla/5.0"))).toBe(false);
+    expect(fromPlatformScheduler(withAgent("curl/8.4.0"))).toBe(false);
+    expect(fromPlatformScheduler(withAgent(null))).toBe(false);
+  });
+
+  it("calls a locked out scheduler critical, and says the job did not run", () => {
+    const alert = refusalAlert("hold-sweep", true);
+    expect(alert.kind).toBe("cron.hold_sweep.locked_out");
+    expect(alert.severity).toBe("critical");
+    expect(alert.detail).toMatchObject({ http_status: 401, scheduler: "vercel-cron", ran: false });
+    expect(alert.subjectId).toBe("hold-sweep");
+    expect(alert.subjectKind).toBe("cron_job");
+  });
+
+  it("leaves a stranger at the level a stranger deserves", () => {
+    const alert = refusalAlert("hold-sweep", false);
+    expect(alert.kind).toBe("cron.hold_sweep.unauthorised");
+    expect(alert.severity).toBe("warning");
+    expect(alert.detail).toMatchObject({ ran: false });
   });
 });

@@ -8,7 +8,13 @@ import {
   type JobVerdict,
 } from "../../bookings/lifecycle";
 import { recordAlert } from "../../alerts";
-import { describeStaleJob, freshnessDetail, readLastRuns, staleJobs } from "../freshness";
+import {
+  describeStaleJob,
+  freshnessDetail,
+  readLastRuns,
+  readWatchingSince,
+  staleJobs,
+} from "../freshness";
 import { callServiceFunction, type AdminClient } from "../rpc";
 
 /**
@@ -44,7 +50,13 @@ export async function pgCronWatch(admin: AdminClient): Promise<JobVerdict> {
   });
   const verdict = cronWatchVerdict(parseCronFailures(data));
 
-  const freshness = staleJobs(await readLastRuns(admin), Date.now());
+  /* THE WATCH'S OWN HISTORY IS THE PROOF THAT THE SCHEDULER IS ALIVE, and it
+     is what lets the rule below separate a job that was never deployed from a
+     job that is simply not firing. This run is happening, so the scheduler
+     reached us at least once; the oldest row says for how long it has been
+     doing that. See lib/cron/freshness.ts. */
+  const [runs, watchingSince] = await Promise.all([readLastRuns(admin), readWatchingSince(admin)]);
+  const freshness = staleJobs(runs, Date.now(), { watchingSince });
   if (freshness.stale.length > 0) {
     await recordAlert({
       // A scheduled job that has stopped firing. Nothing else will ever say so.

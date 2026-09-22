@@ -133,9 +133,27 @@ export type LastRun = {
   job: string;
   /** ISO timestamp of the newest audit row for this job, or null when it has never run. */
   lastRunAt: string | null;
+  /**
+   * The read itself failed, so `lastRunAt` being null means WE COULD NOT LOOK
+   * rather than NOTHING IS THERE. The two must never be the same fact: an
+   * absence we measured is evidence, an absence we could not measure is not,
+   * and a rule that treats the second as the first raises alarms about healthy
+   * jobs on a bad afternoon.
+   */
+  unreadable?: true;
 };
 
-export type StaleJob = { job: string; schedule: string; hoursSilent: number };
+export type StaleJob = {
+  job: string;
+  schedule: string;
+  hoursSilent: number;
+  /**
+   * Present, and true, only for a job that has NEVER reported while the watch
+   * itself was demonstrably running. See `WATCH_JOB` below for why that is a
+   * different sentence from "quiet since Tuesday" and has to read as one.
+   */
+  neverReported?: true;
+};
 
 export type FreshnessVerdict = {
   /** Jobs that used to report and have gone quiet past their allowance. */
@@ -153,16 +171,50 @@ const HOUR_MS = 3_600_000;
 export function staleJobs(
   runs: readonly LastRun[],
   now: number,
-  watched: readonly WatchedJob[] = WATCHED_JOBS,
+  options: { watched?: readonly WatchedJob[]; watchingSince?: number | null } = {},
 ): FreshnessVerdict {
+  const watched = options.watched ?? WATCHED_JOBS;
+  const watchingSince = options.watchingSince ?? null;
   const byJob = new Map(runs.map((run) => [run.job, run.lastRunAt]));
+  /* A job whose read FAILED keeps the old, quiet treatment: see LastRun. */
+  const unreadableJobs = new Set(runs.filter((run) => run.unreadable).map((run) => run.job));
   const stale: StaleJob[] = [];
   const neverRan: string[] = [];
+
+  /** How long we have PROOF the scheduler was alive, in hours. */
+  const watchedHours =
+    watchingSince === null ? null : Math.max(0, (now - watchingSince) / HOUR_MS);
 
   for (const entry of watched) {
     const last = byJob.get(entry.job) ?? null;
     if (last === null) {
-      neverRan.push(entry.job);
+      /*
+       * NO HISTORY AT ALL, AND THE TWO THINGS THAT CAN MEAN.
+       *
+       * Rule 2 of this module excuses it, because on day one every job looks
+       * like this and a desk that is full on day one is a desk nobody opens
+       * on day ten. That excuse is only honest while we do not know whether
+       * the scheduler is running. We do know, whenever the watch itself has a
+       * history: the watch is one of these jobs, on the same schedule, behind
+       * the same secret, and it can only be asking this question at all
+       * because it ran. So once the watch has been reporting for longer than
+       * a sibling's own allowance, that sibling has had every chance to write
+       * a row and has written none, and "not deployed yet" stops being a
+       * possible reading. It is a job that is not firing, and on this project
+       * six of them were in exactly that state on 22 September 2026 with
+       * nothing anywhere saying so.
+       */
+      const readable = !(byJob.get(entry.job) === null && unreadableJobs.has(entry.job));
+      if (readable && watchedHours !== null && watchedHours > entry.maxGapHours) {
+        stale.push({
+          job: entry.job,
+          schedule: entry.schedule,
+          hoursSilent: Math.floor(watchedHours),
+          neverReported: true,
+        });
+      } else {
+        neverRan.push(entry.job);
+      }
       continue;
     }
     const at = Date.parse(last);
@@ -187,7 +239,9 @@ export function staleJobs(
 
 /** `{ job: "hold-sweep", schedule: "hourly at :05", hoursSilent: 7 }` as one line. */
 export function describeStaleJob(row: StaleJob): string {
-  return `${row.job} (${row.schedule}) has said nothing for ${row.hoursSilent} hours`;
+  return row.neverReported
+    ? `${row.job} (${row.schedule}) has never reported once in the ${row.hoursSilent} hours this watch has been running`
+    : `${row.job} (${row.schedule}) has said nothing for ${row.hoursSilent} hours`;
 }
 
 /**
@@ -221,10 +275,10 @@ export async function readLastRuns(
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (error) return { job: entry.job, lastRunAt: null };
+        if (error) return { job: entry.job, lastRunAt: null, unreadable: true };
         return { job: entry.job, lastRunAt: data?.created_at ?? null };
       } catch {
-        return { job: entry.job, lastRunAt: null };
+        return { job: entry.job, lastRunAt: null, unreadable: true };
       }
     }),
   );
@@ -241,4 +295,47 @@ export function freshnessDetail(verdict: FreshnessVerdict): Record<string, Json>
     detail[`stale_${index + 1}`] = describeStaleJob(row);
   });
   return detail;
+}
+
+/**
+ * THE JOB THAT ASKS THE QUESTION, and the proof that the scheduler is alive.
+ *
+ * `pg-cron-watch` is the job this module runs inside. Its own run history is
+ * therefore a measurement of the SCHEDULER rather than of any one job: every
+ * row in it is an hour the platform's cron demonstrably fired, reached this
+ * deployment, carried a secret that matched and wrote to the database. That
+ * is the fact `staleJobs` needs before it is entitled to call a sibling with
+ * no history a dead job rather than an undeployed one.
+ */
+export const WATCH_JOB = "pg-cron-watch";
+
+/**
+ * When this watch first reported, in milliseconds, or null when it never has.
+ *
+ * One indexed read of the OLDEST row rather than the newest, which is the
+ * opposite of every other read here and is deliberate: the question is not
+ * "did the watch run recently" (it is running now, or this code would not be)
+ * but "how long have we been able to see". Null on any error, which lands on
+ * the old, quiet behaviour, because a failed read must never invent an
+ * outage.
+ */
+export async function readWatchingSince(
+  admin: AdminClient,
+  job: string = WATCH_JOB,
+): Promise<number | null> {
+  try {
+    const { data, error } = await admin
+      .from("audit_log")
+      .select("created_at")
+      .eq("entity_type", "cron_job")
+      .eq("entity_id", job)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data?.created_at) return null;
+    const at = Date.parse(data.created_at);
+    return Number.isFinite(at) ? at : null;
+  } catch {
+    return null;
+  }
 }

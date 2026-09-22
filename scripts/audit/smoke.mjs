@@ -185,11 +185,19 @@ for (const j of JOURNEYS) {
     continue;
   }
 
-  if (res.status >= 500) row.problems.push(`status ${res.status}`);
-  else if (res.status === 404) row.problems.push("404");
-  else if (res.status >= 300 && res.status < 400) {
-    row.note = `redirects to ${res.location}`;
-  }
+  /*
+   * EVERY STATUS THAT IS NOT A PAGE IS A FAILURE, AND THIS USED TO NAME TWO.
+   *
+   * The rule was `>= 500` or exactly `404`, which left 401, 403, 405, 410 and
+   * 429 falling through to no problem at all. The body checks below could not
+   * catch them either: the `<main>` check is guarded on a 200, so a route that
+   * started answering 403 to a signed-out visitor walked this smoke run as
+   * `ok  403`. A journey that answers a refusal is not a journey that
+   * rendered, whatever the number on it.
+   */
+  if (res.status >= 400) row.problems.push(res.status === 404 ? "404" : `status ${res.status}`);
+  else if (res.status >= 300) row.note = `redirects to ${res.location}`;
+  else if (res.status < 200) row.problems.push(`status ${res.status}`);
 
   if (res.body) {
     for (const marker of ERROR_MARKERS) {

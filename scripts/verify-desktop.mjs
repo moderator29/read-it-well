@@ -46,7 +46,56 @@ const page = await ctx.newPage();
  * on this product several do. `load` plus the settle below is what the phone
  * harness already does, and it is what made a landing shot possible at all.
  */
-await page.goto(base + route, { waitUntil: "load", timeout: 90_000 });
+const response = await page.goto(base + route, { waitUntil: "load", timeout: 90_000 });
+
+/*
+ * WHAT CAME BACK, AND WHY THIS HARNESS WAS THE LAST ONE STILL NOT ASKING.
+ *
+ * Until this block existed, this file navigated, waited, screenshotted and
+ * printed `shot <route> -> <file>` whatever the server had actually said. A
+ * 404, a 500, the not-found page served on a 200, or the sign-in screen after
+ * a redirect: all four produce a tidy PNG under the name of the route that was
+ * asked for, and a worker reading the file has no way to tell. Its phone twin,
+ * `verify-shots.mjs`, learned all four of these the hard way in one day and
+ * wrote down what each one cost. This is the twin that says it writes the
+ * theme "the same way" and then proved nothing at all.
+ *
+ * Nothing below grants anything or changes what is captured. Each one refuses
+ * to write a file this harness cannot prove is a picture of the surface that
+ * was asked for, because a proof that cannot fail is not a proof.
+ */
+const status = response?.status() ?? 0;
+if (status < 200 || status > 299) {
+  console.error(
+    `FAIL ${route}: the server answered ${status || "nothing"}, so this is an error page and not the surface. No file written.`,
+  );
+  await browser.close();
+  process.exit(1);
+}
+
+/* `notFound()` from a layout answers 200 with the not-found BODY, so the
+   status above cannot see it. `app/not-found.tsx` carries this attribute for
+   exactly this reason. */
+if (await page.evaluate(() => document.querySelector("[data-nf-not-found]") !== null)) {
+  console.error(
+    `FAIL ${route}: the server answered ${status} but served the not-found page, which is a route that does not exist or a gate that refused. No file written.`,
+  );
+  await browser.close();
+  process.exit(1);
+}
+
+/* And where the browser ENDED UP. Every product route answers 307 to /sign-in
+   for a visitor with no session, and a picture of where you were sent is not a
+   proof of where you asked to go. */
+const landed = new URL(page.url()).pathname.replace(/\/+$/, "") || "/";
+const asked = (route.startsWith("/") ? route : `/${route}`).split("?")[0].replace(/\/+$/, "") || "/";
+if (landed !== asked) {
+  console.error(
+    `FAIL ${route}: the server answered ${status} but the browser ended on ${landed}. That is a redirect, almost always the signed-in gate. No file written.`,
+  );
+  await browser.close();
+  process.exit(1);
+}
 
 /*
  * THE SETTLE, AND WHY 600ms WAS A LIE ON THIS BOX.
@@ -145,6 +194,37 @@ if (fullPage) {
   }
 }
 
+/*
+ * THE THEME AND THE STYLESHEET, PROVED RATHER THAN SET.
+ *
+ * The header of this file says it writes the theme "the same way" as the phone
+ * harness so a light shot is really light. The phone harness ASSERTS that; this
+ * one only ever set it. A context created with colorScheme "light" and nothing
+ * in storage renders DARK on this product, which is how every `--light` shot
+ * came back byte identical to its dark twin for everybody until its twin was
+ * fixed. And a server running against a build that has been replaced serves a
+ * page whose stylesheet 404s, which shoots unstyled while the theme attribute,
+ * set by an inline script that needs no CSS, still reads correctly.
+ */
+const state = await page.evaluate(() => ({
+  theme: document.documentElement.dataset.theme ?? "dark",
+  sheets: document.styleSheets.length,
+}));
+if (state.theme !== theme) {
+  console.error(
+    `FAIL ${route}: asked for ${theme}, the page rendered ${state.theme}. No file written.`,
+  );
+  await browser.close();
+  process.exit(1);
+}
+if (state.sheets === 0) {
+  console.error(
+    `FAIL ${route}: the page loaded no stylesheet, so the shot would be unstyled. Usually a server running against a build that has been replaced. No file written.`,
+  );
+  await browser.close();
+  process.exit(1);
+}
+
 await page.screenshot({ path: out, fullPage });
 await browser.close();
-console.log("shot", route, "->", out);
+console.log("shot", route, `(${theme}, ${status})`, "->", out);
