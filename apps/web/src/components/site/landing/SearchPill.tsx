@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { useId, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-
-type Segment = "buy" | "rent" | "stay";
+import { ORDER, type Segment } from "./segments";
 
 /**
  * The floating search pill: a text field, three segments, a filter glyph.
+ *
+ * THE SEGMENTS AND THE HEADLINE ARE ONE THING. The landing headline reads
+ * "Rent, buy or stay. Without the runaround." and it names these three
+ * segments on purpose, so the headline teaches the control and the control
+ * proves the headline (HANDOFF 09 section 2.1). IF ONE CHANGES, THE OTHER
+ * CHANGES IN THE SAME COMMIT. The order and the reasoning live in
+ * `segments.ts` beside this file, the words in `landing.face` in
+ * `packages/i18n`, and `headline-coupling.test.ts` fails if they drift.
  *
  * THREE SEGMENTS, NOT THE RENDER'S FOUR. The governing image shows Buy /
  * Rent / Stay / Invest. Vallo sells no investment product: the fourth
@@ -36,7 +43,6 @@ const ROUTES: Record<Segment, { action: string; type?: string; icon: UiIconName 
   rent: { action: "/search", type: "rental", icon: "key" },
   stay: { action: "/stays/search", icon: "bed" },
 };
-const ORDER: Segment[] = ["buy", "rent", "stay"];
 
 export function SearchPill({
   labels,
