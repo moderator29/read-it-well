@@ -262,6 +262,46 @@ the worker. No row, no close, and the lead does not commit it.
 | The side drawer's Switch profile row | `GOVERNING-01` screen three | `b1/drawer-390-dark.png` | row 14 on 56 = 0.25 | B1 |
 
 
+**THE GATE'S OWN MEASUREMENT, TAKEN BY A2b ON A CLEAN CHECKOUT OF `6c621e3`.**
+Against the four floors in section 1: `tsc --noEmit` **exit 0**; `eslint src`
+**338 problems, 0 errors**, which is one BELOW the recorded 339; `vitest run`
+**147 files, 2641 tests, 1 FAILED**. The failure is real and it is on the
+branch, not in anybody's working copy:
+`src/lib/i18n/locale-completeness.test.ts` refuses because yo now renders 212
+keys in English against a recorded ceiling of 211. `d6e00c9` added
+`appMockLine: "Rent, buy or stay. Without the runaround."` to `yo.ts`, `ha.ts`
+and `ig.ts` untranslated, on the argument that the approved position carries
+the same three words in every locale. That argument may well be right, but the
+gate exists precisely to catch an English string entering a translation file,
+so it has to be answered rather than walked past: either the string is
+translated, or the ceiling is raised deliberately with the reason written
+beside it. That commit's message reports "The site component tests pass"; the
+full suite was not run. It is not this worker's file and it is not changed
+here. **The test floor in section 1 is red until whoever owns `d6e00c9`
+answers it.**
+
+**AND A BUILD OF THE SHARED CHECKOUT IS NOT A BUILD OF THIS BRANCH, WHICH IS
+WHY THREE WORKERS HAVE NOW BLAMED THE TIP FOR SOMEBODY ELSE'S HALF-WRITTEN
+LINE.** `/home/user/read-it-well` carries the uncommitted work of every agent
+in the stint, and `next build` compiles the WORKING TREE. A build run there is
+a build of everybody's unfinished edits and its result says nothing about the
+commit anyone is trying to gate. Measured today: a build of the shared
+checkout failed to type check twice over, on
+`src/lib/supply/registration-actions.ts:145` and on
+`packages/i18n/src/locales/ha.ts:3567` (`partLegar` for `partLegal`), and
+NEITHER is on the branch; the first file is untracked and the second is an
+uncommitted modification. The same commit, checked out clean, is green. The
+same fault has now been read as a fault in the tip three times: B1's
+`build3.log` died on `search/page.tsx:103` over a `SortKey` that the clean tip
+compiles, and B1 killed its own build waiter over it; A2 recorded that
+`next build` had been failing on `main` since `a315170` and left four
+`PageScene` screens unphotographed for that reason, when the cause it named
+had already been fixed at `536a0cd`; and this worker's own first build died
+the same way. **So a proof build is built from a clean checkout of the commit:
+`git clone --shared` it, symlink `node_modules`, copy `.env.local`, build
+there. It costs a minute and it is the difference between gating your own work
+and gating everybody's.**
+
 **A2's register extensions, recorded so the founder can check them.** The
 twelve governing images draw none of the surfaces above, so every one of them
 inherits. Four screens were given the register's brand object behind their
