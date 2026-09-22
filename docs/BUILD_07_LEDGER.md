@@ -564,3 +564,129 @@ served by the server after the profile row has come back through
   denial in exchange. Both halves are argued in `lib/auth/actions.ts`.
 * **Leaked password protection** is still disabled. The advisor still reports
   it. One click.
+
+---
+
+## N3: Track D, the seven that refuse us on submission one
+
+Track D was listed as UNSTAFFED in section 4 and is now partly closed. The
+research file is `docs/research/STORE_REJECTION_RISK_RESEARCH.md`. Where its
+honesty log said a claim rested on a search summary rather than a primary
+source, that is answered below rather than repeated.
+
+### The rows
+
+| # | Item | State |
+| --- | --- | --- |
+| 1 | Report and block inside a one to one conversation, an abuse filter, image moderation, an EULA people accept | **Report, block, filter and agreement CLOSED.** Image moderation is human in the loop and the agreement says so. Acceptance on the OAuth path is NOT closed: see below. |
+| 2 | Google sign-in cannot survive the native shell; 4.8 with Apple off | **The callback survives.** `/auth/callback*` is included ahead of the `/auth/*` exclusion in the AASA and the Android filter carries the matching `pathPrefix`. The 4.8 decision and the two sign-in marks are A3's and the founder's, not mine. Nothing verifies until the founder's Team ID and fingerprints land. |
+| 3 | The iOS location purpose string is false and the Android manifest tells the form-filler to declare "not stored" | **CLOSED, by both answers.** `TravelTime` deleted; `HostWizard` kept and described. Both strings and both comments now match the code. |
+| 4 | The privacy policy claims analytics we do not do | **FACT ESTABLISHED AND HANDED TO N1.** The file itself is untouched, deliberately: N1 owns its copy this week. The fact is below and it is NOT what the research said. |
+| 5 | `TravelTime` posts to `/api/travel-time`, which does not exist | **CLOSED.** Component and both render sites deleted. |
+| 6 | Crypto goes dark for version one | **CLOSED.** `/crypto` and `/crypto/[id]` return `notFound()`, not an environment gate. The drawer row and the wallet tile go with the route rather than pointing at a 404. |
+| 7 | The offline card can never be reached because no `errorPath` is set | **CLOSED, one line.** `errorPath: "index.html"` in `capacitor.config.ts`. The card itself is A2's. |
+| + | Deep links are dead: two placeholder fingerprints and a placeholder Team ID | **THE FAILURE IS NOW LOUD.** `npm run check:deep-links` exits 1 and names who supplies each value and where from. The values stay the founder's. |
+
+**B6 IN `HANDOFF_05` IS DEFERRED, NOT CANCELLED.** Recorded here because a route
+that returns `notFound()` reads like a deleted feature to the next person who
+opens it. Nothing behind `/crypto` has been removed: `components/app/crypto/`,
+the Yellow Card client, `/api/crypto/*` and the preview surfaces under
+`(dev)/preview/e/` all still build and still have their tests. Turning it back
+on for v1.1 is deleting the body of two route files. The proxy work stops; the
+work already done is not to be deleted by anybody tidying up.
+
+### Item 4, the analytics fact, for N1 to write
+
+The research file says at A.5 and A.6 that there is "no analytics anywhere" and
+"no analytics or crash-reporting SDK", resting that on the dependency list at
+`apps/web/package.json:14-33`. **The dependency list is the wrong place to
+look and the second half of that claim is false.**
+
+Measured against the code on 22 September 2026:
+
+* **Analytics: genuinely none.** No product analytics, no attribution, no
+  advertising and no tag manager, in the dependencies or hand-rolled. The edge
+  sends `interest-cohort=()` on every response. Every cookie this product sets
+  is strictly necessary: locale, theme, side, mode, workspace, search view,
+  local saves and the Supabase session. That part of the research holds.
+* **Crash and error reporting: WE DO IT, and it is not an SDK, which is why a
+  dependency check missed it.** `apps/web/src/lib/observability/report.ts` is a
+  hand-rolled transport that POSTs to Sentry's envelope endpoint when
+  `SENTRY_DSN` is set. Server errors arrive through `instrumentation.ts`, browser
+  errors through the error boundaries and `apps/web/src/app/api/client-error`.
+  Nothing personal goes with them: an explicit allowlist drops `userId`, `email`,
+  `ip`, headers, body, params and live paths before the scrubber runs, and
+  `lib/observability/scrub.test.ts` proves an email, a bank account, a NIN, an
+  authorization header and a card number do not survive it.
+
+So the three documents have to say the same three things, and none of them is
+"analytics":
+
+1. The policy must stop naming analytics as a purpose and stop saying the
+   product sets analytics cookies. Both are false.
+2. The policy must name **Sentry** as a processor, under crash diagnostics, and
+   say that reports carry no identifier. It names no third party by name today.
+3. The Apple privacy label and the Play Data safety form both need a
+   **Diagnostics / Crash logs** row, NOT linked to identity, whenever
+   `SENTRY_DSN` is set on the submitted build. Part D.5 of the research
+   currently declares neither, on the strength of the same wrong claim. If the
+   founder would rather declare nothing, the answer is to leave `SENTRY_DSN`
+   unset for the store build, and then the reporter returns `{sent: false}` and
+   the declaration is honest the other way. **That is a founder decision and it
+   is not made here.**
+
+This also closes honesty log item 6, which said `api/client-error` had not been
+read. It has been read now, and it was the item that mattered.
+
+### Guideline numbers, and which ones I could verify against a primary source
+
+* **VERIFIED, from `developer.apple.com/app-store/review/guidelines/` directly.**
+  1.2's four precautions, quoted word for word; 4.8 in full including the
+  "exclusively uses your company's own account setup" exemption; 5.1.1(v) on
+  account deletion; 5.1.1(ii) on purpose strings.
+* **CONFIRMED NOT QUOTABLE.** The published text of 1.2 contains **no twenty
+  four hour requirement and no EULA requirement**. The research said so and it
+  is right. Both come from the rejection message App Review sends. We build to
+  the rejection message because that is what a refusal carries, which makes the
+  twenty four hour clause in `lib/legal/eula.tsx` a promise this company is
+  making rather than a quotation. `lib/legal/eula-copy.ts` says so in the file.
+* **VERIFIED FROM THE IMPLEMENTATION, which the research could not do.**
+  `server.errorPath` does fire on a failed remote load. `WebViewDelegationHandler.swift`
+  loads `errorPathURL` from `didFailProvisionalNavigation` as well as `didFail`;
+  `BridgeWebViewClient.onReceivedError` loads it for the main frame on Android;
+  and `CAPInstanceConfiguration.swift` resolves it against `localURL`, so the
+  path is the packaged shell rather than a page on an origin that is by
+  definition unreachable. Honesty log item 4 is closed.
+* **COULD NOT VERIFY, AND THE RESEARCH'S HONESTY LOG ITEM 1 STILL STANDS.**
+  `support.google.com` and `play.google.com` are both blocked by this
+  environment's egress proxy. **Every Play policy number in the research file,
+  and every Play statement in this section, still rests on search summaries and
+  third-party write-ups rather than on Google's published text.** That covers
+  the User Generated Content policy, Data safety accuracy, target API level,
+  account deletion, payments, the photo and video permissions policy, the 16 KB
+  page size rule and the crypto policy. Somebody on an unblocked network must
+  re-read them before submission. I did not verify guideline 4.2, 2.1, 5.1.5,
+  3.1.1, 3.1.3(e) or 3.1.5 against the primary source either; I fetched the
+  guidelines page for the four above and did not re-read the rest.
+* **STILL UNTESTED ON A DEVICE.** Honesty log items 3 and 13 stand. The OAuth
+  cookie jar reading is a reading of the code, and it is the single most
+  important thing to test on the first real sign in.
+
+### Not closed, said plainly
+
+* **Acceptance on the OAuth path.** A person who creates an account through a
+  social provider passes no tick, so no acceptance is recorded for them. The
+  active tick is on the email sign-up form. Closing it needs the social buttons
+  themselves, which belong to A3 this week.
+* **Image moderation is not automated.** No classifier, no vendor, and a vendor
+  is on the stop list. Photographs are reviewed by a person when somebody
+  reports them, the agreement says exactly that, and the review notes must say
+  it too rather than implying a classifier.
+* **The blocked terms list is empty on purpose.** `public.blocked_terms` ships
+  with a `-- SEED REQUIRED` marker and `private.objectionable_pattern()` returns
+  null over it, so the new branch is a no-op until the founder approves a list.
+  The migration changes no behaviour until then, which is deliberate: a filter
+  firing on terms nobody approved is worse than no filter.
+* **The "reports older than 24 hours" counter** on the admin dashboard, work
+  order 23, is not built. The commitment is written and the queue exists; the
+  measurement of it does not.
