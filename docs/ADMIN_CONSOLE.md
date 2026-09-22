@@ -25,9 +25,16 @@ policies) decides what you may read, not the page. Roles are granted by a
 super admin; the console has no screen for granting them.
 
 **Where you land.** Entering the console always opens the Overview at
-`/admin`. Nothing redirects you to a desk first: the side drawer's Console row
-links `/admin`, and no page, layout or proxy rule under the console sends you
-anywhere else.
+`/admin`, including when you arrive by address. The first time in a browser
+session that you open any desk address (typed, bookmarked, sent to you, or
+returned to after signing in with `?next=/admin/money`), the console sends
+you to the Overview first, and the Overview's first line is "You were
+heading to Money" with a Continue link straight to that desk. After that,
+for the rest of the browser session, desk addresses open directly. The
+session is remembered in a cookie that holds your user id and ends when the
+browser closes; signing in as someone else starts a new session. This lives
+in `app/admin/_components/EntryGate.tsx` and `entry.ts`, and only a console
+address is ever offered back.
 
 **How to read a panel.** Every panel is one of four things, and it always says
 which:
@@ -565,6 +572,14 @@ kinds: booking, message, wallet, listing, agent, support, system, social. An
 admin cannot read the notifications table today (its only read policy is the
 recipient's own), so this tab says "Not wired yet" and names Request A6.
 
+**In flight tab.** Inspections, read by state (Requested, New time
+proposed, Confirmed, Completed, Declined, Withdrawn: six exact counts from
+`inspection_requests` under the admin read policy, `getInspectionActivity`)
+with the eight newest requests. Beside them, panels for account deletions
+(Request A12), business transfers (A13), the database's jobs one by one (A5)
+and the money reconciliation watch (admin-money's request 10), each saying
+what it needs because no admin can read those rows yet.
+
 **Recent alerts and Audit log** sit beneath every tab: the four newest alerts
 and the five newest audit entries.
 
@@ -593,26 +608,217 @@ table, which already lists them.
 ## 15. The other desks
 
 These desks keep their own behaviour and were brought into the console's
-register (panel material, page head, status badges) without changing what
-they do. Each is reached from its parent row or from All desks.
+register (panel material, page head, status badges, calm empty states)
+without changing what they do. Each is reached from its parent row or from
+All desks.
 
-| Desk | Where | What it is for |
-|---|---|---|
-| Unified queue | Overview > Unified queue, `/admin/queue` | every waiting item from the listing, application, report, flag and ticket queues in one table |
-| Applications | Supply > Applications, `/admin/agents` | admit or refuse people who asked to list as an agent or owner |
-| Businesses | Supply > Businesses, `/admin/businesses` | hotels and restaurants, their verification ladder and going live |
-| Stops | Supply > Stops, `/admin/stops` | stop and reinstate a lister's right to trade |
-| Payments | Money > Payments, `/admin/payments` | overdrawn wallets, frozen withdrawals, holds to sweep |
-| Fees | Money > Fees, `/admin/fees` | the fee rates in force |
-| Message flags | Moderation > Message flags, `/admin/flags` | messages the safety scan flagged |
-| Reports | Moderation > Reports, `/admin/reports` | reports people filed |
-| Around | Moderation > Around, `/admin/social` | places waiting to open on the social side |
-| Standing | Moderation > Standing, `/admin/standing` | badges granted by hand |
-| Alerts | Operations > Alerts, `/admin/alerts` | resolve risk alerts |
-| Audit log | Operations > Audit log, `/admin/audit` | who did what, when |
-| Switches | Settings > Switches, `/admin/switches` | turn a surface off in an incident |
-| Reference data | Settings > Reference data, `/admin/reference` | occupations and local governments |
-| Examples | Settings > Examples, `/admin/examples` | the example listings and their retirement dates |
+**Who may act, on every desk below.** Any account holding `admin` or
+`super_admin` in `user_roles`. Every action first calls `requireAdmin()`
+(`lib/admin/guard.ts`) and refuses anyone else with "This area is for the
+Vallo operations team"; no action on these desks is reserved to
+`super_admin`. Where an action goes through a database function, the function
+repeats the role check itself. Every action writes one `audit_log` row with
+your user id (`lib/admin/audit.ts: writeAudit`), which the Audit log desk
+shows. Every list pages forty rows at a time and says when there are more;
+no desk offers bulk actions or export.
+
+### 15.1 Unified queue (Overview > Unified queue, `/admin/queue`)
+
+- **Shows** every item waiting on a person across five queues in one table:
+  listings to review, agent applications, open reports, open message flags,
+  open support tickets, with tabs per kind, search and dates.
+- **Sources** the same reads as each desk (`getListingSubmissions`,
+  `getAgentApplications`, `getReports`, `getMessageFlags`,
+  `getSupportTickets` in `lib/admin/queries.ts`).
+- **Actions** none of its own: View opens the item on its desk.
+- **Limits** each tab is the first page of that desk's queue, newest first.
+- **Rejected** acting from the table: every decision needs the desk's
+  context (evidence, history), so the queue only routes.
+
+### 15.2 Applications (Supply > Applications, `/admin/agents`)
+
+- **Shows** people who asked to list as an owner, agent or firm
+  (`agent_applications`), waiting and decided, with each applicant's
+  verification ladder (`agent_verification_checks`, via
+  `getVerificationLadders`).
+- **Actions** Approve, Ask for changes, Reject (`reviewAgentApplication`);
+  record a verification rung as passed or failed (`recordVerificationCheck`).
+- **Effects** approve: the application goes to `APPROVED`, an `agents` row is
+  created or updated with the lister's role and `APPROVED`, the `agent` role is
+  granted in `user_roles`, and the applicant is notified. Ask for changes and
+  reject move the status and notify with your note. A rung writes
+  `agent_verification_checks` and notifies. Audit: `agent_application.review`,
+  `agent.verification_check`.
+- **Limits** an application already decided cannot be decided again; the role
+  grant uses the service role because `user_roles` is super-admin-only under
+  RLS, and only after the admin check has passed.
+- **Rejected** approving without the ladder visible: the rungs sit beside the
+  decision so an approval is never blind.
+
+### 15.3 Businesses (Supply > Businesses, `/admin/businesses`)
+
+- **Shows** hotels, restaurants and other businesses (`businesses`) with
+  their documents (`business_documents`), their verification ladder
+  (`business_verification_checks`: identity, registration, payout, on site)
+  and their properties, filterable by status.
+- **Actions** Approve, Ask for more, Reject (`approveBusiness`,
+  `requestMoreInfo`, `rejectBusiness`); record each rung
+  (`recordIdentityCheck`, `recordRegistrationCheck`, `recordPayoutCheck`,
+  `recordOnSiteCheck`); put an accommodation or restaurant live
+  (`publishAccommodation`, `publishRestaurant`).
+- **Effects** status changes on `businesses` with a notification to the
+  owner; rungs write `business_verification_checks`; publishing writes the
+  catalogue rows guests search. Audit: `business.review`,
+  `business.verification_check`, `accommodation.publish`, `business.publish`.
+- **Limits** a business cannot go live past a blocker listed in
+  `GO_LIVE_BLOCKERS` (`lib/admin/business-ladder.ts`); the TIN, website,
+  hygiene and licence attestations are never rungs.
+- **Rejected** one "verified" switch: the four rungs are recorded separately
+  so a tier is earned, not granted.
+
+### 15.4 Stops (Supply > Stops, `/admin/stops`)
+
+- **Shows** listers who are stopped from trading and their history
+  (`agent_suspensions`, via `getStopsDesk`), filterable.
+- **Actions** Stop a lister (`stopAgentTrading`, with a reason) and lift a
+  stop (`liftAgentStop`).
+- **Effects** the database function `suspend_agent` records the stop and
+  takes the lister's listings out of search; lifting reinstates
+  (`reinstate_agent`). Audit: `agent.suspend`, `agent.suspension.lift`.
+- **Limits** a reason is required; the functions run with the service role
+  because their grant is narrow, and only after the admin check.
+- **Rejected** deleting a lister: a stop is reversible and keeps the record.
+
+### 15.5 Payments (Money > Payments, `/admin/payments`)
+
+Owned by admin-money; handbook section 12.
+
+### 15.6 Fees (Money > Fees, `/admin/fees`)
+
+- **Shows** the fee rates in force and their history (`fee_rates`, via
+  `getFeeConsole`) and revenue by source over 90 days
+  (`admin_revenue_summary` via `getRevenueSummary`).
+- **Actions** set a new rate (`setFeeRate`, through `set_fee_rate`).
+- **Effects** a new `fee_rates` row takes effect for new charges; charges
+  already made keep the rate they were made at. Audit written by the action.
+- **Limits** Vallo charges no platform fee on rent; a rate here must name
+  what it applies to (rule 15).
+- **Rejected** editing a rate in place: a new row keeps the history true.
+
+### 15.7 Message flags (Moderation > Message flags, `/admin/flags`)
+
+- **Shows** messages the safety scan flagged (`message_flags`), with the
+  surrounding thread lines and each party's role, filterable by status.
+- **Actions** Clear or Escalate (`reviewMessageFlag`).
+- **Effects** the flag goes to `reviewed` with your id; Escalate also raises
+  an open `risk_alerts` row. Audit: `message_flag.review`.
+- **Limits** a reviewed flag cannot be reviewed again; the desk shows the
+  lines around the flag, not the whole conversation.
+- **Rejected** deleting the message: evidence is kept; the scan's decision
+  is reviewed, not erased.
+
+### 15.8 Reports (Moderation > Reports, `/admin/reports`)
+
+- **Shows** reports people filed (`reports`), with category, target and the
+  response clock (`REPORT_RESPONSE_HOURS`, overdue count via
+  `countOverdueReports`).
+- **Actions** Reviewing, Resolved, Dismissed (`resolveReport`).
+- **Effects** the report's status moves and the reporter is told. Audit:
+  `report.review`.
+- **Limits** a resolved or dismissed report is final on this desk.
+- **Rejected** acting on the target from here: the report is decided here and
+  the target is acted on at its own desk.
+
+### 15.9 Around (Moderation > Around, `/admin/social`)
+
+- **Shows** proposed areas (`areas` with `PROPOSED`) and area moderator
+  applications (`area_moderator_applications` `PENDING`), via
+  `getSocialQueue`.
+- **Actions** decide an area (`decideArea`), decide a moderator application
+  (`decideModeratorApplication`), pause or resume an area (`setAreaPaused`).
+- **Effects** the area opens or is refused, the moderator is appointed or
+  refused, a paused area stops taking posts; each is audited.
+- **Limits** only a `PROPOSED` area can be decided.
+
+### 15.10 Standing (Moderation > Standing, `/admin/standing`)
+
+- **Shows** badges granted by hand and their history (`user_badges`, via
+  `getStandingDesk`).
+- **Actions** Grant a badge to a handle with a reason
+  (`grantStandingBadge`), revoke it (`revokeStandingBadge`).
+- **Effects** a `user_badges` row is written or marked revoked with your id.
+  Audit: `badge.grant`, `badge.revoke`.
+- **Limits** only badges the platform allows to be granted by hand; earned
+  badges are awarded by the nightly badges job.
+- **Rejected** hard deletes: a revoked badge keeps its record.
+
+### 15.11 Alerts (Operations > Alerts, `/admin/alerts`)
+
+- **Shows** every risk alert (`risk_alerts`, via `getRiskAlerts`) by status
+  and severity, and inventory drift alerts (`getInventoryDriftAlerts`).
+- **Actions** Resolve (`resolveRiskAlert`).
+- **Effects** the alert goes to `resolved` with your id and the time; the
+  rail and Operations counts fall. Audit: `risk_alert.resolve`.
+- **Limits** resolving does not fix the cause; a job that keeps failing
+  raises a new alert on its next run.
+- **Rejected** deleting alerts: history is kept (267 resolved rows on 22
+  September).
+
+### 15.12 Audit log (Operations > Audit log, `/admin/audit`)
+
+- **Shows** every recorded decision and scheduled run (`audit_log`, via
+  `getAuditLog`), searchable by id or words, filterable by kind and date,
+  with actions per day and by kind (`getAuditActivity`, up to 5,000 rows
+  and it says so when it hits that).
+- **Actions** none; the log is read only, and identity documents and
+  credentials in a row's detail are withheld (`safeAuditMetadata`).
+- **Rejected** editing or deleting entries: a log that can be changed is not
+  a log.
+
+### 15.13 Switches (Settings > Switches, `/admin/switches`)
+
+- **Shows** each surface that can be turned off in an incident
+  (`feature_flags`, via `getFeatureFlags`) and whether it is on.
+- **Actions** Switch off and Switch on (`toggleFeatureFlag`), with a
+  confirmation sheet that says who loses what.
+- **Effects** `feature_flags.enabled` changes; every page picks it up within
+  about thirty seconds. Audit: `feature_flag.enable`, `feature_flag.disable`.
+- **Limits** nothing already saved is deleted by a switch.
+- **Rejected** a bare toggle: turning a surface off opens a confirmation
+  first.
+
+### 15.14 Reference data (Settings > Reference data, `/admin/reference`)
+
+- **Shows** the occupations and local governments every profile picks from
+  (`listOccupationsForAdmin`, `listLocalGovernmentsForAdmin`), searchable.
+- **Actions** add or edit an occupation (`saveOccupation`) or a local
+  government (`saveLocalGovernment`).
+- **Effects** the `occupations` or `local_governments` row is inserted or
+  updated; profiles choose from it at once. Audit:
+  `reference.occupation.create` or `.update`, and the same for local
+  governments.
+- **Limits** no delete: a value in use on profiles is renamed, not removed.
+
+### 15.15 Examples (Settings > Examples, `/admin/examples`)
+
+- **Shows** the example listings that show the product before real supply
+  arrives (`listings.is_demo`), live and retired, with each one's retirement
+  date and an overdue count (`getExamplesConsole`).
+- **Actions** retire examples (`retireExampleListings`, through
+  `admin_retire_demo_listings`).
+- **Effects** retired examples leave search; the retirement is audited.
+- **Limits** examples are never counted as supply on the overview or
+  analytics.
+- **Rejected** mixing examples into supply figures: a seeded market is a
+  false window.
+
+### 15.16 What no desk shows yet
+
+Inspections are on Operations > In flight. Account deletions (A12), business
+transfers (A13), the database's jobs one by one (A5), notification volumes
+(A6) and the money reconciliation watch (admin-money's request 10) each have
+a panel there that says what it needs. Held events and the safety scan's
+blocked terms are admin-review's (section 5).
 
 ## 16. Everyday procedures
 
