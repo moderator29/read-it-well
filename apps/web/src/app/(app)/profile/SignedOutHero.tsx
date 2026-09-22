@@ -1,6 +1,8 @@
 "use client";
 
+import "./profile.css";
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RowButton, RowValue, SettingsGroup, Sheet } from "@/components/app/account/rows";
@@ -28,9 +30,12 @@ import {
  * signing in would change. The shape is the signed-in header, class for class,
  * so the page does not become a different design the moment somebody arrives.
  *
- * There is no cover and no avatar picker, because neither can be stored for
- * somebody with no account, and a control that silently does nothing is the
- * same lie in a different costume.
+ * It wears the signed-in page's own anatomy from `50E032EA` (`profile.css`):
+ * the dusk cover fading into the page, the round face on its lit ring, the
+ * name and a line under it. There is no cover picker and no avatar picker,
+ * because neither can be stored for somebody with no account, and a control
+ * that silently does nothing is the same lie in a different costume. No tick,
+ * no counts: nothing here has been checked or counted.
  */
 export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
   const [editing, setEditing] = useState(false);
@@ -57,39 +62,42 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
   const monogram = name.charAt(0).toUpperCase() || "G";
 
   return (
-    <header data-testid="signed-out-hero">
-      <div className="nf-social-cover">
-        <div className="nf-social-cover__art" aria-hidden="true" />
-        <div className="nf-social-cover__scrim" aria-hidden="true" />
+    <header className="nf-pf-hero" data-testid="signed-out-hero">
+      <div className="nf-pf-cover">
+        <Image
+          src="/brand/photos/villa-pool-skyline-02.jpg"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 768px"
+          className="nf-pf-cover__photo nf-pf-cover__photo--plate"
+        />
+        <span className="nf-pf-cover__grade" aria-hidden="true" />
+        <span className="nf-pf-cover__fade" aria-hidden="true" />
       </div>
 
-      <div className="nf-social-identity">
-        <div className="nf-social-avatar nf-social-avatar--ring">
-          <span className="nf-social-avatar__disc">
+      <div className="nf-pf-id">
+        <div className="nf-pf-avatar nf-pf-avatar--static">
+          <span className="nf-pf-avatar__disc">
             <span aria-hidden="true">{monogram}</span>
           </span>
         </div>
-      </div>
-
-      <div className="nf-social-namerow">
-        <div className="min-w-0">
-          <h1 className="nf-social-name">
-            <span className="truncate-none">{name}</span>
+        <div className="nf-pf-id__text">
+          <h1 className="nf-pf-name">
+            <span className="nf-pf-name__text">{name}</span>
           </h1>
-          <p className="nf-social-handle">Not signed in</p>
+          <p className="nf-pf-handle">Not signed in</p>
         </div>
       </div>
 
       {since && (
-        <div className="nf-social-meta">
-          <span>
-            <UiIcon name="calendar-booking" size={16} />
-            On this device since {since}
-          </span>
-        </div>
+        <p className="nf-pf-since">
+          <UiIcon name="calendar-booking" size="xs" />
+          On this device since {since}
+        </p>
       )}
 
-      <div className="nf-card mt-md p-lg">
+      <div className="nf-pf-note">
         <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           {unconfigured
             ? "We cannot reach your account right now"
@@ -101,7 +109,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
         </p>
         {!unconfigured && (
-          <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
+          <Link href="/sign-in" className="nf-pf-litbtn mt-md">
             Sign in
           </Link>
         )}

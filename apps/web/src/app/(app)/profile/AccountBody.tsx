@@ -1,5 +1,6 @@
 "use client";
 
+import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@vallo/i18n";
@@ -7,7 +8,7 @@ import Link from "next/link";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { EmptyState } from "@/components/app/Screen";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import {
   RowButton,
@@ -23,30 +24,35 @@ import {
   MAX_PHONE_LENGTH,
 } from "@/lib/profile/schema";
 import type { ActionResult } from "@/lib/actions/envelope";
+import { COPY, NO_FACTS, rowValue, type BelongingsFacts } from "./belongings";
+import { SwitchRoleRow } from "./SwitchRoleRow";
+import { COVER_INPUT_ID } from "./AccountHero";
 
 /**
- * Everything under your own identity: what you have done here, and where the
- * rest of your account lives.
+ * EVERYTHING UNDER YOUR OWN IDENTITY, BUILT TO `50E032EA`.
  *
- * Two tabs, and only two, because there are only two honest ones. **Account**
- * is every destination that belongs to you, as grouped rows. **Posts** is what
- * you have actually written. A third tab that could only ever be empty tells
- * somebody with forty of something that they have none, which is the mistake
- * the social profile already learned once and wrote down.
+ * The render, measured (ledger section 1): a two-segment glass control,
+ * Belongings with a house glyph lit in blue and Posts with a chat glyph on the
+ * glass, 20px under it four glass rows 66px tall on an 8px rhythm, each a
+ * 49px glass plate with a blue line glyph, a title, a muted line and a
+ * chevron, then a larger gap and a quieter Switch role row, 60px tall.
  *
- * The tab strip is the social layer's own glass capsule (`nf-glass-seg`), the
- * one the feed and the public page wear too, so moving between your account
- * and your page does not change what a tab looks like halfway through.
+ * WHAT IS REAL ON EACH ROW. The rows are links to the real routes
+ * (`/bookings`, `/saved`, `/wallet`, `/inspections`). The render draws no
+ * figures on them; the brief for this surface allows one where the database
+ * returns it, so each row may carry a quiet value on its right: upcoming
+ * stays, saved places, the wallet balance through the shared money formatter,
+ * open inspection requests. A figure the read could not produce is not drawn
+ * at all, and a zero count is not drawn either (see `rowValue`).
  *
- * The rows replaced a grid of seven square tiles. The tiles looked tidy in a
- * mockup and read badly on a phone: seven equal boxes give equal weight to
- * "Trips" and "Settings", so the eye has to read all seven every time to find
- * one. A list has an order, and each row can carry its own count on the right,
- * which is the thing somebody actually came to check.
+ * NOTHING THE PAGE USED TO REACH HAS GONE. The render ends at Switch role
+ * because the dock is under it; below the fold the rest of the account keeps
+ * its rows: editing the profile, the public page, your details, where you are
+ * and what you do, reviews, messages, notifications and help.
  *
- * Your name and phone open in a sheet rather than expanding the page. An
- * inline form pushed everything below it down by a screen and a half, so the
- * thing you were about to tap moved while you were reaching for it.
+ * Posts is the public page's own panel (`ProfilePosts`), reading the same
+ * `getProfileFeed` rows, so a post looks the same wherever it is read and an
+ * empty tab says the same honest thing.
  */
 
 export type AccountCounts = { trips: number; saved: number; reviews: number };
@@ -57,7 +63,6 @@ export type AccountRowsCopy = {
   wallet: string;
   messages: string;
   settings: string;
-  /** The Belongings tab and its four rows, per `50E032EA`. */
   belongings: string;
   posts: string;
   myBookings: string;
@@ -70,42 +75,41 @@ export type AccountRowsCopy = {
 
 type Tab = "account" | "posts";
 
-/**
- * A belongings row: a glass card, a glass tile with the brand object, the
- * title, the line under it, a chevron. The whole row is the link.
- */
-function BelongingRow({
-  href,
-  icon,
-  title,
-  sub,
-  testId,
-}: {
+type Belonging = {
+  key: "bookings" | "saved" | "wallet" | "inspections";
   href: string;
-  icon: BrandIconName;
+  /** The render's own object, cropped from `50E032EA` into the glass pack. */
+  object: BrandIconName;
+  /** The same thing as a line glyph, for paper, where a night object would be a dark plate. */
+  glyph: UiIconName;
   title: string;
   sub: string;
-  testId?: string;
-}) {
+};
+
+/**
+ * A belongings row: the glass container, the plate with its glyph, the title,
+ * the line under it, the value when there is one, the chevron. The whole row
+ * is the link.
+ */
+function BelongingRow({ row, value }: { row: Belonging; value: string | null }) {
   return (
-    <Link href={href} className="nf-card nf-belong__row" data-testid={testId}>
-      {/*
-        THE OBJECT IS THE TILE'S SIZE, AND THE ROW DREW TWO TILES UNTIL IT WAS.
-        Every object named below draws its own rounded-square glass ground, and
-        `.nf-belong__tile` draws one too, with the shared lit edge. At 32 inside
-        44 the two did not coincide, so each row shipped a bright square with a
-        second dimmer square nested in it. `50E032EA` draws ONE tile per row.
-        At the tile's own size the artwork's ground lands under the row's lit
-        edge and the two read as the single object the render draws.
-      */}
-      <span className="nf-belong__tile" aria-hidden="true">
-        <BrandIcon name={icon} size={44} />
+    <Link href={row.href} className="nf-pf-row" data-testid={`row-${row.key}`}>
+      <span className="nf-pf-plate" aria-hidden="true">
+        <span className="nf-pf-plate__object">
+          <BrandIcon name={row.object} size={68} />
+        </span>
+        <UiIcon name={row.glyph} size="md" className="nf-pf-plate__glyph" />
       </span>
-      <span className="nf-belong__body">
-        <span className="nf-belong__title">{title}</span>
-        <span className="nf-belong__sub">{sub}</span>
+      <span className="nf-pf-row__body">
+        <span className="nf-pf-row__title">{row.title}</span>
+        <span className="nf-pf-row__sub">{row.sub}</span>
       </span>
-      <UiIcon name="chevron-right" size={20} className="nf-belong__chev" />
+      {value ? (
+        <span className="nf-pf-row__value nf-numeric" data-testid={`row-${row.key}-value`}>
+          {value}
+        </span>
+      ) : null}
+      <UiIcon name="chevron-right" size="sm" className="nf-pf-row__chev" />
     </Link>
   );
 }
@@ -121,7 +125,9 @@ export function AccountBody({
   handle,
   hasBio,
   locale,
-  roleSwitch,
+  facts = NO_FACTS,
+  switchLine = COPY.switchNone,
+  memberSince,
 }: {
   counts: AccountCounts;
   copy: AccountRowsCopy;
@@ -134,48 +140,73 @@ export function AccountBody({
   handle: string | null;
   /** Drives the owner's first useful action while the Posts tab is empty. */
   hasBio: boolean;
-  /** The Switch role row, built by the page so this stays a plain client
-      component: the existing `RoleSwitcher`, wearing the belongings card. */
-  roleSwitch?: React.ReactNode;
-  /**
-   * The locale, NOT a formatter.
-   *
-   * This used to take `formatCount: (value: number) => string`, built in the
-   * server component above and handed down. That is a function crossing the
-   * server/client boundary, which React refuses outright: it throws
-   * "Functions cannot be passed directly to Client Components" while rendering,
-   * and the whole page answers 500. Nothing in the database was wrong, which is
-   * why every probe of every query on this page came back clean. The signed-out
-   * branch returns before this component is ever reached, so every spec passed
-   * and only a real signed-in person ever saw it.
-   *
-   * A locale is a string. It crosses fine, and the formatting happens here.
-   */
+  /** The locale, NOT a formatter: a function cannot cross into a client component. */
   locale: Locale;
+  /** What the four rows can honestly say about themselves. */
+  facts?: BelongingsFacts;
+  /** The line under Switch role, built from the workspaces this account holds. */
+  switchLine?: string;
+  /** "Month Year", already worded by the page. */
+  memberSince?: string;
+  /**
+   * The old role switch row. Accepted for callers that still pass it and no
+   * longer drawn: Switch role now opens the workspace sheet the dock opens.
+   */
+  roleSwitch?: React.ReactNode;
 }) {
   const [tab, setTab] = useState<Tab>("account");
   const [editing, setEditing] = useState(false);
   const formatCount = (value: number) => formatNumber(value, locale);
 
-  const tabs: { key: Tab; label: string; icon: "home" | "chat-bubble" }[] = [
+  const tabs: { key: Tab; label: string; icon: UiIconName }[] = [
     { key: "account", label: copy.belongings, icon: "home" },
     { key: "posts", label: copy.posts, icon: "chat-bubble" },
   ];
 
+  /*
+   * THE FOUR OBJECTS ARE THE RENDER'S FOUR, cropped from `50E032EA` itself
+   * into the glass pack (`scripts/icon-manifest.mjs`, the profile block):
+   * a calendar, a bookmark, a wallet, a ticked shield. Saved takes the
+   * bookmark and not the heart because the render draws a bookmark here.
+   */
+  const rows: Belonging[] = [
+    {
+      key: "bookings",
+      href: "/bookings",
+      object: "calendar-grid",
+      glyph: "calendar-booking",
+      title: copy.myBookings,
+      sub: copy.myBookingsSub,
+    },
+    {
+      key: "saved",
+      href: "/saved",
+      object: "bookmark-ribbon",
+      glyph: "bookmark",
+      title: copy.saved,
+      sub: copy.savedSub,
+    },
+    {
+      key: "wallet",
+      href: "/wallet",
+      object: "wallet-tile",
+      glyph: "wallet",
+      title: copy.wallet,
+      sub: copy.walletSub,
+    },
+    {
+      key: "inspections",
+      href: "/inspections",
+      object: "shield-check-tile",
+      glyph: "verified",
+      title: copy.inspections,
+      sub: copy.inspectionsSub,
+    },
+  ];
+
   return (
-    /* `mt-group`, not `mt-lg`: `50E032EA` sets the capsule directly under the
-       counts, and at lg the quiet link row above it plus the gap left most of
-       a thumb of empty canvas between the person and their belongings. */
-    <div className="mt-group">
-      {/* Belongings / Posts: the glass capsule the render draws, and the same
-          object the feed's For you / Following and the public page's tabs
-          wear, so a tab is one thing across the whole social layer. */}
-      <div
-        role="tablist"
-        aria-label="Your account"
-        className="nf-glass-seg"
-        style={{ "--nf-seg-count": tabs.length } as React.CSSProperties}
-      >
+    <div className="nf-pf-body">
+      <div role="tablist" aria-label="Your account" className="nf-pf-tabs">
         {tabs.map((entry) => (
           <button
             key={entry.key}
@@ -185,10 +216,10 @@ export function AccountBody({
             aria-selected={tab === entry.key}
             aria-controls={`account-panel-${entry.key}`}
             onClick={() => setTab(entry.key)}
-            className="nf-glass-seg__tab"
+            className="nf-pf-tab"
             data-testid={`account-tab-${entry.key}`}
           >
-            <UiIcon name={entry.icon} size={20} />
+            <UiIcon name={entry.icon} size="md" />
             {entry.label}
           </button>
         ))}
@@ -199,166 +230,109 @@ export function AccountBody({
           role="tabpanel"
           id="account-panel-account"
           aria-labelledby="account-tab-account"
-          className="space-y-lg pt-lg"
+          className="nf-pf-panel"
         >
-          {/*
-            The four belongings, as drawn: bookings, saved, wallet,
-            inspections, then the role switch. Everything else a person has
-            here follows in the quieter groups under them, so nothing that
-            used to be reachable from this page has gone.
-
-            THE FOUR OBJECTS ARE THE RENDER'S FOUR, AND THEY WERE NOT BEFORE.
-            `50E032EA` draws every one of these rows as a white line drawing
-            inside a quiet glass tile: a calendar, a BOOKMARK, a wallet, a
-            ticked shield, and a person-with-a-mark on the role switch under
-            them. This column carried `calendar-check`, `heart-home`, `wallet`
-            and `shield-check`, which are the pack's SOLID modelled objects:
-            one family, so rule 5 held, but a hotter and more saturated family
-            than the render's, and four bright blue objects where the image
-            has four quiet ones. The pack already holds the render's own four
-            under `calendar-grid`, `bookmark-ribbon`, `wallet-tile` and
-            `shield-check-tile`, so this is a name change rather than new
-            artwork, and it is the same finding the settings hub closed under
-            A13: the tier was never mixed in code, the ARTWORK was the wrong
-            family.
-
-            Saved takes the bookmark and not the heart because the render
-            draws a bookmark in this row. The dock keeps its heart, which is
-            also what the render's dock draws.
-          */}
-          <div className="nf-belong" data-testid="belongings">
-            <BelongingRow
-              href="/bookings"
-              icon="calendar-grid"
-              title={copy.myBookings}
-              sub={copy.myBookingsSub}
-              testId="row-bookings"
-            />
-            <BelongingRow
-              href="/saved"
-              icon="bookmark-ribbon"
-              title={copy.saved}
-              sub={copy.savedSub}
-            />
-            <BelongingRow
-              href="/wallet"
-              icon="wallet-tile"
-              title={copy.wallet}
-              sub={copy.walletSub}
-            />
-            <BelongingRow
-              href="/inspections"
-              icon="shield-check-tile"
-              title={copy.inspections}
-              sub={copy.inspectionsSub}
-            />
-            {roleSwitch ? (
-              <div className="nf-card nf-belong__switch">{roleSwitch}</div>
-            ) : null}
+          <div className="nf-pf-rows" data-testid="belongings">
+            {rows.map((row) => (
+              <BelongingRow key={row.key} row={row} value={rowValue(row.key, facts, locale)} />
+            ))}
           </div>
 
-          <SettingsGroup label="What you have here">
-            <RowLink
-              href="/reviews"
-              icon="star"
-              label="Reviews"
-              value={formatCount(counts.reviews)}
-            />
-            <RowLink
-              href="/bookings"
-              icon="calendar-booking"
-              label={copy.bookings}
-              value={formatCount(counts.trips)}
-            />
-            <RowLink
-              href="/saved"
-              icon="heart"
-              label={copy.saved}
-              value={formatCount(counts.saved)}
-            />
-          </SettingsGroup>
+          <div className="nf-pf-switch">
+            <SwitchRoleRow line={switchLine} />
+          </div>
 
-          <SettingsGroup label="Messages">
-            <RowLink
-              href="/messages"
-              icon="chat-bubble"
-              label={copy.messages}
-              sub="Chats with hosts"
-            />
-            <RowLink
-              href="/notifications"
-              icon="bell"
-              label="Notifications"
-              sub="Everything that happened while you were away"
-            />
-          </SettingsGroup>
+          <div className="nf-pf-more">
+            <SettingsGroup label={COPY.more}>
+              {handle ? (
+                <>
+                  <RowLink
+                    href={`/u/${handle}/edit`}
+                    icon="settings-gear"
+                    label={COPY.editProfile}
+                    sub={COPY.editProfileSub}
+                  />
+                  <RowLink
+                    href={`/u/${handle}`}
+                    icon="link"
+                    label={COPY.publicPage}
+                    sub={COPY.publicPageSub}
+                    testId="account-public-page"
+                  />
+                  <RowButton
+                    onClick={() => document.getElementById(COVER_INPUT_ID)?.click()}
+                    icon="picture"
+                    label={COPY.coverPhoto}
+                    sub={COPY.coverPhotoSub}
+                    testId="account-cover-button"
+                  />
+                </>
+              ) : null}
+              <RowButton
+                onClick={() => setEditing(true)}
+                icon="user"
+                label="Your details"
+                sub="Name, nickname and phone number"
+                testId="row-details"
+              />
+              <RowValue icon="mail" label="Email" value={email} />
+              <RowLink
+                href="/settings/place"
+                icon="location"
+                label="Where you are"
+                value={placeLabel || "Not set"}
+              />
+              <RowLink
+                href="/settings/place"
+                icon="key"
+                label="What you do"
+                value={occupationName || "Not set"}
+              />
+              {memberSince ? (
+                <RowValue icon="calendar-booking" label={COPY.memberSince} value={memberSince} />
+              ) : null}
+            </SettingsGroup>
 
-          <SettingsGroup
-            label="You"
-            note="Photos are re-encoded on your phone before they are uploaded, so the location tag a camera writes never leaves it."
-          >
-            <RowButton
-              onClick={() => setEditing(true)}
-              icon="user"
-              label="Your details"
-              sub="Name, nickname and phone number"
-              testId="row-details"
-            />
-            <RowValue icon="settings-gear" label="Email" value={email} />
-            <RowLink
-              href="/settings/place"
-              icon="location"
-              label="Where you are"
-              value={placeLabel || "Not set"}
-            />
-            <RowLink
-              href="/settings/place"
-              icon="key"
-              label="What you do"
-              value={occupationName || "Not set"}
-            />
-          </SettingsGroup>
-
-          <SettingsGroup label="More">
-            <RowLink
-              href="/settings"
-              icon="sliders"
-              label={copy.settings}
-              sub="Appearance, notifications, privacy and data"
-            />
-            {/*
-              THE "BECOME AN AGENT" ROW IS GONE, and nothing replaced it here
-              on purpose.
-
-              It pointed at `/agents`, a marketing page that no longer exists,
-              and it was the SECOND door to it on this one screen: the switch-
-              profile control sits at the very top of the profile and already
-              offers Listing or selling and Agent or estate manager, with an
-              explanation and the setup behind each. A row at the bottom of
-              More saying the same thing in different words is the "twenty
-              pages by twenty people" problem in miniature.
-            */}
-            <RowLink href="/help" icon="ticket" label="Help" sub="Get an answer from a person" />
-          </SettingsGroup>
+            <SettingsGroup
+              label={COPY.activity}
+              note="Photos are re-encoded on your phone before they are uploaded, so the location tag a camera writes never leaves it."
+            >
+              <RowLink
+                href="/reviews"
+                icon="star"
+                label="Reviews"
+                value={counts.reviews > 0 ? formatCount(counts.reviews) : undefined}
+              />
+              <RowLink
+                href="/messages"
+                icon="chat-bubble"
+                label={copy.messages}
+                sub="Chats with hosts"
+              />
+              <RowLink
+                href="/notifications"
+                icon="bell"
+                label="Notifications"
+                sub="Everything that happened while you were away"
+              />
+              <RowLink href="/help" icon="ticket" label="Help" sub="Get an answer from a person" />
+            </SettingsGroup>
+          </div>
         </div>
       ) : (
         <div
           role="tabpanel"
           id="account-panel-posts"
           aria-labelledby="account-tab-posts"
-          className="pt-lg"
+          className="nf-pf-panel"
         >
           {handle === null ? (
-            <EmptyPanel
+            <EmptyState
               icon="user-verified"
               title="Claim a handle and this fills up"
               body="A handle is your address on Vallo. Everything you write around a place collects here once you have one."
             />
           ) : (
-            /* The public page's own panel, not a second one built for this
-               screen. A post has to look and behave the same wherever it is
-               read, and the empty copy for somebody's own page is already
-               written there. */
             <ProfilePosts
               tab="posts"
               handle={handle}
@@ -375,26 +349,6 @@ export function AccountBody({
       <DetailsSheet open={editing} onClose={() => setEditing(false)} details={details} />
     </div>
   );
-}
-
-/**
- * The profile's own empty tab.
- *
- * Was a fourth distinct shape: a card, a 56px object and a 1rem title, against
- * the social layer's 80px and the property side's 64px. It is the platform's
- * one `EmptyState` now, so the Posts tab of your own profile and the Saved
- * screen you reach from the same rail no longer look like two products.
- */
-function EmptyPanel({
-  icon,
-  title,
-  body,
-}: {
-  icon: "chat" | "user-verified";
-  title: string;
-  body: string;
-}) {
-  return <EmptyState icon={icon} title={title} body={body} />;
 }
 
 /* ------------------------------------------------------------------ sheet */

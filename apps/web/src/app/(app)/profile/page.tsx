@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import "./profile.css";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
@@ -13,6 +15,9 @@ import { getMode } from "@/lib/mode";
 import { RoleSwitcher } from "@/components/roles/RoleSwitcher";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
+import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
+import { loadBelongings } from "./belongings-queries";
+import { switchParamTarget, switchRoleLine } from "./belongings";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -41,9 +46,11 @@ const SIGNED_OUT_ROLES: RoleState[] = [
  * screen, they were two people, and only one of them looked like it belonged to
  * this platform.
  *
- * So the header here is now the social header, class for class, with both
- * photos changeable in place. Underneath it, two tabs: everything that belongs
- * to you as grouped rows, and what you have actually written.
+ * It is built to `50E032EA` now, on this surface's own classes (`profile.css`,
+ * `nf-pf-*`): the cover, the round face on its lit ring, the counts, the
+ * Belongings and Posts control, the four belongings rows and Switch role.
+ * Every figure on it is read from the database; the whole chain is written
+ * out in `docs/BUILD_SESSION_B_LEDGER.md`, section 1.
  *
  * **The cover, the counts and the posts all need a claimed handle**, because
  * they all live on `social_profiles`. Somebody who has not claimed one is not
@@ -56,14 +63,19 @@ const SIGNED_OUT_ROLES: RoleState[] = [
  * and 5 reviews to somebody who had never booked anything, because those three
  * numbers were constants in the file. See `SignedOutHero`.
  */
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const params = await searchParams;
 
-  // Three reads that do not depend on each other, so they cost one round trip
-  // rather than three. On the connections this product is built for that is the
-  // difference between a page and a wait.
-  const [account, social, agentContext, mode] = await Promise.all([
+  // Reads that do not depend on each other, so they cost one round trip rather
+  // than six. `resolveWorkspaces` is React-cached and the app layout has
+  // already run it for this request, so it costs nothing here.
+  const [account, social, agentContext, mode, belongings, held] = await Promise.all([
     loadProfileState(),
     loadAccountSocialIdentity(),
     /*
@@ -76,6 +88,8 @@ export default async function ProfilePage() {
      */
     getAgentContext(),
     getMode(),
+    loadBelongings(),
+    resolveWorkspaces(),
   ]);
 
   const agentFacts: AgentFacts =
@@ -87,6 +101,16 @@ export default async function ProfilePage() {
         }
       : null;
   const rolesView = roleStateFrom(agentFacts, mode);
+
+  /*
+   * `/profile?switch=owner` is a live link (`/agents` redirects to it, and the
+   * home and search empty states point at it). It used to open the old role
+   * sheet on the owner explanation; it now lands where that sheet would have
+   * sent the person, decided from the account's real agent row. Signed out,
+   * the setup routes put up the sign-in door themselves.
+   */
+  const switchTarget = switchParamTarget(params.switch, rolesView.roles);
+  if (switchTarget) redirect(switchTarget);
 
   const identity = social.state === "claimed" ? social.identity : null;
 
@@ -104,16 +128,17 @@ export default async function ProfilePage() {
     belongings: t.socialProfile.belongings,
     posts: t.socialProfile.posts,
     myBookings: t.socialProfile.myBookings,
-    myBookingsSub: t.socialProfile.myBookingsRow,
-    savedSub: t.socialProfile.savedRow,
-    walletSub: t.socialProfile.walletRow,
+    /* The render's own wording, one line each at 390 at the row's 12px. */
+    myBookingsSub: t.socialProfile.myBookingsSub,
+    savedSub: t.socialProfile.savedSub,
+    walletSub: t.socialProfile.walletSub,
     inspections: t.nav.inspections,
-    inspectionsSub: t.socialProfile.inspectionsRow,
+    inspectionsSub: t.socialProfile.inspectionsSub,
   };
 
   if (account.state !== "signed-in") {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="nf-pf">
         <SignedOutHero unconfigured={account.state === "unconfigured"} />
 
         {account.state === "no-row" && (
@@ -165,19 +190,7 @@ export default async function ProfilePage() {
   const placeLabel = [profile.place.lgaName, profile.place.stateName].filter(Boolean).join(", ");
 
   return (
-    <div className="mx-auto max-w-2xl">
-      {/*
-        The calm verification prompt.
-
-        Renders for a seller or an agent who has applied and not been verified,
-        and for nobody else. A renter or buyer is NEVER asked to verify, so this
-        returns null for them by construction rather than by a condition
-        somebody has to remember here.
-      */}
-      {rolesView.roles.map((role) => (
-        <VerifyPrompt key={role.id} role={role} className="mb-md" />
-      ))}
-
+    <div className="nf-pf">
       <AccountHero
         userId={profile.userId}
         displayName={
@@ -198,12 +211,18 @@ export default async function ProfilePage() {
               }
             : null
         }
-        metaLine={{
-          place: placeLabel,
-          joined: `Joined ${monthAndYear(profile.memberSince)}`,
-        }}
         locale={locale}
       />
+
+      {/*
+        The calm verification prompt, under the person rather than above the
+        cover: the cover runs up behind the app header and nothing may sit on
+        top of it. Renders for a seller or an agent who has applied and not
+        been verified, and for nobody else. A renter or buyer is never asked.
+      */}
+      {rolesView.roles.map((role) => (
+        <VerifyPrompt key={role.id} role={role} className="nf-pf-verify" />
+      ))}
 
       <AccountBody
         counts={profile.counts}
@@ -221,18 +240,15 @@ export default async function ProfilePage() {
         handle={identity?.handle ?? null}
         hasBio={(identity?.bio.length ?? 0) > 0}
         locale={locale}
+        facts={belongings}
         /*
-          SWITCHING WHAT YOU ARE HERE TO DO, as the last belongings row.
-
-          One account holds all three roles and switching between them never
-          asks for a second one. The row opens a sheet; picking a role that is
-          not set up explains what it is and what setting it up involves rather
-          than dead-ending on a refusal screen. It used to sit above the cover;
-          `50E032EA` draws it under the rows, which is where it is now.
+          SWITCH ROLE, the last row. It opens the workspace sheet the dock
+          opens (Personal, every workspace held with its standing, the
+          operations console for staff, and Add a workspace), and the line
+          under it names only what this account actually holds.
         */
-        roleSwitch={
-          <RoleSwitcher roles={rolesView.roles} current={rolesView.current} variant="row" />
-        }
+        switchLine={switchRoleLine(held.workspaces)}
+        memberSince={monthAndYear(profile.memberSince)}
       />
     </div>
   );

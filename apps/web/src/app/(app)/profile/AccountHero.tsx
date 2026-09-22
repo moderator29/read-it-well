@@ -1,59 +1,67 @@
 "use client";
 
+import "./profile.css";
 import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BackChevron } from "@/components/social/profile/BackChevron";
+import { useBack } from "@/lib/nav/use-back";
 import { setAvatar } from "@/lib/profile/actions";
 import { setSocialCover } from "@/lib/social/profiles-actions";
 import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { COPY } from "./belongings";
 
 /**
- * The top of your own account, wearing the same identity as your public page.
+ * THE TOP OF YOUR OWN PROFILE, BUILT TO `50E032EA`.
  *
- * `/profile` and `/u/[handle]` used to be two different ideas of one person.
- * One had a cover running edge to edge, an avatar on the stride ring and a real
- * follower count; the other had a monogram in a white box and three numbers in
- * a bordered strip. They were not two designs of a screen, they were two
- * people, and only one of them looked like it belonged here.
+ * Measured off the render (a 658px screen inside the frame, so one CSS pixel at
+ * 390 is 1.687 image pixels; every number is in the ledger, section 1): a dusk
+ * photograph across the top that fades into the page, a rounded-square glass
+ * back control at the upper left and a settings gear at the upper right riding
+ * on it, then the person. An 88px ROUND face on a lit blue ring with a small
+ * tick at its lower right, and beside it the name with its tick, the handle,
+ * one line of bio, and Followers and Following split by a hairline.
  *
- * So this is the social header, on the account. Identical classes, identical
- * proportions, deliberately: the cover behind the person, the avatar overlapping
- * its lower edge from below, the name, the handle, the counts. Somebody moving
- * between their account and their page should not be able to feel the seam.
+ * Every word and number here is the database's:
  *
- * **Both photos are changed here, in place.** Neither ever could be from the
- * account page: the avatar lived in a 60px button beside a name, and the cover
- * did not exist at all outside the social profile editor. Tapping either one
- * now opens the picker, which is where anybody would look for it first.
+ *   name       `profiles.display_name` (first and surname as the fallback)
+ *   handle     `social_profiles.handle`
+ *   bio        `social_profiles.bio`
+ *   counts     `social_profiles.follower_count` and `following_count`, kept by
+ *              the `follows_count` trigger (`bump_follow_counts`) on every
+ *              follow and unfollow
+ *   ticks      `social_profiles.is_agent`, which `agents_sync_social_flag`
+ *              sets true only for an APPROVED agent row. A tick is never drawn
+ *              for anything a member of staff did not decide.
+ *   face       `profiles.avatar_url`
+ *   cover      `social_profiles.cover_path`, or the founder's villa plate
+ *              when nobody has set one
  *
- * Both are re-encoded through a canvas before upload, which strips every piece
- * of metadata including the GPS tag a phone camera writes. A failed re-encode
- * REFUSES the file rather than falling back to the original: both buckets are
- * public, and a geotagged photo in a public bucket tells the internet where
- * somebody sleeps.
+ * These classes are this surface's own (`nf-pf-*`, in `profile.css`) and not
+ * the social layer's. The public page at `/u/[handle]` still wears the social
+ * classes in `social.css`, which is the other session's file; the two used to
+ * share one set, and every change made for one moved the other.
  *
- * The cover write needs a claimed handle, because `social_profiles` is where a
- * cover lives. Somebody who has not claimed one is not shown a control that
- * cannot work; they are shown the offer instead.
+ * BOTH PHOTOS ARE CHANGED HERE. Tapping the face opens its picker; the
+ * "Cover photo" row under the belongings opens the cover's. Both are
+ * re-encoded through a canvas before upload, which strips the GPS tag a phone
+ * camera writes. A failed re-encode REFUSES the file rather than falling back
+ * to the original: both buckets are public.
  */
 
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+/** The cover picker's id, pressed by the "Cover photo" row in `AccountBody`. */
+export const COVER_INPUT_ID = "account-cover-input";
 const AVATAR_MAX_EDGE = 512;
+const COMPACT: Intl.NumberFormatOptions = { notation: "compact", maximumFractionDigits: 1 };
 
-/**
- * The cover a person has not set yet: the founder's villa plate, compressed
- * and sized through next/image. A photograph rather than the gradient band,
- * because `50E032EA` opens on one and a page that looks finished before
- * anybody has uploaded anything is the whole point of the profile.
- */
-const COVER_PLATE = "/brand/photos/villa-pool-skyline-01.jpg";
+/** The cover a person has not set yet: the founder's dusk villa over water with the skyline behind it, the same scene `50E032EA` opens on. */
+const COVER_PLATE = "/brand/photos/villa-pool-skyline-02.jpg";
 
 export type HeroIdentity = {
   handle: string;
@@ -71,7 +79,6 @@ export function AccountHero({
   email,
   avatarUrl,
   identity,
-  metaLine,
   locale,
 }: {
   userId: string;
@@ -80,18 +87,21 @@ export function AccountHero({
   avatarUrl: string;
   /** Null when this person has not claimed a handle. */
   identity: HeroIdentity | null;
-  /** Place and member-since, already worded and localised by the page. */
-  metaLine: { place: string; joined: string };
   /**
-   * The locale, NOT a formatter. See the long note in `AccountBody`: handing a
-   * function across the server/client boundary is what made this whole page
-   * answer 500 to every signed-in person while every database probe came back
-   * clean.
+   * Place and member-since. Accepted for the callers that still pass it; the
+   * render draws neither in the header, so both now live in the account rows
+   * under the belongings, where nothing is lost.
    */
+  metaLine?: { place: string; joined: string };
+  /** The locale, NOT a formatter: a function cannot cross into a client component. */
   locale: Locale;
 }) {
   const router = useRouter();
-  const formatCount = (value: number) => formatNumber(value, locale);
+  const back = useBack("/home");
+  /* The render writes 12.4K: from ten thousand a count is compact, below
+     it every digit shows. The figure itself is always the database's. */
+  const formatCount = (value: number) =>
+    value >= 10_000 ? formatNumber(value, locale, COMPACT) : formatNumber(value, locale);
   const coverInput = useRef<HTMLInputElement>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
 
@@ -104,6 +114,7 @@ export function AccountHero({
   const monogram = (displayName.trim() || identity?.handle || email || "?")
     .charAt(0)
     .toUpperCase();
+  const verified = identity?.isAgent === true;
 
   async function prepare(file: File, square: boolean): Promise<Blob | null> {
     setError(null);
@@ -149,8 +160,6 @@ export function AccountHero({
         setError(result.error);
         return;
       }
-      // Read the URL back off the render rather than guessing it: the action
-      // returns the path the database actually stored.
       router.refresh();
       setCover(URL.createObjectURL(blob));
     } catch {
@@ -193,14 +202,10 @@ export function AccountHero({
   }
 
   return (
-    <header data-testid="account-hero">
+    <header className="nf-pf-hero" data-testid="account-hero">
       {/* ------------------------------------------------------- the cover */}
-      <div className="nf-social-cover nf-social-cover--profile">
+      <div className="nf-pf-cover">
         {cover ? (
-          /* The bucket is public, so the CDN URL renders without a signed
-             request. next/image is skipped for it exactly as the social header
-             does: one image from a host that only exists once the platform
-             keys land. The plate below IS optimised: it is ours. */
           <RemoteImage
             src={cover}
             alt=""
@@ -208,7 +213,7 @@ export function AccountHero({
             height={400}
             sizes="(max-width: 768px) 100vw, 768px"
             priority
-            className="nf-social-cover__photo"
+            className="nf-pf-cover__photo"
           />
         ) : (
           <Image
@@ -217,178 +222,126 @@ export function AccountHero({
             fill
             priority
             sizes="(max-width: 768px) 100vw, 768px"
-            className="nf-social-cover__plate"
+            className="nf-pf-cover__photo nf-pf-cover__photo--plate"
           />
         )}
-        <div className="nf-social-cover__scrim" aria-hidden="true" />
+        {/* The dusk grade and the fade into the page, one layer each. */}
+        <span className="nf-pf-cover__grade" aria-hidden="true" />
+        <span className="nf-pf-cover__fade" aria-hidden="true" />
 
-        {/* Back at the top left, settings at the top right, both glass
-            squares riding on the photograph as the render draws them. */}
-        <div className="nf-social-float nf-social-float--start">
-          <BackChevron fallback="/home" />
+        <div className="nf-pf-float nf-pf-float--start">
+          <button
+            type="button"
+            onClick={back}
+            aria-label="Back"
+            className="nf-pf-glassbtn"
+            data-testid="profile-back"
+          >
+            <UiIcon name="arrow-left" size="sm" />
+          </button>
         </div>
-        <div className="nf-social-float nf-social-float--end">
+        <div className="nf-pf-float nf-pf-float--end">
           <Link
             href="/settings"
-            className="nf-social-round"
+            className="nf-pf-glassbtn"
             aria-label="Settings"
             data-testid="account-settings-button"
           >
-            <UiIcon name="settings-gear" size={20} />
+            <UiIcon name="settings-gear" size="sm" />
           </Link>
         </div>
 
-        {/* The cover is changed in place through one quiet glass square at
-            the foot of the band: the render draws no words on its cover,
-            and the square's name says what it does. */}
-        {identity && (
-          <div className="nf-social-cover__change">
-            <button
-              type="button"
-              onClick={() => coverInput.current?.click()}
-              disabled={busy !== null}
-              className="nf-social-round"
-              aria-label={busy === "cover" ? "Working" : cover ? "Change cover" : "Add a cover"}
-              title={cover ? "Change cover" : "Add a cover"}
-              data-testid="account-cover-button"
-            >
-              <UiIcon name={busy === "cover" ? "sparkle" : "picture"} size={18} />
-            </button>
-          </div>
-        )}
       </div>
 
       {/* --------------------------------- the person, beside the picture */}
-      <div className="nf-profile-identity">
+      <div className="nf-pf-id">
         <button
           type="button"
           onClick={() => avatarInput.current?.click()}
           disabled={busy !== null}
           aria-label={avatar ? "Change your photo" : "Add a photo of you"}
-          className="nf-profile-avatar"
+          className="nf-pf-avatar"
           data-testid="account-avatar-button"
         >
-          <span className="nf-profile-avatar__disc">
+          <span className="nf-pf-avatar__disc">
             {avatar ? (
-              <RemoteImage src={avatar} alt="" width={192} height={192} sizes="96px" />
+              <RemoteImage src={avatar} alt="" width={192} height={192} sizes="88px" />
             ) : (
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* The mark at the foot of the ring: the verified shield on an
-              APPROVED agent, because that is the one state where a human was
-              checked; otherwise the quiet pencil saying the photo is a
-              control. */}
-          {identity?.isAgent ? (
-            <span className="nf-profile-avatar__badge" aria-hidden="true">
-              <UiIcon name="verified-badge" size={16} />
+          {/* The tick at the foot of the ring, only for an APPROVED agent; for
+              everybody else a quiet picture mark saying the face is a control. */}
+          {verified ? (
+            <span className="nf-pf-avatar__badge" aria-hidden="true">
+              <UiIcon name="verified-badge" size="xs" />
             </span>
           ) : (
-            <span className="nf-profile-avatar__badge nf-profile-avatar__badge--quiet" aria-hidden="true">
-              <UiIcon name={busy === "avatar" ? "sparkle" : "settings-gear"} size={14} />
+            <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">
+              <UiIcon name={busy === "avatar" ? "sparkle" : "picture"} size="2xs" />
             </span>
           )}
         </button>
 
-        <div className="nf-profile-text">
-          <h1 className="nf-social-name">
-            <span className="truncate-none">{shownName}</span>
-            {identity?.isAgent ? (
+        <div className="nf-pf-id__text">
+          <h1 className="nf-pf-name">
+            <span className="nf-pf-name__text">{shownName}</span>
+            {verified ? (
               <span
-                className="nf-social-verified"
+                className="nf-pf-name__tick"
                 title="A verified Vallo agent"
                 aria-label="Verified agent"
                 role="img"
               >
-                <UiIcon name="verified-badge" size={18} />
+                <UiIcon name="verified-badge" size="sm" />
               </span>
             ) : null}
           </h1>
-          {identity ? (
-            <p className="nf-social-handle">@{identity.handle}</p>
-          ) : (
-            <p className="nf-social-handle">{email}</p>
-          )}
+          <p className="nf-pf-handle">{identity ? `@${identity.handle}` : email}</p>
 
-          {identity?.bio ? <p className="nf-social-bio">{identity.bio}</p> : null}
+          {identity?.bio ? <p className="nf-pf-bio">{identity.bio}</p> : null}
 
-          {/* Followers and Following, a rule between them, both real routes. */}
           {identity ? (
-            <div className="nf-social-counts">
-              <Link href={`/u/${identity.handle}/followers`} className="nf-social-count">
-                <span className="nf-social-count__value nf-numeric">
+            <div className="nf-pf-counts">
+              <Link href={`/u/${identity.handle}/followers`} className="nf-pf-count">
+                <span className="nf-pf-count__value nf-numeric">
                   {formatCount(identity.followerCount)}
                 </span>
-                <span className="nf-social-count__label">Followers</span>
+                <span className="nf-pf-count__label">Followers</span>
               </Link>
-              <span className="nf-social-count__rule" aria-hidden="true" />
-              <Link href={`/u/${identity.handle}/following`} className="nf-social-count">
-                <span className="nf-social-count__value nf-numeric">
+              <span className="nf-pf-counts__rule" aria-hidden="true" />
+              <Link href={`/u/${identity.handle}/following`} className="nf-pf-count">
+                <span className="nf-pf-count__value nf-numeric">
                   {formatCount(identity.followingCount)}
                 </span>
-                <span className="nf-social-count__label">Following</span>
+                <span className="nf-pf-count__label">Following</span>
               </Link>
             </div>
           ) : null}
         </div>
       </div>
 
-      {(metaLine.place || metaLine.joined) && (
-        <div className="nf-social-meta">
-          {metaLine.place && (
-            <span>
-              <UiIcon name="location" size={16} />
-              {metaLine.place}
-            </span>
-          )}
-          {metaLine.joined && (
-            <span>
-              <UiIcon name="calendar-booking" size={16} />
-              {metaLine.joined}
-            </span>
-          )}
+      {!identity && (
+        <div className="nf-pf-claim">
+          <Link href="/u/me/edit" className="nf-pf-litbtn" data-testid="profile-claim-handle">
+            {COPY.claimHandle}
+          </Link>
+          <p className="nf-pf-claim__note">{COPY.claimHandleNote}</p>
         </div>
       )}
 
-      {/* ------------------------------------------------------ the actions */}
-      <div className="nf-profile-actions">
-        {identity ? (
-          <>
-            <Link href={`/u/${identity.handle}/edit`} className="nf-profile-actions__link">
-              <UiIcon name="settings-gear" size={16} />
-              Edit profile
-            </Link>
-            <Link
-              href={`/u/${identity.handle}`}
-              className="nf-profile-actions__link"
-              data-testid="account-public-page"
-            >
-              <UiIcon name="link" size={16} />
-              Your public page
-            </Link>
-          </>
-        ) : (
-          <Link href="/u/me/edit" className="nf-btn nf-btn--primary w-full sm:w-auto">
-            Claim your handle
-          </Link>
-        )}
-      </div>
-
-      {!identity && (
-        <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-          A handle is your address on Vallo. Claim one and this page gets a cover, a
-          public page and somewhere for what you write to live.
-        </p>
-      )}
-
       {error && (
-        <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-pf-error">
           {error}
         </p>
       )}
 
+      {/* The cover's picker. `50E032EA` draws nothing on the cover but back
+          and settings, so the control that opens this is the "Cover photo" row
+          under the belongings (`COVER_INPUT_ID`), not a third square here. */}
       <input
         ref={coverInput}
+        id={COVER_INPUT_ID}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         className="hidden"

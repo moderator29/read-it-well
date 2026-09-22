@@ -60,8 +60,6 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(app)/profile/belongings.ts` (new: pure helpers for the row values and the Switch role line)
 - `apps/web/src/app/(app)/profile/belongings-queries.ts` (new: the head counts and balance the rows carry)
 - `apps/web/src/app/(app)/profile/SwitchRoleRow.tsx` (new: the Switch role row, opening the dock's own workspace sheet)
-- `apps/web/src/app/(app)/profile/profile-harness` is NOT a file of ours: proofs
-  come from a throwaway harness that is never committed.
 - NOT `profile/setup/**` and NOT `profile/application/**`
 
 ### Get started
@@ -278,6 +276,21 @@ refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
    name. Request: an optional `renderTrigger(open)` prop, or an exported
    `openProfileSwitcher()` event, so the row can open the sheet directly.
    Session B will switch the row over the day it lands.
+1b. **Profile, copy into the dictionary.** The rebuilt `/profile` carries a
+   handful of new English strings (row values "upcoming", "saved", "open"; the
+   Switch role title and its lines; the group labels and row labels below the
+   fold), gathered in ONE object, `COPY` in
+   `apps/web/src/app/(app)/profile/belongings.ts`, the precedent
+   `components/roles/roles.ts` set. There is no `profile` namespace in
+   `packages/i18n` and `socialProfile` is not Session B's to add to. Request:
+   either a `profile` namespace Session B may add keys to, or move these into
+   `socialProfile` yourselves; Session B then reads them from the dictionary.
+1c. **Profile, a stale selector in a spec.** `apps/web/tests/profile.spec.mjs`
+   asserts `.nf-social-cover` on `/profile` in both branches. The profile now
+   draws its own cover as `.nf-pf-cover` (`profile.css`), so the public page's
+   social classes and the account page no longer move each other. Request:
+   change both selectors to `.nf-pf-cover`. `tests/profile-renders.spec.mjs`
+   still passes unchanged.
 
 ### Requests from admin-money (money, escrow, supply, bookings, payments)
 
