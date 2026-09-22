@@ -84,6 +84,52 @@ export function emailFrom(): string {
   return configured.length > 0 ? configured : DEFAULT_FROM;
 }
 
+/**
+ * Where a reply lands when the message did not say.
+ *
+ * THE DEFECT THIS ENDS. Every message this platform sends goes out From a
+ * sender nobody reads. `reply_to` has been on the wire format since the
+ * beginning and nothing ever set it, so somebody replying to a booking
+ * confirmation, which is the most natural thing in the world to do, was
+ * writing into a mailbox with nobody behind it. The reply was not bounced and
+ * was not refused. It simply went nowhere, and the person had no way to know.
+ *
+ * Unset is still a valid configuration and behaves exactly as before: no
+ * `reply_to` reaches the wire at all. This is a default, not a requirement.
+ *
+ * NEVER the private founder mailbox. Whatever address is set here is printed
+ * in the headers of every message the platform sends and is as public as the
+ * From line.
+ */
+export function emailReplyTo(): string {
+  return usableReplyTo(process.env.EMAIL_REPLY_TO ?? "");
+}
+
+/**
+ * A reply address we are willing to put on the wire, or an empty string.
+ *
+ * It accepts both shapes Resend accepts, a bare `hello@vallospaces.com` and a
+ * labelled `Vallo <hello@vallospaces.com>`, because rejecting the labelled one
+ * would drop a correctly configured address in silence. Silently discarding
+ * what somebody configured is the same class of fault as an input that
+ * truncates a pasted code: the system keeps working, the intent is gone, and
+ * nothing says so. Anything that is not one of those two shapes is refused
+ * loudly enough to find in a log and never guessed at.
+ */
+function usableReplyTo(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return "";
+
+  const labelled = /^[^<>]*<([^\s<>@]+@[^\s<>@.]+\.[^\s<>@]+)>$/.exec(trimmed);
+  const address = labelled ? labelled[1] : trimmed;
+  if (ADDRESS_RE.test(address ?? "")) return trimmed;
+
+  /* The address itself is never logged. It is a company mailbox rather than a
+     person's, but an address in a log is an address in a log. */
+  console.warn("[email] a reply address was configured but is not a valid address, ignoring it");
+  return "";
+}
+
 /** Resend's success body is {id}; its error body is {name, message, statusCode}. */
 type ResendResponse = {
   id?: unknown;
@@ -104,7 +150,10 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
   const to = message.to.trim();
   if (!ADDRESS_RE.test(to)) return { sent: false, reason: "invalid-recipient" };
 
-  const replyTo = message.replyTo?.trim() ?? "";
+  /* The message wins when it says, the environment answers when it does not,
+     and when neither speaks no `reply_to` is sent, which is exactly what this
+     module did before the default existed. */
+  const replyTo = usableReplyTo(message.replyTo ?? "") || emailReplyTo();
 
   let res: Response;
   try {
@@ -123,7 +172,7 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
         ...(typeof message.text === "string" && message.text.length > 0
           ? { text: message.text }
           : {}),
-        ...(ADDRESS_RE.test(replyTo) ? { reply_to: replyTo } : {}),
+        ...(replyTo.length > 0 ? { reply_to: replyTo } : {}),
       }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       cache: "no-store",

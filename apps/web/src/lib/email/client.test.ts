@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { bestEffortEmail, emailFrom, isEmailConfigured, sendEmail, sendMessage } from "./client";
+import {
+  bestEffortEmail,
+  emailFrom,
+  emailReplyTo,
+  isEmailConfigured,
+  sendEmail,
+  sendMessage,
+} from "./client";
 
 /**
  * The send guards, checked as behaviour.
@@ -27,6 +34,7 @@ import { bestEffortEmail, emailFrom, isEmailConfigured, sendEmail, sendMessage }
 
 const KEY = "RESEND_API_KEY";
 const FROM = "EMAIL_FROM";
+const REPLY_TO = "EMAIL_REPLY_TO";
 
 let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -203,6 +211,63 @@ describe("nothing private is written to the logs", () => {
     for (const secret of ["ada.obi@example.com", "4471", "Herbert Macaulay"]) {
       expect(logged).not.toContain(secret);
     }
+  });
+});
+
+describe("where a reply lands", () => {
+  /*
+   * `reply_to` was on the wire format from the beginning and nothing ever set
+   * it, so a reply to a booking confirmation went to a From address nobody
+   * reads. It was not bounced and not refused. It simply went nowhere, which
+   * is the worst way for a message to fail, because the person who sent it has
+   * no way to know.
+   */
+
+  it("sends no reply address at all when nothing is configured", async () => {
+    await sendMessage("ada@example.com", MESSAGE);
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
+    // Exactly as this module behaved before the default existed.
+    expect("reply_to" in body).toBe(false);
+  });
+
+  it("puts EMAIL_REPLY_TO on every message once it is set", async () => {
+    vi.stubEnv(REPLY_TO, "hello@vallospaces.com");
+    await sendMessage("ada@example.com", MESSAGE);
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
+    expect(body.reply_to).toBe("hello@vallospaces.com");
+  });
+
+  it("keeps a label, because Resend takes one and dropping it is silent", () => {
+    vi.stubEnv(REPLY_TO, "Vallo <hello@vallospaces.com>");
+    expect(emailReplyTo()).toBe("Vallo <hello@vallospaces.com>");
+  });
+
+  it("lets a message that names its own reply address win", async () => {
+    vi.stubEnv(REPLY_TO, "hello@vallospaces.com");
+    await sendMessage("ada@example.com", MESSAGE, { replyTo: "agent@vallospaces.com" });
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
+    expect(body.reply_to).toBe("agent@vallospaces.com");
+  });
+
+  it("refuses a configured value that is not an address, and says so", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv(REPLY_TO, "not an address");
+    await sendMessage("ada@example.com", MESSAGE);
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
+    expect("reply_to" in body).toBe(false);
+    expect(warn).toHaveBeenCalled();
+    // The value is never in the log, valid or not.
+    expect(warn.mock.calls.flat().join(" ")).not.toContain("not an address");
+    warn.mockRestore();
+  });
+
+  it("falls back to the configured address when a message names a bad one", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv(REPLY_TO, "hello@vallospaces.com");
+    await sendMessage("ada@example.com", MESSAGE, { replyTo: "nonsense" });
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
+    expect(body.reply_to).toBe("hello@vallospaces.com");
+    warn.mockRestore();
   });
 });
 
