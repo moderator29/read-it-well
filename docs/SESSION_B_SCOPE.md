@@ -504,7 +504,7 @@ E3. **Fixtures.** `fixtures.ts` still renders the welcome with
 Checked by read-only SQL against production on 22 September. Session B has not
 made these; the surfaces ship the honest state around each.
 
-W1. **A second tap on Send sends twice.** `SendFlow` posts an
+W1. **BLOCKER, MONEY SAFETY. A second tap on Send sends twice.** `SendFlow` posts an
     `idempotencyKey` minted once per mount, and `transferSchema`
     (`lib/wallet/schema.ts`) drops it, so `transferToUser`
     (`lib/wallet/actions.ts`) never sees it. The pair id is a fresh
