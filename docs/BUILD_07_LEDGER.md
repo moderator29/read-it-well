@@ -3646,3 +3646,631 @@ THREE values must be identical, and at least one is not:
 The 16:47 evidence proves Vault does not equal the host. `CRON_SECRET` was
 created separately at about 16:25 and has not been compared to anything yet;
 the 17:05 run is its first test.
+
+## 25. IMG-C: THE STAYS SET-UP, BUILT TO `GOVERNING-09` THROUGH `GOVERNING-12`
+
+The founder's standard for this stint is one sentence and it is the only one
+that matters: **build every one of them almost exactly if not exactly as drawn,
+and close each against its image with a side by side, and do not close one
+without that row.** This section is IMG-C's four images, closed that way, with
+every departure named rather than left to be discovered.
+
+**The gate was taken at `be2713e`,** "staff the founder's eight, and write down
+who owns which file", on a clean worktree at a fetched `origin/main`. Every
+proof below came off `next build` plus `next start` on that worktree with
+`NEXT_DIST_DIR=.next-imgc`, never `next dev`, and the dist directory was
+removed between builds because this box ran out of disk twice today.
+
+### WHAT WAS THERE, MEASURED RATHER THAN RECALLED
+
+`GOVERNING-09`'s three stays doors existed and worked (`/host/start`,
+`StaysDoors`, `lib/host/doors.ts`). Everything behind them was one generic
+wizard: a step called "The property" with a name box, a description box, a star
+select, two time inputs, a rules textarea and a policy select; a step called
+"Rooms and rates" with a room form and a rate form; and a step called "Service
+and seating" that asked a restaurateur for their cuisines as a
+comma-separated string in a single text box and for a price band as a number.
+
+`stepsFor` branched on the HOST TYPE and nothing else, so **a shortlet
+operator and a hotelier got identical screens.** Somebody letting one
+two-bedroom flat in Lekki was asked to name a "room type", pick whether it was
+a twin or a dorm, and say how many of it they had. The honest answer to every
+one of those three questions is none of the above.
+
+### THE SIX PANELS THAT DID NOT EXIST, AND THE TWO MORE THAT FOLLOWED THEM
+
+| Image and screen | Panel | Built as |
+| --- | --- | --- |
+| `GOVERNING-10` 1 | Your hotel | `components/host/stays/HotelStep.tsx` |
+| `GOVERNING-10` 2 | Your room types | `components/host/stays/RoomTypesStep.tsx` |
+| `GOVERNING-10` 3 | Rates | `components/host/stays/RatesStep.tsx` |
+| `GOVERNING-10` 4 | Facilities and photos | `components/host/stays/FacilitiesStep.tsx` |
+| `GOVERNING-11` 1 | Your place | `components/host/stays/PlaceStep.tsx` |
+| `GOVERNING-11` 2 | House rules and cancellation | `components/host/stays/HouseRulesStep.tsx` |
+| `GOVERNING-11` 3 | Your restaurant | `components/host/stays/RestaurantStep.tsx` |
+| `GOVERNING-11` 4 | Tables and hours | `components/host/stays/TablesStep.tsx` |
+
+Six were named as not built. Two more came with them because the render draws
+the set: screen two of `GOVERNING-10` had a list of room types and none of the
+drawn object around it, and screen four had a row of pills where the render
+draws a grid of tiles.
+
+`stepsFor` now takes the BUSINESS KIND as well as the host type, so the eight
+above are three different flows rather than one: a hotelier gets hotel,
+room-types, rates, facilities; a shortlet operator gets place, house-rules,
+facilities; a restaurant gets restaurant, tables. `lib/host/onboarding.test.ts`
+and `lib/host/doors.test.ts` assert all three, including that a shortlet
+operator who is a REGISTERED COMPANY still gets `GOVERNING-11`'s screens,
+because the branch is the kind's and not the host type's.
+
+### THE SIDE BY SIDE. NO ROW, NO CLOSE.
+
+Every shot is 2x, full page, off the production server, with the theme seeded
+before the first navigation and the page refused outright on any status that
+is not 2xx. `overflowX` was measured on every one of the twenty-four and is
+zero everywhere, which is the 390 rule tested rather than eyeballed.
+
+| # | Governing image | Our page, 390 dark | 390 light | 1536 dark | Closed |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `GOVERNING-10` screen 1, Your hotel | [g10-1](design/proofs/imgc/g10-1-your-hotel-390-dark.png) | [light](design/proofs/imgc/g10-1-your-hotel-390-light.png) | [1536](design/proofs/imgc/g10-1-your-hotel-1536-dark.png) | yes, with two named departures |
+| 2 | `GOVERNING-10` screen 2, Your room types | [g10-2](design/proofs/imgc/g10-2-room-types-390-dark.png) | [light](design/proofs/imgc/g10-2-room-types-390-light.png) | [1536](design/proofs/imgc/g10-2-room-types-1536-dark.png) | yes, with the thumbnail named |
+| 3 | `GOVERNING-10` screen 3, Rates | [g10-3](design/proofs/imgc/g10-3-rates-390-dark.png) | [light](design/proofs/imgc/g10-3-rates-390-light.png) | [1536](design/proofs/imgc/g10-3-rates-1536-dark.png) | yes, with the cancellation block named |
+| 4 | `GOVERNING-10` screen 4, Facilities and photos | [g10-4](design/proofs/imgc/g10-4-facilities-and-photos-390-dark.png) | [light](design/proofs/imgc/g10-4-facilities-and-photos-390-light.png) | [1536](design/proofs/imgc/g10-4-facilities-and-photos-1536-dark.png) | yes, two tiles absent and said so |
+| 5 | `GOVERNING-11` screen 1, Your place | [g11-1](design/proofs/imgc/g11-1-your-place-390-dark.png) | [light](design/proofs/imgc/g11-1-your-place-390-light.png) | [1536](design/proofs/imgc/g11-1-your-place-1536-dark.png) | drawn, NOT saveable until the migration runs |
+| 6 | `GOVERNING-11` screen 2, House rules and cancellation | [g11-2](design/proofs/imgc/g11-2-house-rules-390-dark.png) | [light](design/proofs/imgc/g11-2-house-rules-390-light.png) | [1536](design/proofs/imgc/g11-2-house-rules-1536-dark.png) | yes, with the refund sentence moved |
+| 7 | `GOVERNING-11` screen 3, Your restaurant | [g11-3](design/proofs/imgc/g11-3-your-restaurant-390-dark.png) | [light](design/proofs/imgc/g11-3-your-restaurant-390-light.png) | [1536](design/proofs/imgc/g11-3-your-restaurant-1536-dark.png) | yes |
+| 8 | `GOVERNING-11` screen 4, Tables and hours | [g11-4](design/proofs/imgc/g11-4-tables-and-hours-390-dark.png) | [light](design/proofs/imgc/g11-4-tables-and-hours-390-light.png) | [1536](design/proofs/imgc/g11-4-tables-and-hours-1536-dark.png) | yes, with the sitting duration named inert |
+
+The preview routes the shots come from are `/preview/imgc/*`, real components
+on fixture props with every write a no-op, behind `previewHarnessIsOpen`. Every
+figure in those fixtures is the render's own: Lagoon Suites, RC 1234567, Plot
+12 Admiralty Way, four stars, 85,000 and 105,000 a night, The Lagoon Grill.
+Nothing in them is a number this build invented.
+
+### THE RATIO SWEEP
+
+`scripts/design/compare-surface.mjs --shape-sweep --theme both` over all eight
+routes at 390 and 1536, in dark and light, saved at
+`docs/design/proofs/imgc/ratio-sweep.txt`:
+
+```
+BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
+WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 0
+ROUND ICON-ONLY CONTROLS: 296
+```
+
+All 296 are `nf-stays-head__seg`, the progress segments, which carry no text
+and which all twelve governing images draw as rounded capsules. The shape law
+is about a control that CARRIES TEXT, so they are the case it exempts rather
+than a breach it tolerates. The three controls that were most likely to breach
+it, the cuisine chip, the price band and the place-type tile, are all on
+`--nf-radius-control` and all measure at or under a third.
+
+### WHERE THE SHAPE LAW WAS APPLIED AGAINST AN EARLIER READING OF IT
+
+`FacilitiesPicker` shipped as a row of `nf-chip` pills under a comment saying
+the shape law had beaten the image. **That comment answered the wrong
+question.** The law is about RADIUS, measured as drawn radius over drawn short
+side. It says a control carrying text is a rounded rectangle and never a
+capsule; it has nothing to say about whether that control is a pill-shaped row
+or a square tile with its mark above its word. `GOVERNING-10` screen four draws
+a three-across grid of tiles, and tiles are what ships now, on
+`--nf-radius-control`, at a ratio of about a quarter. Both rules are obeyed and
+neither was traded for the other.
+
+### THE ONE SCHEMA CHANGE, AND IT HAS NOT RUN
+
+`GOVERNING-11` screen one asks a shortlet host whether their place is an entire
+flat, a whole house or a private room. `public.room_category` is
+`single | double | twin | suite | family | dorm`, a hotel's vocabulary, and a
+shortlet host has had to answer it about their own home.
+
+`supabase/migrations/20260922190000_imgc_a_shortlet_is_not_a_hotel_room.sql`
+adds the three labels, additively, `if not exists`, ahead of the six, and
+changes nothing else. `scripts/probes/stays_place_type.sql` proves eight things
+about them, chooses its fixture by the predicate under test, copies it from the
+oldest live `room_types` row with the column list read out of `pg_attribute`,
+and ends in a deliberate `raise exception 'PROBE ALL PASS ...'` so it rolls
+itself back.
+
+**NEITHER HAS RUN, AND THE REASON IS MEASURED.** `mcp__Supabase__list_projects`
+reports one project, `oepdbzejvrrqxgynfcdh`, status `INACTIVE`, and
+`mcp__Supabase__list_migrations` against it answers "Failed to list database
+migrations: Connection terminated due to connection timeout". That is the same
+wall SALE hit in section 23. Restoring a paused project is a change to the
+founder's own infrastructure that nobody asked for, so it is left to whoever
+owns that call.
+
+**SO THE INTERFACE DIAGNOSES ITSELF RATHER THAN GUESSING.**
+`setShortletPlaceDraft` reads Postgres's own `22P02`, "invalid input value for
+enum", and answers with a sentence naming the migration file. The alternative
+was to write `double` onto somebody's whole house, which no migration ever
+undoes. **`GOVERNING-11` screen one therefore DRAWS correctly and does not SAVE
+until that migration is applied, and that is stated on this row rather than
+discovered by a host.**
+
+### EVERY DEPARTURE FROM THE RENDER, NAMED
+
+1. **The progress row counts the real flow, not four.** Each image draws four
+   segments because each image shows a four-screen set-up. The application also
+   asks for an identity document, a payout account and three consents. A bar
+   drawing four would promise a shorter flow than the person is going to get,
+   which is a lie told in geometry. The anatomy is the render's; the arithmetic
+   is the flow's.
+2. **The "Private room" tile does not carry the render's glyph.**
+   `GOVERNING-11` screen one draws a vehicle-and-sofa mark on it, between a
+   building for a flat and a house for a house. A car does not mean a private
+   room in any reading. Everything else on the tile is the render.
+3. **The house rule rows carry one prohibition mark rather than four
+   pictograms.** The render draws a crossed cigarette, paw, party and child.
+   This icon set contains none of the four, and `BrandIcon` and `UiIcon` are the
+   only two sources allowed. Four different marks that each mean something else
+   would say four wrong things instead of one true one. **A cigarette, a paw and
+   a party glyph are artwork and want drawing into the set. Raised here.**
+4. **The star row has no chevron.** The render draws one, implying a select.
+   The five stars ARE the control, and a chevron beside them would open nothing.
+5. **"Number of rooms" has no column anywhere in this database.** The plate,
+   the printed value and the joined stepper are the render's. What the number
+   DOES is stated on the screen: before any room type exists it is the
+   hotelier's stated total and it seeds the first room type on the next screen;
+   once room types exist it is the sum of their `units_total` and the stepper
+   is disabled. It is deliberately not written to the device's draft either, as
+   a number that survives a reload but never reaches the server is the worst of
+   the three states, because it looks saved.
+6. **The cancellation block on Rates is drawn once, not once per room card.**
+   `accommodations.cancellation_policy_id` is a property-level column. The
+   render's card is the only room type it draws, so per card and once are the
+   same picture there and not here; four copies of one control all setting the
+   same column is a control that lies about its own scope.
+7. **The refund sentence on House rules sits under the tiles, not inside
+   them.** The render's subtitles are three words. Ours are
+   `cancellation_policies.summary`, real sentences written for a guest, and
+   three of them in three 100px columns at 390 came back from the browser as
+   nine lines of two-word wrapping with the tick badge sitting on the first
+   title. Refund terms are the last text on this platform that may be squeezed.
+8. **The room thumbnails are the property's cover.** `room_types` holds no
+   photographs anywhere in this database. The property's cover stands in, and
+   the room's glass mark stands in where there is no cover.
+9. **The meal-plan rows carry no chevron.** The render draws one, which means
+   the row opens an editor. There is no rate editor yet, and an affordance that
+   opens nothing is worse than one drawn a few pixels differently. Adding one is
+   the next piece of work on that screen.
+10. **Friday and Saturday close at 11:59 PM and not at 12:00 AM.**
+    `service_windows` carries `service_windows_order_chk`, `opens < closes`, and
+    its own comment says a window stays inside one day. Midnight as a closing
+    time is the next day and the check refuses it. The screen says so beside the
+    control rather than offering a 12:00 AM that fails on save.
+11. **"Tables and hours" saves the covers and not the breakdown.**
+    `service_windows.covers` is the only seating number this database holds and
+    the number every reservation is checked against. The four steppers are how a
+    restaurateur actually counts a room, and the total is printed under them in
+    words. No breakdown is claimed to be stored.
+12. **The sitting duration is drawn and is inert, and says so.** There is no
+    column for it and nothing in the reservation path reads one. It is drawn
+    because the render draws it and because it is the right question to ask
+    next; it is inert because the honest alternative to an inert control is a
+    lying one.
+13. **"Your place" has a name plate the render does not draw.**
+    `accommodations.name` is `not null` and `accommodationDraftSchema` needs two
+    characters, so a place with no name cannot be saved at all. It is prefilled
+    from the business name and the plate says the place's name is the property's.
+14. **The host chrome bar no longer draws its own back on the wizard.** The
+    first shot came back with two arrows eight pixels apart, the chrome's and
+    the drawn one. The render draws exactly one back control on a set-up screen,
+    inline with the segments, so `HostShell` takes `chromeBack={false}` on
+    `/host/apply` and the drawn control walks out of the flow when there is no
+    previous step.
+
+### TWO BUGS THE SHOTS FOUND THAT THE SOURCE DID NOT
+
+Both are in the family this build keeps paying for: the source reads correctly
+and the browser draws something else.
+
+- **`display: block` on the hero.** `.nf-stays-hero` was a centring grid and
+  the object carried `width: min(15rem, 62%)`. It came back from the browser at
+  **128px where the arithmetic says 212**: a grid column sized `auto` takes its
+  width from its item's max-content, and an item whose own width is a percentage
+  OF THAT COLUMN is circular, so the browser resolved it against the artwork's
+  intrinsic size instead. A block establishes a definite containing block. The
+  same missing `display: block` on an inline `span` is why `aspect-ratio` did
+  nothing at all.
+- **A `background-image` that would have eaten its own fill.**
+  `.nf-stays-select` paints its chevron with two gradients. Setting
+  `background-image` REPLACES the layer that `background: var(--nf-well-fill-deep)`
+  put there, so every select on these screens would have had a chevron and no
+  fill. The well is the last layer of the list rather than a second
+  declaration. Same family as `.nf-rows-sheet` painting `var(--nf-elev-3)` and
+  rendering transparent.
+
+### WHAT I DID ABOUT i18n, AND WHY
+
+**Nothing, and it is deliberate.** `lib/host` and every host route are outside
+the dictionary entirely: `HostShell` reads `t.a11y.logoHome` and that is the
+only key any of them touches. The previous worker on this spine did not add a
+partial namespace because that puts two patterns on one screen, and the
+surrounding files follow that. Eight new panels of English inside a namespace,
+with the other forty strings on the same flow as literals, would be worse than
+either. **The whole host flow wants one i18n pass, as one piece of work, by one
+person, in all four locales.** It is a real debt and it is bigger than this
+stint. Named here rather than half-done.
+
+### GOVERNING-09 AND GOVERNING-12, HONESTLY
+
+`GOVERNING-09`'s stays side is the three doors at `/host/start`, and it was
+already built and already correct: the glass mark on its plate, the operator's
+own words, the supporting line, the chevron, the calm explanatory panel. **I
+changed nothing on it and I did not take a fresh shot of it,** because the
+founder's rule is a shot per surface CLOSED and I closed nothing there. Its
+screen four, "Set up a hotel (first page)", is the same drawing as
+`GOVERNING-10` screen one and is closed on row 1 above.
+
+**`GOVERNING-12` IS NOT CLOSED AND I AM NOT CLAIMING IT.** Two of its four
+screens are outside my file scope: the notification centre is `/notifications`,
+owned by the messages worker, and search by listing ID is the search surface.
+The two that are mine, the admin review queue and the admin listing details, I
+did not build against the image this stint: the eight panels above took the
+whole of it, and a row here without a side by side would be the exact thing the
+founder's instruction forbids. **The next worker on `GOVERNING-12` should read
+screen two carefully before starting: its price breakdown prints an "Agency fee
+(10%)" and a "Legal fee (2%)", and rule 15 says the platform charges no fees
+anywhere in copy. Those are a Nigerian agent's and a Nigerian solicitor's fees
+and not this platform's, so the row is not automatically a breach, but the
+screen has to say WHOSE fee each one is or it reads as ours.**
+
+### WHAT ELSE I DID NOT DO
+
+- **No rate editor.** `RatesStep` adds a rate and lists every rate on record.
+  It cannot change or delete one, which is why the meal-plan rows carry no
+  chevron (departure 9).
+- **Two facility tiles are still absent.** `GOVERNING-10` screen four draws
+  "Restaurant" and "Airport shuttle" and neither has a row in
+  `public.amenities`. `lib/host/facilities.ts` has said so since it was
+  written; adding them is a seed migration on a table the property side also
+  reads, and it wants the same database this section could not reach.
+- **The migration and the probe have not run.** Said in full above, and worth
+  repeating because it is the difference between this feature working and not:
+  a shortlet host cannot complete `GOVERNING-11` screen one until somebody
+  applies `20260922190000_imgc_a_shortlet_is_not_a_hotel_room`.
+
+### FILES, SO THE NEXT SCOPE COLLISION IS NOT MINE
+
+Written: `apps/web/src/app/css/stays.css` (new, the stays stylesheet the
+partition assigns to IMG-C), `apps/web/src/components/host/stays/*` (new),
+`apps/web/src/components/host/{HostWizard,HostShell,FacilitiesPicker}.tsx`,
+`apps/web/src/lib/host/{stays-setup.ts,stays-setup.test.ts,onboarding.ts,
+schema.ts,actions.ts,queries.ts}` and their tests,
+`apps/web/src/app/host/apply/page.tsx`,
+`apps/web/src/app/(dev)/preview/imgc/*` (new, my own harness),
+`apps/web/src/app/(dev)/preview/f5/host-wizard/page.tsx` (one fixture field),
+the migration, the probe, and these proofs.
+
+One line added to `apps/web/src/app/globals.css`, the `@import` for
+`stays.css`, placed directly after `agent.css` because this file inherits that
+file's `nf-host-*` register and must cascade after it.
+
+**NOT TOUCHED:** `tokens.css`, `buttons.css`, `chips.css`, `glass.css`,
+`light.css`, `chrome.css`, `controls.css`, `catalogue.css`, `agent.css`, and
+`packages/i18n`. **No token or shared class needs changing for any of the
+above**, which is the one good piece of news in this section: eight drawn
+panels came out of the existing token layer with nothing retuned.
+
+## 37. CHROME: THE FOUNDER'S ITEMS 2, 3, 4 AND 5
+
+Four items from the founder's eight, in his words and in his order. Two gates,
+both on a clean worktree at a fetched tip of `main`, both proven on a
+PRODUCTION server (`next build` then `next start`, never `next dev`, which does
+not hydrate reliably on this box), at 390x844 in dark and then in light.
+
+| Gate | Commit it was taken at | What it proved |
+| --- | --- | --- |
+| `gate-chrome` | **`be2713e`** "staff the founder's eight" | items 2, 3, 4 |
+| `gate-chrome-2` | **`c3d3a92`** "the refusal now names which of the three faults it was" | item 5 |
+| `before-chrome` | **`be2713e`**, unmodified | the BEFORE numbers |
+
+The third worktree is the one that makes the rest of this section a
+measurement rather than a claim: every "before" figure below was read off a
+production build of untouched `main` with `getBoundingClientRect` and
+`getComputedStyle`, not off a stylesheet.
+
+At both gates: `tsc --noEmit` clean, `eslint` **0 errors**, `vitest run` all
+passing (151 files / 2723 tests at the first, 153 / 2759 at the second).
+
+---
+
+### ITEM 2. THE CENTRE SWITCH COMES DOWN INTO THE BAR
+
+> "Move it in line with the other icons. It should sit at the same height and
+> on the same baseline as Home, Search, Feed and Profile, not raised above the
+> bar. Draw its icon in the same style as the others, but keep its container so
+> it still reads as the special one. And make it smaller, it is currently too
+> big for the row it sits in."
+
+**This reverses a decision that was made deliberately, and the reversal is
+right.** The raise was built to `GOVERNING-01`, which draws the object standing
+proud of the capsule. The founder has used the bar on a real phone. A reference
+image loses to the founder looking at the real thing, and that is the correct
+order of authority. Recorded so nobody re-argues it from the image.
+
+**Measured at 390, identical in dark and in light:**
+
+| | before (`be2713e`) | after |
+| --- | --- | --- |
+| capsule | top 762, bottom 832 | unchanged |
+| tab link | top 769, bottom 825 (56px) | unchanged |
+| neighbour glyph | 778.5 to 802.5 (24px) | unchanged |
+| neighbour label | 804.5 to 815.5 (11px) | unchanged |
+| **switch object** | **755 to 807**, 52x52 | **778 to 816**, 38x38 |
+| translate | `0px -16px` | `0px` |
+| radius | 18px (ratio 0.35) | 14px (ratio 0.37) |
+| glyph | `BrandIcon role-switch-tile` @34 | `UiIcon switch-profile` @24 |
+| `--nf-tabbar-clearance` | `… + 4.375rem + 1rem + .75rem` | `… + 4.375rem + 0rem + .75rem` |
+| `main` padding-bottom | 110px | 94px |
+
+**762 minus 755 is seven.** The founder said "about 7px above the bar" from
+looking at it. That is what it was.
+
+**"Same height and the same baseline" is arithmetic here, not an eye.** The
+four neighbours draw a 24px glyph over an 11px label with a 2px gap: a 37px
+content block, centred in the 56px link, running 778.5 to 815.5. A 38px object
+centred in the same link runs 778 to 816. Half a pixel at the top, half a pixel
+at the bottom. **38 is the odd-looking number it takes to line up with what is
+already there**, which is why the size is not a round 40.
+
+**The icon changed TIER, not meaning.** The old glyph was the pack's own switch
+object on a glass tile: correct about what the control does, and a tier-two
+object standing in a row of four stroked 24px glyphs. `UiIcon` gains
+`switch-profile`, two opposed arrows drawn on the same 24 grid at the same
+stroke. **Not `repost`**, which is the nearest existing shape and already means
+a post sent on; that one turns two right angles, this one has straight shafts.
+One mark, one meaning, is the discipline this set holds everywhere else.
+
+**The container stays and is now the whole of what marks the slot**: the brand
+tint, the `--nf-brand-edge-strong` outline and the glow, with the glyph at
+`--nf-brand-primary` so it does not inherit `--nf-content-muted` and read as
+disabled on a lit plate.
+
+**Held beside `GOVERNING-01` screen one.** The render draws five slots, the
+centre one a lit plate carrying a stack of three discs, standing proud of the
+capsule, with no label under it. We now draw five slots, the centre one a lit
+plate carrying a stroked swap mark, sitting IN the capsule, with no label under
+it. **Three deliberate departures**, all of them the founder's own ruling
+against the image: the lift, the size and the glyph's tier. Everything else -
+the slot count, the position, the lit container, the absence of a label, the
+brand ink - is the render.
+
+---
+
+### ITEM 3. THE DRAWER, MEASURED BEFORE IT WAS TOUCHED
+
+> "Clean it up properly, it looks amateur right now. Remove the Switch profile
+> row entirely... The theme control loses its container and its words... Then
+> look at the whole drawer as one thing and make it organised and professional:
+> consistent row heights, consistent icon sizes, consistent spacing, one clear
+> grouping rhythm."
+
+**"Inconsistent" is a claim until it has numbers.** Read off
+`/preview/f1/drawer` at 390x844 in dark on a production build of untouched
+`main`:
+
+| object | height | inline pad | gap | glyph | glyph x |
+| --- | --- | --- | --- | --- | --- |
+| close control | 36 | 0 | - | 20 | - |
+| user card | 124.2 | 14 | 14 | - | - |
+| nav row | 44 | 14 | 12 | 20 | 33 |
+| theme row | 52 | 14 | 12 | 20 | 34 |
+| switch profile row | 56 | 8 | 12 | - | - |
+| coin card | 101.2 | 14 | 14 | - | - |
+| legal row | 44 | 12 | 10 | 16 | 31 |
+
+**Five row heights, three inline paddings, three gaps, three glyph sizes**, in
+one panel a dozen rows tall. Three things that look like one column were on
+three columns: 31, 33, 34.
+
+**AND THE 20 IS A DEFECT, NOT ONLY AN INCONSISTENCY.** `NavTree` and
+`ThemeToggle` both ask `UiIcon` for `md`, which is 24. The drawer overrode BOTH
+the 24px slot and the 24px `<svg>` inside it down to 1.25rem. `UiIcon` derives
+`stroke-width` from the size it was ASKED for, so redrawing the same 24-unit
+viewBox at 20 scales the stroke with it: **every glyph in this panel carried
+five sixths of the platform's stroke weight**, about a fifth thinner than the
+same glyph anywhere else in the product. That is exactly the fault
+`ThemeToggle` has a paragraph about for its own icon, and the drawer was doing
+it to every row. No grep would find it: the override is in a stylesheet and the
+size is in a component.
+
+**After, same server, same viewport, and the same in light:**
+
+| object | height | inline pad | gap | glyph | glyph x |
+| --- | --- | --- | --- | --- | --- |
+| close control | 36 | 0 | - | 20 | - |
+| user card | 124.2 | 12 | 12 | - | - |
+| nav row | **48** | **12** | **12** | **24** | **33** |
+| theme control | **48** | **12** | - | **24** | **33** |
+| coin card | 101.2 | **12** | **12** | - | - |
+| legal row | **48** | **12** | **12** | **24** | **33** |
+
+One row height. One glyph size, at the platform's own stroke. One inline
+padding and one gap, so **every glyph starts at x=33 and every label at x=69**.
+One grouping rhythm - a hairline, 12, the group - used by a section boundary
+and by the foot alike, where **the foot had no hairline at all** while every
+section above it did.
+
+**Two things keep their own height on purpose and they are the two CARDS**, not
+rows: the user block at 124 and the coin at 101. The founder asked for a panel
+that reads as organised, not for its two objects to be flattened into the list.
+What they now share with the rows is the left rule and the inside gap, which is
+what makes them look placed rather than pasted. **The close control stays at
+36** for the reason its own note gives: it paints 36 and taps 44 through
+`::after`, and it is the head's one control rather than a row of the list.
+
+**Switch profile is gone**, with `.nf-nav__switch` and its five parts.
+
+**The theme control is the glyph and nothing else**, proven rather than
+asserted: `background-color: rgba(0, 0, 0, 0)`, `border-width: 0`,
+`box-shadow: none`, `textContent` empty, `aria-label` "Switch to light mode" in
+dark and "Switch to dark mode" in light. It is a new `bare` variant rather than
+a change to `icon`, because `icon` deliberately DOES wear `.nf-icon-btn`'s
+plate in the marketing header, where the glyph sits over photography. **The
+words survive as the accessible name**, which is where a control with no
+visible label has to keep them.
+
+**One chevron, drawn one way.** The legal row was drawing a 14px `UiIcon`
+chevron beside rows whose chevron is an 8px CSS corner. The icon is gone from
+the markup and the row joined the `::after` selector.
+
+---
+
+### ITEM 4. THE SHEET ALWAYS OFFERS THE CHOICES
+
+> "When I tap it, it should always show me the full set of options, exactly as
+> in GOVERNING-01 screen two, and let me pick, even when I already hold a
+> workspace. Right now it behaves as though holding one means the question is
+> settled. It is not."
+
+**The bug, named.** `triggerBehaviour(workspaces)` returns `"toggle"` for an
+account holding exactly one workspace, and `ProfileSwitcher` acted on it: one
+tap flipped straight between Personal and that workspace and **the sheet never
+opened**. The reasoning in the old comment was about saving a tap. The
+founder's ruling is about what the control MEANS, and he is right: holding one
+workspace does not settle the question of who you are, and a control that
+answers it for you hides both the standing of what you hold and the door you
+have not walked through.
+
+`triggerBehaviour` is left where it is, unread by this file and still covered
+by its own unit test: it is another scope's export to remove, not this one's.
+
+**Proven at 390 in dark and in light** on `/preview/f1/switch?held=one`, the
+exact state the defect lived in, clicked through Playwright on a production
+server. The sheet opens, and it draws: **Personal** (ticked), **Seyifunmi
+Adeyemi / Verified / List your own properties**, **Add a workspace**. With two
+held it draws Personal, both workspaces with their own standings, and the door.
+
+**Statuses are real or they are not drawn.** The mark is
+`copy.standings[workspace.standing]`, and `standing` came out of
+`standingFromStatus`, which maps one `agents.status` or `businesses.status`
+value onto one word. "Pending review" means the row says SUBMITTED or
+UNDER_REVIEW. **"Verified" is new and means the row says APPROVED**, which is a
+decision a member of staff made and the audit log recorded.
+
+**The console is the one workspace with no mark, and that is the honesty rule
+working.** Its standing is synthesised as `active` in `workspaces-queries.ts`
+from the mere existence of a staff role row; nothing approved it and no queue
+decided it. Drawing "Verified" beside it would be exactly the guess the founder
+ruled out. A mark this sheet cannot source, this sheet does not draw.
+
+Measured on the chip: `data-standing="active"` renders `rgb(16, 185, 129)`
+(`--nf-status-approved`), `data-standing="pending"` renders `rgb(0, 200, 255)`,
+both at `border-radius: 6px` on a 24.6px box. **Ratio 0.24: a rounded
+rectangle, not a capsule**, where `GOVERNING-01` draws pills. The shape law
+wins, as it did for the other four standings already.
+
+**Held beside `GOVERNING-01` screen two.** The render: a titled sheet with a
+close control, the Personal row with the account's own photograph and a filled
+blue tick, Owner with a green "Verified" mark, Agent with a "Pending review"
+mark, a firm row with a chevron, a hairline, then "Add a workspace" with a plus
+in a tinted square. We draw all of it, from the database, with the standing
+marks as rectangles rather than pills and the kind glyphs in tinted squares
+rather than circles - both of them the shape law, both already argued in
+`controls.css`.
+
+---
+
+### ITEM 5. THE CONSOLE OPENS ON A MAP OF ITSELF
+
+> "Going into the admin console should land on the overview, every time, before
+> any individual desk. Right now it drops straight into an area. Overview
+> first, then I choose where to go."
+
+**He is describing the page accurately and the route was never the problem.**
+Every door into the console already pointed at `/admin`: the drawer's Console
+row, the switch sheet's console workspace, `AdminNav`'s Overview row,
+`makeWorkspace`, `workspaces-queries`. What `/admin` RENDERED was the unified
+queue table - five readers folded into one list, a tab strip, a filter bar,
+forty rows - under a heading that said "Operations overview". **That is an
+area.** It is one way of working, chosen for you, before you have said what you
+came to do.
+
+**The queue moved to `/admin/queue`, intact.** The only edit to it is the hrefs
+it builds for its own tabs and filters, which had to follow it or a filter
+change would have thrown an operator back to the front door. It has its own
+name in all four locales now, because the overview's title was never its title.
+It is the rail row directly under Overview and the one thing the overview
+offers by name.
+
+**`/admin` is now seven desks with their live counts**, in the order `nav.ts`
+already argues for - safety, then supply, then the human queues - then the
+queue, then the three facts a new operator has to be told before touching a
+row. Those three were already written in the dictionary and were on no screen:
+the audit log cannot be edited, an approval or refusal tells the person, and
+the safety scan is invisible outside the console.
+
+**Every number is a database count.** `getQueueCounts` runs seven
+`head: true, count: "exact"` reads under the admin gate the layout has already
+applied. The headline is the SUM of the seven tiles computed from the same
+object, so it can never disagree with them. **There is no trend, no movement
+since last week and no total-processed figure**, because nothing in this schema
+records a point in time from which such a number could be derived. That is the
+same refusal BUILD 07 already made about the overview trend and a
+`queue_snapshots` table that does not exist.
+
+**A failed read draws the unavailable panel, not seven zeroes.** An operator
+who sees seven zeroes on a console front door goes home. **A real zero is drawn
+AND said**: the figure stays and the lede becomes "This queue is clear", so the
+zero never carries that meaning alone and an empty queue cannot be misread as
+an unopened one.
+
+Tiles are `--nf-radius-control` on a box that draws at least 81.5px: **ratio
+0.17**, a rounded rectangle. They are links on the platform's own card
+material, not a new admin look.
+
+**The console search's fallback moved with the queue.** It takes the desk out
+of the pathname and fell back to `/admin`, which was right while `/admin` WAS
+the queue and would now have navigated an operator to a page with no `?q=` and
+thrown their words away. It falls back to `/admin/queue`.
+
+**Proven** at 390 dark, 390 light and 1440 dark on `/preview/f5/admin-overview`,
+a new harness that draws the real `ConsoleOverview` inside the real console
+frame from fixture counts, because the layout gates on `requireAdmin` and a
+sandbox has no session. **That harness proves the look and never the numbers**,
+and it says so in its own docstring; one desk is deliberately zero so the clear
+line can be seen beside six that are not. `document.scrollWidth` equals the
+viewport at both widths.
+
+---
+
+### WHAT I DID NOT DO, AND WHO IT IS FOR
+
+**Three rules live in the wrong file, on purpose.** `.nf-switch-dock`,
+`.nf-tab__link--switch` and `.nf-switch-standing` are declared in
+`controls.css`, which **IMG-A owns this stint** (section 24). Their three
+corrections are in `chrome.css`, which imports after it at equal specificity
+inside `@layer components`, each under a note naming the situation. **To fold
+back:** whoever owns `controls.css` next should move the four declarations into
+the single block there and delete the overrides. Nothing is broken meanwhile;
+it is two descriptions of one object, which this file has a long paragraph
+about elsewhere, and I would rather write that down than reach into somebody
+else's stylesheet mid-stint.
+
+**`side-nav.css` and `admin.css` are not in the section 24 table.** I took both,
+because the drawer is item 3 and the console is item 5 and neither could be
+done otherwise. Recorded here so the next partition can name an owner for them.
+
+**Two i18n keys are now unused and are LEFT IN PLACE**, per the add-only rule:
+`uiCommon.theme.light` and `uiCommon.theme.dark`, which were the theme row's
+visible label. `ThemeToggle`'s `row` variant that used them also has no call
+site now. Both are somebody's to remove deliberately, not mine to remove in
+passing.
+
+**`--nf-dock-lift` is kept as a token at zero rather than deleted**, because
+`controls.css` reads it and that file is not mine. It is the one edit that
+cancels the raise from the file CHROME owns.
+
+**No token was changed and none needs to be.** Everything here came out of the
+existing scale: `--nf-space-sm`, `--nf-gap-row`, `--nf-radius-control`,
+`--nf-status-approved`, `--nf-brand-primary`.
+
+**The rail wears the bare theme control too.** The founder's words were about
+the drawer; `AppRail` is one component for both viewports and Master Rule 17
+says the two may not drift, so the desktop rail's theme control lost its label
+as well. **An eye on that at 1440 would be worth having** - the rail is a
+column of labelled destinations and this is now the one unlabelled thing in it.
+It is the only judgement in this section that a measurement did not decide.
