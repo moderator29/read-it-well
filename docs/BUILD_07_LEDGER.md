@@ -274,6 +274,7 @@ the worker. No row, no close, and the lead does not commit it.
 | The STAYS HOME PAGE, the whole screen | `GOVERNING-09` screen one | `b3/stays-390-dark.png`, `b3/stays-390-light.png`, taken on the same server on the REAL `/stays` route, which is open to a stranger. The featured band is EMPTY in both shots and that is the product being honest: `stays_search` returns nothing on this box, so nothing is drawn | **0 breaches at 390 and 1536, dark and light.** Same four objects as the property side, same numbers, because they are the same three components | B3 |
 | The MOVE-IN COST BLOCK on `/listing/[id]` | `GOVERNING-08` screen two, carried onto a surface that image does not draw | `b3/listing-cost-390-dark.png`, `b3/listing-cost-390-light.png`. Same reason as the home page: the live route needs a database. `/preview/f3/listing` mounts the block TWICE, once with the fixture as it stands and once with a declared zero agency fee and no stated total, because the block exists to show the difference between a declared cost and an undeclared one | **0 breaches at 390 and 1536, dark and light.** Cost row 14 on 56 = 0.25, total panel 14 on 96 = 0.15 | B3 |
 | The SIGNED-OUT APP HEADER, every `(app)` route | none, inherits the register | `b3/signed-out-header-390-dark.png`, taken on the real `/verification` | Not a shape finding. MEASURED: actions' right edge 366 in a 390 viewport, exactly the 24px gutter, with `document.scrollWidth` 390. It was 407 with `scrollWidth` 390, which is 17px of the primary control unreachable by any gesture | B3 |
+| The BUYER COST BLOCK on `/listing/[id]` | `GOVERNING-08` screen two, carried onto the sale side, which that image does not draw | `sale/purchase-390-dark.png`, `sale/purchase-390-light.png`, `sale/purchase-1536-dark.png`, taken on `next start` at port 3241 from a clean worktree at `origin/main` `431c87e` plus the three preview files. The live route needs a database and this box reaches none, so the proof is `/preview/f3/listing/sale`, which mounts the SAME `ListingPurchase` three times off one fixture: as a seller quotes it today, with a declared zero agency fee, and with every cost declared and a stated total above its parts. A preview is not the route and that is said rather than glossed | **0 breaches at 390 dark, 390 light and 1536 dark.** The one hit at 1536 is `nf-nav__avatar` at 1.786, the shell's round avatar carrying its initial, and the same sweep on the existing `/preview/f3/listing` returns that one entry and nothing else. Inside the block the highest ratio carrying text is 0; the six `nf-brand-icon-ground` plates at 0.65 carry no text. `document.scrollWidth` 390 in a 390 viewport | SALE |
 
 **B3's More-surface audit, item by item, because the slot left the dock.**
 "More" was never a destination. It was a second opener for the side drawer, and
@@ -2527,3 +2528,85 @@ green and it did not reproduce. The test count moved from 2712 to 2723 between
 runs, so other workers landing commits mid-run is the likeliest cause, but it
 is not proven and it may be a genuinely flaky test. Recorded rather than
 rounded to green.
+
+## 23. SALE: A BUYER CAN READ WHAT A PURCHASE WILL COST, AND THE PROBE HAS NOT RUN
+
+Section 19 recorded the sale cost model as unstaffed and nobody's. It was half
+built and the half that existed was the half a buyer cannot see.
+
+**WHAT WAS ALREADY THERE, VERIFIED RATHER THAN TAKEN ON REPORT.** C1's
+`b84391c` landed the six columns on `listings`
+(`20260922160000_c1_what_a_buyer_actually_pays`), `draftInputSchema`,
+`saveDraft` with its parts check, the wizard's sale branch summed live as the
+lister types, `purchaseParts` and `purchaseTotal`, and the admin review card.
+Checked file by file: the schema, `listings-schema.ts` 662 to 667,
+`listings-actions.ts` 249 to 254 and 325 to 330, and
+`listings-queries.ts` 223 to 228 and 484 to 489, so the draft round trips. C1's
+own hand-back said the public listing page did not render any of it, and it
+did not. **THE SELLER COULD DECLARE AND THE BUYER COULD NOT READ.**
+
+**WHAT SALE BUILT.** `purchase-lines.ts`, the twin of `move-in-lines.ts`,
+returning that file's own `Part` because the honesty rule is one rule and not
+two: every cost a buyer meets is LISTED whether declared or not, an undeclared
+one carries no figure and draws the words, a declared zero carries 0 and draws
+"No agency fee". `purchaseParts` in `pricing.ts` cannot serve that surface and
+was never meant to, because it DROPS an undeclared part, which is right for a
+sum and wrong for a list. Then `ListingPurchase`, the six columns through the
+repository and the domain type, the `purchase` namespace in all four locales,
+and the section on `/listing/[id]` behind `isSale`.
+
+**THE ASKING PRICE IS ONE OF THE PARTS**, which is the one thing that differs
+from the tenancy side and the easiest thing to get backwards. A move-in total
+sits beside the rent. A purchase total includes the price.
+
+**THE NAMESPACE SHIPPED IN FOUR LOCALES AND NOT IN ENGLISH ALONE.** The
+completeness gate counts a MISSING key as English, because `withFallback` has
+already filled it, so English-only copy would have raised the yo, ha and ig
+ceilings by 23 keys each for a namespace nobody had translated. That is the
+exact shape of the defect section 22 describes, arrived at from the opposite
+direction, and it is worth writing down: **the ratchet catches English pasted
+into a translation file and it equally catches a namespace that never reached
+one.** The three translations follow each file's own `moveIn` vocabulary and
+are inside the native review those files already ask for.
+
+### THE PROBE HAS NOT RUN, AND THAT IS NOT A WORD I WILL SOFTEN
+
+`scripts/probes/sale_cost_model.sql` holds ten assertions ending in a
+deliberate `raise exception 'PROBE ALL PASS ...'` so it rolls itself back. It
+proves the six columns exist as nullable bigints, that each carries a
+VALIDATED negative check, that the total carries its covers-its-parts check,
+that `anon` can select all six, that no existing row violates any of the seven
+predicates, that a zero is accepted and reads back as zero, that an undeclared
+cost stays undeclared, that a negative is refused on each column by a check
+violation, and that a total one kobo below its parts is refused. Its fixture is
+chosen by the predicate under test and COPIED from the oldest live sale row,
+with the column list read out of `pg_attribute` rather than typed.
+
+**Every Supabase call from this box answers "Connection terminated due to
+connection timeout" against a project the API reports as INACTIVE**, on
+`apply_migration`, `list_migrations` and `get_project` alike. The agent proxy
+is healthy and reports no failures to any Supabase origin, so the timeout is
+on the far side of it. Restoring a paused project is a change to the founder's
+own infrastructure that nobody asked for, so it is left to whoever owns that
+call. **The six columns are therefore asserted against the migration file and
+the type system and NOT against the live database, and the ONE LAW is not
+closed on this feature.**
+
+### Not built by SALE, named rather than left to be discovered
+
+- **A SALE HAS NO ABOVE-THE-FOLD TOTAL.** A tenancy gets `ListingMoveInBlock`
+  in the lead card, so the true move-in figure meets a reader before they
+  scroll. A sale still leads with the asking price and the honest total is in
+  the itemised section further down. That asymmetry is the same one this whole
+  feature exists to remove, one fold lower, and it wants a sale twin of that
+  block with its own governing image and its own proof.
+- **The wizard's placeholders encode conventional rates.** `1,440,000` against
+  an `180,000,000` example is eight tenths of a per cent, and `9,000,000` is
+  five per cent. They are input placeholders and not printed facts, so they are
+  not a rule 15 breach as it is written, but they are the platform suggesting a
+  rate to a seller in grey text and somebody senior should decide whether that
+  is wanted. Not changed here, because it is another worker's shipped copy.
+- **No sort or filter on the purchase total.** The migration's partial index
+  `listings_purchase_cost_idx` exists and nothing reads it. The tenancy side
+  has `sortMoveIn` and `basisMoveIn` in the dictionary; the sale side has no
+  equivalent.
