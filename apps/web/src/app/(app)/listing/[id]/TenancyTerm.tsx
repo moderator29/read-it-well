@@ -86,7 +86,7 @@ export function TenancyTerm({
             onClick={() => setTerms((n) => Math.max(floor, n - 1))}
           />
           <span
-            className="nf-numeric min-w-[5.5rem] text-center text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
+            className="nf-numeric min-w-[5.5rem] text-center text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
             aria-live="polite"
           >
             {label}
@@ -110,7 +110,7 @@ export function TenancyTerm({
             minorUnits={priceMinor * terms}
             locale={locale}
             currency={currency}
-            className="text-[var(--nf-text-body-lg)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
+            className="text-[length:var(--nf-text-body-lg)] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
           />
         </p>
       )}

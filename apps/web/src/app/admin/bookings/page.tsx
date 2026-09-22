@@ -92,19 +92,19 @@ function StayCard({
             tone="warning"
           />
         )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.bookedWhen, { when: ui.when(stay.createdAt) })}
         </span>
       </div>
 
-      <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {stay.listingTitle}
       </h3>
-      <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+      <p className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {place.length > 0 ? `${place} · ` : ""}
         {ui.day(stay.checkIn)} {"→"} {ui.day(stay.checkOut)}
       </p>
-      <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+      <p className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {stay.guestName ?? copy.unnamed}
         {" · "}
         {plural(stay.nights, counts.nights, locale)}
@@ -138,7 +138,7 @@ function Group({
   if (stays.length === 0) return null;
   return (
     <section className="mt-xl first:mt-0">
-      <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{title}</h2>
+      <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{title}</h2>
       <ul className="nf-queue-list">
         {stays.map((stay) => (
           <StayCard key={stay.id} stay={stay} copy={copy} ui={ui} locale={locale} />

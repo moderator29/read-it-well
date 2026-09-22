@@ -60,7 +60,7 @@ function NoteField({
 }) {
   return (
     <textarea
-      className="nf-field min-h-[64px] w-full resize-y text-[var(--nf-text-body-sm)]"
+      className="nf-field min-h-[64px] w-full resize-y text-[length:var(--nf-text-body-sm)]"
       value={value}
       maxLength={400}
       placeholder={placeholder}
@@ -73,7 +73,7 @@ function NoteField({
 function ErrorLine({ error }: { error: string | null }) {
   if (!error) return null;
   return (
-    <p role="alert" className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
+    <p role="alert" className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
       {error}
     </p>
   );
@@ -111,7 +111,7 @@ export function AreaDecision({ areaId, name }: { areaId: string; name: string })
         </Button>
       </div>
       {note.trim().length === 0 ? (
-        <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Declining needs a reason. They receive it word for word.
         </p>
       ) : null}
@@ -164,7 +164,7 @@ export function ModeratorDecision({
           Decline
         </Button>
       </div>
-      <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         Approving lets them hide a post while somebody reviews it. It does not let
         them delete one, and it grants nothing outside this place.
       </p>

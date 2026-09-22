@@ -164,7 +164,7 @@ export function PlaceFields({
         <span className="nf-label">{t.pickers.countryLabel}</span>
         <div className="nf-field mt-2xs flex items-center justify-between gap-sm opacity-80">
           <span>{t.pickers.countryName}</span>
-          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {t.pickers.countryOnly}
           </span>
         </div>

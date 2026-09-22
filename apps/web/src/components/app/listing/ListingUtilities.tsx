@@ -112,7 +112,7 @@ export function ListingUtilities({
         value={
           powerAnswered ? (
             <>
-              <span className="block text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+              <span className="block text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                 {powerLine}
               </span>
               {grid && <span className={`mt-2xs block ${TYPE.rowMeta}`}>{grid.detail}</span>}
@@ -140,7 +140,7 @@ export function ListingUtilities({
         value={
           water ? (
             <>
-              <span className="block text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+              <span className="block text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                 {water.label}
               </span>
               <span className={`mt-2xs block ${TYPE.rowMeta}`}>{water.detail}</span>
@@ -160,7 +160,7 @@ export function ListingUtilities({
               {access ? (
                 <div data-testid="gate-details">
                   {access.estateName && (
-                    <p className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                       {access.estateName}
                     </p>
                   )}
@@ -188,7 +188,7 @@ export function ListingUtilities({
                 </div>
               ) : (
                 <div data-testid="gate-withheld">
-                  <p className="flex items-center gap-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                  <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
                     Gated, with the details released on confirmation
                   </p>

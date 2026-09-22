@@ -437,7 +437,7 @@ export function Sheet({
               className={
                 hideTitle
                   ? "sr-only"
-                  : "min-w-0 text-[var(--nf-text-h4)] font-bold tracking-tight text-[var(--nf-content-primary)]"
+                  : "min-w-0 text-[length:var(--nf-text-h4)] font-bold tracking-tight text-[var(--nf-content-primary)]"
               }
             >
               {title}
@@ -457,7 +457,7 @@ export function Sheet({
             className={
               hideTitle
                 ? "sr-only"
-                : "shrink-0 px-gutter pb-sm text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
+                : "shrink-0 px-gutter pb-sm text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)]"
             }
           >
             {title}

@@ -44,12 +44,12 @@ export function ModeSwitcher({
         type="button"
         disabled={pending}
         onClick={() => choose(other)}
-        className="flex w-full items-center gap-sm rounded-[var(--nf-radius-md)] px-sm py-sm text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] disabled:opacity-60"
+        className="flex w-full items-center gap-sm rounded-[var(--nf-radius-md)] px-sm py-sm text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] disabled:opacity-60"
       >
         <BrandIcon name={other === "working" ? "homes-sparkle" : "user-check"} size={24} />
         <span className="flex-1 text-left leading-tight">
           {other === "working" ? t.agent.mode.switchToAgent : t.agent.mode.switchToPersonal}
-          <span className="block text-[var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
+          <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
             {t.agent.mode.manageSub}
           </span>
         </span>
@@ -78,8 +78,8 @@ export function ModeSwitcher({
       {open && (
         <div className="absolute right-0 top-full z-50 mt-xs w-[19rem] rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] p-sm shadow-[var(--nf-elev-4)]">
           <p className="px-2xs pb-xs pt-2xs">
-            <span className="block text-[var(--nf-text-body-sm)] font-semibold">{t.agent.mode.chooseTitle}</span>
-            <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{t.agent.mode.chooseTitle}</span>
+            <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {t.agent.mode.chooseSub}
             </span>
           </p>
@@ -100,8 +100,8 @@ export function ModeSwitcher({
                 >
                   <BrandIcon name={o.icon} size={40} />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[var(--nf-text-body-sm)] font-semibold">{o.label}</span>
-                    <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{o.label}</span>
+                    <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {o.desc}
                     </span>
                   </span>

@@ -121,7 +121,7 @@ export function LookupResult({
       </p>
       {/* THE ID, UNCLIPPED: what an operator pastes into the money desk to
           find this person's wallet. */}
-      <p className="font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+      <p className="font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
         {subject.userId}
       </p>
 

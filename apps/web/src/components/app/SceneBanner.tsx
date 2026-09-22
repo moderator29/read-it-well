@@ -69,13 +69,13 @@ export function SceneBanner({
       </span>
 
       <span className="min-w-0 py-md">
-        <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           {title}
         </span>
-        <span className="mt-2xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <span className="mt-2xs block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {body}
         </span>
-        <span className="mt-xs inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)]">
+        <span className="mt-xs inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)]">
           {action}
           <UiIcon
             name="arrow-right"

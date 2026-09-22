@@ -75,7 +75,7 @@ export function StatusBar({
         {shown.map((s) => (
           <span
             key={s.status}
-            className="inline-flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
+            className="inline-flex items-center gap-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]"
           >
             <span
               aria-hidden="true"

@@ -486,13 +486,13 @@ function DetailsSheet({
         {state && !state.ok && !state.fieldErrors && (
           <p
             role="alert"
-            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+            className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
           >
             {state.error}
           </p>
         )}
 
-        <p className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           Your name is what hosts see when you message or book. Your phone number stays
           private to you and the platform.
         </p>
@@ -556,7 +556,7 @@ function Field({
         aria-invalid={error ? true : undefined}
         className="nf-field"
       />
-      {error && <span className="mt-2xs block text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">{error}</span>}
+      {error && <span className="mt-2xs block text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">{error}</span>}
     </label>
   );
 }

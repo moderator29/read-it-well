@@ -47,8 +47,8 @@ export default async function AdminModerationPage({
   if (access.state !== "admin") {
     return (
       <div className="nf-card p-lg">
-        <h1 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Held</h1>
-        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <h1 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Held</h1>
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {adminRefusal(access)}
         </p>
       </div>
@@ -67,7 +67,7 @@ export default async function AdminModerationPage({
     /*
       THE ONE QUEUE THAT WAS NOT IN THE CONSOLE.
 
-      This page hand-rolled its own header at `text-[var(--nf-text-h4)]` and its
+      This page hand-rolled its own header at `text-[length:var(--nf-text-h4)]` and its
       own empty state in a card, outside `ui.QueueHeader` and `ui.QueueEmpty`
       that every other destination uses, and it sat in a bare flex column rather
       than in `.nf-console`. So the screen where a moderator decides whether
@@ -122,11 +122,11 @@ export default async function AdminModerationPage({
               place={post.areaName}
               tag={post.isReply ? "Reply" : post.kind}
             />
-            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {post.body || "This post carries no words, only an attachment."}
             </blockquote>
             {post.holdReason ? <Reason text={post.holdReason} /> : null}
-            <p className="mt-xs text-[var(--nf-text-overline)]">
+            <p className="mt-xs text-[length:var(--nf-text-overline)]">
               <Link
                 href={`/post/${post.rootId}`}
                 className="text-[var(--nf-brand-secondary)]"
@@ -149,16 +149,16 @@ export default async function AdminModerationPage({
               place={story.areaName ?? story.placeLabel}
               tag="Story"
             />
-            <h3 className="mt-sm text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+            <h3 className="mt-sm text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
               {story.headline}
             </h3>
             {story.standfirst ? (
-              <p className="mt-2xs whitespace-pre-wrap text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs whitespace-pre-wrap text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {story.standfirst}
               </p>
             ) : null}
             {story.holdReason ? <Reason text={story.holdReason} /> : null}
-            <p className="mt-xs text-[var(--nf-text-overline)]">
+            <p className="mt-xs text-[length:var(--nf-text-overline)]">
               <Link href={`/stories/${story.id}`} className="text-[var(--nf-brand-secondary)]">
                 Open the story
               </Link>
@@ -178,11 +178,11 @@ export default async function AdminModerationPage({
               place={comment.storyHeadline}
               tag="Comment"
             />
-            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {comment.body}
             </blockquote>
             {comment.holdReason ? <Reason text={comment.holdReason} /> : null}
-            <p className="mt-xs text-[var(--nf-text-overline)]">
+            <p className="mt-xs text-[length:var(--nf-text-overline)]">
               <Link
                 href={`/stories/${comment.storyId}`}
                 className="text-[var(--nf-brand-secondary)]"
@@ -205,20 +205,20 @@ export default async function AdminModerationPage({
               place={null}
               tag="Bio"
             />
-            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <blockquote className="mt-sm whitespace-pre-wrap border-l-2 border-[var(--nf-border-brand)] pl-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {bio.bio || "This bio is empty."}
             </blockquote>
             {bio.link ? (
-              <p className="nf-numeric mt-xs break-all text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              <p className="nf-numeric mt-xs break-all text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 Link: {bio.link}
               </p>
             ) : null}
-            <p className="mt-xs text-[var(--nf-text-overline)]">
+            <p className="mt-xs text-[length:var(--nf-text-overline)]">
               <Link href={`/u/${bio.handle}`} className="text-[var(--nf-brand-secondary)]">
                 Open the profile
               </Link>
             </p>
-            <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
               Taking a bio down empties it. The profile itself stays exactly where
               it is.
             </p>
@@ -270,9 +270,9 @@ function Section({
   if (count === 0) return null;
   return (
     <section>
-      <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+      <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
         {title}
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {count}
         </span>
       </h2>
@@ -296,26 +296,26 @@ function Meta({
 }) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-xs gap-y-2xs">
-      <span className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+      <span className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
         {label ?? (handle ? `@${handle}` : "A member")}
       </span>
       {handle ? (
-        <Link href={`/u/${handle}`} className="text-[var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
+        <Link href={`/u/${handle}`} className="text-[length:var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
           @{handle}
         </Link>
       ) : null}
-      <span className="text-[var(--nf-text-overline)] uppercase tracking-wider text-[var(--nf-content-muted)]">
+      <span className="text-[length:var(--nf-text-overline)] uppercase tracking-wider text-[var(--nf-content-muted)]">
         {tag}
       </span>
-      {place ? <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{place}</span> : null}
-      <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{stamp(when)}</span>
+      {place ? <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{place}</span> : null}
+      <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{stamp(when)}</span>
     </div>
   );
 }
 
 function Reason({ text }: { text: string }) {
   return (
-    <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-warning)]">
+    <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-state-warning)]">
       Held because: {text}
     </p>
   );

@@ -60,7 +60,7 @@ export function PotsSection({ pots, locale }: { pots: Pot[]; locale: Locale }) {
           type="button"
           onClick={() => setCreating(true)}
           aria-haspopup="dialog"
-          className="nf-tap inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="nf-tap inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           <UiIcon name="plus" size={16} />
           New pot

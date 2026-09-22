@@ -414,7 +414,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                     The control is the button around it and it carries no radius
                     of its own. */}
                 <span
-                  className="nf-numeric grid h-8 w-8 place-items-center rounded-full text-[var(--nf-text-overline)] font-bold transition-colors sm:h-9 sm:w-9 sm:text-[var(--nf-text-caption)]"
+                  className="nf-numeric grid h-8 w-8 place-items-center rounded-full text-[length:var(--nf-text-overline)] font-bold transition-colors sm:h-9 sm:w-9 sm:text-[length:var(--nf-text-caption)]"
                   style={{
                     background: done || current ? "var(--nf-gradient-agent)" : "var(--nf-surface-raised)",
                     color: done || current ? "var(--nf-content-on-brand)" : "var(--nf-content-muted)",
@@ -422,7 +422,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                 >
                   {done ? <UiIcon name="verified" size={16} /> : i + 1}
                 </span>
-                <span className="hidden max-w-[7rem] text-center text-[var(--nf-text-overline)] font-medium leading-tight text-[var(--nf-content-muted)] sm:block">
+                <span className="hidden max-w-[7rem] text-center text-[length:var(--nf-text-overline)] font-medium leading-tight text-[var(--nf-content-muted)] sm:block">
                   {title}
                 </span>
               </button>
@@ -430,7 +430,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
           );
         })}
       </ol>
-      <p className="mb-5 text-center text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)] sm:hidden">
+      <p className="mb-5 text-center text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)] sm:hidden">
         {stepTitles[step]}
       </p>
 
@@ -542,11 +542,11 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
             )}
           </div>
           {err?.documents && (
-            <p role="alert" className="text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
+            <p role="alert" className="text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
               {err.documents}
             </p>
           )}
-          <p className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             These files are stored privately and are only ever seen by the Vallo team reviewing
             your application. They are never shown on your public profile.
           </p>
@@ -567,7 +567,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
           <Legend title={a.review.title} sub={a.review.body} />
           <dl className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
             {TEXT_FIELDS.filter((f) => values[f]).map((f) => (
-              <div key={f} className="flex items-center justify-between gap-md px-md py-sm text-[var(--nf-text-caption)]">
+              <div key={f} className="flex items-center justify-between gap-md px-md py-sm text-[length:var(--nf-text-caption)]">
                 <dt className="text-[var(--nf-content-muted)]">{a.fields[f as keyof typeof a.fields] ?? f}</dt>
                 <dd className="font-medium [overflow-wrap:anywhere]">{values[f]}</dd>
               </div>
@@ -596,7 +596,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
             className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
           />
           {err?.agreeTerms && (
-            <p role="alert" className="text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">{err.agreeTerms}</p>
+            <p role="alert" className="text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">{err.agreeTerms}</p>
           )}
 
           {/*
@@ -611,7 +611,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
           {state.message && (
             <p
               role="alert"
-              className="rounded-[var(--nf-radius-md)] border px-md py-sm text-[var(--nf-text-caption)]"
+              className="rounded-[var(--nf-radius-md)] border px-md py-sm text-[length:var(--nf-text-caption)]"
               style={
                 state.ok
                   ? {
@@ -642,7 +642,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
             {a.back}
           </Button>
 
-          <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {step + 1} / {stepTitles.length}
           </span>
 
@@ -673,7 +673,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         </div>
       </form>
 
-      <p className="mt-sm text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
+      <p className="mt-sm text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
     </div>
   );
 }
@@ -682,7 +682,7 @@ function Legend({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="mb-xs">
       <h2 className="nf-h3">{title}</h2>
-      {sub && <p className="mt-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{sub}</p>}
+      {sub && <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{sub}</p>}
     </div>
   );
 }
@@ -786,35 +786,35 @@ function UploadZone({
              one, so the file itself is the label in both cases. */
           <>
             {slot.isPdf && (
-              <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold tracking-wide text-[var(--nf-content-secondary)]">
+              <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold tracking-wide text-[var(--nf-content-secondary)]">
                 PDF
               </span>
             )}
-            <span className="max-w-full truncate px-sm text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]">
+            <span className="max-w-full truncate px-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-secondary)]">
               {slot.fileName}
             </span>
           </>
         ) : (
           <>
             <UiIcon name="sparkle" size={28} className="text-[var(--nf-content-muted)]" />
-            <span className="px-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{hint}</span>
+            <span className="px-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{hint}</span>
           </>
         )}
 
         {slot?.uploading && (
-          <span className="absolute inset-0 grid place-items-center bg-[color-mix(in_oklab,var(--nf-surface-inset)_82%,transparent)] text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)]">
+          <span className="absolute inset-0 grid place-items-center bg-[color-mix(in_oklab,var(--nf-surface-inset)_82%,transparent)] text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-secondary)]">
             Uploading...
           </span>
         )}
         {done && !slot?.uploading && (
-          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
             <UiIcon name="verified" size={12} />
             Uploaded
           </span>
         )}
       </label>
       {slot?.error && (
-        <p role="alert" className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
           {slot.error}
         </p>
       )}

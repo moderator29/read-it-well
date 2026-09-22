@@ -146,7 +146,7 @@ export function PhoneField({
       <p
         id={noteId}
         role={shown?.tone === "error" ? "alert" : undefined}
-        className={`mt-2xs text-[var(--nf-text-overline)] leading-relaxed ${
+        className={`mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed ${
           shown?.tone === "error"
             ? "text-[var(--nf-state-error)]"
             : "text-[var(--nf-content-muted)]"

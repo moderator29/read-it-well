@@ -69,7 +69,7 @@ export function ListingPhotoGrid({
           type="button"
           onClick={() => setShowAll(true)}
           data-testid="photos-show-all"
-          className="inline-flex min-h-[2.75rem] items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
+          className="inline-flex min-h-[2.75rem] items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-secondary)] transition-colors hover:text-[var(--nf-content-primary)] motion-reduce:transition-none"
         >
           <UiIcon name="grid" size={16} />
           Show all {photos.length}

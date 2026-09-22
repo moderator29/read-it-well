@@ -74,13 +74,13 @@ function TicketRow({
               {...dueChip(ticket.createdAt, gradeForTopic(ticket.topic), common)}
             />
           )}
-          <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {ticket.reference}
           </span>
         </div>
         {/* Never truncated: the topic is the sentence the person chose, and it
             is the whole of what this row is about. */}
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
           {supportTopicLabel(ticket.topic) ?? copy.generalQuestion}
         </p>
         {/* THE NAME WRAPS TOO, AND THE COMMENT ABOVE DID NOT COVER IT.
@@ -90,11 +90,11 @@ function TicketRow({
             thing they read back down a phone line. A clipped name on a support
             queue is the same fault as a clipped reference on the money screen,
             one row apart. */}
-        <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere]">
+        <p className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere]">
           {ticket.name} · {ui.when(ticket.createdAt)}
         </p>
         {ticket.replyCount > 0 && (
-          <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {ticket.replyCount === 1
               ? copy.threadCountOne
               : fill(copy.threadCount, { count: ticket.replyCount })}
@@ -179,12 +179,12 @@ export default async function AdminSupportPage({
         <section className="nf-card mb-lg p-md sm:p-lg">
           <div className="flex flex-wrap items-center gap-xs">
             <ui.StatusChip status={selected.status} />
-            <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {selected.reference}
             </span>
             <Link
               href="/admin/support"
-              className="ml-auto inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="ml-auto inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
             >
               <UiIcon name="arrow-left" size={16} />
               {copy.allTickets}
@@ -209,7 +209,7 @@ export default async function AdminSupportPage({
             <p className="nf-overline text-[var(--nf-content-muted)]">
               {copy.whatTheyAsked}
             </p>
-            <p className="mt-2xs whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
+            <p className="mt-2xs whitespace-pre-wrap break-words text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
               {selected.body}
             </p>
           </div>
@@ -232,11 +232,11 @@ export default async function AdminSupportPage({
                     <span className="nf-overline text-[var(--nf-content-muted)]">
                       {message.senderRole === "admin" ? copy.supportSender : selected.name}
                     </span>
-                    <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {ui.when(message.createdAt)}
                     </span>
                   </span>
-                  <p className="mt-2xs whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
+                  <p className="mt-2xs whitespace-pre-wrap break-words text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
                     {message.body}
                   </p>
                 </li>
@@ -264,7 +264,7 @@ export default async function AdminSupportPage({
         />
       ) : (
         <>
-          <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">
+          <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">
             {open.length > 0 ? copy.waitingOnUs : copy.noneWaitingHeading}
           </h2>
           {open.length === 0 ? (
@@ -286,7 +286,7 @@ export default async function AdminSupportPage({
 
           {closed.length > 0 && (
             <section className="mt-xl">
-              <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyClosed}</h2>
+              <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{common.recentlyClosed}</h2>
               <ul className="space-y-xs">
                 {closed.map((ticket) => (
                   <TicketRow

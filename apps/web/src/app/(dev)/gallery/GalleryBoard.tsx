@@ -124,7 +124,7 @@ function Section({ title, note, children }: { title: string; note: string; child
   return (
     <section className="mt-section">
       <h2 className="nf-h3">{title}</h2>
-      <p className="mt-xs max-w-measure-body text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+      <p className="mt-xs max-w-measure-body text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
         {note}
       </p>
       <div className="mt-heading">{children}</div>
@@ -157,7 +157,7 @@ function Grounds({ children }: { children: React.ReactNode }) {
 /* A label under a specimen. Overline size, muted, centred. */
 function Caption({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-inline-tight text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+    <p className="mt-inline-tight text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
       {children}
     </p>
   );
@@ -174,24 +174,24 @@ function RenderCard() {
     <div className="nf-glass nf-glass--card p-card-sm">
       <p className="nf-h4">A booking card</p>
       <span
-        className="nf-stars mt-inline-tight text-[var(--nf-text-body)]"
+        className="nf-stars mt-inline-tight text-[length:var(--nf-text-body)]"
         role="img"
         aria-label="Rated 5 out of 5"
       />
-      <p className="mt-inline-tight text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+      <p className="mt-inline-tight text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
         Victoria Island, Lagos
       </p>
       <div className="mt-group grid grid-cols-4 gap-inline">
         {["Send", "Receive", "Top up", "Swap"].map((label) => (
           <div
             key={label}
-            className="nf-glass nf-glass--tile grid aspect-square place-items-center text-[var(--nf-text-caption)]"
+            className="nf-glass nf-glass--tile grid aspect-square place-items-center text-[length:var(--nf-text-caption)]"
           >
             {label}
           </div>
         ))}
       </div>
-      <div className="nf-glass nf-glass--well mt-group flex h-12 items-center px-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+      <div className="nf-glass nf-glass--well mt-group flex h-12 items-center px-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
         Type a message
       </div>
     </div>
@@ -307,7 +307,7 @@ export function GalleryBoard() {
             {STARS.map((value) => (
               <div key={value} className="text-center">
                 <span
-                  className="nf-stars text-[var(--nf-text-h3)]"
+                  className="nf-stars text-[length:var(--nf-text-h3)]"
                   role="img"
                   aria-label={`Rated ${value} out of 5`}
                   style={{ "--nf-stars-value": value } as React.CSSProperties}
@@ -337,13 +337,13 @@ export function GalleryBoard() {
             <div className="mt-group grid gap-inline">
               <div className="nf-glass nf-glass--plate rounded-[var(--nf-radius-2xl)] p-card-sm">
                 <p className="nf-h4">nf-glass--plate</p>
-                <p className="mt-inline-tight text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+                <p className="mt-inline-tight text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
                   The canvas at 58, the lit brand rim, the bloom outside.
                 </p>
               </div>
               <div className="nf-glass nf-glass--plate nf-glass--plate-strong rounded-[var(--nf-radius-2xl)] p-card-sm">
                 <p className="nf-h4">nf-glass--plate-strong</p>
-                <p className="mt-inline-tight text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+                <p className="mt-inline-tight text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
                   The canvas at 70, for a tile carrying a figure over a picture.
                 </p>
               </div>
@@ -384,7 +384,7 @@ export function GalleryBoard() {
           {ELEVATION.map((cls) => (
             <div
               key={cls}
-              className={`${cls} grid h-24 w-32 place-items-center rounded-[var(--nf-radius-lg)] bg-[var(--nf-surface-elevated)] text-[var(--nf-text-caption)]`}
+              className={`${cls} grid h-24 w-32 place-items-center rounded-[var(--nf-radius-lg)] bg-[var(--nf-surface-elevated)] text-[length:var(--nf-text-caption)]`}
             >
               {cls.replace("nf-", "")}
             </div>
@@ -400,7 +400,7 @@ export function GalleryBoard() {
           {GLASS.map(({ cls, label }) => (
             <div
               key={label}
-              className={`${cls} grid h-24 w-32 place-items-center rounded-[var(--nf-radius-lg)] text-[var(--nf-text-caption)]`}
+              className={`${cls} grid h-24 w-32 place-items-center rounded-[var(--nf-radius-lg)] text-[length:var(--nf-text-caption)]`}
             >
               {label}
             </div>
@@ -486,7 +486,7 @@ export function GalleryBoard() {
                     <div className={`nf-card ${box.cls}`}>
                       <div className="h-8 w-16 rounded-[var(--nf-radius-sm)] bg-[var(--nf-brand-tint-2)]" />
                     </div>
-                    <p className="mt-inline-tight text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    <p className="mt-inline-tight text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {box.label}
                     </p>
                   </div>
@@ -527,10 +527,10 @@ export function GalleryBoard() {
         initialFocus={amountRef}
       >
         <label className="block">
-          <span className="text-[var(--nf-text-body-sm)]">Amount</span>
+          <span className="text-[length:var(--nf-text-body-sm)]">Amount</span>
           <input ref={amountRef} className="nf-field mt-xs w-full" inputMode="numeric" placeholder="0" />
         </label>
-        <p className="mt-sm text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+        <p className="mt-sm text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           Without initialFocus the keyboard lands on Close, which is the dismiss control,
           on every wallet drawer in the product.
         </p>

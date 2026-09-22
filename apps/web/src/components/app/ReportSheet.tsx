@@ -121,7 +121,7 @@ export function ReportSheet({
             setOpen(true);
           }}
           data-testid="report-opener"
-          className="inline-flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
+          className="inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
         >
           <UiIcon name="bell" size={16} className="shrink-0" />
           Report this {noun}
@@ -153,10 +153,10 @@ export function ReportSheet({
                 <UiIcon name="arrow-left" size={20} />
               </button>
               <div className="min-w-0 flex-1">
-                <p className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
+                <p className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
                   Report this {noun}
                 </p>
-                <p className="truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <p className="truncate text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {targetLabel}
                 </p>
               </div>
@@ -169,10 +169,10 @@ export function ReportSheet({
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-check" fill />
                     </span>
-                    <p className="mt-sm text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="mt-sm text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Thank you, we have it
                     </p>
-                    <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                    <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       Our team reads every report and acts on it within twenty four
                       hours. You will not have to chase this, and the person you
                       reported is never told who reported them.
@@ -186,10 +186,10 @@ export function ReportSheet({
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-lock" fill />
                     </span>
-                    <p className="mt-sm text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+                    <p className="mt-sm text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Sign in to report this
                     </p>
-                    <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                    <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                       A report belongs to somebody, which is what stops the queue filling
                       with noise and what lets us come back to you about it. The host is
                       never told who reported them.
@@ -204,7 +204,7 @@ export function ReportSheet({
                     <input type="hidden" name="targetId" value={targetId} />
 
                     <fieldset className="nf-card p-md">
-                      <legend className="px-2xs text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
+                      <legend className="px-2xs text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
                         What happened?
                       </legend>
                       <div className="mt-xs grid gap-2xs">
@@ -229,10 +229,10 @@ export function ReportSheet({
                                 className="mt-2xs h-4 w-4 shrink-0 accent-[var(--nf-brand-primary)]"
                               />
                               <span className="min-w-0">
-                                <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                                <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                                   {copy.label}
                                 </span>
-                                <span className="mt-3xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+                                <span className="mt-3xs block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                                   {copy.hint}
                                 </span>
                               </span>
@@ -245,11 +245,11 @@ export function ReportSheet({
                     <div className="nf-card p-md">
                       <label
                         htmlFor={`${uid}-details`}
-                        className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
+                        className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
                       >
                         Anything else we should know
                       </label>
-                      <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+                      <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                         Optional, and it helps. Dates, amounts and account numbers are
                         exactly the detail that makes a report actionable.
                       </p>
@@ -266,7 +266,7 @@ export function ReportSheet({
                     {state && !state.ok && (
                       <p
                         role="alert"
-                        className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+                        className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
                       >
                         {state.error}
                       </p>
@@ -285,7 +285,7 @@ export function ReportSheet({
                       </button>
                     </div>
 
-                    <p className="text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+                    <p className="text-center text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                       The person you report is never told who reported them, and we act
                       within twenty four hours. If you are in danger, contact the
                       emergency services first.

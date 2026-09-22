@@ -81,7 +81,7 @@ export default async function EditSocialProfilePage({
 
       {editor.state === "claiming" && (
         <>
-          <p className="mb-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mb-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             @{handle} is free. Take it and this becomes your address on Vallo.
           </p>
           <ProfileEditor profile={null} initialHandle={handle} areas={editor.areas} />

@@ -72,8 +72,8 @@ export default async function AdminSocialPage({
   if (access.state !== "admin") {
     return (
       <div className="nf-card p-lg">
-        <h1 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
-        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <h1 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {adminRefusal(access)}
         </p>
       </div>
@@ -102,8 +102,8 @@ export default async function AdminSocialPage({
   return (
     <div className="flex flex-col gap-xl">
       <header>
-        <h1 className="text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+        <h1 className="text-[length:var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
           Places people asked for, and people who asked to look after one.
         </p>
       </header>
@@ -129,9 +129,9 @@ export default async function AdminSocialPage({
       )}
 
       <section>
-        <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Places waiting
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.proposed.length}
           </span>
         </h2>
@@ -142,7 +142,7 @@ export default async function AdminSocialPage({
             screen. */}
         {queue.proposed.length === 0 ? (
           narrowed ? null : (
-            <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               Nothing waiting. When somebody suggests a place it lands here.
             </p>
           )
@@ -151,24 +151,24 @@ export default async function AdminSocialPage({
             {queue.proposed.map((area) => (
               <li key={area.id} className="nf-card p-md sm:p-lg">
                 <div className="flex flex-wrap items-baseline gap-x-xs gap-y-2xs">
-                  <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                  <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {area.name}
                   </h3>
-                  <span className="text-[var(--nf-text-overline)] uppercase tracking-wider text-[var(--nf-content-muted)]">
+                  <span className="text-[length:var(--nf-text-overline)] uppercase tracking-wider text-[var(--nf-content-muted)]">
                     {area.kind}
                   </span>
-                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {area.city}, {area.stateCode}
                   </span>
                 </div>
 
                 {area.blurb ? (
-                  <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {area.blurb}
                   </p>
                 ) : null}
 
-                <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   Address will be{" "}
                   <span className="nf-numeric">/around/{area.slug}</span>
                   {area.proposerHandle ? (
@@ -193,16 +193,16 @@ export default async function AdminSocialPage({
       </section>
 
       <section>
-        <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           People who want to look after a place
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.applications.length}
           </span>
         </h2>
 
         {queue.applications.length === 0 ? (
           narrowed ? null : (
-            <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               No applications open.
             </p>
           )
@@ -211,21 +211,21 @@ export default async function AdminSocialPage({
             {queue.applications.map((application) => (
               <li key={application.id} className="nf-card p-md sm:p-lg">
                 <div className="flex flex-wrap items-baseline gap-x-xs">
-                  <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                  <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {application.displayLabel ??
                       (application.handle ? `@${application.handle}` : "A member")}
                   </h3>
-                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     wants to look after {application.areaName}
                   </span>
                 </div>
 
-                <blockquote className="mt-sm border-l-2 border-[var(--nf-border-brand)] pl-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                <blockquote className="mt-sm border-l-2 border-[var(--nf-border-brand)] pl-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {application.reason}
                 </blockquote>
 
                 {application.handle ? (
-                  <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     <Link
                       href={`/u/${application.handle}`}
                       className="text-[var(--nf-brand-secondary)]"
@@ -253,16 +253,16 @@ export default async function AdminSocialPage({
       </section>
 
       <section>
-        <h2 className="mb-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Open places
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.open.length}
           </span>
         </h2>
 
         {queue.open.length === 0 ? (
           narrowed ? null : (
-            <p className="nf-card p-md text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               No places are open yet. Approving one above opens it.
             </p>
           )
@@ -277,22 +277,22 @@ export default async function AdminSocialPage({
                   <div className="flex items-center gap-xs">
                     <Link
                       href={`/around/${area.slug}`}
-                      className="truncate text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
+                      className="truncate text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
                     >
                       {area.name}
                     </Link>
                     {area.status === "PAUSED" ? (
-                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
                         Paused
                       </span>
                     ) : null}
                   </div>
-                  <p className="nf-numeric mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <p className="nf-numeric mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {area.city} &middot; {area.memberCount} members &middot;{" "}
                     {area.moderatorCount} looking after it
                   </p>
                   {area.moderatorCount === 0 ? (
-                    <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-state-warning)]">
+                    <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-warning)]">
                       Nobody is watching this place.
                     </p>
                   ) : null}

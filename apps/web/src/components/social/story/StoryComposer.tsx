@@ -70,8 +70,8 @@ export function StoryComposer({
         <div className="mx-auto w-fit">
           <BrandIcon name="camera" size={44} />
         </div>
-        <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">Sign in to write a story</h2>
-        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h2 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">Sign in to write a story</h2>
+        <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           A story is a picture, a headline and a line or two about a place. It
           stays up, so it needs to belong to somebody.
         </p>
@@ -88,8 +88,8 @@ export function StoryComposer({
         <div className="mx-auto w-fit">
           <BrandIcon name="pin-map" size={44} />
         </div>
-        <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">A story belongs to a place</h2>
-        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h2 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">A story belongs to a place</h2>
+        <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           You are not in any place yet. Join one and you can write about it
           straight away.
         </p>
@@ -108,8 +108,8 @@ export function StoryComposer({
         <div className="mx-auto w-fit">
           <BrandIcon name="doc-shield" size={44} />
         </div>
-        <h2 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">It is with us</h2>
-        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h2 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">It is with us</h2>
+        <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {STORY_COPY.held}
         </p>
         <Link href="/around" className="nf-btn nf-btn--primary mt-lg">
@@ -225,7 +225,7 @@ export function StoryComposer({
         <button
           type="button"
           onClick={() => fileInput.current?.click()}
-          className="-mt-sm self-start text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
+          className="-mt-sm self-start text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
         >
           Choose a different picture
         </button>
@@ -235,7 +235,7 @@ export function StoryComposer({
       <label className="block">
         <span className="nf-overline">Headline</span>
         <textarea
-          className="nf-field mt-xs w-full resize-none text-[var(--nf-text-h4)] font-bold leading-tight tracking-[-0.02em]"
+          className="nf-field mt-xs w-full resize-none text-[length:var(--nf-text-h4)] font-bold leading-tight tracking-[-0.02em]"
           rows={2}
           value={headline}
           maxLength={STORY_HEADLINE_MAX}
@@ -247,7 +247,7 @@ export function StoryComposer({
       <label className="block">
         <span className="nf-overline">The opening paragraph</span>
         <textarea
-          className="nf-field mt-xs min-h-[110px] w-full resize-y text-[var(--nf-text-body)] leading-relaxed"
+          className="nf-field mt-xs min-h-[110px] w-full resize-y text-[length:var(--nf-text-body)] leading-relaxed"
           value={standfirst}
           maxLength={STORY_STANDFIRST_MAX}
           placeholder={STORY_COPY.standfirstPlaceholder}
@@ -291,7 +291,7 @@ export function StoryComposer({
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
         >
           {error}
         </p>

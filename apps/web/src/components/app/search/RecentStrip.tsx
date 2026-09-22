@@ -42,13 +42,13 @@ function Row({
   return (
     <div className="mt-sm">
       <div className="flex items-center justify-between gap-sm">
-        <h2 className="text-[var(--nf-text-overline)] font-semibold uppercase tracking-wide text-[var(--nf-content-muted)]">
+        <h2 className="text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-wide text-[var(--nf-content-muted)]">
           {title}
         </h2>
         <button
           type="button"
           onClick={onClear}
-          className="relative shrink-0 text-[var(--nf-text-overline)] font-semibold text-[var(--nf-brand-secondary)] before:absolute before:-inset-3 before:content-['']"
+          className="relative shrink-0 text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-brand-secondary)] before:absolute before:-inset-3 before:content-['']"
         >
           {clearLabel}
         </button>

@@ -115,7 +115,7 @@ export function RegisterShell({
       {error ? (
         <p
           role="alert"
-          className="nf-arrive mt-heading text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-heading text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -239,7 +239,7 @@ export function RegisterDone({
       {/* The reference is the loudest thing after the heading, because it is
           what support asks for. It is set in the numeral face for the same
           reason every other identifier in this product is. */}
-      <p className="mt-group text-center font-[family-name:var(--nf-font-numeric)] text-[var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">
+      <p className="mt-group text-center font-[family-name:var(--nf-font-numeric)] text-[length:var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">
         {filedLine}
       </p>
 

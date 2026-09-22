@@ -238,7 +238,7 @@ export function AdminTabs({
         aria-expanded={open}
         aria-controls="admin-sections"
         onClick={() => setOpen((was) => !was)}
-        className="flex w-full items-center gap-inline rounded-[var(--nf-radius-md)] px-row py-inline text-left text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
+        className="flex w-full items-center gap-inline rounded-[var(--nf-radius-md)] px-row py-inline text-left text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
       >
         <UiIcon name={current?.icon ?? "grid"} size={20} className="shrink-0" />
         {/* The label does not clip, for the same reason the rail's does not. */}
@@ -292,7 +292,7 @@ export function AdminTabs({
           <span
             title={`${waiting} waiting across the console`}
             aria-label={`${waiting} waiting across the console`}
-            className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-[var(--nf-radius-xs)] bg-[var(--nf-status-pending)] px-xs text-[var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]"
+            className="nf-numeric inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-[var(--nf-radius-xs)] bg-[var(--nf-status-pending)] px-xs text-[length:var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]"
           >
             {waiting}
           </span>

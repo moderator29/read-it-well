@@ -76,16 +76,16 @@ function ReportCard({
             {...dueChip(report.createdAt, gradeForReportCategory(report.category), common)}
           />
         )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {ui.when(report.createdAt)}
         </span>
       </div>
 
-      <p className="mt-xs whitespace-pre-wrap break-words text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
+      <p className="mt-xs whitespace-pre-wrap break-words text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]">
         {report.reason}
       </p>
 
-      <p className="mt-xs break-words text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <p className="mt-xs break-words text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {fill(copy.reportedBy, {
           reporter: report.reporterName,
           type: report.targetType,
@@ -94,7 +94,7 @@ function ReportCard({
       </p>
 
       {closed ? (
-        <p className="mt-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.closedWhen, { when: ui.when(report.resolvedAt) })}{" "}
           {fill(common.resolvedBy, { who: report.resolvedByName ?? common.someone })}.{" "}
           {common.inAuditLog}
@@ -202,7 +202,7 @@ export default async function AdminReportsPage({
         <p
           role="status"
           data-testid="reports-overdue"
-          className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {overdue === 0
             ? `Nothing has been waiting longer than ${REPORT_RESPONSE_HOURS} hours. That is the commitment in the Community rules and it is being kept.`
@@ -245,7 +245,7 @@ export default async function AdminReportsPage({
 
           {closed.length > 0 && (
             <section className="mt-xl">
-              <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyClosed}</h2>
+              <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{common.recentlyClosed}</h2>
               <QueueTable
           heads={t.uiCommon.console.table}
           label="Reports"

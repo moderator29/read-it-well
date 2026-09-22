@@ -63,7 +63,7 @@ export function DonutChart({
         {segments.map((s) => {
           const pct = Math.round((s.count / total) * 100);
           return (
-            <li key={s.label} className="flex items-center gap-xs text-[var(--nf-text-caption)]">
+            <li key={s.label} className="flex items-center gap-xs text-[length:var(--nf-text-caption)]">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.hue }} aria-hidden="true" />
               <span className="min-w-0 flex-1 truncate text-[var(--nf-content-secondary)]">{s.label}</span>
               <span className="nf-numeric shrink-0 font-semibold text-[var(--nf-content-primary)]">

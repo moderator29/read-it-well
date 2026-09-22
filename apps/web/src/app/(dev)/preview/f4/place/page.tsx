@@ -58,30 +58,30 @@ export default function PlacePreview() {
       </section>
 
       <section className="nf-card mb-md p-lg">
-        <p className="text-[var(--nf-text-body)] leading-relaxed text-[var(--nf-content-primary)]">
+        <p className="text-[length:var(--nf-text-body)] leading-relaxed text-[var(--nf-content-primary)]">
           {AREA.blurb}
         </p>
         <dl className="mt-md flex flex-wrap gap-x-lg gap-y-sm">
           <div>
             <dt className="nf-overline text-[var(--nf-content-muted)]">Members</dt>
-            <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
+            <dd className="nf-numeric mt-3xs text-[length:var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
               {formatNumber(AREA.memberCount, "en")}
             </dd>
           </div>
           <div>
             <dt className="nf-overline text-[var(--nf-content-muted)]">Posts</dt>
-            <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
+            <dd className="nf-numeric mt-3xs text-[length:var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
               {formatNumber(AREA.postCount, "en")}
             </dd>
           </div>
           <div>
             <dt className="nf-overline text-[var(--nf-content-muted)]">Looked after by</dt>
-            <dd className="nf-numeric mt-3xs text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
+            <dd className="nf-numeric mt-3xs text-[length:var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
               2
             </dd>
           </div>
         </dl>
-        <p className="mt-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-md text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           Kept by{" "}
           <Link href="/u/chii_realty" className="font-semibold text-[var(--nf-brand-secondary)]">
             @chii_realty

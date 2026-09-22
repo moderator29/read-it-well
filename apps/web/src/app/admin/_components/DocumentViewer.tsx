@@ -74,7 +74,7 @@ function DocumentCanvas({
           <button
             type="button"
             onClick={() => setUpright((turn) => (turn + 90) % 360)}
-            className="nf-chip text-[var(--nf-text-overline)]"
+            className="nf-chip text-[length:var(--nf-text-overline)]"
           >
             Turn it
           </button>
@@ -122,7 +122,7 @@ function DocumentCanvas({
       <a
         href={source}
         download
-        className="nf-chip w-fit text-[var(--nf-text-overline)] font-semibold"
+        className="nf-chip w-fit text-[length:var(--nf-text-overline)] font-semibold"
       >
         <UiIcon name="document" size="sm" />
         Save the file

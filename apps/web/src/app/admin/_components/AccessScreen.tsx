@@ -86,8 +86,8 @@ export function AccessScreen({
           <UiIcon name="key" size={32} />
         </span>
 
-        <h1 className="nf-h2 mt-md text-[var(--nf-text-h4)]">{copy.title}</h1>
-        <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h1 className="nf-h2 mt-md text-[length:var(--nf-text-h4)]">{copy.title}</h1>
+        <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {copy.body}
         </p>
 
@@ -98,7 +98,7 @@ export function AccessScreen({
         {state !== "signed-out" && (
           <Link
             href="/sign-in"
-            className="mx-auto mt-sm block w-fit text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="mx-auto mt-sm block w-fit text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {a.otherAccount}
           </Link>

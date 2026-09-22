@@ -17,7 +17,7 @@ export function ReviewList({ reviews }: { reviews: ReviewCard[] }) {
       {reviews.map((review) => (
         <li key={review.id} className="nf-card nf-social-card p-md">
           <div className="flex items-center justify-between gap-sm">
-            <p className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
+            <p className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
               {review.authorLabel}
             </p>
             <span
@@ -39,11 +39,11 @@ export function ReviewList({ reviews }: { reviews: ReviewCard[] }) {
               ))}
             </span>
           </div>
-          <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {review.listingTitle} · {review.createdLabel}
           </p>
           {review.body ? (
-            <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {review.body}
             </p>
           ) : null}

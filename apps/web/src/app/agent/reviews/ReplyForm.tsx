@@ -50,12 +50,12 @@ export function ReplyForm({
   if (saved && !editing) {
     return (
       <div className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-md">
-        <p className="flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
+        <p className="flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
           <UiIcon name="chat-bubble" size={12} className="shrink-0" />
           Your reply
           {savedWhen && <span className="font-normal normal-case tracking-normal">{savedWhen}</span>}
         </p>
-        <p className="mt-xs whitespace-pre-line text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs whitespace-pre-line text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {saved}
         </p>
         <div className="mt-sm flex flex-wrap gap-xs">
@@ -72,7 +72,7 @@ export function ReplyForm({
           </form>
         </div>
         {removeState && !removeState.ok && (
-          <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-warning)]">
+          <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-warning)]">
             {removeState.error}
           </p>
         )}

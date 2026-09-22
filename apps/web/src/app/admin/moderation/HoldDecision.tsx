@@ -56,7 +56,7 @@ export function HoldDecision({
       </label>
       <textarea
         id={`reason-${target}-${id}`}
-        className="nf-field min-h-[60px] w-full resize-y text-[var(--nf-text-body-sm)]"
+        className="nf-field min-h-[60px] w-full resize-y text-[length:var(--nf-text-body-sm)]"
         value={reason}
         maxLength={400}
         placeholder={`Why this ${what} is coming down. The author reads this word for word.`}
@@ -93,13 +93,13 @@ export function HoldDecision({
       </div>
 
       {!canRemove && (
-        <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Taking something down needs a reason. They receive it word for word.
         </p>
       )}
 
       {error && (
-        <p role="alert" className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

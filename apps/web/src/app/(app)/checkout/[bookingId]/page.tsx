@@ -298,7 +298,7 @@ export default async function CheckoutPage({
       )}
 
       <Reveal delay={200} className="mt-lg">
-        <p className="flex items-start gap-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="flex items-start gap-sm text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           <span className="mt-3xs block h-5 w-5 shrink-0">
             <BrandIcon name="naira-hand" fill tile={false} />
           </span>
@@ -321,7 +321,7 @@ export default async function CheckoutPage({
  */
 function HoldNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="nf-card flex items-start gap-sm p-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+    <p className="nf-card flex items-start gap-sm p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
       <span className="mt-3xs block h-5 w-5 shrink-0">
         <BrandIcon name="calendar-check" fill tile={false} />
       </span>

@@ -144,7 +144,7 @@ export function TimeSeries({
 
         Two labels and a peak, never a number under every point.
       */}
-      <figcaption className="mt-2xs flex items-baseline justify-between gap-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <figcaption className="mt-2xs flex items-baseline justify-between gap-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         <span className="nf-numeric">{first.day}</span>
         <span>
           {label}
@@ -157,7 +157,7 @@ export function TimeSeries({
       </figcaption>
 
       {caveat ? (
-        <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {caveat}
         </p>
       ) : null}

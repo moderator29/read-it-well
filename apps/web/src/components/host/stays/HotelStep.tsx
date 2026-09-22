@@ -182,7 +182,7 @@ export function HotelStep({
             />
           }
         >
-          <span className="nf-stays-row__value text-[var(--nf-text-h4)] font-semibold">{rooms}</span>
+          <span className="nf-stays-row__value text-[length:var(--nf-text-h4)] font-semibold">{rooms}</span>
         </StaysRow>
         <p className="nf-stays-plate__note">
           {draft.roomTypes.length > 0

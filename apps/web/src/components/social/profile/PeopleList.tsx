@@ -108,8 +108,8 @@ export function PeopleList({
         <div className="mx-auto w-fit">
           <BrandIcon name="user-check" size={44} />
         </div>
-        <h2 className="nf-h3 mt-sm text-[var(--nf-text-body-lg)]">Nobody here you can see</h2>
-        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <h2 className="nf-h3 mt-sm text-[length:var(--nf-text-body-lg)]">Nobody here you can see</h2>
+        <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           The count is real, and none of these accounts is reachable from your
           own. That happens when a block sits between you.
         </p>
@@ -129,10 +129,10 @@ export function PeopleList({
         <div className="mx-auto w-fit">
           <BrandIcon name="user-check" size={44} />
         </div>
-        <h2 className="nf-h3 mt-sm text-[var(--nf-text-body-lg)]">
+        <h2 className="nf-h3 mt-sm text-[length:var(--nf-text-body-lg)]">
           {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}
         </h2>
-        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {isOwner ? copy.mineBody : copy.theirsBody.replace("{handle}", handle)}
         </p>
         <div className="mt-md">
@@ -176,29 +176,29 @@ export function PeopleList({
                 <p className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
                   <Link
                     href={`/u/${person.handle}`}
-                    className="text-[var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]"
+                    className="text-[length:var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]"
                   >
                     {name}
                   </Link>
                   {person.isAgent ? (
-                    <span className="inline-flex shrink-0 items-center gap-2xs rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
+                    <span className="inline-flex shrink-0 items-center gap-2xs rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
                       <UiIcon name="verified-badge" size={11} />
                       Agent
                     </span>
                   ) : null}
                 </p>
-                <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+                <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                   @{person.handle}
                 </p>
                 {person.bio ? (
-                  <p className="mt-2xs whitespace-pre-line text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="mt-2xs whitespace-pre-line text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {person.bio}
                   </p>
                 ) : null}
               </div>
 
               {person.isViewer ? (
-                <span className="shrink-0 self-start text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
+                <span className="shrink-0 self-start text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
                   You
                 </span>
               ) : (
@@ -218,7 +218,7 @@ export function PeopleList({
       {error ? (
         <p
           role="alert"
-          className="mt-md text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md text-center text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -237,7 +237,7 @@ export function PeopleList({
           </Button>
         </div>
       ) : (
-        <p aria-live="polite" className="mt-md text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p aria-live="polite" className="mt-md text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           That is everybody.
         </p>
       )}

@@ -155,8 +155,8 @@ export function DeleteAccountPanel({
     <>
       {blockers.length > 0 && (
         <div className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-md">
-          <p className="text-[var(--nf-text-body-sm)] font-semibold">{copy.blockedTitle}</p>
-          <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{copy.blockedTitle}</p>
+          <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {copy.blockedBody}
           </p>
           <ul className="mt-sm space-y-xs">
@@ -165,7 +165,7 @@ export function DeleteAccountPanel({
               return (
                 <li
                   key={blocker.kind}
-                  className="flex flex-wrap items-center justify-between gap-sm text-[var(--nf-text-body-sm)]"
+                  className="flex flex-wrap items-center justify-between gap-sm text-[length:var(--nf-text-body-sm)]"
                 >
                   <span className="text-[var(--nf-content-secondary)]">{words.line}</span>
                   <Link
@@ -183,7 +183,7 @@ export function DeleteAccountPanel({
       )}
 
       {unavailable && (
-        <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           {copy.unavailable}
         </p>
       )}
@@ -248,16 +248,16 @@ function ScheduledPanel({
       className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] p-md"
       data-testid="delete-scheduled"
     >
-      <p className="flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold">
+      <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold">
         <UiIcon name="close" size={18} className="shrink-0 text-[var(--nf-state-error)]" />
         {copy.scheduledTitle}
       </p>
-      <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
         {phrase(copy.scheduledBody, { date: when, days: String(daysLeft) })}
       </p>
       {done ? (
         <p
-          className="mt-sm text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-success)]"
+          className="mt-sm text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-success)]"
           data-testid="delete-restored"
         >
           {copy.restored}
@@ -276,7 +276,7 @@ function ScheduledPanel({
         </div>
       )}
       {error && (
-        <p role="alert" className="mt-sm text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {error}
         </p>
       )}
@@ -372,7 +372,7 @@ function DeleteDrawer({
 
           {state?.ok ? (
             <div className="nf-card p-lg" data-testid="delete-done">
-              <p className="flex items-center gap-xs text-[var(--nf-text-body-lg)] font-semibold">
+              <p className="flex items-center gap-xs text-[length:var(--nf-text-body-lg)] font-semibold">
                 <UiIcon
                   name="verified"
                   size={20}
@@ -380,25 +380,25 @@ function DeleteDrawer({
                 />
                 {copy.doneTitle}
               </p>
-              <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {copy.doneBody}
               </p>
             </div>
           ) : step === "explain" ? (
             <div className="nf-card p-lg">
-              <p className="text-[var(--nf-text-body-sm)] font-semibold">{copy.permanentTitle}</p>
+              <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{copy.permanentTitle}</p>
 
-              <p className="mt-sm text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)]">
+              <p className="mt-sm text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)]">
                 {phrase(copy.graceTitle, { days: String(GRACE_WINDOW_DAYS) })}
               </p>
-              <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {phrase(copy.graceBody, { days: String(GRACE_WINDOW_DAYS) })}
               </p>
 
               <p className="nf-label mt-md">
                 {phrase(copy.destroyedTitle, { days: String(GRACE_WINDOW_DAYS) })}
               </p>
-              <ul className="mt-xs space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <ul className="mt-xs space-y-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {[
                   copy.losesProfile,
                   copy.losesContent,
@@ -419,7 +419,7 @@ function DeleteDrawer({
               </ul>
 
               <p className="nf-label mt-md">{copy.keptTitle}</p>
-              <ul className="mt-xs space-y-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <ul className="mt-xs space-y-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {[copy.keepsBookings, copy.keepsMessages, copy.keepsReviews].map((line) => (
                   <li key={line} className="flex gap-sm">
                     <span
@@ -431,7 +431,7 @@ function DeleteDrawer({
                 ))}
               </ul>
 
-              <p className="mt-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+              <p className="mt-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                 {copy.talkFirst}
               </p>
               <div className="mt-md grid gap-sm sm:grid-cols-2">
@@ -450,7 +450,7 @@ function DeleteDrawer({
             </div>
           ) : (
             <form action={formAction} className="nf-card p-lg">
-              <p className="text-[var(--nf-text-body-sm)] font-semibold">{copy.confirmTitle}</p>
+              <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{copy.confirmTitle}</p>
 
               {method === "password" ? (
                 <>
@@ -465,13 +465,13 @@ function DeleteDrawer({
                     className="nf-field"
                     data-testid="delete-password"
                   />
-                  <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {copy.passwordHint}
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {copy.codeHint}
                   </p>
                   <div className="mt-sm">
@@ -486,12 +486,12 @@ function DeleteDrawer({
                     </Button>
                   </div>
                   {codeSent && (
-                    <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-state-success)]">
+                    <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-success)]">
                       {copy.codeSent}
                     </p>
                   )}
                   {codeError && (
-                    <p role="alert" className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
+                    <p role="alert" className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
                       {codeError}
                     </p>
                   )}
@@ -525,14 +525,14 @@ function DeleteDrawer({
                 onChange={(event) => setPhraseValue(event.target.value)}
                 className="nf-field"
               />
-              <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {copy.capitals}
               </p>
 
               {state && !state.ok && (
                 <p
                   role="alert"
-                  className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+                  className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
                 >
                   {state.fieldErrors?.confirmPhrase ?? state.fieldErrors?.password ?? state.error}
                 </p>

@@ -36,7 +36,7 @@ export function TrendingStrip({
         {hasPlaces && (
           <Link
             href="/around/settings"
-            className="shrink-0 text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="shrink-0 text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             All places
           </Link>
@@ -49,8 +49,8 @@ export function TrendingStrip({
             <BrandIcon name="chat-duo" fill />
           </span>
           <div className="min-w-0">
-            <p className="text-[var(--nf-text-body-sm)] font-semibold">Nothing is trending yet</p>
-            <p className="mt-3xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="text-[length:var(--nf-text-body-sm)] font-semibold">Nothing is trending yet</p>
+            <p className="mt-3xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               {hasPlaces
                 ? "Be the first to say something in one of the places above."
                 : "Once a place opens near you, what people are saying appears here."}
@@ -97,7 +97,7 @@ export function TrendingStrip({
                       </>
                     )}
                   </span>
-                  <span className="mt-2xs block text-[var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
+                  <span className="mt-2xs block text-[length:var(--nf-text-body-sm)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                     {item.headline}
                   </span>
                 </span>

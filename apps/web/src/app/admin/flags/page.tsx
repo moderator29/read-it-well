@@ -45,7 +45,7 @@ type FlagCopy = Dictionary["admin"]["flags"];
 function Fragment({ text }: { text: string }) {
   return (
     <code
-      className="nf-numeric rounded-[var(--nf-radius-xs)] px-xs py-3xs text-[var(--nf-text-caption)] font-semibold"
+      className="nf-numeric rounded-[var(--nf-radius-xs)] px-xs py-3xs text-[length:var(--nf-text-caption)] font-semibold"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
     >
       {text}
@@ -72,7 +72,7 @@ function MatchLine({
   // of the fragment are whatever the sentence puts there in this language.
   const [before = "", after = ""] = copy.matched.split("{fragment}");
   return (
-    <p className="mt-sm flex flex-wrap items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+    <p className="mt-sm flex flex-wrap items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
       <UiIcon name="search" size={16} className="shrink-0" />
       {fill(before, { role }).trim()}
       <Fragment text={matched} />
@@ -110,7 +110,7 @@ function FlagCard({
             )}
           />
         )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {ui.when(flag.createdAt)}
         </span>
       </div>
@@ -127,7 +127,7 @@ function FlagCard({
         </p>
         <ul className="mt-xs space-y-xs">
           {flag.context.length === 0 && (
-            <li className="text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{flag.body}</li>
+            <li className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{flag.body}</li>
           )}
           {flag.context.map((line) => (
             <li
@@ -146,7 +146,7 @@ function FlagCard({
                 <span className="nf-overline text-[var(--nf-content-muted)]">
                   {roleLabel[line.role]}
                 </span>
-                <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {ui.when(line.createdAt)}
                 </span>
                 {line.flagged && (
@@ -155,7 +155,7 @@ function FlagCard({
                   </span>
                 )}
               </span>
-              <p className="mt-2xs whitespace-pre-wrap break-words text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-primary)]">
+              <p className="mt-2xs whitespace-pre-wrap break-words text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-primary)]">
                 {line.body}
               </p>
             </li>
@@ -166,7 +166,7 @@ function FlagCard({
       {flag.status === "open" ? (
         <FlagDecision flagId={flag.id} copy={copy} common={common} />
       ) : (
-        <p className="mt-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {copy.reviewed} {common.inAuditLog}
         </p>
       )}
@@ -266,7 +266,7 @@ export default async function AdminFlagsPage({
 
       {reviewed.length > 0 && (
         <section className="mt-xl">
-          <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyReviewed}</h2>
+          <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{common.recentlyReviewed}</h2>
           <QueueTable
           heads={t.uiCommon.console.table}
           label="Message flags"

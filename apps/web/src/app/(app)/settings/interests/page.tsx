@@ -39,7 +39,7 @@ export default async function InterestsSettingsPage() {
             <BrandIcon name="globe-pin" fill />
           </span>
           <h2 className="nf-h3 mt-md">{t.interests.accountTitle}</h2>
-          <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {state.state === "unconfigured"
               ? t.interests.accountBodyUnconfigured
               : t.interests.accountBodySignedOut}

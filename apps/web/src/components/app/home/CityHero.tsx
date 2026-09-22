@@ -185,11 +185,11 @@ export function CityHero({
               <p className="nf-overline text-[var(--nf-content-on-media-accent)]">
                 {contextLabel}
               </p>
-              <p className="mt-3xs text-[var(--nf-text-h4)] font-bold leading-tight text-[var(--nf-content-on-media)] sm:text-[1.625rem]">
+              <p className="mt-3xs text-[length:var(--nf-text-h4)] font-bold leading-tight text-[var(--nf-content-on-media)] sm:text-[1.625rem]">
                 {cityLabel || "Nigeria"}
               </p>
             </div>
-            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-sm py-2xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-on-media-accent)]">
+            <span className="nf-numeric shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-sm py-2xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-on-media-accent)]">
               {areas.length} {areas.length === 1 ? "place" : "places"}
             </span>
           </div>
@@ -212,7 +212,7 @@ export function CityHero({
                   <span className="nf-map-pin-breathe absolute inset-[-6px] rounded-full bg-[var(--nf-halo-on-media)] blur-[6px]" />
                   <span className="relative block h-2.5 w-2.5 rounded-full bg-[var(--nf-content-on-media)] shadow-[var(--nf-glow-on-media)]" />
                 </span>
-                <span className="whitespace-nowrap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-xs py-3xs text-[var(--nf-text-overline)] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
+                <span className="whitespace-nowrap rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-artwork)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold leading-none text-[var(--nf-content-on-media)] backdrop-blur-sm">
                   {pin.area.name}
                   <span className="nf-numeric ml-2xs text-[var(--nf-content-on-media-accent)]">
                     {pin.area.postCount}
@@ -223,7 +223,7 @@ export function CityHero({
           </div>
 
           <div className="absolute inset-x-0 bottom-0 p-md sm:p-lg">
-            <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-on-media-accent)]">
+            <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-on-media-accent)]">
               {areas.length === 0
                 ? "No places are open here yet. When one opens it appears on this card."
                 : totalPosts === 0

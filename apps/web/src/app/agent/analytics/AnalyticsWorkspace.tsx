@@ -92,12 +92,12 @@ function Tile({
         <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0">
-        <p className="text-[var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-muted)]">
+        <p className="text-[length:var(--nf-text-overline)] font-medium leading-snug text-[var(--nf-content-muted)]">
           {label}
         </p>
         <p className="mt-3xs leading-tight">{value}</p>
         {note ? (
-          <p className="mt-2xs text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
+          <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
             {note}
           </p>
         ) : null}
@@ -108,7 +108,7 @@ function Tile({
 
 /** The size and weight every headline figure is set at. */
 const TILE_FIGURE =
-  "text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)] sm:text-[var(--nf-text-h4)]";
+  "text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)] sm:text-[length:var(--nf-text-h4)]";
 
 /**
  * What a tile shows when its own source could not be read.
@@ -119,7 +119,7 @@ const TILE_FIGURE =
  */
 function Unknown({ label }: { label: string }) {
   return (
-    <span className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]">{label}</span>
+    <span className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]">{label}</span>
   );
 }
 
@@ -133,7 +133,7 @@ function Unknown({ label }: { label: string }) {
 function Unavailable({ children }: { children: string }) {
   return (
     <p
-      className="rounded-[var(--nf-radius-md)] p-md text-[var(--nf-text-caption)] font-medium leading-relaxed"
+      className="rounded-[var(--nf-radius-md)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
       role="status"
     >
@@ -155,7 +155,7 @@ function Section({
     <section className="nf-card p-md sm:p-panel">
       <h2 className="nf-h3">{title}</h2>
       {blurb ? (
-        <p className="mt-xs max-w-[68ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs max-w-[68ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {blurb}
         </p>
       ) : null}
@@ -209,7 +209,7 @@ function SettledTrend({
 }) {
   const peak = points.reduce((most, point) => Math.max(most, point.agentShareMinor), 0);
   if (points.length === 0 || peak <= 0) {
-    return <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.trend.empty}</p>;
+    return <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.trend.empty}</p>;
   }
 
   const best = points.reduce((top, point) =>
@@ -244,7 +244,7 @@ function SettledTrend({
         {points.map((point) => (
           <span
             key={point.key}
-            className="min-w-0 flex-1 truncate text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]"
+            className="min-w-0 flex-1 truncate text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]"
           >
             {monthLabel(point, locale, "short")}
           </span>
@@ -254,7 +254,7 @@ function SettledTrend({
       {/* The scale, stated. Bars with no axis are a shape rather than a
           measurement, and this is the cheapest honest axis: name the tallest
           one and every other bar can be read against it. */}
-      <p className="mt-sm text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {t.trend.peak}: <span className="font-semibold">{monthLabel(best, locale, "long")}</span>
         {", "}
         <Amount
@@ -290,14 +290,14 @@ function OutcomeRow({
 }) {
   return (
     <li className="flex items-baseline justify-between gap-md border-b border-[var(--nf-border-subtle)] py-xs last:border-b-0">
-      <span className="text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{label}</span>
+      <span className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{label}</span>
       <Figure
         value={count}
         locale={locale}
         className={
           alarm
-            ? "text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-state-error)]"
-            : "text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
+            ? "text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-state-error)]"
+            : "text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
         }
       />
     </li>
@@ -316,7 +316,7 @@ function RequestsPanel({
   locale: Locale;
 }) {
   if (outcomes.received === 0) {
-    return <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.requests.empty}</p>;
+    return <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.requests.empty}</p>;
   }
 
   return (
@@ -335,7 +335,7 @@ function RequestsPanel({
       </ul>
 
       <div>
-        <h3 className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
+        <h3 className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
           {t.requests.answerTitle}
         </h3>
         {/* Three states, not two. "We could not read your history" and "you
@@ -343,11 +343,11 @@ function RequestsPanel({
             a host the second when the first happened is a false statement
             about their own conduct. */}
         {!outcomes.answerTimingReadable ? (
-          <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {t.requests.answerUnavailable}
           </p>
         ) : outcomes.medianAnswerHours === null ? (
-          <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {t.requests.answerNone}
           </p>
         ) : (
@@ -356,14 +356,14 @@ function RequestsPanel({
                 is written differently in the four languages this ships in, and
                 the two strings that already say it correctly live on the
                 bookings card, so they are reused rather than retranslated. */}
-            <p className="nf-numeric mt-2xs text-[var(--nf-text-h4)] font-bold tracking-tight text-[var(--nf-content-primary)]">
+            <p className="nf-numeric mt-2xs text-[length:var(--nf-text-h4)] font-bold tracking-tight text-[var(--nf-content-primary)]">
               {outcomes.medianAnswerHours === 1
                 ? hours.one
                 : fill(hours.other, {
                     count: formatNumber(outcomes.medianAnswerHours, locale),
                   })}
             </p>
-            <p className="mt-xs max-w-[46ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs max-w-[46ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
               {outcomes.answered === 1
                 ? t.requests.answerBodyOne
                 : fill(t.requests.answerBody, { count: formatNumber(outcomes.answered, locale) })}
@@ -375,7 +375,7 @@ function RequestsPanel({
             lapsed does not need a paragraph about a failure mode they have
             never had. */}
         {outcomes.lapsed > 0 ? (
-          <p className="mt-md max-w-[46ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-md max-w-[46ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {fill(t.requests.lapsedNote, { hours: HOLD_WINDOW_HOURS })}
           </p>
         ) : null}
@@ -396,14 +396,14 @@ function CalendarPanel({
   locale: Locale;
 }) {
   if (calendar.listings === 0) {
-    return <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.calendar.none}</p>;
+    return <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.calendar.none}</p>;
   }
 
   const open = Math.max(0, calendar.offeredNights - calendar.bookedNights - calendar.blockedNights);
 
   return (
     <div>
-      <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
         {calendar.listings === 1
           ? fill(t.calendar.bodyOne, { offered: formatNumber(calendar.offeredNights, locale) })
           : fill(t.calendar.body, {
@@ -430,33 +430,33 @@ function CalendarPanel({
 
       <ul className="mt-sm grid grid-cols-3 gap-sm">
         <li>
-          <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.calendar.booked}</p>
+          <p className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.calendar.booked}</p>
           <Figure
             value={calendar.bookedNights}
             locale={locale}
-            className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
+            className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
           />
         </li>
         <li>
-          <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.calendar.blocked}</p>
+          <p className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.calendar.blocked}</p>
           <Figure
             value={calendar.blockedNights}
             locale={locale}
-            className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
+            className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
           />
         </li>
         <li>
-          <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.calendar.open}</p>
+          <p className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.calendar.open}</p>
           <Figure
             value={open}
             locale={locale}
-            className="text-[var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
+            className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"
           />
         </li>
       </ul>
 
       {calendar.blockedNights > 0 ? (
-        <p className="mt-sm max-w-[62ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.calendar.blockedNote}
         </p>
       ) : null}
@@ -492,7 +492,7 @@ function ListingsPanel({
   locale: Locale;
 }) {
   if (rows.length === 0) {
-    return <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.listings.empty}</p>;
+    return <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.listings.empty}</p>;
   }
 
   return (
@@ -513,14 +513,14 @@ function ListingsPanel({
             className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm"
           >
             <div className="flex items-baseline justify-between gap-sm">
-              <p className="min-w-0 flex-1 text-[var(--nf-text-body-sm)] font-semibold">{row.title}</p>
+              <p className="min-w-0 flex-1 text-[length:var(--nf-text-body-sm)] font-semibold">{row.title}</p>
               <Amount
                 minorUnits={row.settledShareMinor}
                 locale={locale}
-                className="text-[var(--nf-text-body-sm)] font-bold"
+                className="text-[length:var(--nf-text-body-sm)] font-bold"
               />
             </div>
-            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {statusLabels[row.status]}
               {" · "}
               {t.listings.columnRequests} {formatNumber(row.requests, locale)}
@@ -535,7 +535,7 @@ function ListingsPanel({
                 </>
               )}
             </p>
-            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {ratingCell(t, row, locale)}
             </p>
           </li>
@@ -564,7 +564,7 @@ function ListingsPanel({
               <TR key={row.listingId}>
                 <TD className="font-medium text-[var(--nf-content-primary)]">
                   {row.title}
-                  <span className="block text-[var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
+                  <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
                     {statusLabels[row.status]}
                   </span>
                 </TD>
@@ -637,7 +637,7 @@ export function AnalyticsWorkspace({
           <BrandIcon name="report-stats" fill />
         </span>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
-        <p className="mx-auto max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}
         </p>
         <ButtonLink href="/agent/list" variant="primary">
@@ -769,7 +769,7 @@ export function AnalyticsWorkspace({
           {[t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (
             <li
               key={line}
-              className="max-w-[76ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+              className="max-w-[76ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
             >
               {line}
             </li>

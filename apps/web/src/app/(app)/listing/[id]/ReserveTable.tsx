@@ -103,21 +103,21 @@ export function ReserveTable({
   if (state?.ok) {
     return (
       <div className="nf-card p-lg">
-        <p className="flex items-center gap-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+        <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           <UiIcon name="chat-bubble" size={20} className="shrink-0 opacity-80" aria-hidden />
           Request sent
         </p>
         {/* Deliberately not "Table booked". Nothing is held until a person at
             the restaurant says so, and a receipt that claimed otherwise would
             put somebody at a door with no table. */}
-        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           The restaurant has your request for {party} on {dayLabel(date, todayIso)} at{" "}
           {time}. They will confirm or decline it, and you will see the answer in
           your bookings.
         </p>
         <Link
           href="/bookings"
-          className="mt-md inline-flex text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4"
+          className="mt-md inline-flex text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4"
         >
           See your bookings
         </Link>
@@ -134,7 +134,7 @@ export function ReserveTable({
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="time" value={time} />
 
-      <p className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+      <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         Book a table
       </p>
 
@@ -155,7 +155,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setDate(iso)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[var(--nf-text-caption)] transition-colors ${
+                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-caption)] transition-colors ${
                   active
                     ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
@@ -185,7 +185,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setTime(slot)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[var(--nf-text-caption)] tabular-nums transition-colors ${
+                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-caption)] tabular-nums transition-colors ${
                   active
                     ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
                     : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
@@ -228,7 +228,7 @@ export function ReserveTable({
               const next = Number(event.target.value);
               setParty(Number.isFinite(next) ? Math.min(MAX_PARTY, Math.max(1, next)) : 1);
             }}
-            className="w-16 rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-xs py-xs text-center text-[var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
+            className="w-16 rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-xs py-xs text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
           <button
             type="button"
@@ -244,7 +244,7 @@ export function ReserveTable({
             after. The database enforces the same number. */}
         {party >= MAX_PARTY &&
           (messageHref ? (
-            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               For a larger party,{" "}
               <Link href={messageHref} className="underline underline-offset-2">
                 message the restaurant
@@ -252,7 +252,7 @@ export function ReserveTable({
               .
             </p>
           ) : (
-            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               That is the largest table that can be held here.
             </p>
           ))}
@@ -268,12 +268,12 @@ export function ReserveTable({
           rows={2}
           maxLength={500}
           placeholder="A birthday, a wheelchair, an allergy"
-          className="mt-2xs w-full rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
+          className="mt-2xs w-full rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
         />
       </div>
 
       {state && !state.ok && (
-        <p role="alert" className="mt-sm text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}
@@ -284,7 +284,7 @@ export function ReserveTable({
 
       {/* The promise, kept small and directly under the button that makes it.
           Nothing is held until the restaurant answers. */}
-      <p className="mt-xs text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-center text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         The restaurant confirms it. Nothing is held until they do.
       </p>
     </form>

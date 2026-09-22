@@ -48,7 +48,7 @@ function Tile({
         <BrandIcon name={icon} fill />
       </span>
       <div className="min-w-0">
-        <p className="leading-snug text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]">{label}</p>
+        <p className="leading-snug text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]">{label}</p>
         <p className="mt-3xs leading-tight">{value}</p>
       </div>
     </div>
@@ -57,7 +57,7 @@ function Tile({
 
 /** The size and weight every totals tile figure is set at. */
 const TILE_FIGURE =
-  "text-[var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)] sm:text-[var(--nf-text-h4)]";
+  "text-[length:var(--nf-text-body-lg)] font-bold tracking-tight text-[var(--nf-content-primary)] sm:text-[length:var(--nf-text-h4)]";
 
 export function EarningsWorkspace({
   t,
@@ -71,7 +71,7 @@ export function EarningsWorkspace({
   if (!earnings.readable) {
     return (
       <p
-        className="rounded-[var(--nf-radius-md)] p-md text-[var(--nf-text-body-sm)] font-medium leading-relaxed"
+        className="rounded-[var(--nf-radius-md)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
         style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
         role="alert"
       >
@@ -87,7 +87,7 @@ export function EarningsWorkspace({
           <BrandIcon name="wallet-secure" fill />
         </span>
         <h2 className="nf-h3">{t.emptyTitle}</h2>
-        <p className="mx-auto max-w-[40ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto max-w-[40ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.emptyBody}
         </p>
         <ButtonLink href="/agent/bookings" variant="primary">
@@ -149,14 +149,14 @@ export function EarningsWorkspace({
               className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm"
             >
               <div className="flex items-baseline justify-between gap-md">
-                <p className="text-[var(--nf-text-body-sm)] font-semibold">{monthLabel(month.year, month.month, locale)}</p>
+                <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{monthLabel(month.year, month.month, locale)}</p>
                 <Amount
                   minorUnits={month.agentShareMinor}
                   locale={locale}
-                  className="text-[var(--nf-text-body-sm)] font-bold"
+                  className="text-[length:var(--nf-text-body-sm)] font-bold"
                 />
               </div>
-              <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {month.stays === 1 ? t.staysOne : fill(t.stays, { count: month.stays })}
                 {" · "}
                 {t.monthGross} <Amount minorUnits={month.grossMinor} locale={locale} />
@@ -210,7 +210,7 @@ export function EarningsWorkspace({
 
       <section className="nf-card p-md sm:p-panel">
         <h2 className="nf-h3">{t.howTitle}</h2>
-        <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.howBody}
         </p>
       </section>

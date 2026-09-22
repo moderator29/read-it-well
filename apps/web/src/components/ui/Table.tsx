@@ -73,9 +73,9 @@ const TD_PAD: Record<TableDensity, string> = {
 };
 
 const TABLE_TYPE: Record<TableDensity, string> = {
-  comfortable: "text-[var(--nf-text-body)]",
-  compact: "text-[var(--nf-text-body)]",
-  dense: "text-[var(--nf-text-caption)]",
+  comfortable: "text-[length:var(--nf-text-body)]",
+  compact: "text-[length:var(--nf-text-body)]",
+  dense: "text-[length:var(--nf-text-caption)]",
 };
 
 const HAIRLINE = "border-b border-[var(--nf-border-subtle)]";
@@ -141,7 +141,7 @@ export function Table({
           <caption
             className={
               captionVisible
-                ? "px-sm pb-xs text-left text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]"
+                ? "px-sm pb-xs text-left text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]"
                 : "sr-only"
             }
           >
@@ -313,7 +313,7 @@ export function TH({
       className={[
         TH_PAD[density],
         HAIRLINE,
-        "text-[var(--nf-text-overline)] font-bold uppercase tracking-[0.06em] text-[var(--nf-content-muted)]",
+        "text-[length:var(--nf-text-overline)] font-bold uppercase tracking-[0.06em] text-[var(--nf-content-muted)]",
         align === "end" ? "text-end" : "text-start",
         sticky ? "sticky top-0 z-1" : "",
         className ?? "",

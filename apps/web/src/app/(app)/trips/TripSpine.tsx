@@ -313,7 +313,7 @@ function SpineRow({
           {item.booking.reviewable && (
             <Link
               href={`/bookings/${item.booking.id}/review`}
-              className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               data-testid="trip-review"
             >
               {reviewLabel}

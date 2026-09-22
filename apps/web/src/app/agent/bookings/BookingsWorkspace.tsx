@@ -123,10 +123,10 @@ function DecisionSheet({
         </div>
       }
     >
-      <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {copy.body}
       </p>
-      <p className="mt-sm truncate text-[var(--nf-text-caption)] font-semibold">
+      <p className="mt-sm truncate text-[length:var(--nf-text-caption)] font-semibold">
         {state.booking.guestName} &middot; {state.booking.listingTitle}
       </p>
 
@@ -152,11 +152,11 @@ function DecisionSheet({
             onChange={(e) => setReason(e.target.value)}
           />
 
-          <p className="mb-xs mt-sm text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]">
+          <p className="mb-xs mt-sm text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]">
             {t.decline.suggestionsLabel}
           </p>
           {/*
-            The `!py-1.5 !text-[var(--nf-text-overline)]` these carried was somebody forcing a
+            The `!py-1.5 !text-[length:var(--nf-text-overline)]` these carried was somebody forcing a
             chip back down after the box had been inflated to chase a touch
             target. `Chip` keeps its painted height and grows only its hit
             region, so the overrides are gone. Picking one really does select
@@ -180,7 +180,7 @@ function DecisionSheet({
 
       {error && (
         <p
-          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[var(--nf-text-caption)] font-medium"
+          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[length:var(--nf-text-caption)] font-medium"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -258,10 +258,10 @@ function BookingCard({
               their own stock, so the two strings are not the same kind of
               string and do not want the same treatment.
             */}
-            <h3 className="text-[var(--nf-text-body-sm)] font-semibold [overflow-wrap:anywhere]">
+            <h3 className="text-[length:var(--nf-text-body-sm)] font-semibold [overflow-wrap:anywhere]">
               {booking.guestName}
             </h3>
-            <p className="mt-3xs flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+            <p className="mt-3xs flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
               <UiIcon name="house" size={12} className="shrink-0" />
               <span className="truncate">{booking.listingTitle}</span>
             </p>
@@ -274,7 +274,7 @@ function BookingCard({
           </StatusPill>
         </div>
 
-        <p className="mt-sm flex items-center gap-xs text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
+        <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
           <UiIcon name="calendar-booking" size={16} className="shrink-0" />
           {fill(t.card.dates, {
             from: formatDate(dateOnly(booking.checkIn), locale, { day: "numeric", month: "short" }),
@@ -283,7 +283,7 @@ function BookingCard({
           <span className="text-[var(--nf-content-muted)]">&middot; {nightsLabel}</span>
         </p>
 
-        <p className="mt-xs flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+        <p className="mt-xs flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
           <UiIcon name="user" size={16} className="shrink-0" />
           {guestsLabel}
           {/* The breakdown only earns its place when it says something the
@@ -301,7 +301,7 @@ function BookingCard({
         {booking.arrivingName && (
           <p
             data-testid="host-booking-arriving"
-            className="mt-xs flex flex-wrap items-center gap-x-xs text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+            className="mt-xs flex flex-wrap items-center gap-x-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
           >
             <UiIcon name="verified" size={16} className="shrink-0" />
             {fill(t.card.arriving, { name: booking.arrivingName })}
@@ -313,13 +313,13 @@ function BookingCard({
           </p>
         )}
 
-        <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(t.card.requested, { date: formatDate(new Date(booking.createdAt), locale) })}
         </p>
 
         {pending && (
           <p
-            className="mt-xs text-[var(--nf-text-overline)] font-semibold"
+            className="mt-xs text-[length:var(--nf-text-overline)] font-semibold"
             style={{ color: "var(--nf-state-warning)" }}
           >
             {waitingLabel}
@@ -329,7 +329,7 @@ function BookingCard({
 
         {booking.status !== "CANCELLED" && !pending && (
           <p
-            className="mt-xs flex items-center gap-xs text-[var(--nf-text-overline)] font-medium"
+            className="mt-xs flex items-center gap-xs text-[length:var(--nf-text-overline)] font-medium"
             style={{
               color:
                 booking.settlement === "settled"
@@ -345,10 +345,10 @@ function BookingCard({
 
       <div className="flex flex-wrap items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-md py-sm">
         <p className="flex items-baseline gap-xs">
-          <span className="nf-numeric text-[var(--nf-text-body-sm)] font-bold">
+          <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-bold">
             {formatMoney(booking.totalMinor, locale)}
           </span>
-          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.card.total}</span>
+          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{t.card.total}</span>
         </p>
         {pending && (
           <span className="flex items-center gap-sm">
@@ -434,7 +434,7 @@ export function BookingsWorkspace({
         aria-labelledby={`bookings-tab-${active}`}
         className="mt-md"
       >
-        <p className="mb-sm text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+        <p className="mb-sm text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           {fill(groupCopy.blurb, { hours: HOLD_WINDOW_HOURS })}
         </p>
 
@@ -456,7 +456,7 @@ export function BookingsWorkspace({
               <BrandIcon name="calendar-check" fill />
             </span>
             <h3 className="nf-h3">{emptyCopy[active].title}</h3>
-            <p className="mx-auto max-w-[38ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mx-auto max-w-[38ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               {emptyCopy[active].body}
             </p>
             <ButtonLink href="/agent/listings" variant="secondary">

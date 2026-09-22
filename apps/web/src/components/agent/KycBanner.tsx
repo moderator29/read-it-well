@@ -120,7 +120,7 @@ export function KycBanner({ standing }: { standing: KycStanding }) {
         ) : null}
         <Link
           href="/verification"
-          className="mt-inline inline-flex items-center gap-inline-tight text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)]"
+          className="mt-inline inline-flex items-center gap-inline-tight text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)]"
         >
           {copy.action}
           <UiIcon name="chevron-right" size={ICON.inline} />

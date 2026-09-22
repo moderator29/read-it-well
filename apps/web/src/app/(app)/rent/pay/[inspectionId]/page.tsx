@@ -199,7 +199,7 @@ export default async function RentPayPage({
             {view.title}
           </h2>
           {view.location.length > 0 && (
-            <p className="mt-2xs flex items-center gap-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs flex items-center gap-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               <UiIcon name="location" size={12} className="shrink-0" />
               <span className="truncate">{view.location}</span>
             </p>
@@ -214,7 +214,7 @@ export default async function RentPayPage({
               locale={view.locale}
               currency={view.currency}
               showFraction
-              className="text-[var(--nf-text-display-sm)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
+              className="text-[length:var(--nf-text-display-sm)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
               secondaryClassName="text-[0.5em] font-semibold text-[var(--nf-content-muted)]"
             />
           </p>

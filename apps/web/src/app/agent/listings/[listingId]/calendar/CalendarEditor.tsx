@@ -127,7 +127,7 @@ export function CalendarEditor({
         />
       )}
 
-      <ul className="mb-md flex flex-wrap items-center gap-x-md gap-y-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <ul className="mb-md flex flex-wrap items-center gap-x-md gap-y-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         <Key className="bg-[var(--nf-surface-raised)]" label="Open" />
         <Key className="bg-[var(--nf-brand-primary)]" label="Closed by you" />
         <Key className="bg-[var(--nf-state-success)]" label="Booked" />
@@ -147,7 +147,7 @@ export function CalendarEditor({
               {WEEKDAYS.map((day) => (
                 <span
                   key={day}
-                  className="pb-2xs text-center text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]"
+                  className="pb-2xs text-center text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-muted)]"
                 >
                   {day}
                 </span>
@@ -213,10 +213,10 @@ export function CalendarEditor({
           quiet until there is something to do with it. */}
       {from && to && (
         <div className="nf-card sticky bottom-4 mt-lg p-md">
-          <p className="text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+          <p className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
             {selectedCount} {selectedCount === 1 ? "night" : "nights"} selected
           </p>
-          <p className="nf-numeric mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <p className="nf-numeric mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {from} to {to}
           </p>
 
@@ -253,7 +253,7 @@ export function CalendarEditor({
               setAnchor(null);
               setEnd(null);
             }}
-            className="mt-xs w-full text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+            className="mt-xs w-full text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
             Clear selection
           </button>
@@ -261,7 +261,7 @@ export function CalendarEditor({
           {error && (
             <p
               role="alert"
-              className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {error}
             </p>
@@ -273,7 +273,7 @@ export function CalendarEditor({
           to start, and the locked-booking half of this sentence is about
           nights that do not exist yet on a calendar with nothing booked. */}
       {!from && !untouched && (
-        <p className="mt-lg flex items-start gap-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-lg flex items-start gap-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           <UiIcon name="calendar-booking" size={16} className="mt-3xs shrink-0" />
           Tap a night to start, then tap another to finish the run. A night with
           a booking on it is locked, because a guest is already coming.

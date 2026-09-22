@@ -119,7 +119,7 @@ export default async function ProfilePage() {
         {account.state === "no-row" && (
           <p
             role="status"
-            className="nf-card mt-sm p-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]"
+            className="nf-card mt-sm p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]"
           >
             We could not load your account profile just now, so this page is showing what is
             held on this device. Sign out and back in, then open this page again.

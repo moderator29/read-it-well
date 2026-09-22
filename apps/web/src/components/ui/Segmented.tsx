@@ -131,8 +131,8 @@ export function Segmented<T extends string>({
   const pad = size === "sm" ? "p-3xs" : "p-2xs";
   const seg =
     size === "sm"
-      ? "h-9 px-sm text-[var(--nf-text-caption)]"
-      : "h-11 px-md text-[var(--nf-text-body-sm)]";
+      ? "h-9 px-sm text-[length:var(--nf-text-caption)]"
+      : "h-11 px-md text-[length:var(--nf-text-body-sm)]";
   const pill = shape === "pill";
 
   return (

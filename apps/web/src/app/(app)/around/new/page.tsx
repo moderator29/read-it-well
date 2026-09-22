@@ -33,7 +33,7 @@ export default async function ProposeAreaPage() {
         fallback="/around/settings"
       />
 
-      <p className="mb-lg text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mb-lg text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         Tell us about somewhere that should be on Around. A person reads every
         one of these.
       </p>
@@ -41,24 +41,24 @@ export default async function ProposeAreaPage() {
       <ProposeAreaForm states={states} signedIn={signedIn} />
 
       <section className="nf-card mt-xl p-lg">
-        <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           If you want to look after a place
         </h2>
-        <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           Once a place is open you can join it and apply to look after it. It is
           worth knowing what that does and does not mean before you ask.
         </p>
 
         <div className="mt-md grid gap-md sm:grid-cols-2">
           <div>
-            <h3 className="text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.12em] text-[var(--nf-state-success)]">
+            <h3 className="text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.12em] text-[var(--nf-state-success)]">
               You can
             </h3>
             <ul className="mt-xs flex flex-col gap-xs">
               {MODERATOR_CAN.map((line) => (
                 <li
                   key={line}
-                  className="text-[var(--nf-text-body-sm)] leading-snug text-[var(--nf-content-secondary)]"
+                  className="text-[length:var(--nf-text-body-sm)] leading-snug text-[var(--nf-content-secondary)]"
                 >
                   {line}
                 </li>
@@ -66,14 +66,14 @@ export default async function ProposeAreaPage() {
             </ul>
           </div>
           <div>
-            <h3 className="text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.12em] text-[var(--nf-content-muted)]">
+            <h3 className="text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.12em] text-[var(--nf-content-muted)]">
               You cannot
             </h3>
             <ul className="mt-xs flex flex-col gap-xs">
               {MODERATOR_CANNOT.map((line) => (
                 <li
                   key={line}
-                  className="text-[var(--nf-text-body-sm)] leading-snug text-[var(--nf-content-secondary)]"
+                  className="text-[length:var(--nf-text-body-sm)] leading-snug text-[var(--nf-content-secondary)]"
                 >
                   {line}
                 </li>

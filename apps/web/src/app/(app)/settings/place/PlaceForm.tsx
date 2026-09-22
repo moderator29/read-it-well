@@ -72,7 +72,7 @@ export function PlaceForm({
         <p
           role="alert"
           data-testid="place-error"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
@@ -82,7 +82,7 @@ export function PlaceForm({
         <p
           role="status"
           data-testid="place-saved"
-          className="nf-rise mt-md flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]"
+          className="nf-rise mt-md flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-success)]"
         >
           <UiIcon name="verified" size={16} className="shrink-0" />
           Saved. Home now opens on this city.
@@ -93,7 +93,7 @@ export function PlaceForm({
         {pending ? "Saving..." : "Save"}
       </button>
 
-      <p className="mt-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-sm text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         Your state and local government decide which places home opens on. Your
         occupation is shown on your public profile only if you put it there.
       </p>

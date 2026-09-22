@@ -64,7 +64,7 @@ export function PostEditor({
       }}
     >
       <textarea
-        className="nf-field min-h-[92px] w-full resize-y text-[var(--nf-text-body)] leading-[1.5]"
+        className="nf-field min-h-[92px] w-full resize-y text-[length:var(--nf-text-body)] leading-[1.5]"
         value={body}
         maxLength={POST_MAX}
         autoFocus
@@ -72,7 +72,7 @@ export function PostEditor({
         onChange={(event) => setBody(event.target.value)}
       />
 
-      <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         You can change a post for {EDIT_WINDOW_MINUTES} minutes after writing it.
         It will say edited afterwards, and anything you add is checked the same
         way a new post is.
@@ -81,7 +81,7 @@ export function PostEditor({
       {error ? (
         <p
           role="alert"
-          className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
+          className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
         >
           {error}
         </p>
@@ -90,7 +90,7 @@ export function PostEditor({
       <div className="mt-sm flex items-center justify-end gap-sm">
         {left < 240 ? (
           <span
-            className={`nf-numeric text-[var(--nf-text-overline)] ${
+            className={`nf-numeric text-[length:var(--nf-text-overline)] ${
               left < 0 ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-muted)]"
             }`}
           >
@@ -99,7 +99,7 @@ export function PostEditor({
         ) : null}
         <button
           type="button"
-          className="nf-btn nf-btn--ghost h-10 px-md text-[var(--nf-text-body-sm)]"
+          className="nf-btn nf-btn--ghost h-10 px-md text-[length:var(--nf-text-body-sm)]"
           onClick={onDone}
           disabled={pending}
         >
@@ -107,7 +107,7 @@ export function PostEditor({
         </button>
         <button
           type="submit"
-          className="nf-btn nf-btn--primary h-10 px-lg text-[var(--nf-text-body-sm)]"
+          className="nf-btn nf-btn--primary h-10 px-lg text-[length:var(--nf-text-body-sm)]"
           disabled={!changed || pending}
         >
           {pending ? "Saving" : "Save"}

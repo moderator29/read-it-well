@@ -176,7 +176,7 @@ function BookingCard({
           {b.arrivingName && (
             <p
               data-testid="booking-arriving"
-              className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]"
+              className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]"
             >
               {copy.arriving.replace("{name}", b.arrivingName)}
               {b.arrivingPhone && (
@@ -192,10 +192,10 @@ function BookingCard({
 
       <div className="flex items-center justify-between gap-sm border-t border-[var(--nf-border-subtle)] px-md py-sm sm:px-md">
         <p className="flex items-baseline gap-2xs">
-          <span className="nf-numeric text-[var(--nf-text-body-sm)] font-bold tracking-tight text-[var(--nf-content-primary)]">
+          <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {b.totalDisplay}
           </span>
-          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {copy.total}
           </span>
         </p>
@@ -212,7 +212,7 @@ function BookingCard({
             <button
               type="button"
               onClick={() => onCancel(b)}
-              className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               {copy.cancel}
             </button>
@@ -224,7 +224,7 @@ function BookingCard({
           {b.reviewable && (
             <Link
               href={`/bookings/${b.id}/review`}
-              className="nf-btn nf-btn--primary px-sm py-xs text-[var(--nf-text-caption)]"
+              className="nf-btn nf-btn--primary px-sm py-xs text-[length:var(--nf-text-caption)]"
             >
               {copy.leaveReview}
             </Link>
@@ -232,7 +232,7 @@ function BookingCard({
           {b.reviewed && (
             <Link
               href={`/bookings/${b.id}/review`}
-              className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
               {copy.yourReview}
@@ -240,7 +240,7 @@ function BookingCard({
           )}
           <Link
             href={`/listing/${b.listingId}`}
-            className="flex items-center gap-2xs text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {copy.viewDetails}
             <UiIcon name="arrow-right" size={16} />

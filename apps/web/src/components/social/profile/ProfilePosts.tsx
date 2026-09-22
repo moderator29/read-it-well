@@ -111,10 +111,10 @@ export function ProfilePosts({
           <div className="mx-auto w-fit">
             <BrandIcon name={copy.icon} size={44} />
           </div>
-          <h3 className="nf-h3 mt-sm text-[var(--nf-text-body-lg)]">
+          <h3 className="nf-h3 mt-sm text-[length:var(--nf-text-body-lg)]">
             {isOwner ? copy.mineTitle : copy.theirsTitle.replace("{handle}", handle)}
           </h3>
-          <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {isOwner ? copy.mineBody : copy.theirsBody.replace("{handle}", handle)}
           </p>
           {isOwner && (

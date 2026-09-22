@@ -99,10 +99,10 @@ export default async function AdminMoneyPage({
       {/* Stuck first. It is the only thing here somebody is waiting on. */}
       {stuck.length > 0 && (
         <section className="nf-card mb-md p-md sm:p-lg">
-          <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+          <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             Stuck, and somebody is waiting
           </h2>
-          <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             These debits have been PENDING for over half an hour. The money has
             left a spendable balance and has not arrived anywhere. The stale
             hold sweeper releases withdrawal holds on a schedule; anything here
@@ -176,7 +176,7 @@ export default async function AdminMoneyPage({
       )}
 
       <section className="nf-card mb-md p-md sm:p-lg">
-        <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">Wallets</h2>
+        <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">Wallets</h2>
         {/* The panel's own empty line is a statement about the WHOLE platform,
             and under a filter it stops being true: "Nobody has a wallet yet" is
             a lie to somebody who searched a name that has none. Narrowed, the
@@ -184,7 +184,7 @@ export default async function AdminMoneyPage({
             screen. Same arrangement as `/admin/escrow`. */}
         {wallets.length === 0 ? (
           narrowed ? null : (
-          <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+          <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             Nobody has a wallet yet. One is created the first time somebody is
             paid or funds an account.
           </p>
@@ -197,7 +197,7 @@ export default async function AdminMoneyPage({
                 className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm"
               >
                 <span className="min-w-0">
-                  <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
+                  <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
                     {wallet.ownerName ?? "No display name"}
                   </span>
                   {/* THE OWNER'S ID, AND IT IS NOT A REFERENCE. The comment
@@ -209,17 +209,17 @@ export default async function AdminMoneyPage({
                       colleague's message, to get from a name to every other
                       screen this person appears on. `user-select: all` means one
                       tap takes the whole of it. */}
-                  <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+                  <span className="block font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
                     {wallet.userId}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-baseline gap-md">
                   {wallet.heldMinor > 0 && (
-                    <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {formatMoney(wallet.heldMinor, locale)} held
                     </span>
                   )}
-                  <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
+                  <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
                     {formatMoney(wallet.balanceMinor, locale)}
                   </span>
                 </span>
@@ -233,10 +233,10 @@ export default async function AdminMoneyPage({
 
       {escrow.state === "ok" && escrow.data.disputes.length > 0 && (
         <section className="nf-card mb-md p-md sm:p-lg">
-          <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+          <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             Disputed holds waiting on a ruling
           </h2>
-          <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             Somebody objected and the money is held until a person rules. Release
             pays the payee; refund returns it to the payer. Both people are sent
             your ruling word for word, and the transition is in the audit log.
@@ -254,19 +254,19 @@ export default async function AdminMoneyPage({
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs">
                   <span className="min-w-0">
-                    <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
+                    <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
                       {dispute.listingTitle ?? "A listing that is no longer there"}
                       {" · "}
                       {dispute.payerName ?? "the payer"} paid, {dispute.payeeName ?? "the payee"}{" "}
                       waits
                     </span>
                     {dispute.disputeReason && (
-                      <span className="block text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+                      <span className="block text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
                         {dispute.disputeReason}
                       </span>
                     )}
                   </span>
-                  <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
+                  <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
                     {formatMoney(dispute.amountMinor, locale)}
                   </span>
                 </div>
@@ -284,12 +284,12 @@ export default async function AdminMoneyPage({
       )}
 
       <section className="nf-card p-md sm:p-lg">
-        <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           The ledger, newest first
         </h2>
         {recent.length === 0 ? (
           narrowed ? null : (
-          <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+          <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             No money has moved yet.
           </p>
           )

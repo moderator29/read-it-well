@@ -317,7 +317,7 @@ export function PostCard({
   const body = (
     <>
       {post.repostedBy ? (
-        <p className="mb-xs flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
+        <p className="mb-xs flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
           <UiIcon name="repost" size={14} />
           Reposted by {post.repostedBy}
         </p>
@@ -400,7 +400,7 @@ export function PostCard({
       </div>
 
       {post.replyingTo ? (
-        <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Replying to{" "}
           <span className="font-semibold text-[var(--nf-brand-secondary)]">
             {post.replyingTo}
@@ -409,7 +409,7 @@ export function PostCard({
       ) : null}
 
       {post.heldReason ? (
-        <p className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
           {post.heldReason} Only you can see this until then.
         </p>
       ) : null}
@@ -481,7 +481,7 @@ export function PostCard({
            * the same object on the landing page, which already reasoned its
            * way to this pair.
            */
-          className="mt-sm inline-flex h-7 items-center rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-sm text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
+          className="mt-sm inline-flex h-7 items-center rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-sm text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
         >
           {getDictionary(locale).uiCommon.around.replace("{area}", post.areaName)}
         </Link>
@@ -501,7 +501,7 @@ export function PostCard({
       ) : null}
 
       {post.sourceNote ? (
-        <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {post.sourceNote}
         </p>
       ) : null}
@@ -599,25 +599,25 @@ export function PostCard({
 function ListingFacts({ listing }: { listing: PostListing }) {
   return (
     <div className="mt-sm border-t border-[var(--nf-brand-edge-soft)] pt-sm">
-      <p className="text-[var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
+      <p className="text-[length:var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
         {listing.title}
       </p>
-      <p className="mt-3xs flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
+      <p className="mt-3xs flex items-center gap-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
         {listing.area}, {listing.city}
         {listing.verified ? (
           <span className="font-semibold text-[var(--nf-brand-secondary)]">&middot; Verified</span>
         ) : null}
       </p>
       <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
-        <p className="nf-numeric text-[var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
+        <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-extrabold tracking-[-0.03em] text-[var(--nf-content-primary)]">
           {listing.priceLabel}{" "}
-          <span className="text-[var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-brand-secondary)]">
+          <span className="text-[length:var(--nf-text-overline)] font-medium tracking-normal text-[var(--nf-brand-secondary)]">
             {listing.periodLabel}
           </span>
         </p>
         <Link
           href={`/listing/${listing.id}`}
-          className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[var(--nf-text-caption)]"
+          className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[length:var(--nf-text-caption)]"
         >
           See the place
         </Link>

@@ -53,11 +53,11 @@ const TONE_STYLE: Record<StatusTone, CSSProperties> = {
 };
 
 const SIZE_CLASS = {
-  xs: "px-xs py-3xs text-[var(--nf-text-overline)]",
-  sm: "px-sm py-2xs text-[var(--nf-text-caption)]",
+  xs: "px-xs py-3xs text-[length:var(--nf-text-overline)]",
+  sm: "px-sm py-2xs text-[length:var(--nf-text-caption)]",
   /* The admin render's queue pill: 28px tall at caption size, room for the
      dot and two words (In Review, Completed) without the pill going oval. */
-  md: "px-sm py-xs text-[var(--nf-text-caption)]",
+  md: "px-sm py-xs text-[length:var(--nf-text-caption)]",
 } as const;
 
 const ICON_PX = { xs: 11, sm: 13, md: 14 } as const;

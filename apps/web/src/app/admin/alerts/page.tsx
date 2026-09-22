@@ -140,7 +140,7 @@ export default async function AdminAlertsPage({
 
           {resolved.length > 0 && (
             <section className="mt-xl">
-              <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyResolved}</h2>
+              <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{common.recentlyResolved}</h2>
               <ul className="nf-queue-list">
                 {resolved.map((alert) => (
                   <AlertCard key={alert.id} alert={alert} copy={copy} common={common} ui={ui} />

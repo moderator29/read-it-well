@@ -121,7 +121,7 @@ export function AgentSettingsBody({
         ) : (
           <div className="nf-card p-panel">
             <p className="nf-overline">Notifications</p>
-            <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               We could not read your preferences just now. Nothing has changed, and
               you are still receiving everything you were receiving before.
             </p>
@@ -133,24 +133,24 @@ export function AgentSettingsBody({
           <p className="nf-overline">Where your earnings go</p>
           {preferred ? (
             <>
-              <p className="mt-sm flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+              <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 <UiIcon name="verified" size={16} className="shrink-0 text-[var(--nf-state-success)]" />
                 {preferred.bankName}
               </p>
-              <p className="nf-numeric mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+              <p className="nf-numeric mt-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
                 {groupNuban(preferred.accountNumber)}
               </p>
-              <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
                 {preferred.accountName}
               </p>
-              <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+              <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                 {accounts.length === 1
                   ? "This is the account your payouts are sent to."
                   : `Your payouts go here. You have ${accounts.length} accounts on file.`}
               </p>
             </>
           ) : (
-            <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               You have not told us where to send your earnings yet. Nothing can be
               paid out until you do, and it takes about a minute.
             </p>
@@ -163,7 +163,7 @@ export function AgentSettingsBody({
         {/* ------------------------------------------------------ identity */}
         <div className="nf-card p-panel">
           <p className="nf-overline">Your host identity</p>
-          <p className="mt-sm flex flex-wrap items-center gap-x-xs gap-y-2xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+          <p className="mt-sm flex flex-wrap items-center gap-x-xs gap-y-2xs text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
             {agent.displayName}
             {agent.verified && (
               <span className="nf-badge nf-badge--brand">
@@ -172,7 +172,7 @@ export function AgentSettingsBody({
               </span>
             )}
           </p>
-          <dl className="mt-sm grid gap-xs border-t border-[var(--nf-border-subtle)] pt-sm text-[var(--nf-text-body-sm)]">
+          <dl className="mt-sm grid gap-xs border-t border-[var(--nf-border-subtle)] pt-sm text-[length:var(--nf-text-body-sm)]">
             <div className="flex items-center justify-between gap-sm">
               <dt className="text-[var(--nf-content-muted)]">Account type</dt>
               <dd className="text-[var(--nf-content-secondary)]">
@@ -194,7 +194,7 @@ export function AgentSettingsBody({
               </dd>
             </div>
           </dl>
-          <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             This is the name Vallo checked and the name on every one of your
             listings, so it is not something to change on your own. Write to
             support and we will change it with you.
@@ -207,7 +207,7 @@ export function AgentSettingsBody({
         {/* ------------------------------------------------------ the rest */}
         <div className="nf-card p-panel">
           <p className="nf-overline">Everything else</p>
-          <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             Theme, language, privacy, security and account deletion are one account
             wide, so they live on your Vallo settings page rather than being kept
             in two places.

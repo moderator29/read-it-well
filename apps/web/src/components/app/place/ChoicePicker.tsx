@@ -178,7 +178,7 @@ export function ChoicePicker({
           <button
             type="button"
             onClick={() => onChange("")}
-            className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+            className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
           >
             {t.pickers.clear}
           </button>
@@ -217,12 +217,12 @@ export function ChoicePicker({
       </button>
 
       {disabled && disabledHint && (
-        <p id={hintId} className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {disabledHint}
         </p>
       )}
       {!disabled && hint && (
-        <p id={hintId} className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {hint}
         </p>
       )}
@@ -230,7 +230,7 @@ export function ChoicePicker({
         <p
           id={errorId}
           role="alert"
-          className="mt-2xs text-[var(--nf-text-overline)] font-medium text-[var(--nf-state-error)]"
+          className="mt-2xs text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -295,13 +295,13 @@ export function ChoicePicker({
 
               <div className="min-h-0 flex-1 overflow-y-auto px-lg pb-[max(2rem,env(safe-area-inset-bottom))] pt-xs">
                 {loading ? (
-                  <p className="py-xl text-center text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+                  <p className="py-xl text-center text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
                     {t.pickers.loading}
                   </p>
                 ) : total === 0 ? (
                   <div className="py-2xl text-center">
-                    <p className="text-[var(--nf-text-body-sm)] font-semibold">{t.pickers.emptyTitle}</p>
-                    <p className="mx-auto mt-2xs max-w-[34ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+                    <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{t.pickers.emptyTitle}</p>
+                    <p className="mx-auto mt-2xs max-w-[34ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                       {groups.length === 0 ? t.pickers.emptyUnreachable : t.pickers.emptySearch}
                     </p>
                   </div>
@@ -325,7 +325,7 @@ export function ChoicePicker({
                                   setOpen(false);
                                 }}
                                 aria-pressed={active}
-                                className="flex w-full items-center justify-between gap-sm py-sm text-left text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
+                                className="flex w-full items-center justify-between gap-sm py-sm text-left text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
                               >
                                 <span className="min-w-0 flex-1">{option.name}</span>
                                 {active && (

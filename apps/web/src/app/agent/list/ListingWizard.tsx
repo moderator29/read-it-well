@@ -1936,7 +1936,7 @@ export function ListingWizard({
               )}
             </ul>
 
-            <p className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <p className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}
             </p>
 
@@ -2179,7 +2179,7 @@ export function ListingWizard({
 
             {/* ------------------------------------------------ the gate */}
             <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
-              <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+              <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 Getting through the gate
               </p>
               <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
@@ -2312,7 +2312,7 @@ export function ListingWizard({
                   invented number. The lister states what they charge.
                 */}
                 <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
-                  <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                  <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     What a buyer actually pays
                   </p>
                   <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
@@ -2554,7 +2554,7 @@ export function ListingWizard({
                   point and "we did not say" is not the same promise.
                 */}
                 <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
-                  <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                  <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     What it costs to move in
                   </p>
                   <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-muted)]">
@@ -2732,7 +2732,7 @@ export function ListingWizard({
                   </select>
                 </Field>
 
-                <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {copy.pricing.rentalNote}
                 </p>
               </>
@@ -2775,7 +2775,7 @@ export function ListingWizard({
                   onChange={(e) => set("availableFrom", e.target.value)}
                 />
               ) : (
-                <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   Set above, with the tenancy terms.
                 </span>
               )}
@@ -2801,7 +2801,7 @@ export function ListingWizard({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="grid h-full w-full place-items-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <div className="grid h-full w-full place-items-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {copy.guestView.addPhotos}
                   </div>
                 )}
@@ -2848,7 +2848,7 @@ export function ListingWizard({
                 </p>
               </div>
               <div className="p-card">
-                <h3 className="text-[var(--nf-text-body-sm)] font-semibold leading-snug">
+                <h3 className="text-[length:var(--nf-text-body-sm)] font-semibold leading-snug">
                   {values.title || copy.guestView.titlePlaceholder}
                 </h3>
                 <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]">
@@ -2865,10 +2865,10 @@ export function ListingWizard({
                     .join(" · ")}
                 </p>
                 <p className="mt-inline flex items-baseline gap-inline-tight">
-                  <span className="nf-numeric text-[var(--nf-text-body-lg)] font-bold">
+                  <span className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold">
                     {price ?? copy.guestView.priceToSet}
                   </span>
-                  <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {pricePeriod}
                   </span>
                 </p>
@@ -3047,9 +3047,9 @@ export function ListingWizard({
                       <UiIcon name="verified" size={12} />
                     </span>
                     <span className="min-w-0 leading-snug">
-                      <span className="block text-[var(--nf-text-body-sm)] font-medium">{item.label}</span>
+                      <span className="block text-[length:var(--nf-text-body-sm)] font-medium">{item.label}</span>
                       {problem && (
-                        <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                        <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                           {gateText(problem.field, problem.message)}
                         </span>
                       )}

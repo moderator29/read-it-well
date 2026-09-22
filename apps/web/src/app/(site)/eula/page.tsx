@@ -40,7 +40,7 @@ export default function EulaPage() {
               {sections.map((s) => (
                 <section key={s.title}>
                   <h2 className="nf-h3">{s.title}</h2>
-                  <div className="mt-inline space-y-row text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-inline [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
+                  <div className="mt-inline space-y-row text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)] [&_li]:mt-inline [&_strong]:text-[var(--nf-content-primary)] [&_ul]:list-disc [&_ul]:space-y-inline [&_ul]:pl-heading">
                     {s.body}
                   </div>
                 </section>
@@ -48,7 +48,7 @@ export default function EulaPage() {
             </div>
           </div>
 
-          <p className="mt-block text-center text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+          <p className="mt-block text-center text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             See also our{" "}
             <Link href="/terms" className="font-semibold text-[var(--nf-content-link)] hover:underline">
               Terms of service

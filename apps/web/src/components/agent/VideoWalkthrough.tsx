@@ -225,7 +225,7 @@ export function VideoWalkthrough({
                 </span>
                 <button
                   type="button"
-                  className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
+                  className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
                   onClick={() => void drop(video)}
                 >
                   Remove

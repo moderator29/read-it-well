@@ -51,7 +51,7 @@ export function ActivityList({
     <div className="flex flex-col gap-[var(--nf-social-gap)]">
       {entries.map((entry, index) => (
         <div key={`${entry.kind}-${entry.post.id}-${index}`}>
-          <p className="mb-2xs inline-flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
+          <p className="mb-2xs inline-flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
             <UiIcon name={entry.kind === "LIKE" ? "heart" : "repost"} size={14} filled />
             {entry.kind === "LIKE"
               ? isOwner

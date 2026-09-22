@@ -71,7 +71,7 @@ export function AcceptTerms({
           aria-describedby={showError ? "accept-terms-error" : undefined}
           className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
         />
-        <span className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <span className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.safety.acceptLabel}
         </span>
       </label>
@@ -79,7 +79,7 @@ export function AcceptTerms({
       {/* The documents themselves, as three links rather than three links
           buried inside the sentence, so the sentence stays translatable as one
           sentence in all four locales. */}
-      <p className="mt-2xs pl-lg text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <p className="mt-2xs pl-lg text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {t.safety.acceptRead}{" "}
         <Link href="/terms" className="underline underline-offset-4">
           {t.safety.termsLink}
@@ -102,7 +102,7 @@ export function AcceptTerms({
         <p
           id="accept-terms-error"
           role="alert"
-          className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {t.safety.acceptRequired}
         </p>

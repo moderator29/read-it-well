@@ -375,14 +375,14 @@ export function AccountHero({
       </div>
 
       {!identity && (
-        <p className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           A handle is your address on Vallo. Claim one and this page gets a cover, a
           public page and somewhere for what you write to live.
         </p>
       )}
 
       {error && (
-        <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

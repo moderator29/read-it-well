@@ -173,10 +173,10 @@ export function InterestChoices({
                   className="absolute right-3 top-3 shrink-0"
                 />
               )}
-              <span className="pr-lg text-[var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
+              <span className="pr-lg text-[length:var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
                 {t.interests.markets[value]}
               </span>
-              <span className="text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
+              <span className="text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
                 {t.interests.hints[value]}
               </span>
             </button>
@@ -188,7 +188,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-error"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
@@ -198,7 +198,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-skip-error"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {skipError}
         </p>
@@ -208,7 +208,7 @@ export function InterestChoices({
         <p
           role="status"
           data-testid="interests-saved"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
+          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-center text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
         >
           {chosen.length === 0
             ? t.interests.savedNothing
@@ -257,7 +257,7 @@ export function InterestChoices({
         and the rule it was keeping was never to promise a surface nobody had
         built.
       */}
-      <p className="mt-md text-center text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-md text-center text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         {t.interests.note}
         {firstRun ? t.interests.noteFirstRun : ""}
       </p>

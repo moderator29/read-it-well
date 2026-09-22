@@ -90,12 +90,12 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
       )}
 
       <div className="nf-card mt-md p-lg">
-        <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           {unconfigured
             ? "We cannot reach your account right now"
             : "Your stays live in your account"}
         </h2>
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {unconfigured
             ? "This is on our side, not yours. Everything you set here is kept on this device and nothing has been lost. Try again in a few minutes."
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
@@ -231,7 +231,7 @@ function DeviceDetailsSheet({
           />
         </label>
 
-        <p className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           Neither of these leaves this browser. Nothing is sent anywhere until you open a
           support request yourself.
         </p>

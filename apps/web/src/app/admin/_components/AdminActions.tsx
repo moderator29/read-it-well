@@ -133,17 +133,17 @@ function ActionSheet({
     >
       {succeeded ? (
         <div className="text-center">
-          <p className="flex items-center justify-center gap-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+          <p className="flex items-center justify-center gap-xs text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
             <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
             {successTitle}
           </p>
-          <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {successBody}
           </p>
         </div>
       ) : (
         <>
-          <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {description}
           </p>
 
@@ -169,7 +169,7 @@ function ActionSheet({
           {result && !result.ok && (
             <p
               role="alert"
-              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {result.error}
             </p>
@@ -582,13 +582,13 @@ export function TicketReply({
       {result && !result.ok && (
         <p
           role="alert"
-          className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+          className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
         >
           {result.error}
         </p>
       )}
       {result?.ok && (
-        <p className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-success)]">{copy.reply.sent}</p>
+        <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-success)]">{copy.reply.sent}</p>
       )}
 
       <div className="mt-xs flex flex-wrap items-center gap-md">
@@ -600,7 +600,7 @@ export function TicketReply({
         >
           {copy.reply.send}
         </Button>
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{copy.reply.note}</span>
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{copy.reply.note}</span>
       </div>
     </div>
   );
@@ -650,7 +650,7 @@ export function TicketStatusControl({
         ))}
       </ChipRow>
       {result && !result.ok && (
-        <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-warning)]">
+        <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-warning)]">
           {result.error}
         </p>
       )}
@@ -699,7 +699,7 @@ export function SwitchControl({
       )}
 
       {result && !result.ok && (
-        <p role="alert" className="mt-xs w-full text-[var(--nf-text-caption)] text-[var(--nf-state-warning)]">
+        <p role="alert" className="mt-xs w-full text-[length:var(--nf-text-caption)] text-[var(--nf-state-warning)]">
           {result.error}
         </p>
       )}
@@ -782,10 +782,10 @@ export function StayCancel({
                 : "border-[var(--nf-border-subtle)]"
             }`}
           >
-            <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+            <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               {copy.reasons[option.code]}
             </span>
-            <span className="mt-3xs block text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <span className="mt-3xs block text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
               {option.detail}
             </span>
           </button>
@@ -794,7 +794,7 @@ export function StayCancel({
 
       <p
         aria-live="polite"
-        className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-primary)]"
+        className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-primary)]"
       >
         {previewing || !preview
           ? copy.sheet.working

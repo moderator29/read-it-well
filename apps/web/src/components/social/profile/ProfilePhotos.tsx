@@ -256,10 +256,10 @@ export function ProfilePhotos({
         </button>
 
         <div className="min-w-0 flex-1 pb-2xs">
-          <p className="text-[var(--nf-text-caption)] font-semibold">
+          <p className="text-[length:var(--nf-text-caption)] font-semibold">
             {busy === "avatar" ? "Saving your photo" : "Your photo"}
           </p>
-          <p className="mt-3xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-3xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             This is the same photo you use everywhere on Vallo. You can also change it from{" "}
             <Link href="/profile" className="font-semibold text-[var(--nf-brand-secondary)]">
               your account
@@ -269,18 +269,18 @@ export function ProfilePhotos({
         </div>
       </div>
 
-      <p className="px-md pb-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)] sm:px-lg">
+      <p className="px-md pb-md text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)] sm:px-lg">
         Photos are re-encoded on your phone before they are uploaded, so the location tag a camera
         writes never leaves it.
       </p>
 
       {error && (
-        <p role="alert" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-error)] sm:px-lg">
+        <p role="alert" className="px-md pb-md text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)] sm:px-lg">
           {error}
         </p>
       )}
       {note && !error && (
-        <p role="status" className="px-md pb-md text-[var(--nf-text-overline)] text-[var(--nf-state-success)] sm:px-lg">
+        <p role="status" className="px-md pb-md text-[length:var(--nf-text-overline)] text-[var(--nf-state-success)] sm:px-lg">
           {note}
         </p>
       )}

@@ -157,14 +157,14 @@ export function Switch({
         */}
         <p
           id={labelId}
-          className="text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
+          className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
         >
           {label}
         </p>
         {description ? (
           <p
             id={descriptionId}
-            className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]"
+            className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]"
           >
             {description}
           </p>

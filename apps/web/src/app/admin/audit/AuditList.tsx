@@ -149,7 +149,7 @@ export function AuditRow({ row, ui, base }: { row: AuditRowView; ui: AdminUi; ba
         </summary>
 
         <div className="nf-admin-row__body">
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-sm gap-y-2xs text-[var(--nf-text-caption)]">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-sm gap-y-2xs text-[length:var(--nf-text-caption)]">
             <dt className="text-[var(--nf-content-muted)]">{AUDIT_COPY.action}</dt>
             <dd className="nf-numeric break-words [overflow-wrap:anywhere]">{row.action}</dd>
 

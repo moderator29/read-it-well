@@ -55,10 +55,10 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
           <BrandIcon name="reviews" fill />
         </span>
         <p className="flex items-baseline gap-xs">
-          <span className="nf-numeric text-[var(--nf-text-h2)] font-bold tracking-tight text-[var(--nf-content-primary)]">
+          <span className="nf-numeric text-[length:var(--nf-text-h2)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {formatRating(summary.average, locale)}
           </span>
-          <span className="text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+          <span className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
             across {formatNumber(summary.total, locale)} {summary.total === 1 ? "review" : "reviews"}
           </span>
         </p>
@@ -69,7 +69,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
           const count = summary.distribution[star - 1] ?? 0;
           return (
             <li key={star} className="flex items-center gap-sm">
-              <span className="nf-numeric w-3 shrink-0 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+              <span className="nf-numeric w-3 shrink-0 text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 {star}
               </span>
               <span
@@ -81,7 +81,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
                   style={{ width: `${Math.round((count / most) * 100)}%` }}
                 />
               </span>
-              <span className="nf-numeric w-6 shrink-0 text-right text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+              <span className="nf-numeric w-6 shrink-0 text-right text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 {count}
               </span>
               <span className="sr-only">
@@ -103,10 +103,10 @@ function ReviewCard({ review }: { review: AgentReview }) {
         <p className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
           <Stars rating={review.rating} />
           <span className="sr-only">{review.rating} out of 5.</span>
-          <span className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
+          <span className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
             {review.author}
           </span>
-          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">{review.when}</span>
+          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{review.when}</span>
         </p>
         {review.response === null && (
           <span className="nf-badge nf-badge--brand">Needs a reply</span>
@@ -115,7 +115,7 @@ function ReviewCard({ review }: { review: AgentReview }) {
 
       <Link
         href={`/listing/${review.listingId}`}
-        className="mt-xs flex min-w-0 items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
+        className="mt-xs flex min-w-0 items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
       >
         {/* `min-w-0` on both, or the truncate never fires: a flex child's
             minimum width is its content by default, so "Luxury 2 bedroom
@@ -127,11 +127,11 @@ function ReviewCard({ review }: { review: AgentReview }) {
       </Link>
 
       {review.body ? (
-        <p className="mt-sm whitespace-pre-line text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm whitespace-pre-line text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {review.body}
         </p>
       ) : (
-        <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           This guest rated the stay and did not write anything.
         </p>
       )}
@@ -170,7 +170,7 @@ export function ReviewsWorkspace({
           <BrandIcon name="reviews" fill />
         </span>
         <p className="mt-md font-semibold text-[var(--nf-content-primary)]">No reviews yet</p>
-        <p className="mx-auto mt-2xs max-w-[42ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+        <p className="mx-auto mt-2xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
           A guest can review a stay once they have checked out and paid. The first
           one lands here, and you get the chance to answer it in public.
         </p>
@@ -236,7 +236,7 @@ export function ReviewsWorkspace({
           <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             Every review has your answer
           </p>
-          <p className="mx-auto mt-2xs max-w-[40ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             A host who answers reads as a host who cares, and that is what the next
             guest is looking for on the page.
           </p>

@@ -131,7 +131,7 @@ export function ThreadOptionsSheet({
         listing ? (
           <>
             {inspected ? (
-              <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[var(--nf-text-caption)]">
+              <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[length:var(--nf-text-caption)]">
                 <UiIcon name="verified" size={16} />
                 {confirmedLabel}
               </p>
@@ -141,7 +141,7 @@ export function ThreadOptionsSheet({
               </Button>
             )}
             {note && (
-              <p role="status" className="mt-sm text-center text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+              <p role="status" className="mt-sm text-center text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 {note}
               </p>
             )}
@@ -150,7 +150,7 @@ export function ThreadOptionsSheet({
       }
     >
       <div className="-mt-xs mb-md flex items-start justify-between gap-md">
-        <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+        <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {counterpartName}
         </p>
         <button type="button" aria-label="Close" onClick={closeEverything} className="nf-icon-btn h-9 w-9">
@@ -169,8 +169,8 @@ export function ThreadOptionsSheet({
             <MediaSkyline hue={0} className="opacity-60" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
-            <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <p className="truncate text-[length:var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
+            <p className="mt-3xs truncate text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {[listing.area, listing.city].filter(Boolean).join(", ")}
             </p>
             <div className="mt-2xs flex flex-wrap gap-2xs">
@@ -216,7 +216,7 @@ export function ThreadOptionsSheet({
         <span className="h-14 w-14 shrink-0" aria-hidden="true">
           <BrandIcon name="shield-lock" fill />
         </span>
-        <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {SAFETY_EDUCATION_COPY}
         </p>
       </div>
@@ -237,13 +237,13 @@ export function ThreadOptionsSheet({
               <p className="nf-body font-semibold text-[var(--nf-content-primary)]">
                 Block {counterpartName}?
               </p>
-              <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {BLOCK_CONFIRM_COPY}
               </p>
               {blockNote && (
                 <p
                   role="alert"
-                  className="mt-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+                  className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
                 >
                   {blockNote}
                 </p>

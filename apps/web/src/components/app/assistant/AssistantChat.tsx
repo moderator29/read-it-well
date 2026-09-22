@@ -822,7 +822,7 @@ export function AssistantChat({
             }`}
           >
             <div className="flex items-center justify-between border-b border-[var(--nf-border-subtle)] py-xs pl-md pr-xs">
-              <p className="text-[var(--nf-text-body-sm)] font-semibold">Conversations</p>
+              <p className="text-[length:var(--nf-text-body-sm)] font-semibold">Conversations</p>
               <button
                 type="button"
                 aria-label="Close conversation history"

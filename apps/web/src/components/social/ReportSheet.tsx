@@ -78,8 +78,8 @@ export function ReportSheet({
       <div ref={panelRef} className="nf-social-sheet__panel">
         <header className="mb-md flex items-start justify-between gap-sm">
           <div className="min-w-0">
-            <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">{sent ? "Thank you" : title}</h2>
-            <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+            <h2 className="nf-h3 text-[length:var(--nf-text-body-lg)]">{sent ? "Thank you" : title}</h2>
+            <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               {subject}
             </p>
           </div>
@@ -95,11 +95,11 @@ export function ReportSheet({
 
         {sent ? (
           <>
-            <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Somebody will read this. We never tell the person who reported
               them, and we do not tell them what was said about them either.
             </p>
-            <p className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
               If you would rather not see them at all in the meantime, mute or
               block them from the same menu. Neither of those tells them
               anything.
@@ -135,7 +135,7 @@ export function ReportSheet({
             <label className="mt-md block">
               <span className="nf-overline">Anything else, if it helps</span>
               <textarea
-                className="nf-field mt-xs min-h-[88px] w-full resize-y text-[var(--nf-text-body-sm)] leading-[1.5]"
+                className="nf-field mt-xs min-h-[88px] w-full resize-y text-[length:var(--nf-text-body-sm)] leading-[1.5]"
                 value={detail}
                 maxLength={600}
                 onChange={(event) => setDetail(event.target.value)}
@@ -146,7 +146,7 @@ export function ReportSheet({
             {error ? (
               <p
                 role="alert"
-                className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
+                className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-primary)]"
               >
                 {error}
               </p>

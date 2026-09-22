@@ -280,8 +280,8 @@ export function CreateBloom({
           <div ref={composerRef} className="nf-social-sheet__panel">
             <header className="mb-md flex items-start justify-between gap-sm">
               <div className="min-w-0">
-                <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">Post</h2>
-                <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+                <h2 className="nf-h3 text-[length:var(--nf-text-body-lg)]">Post</h2>
+                <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                   {picking
                     ? "Choose where this belongs"
                     : chosen
@@ -347,7 +347,7 @@ export function CreateBloom({
                 <button
                   type="button"
                   onClick={() => setPicking(true)}
-                  className="mb-sm text-[var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
+                  className="mb-sm text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
                 >
                   {chosen ? "Post somewhere else" : "Post in a place instead"}
                 </button>
@@ -373,8 +373,8 @@ export function CreateBloom({
           <div ref={reviewRef} className="nf-social-sheet__panel">
             <header className="mb-md flex items-start justify-between gap-sm">
               <div className="min-w-0">
-                <h2 className="nf-h3 text-[var(--nf-text-body-lg)]">Review a stay</h2>
-                <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+                <h2 className="nf-h3 text-[length:var(--nf-text-body-lg)]">Review a stay</h2>
+                <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                   A review is written against a stay you finished, so it starts from one of them.
                 </p>
               </div>
@@ -408,8 +408,8 @@ export function CreateBloom({
                 <div className="mx-auto w-fit">
                   <BrandIcon name="reviews" size={44} />
                 </div>
-                <h3 className="nf-h3 mt-md text-[var(--nf-text-body-lg)]">Nothing to review yet</h3>
-                <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                <h3 className="nf-h3 mt-md text-[length:var(--nf-text-body-lg)]">Nothing to review yet</h3>
+                <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   A stay can be reviewed once you have checked out of it. Your stays, past and
                   coming, are all in one place.
                 </p>

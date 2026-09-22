@@ -103,10 +103,10 @@ export function TenancyCard({
           length and the control keeps its width. */}
       <div className="flex items-end justify-between gap-md border-t border-[var(--nf-border-subtle)] px-md py-sm">
         <p className="min-w-0 leading-tight">
-          <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {copy.total}
           </span>
-          <span className="nf-numeric mt-3xs block text-[var(--nf-text-body-sm)] font-bold tracking-tight text-[var(--nf-content-primary)]">
+          <span className="nf-numeric mt-3xs block text-[length:var(--nf-text-body-sm)] font-bold tracking-tight text-[var(--nf-content-primary)]">
             {tenancy.totalDisplay}
           </span>
         </p>
@@ -117,7 +117,7 @@ export function TenancyCard({
         ) : (
           <Link
             href={`/listing/${tenancy.listingId}`}
-            className="flex shrink-0 items-center gap-2xs whitespace-nowrap text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="flex shrink-0 items-center gap-2xs whitespace-nowrap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {copy.view}
             <UiIcon name="arrow-right" size={16} />

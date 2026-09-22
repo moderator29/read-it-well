@@ -98,7 +98,7 @@ export function ListingAmenities({
   return (
     <ul
       data-testid="amenity-row"
-      className="flex flex-wrap items-center gap-y-xs text-[var(--nf-text-body)]"
+      className="flex flex-wrap items-center gap-y-xs text-[length:var(--nf-text-body)]"
     >
       {marks.map((mark, i) => (
         <li

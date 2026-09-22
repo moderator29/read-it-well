@@ -65,13 +65,13 @@ function Result({ state, done }: { state: ActionResult<{ code: string }> | null;
   if (!state) return null;
   if (state.ok) {
     return (
-      <p role="status" className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-success)]">
+      <p role="status" className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-success)]">
         {done}
       </p>
     );
   }
   return (
-    <p role="alert" className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-state-error)]">
+    <p role="alert" className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
       {state.error}
     </p>
   );
@@ -132,7 +132,7 @@ function OccupationForm({
         error={errors?.sortOrder}
       />
       <div className="sm:col-span-2">
-        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[var(--nf-text-overline)]">
+        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[length:var(--nf-text-overline)]">
           {pending ? "Saving" : mode === "edit" ? "Save this occupation" : "Add occupation"}
         </button>
         <Result state={state} done="Saved. It is on the picker now." />
@@ -163,14 +163,14 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
   return (
     <section>
       <div className="mb-sm flex flex-wrap items-center gap-sm">
-        <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">Occupations</h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">Occupations</h2>
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button
           type="button"
           onClick={() => setAdding((open) => !open)}
-          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[var(--nf-text-overline)]"
+          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[length:var(--nf-text-overline)]"
         >
           {adding ? "Close" : "Add one"}
         </button>
@@ -188,7 +188,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Filter by name, category or code"
         aria-label="Filter occupations"
-        className="nf-field mb-sm w-full text-[var(--nf-text-body-sm)]"
+        className="nf-field mb-sm w-full text-[length:var(--nf-text-body-sm)]"
       />
 
       <ul className="flex flex-col gap-xs">
@@ -200,7 +200,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
               className="flex w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+                <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
                   {row.name}
                 </span>
                 {/* The code and the sort number are both schema, and both
@@ -209,11 +209,11 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
                     in a picker). So they are named rather than run together
                     as "Built environment · quantity_surveyor · 20", which
                     read as three facts of the same kind and was none. */}
-                <span className="nf-numeric mt-3xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <span className="nf-numeric mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {row.category} &middot; code {row.code} &middot; order {row.sortOrder}
                 </span>
               </span>
-              <span className="shrink-0 text-[var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
+              <span className="shrink-0 text-[length:var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
                 {openCode === row.code ? "Close" : "Edit"}
               </span>
             </button>
@@ -227,7 +227,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
       </ul>
 
       {rows.length > filtered.length && (
-        <p className="mt-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Showing {filtered.length} of {rows.length}. Filter to reach the rest.
         </p>
       )}
@@ -297,7 +297,7 @@ function LocalGovernmentForm({
         error={errors?.name}
       />
       <div className="sm:col-span-2">
-        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[var(--nf-text-overline)]">
+        <button type="submit" disabled={pending} className="nf-btn nf-btn--primary h-9 px-md text-[length:var(--nf-text-overline)]">
           {pending ? "Saving" : mode === "edit" ? "Save this local government" : "Add local government"}
         </button>
         <Result state={state} done="Saved. It is on the picker now." />
@@ -342,16 +342,16 @@ export function LocalGovernmentEditor({
   return (
     <section>
       <div className="mb-sm flex flex-wrap items-center gap-sm">
-        <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Local governments
         </h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button
           type="button"
           onClick={() => setAdding((open) => !open)}
-          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[var(--nf-text-overline)]"
+          className="nf-btn nf-btn--ghost ml-auto h-8 px-sm text-[length:var(--nf-text-overline)]"
         >
           {adding ? "Close" : "Add one"}
         </button>
@@ -368,7 +368,7 @@ export function LocalGovernmentEditor({
           value={stateFilter}
           onChange={(event) => setStateFilter(event.target.value)}
           aria-label="Filter by state"
-          className="nf-field w-full text-[var(--nf-text-body-sm)]"
+          className="nf-field w-full text-[length:var(--nf-text-body-sm)]"
         >
           <option value="" style={{ background: "var(--nf-surface-elevated)" }}>
             Every state
@@ -389,7 +389,7 @@ export function LocalGovernmentEditor({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Filter by name or code"
           aria-label="Filter local governments"
-          className="nf-field w-full text-[var(--nf-text-body-sm)]"
+          className="nf-field w-full text-[length:var(--nf-text-body-sm)]"
         />
       </div>
 
@@ -402,14 +402,14 @@ export function LocalGovernmentEditor({
               className="flex w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+                <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
                   {row.name}
                 </span>
-                <span className="nf-numeric mt-3xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <span className="nf-numeric mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {nameByCode.get(row.stateCode) ?? row.stateCode} &middot; {row.code}
                 </span>
               </span>
-              <span className="shrink-0 text-[var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
+              <span className="shrink-0 text-[length:var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
                 {openCode === row.code ? "Close" : "Edit"}
               </span>
             </button>
@@ -428,7 +428,7 @@ export function LocalGovernmentEditor({
       </ul>
 
       {rows.length > filtered.length && (
-        <p className="mt-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Showing {filtered.length} of {rows.length}. Choose a state or filter to reach the rest.
         </p>
       )}

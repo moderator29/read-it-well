@@ -101,14 +101,14 @@ export default async function PeoplePage({
         </Button>
       </form>
 
-      <p className="mt-md text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+      <p className="mt-md text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
         {searching ? `People matching ${view.query}` : "People who just arrived"}
       </p>
 
       {/* Why these people, said plainly. A search for "Ikeja" that quietly also
           matched an occupation looks like a broken search unless it says so. */}
       {searching && view.people.length > 0 ? (
-        <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           Searched by {matchLabel(view.matchedOn)}.
         </p>
       ) : null}
@@ -205,7 +205,7 @@ export default async function PeoplePage({
       )}
 
       {!view.signedIn && view.people.length > 0 ? (
-        <p className="mt-md text-center text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-md text-center text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           <Link href="/sign-in" className="font-semibold text-[var(--nf-brand-secondary)]">
             Sign in
           </Link>{" "}

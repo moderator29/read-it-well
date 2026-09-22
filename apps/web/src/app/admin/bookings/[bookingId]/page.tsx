@@ -102,7 +102,7 @@ export default async function AdminBookingPage({
         {/* `.nf-h1` alone, same as the console dashboard: the class was here and
             two literals were cancelling the clamp it exists for. */}
         <h1 className="nf-h1 mt-xs">{stay.listingTitle}</h1>
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           {place.length > 0 ? `${place} · ` : ""}
           {fill(copy.bookedWhen, { when: ui.when(stay.createdAt) })}
         </p>
@@ -163,7 +163,7 @@ export default async function AdminBookingPage({
 
         <ui.DetailSection title={copy.sections.payments}>
           {stay.payments.length === 0 ? (
-            <p className="py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               {copy.noPayments}
             </p>
           ) : (
@@ -179,7 +179,7 @@ export default async function AdminBookingPage({
                     {" · "}
                     {payment.status}
                     {payment.reference ? (
-                      <span className="mt-3xs block break-all text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                      <span className="mt-3xs block break-all text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                         {payment.reference}
                       </span>
                     ) : null}
@@ -192,7 +192,7 @@ export default async function AdminBookingPage({
 
         <ui.DetailSection title={copy.sections.refunds}>
           {stay.refunds.length === 0 ? (
-            <p className="py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">{copy.noRefunds}</p>
+            <p className="py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">{copy.noRefunds}</p>
           ) : (
             stay.refunds.map((refund) => (
               <ui.DetailRow
@@ -209,12 +209,12 @@ export default async function AdminBookingPage({
                         retained: money(refund.retainedMinor),
                       })}
                     </span>
-                    <span className="mt-3xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    <span className="mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {copy.reasons[refund.reason as CancellationReason] ?? refund.reason}
                     </span>
                     {refund.note ? <span className="mt-3xs block">{refund.note}</span> : null}
                     {refund.reference ? (
-                      <span className="mt-3xs block break-all text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                      <span className="mt-3xs block break-all text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                         {refund.reference}
                       </span>
                     ) : null}
@@ -238,7 +238,7 @@ export default async function AdminBookingPage({
                     {event.actorName ? ` · ${event.actorName}` : ""}
                   </span>
                   {event.note ? (
-                    <span className="mt-3xs block text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+                    <span className="mt-3xs block text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
                       {event.note}
                     </span>
                   ) : null}
@@ -251,7 +251,7 @@ export default async function AdminBookingPage({
         {cancellable ? (
           <StayCancel bookingId={stay.id} copy={copy} common={common} locale={locale} />
         ) : (
-          <p className="mt-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             {stay.status === "CANCELLED" ? copy.cancelledAlready : copy.pastNote}
           </p>
         )}

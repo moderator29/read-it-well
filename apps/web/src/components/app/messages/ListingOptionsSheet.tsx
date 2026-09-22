@@ -42,7 +42,7 @@ export function ListingOptionsSheet({
       title="Listing and safety"
       footer={
         inspected ? (
-          <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[var(--nf-text-caption)]">
+          <p className="nf-badge nf-badge--success w-full justify-center py-sm text-[length:var(--nf-text-caption)]">
             <UiIcon name="verified" size={16} />
             Inspection confirmed on this device
           </p>
@@ -54,7 +54,7 @@ export function ListingOptionsSheet({
       }
     >
       <div className="-mt-xs mb-md flex items-start justify-between gap-md">
-        <p className="text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+        <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {agentName}
         </p>
         <button type="button" aria-label="Close" onClick={onClose} className="nf-icon-btn h-9 w-9">
@@ -76,8 +76,8 @@ export function ListingOptionsSheet({
           <MediaFrame hue={listing.hue} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
-          <p className="mt-3xs truncate text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <p className="truncate text-[length:var(--nf-text-body-sm)] font-semibold">{listing.title}</p>
+          <p className="mt-3xs truncate text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {listing.area}, {listing.city}
           </p>
           <div className="mt-2xs flex flex-wrap gap-2xs">
@@ -99,7 +99,7 @@ export function ListingOptionsSheet({
         <span className="h-14 w-14 shrink-0" aria-hidden="true">
           <BrandIcon name="shield-lock" fill />
         </span>
-        <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           For your safety, only pay after you have inspected the property. Conversations are
           monitored for fraud.
         </p>

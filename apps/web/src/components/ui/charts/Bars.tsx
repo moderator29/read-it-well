@@ -75,10 +75,10 @@ export function Bars({
             {/* min-w-0 plus truncate: freeing the track is not freeing the
                 item, and a long action name is exactly the case that proves
                 it. Same sentence as `Segmented`. */}
-            <span className="min-w-0 truncate text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+            <span className="min-w-0 truncate text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
               {row.label}
             </span>
-            <span className="nf-numeric shrink-0 text-[var(--nf-text-caption)] text-[var(--nf-content-primary)]">
+            <span className="nf-numeric shrink-0 text-[length:var(--nf-text-caption)] text-[var(--nf-content-primary)]">
               {row.count}
             </span>
           </div>

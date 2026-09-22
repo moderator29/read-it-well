@@ -113,7 +113,7 @@ export function AssistantSidebar({
         className="min-h-0 flex-1 overflow-y-auto px-sm pb-xs"
       >
         {visible.length === 0 ? (
-          <p className="px-2xs pt-sm text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+          <p className="px-2xs pt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
             {query.trim()
               ? "No conversations match your search."
               : "Your conversations will appear here."}
@@ -138,7 +138,7 @@ export function AssistantSidebar({
                     }`}
                   >
                     <span
-                      className={`block truncate text-[var(--nf-text-caption)] font-medium ${
+                      className={`block truncate text-[length:var(--nf-text-caption)] font-medium ${
                         active
                           ? "text-[var(--nf-content-primary)]"
                           : "text-[var(--nf-content-secondary)]"
@@ -146,7 +146,7 @@ export function AssistantSidebar({
                     >
                       {t.title}
                     </span>
-                    <span className="nf-numeric mt-3xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                    <span className="nf-numeric mt-3xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                       {whenLabel(t.updatedAt)}
                     </span>
                   </button>
@@ -186,12 +186,12 @@ export function AssistantSidebar({
           className="nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] px-sm py-sm text-left text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
         >
           <UiIcon name="settings-gear" size={18} className="shrink-0" />
-          <span className="flex-1 text-[var(--nf-text-caption)] font-medium">Settings</span>
+          <span className="flex-1 text-[length:var(--nf-text-caption)] font-medium">Settings</span>
           {/* The current reply style, on the row. A settings entry that says
               only "Settings" makes somebody open it to find out what it is
               set to; naming the one they are most likely to be checking
               answers that without a tap. */}
-          <span className="shrink-0 text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="shrink-0 text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {tone}
           </span>
           <UiIcon name="chevron-right" size={14} className="shrink-0" />

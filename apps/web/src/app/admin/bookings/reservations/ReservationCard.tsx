@@ -50,7 +50,7 @@ export function TableCard({
         {row.past && row.status !== "CANCELLED" && (
           <ui.StatusChip label="Time has passed" tone="neutral" />
         )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Asked {ui.when(row.createdAt)}
         </span>
       </div>
@@ -59,11 +59,11 @@ export function TableCard({
           shows one on every queue row. A restaurant's table is the concierge
           bell; it is an ornament on the row rather than the subject of the
           surface, so it takes no tile (see the note in BrandIcon). */}
-      <h3 className="mt-xs flex items-center gap-inline text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         <BrandIcon name="concierge-bell" size={28} />
         <span className="min-w-0">{row.placeName}</span>
       </h3>
-      <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+      <p className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {ui.when(row.reservedFor)}
         {" · "}
         {guest}
@@ -71,13 +71,13 @@ export function TableCard({
         {plural(row.partySize, guestsWord, "en")}
       </p>
       {row.note && (
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {row.note}
         </p>
       )}
       {/* THE ID IS NEVER CLIPPED. It is what a guest quotes and what an operator
           pastes into the search box or a colleague's message. */}
-      <p className="mt-xs font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-muted)] [overflow-wrap:anywhere] [user-select:all]">
+      <p className="mt-xs font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] [overflow-wrap:anywhere] [user-select:all]">
         {row.id}
       </p>
 
@@ -106,7 +106,7 @@ export function ReservationGroup({
   if (rows.length === 0) return null;
   return (
     <section className="mt-xl first:mt-0">
-      <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{title}</h2>
+      <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{title}</h2>
       <ul className="nf-queue-list">
         {rows.map((row) => (
           <TableCard key={row.id} row={row} ui={ui} guestsWord={guestsWord} />

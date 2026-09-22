@@ -59,10 +59,10 @@ export function ProposeAreaForm({
         <div className="mx-auto mb-md flex justify-center">
           <UiIcon name="verified" size={40} className="text-[var(--nf-state-success)]" />
         </div>
-        <h2 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+        <h2 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           Thank you. We have it.
         </h2>
-        <p className="mx-auto mt-xs max-w-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mx-auto mt-xs max-w-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_COPY.proposePending}
         </p>
         <div className="mt-md flex flex-col gap-xs sm:flex-row sm:justify-center">
@@ -117,7 +117,7 @@ export function ProposeAreaForm({
       }}
     >
       {!signedIn ? (
-        <p className="nf-card border-[var(--nf-border-brand)] p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-card border-[var(--nf-border-brand)] p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           Sign in first and we will keep what you type here.
         </p>
       ) : null}
@@ -133,7 +133,7 @@ export function ProposeAreaForm({
       />
 
       <fieldset className="flex flex-col gap-xs">
-        <legend className="mb-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <legend className="mb-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           What kind of place is it?
         </legend>
         <div className="grid grid-cols-2 gap-xs">
@@ -150,7 +150,7 @@ export function ProposeAreaForm({
               }`}
             >
               <span
-                className={`block text-[var(--nf-text-body-sm)] font-semibold ${
+                className={`block text-[length:var(--nf-text-body-sm)] font-semibold ${
                   kind === option
                     ? "text-[var(--nf-brand-primary)]"
                     : "text-[var(--nf-content-primary)]"
@@ -158,7 +158,7 @@ export function ProposeAreaForm({
               >
                 {AREA_KIND_LABEL[option]}
               </span>
-              <span className="mt-2xs block text-[var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
+              <span className="mt-2xs block text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
                 {AREA_KIND_HINT[option]}
               </span>
             </button>
@@ -203,7 +203,7 @@ export function ProposeAreaForm({
       />
 
       {slug ? (
-        <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Its address will be{" "}
           <span className="nf-numeric text-[var(--nf-content-secondary)]">
             {displayHost()}/around/{slug}
@@ -211,14 +211,14 @@ export function ProposeAreaForm({
         </p>
       ) : null}
 
-      <p className="text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
         {AREA_COPY.proposeWhy}
       </p>
 
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
+          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
         >
           {error}
         </p>

@@ -57,21 +57,21 @@ export function SwitchRow({
     <li className="nf-card flex flex-wrap items-start gap-md p-md sm:p-lg">
       <span className="min-w-0 flex-1 basis-full sm:basis-0">
         <span className="flex flex-wrap items-center gap-xs">
-          <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{label}</span>
+          <span className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{label}</span>
           <ui.StatusChip
             label={flag.enabled ? copy.on : copy.off}
             tone={flag.enabled ? "success" : "danger"}
           />
         </span>
-        <span className="mt-2xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <span className="mt-2xs block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {flag.note ?? copy.defaultNote}
         </span>
-        <span className="mt-2xs block text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <span className="mt-2xs block text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {fill(copy.switchingOff, {
             consequence: consequences[flag.key] ?? copy.consequences.generic,
           })}
         </span>
-        <span className="mt-2xs block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="mt-2xs block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.lastChanged, { when: ui.when(flag.updatedAt) })}
         </span>
       </span>
@@ -100,7 +100,7 @@ export default async function AdminSwitchesPage() {
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
-      <p className="nf-card mb-md flex gap-xs p-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="nf-card mb-md flex gap-xs p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
         {/*
           NOT A BELL, AND NOT THE PENDING COLOUR.
 

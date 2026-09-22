@@ -79,7 +79,7 @@ export function PayoutAccounts({
       <h2 id="payout-accounts-heading" className="nf-h3">
         Where your earnings are paid
       </h2>
-      <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         Add the bank account your settled earnings should reach. We confirm the
         name with the bank before saving it, and Vallo takes nothing for holding
         or moving it.
@@ -99,7 +99,7 @@ export function PayoutAccounts({
           <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
             No payout account yet
           </p>
-          <p className="mx-auto mt-2xs max-w-[40ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             Your earnings are safe and waiting. Add an account below and the
             first one becomes your default automatically.
           </p>
@@ -111,7 +111,7 @@ export function PayoutAccounts({
           <span className="mt-3xs block h-8 w-8 shrink-0">
             <BrandIcon name="card-lock" fill tile={false} />
           </span>
-          <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             We cannot add a payout account right now. We
             will not store an account we cannot confirm belongs to you, because
             an unconfirmed payout target is how money reaches the wrong person.
@@ -125,7 +125,7 @@ export function PayoutAccounts({
             <div>
               <label
                 htmlFor="payout-bank"
-                className="block text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+                className="block text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
               >
                 Bank
               </label>
@@ -147,7 +147,7 @@ export function PayoutAccounts({
             <div>
               <label
                 htmlFor="payout-number"
-                className="block text-[var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+                className="block text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
               >
                 Account number
               </label>
@@ -162,7 +162,7 @@ export function PayoutAccounts({
                 aria-describedby="payout-number-hint"
                 className="nf-numeric nf-field mt-xs w-full tracking-[0.08em]"
               />
-              <p id="payout-number-hint" className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              <p id="payout-number-hint" className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 Ten digits. We show the account name before anything is saved.
               </p>
             </div>
@@ -194,10 +194,10 @@ export function PayoutAccounts({
                   className="mt-3xs shrink-0 text-[var(--nf-state-success)]"
                 />
                 <span className="leading-snug">
-                  <span className="block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {bankName} confirms this account belongs to
                   </span>
-                  <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                  <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     {confirmed}
                   </span>
                 </span>
@@ -213,7 +213,7 @@ export function PayoutAccounts({
               <button
                 type="button"
                 onClick={() => setConfirmed(null)}
-                className="mt-xs w-full text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+                className="mt-xs w-full text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
               >
                 Not my account, change it
               </button>
@@ -223,7 +223,7 @@ export function PayoutAccounts({
           {resolveState && !resolveState.ok && (
             <p
               role="alert"
-              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {resolveState.error}
             </p>
@@ -231,7 +231,7 @@ export function PayoutAccounts({
           {addState && !addState.ok && (
             <p
               role="alert"
-              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {addState.error}
             </p>
@@ -269,13 +269,13 @@ function AccountRow({ account }: { account: PayoutAccount }) {
           {/* The account holder's name on the screen where money leaves the
               platform. Never clipped: an operator or an agent checking a
               payout against a bank statement needs the whole string. */}
-          <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">
+          <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">
             {account.accountName}
           </p>
-          <p className="nf-numeric mt-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+          <p className="nf-numeric mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
             {groupNuban(account.accountNumber)}
           </p>
-          <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <p className="mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {account.bankName}
           </p>
         </div>
@@ -291,7 +291,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
             <button
               type="submit"
               disabled={settingDefault}
-              className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline disabled:opacity-60"
+              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline disabled:opacity-60"
             >
               {settingDefault ? "Switching..." : "Pay me here instead"}
             </button>
@@ -302,7 +302,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
           <button
             type="submit"
             disabled={removing}
-            className="text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline disabled:opacity-60"
+            className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline disabled:opacity-60"
           >
             {removing ? "Removing..." : "Remove"}
           </button>
@@ -312,7 +312,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
       {error && (
         <p
           role="alert"
-          className="mt-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+          className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
         >
           {error}
         </p>

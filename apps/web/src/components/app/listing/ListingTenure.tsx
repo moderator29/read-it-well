@@ -42,7 +42,7 @@ export function ListingTenure({ listing }: { listing: Listing }) {
           <p className={TYPE.label}>Title</p>
           {tenure ? (
             <>
-              <p className="mt-2xs text-[var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
+              <p className="mt-2xs text-[length:var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                 {tenure}
               </p>
               <p className={`mt-2xs ${TYPE.body}`}>
@@ -52,7 +52,7 @@ export function ListingTenure({ listing }: { listing: Listing }) {
             </>
           ) : (
             <>
-              <p className="mt-2xs text-[var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
+              <p className="mt-2xs text-[length:var(--nf-text-body-lg)] font-semibold leading-snug text-[var(--nf-content-primary)]">
                 No title stated
               </p>
               <p className={`mt-2xs ${TYPE.body}`}>

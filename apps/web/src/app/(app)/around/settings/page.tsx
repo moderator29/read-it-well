@@ -99,7 +99,7 @@ export default async function AroundManagePage({
         actions={
           <Link
             href="/around/new"
-            className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-xs px-md text-[var(--nf-text-body-sm)]"
+            className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-xs px-md text-[length:var(--nf-text-body-sm)]"
           >
             <UiIcon name="sparkle" size={16} />
             Suggest a place
@@ -107,7 +107,7 @@ export default async function AroundManagePage({
         }
       />
 
-      <p className="mb-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mb-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         {AREA_COPY.what}
       </p>
 
@@ -116,7 +116,7 @@ export default async function AroundManagePage({
           reachable only if you already knew it. */}
       <Link
         href="/u"
-        className="mb-lg inline-flex items-center gap-xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
+        className="mb-lg inline-flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-brand-secondary)]"
       >
         <UiIcon name="user" size={15} />
         Find people
@@ -128,7 +128,7 @@ export default async function AroundManagePage({
           reads as a screen nobody looked at. */}
       {unconfigured ? (
         <p
-          className="nf-card mb-lg p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-card mb-lg p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
           /* Named so a spec can tell the two honest answers apart: the picker
              itself, or this sentence in its place. Without the hook a run with
              no keys looks identical to a run where the picker silently went
@@ -148,7 +148,7 @@ export default async function AroundManagePage({
 
       {openProposals.length > 0 ? (
         <section className="mb-xl">
-          <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+          <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
             Waiting on us
           </h2>
           <ul className="flex flex-col gap-xs">
@@ -158,20 +158,20 @@ export default async function AroundManagePage({
                 className="nf-card flex items-center gap-sm p-md"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                  <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     {proposal.name}
                   </p>
-                  <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <p className="mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {proposal.city} &middot; you suggested this
                   </p>
                 </div>
-                <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-sm py-2xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
+                <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-sm py-2xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
                   With us
                 </span>
               </li>
             ))}
           </ul>
-          <p className="mt-sm text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-sm text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             {AREA_COPY.proposePending}
           </p>
         </section>
@@ -179,16 +179,16 @@ export default async function AroundManagePage({
 
       {answered.length > 0 ? (
         <section className="mb-xl">
-          <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+          <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
             We came back to you
           </h2>
           <ul className="flex flex-col gap-xs">
             {answered.map((proposal) => (
               <li key={proposal.id} className="nf-card p-md">
-                <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {proposal.name}
                 </p>
-                <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+                <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                   {proposal.decisionNote ??
                     "We could not open this one. You can suggest another at any time."}
                 </p>
@@ -199,7 +199,7 @@ export default async function AroundManagePage({
       ) : null}
 
       <section className="mb-xl">
-        <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           Your places
         </h2>
         {mine.length > 0 ? (
@@ -209,14 +209,14 @@ export default async function AroundManagePage({
             ))}
           </ul>
         ) : (
-          <p className="nf-card p-md text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
             {signedIn ? AREA_COPY.joinedNone : "Sign in to keep your places here."}
           </p>
         )}
       </section>
 
       <section>
-        <h2 className="mb-sm text-[var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
           Open places
         </h2>
         {others.length > 0 ? (
@@ -227,12 +227,12 @@ export default async function AroundManagePage({
           </ul>
         ) : (
           <div className="nf-card p-lg text-center">
-            <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+            <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
               {open.length > 0
                 ? "You are in every place that is open so far."
                 : AREA_COPY.noneOpenYet}
             </p>
-            <Link href="/around/new" className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-lg text-[var(--nf-text-body-sm)]">
+            <Link href="/around/new" className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-lg text-[length:var(--nf-text-body-sm)]">
               Suggest a place
             </Link>
           </div>
@@ -277,22 +277,22 @@ function AreaRow({
       */}
       <Link href={`/around/${area.slug}`} className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
-          <p className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+          <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             {area.name}
           </p>
           {area.status === "PAUSED" ? (
-            <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+            <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
               Paused
             </span>
           ) : null}
         </div>
-        <p className="mt-3xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-3xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_KIND_LABEL[area.kind]} &middot; {area.city} &middot;{" "}
           <span className="nf-numeric">{formatNumber(area.memberCount, locale)}</span>{" "}
           {area.memberCount === 1 ? "member" : "members"}
         </p>
         {area.blurb ? (
-          <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
             {area.blurb}
           </p>
         ) : null}

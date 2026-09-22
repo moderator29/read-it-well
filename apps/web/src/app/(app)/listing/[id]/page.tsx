@@ -762,7 +762,7 @@ export default async function ListingDetailPage({
                           filled
                           className="text-[var(--nf-rating)]"
                         />
-                        <span className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                        <span className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                           {formatRating(listing.rating, locale)}
                         </span>
                         <span className={TYPE.rowMeta}>

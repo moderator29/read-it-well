@@ -37,7 +37,7 @@ export function EntryRow({
   return (
     <li className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
       <span className="min-w-0">
-        <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
+        <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
           {/* Same column-keyed lookup as the status chip beside it, rather
               than a second hand-rolled `replace(/_/g, " ")` that would print
               "escrow hold" in lower case beside a properly named status. */}
@@ -49,7 +49,7 @@ export function EntryRow({
             rendered at 11px monospace with an ellipsis, so the money screen
             could not do the one thing it exists for. `user-select: all` means
             one tap takes the whole string. */}
-        <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+        <span className="block font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
           {entry.reference}
         </span>
       </span>
@@ -71,11 +71,11 @@ export function EntryRow({
           label={ui.columnLabel("walletEntryStatus", entry.status)}
           status={entry.status}
         />
-        <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
+        <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
           {outgoing ? "-" : "+"}
           {formatMoney(entry.amountMinor, locale)}
         </span>
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {ui.when(entry.createdAt)}
         </span>
       </span>
@@ -99,7 +99,7 @@ export function RefundRow({
           render carries one per row and this is the row's subject in a mark. */}
       <BrandIcon name="payment-received" size={26} className="mt-3xs shrink-0" />
       <span className="min-w-0 flex-1">
-        <span className="block text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
+        <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
           {refund.guestName ?? "No display name"}
           {" · "}
           {refund.listingTitle ?? "A listing that is no longer there"}
@@ -110,27 +110,27 @@ export function RefundRow({
         {/* THE REFERENCE IS NEVER CLIPPED. It is the string the guest quotes
             and the wallet entry carries. Without one, the stay's id is what
             an operator opens. */}
-        <span className="block font-mono text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
+        <span className="block font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
           {refund.reference ?? refund.bookingId}
         </span>
         <Link
           href={`/admin/bookings/${refund.bookingId}`}
-          className="mt-2xs inline-block text-[var(--nf-text-caption)] underline"
+          className="mt-2xs inline-block text-[length:var(--nf-text-caption)] underline"
         >
           Open the stay
         </Link>
       </span>
       <span className="flex shrink-0 flex-wrap items-baseline gap-sm">
         <ui.StatusChip label={state.label} tone={state.tone} />
-        <span className="nf-numeric text-[var(--nf-text-body-sm)] font-semibold">
+        <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
           {formatMoney(refund.refundMinor, locale)}
         </span>
         {refund.retainedMinor > 0 && (
-          <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {formatMoney(refund.retainedMinor, locale)} kept
           </span>
         )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {ui.when(refund.createdAt)}
         </span>
       </span>
@@ -164,10 +164,10 @@ export function RefundsPanel({
 }) {
   return (
     <section className="nf-card mb-md p-md sm:p-lg">
-      <h2 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+      <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         Refunds
       </h2>
-      <p className="mt-2xs max-w-[62ch] text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
         Every refund decided on the console, newest first, with where the money
         is now. A stay is refunded from its own page under the published
         schedule; open a stay from the Stays queue to decide one. The state
@@ -198,7 +198,7 @@ export function RefundsPanel({
 
           {refunds.data.rows.length === 0 ? (
             narrowed ? null : (
-              <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+              <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
                 No refund has been decided yet.
               </p>
             )

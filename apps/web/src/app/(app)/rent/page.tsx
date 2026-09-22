@@ -62,7 +62,7 @@ export default async function RentPage({
       </div>
 
       <Reveal as="section" className="mt-xs">
-        <p className="max-w-[52ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="max-w-[52ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           Homes for real rent, priced per year. Message the agent, inspect the
           property, then pay. Verified listings only.
         </p>
@@ -74,7 +74,7 @@ export default async function RentPage({
             size={20}
             className="mt-3xs shrink-0 text-[var(--nf-state-success)]"
           />
-          <p className="text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             For your safety, keep every chat and payment inside Vallo. Deals
             made outside the platform are not protected by us. Pay only after
             you have inspected the property.
@@ -123,7 +123,7 @@ export default async function RentPage({
               <BrandIcon name="keys-home" fill />
             </span>
             <p className="mt-md font-semibold">No rentals matched</p>
-            <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               Try another city, or browse everything for rent.
             </p>
             <ButtonLink href="/rent" variant="secondary" className="mt-lg">

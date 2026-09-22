@@ -80,17 +80,17 @@ export function CancelBookingSheet({
     >
       {cancelled ? (
         <div className="text-center">
-          <p className="flex items-center justify-center gap-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+          <p className="flex items-center justify-center gap-xs text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
             <UiIcon name="verified" size={20} className="text-[var(--nf-state-success)]" />
             Booking cancelled
           </p>
-          <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {booking.title} for {booking.dateRange} is cancelled. The dates are free again.
           </p>
         </div>
       ) : (
         <>
-          <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {booking.title}, {booking.dateRange}. This releases your dates and cannot be
             undone.
           </p>
@@ -101,7 +101,7 @@ export function CancelBookingSheet({
                defect the wallet's own banner had. */
             <p
               role="alert"
-              className="mt-row rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+              className="mt-row rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
             >
               {state.error}
             </p>

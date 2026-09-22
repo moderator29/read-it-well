@@ -65,7 +65,7 @@ function Decision({ reservationId }: { reservationId: string }) {
 
   if (state?.ok) {
     return (
-      <p className="mt-sm text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         Answered. The guest can see it.
       </p>
     );
@@ -92,7 +92,7 @@ function Decision({ reservationId }: { reservationId: string }) {
         </form>
       </div>
       {state && !state.ok && (
-        <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}
@@ -124,16 +124,16 @@ function ReservationCard({
               ? "Accepted"
               : "Declined"}
         </StatusPill>
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           asked {waitedLabel(reservation.hoursWaiting)}
         </span>
       </div>
 
-      <p className="mt-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+      <p className="mt-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         {whenLabel(reservation.reservedFor)}
       </p>
 
-      <p className="mt-2xs flex flex-wrap items-center gap-x-sm gap-y-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs flex flex-wrap items-center gap-x-sm gap-y-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
         <span className="inline-flex items-center gap-xs">
           <UiIcon name="user" size={16} className="opacity-70" aria-hidden />
           {reservation.guestName}
@@ -147,7 +147,7 @@ function ReservationCard({
       {/* Shown to the host in full, never truncated. A note is where an allergy
           goes, and a shortened allergy is worse than none. */}
       {reservation.note && (
-        <p className="mt-xs rounded-lg bg-[var(--nf-surface-raised)] px-sm py-xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs rounded-lg bg-[var(--nf-surface-raised)] px-sm py-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {reservation.note}
         </p>
       )}
@@ -170,16 +170,16 @@ function Section({
 }) {
   return (
     <section className="mt-lg">
-      <h3 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
         {title}
         {reservations.length > 0 && (
-          <span className="ml-xs text-[var(--nf-text-caption)] font-normal tabular-nums text-[var(--nf-content-muted)]">
+          <span className="ml-xs text-[length:var(--nf-text-caption)] font-normal tabular-nums text-[var(--nf-content-muted)]">
             {reservations.length}
           </span>
         )}
       </h3>
       {reservations.length === 0 ? (
-        <p className="mt-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">{empty}</p>
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">{empty}</p>
       ) : (
         <ul className="mt-sm flex flex-col gap-sm">
           {reservations.map((reservation) => (
@@ -202,8 +202,8 @@ export function ReservationsBoard({ board }: { board: HostReservationBoard }) {
 
   return (
     <div className="mt-10">
-      <h2 className="text-[var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">Tables</h2>
-      <p className="mt-2xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+      <h2 className="text-[length:var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">Tables</h2>
+      <p className="mt-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
         Requests at your restaurants. Nothing is held for a guest until you accept it.
       </p>
 

@@ -138,7 +138,7 @@ export function Field({
       })}
 
       {hint ? (
-        <p id={hintId} className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+        <p id={hintId} className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           {hint}
         </p>
       ) : null}
@@ -159,7 +159,7 @@ export function Field({
         <p
           id={errorId}
           role="alert"
-          className="nf-arrive mt-xs text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -207,7 +207,7 @@ export type FieldShape = "control" | "pill";
  * category as the `env()` and `calc()` values `nf/no-raw-spacing` lets through.
  */
 // eslint-disable-next-line nf/no-arbitrary-font-size -- 16px is Safari's zoom threshold in absolute pixels, not a rung: see above.
-const FIELD_TYPE = "text-[var(--nf-text-body)] pointer-coarse:text-[16px]";
+const FIELD_TYPE = "text-[length:var(--nf-text-body)] pointer-coarse:text-[16px]";
 
 /**
  * The invalid override.

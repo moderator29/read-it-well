@@ -109,7 +109,7 @@ function Stepper({
           onClick={() => onChange(Math.max(min, value - 1))}
           className="nf-icon-btn h-11 w-11 disabled:opacity-40"
         >
-          <span aria-hidden="true" className="text-[var(--nf-text-body)] leading-none">
+          <span aria-hidden="true" className="text-[length:var(--nf-text-body)] leading-none">
             &minus;
           </span>
         </button>
@@ -121,7 +121,7 @@ function Stepper({
           onClick={() => onChange(Math.min(max, value + 1))}
           className="nf-icon-btn h-8 w-8 disabled:opacity-40"
         >
-          <span aria-hidden="true" className="text-[var(--nf-text-body)] leading-none">
+          <span aria-hidden="true" className="text-[length:var(--nf-text-body)] leading-none">
             +
           </span>
         </button>

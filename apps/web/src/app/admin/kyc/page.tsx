@@ -179,7 +179,7 @@ export default async function AdminKycPage({
 
       {decided.length > 0 && (
         <section className="mt-xl">
-          <h2 className="mb-xs text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+          <h2 className="mb-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
             Recently decided
           </h2>
           <ul className="space-y-md">
@@ -207,12 +207,12 @@ function SubjectCard({
   return (
     <article className="nf-card p-md sm:p-lg">
       <div className="flex flex-wrap items-baseline gap-sm">
-        <h3 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+        <h3 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           {subject.displayName ?? "No display name"}
         </h3>
         <span className="nf-badge nf-badge--brand nf-numeric">Tier {subject.tier}</span>
         {subject.applicationReference && (
-          <span className="font-mono text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="font-mono text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {subject.applicationReference}
           </span>
         )}
@@ -225,7 +225,7 @@ function SubjectCard({
               key={rung.kind}
               className="rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-xs py-2xs"
             >
-              <span className="text-[var(--nf-text-overline)] font-medium text-[var(--nf-content-primary)]">
+              <span className="text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-primary)]">
                 {RUNG_LABEL[rung.kind] ?? rung.kind}
               </span>{" "}
               {/* THE FIFTH RAW COLUMN VALUE, AND IT SURVIVED THE OTHER FOUR.
@@ -242,7 +242,7 @@ function SubjectCard({
                 tone={toneForReview(rung.status)}
               />
               {rung.note && (
-                <span className="mt-3xs block max-w-[52ch] text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+                <span className="mt-3xs block max-w-[52ch] text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
                   {rung.note}
                 </span>
               )}
@@ -270,11 +270,11 @@ function SubjectCard({
             className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
           >
             <div className="flex flex-wrap items-center gap-xs">
-              <span className="text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+              <span className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
                 {KIND_LABEL[doc.kind] ?? doc.kind}
               </span>
               {doc.subtype && (
-                <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]">
+                <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-secondary)]">
                   {SUBTYPE_LABEL[doc.subtype] ?? doc.subtype}
                 </span>
               )}
@@ -295,12 +295,12 @@ function SubjectCard({
                   Older than {ADDRESS_PROOF_MAX_AGE_DAYS} days, or undated
                 </span>
               )}
-              <span className="ml-auto text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+              <span className="ml-auto text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                 {ui.when(doc.uploadedAt)}
               </span>
             </div>
 
-            <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               Issued {ui.day(doc.issuedOn)}
               {doc.reviewedAt
                 ? ` · decided ${ui.when(doc.reviewedAt)}${doc.reviewedByName ? ` by ${doc.reviewedByName}` : ""}`
@@ -308,7 +308,7 @@ function SubjectCard({
             </p>
 
             {doc.rejectionReason && (
-              <p className="mt-2xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Sent back: {doc.rejectionReason}
               </p>
             )}
@@ -324,7 +324,7 @@ function SubjectCard({
               title={`${KIND_LABEL[doc.kind] ?? doc.kind}${
                 doc.subtype ? `, ${SUBTYPE_LABEL[doc.subtype] ?? doc.subtype}` : ""
               }`}
-              className="mt-xs inline-block text-[var(--nf-text-caption)] font-medium underline"
+              className="mt-xs inline-block text-[length:var(--nf-text-caption)] font-medium underline"
             />
 
             {decidable && doc.reviewStatus === "pending" && (

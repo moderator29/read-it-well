@@ -142,7 +142,7 @@ export function KycFlow({
           </Link>
         )}
 
-        <p className="nf-numeric text-[var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]">
+        <p className="nf-numeric text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]">
           {progressLabel(at, steps.length)}
         </p>
       </div>
@@ -155,7 +155,7 @@ export function KycFlow({
       />
 
       <h1 className="nf-h2 mt-lg">{step.title}</h1>
-      <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {step.hint}
       </p>
 
@@ -209,10 +209,10 @@ export function KycFlow({
                     <UiIcon name={option.value ? "building-apartment" : "user"} size="md" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                    <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                       {option.label}
                     </span>
-                    <span className="mt-3xs block text-[var(--nf-text-caption)] leading-snug text-[var(--nf-content-muted)]">
+                    <span className="mt-3xs block text-[length:var(--nf-text-caption)] leading-snug text-[var(--nf-content-muted)]">
                       {option.detail}
                     </span>
                   </span>
@@ -241,10 +241,10 @@ export function KycFlow({
            */
           BUSINESS_SECTIONS.map((section) => (
             <section key={section.heading} className="nf-card p-md sm:p-lg">
-              <h2 className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+              <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 {section.heading}
               </h2>
-              <p className="mt-2xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{section.note}</p>
+              <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{section.note}</p>
 
               <div className="mt-md space-y-sm">
                 {section.fields.map((field) => (
@@ -292,10 +292,10 @@ export function KycFlow({
                       className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
                     />
                     <span className="min-w-0">
-                      <span className="block text-[var(--nf-text-body-sm)] font-medium leading-snug text-[var(--nf-content-primary)]">
+                      <span className="block text-[length:var(--nf-text-body-sm)] font-medium leading-snug text-[var(--nf-content-primary)]">
                         {consent.label}
                       </span>
-                      <span className="mt-2xs block text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+                      <span className="mt-2xs block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
                         {consent.detail}
                       </span>
                     </span>
@@ -325,10 +325,10 @@ export function KycFlow({
             {/* Never "complete all required fields". The gaps are named. */}
             {gaps.length > 0 && (
               <div role="alert" className="nf-card p-md">
-                <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {GAPS_TITLE}
                 </p>
-                <ul className="mt-xs list-disc space-y-2xs pl-lg text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+                <ul className="mt-xs list-disc space-y-2xs pl-lg text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
                   {gaps.map((gap) => (
                     <li key={gap}>{gap}</li>
                   ))}
@@ -337,7 +337,7 @@ export function KycFlow({
             )}
 
             {failure && (
-              <p role="alert" className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-state-error)]">
+              <p role="alert" className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-state-error)]">
                 {failure}
               </p>
             )}
@@ -373,8 +373,8 @@ export function KycFlow({
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <li className="flex items-baseline justify-between gap-md px-md py-sm">
-      <span className="shrink-0 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">{label}</span>
-      <span className="truncate text-right text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
+      <span className="shrink-0 text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{label}</span>
+      <span className="truncate text-right text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
         {value}
       </span>
     </li>
@@ -399,15 +399,15 @@ function Submitted() {
         <UiIcon name="calendar-booking" size="lg" />
       </span>
       <h1 className="nf-h2 mt-md">{SENT_TITLE}</h1>
-      <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {SENT_BODY}
       </p>
-      <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         {SENT_MEANWHILE}
       </p>
       <Link
         href="/profile"
-        className="mt-lg inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+        className="mt-lg inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
         {SENT_ACTION}
         <UiIcon name="arrow-right" size="sm" />

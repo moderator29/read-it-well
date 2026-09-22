@@ -25,14 +25,14 @@ import { fill, type AdminCommon } from "./copy";
  *
  * Every screen in the console draws its heading, its empty state, its detail
  * rows and its metric tiles from here. Twenty pages were carrying `mb-5`,
- * `p-4`, `gap-3` and `text-[var(--nf-text-body-sm)]` because those were the values this file
+ * `p-4`, `gap-3` and `text-[length:var(--nf-text-body-sm)]` because those were the values this file
  * handed them, so the console's rhythm was set in one place and it was set
  * against no scale at all. Moving this file moves all twenty at once, and every
  * page that stops hand-rolling a tile stops inventing a fifth padding value for
  * it.
  *
- * The type went UP a tier across the board. `text-[var(--nf-text-body-sm)]` on a detail value
- * and `text-[var(--nf-text-overline)]` on its label is a reading size chosen for a dense table,
+ * The type went UP a tier across the board. `text-[length:var(--nf-text-body-sm)]` on a detail value
+ * and `text-[length:var(--nf-text-overline)]` on its label is a reading size chosen for a dense table,
  * and this console is not a dense table: it is where somebody decides whose
  * money moves, at eleven at night, and the old sizes made that decision harder
  * to read than the marketing pages that carry no consequence at all. Detail
@@ -296,7 +296,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
   /**
    * A section of a page, with its heading and the air under it.
    *
-   * Every console page was writing `<h2 className="mb-2 text-[var(--nf-text-body)] ...">` by
+   * Every console page was writing `<h2 className="mb-2 text-[length:var(--nf-text-body)] ...">` by
    * hand and then a list under it, which is how one page ended up with 8px of
    * air under a heading and the next with 12px. One interval, named for the
    * relationship it expresses, decided once.

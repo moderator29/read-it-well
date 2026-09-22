@@ -105,7 +105,7 @@ export function Composer({
   if (!signedIn) {
     return (
       <div className="nf-card nf-post p-md text-center">
-        <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           Sign in to {isReply ? "reply" : `post${areaName ? ` around ${areaName}` : ""}`}.
         </p>
       </div>
@@ -130,15 +130,15 @@ export function Composer({
   if (held) {
     return (
       <div className="nf-card nf-post p-md">
-        <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           It is with us
         </p>
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {POST_COPY.held}
         </p>
         <button
           type="button"
-          className="nf-btn nf-btn--ghost mt-sm inline-flex h-9 items-center px-md text-[var(--nf-text-overline)]"
+          className="nf-btn nf-btn--ghost mt-sm inline-flex h-9 items-center px-md text-[length:var(--nf-text-overline)]"
           onClick={() => {
             setHeld(false);
             setBody("");
@@ -370,7 +370,7 @@ export function Composer({
       ) : null}
 
       <textarea
-        className="nf-field min-h-[92px] w-full resize-y text-[var(--nf-text-body)] leading-[1.5]"
+        className="nf-field min-h-[92px] w-full resize-y text-[length:var(--nf-text-body)] leading-[1.5]"
         value={body}
         maxLength={POST_MAX}
         autoFocus={autoFocus}
@@ -398,7 +398,7 @@ export function Composer({
               </li>
             ))}
           </ul>
-          <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
             {POST_COPY.pictureNote}
           </p>
         </>
@@ -409,7 +409,7 @@ export function Composer({
           changes with a prop rather than with anything on screen. */}
       {!isReply ? (
         <p
-          className="mt-xs flex items-center gap-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
+          className="mt-xs flex items-center gap-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
           data-testid="composer-destination"
         >
           <UiIcon name={areaId ? "location" : "compass"} size={16} />
@@ -418,7 +418,7 @@ export function Composer({
       ) : null}
 
       {!isReply && pictures.length === 0 ? (
-        <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {KIND_HINT[kind]}
         </p>
       ) : null}
@@ -427,7 +427,7 @@ export function Composer({
           a listing, a quote or a payload, so the button would be refused by the
           database and this says why before anybody taps it. */}
       {pictures.length > 0 && body.trim().length === 0 && !strandedPost ? (
-        <p className="mt-xs text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
           {POST_COPY.pictureNeedsWords}
         </p>
       ) : null}
@@ -435,14 +435,14 @@ export function Composer({
       {error ? (
         <div
           role="alert"
-          className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
+          className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
         >
           <p className="leading-relaxed">{error}</p>
           {strandedPost ? (
             <div className="mt-xs flex flex-wrap gap-xs">
               <button
                 type="button"
-                className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[var(--nf-text-overline)]"
+                className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[length:var(--nf-text-overline)]"
                 onClick={retry}
                 disabled={pending}
               >
@@ -450,7 +450,7 @@ export function Composer({
               </button>
               <button
                 type="button"
-                className="nf-btn nf-btn--ghost inline-flex h-9 items-center px-md text-[var(--nf-text-overline)]"
+                className="nf-btn nf-btn--ghost inline-flex h-9 items-center px-md text-[length:var(--nf-text-overline)]"
                 onClick={() => {
                   forget();
                   setStrandedPost(null);
@@ -477,7 +477,7 @@ export function Composer({
         >
           <UiIcon name="picture" />
           {pictures.length > 0 ? (
-            <span className="nf-numeric text-[var(--nf-text-overline)]">
+            <span className="nf-numeric text-[length:var(--nf-text-overline)]">
               {pictures.length}/{POST_MEDIA_MAX}
             </span>
           ) : null}
@@ -488,7 +488,7 @@ export function Composer({
             to stop. */}
         {left < 240 ? (
           <span
-            className={`nf-numeric text-[var(--nf-text-overline)] ${
+            className={`nf-numeric text-[length:var(--nf-text-overline)] ${
               left < 0 ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-muted)]"
             }`}
           >
@@ -498,7 +498,7 @@ export function Composer({
         {onDone ? (
           <button
             type="button"
-            className="nf-btn nf-btn--ghost h-10 px-md text-[var(--nf-text-body-sm)]"
+            className="nf-btn nf-btn--ghost h-10 px-md text-[length:var(--nf-text-body-sm)]"
             onClick={onDone}
             disabled={pending}
           >
@@ -512,7 +512,7 @@ export function Composer({
             one primary the screen has (R1 A26). */}
         <button
           type="submit"
-          className="nf-btn nf-btn--primary nf-composer__send h-10 px-lg text-[var(--nf-text-body-sm)]"
+          className="nf-btn nf-btn--primary nf-composer__send h-10 px-lg text-[length:var(--nf-text-body-sm)]"
           disabled={!canSend}
         >
           {pending ? "Sending" : isReply ? "Reply" : "Post"}

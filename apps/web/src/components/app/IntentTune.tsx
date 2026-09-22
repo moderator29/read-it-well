@@ -155,12 +155,12 @@ export function IntentTune({
       </button>
 
       <Sheet open={open} onOpenChange={setOpen} title={copy.title} detents={[0.5]}>
-        <p className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+        <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           {market}
         </p>
         {/* The standing, before anything is tapped, so the two buttons are a
             choice about a known state rather than a guess. */}
-        <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {say(ranked ? copy.standingOn : copy.standingOff)}
         </p>
 
@@ -193,7 +193,7 @@ export function IntentTune({
           <p
             role="status"
             data-testid="intent-tune-note"
-            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
+            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
           >
             {note}
           </p>
@@ -203,7 +203,7 @@ export function IntentTune({
           <p
             role="alert"
             data-testid="intent-tune-error"
-            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+            className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
           >
             {error}
           </p>
@@ -212,7 +212,7 @@ export function IntentTune({
         {/* Says what the control does, and what it does NOT do. Somebody who
             reads "Not for me" as "hide this" has to be corrected here, before
             they tap it, not after they wonder why the card is still there. */}
-        <p className="mt-md text-[var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-md text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {copy.explain}
         </p>
 

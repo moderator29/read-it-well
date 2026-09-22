@@ -64,14 +64,14 @@ export function DocumentUploader({
 
   return (
     <section className="nf-card p-md sm:p-lg">
-      <h3 className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h3>
+      <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h3>
 
-      <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {spec.qualifies}
       </p>
 
       {/* The rule that gets people refused, said before they upload. */}
-      <p className="mt-xs flex items-start gap-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+      <p className="mt-xs flex items-start gap-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="verified" size="sm" className="mt-3xs shrink-0" />
         <span>{spec.caution}</span>
       </p>
@@ -91,10 +91,10 @@ export function DocumentUploader({
             <UiIcon name="document" size="md" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+            <span className="block truncate text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
               {file.name}
             </span>
-            <span className="nf-numeric block text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <span className="nf-numeric block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {Math.max(1, Math.round(file.size / 1024))} KB
             </span>
           </span>
@@ -119,12 +119,12 @@ export function DocumentUploader({
       )}
 
       {/* The limits, always visible, never only inside an error. */}
-      <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {ACCEPTED_LABEL}. {LIMIT_PREFIX} {MAX_FILE_LABEL}.
       </p>
 
       {error && (
-        <p role="alert" className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-state-error)]">
+        <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

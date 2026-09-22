@@ -48,7 +48,7 @@ export default async function PlacePage() {
             <BrandIcon name="globe-pin" fill />
           </span>
           <h2 className="nf-h3 mt-md">{copy.accountTitle}</h2>
-          <p className="mx-auto mt-xs max-w-[42ch] text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {session.state === "unconfigured"
               ? copy.accountBodyUnconfigured
               : copy.accountBodySignedOut}
@@ -87,7 +87,7 @@ export default async function PlacePage() {
       />
 
       {states.length === 0 && (
-        <p className="nf-card mb-md p-md text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-card mb-md p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           {copy.statesUnavailable}
         </p>
       )}

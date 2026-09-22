@@ -157,7 +157,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
         aria-live="polite"
         aria-label="Conversation"
       >
-        <p className="flex items-center justify-center gap-2xs py-2xs text-center text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="flex items-center justify-center gap-2xs py-2xs text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           <UiIcon name="verified" size={12} />
           Chats are protected by Vallo fraud monitoring
         </p>
@@ -176,8 +176,8 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                     className="mb-xs aspect-[4/3] max-h-64 w-full rounded-xl bg-[var(--nf-surface-inset)] object-cover"
                   />
                 )}
-                {m.body && <p className="text-[var(--nf-text-body-sm)] leading-relaxed">{m.body}</p>}
-                <p className="nf-numeric mt-2xs text-right text-[var(--nf-text-overline)] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
+                {m.body && <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed">{m.body}</p>}
+                <p className="nf-numeric mt-2xs text-right text-[length:var(--nf-text-overline)] text-[color-mix(in_oklab,var(--nf-content-on-brand)_72%,transparent)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>
@@ -186,7 +186,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             <div key={m.id} className="nf-rise flex items-end gap-sm">
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[var(--nf-text-overline)] font-bold text-[var(--nf-brand-secondary)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--nf-brand-primary)_22%,transparent)] text-[length:var(--nf-text-overline)] font-bold text-[var(--nf-brand-secondary)]"
               >
                 {thread.agentName.charAt(0)}
               </span>
@@ -200,11 +200,11 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
                   />
                 )}
                 {m.body && (
-                  <p className="text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                  <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                     {m.body}
                   </p>
                 )}
-                <p className="nf-numeric mt-2xs text-right text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <p className="nf-numeric mt-2xs text-right text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {timeLabel(m.sentAt)}
                 </p>
               </div>
@@ -222,7 +222,7 @@ export function MessageThread({ thread }: { thread: ConversationThread }) {
             alt="Photo ready to send"
             className="h-14 w-14 rounded-xl object-cover"
           />
-          <p className="min-w-0 flex-1 text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+          <p className="min-w-0 flex-1 text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
             Photo attached
           </p>
           <Button

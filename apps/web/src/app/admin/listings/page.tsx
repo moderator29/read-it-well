@@ -130,12 +130,12 @@ export function ListingCard({
             tone="warning"
           />
         )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.submittedWhen, { when: ui.when(listing.submittedAt) })}
         </span>
       </div>
 
-      <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {listing.title}
       </h3>
       {/* THE CODE, ONCE IT EXISTS. A listing in review has none: the database
@@ -143,11 +143,11 @@ export function ListingCard({
           print and the row falls back to the id-derived short reference the
           queue has always used. */}
       {listing.reference && (
-        <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           <span className="nf-numeric tracking-[0.08em]">{listing.reference}</span>
         </p>
       )}
-      <p className="mt-3xs text-[var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+      <p className="mt-3xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {[listing.area, listing.city, listing.stateCode].filter(Boolean).join(", ") ||
           copy.locationMissing}
         {" · "}
@@ -179,7 +179,7 @@ export function ListingCard({
       */}
       {listing.moveIn && (
         <div className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
-          <p className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
+          <p className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
             To move in: {formatMoney(listing.moveIn.totalMinor, locale)}
             <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">
               {listing.moveIn.totalStated ? "as stated" : "summed from the parts"}
@@ -189,7 +189,7 @@ export function ListingCard({
             {listing.moveIn.parts.map((part) => (
               <li
                 key={part.key}
-                className="flex justify-between gap-sm text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
+                className="flex justify-between gap-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
               >
                 <span>{part.label}</span>
                 <span className="nf-numeric">{formatMoney(part.minor, locale)}</span>
@@ -212,7 +212,7 @@ export function ListingCard({
       */}
       {listing.purchase && (
         <div className="mt-xs rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
-          <p className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
+          <p className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
             To buy: {formatMoney(listing.purchase.totalMinor, locale)}
             <span className="ml-2xs font-normal text-[var(--nf-content-muted)]">
               {listing.purchase.totalStated ? "as stated" : "summed from the parts"}
@@ -222,7 +222,7 @@ export function ListingCard({
             {listing.purchase.parts.map((part) => (
               <li
                 key={part.key}
-                className="flex justify-between gap-sm text-[var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
+                className="flex justify-between gap-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
               >
                 <span>{part.label}</span>
                 <span className="nf-numeric">{formatMoney(part.minor, locale)}</span>
@@ -285,7 +285,7 @@ export function ListingCard({
       */}
       {listing.videos.length > 0 && (
         <div className="mt-sm">
-          <p className="text-[var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
+          <p className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
             {listing.videos.length === 1
               ? "Walkthrough video"
               : `Walkthrough videos (${listing.videos.length})`}
@@ -306,7 +306,7 @@ export function ListingCard({
                     className="h-40 w-64 rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] object-cover"
                   />
                 ) : (
-                  <p className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                  <p className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     This walkthrough could not be opened. The listing has one.
                   </p>
                 )}
@@ -495,7 +495,7 @@ export function ListingCard({
           common={common}
         />
       ) : (
-        <p className="mt-md text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-md text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {listing.status === "PUBLISHED" ? copy.liveInSearch : copy.closed} {common.inAuditLog}
         </p>
       )}
@@ -618,7 +618,7 @@ export default async function AdminListingsPage({
 
       {decided.length > 0 && (
         <section className="mt-xl">
-          <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
+          <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{common.recentlyDecided}</h2>
           <QueueTable
           heads={t.uiCommon.console.table}
           label="Listing review"

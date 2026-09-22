@@ -111,7 +111,7 @@ export function KycStatus({
         body={w.pendingBody}
       >
         {status.submittedAt && (
-          <p className="mt-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+          <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
             {w.submittedPrefix} {status.submittedAt}
           </p>
         )}
@@ -151,13 +151,13 @@ export function KycStatus({
         title={w.moreInfoTitle}
         body={status.request}
       >
-        <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           <span className="font-semibold text-[var(--nf-content-primary)]">{w.fixLabel} </span>
           {status.fix}
         </p>
         <Link
           href={retryHref}
-          className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-md inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           {w.moreInfoContinue}
           <UiIcon name="arrow-right" size="sm" />
@@ -184,13 +184,13 @@ export function KycStatus({
         title={w.suspendedTitle}
         body={status.reason}
       >
-        <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           <span className="font-semibold text-[var(--nf-content-primary)]">{w.fixLabel} </span>
           {w.suspendedFix}
         </p>
         <Link
           href="/help"
-          className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+          className="mt-md inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
         >
           {w.getHelp}
           <UiIcon name="arrow-right" size="sm" />
@@ -212,13 +212,13 @@ export function KycStatus({
         refused stops reading, so the sentence that tells them it is
         recoverable has to be immediately underneath and cannot be small print.
       */}
-      <p className="mt-sm text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         <span className="font-semibold text-[var(--nf-content-primary)]">{w.fixLabel} </span>
         {status.fix}
       </p>
       <Link
         href={retryHref}
-        className="mt-md inline-flex items-center gap-2xs text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+        className="mt-md inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
       >
         {w.retry}
         <UiIcon name="arrow-right" size="sm" />
@@ -252,12 +252,12 @@ function Panel({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-xs">
-            <h2 className="text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+            <h2 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
               {title}
             </h2>
             <StatusPill tone={tone}>{pill}</StatusPill>
           </div>
-          <p className="mt-xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             {body}
           </p>
           {children}

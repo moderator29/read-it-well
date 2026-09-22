@@ -36,7 +36,7 @@ export function ViewToggle({
             data-testid={`view-${option.view}`}
             aria-current={active ? "true" : undefined}
             aria-label={compact ? option.label : undefined}
-            className={`nf-segmented__link min-h-11 whitespace-nowrap text-[var(--nf-text-caption)] ${
+            className={`nf-segmented__link min-h-11 whitespace-nowrap text-[length:var(--nf-text-caption)] ${
               compact ? "px-sm" : "px-md"
             } ${active ? "font-bold" : ""}`}
           >

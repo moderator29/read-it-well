@@ -81,10 +81,10 @@ function VerificationLadderPanel({
               className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
             >
               <div className="flex flex-wrap items-center gap-xs">
-                <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {rung.step}
                 </span>
-                <span className="text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+                <span className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {copy.rung[rung.kind]}
                 </span>
                 <ui.StatusChip
@@ -105,12 +105,12 @@ function VerificationLadderPanel({
                 />
               </div>
 
-              <p className="mt-2xs text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                 {rung.evidence}
               </p>
 
               {decision && (
-                <p className="mt-2xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {fill(copy.decidedBy, {
                     who: decision.decidedByName ?? common.someone,
                     when: ui.when(decision.decidedAt),
@@ -120,7 +120,7 @@ function VerificationLadderPanel({
               )}
 
               {blocked ? (
-                <p className="mt-xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                <p className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                   {copy.blockedBelow}
                 </p>
               ) : (
@@ -168,15 +168,15 @@ function ApplicationCard({
           label={application.type === "business" ? copy.business : copy.individual}
           tone="neutral"
         />
-        <span className="nf-numeric text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {application.reference}
         </span>
       </div>
 
-      <h3 className="mt-xs text-[var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
         {application.fullName ?? copy.nameMissing}
       </h3>
-      <p className="mt-3xs text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+      <p className="mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {fill(copy.submittedWhen, { when: ui.when(application.submittedAt) })}
       </p>
 
@@ -234,7 +234,7 @@ function ApplicationCard({
                     media={doc.media}
                     label={`${label} ${copy.documentOpen}`}
                     title={label}
-                    className="nf-chip text-[var(--nf-text-overline)]"
+                    className="nf-chip text-[length:var(--nf-text-overline)]"
                   />
                 </li>
               );
@@ -271,7 +271,7 @@ function ApplicationCard({
           common={common}
         />
       ) : (
-        <p className="mt-md text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-md text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.decidedWhen, { when: ui.when(application.reviewedAt) })} {common.inAuditLog}
         </p>
       )}
@@ -417,7 +417,7 @@ export default async function AdminAgentsPage({
 
       {decided.length > 0 && (
         <section className="mt-xl">
-          <h2 className="nf-h3 mb-sm text-[var(--nf-text-body)]">{common.recentlyDecided}</h2>
+          <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">{common.recentlyDecided}</h2>
           <QueueTable
           heads={t.uiCommon.console.table}
           label="Agent applications"

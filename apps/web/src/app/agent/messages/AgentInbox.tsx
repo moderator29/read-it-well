@@ -40,11 +40,11 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
       >
         <div className="flex items-start justify-between gap-sm">
           <div className="min-w-0 leading-tight">
-            <p className="truncate text-[var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+            <p className="truncate text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               {thread.counterpartName}
             </p>
             {thread.listingTitle && (
-              <p className="mt-2xs flex items-center gap-xs text-[var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+              <p className="mt-2xs flex items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
                 <UiIcon name="location" size={12} className="shrink-0" />
                 <span className="truncate">{thread.listingTitle}</span>
               </p>
@@ -54,18 +54,18 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
             {thread.unread > 0 && (
               <span className="nf-numeric nf-badge nf-badge--brand">{thread.unread}</span>
             )}
-            <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {thread.whenLabel}
             </span>
           </span>
         </div>
 
-        <p className="mt-sm line-clamp-2 text-[var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-sm line-clamp-2 text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {thread.lastMessage}
         </p>
 
         {thread.waitingOnYou && (
-          <p className="mt-sm flex items-center gap-xs text-[var(--nf-text-overline)] font-semibold text-[var(--nf-state-warning)]">
+          <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-state-warning)]">
             <UiIcon name="bell" size={12} className="shrink-0" />
             {waitLabel(thread.waitingHours)}
           </p>
@@ -122,7 +122,7 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
           <p className="mt-md font-semibold text-[var(--nf-content-primary)]">
             {filter === "waiting" ? "Nobody is waiting on you" : "No enquiries yet"}
           </p>
-          <p className="mx-auto mt-2xs max-w-[40ch] text-[var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
             {filter === "waiting"
               ? "Every enquiry has had your reply. That is exactly how a guest decides to book."
               : "When a guest messages you about one of your listings, the thread lands here."}

@@ -206,7 +206,7 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
       <dt className="nf-overline shrink-0 sm:w-32">{label}</dt>
       <dd
         className={`min-w-0 flex-1 text-[var(--nf-content-primary)] ${
-          mono ? "nf-numeric select-all break-all text-[var(--nf-text-caption)]" : "nf-body"
+          mono ? "nf-numeric select-all break-all text-[length:var(--nf-text-caption)]" : "nf-body"
         }`}
       >
         {value}

@@ -63,25 +63,25 @@ export function AlertCard({
             {...dueChip(alert.createdAt, gradeForSeverity(alert.severity), common)}
           />
         )}
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {ui.when(alert.createdAt)}
         </span>
       </div>
 
       {/* The row's glass object, small, as the render shows one per row. A
           risk alert is the warning mark; it is an ornament here, so no tile. */}
-      <h3 className="mt-xs flex items-center gap-inline text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         <BrandIcon name="alert-triangle" size={26} />
         <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {alert.description}
         </p>
       )}
 
       {alert.entityType && (
-        <p className="mt-xs break-words text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-xs break-words text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.attachedTo, { type: alert.entityType, id: alert.entityId ?? "" }).trim()}
         </p>
       )}
@@ -89,7 +89,7 @@ export function AlertCard({
       {alert.status === "open" ? (
         <AlertResolve alertId={alert.id} copy={copy} common={common} />
       ) : (
-        <p className="mt-sm text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="mt-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.resolvedWhen, { when: ui.when(alert.resolvedAt) })}{" "}
           {fill(common.resolvedBy, { who: alert.resolvedByName ?? common.someone })}.{" "}
           {common.noteInAuditLog}
@@ -127,22 +127,22 @@ export function DriftCard({
           tone={SEVERITY_TONE[alert.severity]}
         />
         <ui.StatusChip {...dueChip(alert.createdAt, gradeForSeverity(alert.severity), common)} />
-        <span className="text-[var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {ui.when(alert.createdAt)}
         </span>
       </div>
       {/* Drift is a disagreement about a calendar, so the calendar clock is
           its object rather than the general warning mark. */}
-      <h3 className="mt-xs flex items-center gap-inline text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+      <h3 className="mt-xs flex items-center gap-inline text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         <BrandIcon name="calendar-clock" size={26} />
         <span className="min-w-0">{alert.title}</span>
       </h3>
       {alert.description && (
-        <p className="mt-2xs text-[var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           {alert.description}
         </p>
       )}
-      <dl className="mt-xs grid gap-2xs text-[var(--nf-text-caption)]">
+      <dl className="mt-xs grid gap-2xs text-[length:var(--nf-text-caption)]">
         <div className="flex flex-wrap gap-x-sm">
           <dt className="text-[var(--nf-content-muted)]">Alert</dt>
           <dd className="font-mono text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">

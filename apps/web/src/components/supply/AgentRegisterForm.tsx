@@ -424,7 +424,7 @@ function TotalLine({
         className={
           undeclared
             ? `nf-totalpanel__undeclared ${TYPE.rowMeta}`
-            : "font-[family-name:var(--nf-font-numeric)] text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]"
+            : "font-[family-name:var(--nf-font-numeric)] text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]"
         }
       >
         {value}
@@ -495,7 +495,7 @@ function FeeStepper({
       {error ? (
         <p
           role="alert"
-          className="nf-arrive mt-xs text-[var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
         >
           {error}
         </p>
