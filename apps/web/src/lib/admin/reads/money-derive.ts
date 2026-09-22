@@ -6,17 +6,15 @@ import type {
   LedgerPage,
   MoneyFlow,
   ReconciliationHealth,
-} from "./contracts";
+} from "./money-types";
 
 /**
- * FIGURES DERIVED FROM AN EXISTING READ, AND ONLY WHEN THAT READ IS WHOLE.
+ * THE MONEY DESKS' ARITHMETIC, PURE.
  *
- * The founder's rule for the console: deriving a figure in the page from an
- * existing `lib/admin` function's FULL result is fine; deriving a total from a
- * capped list is not. Every function here is pure, takes rows a page already
- * holds, and is only ever called behind a gate that has proved the rows are
- * every row there is. Where the gate fails, the page draws the not-wired state
- * and the figure waits for the uncapped read asked for in the scope file.
+ * Every function here takes rows and returns figures, and is only ever handed
+ * EVERY row of its table (`readEvery` in `lib/admin/reads/money.ts` pages through the
+ * whole table and checks the count). Deriving a total from a capped list is
+ * the one thing the founder ruled out, so nothing here is ever given one.
  *
  * No clock is read in here. `now` is handed in, so every branch is testable at
  * a fixed instant (`derive.test.ts`).
@@ -24,35 +22,6 @@ import type {
 
 const DAY_MS = 86_400_000;
 const WEEK_MS = 7 * DAY_MS;
-
-/* ------------------------------------------------------------ the gate */
-
-/**
- * The two caps inside `getMoneyConsole`, mirrored because they are not
- * exported (`lib/admin/money-queries.ts`, `RECENT_LIMIT` and `WALLET_LIMIT`).
- * Scope request 5 asks for them to be exported so this cannot drift. If they
- * are ever RAISED this gate only becomes more cautious than it needs to be;
- * lowering them is the direction that would matter, and the request says so.
- */
-export const MONEY_CONSOLE_CAPS = { recent: 60, wallets: 40 } as const;
-
-/**
- * True only when `getMoneyConsole()` returned every entry and every wallet.
- *
- * Under a filter the rows are a subset by design, so nothing platform-wide may
- * be derived from them however few there are.
- */
-export function moneyReadIsWhole(read: {
-  narrowed: boolean;
-  recentCount: number;
-  walletCount: number;
-}): boolean {
-  return (
-    !read.narrowed &&
-    read.recentCount < MONEY_CONSOLE_CAPS.recent &&
-    read.walletCount < MONEY_CONSOLE_CAPS.wallets
-  );
-}
 
 /** The slice of a wallet entry every derivation below needs. */
 export type EntryLike = {
@@ -328,6 +297,14 @@ export type EscrowLike = {
   createdAt: string;
   heldAt: string | null;
   settledAt: string | null;
+  /* The remaining transitions, when the read carries them (`lib/admin/reads/escrow.ts`
+     does). Absent, the activity list uses the three above and invents none. */
+  fundedAt?: string | null;
+  releaseRequestedAt?: string | null;
+  releasedAt?: string | null;
+  refundedAt?: string | null;
+  disputedAt?: string | null;
+  resolvedAt?: string | null;
 };
 
 /**
@@ -360,7 +337,19 @@ export function pipelineFromWhole(escrows: readonly EscrowLike[], recentCount = 
     const base = { escrowId: e.id, amountMinor: e.amountMinor, listingTitle: e.listingTitle };
     events.push({ ...base, event: "opened", at: e.createdAt });
     if (e.heldAt) events.push({ ...base, event: "held", at: e.heldAt });
-    if (e.settledAt) {
+    const detailed =
+      e.fundedAt !== undefined ||
+      e.releasedAt !== undefined ||
+      e.refundedAt !== undefined ||
+      e.disputedAt !== undefined;
+    if (detailed) {
+      if (e.fundedAt) events.push({ ...base, event: "funded", at: e.fundedAt });
+      if (e.releaseRequestedAt) events.push({ ...base, event: "release_requested", at: e.releaseRequestedAt });
+      if (e.disputedAt) events.push({ ...base, event: "disputed", at: e.disputedAt });
+      if (e.releasedAt) events.push({ ...base, event: "released", at: e.releasedAt });
+      if (e.refundedAt) events.push({ ...base, event: "refunded", at: e.refundedAt });
+      if (e.resolvedAt) events.push({ ...base, event: "resolved", at: e.resolvedAt });
+    } else if (e.settledAt) {
       const event =
         e.state === "REFUNDED" ? "refunded" : e.state === "RESOLVED" ? "resolved" : "released";
       events.push({ ...base, event, at: e.settledAt });
@@ -385,14 +374,18 @@ function outcomeOf(metadata: unknown): string | null {
 }
 
 /**
- * Health from the newest page of `wallet.reconciliation.run` audit rows.
- *
- * `pageOnly` is always true here: the figures cover the runs on the page and
- * nothing before them, and the panel says "of the last N runs" because of it.
+ * Health from `wallet.reconciliation.run` audit rows: every run in a window
+ * when `windowDays` is given (`lib/admin/reads/money.ts`), or the newest page of them
+ * otherwise, in which case `pageOnly` is true and the panel says "of the last
+ * N runs".
  * `expectedRuns` and `lastReply` stay null; both need the job's schedule and
  * `private.reconciliation_watch`, which only scope request 8 can reach.
  */
-export function reconciliationFromAudit(rows: readonly AuditRunLike[]): ReconciliationHealth {
+export function reconciliationFromAudit(
+  rows: readonly AuditRunLike[],
+  /** Set when the rows are EVERY run in a window, rather than a page. */
+  windowDays: number | null = null,
+): ReconciliationHealth {
   const sorted = [...rows].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   const clean = sorted.filter((r) => outcomeOf(r.metadata) === "clean");
   const attention = sorted.filter((r) => outcomeOf(r.metadata) === "needs_attention");
@@ -403,7 +396,7 @@ export function reconciliationFromAudit(rows: readonly AuditRunLike[]): Reconcil
       ? Math.max(1, Math.ceil((Date.parse(newest.createdAt) - Date.parse(oldest.createdAt)) / DAY_MS))
       : 0;
   return {
-    windowDays: spanDays,
+    windowDays: windowDays ?? spanDays,
     runs: sorted.length,
     clean: clean.length,
     needsAttention: attention.length,
@@ -411,7 +404,7 @@ export function reconciliationFromAudit(rows: readonly AuditRunLike[]): Reconcil
     lastRunAt: newest?.createdAt ?? null,
     lastCleanAt: clean[0]?.createdAt ?? null,
     lastReply: null,
-    pageOnly: true,
+    pageOnly: windowDays === null,
   };
 }
 
@@ -430,7 +423,7 @@ export function reconciliationVerdict(
   now: number,
   maxGapHours: number,
 ): ReconciliationVerdict {
-  if (!health.lastRunAt || health.runs === 0) return "never";
+  if (!health.lastRunAt) return "never";
   if (now - Date.parse(health.lastRunAt) > maxGapHours * 3_600_000) return "quiet";
   if (health.needsAttention > 0 && health.lastCleanAt !== health.lastRunAt) return "attention";
   return "healthy";

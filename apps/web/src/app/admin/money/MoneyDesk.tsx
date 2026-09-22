@@ -10,15 +10,9 @@ import { EntryRow, RefundsPanel } from "./MoneyRows";
 import { DeskHead, Kpi, NumberedPager, Panel, Waiting } from "./_desk/Desk";
 import { SeriesChart, SeriesLegend, type Series } from "./_desk/charts";
 import { ReconciliationPanel } from "./_desk/Reconciliation";
-import {
-  MONEY_CONSOLE_CAPS,
-  flowFromWhole,
-  ledgerFromWhole,
-  moneyReadIsWhole,
-  percentChange,
-  pulseFromWhole,
-} from "./_desk/derive";
-import type { LedgerPage, MoneyFlow, ReconciliationHealth } from "./_desk/contracts";
+import { percentChange } from "@/lib/admin/reads/money-derive";
+import type { MoneyDesk as MoneyDeskData } from "@/lib/admin/reads/money";
+import type { LedgerPage, MoneyFlow, ReconciliationHealth } from "@/lib/admin/reads/money-types";
 
 /** Ledger rows per page. The render draws six; ten is a page an operator can scan without paging every few seconds. */
 export const LEDGER_PAGE_SIZE = 10;
@@ -38,11 +32,10 @@ export function MoneyDesk({
   query,
   params,
   narrowed,
-  page,
   read,
+  desk,
   refunds,
   disputes,
-  heldInEscrow,
   health,
   now,
 }: {
@@ -52,27 +45,18 @@ export function MoneyDesk({
   query: { q?: string; from?: string; to?: string };
   params: Record<string, string | undefined>;
   narrowed: boolean;
-  page: number;
   read: MoneyConsole;
+  /** `getMoneyDesk`: the pulse, the flow and the ledger page. Null when it could not be read. */
+  desk: MoneyDeskData | null;
   refunds: AdminRead<RefundConsole>;
   disputes: AdminRead<EscrowConsole>;
-  heldInEscrow: number | null;
   health: ReconciliationHealth | null;
   now: number;
 }) {
   const { wallets, recent, stuck, totals } = read;
-  const whole = moneyReadIsWhole({
-    narrowed,
-    recentCount: recent.length,
-    walletCount: wallets.length,
-  });
-  const pulse = whole ? pulseFromWhole(recent, now) : null;
-  const flow: MoneyFlow | null = whole ? flowFromWhole(recent, now) : null;
-  /* Under a filter the rows are still the filter's whole answer when they
-     come back short of the cap, so the table pages them honestly; only the
-     running balance needs the unfiltered whole. */
-  const ledger: LedgerPage = ledgerFromWhole(recent, page, LEDGER_PAGE_SIZE);
-  const ledgerCapped = recent.length >= MONEY_CONSOLE_CAPS.recent;
+  const pulse = desk?.pulse ?? null;
+  const flow: MoneyFlow | null = desk?.flow ?? null;
+  const ledger: LedgerPage | null = desk?.ledger ?? null;
   const money = (minor: number) => formatMoney(minor, locale);
   const shown = wallets.length + recent.length + stuck.length;
 
@@ -103,19 +87,13 @@ export function MoneyDesk({
         <Kpi
           label="Wallet float"
           value={pulse ? money(pulse.floatMinor) : null}
-          delta={
-            pulse
-              ? {
-                  percent: percentChange(pulse.floatMinor, pulse.hasLastWeek ? pulse.floatWeekAgoMinor : null),
-                  against: "vs a week ago",
-                }
-              : null
-          }
-          note={pulse ? "Settled money in every wallet" : "Needs the platform-wide wallet total"}
+          delta={pulse ? { percent: percentChange(pulse.floatMinor, pulse.floatWeekAgoMinor), against: "vs a week ago" } : null}
+          note="Settled money in every wallet"
         />
         <Kpi
           label="In escrow"
-          value={heldInEscrow === null ? null : money(heldInEscrow)}
+          value={pulse ? money(pulse.inEscrowMinor) : null}
+          delta={pulse ? { percent: percentChange(pulse.inEscrowMinor, pulse.inEscrowWeekAgoMinor), against: "vs a week ago" } : null}
           note="Held, awaiting release or disputed"
         />
         <Kpi
@@ -123,16 +101,36 @@ export function MoneyDesk({
           value={pulse ? money(pulse.settledMinor.thisWeek) : null}
           delta={
             pulse
+              ? { percent: percentChange(pulse.settledMinor.thisWeek, pulse.settledMinor.lastWeek), against: "vs the 7 days before" }
+              : null
+          }
+          note="Completed wallet entries, last 7 days"
+        />
+        <Kpi
+          label="Failed charges"
+          value={pulse ? money(pulse.failedCharges.thisWeek.amountMinor) : null}
+          delta={
+            pulse
               ? {
-                  percent: percentChange(pulse.settledMinor.thisWeek, pulse.hasLastWeek ? pulse.settledMinor.lastWeek : null),
+                  percent: percentChange(pulse.failedCharges.thisWeek.amountMinor, pulse.failedCharges.lastWeek.amountMinor),
                   against: "vs the 7 days before",
+                  upIsGood: false,
                 }
               : null
           }
-          note={pulse ? "Completed wallet entries, last 7 days" : "Needs the platform-wide ledger"}
+          note={
+            pulse
+              ? `${pulse.failedCharges.thisWeek.count} failed card or top-up ${pulse.failedCharges.thisWeek.count === 1 ? "charge" : "charges"} this week`
+              : "Card and top-up charges that failed this week"
+          }
         />
-        <Kpi label="Failed charges" value={null} note="Card and top-up charges that failed this week" />
       </div>
+      {desk && !desk.complete && (
+        <p className="nf-md-panel__hint">
+          The ledger is larger than this desk reads in one pass, so the figures above are at least these
+          amounts rather than totals.
+        </p>
+      )}
 
       <FlowPanel flow={flow} locale={locale} />
 
@@ -158,8 +156,8 @@ export function MoneyDesk({
             </dl>
           ) : (
             <Waiting
-              title="Not connected yet"
-              body="Money in, money out and the difference over the last 30 days, across every wallet. The ledger is larger than this desk can read in one go, so these figures wait for a platform-wide total rather than showing part of one."
+              title="The ledger could not be read"
+              body="Money in, money out and the difference over the last 30 days, across every wallet. The read did not answer just now; nothing about the money itself is implied. Reload in a moment."
             />
           )}
         </Panel>
@@ -178,15 +176,16 @@ export function MoneyDesk({
         <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} state="no-match" />
       )}
 
-      <LedgerPanel
-        ledger={ledger}
-        showBalance={whole}
-        capped={ledgerCapped}
-        narrowed={narrowed}
-        params={params}
-        ui={ui}
-        locale={locale}
-      />
+      {ledger ? (
+        <LedgerPanel ledger={ledger} showBalance={!narrowed} narrowed={narrowed} params={params} ui={ui} locale={locale} />
+      ) : (
+        <Panel title="Ledger">
+          <Waiting
+            title="The ledger could not be read"
+            body="Every wallet entry, newest first, with the platform float after each one. The read did not answer just now; reload in a moment."
+          />
+        </Panel>
+      )}
 
       <Panel title="Wallets" hint={narrowed ? "Matching this filter" : "Newest first, up to forty"}>
         <ui.StatRow>
@@ -309,8 +308,8 @@ function FlowPanel({ flow, locale }: { flow: MoneyFlow | null; locale: Locale })
     return (
       <Panel title="Money in vs money out" aside={legend}>
         <Waiting
-          title="Not connected yet"
-          body="Settled money coming into wallets against settled money leaving them, month by month for a year. The ledger is larger than this desk can read in one go, so the chart waits for a platform-wide monthly total rather than drawing part of the history."
+          title="The ledger could not be read"
+          body="Settled money coming into wallets against settled money leaving them, month by month for a year. The read did not answer just now; reload in a moment."
         />
       </Panel>
     );
@@ -350,7 +349,6 @@ function FlowPanel({ flow, locale }: { flow: MoneyFlow | null; locale: Locale })
 function LedgerPanel({
   ledger,
   showBalance,
-  capped,
   narrowed,
   params,
   ui,
@@ -358,15 +356,13 @@ function LedgerPanel({
 }: {
   ledger: LedgerPage;
   showBalance: boolean;
-  capped: boolean;
   narrowed: boolean;
   params: Record<string, string | undefined>;
   ui: AdminUi;
   locale: Locale;
 }) {
-  const foot = capped
-    ? "The newest 60 entries. Older entries are not reachable from this desk yet."
-    : !showBalance && ledger.total > 0
+  const foot =
+    !showBalance && ledger.total > 0
       ? "The balance column is the platform float, so it is shown only for the unfiltered ledger."
       : undefined;
   return (

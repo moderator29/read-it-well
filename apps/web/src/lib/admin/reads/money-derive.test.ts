@@ -4,7 +4,6 @@ import {
   countdown,
   flowFromWhole,
   ledgerFromWhole,
-  moneyReadIsWhole,
   pagerItems,
   percentChange,
   pipelineFromWhole,
@@ -14,7 +13,7 @@ import {
   reconciliationVerdict,
   wholeDays,
   type EntryLike,
-} from "./derive";
+} from "./money-derive";
 
 const NOW = Date.parse("2026-09-22T12:00:00Z");
 const DAY = 86_400_000;
@@ -36,19 +35,6 @@ function entry(partial: Partial<EntryLike> & { daysAgo: number }): EntryLike & {
     ownerName: null,
   };
 }
-
-describe("moneyReadIsWhole", () => {
-  it("refuses under a filter however few rows came back", () => {
-    expect(moneyReadIsWhole({ narrowed: true, recentCount: 2, walletCount: 1 })).toBe(false);
-  });
-  it("refuses at either cap", () => {
-    expect(moneyReadIsWhole({ narrowed: false, recentCount: 60, walletCount: 1 })).toBe(false);
-    expect(moneyReadIsWhole({ narrowed: false, recentCount: 2, walletCount: 40 })).toBe(false);
-  });
-  it("accepts a short unfiltered read", () => {
-    expect(moneyReadIsWhole({ narrowed: false, recentCount: 59, walletCount: 39 })).toBe(true);
-  });
-});
 
 describe("pulseFromWhole", () => {
   const entries = [
@@ -210,5 +196,43 @@ describe("reconciliation", () => {
     const health = reconciliationFromAudit([]);
     expect(reconciliationVerdict(health, NOW, 3)).toBe("never");
     expect(cleanShare(health)).toBeNull();
+  });
+});
+
+describe("pipelineFromWhole with every transition", () => {
+  it("lists funding, release requests and disputes when the read carries them", () => {
+    const at = (h: number) => new Date(NOW - h * 3_600_000).toISOString();
+    const pipeline = pipelineFromWhole([
+      {
+        id: "c",
+        state: "DISPUTED",
+        purpose: "rent_deposit",
+        amountMinor: 1,
+        listingTitle: null,
+        createdAt: at(10),
+        heldAt: at(8),
+        settledAt: null,
+        fundedAt: at(9),
+        releaseRequestedAt: at(3),
+        releasedAt: null,
+        refundedAt: null,
+        disputedAt: at(1),
+        resolvedAt: null,
+      },
+    ]);
+    expect(pipeline.recent.map((e) => e.event)).toEqual(["disputed", "release_requested", "held", "funded", "opened"]);
+  });
+});
+
+describe("reconciliation over a window", () => {
+  it("is not page-only when every run in the window was read", () => {
+    const health = reconciliationFromAudit([{ createdAt: new Date(NOW).toISOString(), metadata: { outcome: "clean" } }], 7);
+    expect(health.pageOnly).toBe(false);
+    expect(health.windowDays).toBe(7);
+  });
+  it("reads a job silent for the whole window as quiet, not never, once its last run is known", () => {
+    const health = reconciliationFromAudit([], 7);
+    health.lastRunAt = new Date(NOW - 9 * DAY).toISOString();
+    expect(reconciliationVerdict(health, NOW, 3)).toBe("quiet");
   });
 });

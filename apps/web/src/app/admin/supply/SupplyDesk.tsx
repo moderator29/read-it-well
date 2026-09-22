@@ -3,22 +3,17 @@ import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { DeskHead, Kpi, NumberedPager, Panel, Waiting } from "../money/_desk/Desk";
 import { Donut, RankBars, SeriesChart, SeriesLegend, type Series } from "../money/_desk/charts";
-import { percentChange } from "../money/_desk/derive";
+import { percentChange } from "@/lib/admin/reads/money-derive";
 import {
   SUPPLY_ROLE_KEYS,
   type SupplyConsole,
   type SupplyRoleKey,
-} from "../money/_desk/contracts";
+} from "@/lib/admin/reads/money-types";
 
 /**
- * The supply desk, drawn from one `SupplyConsole` (scope request 9) or from
- * nothing.
- *
- * Out of the page so the whole desk is a function of its data: the page hands
- * it the read, and the day `getSupplyConsole` lands in `lib/admin` the page's
- * one placeholder line becomes that call and every panel below lights up
- * unchanged. Until then `supply` is null and every panel says what it will
- * show, in words for an operator, and draws no number.
+ * The supply desk, drawn from one `SupplyConsole` (`getSupplyDesk` in
+ * `lib/admin/reads/supply.ts`), or from nothing when that read could not
+ * answer, in which case every panel says what it shows and draws no number.
  *
  * THE ROLE VOCABULARY is the product's own (`lib/supply/roles.ts`,
  * `lib/supply/workspaces-queries.ts`): owner and agent are kinds of PERSON, a
@@ -63,7 +58,7 @@ export function SupplyDesk({
   locale,
   pageSize,
 }: {
-  supply: SupplyConsole | null;
+  supply: (SupplyConsole & { complete?: boolean }) | null;
   filter: SupplyFilter;
   params: Record<string, string | undefined>;
   locale: Locale;
@@ -118,6 +113,11 @@ export function SupplyDesk({
         })}
       </div>
 
+      {supply && supply.complete === false && (
+        <p className="nf-md-panel__hint">
+          There are more accounts than this desk reads in one pass, so these counts are at least these numbers.
+        </p>
+      )}
       {supply && !filter.examples && supply.examplesExcluded > 0 && (
         <p className="nf-md-panel__hint">
           {supply.examplesExcluded} example {supply.examplesExcluded === 1 ? "account is" : "accounts are"} left
@@ -133,8 +133,8 @@ export function SupplyDesk({
         >
           {!supply ? (
             <Waiting
-              title="Not connected yet"
-              body="Every owner, agent, firm and host with their verification, how many listings they hold, how much has been paid to them and when they joined. The read that brings the four roles together is not wired to this desk yet."
+              title="Supply could not be read"
+              body="Every owner, agent, firm and host with their verification, how many listings they hold, how much has been paid to them and when they joined. The read did not answer just now; reload in a moment."
             />
           ) : supply.rows.length === 0 ? (
             <p className="nf-md-empty">
@@ -215,8 +215,8 @@ export function SupplyDesk({
         <Panel title="Top 5 areas by supply">
           {!supply ? (
             <Waiting
-              title="Not connected yet"
-              body="The five areas with the most live listings and stays, ranked. Waiting on the read that counts supply by area."
+              title="Supply could not be read"
+              body="The five areas with the most live listings and stays, ranked. The read did not answer just now."
             />
           ) : supply.topAreas.length === 0 ? (
             <p className="nf-md-empty">No live listing has an area yet.</p>
@@ -227,8 +227,8 @@ export function SupplyDesk({
         <Panel title="Supply by property type">
           {!supply ? (
             <Waiting
-              title="Not connected yet"
-              body="Live listings split by property type, from houses and flats to hotels and restaurants. Waiting on the read that counts them."
+              title="Supply could not be read"
+              body="Live listings split by property type, from houses and flats to hotels and restaurants. The read did not answer just now."
             />
           ) : supply.byPropertyType.length === 0 ? (
             <p className="nf-md-empty">No live listing yet.</p>
@@ -263,8 +263,8 @@ function GrowthPanel({ supply, locale }: { supply: SupplyConsole | null; locale:
     return (
       <Panel title="Supply growth by role" aside={legend}>
         <Waiting
-          title="Not connected yet"
-          body="How many owners, agents, firms and hosts the platform has had at the end of each of the last six months. Waiting on the read that counts them."
+          title="Supply could not be read"
+          body="How many owners, agents, firms and hosts the platform has had at the end of each of the last six months. The read did not answer just now."
         />
       </Panel>
     );

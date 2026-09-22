@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { flatParams } from "../money/_desk/Desk";
-import { readPage } from "../money/_desk/derive";
-import type { SupplyConsole, SupplyRoleKey } from "../money/_desk/contracts";
-import { SUPPLY_ROLE_KEYS } from "../money/_desk/contracts";
+import { readPage } from "@/lib/admin/reads/money-derive";
+import type { SupplyRoleKey } from "@/lib/admin/reads/money-types";
+import { getSupplyDesk } from "@/lib/admin/reads/supply";
+import { SUPPLY_ROLE_KEYS } from "@/lib/admin/reads/money-types";
 import { SupplyDesk, type SupplyFilter } from "./SupplyDesk";
 import "../money/_desk/desk.css";
 
@@ -20,13 +21,12 @@ const SUPPLY_PAGE_SIZE = 8;
 /**
  * The supply desk, as panel 3 of 8E9602E2 draws it.
  *
- * NO EXISTING READ ANSWERS IT. Owners, agents, firms and hosts live across
- * `agents`, `agent_applications` and `businesses`, their listings across
- * `listings` and `accommodations`, and what has been paid to them across
- * `escrows` and `bookings`. `lib/admin/**` is the other session's, so the read
- * that joins them is asked for in `docs/SESSION_B_SCOPE.md` (request 9) with
- * the exact return shape `SupplyDesk` is built against, and this page draws
- * every panel's not-wired state until it lands.
+ * Every figure is `getSupplyDesk` (`lib/admin/reads/supply.ts`): owners,
+ * agents, firms and hosts from `agents`, `agent_applications` and
+ * `businesses`, their live listings from `listings` and `accommodations`, and
+ * what has been paid to them from `escrows` and `bookings`. Examples
+ * (`is_demo`) are left out unless the operator asks, and the page says how
+ * many were left out.
  *
  * The layout's `requireAdmin()` refuses a non-admin before this runs, and
  * every `lib/admin` read repeats that check at its own door, so the read that
@@ -47,9 +47,8 @@ export default async function AdminSupplyPage({
     page: readPage(params.page),
   };
 
-  /* Replace with `getSupplyConsole({ ...filter, pageSize: SUPPLY_PAGE_SIZE })`
-     when scope request 9 lands, and unwrap its AdminRead. */
-  const supply: SupplyConsole | null = null;
+  const read = await getSupplyDesk({ ...filter, pageSize: SUPPLY_PAGE_SIZE });
+  const supply = read.state === "ok" ? read.data : null;
 
   return (
     <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} />

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Fragment } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n";
-import type { AdminRead } from "@/lib/admin/queries";
-import type { EscrowConsole, EscrowView } from "@/lib/admin/money-queries";
-import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
+import type { EscrowView } from "@/lib/admin/money-queries";
+import type { EscrowDesk as EscrowDeskData } from "@/lib/admin/reads/escrow";
 import { Constants } from "@/lib/supabase/database.types";
 import { ESCROW_STATE_WORDS } from "@/components/app/untranslated";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
@@ -13,17 +12,16 @@ import type { AdminUi } from "../_components/ui";
 import type { AdminCommon } from "../_components/copy";
 import {
   QueueFilters,
-  QueuePager,
   queueNarrowed,
   type QueueQuery,
   type QueueStatusOption,
 } from "../_components/QueueFilters";
 import { EscrowRuling } from "../_components/MoneyDecisions";
-import { DeskHead, Panel, Waiting } from "../money/_desk/Desk";
+import { DeskHead, NumberedPager, Panel } from "../money/_desk/Desk";
 import { Donut } from "../money/_desk/charts";
 import { ReconciliationPanel } from "../money/_desk/Reconciliation";
-import { countdown, pipelineFromWhole, wholeDays } from "../money/_desk/derive";
-import type { EscrowEvent, EscrowPipeline, EscrowState, ReconciliationHealth } from "../money/_desk/contracts";
+import { countdown, wholeDays } from "@/lib/admin/reads/money-derive";
+import type { EscrowEvent, EscrowState, ReconciliationHealth } from "@/lib/admin/reads/money-types";
 
 const PURPOSE_LABEL: Record<string, string> = {
   rent_deposit: "Rent deposit",
@@ -102,17 +100,16 @@ export function EscrowHead() {
 }
 
 /**
- * The escrow desk as a function of its reads. The page reads; this draws.
- * See the page for where every figure comes from.
+ * The escrow desk as a function of its read (`getEscrowDesk` in
+ * `lib/admin/reads/escrow.ts`). The page reads; this draws.
  */
 export function EscrowDesk({
   locale,
   ui,
   common,
   query,
-  read,
-  everything,
-  pagedStageCounts,
+  params,
+  desk,
   health,
   now,
 }: {
@@ -120,52 +117,53 @@ export function EscrowDesk({
   ui: AdminUi;
   common: AdminCommon;
   query: QueueQuery;
-  read: EscrowConsole;
-  everything: AdminRead<EscrowConsole>;
-  /** Per-state counts from each state's own page, used when `everything` is not whole. */
-  pagedStageCounts: Record<string, string> | null;
+  params: Record<string, string | undefined>;
+  desk: EscrowDeskData;
   health: ReconciliationHealth | null;
   now: number;
 }) {
-  const { disputes, open, settled, totals, full } = read;
-  const shown = disputes.length + open.length + settled.length;
-  const narrowed = queueNarrowed(query) || (query.offset ?? 0) > 0;
-
-  /* Whole only when the unfiltered first page is not full. */
-  const allRows =
-    everything.state === "ok" && !everything.data.full
-      ? [...everything.data.disputes, ...everything.data.open, ...everything.data.settled]
-      : null;
-  const pipeline: EscrowPipeline | null = allRows ? pipelineFromWhole(allRows) : null;
-  const stageCounts = pipeline
-    ? Object.fromEntries(STAGES.map((s) => [s.state, String(pipeline.byState[s.state].count)]))
-    : (pagedStageCounts ?? {});
-
-  const liveRows = [...disputes, ...open];
+  const { pipeline, disputes, table } = desk;
+  const status = STATE_LABEL[query.status as EscrowState] ? (query.status as EscrowState) : null;
+  const narrowed = queueNarrowed(query);
+  const stageHref = (state: EscrowState) => {
+    const next = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) if (v && k !== "status" && k !== "page" && k !== "offset") next.set(k, v);
+    if (status !== state) next.set("status", state);
+    const qs = next.toString();
+    return qs ? `/admin/escrow?${qs}` : "/admin/escrow";
+  };
 
   return (
     <div className="nf-console nf-md">
       <EscrowHead />
 
       <nav className="nf-md-pipeline" aria-label="Escrows by state">
-        {STAGES.map((stage, i) => (
-          <Fragment key={stage.state}>
-            {i > 0 && (
-              <span className="nf-md-stage__arrow" aria-hidden="true">
-                <UiIcon name="arrow-right" size={16} />
-              </span>
-            )}
-            <Link
-              href={query.status === stage.state ? "/admin/escrow" : `/admin/escrow?status=${stage.state}`}
-              className={`nf-md-card nf-md-stage nf-md-kpi ${stage.state === "DISPUTED" && stageCounts[stage.state] !== "0" ? "nf-md-stage--alarm" : ""}`}
-              aria-current={query.status === stage.state ? "true" : undefined}
-            >
-              <span className="nf-md-stage__label">{stage.label}</span>
-              <span className="nf-md-stage__count">{stageCounts[stage.state] ?? "?"}</span>
-            </Link>
-          </Fragment>
-        ))}
+        {STAGES.map((stage, i) => {
+          const count = pipeline.byState[stage.state].count;
+          return (
+            <Fragment key={stage.state}>
+              {i > 0 && (
+                <span className="nf-md-stage__arrow" aria-hidden="true">
+                  <UiIcon name="arrow-right" size={16} />
+                </span>
+              )}
+              <Link
+                href={stageHref(stage.state)}
+                className={`nf-md-card nf-md-stage nf-md-kpi ${stage.state === "DISPUTED" && count > 0 ? "nf-md-stage--alarm" : ""}`}
+                aria-current={status === stage.state ? "true" : undefined}
+              >
+                <span className="nf-md-stage__label">{stage.label}</span>
+                <span className="nf-md-stage__count">{count}</span>
+              </Link>
+            </Fragment>
+          );
+        })}
       </nav>
+      {!desk.complete && (
+        <p className="nf-md-panel__hint">
+          There are more escrows than this desk reads in one pass, so these counts are at least these numbers.
+        </p>
+      )}
 
       <QueueFilters
         base="/admin/escrow"
@@ -175,16 +173,8 @@ export function EscrowDesk({
         searchPlaceholder="Search by property"
       />
 
-      {narrowed && shown === 0 && (
-        /* A SEARCH THAT MATCHED NOTHING IS NOT A CLEARANCE. */
-        <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} state="no-match" />
-      )}
-
       {disputes.length > 0 && (
-        <Panel
-          title="Waiting on a ruling"
-          hint="Until somebody rules, neither person can have the money"
-        >
+        <Panel title="Waiting on a ruling" hint="Until somebody rules, neither person can have the money">
           <ul className="nf-md-stack">
             {disputes.map((escrow) => (
               <li key={escrow.id}>
@@ -197,85 +187,82 @@ export function EscrowDesk({
 
       <div className="nf-md-grid nf-md-grid--main">
         <Panel
-          title={query.status ? `Escrows: ${STATE_LABEL[query.status as EscrowState] ?? query.status}` : "Live escrows"}
-          hint={shown > 0 ? `${shown} on this page` : undefined}
+          title={status ? `Escrows: ${STATE_LABEL[status]}` : "Live escrows"}
+          hint={table.total > 0 ? `${table.total} ${table.total === 1 ? "escrow" : "escrows"}` : undefined}
         >
-          {(query.status ? [...liveRows, ...settled] : liveRows).length === 0 ? (
-            narrowed ? null : (
-              <p className="nf-md-empty">The platform is not holding anybody&apos;s money.</p>
+          {table.rows.length === 0 ? (
+            narrowed ? (
+              /* A SEARCH THAT MATCHED NOTHING IS NOT A CLEARANCE. */
+              <ui.QueueEmpty title={common.noMatchTitle} body={common.noMatchBody} state="no-match" />
+            ) : (
+              <p className="nf-md-empty">
+                The platform is not holding anybody&apos;s money. An escrow appears here the moment a tenant or
+                buyer funds one.
+              </p>
             )
           ) : (
-            <EscrowTable rows={query.status ? [...liveRows, ...settled] : liveRows} now={now} locale={locale} ui={ui} />
+            <>
+              <EscrowTable rows={table.rows} now={now} locale={locale} ui={ui} />
+              <NumberedPager
+                base="/admin/escrow"
+                params={params}
+                page={table.page}
+                total={table.total}
+                pageSize={table.pageSize}
+                noun="escrows"
+              />
+            </>
           )}
-          <QueuePager base="/admin/escrow" query={query} pageSize={QUEUE_PAGE_SIZE} full={full} count={shown} />
         </Panel>
 
         <div className="nf-md-stack">
           <Panel title="Float total">
-            <p className="nf-md-figure">{formatMoney(totals.heldMinor, locale)}</p>
+            <p className="nf-md-figure">{formatMoney(desk.heldMinor, locale)}</p>
             <p className="nf-md-panel__foot">
-              Held, awaiting release or disputed, across every escrow. {totals.openCount} still running.
+              Held, awaiting release or disputed, across every escrow. {desk.openCount} still running.
             </p>
           </Panel>
           <ReconciliationPanel health={health} now={now} when={ui.when} variant="check" />
         </div>
       </div>
 
-      {!query.status && settled.length > 0 && (
-        <Panel title="Recently settled">
-          <EscrowTable rows={settled} now={now} locale={locale} ui={ui} />
-        </Panel>
-      )}
-
       <div className="nf-md-grid nf-md-grid--halves">
         <Panel title="Escrow by purpose">
-          {pipeline ? (
-            pipeline.total === 0 ? (
-              <p className="nf-md-empty">No escrow has been opened yet.</p>
-            ) : (
-              <Donut
-                label="Escrows by purpose"
-                totalLabel="Total"
-                totalValue={String(pipeline.total)}
-                slices={Object.entries(pipeline.byPurpose).map(([purpose, v]) => ({
-                  label: PURPOSE_LABEL[purpose] ?? purpose,
-                  count: v.count,
-                }))}
-              />
-            )
+          {pipeline.total === 0 ? (
+            <p className="nf-md-empty">
+              No escrow has been opened yet. Rent deposits, first rent and purchase money will be split here.
+            </p>
           ) : (
-            <Waiting
-              title="Not connected yet"
-              body="How many escrows are rent deposits, first rent, purchase deposits and purchase balances. There are more escrows than this desk can read in one go, so the split waits for a platform-wide count."
+            <Donut
+              label="Escrows by purpose"
+              totalLabel="Total"
+              totalValue={String(pipeline.total)}
+              slices={Object.entries(pipeline.byPurpose).map(([purpose, v]) => ({
+                label: PURPOSE_LABEL[purpose] ?? purpose,
+                count: v.count,
+              }))}
             />
           )}
         </Panel>
         <Panel title="Recent activity">
-          {pipeline ? (
-            pipeline.recent.length === 0 ? (
-              <p className="nf-md-empty">Nothing has happened to an escrow yet.</p>
-            ) : (
-              <ol className="nf-md-timeline">
-                {pipeline.recent.map((event) => (
-                  <li key={`${event.escrowId}-${event.event}`} className="nf-md-event">
-                    <span className={`nf-md-event__dot ${EVENT_DOT[event.event]}`} aria-hidden="true" />
-                    <span className="min-w-0">
-                      <span className="nf-md-event__what block">
-                        <span title={event.escrowId}>{shortId(event.escrowId)}</span> {EVENT_WORD[event.event]}
-                        {" · "}
-                        {formatMoney(event.amountMinor, locale)}
-                      </span>
-                      <span className="nf-md-event__when block">{ui.when(event.at)}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )
+          {pipeline.recent.length === 0 ? (
+            <p className="nf-md-empty">Nothing has happened to an escrow yet.</p>
           ) : (
-            <Waiting
-              title="Not connected yet"
-              body="The newest escrow movements across the platform: opened, funded, held, released, refunded, disputed and ruled on. There are more escrows than this desk can read in one go, so the list waits for a platform-wide read."
-            />
+            <ol className="nf-md-timeline">
+              {pipeline.recent.map((event) => (
+                <li key={`${event.escrowId}-${event.event}`} className="nf-md-event">
+                  <span className={`nf-md-event__dot ${EVENT_DOT[event.event]}`} aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="nf-md-event__what block">
+                      <span title={event.escrowId}>{shortId(event.escrowId)}</span> {EVENT_WORD[event.event]}
+                      {" · "}
+                      {formatMoney(event.amountMinor, locale)}
+                    </span>
+                    <span className="nf-md-event__when block">{ui.when(event.at)}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
           )}
         </Panel>
       </div>

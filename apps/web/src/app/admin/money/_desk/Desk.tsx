@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { pagerItems } from "./derive";
+import { pagerItems } from "@/lib/admin/reads/money-derive";
 
 /**
  * The money desks' furniture, shared by money, escrow, supply, bookings and
@@ -55,10 +55,8 @@ export function Panel({
 }
 
 /**
- * THE NOT-WIRED STATE. Says what the panel will show, in words for an
- * operator, and that its figures are not connected yet. No request number in
- * the copy: that lives in the ledger and the handbook, where the people who
- * can act on it read.
+ * THE HONEST ABSENCE. Says what the panel shows, in words for an operator,
+ * and why no figure is drawn. Never a number the database did not return.
  */
 export function Waiting({ title, body }: { title: string; body: string }) {
   return (
@@ -124,7 +122,7 @@ export function Kpi({
     <>
       <span className="nf-md-kpi__label">{label}</span>
       {value === null ? (
-        <span className="nf-md-kpi__value nf-md-kpi__value--quiet">Not connected yet</span>
+        <span className="nf-md-kpi__value nf-md-kpi__value--quiet">Could not be read</span>
       ) : (
         <span className="nf-md-kpi__value nf-numeric">{value}</span>
       )}

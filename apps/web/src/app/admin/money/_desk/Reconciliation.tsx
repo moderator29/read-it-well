@@ -1,10 +1,8 @@
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import type { AdminRead } from "@/lib/admin/money-queries";
-import type { AuditPage } from "@/lib/admin/audit-queries";
 import { WATCHED_JOBS } from "@/lib/cron/freshness";
-import type { ReconciliationHealth } from "./contracts";
-import { cleanShare, reconciliationFromAudit, reconciliationVerdict, type ReconciliationVerdict } from "./derive";
+import type { ReconciliationHealth } from "@/lib/admin/reads/money-types";
+import { cleanShare, reconciliationVerdict, type ReconciliationVerdict } from "@/lib/admin/reads/money-derive";
 import { Ring } from "./charts";
 import { Panel, Waiting } from "./Desk";
 
@@ -12,12 +10,12 @@ import { Panel, Waiting } from "./Desk";
  * RECONCILIATION, READ FROM WHERE THE JOB ACTUALLY WRITES ITS HISTORY.
  *
  * `/api/paystack/reconcile` records every run, clean or not, as a
- * `wallet.reconciliation.run` row in `audit_log` through `recordMoneyAudit`,
- * with `metadata.outcome` of `clean` or `needs_attention`
- * (`app/api/paystack/reconcile/outcome.ts`). The existing `getAuditLog` reads
- * the newest page of those rows, and that is what this panel is drawn from
- * until scope request 8 lands a proper aggregate. The figures therefore cover
- * the runs on that page and the copy says so.
+ * `wallet.reconciliation.run` row in `audit_log` with `metadata.outcome` of
+ * `clean` or `needs_attention` (`app/api/paystack/reconcile/outcome.ts`).
+ * `getReconciliationHealth` in `lib/admin/reads/money.ts` reads every one in
+ * the last seven days. The job's last HTTP reply lives in
+ * `private.reconciliation_watch`, which no admin read can reach yet (a scope
+ * request, because it needs a migration).
  *
  * The badge reports SILENCE FIRST, against the same allowance the platform's
  * own freshness watch uses for this job (`lib/cron/freshness.ts`), because a
@@ -26,15 +24,6 @@ import { Panel, Waiting } from "./Desk";
  */
 
 const RECONCILE_JOB = "paystack-reconcile";
-
-export function readReconciliation(read: AdminRead<AuditPage>): ReconciliationHealth | null {
-  if (read.state !== "ok") return null;
-  return reconciliationFromAudit(
-    read.data.rows
-      .filter((row) => row.action === "wallet.reconciliation.run")
-      .map((row) => ({ createdAt: row.createdAt, metadata: row.metadata })),
-  );
-}
 
 function maxGapHours(): number {
   return WATCHED_JOBS.find((job) => job.job === RECONCILE_JOB)?.maxGapHours ?? 3;
@@ -76,7 +65,9 @@ export function ReconciliationPanel({
   const scope =
     health.runs === 0
       ? "The job has not recorded a run yet."
-      : `Clean in ${health.clean} of the last ${health.runs} recorded runs.`;
+      : health.pageOnly
+        ? `Clean in ${health.clean} of the last ${health.runs} recorded runs.`
+        : `Clean in ${health.clean} of ${health.runs} runs in the last ${health.windowDays} days.`;
 
   if (variant === "check") {
     const plate = verdict === "healthy" ? "" : verdict === "never" ? "nf-md-check--quiet" : "nf-md-check--bad";

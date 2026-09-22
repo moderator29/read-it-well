@@ -288,136 +288,30 @@ anything already started into `lib/admin/reads/`. Anything below that needs a
 MUTATION or a MIGRATION still stands as a request and is marked so when it is
 re-filed.
 
-Session B does not own `apps/web/src/lib/admin/**`. Each panel below is built
-in full against a typed prop of exactly the shape asked for (the types live in
-`apps/web/src/app/admin/money/_desk/contracts.ts`, so the function can return
-them verbatim), and it draws an honest "not wired yet" state until the
-function lands. Every function is a READ, goes through `requireAdmin()` and
-the admin's own RLS client (the tables below all carry an `*_select_admin` or
-`*_admin_all` policy, checked live on 22 September), and returns
-`AdminRead<T>`. Money is integer kobo throughout. "Uncapped" means computed in
-Postgres (a view or a `security definer` function repeating the role check),
-not summed in TypeScript over a `limit`ed read.
+**Status, admin-money.** Requests 2 to 9 are written by Session B itself, read
+only, through `requireAdmin()` and the admin's RLS client, with tests beside
+them: `lib/admin/reads/money.ts` (`getMoneyDesk`: requests 2, 3, 4 and 5;
+`getReconciliationHealth`: request 8 less the watch table), `reads/escrow.ts`
+(`getEscrowDesk`: requests 6 and 7), `reads/supply.ts` (`getSupplyDesk`:
+request 9), with the pure arithmetic in `reads/money-derive.ts` and the shapes
+in `reads/money-types.ts`. No aggregate is taken over a capped list: every
+table is paged through to the end and checked against an exact count, and past
+50,000 rows the desk says its figures are floors.
 
-2. **`getMoneyPulse(): Promise<AdminRead<MoneyPulse>>`** in
-   `lib/admin/money-queries.ts`. Feeds the four KPI cards on `/admin/money`.
-   Reads `wallet_entries (direction, amount_minor, status, kind, created_at)`,
-   `escrows (state, amount_minor, held_at, released_at, refunded_at,
-   resolved_at)`, `transactions (status, amount_minor, created_at)`. Uncapped.
-   ```ts
-   type MoneyPulse = {
-     asOf: string;                       // ISO, when computed
-     floatMinor: number;                 // sum of COMPLETED credits minus COMPLETED debits, every wallet
-     floatWeekAgoMinor: number;          // the same, over entries created before asOf - 7 days
-     inEscrowMinor: number;              // HELD + RELEASE_REQUESTED + DISPUTED, every escrow
-     inEscrowWeekAgoMinor: number;       // escrows held at asOf - 7 days (held_at <= t and not settled by t)
-     settledMinor: { thisWeek: number; lastWeek: number };  // COMPLETED entries, rolling 7 days and the 7 before
-     failedCharges: {                    // FAILED transactions plus FAILED wallet deposits
-       thisWeek: { count: number; amountMinor: number };
-       lastWeek: { count: number; amountMinor: number };
-     };
-   };
-   ```
-3. **`getMoneyFlow(months = 12): Promise<AdminRead<MoneyFlow>>`** in
-   `lib/admin/money-queries.ts`. Feeds "Money in vs money out" and
-   "Transaction summary". Reads `wallet_entries (direction, amount_minor,
-   status, created_at)`, COMPLETED only, bucketed by Lagos calendar month.
-   Uncapped.
-   ```ts
-   type MoneyFlow = {
-     months: { month: string /* YYYY-MM */; inMinor: number; outMinor: number }[]; // ascending, zero months included, from the first month with an entry
-     last30Days: { inMinor: number; outMinor: number };
-     firstEntryAt: string | null;
-   };
-   ```
-4. **`getLedgerPage(filter: MoneyFilter & { page: number; pageSize: number }): Promise<AdminRead<LedgerPage>>`**
-   in `lib/admin/money-queries.ts`. Feeds the Ledger table and its numbered
-   pager. Same `q`, `from`, `to` contract as `getMoneyConsole`. `total` is an
-   exact count; `balanceAfterMinor` is the platform float immediately after
-   the entry (a window sum in Postgres), null when a filter is applied because
-   a running balance over a filtered subset is not a balance.
-   ```ts
-   type LedgerPage = {
-     rows: {
-       id: string; createdAt: string; kind: string; direction: "credit" | "debit";
-       amountMinor: number; status: string; reference: string; note: string | null;
-       ownerName: string | null; balanceAfterMinor: number | null;
-     }[];
-     total: number; page: number; pageSize: number;
-   };
-   ```
-5. **Export `RECENT_LIMIT` and `WALLET_LIMIT` from `lib/admin/money-queries.ts`.**
-   Until 2 to 4 land, `/admin/money` derives the float, the week's
-   settlement, the flow chart and the ledger's running balance from
-   `getMoneyConsole()` ONLY when its result is provably whole (no filter,
-   fewer than 60 entries, fewer than 40 wallets). The page mirrors those two
-   numbers today; exporting them stops the gate drifting from the read.
-6. **`getEscrowPipeline(): Promise<AdminRead<EscrowPipeline>>`** in
-   `lib/admin/money-queries.ts`. Feeds the state pipeline, "Escrow by
-   purpose" and "Recent activity" on `/admin/escrow`. Reads `escrows` (every
-   state and timestamp column) and `listings (title)`. Uncapped counts; the
-   activity list is the newest 8 transitions across `funded_at`, `held_at`,
-   `release_requested_at`, `released_at`, `refunded_at`, `disputed_at`,
-   `resolved_at`.
-   ```ts
-   type EscrowPipeline = {
-     byState: Record<EscrowState, { count: number; amountMinor: number }>;
-     byPurpose: Record<EscrowPurpose, { count: number; amountMinor: number }>;
-     total: number;
-     recent: { escrowId: string; event: "funded" | "held" | "release_requested" | "released" | "refunded" | "disputed" | "resolved"; at: string; amountMinor: number; listingTitle: string | null }[];
-   };
-   ```
-7. **`getEscrowConsole` additions**: an exact `total` for the narrowed read
-   (the numbered pager needs a page count), and `fundedAt`,
-   `releaseRequestedAt`, `disputedAt`, `listingId` and the cover photo path on
-   `EscrowView` (the live table draws a thumbnail and "days held" from
-   funding). The `SUMMARY_LIMIT` floor on `totals` should become the same
-   aggregate as request 6.
-8. **`getReconciliationHealth(days = 7): Promise<AdminRead<ReconciliationHealth>>`**
-   in a lib module of the other session's choosing. Feeds "Reconciliation
-   health" on `/admin/money` and "Reconciliation check" on `/admin/escrow`.
-   Until it lands both panels read the newest page of
-   `wallet.reconciliation.run` rows through the existing `getAuditLog` and
-   say "of the last N runs"; what that cannot see is
-   `private.reconciliation_watch` (the job's last HTTP reply and verdict),
-   which is the half that caught the three silent weeks.
-   ```ts
-   type ReconciliationHealth = {
-     windowDays: number; runs: number; clean: number; needsAttention: number;
-     expectedRuns: number;               // from the schedule, so a missed run lowers the figure
-     lastRunAt: string | null; lastCleanAt: string | null;
-     lastReply: { at: string; status: number | null; verdict: string } | null; // from private.reconciliation_watch
-   };
-   ```
-9. **`getSupplyConsole(filter: { role?: "owner" | "agent" | "firm" | "host"; examples?: boolean; page: number; pageSize: number }): Promise<AdminRead<SupplyConsole>>`**
-   in a new `lib/admin/supply-queries.ts`. Feeds every panel on
-   `/admin/supply`. Reads `agents (id, user_id, display_name, type, status,
-   verified, is_demo, created_at, application_id)`, `agent_applications
-   (supply_role)`, `businesses (id, owner_id, agent_id, kind, name, status,
-   verified, is_demo, created_at, area, city)`, `listings (agent_id,
-   property_type, status, area, city, is_demo)`, `accommodations
-   (business_id, status, is_demo)`, `escrows (payee_id, amount_minor,
-   released_at)`, `bookings (listing_id, status, total_minor)`. Role follows
-   `lib/supply/workspaces-queries.ts`: an agent row is owner or agent by
-   `agent_applications.supply_role`, falling back to `kindFromAgentType`; a
-   business is a firm when `kind = 'agency'`, otherwise a host. Examples
-   (`is_demo`) are excluded unless asked for, and counted separately so the
-   page can say how many it left out. Uncapped.
-   ```ts
-   type SupplyRoleKey = "owner" | "agent" | "firm" | "host";
-   type SupplyConsole = {
-     counts: Record<SupplyRoleKey, { now: number; weekAgo: number }>;
-     examplesExcluded: number;
-     rows: {
-       id: string; kind: "agent" | "business"; name: string; role: SupplyRoleKey;
-       verified: boolean; listings: number; transactedMinor: number; joinedAt: string;
-     }[];
-     total: number; page: number; pageSize: number;
-     growth: { month: string; counts: Record<SupplyRoleKey, number> }[]; // cumulative, ascending, last 6 months
-     topAreas: { area: string; count: number }[];                           // live listings plus live accommodations, top 5
-     byPropertyType: { type: string; count: number }[];                     // live listings by property_type, descending
-   };
-   ```
+What still needs Session A, because it needs a migration:
+
+10. **MIGRATION. An admin-callable read of `private.reconciliation_watch`.**
+    It holds the reconciliation job's last request, its HTTP reply and its
+    verdict, which is the half of reconciliation health that caught the three
+    silent weeks. The private schema is not exposed to PostgREST, so the
+    money and escrow desks cannot read it. Asked for: a `security definer`
+    function `public.admin_reconciliation_watch()` returning
+    `{ at timestamptz, status int, verdict text }` for the newest row,
+    repeating the `private.has_role(auth.uid(), 'admin' | 'super_admin')`
+    check and returning nothing otherwise, EXECUTE granted to
+    `authenticated` only. The panels draw `lastReply` the day it lands; the
+    type already carries it.
+
 ### Requests from admin-review (listings, moderation, verification, queue, support)
 
 AR-1 to AR-9 are WITHDRAWN under the founder's reads correction (a8a0556):

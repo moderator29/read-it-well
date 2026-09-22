@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getEscrowConsole, getMoneyConsole, getRefundConsole } from "@/lib/admin/money-queries";
-import { getAuditLog } from "@/lib/admin/audit-queries";
+import { getMoneyDesk, getReconciliationHealth } from "@/lib/admin/reads/money";
 import { adminUi } from "../_components/ui";
 import { readQueueQuery } from "../_components/QueueFilters";
 import { flatParams } from "./_desk/Desk";
-import { readReconciliation } from "./_desk/Reconciliation";
-import { readPage } from "./_desk/derive";
-import { MoneyDesk, MoneyHead } from "./MoneyDesk";
+import { readPage } from "@/lib/admin/reads/money-derive";
+import { LEDGER_PAGE_SIZE, MoneyDesk, MoneyHead } from "./MoneyDesk";
 import "./_desk/desk.css";
 
 export const metadata: Metadata = {
@@ -25,16 +24,15 @@ export const dynamic = "force-dynamic";
  *
  * WHERE EVERY FIGURE COMES FROM, because on this screen that is the design.
  *
- * - Wallet float, settled this week, the flow chart, the summary and the
- *   ledger's running balance are derived from `getMoneyConsole()` ONLY when
- *   its answer is provably every entry and every wallet (`moneyReadIsWhole`).
- *   Past its caps the same panels draw the not-wired state and wait for the
- *   uncapped reads asked for in `docs/SESSION_B_SCOPE.md` (requests 2 to 5).
- * - In escrow is `getEscrowConsole().totals.heldMinor`, that function's own
- *   total over every escrow (a floor above 2,000 rows, stated in the handbook).
- * - Failed charges needs FAILED `transactions`, which no existing read
- *   returns, so it waits for request 2 rather than showing half an answer.
- * - Reconciliation is read from the job's own audit rows via `getAuditLog`.
+ * - The four cards, the flow chart, the transaction summary and the ledger
+ *   with its running balance: `getMoneyDesk` in `lib/admin/reads/money.ts`,
+ *   one pass over EVERY wallet entry, escrow and failed transaction, checked
+ *   against an exact count. Never a total over a capped list.
+ * - Reconciliation: `getReconciliationHealth`, every
+ *   `wallet.reconciliation.run` audit row in the last seven days.
+ * - Stuck debits and the wallets list: `getMoneyConsole`, as before.
+ * - Refunds: `getRefundConsole`. Disputes: `getEscrowConsole`, with the
+ *   ruling control calling Session A's `resolveEscrow` unchanged.
  *
  * WHAT IS KEPT FROM THE DESK THIS REPLACES, every piece of it: stuck debits
  * first, the one-subject filter, the wallets list with its narrowed totals,
@@ -64,15 +62,14 @@ export default async function AdminMoneyPage({
   const narrowed = Boolean(query.q || query.from || query.to);
   const page = readPage(params.page);
 
-  const [read, refunds, disputes, escrowTotals, runs] = await Promise.all([
+  const [read, desk, refunds, disputes, runs] = await Promise.all([
     getMoneyConsole(query),
+    getMoneyDesk({ ...query, page, pageSize: LEDGER_PAGE_SIZE }),
     getRefundConsole(query),
     /* Disputes only. The escrow desk has its own page; this is the one
        decision from it that is a refund question, made reachable here. */
     getEscrowConsole({ status: "DISPUTED" }),
-    /* Unfiltered, for its platform-wide totals, which never re-scope. */
-    getEscrowConsole(),
-    getAuditLog({ q: "wallet.reconciliation.run", status: "wallet_entry" }),
+    getReconciliationHealth(),
   ]);
 
 
@@ -94,12 +91,11 @@ export default async function AdminMoneyPage({
       query={query}
       params={flat}
       narrowed={narrowed}
-      page={page}
       read={read.data}
+      desk={desk.state === "ok" ? desk.data : null}
       refunds={refunds}
       disputes={disputes}
-      heldInEscrow={escrowTotals.state === "ok" ? escrowTotals.data.totals.heldMinor : null}
-      health={readReconciliation(runs)}
+      health={runs.state === "ok" ? runs.data : null}
       now={now}
     />
   );
