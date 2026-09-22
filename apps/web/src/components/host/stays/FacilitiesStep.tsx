@@ -112,7 +112,21 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
             />
           </div>
         </div>
-        <div className="mt-[var(--nf-space-sm)] flex gap-[var(--nf-space-xs)]">
+        {/*
+          FOUR PIXELS OF HORIZONTAL OVERFLOW, AND THE SHOT IS THE EVIDENCE.
+          `docs/design/proofs/imgc/g10-4-facilities-and-photos-390-{dark,light}.png`
+          are 394 pixels wide against a 390 viewport. Every other shot in that
+          folder is 390. Two buttons that will not shrink and a row that would
+          not wrap: "Use my location" carries an icon and a three word label,
+          "Save the pin" carries three more, and inside the plate's padding
+          they do not fit a 390 screen.
+
+          The section that filed those shots claimed `overflowX` was measured on
+          all twenty-four and was zero everywhere. It was not measured; the
+          claim has no artefact behind it, and two of the files contradict it.
+          A measurement nobody took reads exactly like one that passed.
+        */}
+        <div className="mt-[var(--nf-space-sm)] flex flex-wrap gap-[var(--nf-space-xs)]">
           <Button variant="secondary" leadingIcon="location" onClick={locate} disabled={pending}>
             Use my location
           </Button>
