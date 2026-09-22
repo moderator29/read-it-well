@@ -155,16 +155,16 @@ bar; in the product the 60px app header takes that band, so every built position
 | Tabs to first row | 20 | 20 | yes |
 | Row | 598 x 112 image px: 355 x 66, radius 23 image px: 14 (ratio 0.21) | 354 x 67, `--nf-radius-control` 14 (ratio 0.21) | yes |
 | Row gap | 13 image px: 8 | 8 | yes |
-| Row fill | 0 30 95 under the top, 0 17 59 middle, 1 26 82 at the foot, page 0 8 36 | 0 33 79, 0 21 52, 0 29 69, page 6 11 38 | yes |
-| Row rim | top 0 42 126, sides 0 53 142, foot brighter 1 73 160, no white catchlight | top 0 54 133, side 0 56 138, foot 0 77 185 | yes |
-| Row glow | soft blue bloom round the row | `0 6px 18px -10px` and `0 0 16px -8px` of `--nf-glow-2` | yes |
-| Icon plate | 83 image px: 49, glass square with a blue line glyph about 27 (the render's objects) | 49 (radius 10), the pack crops of this very render (`calendar-grid`, `bookmark-ribbon`, `wallet-tile`, `shield-check-tile`) drawn so their square is 49, lifted `brightness(1.55)`; interior samples 0 54 140 (round two, was 0 39 128) | yes; blue channel 27 under the render |
+| Row fill, rim, halo | see the round three sample table below | see below | yes, every point within 10 per channel except the two noted |
+| Row rim | top 2 112 219 (a hot 1px line), sides 1 75 175, foot 2 73 161 | top 0 110 220, foot 0 68 162, sides the ink at 76 per cent | yes |
+| Row glow | 1px dark seam under the foot, then a faint halo: 4px out 1 12 49 above, 0 11 42 below | seam in the canvas, `0 0 8px -2px` glow-2 and `0 4px 12px -6px` glow-3; 4px out 0 9 46 above, 2 12 50 below | yes |
+| Icon plate | 83 image px: 49, the render's objects; lit from inside (see table below) | 49 (radius 10), the pack crops of this render on a plate built in `profile.css`: per-side rims, a vertical body, a radial inner light, a little side light, `saturate(1.4)` on the plate only | yes, within 10 on every channel at seven points |
 | Plate to title | 24 image px: 14 | 14 | yes |
 | Row title | 10.7px, 500 to 600, near white | 13px 600, 241 242 244 | size by the translation |
 | Row subtitle | 9.5px, one line, mist (159 194 231) | 11px, one line for all four at 390, 154 187 234 | yes |
 | Chevron | right edge 18 from the row edge, near white | 20px `chevron-right`, 12 padding plus the glyph's own margin | yes |
 | Gap before Switch role | 39 image px: 23 | 23 | yes |
-| Switch role row | 101 image px: 60, quieter plate (0 24 82), fill 0 16 59 | 62, plate 44, `role-switch-tile` at 82 per cent (plate samples 0 25 68), fill 0 19 49 | yes |
+| Switch role row | 101 image px: 60, its own falloff and a quieter plate (see table below) | 62, plate 44, the same recipe with its own stops | yes, within 10 |
 | Text column, measured built | | name 20/600 at y 192; handle 13/400; bio 12/400; count 14/600; count label 12/400; tab 14/600 live, 500 resting; row title 13/600; row subtitle 11/400; all second lines oklab 0.845 (mist blue) | per rows above |
 | Status badges | none on this screen | none | yes |
 | Buttons | the lit segment is the only lit control | the lit segment; Claim your handle (no handle only) wears the same gradient, top rim and bloom | yes |
@@ -174,8 +174,8 @@ bar; in the product the 60px app header takes that band, so every built position
 lower than in the render: the app header takes the status bar's band, and the scaled type makes
 the text column 10px taller. The render's back square is dropped and its gear joins the header
 row (1.1). (2) Type is 1.16 times the render's, on
-purpose (1.1). (3) After round two the plate interiors sample 0 54 140 against 1 52 167 and the hairline
-43 125 244 against 15 134 203 (both raised; measured, not eyeballed).
+purpose (1.1). (3) The counts hairline samples 43 125 244 against 15 134 203 (raised in round two). The rows
+and plates are matched point by point in round three (table below).
 (4) The fixture has no photograph, so the face is a monogram; the product draws the person's
 own `avatar_url`. (5) The glow identity (`docs/design/GLOW_IDENTITY.md`) proposes a cyan top
 edge and a lit interior for cards and tiles; this render measures a dim blue top edge
@@ -183,6 +183,51 @@ edge and a lit interior for cards and tiles; this render measures a dim blue top
 here. The lit segment reads `--nf-gradient-cta`, `--nf-rim-primary` and `--nf-bloom-lit-soft`
 and will follow the identity when Session A adopts it into the tokens. The paper plate follows
 the identity's pale tile.
+
+**Round three: rows and plates lit to the render (lead review).** Sampled at the same points
+in the render and in the built page (390 dark, 2x, the final build, harness in the signed-in
+shell), render y mapped to CSS by 0.593 from the row's top rim. Built by `profile.css`: the row
+fill is sRGB mixes of `--nf-container-ink` and the canvas painted on a `::before` layer at
+`saturate(1.35)` (the render's blue has a green-to-blue ratio near 0.3 that no token ink holds;
+saturation on the layer, not the text, gets there), a hot top rim of the ink with a fifth of
+`--nf-state-warning` (the cyan) in it, the foot rim at 70 per cent, a canvas seam and a halo.
+
+| Point | Render | Built | Within 10? |
+|---|---|---|---|
+| 4px above the row | 1 12 49 | 0 9 46 | yes |
+| Top rim | 2 112 219 | 0 110 220 | yes |
+| 1px under the rim | 0 52 148 | 0 51 146 | yes |
+| 9px down | 0 33 105 | 0 38 110 | yes |
+| 20px down | 0 24 79 | 0 29 83 | yes |
+| 26px down | 0 22 70 | 0 25 73 | yes |
+| Middle | 0 19 63 | 0 22 65 | yes |
+| 52px down | 0 17 61 | 0 21 61 | yes |
+| 4px above the foot | 0 25 76 | 0 27 78 | yes |
+| 1.5px above the foot | 0 30 87 | 0 31 89 | yes |
+| Foot rim | 2 73 161 | 0 68 162 | yes |
+| 4px below the row | 0 11 42 | 2 12 50 | yes (blue 8) |
+| Plate top rim | 0 49 164 | 0 52 164 | yes |
+| Plate body, top | 0 38 132 | 0 35 132 | yes |
+| Plate inner light by the glyph | 0 46 233 | 0 39 232 | yes |
+| Plate body, low | 0 22 108 | 0 23 108 | yes |
+| Plate foot rim | 2 82 211 | 0 72 203 | yes (green 10) |
+| Plate, left middle | 1 30 101 | 0 30 110 | yes |
+| Plate, right middle | 0 29 112 | 0 35 104 | yes |
+| Switch row top rim | 5 90 189 | 0 93 192 | yes |
+| Switch row under the rim | 0 42 135 | 0 46 132 | yes |
+| Switch row 5px down | 0 31 101 | 0 37 106 | yes |
+| Switch row middle | 0 19 64 | 0 23 69 | yes |
+| Switch row low | 0 16 58 | 0 20 60 | yes |
+| Switch row foot | 0 26 90 | 0 29 94 | yes |
+| Switch row foot rim | 0 65 166 | 0 63 156 | yes (blue 10) |
+| Switch plate top rim | 0 48 144 | 0 53 145 | yes |
+| Switch plate body | 0 36 115 | 0 41 116 | yes |
+| Switch plate by the glyph | 0 38 164 | 0 47 156 | yes |
+| Switch plate low | 0 25 90 | 0 26 87 | yes |
+
+Every row and plate point is within 10 on every channel; the tightest are the plate foot rim
+(green 10) and the Switch foot rim (blue 10). Paper resets all of it: the fill layer is white,
+the plate draws no ground, rim or filter, and the paper objects sit on it as before.
 
 **Re-audit gate.** Pass one (image beside `v3`): the plate objects drew a second, lighter
 square inside a brand wash, the back square read as a pale blue wash over the sky, and a third
