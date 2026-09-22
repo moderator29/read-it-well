@@ -1527,6 +1527,58 @@ anyway, the honest trade is: a cleaner, more saturated navy at a similar
 luminance costs nothing, and anything lighter costs legibility. That is a
 question about how the square LOOKS, not about whether the mark in it reads.
 
+### THE 121 UNTWINNED OBJECTS: ARTWORK, NOT ENGINEERING
+
+Said early, as asked. **23 of 144 objects ship a light twin and 121 do not, and
+no amount of code closes that.** In daylight the two groups are different
+MATERIALS: a twinned mark is a pale object standing on nothing, an untwinned
+one is dark artwork on a navy plate. By this track's own measurement it is the
+real light-mode fault, not the plate token.
+
+**THE ASSET LAYER IS ALREADY CLEAN, which is worth knowing before anybody goes
+looking for a bug.** Checked in both directions: 144 names in `BRAND_ICONS`,
+144 dark files on disk, zero named-without-a-file, zero file-without-a-name. 23
+names in `LIGHT_TWINS`, 23 files in `glass/light/`. There is no drift to fix
+and no quick win hiding in the directory.
+
+**THE ONE THING THAT LOOKED LIKE A QUICK WIN WAS A TRAP.** `glass/light/`
+holds 24 files, not 23. The extra is `escrow-hold`, which has a light twin and
+NO dark original and appears in neither list. Read off the directory it looks
+exactly like a render somebody forgot to wire up, and wiring it up is a
+one-line edit. It is deliberately withheld: `docs/BRAND_MARKS.md` says build it
+and do not ship it until escrow exists, and `lib/legal/terms.tsx` states that
+Vallo does not hold your money, so an escrow mark on a screen would be the
+artwork contradicting the contract. **I was one edit from "fixing" it** and the
+comment in `BrandIcon.tsx` is what stopped me. A comment only stops the person
+who reads it.
+
+**WHAT WAS DONE MECHANICALLY**, since the artwork cannot be:
+`brand-icon-assets.test.ts`, six specs binding the two lists to the directory in
+both directions, with `escrow-hold` named in a `WITHHELD` set beside its reason.
+The one that matters most: **a name in `LIGHT_TWINS` with no light file is worse
+than a broken image**, because the component then sets `data-twinned="true"` and
+SUPPRESSES the plate, so a real person in daylight gets a missing image on a
+white page with nothing behind it. That is the failure mode the 121 renders will
+arrive through, one at a time, and it now cannot land silently.
+
+**The test was proved to fail before it was trusted.** Claiming a twin for
+`beach-house`, which has no light file, fails the right spec with the right
+message; restored, six pass. This build has already had a test that passed for
+weeks while measuring nothing.
+
+**THE RENDER ORDER, specified so it can be commissioned.** 121 PNGs into
+`apps/web/public/brand/glass/light/`, each named EXACTLY as its dark
+counterpart, **256x256**, which is what all 144 dark objects and all 24 existing
+light files are. The dark set totals 3.1MB at a 22KB mean, so the light set
+should land near 2.6MB. The 23 already delivered are the model: they are the
+transaction and outcome set, the marks that appear inline on a receipt, which is
+the one surface where a navy chip reads as a hole in the paper.
+
+**And it is a designed twin, not a filter**, the same ruling as the wordmark: a
+3D glass object lit for a dark ground does not become a paper object by
+inverting it. Anything produced by filtering the dark asset should be rejected
+at review, which is why none was produced here.
+
 ### THE CONTAINER ANATOMY, BUILT (item 7, second pass)
 
 **The fault, located.** Two independent blue sources feed container edges:
