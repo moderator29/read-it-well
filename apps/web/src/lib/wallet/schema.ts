@@ -93,6 +93,16 @@ export const fundWithSavedCardSchema = z.object({
 });
 
 export const withdrawSchema = z.object({
+  /*
+   * Named here for the same reason as on `transferSchema`, and with one
+   * honest difference: NO WITHDRAWAL FORM MINTS A KEY YET. `withdraw` is
+   * wrapped in the guard, and the guard steps aside when no key arrives, so
+   * this changes nothing until the form carries one. The request to the
+   * session that owns the withdrawal surfaces is in the ledger. Landing the
+   * server half first means the form is a one-line change rather than a
+   * change that has to arrive with its own backend.
+   */
+  idempotencyKey: idempotencyKeySchema,
   amount: nairaAmountSchema,
   bankCode: z
     .string()
@@ -146,6 +156,23 @@ export const transferSchema = z.object({
     .max(140, "Keep the note under 140 characters.")
     .optional()
     .transform((v) => (v && v.length > 0 ? v : undefined)),
+  /*
+   * THE FIELD WHOSE ABSENCE SENT MONEY TWICE.
+   *
+   * `SendFlow` has minted an `idempotencyKey` per mount and posted it as a
+   * hidden input for as long as it has existed. This schema did not name the
+   * field, and Zod strips what it does not name WITHOUT COMPLAINING, so the
+   * key was thrown away between the form and the action on every send. Two of
+   * the schemas immediately above already carried it, which is what makes
+   * this an omission rather than a design: nothing failed, nothing warned,
+   * and a second tap on Send moved the money a second time under a second
+   * reference pair that the database had never seen and therefore could not
+   * refuse.
+   *
+   * A silent strip is the worst failure mode a validator has. The field is
+   * named here so that it survives, and `transferToUser` now uses it.
+   */
+  idempotencyKey: idempotencyKeySchema,
 });
 
 /** Funding references we generate: rm-fund-<uuid v4-shaped>. */

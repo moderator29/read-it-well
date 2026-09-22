@@ -955,21 +955,62 @@ export type TransferReceipt = {
  * called it. This calls it.
  *
  * ---------------------------------------------------------------------------
- * NO IDEMPOTENCY KEY HERE EITHER, AND THE SAME CONSEQUENCE ON SCREEN.
+ * THE DAY NAMED IN THE OLD NOTE HERE, ARRIVED.
  *
- * The duplicate defence above is real and it is not the one people assume it
- * is. `transfer_between_wallets` rejects a repeat of the SAME reference pair,
- * and `pairId` is a fresh `randomUUID()` on every call, so a second submit
- * arrives with a reference the database has never seen and is settled as a
- * second transfer. The guard stops a retry of one request; it cannot stop a
- * person pressing Send twice.
+ * What this paragraph used to say, and it was true: `transfer_between_wallets`
+ * rejects a repeat of the SAME reference pair, `pairId` is a fresh
+ * `randomUUID()` on every call, so a second submit arrived with a reference
+ * the database had never seen and was settled as a SECOND TRANSFER. The
+ * database guard stops a retry of one request; it could never stop a person
+ * pressing Send twice. The note ended "it changes the day either of them
+ * takes a key from its caller".
  *
- * That is why the stalled panel in `WalletDeck` offers the history and not a
- * retry. See the longer note on `withdraw`: it is a fact about these two
- * actions, not a decision about that component, and it changes the day either
- * of them takes a key from its caller.
+ * THE CALLER HAD BEEN SENDING ONE THE WHOLE TIME. `SendFlow` mints an
+ * `idempotencyKey` per mount and posts it as a hidden input, and has done
+ * since it was written. `transferSchema` did not name the field; Zod strips
+ * unnamed keys in silence; the key was discarded between the form and this
+ * action on every single send. So the one action on this platform that moves
+ * money from one person to another had a client minting a key, a schema
+ * quietly binning it, the guard imported at the top of this very file, and
+ * that guard in use five hundred lines below for a different action. Every
+ * part of the fix existed and none of them were joined up. Nothing failed,
+ * nothing warned, and no test could see it, because every test that touches
+ * this action passes the schema's own output rather than a form.
+ *
+ * NOW: the field is named on the schema, and the whole of the money-moving
+ * body runs inside `withIdempotency` under one scope. A second tap carrying
+ * the same key REPLAYS THE FIRST RECEIPT rather than failing, which is the
+ * right answer for the person: somebody who taps twice should be shown their
+ * transfer, not an error about their transfer. Only an `ok` answer is
+ * recorded, so a refusal (not enough balance, unknown recipient, a typo in
+ * the address) stays immediately retryable. A form with no key runs unguarded
+ * exactly as before.
  */
 export async function transferToUser(
+  _prev: ActionResult<TransferReceipt | null>,
+  formData: FormData,
+): Promise<ActionResult<TransferReceipt | null>> {
+  const session = await resolveSession();
+  const key = formDataToObject(formData)["idempotencyKey"] ?? null;
+  if (session.state !== "signed-in" || !key) return transferToUserWork(_prev, formData);
+
+  const run = await withIdempotency<ActionResult<TransferReceipt | null>>(
+    {
+      scope: TRANSFER_SCOPE,
+      key,
+      subject: subjectForUser(session.user.id),
+      shouldRecord: (result) => result.ok,
+    },
+    () => transferToUserWork(_prev, formData),
+  );
+  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  return run.result;
+}
+
+/** One scope for the send door, matching the two funding doors' shape. */
+const TRANSFER_SCOPE = "wallet.transfer";
+
+async function transferToUserWork(
   _prev: ActionResult<TransferReceipt | null>,
   formData: FormData,
 ): Promise<ActionResult<TransferReceipt | null>> {
