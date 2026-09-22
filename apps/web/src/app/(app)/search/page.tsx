@@ -257,19 +257,6 @@ export default async function SearchPage({
 
       <ShelfCount query={query} count={listings.length} narrowed={narrowed || Boolean(query.q)} locale={locale} t={t} />
 
-      {/* Keeping the hunt, beside the count of what it found. It is drawn only
-          when there is something to keep: an unfiltered /search is every place
-          on the platform and saving that is a subscription to the catalogue
-          rather than to a search. */}
-      {savedSearch && savedSearch.state !== "unconfigured" && (
-        <SaveSearchControl
-          params={canonical.params}
-          saved={savedSearch.state === "signed-in" ? savedSearch.saved : null}
-          signedIn={savedSearch.state === "signed-in" || savedSearch.state === "unavailable"}
-          signInHref={`/sign-in?next=${encodeURIComponent(canonical.href)}`}
-        />
-      )}
-
       {/* HOW A CODE ANSWERED. A hit always says so, because a single result
           under no explanation looks like a strangely lucky search. A miss and
           a malformed code say so only when the person typed the VL and
@@ -293,6 +280,19 @@ export default async function SearchPage({
         <p data-testid="reference-impossible" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
           {t.listingReference.impossible}
         </p>
+      )}
+
+      {/* Keeping the hunt, beside the count of what it found. It is drawn only
+          when there is something to keep: an unfiltered /search is every place
+          on the platform and saving that is a subscription to the catalogue
+          rather than to a search. */}
+      {savedSearch && savedSearch.state !== "unconfigured" && (
+        <SaveSearchControl
+          params={canonical.params}
+          saved={savedSearch.state === "signed-in" ? savedSearch.saved : null}
+          signedIn={savedSearch.state === "signed-in" || savedSearch.state === "unavailable"}
+          signInHref={`/sign-in?next=${encodeURIComponent(canonical.href)}`}
+        />
       )}
 
       {/* Says why the order is what it is, and only when it really is. */}
