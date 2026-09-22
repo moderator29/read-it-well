@@ -3447,4 +3447,19 @@ export const ha: Dictionary = withFallback({
     },
   },
 
+  /* NOT TRANSLATED. These six strings are English in this file because nobody
+     on this stint could write them honestly in this language, and an invented
+     translation on a safety warning is worse than a visible English one: the
+     sentence it carries is "we have not checked where this goes". The key is
+     here so the shape matches `en` and so the day somebody who speaks this
+     language reads it, there is one place to fix. */
+  offPlatform: {
+    title: "This link leaves Vallo",
+    body: "It goes to {host}. That is not ours and we have not checked what is on it.",
+    copy: "Copy the link",
+    copied: "Copied",
+    open: "Open it anyway",
+    close: "Close",
+  },
+
 } satisfies Translation);

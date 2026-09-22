@@ -7,6 +7,7 @@ import { BackChevron } from "./BackChevron";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
 import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
 import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
+import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
@@ -289,16 +290,21 @@ export function ProfileHeader({
         </div>
       )}
 
+      {/* --------------------------------------------- the one link that leaves */}
+      {/* This was a bare `target="_blank"` anchor to whatever the account
+          holder typed: one tap out of a property marketplace, into an origin
+          Vallo has never seen, with no warning. The feature has to leave, so
+          the departure is announced and consented instead. */}
       {profile.link && (
-        <a
+        <ExternalLinkSheet
           href={profile.link}
-          rel="nofollow noopener noreferrer ugc"
-          target="_blank"
+          locale={locale}
+          label={linkLabel(profile.link)}
           className="nf-social-link"
         >
           <UiIcon name="share" size={16} />
           {linkLabel(profile.link)}
-        </a>
+        </ExternalLinkSheet>
       )}
 
       {/* ------------------------------------------------------- the meta */}
