@@ -86,8 +86,15 @@ const CHECK_KEYS: Record<string, keyof AdminCopy["listings"]["checks"]> = {
  * the listings RLS policy makes PUBLISHED rows readable by anyone. Nothing goes
  * live by accident, and the reviewer sees the photos and the quality checklist
  * from HYBRID_INVENTORY section 5 before either step.
+ *
+ * EXPORTED FOR THE PREVIEW HARNESS AND FOR NOTHING ELSE. This route gates on
+ * `requireAdmin`, so the card cannot be photographed on a sandbox with no
+ * session, and the existing admin preview draws the queue FRAME from fixture
+ * rows rather than this card. Without a door in, the reviewer's console is the
+ * one surface in this track with no proof of what it looks like, which is how
+ * the utilities came to be missing from it for weeks in the first place.
  */
-function ListingCard({
+export function ListingCard({
   listing,
   copy,
   common,
