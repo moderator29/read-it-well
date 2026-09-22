@@ -501,6 +501,93 @@ correct. An admin chart that fabricates a trend is worse than no chart.
 
 ---
 
+### 6.5 What the research actually found, folded in
+
+**The toggle the founder is seeing is the landing search control, and it is
+not a switch.** `components/site/landing/SearchPill.tsx:33` declares three
+segments, Buy, Rent and Stay. `app/css/landing.css:927` declares
+`grid-template-columns: repeat(4, minmax(0, 1fr))`. The fourth track takes its
+share and stays empty, so at 390px roughly **79.5px, about twenty three per
+cent of the control, is dead track to the right of Stay**. It is phone only,
+because `:935` swaps to flex above 640px, which is why every desktop review
+missed it. Verified independently by this session. The fix is to drive the
+count from `ORDER.length` through a custom property, exactly as
+`.nf-glass-seg` in `app/social.css:588` already does.
+
+Beside it: the same control's segments are `white-space: nowrap` with no
+`min-inline-size: 0`, so the LABEL escapes even when the track is right, and
+the dock's tab labels have the same defect. Both bite hardest in Hausa, Igbo
+and Yoruba, where the words are longer. `minmax(0,1fr)` frees the track, never
+the item: that sentence goes in the ledger because it is the root cause of
+three separate defects.
+
+**No switch knob escapes its track.** All three switch implementations are
+geometrically contained. So the fix list is about segmented controls and
+labels, not about switches, and nobody should spend an afternoon on the
+switches.
+
+**A capsule that passes every grep.** `components/social/feed/PostCard.tsx:472`
+is 24px tall with a 14px radius, a ratio of **0.583**, which is a capsule. It
+is spelled with our own rectangle token, so every text search passes and the
+browser still draws a pill. This is precisely the failure
+`DESIGN_DIRECTION.md` predicted when the shape law was written as a ratio. Two
+more sit at 0.438 and ten more on the 0.35 watch line. **Run the ratio
+scanner, not the grep.**
+
+**Eleven ways to draw a segmented control.** Also three switch
+implementations, six page header families, two duplicate console headers, 393
+`<Button>` uses against 123 raw `nf-btn` class strings, four skeleton
+materials, no toast primitive at all, and seventeen hardcoded English strings
+in a four locale product. The uniqueness sweep is mostly deletion.
+
+**The sign-in marks: this was a decision, and the founder has overruled it.**
+`components/auth/AuthChoices.tsx:120` draws the literal character `G` in a
+span, with a comment saying a typographic mark was chosen because the palette
+holds one blue family. That is why it renders as a white disc with a dark
+letter. There is no Google asset anywhere in the repository, and the Apple
+button does not exist at all: `startAppleOAuth` is exported and imported by
+nobody.
+
+The founder's ruling stands and it is also the correct one on the rules: a
+typographic substitute is itself a violation of Google's branding terms. So
+the real marks ship, drawn as images rather than inline SVG precisely so no
+future `currentColor` sweep can recolour them. **Brand wins on the mark, our
+radius wins on the button corner**, and Apple's own guidance explicitly
+permits matching the corner radius to the rest of the application. "Continue
+with Google" is already one of the permitted strings and is already our copy.
+Re-verify both companies' current branding pages before shipping: the research
+agent's egress could not reach either one.
+
+**The admin console already is the mockup, except for the graphs.** Nineteen
+destinations, the queue frame with search, date disclosure, status chips and
+cursor pagination, and the shared furniture are all built. There is not one
+chart under `app/admin`.
+
+**Add no charting dependency.** Build inline SVG charts under
+`components/ui/charts/`, extending the two hand rolled charts already living
+in `components/agent/charts/`. The reasoning is measured, not aesthetic: every
+console page is a server component today and the popular libraries' charts are
+client components, our theme lives in CSS custom properties which a canvas
+library cannot read without a flash, and every library's categorical default
+ships the four banned hues. The bundle table is in the research file.
+
+**A four slot categorical chart palette cannot be built inside our colour
+law**, and that was proven with a validator rather than argued: emerald
+against rose fails colour blind separation, blue against cyan fails the normal
+vision floor. So charts are single series with a sequential blue ramp for
+magnitude, plus one stacked status bar using the existing status four, which
+already passes and already carries a shape and a word beside the colour.
+
+**Build the charts in this order and refuse the one that would lie.** Start at
+`/admin/audit`, because `audit_log` is the only table with real history. The
+overview trend is refused until a `queue_snapshots` table exists, because the
+queue counts are point in time and a trend drawn from them would be
+fabricated. Two caps in the existing queries would also make a chart lie and
+are named in the research file.
+
+Two loose ends found on the way: `/admin/switches` draws buttons rather than
+switches, and the revenue queries have no page in the admin navigation at all.
+
 ## 7. Track F: the mobile landing page, answered
 
 The founder's question: on mobile there is no landing page, and the landing
