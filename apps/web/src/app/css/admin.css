@@ -25,12 +25,46 @@
      measured CSS values; the ledger (section 6) has the table. */
 
   .nf-admin {
-    --nf-admin-panel-fill: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-canvas)),
-      color-mix(in oklab, var(--nf-brand-primary) 8%, var(--nf-surface-canvas))
-    );
+    /* THE GLOW IDENTITY (docs/design/GLOW_IDENTITY.md, section 9), built
+       from existing tokens because this sheet takes no raw colour: the lit
+       card's fill is bright along the top 11px, dark through the middle and
+       lifts again at the foot, with a cyan catchlight at the top centre; its
+       edge is lit per side (cyan top and left, deep blue right, mid blue
+       foot). Where the admin renders measure differently the admin renders
+       win for the console's density: the corners stay 14px (measured 13 on
+       5EAA44CB) rather than the identity's 12, and the middle stays a touch
+       lighter (measured #00173A). The lit ink is one variable, so the
+       identity's coming revision is a change of numbers here, not of
+       structure. */
+    --nf-admin-lit: var(--nf-brand-primary);
+    --nf-admin-lit-cyan: color-mix(in oklab, var(--nf-state-info) 55%, white 45%);
+    --nf-admin-panel-fill:
+      radial-gradient(55% 16px at 50% 0, color-mix(in oklab, var(--nf-admin-lit-cyan) 26%, transparent), transparent),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-admin-lit) 50%, var(--nf-surface-canvas)) 0px,
+        color-mix(in oklab, var(--nf-admin-lit) 24%, var(--nf-surface-canvas)) 11px,
+        color-mix(in oklab, var(--nf-admin-lit) 15%, var(--nf-surface-canvas)) 34px,
+        color-mix(in oklab, var(--nf-admin-lit) 10%, var(--nf-surface-canvas)) 50%,
+        color-mix(in oklab, var(--nf-admin-lit) 12%, var(--nf-surface-canvas)) calc(100% - 22px),
+        color-mix(in oklab, var(--nf-admin-lit) 32%, var(--nf-surface-canvas)) 100%
+      );
     --nf-admin-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
+    --nf-admin-panel-edges:
+      color-mix(in oklab, var(--nf-admin-lit-cyan) 85%, transparent)
+      color-mix(in oklab, var(--nf-admin-lit) 55%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-admin-lit) 80%, var(--nf-state-info))
+      color-mix(in oklab, var(--nf-state-info) 75%, var(--nf-admin-lit));
+    --nf-admin-tile-edges:
+      color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit))
+      color-mix(in oklab, var(--nf-admin-lit) 60%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-admin-lit) 60%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-state-info) 90%, white);
+    --nf-admin-cta-edges:
+      color-mix(in oklab, var(--nf-admin-lit-cyan) 90%, white)
+      color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit))
+      color-mix(in oklab, var(--nf-admin-lit-cyan) 80%, var(--nf-admin-lit))
+      color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit));
     --nf-admin-panel-glow: 0 0 22px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
     --nf-admin-hair: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
     --nf-admin-gap: var(--nf-space-md);
@@ -1355,15 +1389,17 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    /* Measured on 5EAA44CB: the plates are lit, #3168C1 at the centre with a
+       near-white glyph, not a dark tile. */
     background: linear-gradient(
       180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 48%, var(--nf-surface-canvas)),
-      color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-brand-primary) 66%, var(--nf-surface-canvas)),
+      color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-canvas))
     );
     color: var(--nf-content-primary);
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 35%, transparent),
-      0 0 14px color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
+      inset 0 1px 0 color-mix(in oklab, white 45%, transparent),
+      0 0 16px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   }
   .nf-admin-plate--md {
     width: 2.75rem;
@@ -1376,14 +1412,14 @@
   }
   .nf-admin-plate--success {
     border-color: color-mix(in oklab, var(--nf-state-success) 70%, transparent);
-    background: color-mix(in oklab, var(--nf-state-success) 22%, var(--nf-surface-canvas));
-    color: var(--nf-state-success);
+    background: color-mix(in oklab, var(--nf-state-success) 34%, var(--nf-surface-canvas));
+    color: var(--nf-content-primary);
     box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-success) 30%, transparent);
   }
   .nf-admin-plate--error {
     border-color: color-mix(in oklab, var(--nf-state-error) 70%, transparent);
-    background: color-mix(in oklab, var(--nf-state-error) 22%, var(--nf-surface-canvas));
-    color: var(--nf-state-error);
+    background: color-mix(in oklab, var(--nf-state-error) 34%, var(--nf-surface-canvas));
+    color: var(--nf-content-primary);
     box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-error) 30%, transparent);
   }
   .nf-admin-plate--pending {
@@ -1547,6 +1583,15 @@
   a.nf-admin-kpi:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
+  }
+  .nf-admin-kpi--bare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* A panel that is only a table, as the render draws the jobs table: no
+     head, the header row at the top edge. */
+  .nf-admin-panel--table {
+    padding: 0 0 var(--nf-space-2xs);
+    overflow: hidden;
   }
   .nf-admin-kpi__body {
     display: grid;
@@ -2204,6 +2249,37 @@
     height: 0.75rem;
     border-radius: 3px;
   }
+
+  /* The glow identity's per-side edges, applied over every container's
+     single-colour border above, so each rule keeps its own width and style. */
+  .nf-admin-rail,
+  .nf-admin-panel,
+  .nf-admin-kpi,
+  .nf-admin-strip,
+  .nf-admin .nf-card,
+  .nf-admin-table {
+    border-color: var(--nf-admin-panel-edges);
+  }
+  .nf-admin-plate:not(.nf-admin-plate--success):not(.nf-admin-plate--error):not(.nf-admin-plate--pending):not(.nf-admin-plate--info) {
+    border-color: var(--nf-admin-tile-edges);
+  }
+  /* The lit primary: the open rail row, the open tab. Cyan-lit edges, the
+     rim along the top, the bloom beneath. */
+  .nf-admin-nav__row--on:not(.nf-admin-nav__row--child),
+  .nf-admin-seg__item--on {
+    border-color: var(--nf-admin-cta-edges);
+  }
+  /* The calm info panel for "not wired yet": flat, a quiet edge, the glyph
+     in the lit cyan. */
+  .nf-admin-state--unwired {
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--nf-admin-lit) 45%, var(--nf-surface-canvas));
+    background: color-mix(in oklab, var(--nf-admin-lit) 16%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit) 50%, var(--nf-surface-canvas));
+  }
+  .nf-admin-state--unwired > svg {
+    color: var(--nf-admin-lit-cyan);
+  }
 }
 
 /* ------------------------------------------------------------ paper twin */
@@ -2327,7 +2403,20 @@
   so it cannot vanish.
 */
 :root[data-theme="light"] .nf-admin {
-  --nf-admin-panel-fill: var(--nf-surface-on-paper);
+  --nf-admin-panel-fill: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper)) 0,
+    var(--nf-surface-on-paper) 12px,
+    var(--nf-surface-on-paper) 60%,
+    color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-on-paper)) 100%
+  );
+  --nf-admin-panel-edges:
+    color-mix(in oklab, var(--nf-brand-primary) 80%, white)
+    color-mix(in oklab, var(--nf-brand-primary) 30%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 40%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+  --nf-admin-tile-edges: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+  --nf-admin-cta-edges: color-mix(in oklab, var(--nf-brand-primary) 70%, white) var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary);
   --nf-admin-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
   --nf-admin-panel-glow: var(--nf-shadow-on-paper);
   --nf-admin-hair: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
@@ -2395,4 +2484,10 @@
 }
 :root[data-theme="light"] .nf-admin-dt th {
   background: var(--nf-surface-raised);
+}
+:root[data-theme="light"] .nf-admin-plate--success {
+  color: var(--nf-state-success);
+}
+:root[data-theme="light"] .nf-admin-plate--error {
+  color: var(--nf-state-error);
 }

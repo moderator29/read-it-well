@@ -118,7 +118,8 @@ function drawable(spark: KpiSpark | null | undefined): spark is KpiSpark {
 
 export type KpiItem = {
   key: string;
-  icon: AdminIcon;
+  /** The plate. Left out where the render draws the card without one (Operations). */
+  icon?: AdminIcon;
   label: string;
   /** Null when the figure has no source yet; the tile says so instead of a number. */
   value: string | null;
@@ -152,7 +153,7 @@ export function KpiStrip({ items, label }: { items: readonly KpiItem[]; label: s
     <section className="nf-admin-strip" aria-label={label}>
       {items.map((item) => (
         <div key={item.key} className="nf-admin-strip__cell">
-          <IconPlate icon={item.icon} />
+          {item.icon && <IconPlate icon={item.icon} />}
           <div className="nf-admin-strip__body">
             <span className="nf-admin-kpi__label">{item.label}</span>
             <span className="nf-admin-strip__line">
@@ -180,7 +181,7 @@ export function KpiStrip({ items, label }: { items: readonly KpiItem[]; label: s
 export function KpiCard({ item }: { item: KpiItem }) {
   const body = (
     <>
-      <IconPlate icon={item.icon} />
+      {item.icon && <IconPlate icon={item.icon} />}
       <div className="nf-admin-kpi__body">
         <span className="nf-admin-kpi__label nf-admin-kpi__label--card">{item.label}</span>
         <Figure item={item} big />
@@ -192,11 +193,11 @@ export function KpiCard({ item }: { item: KpiItem }) {
     </>
   );
   return item.href ? (
-    <Link href={item.href} className="nf-admin-kpi">
+    <Link href={item.href} className={`nf-admin-kpi${item.icon ? "" : " nf-admin-kpi--bare"}`}>
       {body}
     </Link>
   ) : (
-    <div className="nf-admin-kpi">{body}</div>
+    <div className={`nf-admin-kpi${item.icon ? "" : " nf-admin-kpi--bare"}`}>{body}</div>
   );
 }
 

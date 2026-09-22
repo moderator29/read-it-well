@@ -94,7 +94,6 @@ export function OperationsView(props: OperationsProps) {
   const kpis: KpiItem[] = [
     {
       key: "jobs",
-      icon: { tier: "admin", name: "shield-check" },
       label: "Jobs healthy",
       value: jobs ? `${healthy.length} / ${active.length}` : null,
       caption: jobs && active.length > 0 ? `${Math.round((healthy.length / active.length) * 100)}% on schedule` : undefined,
@@ -105,7 +104,6 @@ export function OperationsView(props: OperationsProps) {
     },
     {
       key: "alerts",
-      icon: { tier: "admin", name: "alert-triangle" },
       label: "Active alerts",
       value: props.trend ? formatNumber(props.trend.openNow, locale) : null,
       delta: props.trend ? periodDelta(props.trend.openNow, props.trend.openWeekAgo, { higherIsGood: false }) : null,
@@ -190,7 +188,7 @@ function AlertsBody({
 
 function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
   return (
-    <Panel id="ops-jobs" title="Scheduled jobs" flush>
+    <Panel id="ops-jobs" flush className="nf-admin-panel--table">
       {!jobs ? (
         <div className="nf-admin-panel__pad">
           <PanelUnavailable what="The scheduled job runs" />
